@@ -74,3 +74,49 @@ export function resolveSubscriptionUpdate(
     subscriptionId: sub.id,
   };
 }
+
+export type EventPassPatch = {
+  /** profiles.id — Event Pass is provisioned by user id (client_reference_id). */
+  userId: string;
+  customerId: string;
+  storageCapBytes: number;
+  /** ISO timestamp — when the pass lapses (the expiry sweep downgrades to Free). */
+  tierExpiresAt: string;
+};
+
+/**
+ * Resolve a `checkout.session.completed` event for a ONE-TIME Event Pass purchase into a
+ * profile patch (Pro subscriptions provision from `customer.subscription.*` instead).
+ * Returns null for any other event or a non-Event-Pass session.
+ *
+ * `tierExpiresAt` is derived from the session's `created` time (NOT now()), so a
+ * re-delivered event is idempotent — it rewrites the same expiry instead of extending the
+ * term. `plan` (tiers.ts `event_pass`) supplies the storage cap + term length.
+ */
+export function resolveEventPassCheckout(
+  event: Stripe.Event,
+  plan: Plan,
+): EventPassPatch | null {
+  if (event.type !== "checkout.session.completed") return null;
+  const session = event.data.object as Stripe.Checkout.Session;
+  if (session.metadata?.plan_id !== "event_pass") return null;
+
+  const userId = session.client_reference_id;
+  const customerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : (session.customer?.id ?? null);
+  if (!userId || !customerId) return null;
+
+  const termSeconds = (plan.termDays ?? 365) * 86_400;
+  const tierExpiresAt = new Date(
+    (session.created + termSeconds) * 1000,
+  ).toISOString();
+
+  return {
+    userId,
+    customerId,
+    storageCapBytes: plan.storageBytes,
+    tierExpiresAt,
+  };
+}

@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import type Stripe from "stripe";
 
 import { PLANS, planById, type Plan } from "@/lib/constants/tiers";
-import { resolveSubscriptionUpdate } from "@/lib/stripe/provision";
+import {
+  resolveEventPassCheckout,
+  resolveSubscriptionUpdate,
+} from "@/lib/stripe/provision";
 
 // Minimal fixture builders — resolveSubscriptionUpdate only reads a few fields.
 function subEvent(
@@ -111,5 +114,78 @@ describe("Pro plans ↔ Stripe wiring", () => {
     for (const p of PLANS.filter((x) => x.tier === "pro")) {
       expect(p.stripePriceEnvKey).toBeTruthy();
     }
+  });
+});
+
+// checkout.session.completed fixture — resolveEventPassCheckout reads metadata.plan_id,
+// client_reference_id, customer, and created.
+function checkoutEvent(opts: {
+  planId?: string;
+  userId?: string | null;
+  customer?: string;
+  created?: number;
+}): Stripe.Event {
+  return {
+    type: "checkout.session.completed",
+    data: {
+      object: {
+        client_reference_id: opts.userId === undefined ? "user_1" : opts.userId,
+        customer: opts.customer ?? "cus_1",
+        created: opts.created ?? 1_700_000_000,
+        metadata: opts.planId ? { plan_id: opts.planId } : {},
+      },
+    },
+  } as unknown as Stripe.Event;
+}
+
+describe("resolveEventPassCheckout", () => {
+  const eventPass = planById("event_pass");
+  const term = eventPass.termDays ?? 365;
+
+  it("provisions Event Pass (75 GB) + a term-derived expiry on a one-time purchase", () => {
+    const created = 1_700_000_000;
+    const patch = resolveEventPassCheckout(
+      checkoutEvent({
+        planId: "event_pass",
+        userId: "u1",
+        customer: "cus_x",
+        created,
+      }),
+      eventPass,
+    );
+    expect(patch).toEqual({
+      userId: "u1",
+      customerId: "cus_x",
+      storageCapBytes: eventPass.storageBytes,
+      tierExpiresAt: new Date((created + term * 86_400) * 1000).toISOString(),
+    });
+  });
+
+  it("is idempotent — same session.created → same expiry (no term extension)", () => {
+    const e = checkoutEvent({ planId: "event_pass", created: 1_711_111_111 });
+    expect(resolveEventPassCheckout(e, eventPass)?.tierExpiresAt).toBe(
+      resolveEventPassCheckout(e, eventPass)?.tierExpiresAt,
+    );
+  });
+
+  it("ignores non-Event-Pass checkouts (Pro subscription) and missing user", () => {
+    expect(
+      resolveEventPassCheckout(checkoutEvent({ planId: "pro_500" }), eventPass),
+    ).toBeNull();
+    expect(resolveEventPassCheckout(checkoutEvent({}), eventPass)).toBeNull();
+    expect(
+      resolveEventPassCheckout(
+        checkoutEvent({ planId: "event_pass", userId: null }),
+        eventPass,
+      ),
+    ).toBeNull();
+  });
+
+  it("ignores unrelated event types", () => {
+    const sub = {
+      type: "customer.subscription.created",
+      data: { object: {} },
+    } as unknown as Stripe.Event;
+    expect(resolveEventPassCheckout(sub, eventPass)).toBeNull();
   });
 });

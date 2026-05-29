@@ -102,6 +102,11 @@ export async function GET(request: Request): Promise<Response> {
   } catch (e) {
     sweeps.orphans = { error: String(e) };
   }
+  try {
+    sweeps.expired_passes = await sweepExpiredPasses(admin, now);
+  } catch (e) {
+    sweeps.expired_passes = { error: String(e) };
+  }
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }
@@ -268,6 +273,25 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
     // True if we hit the page cap with more to list — next run continues from the top.
     more_remain: Boolean(token),
   };
+}
+
+/**
+ * Sweep 4 — expired Event Passes. A one-time Event Pass sets `tier_expires_at` (~1 yr);
+ * once it lapses we downgrade to Free. Minimal over-capacity: reset the cap (null → 2 GB
+ * Free default), so new uploads are blocked when over cap but existing media stays
+ * (the full grace + renewal-nudge emails are a fast-follow). storage_used_bytes is left
+ * alone — bytes are only reclaimed if the host later deletes events (the purge sweeps).
+ */
+async function sweepExpiredPasses(admin: AdminClient, now: Date) {
+  const { data, error } = await admin
+    .from("profiles")
+    .update({ tier: "free", storage_cap_bytes: null, tier_expires_at: null })
+    .eq("tier", "event_pass")
+    .not("tier_expires_at", "is", null)
+    .lte("tier_expires_at", now.toISOString())
+    .select("id");
+  if (error) throw new Error(`expire passes: ${error.message}`);
+  return { downgraded: (data ?? []).length };
 }
 
 /** Atomic hard-delete of rows + storage_used_bytes decrement; returns Σ freed bytes. */

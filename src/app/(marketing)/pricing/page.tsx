@@ -150,9 +150,13 @@ export default function PricingPage() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full" variant="outline">
-              <Link href="/login">Buy a pass</Link>
-            </Button>
+            <CheckoutButton
+              planId="event_pass"
+              variant="outline"
+              className="w-full"
+            >
+              Buy a pass
+            </CheckoutButton>
           </CardFooter>
         </Card>
       </div>

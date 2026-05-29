@@ -260,7 +260,16 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   downgrade (`tier=free`, `storage_cap_bytes=null` → 2 GB default). `plans.ts` is
   `server-only` (reads env), so don't import it in Vitest — test `provision.ts` instead.
 - **Price IDs ↔ plans** live in `src/lib/stripe/plans.ts` (env-referenced via
-  `PLANS[].stripePriceEnvKey`), NOT in `tiers.ts` (which stays client-safe/secret-free).
+  `PLANS[].stripePriceEnvKey`; `PRICE_ENV` map), NOT in `tiers.ts` (client-safe/secret-free).
+- **Event Pass (Cut 4c) is a ONE-TIME payment, not a subscription** — checkout uses
+  `mode:"payment"` (chosen from `plan.billing === "one_time"`), so **no
+  `customer.subscription.*` event fires**; it's provisioned from
+  **`checkout.session.completed`** via `session.metadata.plan_id === "event_pass"`
+  (`resolveEventPassCheckout`). `tier_expires_at` is derived from `session.created +
+  termDays` (NOT `now()`) so re-delivered events are idempotent (don't extend the term).
+  `profiles.tier_expires_at` is service-role-write-only (not in the `grant update`
+  allowlist). The **purge cron's 4th sweep** (`sweepExpiredPasses`) downgrades lapsed
+  passes to Free (cap reset → minimal over-capacity; media stays).
 
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when

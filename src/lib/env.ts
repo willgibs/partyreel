@@ -44,6 +44,9 @@ const serverSchema = z.object({
   STRIPE_PRICE_PRO_100: z.string().min(1).optional(),
   STRIPE_PRICE_PRO_500: z.string().min(1).optional(),
   STRIPE_PRICE_PRO_2TB: z.string().min(1).optional(),
+  // Cut 4c — one-time Event Pass price. NOT in assertStripeEnv()'s hard assert (Pro
+  // routes keep working if it's unset); validated lazily by priceIdForPlan.
+  STRIPE_PRICE_EVENT_PASS: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -80,6 +83,7 @@ function parseServer() {
     STRIPE_PRICE_PRO_100: process.env.STRIPE_PRICE_PRO_100,
     STRIPE_PRICE_PRO_500: process.env.STRIPE_PRICE_PRO_500,
     STRIPE_PRICE_PRO_2TB: process.env.STRIPE_PRICE_PRO_2TB,
+    STRIPE_PRICE_EVENT_PASS: process.env.STRIPE_PRICE_EVENT_PASS,
   });
   if (!parsed.success) {
     throw new Error(

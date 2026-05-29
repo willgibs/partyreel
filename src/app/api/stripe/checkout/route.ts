@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { planById } from "@/lib/constants/tiers";
 import { priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -65,12 +66,16 @@ export async function POST(request: Request) {
       .eq("id", user.id);
   }
 
+  // Pro = recurring subscription; Event Pass = one-time payment. The webhook reads
+  // metadata.plan_id to recognize an Event Pass purchase (no subscription fires).
+  const plan = planById(parsed.data.planId);
   const siteUrl = await getSiteUrl();
   const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
+    mode: plan.billing === "one_time" ? "payment" : "subscription",
     customer: customerId,
     line_items: [{ price: priceIdForPlan(parsed.data.planId), quantity: 1 }],
     allow_promotion_codes: true,
+    metadata: { plan_id: parsed.data.planId },
     // client_reference_id is a belt-and-suspenders link the webhook can use to bind
     // the customer to the host (we also already persisted stripe_customer_id above).
     client_reference_id: user.id,

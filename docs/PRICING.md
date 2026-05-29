@@ -194,8 +194,16 @@ or read the secret key):
 
 **Verified in production — test mode (2026-05-29):** a live checkout (Pro 500 GB, card
 `4242 4242 4242 4242`) flipped `tier='pro'` + `storage_cap_bytes=500 GB` via the webhook;
-the portal opened; an immediate `cancel_subscription` downgraded back to Free. Cut 4c adds
-the one-time **Event Pass** price (`STRIPE_PRICE_EVENT_PASS`, checkout mode `payment`).
+the portal opened; an immediate `cancel_subscription` downgraded back to Free.
+
+**Cut 4c — Event Pass (wired, test mode):** one-time price
+`price_1TcUcDPtjqmVkBwkJCypwyVb` ($24, `type: one_time`) → set
+`STRIPE_PRICE_EVENT_PASS` in `.env.local` + Vercel. Checkout uses `mode:"payment"`;
+provisioned from `checkout.session.completed` (`metadata.plan_id="event_pass"`) →
+`tier='event_pass'`, 75 GB, `tier_expires_at = session.created + 365 d`; the purge cron's
+expiry sweep downgrades lapsed passes to Free. No new webhook event (it already listens to
+`checkout.session.completed`) and no portal change. (Live cutover: see "Test → Live" — it
+already lists `_EVENT_PASS`.)
 
 ## Test → Live cutover (reference guide)
 

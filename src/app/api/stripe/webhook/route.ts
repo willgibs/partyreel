@@ -1,8 +1,12 @@
 import type Stripe from "stripe";
 
+import { planById } from "@/lib/constants/tiers";
 import { getStripe } from "@/lib/stripe/client";
 import { planForPriceId } from "@/lib/stripe/plans";
-import { resolveSubscriptionUpdate } from "@/lib/stripe/provision";
+import {
+  resolveEventPassCheckout,
+  resolveSubscriptionUpdate,
+} from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -34,9 +38,31 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  // Belt: bind the Stripe customer to the host on first checkout, in case the
-  // customer was created out-of-band. (checkout normally persists it already.)
   if (event.type === "checkout.session.completed") {
+    // One-time Event Pass purchase → provision tier + cap + expiry here (no
+    // subscription event fires for a one-time payment).
+    const pass = resolveEventPassCheckout(event, planById("event_pass"));
+    if (pass) {
+      const { error } = await admin
+        .from("profiles")
+        .update({
+          tier: "event_pass",
+          storage_cap_bytes: pass.storageCapBytes,
+          tier_expires_at: pass.tierExpiresAt,
+          stripe_customer_id: pass.customerId,
+          stripe_subscription_id: null,
+        })
+        .eq("id", pass.userId);
+      if (error) {
+        return new Response(`Provisioning failed: ${error.message}`, {
+          status: 500,
+        });
+      }
+      return Response.json({ received: true });
+    }
+
+    // Otherwise (Pro subscription checkout) just bind the Stripe customer to the host;
+    // the tier is provisioned from the customer.subscription.* events below.
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.client_reference_id;
     const customerId =

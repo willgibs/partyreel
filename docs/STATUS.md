@@ -4,10 +4,11 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 4 — Payments/tiers, staged in **3 cuts** (see
-[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model) + Cut 4b (Stripe Pro
-subscriptions) are both DONE — verified in production** (2026-05-29). Next: **Cut 4c —
-Event Pass** (one-time price + `tier_expires_at` + expiry sweep).
+**Current phase:** Phase 4 — Payments/tiers (**3 cuts**, see [`ROADMAP.md`](ROADMAP.md)).
+**4a + 4b DONE — verified in production.** **Cut 4c (Event Pass) is code-complete +
+locally verified**; the migration is applied + the one-time price created (test) —
+**pending: set `STRIPE_PRICE_EVENT_PASS`, deploy, live-verify.** After 4c, Phase 4 is
+complete except the fast-follows (full over-capacity retention + renewal-nudge emails).
 **Last shipped:** Cut 4b — Stripe Pro subscriptions, **verified in production**
 (2026-05-29): a live test-mode checkout (Pro 500 GB, card `4242`) drove
 `tier→'pro'` + `storage_cap_bytes→500 GB` + `stripe_subscription_id` via the webhook; the
@@ -133,15 +134,20 @@ unit tests instead.)_
 
 ## Next action
 
-**Build Cut 4c — Event Pass** (4a + 4b are done + verified). Per ROADMAP "Phase 4":
-add a migration for `profiles.tier_expires_at`; create the one-time Event Pass **product +
-price** via the Stripe MCP (test mode — **verify `livemode:false` first**); add
-`STRIPE_PRICE_EVENT_PASS` + extend `assertStripeEnv`/`plans.ts`; checkout `mode:"payment"`
-for the `event_pass` plan; webhook `checkout.session.completed` → `tier='event_pass'`,
-75 GB, `tier_expires_at = now()+365d`; an expiry sweep (extend the purge cron) → downgrade
-expired passes to Free. **Human (dashboard):** add `event_pass` to the webhook events if
-needed + paste `STRIPE_PRICE_EVENT_PASS`. The **full over-capacity retention flow** + Event
-Pass **renewal-nudge emails** remain a **fast-follow**.
+**Finish Cut 4c — Event Pass** (code complete + locally verified: typecheck/lint/format/
+test (64)/build clean; rolled-back expiry-sweep check passed; the test price exists). What's
+left:
+
+1. **Will:** paste **`STRIPE_PRICE_EVENT_PASS=price_1TcUcDPtjqmVkBwkJCypwyVb`** into
+   `.env.local` + **Vercel**. (No new webhook event — `checkout.session.completed` is
+   already subscribed; no portal change.) Commit + deploy the 4c code.
+2. **Live-verify on partyreel.com** (test): `/pricing` → "Buy a pass" → Stripe Checkout
+   (one-time `mode:payment`) → card `4242` → webhook sets `tier='event_pass'`, 75 GB,
+   `tier_expires_at ≈ now+365d` (Supabase MCP); dashboard shows 75 GB + "1 event" + the
+   expiry. Then back-date `tier_expires_at` + invoke the purge cron → downgraded to Free.
+
+After that, Phase 4 is complete except the fast-follows (**full over-capacity retention** +
+Event Pass **renewal-nudge emails**).
 
 ## Blocked on a human ("manual instrument")
 

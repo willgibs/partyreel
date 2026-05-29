@@ -56,6 +56,15 @@ export default async function DashboardPage() {
       : 0;
   // Only hosts who've been through checkout have a Stripe customer to manage.
   const hasBilling = Boolean(profile?.stripe_customer_id);
+  // Event Pass holders see when their pass lapses (then it downgrades to Free).
+  const passExpiry =
+    tier === "event_pass" && profile?.tier_expires_at
+      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : null;
 
   return (
     <div className="space-y-6">
@@ -78,6 +87,11 @@ export default async function DashboardPage() {
             {storageCap ? ` of ${formatBytes(storageCap)}` : " used"}
           </span>
         </div>
+        {passExpiry && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Event Pass · expires {passExpiry}
+          </p>
+        )}
         {storageCap && (
           <>
             <Progress value={storagePct} className="mt-2" />

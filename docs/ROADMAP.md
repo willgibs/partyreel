@@ -180,7 +180,10 @@ Stripe) — **DONE (deployed)**; **4b** Stripe Pro subscriptions (checkout/webho
 — **DONE, verified in production (2026-05-29)**: a live test-mode checkout flipped tier→Pro
 + 500 GB cap via the webhook, the portal opened, and an immediate cancel downgraded back to
 Free. (The MCP created the products/prices but **can't** create webhook endpoints or portal
-configs — those were dashboard tasks.); **4c** Event Pass + minimal expiry. The **full
+configs — those were dashboard tasks.); **4c** Event Pass + minimal expiry —
+**code-complete + locally verified** (one-time price + `tier_expires_at` migration +
+`checkout.session.completed` provisioning + purge-cron expiry sweep); **pending
+`STRIPE_PRICE_EVENT_PASS` env + deploy + live verify.** The **full
 over-capacity retention flow** (30-day grace UI, largest-first auto-reduce, warning emails)
 is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new uploads when over."
 
