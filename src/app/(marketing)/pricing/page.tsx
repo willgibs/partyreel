@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
 
+import { CheckoutButton } from "@/components/app/checkout-button";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -109,18 +110,23 @@ export default function PricingPage() {
           <CardContent className="flex-1">
             <ul className="space-y-2.5 text-sm">
               <Feature>Unlimited events</Feature>
-              {proPlans.map((p) => (
-                <Feature key={p.id}>
-                  {formatBytes(p.storageBytes)} — {p.priceLabel}
-                </Feature>
-              ))}
               <Feature>No watermark</Feature>
+              <Feature>Pick the storage you need:</Feature>
             </ul>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full">
-              <Link href="/login">Go Pro</Link>
-            </Button>
+            {/* The 3 storage options ARE the selector — each starts checkout. */}
+            <div className="grid w-full gap-2">
+              {proPlans.map((p) => (
+                <CheckoutButton
+                  key={p.id}
+                  planId={p.id}
+                  variant={p.id === "pro_500" ? "default" : "outline"}
+                >
+                  {formatBytes(p.storageBytes)} — {p.priceLabel}
+                </CheckoutButton>
+              ))}
+            </div>
           </CardFooter>
         </Card>
 

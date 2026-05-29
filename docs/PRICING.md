@@ -159,17 +159,39 @@ export function friendlyCapacity(bytes: number) {
 }
 ```
 
-## Stripe dashboard setup (guide for Will — TO WRITE in Phase 4)
+## Stripe setup (Cut 4b)
 
-When Phase 4 starts, this section becomes a step-by-step of what to do in the Stripe
-dashboard. It will cover:
+Most of this is **automated via the Stripe MCP** (the agent creates the products, prices,
+webhook endpoint, and Billing Portal config). The human only pastes the env values the
+agent can't set. **Build in TEST mode; re-create in live + swap keys before launch.**
 
-- **Products + Prices** to create: 3 Pro subscription Prices (100 GB / 500 GB / 2 TB)
-  and 1 one-time Event Pass Price — copy each Price ID into the env vars below.
-- **Env vars** to set (`.env.local` + Vercel): `STRIPE_SECRET_KEY`,
-  `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_PRO_100` / `_PRO_500` / `_PRO_2TB` /
-  `_EVENT_PASS`.
-- **Webhook endpoint** to register (the raw-body route) + which events to send.
-- **Billing Portal** configuration (so hosts can manage/cancel).
+**Mode caveat (learned 2026-05-29):** the Stripe MCP connector is bound to one mode by its
+key — there's no per-call mode flag. The first connector was **live** (`create_product`
+returned `livemode:true`), so test-mode automation needs a **test-mode connector/key**.
+Always check the mode before creating resources.
 
-_(Left as a stub on purpose — written when Phase 4 is the active phase.)_
+**Agent creates via MCP (DONE in test mode 2026-05-29):** the 3 Pro products + recurring
+monthly USD prices — Partyreel Pro 100 GB ($9) `price_1TcTbgPtjqmVkBwk7qfplvly`, 500 GB
+($19) `price_1TcTbtPtjqmVkBwkIT8mPznE`, 2 TB ($39) `price_1TcTbwPtjqmVkBwkHQpJuYOr`.
+(Separate products so the storage shows in Checkout + the portal's plan-switcher.) _Note:
+the MCP can NOT create webhook endpoints or portal configs — those are dashboard tasks
+below._
+
+**Human does in the Stripe dashboard (test mode):**
+
+- **Webhook endpoint** (Developers/Workbench → Webhooks) → `https://partyreel.com/api/stripe/webhook`,
+  events: `checkout.session.completed`, `customer.subscription.created` / `.updated` /
+  `.deleted`, `invoice.payment_failed`. Copy the signing secret (`whsec_…`).
+- **Billing Portal** (Settings → Billing → Customer portal): enable payment-method update +
+  subscription cancellation + (optional) plan switching across the 3 Pro products; **Save**.
+
+**Human pastes into `.env.local` + Vercel, then redeploys** (the agent can't set Vercel env
+or read the secret key):
+
+- `STRIPE_SECRET_KEY` — the **test** secret key (Stripe dashboard → API keys; `sk_test_…`).
+- `STRIPE_WEBHOOK_SECRET` — the `whsec_…` from the webhook endpoint above.
+- `STRIPE_PRICE_PRO_100` / `_PRO_500` / `_PRO_2TB` — the 3 price IDs above.
+
+**Verify:** on partyreel.com, upgrade via a Pro CTA → Stripe Checkout → test card
+`4242 4242 4242 4242` → the webhook flips `tier='pro'` + `storage_cap_bytes`. Cut 4c adds
+the one-time **Event Pass** price (`STRIPE_PRICE_EVENT_PASS`, checkout mode `payment`).

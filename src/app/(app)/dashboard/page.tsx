@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
 
 import { CreateEventDialog } from "@/components/app/create-event-dialog";
+import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -53,6 +54,8 @@ export default async function DashboardPage() {
     storageCap && storageCap > 0
       ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
       : 0;
+  // Only hosts who've been through checkout have a Stripe customer to manage.
+  const hasBilling = Boolean(profile?.stripe_customer_id);
 
   return (
     <div className="space-y-6">
@@ -91,6 +94,11 @@ export default async function DashboardPage() {
               </Link>
             </p>
           </>
+        )}
+        {hasBilling && (
+          <div className="mt-3 border-t border-border pt-3">
+            <ManageBillingButton />
+          </div>
         )}
       </div>
 

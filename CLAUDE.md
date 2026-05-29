@@ -83,10 +83,38 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
   `7982310e22cd9430e06c34942acf3b9a`; Phase 2 bucket `partyreel` (ENAM). It does
   **not** create R2 API tokens or set bucket CORS — do those in the R2 dashboard,
   or set CORS via the S3 API (`@aws-sdk/client-s3` `PutBucketCorsCommand`) once creds exist.
+- **Stripe MCP** — Stripe catalog + API ops for Phase 4 billing. Account
+  `acct_1TcStrPtjqmVkBwk` ("Partyreel"). Read: `get_stripe_account_info`,
+  `retrieve_balance`, `search_stripe_resources`, `search_stripe_documentation`,
+  `stripe_api_search` + `stripe_api_details`. Write: `create_product`, `create_price`
+  (+ `create_coupon`, `create_payment_link`, `update_subscription`). The generic
+  `stripe_api_execute` exposes a **LIMITED catalog** (products, prices, coupons, promotion
+  codes, payment links, customers, subscriptions) — it does **NOT** include
+  `webhook_endpoints` or `billing_portal/configurations`, so the **webhook endpoint + the
+  Billing Portal config are created in the Stripe dashboard by the human**, not the MCP.
+  **⚠️ The connector is bound to ONE mode by its key — there is NO per-call mode flag, and
+  the test toggle on connect is easy to miss.** **ALWAYS verify the mode before creating
+  anything** via `retrieve_balance` → `livemode` (or a created object's `livemode`). The
+  first connector was LIVE (created 3 products by mistake → archived); now TEST. See the
+  Stripe-billing workflow + gotchas below.
 - **shadcn MCP** — component registry browse/add (but see the gotcha: the
   radix-nova style has **no `form` item**).
 - **Claude Preview / Chrome MCP** — start the dev server and drive a browser to
   verify UI before calling a task done.
+
+**Stripe billing workflow (Phase 4) — who does what:**
+
+- **The agent (via Stripe MCP) creates products + prices** in **test mode** (verify mode
+  first!). **The human creates the webhook endpoint + Billing Portal config in the Stripe
+  dashboard** — the MCP can't (see above). **Re-create everything in live + swap keys
+  before launch** (test and live data are separate).
+- **The human pastes the env values** the agent can't set: `STRIPE_SECRET_KEY` (Stripe
+  never exposes the secret key via API — copy it from the dashboard), `STRIPE_WEBHOOK_SECRET`
+  (the `whsec_…` from the dashboard webhook endpoint), and `STRIPE_PRICE_PRO_100/_500/_2TB`
+  (the price IDs the agent creates) — into **`.env.local` + Vercel**, then redeploy. (The
+  Vercel MCP does **not** manage env vars; the agent cannot set them.)
+- Checkout/webhook can't run on localhost (same as auth/upload) — **verify on
+  partyreel.com** with Stripe's test card `4242 4242 4242 4242`.
 
 ---
 
@@ -203,8 +231,28 @@ and the R2 PUT is CORS-blocked). Verify auth/upload/gallery flows on the deploye
 site (partyreel.com), not locally — local is fine only for pure UI/render work. (We
 standardized on live testing; localhost was removed from those allow-lists on purpose.)
 
-**Stripe (Phase 4)** — the webhook route MUST read the **raw body**
-(`await req.text()`) for `constructEvent`; `req.json()` breaks the signature.
+**Stripe (Phase 4)**
+
+- **Webhook raw body.** `/api/stripe/webhook` MUST read `await req.text()` for
+  `getStripe().webhooks.constructEvent(body, sig, secret)`; `req.json()` mutates the bytes
+  and the signature check fails. Bad/missing signature → 400. `runtime="nodejs"` +
+  `dynamic="force-dynamic"`.
+- **The webhook is the SOLE writer of `profiles.tier` / `storage_cap_bytes` /
+  `stripe_subscription_id`** — always via the service-role admin client. Never set tier
+  from the client or the checkout route. Checkout only creates/persists
+  `stripe_customer_id` (so subscription events map back: `eq("stripe_customer_id", …)`,
+  fallback `client_reference_id`/`metadata.userId`).
+- **`assertStripeEnv()`** (lazy, request-time; mirrors `assertR2Env`/`assertCronEnv`)
+  asserts all 5 Stripe vars together; `getStripe()` is a memoized lazy client so the app
+  builds without keys. **Pin `apiVersion`** to the installed SDK's bundled version
+  (`stripe@22.2.0` → `"2026-05-27.dahlia"`); bump deliberately on SDK upgrade.
+- **Provisioning logic is a pure fn** (`src/lib/stripe/provision.ts`
+  `resolveSubscriptionUpdate`) — unit-tested with fixtures; returns ABSOLUTE values so
+  re-delivered events are idempotent. `customer.subscription.deleted`/non-active →
+  downgrade (`tier=free`, `storage_cap_bytes=null` → 2 GB default). `plans.ts` is
+  `server-only` (reads env), so don't import it in Vitest — test `provision.ts` instead.
+- **Price IDs ↔ plans** live in `src/lib/stripe/plans.ts` (env-referenced via
+  `PLANS[].stripePriceEnvKey`), NOT in `tiers.ts` (which stays client-safe/secret-free).
 
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when

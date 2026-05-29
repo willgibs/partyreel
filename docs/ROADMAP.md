@@ -176,11 +176,13 @@ table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
 
 **Staged in 3 cuts** (decided with Will 2026-05-29), each verifiable on partyreel.com
 before the next: **4a** storage-cap model rework + tier-gated settings + pricing page (no
-Stripe) — **DONE (built + locally verified; migration live; pending deploy)**; **4b**
-Stripe Pro subscriptions (checkout/webhook/portal) — next; **4c** Event Pass + minimal
-expiry. The **full over-capacity retention flow** (30-day grace UI, largest-first
-auto-reduce, warning emails) is a **fast-follow** — 4b/4c ship only "downgrade sets the
-cap + block new uploads when over."
+Stripe) — **DONE (deployed)**; **4b** Stripe Pro subscriptions (checkout/webhook/portal)
+— **code-complete + locally verified; Stripe test products/prices created via MCP;
+pending the dashboard webhook + Billing Portal setup + the 5 env values before live
+verification** (the MCP can't create webhook endpoints or portal configs — those are
+dashboard tasks); **4c** Event Pass + minimal expiry. The **full
+over-capacity retention flow** (30-day grace UI, largest-first auto-reduce, warning emails)
+is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new uploads when over."
 
 **Tier model to implement (replaces the Phase 0 item-cap model):**
 
@@ -215,21 +217,23 @@ cap + block new uploads when over."
 - [x] **(4a)** **Tier-gated event settings** — `GATED_EVENT_SETTINGS` + `isSettingLocked`
       gate **`require_email`** (locked on Free with an upgrade hint, server-enforced in
       `updateEvent`). The pricing page + a dashboard storage gauge also landed in 4a.
-- [ ] Checkout session (Pro storage tier → subscription price; Event Pass → one-time
-      price, per event) → redirect; plus a Billing Portal link.
-- [ ] **Promo / free-pass codes** — via Stripe **Promotion Codes + coupons** (e.g., a
-      100%-off Event Pass code to seed hosts for free test data); applied at checkout, no
-      separate system. Storage risk stays bounded — the pass expires into the retention
-      flow unless renewed.
-- [ ] **Raw-body** webhook (`await req.text()` before `constructEvent`; verify the
-      signature; set `profiles.tier`/`storage_cap_bytes` via the service-role client;
-      revalidate). The ONLY writer of tier/cap — never the client.
-- [ ] Upgrade prompts at the paywalls (creating a 2nd event; outgrowing event #1's
-      storage) via `withinLimit`.
-- [ ] Over-limit → the retention flow (PRD "Data retention & lifecycle": 30-day in-app
-      grace, largest-first reduction, 60-day recoverable). Ties to billing webhooks.
-- [ ] Tests — webhook → tier/cap update (seeded/rolled-back); `tiers.ts` ↔ SQL parity;
-      storage-cap enforcement in `create_media`.
+- [x] **(4b, code-complete)** Checkout session (Pro storage tier → subscription price) →
+      redirect, plus a Billing Portal link (dashboard "Manage billing"). Event Pass →
+      one-time price is **Cut 4c**. _(Live verify pending the test-mode Stripe connector.)_
+- [x] **(4b)** **Promo / free-pass codes** — `allow_promotion_codes: true` on the Checkout
+      session (no separate system; create coupons/promo codes in Stripe as needed).
+- [x] **(4b, code-complete)** **Raw-body** webhook (`await req.text()` before
+      `constructEvent`; verify signature; set `profiles.tier`/`storage_cap_bytes` via the
+      service-role admin client). The ONLY writer of tier/cap. Pure, unit-tested
+      `resolveSubscriptionUpdate`. _(Live verify pending.)_
+- [x] **(4b)** Upgrade prompts at the paywalls — the at-cap create banner + the dashboard
+      storage gauge link to `/pricing`; the Pro cards start checkout.
+- [ ] Over-limit → the **full** retention flow (PRD: 30-day grace, largest-first reduction,
+      60-day recoverable) — **fast-follow**. 4b ships only the minimal downgrade (cap reset
+      → new uploads blocked when over; existing media stays).
+- [x] **(4a/4b)** Tests — `tiers.ts` ↔ `tier_limits()` parity + storage-cap enforcement in
+      `create_media` (4a, rolled-back); the webhook `resolveSubscriptionUpdate` resolver
+      (4b, Vitest fixtures).
 
 **Gotchas / decisions:** raw body is mandatory (`req.json()` breaks the signature);
 `tiers.ts` and the SQL must stay in lockstep; **drive prices from Stripe Price IDs** so

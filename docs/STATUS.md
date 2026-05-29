@@ -5,9 +5,10 @@
 
 **Updated:** 2026-05-29
 **Current phase:** Phase 4 — Payments/tiers, staged in **3 cuts** (see
-[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model rework) is built + locally
-verified**; its migration is **already applied to the live DB**. Next: **deploy 4a**,
-then build **Cut 4b (Stripe Pro subscriptions)**.
+[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model) is deployed.** **Cut 4b (Stripe
+Pro) is code-complete + locally verified** but **blocked on a test-mode Stripe connector**
+(the current MCP connector is LIVE) + the 5 env values, before live verification. Cut 4c
+(Event Pass) follows.
 **Last shipped:** Phase 3 — Moderation + lifecycle + safety, **verified in production**
 (2026-05-29): moderation approve/hide/unhide/remove + the pending queue; the purge cron
 reclaimed R2 objects + DB rows + `storage_used_bytes` while leaving the monthly ledger
@@ -32,9 +33,24 @@ on Free, server-enforced in `updateEvent`), the dashboard has a **storage gauge*
 `/pricing` renders the GB cards. **Everyone is still Free (2 GB)** until 4b wires Stripe.
 Verified: typecheck/lint/format/test (53)/build clean; rolled-back create_media checks
 (cap+buffer, monthly ingress, `get_upload_context` flags) pass; advisors = the same **6**
-anon RPCs; `/pricing` rendered locally. **⚠️ The migration is live on the DB but the 4a
-code is not yet deployed** — deploy 4a to resync (transient state is safe: all hosts are
-Free with tiny data, and `create_media` stays authoritative).
+anon RPCs; `/pricing` rendered locally. **Committed + deployed** to partyreel.com.
+
+**Cut 4b (Stripe Pro subscriptions)** is **code-complete + locally verified** (typecheck/
+lint/format/test (60)/build clean; `/pricing` renders the 3 Pro checkout buttons). Adds
+the `stripe` SDK; `assertStripeEnv()` + 3 `STRIPE_PRICE_PRO_*` env vars;
+`src/lib/stripe/{client,plans,provision}.ts` (lazy SDK client pinned to apiVersion
+`2026-05-27.dahlia`; price↔plan map; a **pure, unit-tested** `resolveSubscriptionUpdate`);
+the checkout/portal/**raw-body webhook** routes (the webhook is the **sole writer** of
+`tier`/`storage_cap_bytes` via the admin client, idempotent); pricing CTAs → checkout +
+a dashboard **Manage billing** button. **Stripe test resources created via MCP
+(2026-05-29):** 3 Pro products + recurring prices — `price_1TcTbgPtjqmVkBwk7qfplvly`
+(100 GB/$9), `price_1TcTbtPtjqmVkBwkIT8mPznE` (500 GB/$19), `price_1TcTbwPtjqmVkBwkHQpJuYOr`
+(2 TB/$39). **Remaining before live verification (human, in the Stripe dashboard — the MCP
+can't do these):** create the **webhook endpoint** (→ `/api/stripe/webhook`) + configure
+the **Billing Portal**, then paste the 5 env values (`STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO_100/_500/_2TB`) into `.env.local` + Vercel +
+redeploy. _(The connector was initially LIVE — 3 products created by mistake then archived,
+nothing chargeable; now confirmed TEST via `retrieve_balance`.)_
 
 ## What exists now
 
@@ -116,17 +132,23 @@ unit tests instead.)_
 
 ## Next action
 
-1. **Deploy Cut 4a** to partyreel.com (the migration is already live — this resyncs the
-   app to the new DB), then run a quick live check: a Free host sees the dashboard storage
-   gauge (X of 2 GB), the `require_email` toggle is locked with an upgrade hint, and
-   `/pricing` shows the GB cards.
-2. **Build Cut 4b — Stripe Pro subscriptions** (see [`ROADMAP.md`](ROADMAP.md) "Phase 4").
-   Add the `stripe` Node SDK + `assertStripeEnv()`, `src/lib/stripe/{client,plans}.ts`,
-   and wire the checkout/portal/**raw-body webhook** (the sole writer of
-   `profiles.tier`/`storage_cap_bytes`, via the admin client). Human prereqs (Stripe Pro
-   products/prices + env vars + webhook endpoint + Billing Portal) are under "Blocked on a
-   human" below. **Start with the standing Context7 doc-check** on the current `stripe`
-   Node SDK + Next 16 raw-body route handlers. Cut 4c (Event Pass) follows.
+**Finish Cut 4b — the Stripe dashboard steps** (4b code is complete + locally verified;
+the 3 Pro products + prices are created in test mode):
+
+1. **Will, in the Stripe TEST dashboard:** (a) create the **webhook endpoint** →
+   `https://partyreel.com/api/stripe/webhook`, events `checkout.session.completed` +
+   `customer.subscription.created`/`.updated`/`.deleted` + `invoice.payment_failed`; copy
+   its `whsec_…`. (b) **Configure the Billing Portal** (Settings → Billing → Customer
+   portal): payment-method update + cancellation + plan switching across the 3 Pro
+   products; Save. (The MCP can't create these two.)
+2. **Will pastes 5 env values** into `.env.local` + **Vercel** + redeploys:
+   `STRIPE_SECRET_KEY` (test `sk_test_…`), `STRIPE_WEBHOOK_SECRET` (the `whsec_`), and the
+   3 price IDs `STRIPE_PRICE_PRO_100=price_1TcTbgPtjqmVkBwk7qfplvly` /
+   `_500=price_1TcTbtPtjqmVkBwkIT8mPznE` / `_2TB=price_1TcTbwPtjqmVkBwkHQpJuYOr`.
+3. **Live-verify on partyreel.com** (test card `4242 4242 4242 4242`): upgrade → webhook
+   flips `tier='pro'` + `storage_cap_bytes`; the gauge updates; **Manage billing** opens
+   the portal; cancel → downgrade to Free; a bad-signature webhook is rejected.
+4. Then **Cut 4c — Event Pass** (one-time price + `tier_expires_at` + expiry sweep).
 
 ## Blocked on a human ("manual instrument")
 
@@ -146,10 +168,12 @@ unit tests instead.)_
 
 **Upcoming (Phase 4):**
 
-- **Stripe keys** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) + the 4 Price IDs
-  (`STRIPE_PRICE_PRO_100` / `_500` / `_2TB` / `_EVENT_PASS`) + products/prices + webhook
-  endpoint registration + Billing Portal config — see [`PRICING.md`](PRICING.md) "Stripe
-  dashboard setup".
+- **Stripe (Cut 4b/4c):** the agent **creates products + prices via the Stripe MCP** (done,
+  test mode) — but the MCP can't create the **webhook endpoint** or the **Billing Portal
+  config**, so the human does those two **in the Stripe dashboard** and **pastes the env
+  values** (the agent can't set Vercel env or read the secret key): `STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO_100/_500/_2TB` (4b) + `_EVENT_PASS` (4c) into
+  `.env.local` + Vercel. See [`PRICING.md`](PRICING.md) "Stripe setup".
 - **Supabase CLI** not installed locally; migrations are applied via the Supabase
   MCP. For `pnpm db:types` / `db:push`, install the CLI and
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.

@@ -37,9 +37,13 @@ const serverSchema = z.object({
   // Vercel Cron shared secret (Phase 3 purge sweeper). Vercel auto-sends it as
   // `Authorization: Bearer $CRON_SECRET` when invoking the cron; the route verifies it.
   CRON_SECRET: z.string().min(1).optional(),
-  // Stripe (Phase 4).
+  // Stripe (Phase 4). Keys + the Pro Price IDs (one per storage option). All
+  // `.optional()` so the app builds without them; assertStripeEnv() asserts at request time.
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_100: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_500: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_2TB: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -73,6 +77,9 @@ function parseServer() {
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_PRO_100: process.env.STRIPE_PRICE_PRO_100,
+    STRIPE_PRICE_PRO_500: process.env.STRIPE_PRICE_PRO_500,
+    STRIPE_PRICE_PRO_2TB: process.env.STRIPE_PRICE_PRO_2TB,
   });
   if (!parsed.success) {
     throw new Error(
@@ -137,4 +144,48 @@ export function assertCronEnv(): { CRON_SECRET: string } {
     );
   }
   return { CRON_SECRET };
+}
+
+/**
+ * Assert the Stripe vars are present and return them as required strings. Call at
+ * REQUEST time (the Stripe routes) — they stay `.optional()` so the app builds/
+ * deploys before the keys are set. Asserts all five together (key + webhook secret +
+ * the 3 Pro Price IDs) so a partial config fails loudly rather than half-working;
+ * they're set together (see PRICING.md "Stripe setup"). The webhook is the SOLE
+ * writer of profiles.tier — a missing secret here means it can't verify Stripe's
+ * signature, so failing closed is correct.
+ */
+export function assertStripeEnv(): {
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_PRICE_PRO_100: string;
+  STRIPE_PRICE_PRO_500: string;
+  STRIPE_PRICE_PRO_2TB: string;
+} {
+  const {
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_PRO_100,
+    STRIPE_PRICE_PRO_500,
+    STRIPE_PRICE_PRO_2TB,
+  } = serverEnv;
+  if (
+    !STRIPE_SECRET_KEY ||
+    !STRIPE_WEBHOOK_SECRET ||
+    !STRIPE_PRICE_PRO_100 ||
+    !STRIPE_PRICE_PRO_500 ||
+    !STRIPE_PRICE_PRO_2TB
+  ) {
+    throw new Error(
+      "Stripe is not configured. Set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and " +
+        "STRIPE_PRICE_PRO_100 / _500 / _2TB (see docs/PRICING.md 'Stripe setup').",
+    );
+  }
+  return {
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_PRO_100,
+    STRIPE_PRICE_PRO_500,
+    STRIPE_PRICE_PRO_2TB,
+  };
 }
