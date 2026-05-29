@@ -85,17 +85,21 @@ partyreel.com. **Decide the soft-delete retention window first** (open question 
 
 ## Open questions (deferred, decide before relevant phase)
 
-- **Tier specifics** (Phase 4): the storage model is **decided** (total storage caps;
-  **Free + Pro with a storage selector + per-event Event Pass**; no watermarks;
-  monthly ingress meter — see PRD "Monetization"). Still to set: the exact GB tiers
-  and prices, and the free-tier feature gates (candidates: limited QR management, some
-  gated event settings). The `tiers.ts` / `tier_limits()` / `create_media` rework
-  happens in Phase 4 — `tiers.ts` still encodes the old item-cap model until then.
-- **Safety scanning** (before public launch): NSFW = host-optional toggle; CSAM =
-  reliably prevented (legal floor; Cloudflare's CSAM Scanning Tool is a candidate
-  since media is on R2). Needs a focused legal + cost/tooling pass; a legal-MVP is OK
-  at launch, and fuller CSAM coverage may slip to v2 only if not legally required for
-  the closely-monitored early rollout.
+- **Tier specifics** (Phase 4): storage model and **prices LOCKED** (2026-05-29) — Free
+  2 GB; Pro 100 GB $9/mo, 500 GB $19/mo, 2 TB $39/mo; Event Pass 75 GB $24 one-time
+  (~1 yr, ~$15/yr renewal); no watermarks; monthly ingress meter. `require_email` is the
+  first tier-gated toggle. Full table + shaped target `tiers.ts` + Stripe setup guide:
+  [`PRICING.md`](PRICING.md). The `tiers.ts` / `tier_limits()` / `create_media` rework
+  and consumer updates land in Phase 4 — `tiers.ts` still encodes the old item-cap model
+  until then.
+- **Safety** (before public launch): **v1 = CSAM legal-floor MVP only** —
+  report/takedown, NCMEC CyberTipline reporting, and an internal flag for human review;
+  never auto-shutdown. **No NSFW filtering.** **No scanner vendor locked in** — a
+  data-privacy + legal review (what we may scan/store, and how) precedes picking a
+  proactive upload-time tool; that, plus Cloudflare's free tool being CDN-cache-only
+  (won't see private R2), pushes proactive hash-scanning to **v2+**. Real legal review
+  before public marketing. (Protected events — an optional per-event passphrase — is the
+  planned host privacy control instead.)
 - **Retention schema** (Phase 3/4): one `purge_at` timer vs. a second timestamp for the
   two-stage (30d grace → 60d hidden) window. Impl detail; policy itself is decided
   (PRD "Data retention & lifecycle", incl. the 6-month free-inactivity trigger).

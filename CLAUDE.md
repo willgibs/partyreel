@@ -265,7 +265,7 @@ Partyreel uses magic-link/OAuth, not passwords.
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.
 - **Keep the knowledge docs current as you learn.** This file, `docs/STATUS.md`,
-  `docs/ROADMAP.md`, and the ADRs are living — when you hit a new gotcha, finish
+  `docs/ROADMAP.md`, `docs/PRICING.md`, and the ADRs are living — when you hit a new gotcha, finish
   a phase, or change an approach, update them in the same change. Advance STATUS
   to the new "you are here" and tick ROADMAP boxes as work lands; a future agent
   (or future you) should be able to trust them. (STATUS/ROADMAP upkeep applies

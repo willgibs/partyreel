@@ -54,7 +54,8 @@ cloud storage (model decided 2026-05-29 — the per-event item-cap model is repl
 Phase 4). Canonical numbers live in
 [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts), mirrored for
 enforcement in the `tier_limits()` SQL fn — but `tiers.ts` still encodes the OLD
-item-cap model until the Phase 4 rework lands. The model:
+item-cap model until the Phase 4 rework lands. Full tier table, the shaped target
+`tiers.ts`, and the Stripe setup guide live in [`PRICING.md`](PRICING.md). The model:
 
 - **Total storage caps, not item counts.** A tier is defined by total stored bytes
   (`profiles.storage_used_bytes` vs a cap), not photo/video counts — simpler to reason
@@ -132,17 +133,23 @@ to billing (Phase 4).
   host before they're public). It's the host's per-event choice and gates _visibility_,
   not _safety_. (Uploads happen only while `accepting_uploads` is true — a separate
   switch.)
-- **CSAM filtering is foundational (v1).** Every upload is scanned for known CSAM
-  (regardless of moderation mode) via **Cloudflare's CSAM Scanning Tool** (free, and
-  we're already on Cloudflare/R2 — verify it covers our private R2 / presigned setup
-  and wire accordingly). A match must **never auto-shut-down an account** (a false
-  positive can't nuke a legitimate user): it raises an **internal flag for human
-  review** and an **abuse-report path** (e.g., NCMEC) — we actively report, not
-  silently filter. Built as the **extensible root** of the filter system.
-- **No NSFW filter in v1.** Lawful adult content is allowed on Cloudflare and can share
-  the normal R2 bucket, so we won't stand up a separate provider/bucket to sort it (too
-  resource-intensive for now). The v1 rule is simply **filter CSAM, otherwise allow the
-  upload**; a host-optional NSFW toggle can come later if warranted.
+- **CSAM — legal-floor MVP at launch; stronger filtering on the v2+ docket.** Note
+  (researched 2026-05-29): Cloudflare's free CSAM tool is CDN-cache-only and does
+  **not** cover our private R2 objects. We're **not locking in a scanner yet** — a
+  data-privacy and legal review (what users upload, what we're permitted to scan, and
+  how) comes first, then we pick the best tool (PhotoDNA Cloud Service is one
+  candidate). **v1 ships the legal floor:** a clear report/takedown flow, an NCMEC
+  CyberTipline reporting workflow, and an **internal account flag for human review** on
+  any reported or suspected match — never an auto-shutdown (a false positive can't nuke
+  a legit user). Proactive hash-scanning at upload is **v2+**, built as the extensible
+  root of the filter system. (Real legal review before public marketing.)
+- **No NSFW filtering.** Skipped on purpose — costly (especially video) for little
+  early benefit, and lawful adult content is fine on Cloudflare/R2 anyway. Hosts manage
+  their event instead with the **review flow** above and **protected events** below.
+- **Protected events (planned).** An optional per-event **passphrase** a guest enters
+  to upload and/or view — and it should be _fun_, not a wifi-password hunt (accept emoji
+  or short phrases, not just strong passwords). Needs a schema field (a hashed event
+  secret), RPC/guest-flow changes, and settings UI; slot into Phase 3 or a fast-follow.
 
 ## Platform constraints / principles
 

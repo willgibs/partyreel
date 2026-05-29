@@ -3,7 +3,8 @@
 Canonical "what's next." Phases ship in order; each builds on the last.
 [`STATUS.md`](STATUS.md) is the live "you are here" (current phase + what's blocked
 on a human); this file is the per-phase plan; [`PRD.md`](PRD.md) is the product
-"why"; [`adr/`](adr/) holds the binding decisions.
+"why"; [`PRICING.md`](PRICING.md) holds the tier/pricing detail; [`adr/`](adr/) holds
+the binding decisions.
 
 ## Picking up a phase
 
@@ -100,10 +101,14 @@ a slot and reclaims storage. Plus the foundational **CSAM safety scan** on uploa
       `deleted_at IS NOT NULL AND purge_at <= now()`, delete their R2 objects + rows;
       also sweep **orphaned R2 objects** (uploaded but no `media` row — the accepted
       Phase-2 race). Add the schedule to `vercel.json`.
-- [ ] **Safety: CSAM scan on upload** (Cloudflare CSAM Scanning Tool). On a match,
-      raise an **internal account flag for human review** plus an NCMEC report path —
-      do NOT auto-shutdown (a false positive can't nuke a legit user). Build as the
-      extensible root of the filter system; **no NSFW filter in v1** (PRD "Safety &
+- [ ] **Safety: CSAM legal-floor MVP** (PRD "Safety & moderation") — a report/takedown
+      flow, an NCMEC CyberTipline reporting workflow, and an internal account flag for
+      human review; never auto-shutdown. **No scanner vendor locked in** and **no NSFW
+      filter**. Proactive upload hash-scanning (tool TBD after a data-privacy/legal
+      review) is on the **v2+ docket**, built as the extensible filter root.
+- [ ] **Protected events (optional, can fast-follow)** — a per-event passphrase
+      (emoji / short phrase OK) gating guest upload and/or view. Needs a schema field (a
+      hashed event secret), RPC/guest-flow changes, and a settings toggle (PRD "Safety &
       moderation").
 - [ ] Tests — RPC/mutation contract (status transitions; remove recounts caps
       correctly; purge respects `purge_at`) via a rolled-back Supabase-MCP check.
@@ -130,11 +135,10 @@ a slot and reclaims storage. Plus the foundational **CSAM safety scan** on uploa
   upload (the bucket's abort-incomplete-multipart rule is a separate mechanism).
 - `CRON_SECRET` is a **new env var** (Vercel) + a Vercel Cron entry (daily is a sane
   default) — flag it in STATUS "blocked on a human."
-- **CSAM tool prereqs:** enabling Cloudflare's CSAM Scanning Tool and the NCMEC
-  reporting registration is a human/config step. **Verify the tool covers private R2
-  objects** — it was built for content served through Cloudflare's CDN, and our bucket
-  is private/presigned, so confirm the integration path (a hash-matching API at
-  upload time may be the fallback).
+- **CSAM prereqs (human):** for the v1 MVP, register for **NCMEC CyberTipline**
+  reporting and do a **data-privacy + legal review** of what we may scan/store. A
+  proactive scanner is a v2+ decision after that review (Cloudflare's free tool is
+  CDN-cache-only and won't see private R2; PhotoDNA is one candidate).
 - Never expose raw R2 keys; the purge runs server-side over `events/{id}/` prefixes.
 
 **Done when:** approve/hide/remove + the queue work on partyreel.com; CSAM scanning
@@ -145,7 +149,8 @@ with no orphans left; tests pass; STATUS/ROADMAP updated.
 
 **Goal.** Turn on monetization on the **storage-cap model** (decided 2026-05-29 — see
 PRD "Monetization & anti-abuse"): hosts upgrade via Stripe; the webhook is the single
-source of truth for `profiles.tier`; caps are total storage, not item counts.
+source of truth for `profiles.tier`; caps are total storage, not item counts. Full
+table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
 
 **Tier model to implement (replaces the Phase 0 item-cap model):**
 
@@ -225,3 +230,17 @@ a branded share page + "make your own" CTA.
 **Open decisions (resolve before building):** branded share-page spec (cover image /
 title / `og:image`); analytics stack; SEO scope (meta/sitemap); onboarding polish.
 Needs a spec first.
+
+## Later / v2+ docket (post-v1)
+
+Not part of the v1 roadmap — parked here so it isn't lost:
+
+- **Proactive CSAM filtering** — choose and integrate an upload-time hash-matching tool
+  after the data-privacy/legal review (PhotoDNA is a candidate). v1 ships only the
+  legal-floor MVP (Phase 3).
+- **AI support-recovery** — triage "I lost my media" emails, match sender →
+  account/event, auto-send a time-boxed download link (PRD "Data retention").
+- **NSFW filtering** — only if a real need emerges; host-opt-in, image moderation on
+  photos and sampled video keyframes to keep cost down.
+- **Growth badge** — the clean "make your own" badge design for shared albums (adjacent
+  to Phase 6).
