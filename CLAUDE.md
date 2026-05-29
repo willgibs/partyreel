@@ -115,6 +115,14 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
   Vercel MCP does **not** manage env vars; the agent cannot set them.)
 - Checkout/webhook can't run on localhost (same as auth/upload) — **verify on
   partyreel.com** with Stripe's test card `4242 4242 4242 4242`.
+- **Verification limits (learned 2026-05-29):** the Chrome MCP **blocks interaction on
+  Stripe-hosted pages** (`checkout.stripe.com`, `billing.stripe.com`) — "Cannot access this
+  page" — so the actual card entry / Subscribe click must be **human-driven**; the agent can
+  drive everything up to the redirect, then verify the result via the **Supabase MCP**
+  (read `profiles.tier`/`storage_cap_bytes`). To exercise the **downgrade** webhook
+  (`customer.subscription.deleted` → Free) without waiting for period-end, use the Stripe
+  MCP `cancel_subscription` (immediate cancel) — then re-check the profile. (Verified the
+  full upgrade→Pro and cancel→downgrade loop this way.)
 
 ---
 

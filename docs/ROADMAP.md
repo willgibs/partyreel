@@ -177,10 +177,10 @@ table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
 **Staged in 3 cuts** (decided with Will 2026-05-29), each verifiable on partyreel.com
 before the next: **4a** storage-cap model rework + tier-gated settings + pricing page (no
 Stripe) — **DONE (deployed)**; **4b** Stripe Pro subscriptions (checkout/webhook/portal)
-— **code-complete + locally verified; Stripe test products/prices created via MCP;
-pending the dashboard webhook + Billing Portal setup + the 5 env values before live
-verification** (the MCP can't create webhook endpoints or portal configs — those are
-dashboard tasks); **4c** Event Pass + minimal expiry. The **full
+— **DONE, verified in production (2026-05-29)**: a live test-mode checkout flipped tier→Pro
++ 500 GB cap via the webhook, the portal opened, and an immediate cancel downgraded back to
+Free. (The MCP created the products/prices but **can't** create webhook endpoints or portal
+configs — those were dashboard tasks.); **4c** Event Pass + minimal expiry. The **full
 over-capacity retention flow** (30-day grace UI, largest-first auto-reduce, warning emails)
 is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new uploads when over."
 
@@ -217,15 +217,15 @@ is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new upl
 - [x] **(4a)** **Tier-gated event settings** — `GATED_EVENT_SETTINGS` + `isSettingLocked`
       gate **`require_email`** (locked on Free with an upgrade hint, server-enforced in
       `updateEvent`). The pricing page + a dashboard storage gauge also landed in 4a.
-- [x] **(4b, code-complete)** Checkout session (Pro storage tier → subscription price) →
-      redirect, plus a Billing Portal link (dashboard "Manage billing"). Event Pass →
-      one-time price is **Cut 4c**. _(Live verify pending the test-mode Stripe connector.)_
+- [x] **(4b)** Checkout session (Pro storage tier → subscription price) → redirect, plus a
+      Billing Portal link (dashboard "Manage billing"). Event Pass → one-time price is
+      **Cut 4c**. _(Verified live 2026-05-29: checkout + portal both confirmed.)_
 - [x] **(4b)** **Promo / free-pass codes** — `allow_promotion_codes: true` on the Checkout
       session (no separate system; create coupons/promo codes in Stripe as needed).
-- [x] **(4b, code-complete)** **Raw-body** webhook (`await req.text()` before
-      `constructEvent`; verify signature; set `profiles.tier`/`storage_cap_bytes` via the
-      service-role admin client). The ONLY writer of tier/cap. Pure, unit-tested
-      `resolveSubscriptionUpdate`. _(Live verify pending.)_
+- [x] **(4b)** **Raw-body** webhook (`await req.text()` before `constructEvent`; verify
+      signature; set `profiles.tier`/`storage_cap_bytes` via the service-role admin client).
+      The ONLY writer of tier/cap. Pure, unit-tested `resolveSubscriptionUpdate`. _(Verified
+      live 2026-05-29: upgrade→Pro + cancel→downgrade both confirmed via the Supabase MCP.)_
 - [x] **(4b)** Upgrade prompts at the paywalls — the at-cap create banner + the dashboard
       storage gauge link to `/pricing`; the Pro cards start checkout.
 - [ ] Over-limit → the **full** retention flow (PRD: 30-day grace, largest-first reduction,

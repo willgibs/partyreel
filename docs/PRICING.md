@@ -192,6 +192,47 @@ or read the secret key):
 - `STRIPE_WEBHOOK_SECRET` — the `whsec_…` from the webhook endpoint above.
 - `STRIPE_PRICE_PRO_100` / `_PRO_500` / `_PRO_2TB` — the 3 price IDs above.
 
-**Verify:** on partyreel.com, upgrade via a Pro CTA → Stripe Checkout → test card
-`4242 4242 4242 4242` → the webhook flips `tier='pro'` + `storage_cap_bytes`. Cut 4c adds
+**Verified in production — test mode (2026-05-29):** a live checkout (Pro 500 GB, card
+`4242 4242 4242 4242`) flipped `tier='pro'` + `storage_cap_bytes=500 GB` via the webhook;
+the portal opened; an immediate `cancel_subscription` downgraded back to Free. Cut 4c adds
 the one-time **Event Pass** price (`STRIPE_PRICE_EVENT_PASS`, checkout mode `payment`).
+
+## Test → Live cutover (reference guide)
+
+**The code needs ZERO changes to go live** — keys, the webhook secret, and the Price IDs
+are all env-referenced (`STRIPE_*`), the `apiVersion` pin is mode-independent, and URLs come
+from `getSiteUrl()`. Going live is purely: **re-create the Stripe resources in LIVE mode +
+swap the env values.** Test and live are fully separate in Stripe — products, prices,
+webhook endpoints, portal config, coupons, and API keys all exist **independently per
+mode**, so NONE of the test-mode setup carries over.
+
+**Prerequisite:** activate the Stripe account for live payments (business details + bank
+account) — live mode is inert until the account is activated.
+
+**Steps (repeat the test-mode setup, but in LIVE):**
+
+1. **Switch to live mode.** Point the Stripe MCP connector at a **live** key (or use the
+   dashboard in live mode). **Verify first:** `retrieve_balance` → `livemode:true` (or a
+   created object's `livemode`). _(The connector has no per-call mode flag — wrong mode =
+   resources in the wrong place; this bit us once.)_
+2. **Re-create the 3 Pro products + recurring prices in LIVE** (Stripe MCP `create_product`
+   + `create_price`, or the dashboard): 100 GB $9/mo, 500 GB $19/mo, 2 TB $39/mo. Capture
+   the new **live** `price_…` IDs (they differ from the test IDs above). _(Cut 4c: also the
+   one-time Event Pass price.)_
+3. **Create the webhook endpoint in LIVE** (dashboard → Webhooks, live mode) →
+   `https://partyreel.com/api/stripe/webhook`, events `checkout.session.completed` +
+   `customer.subscription.created`/`.updated`/`.deleted` + `invoice.payment_failed`. Copy
+   the **live** signing secret (`whsec_…`). _(MCP can't create webhook endpoints.)_
+4. **Configure the Billing Portal in LIVE** (Settings → Billing → Customer portal, live
+   mode): payment-method update + cancellation + plan switching across the 3 **live** Pro
+   products; Save. _(Per-mode — the test portal config does NOT carry over; MCP can't do
+   this.)_
+5. **Swap the env values** in `.env.local` + **Vercel** → redeploy: `STRIPE_SECRET_KEY` =
+   `sk_live_…`, `STRIPE_WEBHOOK_SECRET` = the **live** `whsec_…`, and
+   `STRIPE_PRICE_PRO_100/_500/_2TB` (+ `_EVENT_PASS`) = the **live** price IDs.
+6. **Smoke-test carefully — real cards charge real money.** Do one real upgrade with a real
+   card, confirm `tier='pro'` (Supabase MCP), then cancel/refund. The flow itself is already
+   proven in test mode (identical code), so this is just a keys/resources sanity check.
+
+**Rollback:** revert the 5 env values to the test ones in Vercel + redeploy. (Live Stripe
+data persists but is unused while keys are test.)

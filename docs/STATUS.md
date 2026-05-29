@@ -5,14 +5,15 @@
 
 **Updated:** 2026-05-29
 **Current phase:** Phase 4 — Payments/tiers, staged in **3 cuts** (see
-[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model) is deployed.** **Cut 4b (Stripe
-Pro) is code-complete + locally verified** but **blocked on a test-mode Stripe connector**
-(the current MCP connector is LIVE) + the 5 env values, before live verification. Cut 4c
-(Event Pass) follows.
-**Last shipped:** Phase 3 — Moderation + lifecycle + safety, **verified in production**
-(2026-05-29): moderation approve/hide/unhide/remove + the pending queue; the purge cron
-reclaimed R2 objects + DB rows + `storage_used_bytes` while leaving the monthly ledger
-untouched; report → `/admin` review with dismiss + action both working (no auto-hide).
+[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model) + Cut 4b (Stripe Pro
+subscriptions) are both DONE — verified in production** (2026-05-29). Next: **Cut 4c —
+Event Pass** (one-time price + `tier_expires_at` + expiry sweep).
+**Last shipped:** Cut 4b — Stripe Pro subscriptions, **verified in production**
+(2026-05-29): a live test-mode checkout (Pro 500 GB, card `4242`) drove
+`tier→'pro'` + `storage_cap_bytes→500 GB` + `stripe_subscription_id` via the webhook; the
+dashboard showed "Unlimited events" + "0 B of 500 GB"; Manage billing opened the portal;
+an immediate subscription cancel downgraded back to Free (cap null, sub null, customer
+retained). Webhook rejects bad signatures.
 
 Phases 1–3 are **verified in production**. Phase 3 shipped code-complete (committed
 `734133d`, deployed to partyreel.com) with both human prereqs done (`CRON_SECRET` in
@@ -45,12 +46,12 @@ the checkout/portal/**raw-body webhook** routes (the webhook is the **sole write
 a dashboard **Manage billing** button. **Stripe test resources created via MCP
 (2026-05-29):** 3 Pro products + recurring prices — `price_1TcTbgPtjqmVkBwk7qfplvly`
 (100 GB/$9), `price_1TcTbtPtjqmVkBwkIT8mPznE` (500 GB/$19), `price_1TcTbwPtjqmVkBwkHQpJuYOr`
-(2 TB/$39). **Remaining before live verification (human, in the Stripe dashboard — the MCP
-can't do these):** create the **webhook endpoint** (→ `/api/stripe/webhook`) + configure
-the **Billing Portal**, then paste the 5 env values (`STRIPE_SECRET_KEY`,
-`STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO_100/_500/_2TB`) into `.env.local` + Vercel +
-redeploy. _(The connector was initially LIVE — 3 products created by mistake then archived,
-nothing chargeable; now confirmed TEST via `retrieve_balance`.)_
+(2 TB/$39). The webhook endpoint + Billing Portal were configured in the Stripe dashboard
+(the MCP can't create those), and the 5 env values are set in `.env.local` + Vercel.
+**VERIFIED in production 2026-05-29** (see "Last shipped" — upgrade→Pro, portal, immediate
+cancel→downgrade, bad-signature reject all confirmed live; webhook provisioning checked via
+the Supabase MCP). _(Connector was initially LIVE — 3 products created by mistake then
+archived, nothing chargeable; now TEST.)_
 
 ## What exists now
 
@@ -132,23 +133,15 @@ unit tests instead.)_
 
 ## Next action
 
-**Finish Cut 4b — the Stripe dashboard steps** (4b code is complete + locally verified;
-the 3 Pro products + prices are created in test mode):
-
-1. **Will, in the Stripe TEST dashboard:** (a) create the **webhook endpoint** →
-   `https://partyreel.com/api/stripe/webhook`, events `checkout.session.completed` +
-   `customer.subscription.created`/`.updated`/`.deleted` + `invoice.payment_failed`; copy
-   its `whsec_…`. (b) **Configure the Billing Portal** (Settings → Billing → Customer
-   portal): payment-method update + cancellation + plan switching across the 3 Pro
-   products; Save. (The MCP can't create these two.)
-2. **Will pastes 5 env values** into `.env.local` + **Vercel** + redeploys:
-   `STRIPE_SECRET_KEY` (test `sk_test_…`), `STRIPE_WEBHOOK_SECRET` (the `whsec_`), and the
-   3 price IDs `STRIPE_PRICE_PRO_100=price_1TcTbgPtjqmVkBwk7qfplvly` /
-   `_500=price_1TcTbtPtjqmVkBwkIT8mPznE` / `_2TB=price_1TcTbwPtjqmVkBwkHQpJuYOr`.
-3. **Live-verify on partyreel.com** (test card `4242 4242 4242 4242`): upgrade → webhook
-   flips `tier='pro'` + `storage_cap_bytes`; the gauge updates; **Manage billing** opens
-   the portal; cancel → downgrade to Free; a bad-signature webhook is rejected.
-4. Then **Cut 4c — Event Pass** (one-time price + `tier_expires_at` + expiry sweep).
+**Build Cut 4c — Event Pass** (4a + 4b are done + verified). Per ROADMAP "Phase 4":
+add a migration for `profiles.tier_expires_at`; create the one-time Event Pass **product +
+price** via the Stripe MCP (test mode — **verify `livemode:false` first**); add
+`STRIPE_PRICE_EVENT_PASS` + extend `assertStripeEnv`/`plans.ts`; checkout `mode:"payment"`
+for the `event_pass` plan; webhook `checkout.session.completed` → `tier='event_pass'`,
+75 GB, `tier_expires_at = now()+365d`; an expiry sweep (extend the purge cron) → downgrade
+expired passes to Free. **Human (dashboard):** add `event_pass` to the webhook events if
+needed + paste `STRIPE_PRICE_EVENT_PASS`. The **full over-capacity retention flow** + Event
+Pass **renewal-nudge emails** remain a **fast-follow**.
 
 ## Blocked on a human ("manual instrument")
 
@@ -168,12 +161,14 @@ the 3 Pro products + prices are created in test mode):
 
 **Upcoming (Phase 4):**
 
-- **Stripe (Cut 4b/4c):** the agent **creates products + prices via the Stripe MCP** (done,
-  test mode) — but the MCP can't create the **webhook endpoint** or the **Billing Portal
-  config**, so the human does those two **in the Stripe dashboard** and **pastes the env
-  values** (the agent can't set Vercel env or read the secret key): `STRIPE_SECRET_KEY`,
-  `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO_100/_500/_2TB` (4b) + `_EVENT_PASS` (4c) into
-  `.env.local` + Vercel. See [`PRICING.md`](PRICING.md) "Stripe setup".
+- **Stripe (Cut 4b): DONE in test mode + verified** — products/prices (MCP) + webhook +
+  portal (dashboard) + the 5 env vars are all set. The division: the MCP creates
+  products/prices; the human does the **webhook endpoint** + **Billing Portal** (dashboard)
+  and pastes the env values (the agent can't set Vercel env or read the secret key). Cut 4c
+  adds the Event Pass price + `STRIPE_PRICE_EVENT_PASS`.
+- **Before launch — go live (test → live):** re-create the Stripe resources in LIVE + swap
+  the 5 env values to `sk_live_…`/live `whsec_`/live price IDs (the code needs no changes).
+  Full checklist: [`PRICING.md`](PRICING.md) "Test → Live cutover".
 - **Supabase CLI** not installed locally; migrations are applied via the Supabase
   MCP. For `pnpm db:types` / `db:push`, install the CLI and
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.
