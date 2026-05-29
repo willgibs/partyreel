@@ -1,6 +1,6 @@
 # Partyreel — Product Requirements (v1)
 
-_Last meaningful update: 2026-05-28 (Phase 0 foundation)._
+_Last meaningful update: 2026-05-29 (core loop live through Phase 2; added build-phase map)._
 
 ## Vision
 
@@ -37,6 +37,15 @@ success metric: a host creates a _second_ event.**
 5. **Reel** _(scaffold only in v1)_ — a highlight reel is stitched from the best
    clips. The schema supports it (`highlight_reels`, media reel fields); no
    processing ships in v1.
+
+## Where this maps in the build
+
+The [roadmap](ROADMAP.md) ships the loop in order — **Phase 1** host auth + create ·
+**Phase 2** guest join + upload (steps 1–2, the core loop) · **Phase 3** curate +
+lifecycle (step 3) · **Phase 4** payments/tiers · **Phase 5** the highlight reel
+(step 5) · **Phase 6** growth/polish (the step-4 share CTA). ROADMAP carries the
+per-phase execution detail and the "how to pick up a phase" loop;
+[STATUS.md](STATUS.md) is the live "you are here."
 
 ## Monetization & anti-abuse (the WHY behind the schema)
 

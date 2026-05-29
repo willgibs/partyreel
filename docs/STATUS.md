@@ -4,20 +4,22 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 2 — Guest join + upload (code complete; the browser→R2
-round-trip is blocked on human R2 setup — see below)
-**Next phase:** Phase 3 — Moderation + lifecycle
+**Current phase:** Phase 3 — Moderation + lifecycle (next up — not started)
+**Last shipped:** Phase 2 — Guest join + upload, **verified in production** (a photo
+and a >100 MB video, uploaded from a mobile QR, both landed in the host gallery).
 
-Phase 1 is verified in production (magic-link + Google both reach the dashboard;
-a created event's QR opens the guest page). Canonical domain is now
-**partyreel.com** (`NEXT_PUBLIC_SITE_URL=https://partyreel.com`).
+Phases 1 & 2 are verified in production. Canonical domain is **partyreel.com**
+(`NEXT_PUBLIC_SITE_URL=https://partyreel.com`); R2 (bucket `partyreel`) is provisioned
+with CORS (`ExposeHeaders: ETag`) + an abort-incomplete-multipart lifecycle rule. To
+start Phase 3, read its entry in [`ROADMAP.md`](ROADMAP.md) and the "Picking up a
+phase" playbook there.
 
 ## What exists now
 
 The full guest core loop is built: scan QR → join (no account) → upload photos/
 videos → host sees them live + public album renders. `pnpm typecheck`, `lint`,
 `format:check`, `test` (34 unit tests), and `build` are all clean (17 routes).
-This phase:
+Phase 2 shipped:
 
 - **Guest join + upload UI** (`src/app/(guest)/e/[token]`, `src/components/guest/*`):
   join form (per-event required fields) → a client upload orchestrator that
@@ -39,38 +41,34 @@ This phase:
   threw `integer out of range` on _every_ call — `2 * 1024 * 1024 * 1024` overflows
   int4 during DECLARE init. Fixed with `2::bigint`. Caught by the new RPC-contract test.
 
-**Verified:** typecheck/lint/format/test/build clean. DB contract via Supabase MCP
-(rolled-back txn, zero pollution): `get_upload_context` shape correct; `create_media`
-records with the right status + rejects cross-event keys; `get_public_album` returns
-a proper structure; `get_advisors` = the expected 5 RPC WARNs. The guest join page
-renders and hydrates cleanly against the live test event. **Not yet verified** (needs
-R2 below): the actual browser→R2 upload, gallery/album image rendering, and cap behavior.
+**Verified:** typecheck/lint/format/test/build clean; 34 unit tests pass. DB contract
+via Supabase MCP (rolled-back txn, zero pollution): `get_upload_context` shape correct;
+`create_media` records with the right status + rejects cross-event keys;
+`get_public_album` returns a proper structure; `get_advisors` = the expected 5 RPC
+WARNs. **End-to-end in production:** a photo (single PUT) and a >100 MB video
+(multipart) uploaded from a mobile QR both landed in the host gallery.
 
 ## Next action
 
-**Provision R2 (human, below), then run the upload round-trip** on partyreel.com:
-scan an event QR → join → upload a photo (single PUT) and a >100 MB video (multipart);
-confirm the object lands, a `media` row appears with the right status, and both
-galleries render. Then start Phase 3 (moderation: approve/hide/remove + the
-hold-for-approval queue; the purge cron incl. orphaned-R2-object cleanup). Run the
-per-phase Context7 doc check first.
+**Start Phase 3 — Moderation + lifecycle:** approve/hide/remove + the
+hold-for-approval queue, the soft-delete→purge lifecycle, and the orphaned-R2-object
+sweep. Open its entry in [`ROADMAP.md`](ROADMAP.md) (wired-vs-build, gotchas,
+done-criteria) and follow the "Picking up a phase" loop there — Context7 doc-check
+first, build, test (Vitest + rolled-back Supabase-MCP RPC check), then verify on
+partyreel.com. **Decide the soft-delete retention window first** (open question below)
+— `purge_at` depends on it.
 
 ## Blocked on a human ("manual instrument")
 
-**To finish Phase 2 verification:**
+**Done:** R2 bucket `partyreel` + creds (`.env.local` + Vercel), R2 CORS
+(`ExposeHeaders: ETag`), the abort-incomplete-multipart lifecycle rule, and the apex
+`partyreel.com` primary domain are all set.
 
-- **Cloudflare R2:** create a **private** bucket; set `R2_ACCOUNT_ID`,
-  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` in `.env.local` **and** Vercel.
-- **R2 bucket CORS:** allow `PUT, POST, GET, HEAD` + the `content-type` request
-  header, and **`ExposeHeaders: ["ETag"]`** (multipart completion reads per-part
-  ETags from the browser — without this it silently fails).
-- **R2 lifecycle rule:** abort incomplete multipart uploads after ~1 day.
-- **Vercel domains (optional polish):** make `partyreel.com` the primary so `www`
-  redirects to it (today the apex 307s to `www`), for hop-free QR scans.
+**Upcoming:**
 
-**For later phases:**
-
-- **Stripe keys** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) — Phase 4.
+- **`CRON_SECRET`** (Vercel env) + a Vercel Cron entry — Phase 3 purge sweeper.
+- **Stripe keys** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) + products/prices +
+  webhook registration — Phase 4.
 - **Supabase CLI** not installed locally; migrations are applied via the Supabase
   MCP. For `pnpm db:types` / `db:push`, install the CLI and
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.
@@ -87,6 +85,9 @@ per-phase Context7 doc check first.
 
 ## Open questions (deferred, decide before relevant phase)
 
+- **Soft-delete retention window** (Phase 3): how long media survives after
+  `deleted_at` before the purge cron hard-deletes it. Undecided — the Phase 0
+  `/api/cron/purge` stub suggests ~90 days; confirm before wiring the purge.
 - NSFW / safety scanning service (Rekognition vs Vision SafeSearch vs OSS) —
   before public launch.
 - Transcoding pipeline + video poster/thumbnails — Phase 5 (`preview_key` is null

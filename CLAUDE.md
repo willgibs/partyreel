@@ -134,6 +134,14 @@ multipart uploads. **Wired** in `src/lib/r2/{client,presign}.ts` — that config
 load-bearing, don't remove it. R2 vars stay `.optional()` in `env.ts`; `assertR2Env()`
 asserts them lazily at request time so the app still builds without creds.
 
+**Local dev vs. live testing** — auth and uploads are wired for **partyreel.com
+only**. `localhost:3000` is deliberately NOT in Supabase's redirect allow-list, the
+R2 bucket CORS origins, or `NEXT_PUBLIC_SITE_URL` — so `pnpm dev` renders UI but
+**cannot complete sign-in or an upload** (the OAuth/magic-link redirect is rejected
+and the R2 PUT is CORS-blocked). Verify auth/upload/gallery flows on the deployed
+site (partyreel.com), not locally — local is fine only for pure UI/render work. (We
+standardized on live testing; localhost was removed from those allow-lists on purpose.)
+
 **Stripe (Phase 4)** — the webhook route MUST read the **raw body**
 (`await req.text()`) for `constructEvent`; `req.json()` breaks the signature.
 
@@ -260,7 +268,15 @@ Partyreel uses magic-link/OAuth, not passwords.
   `docs/ROADMAP.md`, and the ADRs are living — when you hit a new gotcha, finish
   a phase, or change an approach, update them in the same change. Advance STATUS
   to the new "you are here" and tick ROADMAP boxes as work lands; a future agent
-  (or future you) should be able to trust them.
+  (or future you) should be able to trust them. (STATUS/ROADMAP upkeep applies
+  while the phased roadmap is active; once it's done the project shifts to one-off
+  tasks and those two can leave the rotation — this file stays the any-task guide.)
+- **Test data integrity as you build.** Each phase ships tests for the data it
+  touches: Vitest unit tests for pure logic (`pnpm test`) **plus** a rolled-back
+  Supabase-MCP RPC contract check for the SQL the phase exercises (run the RPCs
+  inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists — see
+  [`docs/ROADMAP.md`](docs/ROADMAP.md) "Picking up a phase"). This net caught the
+  `create_media` int4 overflow in Phase 2 before any real upload was attempted.
 - Prefer editing existing files; reuse the design-system primitives in
   `src/components/ui` and shared composites in `src/components/shared`.
 - shadcn UI components (`src/components/ui/*`) are authored **without
