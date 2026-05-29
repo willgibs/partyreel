@@ -83,6 +83,53 @@ export async function createGuest(input: {
   };
 }
 
+// ─── capture_guest_email ─────────────────────────────────────────────────────
+
+export type CaptureGuestEmailResult =
+  | { ok: true }
+  | {
+      ok: false;
+      code: "invalid_session" | "invalid_email" | "unknown";
+      message: string;
+    };
+
+export async function captureGuestEmail(input: {
+  sessionToken: string;
+  email: string;
+  newsletterOptIn?: boolean;
+}): Promise<CaptureGuestEmailResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("capture_guest_email", {
+    p_session_token: input.sessionToken,
+    p_email: input.email,
+    p_newsletter_opt_in: input.newsletterOptIn ?? false,
+  });
+
+  if (error) {
+    if (error.code === NO_DATA_FOUND) {
+      return {
+        ok: false,
+        code: "invalid_session",
+        message: "Your session has expired. Refresh and rejoin.",
+      };
+    }
+    if (error.code === CHECK_VIOLATION) {
+      return {
+        ok: false,
+        code: "invalid_email",
+        message: "Enter a valid email.",
+      };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your email. Please try again.",
+    };
+  }
+
+  return { ok: true };
+}
+
 // ─── get_upload_context ──────────────────────────────────────────────────────
 
 export type UploadContext =

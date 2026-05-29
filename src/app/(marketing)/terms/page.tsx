@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/shared/container";
 
-export const metadata: Metadata = { title: "Terms of Service" };
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "The terms for hosting events and collecting guest media on Partyreel, including plan limits and data retention.",
+  alternates: { canonical: "/terms" },
+};
 
 // Legal stub. Replace with real terms before public launch.
 export default function TermsPage() {

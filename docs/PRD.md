@@ -39,7 +39,11 @@ additive `event_members` table adds the rest._
    queue (`hold_for_approval`). The host can hide/remove, lock uploads, and
    toggle public visibility.
 4. **Share** — the host shares the public album (`/a/[token]`, approved media
-   only). Each share surface carries a "make your own" CTA → growth loop.
+   only). Each share surface carries a "make your own" CTA → growth loop, and shared
+   links unfurl with a branded, per-event preview card (but stay `noindex` — the share
+   token is a private capability). After a guest's first upload, a soft, one-time prompt
+   invites them to leave an email (so the host can share the album) with an optional
+   newsletter opt-in — feeding the guest → future-host loop. (Phase 6.)
 5. **Reel** _(scaffold only in v1)_ — a highlight reel is stitched from the best
    clips. The schema supports it (`highlight_reels`, media reel fields); no
    processing ships in v1.

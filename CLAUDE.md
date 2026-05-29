@@ -312,6 +312,31 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   allowlist). The **purge cron's 4th sweep** (`sweepExpiredPasses`) downgrades lapsed
   passes to Free (cap reset → minimal over-capacity; media stays).
 
+**Phase 6 — growth loop (SEO + share metadata + guest email capture)**
+
+- **SEO/metadata infra** lives in `src/app/`: `metadataBase` is set in the root
+  [layout.tsx](src/app/layout.tsx) (`env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com"`) —
+  WITHOUT it Next errors on relative OG URLs. OG images are **code-generated via `next/og`**
+  (`opengraph-image.tsx` site-wide + `(guest)/a/[token]/opengraph-image.tsx` per-event with
+  the event name) — no font loaded (the built-in font dodges the Next-16 satori font gotcha).
+  `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes.
+- **Share pages emit OG tags but `robots: { index: false }`** — `/a/[token]` + `/e/[token]`
+  set `generateMetadata` (event name/description + per-event OG) so links unfurl in chat, but
+  the opaque share/qr token must NEVER be indexed (OG-for-social ≠ search-indexing). `robots.ts`
+  also disallows `/a/`,`/e/`,`/dashboard`,`/admin`,`/login`,`/auth`,`/api/`. The guest queries
+  (`getPublicAlbum`/`getEventByQrToken`) are wrapped in React `cache()` so generateMetadata +
+  the page + the OG image share one RPC per request.
+- **Guest email capture** (post-upload growth prompt) — a soft, one-time, dismissible card in
+  [upload-client.tsx](src/components/guest/upload-client.tsx) (shown when `doneCount>0` and the
+  event didn't already require an email; localStorage gate `pr_email_prompt_${qrToken}` via the
+  same `useSyncExternalStore` pattern as the session). Writes via the **`capture_guest_email`**
+  SECURITY DEFINER RPC (7th anon capability-token RPC; session_token is the auth): sets
+  `guests.email` only if null, and on opt-in upserts the **durable `newsletter_signups` table**
+  (RLS deny-all, like `reports`/`sent_emails`). `newsletter_signups` is standalone (NOT a
+  `guests` column) so the marketing list survives event/guest deletion (`event_id` is `on
+  delete set null`). **Deferred:** the automatic "email the album link" send (would reuse
+  `sendOnce`) — capture only for now.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force
@@ -394,10 +419,11 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` flags the 6 capability-token RPCs as ACCEPTED BY DESIGN — do not
+**`get_advisors` flags the 7 capability-token RPCs as ACCEPTED BY DESIGN — do not
 "fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
-`create_guest`, `create_media`, `get_upload_context` (Phase 2), and `create_report`
-(Phase 3) as SECURITY DEFINER functions executable by `anon` (and `authenticated`).
+`create_guest`, `create_media`, `get_upload_context` (Phase 2), `create_report`
+(Phase 3), and `capture_guest_email` (Phase 6 — guest email capture) as SECURITY
+DEFINER functions executable by `anon` (and `authenticated`).
 That is intentional: the opaque token IS the authorization (ADR-0004). Revoking
 their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only
 functions were locked down in migration `…_lock_down_trigger_functions` — those are

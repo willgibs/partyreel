@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Clapperboard, QrCode, UploadCloud } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+
+// Home keeps the default "Partyreel" title (no template) but gets its own
+// description + canonical for SEO; the share card inherits these via the root.
+export const metadata: Metadata = {
+  description:
+    "Partyreel collects every photo and video from your event. Guests scan a QR code and upload from their phones — no app, no account. Create an event free.",
+  alternates: { canonical: "/" },
+};
 
 const STEPS = [
   {

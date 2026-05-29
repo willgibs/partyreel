@@ -8,6 +8,8 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { Database } from "@/lib/db/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,16 +38,20 @@ export type AlbumResult =
   | { ok: true; data: PublicAlbum }
   | { ok: false; code: "not_found" };
 
-export async function getPublicAlbum(shareToken: string): Promise<AlbumResult> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_public_album", {
-    p_share_token: shareToken,
-  });
-  if (error) throw error;
+// cache() dedupes within a request so generateMetadata + the page render (+ the
+// per-event opengraph-image) share ONE get_public_album RPC call per share token.
+export const getPublicAlbum = cache(
+  async (shareToken: string): Promise<AlbumResult> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_album", {
+      p_share_token: shareToken,
+    });
+    if (error) throw error;
 
-  // The RPC returns null for a missing / private / deleted album.
-  if (!data) return { ok: false, code: "not_found" };
+    // The RPC returns null for a missing / private / deleted album.
+    if (!data) return { ok: false, code: "not_found" };
 
-  // jsonb -> typed shape (the RPC builds exactly { event, media }).
-  return { ok: true, data: data as unknown as PublicAlbum };
-}
+    // jsonb -> typed shape (the RPC builds exactly { event, media }).
+    return { ok: true, data: data as unknown as PublicAlbum };
+  },
+);

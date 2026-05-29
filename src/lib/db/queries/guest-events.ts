@@ -6,6 +6,8 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { Database } from "@/lib/db/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,7 +27,9 @@ export type GuestEventResult =
   | { ok: true; data: GuestEvent }
   | { ok: false; code: "not_found" };
 
-export async function getEventByQrToken(
+// cache() dedupes within a request so generateMetadata + the page render share
+// ONE get_event_by_qr_token RPC call per qr token.
+export const getEventByQrToken = cache(async function getEventByQrToken(
   qrToken: string,
 ): Promise<GuestEventResult> {
   const supabase = await createClient();
@@ -54,4 +58,4 @@ export async function getEventByQrToken(
       event_date: row.event_date ?? null,
     },
   };
-}
+});

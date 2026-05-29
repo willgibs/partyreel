@@ -227,6 +227,41 @@ export type Database = {
           },
         ]
       }
+      newsletter_signups: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string | null
+          id: string
+          opted_in_at: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id?: string | null
+          id?: string
+          opted_in_at?: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string | null
+          id?: string
+          opted_in_at?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_signups_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -416,6 +451,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      capture_guest_email: {
+        Args: {
+          p_email: string
+          p_newsletter_opt_in?: boolean
+          p_session_token: string
+        }
+        Returns: Json
+      }
       create_guest: {
         Args: { p_display_name?: string; p_email?: string; p_qr_token: string }
         Returns: Json

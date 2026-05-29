@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { env } from "@/lib/env";
 
 // Font CSS variables must match the names referenced in globals.css `@theme`
 // (--font-sans / --font-mono). Renaming one side without the other silently
@@ -18,13 +19,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// metadataBase makes the file-based opengraph-image + relative metadata URLs
+// resolve to absolute (Next errors on relative OG URLs without it). Falls back to
+// the prod origin so the build is correct even when NEXT_PUBLIC_SITE_URL is unset.
+// openGraph/twitter omit title/description on purpose — Next inherits the resolved
+// `title` (incl. the "%s · Partyreel" template) and `description` per route, so a
+// child page's title flows into its share card automatically.
 export const metadata: Metadata = {
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com"),
   title: {
     default: "Partyreel",
     template: "%s · Partyreel",
   },
   description:
     "Collect every photo and video from your event. Guests scan a QR code and upload in seconds — no app, no account.",
+  openGraph: {
+    type: "website",
+    siteName: "Partyreel",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

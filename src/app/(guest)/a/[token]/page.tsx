@@ -1,11 +1,43 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MediaGrid } from "@/components/app/media-grid";
+import { MakeYourOwn } from "@/components/guest/make-your-own";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { Logo } from "@/components/shared/logo";
 import { getPublicAlbum } from "@/lib/db/queries/album";
 import { presignDownload } from "@/lib/r2/presign";
 import { formatEventDate } from "@/lib/utils";
+
+// Share links unfurl nicely (OG title/description + the per-event opengraph-image
+// in this folder), but the share_token is an opaque capability — `robots noindex`
+// keeps the semi-private album out of search results.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const result = await getPublicAlbum(token);
+  if (!result.ok) return { title: "Album", robots: { index: false } };
+
+  const { event } = result.data;
+  const description =
+    event.description ?? `Photos and videos from ${event.name}.`;
+  return {
+    title: event.name,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title: event.name,
+      description,
+      url: `/a/${token}`,
+      type: "website",
+    },
+    twitter: { card: "summary_large_image", title: event.name, description },
+  };
+}
 
 // PUBLIC album view (read-only, approved media only). get_public_album returns R2
 // object KEYS — every key is turned into a short-lived signed URL server-side
@@ -39,7 +71,9 @@ export default async function PublicAlbumPage({
     <div className="flex min-h-full flex-1 flex-col bg-gallery text-gallery-foreground">
       <div className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         <header className="mb-8 flex flex-col items-center gap-2 text-center">
-          <Logo />
+          <Link href="/" aria-label="Partyreel home">
+            <Logo />
+          </Link>
           <h1 className="text-2xl font-semibold tracking-tight">
             {event.name}
           </h1>
@@ -63,8 +97,10 @@ export default async function PublicAlbumPage({
           </p>
         )}
 
-        {/* Discreet, anonymous report path — share_token is the capability. */}
-        <footer className="mt-10 flex justify-center border-t border-white/10 pt-6">
+        {/* Growth badge (guest → future host) + the discreet anonymous report
+            path (share_token is the capability). */}
+        <footer className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-6 sm:flex-row sm:justify-between">
+          <MakeYourOwn variant="dark" />
           <ReportDialog shareToken={token} />
         </footer>
       </div>

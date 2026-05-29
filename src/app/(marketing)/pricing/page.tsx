@@ -25,7 +25,12 @@ import {
 } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Simple storage-based pricing. Start free with one event, upgrade to Pro for more storage, or buy a one-time Event Pass — no per-guest fees.",
+  alternates: { canonical: "/pricing" },
+};
 
 // Derived from the universal limits so the copy can never drift from what the
 // uploader actually enforces (see lib/media/limits.ts).

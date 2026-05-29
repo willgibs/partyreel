@@ -262,7 +262,16 @@ upgrade/cancel, Event Pass purchase/expiry, and the storage-cap enforcement all 
 live. The full over-capacity **retention flow** (grace + auto-reduce + emails) is the
 fast-follow below, not a Phase-4 blocker.
 
-## ⬜ Phase 5 — Highlight reel (scaffold → real)
+## ⏸️ Phase 5 — Highlight reel (scaffold → real) — TABLED pending product research
+
+> **Deliberately deferred (2026-05-29).** The reel defines what the product *outputs*, so
+> it's a one-way door that shouldn't be rushed. The central open fork (researched, awaiting a
+> decision): **where the transcode/stitch worker runs** — a **managed video-editing API**
+> (e.g. Shotstack, ~$0.20–0.40/rendered min, fastest to ship) vs. **self-hosted ffmpeg on
+> Cloudflare Containers** (GA Apr 2026; same account as R2 = zero egress; cheapest at scale,
+> most to build). Also open: trigger (on-demand vs. auto), clip-selection algorithm (start
+> simple/heuristic), output format + poster, and any tier-gating (the PRD's no-watermark stance
+> steers away from a reel watermark). Resume with a short product + architecture spec.
 
 **Goal.** Stitch a highlight reel from the best clips (core-loop step 5).
 
@@ -277,14 +286,31 @@ format + poster/`preview_key` generation; tiered download + watermarking. Needs 
 short product + architecture spec first. The **"Generate reel" entry point** appears in
 the host gallery when this ships — no placeholder beforehand.
 
-## ⬜ Phase 6 — Growth / polish
+## 🔨 Phase 6 — Growth / polish (in progress)
 
 **Goal.** Amplify the growth loop (guest → future host) and polish the host experience.
+Built as focused cuts; the **growth-loop cut shipped first** (decided with Will 2026-05-29)
+as the highest-leverage subset for the north-star.
 
-**Already wired:** the public album (`/a/[token]`) + guest surfaces are the homes for a
-branded share page + "make your own" CTA.
+**Already wired:** the public album (`/a/[token]`) + guest surfaces; the Resend `sendOnce`
+email guard; the capability-token RPC + `anon`-grant pattern.
 
-**Candidate scope (each needs its own spec):**
+**✅ Growth-loop cut (code-complete + locally verified; pending commit + deploy + live verify):**
+
+- [x] **Branded share pages + growth badge** — a `MakeYourOwn` "make your own Partyreel" CTA
+      on the public album footer + the post-upload success state, and the album logo links
+      home. Brand color used only as the small mark (punctuation).
+- [x] **Marketing SEO + share metadata** — `metadataBase` + default OG/twitter in the root
+      layout; code-generated OG images (`next/og`: site-wide + per-event album card with the
+      event name); a branded `icon.svg`; `sitemap.ts` + `robots.ts` (marketing only); marketing
+      page descriptions; and `generateMetadata` on `/a/[token]` + `/e/[token]` so links unfurl
+      — but with **`robots noindex`** (opaque token surfaces must not be search-indexed).
+- [x] **Guest email capture** — a soft, one-time, dismissible post-upload prompt
+      (localStorage-gated) → the `capture_guest_email` RPC sets `guests.email` (if null) +
+      upserts a durable `newsletter_signups` list on opt-in. **Deferred:** the automatic
+      album-link email send (capture-only for now).
+
+**Remaining candidates (each its own later cut, each needs its own spec):**
 
 - **Onboarding + create wizard** — a multi-step new-host onboarding, and a streamlined
   create flow (details → QR design → share); all settings stay editable from the event
@@ -293,16 +319,10 @@ branded share page + "make your own" CTA.
   wedding-rounded) so hosts never leave for an external stylizer. Reachable BOTH from the
   create wizard AND from the QR on any event page. (Rounded/dot styles likely need a
   richer lib than `qrcode.react`, e.g. `qr-code-styling`.)
-- **Guest email capture** — after a not-logged-in guest's first successful upload, a
-  one-time soft prompt to leave an email for the gallery link (phrased as a maybe, in
-  case the host keeps it private), with a subtle newsletter opt-in. Feeds the guest →
-  host loop.
 - **Notification / alert center** — a badge by the avatar aggregating alerts (uploads,
   over-capacity/retention warnings, billing, pass expiry). Critical alerts already go by
   email in earlier phases; this is the in-app aggregator.
 - **Link analytics** — scan/view activity on QR and share links.
-- **Branded share pages + growth badge** — the "make your own" badge/CTA design on shared
-  albums, plus marketing SEO (meta / `og:image` / sitemap).
 
 ## Later / v2+ docket (post-v1)
 

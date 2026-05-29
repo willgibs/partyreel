@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { JoinThenUpload } from "@/components/guest/join-then-upload";
@@ -6,6 +7,28 @@ import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 
 // Event state (accepting_uploads, etc.) is read per request via the qr_token RPC.
 export const dynamic = "force-dynamic";
+
+// The qr_token is an opaque capability — noindex (don't index join links), but
+// still emit OG so a pasted link previews. Inherits the site-wide opengraph-image.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const result = await getEventByQrToken(token);
+  if (!result.ok) return { title: "Join event", robots: { index: false } };
+
+  const title = `Add photos to ${result.data.name}`;
+  const description = `Add your photos and videos to ${result.data.name} — no app, no account, just your phone.`;
+  return {
+    title,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: { title, description, url: `/e/${token}`, type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 // Guest JOIN + upload entry point — a scanned QR lands here. The opaque qr_token
 // IS the capability (ADR-0004); we resolve the event through the RPC and never

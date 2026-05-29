@@ -74,6 +74,7 @@ export function JoinThenUpload({
   return (
     <UploadClient
       event={event}
+      qrToken={qrToken}
       sessionToken={sessionToken}
       onReset={() => setSessionToken(null)}
     />

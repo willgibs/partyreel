@@ -4,19 +4,23 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 4 is complete; the **fast-follows** are **code-complete +
-locally verified** (Resend email foundation, over-capacity retention with auto-reduce,
-Event Pass renewal, **and the free-tier 6-month inactivity removal**). **Pending: Resend
-setup (key + domain) + `STRIPE_PRICE_EVENT_PASS_RENEWAL` env + `EMAIL_FROM` + deploy +
-live verify.** Then Phase 5 (highlight reel) / Phase 6 (growth).
-**Last shipped:** Cut 4c — Event Pass (one-time), **verified in production** (2026-05-29):
-a live test-mode "Buy a pass" → one-time Stripe Checkout (`mode:payment`, card `4242`) →
-`checkout.session.completed` webhook set `tier='event_pass'` + 75 GB + `tier_expires_at`
-(365 d out, no subscription); the dashboard showed "0 of 1 event", "0 B of 75 GB", and
-"Event Pass · expires May 29, 2027". Back-dating the expiry + the purge cron's
-`expired_passes` sweep (`downgraded: 1`) downgraded it to Free (cap null, expiry null,
-customer retained). (Cut 4b — Pro subscriptions — verified the same day: upgrade→Pro,
-portal, cancel→downgrade, bad-signature reject.)
+**Current phase:** Phase 4 + the fast-follows + the free-tier 6-month inactivity removal
+are **committed + deployed**. Now on **Phase 6 (growth/polish), growth-loop cut** —
+**code-complete + locally verified**: branded share pages + a "make your own" growth badge,
+marketing SEO (metadataBase/OG images/sitemap/robots + per-event share unfurls), and guest
+email capture (post-upload prompt → `guests.email` + a durable `newsletter_signups` list).
+**Pending: commit + deploy + live-verify the guest email-capture flow.** **Phase 5
+(highlight reel) is deliberately TABLED** pending product research (it defines the core
+output, so it shouldn't be rushed). Remaining Phase-6 candidates (onboarding/create wizard,
+QR designer, notification center, link analytics) are later cuts.
+**Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
+auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
+deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
+(needs `EMAIL_FROM` set + seeded test data). Earlier the same day: Cut 4c (Event Pass,
+one-time `mode:payment` → `checkout.session.completed` → `tier='event_pass'` + 75 GB +
+`tier_expires_at`; `expired_passes` sweep downgrades a lapsed pass) and Cut 4b (Pro
+subscriptions: upgrade→Pro, portal, cancel→downgrade, bad-signature reject) — both verified
+in production.
 
 Phases 1–3 are **verified in production**. Phase 3 shipped code-complete (committed
 `734133d`, deployed to partyreel.com) with both human prereqs done (`CRON_SECRET` in
@@ -136,26 +140,30 @@ unit tests instead.)_
 
 ## Next action
 
-**Ship the fast-follows + inactivity removal** (all code-complete + locally verified:
-typecheck/lint/format/**test (72)**/build clean; rolled-back `sent_emails` dedupe +
-`selectForAutoReduce` + `inactivityAction` checks; all migrations applied to prod). What's
-left:
+**Ship the Phase-6 growth-loop cut** (code-complete + locally verified: typecheck/lint/
+format/**test (75)**/build clean; the `newsletter_signups` migration applied to prod + a
+rolled-back `capture_guest_email` RPC check; advisors show the expected new
+`newsletter_signups` deny-all INFO + `capture_guest_email` anon WARN; types regenerated).
+Verified locally via the preview: `/opengraph-image` + the per-event `/a/[token]` OG card
+render (branded), `/sitemap.xml` + `/robots.txt` correct, the share pages carry OG tags +
+`robots noindex`, and the album shows the "make your own" growth badge + linkified logo.
+What's left:
 
-1. **Will — env (mostly done):** `RESEND_API_KEY` + `STRIPE_PRICE_EVENT_PASS_RENEWAL`
-   (`price_1TcVuOPtjqmVkBwkTCXTKOIs`, $15 test) are **already in Vercel**. Remaining: set
-   **`EMAIL_FROM`** — confirmed format **`Partyreel <noreply@partyreel.com>`** (RFC-5322
-   display-name; **no quotes in the Vercel value**; address on the verified `partyreel.com`
-   domain). No new var for inactivity.
-2. **Commit + deploy** the uncommitted fast-follow + inactivity code (Will commits/deploys).
-3. **Live-verify (partyreel.com, test):** (a) a test email send arrives + a second trigger
-   doesn't resend (`sent_emails`); (b) seed/downgrade the test account over a small cap →
-   run the cron → grace banner + grace email; back-date `storage_grace_until` → run the cron
-   → largest-first auto-reduce (Supabase MCP) + reduced email; (c) seed an `event_pass` near
-   expiry → run the cron → nudge email; the dashboard "Renew Event Pass" → $15 checkout →
-   `tier_expires_at` reset; (d) **inactivity** — seed a free event with a back-dated
-   `last_active_at` (and no recent media) → run the cron → the `inactive_free_events` sweep
-   emits a warn (≤14 d out) then a remove (≥180 d) with the warning/removed emails, and the
-   removed event soft-deletes into the recoverable tail.
+1. **Commit + deploy** the growth-loop code (Will commits/deploys). No new env var or human
+   prereq (uses the existing `NEXT_PUBLIC_SITE_URL` + Resend config).
+2. **Live-verify (partyreel.com):** (a) **email capture** — scan an event QR → upload one
+   file → the one-time prompt appears → submit email (+opt-in) → confirm `guests.email` set +
+   a `newsletter_signups` row (Supabase MCP) → re-upload as the same guest → the prompt does
+   NOT reappear; (b) **share unfurl** — paste a `/a/[token]` link into iMessage/Slack → branded
+   card + event name, and confirm `noindex` is present (not search-indexed).
+
+Also still pending from the prior cut: **live-verify the fast-follows + inactivity**
+(deployed, but needs `EMAIL_FROM` set + seeded test data) — a test email arrives + doesn't
+resend; over-cap grace→auto-reduce; renewal nudge + $15 checkout; inactivity warn/remove.
+`EMAIL_FROM` format is **`Partyreel <noreply@partyreel.com>`** (no quotes in Vercel).
+
+After this: the remaining Phase-6 candidates, then **Phase 5 (highlight reel)** once its
+product/architecture spec is settled (worker platform: managed API vs. Cloudflare Containers).
 
 After this: **Phase 5** (highlight reel) / **Phase 6** (growth).
 
@@ -191,18 +199,19 @@ After this: **Phase 5** (highlight reel) / **Phase 6** (growth).
 
 ## Known / accepted
 
-- **`get_advisors` flags the 6 capability-token RPCs** (`get_event_by_qr_token`,
+- **`get_advisors` flags the 7 capability-token RPCs** (`get_event_by_qr_token`,
   `get_public_album`, `create_guest`, `create_media`, `get_upload_context`,
-  `create_report`) as SECURITY DEFINER executable by `anon` (and `authenticated`) —
-  intentional; the token is the auth (ADR-0004). Do **not** revoke EXECUTE. The "Leaked
-  Password Protection Disabled" WARN is unrelated (we use magic-link/OAuth, not
-  passwords).
+  `create_report`, `capture_guest_email`) as SECURITY DEFINER executable by `anon` (and
+  `authenticated`) — intentional; the token is the auth (ADR-0004). Do **not** revoke
+  EXECUTE. The "Leaked Password Protection Disabled" WARN is unrelated (we use
+  magic-link/OAuth, not passwords).
 - **`purge_media_rows` must stay absent** from that advisor list — it's REVOKED from
   anon/authenticated (service-role only). If it ever shows up, an over-broad grant
   slipped in.
-- **`reports` table shows `rls_enabled_no_policy` (INFO) — by design.** RLS is on with
-  no policies = deny-all; reports are operator-internal (access only via the
-  `create_report` RPC + the service-role admin client). Not a gap to "fix".
+- **`reports`, `sent_emails`, and `newsletter_signups` show `rls_enabled_no_policy`
+  (INFO) — by design.** RLS is on with no policies = deny-all; they're operator/
+  service-role-internal (written only via SECURITY DEFINER RPCs + the admin client). Not a
+  gap to "fix".
 - Orphaned R2 objects (presigned + uploaded but `create_media` rejected on a race) are
   accepted; the Phase-3 purge cron sweeps R2 objects >24 h old with no `media` row.
 

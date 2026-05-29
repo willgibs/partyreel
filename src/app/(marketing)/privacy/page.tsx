@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/shared/container";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "How Partyreel handles the photos, videos, and account data you and your guests share.",
+  alternates: { canonical: "/privacy" },
+};
 
 // Legal stub. Replace with the real policy before public launch — flag any
 // open data-handling questions (NSFW scanning, retention) in docs/STATUS.md.

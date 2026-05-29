@@ -11,7 +11,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { EmailCapturePrompt } from "@/components/guest/email-capture-prompt";
 import { FileDropzone } from "@/components/guest/file-dropzone";
+import { MakeYourOwn } from "@/components/guest/make-your-own";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { uploadFile } from "@/lib/upload/uploader";
 
@@ -28,10 +30,12 @@ type Item = {
 
 export function UploadClient({
   event,
+  qrToken,
   sessionToken,
   onReset,
 }: {
   event: GuestEvent;
+  qrToken: string;
   sessionToken: string;
   onReset: () => void;
 }) {
@@ -166,10 +170,19 @@ export function UploadClient({
       )}
 
       {doneCount > 0 && (
-        <p className="text-center text-sm text-muted-foreground">
-          {doneCount} {doneCount === 1 ? "upload" : "uploads"} sent. Thanks for
-          sharing!
-        </p>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="text-sm text-muted-foreground">
+            {doneCount} {doneCount === 1 ? "upload" : "uploads"} sent. Thanks
+            for sharing!
+          </p>
+          <MakeYourOwn />
+        </div>
+      )}
+
+      {/* Soft one-time email capture — skip it when the host already required an
+          email at join (they have it). The prompt self-hides once shown. */}
+      {doneCount > 0 && !event.require_email && (
+        <EmailCapturePrompt qrToken={qrToken} sessionToken={sessionToken} />
       )}
 
       <button
