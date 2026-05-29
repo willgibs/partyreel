@@ -106,10 +106,11 @@ a slot and reclaims storage. Plus the foundational **CSAM safety scan** on uploa
       human review; never auto-shutdown. **No scanner vendor locked in** and **no NSFW
       filter**. Proactive upload hash-scanning (tool TBD after a data-privacy/legal
       review) is on the **v2+ docket**, built as the extensible filter root.
-- [ ] **Protected events (optional, can fast-follow)** — a per-event passphrase
-      (emoji / short phrase OK) gating guest upload and/or view. Needs a schema field (a
-      hashed event secret), RPC/guest-flow changes, and a settings toggle (PRD "Safety &
-      moderation").
+- [ ] **Host access options (optional, can fast-follow)** — per-event settings that gate
+      guest access: (a) a **passphrase** (emoji / short phrase OK) to upload and/or view;
+      (b) **require-upload-to-view**, optionally with an item minimum, to incentivize
+      participation. Each needs an event-settings field plus a gate in the guest-flow /
+      album RPCs (PRD "Safety & moderation").
 - [ ] Tests — RPC/mutation contract (status transitions; remove recounts caps
       correctly; purge respects `purge_at`) via a rolled-back Supabase-MCP check.
 
@@ -178,13 +179,19 @@ table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
 **To build:**
 
 - [ ] Storage-cap tier rework (`tiers.ts`, `tier_limits()`, `create_media`; drop item
-      caps, Max, and the `watermark` field; add the monthly ingress meter).
+      caps, Max, and the `watermark` field; add the monthly ingress meter). Allow a
+      **~10% overflow buffer** before hard-blocking — crossing the _base_ cap starts the
+      over-capacity grace, crossing the buffer blocks new uploads (endearing; bounds risk).
 - [ ] **Tier-gated event settings** — a mechanism to lock host-settings toggles by tier
       with an upgrade hint; start by gating **`require_email`** (locked on Free,
       unlocked on Pro/Event Pass). Don't enforce the lock before tiers exist — today
       everyone is Free.
 - [ ] Checkout session (Pro storage tier → subscription price; Event Pass → one-time
       price, per event) → redirect; plus a Billing Portal link.
+- [ ] **Promo / free-pass codes** — via Stripe **Promotion Codes + coupons** (e.g., a
+      100%-off Event Pass code to seed hosts for free test data); applied at checkout, no
+      separate system. Storage risk stays bounded — the pass expires into the retention
+      flow unless renewed.
 - [ ] **Raw-body** webhook (`await req.text()` before `constructEvent`; verify the
       signature; set `profiles.tier`/`storage_cap_bytes` via the service-role client;
       revalidate). The ONLY writer of tier/cap — never the client.
@@ -218,18 +225,35 @@ transcode/stitch runs in an **external worker, NOT Vercel functions** (ADR-0003)
 **Open decisions (resolve before building — don't assume):** worker platform;
 trigger (on-demand vs. event-complete); the highlight-scoring algorithm; output
 format + poster/`preview_key` generation; tiered download + watermarking. Needs a
-short product + architecture spec first.
+short product + architecture spec first. The **"Generate reel" entry point** appears in
+the host gallery when this ships — no placeholder beforehand.
 
 ## ⬜ Phase 6 — Growth / polish
 
-**Goal.** Lean into the growth loop + production polish (the core-loop step-4 share CTA).
+**Goal.** Amplify the growth loop (guest → future host) and polish the host experience.
 
-**Already wired:** the public album (`/a/[token]`) + guest surfaces are the homes for
-a branded share page + "make your own" CTA.
+**Already wired:** the public album (`/a/[token]`) + guest surfaces are the homes for a
+branded share page + "make your own" CTA.
 
-**Open decisions (resolve before building):** branded share-page spec (cover image /
-title / `og:image`); analytics stack; SEO scope (meta/sitemap); onboarding polish.
-Needs a spec first.
+**Candidate scope (each needs its own spec):**
+
+- **Onboarding + create wizard** — a multi-step new-host onboarding, and a streamlined
+  create flow (details → QR design → share); all settings stay editable from the event
+  page afterward.
+- **QR code designer / presets** — style the QR in-app (e.g., corporate-blocky vs.
+  wedding-rounded) so hosts never leave for an external stylizer. Reachable BOTH from the
+  create wizard AND from the QR on any event page. (Rounded/dot styles likely need a
+  richer lib than `qrcode.react`, e.g. `qr-code-styling`.)
+- **Guest email capture** — after a not-logged-in guest's first successful upload, a
+  one-time soft prompt to leave an email for the gallery link (phrased as a maybe, in
+  case the host keeps it private), with a subtle newsletter opt-in. Feeds the guest →
+  host loop.
+- **Notification / alert center** — a badge by the avatar aggregating alerts (uploads,
+  over-capacity/retention warnings, billing, pass expiry). Critical alerts already go by
+  email in earlier phases; this is the in-app aggregator.
+- **Link analytics** — scan/view activity on QR and share links.
+- **Branded share pages + growth badge** — the "make your own" badge/CTA design on shared
+  albums, plus marketing SEO (meta / `og:image` / sitemap).
 
 ## Later / v2+ docket (post-v1)
 
@@ -238,9 +262,16 @@ Not part of the v1 roadmap — parked here so it isn't lost:
 - **Proactive CSAM filtering** — choose and integrate an upload-time hash-matching tool
   after the data-privacy/legal review (PhotoDNA is a candidate). v1 ships only the
   legal-floor MVP (Phase 3).
+- **Referral program** — a % incentive with attribution and payouts (Stripe credits or
+  Connect): wedding planners refer hosts; guests who sign up from an event page earn the
+  host a cut if they convert to Pro. Substantial (attribution + payouts) → post-core.
+- **Guest → full-user conversion** — `require_email` becomes a _confirmed_ email
+  (magic-link) that quietly creates a latent account; a later traditional login triggers
+  the full signup/onboarding (more info, newsletter opt-in) and merges. Interacts with
+  Phase 1 auth and the Phase 4 tier-gated `require_email`.
 - **AI support-recovery** — triage "I lost my media" emails, match sender →
   account/event, auto-send a time-boxed download link (PRD "Data retention").
 - **NSFW filtering** — only if a real need emerges; host-opt-in, image moderation on
-  photos and sampled video keyframes to keep cost down.
-- **Growth badge** — the clean "make your own" badge design for shared albums (adjacent
-  to Phase 6).
+  photos and sampled video keyframes to keep cost down (cost basis researched: ≈ $1 per
+  1k images, video ≈ $0.10/min via Rekognition — so sample frames, don't moderate full
+  video; Google Vision has no video moderation).

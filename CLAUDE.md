@@ -107,6 +107,8 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
 
 - Use `@supabase/ssr` (NOT the deprecated `auth-helpers`).
 - Cookie API is **`getAll`/`setAll`** — never the old get/set/remove.
+- Supabase's **OAuth Server** (project-as-identity-provider; the beta toggle) stays
+  **OFF** — Partyreel is a _client_ of Google OAuth, not an IdP; nothing needs it.
 - **Authorize with `supabase.auth.getUser()`, NEVER `getSession()`.** `getUser()`
   re-validates the JWT with the auth server; `getSession()` only decodes the
   (spoofable) cookie. The proxy refreshes the cookie but is **not** a security
@@ -282,6 +284,9 @@ Partyreel uses magic-link/OAuth, not passwords.
 - shadcn UI components (`src/components/ui/*`) are authored **without
   semicolons** by the generator; app code uses semicolons. Don't reformat the
   generated UI files to "match."
+- **Markdown is prettier-ignored** (`*.md` in `.prettierignore`) — prettier's
+  prose-wrap mangles docs (a wrapped line starting with `+`/`-` becomes a list item).
+  Author docs by hand; `pnpm format` / `format:check` cover code only.
 - **Git:** never `git add -A` (stage files explicitly — avoids committing
   `.env.local` or stray files); never commit secrets; never skip hooks
   (`--no-verify`) or force-push without an explicit ask.

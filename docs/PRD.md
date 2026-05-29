@@ -104,9 +104,11 @@ differ; the recoverable tail is identical everywhere.
   downgrade, a failed payment, or an **Event Pass expiring** without renewal. A
   **~30-day in-app grace** opens — everything stays visible and downloadable and you
   pick what to remove to get back under cap; if you don't, we auto-reduce by deleting
-  the **largest files first** until under cap (those files then enter the tail below).
-  Pure-free accounts can't reach this by topping up — they're simply blocked at upload
-  once full.
+  the **largest files first** until under cap (those files then enter the tail below). We
+  allow a small **~10% overflow buffer** over the cap before blocking new uploads —
+  crossing the _base_ cap is what opens this grace (a little extra room is endearing and
+  bounds our risk). Pure-free accounts can't reach this by topping up — they're simply
+  blocked at upload once full.
 - **Host deletes an event** — frees the slot immediately (anti-abuse); the event flows
   straight into the tail.
 - **Free-tier inactivity** — after **6 months** of no host activity (with **email
@@ -146,10 +148,11 @@ to billing (Phase 4).
 - **No NSFW filtering.** Skipped on purpose — costly (especially video) for little
   early benefit, and lawful adult content is fine on Cloudflare/R2 anyway. Hosts manage
   their event instead with the **review flow** above and **protected events** below.
-- **Protected events (planned).** An optional per-event **passphrase** a guest enters
-  to upload and/or view — and it should be _fun_, not a wifi-password hunt (accept emoji
-  or short phrases, not just strong passwords). Needs a schema field (a hashed event
-  secret), RPC/guest-flow changes, and settings UI; slot into Phase 3 or a fast-follow.
+- **Host access options (planned).** Per-event settings that gate guest access:
+  (a) a **passphrase** to upload and/or view — _fun_, not a wifi-password hunt (accept
+  emoji or short phrases); (b) **require-upload-to-view** (optionally an item minimum) to
+  incentivize participation. Each needs an event-settings field, RPC/guest-flow changes,
+  and settings UI; slot into Phase 3 or a fast-follow.
 
 ## Platform constraints / principles
 

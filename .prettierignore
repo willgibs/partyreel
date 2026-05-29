@@ -13,3 +13,8 @@ src/lib/db/types.ts
 # Leaving them un-reformatted keeps `shadcn add` output churn-free and easy to diff
 # against upstream. Compose/edit on top of them in your own files, not by reformatting.
 src/components/ui
+
+# Markdown is prose. Prettier's prose-wrap reflows it and turns a wrapped line that
+# begins with "+"/"-"/"*" into a list item — silently mangling sentences in the docs
+# for little benefit. Author markdown by hand; prettier stays on code, where it shines.
+*.md
