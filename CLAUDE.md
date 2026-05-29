@@ -261,6 +261,34 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   `server-only` (reads env), so don't import it in Vitest — test `provision.ts` instead.
 - **Price IDs ↔ plans** live in `src/lib/stripe/plans.ts` (env-referenced via
   `PLANS[].stripePriceEnvKey`; `PRICE_ENV` map), NOT in `tiers.ts` (client-safe/secret-free).
+
+**Transactional email + lifecycle cron (fast-follows)**
+
+- **Resend** is the email provider (`resend` dep). `RESEND_API_KEY` + `EMAIL_FROM` (a
+  verified sender, e.g. `Partyreel <noreply@partyreel.com>`) via lazy `assertResendEnv()`.
+  **Not configured until the human sets the key + verifies a sending domain (DNS).**
+- **Always send via `sendOnce({ kind, dedupeKey, to, subject, html })`**
+  ([src/lib/email/send.ts](src/lib/email/send.ts)) — never `getResend().emails.send`
+  directly. It CLAIMS a `sent_emails` row (unique `(kind, dedupe_key)`) before sending, so
+  the daily cron can call it every run and Resend is hit **at most once per state** — the
+  frugality guard for the 3,000/mo free tier. On send failure it releases the claim (retries
+  next run; never double-sends). Templates: `src/lib/email/templates.ts` (plain HTML).
+- **The purge cron is now a daily lifecycle job** ([api/cron/purge/route.ts](src/app/api/cron/purge/route.ts))
+  with **6 sweeps**: expired_events, removed_media, orphans, expired_passes,
+  **over_capacity**, **renewal_nudges** (each independently try/caught).
+- **Over-capacity** targets only lapsed paid accounts (Free is upload-blocked before it can
+  exceed cap). Decisions key off **ACTIVE bytes** (non-removed media in live events), NOT
+  `storage_used_bytes` (which only drops at hard-delete) — so a just-reduced account doesn't
+  re-trigger. over → set `storage_grace_until` (`OVER_CAP_GRACE_DAYS`=45) + email; near the
+  deadline → reminder; past grace → **auto-reduce** (`selectForAutoReduce` largest-first →
+  the Phase-3 removed path reclaims after 7 d) + email; back under cap → clear grace.
+  `profiles.storage_grace_until` is service-role-write-only. **Cold storage was evaluated +
+  rejected** (R2 IA only ~33% cheaper; Glacier = cross-cloud project) — revisit IA via an R2
+  lifecycle rule only if tail cost grows.
+- **Event Pass renewal** = a cheaper one-time price (`STRIPE_PRICE_EVENT_PASS_RENEWAL`) for
+  the SAME `event_pass` plan (`planForPriceId` maps it there). Checkout `{ renewal: true }`
+  is gated to current/recent pass holders; the dashboard "Renew Event Pass" button + the
+  `renewal_nudges` email (14 d pre-expiry) point at it.
 - **Event Pass (Cut 4c) is a ONE-TIME payment, not a subscription** — checkout uses
   `mode:"payment"` (chosen from `plan.billing === "one_time"`), so **no
   `customer.subscription.*` event fires**; it's provisioned from

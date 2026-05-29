@@ -34,8 +34,26 @@ export function priceIdForPlan(planId: PlanId): string {
   return priceId;
 }
 
+/**
+ * The cheaper one-time Event Pass renewal price (FF-C). A separate Stripe price for the
+ * SAME `event_pass` plan, so it's not a PlanId — accessed explicitly. Throws if unset.
+ */
+export function eventPassRenewalPriceId(): string {
+  const id = serverEnv.STRIPE_PRICE_EVENT_PASS_RENEWAL;
+  if (!id) {
+    throw new Error(
+      "STRIPE_PRICE_EVENT_PASS_RENEWAL is not set (see PRICING.md 'Stripe setup').",
+    );
+  }
+  return id;
+}
+
 /** Reverse lookup: a Stripe Price ID → the Plan (so the webhook derives tier + cap). */
 export function planForPriceId(priceId: string): Plan | null {
+  // The renewal price maps to the same event_pass plan (75 GB / 1-yr term).
+  if (priceId === serverEnv.STRIPE_PRICE_EVENT_PASS_RENEWAL) {
+    return planById("event_pass");
+  }
   for (const id of Object.keys(PRICE_ENV) as PlanId[]) {
     if (PRICE_ENV[id as keyof typeof PRICE_ENV] === priceId) {
       return planById(id);

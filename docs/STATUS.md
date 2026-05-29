@@ -4,11 +4,12 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** **Phase 4 — Payments/tiers is COMPLETE** (all 3 cuts verified in
-production 2026-05-29): 4a storage-cap model, 4b Stripe Pro subscriptions, 4c Event Pass.
-Next up: the two **fast-follows** (full over-capacity retention + renewal-nudge emails) —
-a **planning round** will scope them (both need a transactional-email provider, not yet
-chosen). Then Phase 5 (highlight reel) / Phase 6 (growth).
+**Current phase:** Phase 4 is complete; the two **fast-follows** are **code-complete +
+locally verified** (Resend email foundation, over-capacity retention with auto-reduce,
+Event Pass renewal). **Pending: Resend setup (key + domain) + `STRIPE_PRICE_EVENT_PASS_RENEWAL`
+env + deploy + live verify.** Then Phase 5 (highlight reel) / Phase 6 (growth). The
+**free-tier 6-month inactivity removal** is the strong next cut (reuses all this
+machinery).
 **Last shipped:** Cut 4c — Event Pass (one-time), **verified in production** (2026-05-29):
 a live test-mode "Buy a pass" → one-time Stripe Checkout (`mode:payment`, card `4242`) →
 `checkout.session.completed` webhook set `tier='event_pass'` + 75 GB + `tier_expires_at`
@@ -136,19 +137,24 @@ unit tests instead.)_
 
 ## Next action
 
-**Plan the two fast-follows** (Phase 4 is done). A planning round will scope:
+**Finish the fast-follows** (code complete + locally verified: typecheck/lint/format/
+test (69)/build clean; rolled-back `sent_emails` dedupe + `selectForAutoReduce` checks). What's
+left:
 
-1. **Full over-capacity retention flow** — the 30-day in-app grace, largest-first
-   auto-reduction into the Phase-3 purge tail, and near-deadline warning emails (PRD "Data
-   retention"). Today only the **minimal** behavior ships (downgrade resets the cap → new
-   uploads blocked when over; existing media stays).
-2. **Event Pass renewal** — a cheaper renewal price + near-deadline nudge emails before
-   `tier_expires_at`.
+1. **Will — Resend:** create the API key + **verify a sending domain** (DNS) → set
+   `RESEND_API_KEY` + `EMAIL_FROM` (e.g. `Partyreel <noreply@partyreel.com>`) in
+   `.env.local` + Vercel.
+2. **Will — Stripe:** paste **`STRIPE_PRICE_EVENT_PASS_RENEWAL=price_1TcVuOPtjqmVkBwkTCXTKOIs`**
+   ($15 test renewal price). Commit + deploy.
+3. **Live-verify (partyreel.com, test):** (a) a test email send arrives + a second trigger
+   doesn't resend (`sent_emails`); (b) seed/downgrade the test account over a small cap →
+   run the cron → grace banner + grace email; back-date `storage_grace_until` → run the cron
+   → largest-first auto-reduce (Supabase MCP) + reduced email; (c) seed an `event_pass` near
+   expiry → run the cron → nudge email; the dashboard "Renew Event Pass" → $15 checkout →
+   `tier_expires_at` reset.
 
-**Both need a transactional-email provider** (Resend/Postmark/etc.) — not yet chosen; that
-decision + its human setup (API key + domain verification) is the main thing the planning
-round should settle. After the fast-follows: **Phase 5** (highlight reel) / **Phase 6**
-(growth).
+After this: **Phase 5** (highlight reel) / **Phase 6** (growth); the **free-tier 6-month
+inactivity removal** is the strong next cut (reuses this machinery).
 
 ## Blocked on a human ("manual instrument")
 

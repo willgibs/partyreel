@@ -244,3 +244,27 @@ account) — live mode is inert until the account is activated.
 
 **Rollback:** revert the 5 env values to the test ones in Vercel + redeploy. (Live Stripe
 data persists but is unused while keys are test.)
+
+## Fast-follows — email (Resend) + over-capacity retention + Event Pass renewal
+
+**Provider = Resend** (free tier 3,000 emails/mo; $20/mo = 50k). All lifecycle email goes
+through `sendOnce()` (deduped via `sent_emails`) so the daily cron sends at most once per
+state — stays well under the free tier early. **Human setup:** create a Resend API key +
+**verify a sending domain** (DNS) → set `RESEND_API_KEY` + `EMAIL_FROM`
+(e.g. `Partyreel <noreply@partyreel.com>`) in `.env.local` + Vercel.
+
+**Event Pass renewal:** a cheaper **$15 one-time renewal price** (test
+`price_1TcVuOPtjqmVkBwkTCXTKOIs`) on the same Event Pass product → set
+`STRIPE_PRICE_EVENT_PASS_RENEWAL`. Gated to current/recent pass holders; the dashboard
+"Renew Event Pass" button + the 14-day pre-expiry nudge email point at it. Live cutover:
+re-create the $15 price in live + set the env var (add to the cutover checklist above).
+
+**Over-capacity retention:** a lapsed account over its cap gets a **45-day grace** (media
+stays fully accessible + warning emails), then **auto-reduce** (largest-first) into the
+Phase-3 7-day removed tail → hard-delete reclaims the bytes.
+
+**Cold storage — evaluated + rejected (2026-05-29).** R2 Infrequent Access is only ~33%
+cheaper ($0.015→$0.01/GB-mo) and adds a $0.01/GB retrieval fee + a 30-day minimum-duration
+charge — not worth it on a short tail. True archival (S3 Glacier, ~15×) is a separate
+cross-cloud project with slow, paid retrieval. **Future lever (if tail cost grows):**
+transition tail objects to IA via an R2 object-lifecycle rule — near-zero app code.

@@ -235,6 +235,7 @@ export type Database = {
           id: string
           is_admin: boolean
           storage_cap_bytes: number | null
+          storage_grace_until: string | null
           storage_used_bytes: number
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -249,6 +250,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           storage_cap_bytes?: number | null
+          storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           storage_cap_bytes?: number | null
+          storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -327,6 +330,38 @@ export type Database = {
           {
             foreignKeyName: "reports_resolved_by_fkey"
             columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sent_emails: {
+        Row: {
+          dedupe_key: string
+          id: string
+          kind: string
+          profile_id: string | null
+          sent_at: string
+        }
+        Insert: {
+          dedupe_key: string
+          id?: string
+          kind: string
+          profile_id?: string | null
+          sent_at?: string
+        }
+        Update: {
+          dedupe_key?: string
+          id?: string
+          kind?: string
+          profile_id?: string | null
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sent_emails_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

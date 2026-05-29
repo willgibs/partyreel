@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 
 type CheckoutButtonProps = {
   planId: PlanId;
+  /** Event Pass only — uses the cheaper renewal price (gated server-side). */
+  renewal?: boolean;
   children: React.ReactNode;
   variant?: React.ComponentProps<typeof Button>["variant"];
   className?: string;
@@ -19,6 +21,7 @@ type CheckoutButtonProps = {
 // authoritative — this is just the trigger.
 export function CheckoutButton({
   planId,
+  renewal,
   children,
   variant,
   className,
@@ -32,7 +35,7 @@ export function CheckoutButton({
         const res = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ planId }),
+          body: JSON.stringify({ planId, renewal }),
         });
         if (res.status === 401) {
           router.push("/login");

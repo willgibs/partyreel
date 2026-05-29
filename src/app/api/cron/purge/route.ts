@@ -19,10 +19,21 @@
  */
 import { createHash, timingSafeEqual } from "node:crypto";
 
+import { effectiveStorageCap, toBillingTier } from "@/lib/constants/tiers";
+import {
+  overCapGraceStartEmail,
+  overCapReducedEmail,
+  overCapReminderEmail,
+  renewalNudgeEmail,
+} from "@/lib/email/templates";
+import { sendOnce } from "@/lib/email/send";
 import { assertCronEnv } from "@/lib/env";
+import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey } from "@/lib/r2/keys";
+import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatBytes } from "@/lib/utils";
 
 // node:crypto + the service-role admin client require the Node runtime; never edge.
 export const runtime = "nodejs";
@@ -42,6 +53,16 @@ const ORPHAN_MIN_AGE_HOURS = 24;
 // Cap R2 list pages per run so one invocation stays bounded (≤1000 objects/page).
 const ORPHAN_PAGE_CAP = 20;
 const MEDIA_PREFIX = "events/";
+
+// Over-capacity grace: a lapsed account over its cap gets this long to upgrade/remove
+// before auto-reduce; we email a reminder this many days before the deadline.
+const OVER_CAP_GRACE_DAYS = 45;
+const OVER_CAP_REMINDER_DAYS = 7;
+// Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
+// tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.
+const FREE_CAP_BYTES = 2 * 1024 ** 3;
+// Event Pass renewal nudge: email when an active pass expires within this many days.
+const RENEWAL_NUDGE_DAYS = 14;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type MediaRow = {
@@ -106,6 +127,16 @@ export async function GET(request: Request): Promise<Response> {
     sweeps.expired_passes = await sweepExpiredPasses(admin, now);
   } catch (e) {
     sweeps.expired_passes = { error: String(e) };
+  }
+  try {
+    sweeps.over_capacity = await sweepOverCapacity(admin, now);
+  } catch (e) {
+    sweeps.over_capacity = { error: String(e) };
+  }
+  try {
+    sweeps.renewal_nudges = await sweepRenewalNudges(admin, now);
+  } catch (e) {
+    sweeps.renewal_nudges = { error: String(e) };
   }
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
@@ -292,6 +323,199 @@ async function sweepExpiredPasses(admin: AdminClient, now: Date) {
     .select("id");
   if (error) throw new Error(`expire passes: ${error.message}`);
   return { downgraded: (data ?? []).length };
+}
+
+function fmtDate(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+/**
+ * Sweep 5 — over-capacity retention for LAPSED paid accounts (a Free account is blocked
+ * at upload before it can exceed cap, so it never lands here). Decisions key off ACTIVE
+ * bytes (non-removed media in live events), NOT storage_used_bytes (which only drops at
+ * hard-delete) — so an already-reduced account doesn't re-trigger while its removed media
+ * waits out the 7-day purge. Per profile:
+ *   under cap            → clear any grace (resolved by upgrade / their own deletes).
+ *   over + no grace      → open a 45-day grace + grace-start email.
+ *   over + grace, near   → reminder email (within OVER_CAP_REMINDER_DAYS of the deadline).
+ *   over + grace elapsed → auto-reduce (soft-remove largest-first via the Phase-3 path;
+ *                          the removed_media sweep reclaims R2 + bytes after 7d) + email.
+ * All emails go through sendOnce (deduped) so re-runs never re-send.
+ */
+async function sweepOverCapacity(admin: AdminClient, now: Date) {
+  // Candidates: only accounts that could exceed a cap. storage_used_bytes ≥ active bytes,
+  // and the smallest cap is Free's 2 GB, so ≤ 2 GB used can't be over any cap. An account
+  // in grace is always over cap → used > 2 GB until its removed media purges (grace is
+  // cleared by then), so this floor also covers in-grace rows.
+  const { data: candidates, error } = await admin
+    .from("profiles")
+    .select("id, email, tier, storage_cap_bytes, storage_grace_until")
+    .gt("storage_used_bytes", FREE_CAP_BYTES);
+  if (error) throw new Error(`select over-cap candidates: ${error.message}`);
+
+  const siteUrl = await getSiteUrl();
+  const dashboardUrl = `${siteUrl}/dashboard`;
+  let graceOpened = 0;
+  let reminded = 0;
+  let reduced = 0;
+  let cleared = 0;
+
+  for (const p of candidates ?? []) {
+    const cap = effectiveStorageCap(toBillingTier(p.tier), p.storage_cap_bytes);
+    if (cap === null) continue; // unlimited tier — not subject to the cap
+
+    // ACTIVE bytes = non-removed media in non-deleted events.
+    const { data: media, error: mErr } = await admin
+      .from("media")
+      .select("id, file_size_bytes, events!inner(host_id, deleted_at)")
+      .eq("events.host_id", p.id)
+      .is("events.deleted_at", null)
+      .neq("status", "removed");
+    if (mErr) throw new Error(`select active media: ${mErr.message}`);
+    const rows = (media ?? []) as unknown as {
+      id: string;
+      file_size_bytes: number;
+    }[];
+    const activeBytes = rows.reduce((s, m) => s + m.file_size_bytes, 0);
+
+    if (activeBytes <= cap) {
+      if (p.storage_grace_until) {
+        await admin
+          .from("profiles")
+          .update({ storage_grace_until: null })
+          .eq("id", p.id);
+        cleared++;
+      }
+      continue;
+    }
+
+    if (!p.storage_grace_until) {
+      const graceUntil = new Date(
+        now.getTime() + OVER_CAP_GRACE_DAYS * 86_400_000,
+      );
+      await admin
+        .from("profiles")
+        .update({ storage_grace_until: graceUntil.toISOString() })
+        .eq("id", p.id);
+      graceOpened++;
+      if (p.email) {
+        const { subject, html } = overCapGraceStartEmail({
+          capLabel: formatBytes(cap),
+          deadline: fmtDate(graceUntil),
+          dashboardUrl,
+        });
+        await sendOnce({
+          kind: "over_cap_grace_start",
+          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+          profileId: p.id,
+          to: p.email,
+          subject,
+          html,
+        });
+      }
+      continue;
+    }
+
+    const graceUntil = new Date(p.storage_grace_until);
+    if (now >= graceUntil) {
+      const ids = selectForAutoReduce(rows, cap);
+      if (ids.length) {
+        const { error: rmErr } = await admin
+          .from("media")
+          .update({ status: "removed", removed_at: now.toISOString() })
+          .in("id", ids);
+        if (rmErr) throw new Error(`auto-reduce remove: ${rmErr.message}`);
+      }
+      await admin
+        .from("profiles")
+        .update({ storage_grace_until: null })
+        .eq("id", p.id);
+      reduced++;
+      if (p.email) {
+        const { subject, html } = overCapReducedEmail({ dashboardUrl });
+        await sendOnce({
+          kind: "over_cap_reduced",
+          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+          profileId: p.id,
+          to: p.email,
+          subject,
+          html,
+        });
+      }
+    } else if (
+      now.getTime() >=
+      graceUntil.getTime() - OVER_CAP_REMINDER_DAYS * 86_400_000
+    ) {
+      if (p.email) {
+        const { subject, html } = overCapReminderEmail({
+          deadline: fmtDate(graceUntil),
+          dashboardUrl,
+        });
+        const sent = await sendOnce({
+          kind: "over_cap_reminder",
+          dedupeKey: `${p.id}:${graceUntil.toISOString()}`,
+          profileId: p.id,
+          to: p.email,
+          subject,
+          html,
+        });
+        if (sent) reminded++;
+      }
+    }
+  }
+
+  return {
+    candidates: candidates?.length ?? 0,
+    grace_opened: graceOpened,
+    reminded,
+    reduced,
+    cleared,
+  };
+}
+
+/**
+ * Sweep 6 — Event Pass renewal nudges. Email active-pass holders whose pass expires within
+ * RENEWAL_NUDGE_DAYS so they can renew (cheaper) before it lapses into the over-capacity
+ * grace. Deduped per (profile:expiry) via sendOnce. Already-expired passes are handled by
+ * sweepExpiredPasses (downgrade), not here.
+ */
+async function sweepRenewalNudges(admin: AdminClient, now: Date) {
+  const cutoff = new Date(
+    now.getTime() + RENEWAL_NUDGE_DAYS * 86_400_000,
+  ).toISOString();
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id, email, tier_expires_at")
+    .eq("tier", "event_pass")
+    .not("tier_expires_at", "is", null)
+    .gt("tier_expires_at", now.toISOString())
+    .lte("tier_expires_at", cutoff);
+  if (error) throw new Error(`select renewal candidates: ${error.message}`);
+
+  const siteUrl = await getSiteUrl();
+  const renewUrl = `${siteUrl}/dashboard`;
+  let nudged = 0;
+  for (const p of data ?? []) {
+    if (!p.email || !p.tier_expires_at) continue;
+    const { subject, html } = renewalNudgeEmail({
+      expiresOn: fmtDate(new Date(p.tier_expires_at)),
+      renewUrl,
+    });
+    const sent = await sendOnce({
+      kind: "renewal_nudge",
+      dedupeKey: `${p.id}:${p.tier_expires_at}`,
+      profileId: p.id,
+      to: p.email,
+      subject,
+      html,
+    });
+    if (sent) nudged++;
+  }
+  return { eligible: data?.length ?? 0, nudged };
 }
 
 /** Atomic hard-delete of rows + storage_used_bytes decrement; returns Σ freed bytes. */

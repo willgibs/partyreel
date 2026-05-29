@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { planById } from "@/lib/constants/tiers";
-import { priceIdForPlan } from "@/lib/stripe/plans";
+import { eventPassRenewalPriceId, priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -45,9 +45,37 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, tier, tier_expires_at")
     .eq("id", user.id)
     .maybeSingle();
+
+  // Renewal uses the cheaper Event Pass price + is gated to current/recent pass holders.
+  const { planId, renewal } = parsed.data;
+  if (renewal) {
+    if (planId !== "event_pass") {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "bad_request",
+          message: "Renewal is Event Pass only.",
+        },
+        { status: 400 },
+      );
+    }
+    const eligible =
+      profile?.tier === "event_pass" || profile?.tier_expires_at != null;
+    if (!eligible) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "not_eligible",
+          message: "Renewal is for current or recent Event Pass holders.",
+        },
+        { status: 403 },
+      );
+    }
+  }
+  const priceId = renewal ? eventPassRenewalPriceId() : priceIdForPlan(planId);
 
   const stripe = getStripe();
 
@@ -68,14 +96,14 @@ export async function POST(request: Request) {
 
   // Pro = recurring subscription; Event Pass = one-time payment. The webhook reads
   // metadata.plan_id to recognize an Event Pass purchase (no subscription fires).
-  const plan = planById(parsed.data.planId);
+  const plan = planById(planId);
   const siteUrl = await getSiteUrl();
   const session = await stripe.checkout.sessions.create({
     mode: plan.billing === "one_time" ? "payment" : "subscription",
     customer: customerId,
-    line_items: [{ price: priceIdForPlan(parsed.data.planId), quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     allow_promotion_codes: true,
-    metadata: { plan_id: parsed.data.planId },
+    metadata: { plan_id: planId },
     // client_reference_id is a belt-and-suspenders link the webhook can use to bind
     // the customer to the host (we also already persisted stripe_customer_id above).
     client_reference_id: user.id,

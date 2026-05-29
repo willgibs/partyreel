@@ -47,6 +47,13 @@ const serverSchema = z.object({
   // Cut 4c — one-time Event Pass price. NOT in assertStripeEnv()'s hard assert (Pro
   // routes keep working if it's unset); validated lazily by priceIdForPlan.
   STRIPE_PRICE_EVENT_PASS: z.string().min(1).optional(),
+  // Cheaper one-time renewal price for returning Event Pass holders (Cut FF-C).
+  STRIPE_PRICE_EVENT_PASS_RENEWAL: z.string().min(1).optional(),
+  // Resend (transactional email — fast-follows). EMAIL_FROM is the verified sender,
+  // e.g. "Partyreel <noreply@partyreel.com>". Both `.optional()`; assertResendEnv()
+  // asserts them lazily so the app builds/deploys before the key + domain are set.
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -84,6 +91,10 @@ function parseServer() {
     STRIPE_PRICE_PRO_500: process.env.STRIPE_PRICE_PRO_500,
     STRIPE_PRICE_PRO_2TB: process.env.STRIPE_PRICE_PRO_2TB,
     STRIPE_PRICE_EVENT_PASS: process.env.STRIPE_PRICE_EVENT_PASS,
+    STRIPE_PRICE_EVENT_PASS_RENEWAL:
+      process.env.STRIPE_PRICE_EVENT_PASS_RENEWAL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
   });
   if (!parsed.success) {
     throw new Error(
@@ -192,4 +203,24 @@ export function assertStripeEnv(): {
     STRIPE_PRICE_PRO_500,
     STRIPE_PRICE_PRO_2TB,
   };
+}
+
+/**
+ * Assert the Resend vars are present and return them. Call at REQUEST time (the email
+ * helper / the lifecycle cron) — they stay `.optional()` so the app builds before the
+ * key + verified sending domain exist. A missing key means transactional email can't
+ * send; callers should fail loudly rather than silently drop mail.
+ */
+export function assertResendEnv(): {
+  RESEND_API_KEY: string;
+  EMAIL_FROM: string;
+} {
+  const { RESEND_API_KEY, EMAIL_FROM } = serverEnv;
+  if (!RESEND_API_KEY || !EMAIL_FROM) {
+    throw new Error(
+      "Resend is not configured. Set RESEND_API_KEY and EMAIL_FROM (a verified " +
+        "sender, e.g. 'Partyreel <noreply@partyreel.com>') — see docs/PRICING.md.",
+    );
+  }
+  return { RESEND_API_KEY, EMAIL_FROM };
 }

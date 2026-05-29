@@ -235,9 +235,13 @@ is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new upl
       live 2026-05-29: upgrade→Pro + cancel→downgrade both confirmed via the Supabase MCP.)_
 - [x] **(4b)** Upgrade prompts at the paywalls — the at-cap create banner + the dashboard
       storage gauge link to `/pricing`; the Pro cards start checkout.
-- [ ] Over-limit → the **full** retention flow (PRD: 30-day grace, largest-first reduction,
-      60-day recoverable) — **fast-follow**. 4b ships only the minimal downgrade (cap reset
-      → new uploads blocked when over; existing media stays).
+- [x] **(fast-follow, code-complete)** Over-capacity retention — Resend email foundation
+      (`sendOnce` deduped), a **45-day grace** (banner + warning emails) then **largest-first
+      auto-reduce** into the Phase-3 removed tail; + **Event Pass renewal** ($15 price +
+      14-day nudge email + dashboard Renew). The daily cron now runs 6 lifecycle sweeps.
+      _(Pending Resend setup + `STRIPE_PRICE_EVENT_PASS_RENEWAL` + deploy + live verify.)_
+      Cold storage evaluated + rejected (R2 IA marginal; Glacier = cross-cloud project).
+      **Next cost lever: free-tier 6-month inactivity removal** (reuses this machinery).
 - [x] **(4a/4b)** Tests — `tiers.ts` ↔ `tier_limits()` parity + storage-cap enforcement in
       `create_media` (4a, rolled-back); the webhook `resolveSubscriptionUpdate` resolver
       (4b, Vitest fixtures).

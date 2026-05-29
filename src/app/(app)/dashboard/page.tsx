@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
 
+import { CheckoutButton } from "@/components/app/checkout-button";
 import { CreateEventDialog } from "@/components/app/create-event-dialog";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -65,6 +66,14 @@ export default async function DashboardPage() {
           day: "numeric",
         })
       : null;
+  // Over-capacity grace (set by the lifecycle cron when a lapsed account is over cap).
+  const graceDeadline = profile?.storage_grace_until
+    ? new Date(profile.storage_grace_until).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   return (
     <div className="space-y-6">
@@ -78,6 +87,27 @@ export default async function DashboardPage() {
         </div>
         <CreateEventDialog atCap={atCap} planName={planName} />
       </div>
+
+      {graceDeadline && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
+          <p className="font-medium text-foreground">
+            You&rsquo;re over your storage limit
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            Upgrade or remove media by{" "}
+            <strong className="text-foreground">{graceDeadline}</strong> — after
+            that we&rsquo;ll automatically reduce your storage (largest files
+            first).{" "}
+            <Link
+              href="/pricing"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              See plans
+            </Link>
+            .
+          </p>
+        </div>
+      )}
 
       <div className="rounded-lg border border-border bg-card px-4 py-3">
         <div className="flex items-center justify-between gap-4 text-sm">
@@ -109,9 +139,14 @@ export default async function DashboardPage() {
             </p>
           </>
         )}
-        {hasBilling && (
-          <div className="mt-3 border-t border-border pt-3">
-            <ManageBillingButton />
+        {(hasBilling || tier === "event_pass") && (
+          <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
+            {tier === "event_pass" && (
+              <CheckoutButton planId="event_pass" renewal variant="outline">
+                Renew Event Pass
+              </CheckoutButton>
+            )}
+            {hasBilling && <ManageBillingButton />}
           </div>
         )}
       </div>
