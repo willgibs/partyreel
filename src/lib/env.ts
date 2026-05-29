@@ -88,3 +88,31 @@ export const env = parsePublic();
  * `process.env.*` with `undefined`, so secrets are never bundled.
  */
 export const serverEnv = parseServer();
+
+/**
+ * Assert the four R2 vars are present and return them as required strings.
+ * Call at REQUEST time (never at import/build) — the R2 vars stay `.optional()`
+ * so the app still builds/deploys without creds; this is where an upload path
+ * fails loudly with a clear message instead of a cryptic `undefined` in the SDK.
+ */
+export function assertR2Env(): {
+  R2_ACCOUNT_ID: string;
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
+  R2_BUCKET: string;
+} {
+  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
+    serverEnv;
+  if (
+    !R2_ACCOUNT_ID ||
+    !R2_ACCESS_KEY_ID ||
+    !R2_SECRET_ACCESS_KEY ||
+    !R2_BUCKET
+  ) {
+    throw new Error(
+      "R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, " +
+        "R2_SECRET_ACCESS_KEY, and R2_BUCKET (see .env.example).",
+    );
+  }
+  return { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET };
+}

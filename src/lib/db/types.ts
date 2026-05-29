@@ -342,6 +342,13 @@ export type Database = {
         }[]
       }
       get_public_album: { Args: { p_share_token: string }; Returns: Json }
+      get_upload_context: {
+        Args: {
+          p_session_token: string
+          p_type: Database["public"]["Enums"]["media_type"]
+        }
+        Returns: Json
+      }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {

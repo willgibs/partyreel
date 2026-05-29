@@ -1,0 +1,231 @@
+/**
+ * Guest upload flow — wrappers over the capability-token RPCs (ADR-0004). All
+ * anonymous: the opaque session_token IS the auth, validated inside each RPC, so
+ * there's no `getUser()` here. Called from the `/api/guests` + `/api/r2/*` route
+ * handlers; each returns a discriminated result the route maps to an HTTP status.
+ *
+ * Error mapping matches Postgres SQLSTATEs (stable) where possible:
+ *   P0002 no_data_found  → unknown event / invalid session
+ *   23514 check_violation → required field / uploads closed / bad key / over a limit
+ *   23505 unique_violation → duplicate media_id on retry (see createMedia)
+ */
+import "server-only";
+
+import type { Database } from "@/lib/db/types";
+import { createClient } from "@/lib/supabase/server";
+
+type MediaType = Database["public"]["Enums"]["media_type"];
+type MediaStatus = Database["public"]["Enums"]["media_status"];
+
+const NO_DATA_FOUND = "P0002";
+const CHECK_VIOLATION = "23514";
+const UNIQUE_VIOLATION = "23505";
+
+// ─── create_guest ───────────────────────────────────────────────────────────
+
+export type CreateGuestResult =
+  | {
+      ok: true;
+      data: { session_token: string; guest_id: string; event_id: string };
+    }
+  | {
+      ok: false;
+      code:
+        | "not_found"
+        | "display_name_required"
+        | "email_required"
+        | "unknown";
+      message: string;
+    };
+
+export async function createGuest(input: {
+  qrToken: string;
+  displayName?: string | null;
+  email?: string | null;
+}): Promise<CreateGuestResult> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_guest", {
+    p_qr_token: input.qrToken,
+    p_display_name: input.displayName ?? undefined,
+    p_email: input.email ?? undefined,
+  });
+
+  if (error) {
+    if (error.code === NO_DATA_FOUND) {
+      return {
+        ok: false,
+        code: "not_found",
+        message: "This event link is no longer valid.",
+      };
+    }
+    if (error.code === CHECK_VIOLATION) {
+      const isEmail = /email/i.test(error.message);
+      return {
+        ok: false,
+        code: isEmail ? "email_required" : "display_name_required",
+        message: error.message,
+      };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't join this event. Please try again.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: data as unknown as {
+      session_token: string;
+      guest_id: string;
+      event_id: string;
+    },
+  };
+}
+
+// ─── get_upload_context ──────────────────────────────────────────────────────
+
+export type UploadContext =
+  | { event_id: string; accepting_uploads: false; event_deleted: true }
+  | {
+      event_id: string;
+      accepting_uploads: boolean;
+      event_deleted: false;
+      at_event_cap: boolean;
+      at_monthly_cap: boolean;
+    };
+
+export type UploadContextResult =
+  | { ok: true; data: UploadContext }
+  | { ok: false; code: "invalid_session"; message: string };
+
+export async function getUploadContext(
+  sessionToken: string,
+  type: MediaType,
+): Promise<UploadContextResult> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_upload_context", {
+    p_session_token: sessionToken,
+    p_type: type,
+  });
+  if (error) throw error;
+
+  // null = unknown session.
+  if (!data) {
+    return {
+      ok: false,
+      code: "invalid_session",
+      message: "Your upload session has expired. Refresh and rejoin.",
+    };
+  }
+  return { ok: true, data: data as unknown as UploadContext };
+}
+
+// ─── create_media ────────────────────────────────────────────────────────────
+
+export type CreateMediaResult =
+  | {
+      ok: true;
+      data: { media_id: string; status: MediaStatus } | { idempotent: true };
+    }
+  | {
+      ok: false;
+      code:
+        | "invalid_session"
+        | "uploads_closed"
+        | "cap_reached"
+        | "too_large"
+        | "too_long"
+        | "bad_key"
+        | "unknown";
+      message: string;
+    };
+
+export async function createMedia(input: {
+  sessionToken: string;
+  mediaId: string;
+  type: MediaType;
+  originalKey: string;
+  fileSizeBytes: number;
+  previewKey?: string | null;
+  durationSeconds?: number | null;
+  width?: number | null;
+  height?: number | null;
+}): Promise<CreateMediaResult> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_media", {
+    p_session_token: input.sessionToken,
+    p_media_id: input.mediaId,
+    p_type: input.type,
+    p_original_key: input.originalKey,
+    p_file_size_bytes: input.fileSizeBytes,
+    p_preview_key: input.previewKey ?? undefined,
+    p_duration_seconds: input.durationSeconds ?? undefined,
+    p_width: input.width ?? undefined,
+    p_height: input.height ?? undefined,
+  });
+
+  if (error) {
+    // Retry idempotency: a duplicate media_id means create_media already ran for
+    // this file. It's one transaction (insert → ledger → storage), so a duplicate
+    // rolled back with NO double-count — treat as success.
+    if (error.code === UNIQUE_VIOLATION) {
+      return { ok: true, data: { idempotent: true } };
+    }
+    if (error.code === NO_DATA_FOUND) {
+      return {
+        ok: false,
+        code: "invalid_session",
+        message: "Your upload session has expired.",
+      };
+    }
+    if (error.code === CHECK_VIOLATION) {
+      return mapCheckViolation(error.message);
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save the upload. Please try again.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: data as unknown as { media_id: string; status: MediaStatus },
+  };
+}
+
+// create_media raises a single check_violation for several distinct failures;
+// disambiguate by message. These are backstops — the presign route pre-checks
+// size/duration/caps/accepting-uploads, so reaching here is usually a race.
+function mapCheckViolation(message: string): CreateMediaResult {
+  const m = message.toLowerCase();
+  if (m.includes("not accepting") || m.includes("no longer exists")) {
+    return {
+      ok: false,
+      code: "uploads_closed",
+      message: "This event isn't accepting uploads right now.",
+    };
+  }
+  if (m.includes("does not belong")) {
+    return {
+      ok: false,
+      code: "bad_key",
+      message: "That upload couldn't be verified. Please try again.",
+    };
+  }
+  if (m.includes("exceeds")) {
+    return { ok: false, code: "too_large", message };
+  }
+  if (m.includes("longer than")) {
+    return { ok: false, code: "too_long", message };
+  }
+  if (m.includes("limit") || m.includes("capacity")) {
+    return { ok: false, code: "cap_reached", message };
+  }
+  return {
+    ok: false,
+    code: "unknown",
+    message: "Couldn't save the upload. Please try again.",
+  };
+}

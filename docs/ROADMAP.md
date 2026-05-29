@@ -18,10 +18,9 @@ security, and the living docs that let future agents pick up each phase.
 - [x] Constants + stubs: `tiers.ts`, `r2/*`, `media/*`
 - [x] Agent docs: CLAUDE.md, PRD, ROADMAP, STATUS, ADRs 0001–0004
 
-## ✅ Phase 1 — Host auth + event creation _(this round)_
+## ✅ Phase 1 — Host auth + event creation
 
-Code complete; end-to-end auth verification is blocked on human OAuth/URL config
-(see [`STATUS.md`](STATUS.md) "Blocked on a human").
+Verified in production (magic-link + Google both reach the dashboard).
 
 - [x] Supabase Auth (email magic-link + Google OAuth); signup → profile trigger already exists
 - [x] Login UI (replace `(auth)/login` placeholder); `/auth/callback` already wired
@@ -30,12 +29,17 @@ Code complete; end-to-end auth verification is blocked on human OAuth/URL config
 - [x] QR code render; event settings (moderation mode, visibility, upload lock, required fields)
 - [x] Dashboard event list (replace placeholder)
 
-## ⬜ Phase 2 — Guest join + upload (the core loop)
+## ✅ Phase 2 — Guest join + upload (the core loop) _(this round)_
 
-- [ ] `/e/[token]` join via `create_guest` RPC → issues `session_token`
-- [ ] Browser → R2 **direct multipart** upload (presign + complete); `create_media` RPC sets status + ledger + caps
-- [ ] Live host gallery + public `/a/[token]` album (approved-only, presigned reads)
-- [ ] R2 bucket + CORS verified end-to-end (checksum WHEN_REQUIRED, ExposeHeaders ETag)
+Code complete + DB contract verified; the live browser→R2 round-trip is blocked on
+human R2 setup (see [`STATUS.md`](STATUS.md) "Blocked on a human"). Caught + fixed a
+Phase 0 `create_media` int4-overflow bug that blocked every upload.
+
+- [x] `/e/[token]` join via `create_guest` RPC → issues `session_token`
+- [x] Browser → R2 **direct multipart** upload (presign + complete); `create_media` RPC sets status + ledger + caps
+- [x] Live host gallery + public `/a/[token]` album (approved-only, presigned reads)
+- [x] New `get_upload_context` RPC (presign-time session→event + cap pre-check) + Vitest unit harness
+- [ ] R2 bucket + CORS verified end-to-end (checksum `WHEN_REQUIRED`, ExposeHeaders ETag) — needs human R2 creds
 
 ## ⬜ Phase 3 — Moderation + lifecycle
 

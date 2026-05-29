@@ -24,29 +24,31 @@ pnpm build          # production build
 pnpm lint           # eslint  (NOTE: `next lint` was removed in 16 — use this)
 pnpm typecheck      # next typegen && tsc --noEmit  (run before every commit)
 pnpm format         # prettier --write .
+pnpm test           # vitest run — unit tests for the pure data-integrity layer
 pnpm db:types       # supabase gen types → src/lib/db/types.ts  (needs CLI + link)
 pnpm db:push        # supabase db push                          (needs CLI + link)
 ```
 
 Node is pinned in `.nvmrc` (22.21.1); package manager is **pnpm** (9.14.4). Run
-`pnpm typecheck && pnpm lint` before committing — both must be clean.
+`pnpm typecheck && pnpm lint && pnpm test` before committing — all must be clean.
 
 ---
 
 ## Stack (pinned — verify against docs before upgrading)
 
-| Area       | Choice                             | Version                |
-| ---------- | ---------------------------------- | ---------------------- |
-| Framework  | Next.js (App Router, `src/`, TS)   | `16.2.6`               |
-| React      | react / react-dom                  | `19.2.4`               |
-| Styling    | Tailwind CSS (CSS-first)           | `^4`                   |
-| UI kit     | shadcn (radix-nova) + `radix-ui`   | `^4.8.2` / `^1.4.3`    |
-| Icons      | lucide-react                       | `^1.17.0`              |
-| Data       | Supabase (`@supabase/ssr` + `-js`) | `^0.10.3` / `^2.106.2` |
-| Validation | zod (v4)                           | `^4.4.3`               |
-| Toasts     | sonner                             | `^2.0.7`               |
-| Storage    | Cloudflare R2 (S3 API)             | _(wired Phase 2)_      |
-| Payments   | Stripe                             | _(wired Phase 4)_      |
+| Area       | Choice                               | Version                |
+| ---------- | ------------------------------------ | ---------------------- |
+| Framework  | Next.js (App Router, `src/`, TS)     | `16.2.6`               |
+| React      | react / react-dom                    | `19.2.4`               |
+| Styling    | Tailwind CSS (CSS-first)             | `^4`                   |
+| UI kit     | shadcn (radix-nova) + `radix-ui`     | `^4.8.2` / `^1.4.3`    |
+| Icons      | lucide-react                         | `^1.17.0`              |
+| Data       | Supabase (`@supabase/ssr` + `-js`)   | `^0.10.3` / `^2.106.2` |
+| Validation | zod (v4)                             | `^4.4.3`               |
+| Toasts     | sonner                               | `^2.0.7`               |
+| Storage    | Cloudflare R2 (`@aws-sdk/client-s3`) | `3.1056.0` _(Phase 2)_ |
+| Payments   | Stripe                               | _(wired Phase 4)_      |
+| Tests      | Vitest                               | `^4.1.7`               |
 
 ---
 
@@ -116,15 +118,25 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
 **zod v4** — use top-level `z.url()` (not `z.string().url()`); `error.issues`
 (not `.errors`). See `src/lib/env.ts`.
 
-**Cloudflare R2 (Phase 2)** — the AWS SDK auto-injects CRC checksums R2 rejects
-→ silent 0-byte / `SignatureDoesNotMatch`. On the client set
+**Cloudflare R2** — the AWS SDK auto-injects CRC checksums R2 rejects → silent
+0-byte / `SignatureDoesNotMatch`. The client sets
 `requestChecksumCalculation: "WHEN_REQUIRED"` + `responseChecksumValidation:
-"WHEN_REQUIRED"`; on presign set `signableHeaders: new Set(["content-type"])`.
+"WHEN_REQUIRED"`; single-PUT presign sets `signableHeaders: new Set(["content-type"])`.
 Bucket CORS must allow PUT/POST/GET/HEAD + `content-type` and **expose `ETag`**
-(required for multipart completion). Stubs + notes: `src/lib/r2/`.
+(required for multipart completion); also set a lifecycle rule to abort incomplete
+multipart uploads. **Wired** in `src/lib/r2/{client,presign}.ts` — that config is
+load-bearing, don't remove it. R2 vars stay `.optional()` in `env.ts`; `assertR2Env()`
+asserts them lazily at request time so the app still builds without creds.
 
 **Stripe (Phase 4)** — the webhook route MUST read the **raw body**
 (`await req.text()`) for `constructEvent`; `req.json()` breaks the signature.
+
+**Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
+(2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
+assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force
+bigint: `2::bigint * 1024 * 1024 * 1024`. (This silently broke `create_media` for
+every upload until the Phase 2 RPC-contract test caught it — migration
+`…_fix_create_media_video_bytes_overflow`.)
 
 **Dependencies / pnpm**
 
@@ -200,13 +212,15 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` will report 4 WARNs that are ACCEPTED BY DESIGN — do not "fix"
-them.** They flag the four capability-token RPCs (`get_event_by_qr_token`,
-`get_public_album`, `create_guest`, `create_media`) as SECURITY DEFINER functions
-executable by `anon`. That is intentional: the opaque token IS the authorization
-(ADR-0004). Revoking their EXECUTE grant breaks the entire anonymous guest flow.
-(The trigger-only functions were locked down in migration
-`…_lock_down_trigger_functions` — those are _not_ meant to be callable.)
+**`get_advisors` flags the 5 capability-token RPCs as ACCEPTED BY DESIGN — do not
+"fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
+`create_guest`, `create_media`, and `get_upload_context` (Phase 2) as SECURITY
+DEFINER functions executable by `anon` (and `authenticated`). That is intentional:
+the opaque token IS the authorization (ADR-0004). Revoking their EXECUTE grant
+breaks the entire anonymous guest flow. (The trigger-only functions were locked
+down in migration `…_lock_down_trigger_functions` — those are _not_ meant to be
+callable.) The separate "Leaked Password Protection Disabled" WARN is unrelated —
+Partyreel uses magic-link/OAuth, not passwords.
 
 ---
 

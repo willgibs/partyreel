@@ -32,3 +32,35 @@ export const ACCEPTED_MIME = [
   ...ACCEPTED_PHOTO_MIME,
   ...ACCEPTED_VIDEO_MIME,
 ] as const;
+
+/**
+ * Files at/above this size upload via multipart; smaller files use a single
+ * presigned PUT. Size-based (not photo-vs-video) so a 40 MB HEIC burst still
+ * single-PUTs and a 3 s clip doesn't pay multipart overhead. Well above the
+ * 50 MB photo ceiling and S3's 5 MB minimum part size.
+ */
+export const MULTIPART_THRESHOLD_BYTES = 100 * 1024 ** 2; // 100 MB
+/** Part size for multipart uploads. 2 GB / 16 MB = 128 parts, well under S3's 10k cap. */
+export const MULTIPART_PART_SIZE_BYTES = 16 * 1024 ** 2; // 16 MB
+
+/**
+ * Canonical file extension (no leading dot) for each accepted MIME. The R2 key
+ * extension is derived SERVER-SIDE from the validated content-type via this map,
+ * never from the client-supplied filename (which is untrusted / spoofable).
+ */
+export const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/avif": "avif",
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
+  "video/webm": "webm",
+};
+
+/** Extension for an accepted MIME, or null if the MIME isn't one we accept. */
+export function extForMime(mime: string): string | null {
+  return MIME_TO_EXT[mime] ?? null;
+}

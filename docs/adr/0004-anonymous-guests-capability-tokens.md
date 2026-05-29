@@ -33,9 +33,14 @@ Use **capability tokens** validated inside **`security definer` RPCs**:
   - `create_media(session_token, …)` — validates the session, checks the event
     is accepting uploads, re-checks universal + tier caps, sets status from the
     event's moderation mode, and atomically updates the storage ledger.
+  - `get_upload_context(session_token, type)` — (Phase 2) resolves the session to
+    its event + reports `accepting_uploads` and whether the host is at a count cap,
+    so the presign route can derive the R2 key server-side and reject _before_
+    issuing a presigned URL (orphan minimization). Cap counting mirrors
+    `create_media`'s, which stays authoritative.
 - All functions pin `search_path = ''` and fully-qualify object names to prevent
   search-path hijacking. `grant execute … to anon, authenticated` on exactly
-  these four.
+  these five.
 - Trigger-only functions (`handle_new_user`, `enforce_event_limit`,
   `set_updated_at`) had their EXECUTE **revoked** from `anon`/`authenticated` —
   triggers still fire (they run as owner) but the functions can't be called
@@ -46,7 +51,7 @@ Use **capability tokens** validated inside **`security definer` RPCs**:
 - **+** Guests contribute with no account and no JWT; the DB enforces scope and
   caps even though the client is untrusted.
 - **+** Tokens are easy to rotate/revoke per event (regenerate the column).
-- **⚠ Accepted trade-off:** `get_advisors` flags the four RPCs as "SECURITY
+- **⚠ Accepted trade-off:** `get_advisors` flags the five RPCs as "SECURITY
   DEFINER, executable by anon." **This is intentional and must not be
   'fixed.'** The token is the auth; revoking EXECUTE breaks the guest flow. This
   is documented in CLAUDE.md and STATUS.md so future advisor runs don't alarm.

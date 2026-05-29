@@ -1,0 +1,55 @@
+/**
+ * Request validation for the guest upload route handlers — the SHARED contract
+ * between the browser upload client and the `/api/guests` + `/api/r2/*` routes.
+ *
+ * SECURITY: the client NEVER supplies the R2 key, the media_id (at presign), or a
+ * filename. The presign route derives all of those server-side from the validated
+ * content-type + the capability token (path-traversal / cross-event-write defense
+ * — ADR-0003). The token names are distinct on purpose: `qr_token` (join),
+ * `session_token` (upload capability) — a mix-up here is a security bug.
+ */
+import { z } from "zod";
+
+// ─── POST /api/guests (join) ─────────────────────────────────────────────────
+// The RPC is the authority on which fields are REQUIRED (per the event's
+// require_* flags); this only validates shape/format.
+export const joinSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  display_name: z.string().trim().max(80).optional(),
+  email: z.union([z.email(), z.literal("")]).optional(),
+});
+
+// ─── POST /api/r2/presign-upload ─────────────────────────────────────────────
+// No key / filename / media_id — the server builds the key.
+export const presignUploadSchema = z.object({
+  session_token: z.string().trim().min(1),
+  content_type: z.string().trim().min(1),
+  size_bytes: z.number().int().positive(),
+  duration_seconds: z.number().positive().optional(),
+});
+
+// ─── POST /api/r2/complete-upload ────────────────────────────────────────────
+// Echoes back the media_id + key the presign route issued. create_media
+// re-validates the key prefix authoritatively, so a forged key is rejected there.
+const partSchema = z.object({
+  partNumber: z.number().int().positive(),
+  eTag: z.string().min(1),
+});
+
+export const completeUploadSchema = z.object({
+  session_token: z.string().trim().min(1),
+  media_id: z.uuid(),
+  key: z.string().trim().min(1),
+  content_type: z.string().trim().min(1),
+  size_bytes: z.number().int().positive(),
+  duration_seconds: z.number().positive().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  // null for single-PUT uploads; the R2 uploadId for multipart.
+  upload_id: z.string().min(1).nullable(),
+  parts: z.array(partSchema).default([]),
+});
+
+export type JoinInput = z.input<typeof joinSchema>;
+export type PresignUploadInput = z.input<typeof presignUploadSchema>;
+export type CompleteUploadInput = z.input<typeof completeUploadSchema>;

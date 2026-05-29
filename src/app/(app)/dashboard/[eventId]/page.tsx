@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
 import { EventSettingsForm } from "@/components/app/event-settings-form";
+import { MediaGrid } from "@/components/app/media-grid";
 import {
   Card,
   CardContent,
@@ -14,8 +15,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getEvent } from "@/lib/db/queries/events";
+import { listEventMedia } from "@/lib/db/queries/media";
+import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
+
+// Presigned gallery URLs are per-request + short-lived, so this page must never
+// be statically cached.
+export const dynamic = "force-dynamic";
 
 // Next 16: params is a Promise — await it in both the page and generateMetadata.
 type PageProps = { params: Promise<{ eventId: string }> };
@@ -40,6 +47,17 @@ export default async function EventDetailPage({ params }: PageProps) {
   const siteUrl = await getSiteUrl();
   const joinUrl = `${siteUrl}/e/${event.qr_token}`;
   const albumUrl = `${siteUrl}/a/${event.share_token}`;
+
+  // Live gallery — presign each object key server-side (never expose raw keys).
+  const media = await listEventMedia(event.id);
+  const galleryItems = await Promise.all(
+    media.map(async (m) => ({
+      id: m.id,
+      type: m.type,
+      url: await presignDownload({ key: m.original_key }),
+      status: m.status,
+    })),
+  );
 
   return (
     <div className="space-y-8">
@@ -90,6 +108,26 @@ export default async function EventDetailPage({ params }: PageProps) {
               <CopyShareLink url={albumUrl} />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Uploads</CardTitle>
+          <CardDescription>
+            {media.length > 0
+              ? `${media.length} ${media.length === 1 ? "item" : "items"} from your guests.`
+              : "Photos and videos your guests upload will appear here."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {galleryItems.length > 0 ? (
+            <MediaGrid items={galleryItems} showStatus />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No uploads yet. Share the QR code above to get started.
+            </p>
+          )}
         </CardContent>
       </Card>
 
