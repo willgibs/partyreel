@@ -4,13 +4,17 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 3 — Moderation + lifecycle + safety (**built**; pending
-partyreel.com verification + 2 human prereqs — see "Blocked on a human").
+**Current phase:** Phase 3 — Moderation + lifecycle + safety (**built, committed
+(`734133d`) + deployed; both human prereqs done**). Only the partyreel.com live
+verification pass remains; **Phase 4 (payments/tiers) is ready to plan** in parallel.
 **Last shipped:** Phase 2 — Guest join + upload, **verified in production** (a photo
 and a >100 MB video, uploaded from a mobile QR, both landed in the host gallery).
 
-Phases 1 & 2 are verified in production; Phase 3 is **code-complete and locally/DB
-verified** but not yet exercised on the live site. Canonical domain is **partyreel.com**
+Phases 1 & 2 are verified in production; Phase 3 is **code-complete, committed
+(`734133d`), and deployed to partyreel.com**, with both human prereqs satisfied
+(`CRON_SECRET` set in Vercel + redeployed; `profiles.is_admin` flipped for the
+operator). The only open Phase-3 item is the live end-to-end verification pass — it is
+no longer blocked. Canonical domain is **partyreel.com**
 (`NEXT_PUBLIC_SITE_URL=https://partyreel.com`); R2 (bucket `partyreel`) is provisioned
 with CORS (`ExposeHeaders: ETag`) + an abort-incomplete-multipart lifecycle rule.
 
@@ -73,9 +77,10 @@ the report→review loop) — needs the two human prereqs below.
 
 ## Next action
 
-**Verify Phase 3 on partyreel.com**, then start Phase 4. Phase 3 is code-complete and
-locally/DB-verified; the live pass is blocked only on the two human prereqs below
-(`CRON_SECRET` + flipping `is_admin`). The live pass (see ROADMAP "Phase 3 → Done
+**Run the Phase 3 live verification pass on partyreel.com** (now fully unblocked — both
+human prereqs are done), then start Phase 4 (it can also be **planned in parallel** —
+prices are locked and the target `tiers.ts` is shaped in [`PRICING.md`](PRICING.md)).
+The live pass (see ROADMAP "Phase 3 → Done
 when"): as host, approve/hide/unhide/remove + the pending queue; delete an event and
 confirm `purge_at` ≈ 60 d out, then invoke the cron with the bearer against back-dated
 test data (`curl -H "Authorization: Bearer $CRON_SECRET" …/api/cron/purge`) and confirm
@@ -87,21 +92,25 @@ auto-hide). Then pick up **Phase 4 — Payments/tiers** in [`ROADMAP.md`](ROADMA
 ## Blocked on a human ("manual instrument")
 
 **Done:** R2 bucket `partyreel` + creds (`.env.local` + Vercel), R2 CORS
-(`ExposeHeaders: ETag`), the abort-incomplete-multipart lifecycle rule, and the apex
-`partyreel.com` primary domain are all set.
+(`ExposeHeaders: ETag`), the abort-incomplete-multipart lifecycle rule, the apex
+`partyreel.com` primary domain, and **both Phase-3 prereqs**:
 
-**Upcoming (the two Phase-3 prereqs are first):**
+- **`CRON_SECRET`** set in Vercel env + redeployed — the purge cron's bearer.
+  `vercel.json` registers the cron (`/api/cron/purge`, `0 4 * * *`) and Vercel Cron
+  auto-sends `Authorization: Bearer $CRON_SECRET`.
+- **`profiles.is_admin = true`** flipped for the operator account (currently
+  `hi@willgibs.com`) via the Supabase SQL editor, so `/admin` is reachable. It's
+  service-role-write-only by design (never client-writable). The operator is simply any
+  signed-in profile with `is_admin = true`; to move it off a personal email later, flip
+  the new account on and the old one off (the new account must have signed in once so its
+  `profiles` row exists).
 
-- **`CRON_SECRET`** in Vercel env — the purge cron's bearer. `vercel.json` already
-  registers the cron (`/api/cron/purge`, `0 4 * * *`); Vercel Cron auto-sends
-  `Authorization: Bearer $CRON_SECRET`. Set the var, then confirm the cron is picked up
-  after the next deploy. (Until set, `assertCronEnv()` makes the route 401/throw — the
-  app still builds without it.)
-- **Flip `profiles.is_admin = true`** for the operator account (one-time, via Supabase
-  MCP `execute_sql`) so `/admin` (the report review surface) is reachable. It's
-  service-role-write-only by design — never client-writable.
-- **Stripe keys** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) + products/prices +
-  webhook registration — Phase 4.
+**Upcoming (Phase 4):**
+
+- **Stripe keys** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) + the 4 Price IDs
+  (`STRIPE_PRICE_PRO_100` / `_500` / `_2TB` / `_EVENT_PASS`) + products/prices + webhook
+  endpoint registration + Billing Portal config — see [`PRICING.md`](PRICING.md) "Stripe
+  dashboard setup".
 - **Supabase CLI** not installed locally; migrations are applied via the Supabase
   MCP. For `pnpm db:types` / `db:push`, install the CLI and
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.
