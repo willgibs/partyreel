@@ -76,7 +76,13 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
   `get_advisors` (run after every schema change), `generate_typescript_types`,
   `get_logs`. Project ref `ddafaemglzmuekbtjwzn`.
 - **Vercel MCP** (+ the `vercel/vercel-plugin`) — deploys and build/runtime logs
-  for debugging the live `partyreel.vercel.app`.
+  for debugging the live site (`partyreel.com`). It does **not** manage env vars
+  or domains — those stay manual in the Vercel dashboard.
+- **Cloudflare R2 MCP** — bucket CRUD (`r2_bucket_get/list/create/delete`),
+  `accounts_list`/`set_active_account`, `search_cloudflare_documentation`. Account
+  `7982310e22cd9430e06c34942acf3b9a`; Phase 2 bucket `partyreel` (ENAM). It does
+  **not** create R2 API tokens or set bucket CORS — do those in the R2 dashboard,
+  or set CORS via the S3 API (`@aws-sdk/client-s3` `PutBucketCorsCommand`) once creds exist.
 - **shadcn MCP** — component registry browse/add (but see the gotcha: the
   radix-nova style has **no `form` item**).
 - **Claude Preview / Chrome MCP** — start the dev server and drive a browser to
