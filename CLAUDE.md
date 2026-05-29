@@ -319,7 +319,13 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   WITHOUT it Next errors on relative OG URLs. OG images are **code-generated via `next/og`**
   (`opengraph-image.tsx` site-wide + `(guest)/a/[token]/opengraph-image.tsx` per-event with
   the event name) — no font loaded (the built-in font dodges the Next-16 satori font gotcha).
-  `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes.
+  `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes. **Local-dev gotcha:** in
+  `pnpm dev` the emitted `og:image` URL shows the `localhost:3000` host (Next resolves
+  metadata against the request origin in dev) while `sitemap.ts`/`robots.ts` show the
+  `partyreel.com` fallback — NOT a bug; production (with `NEXT_PUBLIC_SITE_URL` set) resolves
+  `og:image` to `https://partyreel.com/...`. The per-event OG URL also carries a Next hash
+  suffix (`…/opengraph-image-<hash>?…`); read the real URL from the page's `<head>`, don't
+  guess the path.
 - **Share pages emit OG tags but `robots: { index: false }`** — `/a/[token]` + `/e/[token]`
   set `generateMetadata` (event name/description + per-event OG) so links unfurl in chat, but
   the opaque share/qr token must NEVER be indexed (OG-for-social ≠ search-indexing). `robots.ts`

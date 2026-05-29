@@ -6,10 +6,11 @@
 **Updated:** 2026-05-29
 **Current phase:** Phase 4 + the fast-follows + the free-tier 6-month inactivity removal
 are **committed + deployed**. Now on **Phase 6 (growth/polish), growth-loop cut** —
-**code-complete + locally verified**: branded share pages + a "make your own" growth badge,
-marketing SEO (metadataBase/OG images/sitemap/robots + per-event share unfurls), and guest
-email capture (post-upload prompt → `guests.email` + a durable `newsletter_signups` list).
-**Pending: commit + deploy + live-verify the guest email-capture flow.** **Phase 5
+**committed + deployed** to partyreel.com (commit `push phase 6`): branded share pages + a
+"make your own" growth badge, marketing SEO (metadataBase/OG images/sitemap/robots + per-event
+share unfurls — `/robots.txt` + `/sitemap.xml` + `/opengraph-image` confirmed 200 live), and
+guest email capture (post-upload prompt → `guests.email` + a durable `newsletter_signups` list).
+**Pending: live-verify the post-upload email prompt + a real share unfurl on partyreel.com.** **Phase 5
 (highlight reel) is deliberately TABLED** pending product research (it defines the core
 output, so it shouldn't be rushed). Remaining Phase-6 candidates (onboarding/create wizard,
 QR designer, notification center, link analytics) are later cuts.
@@ -147,15 +148,16 @@ rolled-back `capture_guest_email` RPC check; advisors show the expected new
 Verified locally via the preview: `/opengraph-image` + the per-event `/a/[token]` OG card
 render (branded), `/sitemap.xml` + `/robots.txt` correct, the share pages carry OG tags +
 `robots noindex`, and the album shows the "make your own" growth badge + linkified logo.
-What's left:
+What's left (committed + deployed as `push phase 6`; SEO routes confirmed live; the
+`capture_guest_email` HTTP path was exercised end-to-end against prod from localhost — join →
+capture set `guests.email` lowercased + a `newsletter_signups` opt-in row; bad session 401 /
+bad email 400; test rows cleaned up). Only the browser-only bits remain:
 
-1. **Commit + deploy** the growth-loop code (Will commits/deploys). No new env var or human
-   prereq (uses the existing `NEXT_PUBLIC_SITE_URL` + Resend config).
-2. **Live-verify (partyreel.com):** (a) **email capture** — scan an event QR → upload one
-   file → the one-time prompt appears → submit email (+opt-in) → confirm `guests.email` set +
-   a `newsletter_signups` row (Supabase MCP) → re-upload as the same guest → the prompt does
-   NOT reappear; (b) **share unfurl** — paste a `/a/[token]` link into iMessage/Slack → branded
-   card + event name, and confirm `noindex` is present (not search-indexed).
+1. **Live-verify (partyreel.com):** (a) **email capture UI** — scan an event QR → upload one
+   file → the one-time prompt appears → submit email (+opt-in) → re-upload as the same guest →
+   the prompt does NOT reappear (the localStorage gate); (b) **share unfurl** — paste a
+   `/a/[token]` link into iMessage/Slack → branded card + event name (DB writes + `noindex`
+   already confirmed).
 
 Also still pending from the prior cut: **live-verify the fast-follows + inactivity**
 (deployed, but needs `EMAIL_FROM` set + seeded test data) — a test email arrives + doesn't

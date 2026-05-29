@@ -322,7 +322,9 @@ email guard; the capability-token RPC + `anon`-grant pattern.
 - **Notification / alert center** — a badge by the avatar aggregating alerts (uploads,
   over-capacity/retention warnings, billing, pass expiry). Critical alerts already go by
   email in earlier phases; this is the in-app aggregator.
-- **Link analytics** — scan/view activity on QR and share links.
+- **Link analytics** — scan/view activity on QR and share links. (The most foundational of
+  these: needs NEW capture infra first — a lightweight scan/view tracking table + a
+  record-on-view path — which the notification center could then surface.)
 
 ## Later / v2+ docket (post-v1)
 
