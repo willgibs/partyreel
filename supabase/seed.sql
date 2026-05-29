@@ -1,0 +1,13 @@
+-- Local dev seed data. Runs on `supabase db reset` / `supabase start` against
+-- the LOCAL stack only — never the remote project.
+--
+-- Intentionally empty in Phase 0. There is nothing safe to seed yet:
+--   * profiles rows are created by the on_auth_user_created trigger when a real
+--     auth user signs up (Phase 1) — do not insert profiles directly here or
+--     they will collide with the trigger.
+--   * events/guests/media depend on a host profile + capability tokens, which
+--     only exist once auth (Phase 1) and the guest flow (Phase 2) are wired.
+--
+-- Add seed rows here as those phases land (e.g. a demo host + sample event for
+-- local gallery work). Keep it idempotent (use ON CONFLICT DO NOTHING) so
+-- repeated `db reset` runs stay clean.

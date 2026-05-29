@@ -1,0 +1,15 @@
+# Generated / build artifacts — never reformat these
+node_modules
+.next
+out
+build
+pnpm-lock.yaml
+next-env.d.ts
+
+# Generated from the live Supabase schema (keep diffs clean vs. `supabase gen types`)
+src/lib/db/types.ts
+
+# shadcn primitives are added/updated by the CLI in upstream style (no semicolons).
+# Leaving them un-reformatted keeps `shadcn add` output churn-free and easy to diff
+# against upstream. Compose/edit on top of them in your own files, not by reformatting.
+src/components/ui

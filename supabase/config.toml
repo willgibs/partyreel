@@ -1,0 +1,61 @@
+# Supabase CLI config — local development stack + `supabase link` target.
+#
+# WHY this is minimal: Phase 0 applied the schema to the REMOTE project via the
+# MCP server (the CLI was not installed locally). This file exists so that once
+# the CLI is installed, `supabase link` + `supabase db push` / `supabase gen
+# types` "just work" and the repo is the source of truth. Add more sections
+# (auth providers, storage, edge runtime, etc.) as later phases need them — keep
+# them documented.
+#
+# REMOTE PROJECT (the "manual instrument" created this in Phase 0):
+#   ref:    ddafaemglzmuekbtjwzn
+#   org:    Will Gibson
+#   region: us-east-1
+#   url:    https://ddafaemglzmuekbtjwzn.supabase.co
+# Link with:  supabase link --project-ref ddafaemglzmuekbtjwzn
+# Then:       supabase db push   (apply migrations/)  and
+#             pnpm db:types      (regenerate src/lib/db/types.ts)
+
+# Local container namespace (defaults to the directory name). NOT the remote ref.
+project_id = "partyreel"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+# Pin to the REMOTE major version (live project runs Postgres 17) so local dev
+# reproduces production behavior. Bump only when the remote is upgraded.
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+# Catches outbound emails (signup confirmations, magic links) during local dev
+# so they never actually send. View them at http://localhost:54324.
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+# Used to build redirect/confirmation URLs in local dev. Mirrors
+# NEXT_PUBLIC_SITE_URL in .env.local.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false

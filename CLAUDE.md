@@ -1,0 +1,199 @@
+@AGENTS.md
+
+# Partyreel — agent operating guide
+
+> **Read [`docs/STATUS.md`](docs/STATUS.md) FIRST.** It names the current phase
+> and the exact next action. This file is the standing reference; STATUS is the
+> "you are here." The `@AGENTS.md` import above is also load-bearing: this is
+> **Next.js 16**, which has breaking changes from older Next — heed it.
+
+Partyreel is a guest-powered event media platform. A host creates an event and
+shares a **QR code**; guests scan it and upload photos/videos from their phones
+with **no app install and no account** (just a display name). The host curates;
+the growth loop is that every QR exposes Partyreel to future hosts. Marketing
+site + host app + guest links all live on **one domain**. Full product context:
+[`docs/PRD.md`](docs/PRD.md). Why-decisions: [`docs/adr/`](docs/adr/).
+
+---
+
+## Commands
+
+```bash
+pnpm dev            # next dev (Turbopack) on :3000
+pnpm build          # production build
+pnpm lint           # eslint  (NOTE: `next lint` was removed in 16 — use this)
+pnpm typecheck      # next typegen && tsc --noEmit  (run before every commit)
+pnpm format         # prettier --write .
+pnpm db:types       # supabase gen types → src/lib/db/types.ts  (needs CLI + link)
+pnpm db:push        # supabase db push                          (needs CLI + link)
+```
+
+Node is pinned in `.nvmrc` (22.21.1); package manager is **pnpm** (9.14.4). Run
+`pnpm typecheck && pnpm lint` before committing — both must be clean.
+
+---
+
+## Stack (pinned — verify against docs before upgrading)
+
+| Area       | Choice                             | Version                |
+| ---------- | ---------------------------------- | ---------------------- |
+| Framework  | Next.js (App Router, `src/`, TS)   | `16.2.6`               |
+| React      | react / react-dom                  | `19.2.4`               |
+| Styling    | Tailwind CSS (CSS-first)           | `^4`                   |
+| UI kit     | shadcn (radix-nova) + `radix-ui`   | `^4.8.2` / `^1.4.3`    |
+| Icons      | lucide-react                       | `^1.17.0`              |
+| Data       | Supabase (`@supabase/ssr` + `-js`) | `^0.10.3` / `^2.106.2` |
+| Validation | zod (v4)                           | `^4.4.3`               |
+| Toasts     | sonner                             | `^2.0.7`               |
+| Storage    | Cloudflare R2 (S3 API)             | _(wired Phase 2)_      |
+| Payments   | Stripe                             | _(wired Phase 4)_      |
+
+---
+
+## Critical gotchas (these have bitten people — do NOT relearn them the hard way)
+
+**Next.js 16**
+
+- `params` and `searchParams` are **Promises** — `const { token } = await params`
+  in every page/layout/route handler. (See `src/app/(guest)/e/[token]/page.tsx`.)
+- `cookies()` / `headers()` are **async** — `await cookies()`.
+- Middleware was renamed to **Proxy**: the file is `src/proxy.ts` and exports a
+  function named `proxy`. The old `middleware`/`middleware.ts` name no longer
+  runs. It runs on the Node runtime by default — **do not** add a `runtime`
+  config (Next 16 rejects it here).
+- `next lint` is gone — lint with `eslint` (the `pnpm lint` script).
+
+**Supabase / auth**
+
+- Use `@supabase/ssr` (NOT the deprecated `auth-helpers`).
+- Cookie API is **`getAll`/`setAll`** — never the old get/set/remove.
+- **Authorize with `supabase.auth.getUser()`, NEVER `getSession()`.** `getUser()`
+  re-validates the JWT with the auth server; `getSession()` only decodes the
+  (spoofable) cookie. The proxy refreshes the cookie but is **not** a security
+  boundary (see "Security guardrails").
+- Clients live in `src/lib/supabase/`: `client` (browser), `server` (RSC/route
+  handlers, async), `middleware` (proxy session refresh), `admin` (service-role,
+  `server-only`, bypasses RLS).
+
+**Tailwind v4**
+
+- CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme`, dark
+  via `@custom-variant dark`. No `tailwind.config.js`. PostCSS uses only
+  `@tailwindcss/postcss`.
+
+**zod v4** — use top-level `z.url()` (not `z.string().url()`); `error.issues`
+(not `.errors`). See `src/lib/env.ts`.
+
+**Cloudflare R2 (Phase 2)** — the AWS SDK auto-injects CRC checksums R2 rejects
+→ silent 0-byte / `SignatureDoesNotMatch`. On the client set
+`requestChecksumCalculation: "WHEN_REQUIRED"` + `responseChecksumValidation:
+"WHEN_REQUIRED"`; on presign set `signableHeaders: new Set(["content-type"])`.
+Bucket CORS must allow PUT/POST/GET/HEAD + `content-type` and **expose `ETag`**
+(required for multipart completion). Stubs + notes: `src/lib/r2/`.
+
+**Stripe (Phase 4)** — the webhook route MUST read the **raw body**
+(`await req.text()`) for `constructEvent`; `req.json()` breaks the signature.
+
+---
+
+## Architecture & routing
+
+One Next app, route groups on one domain (ADR-0002):
+
+```
+src/app/
+  layout.tsx              # the ONLY root layout (html/body, fonts, Providers, Toaster)
+  (marketing)/            # public: /, /pricing, /privacy, /terms   → MarketingHeader/Footer
+  (auth)/                 # public: /login, /auth/callback          → no gate (see below)
+  (app)/                  # GATED: /dashboard …  layout.tsx runs getUser() → redirect /login
+  (guest)/                # token routes: /e/[token] (join+upload), /a/[token] (public album)
+  api/                    # route handlers — most are 501 stubs until their phase
+```
+
+- **Login lives in `(auth)`, not `(app)`, on purpose.** The `(app)` layout
+  redirects anon users to `/login`; if `/login` were under that gate it would
+  redirect to itself forever.
+- The **public album `/a/[token]` uses the always-dark `gallery` surface**
+  (`bg-gallery text-gallery-foreground`) so media is the hero in any theme.
+
+---
+
+## DRY single-sources (do NOT duplicate these elsewhere)
+
+| Concern                                                | Single source                                            |
+| ------------------------------------------------------ | -------------------------------------------------------- |
+| Pricing / tier limits (app side)                       | `src/lib/constants/tiers.ts`                             |
+| Pricing / tier limits (DB enforcement)                 | `public.tier_limits()` SQL fn — **must mirror tiers.ts** |
+| Universal per-file media limits (5 min / 2 GB / 50 MB) | `src/lib/media/limits.ts`                                |
+| R2 object keys                                         | `src/lib/r2/keys.ts`                                     |
+| DB access (queries/mutations)                          | `src/lib/db/*` — never inline SQL in components          |
+| Env vars (zod-validated)                               | `src/lib/env.ts` (`env` public, `serverEnv` server-only) |
+| `cn()` class merge                                     | `src/lib/utils.ts`                                       |
+
+> Tier limits unavoidably live in **two** places (TypeScript for UX, SQL for
+> enforcement). They are kept in lockstep by hand — if you change one, change the
+> other and re-verify. `lib/constants/tiers.ts` is the human-authored source;
+> `tier_limits()` mirrors it.
+
+---
+
+## Database workflow
+
+- Schema is **Supabase-native**: SQL migrations + RLS + generated types are the
+  source of truth (ADR-0001). Migrations live in `supabase/migrations/`.
+- **Phase 0 applied migrations via the Supabase MCP** (`apply_migration`) because
+  the CLI isn't installed locally. The migration _files_ in the repo and the live
+  DB are kept in sync by filename = applied version. To use the pnpm scripts
+  (`db:types`, `db:push`) later, install the CLI and
+  `supabase link --project-ref ddafaemglzmuekbtjwzn`.
+- `src/lib/db/types.ts` is **generated — do not hand-edit.** It's in
+  `.prettierignore` so regeneration stays churn-free (it must match `supabase gen
+types` output byte-for-byte).
+- After any schema change: run advisors (`get_advisors`) and regenerate types.
+
+**`get_advisors` will report 4 WARNs that are ACCEPTED BY DESIGN — do not "fix"
+them.** They flag the four capability-token RPCs (`get_event_by_qr_token`,
+`get_public_album`, `create_guest`, `create_media`) as SECURITY DEFINER functions
+executable by `anon`. That is intentional: the opaque token IS the authorization
+(ADR-0004). Revoking their EXECUTE grant breaks the entire anonymous guest flow.
+(The trigger-only functions were locked down in migration
+`…_lock_down_trigger_functions` — those are _not_ meant to be callable.)
+
+---
+
+## Security guardrails (non-negotiable)
+
+- **RLS is the security boundary.** The proxy only refreshes cookies; it does not
+  authorize. Re-verify authz with `getUser()` in every Server Function / route
+  handler AND rely on RLS policies / security-definer RPCs at the DB.
+- **Anonymous guests use capability tokens** validated inside security-definer
+  RPCs (ADR-0004). Guests have no JWT; never give `anon` direct table access.
+- **Never expose raw R2 object keys/URLs to the browser.** `get_public_album`
+  returns keys for **server-side presigning only** — presign before render.
+- **Never trust the client for tier/entitlements.** The Stripe webhook is the
+  source of truth for `profiles.tier`; `tier` / `storage_cap_bytes` /
+  `storage_used_bytes` are writable only by service-role / RPC, never the client.
+- **The service-role / secret key is server-only.** It lives behind
+  `src/lib/supabase/admin.ts` (`import "server-only"`) and must never be prefixed
+  `NEXT_PUBLIC_` or reach a client bundle.
+- **Events have no end date** — only deletion frees an event slot (this is the
+  anti-abuse core; see tiers.ts and ADR/PRD). Don't add an "end event" path that
+  keeps media accessible.
+
+---
+
+## Working conventions
+
+- **Leave WHY comments for the next agent.** Explain non-obvious decisions,
+  gotchas, and what NOT to do — the existing files model this density. Don't
+  narrate the obvious; do capture hard-won findings.
+- Prefer editing existing files; reuse the design-system primitives in
+  `src/components/ui` and shared composites in `src/components/shared`.
+- shadcn UI components (`src/components/ui/*`) are authored **without
+  semicolons** by the generator; app code uses semicolons. Don't reformat the
+  generated UI files to "match."
+- **Git:** never `git add -A` (stage files explicitly — avoids committing
+  `.env.local` or stray files); never commit secrets; never skip hooks
+  (`--no-verify`) or force-push without an explicit ask.
+- This is the foundation phase output. **No working end-user features ship until
+  their roadmap phase** — keep API routes honest 501 stubs until then.
