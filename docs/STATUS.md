@@ -4,17 +4,17 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 3 — Moderation + lifecycle + safety (**built, committed
-(`734133d`) + deployed; both human prereqs done**). Only the partyreel.com live
-verification pass remains; **Phase 4 (payments/tiers) is ready to plan** in parallel.
-**Last shipped:** Phase 2 — Guest join + upload, **verified in production** (a photo
-and a >100 MB video, uploaded from a mobile QR, both landed in the host gallery).
+**Current phase:** Phase 4 — Payments/tiers (**ready to plan**; storage model + prices
+LOCKED, target `tiers.ts` shaped in [`PRICING.md`](PRICING.md)).
+**Last shipped:** Phase 3 — Moderation + lifecycle + safety, **verified in production**
+(2026-05-29): moderation approve/hide/unhide/remove + the pending queue; the purge cron
+reclaimed R2 objects + DB rows + `storage_used_bytes` while leaving the monthly ledger
+untouched; report → `/admin` review with dismiss + action both working (no auto-hide).
 
-Phases 1 & 2 are verified in production; Phase 3 is **code-complete, committed
-(`734133d`), and deployed to partyreel.com**, with both human prereqs satisfied
-(`CRON_SECRET` set in Vercel + redeployed; `profiles.is_admin` flipped for the
-operator). The only open Phase-3 item is the live end-to-end verification pass — it is
-no longer blocked. Canonical domain is **partyreel.com**
+Phases 1–3 are **verified in production**. Phase 3 shipped code-complete (committed
+`734133d`, deployed to partyreel.com) with both human prereqs done (`CRON_SECRET` in
+Vercel; `profiles.is_admin` flipped for the operator), and the **live end-to-end pass is
+now complete** — see "Verified" below. Canonical domain is **partyreel.com**
 (`NEXT_PUBLIC_SITE_URL=https://partyreel.com`); R2 (bucket `partyreel`) is provisioned
 with CORS (`ExposeHeaders: ETag`) + an abort-incomplete-multipart lifecycle rule.
 
@@ -47,7 +47,7 @@ Phase 2 (verified in production) shipped:
   threw `integer out of range` on _every_ call — `2 * 1024 * 1024 * 1024` overflows
   int4 during DECLARE init. Fixed with `2::bigint`. Caught by the new RPC-contract test.
 
-Phase 3 (**built; pending live verification**) adds:
+Phase 3 (**verified in production**) adds:
 
 - **Moderation** — `setMediaStatus` / `removeMedia` / `approveAllPending` mutations
   (`src/lib/db/mutations/media.ts`) + Server Actions; a `host-media-grid.tsx` with
@@ -71,23 +71,43 @@ plus four Phase-3 checks — remove frees the per-event slot; `purge_media_rows`
 decrements `storage_used_bytes` by Σbytes / leaves `storage_ledger` untouched / is
 idempotent; the sweep-1 `purge_at` predicate; `create_report` inserts `open` /
 cross-event `media_id` → `check_violation` / bad token → `no_data_found`. `get_advisors`
-= the expected **6** anon RPC WARNs (`purge_media_rows` stays locked down). **Pending:**
-the partyreel.com pass for Phase 3 (moderation, the cron against back-dated data, and
-the report→review loop) — needs the two human prereqs below.
+= the expected **6** anon RPC WARNs (`purge_media_rows` stays locked down).
+
+**Live pass on partyreel.com (2026-05-29 — DONE):**
+
+- **Moderation** — guest uploads to a `live` event approve/hide/unhide/remove from the
+  host grid; on a `hold_for_approval` event uploads land `pending`, are excluded from the
+  public album, and Approve-one + Approve-all both clear the queue. (Gotcha found: the
+  event-settings form is **not** auto-save — the moderation-mode toggle only persists
+  after clicking **Save changes**.)
+- **Lifecycle** — soft-deleting an event stamped `purge_at = deleted_at + 60d` (exact)
+  and freed the slot. Back-dated test data + the cron (`Bearer $CRON_SECRET`) returned
+  `expired_events {events:1, media_rows:3, r2_deleted:3, freed:66666}`, `removed_media
+  {media_rows:2, r2_deleted:2, freed:37271286}`, `orphans:0`. After-state confirmed: the
+  expired event + all its media rows gone (the live event untouched), both hosts'
+  `storage_used_bytes` decremented to 0, **both `storage_ledger.cumulative_bytes` rows
+  UNCHANGED** (66666 / 37271286 — the churn-defense invariant held).
+- **Safety** — a report from `/a/[token]` appeared in `/admin`; **Dismiss** resolved it
+  with no media change; **Action** set the media `removed` + marked the report `actioned`;
+  the queue emptied; a report **never** auto-hid content.
+
+_(Orphan-sweep caveat: a **freshly injected** orphan can't be force-demonstrated — R2/S3
+`LastModified` is set on PUT and can't be back-dated, so a new object never clears the
+24 h guard; the sweep's parse/match correctness is covered by the `parseMediaIdFromKey`
+unit tests instead.)_
 
 ## Next action
 
-**Run the Phase 3 live verification pass on partyreel.com** (now fully unblocked — both
-human prereqs are done), then start Phase 4 (it can also be **planned in parallel** —
-prices are locked and the target `tiers.ts` is shaped in [`PRICING.md`](PRICING.md)).
-The live pass (see ROADMAP "Phase 3 → Done
-when"): as host, approve/hide/unhide/remove + the pending queue; delete an event and
-confirm `purge_at` ≈ 60 d out, then invoke the cron with the bearer against back-dated
-test data (`curl -H "Authorization: Bearer $CRON_SECRET" …/api/cron/purge`) and confirm
-R2 objects + rows are reclaimed, `storage_used_bytes` decremented, `storage_ledger`
-untouched, and an injected orphan swept; submit a report from `/a/[token]`, see it in
-`/admin`, and confirm dismiss + action both work (and that a report does **not**
-auto-hide). Then pick up **Phase 4 — Payments/tiers** in [`ROADMAP.md`](ROADMAP.md).
+**Plan + build Phase 4 — Payments/tiers** (Phase 3 is done; see [`ROADMAP.md`](ROADMAP.md)
+"Phase 4"). The storage-cap model and prices are **LOCKED** (2026-05-29) and the target
+`tiers.ts` is shaped in [`PRICING.md`](PRICING.md); the human prereqs (Stripe keys + the
+4 Price IDs + products/prices + webhook endpoint + Billing Portal config) are listed
+under "Blocked on a human" below. First moves per ROADMAP: rework `tiers.ts` +
+`tier_limits()` + `create_media` from the old item-cap model to a single total-storage
+cap (drop Max + the `watermark` field; add the monthly ingress meter), then the
+raw-body Stripe webhook (the sole writer of `profiles.tier`/`storage_cap_bytes`). Start
+with the standing doc-check (Context7) on the current Stripe + `@stripe/stripe-js` /
+`stripe` Node SDK APIs before coding.
 
 ## Blocked on a human ("manual instrument")
 

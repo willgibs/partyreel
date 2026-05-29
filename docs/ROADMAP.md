@@ -65,10 +65,12 @@ every upload.
 - [x] New `get_upload_context` RPC (presign-time session→event + cap pre-check) + Vitest unit harness
 - [x] R2 bucket + CORS verified end-to-end (checksum `WHEN_REQUIRED`, ExposeHeaders ETag)
 
-## 🔨 Phase 3 — Moderation + lifecycle + safety (reports/review MVP)
+## ✅ Phase 3 — Moderation + lifecycle + safety (reports/review MVP)
 
-**Built; pending live verification on partyreel.com + two human prereqs (`CRON_SECRET`
-in Vercel, flip `profiles.is_admin` for the operator).** Local
+**Verified in production (2026-05-29).** Moderation (approve/hide/unhide/remove + the
+pending queue), the delete→purge lifecycle (the cron reclaimed R2 + rows +
+`storage_used_bytes` while the monthly ledger stayed untouched), and the report→`/admin`
+review loop (dismiss + action, no auto-hide) all confirmed live. Local
 typecheck/lint/format/test/build clean; DB contract verified via rolled-back
 Supabase-MCP checks; advisors show the expected **6** anon RPCs (`purge_media_rows`
 stays locked down).
@@ -162,8 +164,8 @@ moderation").
 deleted event's `purge_at` is ~60 d out and the cron reclaims R2 + rows (and an injected
 orphan) after back-dating, decrementing `storage_used_bytes` while leaving the ledger
 untouched; a report from `/a/[token]` appears in `/admin` and dismiss/action both work
-(and a report does **not** auto-hide). Tests pass; STATUS/ROADMAP updated. _(Code +
-local/DB verification done; the partyreel.com pass is pending the two human prereqs.)_
+(and a report does **not** auto-hide). Tests pass; STATUS/ROADMAP updated. _(All met —
+code + local/DB + the partyreel.com live pass verified 2026-05-29; see STATUS "Verified".)_
 
 ## ⬜ Phase 4 — Payments / tiers
 

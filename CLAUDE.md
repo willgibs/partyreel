@@ -156,6 +156,15 @@ asserts them lazily at request time so the app still builds without creds.
 - **`profiles.is_admin` is service-role-write-only** (same class as `tier`/`storage_*`) —
   it's **not** in the `grant update(...)` allowlist, so the client can never set it. Flip
   it for the operator account once via the Supabase MCP. `/admin` re-checks it server-side.
+- **Testing the orphan sweep: you CANNOT force-demonstrate it with a fresh object.** R2/S3
+  `LastModified` is set on PUT and is immutable — a newly-injected orphan never clears the
+  `ORPHAN_MIN_AGE_HOURS` (24 h) guard, so the sweep correctly skips it. To prove the sweep
+  end-to-end you'd need a pre-existing >24 h orphan (or a temporary threshold change); the
+  parse/match correctness is otherwise covered by the `parseMediaIdFromKey` unit tests.
+- **The event-settings form is NOT auto-save** (`event-settings-form.tsx`) — toggles like
+  moderation mode only persist after clicking **Save changes** (toast "Settings saved.").
+  When scripting/verifying a settings change, click Save and confirm the DB, don't assume
+  the toggle wrote on change.
 
 **Local dev vs. live testing** — auth and uploads are wired for **partyreel.com
 only**. `localhost:3000` is deliberately NOT in Supabase's redirect allow-list, the
