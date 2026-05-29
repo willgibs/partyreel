@@ -4,12 +4,11 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 4 is complete; the two **fast-follows** are **code-complete +
+**Current phase:** Phase 4 is complete; the **fast-follows** are **code-complete +
 locally verified** (Resend email foundation, over-capacity retention with auto-reduce,
-Event Pass renewal). **Pending: Resend setup (key + domain) + `STRIPE_PRICE_EVENT_PASS_RENEWAL`
-env + deploy + live verify.** Then Phase 5 (highlight reel) / Phase 6 (growth). The
-**free-tier 6-month inactivity removal** is the strong next cut (reuses all this
-machinery).
+Event Pass renewal, **and the free-tier 6-month inactivity removal**). **Pending: Resend
+setup (key + domain) + `STRIPE_PRICE_EVENT_PASS_RENEWAL` env + `EMAIL_FROM` + deploy +
+live verify.** Then Phase 5 (highlight reel) / Phase 6 (growth).
 **Last shipped:** Cut 4c — Event Pass (one-time), **verified in production** (2026-05-29):
 a live test-mode "Buy a pass" → one-time Stripe Checkout (`mode:payment`, card `4242`) →
 `checkout.session.completed` webhook set `tier='event_pass'` + 75 GB + `tier_expires_at`
@@ -137,24 +136,28 @@ unit tests instead.)_
 
 ## Next action
 
-**Finish the fast-follows** (code complete + locally verified: typecheck/lint/format/
-test (69)/build clean; rolled-back `sent_emails` dedupe + `selectForAutoReduce` checks). What's
+**Ship the fast-follows + inactivity removal** (all code-complete + locally verified:
+typecheck/lint/format/**test (72)**/build clean; rolled-back `sent_emails` dedupe +
+`selectForAutoReduce` + `inactivityAction` checks; all migrations applied to prod). What's
 left:
 
-1. **Will — Resend:** create the API key + **verify a sending domain** (DNS) → set
-   `RESEND_API_KEY` + `EMAIL_FROM` (e.g. `Partyreel <noreply@partyreel.com>`) in
-   `.env.local` + Vercel.
-2. **Will — Stripe:** paste **`STRIPE_PRICE_EVENT_PASS_RENEWAL=price_1TcVuOPtjqmVkBwkTCXTKOIs`**
-   ($15 test renewal price). Commit + deploy.
+1. **Will — env (mostly done):** `RESEND_API_KEY` + `STRIPE_PRICE_EVENT_PASS_RENEWAL`
+   (`price_1TcVuOPtjqmVkBwkTCXTKOIs`, $15 test) are **already in Vercel**. Remaining: set
+   **`EMAIL_FROM`** — confirmed format **`Partyreel <noreply@partyreel.com>`** (RFC-5322
+   display-name; **no quotes in the Vercel value**; address on the verified `partyreel.com`
+   domain). No new var for inactivity.
+2. **Commit + deploy** the uncommitted fast-follow + inactivity code (Will commits/deploys).
 3. **Live-verify (partyreel.com, test):** (a) a test email send arrives + a second trigger
    doesn't resend (`sent_emails`); (b) seed/downgrade the test account over a small cap →
    run the cron → grace banner + grace email; back-date `storage_grace_until` → run the cron
    → largest-first auto-reduce (Supabase MCP) + reduced email; (c) seed an `event_pass` near
    expiry → run the cron → nudge email; the dashboard "Renew Event Pass" → $15 checkout →
-   `tier_expires_at` reset.
+   `tier_expires_at` reset; (d) **inactivity** — seed a free event with a back-dated
+   `last_active_at` (and no recent media) → run the cron → the `inactive_free_events` sweep
+   emits a warn (≤14 d out) then a remove (≥180 d) with the warning/removed emails, and the
+   removed event soft-deletes into the recoverable tail.
 
-After this: **Phase 5** (highlight reel) / **Phase 6** (growth); the **free-tier 6-month
-inactivity removal** is the strong next cut (reuses this machinery).
+After this: **Phase 5** (highlight reel) / **Phase 6** (growth).
 
 ## Blocked on a human ("manual instrument")
 

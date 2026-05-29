@@ -234,6 +234,7 @@ export type Database = {
           email: string | null
           id: string
           is_admin: boolean
+          last_active_at: string
           storage_cap_bytes: number | null
           storage_grace_until: string | null
           storage_used_bytes: number
@@ -264,6 +265,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_admin?: boolean
+          last_active_at?: string
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number

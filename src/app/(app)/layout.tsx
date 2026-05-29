@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
+import { touchHostActive } from "@/lib/db/mutations/profile";
 import { createClient } from "@/lib/supabase/server";
 
 // Auth GATE for the host app. Every route in the (app) group renders inside
@@ -29,6 +31,10 @@ export default async function AppLayout({
   if (!user) {
     redirect("/login");
   }
+
+  // Bump the host's activity clock for free-tier inactivity removal — after the response,
+  // throttled, best-effort (never blocks/breaks the gate). Covers sign-in + any host use.
+  after(() => touchHostActive(user.id));
 
   // OAuth (Google) populates user_metadata.full_name; magic-link users won't
   // have one, so the menu falls back to the email for its label + initial.

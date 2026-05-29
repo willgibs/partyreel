@@ -238,10 +238,13 @@ is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new upl
 - [x] **(fast-follow, code-complete)** Over-capacity retention — Resend email foundation
       (`sendOnce` deduped), a **45-day grace** (banner + warning emails) then **largest-first
       auto-reduce** into the Phase-3 removed tail; + **Event Pass renewal** ($15 price +
-      14-day nudge email + dashboard Renew). The daily cron now runs 6 lifecycle sweeps.
+      14-day nudge email + dashboard Renew); + **free-tier 6-month inactivity removal**
+      (`last_active_at` bumped via `touchHostActive` in the `(app)` layout; warn ~14 d out
+      then soft-delete into the recoverable tail). The daily cron now runs **7 lifecycle
+      sweeps** (expired_events, removed_media, orphans, expired_passes, over_capacity,
+      renewal_nudges, inactive_free_events).
       _(Pending Resend setup + `STRIPE_PRICE_EVENT_PASS_RENEWAL` + deploy + live verify.)_
       Cold storage evaluated + rejected (R2 IA marginal; Glacier = cross-cloud project).
-      **Next cost lever: free-tier 6-month inactivity removal** (reuses this machinery).
 - [x] **(4a/4b)** Tests — `tiers.ts` ↔ `tier_limits()` parity + storage-cap enforcement in
       `create_media` (4a, rolled-back); the webhook `resolveSubscriptionUpdate` resolver
       (4b, Vitest fixtures).

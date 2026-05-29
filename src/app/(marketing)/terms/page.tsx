@@ -25,6 +25,19 @@ export default function TermsPage() {
           Until then, see the pricing page for an overview of what each plan
           includes.
         </p>
+        {/* Surfaced from launch so the inactivity policy is never a surprise (Will's
+            ask). Plain-language summary of docs/PRD.md "Data retention & lifecycle" +
+            the inactivity sweep in src/app/api/cron/purge — FLAG FOR LEGAL REVIEW
+            before public launch (exact windows/wording to be confirmed by counsel). */}
+        <p>
+          <strong>Inactive free events.</strong> To keep free accounts tidy, an
+          event on a free account may be removed after about{" "}
+          <strong>6 months</strong> with no activity (signing in or opening the
+          event both count as activity). We email you a warning before this
+          happens, and a removed event stays recoverable for a short window
+          afterward before it is permanently deleted. Keeping a plan, or simply
+          using your event, prevents removal.
+        </p>
       </div>
     </Container>
   );

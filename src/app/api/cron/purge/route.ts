@@ -21,6 +21,8 @@ import { createHash, timingSafeEqual } from "node:crypto";
 
 import { effectiveStorageCap, toBillingTier } from "@/lib/constants/tiers";
 import {
+  inactivityRemovedEmail,
+  inactivityWarningEmail,
   overCapGraceStartEmail,
   overCapReducedEmail,
   overCapReminderEmail,
@@ -28,6 +30,11 @@ import {
 } from "@/lib/email/templates";
 import { sendOnce } from "@/lib/email/send";
 import { assertCronEnv } from "@/lib/env";
+import {
+  INACTIVE_DAYS,
+  WARN_BEFORE_DAYS,
+  inactivityAction,
+} from "@/lib/lifecycle/inactivity";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey } from "@/lib/r2/keys";
@@ -137,6 +144,11 @@ export async function GET(request: Request): Promise<Response> {
     sweeps.renewal_nudges = await sweepRenewalNudges(admin, now);
   } catch (e) {
     sweeps.renewal_nudges = { error: String(e) };
+  }
+  try {
+    sweeps.inactive_free_events = await sweepInactiveFreeEvents(admin, now);
+  } catch (e) {
+    sweeps.inactive_free_events = { error: String(e) };
   }
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
@@ -516,6 +528,108 @@ async function sweepRenewalNudges(admin: AdminClient, now: Date) {
     if (sent) nudged++;
   }
   return { eligible: data?.length ?? 0, nudged };
+}
+
+/**
+ * Sweep 7 — free-tier inactivity removal. A free event is "active" while the LATEST of its
+ * host's last_active_at + the event's created/updated + its newest upload is within
+ * ~6 months. Past that → warning email (14 d out), then soft-delete (deleted_at + 60-day
+ * purge_at, so sweep 1 reclaims it) + a recoverable-tail email. Targets free tier only
+ * (PRD); paid accounts keep their events until they cancel. Pre-filtered by events.updated_at
+ * (cheap), with last_active_at + uploads checked per candidate.
+ */
+async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
+  const nowMs = now.getTime();
+  const warnCutoffIso = new Date(
+    nowMs - (INACTIVE_DAYS - WARN_BEFORE_DAYS) * 86_400_000,
+  ).toISOString();
+
+  const { data: events, error } = await admin
+    .from("events")
+    .select(
+      "id, name, host_id, created_at, updated_at, profiles!inner(tier, email, last_active_at)",
+    )
+    .eq("profiles.tier", "free")
+    .is("deleted_at", null)
+    .lte("updated_at", warnCutoffIso);
+  if (error) throw new Error(`select inactive candidates: ${error.message}`);
+
+  const siteUrl = await getSiteUrl();
+  const dashboardUrl = `${siteUrl}/dashboard`;
+  let warned = 0;
+  let removed = 0;
+
+  for (const e of events ?? []) {
+    const prof = e.profiles as unknown as {
+      email: string | null;
+      last_active_at: string;
+    };
+
+    // Newest upload (any status — a recent upload means the event is still in use).
+    const { data: media } = await admin
+      .from("media")
+      .select("created_at")
+      .eq("event_id", e.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const latestUpload = media?.[0]?.created_at;
+
+    const activityMs = Math.max(
+      new Date(prof.last_active_at).getTime(),
+      new Date(e.created_at).getTime(),
+      new Date(e.updated_at).getTime(),
+      latestUpload ? new Date(latestUpload).getTime() : 0,
+    );
+    const action = inactivityAction(activityMs, nowMs);
+    if (action === "none") continue;
+
+    if (action === "remove") {
+      const purgeAt = new Date(nowMs + EVENT_TAIL_DAYS * 86_400_000);
+      const { error: delErr } = await admin
+        .from("events")
+        .update({
+          deleted_at: now.toISOString(),
+          purge_at: purgeAt.toISOString(),
+        })
+        .eq("id", e.id)
+        .is("deleted_at", null);
+      if (delErr) throw new Error(`inactive soft-delete: ${delErr.message}`);
+      removed++;
+      if (prof.email) {
+        const { subject, html } = inactivityRemovedEmail({
+          eventName: e.name,
+          recoverableUntil: fmtDate(purgeAt),
+          dashboardUrl,
+        });
+        await sendOnce({
+          kind: "inactivity_removed",
+          dedupeKey: e.id,
+          profileId: e.host_id,
+          to: prof.email,
+          subject,
+          html,
+        });
+      }
+    } else if (prof.email) {
+      const deadline = new Date(activityMs + INACTIVE_DAYS * 86_400_000);
+      const { subject, html } = inactivityWarningEmail({
+        eventName: e.name,
+        deadline: fmtDate(deadline),
+        dashboardUrl,
+      });
+      const sent = await sendOnce({
+        kind: "inactivity_warning",
+        dedupeKey: `${e.id}:${activityMs}`,
+        profileId: e.host_id,
+        to: prof.email,
+        subject,
+        html,
+      });
+      if (sent) warned++;
+    }
+  }
+
+  return { candidates: events?.length ?? 0, warned, removed };
 }
 
 /** Atomic hard-delete of rows + storage_used_bytes decrement; returns Σ freed bytes. */

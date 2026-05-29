@@ -1,6 +1,6 @@
 # Partyreel — Product Requirements (v1)
 
-_Last meaningful update: 2026-05-29 (core loop live through Phase 2; added build-phase map)._
+_Last meaningful update: 2026-05-29 (Phase 4 payments live; fast-follows + free-tier 6-month inactivity removal specified)._
 
 ## Vision
 
@@ -117,9 +117,16 @@ differ; the recoverable tail is identical everywhere.
   blocked at upload once full.
 - **Host deletes an event** — frees the slot immediately (anti-abuse); the event flows
   straight into the tail.
-- **Free-tier inactivity** — after **6 months** of no host activity (with **email
-  alerts near the end**), the event is removed from the account. Fair vs. e.g. Supabase
-  pausing free projects after ~1 week; outlined in the legal terms.
+- **Free-tier inactivity** — after **6 months** of no host activity, the event is
+  removed from the account (then flows into the recoverable tail below). **"Activity" =
+  signing in OR any host use** (the host's `last_active_at` is bumped on every gated-app
+  request) **OR** recent event touches/uploads — concretely the freshness clock is
+  `max(profiles.last_active_at, event.created_at/updated_at, newest media.created_at)`, so
+  a still-collecting or recently-edited event never trips it. We email a **warning ~14
+  days before** removal ("open or sign in to keep it"); using the event in that window
+  resets the clock. Free accounts only — Pro/Event-Pass events don't expire this way.
+  Fair vs. e.g. Supabase pausing free projects after ~1 week; surfaced in the legal terms
+  from launch so it's never a surprise.
 
 **The recoverable tail (identical for every trigger):** once media leaves the account
 view it's **kept recoverable behind the scenes for ~60 days** — the host gets an email

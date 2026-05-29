@@ -274,8 +274,9 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   frugality guard for the 3,000/mo free tier. On send failure it releases the claim (retries
   next run; never double-sends). Templates: `src/lib/email/templates.ts` (plain HTML).
 - **The purge cron is now a daily lifecycle job** ([api/cron/purge/route.ts](src/app/api/cron/purge/route.ts))
-  with **6 sweeps**: expired_events, removed_media, orphans, expired_passes,
-  **over_capacity**, **renewal_nudges** (each independently try/caught).
+  with **7 sweeps**: expired_events, removed_media, orphans, expired_passes,
+  **over_capacity**, **renewal_nudges**, **inactive_free_events** (each independently
+  try/caught).
 - **Over-capacity** targets only lapsed paid accounts (Free is upload-blocked before it can
   exceed cap). Decisions key off **ACTIVE bytes** (non-removed media in live events), NOT
   `storage_used_bytes` (which only drops at hard-delete) — so a just-reduced account doesn't
@@ -289,6 +290,18 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   the SAME `event_pass` plan (`planForPriceId` maps it there). Checkout `{ renewal: true }`
   is gated to current/recent pass holders; the dashboard "Renew Event Pass" button + the
   `renewal_nudges` email (14 d pre-expiry) point at it.
+- **Free-tier inactivity removal** (`sweepInactiveFreeEvents`) — free-account events with
+  **no activity for 6 months** get warned (~14 d out) then **soft-deleted into the existing
+  recoverable tail** (reuses `softDeleteEvent`'s `deleted_at`/`purge_at`; the `expired_events`
+  sweep hard-deletes after 60 d — no new tail). The freshness clock is **`max(profiles.
+  last_active_at, event.created_at/updated_at, newest media.created_at)`** so a recently-used
+  or still-collecting event never trips it; decision logic is the pure, unit-tested
+  `inactivityAction` ([src/lib/lifecycle/inactivity.ts](src/lib/lifecycle/inactivity.ts),
+  `INACTIVE_DAYS`=180/`WARN_BEFORE_DAYS`=14). **`profiles.last_active_at` is the activity
+  signal** — bumped (throttled ~12 h, best-effort, service-role) by `touchHostActive` in an
+  `after()` callback in the `(app)` layout, so **sign-in or ANY host use counts** (it's
+  service-role-write-only, like the other `profiles` billing/lifecycle columns). Pro/Event-Pass
+  events are exempt (free-tier only). No new env var.
 - **Event Pass (Cut 4c) is a ONE-TIME payment, not a subscription** — checkout uses
   `mode:"payment"` (chosen from `plan.billing === "one_time"`), so **no
   `customer.subscription.*` event fires**; it's provisioned from
