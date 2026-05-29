@@ -4,17 +4,19 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 4 — Payments/tiers (**3 cuts**, see [`ROADMAP.md`](ROADMAP.md)).
-**4a + 4b DONE — verified in production.** **Cut 4c (Event Pass) is code-complete +
-locally verified**; the migration is applied + the one-time price created (test) —
-**pending: set `STRIPE_PRICE_EVENT_PASS`, deploy, live-verify.** After 4c, Phase 4 is
-complete except the fast-follows (full over-capacity retention + renewal-nudge emails).
-**Last shipped:** Cut 4b — Stripe Pro subscriptions, **verified in production**
-(2026-05-29): a live test-mode checkout (Pro 500 GB, card `4242`) drove
-`tier→'pro'` + `storage_cap_bytes→500 GB` + `stripe_subscription_id` via the webhook; the
-dashboard showed "Unlimited events" + "0 B of 500 GB"; Manage billing opened the portal;
-an immediate subscription cancel downgraded back to Free (cap null, sub null, customer
-retained). Webhook rejects bad signatures.
+**Current phase:** **Phase 4 — Payments/tiers is COMPLETE** (all 3 cuts verified in
+production 2026-05-29): 4a storage-cap model, 4b Stripe Pro subscriptions, 4c Event Pass.
+Next up: the two **fast-follows** (full over-capacity retention + renewal-nudge emails) —
+a **planning round** will scope them (both need a transactional-email provider, not yet
+chosen). Then Phase 5 (highlight reel) / Phase 6 (growth).
+**Last shipped:** Cut 4c — Event Pass (one-time), **verified in production** (2026-05-29):
+a live test-mode "Buy a pass" → one-time Stripe Checkout (`mode:payment`, card `4242`) →
+`checkout.session.completed` webhook set `tier='event_pass'` + 75 GB + `tier_expires_at`
+(365 d out, no subscription); the dashboard showed "0 of 1 event", "0 B of 75 GB", and
+"Event Pass · expires May 29, 2027". Back-dating the expiry + the purge cron's
+`expired_passes` sweep (`downgraded: 1`) downgraded it to Free (cap null, expiry null,
+customer retained). (Cut 4b — Pro subscriptions — verified the same day: upgrade→Pro,
+portal, cancel→downgrade, bad-signature reject.)
 
 Phases 1–3 are **verified in production**. Phase 3 shipped code-complete (committed
 `734133d`, deployed to partyreel.com) with both human prereqs done (`CRON_SECRET` in
@@ -134,20 +136,19 @@ unit tests instead.)_
 
 ## Next action
 
-**Finish Cut 4c — Event Pass** (code complete + locally verified: typecheck/lint/format/
-test (64)/build clean; rolled-back expiry-sweep check passed; the test price exists). What's
-left:
+**Plan the two fast-follows** (Phase 4 is done). A planning round will scope:
 
-1. **Will:** paste **`STRIPE_PRICE_EVENT_PASS=price_1TcUcDPtjqmVkBwkJCypwyVb`** into
-   `.env.local` + **Vercel**. (No new webhook event — `checkout.session.completed` is
-   already subscribed; no portal change.) Commit + deploy the 4c code.
-2. **Live-verify on partyreel.com** (test): `/pricing` → "Buy a pass" → Stripe Checkout
-   (one-time `mode:payment`) → card `4242` → webhook sets `tier='event_pass'`, 75 GB,
-   `tier_expires_at ≈ now+365d` (Supabase MCP); dashboard shows 75 GB + "1 event" + the
-   expiry. Then back-date `tier_expires_at` + invoke the purge cron → downgraded to Free.
+1. **Full over-capacity retention flow** — the 30-day in-app grace, largest-first
+   auto-reduction into the Phase-3 purge tail, and near-deadline warning emails (PRD "Data
+   retention"). Today only the **minimal** behavior ships (downgrade resets the cap → new
+   uploads blocked when over; existing media stays).
+2. **Event Pass renewal** — a cheaper renewal price + near-deadline nudge emails before
+   `tier_expires_at`.
 
-After that, Phase 4 is complete except the fast-follows (**full over-capacity retention** +
-Event Pass **renewal-nudge emails**).
+**Both need a transactional-email provider** (Resend/Postmark/etc.) — not yet chosen; that
+decision + its human setup (API key + domain verification) is the main thing the planning
+round should settle. After the fast-follows: **Phase 5** (highlight reel) / **Phase 6**
+(growth).
 
 ## Blocked on a human ("manual instrument")
 

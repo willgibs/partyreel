@@ -167,7 +167,11 @@ untouched; a report from `/a/[token]` appears in `/admin` and dismiss/action bot
 (and a report does **not** auto-hide). Tests pass; STATUS/ROADMAP updated. _(All met —
 code + local/DB + the partyreel.com live pass verified 2026-05-29; see STATUS "Verified".)_
 
-## 🔨 Phase 4 — Payments / tiers
+## ✅ Phase 4 — Payments / tiers
+
+**DONE — all 3 cuts verified in production (2026-05-29):** 4a storage-cap model, 4b Stripe
+Pro subscriptions, 4c Event Pass. Remaining items below (full over-capacity retention +
+renewal nudges) are **fast-follows**, not Phase-4 blockers.
 
 **Goal.** Turn on monetization on the **storage-cap model** (decided 2026-05-29 — see
 PRD "Monetization & anti-abuse"): hosts upgrade via Stripe; the webhook is the single
@@ -180,10 +184,10 @@ Stripe) — **DONE (deployed)**; **4b** Stripe Pro subscriptions (checkout/webho
 — **DONE, verified in production (2026-05-29)**: a live test-mode checkout flipped tier→Pro
 + 500 GB cap via the webhook, the portal opened, and an immediate cancel downgraded back to
 Free. (The MCP created the products/prices but **can't** create webhook endpoints or portal
-configs — those were dashboard tasks.); **4c** Event Pass + minimal expiry —
-**code-complete + locally verified** (one-time price + `tier_expires_at` migration +
-`checkout.session.completed` provisioning + purge-cron expiry sweep); **pending
-`STRIPE_PRICE_EVENT_PASS` env + deploy + live verify.** The **full
+configs — those were dashboard tasks.); **4c** Event Pass + minimal expiry — **DONE,
+verified in production**: one-time `mode:payment` checkout → `checkout.session.completed`
+provisioned `tier='event_pass'` + 75 GB + `tier_expires_at` (365 d), and the purge cron's
+`expired_passes` sweep downgraded a back-dated pass to Free. The **full
 over-capacity retention flow** (30-day grace UI, largest-first auto-reduce, warning emails)
 is a **fast-follow** — 4b/4c ship only "downgrade sets the cap + block new uploads when over."
 
@@ -246,8 +250,10 @@ STATUS). **Human prereqs:** Stripe keys,
 products/prices, webhook endpoint registration.
 
 **Done when:** a checkout upgrades tier/storage via the webhook on partyreel.com; the
-portal works; storage caps and the ingress meter enforce; over-limit accounts enter the
-retention flow.
+portal works; storage caps and the ingress meter enforce. **MET (2026-05-29)** — Pro
+upgrade/cancel, Event Pass purchase/expiry, and the storage-cap enforcement all verified
+live. The full over-capacity **retention flow** (grace + auto-reduce + emails) is the
+fast-follow below, not a Phase-4 blocker.
 
 ## ⬜ Phase 5 — Highlight reel (scaffold → real)
 
