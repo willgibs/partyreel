@@ -430,12 +430,9 @@ export type Database = {
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
-          has_storage_cap: boolean
+          default_storage_cap_bytes: number
           max_events: number
-          monthly_photos: number
-          monthly_videos: number
-          per_event_photos: number
-          per_event_videos: number
+          monthly_ingress_bytes: number
         }[]
       }
     }

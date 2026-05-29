@@ -1,173 +1,222 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- * Pricing & limits — the SINGLE source of truth.
+ * Pricing & limits — the SINGLE source of truth (storage-cap model, Phase 4).
  * ─────────────────────────────────────────────────────────────────────────────
- * Every limit number lives here exactly once. The marketing pricing page, the
- * dashboard, and the server-side enforcement (create-event guard, `create_media`
- * RPC) all read from this file. Do NOT hardcode caps anywhere else.
+ * Every tier number lives here exactly once. The marketing pricing page, the
+ * dashboard, server-side enforcement (`create_media` / `get_upload_context` RPCs),
+ * and the Stripe webhook all read from this file. Do NOT hardcode caps elsewhere.
  *
- * WHY the model looks the way it does (anti-abuse — do not "simplify" this away):
- *   • Events PERSIST until the host deletes them. There is deliberately NO event
- *     end date. If an event could be "ended" while keeping its media accessible,
- *     a user could fill → end → create-new → fill repeatedly and use Partyreel as
- *     unlimited free cloud storage. Closing that loophole is why `maxEvents`
- *     counts the total number of events that EXIST (deleted_at IS NULL), not a
- *     concurrent/"active" count. The only way to free a slot is to delete an
- *     event, which destroys its media.
- *   • `maxEvents` × per-event caps = the hard ceiling on simultaneously stored
- *     files for free / event_pass / pro.
- *   • Monthly upload caps (free/pro) stop delete-and-re-upload churn from draining
- *     bandwidth. They count uploads MADE that month; deletes do NOT refund the
- *     counter.
- *   • Max removes per-event and event-count limits (huge events / many events) and
- *     instead constrains by total stored bytes (`storageCapBytes`, tracked via
- *     profiles.storage_used_bytes).
+ * WHY the model looks the way it does (anti-abuse — do NOT "simplify" this away):
+ *   • A tier is a TOTAL stored-bytes cap, not item counts. The granted cap lives in
+ *     `profiles.storage_cap_bytes` (set by the Stripe webhook from the purchased
+ *     plan); for Free it is null and the code falls back to the tier default below
+ *     via `defaultCapForTier`. So Pro's "storage selector" is just different caps
+ *     under `tier="pro"`.
+ *   • Events PERSIST until the host deletes them — there is deliberately NO event
+ *     end date. If an event could be "ended" while keeping its media, a user could
+ *     fill → end → create-new → repeat for unlimited free storage. `MAX_EVENTS`
+ *     counts events that EXIST (deleted_at IS NULL); deleting one (destroying its
+ *     media) is the only way to free a slot.
+ *   • The MONTHLY INGRESS meter (`MONTHLY_INGRESS_BYTES`) counts bytes UPLOADED per
+ *     month and NEVER refunds on delete — storage caps alone don't stop
+ *     delete→re-upload egress burn. It reads `storage_ledger.cumulative_bytes`,
+ *     which never decrements.
  *
- * Keep `Tier` in lockstep with the Postgres `tier_type` enum
- * (free | event_pass | pro | max). Universal media limits (5 min / 2 GB per clip)
- * are NOT here — they live in lib/media/limits.ts because they apply to every tier.
+ * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
+ * enforcement) — a Vitest parity test guards the pairing. Universal per-file limits
+ * (5 min / 2 GB / 50 MB) are NOT here — they live in lib/media/limits.ts because
+ * they apply to every tier. (The `tier_type` enum still lists a retired `max`
+ * value — folded into Pro storage options; it is unused, left in place because
+ * dropping a Postgres enum value is risky.)
+ *
+ * This file is import-safe from client components — it holds NO secrets. The
+ * env-referenced Stripe Price IDs and `planForPriceId()` live in lib/stripe/.
  */
 
-export const TIERS = ["free", "event_pass", "pro", "max"] as const;
-export type Tier = (typeof TIERS)[number];
+export const BILLING_TIERS = ["free", "pro", "event_pass"] as const;
+export type Tier = (typeof BILLING_TIERS)[number];
 
-/** New profiles start here (mirrors profiles.tier default). */
+/** New profiles start here (mirrors the profiles.tier default). */
 export const DEFAULT_TIER: Tier = "free";
 
-export type BillingKind = "free" | "one_time" | "subscription";
+/**
+ * Coerce a DB `tier_type` value (which still carries the retired `max`) to a
+ * billing Tier — `max` folds into `pro`, anything unknown falls back to Free.
+ * Use this wherever a `profiles.tier` value indexes the records below.
+ */
+export function toBillingTier(value: string): Tier {
+  if (value === "pro" || value === "max") return "pro";
+  if (value === "event_pass") return "event_pass";
+  return "free";
+}
 
 export const GIGABYTE = 1024 ** 3;
 export const TERABYTE = 1024 ** 4;
 
-export type TierLimits = {
-  /** Photos per single event. `null` = unlimited (Max). */
-  maxPhotosPerEvent: number | null;
-  /** Videos per single event. `null` = unlimited (Max). */
-  maxVideosPerEvent: number | null;
-  /** Total events that may EXIST at once (persist until deleted). `null` = unlimited. */
-  maxEvents: number | null;
-  /** Photo uploads counted per calendar month; deletes never refund. `null` = not metered. */
-  monthlyPhotoCap: number | null;
-  /** Video uploads counted per calendar month; deletes never refund. `null` = not metered. */
-  monthlyVideoCap: number | null;
-  /**
-   * Total stored-bytes ceiling. Only meaningful for Max (governs instead of the
-   * event/monthly caps). For Max the REAL ceiling is per-profile
-   * (profiles.storage_cap_bytes) chosen from MAX_STORAGE_OPTIONS; the value here
-   * is the entry-plan default. `null` for non-Max tiers.
-   */
-  storageCapBytes: number | null;
-  /** Free exports carry a Partyreel watermark. */
-  watermark: boolean;
-};
+export type BillingKind = "free" | "subscription" | "one_time";
 
-export const TIER_LIMITS: Record<Tier, TierLimits> = {
-  free: {
-    maxPhotosPerEvent: 75,
-    maxVideosPerEvent: 15,
-    maxEvents: 1,
-    monthlyPhotoCap: 750,
-    monthlyVideoCap: 150,
-    storageCapBytes: null,
-    watermark: true,
-  },
-  event_pass: {
-    maxPhotosPerEvent: 400,
-    maxVideosPerEvent: 75,
-    maxEvents: 1,
-    monthlyPhotoCap: null,
-    monthlyVideoCap: null,
-    storageCapBytes: null,
-    watermark: false,
-  },
-  pro: {
-    maxPhotosPerEvent: 400,
-    maxVideosPerEvent: 75,
-    maxEvents: 10,
-    monthlyPhotoCap: 8000,
-    monthlyVideoCap: 1500,
-    storageCapBytes: null,
-    watermark: false,
-  },
-  max: {
-    maxPhotosPerEvent: null,
-    maxVideosPerEvent: null,
-    maxEvents: null,
-    monthlyPhotoCap: null,
-    monthlyVideoCap: null,
-    storageCapBytes: 500 * GIGABYTE, // entry default; real cap is per-profile
-    watermark: false,
-  },
-};
+export const PLAN_IDS = [
+  "free",
+  "pro_100",
+  "pro_500",
+  "pro_2tb",
+  "event_pass",
+] as const;
+export type PlanId = (typeof PLAN_IDS)[number];
 
-export type MaxStorageOption = {
-  label: string;
-  bytes: number;
-  priceLabel: string;
-};
-
-/** Storage variants a Max subscriber picks from; drives profiles.storage_cap_bytes. */
-export const MAX_STORAGE_OPTIONS: MaxStorageOption[] = [
-  { label: "500 GB", bytes: 500 * GIGABYTE, priceLabel: "$25/mo" },
-  { label: "2 TB", bytes: 2 * TERABYTE, priceLabel: "$50/mo" },
-  { label: "5 TB", bytes: 5 * TERABYTE, priceLabel: "$100/mo" },
-];
-
-export type TierPlan = {
+/** A purchasable plan = billing tier + storage cap + (Stripe) price. */
+export type Plan = {
+  id: PlanId;
   tier: Tier;
   name: string;
-  /** Primary price, e.g. "$0", "$9", "$12", "from $25". */
+  storageBytes: number;
+  /** Display only — Stripe Prices are the billing truth. */
   priceLabel: string;
-  /** Cadence shown after the price, e.g. "/mo". One-time/free omit this. */
-  priceSuffix?: string;
   billing: BillingKind;
-  tagline: string;
-  ctaLabel: string;
-  /** Featured column in the pricing grid. */
-  highlighted?: boolean;
+  /** Env var holding the Stripe Price ID (paid plans only). */
+  stripePriceEnvKey?: string;
+  /** Event Pass only — fixed term before it lapses into the retention flow. */
+  termDays?: number;
 };
 
-/** Display copy for the pricing page. NUMBERS are derived from TIER_LIMITS, not duplicated here. */
-export const TIER_PLANS: Record<Tier, TierPlan> = {
-  free: {
+export const PLANS: Plan[] = [
+  {
+    id: "free",
     tier: "free",
     name: "Free",
+    storageBytes: 2 * GIGABYTE,
     priceLabel: "$0",
     billing: "free",
-    tagline: "One event, on the house.",
-    ctaLabel: "Start free",
   },
-  event_pass: {
+  {
+    id: "pro_100",
+    tier: "pro",
+    name: "Pro 100 GB",
+    storageBytes: 100 * GIGABYTE,
+    priceLabel: "$9/mo",
+    billing: "subscription",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_100",
+  },
+  {
+    id: "pro_500",
+    tier: "pro",
+    name: "Pro 500 GB",
+    storageBytes: 500 * GIGABYTE,
+    priceLabel: "$19/mo",
+    billing: "subscription",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_500",
+  },
+  {
+    id: "pro_2tb",
+    tier: "pro",
+    name: "Pro 2 TB",
+    storageBytes: 2 * TERABYTE,
+    priceLabel: "$39/mo",
+    billing: "subscription",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB",
+  },
+  {
+    id: "event_pass",
     tier: "event_pass",
     name: "Event Pass",
-    priceLabel: "$9",
+    storageBytes: 75 * GIGABYTE,
+    priceLabel: "$24 one-time",
     billing: "one_time",
-    tagline: "One big event, kept for a year.",
-    ctaLabel: "Buy a pass",
+    stripePriceEnvKey: "STRIPE_PRICE_EVENT_PASS",
+    termDays: 365,
   },
-  pro: {
-    tier: "pro",
-    name: "Pro",
-    priceLabel: "$12",
-    priceSuffix: "/mo",
-    billing: "subscription",
-    tagline: "For hosts who throw a lot of parties.",
-    ctaLabel: "Go Pro",
-    highlighted: true,
-  },
-  max: {
-    tier: "max",
-    name: "Max",
-    priceLabel: "from $25",
-    priceSuffix: "/mo",
-    billing: "subscription",
-    tagline: "Unlimited events. Storage you control.",
-    ctaLabel: "Choose Max",
-  },
+];
+
+/** Human label for a billing tier (the cap message + pricing copy). */
+export const TIER_NAMES: Record<Tier, string> = {
+  free: "Free",
+  pro: "Pro",
+  event_pass: "Event Pass",
 };
 
-/** Plans in display order for the pricing grid. */
-export const ORDERED_PLANS: TierPlan[] = TIERS.map((tier) => TIER_PLANS[tier]);
+/** Events that may EXIST per tier — the free→paid wall. null = unlimited. */
+export const MAX_EVENTS: Record<Tier, number | null> = {
+  free: 1,
+  pro: null,
+  event_pass: 1,
+};
+
+/**
+ * Monthly uploaded-bytes (ingress) cap — anti-abuse, unmarketed, never refunds.
+ * null = unmetered. MUST mirror tier_limits().monthly_ingress_bytes.
+ */
+export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
+  free: 20 * GIGABYTE, // generous; only catches extreme churn
+  pro: null, // revisit — likely a high multiple of the storage cap
+  event_pass: null,
+};
+
+/**
+ * Per-tier default storage cap, used when `profiles.storage_cap_bytes` is null.
+ * Pro is null on purpose — a Pro account's cap is always set explicitly by the
+ * webhook from the purchased plan (100/500/2048 GB). MUST mirror
+ * tier_limits().default_storage_cap_bytes.
+ */
+export const DEFAULT_STORAGE_CAP_BYTES: Record<Tier, number | null> = {
+  free: 2 * GIGABYTE,
+  pro: null,
+  event_pass: 75 * GIGABYTE,
+};
+
+/** The cap to enforce when a profile has no explicit `storage_cap_bytes`. */
+export function defaultCapForTier(tier: Tier): number | null {
+  return DEFAULT_STORAGE_CAP_BYTES[tier];
+}
+
+/** The effective storage cap for a profile: explicit override, else tier default. */
+export function effectiveStorageCap(
+  tier: Tier,
+  storageCapBytes: number | null,
+): number | null {
+  return storageCapBytes ?? defaultCapForTier(tier);
+}
+
+/** Look up a plan by id (PlanId is exhaustive, so this always resolves). */
+export function planById(id: PlanId): Plan {
+  const plan = PLANS.find((p) => p.id === id);
+  if (!plan) throw new Error(`Unknown plan id: ${id}`);
+  return plan;
+}
+
+/** Plans belonging to a tier, in declared order (e.g. the 3 Pro options). */
+export function plansForTier(tier: Tier): Plan[] {
+  return PLANS.filter((p) => p.tier === tier);
+}
+
+/**
+ * Host event-settings gated to paid tiers (locked + an upgrade hint on Free).
+ * `require_email` is the first; more are added here as they become tier-gated.
+ */
+export const GATED_EVENT_SETTINGS = ["require_email"] as const;
+export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];
+
+export function isSettingLocked(
+  _setting: GatedEventSetting,
+  tier: Tier,
+): boolean {
+  return tier === "free";
+}
+
+/**
+ * The canonical "can I add one more?" check for the event-count wall.
+ * `null` limit = unlimited. `current` is the count BEFORE the new item.
+ */
+export function withinLimit(current: number, limit: number | null): boolean {
+  return limit === null || current < limit;
+}
+
+/** Storage headroom check: are we at/under the byte cap? `null` cap = unlimited. */
+export function withinStorage(
+  usedBytes: number,
+  capBytes: number | null,
+): boolean {
+  return capBytes === null || usedBytes <= capBytes;
+}
 
 /** Format a cap for display; `null` renders as the unlimited label. */
 export function formatLimit(
@@ -177,40 +226,18 @@ export function formatLimit(
   return value === null ? unlimited : value.toLocaleString();
 }
 
-/**
- * The canonical "can I add one more?" check, shared by event-count, per-event,
- * and monthly enforcement. `null` limit = unlimited. `current` is the count
- * BEFORE the new item.
- */
-export function withinLimit(current: number, limit: number | null): boolean {
-  return limit === null || current < limit;
-}
+// ≈ figures for the pricing page — illustrative, derived from the GB cap so the
+// copy can't drift from the enforced number. ~4 MB/photo, ~150 MB/min 1080p video.
+const AVG_PHOTO_BYTES = 4 * 1024 ** 2;
+const VIDEO_BYTES_PER_MIN = 150 * 1024 ** 2;
 
-/**
- * Human-readable feature bullets for a plan, derived from TIER_LIMITS so the
- * pricing page never restates a number that enforcement doesn't also use.
- */
-export function tierHighlights(tier: Tier): string[] {
-  const l = TIER_LIMITS[tier];
-  const lines: string[] = [];
-
-  lines.push(
-    l.maxEvents === null
-      ? "Unlimited events"
-      : `${l.maxEvents} event${l.maxEvents === 1 ? "" : "s"}`,
-  );
-  lines.push(
-    `${formatLimit(l.maxPhotosPerEvent)} photos · ${formatLimit(l.maxVideosPerEvent)} videos per event`,
-  );
-  if (l.storageCapBytes !== null) {
-    lines.push(`From ${MAX_STORAGE_OPTIONS[0].label} of storage`);
-  }
-  if (l.monthlyPhotoCap !== null) {
-    lines.push(
-      `${formatLimit(l.monthlyPhotoCap)} photos / ${formatLimit(l.monthlyVideoCap)} videos per month`,
-    );
-  }
-  lines.push(l.watermark ? "Partyreel watermark on exports" : "No watermark");
-
-  return lines;
+/** "≈ X photos or Y min of video" for a byte cap, for friendly capacity copy. */
+export function friendlyCapacity(bytes: number): {
+  photos: number;
+  videoMinutes: number;
+} {
+  return {
+    photos: Math.round(bytes / AVG_PHOTO_BYTES),
+    videoMinutes: Math.round(bytes / VIDEO_BYTES_PER_MIN),
+  };
 }

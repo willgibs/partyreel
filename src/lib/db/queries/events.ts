@@ -49,7 +49,7 @@ export async function getEvent(id: string): Promise<EventRow | null> {
 }
 
 /** Counts the host's existing (non-deleted) events — the number compared to
- * `TIER_LIMITS[tier].maxEvents` for the dashboard's "X of N used" + cap gate. */
+ * `MAX_EVENTS[tier]` for the dashboard's "X of N used" + cap gate. */
 export async function countActiveEvents(): Promise<number> {
   const supabase = await createClient();
   const {

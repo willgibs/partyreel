@@ -3,8 +3,9 @@
 Canonical home for the tier/pricing model. The product **why** is in
 [`PRD.md`](PRD.md) ("Monetization & anti-abuse" + "Data retention & lifecycle"); the
 **build** is [`ROADMAP.md`](ROADMAP.md) Phase 4. Prices here are **decided**
-(2026-05-29) but the code (`tiers.ts` / `tier_limits()` SQL / `create_media`) still
-runs the old per-event item-cap model until the Phase 4 rework wires this in.
+(2026-05-29) and the storage-cap model is now **wired in code** (`tiers.ts` /
+`tier_limits()` SQL / `create_media`) as of **Cut 4a** — Stripe billing (Pro = 4b, Event
+Pass = 4c) is what remains.
 
 ## Model
 
@@ -45,12 +46,12 @@ $7.50 (500 GB), **~$31 (2 TB)**, ~$1.13/mo (75 GB Event Pass). Healthy except th
 **Pro 2 TB at $39 is thin if fully used** — most won't fill it, but price the top tier
 assuming someone does (consider $49 or a 1 TB cap if margins matter).
 
-## Shaped `tiers.ts` (target — wired in Phase 4)
+## Shaped `tiers.ts` (WIRED in Cut 4a)
 
-Dropping this into the live file now would break the dashboard, pricing page,
-create-dialog, and `tier_limits()`/`create_media` until they're all updated together —
-that's the Phase 4 "tier rework." The DB `tier_type` enum still lists `max` (retired —
-folded into Pro storage options); leave it unused or drop it in a Phase 4 migration.
+This shape is now live in [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts)
+(Cut 4a) — the snapshot below is kept for reference; the file is the source of truth. The
+DB `tier_type` enum still lists `max` (retired — folded into Pro storage options); it's
+left unused, and app code coerces it with `toBillingTier()` (`max`→`pro`).
 
 ```ts
 export const BILLING_TIERS = ["free", "pro", "event_pass"] as const;

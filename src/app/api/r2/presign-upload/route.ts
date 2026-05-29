@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Resolve session → event + cap headroom (mirrors create_media's counting).
+  // Resolve session → event + cap headroom (mirrors create_media's caps).
   const ctx = await getUploadContext(session_token, kind);
   if (!ctx.ok) {
     return NextResponse.json(
@@ -96,12 +96,14 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
-  if (ctx.data.at_event_cap || ctx.data.at_monthly_cap) {
+  if (ctx.data.at_storage_cap || ctx.data.at_monthly_cap) {
     return NextResponse.json(
       {
         ok: false,
         code: "cap_reached",
-        message: "This event has reached its upload limit.",
+        message: ctx.data.at_storage_cap
+          ? "This album is full right now — the host needs to free up space."
+          : "This album has hit its upload limit for the month.",
       },
       { status: 409 },
     );

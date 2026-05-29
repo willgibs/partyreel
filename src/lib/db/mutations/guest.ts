@@ -91,7 +91,10 @@ export type UploadContext =
       event_id: string;
       accepting_uploads: boolean;
       event_deleted: false;
-      at_event_cap: boolean;
+      // Account-level (storage-cap model): at_storage_cap = host's total bytes are
+      // at/over cap; at_monthly_cap = host hit the monthly ingress meter. Both coarse
+      // pre-checks — create_media is authoritative (see get_upload_context).
+      at_storage_cap: boolean;
       at_monthly_cap: boolean;
     };
 

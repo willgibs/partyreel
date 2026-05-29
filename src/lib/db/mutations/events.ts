@@ -10,6 +10,7 @@
  */
 import "server-only";
 
+import { isSettingLocked, toBillingTier } from "@/lib/constants/tiers";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -93,6 +94,26 @@ export async function updateEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
+
+  // Tier gate (defense-in-depth — the settings UI also disables this toggle on
+  // Free). require_email is paid-only; never trust the client to honor the lock.
+  if (values.require_email === true) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tier")
+      .eq("id", user.id)
+      .single();
+    if (
+      isSettingLocked("require_email", toBillingTier(profile?.tier ?? "free"))
+    ) {
+      return {
+        ok: false,
+        code: "limit_reached",
+        message:
+          "Requiring an email is available on paid plans — upgrade to enable it.",
+      };
+    }
+  }
 
   // Only patch keys that were provided (updateEventSchema is partial). Nullable
   // text columns take null when cleared.

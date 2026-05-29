@@ -167,12 +167,20 @@ untouched; a report from `/a/[token]` appears in `/admin` and dismiss/action bot
 (and a report does **not** auto-hide). Tests pass; STATUS/ROADMAP updated. _(All met —
 code + local/DB + the partyreel.com live pass verified 2026-05-29; see STATUS "Verified".)_
 
-## ⬜ Phase 4 — Payments / tiers
+## 🔨 Phase 4 — Payments / tiers
 
 **Goal.** Turn on monetization on the **storage-cap model** (decided 2026-05-29 — see
 PRD "Monetization & anti-abuse"): hosts upgrade via Stripe; the webhook is the single
 source of truth for `profiles.tier`; caps are total storage, not item counts. Full
 table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
+
+**Staged in 3 cuts** (decided with Will 2026-05-29), each verifiable on partyreel.com
+before the next: **4a** storage-cap model rework + tier-gated settings + pricing page (no
+Stripe) — **DONE (built + locally verified; migration live; pending deploy)**; **4b**
+Stripe Pro subscriptions (checkout/webhook/portal) — next; **4c** Event Pass + minimal
+expiry. The **full over-capacity retention flow** (30-day grace UI, largest-first
+auto-reduce, warning emails) is a **fast-follow** — 4b/4c ship only "downgrade sets the
+cap + block new uploads when over."
 
 **Tier model to implement (replaces the Phase 0 item-cap model):**
 
@@ -199,14 +207,14 @@ table + target `tiers.ts` + the Stripe setup guide: [`PRICING.md`](PRICING.md).
 
 **To build:**
 
-- [ ] Storage-cap tier rework (`tiers.ts`, `tier_limits()`, `create_media`; drop item
-      caps, Max, and the `watermark` field; add the monthly ingress meter). Allow a
-      **~10% overflow buffer** before hard-blocking — crossing the _base_ cap starts the
-      over-capacity grace, crossing the buffer blocks new uploads (endearing; bounds risk).
-- [ ] **Tier-gated event settings** — a mechanism to lock host-settings toggles by tier
-      with an upgrade hint; start by gating **`require_email`** (locked on Free,
-      unlocked on Pro/Event Pass). Don't enforce the lock before tiers exist — today
-      everyone is Free.
+- [x] **(4a)** Storage-cap tier rework (`tiers.ts`, `tier_limits()`, `create_media`,
+      `get_upload_context`; dropped item caps + the `watermark` field; `max` left as a
+      retired enum value; added the monthly ingress-bytes meter). The **~10% overflow
+      buffer** hard-blocks `create_media`; the over-capacity _grace_ (largest-first
+      auto-reduce) is the fast-follow. Cap = `coalesce(storage_cap_bytes, tier default)`.
+- [x] **(4a)** **Tier-gated event settings** — `GATED_EVENT_SETTINGS` + `isSettingLocked`
+      gate **`require_email`** (locked on Free with an upgrade hint, server-enforced in
+      `updateEvent`). The pricing page + a dashboard storage gauge also landed in 4a.
 - [ ] Checkout session (Pro storage tier → subscription price; Event Pass → one-time
       price, per event) → redirect; plus a Billing Portal link.
 - [ ] **Promo / free-pass codes** — via Stripe **Promotion Codes + coupons** (e.g., a

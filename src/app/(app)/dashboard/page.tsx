@@ -11,16 +11,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   DEFAULT_TIER,
-  TIER_LIMITS,
-  TIER_PLANS,
+  MAX_EVENTS,
+  TIER_NAMES,
+  effectiveStorageCap,
   formatLimit,
+  friendlyCapacity,
+  toBillingTier,
   withinLimit,
 } from "@/lib/constants/tiers";
 import { listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
-import { formatEventDate } from "@/lib/utils";
+import { formatBytes, formatEventDate } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -29,13 +33,26 @@ export default async function DashboardPage() {
   // gated on getUser(), so an unauthenticated request never reaches here.
   const [events, profile] = await Promise.all([listEvents(), getProfile()]);
 
-  const tier = profile?.tier ?? DEFAULT_TIER;
-  const maxEvents = TIER_LIMITS[tier].maxEvents;
+  const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
+  const maxEvents = MAX_EVENTS[tier];
   const used = events.length;
   // withinLimit(current, limit) answers "can I add one more?" — so its negation
-  // is "already at the cap." `null` maxEvents (Max tier) is never at cap.
+  // is "already at the cap." `null` maxEvents (Pro = unlimited) is never at cap.
   const atCap = !withinLimit(used, maxEvents);
-  const planName = TIER_PLANS[tier].name;
+  const planName = TIER_NAMES[tier];
+
+  // Storage gauge (storage-cap model): used vs the effective cap (explicit override
+  // else the tier default). storage_used_bytes is the authoritative stored-bytes
+  // counter the cap is enforced against.
+  const storageCap = effectiveStorageCap(
+    tier,
+    profile?.storage_cap_bytes ?? null,
+  );
+  const storageUsed = profile?.storage_used_bytes ?? 0;
+  const storagePct =
+    storageCap && storageCap > 0
+      ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -48,6 +65,33 @@ export default async function DashboardPage() {
           </p>
         </div>
         <CreateEventDialog atCap={atCap} planName={planName} />
+      </div>
+
+      <div className="rounded-lg border border-border bg-card px-4 py-3">
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="font-medium">Storage</span>
+          <span className="text-muted-foreground">
+            {formatBytes(storageUsed)}
+            {storageCap ? ` of ${formatBytes(storageCap)}` : " used"}
+          </span>
+        </div>
+        {storageCap && (
+          <>
+            <Progress value={storagePct} className="mt-2" />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Your {planName} plan holds about{" "}
+              {friendlyCapacity(storageCap).photos.toLocaleString()} photos or{" "}
+              {friendlyCapacity(storageCap).videoMinutes.toLocaleString()} min
+              of video.{" "}
+              <Link
+                href="/pricing"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                Need more?
+              </Link>
+            </p>
+          </>
+        )}
       </div>
 
       {atCap && (

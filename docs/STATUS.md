@@ -4,8 +4,10 @@
 > are, what's done, what's next, and what's blocked on a human.
 
 **Updated:** 2026-05-29
-**Current phase:** Phase 4 — Payments/tiers (**ready to plan**; storage model + prices
-LOCKED, target `tiers.ts` shaped in [`PRICING.md`](PRICING.md)).
+**Current phase:** Phase 4 — Payments/tiers, staged in **3 cuts** (see
+[`ROADMAP.md`](ROADMAP.md)). **Cut 4a (storage-cap model rework) is built + locally
+verified**; its migration is **already applied to the live DB**. Next: **deploy 4a**,
+then build **Cut 4b (Stripe Pro subscriptions)**.
 **Last shipped:** Phase 3 — Moderation + lifecycle + safety, **verified in production**
 (2026-05-29): moderation approve/hide/unhide/remove + the pending queue; the purge cron
 reclaimed R2 objects + DB rows + `storage_used_bytes` while leaving the monthly ledger
@@ -17,6 +19,22 @@ Vercel; `profiles.is_admin` flipped for the operator), and the **live end-to-end
 now complete** — see "Verified" below. Canonical domain is **partyreel.com**
 (`NEXT_PUBLIC_SITE_URL=https://partyreel.com`); R2 (bucket `partyreel`) is provisioned
 with CORS (`ExposeHeaders: ETag`) + an abort-incomplete-multipart lifecycle rule.
+
+**Cut 4a (storage-cap model rework)** is built + locally verified. It swaps the old
+per-event item-cap model for a **total-storage-cap + monthly ingress-bytes** model:
+`tiers.ts` reworked to the `PLANS`/`MAX_EVENTS`/`MONTHLY_INGRESS_BYTES` shape; migration
+`20260529145751_phase4a_storage_cap_model` reworked `tier_limits()` (now
+`max_events`/`monthly_ingress_bytes`/`default_storage_cap_bytes`), `create_media` (drops
+item caps; enforces a universal cap = `coalesce(storage_cap_bytes, tier default)` with a
+**10% overflow buffer**, plus the monthly ingress meter), and `get_upload_context` (now
+returns `at_storage_cap`/`at_monthly_cap`). UI: `require_email` is **tier-gated** (locked
+on Free, server-enforced in `updateEvent`), the dashboard has a **storage gauge**, and
+`/pricing` renders the GB cards. **Everyone is still Free (2 GB)** until 4b wires Stripe.
+Verified: typecheck/lint/format/test (53)/build clean; rolled-back create_media checks
+(cap+buffer, monthly ingress, `get_upload_context` flags) pass; advisors = the same **6**
+anon RPCs; `/pricing` rendered locally. **⚠️ The migration is live on the DB but the 4a
+code is not yet deployed** — deploy 4a to resync (transient state is safe: all hosts are
+Free with tiny data, and `create_media` stays authoritative).
 
 ## What exists now
 
@@ -98,16 +116,17 @@ unit tests instead.)_
 
 ## Next action
 
-**Plan + build Phase 4 — Payments/tiers** (Phase 3 is done; see [`ROADMAP.md`](ROADMAP.md)
-"Phase 4"). The storage-cap model and prices are **LOCKED** (2026-05-29) and the target
-`tiers.ts` is shaped in [`PRICING.md`](PRICING.md); the human prereqs (Stripe keys + the
-4 Price IDs + products/prices + webhook endpoint + Billing Portal config) are listed
-under "Blocked on a human" below. First moves per ROADMAP: rework `tiers.ts` +
-`tier_limits()` + `create_media` from the old item-cap model to a single total-storage
-cap (drop Max + the `watermark` field; add the monthly ingress meter), then the
-raw-body Stripe webhook (the sole writer of `profiles.tier`/`storage_cap_bytes`). Start
-with the standing doc-check (Context7) on the current Stripe + `@stripe/stripe-js` /
-`stripe` Node SDK APIs before coding.
+1. **Deploy Cut 4a** to partyreel.com (the migration is already live — this resyncs the
+   app to the new DB), then run a quick live check: a Free host sees the dashboard storage
+   gauge (X of 2 GB), the `require_email` toggle is locked with an upgrade hint, and
+   `/pricing` shows the GB cards.
+2. **Build Cut 4b — Stripe Pro subscriptions** (see [`ROADMAP.md`](ROADMAP.md) "Phase 4").
+   Add the `stripe` Node SDK + `assertStripeEnv()`, `src/lib/stripe/{client,plans}.ts`,
+   and wire the checkout/portal/**raw-body webhook** (the sole writer of
+   `profiles.tier`/`storage_cap_bytes`, via the admin client). Human prereqs (Stripe Pro
+   products/prices + env vars + webhook endpoint + Billing Portal) are under "Blocked on a
+   human" below. **Start with the standing Context7 doc-check** on the current `stripe`
+   Node SDK + Next 16 raw-body route handlers. Cut 4c (Event Pass) follows.
 
 ## Blocked on a human ("manual instrument")
 
@@ -157,10 +176,10 @@ with the standing doc-check (Context7) on the current Stripe + `@stripe/stripe-j
 - **Tier specifics** (Phase 4): storage model and **prices LOCKED** (2026-05-29) — Free
   2 GB; Pro 100 GB $9/mo, 500 GB $19/mo, 2 TB $39/mo; Event Pass 75 GB $24 one-time
   (~1 yr, ~$15/yr renewal); no watermarks; monthly ingress meter. `require_email` is the
-  first tier-gated toggle. Full table + shaped target `tiers.ts` + Stripe setup guide:
-  [`PRICING.md`](PRICING.md). The `tiers.ts` / `tier_limits()` / `create_media` rework
-  and consumer updates land in Phase 4 — `tiers.ts` still encodes the old item-cap model
-  until then.
+  first tier-gated toggle. Full table + Stripe setup guide: [`PRICING.md`](PRICING.md).
+  **The `tiers.ts` / `tier_limits()` / `create_media` rework + consumer updates LANDED in
+  Cut 4a** — `tiers.ts` now encodes the storage-cap model. Remaining Phase-4 open item:
+  `MONTHLY_INGRESS_BYTES.pro` is still `null` (unmetered) — tune it before Pro launch.
 - ~~**Safety**~~ **RESOLVED (2026-05-29):** v1 = a **reports/review MVP** only (public
   report flow + internal operator review at `/admin`; never auto-hide). **No scanner, no
   NSFW filter, no NCMEC/legal-registration prereq** — proactive filtering is **v2+**.

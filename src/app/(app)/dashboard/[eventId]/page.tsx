@@ -17,8 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import { getEvent } from "@/lib/db/queries/events";
 import { listEventMedia } from "@/lib/db/queries/media";
+import { getProfile } from "@/lib/db/queries/profile";
 import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
@@ -40,10 +42,14 @@ export async function generateMetadata({
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { eventId } = await params;
-  const event = await getEvent(eventId);
+  const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
   if (!event) notFound();
+
+  // Tier gates the settings form (e.g. require_email is paid-only). The (app)
+  // layout already gated on getUser(), so profile is the signed-in host's.
+  const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
   // Build the guest-facing absolute URLs server-side. The tokens are the
   // capability (ADR-0004); they come straight from the row the DB generated.
@@ -165,7 +171,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      <EventSettingsForm event={event} />
+      <EventSettingsForm event={event} tier={tier} />
     </div>
   );
 }

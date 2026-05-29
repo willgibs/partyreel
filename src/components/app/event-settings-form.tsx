@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Trash2 } from "lucide-react";
@@ -10,6 +11,7 @@ import {
   deleteEventAction,
   updateEventAction,
 } from "@/app/(app)/dashboard/actions";
+import { isSettingLocked, type Tier } from "@/lib/constants/tiers";
 import {
   updateEventSchema,
   type UpdateEventInput,
@@ -49,11 +51,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 type EventSettingsFormProps = {
   event: Tables<"events">;
+  tier: Tier;
 };
 
-export function EventSettingsForm({ event }: EventSettingsFormProps) {
+export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
   const [isSaving, startSaving] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
+
+  // Tier-gated settings: locked toggles are disabled with an upgrade hint. The
+  // server (updateEvent) re-enforces the gate — this is UX, not the boundary.
+  const emailLocked = isSettingLocked("require_email", tier);
 
   // updateEventSchema is createEventSchema.partial(), so every field is
   // optional; we still prefill from the row so the switches/inputs are
@@ -266,12 +273,25 @@ export function EventSettingsForm({ event }: EventSettingsFormProps) {
                       <FormLabel>Require an email</FormLabel>
                       <FormDescription>
                         Ask guests for an email before they can upload.
+                        {emailLocked && (
+                          <>
+                            {" "}
+                            <Link
+                              href="/pricing"
+                              className="font-medium text-foreground underline underline-offset-4"
+                            >
+                              Upgrade to enable
+                            </Link>
+                            .
+                          </>
+                        )}
                       </FormDescription>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={emailLocked}
                       />
                     </FormControl>
                   </FormItem>

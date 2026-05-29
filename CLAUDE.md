@@ -166,6 +166,35 @@ asserts them lazily at request time so the app still builds without creds.
   When scripting/verifying a settings change, click Save and confirm the DB, don't assume
   the toggle wrote on change.
 
+**Phase 4 — payments / storage-cap model gotchas**
+
+- **The cap is account-level bytes, not item counts (Cut 4a).** `create_media` enforces
+  `storage_used_bytes + file > cap + cap/10` (a **10% overflow buffer**) where
+  `cap = coalesce(profiles.storage_cap_bytes, tier default)`. **Free's 2 GB default comes
+  from `tier_limits()`** (so there's NO backfill and NO `handle_new_user` change — null
+  `storage_cap_bytes` is fine); the Stripe webhook (4b/4c) writes `storage_cap_bytes` for
+  paid tiers. Per-event item caps are **gone**.
+- **The monthly meter is INGRESS BYTES, not counts.** `create_media` blocks when
+  `storage_ledger.cumulative_bytes (this period) + file > monthly_ingress_bytes`.
+  `cumulative_bytes` **never decrements** — it is both the meter and the churn defense.
+  (`photo_count`/`video_count` stay for analytics but are no longer enforced.)
+- **`tier_limits()` now returns `(max_events, monthly_ingress_bytes,
+  default_storage_cap_bytes)`** and MUST mirror `tiers.ts` (`MAX_EVENTS` /
+  `MONTHLY_INGRESS_BYTES` / `DEFAULT_STORAGE_CAP_BYTES`) — a Vitest parity test guards it.
+  Changing its return columns needs **DROP + CREATE** (create-or-replace can't change a
+  function's return type); `enforce_event_limit` still reads `max_events` so it's unaffected.
+- **`get_upload_context` now returns `at_storage_cap` / `at_monthly_cap`** (was
+  `at_event_cap`). It keeps the `p_type` param for signature/grant stability (no per-type
+  caps remain). It's a coarse pre-check — `create_media` stays authoritative.
+- **The `tier_type` enum still carries a retired `max`.** App code uses the 3-value
+  `Tier` (`free|pro|event_pass`); coerce a DB `profiles.tier` with **`toBillingTier()`**
+  (`max`→`pro`, unknown→`free`) before indexing the `tiers.ts` records. Don't try to drop
+  the enum value (risky).
+- **`tiers.ts` is client-import-safe — keep it secret-free.** No env, no Stripe Price IDs.
+  The Price-ID↔plan mapping (`planForPriceId`) lives in `lib/stripe/` (Cut 4b), which reads
+  env via `assertStripeEnv()`. `profiles.tier` / `storage_cap_bytes` stay
+  service-role/webhook-write-only (never client-writable).
+
 **Local dev vs. live testing** — auth and uploads are wired for **partyreel.com
 only**. `localhost:3000` is deliberately NOT in Supabase's redirect allow-list, the
 R2 bucket CORS origins, or `NEXT_PUBLIC_SITE_URL` — so `pnpm dev` renders UI but
