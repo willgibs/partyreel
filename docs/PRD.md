@@ -22,6 +22,12 @@ success metric: a host creates a _second_ event.**
   phone without installing or signing up. Has **no account**; identified only by
   a display name (and optional email if the host requires it).
 
+_Planned (v2+ — see ROADMAP "Multi-account events"): an event can link multiple
+accounts — **co-hosts** who share management (a **paid-only** feature: the owner must be
+Pro or hold an Event Pass; co-hosts need no plan of their own), and **invite-only
+guests** by email. The single-owner `host_id` stays the billing/storage anchor; an
+additive `event_members` table adds the rest._
+
 ## The core loop
 
 1. **Create** — host makes an event; the system issues a `qr_token` (→

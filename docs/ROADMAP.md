@@ -269,6 +269,18 @@ Not part of the v1 roadmap — parked here so it isn't lost:
   (magic-link) that quietly creates a latent account; a later traditional login triggers
   the full signup/onboarding (more info, newsletter opt-in) and merges. Interacts with
   Phase 1 auth and the Phase 4 tier-gated `require_email`.
+- **Multi-account events (co-hosts + invited guests)** — let an owner link other accounts
+  to an event: **co-hosts** (shared management) and, extending `require_email`,
+  **invite-only guests** (private events where only invited emails may join).
+  **Co-hosting is paid-only:** the **owner** must be on Pro or hold an Event Pass to
+  invite co-hosts — establishing billing responsibility up front — and co-hosts need
+  **no** plan of their own (the event already qualifies via the owner's plan). Model is
+  **additive**: keep `events.host_id` as the **owner / billing + storage anchor** and add
+  an **`event_members(event_id, user_id, role)`** table; broaden the host RLS policies
+  (`events_host_all`, `media_host_all`, etc.) from `host_id = auth.uid()` to
+  membership-based. Because it's additive, deferring causes no painful migration — but
+  write near-term host RLS in a membership-broadening-friendly way. (The lighter v1
+  access controls — passphrase, require-upload-to-view — are the Phase 3 versions.)
 - **AI support-recovery** — triage "I lost my media" emails, match sender →
   account/event, auto-send a time-boxed download link (PRD "Data retention").
 - **NSFW filtering** — only if a real need emerges; host-opt-in, image moderation on
