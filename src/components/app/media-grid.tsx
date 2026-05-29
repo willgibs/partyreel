@@ -1,5 +1,3 @@
-import { Badge } from "@/components/ui/badge";
-
 export type GridMedia = {
   id: string;
   type: "photo" | "video";
@@ -8,17 +6,36 @@ export type GridMedia = {
   status?: "pending" | "approved" | "hidden" | "removed";
 };
 
-// Presentational grid shared by the host gallery and the public album. Renders
-// straight <img>/<video> from presigned URLs (next/image is wrong here —
-// presigned URLs are short-lived and per-request, so optimization/caching would
-// break them). `showStatus` surfaces moderation state for the host view only.
-export function MediaGrid({
-  items,
-  showStatus = false,
-}: {
-  items: GridMedia[];
-  showStatus?: boolean;
-}) {
+// Presentational media render shared by the public album (MediaGrid below) and
+// the host moderation grid (host-media-grid.tsx). Renders straight <img>/<video>
+// from presigned URLs (next/image is wrong here — presigned URLs are short-lived
+// and per-request, so optimization/caching would break them). No status,
+// controls, or host concerns live here — keep it a clean primitive both surfaces
+// reuse.
+export function MediaTile({ item }: { item: GridMedia }) {
+  return item.type === "photo" ? (
+    // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
+    <img
+      src={item.url}
+      alt=""
+      loading="lazy"
+      className="size-full object-cover"
+    />
+  ) : (
+    <video
+      src={item.url}
+      controls
+      preload="metadata"
+      playsInline
+      className="size-full bg-black object-cover"
+    />
+  );
+}
+
+// Public-album grid. Deliberately presentational and control-free — it's shared
+// with the always-dark gallery surface where media is the hero. Host moderation
+// controls live in HostMediaGrid, never here.
+export function MediaGrid({ items }: { items: GridMedia[] }) {
   return (
     <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {items.map((item) => (
@@ -26,31 +43,7 @@ export function MediaGrid({
           key={item.id}
           className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
         >
-          {item.type === "photo" ? (
-            // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-            <img
-              src={item.url}
-              alt=""
-              loading="lazy"
-              className="size-full object-cover"
-            />
-          ) : (
-            <video
-              src={item.url}
-              controls
-              preload="metadata"
-              playsInline
-              className="size-full bg-black object-cover"
-            />
-          )}
-          {showStatus && item.status && item.status !== "approved" && (
-            <Badge
-              variant="secondary"
-              className="absolute top-1.5 left-1.5 capitalize"
-            >
-              {item.status}
-            </Badge>
-          )}
+          <MediaTile item={item} />
         </li>
       ))}
     </ul>

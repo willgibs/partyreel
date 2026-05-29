@@ -34,6 +34,9 @@ const serverSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
   R2_BUCKET: z.string().min(1).optional(),
+  // Vercel Cron shared secret (Phase 3 purge sweeper). Vercel auto-sends it as
+  // `Authorization: Bearer $CRON_SECRET` when invoking the cron; the route verifies it.
+  CRON_SECRET: z.string().min(1).optional(),
   // Stripe (Phase 4).
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
@@ -67,6 +70,7 @@ function parseServer() {
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_BUCKET: process.env.R2_BUCKET,
+    CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   });
@@ -115,4 +119,22 @@ export function assertR2Env(): {
     );
   }
   return { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET };
+}
+
+/**
+ * Assert CRON_SECRET is present and return it. Call at REQUEST time in the cron
+ * route — it stays `.optional()` so the app still builds/deploys before the secret
+ * is set in Vercel. A missing secret means the route can't authenticate Vercel's
+ * invocation, so it must fail closed (the caller returns 401/500) rather than run
+ * an unauthenticated purge.
+ */
+export function assertCronEnv(): { CRON_SECRET: string } {
+  const { CRON_SECRET } = serverEnv;
+  if (!CRON_SECRET) {
+    throw new Error(
+      "CRON_SECRET is not configured. Set it in the Vercel project env so the " +
+        "purge cron can authenticate Vercel's Authorization: Bearer invocation.",
+    );
+  }
+  return { CRON_SECRET };
 }

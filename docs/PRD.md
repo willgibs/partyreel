@@ -141,24 +141,25 @@ to billing (Phase 4).
   host before they're public). It's the host's per-event choice and gates _visibility_,
   not _safety_. (Uploads happen only while `accepting_uploads` is true — a separate
   switch.)
-- **CSAM — legal-floor MVP at launch; stronger filtering on the v2+ docket.** Note
-  (researched 2026-05-29): Cloudflare's free CSAM tool is CDN-cache-only and does
-  **not** cover our private R2 objects. We're **not locking in a scanner yet** — a
-  data-privacy and legal review (what users upload, what we're permitted to scan, and
-  how) comes first, then we pick the best tool (PhotoDNA Cloud Service is one
-  candidate). **v1 ships the legal floor:** a clear report/takedown flow, an NCMEC
-  CyberTipline reporting workflow, and an **internal account flag for human review** on
-  any reported or suspected match — never an auto-shutdown (a false positive can't nuke
-  a legit user). Proactive hash-scanning at upload is **v2+**, built as the extensible
-  root of the filter system. (Real legal review before public marketing.)
+- **Reports & operator review — report/takedown at launch; proactive filtering is
+  v2+.** Anyone viewing a public album can **report** the album (or a specific item)
+  through a discreet, anonymous link. Reports land in an **internal operator review
+  queue** (`/admin`, gated by `profiles.is_admin`) where an operator dismisses them or
+  takes the item down; actioning soft-removes the media and the purge cron reclaims it.
+  Reports **never auto-hide** content — anonymous reports are trivially spammable, so
+  auto-hide would be a griefing DoS on a legit host; a human decides. **No upload-time
+  scanning in v1.** Proactive hash-matching is on the **v2+ docket**, built as the
+  extensible root of a filter system (Cloudflare's free CSAM tool is CDN-cache-only and
+  does **not** cover our private R2 objects, so the tool + approach are chosen later).
 - **No NSFW filtering.** Skipped on purpose — costly (especially video) for little
   early benefit, and lawful adult content is fine on Cloudflare/R2 anyway. Hosts manage
   their event instead with the **review flow** above and **protected events** below.
-- **Host access options (planned).** Per-event settings that gate guest access:
-  (a) a **passphrase** to upload and/or view — _fun_, not a wifi-password hunt (accept
-  emoji or short phrases); (b) **require-upload-to-view** (optionally an item minimum) to
-  incentivize participation. Each needs an event-settings field, RPC/guest-flow changes,
-  and settings UI; slot into Phase 3 or a fast-follow.
+- **Host access options (deferred to a fast-follow).** Per-event settings that gate
+  guest access: (a) a **passphrase** to upload and/or view — _fun_, not a wifi-password
+  hunt (accept emoji or short phrases); (b) **require-upload-to-view** (optionally an item
+  minimum) to incentivize participation. Each needs an event-settings field,
+  RPC/guest-flow changes, and settings UI. **Deferred out of Phase 3** — they touch the
+  security-critical capability-token RPCs, so they ship as a focused fast-follow.
 
 ## Platform constraints / principles
 
@@ -181,5 +182,5 @@ to billing (Phase 4).
 - Per-guest accounts, social features, comments/reactions.
 
 _Promoted out of non-goals:_ free-event inactivity removal is now planned (6 months —
-see "Data retention & lifecycle"), and safety scanning is now planned (see "Safety &
-moderation").
+see "Data retention & lifecycle"), and a safety **report/review** flow is now planned
+(see "Safety & moderation"). Proactive upload scanning stays a v2+ non-goal.

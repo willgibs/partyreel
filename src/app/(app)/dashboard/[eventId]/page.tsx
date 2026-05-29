@@ -6,7 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
 import { EventSettingsForm } from "@/components/app/event-settings-form";
-import { MediaGrid } from "@/components/app/media-grid";
+import {
+  ApproveAllPendingButton,
+  HostMediaGrid,
+} from "@/components/app/host-media-grid";
 import {
   Card,
   CardContent,
@@ -58,6 +61,13 @@ export default async function EventDetailPage({ params }: PageProps) {
       status: m.status,
     })),
   );
+
+  // Partition for the host view: hold_for_approval uploads arrive as 'pending'
+  // and get their own review queue above the main grid; approved + hidden make
+  // up the rest (the host still sees hidden items so they can unhide). 'removed'
+  // never reaches here — listEventMedia filters it out.
+  const pendingItems = galleryItems.filter((m) => m.status === "pending");
+  const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
   return (
     <div className="space-y-8">
@@ -111,6 +121,28 @@ export default async function EventDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {pendingItems.length > 0 && (
+        <Card>
+          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle>Pending review</CardTitle>
+              <CardDescription>
+                {pendingItems.length}{" "}
+                {pendingItems.length === 1 ? "item is" : "items are"} waiting
+                for your approval before guests can see them.
+              </CardDescription>
+            </div>
+            <ApproveAllPendingButton
+              eventId={event.id}
+              count={pendingItems.length}
+            />
+          </CardHeader>
+          <CardContent>
+            <HostMediaGrid eventId={event.id} items={pendingItems} />
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Uploads</CardTitle>
@@ -121,11 +153,13 @@ export default async function EventDetailPage({ params }: PageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {galleryItems.length > 0 ? (
-            <MediaGrid items={galleryItems} showStatus />
+          {visibleItems.length > 0 ? (
+            <HostMediaGrid eventId={event.id} items={visibleItems} />
           ) : (
             <p className="text-sm text-muted-foreground">
-              No uploads yet. Share the QR code above to get started.
+              {pendingItems.length > 0
+                ? "Everything uploaded so far is awaiting your review above."
+                : "No uploads yet. Share the QR code above to get started."}
             </p>
           )}
         </CardContent>

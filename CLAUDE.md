@@ -136,6 +136,27 @@ multipart uploads. **Wired** in `src/lib/r2/{client,presign}.ts` — that config
 load-bearing, don't remove it. R2 vars stay `.optional()` in `env.ts`; `assertR2Env()`
 asserts them lazily at request time so the app still builds without creds.
 
+**Phase 3 — purge cron / moderation / safety gotchas**
+
+- **`CRON_SECRET` + `assertCronEnv()`** — the purge cron (`/api/cron/purge`) authorizes
+  by timing-safe-comparing `Authorization` against `Bearer ${CRON_SECRET}`. The var is
+  `.optional()` in `env.ts` (build works without it); `assertCronEnv()` asserts it lazily
+  at request time, mirroring `assertR2Env()`. **Vercel Cron auto-sends the bearer** —
+  `vercel.json` registers the schedule (`0 4 * * *`) and Vercel injects
+  `Authorization: Bearer $CRON_SECRET` itself; you don't wire the header.
+- **R2 bulk helpers (`src/lib/r2/delete.ts`)** — `deleteR2Objects()` chunks to **≤1000
+  keys** per `DeleteObjectsCommand` (the S3 API hard cap), and **deleting an absent key
+  is success** (so a re-run after a partial purge is idempotent). `listR2Objects()`
+  paginates via `ContinuationToken`. The orphan sweep relies on `parseMediaIdFromKey()`
+  in `keys.ts` (single-sourced with `mediaObjectKey`).
+- **`media.removed_at` is the purge grace clock — never use `updated_at` for it.** The
+  `set_updated_at` trigger bumps `updated_at` on every touch, so the 7-day removed-media
+  grace must read the stable `removed_at` stamp. Individual remove is **soft**
+  (`status='removed'` + `removed_at`); the cron reclaims R2 + row after the grace.
+- **`profiles.is_admin` is service-role-write-only** (same class as `tier`/`storage_*`) —
+  it's **not** in the `grant update(...)` allowlist, so the client can never set it. Flip
+  it for the operator account once via the Supabase MCP. `/admin` re-checks it server-side.
+
 **Local dev vs. live testing** — auth and uploads are wired for **partyreel.com
 only**. `localhost:3000` is deliberately NOT in Supabase's redirect allow-list, the
 R2 bucket CORS origins, or `NEXT_PUBLIC_SITE_URL` — so `pnpm dev` renders UI but
@@ -202,7 +223,8 @@ src/app/
 | Pricing / tier limits (app side)                       | `src/lib/constants/tiers.ts`                             |
 | Pricing / tier limits (DB enforcement)                 | `public.tier_limits()` SQL fn — **must mirror tiers.ts** |
 | Universal per-file media limits (5 min / 2 GB / 50 MB) | `src/lib/media/limits.ts`                                |
-| R2 object keys                                         | `src/lib/r2/keys.ts`                                     |
+| R2 object keys (+ `parseMediaIdFromKey`)               | `src/lib/r2/keys.ts`                                     |
+| R2 bulk delete / list (purge cron)                     | `src/lib/r2/delete.ts`                                   |
 | DB access (queries/mutations)                          | `src/lib/db/*` — never inline SQL in components          |
 | Env vars (zod-validated)                               | `src/lib/env.ts` (`env` public, `serverEnv` server-only) |
 | `cn()` class merge                                     | `src/lib/utils.ts`                                       |
@@ -228,15 +250,21 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` flags the 5 capability-token RPCs as ACCEPTED BY DESIGN — do not
+**`get_advisors` flags the 6 capability-token RPCs as ACCEPTED BY DESIGN — do not
 "fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
-`create_guest`, `create_media`, and `get_upload_context` (Phase 2) as SECURITY
-DEFINER functions executable by `anon` (and `authenticated`). That is intentional:
-the opaque token IS the authorization (ADR-0004). Revoking their EXECUTE grant
-breaks the entire anonymous guest flow. (The trigger-only functions were locked
-down in migration `…_lock_down_trigger_functions` — those are _not_ meant to be
-callable.) The separate "Leaked Password Protection Disabled" WARN is unrelated —
-Partyreel uses magic-link/OAuth, not passwords.
+`create_guest`, `create_media`, `get_upload_context` (Phase 2), and `create_report`
+(Phase 3) as SECURITY DEFINER functions executable by `anon` (and `authenticated`).
+That is intentional: the opaque token IS the authorization (ADR-0004). Revoking
+their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only
+functions were locked down in migration `…_lock_down_trigger_functions` — those are
+_not_ meant to be callable.) The separate "Leaked Password Protection Disabled" WARN
+is unrelated — Partyreel uses magic-link/OAuth, not passwords.
+
+**`purge_media_rows` must stay REVOKED from `anon`/`authenticated` (service-role
+only).** It's SECURITY DEFINER like the others but service-role-internal (the purge
+cron calls it via the admin client), so it must **never** appear in the advisor list
+above — if it ever shows up there, an over-broad grant slipped in. Same protection
+class as the trigger-only functions.
 
 ---
 

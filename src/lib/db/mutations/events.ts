@@ -139,13 +139,20 @@ export async function softDeleteEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Soft delete ONLY — stamp deleted_at. This frees the event slot (every read
-  // filters deleted_at IS NULL) while the row + its media persist until the
-  // Phase 3 R2 purge. There is deliberately NO "end event" path that would keep
-  // media accessible without freeing the slot (anti-abuse — see tiers.ts).
+  // Soft delete — stamp deleted_at AND schedule the hard purge 60 days out. Freeing
+  // the slot is immediate (every read filters deleted_at IS NULL); the row + its R2
+  // objects persist until the purge cron hard-deletes them after purge_at, giving the
+  // host a recoverable tail (PRD "Data retention & lifecycle"). There is deliberately
+  // NO "end event" path that keeps media accessible without freeing the slot
+  // (anti-abuse — see tiers.ts).
+  const now = new Date();
+  const purgeAt = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
   const { error } = await supabase
     .from("events")
-    .update({ deleted_at: new Date().toISOString() })
+    .update({
+      deleted_at: now.toISOString(),
+      purge_at: purgeAt.toISOString(),
+    })
     .eq("id", id)
     .is("deleted_at", null);
 

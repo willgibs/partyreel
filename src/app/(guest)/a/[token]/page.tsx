@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { MediaGrid } from "@/components/app/media-grid";
+import { ReportDialog } from "@/components/guest/report-dialog";
 import { Logo } from "@/components/shared/logo";
 import { getPublicAlbum } from "@/lib/db/queries/album";
 import { presignDownload } from "@/lib/r2/presign";
@@ -61,6 +62,11 @@ export default async function PublicAlbumPage({
             No photos yet — check back soon.
           </p>
         )}
+
+        {/* Discreet, anonymous report path — share_token is the capability. */}
+        <footer className="mt-10 flex justify-center border-t border-white/10 pt-6">
+          <ReportDialog shareToken={token} />
+        </footer>
       </div>
     </div>
   );

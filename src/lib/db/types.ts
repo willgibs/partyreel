@@ -164,6 +164,7 @@ export type Database = {
           original_key: string
           preview_key: string | null
           reel_eligible: boolean
+          removed_at: string | null
           status: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
           updated_at: string
@@ -183,6 +184,7 @@ export type Database = {
           original_key: string
           preview_key?: string | null
           reel_eligible?: boolean
+          removed_at?: string | null
           status?: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
           updated_at?: string
@@ -202,6 +204,7 @@ export type Database = {
           original_key?: string
           preview_key?: string | null
           reel_eligible?: boolean
+          removed_at?: string | null
           status?: Database["public"]["Enums"]["media_status"]
           type?: Database["public"]["Enums"]["media_type"]
           updated_at?: string
@@ -230,6 +233,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          is_admin: boolean
           storage_cap_bytes: number | null
           storage_used_bytes: number
           stripe_customer_id: string | null
@@ -242,6 +246,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          is_admin?: boolean
           storage_cap_bytes?: number | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
@@ -254,6 +259,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          is_admin?: boolean
           storage_cap_bytes?: number | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
@@ -262,6 +268,67 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          media_id: string | null
+          reason: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          media_id?: string | null
+          reason?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          media_id?: string | null
+          reason?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       storage_ledger: {
         Row: {
@@ -327,6 +394,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_report: {
+        Args: { p_media_id?: string; p_reason?: string; p_share_token: string }
+        Returns: Json
+      }
       get_event_by_qr_token: {
         Args: { p_qr_token: string }
         Returns: {
@@ -349,6 +420,13 @@ export type Database = {
         }
         Returns: Json
       }
+      purge_media_rows: {
+        Args: { p_media_ids: string[] }
+        Returns: {
+          freed_bytes: number
+          host_id: string
+        }[]
+      }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
@@ -366,6 +444,7 @@ export type Database = {
       media_type: "photo" | "video"
       moderation_mode: "live" | "hold_for_approval"
       reel_status: "pending" | "processing" | "ready"
+      report_status: "open" | "reviewed" | "dismissed" | "actioned"
       tier_type: "free" | "event_pass" | "pro" | "max"
     }
     CompositeTypes: {
@@ -498,6 +577,7 @@ export const Constants = {
       media_type: ["photo", "video"],
       moderation_mode: ["live", "hold_for_approval"],
       reel_status: ["pending", "processing", "ready"],
+      report_status: ["open", "reviewed", "dismissed", "actioned"],
       tier_type: ["free", "event_pass", "pro", "max"],
     },
   },

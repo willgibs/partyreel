@@ -65,86 +65,105 @@ every upload.
 - [x] New `get_upload_context` RPC (presign-time session→event + cap pre-check) + Vitest unit harness
 - [x] R2 bucket + CORS verified end-to-end (checksum `WHEN_REQUIRED`, ExposeHeaders ETag)
 
-## ⬜ Phase 3 — Moderation + lifecycle
+## 🔨 Phase 3 — Moderation + lifecycle + safety (reports/review MVP)
+
+**Built; pending live verification on partyreel.com + two human prereqs (`CRON_SECRET`
+in Vercel, flip `profiles.is_admin` for the operator).** Local
+typecheck/lint/format/test/build clean; DB contract verified via rolled-back
+Supabase-MCP checks; advisors show the expected **6** anon RPCs (`purge_media_rows`
+stays locked down).
 
 **Goal.** Give the host curation control (core-loop step 3): approve/hide/remove
-uploads, work the hold-for-approval queue, and the delete→purge lifecycle that frees
-a slot and reclaims storage. Plus the foundational **CSAM safety scan** on uploads
-(the root of the filter system — see PRD "Safety & moderation").
+uploads and work the hold-for-approval queue; the delete→purge lifecycle that frees a
+slot and reclaims storage (R2 objects + DB rows + an orphan sweep); and a **safety
+reports/review MVP** — a public report flow + an internal operator review surface. **No
+upload scanner and no NSFW filter** — proactive filtering is v2+ (PRD "Safety &
+moderation").
 
-**Already wired (reuse):**
+**Already wired (reused):**
 
 - `media.status` enum `pending | approved | hidden | removed` (`src/lib/db/types.ts`);
   `create_media` already sets `pending`/`approved` from the event's `moderation_mode`.
-- `events.deleted_at` + `events.purge_at` columns; `softDeleteEvent()` stamps
-  `deleted_at` (`src/lib/db/mutations/events.ts`).
-- `/api/media/[mediaId]` PATCH (approve/hide) + DELETE (remove) — **501 stub**.
-- `/api/cron/purge` GET — **501 stub**, auth via `Authorization: Bearer CRON_SECRET`.
-- `listEventMedia()` already excludes `removed` (`src/lib/db/queries/media.ts`);
-  `MediaGrid` already renders status badges (`src/components/app/media-grid.tsx`);
-  the host gallery lives in `src/app/(app)/dashboard/[eventId]/page.tsx`.
-- Visibility + upload-lock toggles already shipped in `event-settings-form.tsx`
-  (Phase 1) — confirm behavior; no rebuild expected.
-- `media_host_all` RLS scopes media to the host's own events (the moderation path).
+- `events.deleted_at` + `events.purge_at` columns; `softDeleteEvent()`
+  (`src/lib/db/mutations/events.ts`).
+- `listEventMedia()` already excludes `removed` (`src/lib/db/queries/media.ts`); the
+  host gallery lives in `src/app/(app)/dashboard/[eventId]/page.tsx`.
+- `media_host_all` RLS scopes media to the host's own events (the moderation path);
+  `createAdminClient()` (service role) for the operator surface; `presignDownload`.
+- The `MutationResult`/`ActionResult` + `useTransition`+toast+confirm-Dialog patterns
+  (`mutations/events.ts`, `dashboard/actions.ts`, `event-settings-form.tsx`).
 
-**To build:**
+**Built:**
 
-- [ ] Approve / hide mutations — host updates `media.status` (RLS path; mirror the
-      Phase-1 mutation + Server-Action pattern in `src/lib/db/mutations/`); wire the
-      `/api/media/[mediaId]` PATCH stub or a Server Action.
-- [ ] Remove — hard-delete the row **and** its R2 object (wire the DELETE stub; reuse
-      the `events/{id}/` key prefix + an R2 delete helper in `src/lib/r2/`).
-- [ ] Moderation UI — approve/hide/remove controls on `MediaGrid` + a `pending`
-      review queue for hold-for-approval events.
-- [ ] Set `purge_at` on soft-delete (retention window — see gotchas).
-- [ ] Purge cron — implement `/api/cron/purge`: find events with
-      `deleted_at IS NOT NULL AND purge_at <= now()`, delete their R2 objects + rows;
-      also sweep **orphaned R2 objects** (uploaded but no `media` row — the accepted
-      Phase-2 race). Add the schedule to `vercel.json`.
-- [ ] **Safety: CSAM legal-floor MVP** (PRD "Safety & moderation") — a report/takedown
-      flow, an NCMEC CyberTipline reporting workflow, and an internal account flag for
-      human review; never auto-shutdown. **No scanner vendor locked in** and **no NSFW
-      filter**. Proactive upload hash-scanning (tool TBD after a data-privacy/legal
-      review) is on the **v2+ docket**, built as the extensible filter root.
-- [ ] **Host access options (optional, can fast-follow)** — per-event settings that gate
-      guest access: (a) a **passphrase** (emoji / short phrase OK) to upload and/or view;
-      (b) **require-upload-to-view**, optionally with an item minimum, to incentivize
-      participation. Each needs an event-settings field plus a gate in the guest-flow /
-      album RPCs (PRD "Safety & moderation").
-- [ ] Tests — RPC/mutation contract (status transitions; remove recounts caps
-      correctly; purge respects `purge_at`) via a rolled-back Supabase-MCP check.
+- [x] Moderation mutations (`src/lib/db/mutations/media.ts`) + thin Server Actions
+      (`src/app/(app)/dashboard/[eventId]/actions.ts`): `setMediaStatus` (approve/hide/
+      unhide, status allowlisted), `removeMedia`, `approveAllPending`. **Retired the
+      `/api/media/[mediaId]` 501 stub** — Server Actions give auth + `revalidatePath`.
+- [x] Remove = **soft** (`status='removed'` + `removed_at`): frees the per-event slot
+      immediately, gives an undo window; the cron reclaims R2 + row after a 7-day grace.
+      No R2 call / counter change at remove time.
+- [x] Moderation UI — extracted a presentational `MediaTile` (shared with the public
+      album), new `host-media-grid.tsx` with per-item Approve/Hide/Unhide/Remove
+      (Remove behind a confirm Dialog) + a **Pending review** section with **Approve all**
+      for hold-for-approval events (partitioned in the RSC; no new route).
+- [x] `purge_at = deleted_at + 60d` stamped in `softDeleteEvent()` (single timer).
+- [x] Purge cron (`src/app/api/cron/purge/route.ts`, Node runtime, raised `maxDuration`,
+      timing-safe `Bearer $CRON_SECRET` auth) — three sweeps: events past `purge_at`,
+      individually-removed media past a 7-day grace, and **orphaned R2 objects** (>24 h
+      old, no `media` row). R2-then-rows ordering; `purge_media_rows` RPC does the atomic
+      row-delete + `storage_used_bytes` decrement. R2 helpers in `src/lib/r2/delete.ts`
+      (`deleteR2Objects` ≤1000/batch, `listR2Objects` paginated) + `parseMediaIdFromKey`.
+      Schedule added to `vercel.json` (`0 4 * * *`).
+- [x] **Safety: reports/review MVP** — `create_report` RPC (6th anon capability-token
+      RPC; insert-only, **never** auto-hides), `reportSchema` + `/api/reports` POST + a
+      discreet `report-dialog.tsx` on the public album; an operator surface at `/admin`
+      (gated by `profiles.is_admin`, `notFound()` for non-admins) with dismiss/action
+      Server Actions. `reports` table is RLS deny-all (operator-internal; access via the
+      RPC + service-role client only).
+- [x] Tests — Vitest (`report.ts` schema, `parseMediaIdFromKey` round-trip) + four
+      rolled-back Supabase-MCP RPC checks (remove frees the slot; `purge_media_rows`
+      decrements usage / leaves the ledger / is idempotent; sweep-1 `purge_at` predicate;
+      `create_report` open/cross-event-`check_violation`/bad-token-`no_data_found`).
+
+**Deferred to a fast-follow (out of Phase 3):**
+
+- **Host access options** — per-event settings that gate guest access: (a) a
+  **passphrase** (emoji / short phrase OK) to upload and/or view; (b)
+  **require-upload-to-view**, optionally with an item minimum. Each needs an
+  event-settings field + a gate in the capability-token guest-flow / album RPCs; kept
+  out of this phase to stay focused on those security-critical RPCs.
 
 **Gotchas / decisions:**
 
-- **Retention policy is defined — see PRD "Data retention & lifecycle":** roughly a
-  30-day in-app grace (over-limit content stays downloadable; then largest-first
-  reduction), then a further 60-day hidden-but-recoverable window, then hard-delete.
-  For Phase 3's explicit event-delete path, set `purge_at` from `softDeleteEvent()`;
-  decide whether one `purge_at` timer suffices or the two-stage window needs a second
-  timestamp (the over-limit/billing trigger itself is Phase 4).
+- **Retention impl decided:** for the explicit event-delete path, **one `purge_at`
+  timer = `deleted_at + 60d`** (the recoverable tail; PRD "Data retention"). Individual
+  media removal uses a separate, shorter **`removed_at + 7d`** grace before the cron
+  reclaims it. The over-capacity 30-day grace is an account/billing state — **Phase 4**,
+  not a second timestamp here.
+- **`media.removed_at` is a dedicated clock — never age removal off `updated_at`** (the
+  `set_updated_at` trigger bumps `updated_at` on every touch, resetting the grace).
 - **The three counters are deliberately different — don't "reconcile" them away:**
-  per-event caps count `status <> 'removed'` (so removing a photo frees its
-  per-event slot — intended); the monthly `storage_ledger` counters NEVER decrement
-  (churn defense); `storage_used_bytes` (Max tier) decrements only when the purge
-  cron actually deletes the R2 object.
-- **Decide `remove` semantics + the legal `status` transitions before the UI.**
-  Likely `remove` = set `status='removed'` (soft: hidden everywhere, frees the
-  per-event slot, swept later by purge) rather than an immediate hard-delete —
-  confirm.
-- **Orphan sweep needs an age threshold** — only delete unreferenced R2 objects
-  older than N hours, or you'll race a guest's presigned-but-not-yet-completed
-  upload (the bucket's abort-incomplete-multipart rule is a separate mechanism).
-- `CRON_SECRET` is a **new env var** (Vercel) + a Vercel Cron entry (daily is a sane
-  default) — flag it in STATUS "blocked on a human."
-- **CSAM prereqs (human):** for the v1 MVP, register for **NCMEC CyberTipline**
-  reporting and do a **data-privacy + legal review** of what we may scan/store. A
-  proactive scanner is a v2+ decision after that review (Cloudflare's free tool is
-  CDN-cache-only and won't see private R2; PhotoDNA is one candidate).
+  per-event caps count `status <> 'removed'` (so removing a photo frees its per-event
+  slot — intended); the monthly `storage_ledger` counters NEVER decrement (churn
+  defense); `storage_used_bytes` decrements **only** when `purge_media_rows` hard-deletes
+  the R2 object — which is why that decrement is atomic with the row delete in one RPC.
+- **Orphan sweep uses a 24 h age threshold** — well past the 15-min presign TTL, so it
+  can't race a guest's presigned-but-not-yet-completed upload (the bucket's
+  abort-incomplete-multipart rule is a separate mechanism). Orphans were never counted,
+  so the sweep makes **no** counter change.
+- **`purge_media_rows` must stay REVOKED from anon/authenticated** (service-role only) —
+  it must not become a 7th anon advisor WARN.
+- `CRON_SECRET` is a **new env var** (Vercel auto-sends it as the cron's bearer);
+  `profiles.is_admin` is **service-role-write-only** (flip it once via the MCP) — both in
+  STATUS "blocked on a human."
 - Never expose raw R2 keys; the purge runs server-side over `events/{id}/` prefixes.
 
-**Done when:** approve/hide/remove + the queue work on partyreel.com; CSAM scanning
-flags matches for review (not auto-shutdown); the cron hard-deletes after retention
-with no orphans left; tests pass; STATUS/ROADMAP updated.
+**Done when:** approve/hide/unhide/remove + the pending queue work on partyreel.com; a
+deleted event's `purge_at` is ~60 d out and the cron reclaims R2 + rows (and an injected
+orphan) after back-dating, decrementing `storage_used_bytes` while leaving the ledger
+untouched; a report from `/a/[token]` appears in `/admin` and dismiss/action both work
+(and a report does **not** auto-hide). Tests pass; STATUS/ROADMAP updated. _(Code +
+local/DB verification done; the partyreel.com pass is pending the two human prereqs.)_
 
 ## ⬜ Phase 4 — Payments / tiers
 
@@ -260,8 +279,8 @@ branded share page + "make your own" CTA.
 Not part of the v1 roadmap — parked here so it isn't lost:
 
 - **Proactive CSAM filtering** — choose and integrate an upload-time hash-matching tool
-  after the data-privacy/legal review (PhotoDNA is a candidate). v1 ships only the
-  legal-floor MVP (Phase 3).
+  (PhotoDNA is one candidate). v1 ships only the report/takedown + operator-review MVP
+  (Phase 3).
 - **Referral program** — a % incentive with attribution and payouts (Stripe credits or
   Connect): wedding planners refer hosts; guests who sign up from an event page earn the
   host a cut if they convert to Pro. Substantial (attribution + payouts) → post-core.
