@@ -4,7 +4,7 @@ Canonical "what's next." Phases ship in order; each builds on the last. Check
 boxes as work lands and keep [`STATUS.md`](STATUS.md) pointing at the current
 phase.
 
-## ✅ Phase 0 — Foundation _(this round)_
+## ✅ Phase 0 — Foundation
 
 A deployable skeleton with the full design system, complete database schema +
 security, and the living docs that let future agents pick up each phase.
@@ -18,14 +18,17 @@ security, and the living docs that let future agents pick up each phase.
 - [x] Constants + stubs: `tiers.ts`, `r2/*`, `media/*`
 - [x] Agent docs: CLAUDE.md, PRD, ROADMAP, STATUS, ADRs 0001–0004
 
-## ⬜ Phase 1 — Host auth + event creation
+## ✅ Phase 1 — Host auth + event creation _(this round)_
 
-- [ ] Supabase Auth (email magic-link + OAuth); signup → profile trigger already exists
-- [ ] Login UI (replace `(auth)/login` placeholder); `/auth/callback` already wired
-- [ ] Add the shadcn `form` primitive + `react-hook-form` + zod resolver (deferred from Phase 0 — first needed here for auth/event forms)
-- [ ] Create-event flow (`POST /api/events`) — generates qr/share tokens; `enforce_event_limit` trigger guards `maxEvents`
-- [ ] QR code render; event settings (moderation mode, visibility, upload lock, required fields)
-- [ ] Dashboard event list (replace placeholder)
+Code complete; end-to-end auth verification is blocked on human OAuth/URL config
+(see [`STATUS.md`](STATUS.md) "Blocked on a human").
+
+- [x] Supabase Auth (email magic-link + Google OAuth); signup → profile trigger already exists
+- [x] Login UI (replace `(auth)/login` placeholder); `/auth/callback` already wired
+- [x] `form` primitive (hand-authored — radix-nova has no `form` item) + `react-hook-form` + zod resolver
+- [x] Create-event flow (Server Actions) — DB defaults generate qr/share tokens; `enforce_event_limit` trigger guards `maxEvents`
+- [x] QR code render; event settings (moderation mode, visibility, upload lock, required fields)
+- [x] Dashboard event list (replace placeholder)
 
 ## ⬜ Phase 2 — Guest join + upload (the core loop)
 

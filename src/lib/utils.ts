@@ -24,3 +24,18 @@ export function formatBytes(bytes: number, fractionDigits = 1): string {
     : value.toFixed(fractionDigits);
   return `${rounded} ${units[i]}`;
 }
+
+/**
+ * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display.
+ * WHY split-and-construct instead of `new Date(str)`: `new Date("2026-06-01")`
+ * parses as UTC midnight, which renders as the *previous* day for anyone west of
+ * UTC. Building the Date from local Y/M/D parts pins it to the host's own day.
+ */
+export function formatEventDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}

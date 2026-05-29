@@ -50,6 +50,38 @@ Node is pinned in `.nvmrc` (22.21.1); package manager is **pnpm** (9.14.4). Run
 
 ---
 
+## Tooling & per-phase doc checks
+
+**Before building each phase, re-verify the libraries/services it touches against
+_current_ docs — do not trust training data.** This stack (Next 16, Tailwind v4,
+zod v4, Supabase SSR) drifts fast and breaks in ways that look like your code is
+wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
+
+1. List the libraries/APIs the phase will use.
+2. Pull their current docs via the **Context7 MCP** (`resolve-library-id` →
+   `query-docs`). Prefer this over web search and over memory for any
+   library/framework/SDK/CLI question.
+3. _Then_ write code. (Phase 1 caught zod v4's `.default()` input/output split
+   and `qrcode.react` v4's `marginSize` — replacing deprecated `includeMargin` —
+   this way.)
+
+**MCP servers available — reach for the right one:**
+
+- **Context7** — up-to-date library/framework/CLI docs. First stop for any "how
+  does X work in this version" question.
+- **Supabase MCP** — schema + DB ops: `list_tables`, `apply_migration` (the CLI
+  isn't installed locally — this is how migrations land), `execute_sql`,
+  `get_advisors` (run after every schema change), `generate_typescript_types`,
+  `get_logs`. Project ref `ddafaemglzmuekbtjwzn`.
+- **Vercel MCP** (+ the `vercel/vercel-plugin`) — deploys and build/runtime logs
+  for debugging the live `partyreel.vercel.app`.
+- **shadcn MCP** — component registry browse/add (but see the gotcha: the
+  radix-nova style has **no `form` item**).
+- **Claude Preview / Chrome MCP** — start the dev server and drive a browser to
+  verify UI before calling a task done.
+
+---
+
 ## Critical gotchas (these have bitten people — do NOT relearn them the hard way)
 
 **Next.js 16**
@@ -93,6 +125,23 @@ Bucket CORS must allow PUT/POST/GET/HEAD + `content-type` and **expose `ETag`**
 
 **Stripe (Phase 4)** — the webhook route MUST read the **raw body**
 (`await req.text()`) for `constructEvent`; `req.json()` breaks the signature.
+
+**Dependencies / pnpm**
+
+- **`shadcn` (the CLI) is a real _build_ dependency — do not remove it.**
+  `globals.css` does `@import "shadcn/tailwind.css"` (the radix-nova preset), so
+  the build fails (`Can't resolve 'shadcn/tailwind.css'`) without it. It stays in
+  `devDependencies`.
+- **One zod, pinned via a pnpm override.** The `shadcn` CLI transitively pulls in
+  `zod@3.25.76` (via `@modelcontextprotocol/sdk`). Left alone, pnpm hoists that
+  copy and `@hookform/resolvers` resolves `zod/v4/core` against it — so every
+  `zodResolver(...)` fails to typecheck with `_zod.version.minor: Type '4' is not
+assignable to type '0'`. Fixed by `pnpm.overrides: { "zod": "$zod" }` in
+  `package.json`, which forces the single app `zod@^4.4.3`. Don't drop that
+  override.
+- **The radix-nova registry has no `form` item.** `src/components/ui/form.tsx` is
+  hand-authored (still semicolon-free to match the other generated primitives);
+  don't expect `shadcn add form` to produce it.
 
 ---
 
@@ -187,6 +236,11 @@ executable by `anon`. That is intentional: the opaque token IS the authorization
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.
+- **Keep the knowledge docs current as you learn.** This file, `docs/STATUS.md`,
+  `docs/ROADMAP.md`, and the ADRs are living — when you hit a new gotcha, finish
+  a phase, or change an approach, update them in the same change. Advance STATUS
+  to the new "you are here" and tick ROADMAP boxes as work lands; a future agent
+  (or future you) should be able to trust them.
 - Prefer editing existing files; reuse the design-system primitives in
   `src/components/ui` and shared composites in `src/components/shared`.
 - shadcn UI components (`src/components/ui/*`) are authored **without

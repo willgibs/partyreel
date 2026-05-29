@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,5 +30,18 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  return <AppShell>{children}</AppShell>;
+  // OAuth (Google) populates user_metadata.full_name; magic-link users won't
+  // have one, so the menu falls back to the email for its label + initial.
+  const metaName = user.user_metadata?.full_name;
+  const displayName = typeof metaName === "string" ? metaName : null;
+
+  return (
+    <AppShell
+      headerActions={
+        <UserMenu email={user.email ?? null} displayName={displayName} />
+      }
+    >
+      {children}
+    </AppShell>
+  );
 }

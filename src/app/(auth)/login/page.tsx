@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
+import { LoginForm } from "@/components/auth/login-form";
 import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,14 +13,19 @@ import {
 
 export const metadata: Metadata = { title: "Log in" };
 
-// Placeholder. Phase 1 wires Supabase Auth (email magic link + OAuth) here, and
-// the /auth/callback route exchanges the returned code for a session.
-//
-// WHY this lives in the (auth) group and NOT (app): the (app) layout gates on
-// getUser() and redirects anonymous visitors to /login. If /login were under
-// that gate, it would redirect to itself forever. Keep all unauthenticated
-// entry points (login, callback) out of (app).
-export default function LoginPage() {
+// Server shell around the client <LoginForm/>. WHY this lives in (auth) and NOT
+// (app): the (app) layout gates on getUser() and redirects anonymous visitors to
+// /login — if /login sat under that gate it would redirect to itself forever.
+// Keep all unauthenticated entry points (login, callback) out of (app).
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  // Next 16: searchParams is a Promise. The callback route bounces a failed code
+  // exchange back here with ?error=auth_callback.
+  const { error } = await searchParams;
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
@@ -34,21 +38,37 @@ export default function LoginPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-lg">Welcome to Partyreel</CardTitle>
             <CardDescription>
-              Sign-in arrives in the next build. Hosts will log in with email or
-              a social account to create events.
+              Sign in to create events and collect photos from your guests — no
+              app, no fuss.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Button disabled className="w-full">
-              Continue with email
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="w-full">
-              <Link href="/">
-                <ArrowLeft /> Back home
-              </Link>
-            </Button>
+          <CardContent>
+            {error === "auth_callback" && (
+              <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                That sign-in link didn&rsquo;t work — it may have expired. Try
+                again below.
+              </p>
+            )}
+            <LoginForm />
           </CardContent>
         </Card>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          By continuing you agree to our{" "}
+          <Link
+            href="/terms"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/privacy"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );
