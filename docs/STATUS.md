@@ -85,15 +85,23 @@ partyreel.com. **Decide the soft-delete retention window first** (open question 
 
 ## Open questions (deferred, decide before relevant phase)
 
-- **Soft-delete retention window** (Phase 3): how long media survives after
-  `deleted_at` before the purge cron hard-deletes it. Undecided — the Phase 0
-  `/api/cron/purge` stub suggests ~90 days; confirm before wiring the purge.
-- NSFW / safety scanning service (Rekognition vs Vision SafeSearch vs OSS) —
-  before public launch.
-- Transcoding pipeline + video poster/thumbnails — Phase 5 (`preview_key` is null
-  for now; the gallery renders `<video>` directly).
+- **Tier specifics** (Phase 4): the storage model is **decided** (total storage caps;
+  **Free + Pro with a storage selector + per-event Event Pass**; no watermarks;
+  monthly ingress meter — see PRD "Monetization"). Still to set: the exact GB tiers
+  and prices, and the free-tier feature gates (candidates: limited QR management, some
+  gated event settings). The `tiers.ts` / `tier_limits()` / `create_media` rework
+  happens in Phase 4 — `tiers.ts` still encodes the old item-cap model until then.
+- **Safety scanning** (before public launch): NSFW = host-optional toggle; CSAM =
+  reliably prevented (legal floor; Cloudflare's CSAM Scanning Tool is a candidate
+  since media is on R2). Needs a focused legal + cost/tooling pass; a legal-MVP is OK
+  at launch, and fuller CSAM coverage may slip to v2 only if not legally required for
+  the closely-monitored early rollout.
+- **Retention schema** (Phase 3/4): one `purge_at` timer vs. a second timestamp for the
+  two-stage (30d grace → 60d hidden) window. Impl detail; policy itself is decided
+  (PRD "Data retention & lifecycle", incl. the 6-month free-inactivity trigger).
+- Transcoding pipeline + video poster/thumbnails — Phase 5 (`preview_key` is null for
+  now; the gallery renders `<video>` directly).
 - Presigned read-URL strategy for very large galleries (per-request presign vs.
   proxy) — currently per-request, 1 h TTL; revisit only if albums get huge.
-- Whether to add an inactivity-based purge for free events (currently none).
-- Committed, automated RPC integration suite — deferred to pre-launch (needs a
-  paid Supabase branch or a local Postgres test DB).
+- Committed, automated RPC integration suite — deferred to pre-launch (needs a paid
+  Supabase branch or a local Postgres test DB).

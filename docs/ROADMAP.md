@@ -68,7 +68,8 @@ every upload.
 
 **Goal.** Give the host curation control (core-loop step 3): approve/hide/remove
 uploads, work the hold-for-approval queue, and the delete→purge lifecycle that frees
-a slot and reclaims storage.
+a slot and reclaims storage. Plus the foundational **CSAM safety scan** on uploads
+(the root of the filter system — see PRD "Safety & moderation").
 
 **Already wired (reuse):**
 
@@ -99,17 +100,22 @@ a slot and reclaims storage.
       `deleted_at IS NOT NULL AND purge_at <= now()`, delete their R2 objects + rows;
       also sweep **orphaned R2 objects** (uploaded but no `media` row — the accepted
       Phase-2 race). Add the schedule to `vercel.json`.
+- [ ] **Safety: CSAM scan on upload** (Cloudflare CSAM Scanning Tool). On a match,
+      raise an **internal account flag for human review** plus an NCMEC report path —
+      do NOT auto-shutdown (a false positive can't nuke a legit user). Build as the
+      extensible root of the filter system; **no NSFW filter in v1** (PRD "Safety &
+      moderation").
 - [ ] Tests — RPC/mutation contract (status transitions; remove recounts caps
       correctly; purge respects `purge_at`) via a rolled-back Supabase-MCP check.
 
 **Gotchas / decisions:**
 
-- **Retention window is an OPEN product decision — don't infer it.** Soft-delete
-  frees the slot immediately (anti-abuse), but media must persist until `purge_at`.
-  The Phase 0 `/api/cron/purge` stub comment suggests ~90 days; **no PRD/ADR
-  actually defines it.** Confirm the window with the maintainer, then set
-  `purge_at = deleted_at + window` in `softDeleteEvent()`. (Tracked in STATUS open
-  questions.)
+- **Retention policy is defined — see PRD "Data retention & lifecycle":** roughly a
+  30-day in-app grace (over-limit content stays downloadable; then largest-first
+  reduction), then a further 60-day hidden-but-recoverable window, then hard-delete.
+  For Phase 3's explicit event-delete path, set `purge_at` from `softDeleteEvent()`;
+  decide whether one `purge_at` timer suffices or the two-stage window needs a second
+  timestamp (the over-limit/billing trigger itself is Phase 4).
 - **The three counters are deliberately different — don't "reconcile" them away:**
   per-event caps count `status <> 'removed'` (so removing a photo frees its
   per-event slot — intended); the monthly `storage_ledger` counters NEVER decrement
@@ -124,44 +130,76 @@ a slot and reclaims storage.
   upload (the bucket's abort-incomplete-multipart rule is a separate mechanism).
 - `CRON_SECRET` is a **new env var** (Vercel) + a Vercel Cron entry (daily is a sane
   default) — flag it in STATUS "blocked on a human."
+- **CSAM tool prereqs:** enabling Cloudflare's CSAM Scanning Tool and the NCMEC
+  reporting registration is a human/config step. **Verify the tool covers private R2
+  objects** — it was built for content served through Cloudflare's CDN, and our bucket
+  is private/presigned, so confirm the integration path (a hash-matching API at
+  upload time may be the fallback).
 - Never expose raw R2 keys; the purge runs server-side over `events/{id}/` prefixes.
 
-**Done when:** approve/hide/remove + the queue work on partyreel.com; the cron
-hard-deletes after retention with no orphans left; tests pass; STATUS/ROADMAP updated.
+**Done when:** approve/hide/remove + the queue work on partyreel.com; CSAM scanning
+flags matches for review (not auto-shutdown); the cron hard-deletes after retention
+with no orphans left; tests pass; STATUS/ROADMAP updated.
 
 ## ⬜ Phase 4 — Payments / tiers
 
-**Goal.** Turn on monetization: hosts upgrade via Stripe; the webhook is the single
-source of truth for `profiles.tier`; the free tier gets a watermark + upgrade prompts
-at caps.
+**Goal.** Turn on monetization on the **storage-cap model** (decided 2026-05-29 — see
+PRD "Monetization & anti-abuse"): hosts upgrade via Stripe; the webhook is the single
+source of truth for `profiles.tier`; caps are total storage, not item counts.
+
+**Tier model to implement (replaces the Phase 0 item-cap model):**
+
+- **Free, Pro (storage selector), and Event Pass (per-event, fixed term, cheap
+  renewal)** — drop the separate Max tier and ALL per-event photo/video item caps.
+- Rework `tiers.ts`, the `tier_limits()` SQL fn, and `create_media` to enforce a
+  single **total-storage cap** (`storage_used_bytes` vs cap) instead of per-event
+  counts; remove the now-dead `watermark` field. Keep the universal per-file limits.
+- Add a **monthly ingress meter** (bytes uploaded per month; never refunds on delete;
+  unmarketed soft limit) — the real anti-abuse guard, since storage caps don't stop
+  delete→re-upload egress burn.
+- Pricing page shows GB with a friendly "≈ X photos / X one-minute videos" translation.
 
 **Already wired (reuse):**
 
-- `profiles.tier` (`tier_type`) + `stripe_customer_id` / `stripe_subscription_id`.
-- `tiers.ts` ↔ `tier_limits()` SQL — the lockstep caps source.
+- `profiles.tier` (`tier_type`), `storage_cap_bytes`/`storage_used_bytes`,
+  `stripe_customer_id`/`stripe_subscription_id`.
+- `tiers.ts` ↔ `tier_limits()` SQL — the lockstep caps source (currently the OLD
+  item-cap model; this phase reworks both together).
 - `/api/stripe/{checkout,portal,webhook}` — **501 stubs**.
-- Admin client (`src/lib/supabase/admin.ts`, service-role) for tier writes that
-  bypass RLS; env stubs `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`.
-- `withinLimit()` + the at-cap create-dialog pattern (Phase 1) for upgrade CTAs.
+- Admin client (`src/lib/supabase/admin.ts`, service-role) for tier writes that bypass
+  RLS; env stubs `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`.
+- `withinLimit()` and the at-cap create-dialog pattern (Phase 1) for upgrade CTAs.
 
 **To build:**
 
-- [ ] Checkout session (plan → Stripe price; subscription for Pro/Max, one-time for
-      Event Pass) → redirect; plus a Billing Portal link.
+- [ ] Storage-cap tier rework (`tiers.ts`, `tier_limits()`, `create_media`; drop item
+      caps, Max, and the `watermark` field; add the monthly ingress meter).
+- [ ] **Tier-gated event settings** — a mechanism to lock host-settings toggles by tier
+      with an upgrade hint; start by gating **`require_email`** (locked on Free,
+      unlocked on Pro/Event Pass). Don't enforce the lock before tiers exist — today
+      everyone is Free.
+- [ ] Checkout session (Pro storage tier → subscription price; Event Pass → one-time
+      price, per event) → redirect; plus a Billing Portal link.
 - [ ] **Raw-body** webhook (`await req.text()` before `constructEvent`; verify the
-      signature; set `profiles.tier` via the service-role client; revalidate). This
-      is the ONLY writer of `tier` — never the client.
-- [ ] Free-tier watermark on exports/rendered media.
-- [ ] Upgrade prompts at caps (reuse `withinLimit`).
-- [ ] Tests — webhook → tier update (seeded/rolled-back); `tiers.ts` ↔ SQL parity.
+      signature; set `profiles.tier`/`storage_cap_bytes` via the service-role client;
+      revalidate). The ONLY writer of tier/cap — never the client.
+- [ ] Upgrade prompts at the paywalls (creating a 2nd event; outgrowing event #1's
+      storage) via `withinLimit`.
+- [ ] Over-limit → the retention flow (PRD "Data retention & lifecycle": 30-day in-app
+      grace, largest-first reduction, 60-day recoverable). Ties to billing webhooks.
+- [ ] Tests — webhook → tier/cap update (seeded/rolled-back); `tiers.ts` ↔ SQL parity;
+      storage-cap enforcement in `create_media`.
 
 **Gotchas / decisions:** raw body is mandatory (`req.json()` breaks the signature);
-tiers live in two places (TS + SQL) and must stay in lockstep; decide where Stripe
-price IDs live (env/config); Event Pass is one-time (~1 yr — see PRD). **Human
-prereqs:** Stripe keys, products/prices, and webhook endpoint registration.
+`tiers.ts` and the SQL must stay in lockstep; **drive prices from Stripe Price IDs** so
+they change without a deploy (keep the IDs in env/config); Event Pass is per-event,
+fixed-term (~1 yr) with a renewal nudge; set the actual GB tiers and prices (open — see
+STATUS). **Human prereqs:** Stripe keys,
+products/prices, webhook endpoint registration.
 
-**Done when:** a checkout upgrades the host's tier via the webhook on partyreel.com;
-the portal works; the new caps enforce; free exports carry the watermark.
+**Done when:** a checkout upgrades tier/storage via the webhook on partyreel.com; the
+portal works; storage caps and the ingress meter enforce; over-limit accounts enter the
+retention flow.
 
 ## ⬜ Phase 5 — Highlight reel (scaffold → real)
 
