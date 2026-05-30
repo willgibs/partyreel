@@ -19,7 +19,9 @@ designer) shipped + VERIFIED in production** (2026-05-30 — drove Chrome: rende
 reload round-trip + jsQR-decoded a styled QR to its `/e/<token>`; advisors unchanged).
 **Cut #2 (create wizard) shipped + VERIFIED in production** (2026-05-30) — including a
 post-deploy fix for a Share-step redirect bug (re-verified live). **Cut #3 (link analytics)
-is code-complete + locally verified** (see Next action) — pending deploy + live verify.
+shipped + VERIFIED in production** (2026-05-30) — drove Chrome: 3 join-link + 2 album visits
+recorded exact per-day counts, the event-page Share card shows them, and a Slackbot-UA request
+rendered but did NOT increment (bot-filtered). Advisors unchanged.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -147,8 +149,10 @@ unit tests instead.)_
 
 ## Next action
 
-**Deploy + live-verify link analytics (Phase-6 cut #3)** — code-complete + locally verified.
-**Aggregate counts, no PII** (decided with Will): new `link_stats(event_id, kind, day, count)`
+**Next: pick Phase-6 cut #4 (notification center) or the first-time host welcome** (each its
+own plan). **Cut #3 (link analytics) is DONE — verified in production 2026-05-30** (drove Chrome;
+see the current-phase summary). For the record, cut #3 shipped:
+**aggregate counts, no PII** (decided with Will): new `link_stats(event_id, kind, day, count)`
 (`kind` = `qr_scan`|`album_view`; migration `20260530205535_phase6_link_analytics_link_stats`,
 applied to prod; types regenerated). Each guest page (`/e/[token]`, `/a/[token]`) records its
 view server-side in `after()` via the **service-role-only** `record_link_hit` RPC (REVOKED from
@@ -158,12 +162,12 @@ guests" card shows join-link visits + album views. Verified: typecheck/lint/**te
 format clean; rolled-back DB check (`record_link_hit` increments + separates kinds; REVOKED from
 anon/authenticated; `link_stats_host_select` policy present); advisors **UNCHANGED** (no new anon
 WARN, no new INFO).
-**Live-verify on partyreel.com** (the guest links are PUBLIC — no auth needed): open an event's
-`/e/<token>` and `/a/<token>` a few times in a real browser → the event page's Share card shows
-the join-link + album counts climb → confirm the per-day `link_stats` rows + correct kinds via
-the Supabase MCP → confirm a bot UA (e.g. a `curl`/Slackbot fetch) does **not** increment.
-Re-run `get_advisors` (unchanged). Then cut #4 = **notification center** (surfaces these counters
-as "new activity"), or the **first-time host welcome** (its own plan, per Will).
+**Live-verified on partyreel.com 2026-05-30** (guest links are PUBLIC — no auth needed): 3 real
+browser visits to `/e/<token>` + 2 to `/a/<token>` recorded exact per-day `link_stats`
+(`qr_scan`=3, `album_view`=2, correct kinds via the Supabase MCP); the event-page Share card
+showed "3 join-link visits" + "2 album views"; and a Slackbot-UA `curl` (HTTP 200) did **not**
+increment (`qr_scan` stayed 3 — bot-filtered at ingest). **Cut #4 (notification center)** would
+surface these counters as "new activity"; the **first-time host welcome** is its own plan (per Will).
 
 **Live test 2026-05-30 (drove Chrome) — PASS (1 bug found + fixed + re-verified):** at-cap
 disabled button + the empty-state CTA + step-1 required-name validation all worked. **Bug
