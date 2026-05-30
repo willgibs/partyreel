@@ -28,11 +28,12 @@ host's RLS self-update of `announcements_seen_at` worked); over-capacity + pass-
 render with deadlines; the pass alert correctly DISAPPEARS outside the 14-day renewal window;
 badge math (2 alerts → "2", reset → empty); RLS-scoped "1 upload to review"; "all caught up"
 empty state; no console errors.
-**Cut #2b (first-time host welcome) is code-complete + locally verified** (see Next action) —
-a streamlined full-page `/welcome` intro (3 steps → create wizard), auto-shown once to new
-accounts via `profiles.welcomed_at` (existing hosts backfilled); pending deploy + live verify.
-**With it, Phase 6's host-experience cuts are DONE** — only the deliberately-tabled Phase 5
-highlight reel remains in the roadmap.
+**Cut #2b (first-time host welcome) shipped + VERIFIED in production** (2026-05-30 — drove
+Chrome): nulling `welcomed_at` → `/dashboard` redirects to `/welcome` → the 3 steps render
+(single-sourced how-it-works copy) → "Create my first event" sets the marker + lands on
+`/dashboard/new`; revisiting `/dashboard` does NOT loop; Skip also sets the marker + → dashboard;
+no console errors. **With it, Phase 6's host-experience cuts are DONE + verified** — only the
+deliberately-tabled Phase 5 highlight reel remains in the roadmap.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
