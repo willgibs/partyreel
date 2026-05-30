@@ -17,8 +17,8 @@ order, creation-first): **QR designer → create wizard → link analytics → n
 center** (a **first-time host welcome** was split out as its own later cut). **Cut #1 (QR
 designer) shipped + VERIFIED in production** (2026-05-30 — drove Chrome: render/save/persist/
 reload round-trip + jsQR-decoded a styled QR to its `/e/<token>`; advisors unchanged).
-**Cut #2 (create wizard) is code-complete + locally verified** (see Next action) — pending
-deploy + live verify.
+**Cut #2 (create wizard) shipped + VERIFIED in production** (2026-05-30) — including a
+post-deploy fix for a Share-step redirect bug (re-verified live; see Next action).
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -165,16 +165,17 @@ it (jsQR) to confirm `/e/<token>` → **Go to your event** lands on the event pa
 `qr_style` persisted (check via Supabase MCP). Also confirm the empty-state CTA + the at-cap
 disabled button. Then cut #3 = **link analytics**.
 
-**Live test 2026-05-30 (drove Chrome) — mostly PASS + 1 bug fixed (needs redeploy):** at-cap
-disabled button + the `/dashboard/new` route guard + the empty-state CTA all worked; the wizard
-created "Verification Party" with the chosen `rounded` style (DB-confirmed) and the event page
-renders it. **Bug found:** the in-wizard **Share step never showed** — creating put the Free host
-at cap, and the Server Action's post-create route refresh re-ran the route's at-cap `redirect`,
-bouncing to `/dashboard` before step 3 rendered. **Fixed:** removed the at-cap redirect from
-`/dashboard/new` (the disabled button + `createEvent`'s `limit_reached` still guard the cap; see
-the new CLAUDE.md gotcha). **Re-verify the Share step after redeploy** (free a slot → run the
-wizard → step 3 shows a real QR → "Go to your event"). _(Note: the old "test event" was
-soft-deleted to free a slot; "Verification Party" is the current event.)_
+**Live test 2026-05-30 (drove Chrome) — PASS (1 bug found + fixed + re-verified):** at-cap
+disabled button + the empty-state CTA + step-1 required-name validation all worked. **Bug
+found on the first pass:** the in-wizard **Share step never showed** — creating put the Free
+host at cap, and the Server Action's post-create route refresh re-ran the route's at-cap
+`redirect`, bouncing to `/dashboard` before step 3 rendered. **Fixed** (removed the at-cap
+redirect from `/dashboard/new`; the disabled button + `createEvent`'s `limit_reached` still
+guard the cap — see the new CLAUDE.md gotcha). **Re-verified live after redeploy:** the full
+flow now works — name → Continue → pick **Bold** → Create → **Share step renders** (🎉 banner,
+real QR in the chosen style, album link) → the QR **jsQR-decodes to its `/e/<token>`** → "Go to
+your event" lands on the event page rendering Bold (DB `qr_style='bold'` confirmed); no console
+errors. _(Test data is disposable per Will; current event is "Share Step Test".)_
 
 **Also pending — ship the Phase-6 growth-loop cut** (code-complete + locally verified: typecheck/lint/
 format/**test (75)**/build clean; the `newsletter_signups` migration applied to prod + a

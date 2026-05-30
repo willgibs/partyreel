@@ -324,8 +324,9 @@ everything, including link analytics). Each is its own cut with its own spec.
   not a DB enum). Reusable `QrPresetPicker` + a "Customize" dialog on the event page's Share
   card; SVG + PNG download. Live pass (drove Chrome): the render/save/persist/reload round-trip
   works, a styled QR jsQR-decodes to its `/e/<token>`, no console errors, advisors unchanged.
-- [x] **Onboarding + create wizard** _(cut #2 — code-complete + locally verified; pending deploy
-  + live verify)_ — a dedicated **`/dashboard/new`** 3-step wizard (Details → QR design → Share)
+- [x] **Onboarding + create wizard** _(cut #2 — shipped + VERIFIED in production 2026-05-30,
+  incl. a post-deploy fix for a Share-step at-cap-redirect bug)_ — a dedicated
+  **`/dashboard/new`** 3-step wizard (Details → QR design → Share)
   replacing the create dialog. Creates **once at commit** via the non-redirecting
   `createEventInWizard` action (returns the event → the Share step renders the real scannable QR
   in the chosen style + the album link). Embeds cut #1's `QrPresetPicker` (previews with a
