@@ -316,18 +316,26 @@ is forced (the QR designer is the wizard's design step + reusable; link analytic
 notification center's capture infra); the notification center is the capstone (it surfaces
 everything, including link analytics). Each is its own cut with its own spec.
 
-- [x] **QR code designer / presets** _(cut #1 — code-complete + locally verified; pending
-  deploy + live verify)_ — style the QR in-app (corporate-blocky vs. wedding-rounded) so
-  hosts never leave for an external stylizer. Swapped `qrcode.react` → **`qr-code-styling`**
-  (module/corner shapes); a 4-preset closed set (`classic`/`bold`/`rounded`/`dots`) in the
-  single-source `src/lib/constants/qr-presets.ts`, persisted on `events.qr_style` (app-
-  validated text column, not a DB enum). Reusable `QrPresetPicker` + a "Customize" dialog on
-  the event page's Share card; SVG + PNG download. The picker is built for the create wizard
-  (cut #2) to embed. Verified: typecheck/lint/**test (79)**/build clean; rolled-back DB check
-  (default `classic`, NOT NULL, preset-key UPDATE round-trips); advisors unchanged (no new RPC).
-- **Onboarding + create wizard** _(cut #2)_ — a multi-step new-host onboarding, and a
-  streamlined create flow (details → QR design → share); embeds the cut-#1 `QrPresetPicker`;
-  all settings stay editable from the event page afterward.
+- [x] **QR code designer / presets** _(cut #1 — shipped + VERIFIED in production 2026-05-30)_ —
+  style the QR in-app (corporate-blocky vs. wedding-rounded) so hosts never leave for an
+  external stylizer. Swapped `qrcode.react` → **`qr-code-styling`** (module/corner shapes); a
+  4-preset closed set (`classic`/`bold`/`rounded`/`dots`) in the single-source
+  `src/lib/constants/qr-presets.ts`, persisted on `events.qr_style` (app-validated text column,
+  not a DB enum). Reusable `QrPresetPicker` + a "Customize" dialog on the event page's Share
+  card; SVG + PNG download. Live pass (drove Chrome): the render/save/persist/reload round-trip
+  works, a styled QR jsQR-decodes to its `/e/<token>`, no console errors, advisors unchanged.
+- [x] **Onboarding + create wizard** _(cut #2 — code-complete + locally verified; pending deploy
+  + live verify)_ — a dedicated **`/dashboard/new`** 3-step wizard (Details → QR design → Share)
+  replacing the create dialog. Creates **once at commit** via the non-redirecting
+  `createEventInWizard` action (returns the event → the Share step renders the real scannable QR
+  in the chosen style + the album link). Embeds cut #1's `QrPresetPicker` (previews with a
+  same-length placeholder token); dashboard button + empty-state CTA link to it; old
+  `CreateEventDialog` + `createEventAction` deleted (single create path). New pure
+  `src/lib/events/share-urls.ts` (+ test). No new SQL. Verified: typecheck/lint/**test (82)**/
+  build/format clean. _(First-time host **welcome** split out as its own cut — see below.)_
+- **First-time host welcome** _(cut #2b — its own full planning stage, per Will)_ — a light
+  first-run welcome for brand-new accounts. Natural homes: the `/dashboard/new` route + the
+  dashboard empty state (both already the first-run entry points). Not started.
 - **Link analytics** _(cut #3)_ — scan/view activity on QR and share links. Needs NEW capture
   infra: a lightweight scan/view tracking table + a record-on-view path (the 8th anon
   capability-token RPC), which the notification center then surfaces.

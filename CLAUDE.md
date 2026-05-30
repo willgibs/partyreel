@@ -364,6 +364,24 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   purpose — the create wizard (cut #2 of the approved Phase-6 order) embeds it; `StyledQr`
   is the shared low-level renderer.
 
+**Phase 6 — create wizard (cut #2) gotchas**
+
+- **`/dashboard/new` is the SOLE create path** (`create-event-wizard.tsx`) — the old
+  `CreateEventDialog` + the redirecting `createEventAction` were deleted. The wizard creates
+  the event **once, at commit** (end of the design step) via `createEventInWizard`
+  ([actions.ts](src/app/(app)/dashboard/actions.ts)), which **RETURNS** the event (id +
+  tokens) instead of redirecting — the Share step needs the real `qr_token`/`share_token` to
+  render a scannable QR + album link. Don't reintroduce redirect-on-create or a per-step
+  create (would orphan events / break the share step).
+- **The design step previews with a placeholder token** (`previewJoinUrl` in
+  `src/lib/events/share-urls.ts` — a 32-char stand-in) because the real `qr_token` doesn't
+  exist pre-insert; it's the same length as a real token so the preview's module density
+  matches what the host will get.
+- Only `name` is required; everything else stays minimal + editable on the event page (the
+  "lowest-friction" principle). `qr_style` rides the single insert (wired in cut #1). The
+  **first-time host welcome is a separate, not-yet-built cut** — `/dashboard/new` + the
+  dashboard empty state are its natural homes.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force

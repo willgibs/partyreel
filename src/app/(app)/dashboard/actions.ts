@@ -28,6 +28,21 @@ export type ActionResult =
   | { ok: true }
   | { ok: false; code: ActionErrorCode; message: string };
 
+// The created event's host-facing essentials, returned to the create wizard so
+// its share step can build the real (scannable) QR + album URL. These tokens are
+// already shown to the host on the event page — safe to hand back here.
+export type CreatedEvent = {
+  id: string;
+  name: string;
+  qr_token: string;
+  share_token: string;
+  qr_style: string;
+};
+
+export type CreateEventWizardResult =
+  | { ok: true; event: CreatedEvent }
+  | { ok: false; code: ActionErrorCode; message: string };
+
 function firstIssue(message: string | undefined): ActionResult {
   return {
     ok: false,
@@ -36,21 +51,38 @@ function firstIssue(message: string | undefined): ActionResult {
   };
 }
 
-export async function createEventAction(
+// The create wizard (Phase 6 cut #2) is the sole create path: it RETURNS the new
+// event (no redirect) so the wizard's share step can render the real QR + album
+// link. The wizard owns navigation ("Go to your event").
+export async function createEventInWizard(
   input: CreateEventInput,
-): Promise<ActionResult> {
-  // Re-parse server-side — never trust the client (it shares this schema, but
-  // the action is the enforcement point).
+): Promise<CreateEventWizardResult> {
   const parsed = createEventSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error.issues[0]?.message);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "validation",
+      message:
+        parsed.error.issues[0]?.message ??
+        "Please check the form and try again.",
+    };
+  }
 
   const result = await createEvent(parsed.data);
   if (!result.ok) return result;
 
-  // Refresh the list for when the host navigates back, then jump to the new
-  // event. redirect() throws — keep it outside any try/catch.
   revalidatePath("/dashboard");
-  redirect(`/dashboard/${result.data.id}`);
+  const e = result.data;
+  return {
+    ok: true,
+    event: {
+      id: e.id,
+      name: e.name,
+      qr_token: e.qr_token,
+      share_token: e.share_token,
+      qr_style: e.qr_style,
+    },
+  };
 }
 
 export async function updateEventAction(

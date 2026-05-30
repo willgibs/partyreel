@@ -3,7 +3,7 @@
 > **First file to read each session.** Short and frequently updated: where we
 > are, what's done, what's next, and what's blocked on a human.
 
-**Updated:** 2026-05-29
+**Updated:** 2026-05-30
 **Current phase:** Phase 4 + the fast-follows + the free-tier 6-month inactivity removal
 are **committed + deployed**. Now on **Phase 6 (growth/polish), growth-loop cut** —
 **committed + deployed** to partyreel.com (commit `push phase 6`): branded share pages + a
@@ -14,8 +14,11 @@ guest email capture (post-upload prompt → `guests.email` + a durable `newslett
 (highlight reel) is deliberately TABLED** pending product research (it defines the core
 output, so it shouldn't be rushed). Remaining Phase-6 candidates are sequenced (approved
 order, creation-first): **QR designer → create wizard → link analytics → notification
-center**. **Cut #1 (QR designer) is code-complete + locally verified** (see Next action) —
-pending deploy + live verify.
+center** (a **first-time host welcome** was split out as its own later cut). **Cut #1 (QR
+designer) shipped + VERIFIED in production** (2026-05-30 — drove Chrome: render/save/persist/
+reload round-trip + jsQR-decoded a styled QR to its `/e/<token>`; advisors unchanged).
+**Cut #2 (create wizard) is code-complete + locally verified** (see Next action) — pending
+deploy + live verify.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -143,18 +146,24 @@ unit tests instead.)_
 
 ## Next action
 
-**Deploy + live-verify the QR designer (Phase-6 cut #1)** — code-complete + locally verified:
-swapped `qrcode.react` → `qr-code-styling`; 4 presets (`classic`/`bold`/`rounded`/`dots`) in
-the single-source `src/lib/constants/qr-presets.ts`, persisted on `events.qr_style` (migration
-`20260529233616_phase6_qr_designer_event_qr_style`, applied to prod; types regenerated); a
-reusable `QrPresetPicker` + "Customize" dialog on the event-page Share card; SVG + PNG download.
-Verified: typecheck/lint/**test (79)**/build clean; rolled-back DB check (default `classic`,
-NOT NULL, preset-key UPDATE round-trips); advisors **unchanged** (no new RPC — cosmetic column).
-**Live-verify on partyreel.com** (host UI is behind the `(app)` auth gate, so it can't be
-exercised on localhost): sign in → open an event → **Customize** → pick each preset (live
-preview updates) → **Save** (toast; reload shows it persisted) → **Download SVG and PNG** →
-**scan each preset with a phone** and confirm it opens `/e/<qr_token>`. Then cut #2 = the
-create wizard (embeds `QrPresetPicker`).
+**Deploy + live-verify the create wizard (Phase-6 cut #2)** — code-complete + locally verified:
+a dedicated **`/dashboard/new`** 3-step wizard (Details → QR design → Share) replacing the
+create dialog. Collects everything client-side and creates **once at commit** via the new
+non-redirecting `createEventInWizard` action (returns the event → the Share step shows the
+REAL scannable QR in the chosen style via cut #1's `EventQr` + the album link via
+`CopyShareLink`). The design step embeds cut #1's `QrPresetPicker` (previews with a same-length
+placeholder token so density matches the real QR). Dashboard "New event" button + the
+empty-state CTA now link to `/dashboard/new`; the old `CreateEventDialog` + redirecting
+`createEventAction` are deleted (single create path). New pure `src/lib/events/share-urls.ts`
+(+ test). No new SQL (reuses `createEvent`). Verified: typecheck/lint/**test (82)**/build/format
+clean.
+**Live-verify on partyreel.com** (host UI is auth-gated → can't run on localhost): the test
+account is **1/1 on Free**, so **free a slot first** (delete the existing test event). Then:
+dashboard → **New event** → `/dashboard/new` → name → Continue → pick a non-default preset →
+**Create event** → Share step shows a real scannable QR (chosen style) + album link → decode
+it (jsQR) to confirm `/e/<token>` → **Go to your event** lands on the event page with
+`qr_style` persisted (check via Supabase MCP). Also confirm the empty-state CTA + the at-cap
+disabled button. Then cut #3 = **link analytics**.
 
 **Also pending — ship the Phase-6 growth-loop cut** (code-complete + locally verified: typecheck/lint/
 format/**test (75)**/build clean; the `newsletter_signups` migration applied to prod + a

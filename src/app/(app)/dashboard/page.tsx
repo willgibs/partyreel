@@ -3,10 +3,10 @@ import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
-import { CreateEventDialog } from "@/components/app/create-event-dialog";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -85,7 +85,17 @@ export default async function DashboardPage() {
             {maxEvents === 1 ? "" : "s"} used
           </p>
         </div>
-        <CreateEventDialog atCap={atCap} planName={planName} />
+        {atCap ? (
+          <Button disabled>
+            <CalendarPlus /> New event
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link href="/dashboard/new">
+              <CalendarPlus /> New event
+            </Link>
+          </Button>
+        )}
       </div>
 
       {graceDeadline && (
@@ -170,6 +180,13 @@ export default async function DashboardPage() {
           icon={CalendarPlus}
           title="No events yet"
           description="Create your first event to generate a QR code and start collecting photos from your guests."
+          action={
+            <Button asChild>
+              <Link href="/dashboard/new">
+                <CalendarPlus /> Create your first event
+              </Link>
+            </Button>
+          }
         />
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
