@@ -11,7 +11,26 @@ export function MarketingHeader() {
         <Link href="/" aria-label="Partyreel home">
           <Logo />
         </Link>
+        {/* Anchors use /#id (not #id) so they resolve from any page, e.g. /pricing. */}
         <nav className="hidden items-center gap-6 md:flex">
+          <Link
+            href="/#how-it-works"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            How it works
+          </Link>
+          <Link
+            href="/#use-cases"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Use cases
+          </Link>
+          <Link
+            href="/#faq"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            FAQ
+          </Link>
           <Link
             href="/pricing"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"

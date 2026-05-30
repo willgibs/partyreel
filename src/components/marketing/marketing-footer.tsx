@@ -10,10 +10,22 @@ export function MarketingFooter() {
         <Logo />
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
           <Link
+            href="/#how-it-works"
+            className="transition-colors hover:text-foreground"
+          >
+            How it works
+          </Link>
+          <Link
             href="/pricing"
             className="transition-colors hover:text-foreground"
           >
             Pricing
+          </Link>
+          <Link
+            href="/#faq"
+            className="transition-colors hover:text-foreground"
+          >
+            FAQ
           </Link>
           <Link
             href="/privacy"
