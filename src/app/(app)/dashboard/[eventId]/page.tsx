@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
+import { QrDesignerDialog } from "@/components/app/qr-designer-dialog";
 import { EventSettingsForm } from "@/components/app/event-settings-form";
 import {
   ApproveAllPendingButton,
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import { getEvent } from "@/lib/db/queries/events";
 import { listEventMedia } from "@/lib/db/queries/media";
@@ -110,8 +112,17 @@ export default async function EventDetailPage({ params }: PageProps) {
             <p className="text-sm text-muted-foreground">
               Scanning opens the upload page — no app, no account.
             </p>
-            <div className="pt-2">
-              <EventQr joinUrl={joinUrl} eventName={event.name} />
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <EventQr
+                joinUrl={joinUrl}
+                eventName={event.name}
+                style={resolveQrPreset(event.qr_style)}
+              />
+              <QrDesignerDialog
+                eventId={event.id}
+                joinUrl={joinUrl}
+                current={event.qr_style}
+              />
             </div>
           </div>
           <div className="space-y-2">

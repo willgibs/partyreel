@@ -343,6 +343,27 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   delete set null`). **Deferred:** the automatic "email the album link" send (would reuse
   `sendOnce`) — capture only for now.
 
+**Phase 6 — QR designer (cut #1) gotchas**
+
+- **`qr-code-styling` must be dynamically imported INSIDE a `useEffect`** — it touches
+  `window`/`document` on construction, which crashes the client component's SSR pass in
+  Next 16. `src/components/app/styled-qr.tsx` does this (dynamic `import()` + `.append()` on
+  mount, `.update()` on prop change, imperative `.download()`); never import it at
+  module/render scope. (It replaced `qrcode.react`, which can't render module/corner shapes.)
+- **QR style presets are app-side, not a DB enum.** `events.qr_style` is a plain `text`
+  column (default `'classic'`); the closed set + their qr-code-styling options live in
+  `src/lib/constants/qr-presets.ts` (`QR_PRESETS` / `QR_STYLE_KEYS` / `resolveQrPreset`),
+  validated by `z.enum(QR_STYLE_KEYS)` on write. Chosen so the set can grow without an
+  enum-`ALTER`; an unknown/legacy value falls back to `classic`. It's cosmetic — **no
+  security surface** (the `qr_token` capability is unchanged), so the column add introduced
+  **no** new advisor finding.
+- **Scannability is the real constraint, not looks**: every preset keeps DARK data modules
+  on a WHITE background; brand color only tints the corner finder patterns. Prove a new
+  preset by SCANNING it (host UI is behind the `(app)` auth gate → verify on partyreel.com).
+- The `QrPresetPicker` (`src/components/app/qr-preset-picker.tsx`) is built reusable on
+  purpose — the create wizard (cut #2 of the approved Phase-6 order) embeds it; `StyledQr`
+  is the shared low-level renderer.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force

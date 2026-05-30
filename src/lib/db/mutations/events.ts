@@ -60,6 +60,7 @@ export async function createEvent(
     require_display_name: values.require_display_name,
     require_email: values.require_email,
     moderation_mode: values.moderation_mode,
+    qr_style: values.qr_style,
   };
 
   const { data, error } = await supabase
@@ -132,6 +133,7 @@ export async function updateEvent(
     patch.require_email = values.require_email;
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
+  if (values.qr_style !== undefined) patch.qr_style = values.qr_style;
 
   const { data, error } = await supabase
     .from("events")

@@ -27,6 +27,7 @@ export type Database = {
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at: string | null
+          qr_style: string
           qr_token: string
           require_display_name: boolean
           require_email: boolean
@@ -45,6 +46,7 @@ export type Database = {
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at?: string | null
+          qr_style?: string
           qr_token?: string
           require_display_name?: boolean
           require_email?: boolean
@@ -63,6 +65,7 @@ export type Database = {
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name?: string
           purge_at?: string | null
+          qr_style?: string
           qr_token?: string
           require_display_name?: boolean
           require_email?: boolean

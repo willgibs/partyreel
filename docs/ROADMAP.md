@@ -310,21 +310,30 @@ email guard; the capability-token RPC + `anon`-grant pattern.
       upserts a durable `newsletter_signups` list on opt-in. **Deferred:** the automatic
       album-link email send (capture-only for now).
 
-**Remaining candidates (each its own later cut, each needs its own spec):**
+**Remaining candidates — approved order (creation-first, decided with Will 2026-05-29):**
+**QR designer → create wizard → link analytics → notification center.** Within-chain order
+is forced (the QR designer is the wizard's design step + reusable; link analytics is the
+notification center's capture infra); the notification center is the capstone (it surfaces
+everything, including link analytics). Each is its own cut with its own spec.
 
-- **Onboarding + create wizard** — a multi-step new-host onboarding, and a streamlined
-  create flow (details → QR design → share); all settings stay editable from the event
-  page afterward.
-- **QR code designer / presets** — style the QR in-app (e.g., corporate-blocky vs.
-  wedding-rounded) so hosts never leave for an external stylizer. Reachable BOTH from the
-  create wizard AND from the QR on any event page. (Rounded/dot styles likely need a
-  richer lib than `qrcode.react`, e.g. `qr-code-styling`.)
-- **Notification / alert center** — a badge by the avatar aggregating alerts (uploads,
-  over-capacity/retention warnings, billing, pass expiry). Critical alerts already go by
-  email in earlier phases; this is the in-app aggregator.
-- **Link analytics** — scan/view activity on QR and share links. (The most foundational of
-  these: needs NEW capture infra first — a lightweight scan/view tracking table + a
-  record-on-view path — which the notification center could then surface.)
+- [x] **QR code designer / presets** _(cut #1 — code-complete + locally verified; pending
+  deploy + live verify)_ — style the QR in-app (corporate-blocky vs. wedding-rounded) so
+  hosts never leave for an external stylizer. Swapped `qrcode.react` → **`qr-code-styling`**
+  (module/corner shapes); a 4-preset closed set (`classic`/`bold`/`rounded`/`dots`) in the
+  single-source `src/lib/constants/qr-presets.ts`, persisted on `events.qr_style` (app-
+  validated text column, not a DB enum). Reusable `QrPresetPicker` + a "Customize" dialog on
+  the event page's Share card; SVG + PNG download. The picker is built for the create wizard
+  (cut #2) to embed. Verified: typecheck/lint/**test (79)**/build clean; rolled-back DB check
+  (default `classic`, NOT NULL, preset-key UPDATE round-trips); advisors unchanged (no new RPC).
+- **Onboarding + create wizard** _(cut #2)_ — a multi-step new-host onboarding, and a
+  streamlined create flow (details → QR design → share); embeds the cut-#1 `QrPresetPicker`;
+  all settings stay editable from the event page afterward.
+- **Link analytics** _(cut #3)_ — scan/view activity on QR and share links. Needs NEW capture
+  infra: a lightweight scan/view tracking table + a record-on-view path (the 8th anon
+  capability-token RPC), which the notification center then surfaces.
+- **Notification / alert center** _(cut #4 — capstone)_ — a badge by the avatar aggregating
+  alerts (uploads, over-capacity/retention warnings, billing, pass expiry, link-analytics
+  activity). Critical alerts already go by email in earlier phases; this is the in-app aggregator.
 
 ## Later / v2+ docket (post-v1)
 

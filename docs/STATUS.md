@@ -12,8 +12,10 @@ share unfurls — `/robots.txt` + `/sitemap.xml` + `/opengraph-image` confirmed 
 guest email capture (post-upload prompt → `guests.email` + a durable `newsletter_signups` list).
 **Pending: live-verify the post-upload email prompt + a real share unfurl on partyreel.com.** **Phase 5
 (highlight reel) is deliberately TABLED** pending product research (it defines the core
-output, so it shouldn't be rushed). Remaining Phase-6 candidates (onboarding/create wizard,
-QR designer, notification center, link analytics) are later cuts.
+output, so it shouldn't be rushed). Remaining Phase-6 candidates are sequenced (approved
+order, creation-first): **QR designer → create wizard → link analytics → notification
+center**. **Cut #1 (QR designer) is code-complete + locally verified** (see Next action) —
+pending deploy + live verify.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -141,7 +143,20 @@ unit tests instead.)_
 
 ## Next action
 
-**Ship the Phase-6 growth-loop cut** (code-complete + locally verified: typecheck/lint/
+**Deploy + live-verify the QR designer (Phase-6 cut #1)** — code-complete + locally verified:
+swapped `qrcode.react` → `qr-code-styling`; 4 presets (`classic`/`bold`/`rounded`/`dots`) in
+the single-source `src/lib/constants/qr-presets.ts`, persisted on `events.qr_style` (migration
+`20260529233616_phase6_qr_designer_event_qr_style`, applied to prod; types regenerated); a
+reusable `QrPresetPicker` + "Customize" dialog on the event-page Share card; SVG + PNG download.
+Verified: typecheck/lint/**test (79)**/build clean; rolled-back DB check (default `classic`,
+NOT NULL, preset-key UPDATE round-trips); advisors **unchanged** (no new RPC — cosmetic column).
+**Live-verify on partyreel.com** (host UI is behind the `(app)` auth gate, so it can't be
+exercised on localhost): sign in → open an event → **Customize** → pick each preset (live
+preview updates) → **Save** (toast; reload shows it persisted) → **Download SVG and PNG** →
+**scan each preset with a phone** and confirm it opens `/e/<qr_token>`. Then cut #2 = the
+create wizard (embeds `QrPresetPicker`).
+
+**Also pending — ship the Phase-6 growth-loop cut** (code-complete + locally verified: typecheck/lint/
 format/**test (75)**/build clean; the `newsletter_signups` migration applied to prod + a
 rolled-back `capture_guest_email` RPC check; advisors show the expected new
 `newsletter_signups` deny-all INFO + `capture_guest_email` anon WARN; types regenerated).

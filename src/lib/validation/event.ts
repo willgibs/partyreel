@@ -14,6 +14,7 @@
 import { z } from "zod";
 
 import { Constants } from "@/lib/db/types";
+import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 
 export const createEventSchema = z.object({
   name: z
@@ -39,6 +40,9 @@ export const createEventSchema = z.object({
   moderation_mode: z
     .enum(Constants.public.Enums.moderation_mode)
     .default("live"),
+  // Presentational QR style preset key. Validated against the app-side
+  // QR_PRESETS set (not a DB enum); mirrors the events.qr_style DB default.
+  qr_style: z.enum(QR_STYLE_KEYS).default("classic"),
 });
 
 export const updateEventSchema = createEventSchema.partial();
