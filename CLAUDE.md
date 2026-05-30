@@ -373,6 +373,13 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   tokens) instead of redirecting — the Share step needs the real `qr_token`/`share_token` to
   render a scannable QR + album link. Don't reintroduce redirect-on-create or a per-step
   create (would orphan events / break the share step).
+- **The wizard route must NOT guard at-cap with a `redirect`** — a Server Action refreshes
+  the route it was called from, so an at-cap `redirect` on `/dashboard/new` fires on the
+  POST-CREATE refresh (the host is now at cap) and bounces them away **before** the client
+  Share step renders (this shipped + was caught in live testing). The cap is guarded instead
+  by the disabled dashboard "New event" button + `createEvent`'s `limit_reached`. General
+  rule: don't put an eligibility `redirect` on a route whose post-Server-Action refresh must
+  show a success state.
 - **The design step previews with a placeholder token** (`previewJoinUrl` in
   `src/lib/events/share-urls.ts` — a 32-char stand-in) because the real `qr_token` doesn't
   exist pre-insert; it's the same length as a real token so the preview's module density
