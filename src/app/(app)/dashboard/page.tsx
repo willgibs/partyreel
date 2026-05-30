@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
@@ -27,6 +28,7 @@ import {
 import { listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
 import { formatBytes, formatEventDate } from "@/lib/utils";
+import { shouldShowWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -34,6 +36,11 @@ export default async function DashboardPage() {
   // Both reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
   const [events, profile] = await Promise.all([listEvents(), getProfile()]);
+
+  // First-time host welcome (Phase 6): a brand-new account (welcomed_at null) gets the one-time
+  // intro before the dashboard. Existing hosts were backfilled, so this only fires for new
+  // signups; /welcome sets the marker before returning here, so there's no redirect loop.
+  if (shouldShowWelcome(profile?.welcomed_at)) redirect("/welcome");
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const maxEvents = MAX_EVENTS[tier];

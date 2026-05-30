@@ -334,9 +334,14 @@ everything, including link analytics). Each is its own cut with its own spec.
   `CreateEventDialog` + `createEventAction` deleted (single create path). New pure
   `src/lib/events/share-urls.ts` (+ test). No new SQL. Verified: typecheck/lint/**test (82)**/
   build/format clean. _(First-time host **welcome** split out as its own cut — see below.)_
-- **First-time host welcome** _(cut #2b — its own full planning stage, per Will)_ — a light
-  first-run welcome for brand-new accounts. Natural homes: the `/dashboard/new` route + the
-  dashboard empty state (both already the first-run entry points). Not started.
+- [x] **First-time host welcome** _(cut #2b — code-complete + locally verified; pending deploy +
+  live verify)_ — a streamlined full-page **`/welcome`** intro (NOT a coachmark overlay, per
+  Will): 3 light steps (Welcome → How it works → Create your first event) funneling into the
+  create wizard. Auto-shown **once** to brand-new accounts via `profiles.welcomed_at` (the
+  `/dashboard` page redirects when null; **existing hosts backfilled** so only new signups see
+  it; host-writable column + RLS self-update `markWelcomed`, set before every exit to avoid a
+  redirect loop). The "how it works" copy is **single-sourced** with the marketing page
+  (`lib/constants/how-it-works.ts`). Advisors unchanged.
 - [x] **Link analytics** _(cut #3 — code-complete + locally verified; pending deploy + live
   verify)_ — scan/view activity on QR + share links. **Aggregate counts, no PII** (decided
   with Will): new `link_stats(event_id, kind, day, count)` (`kind` = qr_scan|album_view),

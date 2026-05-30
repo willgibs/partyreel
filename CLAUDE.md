@@ -433,6 +433,22 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   are daily). Deferred to v2: link-activity + billing alerts, a durable per-item feed + push, the
   `/admin` compose UI, per-item announcement un-read toggling (all logged in the ROADMAP).
 
+**Phase 6 — first-time host welcome gotchas**
+
+- **`/welcome` is a full-page intro route, NOT an overlay** (Will dislikes coachmark/"click here"
+  tours). It's gated to new accounts by **`profiles.welcomed_at`** (null = unwelcomed): the
+  `/dashboard` page redirects there via `shouldShowWelcome` ([welcome.ts](src/lib/welcome.ts)).
+  The migration **BACKFILLED existing profiles to `now()`** so only NEW signups see it.
+- **Set the marker BEFORE navigating away** — every `/welcome` exit (Create / Look around /
+  Skip) calls `markWelcomedAction` then `router.push`; if you navigated first, the `/dashboard`
+  guard would bounce the host straight back (the cut-#2 at-cap-redirect lesson, inverted). The
+  `/welcome` route itself must NOT gate on `welcomed_at` (only the dashboard does) — no loop.
+- **`welcomed_at` joins the `profiles` host-writable column-grant allowlist** (like
+  `announcements_seen_at`); `markWelcomed` is an RLS self-update via the regular client (NOT
+  service-role, unlike `touchHostActive`). `tier`/`storage_*`/`is_admin` stay off the allowlist.
+- **The "how it works" story is single-sourced** in [how-it-works.ts](src/lib/constants/how-it-works.ts)
+  — the marketing section AND the welcome render the same 3 steps. Edit the story once.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force

@@ -338,6 +338,7 @@ export type Database = {
           tier: Database["public"]["Enums"]["tier_type"]
           tier_expires_at: string | null
           updated_at: string
+          welcomed_at: string | null
         }
         Insert: {
           announcements_seen_at?: string | null
@@ -354,6 +355,7 @@ export type Database = {
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null
           updated_at?: string
+          welcomed_at?: string | null
         }
         Update: {
           announcements_seen_at?: string | null
@@ -371,6 +373,7 @@ export type Database = {
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null
           updated_at?: string
+          welcomed_at?: string | null
         }
         Relationships: []
       }

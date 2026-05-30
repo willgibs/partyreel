@@ -27,8 +27,12 @@ drove Chrome heavily): announcement unread→read (badge clears on open + persis
 host's RLS self-update of `announcements_seen_at` worked); over-capacity + pass-expiry alerts
 render with deadlines; the pass alert correctly DISAPPEARS outside the 14-day renewal window;
 badge math (2 alerts → "2", reset → empty); RLS-scoped "1 upload to review"; "all caught up"
-empty state; no console errors. **This completes the creation-first arc**; the **first-time host
-welcome** is the remaining Phase-6 cut.
+empty state; no console errors.
+**Cut #2b (first-time host welcome) is code-complete + locally verified** (see Next action) —
+a streamlined full-page `/welcome` intro (3 steps → create wizard), auto-shown once to new
+accounts via `profiles.welcomed_at` (existing hosts backfilled); pending deploy + live verify.
+**With it, Phase 6's host-experience cuts are DONE** — only the deliberately-tabled Phase 5
+highlight reel remains in the roadmap.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -156,20 +160,24 @@ unit tests instead.)_
 
 ## Next action
 
-**Deploy + live-verify the notification center (Phase-6 cut #4)** — code-complete + locally
-verified. **Derive-on-read** bell in the `(app)` header: v1 alerts = uploads-to-review
-(`media.status='pending'`), over-capacity (`storage_grace_until`), Event-Pass-expiring
-(`tier_expires_at` within the shared `RENEWAL_NUDGE_DAYS`) — plus **operator broadcast
-announcements** (global `announcements` table, host-read-only via RLS; per-host read state via
-the new host-writable `profiles.announcements_seen_at`). Migration
-`20260530220133_phase6_notification_center_announcements` applied to prod; types regenerated.
-Verified: typecheck/lint/**test (92)**/build/format clean; rolled-back DB check (host insert
-42501-blocked; `announcements_seen_at` host-writable while `tier`/`cap` stay blocked); advisors
-**UNCHANGED**. **Live-verify (drive Chrome, signed in as host):** a pending upload on a
-hold-for-approval event → bell shows "1 to review" → approve → clears; insert an `announcements`
-row via the MCP → unread → open panel → marks read (`announcements_seen_at` advances); set
-`storage_grace_until` / a near `tier_expires_at` via the MCP → those alerts appear, then clear
-them → gone. After this, the **first-time host welcome** (its own plan) is the last Phase-6 cut.
+**Deploy + live-verify the first-time host welcome (Phase-6 cut #2b)** — code-complete + locally
+verified. A streamlined full-page **`/welcome`** intro (3 steps: Welcome → How it works → Create
+your first event), **NOT** a coachmark overlay (per Will). Auto-shown ONCE to brand-new accounts:
+the `/dashboard` page redirects when `profiles.welcomed_at` is null (migration
+`20260530225857_phase6_first_time_host_welcome`; **existing hosts backfilled** so only new signups
+see it). Every exit (Create / Look around / Skip) sets the marker via `markWelcomed` BEFORE
+navigating (no redirect loop); the "how it works" copy is single-sourced with the marketing page.
+Verified: typecheck/lint/**test (94)**/build/format clean; rolled-back DB check (`welcomed_at`
+host-writable, `tier` blocked, 0 unwelcomed profiles after backfill); advisors **UNCHANGED**.
+**Live-verify (drive Chrome — fully testable by toggling the marker):** set my `welcomed_at = null`
+via the MCP → visit `/dashboard` → redirected to `/welcome` → step through → "Create my first
+event" → lands on `/dashboard/new` with `welcomed_at` set (confirm via MCP) → revisit `/dashboard`
+→ NOT redirected; also check Skip + "Look around". Reset my marker after.
+
+**Cut #4 (notification center) — DONE, verified in production 2026-05-30** (record): derive-on-read
+bell (uploads / over-cap / pass-expiry alerts + operator broadcast announcements). Drove Chrome
+heavily — all signals, badge math, mark-read persistence, and the renewal-window boundary verified;
+no console errors.
 
 **Cut #3 (link analytics) — DONE, verified in production 2026-05-30** (record):
 **aggregate counts, no PII** (decided with Will): new `link_stats(event_id, kind, day, count)`
