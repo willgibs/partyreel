@@ -22,10 +22,13 @@ post-deploy fix for a Share-step redirect bug (re-verified live). **Cut #3 (link
 shipped + VERIFIED in production** (2026-05-30) — drove Chrome: 3 join-link + 2 album visits
 recorded exact per-day counts, the event-page Share card shows them, and a Slackbot-UA request
 rendered but did NOT increment (bot-filtered). Advisors unchanged.
-**Cut #4 (notification center — capstone) is code-complete + locally verified** (see Next
-action) — derive-on-read bell (uploads/over-cap/pass-expiry alerts) + operator broadcast
-announcements with per-host read state; pending deploy + live verify. **This completes the
-creation-first arc**; the **first-time host welcome** is the remaining Phase-6 cut.
+**Cut #4 (notification center — capstone) shipped + VERIFIED in production** (2026-05-30 —
+drove Chrome heavily): announcement unread→read (badge clears on open + persists; the non-admin
+host's RLS self-update of `announcements_seen_at` worked); over-capacity + pass-expiry alerts
+render with deadlines; the pass alert correctly DISAPPEARS outside the 14-day renewal window;
+badge math (2 alerts → "2", reset → empty); RLS-scoped "1 upload to review"; "all caught up"
+empty state; no console errors. **This completes the creation-first arc**; the **first-time host
+welcome** is the remaining Phase-6 cut.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
