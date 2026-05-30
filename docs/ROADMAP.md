@@ -337,9 +337,16 @@ everything, including link analytics). Each is its own cut with its own spec.
 - **First-time host welcome** _(cut #2b — its own full planning stage, per Will)_ — a light
   first-run welcome for brand-new accounts. Natural homes: the `/dashboard/new` route + the
   dashboard empty state (both already the first-run entry points). Not started.
-- **Link analytics** _(cut #3)_ — scan/view activity on QR and share links. Needs NEW capture
-  infra: a lightweight scan/view tracking table + a record-on-view path (the 8th anon
-  capability-token RPC), which the notification center then surfaces.
+- [x] **Link analytics** _(cut #3 — code-complete + locally verified; pending deploy + live
+  verify)_ — scan/view activity on QR + share links. **Aggregate counts, no PII** (decided
+  with Will): new `link_stats(event_id, kind, day, count)` (`kind` = qr_scan|album_view),
+  recorded server-side in each guest page's `after()` via the **service-role-only**
+  `record_link_hit` (REVOKED from anon — locked like `purge_media_rows`, NOT a new anon RPC;
+  the original "8th anon RPC" guess was reconsidered since recording is server-initiated).
+  Bots filtered at ingest (`isLikelyBot`); hosts read via an RLS policy and see counts on the
+  event's "Share with guests" card. Advisors **unchanged**; rolled-back DB check confirms
+  increment + lockdown + policy. Time-series/unique-visitors deferred; cut #4 surfaces these
+  counters as "new activity."
 - **Notification / alert center** _(cut #4 — capstone)_ — a badge by the avatar aggregating
   alerts (uploads, over-capacity/retention warnings, billing, pass expiry, link-analytics
   activity). Critical alerts already go by email in earlier phases; this is the in-app aggregator.

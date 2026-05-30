@@ -389,6 +389,23 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   **first-time host welcome is a separate, not-yet-built cut** — `/dashboard/new` + the
   dashboard empty state are its natural homes.
 
+**Phase 6 — link analytics (cut #3) gotchas**
+
+- **`link_stats` is AGGREGATE counts, NO PII** — per-event-per-day `(event_id, kind, day,
+  count)`, `kind` ∈ `qr_scan | album_view`. No IP / user-agent / visitor identity is ever
+  stored. Bots are filtered AT INGEST (`isLikelyBot`, [bots.ts](src/lib/analytics/bots.ts))
+  because counters can't be cleaned retroactively. (Per-visit logs / unique visitors were
+  considered + rejected for privacy + weight.)
+- **`record_link_hit` is service-role-only** — REVOKED from anon/authenticated, same
+  locked-down class as `purge_media_rows` (it must **NEVER** appear in the anon advisor
+  list). Recording always happens server-side in the guest pages' `after()` via the admin
+  client ([mutations/analytics.ts](src/lib/db/mutations/analytics.ts)) — best-effort, never
+  blocks the guest. Hosts READ via the `link_stats_host_select` RLS policy (own events only),
+  so the table has a policy and gets **no** `rls_enabled_no_policy` INFO.
+- **Record ONLY in the page body success branch**, never `generateMetadata` (runs for
+  unfurls/prefetch → double-count). "Scans" = join-link visits — the host's own "Open" /
+  re-visits count too (honest label, accepted for v1).
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force

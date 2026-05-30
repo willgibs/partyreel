@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, QrCode } from "lucide-react";
 
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
@@ -60,7 +61,11 @@ export default async function EventDetailPage({ params }: PageProps) {
   const albumUrl = `${siteUrl}/a/${event.share_token}`;
 
   // Live gallery — presign each object key server-side (never expose raw keys).
-  const media = await listEventMedia(event.id);
+  // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
+  const [media, linkStats] = await Promise.all([
+    listEventMedia(event.id),
+    getLinkStats(event.id),
+  ]);
   const galleryItems = await Promise.all(
     media.map(async (m) => ({
       id: m.id,
@@ -123,6 +128,11 @@ export default async function EventDetailPage({ params }: PageProps) {
                 joinUrl={joinUrl}
                 current={event.qr_style}
               />
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <QrCode className="size-3.5" />
+                {linkStats.qrScans} join-link{" "}
+                {linkStats.qrScans === 1 ? "visit" : "visits"}
+              </p>
             </div>
           </div>
           <div className="space-y-2">
@@ -134,6 +144,11 @@ export default async function EventDetailPage({ params }: PageProps) {
             <div className="pt-2">
               <CopyShareLink url={albumUrl} />
             </div>
+            <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+              <Eye className="size-3.5" />
+              {linkStats.albumViews} album{" "}
+              {linkStats.albumViews === 1 ? "view" : "views"}
+            </p>
           </div>
         </CardContent>
       </Card>

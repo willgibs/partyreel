@@ -152,6 +152,35 @@ export type Database = {
           },
         ]
       }
+      link_stats: {
+        Row: {
+          count: number
+          day: string
+          event_id: string
+          kind: Database["public"]["Enums"]["link_hit_kind"]
+        }
+        Insert: {
+          count?: number
+          day?: string
+          event_id: string
+          kind: Database["public"]["Enums"]["link_hit_kind"]
+        }
+        Update: {
+          count?: number
+          day?: string
+          event_id?: string
+          kind?: Database["public"]["Enums"]["link_hit_kind"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "link_stats_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media: {
         Row: {
           clip_end_seconds: number | null
@@ -513,6 +542,13 @@ export type Database = {
           host_id: string
         }[]
       }
+      record_link_hit: {
+        Args: {
+          p_event_id: string
+          p_kind: Database["public"]["Enums"]["link_hit_kind"]
+        }
+        Returns: undefined
+      }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
@@ -523,6 +559,7 @@ export type Database = {
       }
     }
     Enums: {
+      link_hit_kind: "qr_scan" | "album_view"
       media_status: "pending" | "approved" | "hidden" | "removed"
       media_type: "photo" | "video"
       moderation_mode: "live" | "hold_for_approval"
@@ -656,6 +693,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      link_hit_kind: ["qr_scan", "album_view"],
       media_status: ["pending", "approved", "hidden", "removed"],
       media_type: ["photo", "video"],
       moderation_mode: ["live", "hold_for_approval"],

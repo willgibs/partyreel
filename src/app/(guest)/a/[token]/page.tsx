@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import { MediaGrid } from "@/components/app/media-grid";
 import { MakeYourOwn } from "@/components/guest/make-your-own";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { Logo } from "@/components/shared/logo";
+import { isLikelyBot } from "@/lib/analytics/bots";
+import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { getPublicAlbum } from "@/lib/db/queries/album";
 import { presignDownload } from "@/lib/r2/presign";
 import { formatEventDate } from "@/lib/utils";
@@ -58,6 +62,13 @@ export default async function PublicAlbumPage({
   // Not public / missing / deleted → 404 (don't leak existence).
   if (!result.ok) notFound();
   const { event, media } = result.data;
+
+  // Record-on-view: count this album view (aggregate, no PII). Same after() + bot-filter
+  // pattern as the join page; success path only, never in generateMetadata.
+  const userAgent = (await headers()).get("user-agent");
+  if (!isLikelyBot(userAgent)) {
+    after(() => recordLinkHit(event.id, "album_view"));
+  }
 
   const items = await Promise.all(
     media.map(async (m) => ({

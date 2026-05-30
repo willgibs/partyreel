@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import { JoinThenUpload } from "@/components/guest/join-then-upload";
 import { Logo } from "@/components/shared/logo";
+import { isLikelyBot } from "@/lib/analytics/bots";
+import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 
 // Event state (accepting_uploads, etc.) is read per request via the qr_token RPC.
@@ -44,6 +48,15 @@ export default async function GuestJoinPage({
   // Missing / deleted resolves to not_found — a 404 (don't leak existence).
   if (!result.ok) notFound();
   const event = result.data;
+
+  // Record-on-view: count this QR/join-link visit (aggregate, no PII). Bot-filtered
+  // at ingest and deferred via after() so it never blocks the guest. Success path
+  // only (a 404'd token never records) — and NOT in generateMetadata, which also runs
+  // for unfurls/prefetch and would double-count.
+  const userAgent = (await headers()).get("user-agent");
+  if (!isLikelyBot(userAgent)) {
+    after(() => recordLinkHit(event.id, "qr_scan"));
+  }
 
   if (!event.accepting_uploads) {
     return (

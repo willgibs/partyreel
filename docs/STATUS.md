@@ -18,7 +18,8 @@ center** (a **first-time host welcome** was split out as its own later cut). **C
 designer) shipped + VERIFIED in production** (2026-05-30 — drove Chrome: render/save/persist/
 reload round-trip + jsQR-decoded a styled QR to its `/e/<token>`; advisors unchanged).
 **Cut #2 (create wizard) shipped + VERIFIED in production** (2026-05-30) — including a
-post-deploy fix for a Share-step redirect bug (re-verified live; see Next action).
+post-deploy fix for a Share-step redirect bug (re-verified live). **Cut #3 (link analytics)
+is code-complete + locally verified** (see Next action) — pending deploy + live verify.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -146,24 +147,23 @@ unit tests instead.)_
 
 ## Next action
 
-**Deploy + live-verify the create wizard (Phase-6 cut #2)** — code-complete + locally verified:
-a dedicated **`/dashboard/new`** 3-step wizard (Details → QR design → Share) replacing the
-create dialog. Collects everything client-side and creates **once at commit** via the new
-non-redirecting `createEventInWizard` action (returns the event → the Share step shows the
-REAL scannable QR in the chosen style via cut #1's `EventQr` + the album link via
-`CopyShareLink`). The design step embeds cut #1's `QrPresetPicker` (previews with a same-length
-placeholder token so density matches the real QR). Dashboard "New event" button + the
-empty-state CTA now link to `/dashboard/new`; the old `CreateEventDialog` + redirecting
-`createEventAction` are deleted (single create path). New pure `src/lib/events/share-urls.ts`
-(+ test). No new SQL (reuses `createEvent`). Verified: typecheck/lint/**test (82)**/build/format
-clean.
-**Live-verify on partyreel.com** (host UI is auth-gated → can't run on localhost): the test
-account is **1/1 on Free**, so **free a slot first** (delete the existing test event). Then:
-dashboard → **New event** → `/dashboard/new` → name → Continue → pick a non-default preset →
-**Create event** → Share step shows a real scannable QR (chosen style) + album link → decode
-it (jsQR) to confirm `/e/<token>` → **Go to your event** lands on the event page with
-`qr_style` persisted (check via Supabase MCP). Also confirm the empty-state CTA + the at-cap
-disabled button. Then cut #3 = **link analytics**.
+**Deploy + live-verify link analytics (Phase-6 cut #3)** — code-complete + locally verified.
+**Aggregate counts, no PII** (decided with Will): new `link_stats(event_id, kind, day, count)`
+(`kind` = `qr_scan`|`album_view`; migration `20260530205535_phase6_link_analytics_link_stats`,
+applied to prod; types regenerated). Each guest page (`/e/[token]`, `/a/[token]`) records its
+view server-side in `after()` via the **service-role-only** `record_link_hit` RPC (REVOKED from
+anon — locked like `purge_media_rows`, NOT a new anon RPC; recording is server-initiated), with
+bots filtered at ingest (`isLikelyBot`). Hosts read via an RLS policy; the event's "Share with
+guests" card shows join-link visits + album views. Verified: typecheck/lint/**test (85)**/build/
+format clean; rolled-back DB check (`record_link_hit` increments + separates kinds; REVOKED from
+anon/authenticated; `link_stats_host_select` policy present); advisors **UNCHANGED** (no new anon
+WARN, no new INFO).
+**Live-verify on partyreel.com** (the guest links are PUBLIC — no auth needed): open an event's
+`/e/<token>` and `/a/<token>` a few times in a real browser → the event page's Share card shows
+the join-link + album counts climb → confirm the per-day `link_stats` rows + correct kinds via
+the Supabase MCP → confirm a bot UA (e.g. a `curl`/Slackbot fetch) does **not** increment.
+Re-run `get_advisors` (unchanged). Then cut #4 = **notification center** (surfaces these counters
+as "new activity"), or the **first-time host welcome** (its own plan, per Will).
 
 **Live test 2026-05-30 (drove Chrome) — PASS (1 bug found + fixed + re-verified):** at-cap
 disabled button + the empty-state CTA + step-1 required-name validation all worked. **Bug
