@@ -22,6 +22,10 @@ post-deploy fix for a Share-step redirect bug (re-verified live). **Cut #3 (link
 shipped + VERIFIED in production** (2026-05-30) — drove Chrome: 3 join-link + 2 album visits
 recorded exact per-day counts, the event-page Share card shows them, and a Slackbot-UA request
 rendered but did NOT increment (bot-filtered). Advisors unchanged.
+**Cut #4 (notification center — capstone) is code-complete + locally verified** (see Next
+action) — derive-on-read bell (uploads/over-cap/pass-expiry alerts) + operator broadcast
+announcements with per-host read state; pending deploy + live verify. **This completes the
+creation-first arc**; the **first-time host welcome** is the remaining Phase-6 cut.
 **Last shipped (deployed):** the fast-follows (Resend `sendOnce`, over-capacity grace +
 auto-reduce, Event Pass renewal) + the free-tier 6-month inactivity removal — committed +
 deployed to partyreel.com (2026-05-29). Live verification of those flows is still pending
@@ -149,9 +153,22 @@ unit tests instead.)_
 
 ## Next action
 
-**Next: pick Phase-6 cut #4 (notification center) or the first-time host welcome** (each its
-own plan). **Cut #3 (link analytics) is DONE — verified in production 2026-05-30** (drove Chrome;
-see the current-phase summary). For the record, cut #3 shipped:
+**Deploy + live-verify the notification center (Phase-6 cut #4)** — code-complete + locally
+verified. **Derive-on-read** bell in the `(app)` header: v1 alerts = uploads-to-review
+(`media.status='pending'`), over-capacity (`storage_grace_until`), Event-Pass-expiring
+(`tier_expires_at` within the shared `RENEWAL_NUDGE_DAYS`) — plus **operator broadcast
+announcements** (global `announcements` table, host-read-only via RLS; per-host read state via
+the new host-writable `profiles.announcements_seen_at`). Migration
+`20260530220133_phase6_notification_center_announcements` applied to prod; types regenerated.
+Verified: typecheck/lint/**test (92)**/build/format clean; rolled-back DB check (host insert
+42501-blocked; `announcements_seen_at` host-writable while `tier`/`cap` stay blocked); advisors
+**UNCHANGED**. **Live-verify (drive Chrome, signed in as host):** a pending upload on a
+hold-for-approval event → bell shows "1 to review" → approve → clears; insert an `announcements`
+row via the MCP → unread → open panel → marks read (`announcements_seen_at` advances); set
+`storage_grace_until` / a near `tier_expires_at` via the MCP → those alerts appear, then clear
+them → gone. After this, the **first-time host welcome** (its own plan) is the last Phase-6 cut.
+
+**Cut #3 (link analytics) — DONE, verified in production 2026-05-30** (record):
 **aggregate counts, no PII** (decided with Will): new `link_stats(event_id, kind, day, count)`
 (`kind` = `qr_scan`|`album_view`; migration `20260530205535_phase6_link_analytics_link_stats`,
 applied to prod; types regenerated). Each guest page (`/e/[token]`, `/a/[token]`) records its

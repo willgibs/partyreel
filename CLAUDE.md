@@ -406,6 +406,33 @@ standardized on live testing; localhost was removed from those allow-lists on pu
   unfurls/prefetch → double-count). "Scans" = join-link visits — the host's own "Open" /
   re-visits count too (honest label, accepted for v1).
 
+**Phase 6 — notification center (cut #4) — DERIVE-ON-READ; the capstone future agents extend**
+
+- **No feed table — it's computed on read.** `getNotificationData`
+  ([queries/notifications.ts](src/lib/db/queries/notifications.ts)) gathers signals (pending-media
+  count, profile flags, announcements) on every host page load in the `(app)` layout; the **pure**
+  `buildNotifications` ([notifications/build.ts](src/lib/notifications/build.ts)) turns them into
+  the badge + panel. The bell mounts in the layout `headerActions` before `UserMenu`.
+- **To ADD a signal** (e.g. co-host invites when co-hosting ships — REQUIRED follow-up, see
+  ROADMAP): add one read to `getNotificationData` + one case to `buildNotifications`. That's the
+  whole extension point — keep it that small. **When building ANY new host surface, ask whether it
+  should feed the bell** (capture the signal at the source, don't retrofit).
+- **Two notification kinds, different semantics:** derived **alerts** (review / over-capacity /
+  pass-expiry) are STATE — they persist in the badge until the condition resolves and are NOT
+  dismissed by viewing. **Announcements** are operator broadcasts with per-host read state: unread
+  until the host opens the panel, which advances `profiles.announcements_seen_at` (the bell also
+  optimistically drops their badge contribution). Badge = active alerts + unread announcements.
+- **`announcements` is operator-write-only** (RLS: a SELECT policy for `authenticated`, NO write
+  policy → host inserts are RLS-denied, proven via a 42501 contract check; the operator publishes
+  via SQL/MCP — an `/admin` compose UI is a deferred fast-follow). **`announcements_seen_at` is the
+  ONE host-writable addition** to the `profiles` column-grant allowlist (`tier`/`storage_*`/
+  `is_admin` stay off it); the host self-bumps it via the RLS `markAnnouncementsSeen` mutation.
+- **Pass-expiry reuses `RENEWAL_NUDGE_DAYS`** ([lifecycle/renewal.ts](src/lib/lifecycle/renewal.ts))
+  — the single source shared with the cron's `renewal_nudges` email; don't re-hardcode it.
+- **No real-time push** — the badge refreshes on navigation/page-load (acceptable; cron signals
+  are daily). Deferred to v2: link-activity + billing alerts, a durable per-item feed + push, the
+  `/admin` compose UI, per-item announcement un-read toggling (all logged in the ROADMAP).
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force

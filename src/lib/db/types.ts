@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          body: string
+          created_at: string
+          href: string | null
+          id: string
+          published_at: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          href?: string | null
+          id?: string
+          published_at?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          href?: string | null
+          id?: string
+          published_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           accepting_uploads: boolean
@@ -296,6 +323,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          announcements_seen_at: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -312,6 +340,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          announcements_seen_at?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -327,6 +356,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          announcements_seen_at?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null

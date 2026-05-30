@@ -347,9 +347,22 @@ everything, including link analytics). Each is its own cut with its own spec.
   event's "Share with guests" card. Advisors **unchanged**; rolled-back DB check confirms
   increment + lockdown + policy. Time-series/unique-visitors deferred; cut #4 surfaces these
   counters as "new activity."
-- **Notification / alert center** _(cut #4 — capstone)_ — a badge by the avatar aggregating
-  alerts (uploads, over-capacity/retention warnings, billing, pass expiry, link-analytics
-  activity). Critical alerts already go by email in earlier phases; this is the in-app aggregator.
+- [x] **Notification / alert center** _(cut #4 — capstone; code-complete + locally verified;
+  pending deploy + live verify)_ — an in-app bell by the avatar aggregating alerts that today
+  only email. **DERIVE-ON-READ** (no feed table): `getNotificationData` gathers signals in the
+  `(app)` layout, the pure `buildNotifications` → badge + panel
+  ([notifications/build.ts](src/lib/notifications/build.ts)). **v1 alerts:** uploads-to-review
+  (`media.status='pending'` count), over-capacity (`storage_grace_until`), Event-Pass-expiring
+  (`tier_expires_at` within the shared `RENEWAL_NUDGE_DAYS`). **PLUS broadcast announcements**
+  (Will): a global `announcements` table (operator-write-only via RLS — host inserts 42501-blocked;
+  authored via SQL/MCP) with per-host read state via `profiles.announcements_seen_at` (the one new
+  host-writable column). Bell in the layout `headerActions`; advisors unchanged. **Extensible:**
+  adding a signal = one read + one `buildNotifications` case (see the CLAUDE.md "notification
+  center" maintenance section).
+  - **Deferred (logged so they're not lost):** link-activity + billing alerts (billing needs a
+    denormalized Stripe `past_due` flag first); a durable per-item feed + real-time push; an
+    `/admin` announcement compose UI; per-item announcement un-read toggling. **Co-host
+    invitations** must be added here when **multi-account events** ships (cross-referenced below).
 
 ## Later / v2+ docket (post-v1)
 
@@ -377,6 +390,11 @@ Not part of the v1 roadmap — parked here so it isn't lost:
   membership-based. Because it's additive, deferring causes no painful migration — but
   write near-term host RLS in a membership-broadening-friendly way. (The lighter v1
   access controls — passphrase, require-upload-to-view — are the Phase 3 versions.)
+  **→ Notification center (Phase 6 cut #4): when this ships, wire co-host invitations into the
+  bell** as a derived "you've been invited to co-host X / N pending invites" alert (Will:
+  required follow-up). It's a one-read + one-`buildNotifications`-case extension by design —
+  and the same "check whether a new surface should feed the bell" principle applies to
+  invite-only guests too.
 - **AI support-recovery** — triage "I lost my media" emails, match sender →
   account/event, auto-send a time-boxed download link (PRD "Data retention").
 - **NSFW filtering** — only if a real need emerges; host-opt-in, image moderation on

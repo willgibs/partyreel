@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
+import { NotificationBell } from "@/components/app/notification-bell";
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { touchHostActive } from "@/lib/db/mutations/profile";
+import { getNotificationData } from "@/lib/db/queries/notifications";
+import { buildNotifications } from "@/lib/notifications/build";
 import { createClient } from "@/lib/supabase/server";
 
 // Auth GATE for the host app. Every route in the (app) group renders inside
@@ -41,10 +44,19 @@ export default async function AppLayout({
   const metaName = user.user_metadata?.full_name;
   const displayName = typeof metaName === "string" ? metaName : null;
 
+  // Derive-on-read notification summary for the bell (always-current; runs on every host page).
+  const notifications = buildNotifications(await getNotificationData());
+
   return (
     <AppShell
       headerActions={
-        <UserMenu email={user.email ?? null} displayName={displayName} />
+        <>
+          <NotificationBell
+            items={notifications.items}
+            badgeCount={notifications.badgeCount}
+          />
+          <UserMenu email={user.email ?? null} displayName={displayName} />
+        </>
       }
     >
       {children}

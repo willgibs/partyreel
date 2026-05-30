@@ -35,6 +35,7 @@ import {
   WARN_BEFORE_DAYS,
   inactivityAction,
 } from "@/lib/lifecycle/inactivity";
+import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey } from "@/lib/r2/keys";
@@ -68,8 +69,6 @@ const OVER_CAP_REMINDER_DAYS = 7;
 // Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
 // tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.
 const FREE_CAP_BYTES = 2 * 1024 ** 3;
-// Event Pass renewal nudge: email when an active pass expires within this many days.
-const RENEWAL_NUDGE_DAYS = 14;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type MediaRow = {
