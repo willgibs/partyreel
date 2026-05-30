@@ -2,10 +2,13 @@
 
 # Partyreel — agent operating guide
 
-> **Read [`docs/STATUS.md`](docs/STATUS.md) FIRST.** It names the current phase
-> and the exact next action. This file is the standing reference; STATUS is the
-> "you are here." The `@AGENTS.md` import above is also load-bearing: this is
-> **Next.js 16**, which has breaking changes from older Next — heed it.
+> **Orient first.** [`docs/STATUS.md`](docs/STATUS.md) is the "you are here" (what's live,
+> what's blocked on a human); [`docs/SYSTEMS.md`](docs/SYSTEMS.md) is the **feature map** (every
+> system, where it lives, its invariants — skim it when a goal lands);
+> [`docs/ROADMAP.md`](docs/ROADMAP.md) is the backlog + the pick-up-a-task loop. This file is the
+> standing operating guide. The phased build is **done** — the project is in one-off-task mode.
+> The `@AGENTS.md` import above is load-bearing: this is **Next.js 16**, with breaking changes
+> from older Next — heed it.
 
 Partyreel is a guest-powered event media platform. A host creates an event and
 shares a **QR code**; guests scan it and upload photos/videos from their phones
@@ -576,13 +579,12 @@ class as the trigger-only functions.
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.
-- **Keep the knowledge docs current as you learn.** This file, `docs/STATUS.md`,
-  `docs/ROADMAP.md`, `docs/PRICING.md`, and the ADRs are living — when you hit a new gotcha, finish
-  a phase, or change an approach, update them in the same change. Advance STATUS
-  to the new "you are here" and tick ROADMAP boxes as work lands; a future agent
-  (or future you) should be able to trust them. (STATUS/ROADMAP upkeep applies
-  while the phased roadmap is active; once it's done the project shifts to one-off
-  tasks and those two can leave the rotation — this file stays the any-task guide.)
+- **Keep the knowledge docs current as you learn.** This file, `docs/SYSTEMS.md`,
+  `docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PRICING.md`, and the ADRs are living — when you hit
+  a new gotcha, ship a feature, or change an approach, update them in the same change. The phased
+  build is done (one-off-task mode), so: update the affected **SYSTEMS** entry (what exists),
+  advance **STATUS** (you-are-here + human blockers), and tick/trim the **ROADMAP** backlog. A
+  future agent (or future you) should be able to trust them.
 - **Test data integrity as you build.** Each phase ships tests for the data it
   touches: Vitest unit tests for pure logic (`pnpm test`) **plus** a rolled-back
   Supabase-MCP RPC contract check for the SQL the phase exercises (run the RPCs
