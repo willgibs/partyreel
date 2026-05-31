@@ -11,6 +11,7 @@ import { Logo } from "@/components/shared/logo";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { getPublicAlbum } from "@/lib/db/queries/album";
+import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
 import { formatEventDate } from "@/lib/utils";
 
@@ -70,12 +71,23 @@ export default async function PublicAlbumPage({
     after(() => recordLinkHit(event.id, "album_view"));
   }
 
+  // Presign two URLs per item from the same key: an INLINE url the grid/lightbox
+  // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const items = await Promise.all(
-    media.map(async (m) => ({
-      id: m.id,
-      type: m.type,
-      url: await presignDownload({ key: m.original_key }),
-    })),
+    media.map(async (m) => {
+      const [url, downloadUrl] = await Promise.all([
+        presignDownload({ key: m.original_key }),
+        presignDownload({
+          key: m.original_key,
+          downloadFilename: buildDownloadFilename({
+            eventName: event.name,
+            key: m.original_key,
+            type: m.type,
+          }),
+        }),
+      ]);
+      return { id: m.id, type: m.type, url, downloadUrl };
+    }),
   );
 
   return (

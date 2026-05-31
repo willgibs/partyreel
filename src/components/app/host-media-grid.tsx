@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import {
   setMediaStatusAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { MediaLightbox } from "@/components/shared/media-lightbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,16 +30,22 @@ import {
 //   pending  → Approve / Hide / Remove
 //   approved → Hide / Remove
 //   hidden   → Unhide / Remove
-// Remove is behind a confirm Dialog. Controls sit at the TOP so they don't fight
-// the native <video> controls at the bottom. All writes go through the Server
-// Actions (which revalidate this path); we only toast on failure.
+// Remove is behind a confirm Dialog. The media itself is a button that opens the
+// shared lightbox (full-screen view + Save); the moderation controls are SIBLINGS
+// of that button (not children), so tapping a control never opens the lightbox —
+// no stopPropagation needed. All writes go through the Server Actions (which
+// revalidate this path); we only toast on failure.
 
 function HostMediaTile({
   eventId,
   item,
+  index,
+  onOpen,
 }: {
   eventId: string;
   item: GridMedia;
+  index: number;
+  onOpen: (index: number) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   // Defensive default — listEventMedia never returns 'removed', and 'approved'
@@ -55,7 +62,14 @@ function HostMediaTile({
 
   return (
     <li className="relative aspect-square overflow-hidden rounded-lg bg-black/10">
-      <MediaTile item={item} />
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        aria-label={item.type === "photo" ? "View photo" : "Play video"}
+        className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+      >
+        <MediaTile item={item} />
+      </button>
 
       {status !== "approved" && (
         <Badge
@@ -175,12 +189,29 @@ export function HostMediaGrid({
   eventId: string;
   items: GridMedia[];
 }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      {items.map((item) => (
-        <HostMediaTile key={item.id} eventId={eventId} item={item} />
-      ))}
-    </ul>
+    <>
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {items.map((item, i) => (
+          <HostMediaTile
+            key={item.id}
+            eventId={eventId}
+            item={item}
+            index={i}
+            onOpen={setOpenIndex}
+          />
+        ))}
+      </ul>
+
+      <MediaLightbox
+        items={items}
+        index={openIndex}
+        onClose={() => setOpenIndex(null)}
+        onIndexChange={setOpenIndex}
+      />
+    </>
   );
 }
 

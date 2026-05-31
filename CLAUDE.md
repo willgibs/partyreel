@@ -452,6 +452,32 @@ standardized on live testing; localhost was removed from those allow-lists on pu
 - **The "how it works" story is single-sourced** in [how-it-works.ts](src/lib/constants/how-it-works.ts)
   — the marketing section AND the welcome render the same 3 steps. Edit the story once.
 
+**Phase 6 — album lightbox + media download gotchas**
+
+- **Forcing a cross-origin download needs a SIGNED `ResponseContentDisposition`, not the `download`
+  attr.** The `<a download>` attribute is IGNORED for cross-origin URLs (R2 is a different origin), so
+  to make Save download the original (vs. navigate to it), `presignDownload({ key, downloadFilename })`
+  bakes `response-content-disposition=attachment; filename="…"` INTO the signature
+  ([presign.ts](src/lib/r2/presign.ts)). Because Save is a plain top-level `<a href>` navigation (not
+  `fetch`), **no bucket-CORS change is needed** (verified: R2 returns `Content-Disposition: attachment`).
+  The filename comes from [download-filename.ts](src/lib/media/download-filename.ts) — slugged to ASCII
+  `[a-z0-9-.]`, so `filename="…"` is header-safe with no RFC-5987 `filename*` encoding.
+- **Two presigns per item, up front** (the album + event pages presign an INLINE render url AND an
+  `attachment` download url from the SAME key). Accepted for v1 — presign is local HMAC (no network).
+  The lazy/route-based alternative for very large galleries is **deferred** (ROADMAP), alongside the
+  existing large-gallery read-proxy deferral.
+- **The lightbox composes the radix Dialog PRIMITIVES, NOT the wrapped `<DialogContent>`**
+  ([media-lightbox.tsx](src/components/shared/media-lightbox.tsx)) — it needs a dark, edge-to-edge
+  backdrop (`bg-black/90`) + object-contain media, whereas `ui/dialog.tsx`'s `DialogContent` hard-codes
+  a light `bg-black/10` overlay + `max-w-sm`. Composing still gives radix's focus-trap / Esc /
+  scroll-lock. Don't "fix" it to use `DialogContent`.
+- **Grid video tiles are controls-less thumbnails on purpose.** `MediaTile`
+  ([media-grid.tsx](src/components/app/media-grid.tsx)) renders `<video>` WITHOUT `controls` so the
+  non-interactive element can sit inside the tile's open-the-lightbox `<button>` (a `<video controls>`
+  is interactive content → an illegal button descendant). Playback (with controls) happens in the
+  lightbox. On the host grid the moderation buttons are SIBLINGS of that button (not children), so
+  tapping a control never opens the lightbox — no `stopPropagation` needed.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force
@@ -507,7 +533,7 @@ src/app/
 | Pricing / tier limits (app side)                       | `src/lib/constants/tiers.ts`                             |
 | Pricing / tier limits (DB enforcement)                 | `public.tier_limits()` SQL fn — **must mirror tiers.ts** |
 | Universal per-file media limits (5 min / 2 GB / 50 MB) | `src/lib/media/limits.ts`                                |
-| R2 object keys (+ `parseMediaIdFromKey`)               | `src/lib/r2/keys.ts`                                     |
+| R2 object keys (+ `parseMediaIdFromKey`/`parseExtFromKey`) | `src/lib/r2/keys.ts`                                  |
 | R2 bulk delete / list (purge cron)                     | `src/lib/r2/delete.ts`                                   |
 | DB access (queries/mutations)                          | `src/lib/db/*` — never inline SQL in components          |
 | Env vars (zod-validated)                               | `src/lib/env.ts` (`env` public, `serverEnv` server-only) |

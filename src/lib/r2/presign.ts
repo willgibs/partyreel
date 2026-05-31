@@ -138,17 +138,43 @@ export async function completeMultipartUpload(params: {
   );
 }
 
-/** Short-lived presigned GET URL for rendering media in a gallery. */
+/**
+ * Short-lived presigned GET URL for media.
+ *
+ * Two modes from the SAME key:
+ *   • omit `downloadFilename` → an INLINE URL the browser renders in <img>/<video>
+ *     (the gallery default).
+ *   • pass `downloadFilename`  → a SAVE URL: `response-content-disposition=attachment`
+ *     is baked into the signature so a plain <a href> downloads the original under
+ *     that name. The browser `download` attribute does NOT force a save for a
+ *     cross-origin R2 URL — the disposition must be signed in. Because it's a top-
+ *     level navigation (not fetch), no bucket-CORS change is needed.
+ *
+ * `downloadFilename` must be header-safe ASCII (no quotes/controls) — callers use
+ * buildDownloadFilename(), which slugs to `[a-z0-9-.]`, so `filename="…"` alone is
+ * safe and no RFC-5987 `filename*` encoding is required.
+ */
 export async function presignDownload(params: {
   key: string;
   expiresInSeconds?: number;
+  downloadFilename?: string;
 }): Promise<string> {
-  const { key, expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS } = params;
+  const {
+    key,
+    expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS,
+    downloadFilename,
+  } = params;
   const { R2_BUCKET } = assertR2Env();
 
   return getSignedUrl(
     getR2Client(),
-    new GetObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+    new GetObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      ...(downloadFilename && {
+        ResponseContentDisposition: `attachment; filename="${downloadFilename}"`,
+      }),
+    }),
     { expiresIn: expiresInSeconds },
   );
 }

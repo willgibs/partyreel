@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { mediaObjectKey, parseMediaIdFromKey } from "@/lib/r2/keys";
+import {
+  mediaObjectKey,
+  parseExtFromKey,
+  parseMediaIdFromKey,
+} from "@/lib/r2/keys";
 
 describe("mediaObjectKey", () => {
   it("builds the canonical layout", () => {
@@ -65,5 +69,20 @@ describe("parseMediaIdFromKey", () => {
     expect(
       parseMediaIdFromKey("events/evt/photo/not-a-uuid/original.jpg"),
     ).toBeNull();
+  });
+});
+
+describe("parseExtFromKey", () => {
+  it("pulls the lowercased extension from the last segment", () => {
+    expect(parseExtFromKey("events/e/photo/m/original.JPG")).toBe("jpg");
+    expect(parseExtFromKey("events/e/video/m/original.mp4")).toBe("mp4");
+    expect(parseExtFromKey("events/e/video/m/original.mov")).toBe("mov");
+  });
+
+  it("returns null when there is no clean extension", () => {
+    expect(parseExtFromKey("")).toBeNull();
+    expect(parseExtFromKey("events/e/photo/m/original")).toBeNull(); // no dot
+    expect(parseExtFromKey("no-slashes-no-dot")).toBeNull();
+    expect(parseExtFromKey("events/e/photo/m/.hidden")).toBeNull(); // dotfile, no name
   });
 });

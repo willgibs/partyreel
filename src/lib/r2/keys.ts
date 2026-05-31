@@ -33,6 +33,22 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Pull the file extension (no dot, lowercased) out of an R2 key — e.g.
+ * `events/…/original.jpg` → `jpg`. Used only to NAME a download (the
+ * Content-Disposition filename); the byte content is whatever R2 stored. Returns
+ * null when there's no clean alphanumeric extension (callers fall back by media
+ * kind). The ext was itself derived server-side from the validated content-type
+ * at upload (MIME_TO_EXT), never from client input — so this is a safe round-trip.
+ */
+export function parseExtFromKey(key: string): string | null {
+  const lastSegment = key.split("/").pop() ?? "";
+  const dot = lastSegment.lastIndexOf(".");
+  if (dot < 1) return null; // no dot, or a dotfile with no name
+  const ext = lastSegment.slice(dot + 1).toLowerCase();
+  return /^[a-z0-9]+$/.test(ext) ? ext : null;
+}
+
+/**
  * Inverse of mediaObjectKey: pull the mediaId out of an R2 key. Used by the
  * Phase-3 purge cron's ORPHAN SWEEP — it lists bucket objects and needs the
  * mediaId to ask "does a media row still exist for this?". Kept in the same file

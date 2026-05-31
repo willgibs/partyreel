@@ -24,6 +24,7 @@ import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
+import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
@@ -66,13 +67,23 @@ export default async function EventDetailPage({ params }: PageProps) {
     listEventMedia(event.id),
     getLinkStats(event.id),
   ]);
+  // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
+  // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
-    media.map(async (m) => ({
-      id: m.id,
-      type: m.type,
-      url: await presignDownload({ key: m.original_key }),
-      status: m.status,
-    })),
+    media.map(async (m) => {
+      const [url, downloadUrl] = await Promise.all([
+        presignDownload({ key: m.original_key }),
+        presignDownload({
+          key: m.original_key,
+          downloadFilename: buildDownloadFilename({
+            eventName: event.name,
+            key: m.original_key,
+            type: m.type,
+          }),
+        }),
+      ]);
+      return { id: m.id, type: m.type, url, downloadUrl, status: m.status };
+    }),
   );
 
   // Partition for the host view: hold_for_approval uploads arrive as 'pending'

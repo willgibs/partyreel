@@ -52,6 +52,15 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   capability-token guest-flow / album RPCs.
 - **Guest "email me the album" auto-send** — the growth-loop capture is email-only today; the
   automatic album-link email (reusing `sendOnce`) was deferred.
+- **Album download — bigger cuts** (per-item Save shipped in the lightbox): a host **"Download all"
+  (zip)** export — heavier; stream-zip or an external worker for large albums (ADR-0003 keeps
+  transcode/stitch off Vercel, same constraint applies to large zips) — and a **per-tile
+  hover/quick-download** on the grid. If galleries get huge, switch the download URL from the
+  current up-front per-item presign to a **lazy/route-based presign** (dovetails with the deferred
+  large-gallery read-proxy noted in `lib/r2/presign.ts`).
+- **Guest post-upload visibility** — let a returning guest see what they (and others) uploaded, with
+  attribution, instead of vanishing after the progress spinner. Pairs with the album lightbox
+  (reuse the shared `MediaLightbox`); needs a session-token-scoped guest-album read.
 
 ## v2+ docket (post-core, bigger)
 

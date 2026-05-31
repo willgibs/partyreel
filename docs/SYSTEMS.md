@@ -79,7 +79,17 @@ enforces caps; `get_upload_context` is the presign-time pre-check. R2 client/pre
 Host live gallery on the event page + public album **`/a/[token]`** (approved-only). Both
 **presign R2 keys server-side** (`presignDownload`, 1 h TTL) and are `force-dynamic`; raw R2
 keys/URLs are NEVER exposed to the browser (ADR-0003). The album uses the always-dark `gallery`
-surface so media is the hero.
+surface so media is the hero. Tiles open a shared **lightbox**
+([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
+keyboard nav, video playback, and a **Save** that downloads the original. **Download = a SECOND
+presign of the same key with `ResponseContentDisposition: attachment`** (`presignDownload`'s
+`downloadFilename`, named by [download-filename.ts](../src/lib/media/download-filename.ts)); the
+browser `download` attr can't force a cross-origin R2 save — the signed disposition does (so no
+bucket-CORS change). Both grids (public `MediaGrid` + `HostMediaGrid`) wrap each tile in a button
+that opens the lightbox; **video tiles render controls-less thumbnails** (a controls-less `<video>`
+is non-interactive → button-legal; it plays with controls inside the lightbox). **No new security
+surface** — same approved media, same capability boundary (share_token / host RLS). Host **bulk-zip
+download is deferred** (ROADMAP).
 
 ## Moderation & curation
 

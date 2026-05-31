@@ -5,7 +5,7 @@
 > pick-up-a-task loop read [`ROADMAP.md`](ROADMAP.md); for how to work in the repo read
 > [`CLAUDE.md`](../CLAUDE.md).
 
-**Updated:** 2026-05-30
+**Updated:** 2026-05-31
 
 ## Where we are
 
@@ -23,6 +23,12 @@ pending a product + architecture decision — see ROADMAP).
 
 ## In flight / pending verification
 
+- **Album lightbox + per-item download** is built + **locally verified** (lightbox open / ←→ nav /
+  Esc close + photo & video, desktop and mobile; the forced-download header curl-confirmed against
+  R2 — `Content-Disposition: attachment` with the friendly filename) but **not yet deployed**. Push
+  to partyreel.com, then confirm a real **Save** click downloads and the **host-gallery** lightbox
+  works while signed in (`willg97@gmail.com`). _(Two seeded test media — 1 photo, 1 video — were
+  added to the "Share Step Test" album for the local check; disposable, fine to delete.)_
 - **The email-driven lifecycle flows are deployed but NOT yet live-verified** — over-capacity
   grace→auto-reduce, the Event-Pass renewal nudge ($15 checkout), and free-tier inactivity
   warn/remove all send via Resend, which **isn't configured yet** (see below). Verify each once
