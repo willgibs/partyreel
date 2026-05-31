@@ -27,7 +27,15 @@ DRY single-sources table: [`CLAUDE.md`](../CLAUDE.md).
 Supabase Auth — **email magic-link + Google OAuth** (`(auth)/login`, `/auth/callback`). The
 `(app)` layout ([layout.tsx](../src/app/(app)/layout.tsx)) is the single gate: `getUser()`
 (NOT `getSession()`) → redirect `/login` if anon. `handle_new_user` trigger creates a
-`profiles` row on signup. Clients: `src/lib/supabase/{client,server,middleware,admin}.ts`.
+`profiles` row on signup (one row per `auth.users` row). Clients:
+`src/lib/supabase/{client,server,middleware,admin}.ts`. **Identity linking:** Supabase
+**auto-links identities that share a _verified_ email into ONE user** — so magic-link +
+Google for the same email land on the same account + `profiles` row (it refuses to link an
+_unverified_ email, anti-takeover; **SSO is the only non-linking exception** — not used here).
+Caveat: matching is exact-string, so Gmail dot/plus aliases (`will.g+x@…`) are distinct users.
+**Guest email capture is NOT an auth account** (just `guests.email` + `newsletter_signups`) — a
+guest who later signs up creates their first real account then (see the v2 "guest → full-user
+conversion" item in ROADMAP).
 **Invariant:** `profiles` is host-writable only on `display_name, email, announcements_seen_at,
 welcomed_at` (the `grant update(...)` allowlist); `tier`/`storage_*`/`is_admin`/`stripe_*` are
 service-role / webhook only.

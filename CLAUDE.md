@@ -234,13 +234,24 @@ asserts them lazily at request time so the app still builds without creds.
   env via `assertStripeEnv()`. `profiles.tier` / `storage_cap_bytes` stay
   service-role/webhook-write-only (never client-writable).
 
-**Local dev vs. live testing** — auth and uploads are wired for **partyreel.com
-only**. `localhost:3000` is deliberately NOT in Supabase's redirect allow-list, the
-R2 bucket CORS origins, or `NEXT_PUBLIC_SITE_URL` — so `pnpm dev` renders UI but
-**cannot complete sign-in or an upload** (the OAuth/magic-link redirect is rejected
-and the R2 PUT is CORS-blocked). Verify auth/upload/gallery flows on the deployed
-site (partyreel.com), not locally — local is fine only for pure UI/render work. (We
-standardized on live testing; localhost was removed from those allow-lists on purpose.)
+**Local dev vs. live testing — TESTING ON partyreel.com IS ALWAYS PREFERRED.**
+`localhost:3000` is deliberately NOT in the allow-list of **any** of our tooling —
+Supabase's redirect allow-list, the R2 bucket CORS origins, `NEXT_PUBLIC_SITE_URL`,
+the Stripe redirect/return URLs — so `pnpm dev` renders UI but **cannot complete
+sign-in, an upload, or checkout** (the OAuth/magic-link redirect is rejected, the R2
+PUT is CORS-blocked, Stripe bounces back wrong). This is on purpose; don't "fix" it by
+adding localhost. **Default to verifying on the deployed site** (push to `main` → Vercel
+deploys partyreel.com, then drive the **Chrome MCP**). `pnpm dev` + the **Preview MCP**
+is fine ONLY for pure UI/render work (e.g. a public album whose media already exists —
+`<img>`/`<video>` loads aren't CORS-bound). **Live/DB testing is authorized and
+expected:** the project holds only disposable **test data** (nothing sensitive), and
+Supabase/R2 will be purged of orphans before launch — so seed, mutate, and inspect prod
+freely via the Supabase/R2 MCPs and the Chrome MCP (drive it logged in as the user; the
+host test account is `willg97@gmail.com`, the operator/admin is `hi@willgibs.com`).
+**One Chrome gotcha:** on prod, Vercel injects its dev **Toolbar** (a floating circle at
+the right-middle edge) for logged-in Vercel team members only — it overlaps UI there
+(e.g. a lightbox's next-chevron) and is invisible to real guests/hosts; navigate by
+keyboard or Dismiss it.
 
 **Stripe (Phase 4)**
 
