@@ -111,12 +111,22 @@ function toText(node: ReactNode): string {
   return "";
 }
 
+// `scroll-mt-24` so a TOC/anchor jump clears the sticky h-16 header (otherwise the
+// heading lands flush under it — caught in live testing).
 function H2({ children }: { children?: ReactNode }) {
-  return <h2 id={slugify(toText(children))}>{children}</h2>;
+  return (
+    <h2 id={slugify(toText(children))} className="scroll-mt-24">
+      {children}
+    </h2>
+  );
 }
 
 function H3({ children }: { children?: ReactNode }) {
-  return <h3 id={slugify(toText(children))}>{children}</h3>;
+  return (
+    <h3 id={slugify(toText(children))} className="scroll-mt-24">
+      {children}
+    </h3>
+  );
 }
 
 // Internal links route through Next <Link> (client nav); external links open safely.
