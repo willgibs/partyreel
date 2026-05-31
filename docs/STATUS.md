@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features` retrofit) deployed + live-tested; R3 (interactive demo) built + Preview-verified, deploy + the demo event pending a human.**
+- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features` retrofit) + R3 (interactive demo) all deployed + live-tested on partyreel.com; R4 next.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
   the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame` base + `AlbumFrame`
@@ -35,14 +35,16 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   **R3 — interactive demo** (env-gated via `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change): a real scannable
   demo QR on the `/features` hero + a home **"Try the live demo"** CTA, and `/e/[demo qr_token]` runs in
   **demo mode** — simulated client-side uploads via the optimistic-tile path, never persisted (see SYSTEMS
-  "Interactive demo"). **Built + verified via Preview MCP + the gate** (typecheck/lint/**150 tests**/build
-  green with the env UNSET; against a curated event: real QR + CTA, demo banner, a simulated upload prepended
-  a `blob:` tile with **zero** new `media`/`guests` rows (Supabase-confirmed), gone on refresh; env-unset path
-  = decorative QR / no CTA / no banner). Caught + fixed a real bug: the new public env var was added to the
-  `env.ts` schema but not its `parsePublic()` reader, so it would've stayed `undefined` in prod. **Forward
-  copy policy: no em-dashes in site/app copy** (CLAUDE.md + memory). Next: **R4 — event landing pages
-  retrofit** (distinct frame per type + the event-page body-copy em-dash scrub). _(R3 needs deploy + the
-  curated demo event — see "Blocked on a human".)_
+  "Interactive demo"). **Verified via the gate + Preview MCP AND live on partyreel.com (Chrome MCP)**:
+  typecheck/lint/**150 tests**/build green with the env UNSET; on prod (pointed at the Share Step Test event)
+  the home CTA + `/features` real QR render, tapping the QR → demo event with banner + curated media, the
+  just-in-time name prompt → a simulated upload prepended a `blob:` tile that **Supabase confirmed wrote zero
+  new `media`/`guests` rows**, gone on refresh (console + network clean). Caught + fixed a real bug pre-deploy:
+  the new public env var was added to the `env.ts` schema but not its `parsePublic()` reader, so it would've
+  stayed `undefined` in prod. **Forward copy policy: no em-dashes in site/app copy** (CLAUDE.md + memory).
+  Next: **R4 — event landing pages retrofit** (distinct frame per type + the event-page body-copy em-dash
+  scrub). _(R3 is wired to the **Share Step Test** event as a stand-in; swapping in a curated event with catchy
+  media is a pre-launch polish item, not a blocker.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
@@ -106,7 +108,9 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   `EMAIL_FROM` + a sending domain are set (a test email arrives + doesn't re-send; the
   grace/renewal/inactivity transitions fire).
 - _(Test data on prod is disposable — host test account `willg97@gmail.com` with one "Share Step
-  Test" event holding 3 seeded test media from verification; operator/admin `hi@willgibs.com`.)_
+  Test" event holding 3 seeded test media from verification; operator/admin `hi@willgibs.com`. **Note:** that
+  event currently backs the live demo (`NEXT_PUBLIC_DEMO_QR_TOKEN` = its `qr_token`), so repoint the env var
+  before deleting/repurposing it.)_
 
 ## Blocked on a human ("manual instrument")
 
@@ -118,10 +122,11 @@ The agent can't do these — they need a human in a dashboard:
   vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
   [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_
 - **`MONTHLY_INGRESS_BYTES.pro`** is still `null` (unmetered) — tune it before Pro launch.
-- **The interactive-demo event (polish-arc R3)** — create a normal event, make it **public +
-  accepting uploads**, populate it with catchy **approved** media, grab its `qr_token`, and set
-  `NEXT_PUBLIC_DEMO_QR_TOKEN` to it in **Vercel** (+ `.env.local` for local dev). Until then the demo is
-  env-gated **off** everywhere (decorative QR, no CTA, no demo mode) — the code is shipped + Preview-verified.
+- **The interactive-demo event (polish-arc R3) — _pre-launch polish, NOT blocking._** `NEXT_PUBLIC_DEMO_QR_TOKEN`
+  is set in Vercel + deployed, pointed at the **Share Step Test** event as a stand-in (live-tested). Before
+  launch, swap it to a dedicated event with **catchy approved media** (public + accepting uploads) — its mostly
+  test media (a couple solid-color photos + a color-bars video that shows black until played) is fine for now
+  but not the showcase you want. Just update the env var to the new event's `qr_token` (+ `.env.local`).
 - **Supabase CLI** isn't installed locally; migrations are applied via the **Supabase MCP**
   (`apply_migration`). To use `pnpm db:types` / `db:push`, install the CLI +
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.

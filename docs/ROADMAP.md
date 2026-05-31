@@ -80,8 +80,9 @@ details beyond a template feel.
    `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change); the `/e/[qr_token]` guest page runs in **demo mode**:
    "uploads" are simulated client-side (optimistic `createObjectURL` tile, never persisted), reusing the
    existing optimistic-tile path. `QrFrame` renders a real scannable QR (`liveQrUrl`) + a "Try the live demo"
-   home CTA. Env-gated (decorative when unset). _Built + Preview-verified (gate green with the env unset;
-   simulated upload wrote **zero** DB rows); **deploy + the curated demo event pending a human** (STATUS)._
+   home CTA. Env-gated (decorative when unset). _Built + verified via the gate + Preview MCP + **live on
+   partyreel.com** (simulated upload wrote **zero** DB rows, Supabase-confirmed); **deployed**, pointed at the
+   Share Step Test event as a stand-in. Pre-launch: swap in a curated event with catchy media (STATUS)._
 4. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
    conferences → QR, trips → reel); vary the "Built for X" grid; scrub the event-page body copy of
    em-dashes; richer Events hub. **← next**
