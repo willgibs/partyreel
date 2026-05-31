@@ -119,8 +119,11 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Brand accent (warm coral-rose). L tuned for AA-ish white text on the button bg. */
-  --brand: oklch(0.585 0.196 18);
+  /* Brand accent = #FB4817 (vivid orange-red). The ONE non-grayscale UI color — used to
+     PUNCTUATE (logo, key CTAs, active state), never splashed across surfaces; media supplies the
+     rest of the color. White foreground reads ~3.5:1, so reserve brand-bg text for large/bold
+     (CTA) sizes. Marketing may lean on it a bit more than the app, but from this same token. */
+  --brand: oklch(0.6568 0.222 34.66);
   --brand-foreground: oklch(0.985 0 0);
 
   /* Gallery canvas — identical in light & dark (media-first, theme-independent). */
@@ -163,8 +166,8 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
-  /* Slightly brighter so the accent still reads against dark surfaces. */
-  --brand: oklch(0.62 0.196 18);
+  /* Slightly brighter so #FB4817 still reads against dark surfaces. */
+  --brand: oklch(0.69 0.215 34.66);
   --brand-foreground: oklch(0.985 0 0);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */

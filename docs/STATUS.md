@@ -19,11 +19,22 @@ lightbox + per-item download, and the **unified live guest event page** (live po
 in-page share). Full map in [`SYSTEMS.md`](SYSTEMS.md). Canonical domain **partyreel.com**; R2 bucket `partyreel`
 provisioned (CORS `ExposeHeaders: ETag` + abort-incomplete-multipart rule).
 
-**Only scaffolded:** Phase 5 — the highlight reel (DB scaffold only; deliberately tabled
-pending a product + architecture decision — see ROADMAP).
+**Only scaffolded:** Phase 5 — the highlight reel (DB scaffold only; the *build* stays tabled
+pending a product + architecture decision — see ROADMAP). Its **marketing framing is now
+confirmed** (2026-05-31): a core value prop — an auto-compiled, host-customizable, shareable/
+downloadable reel of the event's favorite moments — featured as such on the new site.
 
 ## In flight / pending verification
 
+- **Marketing site full build-out — Round 1 (foundation) done locally, NOT yet deployed.**
+  Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
+  / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
+  landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header
+  (dropdown-capable) + a real mobile `Sheet` menu (there was none), a multi-column footer,
+  Org/Website JSON-LD + a shared `SITE_URL`/brand constant, and two **global, shared-with-the-app**
+  changes — the **#FB4817** accent (replaces the old coral) + a wider `Container` (`max-w-7xl`).
+  Verified via Preview MCP (accent = exact `rgb(251,72,23)`, desktop nav + mobile Sheet + footer,
+  no console errors; typecheck/lint/109 tests clean). Rounds 2–7 next.
 - **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
   header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
   host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native

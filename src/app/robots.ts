@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { env } from "@/lib/env";
-
-const base = env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com";
+import { SITE_URL } from "@/lib/constants/site";
 
 // Allow the marketing site; disallow the gated host app and the opaque
 // capability-token surfaces. /a/ and /e/ still emit OG tags so a shared link
@@ -23,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",
       ],
     },
-    sitemap: `${base}/sitemap.xml`,
-    host: base,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

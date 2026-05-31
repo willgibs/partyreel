@@ -165,6 +165,21 @@ report dialog on the public album. Operator review at **`/admin`** (gated by
 `profiles.is_admin`) — dismiss/action. `reports` is RLS **deny-all** (operator-internal). v1 is
 reports/review only — **no scanner/NSFW filter** (v2+).
 
+## Marketing site
+
+Public `(marketing)` route group on the shared domain. Nav is a single source
+([marketing-nav.ts](../src/lib/constants/marketing-nav.ts)) consumed by the config-driven
+[marketing-header.tsx](../src/components/marketing/marketing-header.tsx) (desktop dropdowns + a
+mobile `Sheet` menu — both in the client [marketing-nav.tsx](../src/components/marketing/marketing-nav.tsx))
+and the multi-column [marketing-footer.tsx](../src/components/marketing/marketing-footer.tsx); both
+render only **live** routes and grow per round. SEO: Org/Website/Breadcrumb JSON-LD
+([jsonld.tsx](../src/components/marketing/jsonld.tsx)) + a single `SITE_URL`/brand constant
+([site.ts](../src/lib/constants/site.ts)) now shared by `sitemap.ts` / `robots.ts` / root
+`metadataBase`. **Brand = the app's design system turned up**: grayscale UI + the single `#FB4817`
+accent (`--brand`), media is the color; marketing runs louder via type/layout/motion only (motion
+follows the in-repo `emil-design-eng` skill). Being expanded to a full site (Features / Use cases /
+Help / Contact / Careers / Blog) — see ROADMAP.
+
 ## Growth loop
 
 Branded share pages + a `MakeYourOwn` "make your own Partyreel" CTA on the album + post-upload

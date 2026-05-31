@@ -1,3 +1,7 @@
+import {
+  OrganizationJsonLd,
+  WebsiteJsonLd,
+} from "@/components/marketing/jsonld";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 
@@ -13,6 +17,8 @@ export default function MarketingLayout({
 }) {
   return (
     <>
+      <OrganizationJsonLd />
+      <WebsiteJsonLd />
       <MarketingHeader />
       <main className="flex-1">{children}</main>
       <MarketingFooter />

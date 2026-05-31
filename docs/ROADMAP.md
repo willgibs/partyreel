@@ -25,6 +25,27 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
    MCP to seed/inspect state — test data is disposable).
 7. **Record** — advance STATUS + the SYSTEMS entry + this backlog + any ADR, same change.
 
+## 🚧 In progress — marketing site full build-out
+
+Expanding the scaffolded marketing site into a launch-ready, "as-if-complete" site (plan:
+`.claude/plans/we-have-a-limited-binary-blum.md`). One shared design system with the app —
+grayscale UI + the single **#FB4817** accent, media is the color; marketing just runs louder
+(type/layout/motion). Motion follows the in-repo `emil-design-eng` skill. 7 rounds:
+
+1. ✅ **Foundation** — `marketing-nav.ts` single-source; config-driven header (dropdowns) + a
+   real mobile `Sheet` menu (there was none); multi-column footer; Org/Website/Breadcrumb
+   JSON-LD + a shared `SITE_URL`/brand constant; **#FB4817** accent + wider `Container`
+   (`max-w-7xl`) — both global, shared with the app.
+2. Features page (`/features`) + `features.ts` single-source; elevate the highlight-reel teaser
+   to a marquee capability (per the confirmed core-value-prop framing).
+3. Use cases — `/use-cases` hub + 4 umbrella landing pages (weddings / parties / conferences /
+   trips) with per-page OG + breadcrumb/FAQ JSON-LD.
+4. Contact — form → `contact_submissions` (deny-all RLS) + Resend notify (the marketing-form
+   pattern).
+5. Careers — listings (seed: General Application) → `job_applications`.
+6. Help center — MDX pipeline (`content/help/*.mdx`) + ~8–12 launch articles.
+7. Blog — MDX posts + RSS.
+
 ## ⏸️ Tabled — needs a product + architecture decision first
 
 - **Highlight reel (Phase 5)** — stitch a highlight reel from the best clips (core-loop step 5).

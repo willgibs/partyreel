@@ -4,7 +4,7 @@ import "./globals.css";
 
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
-import { env } from "@/lib/env";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
 // Font CSS variables must match the names referenced in globals.css `@theme`
 // (--font-sans / --font-mono). Renaming one side without the other silently
@@ -26,16 +26,15 @@ const geistMono = Geist_Mono({
 // `title` (incl. the "%s · Partyreel" template) and `description` per route, so a
 // child page's title flows into its share card automatically.
 export const metadata: Metadata = {
-  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Partyreel",
-    template: "%s · Partyreel",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Collect every photo and video from your event. Guests scan a QR code and upload in seconds — no app, no account.",
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
-    siteName: "Partyreel",
+    siteName: SITE_NAME,
     locale: "en_US",
   },
   twitter: {
