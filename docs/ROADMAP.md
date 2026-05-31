@@ -58,9 +58,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   hover/quick-download** on the grid. If galleries get huge, switch the download URL from the
   current up-front per-item presign to a **lazy/route-based presign** (dovetails with the deferred
   large-gallery read-proxy noted in `lib/r2/presign.ts`).
-- **Guest post-upload visibility** — let a returning guest see what they (and others) uploaded, with
-  attribution, instead of vanishing after the progress spinner. Pairs with the album lightbox
-  (reuse the shared `MediaLightbox`); needs a session-token-scoped guest-album read.
+- **Guest gallery follow-ups** — the unified live guest event page **shipped** (`/e/[qr_token]`:
+  guests now see + add to a live polling gallery + share the join link). Remaining: **per-photo
+  attribution** (uploader display-name on tiles — `get_event_media_by_qr_token` + `get_public_album`
+  would return `guest.display_name`), and the deferred **"email me the album" auto-send** (reuse
+  `sendOnce`; blocked on Resend). Also: a true file-picker upload e2e for the optimistic-tile path
+  couldn't be driven via the Chrome MCP (client-only logic, verified locally) — reconfirm on a real
+  device when convenient.
 
 ## v2+ docket (post-core, bigger)
 

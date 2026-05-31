@@ -489,6 +489,37 @@ keyboard or Dismiss it.
   lightbox. On the host grid the moderation buttons are SIBLINGS of that button (not children), so
   tapping a control never opens the lightbox — no `stopPropagation` needed.
 
+**Phase 6 — unified guest event page (`/e/[qr_token]`) gotchas**
+
+- **`is_public` is now a MASTER LOCK on the guest page, not just album visibility.** Off → the
+  `/e/` page renders a private/locked screen (no name, gallery, OR upload) — this intentionally
+  retired the old "collect privately" combo (public-off + accepting-on). `generateMetadata` also
+  hides the name for a private event (no unfurl leak). `accepting_uploads` is the separate
+  upload-only gate (public + accepting-off = gallery + a disabled "Uploads disabled" control).
+- **New 8th anon capability RPC `get_event_media_by_qr_token`** — approved media, newest-first,
+  **`is_public`-gated** (qr_token IS the capability; mirrors `get_public_album` but qr-keyed +
+  media-only). It MUST appear in the `get_advisors` anon list (accepted by design, now 8 RPCs).
+  `get_event_by_qr_token` gained `qr_style` (return-shape change → DROP+CREATE+**re-grant**).
+  **No `share_token` is exposed to the guest page** — the in-page share is the JOIN link, the
+  gallery is qr-keyed (capability split intact); the `/a/[share_token]` album stays separate.
+- **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
+  poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
+  re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and
+  only presigns genuinely-new items (caught in local verification via the network panel). Poll pauses
+  on `document.hidden`. (Kept URLs can expire after the 1 h TTL on a >1 h-open session — acceptable.)
+- **Optimistic uploads only for LIVE mode.** A completed upload prepends a local-`createObjectURL`
+  tile (deduped against the poll by media id via `mergeGalleryItems`, then the blob is revoked) — but
+  ONLY when `create_media` returned `approved`. Hold-for-approval items stay pending (the upload list
+  shows their status); don't fake them into the public gallery.
+- **Just-in-time join (no upfront gate).** The gallery is public, so a first-time guest picks files
+  FIRST, then a lightweight name prompt appears ([guest-upload.tsx](src/components/guest/guest-upload.tsx)).
+  The session can flip null→token while the panel is mounted, so the queue reads a `sessionRef`
+  (synced in an effect — `react-hooks/refs` forbids writing refs in render).
+- **Motion (emil-design-eng skill):** custom `--ease-emphasis` token in `globals.css` (the built-in
+  CSS easings are too weak); gallery tiles fade+rise on ENTER via `@starting-style` + `[data-media-tile]`
+  (transform/opacity only, `prefers-reduced-motion`-safe), so a guest's just-uploaded photo visibly
+  lands at the top; `active:scale` press feedback on tiles/dropzone. Keep UI motion < 300 ms.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force
@@ -571,10 +602,11 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` flags the 7 capability-token RPCs as ACCEPTED BY DESIGN — do not
+**`get_advisors` flags the 8 capability-token RPCs as ACCEPTED BY DESIGN — do not
 "fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
 `create_guest`, `create_media`, `get_upload_context` (Phase 2), `create_report`
-(Phase 3), and `capture_guest_email` (Phase 6 — guest email capture) as SECURITY
+(Phase 3), `capture_guest_email` (Phase 6 — guest email capture), and
+`get_event_media_by_qr_token` (Phase 6 — unified guest event page) as SECURITY
 DEFINER functions executable by `anon` (and `authenticated`).
 That is intentional: the opaque token IS the authorization (ADR-0004). Revoking
 their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only

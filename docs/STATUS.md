@@ -14,8 +14,9 @@ complete — the project is now in **one-off task mode** (a goal → its own sma
 verify on partyreel.com → record). Shipped + live-verified: host auth, the create wizard + QR
 designer + first-time welcome, guest join/upload, galleries, moderation + the purge-cron
 lifecycle, the storage-cap tier model + Stripe (Pro subs, Event Pass, portal), the growth loop
-(branded share/SEO/guest email capture), link analytics, and the notification center. Full map
-in [`SYSTEMS.md`](SYSTEMS.md). Canonical domain **partyreel.com**; R2 bucket `partyreel`
+(branded share/SEO/guest email capture), link analytics, the notification center, the album
+lightbox + per-item download, and the **unified live guest event page** (live polling gallery +
+in-page share). Full map in [`SYSTEMS.md`](SYSTEMS.md). Canonical domain **partyreel.com**; R2 bucket `partyreel`
 provisioned (CORS `ExposeHeaders: ETag` + abort-incomplete-multipart rule).
 
 **Only scaffolded:** Phase 5 — the highlight reel (DB scaffold only; deliberately tabled
@@ -23,21 +24,22 @@ pending a product + architecture decision — see ROADMAP).
 
 ## In flight / pending verification
 
-- **Album lightbox + per-item download** — **shipped + deployed** (commit `8a4f3ae`). Verified:
-  lightbox open / ←→ nav / Esc close + photo & video on desktop and mobile (local); and on
-  **partyreel.com** the live album serves the tile buttons + presigned `attachment` download URLs, with
-  R2 returning `Content-Disposition: attachment; filename="…"` (curl-confirmed against a prod-generated
-  URL). **Remaining (Will, needs a signed-in session):** a glance at the **host-gallery** lightbox +
-  Save on the event page (`willg97@gmail.com`) — same shared component, shipped in the same build.
-  _(Two seeded test media — 1 photo, 1 video — sit in the "Share Step Test" album from verification;
-  disposable, fine to delete.)_
+- **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
+  header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
+  host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native
+  Share (feature-detected) + the **live poll** (an injected approved photo appeared at the top
+  within ~12 s, no reload) + the QR-enlarge dialog; and on localhost the **3-state matrix**
+  (private-lock / accepting-off / full), the lightbox, and the optimistic-upload path. _(Real
+  file-picker uploads can't be driven via the Chrome MCP — the optimistic-tile path is client-only
+  logic, verified locally.)_ The album lightbox + per-item download (commit `8a4f3ae`) is also
+  fully verified, incl. the host-gallery lightbox + Save while signed in.
 - **The email-driven lifecycle flows are deployed but NOT yet live-verified** — over-capacity
   grace→auto-reduce, the Event-Pass renewal nudge ($15 checkout), and free-tier inactivity
   warn/remove all send via Resend, which **isn't configured yet** (see below). Verify each once
   `EMAIL_FROM` + a sending domain are set (a test email arrives + doesn't re-send; the
   grace/renewal/inactivity transitions fire).
-- _(Test data on prod is disposable — current host test account is `willg97@gmail.com` with one
-  "Share Step Test" event; the operator/admin account is `hi@willgibs.com`.)_
+- _(Test data on prod is disposable — host test account `willg97@gmail.com` with one "Share Step
+  Test" event holding 3 seeded test media from verification; operator/admin `hi@willgibs.com`.)_
 
 ## Blocked on a human ("manual instrument")
 

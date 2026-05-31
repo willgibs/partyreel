@@ -74,20 +74,34 @@ single-sourced with the marketing page ([how-it-works.ts](../src/lib/constants/h
 
 ## Guest join + upload (the core loop)
 
-`/e/[token]` ([page](../src/app/(guest)/e/[token]/page.tsx)) — a scanned QR lands here; the
-opaque `qr_token` IS the authorization (ADR-0004), validated inside SECURITY DEFINER RPCs.
-`create_guest` issues a `session_token` (localStorage, returning-guest). Upload goes **browser
-→ R2 direct** (single PUT < 100 MB else multipart) via `/api/r2/presign-upload` (builds the R2
-key server-side) + `/api/r2/complete-upload`; `create_media` RPC writes the row + ledger +
-enforces caps; `get_upload_context` is the presign-time pre-check. R2 client/presign:
-[src/lib/r2/](../src/lib/r2/) (checksum-safe config — see CLAUDE gotcha).
+`/e/[token]` ([page](../src/app/(guest)/e/[token]/page.tsx)) — the scanned-QR landing page is one
+**unified, formal event page** ([event-experience.tsx](../src/components/guest/event-experience.tsx)):
+minimal header (logo + a quiet "start for free" CTA) + the event header + easy upload at the top, a
+**live gallery** below, and an in-page **QR + share**. The opaque `qr_token` IS the authorization
+(ADR-0004). **State follows the host's flags:** `is_public=false` → a **private/locked screen**
+(master lock — no name/gallery/upload); `is_public=true` → the full experience;
+`accepting_uploads=false` → gallery + a disabled "Uploads disabled" control
+([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time** — a
+first-time guest picks files, THEN gives a name (no upfront gate; the gallery is public).
+`create_guest` issues a `session_token` (localStorage, returning-guest). Upload is **browser → R2
+direct** (single PUT < 100 MB else multipart) via `/api/r2/presign-upload` + `/api/r2/complete-upload`;
+`create_media` writes the row + ledger + enforces caps; `get_upload_context` is the presign-time
+pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guests/gallery` every
+~12 s** (paused when the tab is hidden) + refetches on each upload; a guest's own LIVE uploads show
+**optimistically** at the top (local blob, deduped against the poll by media id —
+[merge-gallery-items.ts](../src/lib/guest/merge-gallery-items.ts)). Gallery media come from the new
+**`get_event_media_by_qr_token`** RPC (approved, newest-first, `is_public`-gated — the 8th anon
+capability RPC); it's qr-keyed (the share-token `/a/` album is separate + unchanged). The in-page
+**share = the JOIN link** ([guest-share.tsx](../src/components/guest/guest-share.tsx)), so invited
+guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2/](../src/lib/r2/)).
 
 ## Galleries
 
-Host live gallery on the event page + public album **`/a/[token]`** (approved-only). Both
-**presign R2 keys server-side** (`presignDownload`, 1 h TTL) and are `force-dynamic`; raw R2
-keys/URLs are NEVER exposed to the browser (ADR-0003). The album uses the always-dark `gallery`
-surface so media is the hero. Tiles open a shared **lightbox**
+**Three surfaces share `MediaGrid` + the lightbox:** the host event page, the public album
+**`/a/[token]`** (approved-only), and the **guest event page `/e/[token]`** (live + polling — see
+"Guest join"). All **presign R2 keys server-side** (`presignDownload`, 1 h TTL; via the shared
+`toGridItems`) and are `force-dynamic`; raw R2 keys/URLs are NEVER exposed to the browser (ADR-0003).
+The album uses the always-dark `gallery` surface so media is the hero. Tiles open a shared **lightbox**
 ([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
 keyboard nav, video playback, and a **Save** that downloads the original. **Download = a SECOND
 presign of the same key with `ResponseContentDisposition: attachment`** (`presignDownload`'s
@@ -197,10 +211,10 @@ product + architecture decision (worker platform) — see ROADMAP.
   Re-verify authz with `getUser()` in every Server Function/route AND rely on RLS / SECURITY
   DEFINER RPCs at the DB.
 - **Anonymous guests use capability tokens** (ADR-0004) validated inside SECURITY DEFINER RPCs;
-  `anon` never gets direct table access. The **7 anon capability-token RPCs**
+  `anon` never gets direct table access. The **8 anon capability-token RPCs**
   (`get_event_by_qr_token`, `get_public_album`, `create_guest`, `create_media`,
-  `get_upload_context`, `create_report`, `capture_guest_email`) show as advisor WARNs **by
-  design — do NOT revoke** (see CLAUDE.md "get_advisors").
+  `get_upload_context`, `create_report`, `capture_guest_email`, `get_event_media_by_qr_token`)
+  show as advisor WARNs **by design — do NOT revoke** (see CLAUDE.md "get_advisors").
 - **Service-role-locked RPCs** (`purge_media_rows`, `record_link_hit`) must stay REVOKED from
   anon/authenticated — they must NEVER appear in the anon advisor list.
 - **Table RLS shapes:** deny-all (operator/service-role-only) = `reports`, `sent_emails`,
