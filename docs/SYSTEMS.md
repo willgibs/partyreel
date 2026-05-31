@@ -199,10 +199,21 @@ Contact CTA. Articles use first-party MDX components ([mdx-components.tsx](../sr
 — `Callout`, `AlbumShowcase`, and inline **spec components** that read the `limits.ts`/`tiers.ts` single
 sources so numbers can't drift — styled by a `prose-help` `@tailwindcss/typography` theme whose colors
 point at design tokens (auto-adapts to dark, no `prose-invert`); heading ids + the TOC share one in-repo
-`slugify`. See [ADR-0006](adr/0006-mdx-content-pipeline.md). **Round 7 (Blog) reuses this pipeline.**),
+`slugify`. See [ADR-0006](adr/0006-mdx-content-pipeline.md). The generic core was extracted to
+[content/collection.ts](../src/lib/content/collection.ts) so the blog reuses it.), **`/blog`** (+
+`/blog/[slug]`) — the **second consumer** of the pipeline via [blog.ts](../src/lib/content/blog.ts) on
+the shared [collection.ts](../src/lib/content/collection.ts) core (`loadCollection` + `slugify` +
+`extractHeadings` + `readingTime` + `escapeXml`): a date-sorted index with a **client-side tag filter**,
+per-post pages (byline from a **client-safe** [authors.ts](../src/lib/content/authors.ts) registry —
+default `partyreel-team`, named `will-gibson` for human-voice posts — + reading time, TOC, related
+posts, **Article JSON-LD with a `Person` author**, a per-post `next/og` card), and a **build-static
+RSS 2.0 feed** at `/blog/feed.xml` (`dynamic="force-static"`, hand-rolled, no dep; the pure
+`buildBlogRssXml` takes its site config as a param so it stays out of the env-validating `site.ts` +
+is unit-tested). `draft: true` posts are excluded from listing/sitemap/RSS. 4 launch posts.),
 `/pricing`, legal. The header **`Resources ▾`** dropdown + footer **Resources** column group Help +
-Contact (Company → Careers). OG brand color is single-sourced as `BRAND_HEX` in `site.ts` (satori needs
-a literal hex). Last marketing round left: Blog — see ROADMAP.
+**Blog** + Contact (Company → Careers). OG brand color is single-sourced as `BRAND_HEX` in `site.ts`
+(satori needs a literal hex). **The 7-round marketing build-out is complete** — the remaining tracked
+follow-up is the Features/Use-cases quality uplift + a media-frame component library (ROADMAP).
 
 ## Growth loop
 

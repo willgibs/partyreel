@@ -81,8 +81,8 @@ describe("marketing nav config", () => {
     expect(hrefs).not.toContain("/contact");
   });
 
-  it("Resources surfaces Help + Contact in both the header group and footer column", () => {
-    const expected = ["/help", "/contact"];
+  it("Resources surfaces Help + Blog + Contact in both the header group and footer column", () => {
+    const expected = ["/help", "/blog", "/contact"];
     const group = PRIMARY_NAV.find(
       (item) => isNavGroup(item) && item.label === "Resources",
     );

@@ -25,12 +25,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
    MCP to seed/inspect state — test data is disposable).
 7. **Record** — advance STATUS + the SYSTEMS entry + this backlog + any ADR, same change.
 
-## 🚧 In progress — marketing site full build-out
+## ✅ Done — marketing site full build-out (all 7 rounds)
 
-Expanding the scaffolded marketing site into a launch-ready, "as-if-complete" site (plan:
-`.claude/plans/we-have-a-limited-binary-blum.md`). One shared design system with the app —
-grayscale UI + the single **#FB4817** accent, media is the color; marketing just runs louder
-(type/layout/motion). Motion follows the in-repo `emil-design-eng` skill. 7 rounds:
+Expanded the scaffolded marketing site into a launch-ready, "as-if-complete" site. One shared
+design system with the app — grayscale UI + the single **#FB4817** accent, media is the color;
+marketing just runs louder (type/layout/motion). Motion follows the in-repo `emil-design-eng`
+skill. All 7 rounds shipped (R1–R6 deployed + live-tested; R7 built + verified, deploy pending):
 
 1. ✅ **Foundation** — `marketing-nav.ts` single-source; config-driven header (dropdowns) + a
    real mobile `Sheet` menu (there was none); multi-column footer; Org/Website/Breadcrumb
@@ -42,7 +42,7 @@ grayscale UI + the single **#FB4817** accent, media is the color; marketing just
 4. ✅ **Contact** — form → `contact_submissions` (deny-all RLS) + best-effort Resend notify
    (ADR-0005); deployed + Chrome-tested live (happy path, validation, honeypot, XSS-escaping).
 5. ✅ **Careers** — mission-focused hub + 2 roles (General Application + a fully-specified Reels
-   Engineer) → `job_applications` (same pattern). _(Built + locally verified; deployed-Chrome test pending.)_
+   Engineer) → `job_applications` (same pattern); deployed + Chrome-tested live.
 6. ✅ **Help center** (`/help` + `/help/[slug]`) — new in-repo **MDX content pipeline**
    (`content/help/*.mdx` + gray-matter + `next-mdx-remote/rsc` + build-time zod frontmatter validation;
    [ADR-0006](adr/0006-mdx-content-pipeline.md)); categorized index + client-side search; **12 launch
@@ -50,12 +50,17 @@ grayscale UI + the single **#FB4817** accent, media is the color; marketing just
    first-party MDX components (Callout / AlbumShowcase / inline limits-tiers spec components) + a
    `prose-help` typography theme; `Resources ▾` header dropdown + footer column (Help + Contact). No DB
    changes. **R7 reuses this pipeline.**
-7. **Blog** — MDX posts + RSS (reuses the R6 `content/` pipeline; add a `content/blog` collection). **← next**
+7. ✅ **Blog** (`/blog` + `/blog/[slug]`) — the FINAL round. Reused the R6 pipeline via a generalized
+   **`content/collection.ts`** core (`help.ts`/`blog.ts` are thin wrappers); a date-sorted index with a
+   **client-side tag filter**, per-post pages (named-author byline, reading time, TOC, related, per-post
+   `next/og` card, Article JSON-LD with a `Person` author), and a **build-static RSS 2.0 feed**
+   (`/blog/feed.xml`, hand-rolled, no dep). A client-safe **authors registry** + **4 launch posts**; Blog
+   joins the `Resources ▾` nav. No DB changes.
 
-**Quality follow-up (deferred, tracked):** retrofit Features + the use-case sections (currently
-repetitive card grids) with a reusable **media-frame component library** (phone / QR / gallery / reel
-frames alongside `album-frame`) + varied section layouts, to match home's richness. Going forward each
-round gets its **own focused plan file**; the all-rounds plan is retired.
+**The 7-round build-out is complete.** **Quality follow-up (deferred, tracked):** retrofit Features +
+the use-case sections (currently repetitive card grids) with a reusable **media-frame component library**
+(phone / QR / gallery / reel frames alongside `album-frame`) + varied section layouts, to match home's
+richness. _(Each round got its own focused plan file; the all-rounds plan is retired.)_
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

@@ -47,5 +47,11 @@ CMS for a small, curated, engineering-authored knowledge base.
 - The loader reads `node:fs`, so it is server/build-only **by construction**. The client
   search component receives plain metadata via props and uses `import type` for the shared
   types, keeping `fs` out of the client bundle.
-- **Round 7 (Blog) reuses this pipeline** — a `content/blog` collection beside `content/help`
-  plus an RSS feed — so the infrastructure cost is amortized across two rounds.
+- **Round 7 (Blog) reused this pipeline.** The generic core was extracted to
+  [`src/lib/content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` +
+  `slugify`/`extractHeadings` + `readingTime` + `escapeXml`); `help.ts` and `blog.ts` are now thin
+  wrappers that add a schema + sort. Blog added a `content/blog` collection, a client-safe
+  named-author registry ([`authors.ts`](../../src/lib/content/authors.ts)), and a **hand-rolled,
+  build-static RSS 2.0 feed** (`/blog/feed.xml`, `dynamic = "force-static"`, no new dependency — the
+  pure `buildBlogRssXml` takes its site config as a param so it stays out of the env-validating
+  `site.ts` and is unit-testable). Infrastructure cost amortized across the two rounds.

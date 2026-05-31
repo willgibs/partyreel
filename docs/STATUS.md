@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing site full build-out — Rounds 1–6 built; 1–5 deployed + live-tested on partyreel.com; Round 6 (Help) built + locally verified, deploy + spot-check pending.**
+- **Marketing site full build-out COMPLETE — all 7 rounds. R1–R6 deployed + live-tested on partyreel.com; Round 7 (Blog) built + locally verified, deploy + spot-check pending.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
   landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header
@@ -60,11 +60,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   JSON-LD, Contact CTA); **12 launch articles**; first-party MDX components (Callout / AlbumShowcase /
   inline **spec components** reading the limits/tiers single sources) + a `prose-help`
   `@tailwindcss/typography` theme; a header **`Resources ▾`** dropdown + footer column (Help + Contact;
-  Company → Careers). **No DB changes this round.** **Built + verified via Preview MCP** (index + search
-  + empty state, an article's prose/specs/TOC/related/CTA, 404 on a bad slug, dark-mode prose, no console
-  errors; typecheck/lint/**137 tests**/build all clean); deploy + a Chrome spot-check are the only
-  remaining step. **Round 7 (Blog) is the last, and reuses the R6 pipeline.** _(Quality follow-up tracked
-  in ROADMAP: a Features/Use-cases polish pass + a reusable media-frame library.)_
+  Company → Careers). **No DB changes.** **Deployed + Chrome-tested live on partyreel.com** — index +
+  search (results/empty), articles' prose/specs/TOC-anchors/related/JSON-LD, 404, dark mode, mobile
+  Sheet, sitemap; one papercut caught + fixed live (`scroll-mt-24` so TOC jumps clear the sticky header).
+  **Round 7 (Blog) — the FINAL round** — shipped **`/blog`** (date-sorted index + a client-side **tag
+  filter**) + **`/blog/[slug]`** posts (byline from a client-safe **named-author registry** —
+  `partyreel-team` default + `will-gibson`; reading time; TOC; related; per-post `next/og` card; **Article
+  JSON-LD with a `Person` author**) + a **build-static RSS 2.0 feed** (`/blog/feed.xml`,
+  `dynamic="force-static"`, hand-rolled, no dep), all reusing the R6 pipeline via a generalized
+  **`collection.ts`** core (`help.ts`/`blog.ts` are now thin wrappers). **4 launch posts**; Blog joins the
+  **`Resources ▾`** header dropdown + footer column. **No DB changes.** **Built + verified via Preview MCP
+  + the full gate** (typecheck/lint/**148 tests**/build — build SSGs `/blog`, the 4 posts, their OG cards,
+  and the feed); deploy + a Chrome spot-check pending. **The 7-round marketing build-out is complete.**
+  _(Remaining tracked follow-up in ROADMAP: a Features/Use-cases quality uplift + a reusable media-frame
+  component library.)_
 - **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
   header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
   host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native

@@ -37,6 +37,7 @@ export const PRIMARY_NAV: NavItem[] = [
     label: "Resources",
     children: [
       { label: "Help center", href: "/help" },
+      { label: "Blog", href: "/blog" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -69,6 +70,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     title: "Resources",
     links: [
       { label: "Help center", href: "/help" },
+      { label: "Blog", href: "/blog" },
       { label: "Contact", href: "/contact" },
     ],
   },

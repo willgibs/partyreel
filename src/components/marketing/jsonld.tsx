@@ -71,6 +71,7 @@ export function ArticleJsonLd({
   path,
   datePublished,
   dateModified,
+  authorName,
 }: {
   headline: string;
   description: string;
@@ -78,6 +79,8 @@ export function ArticleJsonLd({
   path: string;
   datePublished?: string;
   dateModified?: string;
+  /** A named human author (blog posts) → `author` becomes a Person; else the Org. */
+  authorName?: string;
 }) {
   const url = `${SITE_URL}${path}`;
   const org = { "@type": "Organization", name: SITE_NAME, url: SITE_URL };
@@ -88,7 +91,7 @@ export function ArticleJsonLd({
         "@type": "Article",
         headline,
         description,
-        author: org,
+        author: authorName ? { "@type": "Person", name: authorName } : org,
         publisher: {
           ...org,
           logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.svg` },
@@ -96,6 +99,31 @@ export function ArticleJsonLd({
         ...(datePublished ? { datePublished } : {}),
         ...(dateModified ? { dateModified } : {}),
         mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      }}
+    />
+  );
+}
+
+// Blog collection node for the /blog index — lists each post as a BlogPosting so
+// search engines understand the feed. Posts are our own content → safe to inline.
+export function BlogJsonLd({
+  posts,
+}: {
+  posts: { title: string; slug: string; date: string }[];
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        name: `${SITE_NAME} Blog`,
+        url: `${SITE_URL}/blog`,
+        blogPost: posts.map((post) => ({
+          "@type": "BlogPosting",
+          headline: post.title,
+          url: `${SITE_URL}/blog/${post.slug}`,
+          datePublished: post.date,
+        })),
       }}
     />
   );

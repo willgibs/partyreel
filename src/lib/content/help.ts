@@ -1,7 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-
-import matter from "gray-matter";
 import {
   CreditCard,
   Film,
@@ -13,6 +9,13 @@ import {
 } from "lucide-react";
 import { cache } from "react";
 import { z } from "zod";
+
+import { type CollectionEntry, loadCollection } from "./collection";
+
+// Re-export the generic content helpers so existing importers of help.ts (the shared
+// MDX components, the article page, the test) keep their import paths unchanged.
+export { extractHeadings, slugify } from "./collection";
+export type { ArticleHeading } from "./collection";
 
 // ── Help-center content pipeline ────────────────────────────────────────────────
 // In-repo MDX collection: `content/help/*.mdx`. gray-matter parses + lists frontmatter
@@ -101,41 +104,25 @@ export const helpFrontmatterSchema = z.object({
 
 export type HelpFrontmatter = z.infer<typeof helpFrontmatterSchema>;
 
-export type HelpArticle = {
-  slug: string;
-  frontmatter: HelpFrontmatter;
-  /** MDX body with frontmatter already stripped (gray-matter `content`). */
-  body: string;
-};
+export type HelpArticle = CollectionEntry<HelpFrontmatter>;
 
-const HELP_DIR = path.join(process.cwd(), "content", "help");
 const categoryOrder = new Map(HELP_CATEGORIES.map((c, i) => [c.slug, i]));
 
 // cache(): one filesystem read per render, shared by the page + generateMetadata +
 // JSON-LD (the pattern the guest queries use). Sorted by category order, then the
 // per-article `order`, then title — so the index + sitemap are deterministic.
 export const getAllArticles = cache((): HelpArticle[] => {
-  const files = fs
-    .readdirSync(HELP_DIR)
-    .filter((file) => file.endsWith(".mdx"));
-
-  const articles = files.map((file): HelpArticle => {
-    const slug = file.replace(/\.mdx$/, "");
-    const raw = fs.readFileSync(path.join(HELP_DIR, file), "utf8");
-    const { data, content } = matter(raw);
-    const frontmatter = helpFrontmatterSchema.parse(data);
-    return { slug, frontmatter, body: content };
-  });
-
-  return articles.sort((a, b) => {
-    const byCategory =
-      (categoryOrder.get(a.frontmatter.category) ?? 0) -
-      (categoryOrder.get(b.frontmatter.category) ?? 0);
-    if (byCategory !== 0) return byCategory;
-    if (a.frontmatter.order !== b.frontmatter.order)
-      return a.frontmatter.order - b.frontmatter.order;
-    return a.frontmatter.title.localeCompare(b.frontmatter.title);
-  });
+  return loadCollection({ dir: "help", schema: helpFrontmatterSchema }).sort(
+    (a, b) => {
+      const byCategory =
+        (categoryOrder.get(a.frontmatter.category) ?? 0) -
+        (categoryOrder.get(b.frontmatter.category) ?? 0);
+      if (byCategory !== 0) return byCategory;
+      if (a.frontmatter.order !== b.frontmatter.order)
+        return a.frontmatter.order - b.frontmatter.order;
+      return a.frontmatter.title.localeCompare(b.frontmatter.title);
+    },
+  );
 });
 
 export const getArticle = cache((slug: string): HelpArticle | null => {
@@ -194,37 +181,4 @@ export function getSearchIndex(): HelpSearchItem[] {
     categoryTitle: getCategory(article.frontmatter.category).title,
     keywords: article.frontmatter.keywords,
   }));
-}
-
-// Heading-anchor slug. Used BOTH by the MDX <h2>/<h3> components (which set the `id`)
-// and by `extractHeadings` (which builds the on-this-page TOC) — so the TOC links and
-// the heading ids are derived from the same function and can never drift. (We don't
-// use rehype-slug; this keeps the id scheme fully in-repo and self-consistent.)
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
-
-export type ArticleHeading = { id: string; text: string };
-
-// Pull the `##` headings out of an article body for the TOC, skipping fenced code.
-export function extractHeadings(body: string): ArticleHeading[] {
-  const headings: ArticleHeading[] = [];
-  let inFence = false;
-  for (const line of body.split("\n")) {
-    if (/^\s*```/.test(line)) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
-    const match = /^##\s+(.+?)\s*$/.exec(line);
-    if (!match) continue;
-    const text = match[1].replace(/[*_`]/g, "").trim();
-    headings.push({ id: slugify(text), text });
-  }
-  return headings;
 }
