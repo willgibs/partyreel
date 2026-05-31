@@ -1,0 +1,185 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import { GuestShare } from "@/components/guest/guest-share";
+import {
+  GuestUpload,
+  type UploadedItem,
+} from "@/components/guest/guest-upload";
+import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
+import { useStoredSession } from "@/lib/guest/use-stored-session";
+import { formatEventDate } from "@/lib/utils";
+
+const POLL_MS = 12_000;
+
+// The live guest event experience: event header + upload + share, with a gallery
+// that polls (newest-first) and reflects the guest's own uploads instantly. Only
+// rendered when the event is public (the server gates that — see the page).
+export function EventExperience({
+  event,
+  qrToken,
+  joinUrl,
+  initialItems,
+}: {
+  event: GuestEvent;
+  qrToken: string;
+  joinUrl: string;
+  initialItems: GridMedia[];
+}) {
+  const [sessionToken, setSessionToken] = useStoredSession(qrToken);
+  const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
+  const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
+  const blobUrls = useRef(new Map<string, string>()); // mediaId → object URL
+
+  // Re-fetch the latest approved media (presigned) and reconcile optimistic tiles.
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch("/api/guests/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_token: qrToken }),
+      });
+      if (!res.ok) return;
+      const body = (await res.json()) as { ok: boolean; items?: GridMedia[] };
+      if (!body.ok || !body.items) return;
+      const items = body.items;
+      // Reconcile by id: KEEP already-rendered items' presigned URLs so unchanged
+      // media doesn't re-download every poll (the presign signature changes each
+      // call → a new `url` would reload the <img>). Only genuinely new items use
+      // the fresh presign; removed items drop; order follows the server (newest-first).
+      setServerItems((prev) => {
+        const prevById = new Map(prev.map((m) => [m.id, m]));
+        return items.map((m) => prevById.get(m.id) ?? m);
+      });
+      // Drop + revoke any optimistic tile the server now reflects (the presigned
+      // version takes over seamlessly via mergeGalleryItems' dedupe).
+      const serverIds = new Set(items.map((m) => m.id));
+      setOptimistic((prev) =>
+        prev.filter((m) => {
+          if (!serverIds.has(m.id)) return true;
+          const url = blobUrls.current.get(m.id);
+          if (url) {
+            URL.revokeObjectURL(url);
+            blobUrls.current.delete(m.id);
+          }
+          return false;
+        }),
+      );
+    } catch {
+      // Best-effort poll — never surface a transient network blip to the guest.
+    }
+  }, [qrToken]);
+
+  // Poll on an interval, paused while the tab is hidden (frugality + correctness).
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (!timer) timer = setInterval(refresh, POLL_MS);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        void refresh();
+        start();
+      }
+    };
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [refresh]);
+
+  // Revoke any lingering blob URLs on unmount.
+  useEffect(() => {
+    const blobs = blobUrls.current;
+    return () => {
+      for (const url of blobs.values()) URL.revokeObjectURL(url);
+      blobs.clear();
+    };
+  }, []);
+
+  const handleUploaded = useCallback(
+    (u: UploadedItem) => {
+      // Only LIVE uploads are public immediately, so only those go to the top
+      // optimistically. Hold-for-approval items stay pending (the upload list
+      // shows "waiting for host approval"); they appear once the host approves.
+      if (u.status === "approved") {
+        const url = URL.createObjectURL(u.file);
+        blobUrls.current.set(u.mediaId, url);
+        setOptimistic((prev) => [
+          { id: u.mediaId, type: u.kind, url, downloadUrl: url },
+          ...prev.filter((m) => m.id !== u.mediaId),
+        ]);
+      }
+      void refresh();
+    },
+    [refresh],
+  );
+
+  const items = mergeGalleryItems(optimistic, serverItems);
+
+  return (
+    <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-8">
+      <header className="space-y-1 text-center">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
+          {event.name}
+        </h1>
+        {event.event_date && (
+          <p className="text-sm text-muted-foreground">
+            {formatEventDate(event.event_date)}
+          </p>
+        )}
+        {event.description && (
+          <p className="mx-auto max-w-prose text-sm text-pretty text-muted-foreground">
+            {event.description}
+          </p>
+        )}
+      </header>
+
+      <div className="mt-7">
+        <GuestUpload
+          event={event}
+          qrToken={qrToken}
+          sessionToken={sessionToken}
+          onSession={setSessionToken}
+          onUploaded={handleUploaded}
+        />
+      </div>
+
+      <div className="mt-5">
+        <GuestShare
+          joinUrl={joinUrl}
+          qrStyle={event.qr_style}
+          eventName={event.name}
+        />
+      </div>
+
+      <section className="mt-9">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          {items.length > 0
+            ? `${items.length} ${items.length === 1 ? "photo" : "photos"} & videos`
+            : "Gallery"}
+        </h2>
+        {items.length > 0 ? (
+          <MediaGrid items={items} />
+        ) : (
+          <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+            No photos yet — be the first to share one.
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}

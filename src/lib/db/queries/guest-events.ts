@@ -1,8 +1,7 @@
 /**
- * Guest-facing event read for the join/upload screen. Anonymous: calls the
- * `get_event_by_qr_token` SECURITY DEFINER RPC (the opaque qr_token IS the
- * capability — ADR-0004), so there's no `getUser()` here. The RPC already
- * filters `deleted_at IS NULL` and returns only guest-safe fields.
+ * Guest-facing reads for the `/e/[qr_token]` event page. Anonymous: the opaque
+ * qr_token IS the capability (ADR-0004), so there's no `getUser()` here — the
+ * SECURITY DEFINER RPCs filter `deleted_at` and return only guest-safe fields.
  */
 import "server-only";
 
@@ -21,6 +20,9 @@ export type GuestEvent = {
   require_email: boolean;
   require_display_name: boolean;
   event_date: string | null;
+  // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
+  // falls back to 'classic' for null/legacy values.
+  qr_style: string;
 };
 
 export type GuestEventResult =
@@ -56,6 +58,33 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
       require_email: row.require_email,
       require_display_name: row.require_display_name,
       event_date: row.event_date ?? null,
+      qr_style: row.qr_style,
     },
   };
 });
+
+/** Just the fields the gallery presign needs (keys stay server-side, ADR-0003). */
+export type GuestMediaRow = {
+  id: string;
+  type: Database["public"]["Enums"]["media_type"];
+  original_key: string;
+};
+
+// Approved media for the qr_token's event, NEWEST-FIRST, returned ONLY when the
+// event is public (the RPC enforces `is_public`). Powers both the SSR gallery
+// batch and the poll route (/api/guests/gallery) — NOT cached, since the poll
+// wants fresh rows each call (and within one request there's a single caller).
+export async function getEventMediaByQrToken(
+  qrToken: string,
+): Promise<GuestMediaRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_event_media_by_qr_token", {
+    p_qr_token: qrToken,
+  });
+  if (error) throw error;
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    type: m.type,
+    original_key: m.original_key,
+  }));
+}

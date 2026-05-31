@@ -11,8 +11,7 @@ import { Logo } from "@/components/shared/logo";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { getPublicAlbum } from "@/lib/db/queries/album";
-import { buildDownloadFilename } from "@/lib/media/download-filename";
-import { presignDownload } from "@/lib/r2/presign";
+import { toGridItems } from "@/lib/r2/grid-items";
 import { formatEventDate } from "@/lib/utils";
 
 // Share links unfurl nicely (OG title/description + the per-event opengraph-image
@@ -71,24 +70,9 @@ export default async function PublicAlbumPage({
     after(() => recordLinkHit(event.id, "album_view"));
   }
 
-  // Presign two URLs per item from the same key: an INLINE url the grid/lightbox
-  // render, and a forced-download (`attachment`) url the lightbox's Save uses.
-  const items = await Promise.all(
-    media.map(async (m) => {
-      const [url, downloadUrl] = await Promise.all([
-        presignDownload({ key: m.original_key }),
-        presignDownload({
-          key: m.original_key,
-          downloadFilename: buildDownloadFilename({
-            eventName: event.name,
-            key: m.original_key,
-            type: m.type,
-          }),
-        }),
-      ]);
-      return { id: m.id, type: m.type, url, downloadUrl };
-    }),
-  );
+  // Presign each key → inline + download URLs (shared with the guest event page
+  // + the gallery poll route; raw keys never reach the browser).
+  const items = await toGridItems(media, event.name);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gallery text-gallery-foreground">

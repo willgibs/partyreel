@@ -556,8 +556,21 @@ export type Database = {
           is_public: boolean
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
+          qr_style: string
           require_display_name: boolean
           require_email: boolean
+        }[]
+      }
+      get_event_media_by_qr_token: {
+        Args: { p_qr_token: string }
+        Returns: {
+          created_at: string
+          duration_seconds: number
+          height: number
+          id: string
+          original_key: string
+          type: Database["public"]["Enums"]["media_type"]
+          width: number
         }[]
       }
       get_public_album: { Args: { p_share_token: string }; Returns: Json }

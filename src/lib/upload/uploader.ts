@@ -40,7 +40,7 @@ type CompleteResponse =
   | { ok: false; code: string; message: string };
 
 export type UploadOutcome =
-  | { ok: true; status: string }
+  | { ok: true; status: string; mediaId: string; kind: "photo" | "video" }
   | { ok: false; message: string };
 
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
@@ -205,5 +205,7 @@ export async function uploadFile(args: {
     };
   }
 
-  return { ok: true, status: complete.status };
+  // mediaId + kind let the caller optimistically render the upload in the gallery
+  // (and dedupe it against the server poll by id).
+  return { ok: true, status: complete.status, mediaId: presign.media_id, kind };
 }

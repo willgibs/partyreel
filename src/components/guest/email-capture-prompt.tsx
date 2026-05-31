@@ -22,8 +22,9 @@ function emit() {
 }
 
 // One-time gate: once the guest submits OR dismisses, never show again (this
-// browser + event). Mirrors the session-storage pattern in join-then-upload —
-// the server snapshot is `true` so the prompt never flashes before hydration.
+// browser + event). Mirrors the localStorage useSyncExternalStore pattern in
+// lib/guest/use-stored-session — the server snapshot is `true` so the prompt
+// never flashes before hydration.
 function useDismissed(key: string): [boolean, () => void] {
   const subscribe = useCallback((cb: () => void) => {
     listeners.add(cb);

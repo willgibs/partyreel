@@ -67,13 +67,14 @@ export function MediaGrid({ items }: { items: GridMedia[] }) {
         {items.map((item, i) => (
           <li
             key={item.id}
+            data-media-tile
             className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
           >
             <button
               type="button"
               onClick={() => setOpenIndex(i)}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
-              className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+              className="size-full cursor-pointer transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]"
             >
               <MediaTile item={item} />
             </button>
