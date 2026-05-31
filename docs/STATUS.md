@@ -23,12 +23,14 @@ pending a product + architecture decision — see ROADMAP).
 
 ## In flight / pending verification
 
-- **Album lightbox + per-item download** is built + **locally verified** (lightbox open / ←→ nav /
-  Esc close + photo & video, desktop and mobile; the forced-download header curl-confirmed against
-  R2 — `Content-Disposition: attachment` with the friendly filename) but **not yet deployed**. Push
-  to partyreel.com, then confirm a real **Save** click downloads and the **host-gallery** lightbox
-  works while signed in (`willg97@gmail.com`). _(Two seeded test media — 1 photo, 1 video — were
-  added to the "Share Step Test" album for the local check; disposable, fine to delete.)_
+- **Album lightbox + per-item download** — **shipped + deployed** (commit `8a4f3ae`). Verified:
+  lightbox open / ←→ nav / Esc close + photo & video on desktop and mobile (local); and on
+  **partyreel.com** the live album serves the tile buttons + presigned `attachment` download URLs, with
+  R2 returning `Content-Disposition: attachment; filename="…"` (curl-confirmed against a prod-generated
+  URL). **Remaining (Will, needs a signed-in session):** a glance at the **host-gallery** lightbox +
+  Save on the event page (`willg97@gmail.com`) — same shared component, shipped in the same build.
+  _(Two seeded test media — 1 photo, 1 video — sit in the "Share Step Test" album from verification;
+  disposable, fine to delete.)_
 - **The email-driven lifecycle flows are deployed but NOT yet live-verified** — over-capacity
   grace→auto-reduce, the Event-Pass renewal nudge ($15 checkout), and free-tier inactivity
   warn/remove all send via Resend, which **isn't configured yet** (see below). Verify each once
