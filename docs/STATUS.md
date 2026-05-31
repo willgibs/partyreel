@@ -26,15 +26,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing polish arc — Round 1 (rename "Use cases" → "Events") built + locally verified, deploy pending.**
-  Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the
-  section to **Events**: `/use-cases` → `/events`, `events.ts` (`EVENT_TYPE_*` to avoid the real `events`
-  domain), nav `Events ▾` + footer column, all copy + internal links; **no 301s** (no traffic yet, so old
-  `/use-cases*` now 404). Grep gate clean (zero `use-case*` in `src/`); typecheck/lint/**148 tests**/build
-  all pass (build SSGs `/events` + 4 type pages + their OG cards). **New forward copy policy: no em-dashes
-  (`—`) in site/app copy** (AI tell) — in CLAUDE.md + memory; existing copy scrubbed opportunistically as
-  rounds touch pages. Next: R2 (media-frame library + `/features` retrofit). _(R1 still needs deploy +
-  a Chrome spot-check; confirm `/use-cases` 404s live.)_
+- **Marketing polish arc — R1 (Events rename) deployed + live-tested; R2 (media-frame library + `/features` retrofit) built + locally verified, deploy pending.**
+  Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
+  to **Events** (`/use-cases` → `/events`, `events.ts` `EVENT_TYPE_*`, nav `Events ▾` + footer, all copy +
+  internal links; **no 301s** — old `/use-cases*` 404); **deployed + Chrome-tested on partyreel.com**.
+  **R2** built the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame`
+  base + `AlbumFrame` (moved) / `GalleryFrame` / `ReelFrame` (promoted) / `PhoneFrame` / `QrFrame`
+  (demo-ready)) and **retrofitted `/features`** from 5 identical card grids into 8 distinct sections (QR
+  hero + phone/gallery/album spotlights + reel marquee + bespoke privacy panel + storage keepsake pair),
+  scrubbing the 29 `features.ts` em-dashes + adding a no-em-dash guard. **Built + verified via Preview MCP
+  + the gate** (typecheck/lint/**150 tests**/build; `/features` varied sections + every frame, mobile
+  stacks, AlbumFrame/ReelFrame regression on home/careers/events intact, no errors). **Forward copy
+  policy: no em-dashes in site/app copy** (CLAUDE.md + memory). Next: **R3 — the interactive demo**
+  (demo event + simulated uploads + the real demo QR). _(R2 needs deploy + a Chrome spot-check.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1

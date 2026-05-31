@@ -70,13 +70,21 @@ details beyond a template feel.
 1. ✅ **Rename "Use cases" → "Events"** — `/use-cases` → `/events`; `events.ts` (`EVENT_TYPE*`, avoiding
    the real `events` domain); nav `Events ▾` + footer column; all copy + internal links. No 301s (no
    traffic / external links yet; old `/use-cases*` now 404). Cleaner presentation + unblocks round 3.
-2. **Media-frame library + `/features` retrofit** — factor a shared `BrowserFrame` out of `AlbumFrame`,
-   promote `ReelFrame` (today private in `reel-teaser.tsx`), add `PhoneFrame` / `QrFrame` /
-   `GalleryFrame`; break `/features`' 5 identical card grids into varied, frame-rich sections. **← next**
-3. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
+2. ✅ **Media-frame library + `/features` retrofit** — `components/marketing/frames/`: a `BrowserFrame`
+   base + `AlbumFrame` (moved) / `GalleryFrame` / `ReelFrame` (promoted from reel-teaser) / `PhoneFrame` /
+   `QrFrame` (demo-ready). `/features` rebuilt from 5 identical card grids into a QR hero + phone/gallery/
+   album spotlights + the reel marquee + a bespoke privacy panel + a storage keepsake pair
+   (`FeatureSpotlight` + `FEATURE_PRESENTATION`). Scrubbed 29 em-dashes from `features.ts` + a no-em-dash
+   guard test.
+3. **Interactive demo** — a real demo QR in marketing → a curated demo event (env var
+   `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change); the `/e/[qr_token]` guest page runs in **demo mode**:
+   "uploads" are simulated client-side (optimistic `createObjectURL` tile, never persisted), reusing the
+   existing optimistic-tile path. `QrFrame` becomes a real scannable QR + a "Try the live demo" CTA.
+   Env-gated (decorative when unset). **← next**
+4. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
    conferences → QR, trips → reel); vary the "Built for X" grid; scrub the event-page body copy of
    em-dashes; richer Events hub.
-4. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers.
+5. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers.
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

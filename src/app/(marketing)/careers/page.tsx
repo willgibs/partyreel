@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AlbumFrame } from "@/components/marketing/album-frame";
+import { AlbumFrame } from "@/components/marketing/frames";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { Section } from "@/components/marketing/section";
 import { Container } from "@/components/shared/container";

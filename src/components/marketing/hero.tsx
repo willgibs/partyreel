@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 
-import { AlbumFrame } from "./album-frame";
+import { AlbumFrame } from "./frames";
 
 export function Hero() {
   return (

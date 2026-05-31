@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AlbumFrame } from "@/components/marketing/album-frame";
+import { AlbumFrame } from "@/components/marketing/frames";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { Section } from "@/components/marketing/section";

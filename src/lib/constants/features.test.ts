@@ -5,6 +5,7 @@ import {
   HIGHLIGHT_REEL,
   HOME_FEATURES,
 } from "@/lib/constants/features";
+import { FEATURE_PRESENTATION } from "@/lib/constants/features-layout";
 
 describe("features constants", () => {
   it("groups have unique ids and non-empty headers + features", () => {
@@ -42,5 +43,17 @@ describe("features constants", () => {
     expect(HIGHLIGHT_REEL.title.trim()).not.toBe("");
     expect(HIGHLIGHT_REEL.body.trim()).not.toBe("");
     expect(HIGHLIGHT_REEL.points.length).toBeGreaterThan(0);
+  });
+
+  it("every group has a /features presentation (no group renders unstyled)", () => {
+    for (const groupItem of FEATURE_GROUPS) {
+      expect(FEATURE_PRESENTATION[groupItem.id]).toBeDefined();
+    }
+  });
+
+  it("contains no em-dashes (copy policy guard for this file)", () => {
+    const copy =
+      JSON.stringify(FEATURE_GROUPS) + JSON.stringify(HIGHLIGHT_REEL);
+    expect(copy).not.toContain("—");
   });
 });

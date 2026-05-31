@@ -2,7 +2,7 @@ import { Info, Lightbulb, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-import { AlbumFrame } from "@/components/marketing/album-frame";
+import { AlbumFrame } from "@/components/marketing/frames";
 import { slugify } from "@/lib/content/help";
 import { planById } from "@/lib/constants/tiers";
 import {

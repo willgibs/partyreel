@@ -178,15 +178,23 @@ render only **live** routes and grow per round. SEO: Org/Website/Breadcrumb JSON
 `metadataBase`. **Brand = the app's design system turned up**: grayscale UI + the single `#FB4817`
 accent (`--brand`), media is the color; marketing runs louder via type/layout/motion only (motion
 follows the in-repo `emil-design-eng` skill). Text face is **Inter** with tightened heading tracking
-(global `--tracking-tight` override). **Pages:** home, **`/features`** (capability deep-dive — copy
-single-sourced in [features.ts](../src/lib/constants/features.ts), which also feeds the home
-`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), **`/events`**
+(global `--tracking-tight` override). **Media-frame library** (polish-arc Round 2) lives in
+[components/marketing/frames/](../src/components/marketing/frames) — a `BrowserFrame` base + a *vocabulary*
+of distinct decorative frames (`AlbumFrame`, `GalleryFrame`, `ReelFrame`, `PhoneFrame`,
+`QrFrame`) sharing the grayscale + sparse-`bg-brand/15` tokens; consumed by `/features` + the event pages
+(never one visual reused). **Pages:** home, **`/features`** (capability deep-dive — copy single-sourced
+in [features.ts](../src/lib/constants/features.ts), which also feeds the home `FeatureHighlights` teaser;
+**retrofitted (R2)** from 5 identical card grids into varied, frame-rich sections — a QR hero + phone /
+gallery / album spotlights (`FeatureSpotlight` + the `FEATURE_PRESENTATION` map in
+[features-layout.ts](../src/lib/constants/features-layout.ts), guarded so every group is styled) + the
+`ReelTeaser` marquee + a bespoke privacy panel + a storage keepsake pair. `QrFrame` is **demo-ready**
+(an optional `href` for the Round-3 demo)), **`/events`**
 (the "Events" section, renamed from "Use cases" in the polish arc: hub + 4 umbrella landing pages —
 weddings/parties/conferences/trips — off ONE `[slug]` template; copy single-sourced in
 [events.ts](../src/lib/constants/events.ts) as `EVENT_TYPES`/`getEventType`/`EVENT_TYPE_SLUGS` —
 `EVENT_TYPE*` avoids colliding with the real `events` domain — feeds the home section + the `Events ▾`
 dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
-[album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), **`/contact`** (form →
+the shared `AlbumFrame` ([frames/](../src/components/marketing/frames)) with the hero), **`/contact`** (form →
 deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend
 notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAIL` env — see
 [ADR-0005](adr/0005-marketing-form-submissions.md)), **`/careers`** (mission-focused hub + per-role
