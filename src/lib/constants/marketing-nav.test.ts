@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import {
   FOOTER_NAV,
   isNavGroup,
   PRIMARY_NAV,
   type NavItem,
 } from "@/lib/constants/marketing-nav";
-import { USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 
 // Every href a nav surface exposes (flat links + group parents + children).
 function hrefsOf(items: NavItem[]): string[] {
@@ -61,16 +61,16 @@ describe("marketing nav config", () => {
     }
   });
 
-  it("the Use cases nav mirrors USE_CASE_SLUGS (no drift)", () => {
-    const expected = USE_CASE_SLUGS.map((slug) => `/use-cases/${slug}`);
+  it("the Events nav mirrors EVENT_TYPE_SLUGS (no drift)", () => {
+    const expected = EVENT_TYPE_SLUGS.map((slug) => `/events/${slug}`);
     const group = PRIMARY_NAV.find(
-      (item) => isNavGroup(item) && item.label === "Use cases",
+      (item) => isNavGroup(item) && item.label === "Events",
     );
     expect(group && isNavGroup(group)).toBe(true);
     if (group && isNavGroup(group)) {
       expect(group.children.map((child) => child.href)).toEqual(expected);
     }
-    const column = FOOTER_NAV.find((col) => col.title === "Use cases");
+    const column = FOOTER_NAV.find((col) => col.title === "Events");
     expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 

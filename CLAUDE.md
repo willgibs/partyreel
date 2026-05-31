@@ -645,6 +645,11 @@ class as the trigger-only functions.
 
 ## Working conventions
 
+- **Site/app copy reads human — NO em-dashes (`—`).** In any user-facing copy (marketing, help,
+  blog, app UI), never use the em-dash; it now reads as an "AI copy" tell. Recast with a comma,
+  parentheses, a colon, or two sentences (whichever is most natural). Code comments and internal docs
+  are exempt. This is a forward policy (write new/edited copy this way; fix opportunistically on pages
+  you touch), not a blind retroactive find-replace.
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.

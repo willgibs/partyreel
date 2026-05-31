@@ -180,9 +180,11 @@ accent (`--brand`), media is the color; marketing runs louder via type/layout/mo
 follows the in-repo `emil-design-eng` skill). Text face is **Inter** with tightened heading tracking
 (global `--tracking-tight` override). **Pages:** home, **`/features`** (capability deep-dive — copy
 single-sourced in [features.ts](../src/lib/constants/features.ts), which also feeds the home
-`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), **`/use-cases`**
-(hub + 4 umbrella landing pages — weddings/parties/conferences/trips — off ONE `[slug]` template;
-copy in [use-cases.ts](../src/lib/constants/use-cases.ts) feeds the home section + the `Use cases ▾`
+`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), **`/events`**
+(the "Events" section, renamed from "Use cases" in the polish arc: hub + 4 umbrella landing pages —
+weddings/parties/conferences/trips — off ONE `[slug]` template; copy single-sourced in
+[events.ts](../src/lib/constants/events.ts) as `EVENT_TYPES`/`getEventType`/`EVENT_TYPE_SLUGS` —
+`EVENT_TYPE*` avoids colliding with the real `events` domain — feeds the home section + the `Events ▾`
 dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
 [album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), **`/contact`** (form →
 deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend

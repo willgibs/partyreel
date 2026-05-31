@@ -9,7 +9,7 @@ export function MarketingFooter() {
     <footer className="border-t">
       <Container className="py-14">
         {/* flex-wrap columns so the footer grows gracefully as rounds add columns
-            (Use cases / Resources / Company) without leaving empty grid cells. */}
+            (Events / Resources / Company) without leaving empty grid cells. */}
         <div className="flex flex-col gap-10 lg:flex-row lg:justify-between lg:gap-16">
           <div className="flex max-w-xs flex-col gap-3">
             <Logo />

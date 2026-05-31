@@ -12,22 +12,21 @@ export function isNavGroup(item: NavItem): item is NavGroup {
   return "children" in item;
 }
 
-// Desktop header primary nav (between the logo and the CTAs). Today these are the
-// live routes + home-section anchors; Features / Use-cases dropdown / Resources land
-// in their rounds. Anchors use `/#id` (not `#id`) so they resolve from any page.
-// The Use-cases children mirror USE_CASES in lib/constants/use-cases.ts (kept here
-// as plain strings so this nav module stays dependency-free / light in the client
-// bundle); a Vitest test asserts they don't drift from USE_CASE_SLUGS.
+// Desktop header primary nav (between the logo and the CTAs). Anchors use `/#id`
+// (not `#id`) so they resolve from any page. The Events children mirror EVENT_TYPES
+// in lib/constants/events.ts (kept here as plain strings so this nav module stays
+// dependency-free / light in the client bundle); a Vitest test asserts they don't
+// drift from EVENT_TYPE_SLUGS.
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Features", href: "/features" },
   {
-    label: "Use cases",
-    href: "/use-cases",
+    label: "Events",
+    href: "/events",
     children: [
-      { label: "Weddings", href: "/use-cases/weddings" },
-      { label: "Parties", href: "/use-cases/parties" },
-      { label: "Conferences", href: "/use-cases/conferences" },
-      { label: "Trips", href: "/use-cases/trips" },
+      { label: "Weddings", href: "/events/weddings" },
+      { label: "Parties", href: "/events/parties" },
+      { label: "Conferences", href: "/events/conferences" },
+      { label: "Trips", href: "/events/trips" },
     ],
   },
   { label: "Pricing", href: "/pricing" },
@@ -45,8 +44,7 @@ export const PRIMARY_NAV: NavItem[] = [
 
 export type FooterColumn = { title: string; links: NavLink[] };
 
-// Footer columns grow as rounds ship (Use cases / Resources / Company appear with
-// their pages). Product + Legal exist today.
+// Footer columns: Product / Events / Resources / Company / Legal.
 export const FOOTER_NAV: FooterColumn[] = [
   {
     title: "Product",
@@ -58,12 +56,12 @@ export const FOOTER_NAV: FooterColumn[] = [
     ],
   },
   {
-    title: "Use cases",
+    title: "Events",
     links: [
-      { label: "Weddings", href: "/use-cases/weddings" },
-      { label: "Parties", href: "/use-cases/parties" },
-      { label: "Conferences", href: "/use-cases/conferences" },
-      { label: "Trips", href: "/use-cases/trips" },
+      { label: "Weddings", href: "/events/weddings" },
+      { label: "Parties", href: "/events/parties" },
+      { label: "Conferences", href: "/events/conferences" },
+      { label: "Trips", href: "/events/trips" },
     ],
   },
   {

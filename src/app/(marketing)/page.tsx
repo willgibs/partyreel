@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Events } from "@/components/marketing/events";
 import { Faq } from "@/components/marketing/faq";
 import { FaqJsonLd } from "@/components/marketing/faq-jsonld";
 import { FeatureHighlights } from "@/components/marketing/feature-highlights";
@@ -10,7 +11,6 @@ import { PricingTeaser } from "@/components/marketing/pricing-teaser";
 import { ProblemSolution } from "@/components/marketing/problem-solution";
 import { ReelTeaser } from "@/components/marketing/reel-teaser";
 import { TrustStrip } from "@/components/marketing/trust-strip";
-import { UseCases } from "@/components/marketing/use-cases";
 
 // Home keeps the default "Partyreel" title (no template) but gets its own
 // description + canonical for SEO; the share card inherits these via the root.
@@ -31,7 +31,7 @@ export default function MarketingHome() {
       <ProblemSolution />
       <HowItWorks />
       <FeatureHighlights />
-      <UseCases />
+      <Events />
       <ReelTeaser />
       <PricingTeaser />
       <Faq />

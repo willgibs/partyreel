@@ -37,8 +37,8 @@ skill. All 7 rounds shipped (R1–R6 deployed + live-tested; R7 built + verified
    JSON-LD + a shared `SITE_URL`/brand constant; **#FB4817** accent + wider `Container`
    (`max-w-7xl`) — both global, shared with the app.
 2. ✅ **Features** (`/features`) + `features.ts` single-source; highlight-reel elevated to a marquee.
-3. ✅ **Use cases** — `/use-cases` hub + 4 umbrella landing pages (weddings / parties / conferences /
-   trips), per-page OG + breadcrumb/FAQ JSON-LD; shared `album-frame`.
+3. ✅ **Use cases** (renamed → **`/events`** in the polish arc below) — hub + 4 umbrella landing pages
+   (weddings / parties / conferences / trips), per-page OG + breadcrumb/FAQ JSON-LD; shared `album-frame`.
 4. ✅ **Contact** — form → `contact_submissions` (deny-all RLS) + best-effort Resend notify
    (ADR-0005); deployed + Chrome-tested live (happy path, validation, honeypot, XSS-escaping).
 5. ✅ **Careers** — mission-focused hub + 2 roles (General Application + a fully-specified Reels
@@ -57,10 +57,26 @@ skill. All 7 rounds shipped (R1–R6 deployed + live-tested; R7 built + verified
    (`/blog/feed.xml`, hand-rolled, no dep). A client-safe **authors registry** + **4 launch posts**; Blog
    joins the `Resources ▾` nav. No DB changes.
 
-**The 7-round build-out is complete.** **Quality follow-up (deferred, tracked):** retrofit Features +
-the use-case sections (currently repetitive card grids) with a reusable **media-frame component library**
-(phone / QR / gallery / reel frames alongside `album-frame`) + varied section layouts, to match home's
-richness. _(Each round got its own focused plan file; the all-rounds plan is retired.)_
+**The 7-round build-out is complete.** _(Each round got its own focused plan file.)_
+
+## 🚧 Marketing polish arc — refining the complete build-out
+
+Post-build-out polish in focused rounds (each its own plan file; dedicate more per round as we go).
+**Whole-arc copy policy: NO em-dashes (`—`) in site/app copy** (reads as an AI tell) — see CLAUDE.md +
+memory. **Bar: max creative resources per page** — distinctive human copy, a *unique* visual
+presentation per page (the frame library is a vocabulary of frames, never one visual reused), UI
+details beyond a template feel.
+
+1. ✅ **Rename "Use cases" → "Events"** — `/use-cases` → `/events`; `events.ts` (`EVENT_TYPE*`, avoiding
+   the real `events` domain); nav `Events ▾` + footer column; all copy + internal links. No 301s (no
+   traffic / external links yet; old `/use-cases*` now 404). Cleaner presentation + unblocks round 3.
+2. **Media-frame library + `/features` retrofit** — factor a shared `BrowserFrame` out of `AlbumFrame`,
+   promote `ReelFrame` (today private in `reel-teaser.tsx`), add `PhoneFrame` / `QrFrame` /
+   `GalleryFrame`; break `/features`' 5 identical card grids into varied, frame-rich sections. **← next**
+3. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
+   conferences → QR, trips → reel); vary the "Built for X" grid; scrub the event-page body copy of
+   em-dashes; richer Events hub.
+4. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers.
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

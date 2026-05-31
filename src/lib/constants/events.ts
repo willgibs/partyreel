@@ -18,14 +18,15 @@ import {
 
 import type { FaqItem } from "@/components/marketing/faq-data";
 
-// Single source for the use-case umbrellas — the home section, the /use-cases hub,
-// and each /use-cases/[slug] landing page all read from here. Each entry carries a
-// short `teaser` (cards) plus the full landing content. `nestedThemes` are the
-// long-tail terms the umbrella absorbs (good for SEO body copy, e.g. "Parties"
-// covers birthdays, graduations, showers…).
-export type UseCaseHelp = { icon: LucideIcon; title: string; body: string };
+// Single source for the event-type umbrellas (the home section, the /events hub, and
+// each /events/[slug] landing page all read from here). Each entry carries a short
+// `teaser` (cards) plus the full landing content. `nestedThemes` are the long-tail
+// terms the umbrella absorbs (good for SEO body copy, e.g. "Parties" covers
+// birthdays, graduations, showers…). Named EVENT_TYPE* (not Event/EVENTS) to avoid
+// colliding with the DOM `Event` type and the real `events` domain.
+export type EventTypeHelp = { icon: LucideIcon; title: string; body: string };
 
-export type UseCase = {
+export type EventType = {
   slug: string;
   navLabel: string;
   icon: LucideIcon;
@@ -35,14 +36,14 @@ export type UseCase = {
   subhead: string;
   intro: string;
   nestedThemes: string[];
-  howItHelps: UseCaseHelp[];
+  howItHelps: EventTypeHelp[];
   faq: FaqItem[];
   ctaTitle: string;
   /** Stamped onto the per-page OG card. */
   ogTitle: string;
 };
 
-export const USE_CASES: UseCase[] = [
+export const EVENT_TYPES: EventType[] = [
   {
     slug: "weddings",
     navLabel: "Weddings",
@@ -293,8 +294,8 @@ export const USE_CASES: UseCase[] = [
   },
 ];
 
-export const USE_CASE_SLUGS = USE_CASES.map((useCase) => useCase.slug);
+export const EVENT_TYPE_SLUGS = EVENT_TYPES.map((eventType) => eventType.slug);
 
-export function getUseCase(slug: string): UseCase | undefined {
-  return USE_CASES.find((useCase) => useCase.slug === slug);
+export function getEventType(slug: string): EventType | undefined {
+  return EVENT_TYPES.find((eventType) => eventType.slug === slug);
 }

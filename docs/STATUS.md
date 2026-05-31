@@ -26,7 +26,16 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing site full build-out COMPLETE — all 7 rounds. R1–R6 deployed + live-tested on partyreel.com; Round 7 (Blog) built + locally verified, deploy + spot-check pending.**
+- **Marketing polish arc — Round 1 (rename "Use cases" → "Events") built + locally verified, deploy pending.**
+  Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the
+  section to **Events**: `/use-cases` → `/events`, `events.ts` (`EVENT_TYPE_*` to avoid the real `events`
+  domain), nav `Events ▾` + footer column, all copy + internal links; **no 301s** (no traffic yet, so old
+  `/use-cases*` now 404). Grep gate clean (zero `use-case*` in `src/`); typecheck/lint/**148 tests**/build
+  all pass (build SSGs `/events` + 4 type pages + their OG cards). **New forward copy policy: no em-dashes
+  (`—`) in site/app copy** (AI tell) — in CLAUDE.md + memory; existing copy scrubbed opportunistically as
+  rounds touch pages. Next: R2 (media-frame library + `/features` retrofit). _(R1 still needs deploy +
+  a Chrome spot-check; confirm `/use-cases` 404s live.)_
+- **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
   landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header

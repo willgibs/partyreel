@@ -5,7 +5,7 @@ import type { FaqItem } from "./faq-data";
 // Structured-data helpers for the marketing site. All content is our own static
 // strings (no user input) → safe to inline as application/ld+json, same as the
 // FaqJsonLd pattern. Org + Website mount site-wide in the marketing layout;
-// BreadcrumbJsonLd is per nested page (use-cases / help / blog / careers).
+// BreadcrumbJsonLd is per nested page (events / help / blog / careers).
 function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
     <script

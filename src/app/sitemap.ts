@@ -1,15 +1,15 @@
 import type { MetadataRoute } from "next";
 
 import { JOB_SLUGS } from "@/lib/constants/careers";
+import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { SITE_URL } from "@/lib/constants/site";
-import { USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 import { getAllBlogSlugs } from "@/lib/content/blog";
 import { getAllSlugs as getHelpSlugs } from "@/lib/content/help";
 
 // Public, crawlable routes ONLY. Never list /a/ or /e/ (opaque capability-token
 // share links — indexing them would leak semi-private albums) or the gated app
 // (/dashboard, /admin, /login). Each build-out round appends its static routes here
-// and loops over its content slugs (use-cases, help, blog, careers) as they land.
+// and loops over its content slugs (events, help, blog, careers) as they land.
 // Prerendered at build; falls back to prod origin.
 type Entry = {
   path: string;
@@ -20,7 +20,7 @@ type Entry = {
 const ROUTES: Entry[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/features", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/use-cases", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/events", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/help", changeFrequency: "weekly", priority: 0.6 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
@@ -34,8 +34,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   const entries: Entry[] = [
     ...ROUTES,
-    ...USE_CASE_SLUGS.map((slug) => ({
-      path: `/use-cases/${slug}`,
+    ...EVENT_TYPE_SLUGS.map((slug) => ({
+      path: `/events/${slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),

@@ -1,27 +1,27 @@
 import { ImageResponse } from "next/og";
 
+import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
 import { BRAND_HEX } from "@/lib/constants/site";
-import { getUseCase, USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 
-// Per-use-case share card — the use-case `ogTitle` on the branded dark surface,
+// Per-event-type share card: the type's `ogTitle` on the branded dark surface,
 // mirroring the per-event album card. Built-in font on purpose (Next-16 satori
 // gotcha). Prerendered for each slug via generateStaticParams.
 export function generateStaticParams() {
-  return USE_CASE_SLUGS.map((slug) => ({ slug }));
+  return EVENT_TYPE_SLUGS.map((slug) => ({ slug }));
 }
 
-export const alt = "Partyreel — collect every photo from your event";
+export const alt = "Partyreel: collect every photo from your event";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default async function UseCaseOgImage({
+export default async function EventTypeOgImage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
   const heading =
-    getUseCase(slug)?.ogTitle ?? "Every photo from your event, in one place";
+    getEventType(slug)?.ogTitle ?? "Every photo from your event, in one place";
 
   return new ImageResponse(
     <div
