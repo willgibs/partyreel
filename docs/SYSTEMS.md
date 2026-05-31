@@ -177,8 +177,11 @@ render only **live** routes and grow per round. SEO: Org/Website/Breadcrumb JSON
 ([site.ts](../src/lib/constants/site.ts)) now shared by `sitemap.ts` / `robots.ts` / root
 `metadataBase`. **Brand = the app's design system turned up**: grayscale UI + the single `#FB4817`
 accent (`--brand`), media is the color; marketing runs louder via type/layout/motion only (motion
-follows the in-repo `emil-design-eng` skill). Being expanded to a full site (Features / Use cases /
-Help / Contact / Careers / Blog) — see ROADMAP.
+follows the in-repo `emil-design-eng` skill). Text face is **Inter** with tightened heading tracking
+(global `--tracking-tight` override). **Pages:** home, **`/features`** (capability deep-dive — copy
+single-sourced in [features.ts](../src/lib/constants/features.ts), which also feeds the home
+`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), `/pricing`,
+legal. Still expanding (Use cases / Help / Contact / Careers / Blog) — see ROADMAP.
 
 ## Growth loop
 

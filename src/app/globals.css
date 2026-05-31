@@ -33,6 +33,12 @@
   --font-mono: var(--font-mono);
   --font-heading: var(--font-sans);
 
+  /* Refined heading tracking: every heading uses `tracking-tight` and NO body text
+     does, so tightening this one token modernizes all headings in a single knob.
+     Intentionally diverges from Tailwind's default -0.025em (Inter is built for
+     negative display tracking). */
+  --tracking-tight: -0.03em;
+
   /* Motion — a STRONG ease-out (built-in CSS easings are too weak; per the
      emil-design-eng skill). Tasteful UI transitions stay under ~300ms. */
   --ease-emphasis: cubic-bezier(0.23, 1, 0.32, 1);

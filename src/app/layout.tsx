@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
@@ -9,7 +9,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 // Font CSS variables must match the names referenced in globals.css `@theme`
 // (--font-sans / --font-mono). Renaming one side without the other silently
 // drops the typeface back to the browser default.
-const geistSans = Geist({
+const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
 });
@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>

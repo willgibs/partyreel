@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing site full build-out — Round 1 (foundation) done locally, NOT yet deployed.**
+- **Marketing site full build-out — Rounds 1–2 done locally, NOT yet deployed.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
   landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header
@@ -34,7 +34,10 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   Org/Website JSON-LD + a shared `SITE_URL`/brand constant, and two **global, shared-with-the-app**
   changes — the **#FB4817** accent (replaces the old coral) + a wider `Container` (`max-w-7xl`).
   Verified via Preview MCP (accent = exact `rgb(251,72,23)`, desktop nav + mobile Sheet + footer,
-  no console errors; typecheck/lint/109 tests clean). Rounds 2–7 next.
+  no console errors; typecheck/lint/113 tests clean). **Round 2** added `/features` (capability
+  deep-dive; `features.ts` single-source feeding the home teaser too) + elevated the highlight reel
+  to a confident marquee (video-player frame), plus a global **Inter** type refresh with tighter
+  heading tracking (both shared with the app). Rounds 3–7 next.
 - **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
   header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
   host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native

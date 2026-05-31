@@ -12,7 +12,7 @@ export function Hero() {
         <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
           No app. No account. Just a QR code.
         </span>
-        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl md:text-6xl">
+        <h1 className="max-w-3xl text-4xl font-semibold tracking-tighter text-balance sm:text-5xl md:text-6xl">
           Every photo from your party, in one place.
         </h1>
         <p className="max-w-xl text-lg text-pretty text-muted-foreground">

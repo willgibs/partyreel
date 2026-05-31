@@ -16,9 +16,8 @@ export function isNavGroup(item: NavItem): item is NavGroup {
 // live routes + home-section anchors; Features / Use-cases dropdown / Resources land
 // in their rounds. Anchors use `/#id` (not `#id`) so they resolve from any page.
 export const PRIMARY_NAV: NavItem[] = [
-  { label: "How it works", href: "/#how-it-works" },
+  { label: "Features", href: "/features" },
   { label: "Use cases", href: "/#use-cases" },
-  { label: "FAQ", href: "/#faq" },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -30,6 +29,7 @@ export const FOOTER_NAV: FooterColumn[] = [
   {
     title: "Product",
     links: [
+      { label: "Features", href: "/features" },
       { label: "How it works", href: "/#how-it-works" },
       { label: "Pricing", href: "/pricing" },
       { label: "FAQ", href: "/#faq" },
