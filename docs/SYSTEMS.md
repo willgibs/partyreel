@@ -187,8 +187,10 @@ in [features.ts](../src/lib/constants/features.ts), which also feeds the home `F
 **retrofitted (R2)** from 5 identical card grids into varied, frame-rich sections — a QR hero + phone /
 gallery / album spotlights (`FeatureSpotlight` + the `FEATURE_PRESENTATION` map in
 [features-layout.ts](../src/lib/constants/features-layout.ts), guarded so every group is styled) + the
-`ReelTeaser` marquee + a bespoke privacy panel + a storage keepsake pair. `QrFrame` is **demo-ready**
-(an optional `href` for the Round-3 demo)), **`/events`**
+`ReelTeaser` marquee + a bespoke privacy panel + a storage keepsake pair. `QrFrame` takes a
+`liveQrUrl?` — set (R3, see **Interactive demo** below) it renders a REAL scannable QR (the client
+[live-qr.tsx](../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) linking to the demo;
+unset it falls back to the decorative block), **`/events`**
 (the "Events" section, renamed from "Use cases" in the polish arc: hub + 4 umbrella landing pages —
 weddings/parties/conferences/trips — off ONE `[slug]` template; copy single-sourced in
 [events.ts](../src/lib/constants/events.ts) as `EVENT_TYPES`/`getEventType`/`EVENT_TYPE_SLUGS` —
@@ -222,8 +224,28 @@ RSS 2.0 feed** at `/blog/feed.xml` (`dynamic="force-static"`, hand-rolled, no de
 is unit-tested). `draft: true` posts are excluded from listing/sitemap/RSS. 4 launch posts.),
 `/pricing`, legal. The header **`Resources ▾`** dropdown + footer **Resources** column group Help +
 **Blog** + Contact (Company → Careers). OG brand color is single-sourced as `BRAND_HEX` in `site.ts`
-(satori needs a literal hex). **The 7-round marketing build-out is complete** — the remaining tracked
-follow-up is the Features/Use-cases quality uplift + a media-frame component library (ROADMAP).
+(satori needs a literal hex). **The 7-round marketing build-out is complete**; the **polish arc**
+(Events rename → frame library + `/features` → interactive demo) is now through Round 3 (ROADMAP).
+
+## Interactive demo
+
+**Env-gated, no schema change** (polish-arc R3). A REAL curated event's `qr_token` is set in
+`NEXT_PUBLIC_DEMO_QR_TOKEN` (public; must be referenced explicitly in `env.ts`'s `parsePublic()` —
+Next only inlines literally-named `process.env.NEXT_PUBLIC_*`). [demo.ts](../src/lib/demo.ts) is the
+single source: `DEMO_EVENT_URL` (the `/e/[token]` URL) + `isDemoToken(token)`. When set: the `/features`
+hero QR + a home-hero **"Try the live demo"** CTA become real links, and that event's existing
+`/e/[qr_token]` guest page runs in **DEMO MODE** — threaded as `isDemo` from the page
+([page.tsx](<../src/app/(guest)/e/[token]/page.tsx>)) through `event-experience.tsx` to
+[guest-upload.tsx](../src/components/guest/guest-upload.tsx): a banner shows, the ~12 s gallery poll is
+**paused**, the name prompt still appears (authentic), but on submit it **skips `POST /api/guests`**
+(sentinel session) and the queue **skips `uploadFile`** — `simulateUpload` returns a synthetic
+`approved` outcome so the existing **optimistic-tile path** prepends a local `createObjectURL` tile that
+is **never persisted** (no presign / R2 PUT / `create_media` / `create_guest`; email-capture suppressed).
+The synthetic id never appears in the (paused) poll, so the tile is gone on refresh and the curated media
+stays pristine. **Unset → no demo anywhere** (decorative QR, no CTA, normal guest behavior); the app
+builds/runs identically. Verified end-to-end via the Preview MCP (curated event + Supabase confirming
+**zero** new `media`/`guests` rows after a simulated upload); not Vitest-unit-tested (env-coupled, trivial
+token equality).
 
 ## Growth loop
 

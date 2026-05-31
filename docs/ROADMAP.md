@@ -76,14 +76,15 @@ details beyond a template feel.
    album spotlights + the reel marquee + a bespoke privacy panel + a storage keepsake pair
    (`FeatureSpotlight` + `FEATURE_PRESENTATION`). Scrubbed 29 em-dashes from `features.ts` + a no-em-dash
    guard test.
-3. **Interactive demo** — a real demo QR in marketing → a curated demo event (env var
+3. ✅ **Interactive demo** — a real demo QR in marketing → a curated demo event (env var
    `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change); the `/e/[qr_token]` guest page runs in **demo mode**:
    "uploads" are simulated client-side (optimistic `createObjectURL` tile, never persisted), reusing the
-   existing optimistic-tile path. `QrFrame` becomes a real scannable QR + a "Try the live demo" CTA.
-   Env-gated (decorative when unset). **← next**
+   existing optimistic-tile path. `QrFrame` renders a real scannable QR (`liveQrUrl`) + a "Try the live demo"
+   home CTA. Env-gated (decorative when unset). _Built + Preview-verified (gate green with the env unset;
+   simulated upload wrote **zero** DB rows); **deploy + the curated demo event pending a human** (STATUS)._
 4. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
    conferences → QR, trips → reel); vary the "Built for X" grid; scrub the event-page body copy of
-   em-dashes; richer Events hub.
+   em-dashes; richer Events hub. **← next**
 5. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers.
 
 ## ⏸️ Tabled — needs a product + architecture decision first

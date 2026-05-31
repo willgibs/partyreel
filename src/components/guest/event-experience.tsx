@@ -23,11 +23,14 @@ export function EventExperience({
   qrToken,
   joinUrl,
   initialItems,
+  isDemo,
 }: {
   event: GuestEvent;
   qrToken: string;
   joinUrl: string;
   initialItems: GridMedia[];
+  /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
+  isDemo: boolean;
 }) {
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
@@ -74,7 +77,10 @@ export function EventExperience({
   }, [qrToken]);
 
   // Poll on an interval, paused while the tab is hidden (frugality + correctness).
+  // In demo mode there's nothing to poll — the curated media is static and the
+  // simulated tiles are local-only — so skip it entirely.
   useEffect(() => {
+    if (isDemo) return;
     let timer: ReturnType<typeof setInterval> | null = null;
     const start = () => {
       if (!timer) timer = setInterval(refresh, POLL_MS);
@@ -99,7 +105,7 @@ export function EventExperience({
       stop();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [refresh]);
+  }, [refresh, isDemo]);
 
   // Revoke any lingering blob URLs on unmount.
   useEffect(() => {
@@ -123,15 +129,21 @@ export function EventExperience({
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
       }
-      void refresh();
+      if (!isDemo) void refresh();
     },
-    [refresh],
+    [refresh, isDemo],
   );
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
   return (
     <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-8">
+      {isDemo && (
+        <div className="mb-6 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-center text-xs text-muted-foreground">
+          You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t
+          saved.
+        </div>
+      )}
       <header className="space-y-1 text-center">
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
           {event.name}
@@ -155,6 +167,7 @@ export function EventExperience({
           sessionToken={sessionToken}
           onSession={setSessionToken}
           onUploaded={handleUploaded}
+          isDemo={isDemo}
         />
       </div>
 

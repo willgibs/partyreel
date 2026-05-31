@@ -1,7 +1,9 @@
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 
 import { AlbumFrame } from "./frames";
 
@@ -32,6 +34,15 @@ export function Hero() {
             <Link href="/pricing">See pricing</Link>
           </Button>
         </div>
+        {DEMO_EVENT_URL && (
+          <Link
+            href={DEMO_EVENT_URL}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand/80"
+          >
+            Try the live demo
+            <ArrowRight className="size-4" />
+          </Link>
+        )}
         <AlbumFrame className="mt-12 max-w-3xl" />
       </Container>
     </section>

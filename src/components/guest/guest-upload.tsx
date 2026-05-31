@@ -62,18 +62,46 @@ export type UploadedItem = {
 // just-in-time — a first-time guest picks files, THEN gets a lightweight name
 // prompt (no upfront gate, since the gallery is public). Each completed upload is
 // reported to the coordinator (which renders it optimistically in the gallery).
+// Demo mode: fake an upload (a brief progress ramp) and return a synthetic "approved"
+// outcome. Nothing hits the network — the gallery renders the local file via the
+// existing optimistic-tile path, and the synthetic id never appears in the poll, so
+// it survives until refresh. No presign / R2 PUT / create_media.
+async function simulateUpload(
+  file: File,
+  onProgress: (fraction: number) => void,
+): Promise<{
+  ok: true;
+  status: "approved";
+  mediaId: string;
+  kind: "photo" | "video";
+}> {
+  for (const fraction of [0.3, 0.6, 0.85, 1]) {
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    onProgress(fraction);
+  }
+  return {
+    ok: true,
+    status: "approved",
+    mediaId: crypto.randomUUID(),
+    kind: file.type.startsWith("video/") ? "video" : "photo",
+  };
+}
+
 export function GuestUpload({
   event,
   qrToken,
   sessionToken,
   onSession,
   onUploaded,
+  isDemo,
 }: {
   event: GuestEvent;
   qrToken: string;
   sessionToken: string | null;
   onSession: (token: string | null) => void;
   onUploaded: (item: UploadedItem) => void;
+  /** Demo event: simulate uploads client-side, persist nothing. */
+  isDemo: boolean;
 }) {
   const [items, setItems] = useState<Item[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
@@ -112,11 +140,15 @@ export function GuestUpload({
         const next = itemsRef.current.find((it) => it.status === "queued");
         if (!next) break;
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
-        const outcome = await uploadFile({
-          file: next.file,
-          sessionToken: token,
-          onProgress: (f) => patch(next.id, { progress: Math.round(f * 100) }),
-        });
+        const onProgress = (f: number) =>
+          patch(next.id, { progress: Math.round(f * 100) });
+        const outcome = isDemo
+          ? await simulateUpload(next.file, onProgress)
+          : await uploadFile({
+              file: next.file,
+              sessionToken: token,
+              onProgress,
+            });
         if (outcome.ok) {
           patch(next.id, {
             status: "done",
@@ -136,7 +168,7 @@ export function GuestUpload({
     } finally {
       processingRef.current = false;
     }
-  }, [patch, onUploaded]);
+  }, [patch, onUploaded, isDemo]);
 
   const enqueue = useCallback(
     (files: File[]) => {
@@ -260,7 +292,7 @@ export function GuestUpload({
 
       {/* Soft one-time email capture — skip it when the host already required an
           email at join (they have it). The prompt self-hides once shown. */}
-      {doneCount > 0 && !event.require_email && (
+      {doneCount > 0 && !event.require_email && !isDemo && (
         <EmailCapturePrompt
           qrToken={qrToken}
           sessionToken={sessionToken ?? ""}
@@ -289,6 +321,7 @@ export function GuestUpload({
         event={event}
         qrToken={qrToken}
         onJoined={handleJoined}
+        isDemo={isDemo}
       />
     </div>
   );
@@ -302,12 +335,14 @@ function NamePrompt({
   event,
   qrToken,
   onJoined,
+  isDemo,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event: GuestEvent;
   qrToken: string;
   onJoined: (sessionToken: string) => void;
+  isDemo: boolean;
 }) {
   const schema = useMemo(
     () => buildJoinSchema(event.require_display_name, event.require_email),
@@ -319,6 +354,15 @@ function NamePrompt({
   });
 
   async function onSubmit(values: JoinValues) {
+    if (isDemo) {
+      // Demo: never create a real guest session. Remember the name locally and let
+      // the queue (which simulates) proceed via a sentinel session token.
+      if (values.display_name) {
+        localStorage.setItem(DISPLAY_NAME_KEY, values.display_name);
+      }
+      onJoined("demo");
+      return;
+    }
     const res = await fetch("/api/guests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -26,19 +26,23 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing polish arc — R1 (Events rename) deployed + live-tested; R2 (media-frame library + `/features` retrofit) built + locally verified, deploy pending.**
+- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features` retrofit) deployed + live-tested; R3 (interactive demo) built + Preview-verified, deploy + the demo event pending a human.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
-  to **Events** (`/use-cases` → `/events`, `events.ts` `EVENT_TYPE_*`, nav `Events ▾` + footer, all copy +
-  internal links; **no 301s** — old `/use-cases*` 404); **deployed + Chrome-tested on partyreel.com**.
-  **R2** built the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame`
-  base + `AlbumFrame` (moved) / `GalleryFrame` / `ReelFrame` (promoted) / `PhoneFrame` / `QrFrame`
-  (demo-ready)) and **retrofitted `/features`** from 5 identical card grids into 8 distinct sections (QR
-  hero + phone/gallery/album spotlights + reel marquee + bespoke privacy panel + storage keepsake pair),
-  scrubbing the 29 `features.ts` em-dashes + adding a no-em-dash guard. **Built + verified via Preview MCP
-  + the gate** (typecheck/lint/**150 tests**/build; `/features` varied sections + every frame, mobile
-  stacks, AlbumFrame/ReelFrame regression on home/careers/events intact, no errors). **Forward copy
-  policy: no em-dashes in site/app copy** (CLAUDE.md + memory). Next: **R3 — the interactive demo**
-  (demo event + simulated uploads + the real demo QR). _(R2 needs deploy + a Chrome spot-check.)_
+  to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
+  the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame` base + `AlbumFrame`
+  / `GalleryFrame` / `ReelFrame` / `PhoneFrame` / `QrFrame`) and retrofitted `/features` into 8 distinct,
+  frame-rich sections (+ scrubbed 29 em-dashes). Both **deployed + Chrome-tested on partyreel.com**.
+  **R3 — interactive demo** (env-gated via `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change): a real scannable
+  demo QR on the `/features` hero + a home **"Try the live demo"** CTA, and `/e/[demo qr_token]` runs in
+  **demo mode** — simulated client-side uploads via the optimistic-tile path, never persisted (see SYSTEMS
+  "Interactive demo"). **Built + verified via Preview MCP + the gate** (typecheck/lint/**150 tests**/build
+  green with the env UNSET; against a curated event: real QR + CTA, demo banner, a simulated upload prepended
+  a `blob:` tile with **zero** new `media`/`guests` rows (Supabase-confirmed), gone on refresh; env-unset path
+  = decorative QR / no CTA / no banner). Caught + fixed a real bug: the new public env var was added to the
+  `env.ts` schema but not its `parsePublic()` reader, so it would've stayed `undefined` in prod. **Forward
+  copy policy: no em-dashes in site/app copy** (CLAUDE.md + memory). Next: **R4 — event landing pages
+  retrofit** (distinct frame per type + the event-page body-copy em-dash scrub). _(R3 needs deploy + the
+  curated demo event — see "Blocked on a human".)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
@@ -114,6 +118,10 @@ The agent can't do these — they need a human in a dashboard:
   vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
   [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_
 - **`MONTHLY_INGRESS_BYTES.pro`** is still `null` (unmetered) — tune it before Pro launch.
+- **The interactive-demo event (polish-arc R3)** — create a normal event, make it **public +
+  accepting uploads**, populate it with catchy **approved** media, grab its `qr_token`, and set
+  `NEXT_PUBLIC_DEMO_QR_TOKEN` to it in **Vercel** (+ `.env.local` for local dev). Until then the demo is
+  env-gated **off** everywhere (decorative QR, no CTA, no demo mode) — the code is shipped + Preview-verified.
 - **Supabase CLI** isn't installed locally; migrations are applied via the **Supabase MCP**
   (`apply_migration`). To use `pnpm db:types` / `db:push`, install the CLI +
   `supabase link --project-ref ddafaemglzmuekbtjwzn`.

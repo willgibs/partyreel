@@ -14,6 +14,7 @@ import {
   getEventByQrToken,
   getEventMediaByQrToken,
 } from "@/lib/db/queries/guest-events";
+import { isDemoToken } from "@/lib/demo";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -38,7 +39,7 @@ export async function generateMetadata({
   }
 
   const title = `Add photos to ${result.data.name}`;
-  const description = `Add your photos and videos to ${result.data.name} — no app, no account, just your phone.`;
+  const description = `Add your photos and videos to ${result.data.name}. No app, no account, just your phone.`;
   return {
     title,
     description,
@@ -111,6 +112,7 @@ export default async function GuestEventPage({
         qrToken={token}
         joinUrl={joinUrl}
         initialItems={initialItems}
+        isDemo={isDemoToken(token)}
       />
     </div>
   );

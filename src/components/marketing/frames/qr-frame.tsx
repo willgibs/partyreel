@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
+import { LiveQr } from "./live-qr";
+
 // "Scan to join" card. Decorative QR block by default; pass `href` to make the whole
 // card a tap-through to the demo event (the QR graphic stays decorative, the Link
 // carries the accessible name). Round 3 swaps the decorative block for a REAL scannable
@@ -35,14 +37,22 @@ const CELL_CLASS: Record<CellKind, string> = {
 
 export function QrFrame({
   href,
+  liveQrUrl,
   caption = "Scan to join",
   className,
 }: {
-  /** When set, the card links here (the demo event in Round 3). */
+  /** When set, the card links here (the demo event). */
   href?: string;
+  /** When set, render a REAL scannable QR encoding this URL instead of the
+      decorative block (the configured demo event). */
+  liveQrUrl?: string;
   caption?: string;
   className?: string;
 }) {
+  if (liveQrUrl) {
+    return <LiveQr url={liveQrUrl} caption={caption} className={className} />;
+  }
+
   const visual = (
     <div
       aria-hidden

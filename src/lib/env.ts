@@ -24,6 +24,11 @@ const publicSchema = z.object({
   // Canonical site origin for absolute links (QR/share URLs, OAuth redirects).
   // Optional locally (code falls back to the request origin); set in prod.
   NEXT_PUBLIC_SITE_URL: z.url().optional(),
+  // The qr_token of a curated DEMO event. When set, marketing shows a real
+  // scannable demo QR + a "Try the live demo" CTA, and that event's /e/[qr_token]
+  // guest page runs in demo mode (uploads simulated client-side, never persisted —
+  // see lib/demo.ts). Optional: unset → no demo surfaces anywhere.
+  NEXT_PUBLIC_DEMO_QR_TOKEN: z.string().min(1).optional(),
 });
 
 const serverSchema = z.object({
@@ -72,6 +77,7 @@ function parsePublic() {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_DEMO_QR_TOKEN: process.env.NEXT_PUBLIC_DEMO_QR_TOKEN,
   });
   if (!parsed.success) {
     throw new Error(

@@ -17,6 +17,7 @@ import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { type FeatureGroup, FEATURE_GROUPS } from "@/lib/constants/features";
 import { FEATURE_PRESENTATION } from "@/lib/constants/features-layout";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 
 export const metadata: Metadata = {
   title: "Features",
@@ -143,7 +144,7 @@ export default function FeaturesPage() {
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <QrFrame caption="Scan to join" />
+            <QrFrame caption="Scan to join" liveQrUrl={DEMO_EVENT_URL} />
           </div>
         </Container>
       </section>

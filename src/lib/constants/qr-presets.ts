@@ -48,9 +48,9 @@ export const DEFAULT_QR_PRESET: QrStyleKey = "classic";
 // Pure black on white is the scanner-safest pairing; BRAND only tints corners.
 const INK = "#000000";
 const PAPER = "#ffffff";
-// ≈ --brand oklch(0.585 0.196 18) (restrained coral). Hardcoded because the lib
-// renders to SVG/canvas and can't read the CSS custom property.
-const BRAND = "#d7364e";
+// Mirrors --brand / BRAND_HEX = #FB4817 (the single accent). Hardcoded because the
+// lib renders to SVG/canvas and can't read the CSS custom property; keep in sync.
+const BRAND = "#FB4817";
 
 export const QR_PRESETS: Record<QrStyleKey, QrPreset> = {
   classic: {
