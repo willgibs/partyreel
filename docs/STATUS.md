@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing site full build-out — Rounds 1–4 done locally, NOT yet deployed.**
+- **Marketing site full build-out — Rounds 1–5 built; 1–4 deployed live on partyreel.com, Round 5 pending deploy.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
   landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header
@@ -40,15 +40,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   heading tracking (both shared with the app). **Round 3** added the `/use-cases` hub + 4 umbrella
   landing pages (weddings / parties / conferences / trips) off one `[slug]` template — per-slug OG +
   breadcrumb/FAQ JSON-LD, a shared `album-frame`, the `Use cases ▾` dropdown — and fixed the OG
-  cards' stale brand color (now single-sourced `BRAND_HEX = #FB4817`). **Round 4** shipped `/contact`: a deny-all `contact_submissions` table
-  (migration `20260531090115`) written by a Server Action via the service-role admin client, the
-  first react-hook-form form, and a **best-effort** Resend notification (`sendOnce` + `replyTo`; the
-  DB row is authoritative). **Verified locally**: validation messages, the full submit → row in
-  `contact_submissions` (then cleaned up), and the success state. **Email DELIVERY + the rigorous
-  Chrome round-trip remain — they need a deploy.** Resend sending is configured in Vercel;
-  `CONTACT_NOTIFY_EMAIL=hi@willgibs.com` is set (the displayed `help@` is fixed via `SUPPORT_EMAIL`;
-  `help@` receiving via forwarding is a pre-launch TODO). Rounds 5–7 next. See
-  [ADR-0005](adr/0005-marketing-form-submissions.md).
+  cards' stale brand color (now single-sourced `BRAND_HEX = #FB4817`). **Round 4** shipped `/contact`:
+  a deny-all `contact_submissions` table (migration `20260531090115`) written by a Server Action via
+  the service-role admin client, the first react-hook-form form, and a **best-effort** Resend
+  notification (`sendOnce` + `replyTo`; the DB row is authoritative — see
+  [ADR-0005](adr/0005-marketing-form-submissions.md)). **Deployed + tested live via Chrome MCP** — the
+  full battery passed: happy path → DB row + delivered email, validation, honeypot (no row), XSS
+  stored literal + `esc()`-escaped in the email. Resend sending is set in Vercel;
+  `CONTACT_NOTIFY_EMAIL=hi@willgibs.com` (displayed `help@` fixed via `SUPPORT_EMAIL`; `help@`
+  receiving via forwarding is a pre-launch TODO). **Round 5** added `/careers` — a mission-focused hub
+  with varied sections + 2 roles (a neutral General Application + a fully-specified, remote/equity-
+  framed **Reels Engineer** owning the reel) + a deny-all `job_applications` table (migration
+  `20260531171514`) reusing the R4 form pattern. **Built + locally verified** (form → row, conditional
+  perk-neutral sections, 129 tests); the deployed Chrome battery is next. Rounds 6–7 after. _(Quality
+  follow-up tracked in ROADMAP: a Features/Use-cases polish pass + a reusable media-frame library.)_
 - **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
   header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
   host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native

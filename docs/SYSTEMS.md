@@ -187,9 +187,11 @@ dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
 [album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), **`/contact`** (form →
 deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend
 notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAIL` env — see
-[ADR-0005](adr/0005-marketing-form-submissions.md)), `/pricing`, legal. OG brand color is
-single-sourced as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still expanding (Help /
-Careers / Blog) — see ROADMAP.
+[ADR-0005](adr/0005-marketing-form-submissions.md)), **`/careers`** (mission-focused hub + per-role
+`[slug]` pages — copy in [careers.ts](../src/lib/constants/careers.ts); a deny-all `job_applications`
+table via the same R4 form pattern; only roles with an explicit `location`/`offer` show remote/perk
+framing, so the General Application stays neutral), `/pricing`, legal. OG brand color is single-sourced
+as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still expanding (Help / Blog) — see ROADMAP.
 
 ## Growth loop
 

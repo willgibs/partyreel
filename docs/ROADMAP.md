@@ -36,15 +36,20 @@ grayscale UI + the single **#FB4817** accent, media is the color; marketing just
    real mobile `Sheet` menu (there was none); multi-column footer; Org/Website/Breadcrumb
    JSON-LD + a shared `SITE_URL`/brand constant; **#FB4817** accent + wider `Container`
    (`max-w-7xl`) — both global, shared with the app.
-2. Features page (`/features`) + `features.ts` single-source; elevate the highlight-reel teaser
-   to a marquee capability (per the confirmed core-value-prop framing).
-3. Use cases — `/use-cases` hub + 4 umbrella landing pages (weddings / parties / conferences /
-   trips) with per-page OG + breadcrumb/FAQ JSON-LD.
-4. Contact — form → `contact_submissions` (deny-all RLS) + Resend notify (the marketing-form
-   pattern).
-5. Careers — listings (seed: General Application) → `job_applications`.
-6. Help center — MDX pipeline (`content/help/*.mdx`) + ~8–12 launch articles.
+2. ✅ **Features** (`/features`) + `features.ts` single-source; highlight-reel elevated to a marquee.
+3. ✅ **Use cases** — `/use-cases` hub + 4 umbrella landing pages (weddings / parties / conferences /
+   trips), per-page OG + breadcrumb/FAQ JSON-LD; shared `album-frame`.
+4. ✅ **Contact** — form → `contact_submissions` (deny-all RLS) + best-effort Resend notify
+   (ADR-0005); deployed + Chrome-tested live (happy path, validation, honeypot, XSS-escaping).
+5. ✅ **Careers** — mission-focused hub + 2 roles (General Application + a fully-specified Reels
+   Engineer) → `job_applications` (same pattern). _(Built + locally verified; deployed-Chrome test pending.)_
+6. **Help center** — MDX pipeline (`content/help/*.mdx`) + ~8–12 launch articles. **← next**
 7. Blog — MDX posts + RSS.
+
+**Quality follow-up (deferred, tracked):** retrofit Features + the use-case sections (currently
+repetitive card grids) with a reusable **media-frame component library** (phone / QR / gallery / reel
+frames alongside `album-frame`) + varied section layouts, to match home's richness. Going forward each
+round gets its **own focused plan file**; the all-rounds plan is retired.
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

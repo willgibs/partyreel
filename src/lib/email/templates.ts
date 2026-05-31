@@ -140,3 +140,26 @@ export function contactFormEmail(opts: {
 </div>`,
   };
 }
+
+// Internal operator notification for a /careers application. Reply-To = the applicant.
+export function applicationReceivedEmail(opts: {
+  role: string;
+  name: string;
+  email: string;
+  links?: string;
+  message: string;
+}): { subject: string; html: string } {
+  const links = opts.links?.trim();
+  return {
+    subject: `Application: ${opts.role} — ${opts.name}`,
+    html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
+  <h1 style="font-size:18px;font-weight:700;">New job application</h1>
+  <p style="margin:4px 0;"><strong>Role:</strong> ${esc(opts.role)}</p>
+  <p style="margin:4px 0;"><strong>From:</strong> ${esc(opts.name)} &lt;${esc(opts.email)}&gt;</p>
+  ${links ? `<p style="margin:4px 0;"><strong>Links:</strong> ${esc(links)}</p>` : ""}
+  <p style="margin:16px 0 4px;"><strong>Message:</strong></p>
+  <p style="white-space:pre-wrap;margin:0;">${esc(opts.message)}</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly — Partyreel careers.</p>
+</div>`,
+  };
+}

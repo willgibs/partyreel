@@ -215,6 +215,48 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          links: string | null
+          message: string
+          name: string
+          resume_url: string | null
+          role_slug: string
+          source: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          links?: string | null
+          message: string
+          name: string
+          resume_url?: string | null
+          role_slug: string
+          source?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          links?: string | null
+          message?: string
+          name?: string
+          resume_url?: string | null
+          role_slug?: string
+          source?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       link_stats: {
         Row: {
           count: number

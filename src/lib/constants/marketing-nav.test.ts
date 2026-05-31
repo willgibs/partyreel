@@ -73,4 +73,11 @@ describe("marketing nav config", () => {
     const column = FOOTER_NAV.find((col) => col.title === "Use cases");
     expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
+
+  it("footer Company column links to Careers + Contact", () => {
+    const company = FOOTER_NAV.find((col) => col.title === "Company");
+    const hrefs = company?.links.map((link) => link.href) ?? [];
+    expect(hrefs).toContain("/careers");
+    expect(hrefs).toContain("/contact");
+  });
 });

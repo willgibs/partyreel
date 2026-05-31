@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { JOB_SLUGS } from "@/lib/constants/careers";
 import { SITE_URL } from "@/lib/constants/site";
 import { USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 
@@ -20,6 +21,7 @@ const ROUTES: Entry[] = [
   { path: "/use-cases", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
+  { path: "/careers", changeFrequency: "weekly", priority: 0.6 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];
@@ -32,6 +34,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       path: `/use-cases/${slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    ...JOB_SLUGS.map((slug) => ({
+      path: `/careers/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
     })),
   ];
   return entries.map(({ path, changeFrequency, priority }) => ({
