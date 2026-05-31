@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+import { BRAND_HEX } from "@/lib/constants/site";
+
 // Site-wide social card. File-based OG: Next auto-emits og:image + twitter:image
 // for every route that inherits root metadata (per-event albums override this with
 // their own opengraph-image). 1200×630 is the standard large-summary card size.
@@ -9,7 +11,7 @@ export const alt = "Partyreel — every photo from your party, in one place";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = "#D7364E"; // --brand oklch(0.585 0.196 18) → sRGB
+const BRAND = BRAND_HEX;
 
 export default function OgImage() {
   return new ImageResponse(

@@ -1,5 +1,7 @@
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
+import type { FaqItem } from "./faq-data";
+
 // Structured-data helpers for the marketing site. All content is our own static
 // strings (no user input) → safe to inline as application/ld+json, same as the
 // FaqJsonLd pattern. Org + Website mount site-wide in the marketing layout;
@@ -37,6 +39,24 @@ export function WebsiteJsonLd() {
         name: SITE_NAME,
         url: SITE_URL,
         description: SITE_DESCRIPTION,
+      }}
+    />
+  );
+}
+
+// Reusable FAQPage schema from any FaqItem[] (use-case pages, help articles…).
+// The home FAQ keeps its own `faq-jsonld.tsx`; this is for per-page FAQ sets.
+export function FaqPageJsonLd({ items }: { items: FaqItem[] }) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: items.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
       }}
     />
   );

@@ -180,8 +180,13 @@ accent (`--brand`), media is the color; marketing runs louder via type/layout/mo
 follows the in-repo `emil-design-eng` skill). Text face is **Inter** with tightened heading tracking
 (global `--tracking-tight` override). **Pages:** home, **`/features`** (capability deep-dive — copy
 single-sourced in [features.ts](../src/lib/constants/features.ts), which also feeds the home
-`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), `/pricing`,
-legal. Still expanding (Use cases / Help / Contact / Careers / Blog) — see ROADMAP.
+`FeatureHighlights` teaser and the shared **highlight-reel** marquee/`ReelTeaser`), **`/use-cases`**
+(hub + 4 umbrella landing pages — weddings/parties/conferences/trips — off ONE `[slug]` template;
+copy in [use-cases.ts](../src/lib/constants/use-cases.ts) feeds the home section + the `Use cases ▾`
+dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
+[album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), `/pricing`, legal. OG
+brand color is single-sourced as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still
+expanding (Help / Contact / Careers / Blog) — see ROADMAP.
 
 ## Growth loop
 

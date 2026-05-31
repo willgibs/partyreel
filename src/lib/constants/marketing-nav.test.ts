@@ -6,6 +6,7 @@ import {
   PRIMARY_NAV,
   type NavItem,
 } from "@/lib/constants/marketing-nav";
+import { USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 
 // Every href a nav surface exposes (flat links + group parents + children).
 function hrefsOf(items: NavItem[]): string[] {
@@ -58,5 +59,18 @@ describe("marketing nav config", () => {
         expect(isInternal(link.href)).toBe(true);
       }
     }
+  });
+
+  it("the Use cases nav mirrors USE_CASE_SLUGS (no drift)", () => {
+    const expected = USE_CASE_SLUGS.map((slug) => `/use-cases/${slug}`);
+    const group = PRIMARY_NAV.find(
+      (item) => isNavGroup(item) && item.label === "Use cases",
+    );
+    expect(group && isNavGroup(group)).toBe(true);
+    if (group && isNavGroup(group)) {
+      expect(group.children.map((child) => child.href)).toEqual(expected);
+    }
+    const column = FOOTER_NAV.find((col) => col.title === "Use cases");
+    expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 });

@@ -1,0 +1,300 @@
+import {
+  Briefcase,
+  CalendarHeart,
+  Download,
+  Film,
+  Heart,
+  Images,
+  ListChecks,
+  Lock,
+  type LucideIcon,
+  PartyPopper,
+  Plane,
+  QrCode,
+  Radio,
+  ShieldCheck,
+  Smartphone,
+} from "lucide-react";
+
+import type { FaqItem } from "@/components/marketing/faq-data";
+
+// Single source for the use-case umbrellas — the home section, the /use-cases hub,
+// and each /use-cases/[slug] landing page all read from here. Each entry carries a
+// short `teaser` (cards) plus the full landing content. `nestedThemes` are the
+// long-tail terms the umbrella absorbs (good for SEO body copy, e.g. "Parties"
+// covers birthdays, graduations, showers…).
+export type UseCaseHelp = { icon: LucideIcon; title: string; body: string };
+
+export type UseCase = {
+  slug: string;
+  navLabel: string;
+  icon: LucideIcon;
+  /** Short line for the home grid + hub cards. */
+  teaser: string;
+  headline: string;
+  subhead: string;
+  intro: string;
+  nestedThemes: string[];
+  howItHelps: UseCaseHelp[];
+  faq: FaqItem[];
+  ctaTitle: string;
+  /** Stamped onto the per-page OG card. */
+  ogTitle: string;
+};
+
+export const USE_CASES: UseCase[] = [
+  {
+    slug: "weddings",
+    navLabel: "Weddings",
+    icon: Heart,
+    teaser: "Every guest's angle of the day — not just the photographer's.",
+    headline: "Every photo from your wedding, from everyone there",
+    subhead:
+      "Your photographer captures the formals. Your guests capture everything else — the happy tears, the dance floor, the late-night candids. Partyreel collects it all in one place.",
+    intro:
+      "A wedding is the most photographed day of your life, and almost none of those photos ever reach you. Guests fill their camera rolls and the shots scatter across phones and group chats. Partyreel turns every guest into a second shooter — no app, no account, just a QR code on the table.",
+    nestedThemes: [
+      "receptions",
+      "ceremonies",
+      "rehearsal dinners",
+      "engagement parties",
+      "elopements",
+    ],
+    howItHelps: [
+      {
+        icon: Heart,
+        title: "Every angle of the first dance",
+        body: "Guests catch the moments your photographer can't be everywhere for — from every seat in the room.",
+      },
+      {
+        icon: QrCode,
+        title: "A QR on every table",
+        body: "Drop your code on table cards or the program. Guests scan and upload between courses, no chasing required.",
+      },
+      {
+        icon: Lock,
+        title: "Yours, kept private",
+        body: "Your album opens only to the link you share and stays out of search engines — share it with family, not the world.",
+      },
+      {
+        icon: Film,
+        title: "Full-quality memories",
+        body: "Photos and long videos upload at full resolution — the originals, ready to download and keep forever.",
+      },
+    ],
+    faq: [
+      {
+        q: "Do wedding guests need to download an app?",
+        a: "No. Guests scan your QR code and upload straight from their phone's browser — there's nothing to install and no account to create.",
+      },
+      {
+        q: "Can we keep the wedding album private?",
+        a: "Yes. Your album opens only to the link you share, and Partyreel keeps share links out of search engines, so you decide exactly who sees it.",
+      },
+      {
+        q: "Will we get the original-quality files?",
+        a: "Yes. Photos and videos upload at full resolution, and anyone with the album can download the originals — no compression, no watermarks.",
+      },
+      {
+        q: "How long do the photos stay up?",
+        a: "Your event stays up until you take it down — there's no expiry clock counting down on your wedding memories.",
+      },
+    ],
+    ctaTitle: "Collect every photo from your wedding",
+    ogTitle: "Every wedding photo, from everyone there",
+  },
+  {
+    slug: "parties",
+    navLabel: "Parties",
+    icon: PartyPopper,
+    teaser: "The candids from every corner of the room, before anyone leaves.",
+    headline: "The whole party's camera roll, in one place",
+    subhead:
+      "Birthdays, anniversaries, graduations, showers — wherever people show up with phones, Partyreel gathers what they capture into one shared album.",
+    intro:
+      "The best party photos are the candid ones your guests take — and they're exactly the ones that never get shared. Partyreel puts a QR code in the room so everyone's shots land in one place, live, while the party's still going.",
+    nestedThemes: [
+      "birthdays",
+      "anniversaries",
+      "graduations",
+      "baby showers",
+      "bachelorette parties",
+      "holiday parties",
+      "housewarmings",
+    ],
+    howItHelps: [
+      {
+        icon: PartyPopper,
+        title: "Every candid, gathered",
+        body: "The off-the-cuff moments from every corner of the room — collected before anyone heads home.",
+      },
+      {
+        icon: Smartphone,
+        title: "No app to kill the vibe",
+        body: "Guests scan, type a name, and upload. No download, no sign-up, nothing to break the moment.",
+      },
+      {
+        icon: Radio,
+        title: "Watch it fill, live",
+        body: "New photos and videos appear as they're taken — put the album on a TV and let it build all night.",
+      },
+      {
+        icon: Download,
+        title: "Keep the best ones",
+        body: "Save any photo or video at full quality, or share the whole album with one link the next day.",
+      },
+    ],
+    faq: [
+      {
+        q: "Is Partyreel good for a birthday party?",
+        a: "Absolutely — birthdays are a perfect fit. Put a QR code on the table or up on a slideshow, and every guest's photos and videos land in one shared album.",
+      },
+      {
+        q: "Do guests need an app or an account?",
+        a: "No. Guests scan the QR code and upload from their phone browser — no install, no sign-up, just a display name.",
+      },
+      {
+        q: "Can I show the photos during the party?",
+        a: "Yes. The gallery updates live as guests upload, so you can put it on a screen and watch the album fill in real time.",
+      },
+      {
+        q: "What does it cost?",
+        a: "You can start free, and paid plans are sized by storage — pick what fits a small get-together or a big celebration.",
+      },
+    ],
+    ctaTitle: "Start your party's album",
+    ogTitle: "The whole party's camera roll, in one place",
+  },
+  {
+    slug: "conferences",
+    navLabel: "Conferences",
+    icon: Briefcase,
+    teaser:
+      "Talks, booths, and hallway moments from hundreds of attendees in one feed.",
+    headline: "Your whole event, captured by everyone there",
+    subhead:
+      "Conferences, summits, trade shows, company offsites — turn hundreds of attendees into your content team with a single QR code.",
+    intro:
+      "Your team can't be everywhere at a multi-track event, but your attendees are. Partyreel collects the keynote shots, the booth interactions, and the hallway conversations into one feed you can curate and reshare — with no app for attendees to install.",
+    nestedThemes: [
+      "corporate events",
+      "summits",
+      "trade shows",
+      "company offsites",
+      "team retreats",
+      "award nights",
+      "meetups",
+    ],
+    howItHelps: [
+      {
+        icon: Briefcase,
+        title: "Crowd-sourced coverage",
+        body: "Talks, booths, and networking moments from across every room and track, gathered into one feed.",
+      },
+      {
+        icon: ListChecks,
+        title: "Curate before you reshare",
+        body: "Approve uploads before they appear, then pull the best shots for recaps, socials, and sponsor reports.",
+      },
+      {
+        icon: QrCode,
+        title: "One code on every badge",
+        body: "Print the QR on badges, signage, or the slide deck — attendees scan and contribute in seconds.",
+      },
+      {
+        icon: ShieldCheck,
+        title: "Control and safety",
+        body: "Review what shows, hide anything off-brand, and rest easy — a real person reviews every report.",
+      },
+    ],
+    faq: [
+      {
+        q: "How do attendees contribute photos?",
+        a: "They scan a QR code — on a badge, a sign, or a slide — and upload from their phone browser. No app, no account, no attendee onboarding.",
+      },
+      {
+        q: "Can we review photos before they're public?",
+        a: "Yes. Turn on review and every upload waits for approval before it appears, so you control what represents your event.",
+      },
+      {
+        q: "Can we use the photos for marketing and recaps?",
+        a: "Yes. Download any photo or video at full quality to use in recaps, social posts, and sponsor reports.",
+      },
+      {
+        q: "Does it work for large events?",
+        a: "Yes — there's no attendee limit, and you can pick a storage plan sized to the volume of media a big event generates.",
+      },
+    ],
+    ctaTitle: "Capture your whole conference",
+    ogTitle: "Your conference, captured by everyone there",
+  },
+  {
+    slug: "trips",
+    navLabel: "Trips",
+    icon: Plane,
+    teaser:
+      "Pool everyone's photos from the whole trip instead of chasing them later.",
+    headline: "One shared album for the whole trip",
+    subhead:
+      "Group vacations, reunions, retreats, bachelor and bachelorette trips — pool everyone's photos instead of chasing them across five group chats when you get home.",
+    intro:
+      "No one person captures a whole trip. The best shots are spread across everyone's phones, and they never all end up in one place. Partyreel gives the group one album to fill — from the first airport selfie to the last sunset — so everyone leaves with all of it.",
+    nestedThemes: [
+      "group vacations",
+      "family reunions",
+      "retreats",
+      "road trips",
+      "bachelor & bachelorette trips",
+      "festivals",
+      "camping trips",
+    ],
+    howItHelps: [
+      {
+        icon: Plane,
+        title: "The whole trip, from everyone",
+        body: "Every traveler's photos and videos in one album — not scattered across phones and chats.",
+      },
+      {
+        icon: Smartphone,
+        title: "Add photos as you go",
+        body: "Scan once and upload from anywhere — no app, no account, works on everyone's phone.",
+      },
+      {
+        icon: Images,
+        title: "One link to relive it",
+        body: "Share a single album link when you're home, and everyone can browse and download the whole trip.",
+      },
+      {
+        icon: CalendarHeart,
+        title: "Keeps the memories",
+        body: "Your trip album stays up until you take it down — come back to it years later.",
+      },
+    ],
+    faq: [
+      {
+        q: "How does everyone add their photos?",
+        a: "Share one QR code or link with the group. Everyone scans and uploads from their own phone — no app and no account needed.",
+      },
+      {
+        q: "Can everyone download the photos afterward?",
+        a: "Yes. Share the album link and anyone can browse and download any photo or video at full quality.",
+      },
+      {
+        q: "Does everyone need the same kind of phone?",
+        a: "No. Partyreel runs in any phone's browser, so it works for the whole group no matter what device they carry.",
+      },
+      {
+        q: "How long will the album last?",
+        a: "As long as you want — your trip album stays up until you delete it, so you can revisit it whenever.",
+      },
+    ],
+    ctaTitle: "Make one album for the trip",
+    ogTitle: "One shared album for the whole trip",
+  },
+];
+
+export const USE_CASE_SLUGS = USE_CASES.map((useCase) => useCase.slug);
+
+export function getUseCase(slug: string): UseCase | undefined {
+  return USE_CASES.find((useCase) => useCase.slug === slug);
+}

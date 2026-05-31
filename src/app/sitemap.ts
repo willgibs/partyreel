@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/constants/site";
+import { USE_CASE_SLUGS } from "@/lib/constants/use-cases";
 
 // Public, crawlable routes ONLY. Never list /a/ or /e/ (opaque capability-token
 // share links — indexing them would leak semi-private albums) or the gated app
@@ -16,6 +17,7 @@ type Entry = {
 const ROUTES: Entry[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/features", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/use-cases", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
@@ -23,7 +25,15 @@ const ROUTES: Entry[] = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
-  return ROUTES.map(({ path, changeFrequency, priority }) => ({
+  const entries: Entry[] = [
+    ...ROUTES,
+    ...USE_CASE_SLUGS.map((slug) => ({
+      path: `/use-cases/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+  return entries.map(({ path, changeFrequency, priority }) => ({
     url: `${SITE_URL}${path}`,
     lastModified,
     changeFrequency,

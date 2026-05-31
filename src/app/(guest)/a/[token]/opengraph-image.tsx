@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { getPublicAlbum } from "@/lib/db/queries/album";
+import { BRAND_HEX } from "@/lib/constants/site";
 
 // Per-event share card: the event name on the branded dark surface. Overrides the
 // site-wide opengraph-image for /a/[token] so a shared album unfurls with the real
@@ -9,7 +10,7 @@ export const alt = "A Partyreel event album";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = "#D7364E";
+const BRAND = BRAND_HEX;
 
 export default async function AlbumOgImage({
   params,

@@ -15,9 +15,21 @@ export function isNavGroup(item: NavItem): item is NavGroup {
 // Desktop header primary nav (between the logo and the CTAs). Today these are the
 // live routes + home-section anchors; Features / Use-cases dropdown / Resources land
 // in their rounds. Anchors use `/#id` (not `#id`) so they resolve from any page.
+// The Use-cases children mirror USE_CASES in lib/constants/use-cases.ts (kept here
+// as plain strings so this nav module stays dependency-free / light in the client
+// bundle); a Vitest test asserts they don't drift from USE_CASE_SLUGS.
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Features", href: "/features" },
-  { label: "Use cases", href: "/#use-cases" },
+  {
+    label: "Use cases",
+    href: "/use-cases",
+    children: [
+      { label: "Weddings", href: "/use-cases/weddings" },
+      { label: "Parties", href: "/use-cases/parties" },
+      { label: "Conferences", href: "/use-cases/conferences" },
+      { label: "Trips", href: "/use-cases/trips" },
+    ],
+  },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -33,6 +45,15 @@ export const FOOTER_NAV: FooterColumn[] = [
       { label: "How it works", href: "/#how-it-works" },
       { label: "Pricing", href: "/pricing" },
       { label: "FAQ", href: "/#faq" },
+    ],
+  },
+  {
+    title: "Use cases",
+    links: [
+      { label: "Weddings", href: "/use-cases/weddings" },
+      { label: "Parties", href: "/use-cases/parties" },
+      { label: "Conferences", href: "/use-cases/conferences" },
+      { label: "Trips", href: "/use-cases/trips" },
     ],
   },
   {
