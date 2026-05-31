@@ -12,7 +12,7 @@ export function FinalCta() {
         </h2>
         <p className="max-w-lg text-pretty text-muted-foreground">
           Create an event, share the QR, and watch the photos roll in. Your
-          guests don&rsquo;t need an app or an account — just their phones.
+          guests don&rsquo;t need an app or an account, just their phones.
         </p>
         <Button asChild size="lg" className="h-11 px-6 text-base">
           <Link href="/login">Start free</Link>
