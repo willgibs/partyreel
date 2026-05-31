@@ -37,4 +37,14 @@ describe("contactSchema", () => {
         .success,
     ).toBe(true);
   });
+
+  it("rejects an over-length name with a friendly message", () => {
+    const result = contactSchema.safeParse({ ...valid, name: "A".repeat(101) });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        "Name is too long (100 characters max).",
+      );
+    }
+  });
 });
