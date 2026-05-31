@@ -24,6 +24,8 @@ export type SendOnceArgs = {
   to: string;
   subject: string;
   html: string;
+  /** Optional Reply-To — e.g. so an operator can reply straight to a form submitter. */
+  replyTo?: string;
 };
 
 /** Returns true if an email was sent, false if it was already sent (deduped). */
@@ -46,6 +48,7 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
     to: args.to,
     subject: args.subject,
     html: args.html,
+    replyTo: args.replyTo,
   });
   if (sendError) {
     // Release the claim so a transient failure retries next run (still single-send).

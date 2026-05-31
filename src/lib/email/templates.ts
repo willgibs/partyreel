@@ -115,3 +115,28 @@ export function inactivityRemovedEmail(opts: {
     ),
   };
 }
+
+// Internal operator notification for a /contact submission — NOT the host-facing
+// `layout()` (its footer is wrong here). Send with Reply-To = the submitter so a
+// reply goes straight back to them.
+export function contactFormEmail(opts: {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+}): { subject: string; html: string } {
+  const trimmedSubject = opts.subject?.trim();
+  return {
+    subject: trimmedSubject
+      ? `Contact form: ${trimmedSubject}`
+      : `Contact form from ${opts.name}`,
+    html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
+  <h1 style="font-size:18px;font-weight:700;">New contact form submission</h1>
+  <p style="margin:4px 0;"><strong>From:</strong> ${esc(opts.name)} &lt;${esc(opts.email)}&gt;</p>
+  ${trimmedSubject ? `<p style="margin:4px 0;"><strong>Subject:</strong> ${esc(trimmedSubject)}</p>` : ""}
+  <p style="margin:16px 0 4px;"><strong>Message:</strong></p>
+  <p style="white-space:pre-wrap;margin:0;">${esc(opts.message)}</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly — Partyreel contact form.</p>
+</div>`,
+  };
+}

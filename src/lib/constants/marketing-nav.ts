@@ -57,6 +57,10 @@ export const FOOTER_NAV: FooterColumn[] = [
     ],
   },
   {
+    title: "Company",
+    links: [{ label: "Contact", href: "/contact" }],
+  },
+  {
     title: "Legal",
     links: [
       { label: "Privacy", href: "/privacy" },

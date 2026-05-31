@@ -13,5 +13,11 @@ export const SITE_NAME = "Partyreel";
 // globals.css.
 export const BRAND_HEX = "#FB4817";
 
+// Public-facing support/contact address shown on the marketing site (and referenced
+// in the contact notification email). This DISPLAYED address stays fixed; where
+// notifications actually get SENT is the `CONTACT_NOTIFY_EMAIL` env (env.ts), so this
+// never has to change when `help@` receiving is wired up later.
+export const SUPPORT_EMAIL = "help@partyreel.com";
+
 export const SITE_DESCRIPTION =
   "Collect every photo and video from your event. Guests scan a QR code and upload in seconds — no app, no account.";

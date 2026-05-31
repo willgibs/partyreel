@@ -184,9 +184,12 @@ single-sourced in [features.ts](../src/lib/constants/features.ts), which also fe
 (hub + 4 umbrella landing pages — weddings/parties/conferences/trips — off ONE `[slug]` template;
 copy in [use-cases.ts](../src/lib/constants/use-cases.ts) feeds the home section + the `Use cases ▾`
 dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
-[album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), `/pricing`, legal. OG
-brand color is single-sourced as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still
-expanding (Help / Contact / Careers / Blog) — see ROADMAP.
+[album-frame.tsx](../src/components/marketing/album-frame.tsx) with the hero), **`/contact`** (form →
+deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend
+notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAIL` env — see
+[ADR-0005](adr/0005-marketing-form-submissions.md)), `/pricing`, legal. OG brand color is
+single-sourced as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still expanding (Help /
+Careers / Blog) — see ROADMAP.
 
 ## Growth loop
 

@@ -54,6 +54,10 @@ const serverSchema = z.object({
   // asserts them lazily so the app builds/deploys before the key + domain are set.
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).optional(),
+  // Where contact/careers notification emails are SENT (a real receiving inbox).
+  // Optional — the action defaults to SUPPORT_EMAIL (help@partyreel.com). Set in
+  // Vercel to an inbox you read; swap it later (no code change) once help@ receives.
+  CONTACT_NOTIFY_EMAIL: z.email().optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -95,6 +99,7 @@ function parseServer() {
       process.env.STRIPE_PRICE_EVENT_PASS_RENEWAL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    CONTACT_NOTIFY_EMAIL: process.env.CONTACT_NOTIFY_EMAIL,
   });
   if (!parsed.success) {
     throw new Error(

@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          source: string | null
+          status: string
+          subject: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          source?: string | null
+          status?: string
+          subject?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          source?: string | null
+          status?: string
+          subject?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           accepting_uploads: boolean

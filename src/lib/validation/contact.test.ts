@@ -1,0 +1,40 @@
+import { describe, expect, it } from "vitest";
+
+import { contactSchema } from "@/lib/validation/contact";
+
+const valid = {
+  name: "Ada Lovelace",
+  email: "ada@example.com",
+  message: "Hi — I have a question about hosting a wedding album.",
+};
+
+describe("contactSchema", () => {
+  it("accepts a valid submission", () => {
+    expect(contactSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects an invalid email", () => {
+    expect(contactSchema.safeParse({ ...valid, email: "nope" }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects a blank name", () => {
+    expect(contactSchema.safeParse({ ...valid, name: "   " }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects a too-short message", () => {
+    expect(contactSchema.safeParse({ ...valid, message: "hi" }).success).toBe(
+      false,
+    );
+  });
+
+  it("allows an optional subject and the (empty) honeypot field", () => {
+    expect(
+      contactSchema.safeParse({ ...valid, subject: "Billing", website: "" })
+        .success,
+    ).toBe(true);
+  });
+});

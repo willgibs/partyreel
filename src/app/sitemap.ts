@@ -19,6 +19,7 @@ const ROUTES: Entry[] = [
   { path: "/features", changeFrequency: "monthly", priority: 0.8 },
   { path: "/use-cases", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];
