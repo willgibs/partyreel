@@ -17,4 +17,7 @@ src/components/ui
 # Markdown is prose. Prettier's prose-wrap reflows it and turns a wrapped line that
 # begins with "+"/"-"/"*" into a list item — silently mangling sentences in the docs
 # for little benefit. Author markdown by hand; prettier stays on code, where it shines.
+# MDX (help/blog articles in content/) is the same: hand-authored prose + first-party
+# JSX components; keep prettier off it so inline components + frontmatter stay as written.
 *.md
+*.mdx

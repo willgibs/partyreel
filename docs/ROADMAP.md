@@ -43,8 +43,14 @@ grayscale UI + the single **#FB4817** accent, media is the color; marketing just
    (ADR-0005); deployed + Chrome-tested live (happy path, validation, honeypot, XSS-escaping).
 5. ✅ **Careers** — mission-focused hub + 2 roles (General Application + a fully-specified Reels
    Engineer) → `job_applications` (same pattern). _(Built + locally verified; deployed-Chrome test pending.)_
-6. **Help center** — MDX pipeline (`content/help/*.mdx`) + ~8–12 launch articles. **← next**
-7. Blog — MDX posts + RSS.
+6. ✅ **Help center** (`/help` + `/help/[slug]`) — new in-repo **MDX content pipeline**
+   (`content/help/*.mdx` + gray-matter + `next-mdx-remote/rsc` + build-time zod frontmatter validation;
+   [ADR-0006](adr/0006-mdx-content-pipeline.md)); categorized index + client-side search; **12 launch
+   articles**; per-article on-this-page TOC / related / Breadcrumb+Article JSON-LD / Contact CTA;
+   first-party MDX components (Callout / AlbumShowcase / inline limits-tiers spec components) + a
+   `prose-help` typography theme; `Resources ▾` header dropdown + footer column (Help + Contact). No DB
+   changes. **R7 reuses this pipeline.**
+7. **Blog** — MDX posts + RSS (reuses the R6 `content/` pipeline; add a `content/blog` collection). **← next**
 
 **Quality follow-up (deferred, tracked):** retrofit Features + the use-case sections (currently
 repetitive card grids) with a reusable **media-frame component library** (phone / QR / gallery / reel

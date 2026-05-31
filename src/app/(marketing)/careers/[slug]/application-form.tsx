@@ -58,8 +58,8 @@ export function ApplicationForm({
           Application received
         </h3>
         <p className="text-sm text-muted-foreground">
-          Thanks for applying to {roleTitle}. If it looks like a fit, we&rsquo;ll
-          be in touch.
+          Thanks for applying to {roleTitle}. If it looks like a fit,
+          we&rsquo;ll be in touch.
         </p>
       </div>
     );
@@ -118,10 +118,7 @@ export function ApplicationForm({
                 </span>
               </FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Portfolio, LinkedIn, GitHub…"
-                  {...field}
-                />
+                <Input placeholder="Portfolio, LinkedIn, GitHub…" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

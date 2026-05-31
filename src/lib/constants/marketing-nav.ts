@@ -31,6 +31,15 @@ export const PRIMARY_NAV: NavItem[] = [
     ],
   },
   { label: "Pricing", href: "/pricing" },
+  {
+    // No `href` (there is no /resources hub) → the dropdown renders just the
+    // children, no "All resources" item. Mirrors the footer Resources column.
+    label: "Resources",
+    children: [
+      { label: "Help center", href: "/help" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
 ];
 
 export type FooterColumn = { title: string; links: NavLink[] };
@@ -57,11 +66,15 @@ export const FOOTER_NAV: FooterColumn[] = [
     ],
   },
   {
-    title: "Company",
+    title: "Resources",
     links: [
-      { label: "Careers", href: "/careers" },
+      { label: "Help center", href: "/help" },
       { label: "Contact", href: "/contact" },
     ],
+  },
+  {
+    title: "Company",
+    links: [{ label: "Careers", href: "/careers" }],
   },
   {
     title: "Legal",

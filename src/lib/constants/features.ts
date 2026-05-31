@@ -146,8 +146,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     id: "privacy",
     eyebrow: "Privacy & safety",
     heading: "Yours, and only as public as you make it",
-    subhead:
-      "Private by default, with a real person behind every report.",
+    subhead: "Private by default, with a real person behind every report.",
     features: [
       {
         icon: Lock,

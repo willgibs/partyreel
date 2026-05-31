@@ -89,7 +89,11 @@ export default function CareersPage() {
       </Section>
 
       {/* Open roles */}
-      <Section id="open-roles" eyebrow="Open roles" heading="Come build with us">
+      <Section
+        id="open-roles"
+        eyebrow="Open roles"
+        heading="Come build with us"
+      >
         <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-4">
           {JOB_OPENINGS.map((job) => (
             <Link

@@ -62,6 +62,45 @@ export function FaqPageJsonLd({ items }: { items: FaqItem[] }) {
   );
 }
 
+// Article schema for help-center / blog pages. `author`/`publisher` are the Org;
+// dates come from the article's frontmatter `updated`. All values are our own static
+// content (no user input) → safe to inline, same as the other helpers above.
+export function ArticleJsonLd({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified,
+}: {
+  headline: string;
+  description: string;
+  /** Site-relative path, e.g. "/help/how-partyreel-works". */
+  path: string;
+  datePublished?: string;
+  dateModified?: string;
+}) {
+  const url = `${SITE_URL}${path}`;
+  const org = { "@type": "Organization", name: SITE_NAME, url: SITE_URL };
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline,
+        description,
+        author: org,
+        publisher: {
+          ...org,
+          logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.svg` },
+        },
+        ...(datePublished ? { datePublished } : {}),
+        ...(dateModified ? { dateModified } : {}),
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      }}
+    />
+  );
+}
+
 export type BreadcrumbItem = { name: string; href: string };
 
 export function BreadcrumbJsonLd({ items }: { items: BreadcrumbItem[] }) {

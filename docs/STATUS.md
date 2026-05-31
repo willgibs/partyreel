@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing site full build-out — Rounds 1–5 built; 1–4 deployed live on partyreel.com, Round 5 pending deploy.**
+- **Marketing site full build-out — Rounds 1–6 built; 1–5 deployed + live-tested on partyreel.com; Round 6 (Help) built + locally verified, deploy + spot-check pending.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1
   landed the IA + design foundation: a `marketing-nav.ts` single-source, a config-driven header
@@ -51,9 +51,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   receiving via forwarding is a pre-launch TODO). **Round 5** added `/careers` — a mission-focused hub
   with varied sections + 2 roles (a neutral General Application + a fully-specified, remote/equity-
   framed **Reels Engineer** owning the reel) + a deny-all `job_applications` table (migration
-  `20260531171514`) reusing the R4 form pattern. **Built + locally verified** (form → row, conditional
-  perk-neutral sections, 129 tests); the deployed Chrome battery is next. Rounds 6–7 after. _(Quality
-  follow-up tracked in ROADMAP: a Features/Use-cases polish pass + a reusable media-frame library.)_
+  `20260531171514`) reusing the R4 form pattern. **Deployed + Chrome-tested live** (the full form battery
+  passed against `job_applications` — happy path → row + email, validation, honeypot, XSS-escaped).
+  **Round 6** shipped the **Help center** (`/help` + `/help/[slug]`): a new in-repo **MDX content
+  pipeline** (`content/help/*.mdx` + gray-matter + `next-mdx-remote/rsc` + build-time zod frontmatter
+  validation — see [ADR-0006](adr/0006-mdx-content-pipeline.md)) feeding a categorized index with
+  **client-side search** + per-article pages (on-this-page TOC, related articles, Breadcrumb/Article
+  JSON-LD, Contact CTA); **12 launch articles**; first-party MDX components (Callout / AlbumShowcase /
+  inline **spec components** reading the limits/tiers single sources) + a `prose-help`
+  `@tailwindcss/typography` theme; a header **`Resources ▾`** dropdown + footer column (Help + Contact;
+  Company → Careers). **No DB changes this round.** **Built + verified via Preview MCP** (index + search
+  + empty state, an article's prose/specs/TOC/related/CTA, 404 on a bad slug, dark-mode prose, no console
+  errors; typecheck/lint/**137 tests**/build all clean); deploy + a Chrome spot-check are the only
+  remaining step. **Round 7 (Blog) is the last, and reuses the R6 pipeline.** _(Quality follow-up tracked
+  in ROADMAP: a Features/Use-cases polish pass + a reusable media-frame library.)_
 - **Unified guest event page** (`/e/[qr_token]`) — **shipped + deployed** (commit `f073451`):
   header + just-in-time upload + a **live polling gallery** + in-page QR/share, all driven by the
   host's `is_public`/`accepting_uploads` state. Verified on **partyreel.com**: render + native

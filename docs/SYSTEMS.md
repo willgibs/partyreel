@@ -190,8 +190,19 @@ notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAI
 [ADR-0005](adr/0005-marketing-form-submissions.md)), **`/careers`** (mission-focused hub + per-role
 `[slug]` pages — copy in [careers.ts](../src/lib/constants/careers.ts); a deny-all `job_applications`
 table via the same R4 form pattern; only roles with an explicit `location`/`offer` show remote/perk
-framing, so the General Application stays neutral), `/pricing`, legal. OG brand color is single-sourced
-as `BRAND_HEX` in `site.ts` (satori needs a literal hex). Still expanding (Help / Blog) — see ROADMAP.
+framing, so the General Application stays neutral), **`/help`** (help center — an in-repo **MDX content
+pipeline**: `content/help/*.mdx` + `gray-matter` (list/parse) + `next-mdx-remote/rsc` (render) +
+**build-time zod frontmatter validation**, loader [help.ts](../src/lib/content/help.ts); a categorized
+index with **client-side search** ([help-search.tsx](../src/app/(marketing)/help/help-search.tsx)) +
+per-article `[slug]` pages with an on-this-page TOC, related articles, Breadcrumb/Article JSON-LD, and a
+Contact CTA. Articles use first-party MDX components ([mdx-components.tsx](../src/components/marketing/mdx-components.tsx))
+— `Callout`, `AlbumShowcase`, and inline **spec components** that read the `limits.ts`/`tiers.ts` single
+sources so numbers can't drift — styled by a `prose-help` `@tailwindcss/typography` theme whose colors
+point at design tokens (auto-adapts to dark, no `prose-invert`); heading ids + the TOC share one in-repo
+`slugify`. See [ADR-0006](adr/0006-mdx-content-pipeline.md). **Round 7 (Blog) reuses this pipeline.**),
+`/pricing`, legal. The header **`Resources ▾`** dropdown + footer **Resources** column group Help +
+Contact (Company → Careers). OG brand color is single-sourced as `BRAND_HEX` in `site.ts` (satori needs
+a literal hex). Last marketing round left: Blog — see ROADMAP.
 
 ## Growth loop
 

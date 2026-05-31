@@ -5,10 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AlbumFrame } from "@/components/marketing/album-frame";
 import { FinalCta } from "@/components/marketing/final-cta";
-import {
-  BreadcrumbJsonLd,
-  FaqPageJsonLd,
-} from "@/components/marketing/jsonld";
+import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { Section } from "@/components/marketing/section";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";

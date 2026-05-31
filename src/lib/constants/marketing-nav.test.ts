@@ -74,10 +74,23 @@ describe("marketing nav config", () => {
     expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 
-  it("footer Company column links to Careers + Contact", () => {
+  it("footer Company column links to Careers (Contact moved to Resources)", () => {
     const company = FOOTER_NAV.find((col) => col.title === "Company");
     const hrefs = company?.links.map((link) => link.href) ?? [];
     expect(hrefs).toContain("/careers");
-    expect(hrefs).toContain("/contact");
+    expect(hrefs).not.toContain("/contact");
+  });
+
+  it("Resources surfaces Help + Contact in both the header group and footer column", () => {
+    const expected = ["/help", "/contact"];
+    const group = PRIMARY_NAV.find(
+      (item) => isNavGroup(item) && item.label === "Resources",
+    );
+    expect(group && isNavGroup(group)).toBe(true);
+    if (group && isNavGroup(group)) {
+      expect(group.children.map((child) => child.href)).toEqual(expected);
+    }
+    const column = FOOTER_NAV.find((col) => col.title === "Resources");
+    expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 });
