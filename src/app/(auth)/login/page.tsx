@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { Logo } from "@/components/shared/logo";
@@ -10,6 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { isAdminHost } from "@/lib/auth/admin-host";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Log in" };
 
@@ -22,6 +26,23 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  // Already signed in? Skip the form and go into the app — so a logged-in visitor
+  // clicking "Log in" from marketing isn't forced through sign-in again (their
+  // session is still valid; it just wasn't being checked here). getUser() (never
+  // getSession) re-validates the JWT. Host-aware target mirrors the auth callback:
+  // admin subdomain → /admin, everything else → /dashboard. This is the ONLY thing
+  // that redirects authenticated users away from /login; an anonymous visitor falls
+  // straight through to the form below, so there's no loop (and /login stays in
+  // (auth), outside the (app) gate, on purpose).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const host = (await headers()).get("host");
+    redirect(isAdminHost(host) ? "/admin" : "/dashboard");
+  }
+
   // Next 16: searchParams is a Promise. The callback route bounces a failed code
   // exchange back here with ?error=auth_callback.
   const { error } = await searchParams;
