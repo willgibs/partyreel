@@ -195,8 +195,17 @@ unset it falls back to the decorative block), **`/events`**
 weddings/parties/conferences/trips — off ONE `[slug]` template; copy single-sourced in
 [events.ts](../src/lib/constants/events.ts) as `EVENT_TYPES`/`getEventType`/`EVENT_TYPE_SLUGS` —
 `EVENT_TYPE*` avoids colliding with the real `events` domain — feeds the home section + the `Events ▾`
-dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD; shares
-the shared `AlbumFrame` ([frames/](../src/components/marketing/frames)) with the hero), **`/contact`** (form →
+dropdown; per-slug `next/og` card + breadcrumb/FAQ JSON-LD. **Retrofitted (R4)** so no two event
+pages look alike: each type gets a DISTINCT hero frame AND a DISTINCT "Built for X" layout, mapped in
+`EVENT_PRESENTATION` ([events-layout.ts](../src/lib/constants/events-layout.ts) — the events analogue of
+`FEATURE_PRESENTATION`, a flat record since every type fills the same two slots; guarded by a coverage
+test) — weddings→album/bento, parties→phone/rows, conferences→qr(decorative)/quadrants, trips→reel/timeline.
+The `eventFrame(frame, variant)` resolver ([event-frame.tsx](../src/components/marketing/event-frame.tsx))
+renders the right frame for BOTH the hero and the **frame-preview hub** (each `/events` card previews its
+type's frame in a fixed-height "stage" so the cards align despite the frames' different aspect ratios — no
+transform-scale; the QR path stays decorative, never `liveQrUrl`); `BuiltFor`
+([built-for.tsx](../src/components/marketing/built-for.tsx)) switches the 4 benefit layouts off one data
+shape), **`/contact`** (form →
 deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend
 notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAIL` env — see
 [ADR-0005](adr/0005-marketing-form-submissions.md)), **`/careers`** (mission-focused hub + per-role

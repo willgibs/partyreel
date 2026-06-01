@@ -83,10 +83,14 @@ details beyond a template feel.
    home CTA. Env-gated (decorative when unset). _Built + verified via the gate + Preview MCP + **live on
    partyreel.com** (simulated upload wrote **zero** DB rows, Supabase-confirmed); **deployed**, pointed at the
    Share Step Test event as a stand-in. Pre-launch: swap in a curated event with catchy media (STATUS)._
-4. **Event landing pages retrofit** — a distinct frame per type (weddings → album, parties → phone,
-   conferences → QR, trips → reel); vary the "Built for X" grid; scrub the event-page body copy of
-   em-dashes; richer Events hub. **← next**
-5. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers.
+4. ✅ **Event landing pages retrofit** — a distinct hero frame per type (weddings→album, parties→phone,
+   conferences→QR decorative, trips→reel) AND a distinct "Built for X" layout per type (bento / rows /
+   quadrants / timeline), driven by `EVENT_PRESENTATION` ([events-layout.ts](src/lib/constants/events-layout.ts))
+   + the `eventFrame()` resolver + `BuiltFor`; the `/events` hub became a frame-preview showcase. Scrubbed
+   all event-copy em-dashes (+ a no-em-dash test guard). _Built + verified via the gate + Preview MCP
+   (all 4 pages + hub, mobile, console clean); deploy + Chrome spot-check pending._
+5. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers
+   (the `eventFrame()` resolver makes it a drop-in); final consistency sweep. Closes the arc. **← next**
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

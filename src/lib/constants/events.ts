@@ -48,12 +48,12 @@ export const EVENT_TYPES: EventType[] = [
     slug: "weddings",
     navLabel: "Weddings",
     icon: Heart,
-    teaser: "Every guest's angle of the day — not just the photographer's.",
+    teaser: "Every guest's angle of the day, not just the photographer's.",
     headline: "Every photo from your wedding, from everyone there",
     subhead:
-      "Your photographer captures the formals. Your guests capture everything else — the happy tears, the dance floor, the late-night candids. Partyreel collects it all in one place.",
+      "Your photographer captures the formals. Your guests capture everything else: the happy tears, the dance floor, the late-night candids. Partyreel collects it all in one place.",
     intro:
-      "A wedding is the most photographed day of your life, and almost none of those photos ever reach you. Guests fill their camera rolls and the shots scatter across phones and group chats. Partyreel turns every guest into a second shooter — no app, no account, just a QR code on the table.",
+      "A wedding is the most photographed day of your life, and almost none of those photos ever reach you. Guests fill their camera rolls and the shots scatter across phones and group chats. Partyreel turns every guest into a second shooter. No app, no account, just a QR code on the table.",
     nestedThemes: [
       "receptions",
       "ceremonies",
@@ -65,7 +65,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Heart,
         title: "Every angle of the first dance",
-        body: "Guests catch the moments your photographer can't be everywhere for — from every seat in the room.",
+        body: "Guests catch the moments your photographer can't be everywhere for, from every seat in the room.",
       },
       {
         icon: QrCode,
@@ -75,18 +75,18 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Lock,
         title: "Yours, kept private",
-        body: "Your album opens only to the link you share and stays out of search engines — share it with family, not the world.",
+        body: "Your album opens only to the link you share and stays out of search engines. Share it with family, not the world.",
       },
       {
         icon: Film,
         title: "Full-quality memories",
-        body: "Photos and long videos upload at full resolution — the originals, ready to download and keep forever.",
+        body: "Photos and long videos upload at full resolution: the originals, ready to download and keep forever.",
       },
     ],
     faq: [
       {
         q: "Do wedding guests need to download an app?",
-        a: "No. Guests scan your QR code and upload straight from their phone's browser — there's nothing to install and no account to create.",
+        a: "No. Guests scan your QR code and upload straight from their phone's browser. There's nothing to install and no account to create.",
       },
       {
         q: "Can we keep the wedding album private?",
@@ -94,11 +94,11 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "Will we get the original-quality files?",
-        a: "Yes. Photos and videos upload at full resolution, and anyone with the album can download the originals — no compression, no watermarks.",
+        a: "Yes. Photos and videos upload at full resolution, and anyone with the album can download the originals. No compression, no watermarks.",
       },
       {
         q: "How long do the photos stay up?",
-        a: "Your event stays up until you take it down — there's no expiry clock counting down on your wedding memories.",
+        a: "Your event stays up until you take it down. There's no expiry clock counting down on your wedding memories.",
       },
     ],
     ctaTitle: "Collect every photo from your wedding",
@@ -111,9 +111,9 @@ export const EVENT_TYPES: EventType[] = [
     teaser: "The candids from every corner of the room, before anyone leaves.",
     headline: "The whole party's camera roll, in one place",
     subhead:
-      "Birthdays, anniversaries, graduations, showers — wherever people show up with phones, Partyreel gathers what they capture into one shared album.",
+      "Birthdays, anniversaries, graduations, showers: wherever people show up with phones, Partyreel gathers what they capture into one shared album.",
     intro:
-      "The best party photos are the candid ones your guests take — and they're exactly the ones that never get shared. Partyreel puts a QR code in the room so everyone's shots land in one place, live, while the party's still going.",
+      "The best party photos are the candid ones your guests take, and they're exactly the ones that never get shared. Partyreel puts a QR code in the room so everyone's shots land in one place, live, while the party's still going.",
     nestedThemes: [
       "birthdays",
       "anniversaries",
@@ -127,7 +127,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: PartyPopper,
         title: "Every candid, gathered",
-        body: "The off-the-cuff moments from every corner of the room — collected before anyone heads home.",
+        body: "The off-the-cuff moments from every corner of the room, collected before anyone heads home.",
       },
       {
         icon: Smartphone,
@@ -137,7 +137,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Radio,
         title: "Watch it fill, live",
-        body: "New photos and videos appear as they're taken — put the album on a TV and let it build all night.",
+        body: "New photos and videos appear as they're taken. Put the album on a TV and let it build all night.",
       },
       {
         icon: Download,
@@ -148,11 +148,11 @@ export const EVENT_TYPES: EventType[] = [
     faq: [
       {
         q: "Is Partyreel good for a birthday party?",
-        a: "Absolutely — birthdays are a perfect fit. Put a QR code on the table or up on a slideshow, and every guest's photos and videos land in one shared album.",
+        a: "Absolutely, birthdays are a perfect fit. Put a QR code on the table or up on a slideshow, and every guest's photos and videos land in one shared album.",
       },
       {
         q: "Do guests need an app or an account?",
-        a: "No. Guests scan the QR code and upload from their phone browser — no install, no sign-up, just a display name.",
+        a: "No. Guests scan the QR code and upload from their phone browser. No install, no sign-up, just a display name.",
       },
       {
         q: "Can I show the photos during the party?",
@@ -160,7 +160,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "What does it cost?",
-        a: "You can start free, and paid plans are sized by storage — pick what fits a small get-together or a big celebration.",
+        a: "You can start free, and paid plans are sized by storage, so pick what fits a small get-together or a big celebration.",
       },
     ],
     ctaTitle: "Start your party's album",
@@ -174,9 +174,9 @@ export const EVENT_TYPES: EventType[] = [
       "Talks, booths, and hallway moments from hundreds of attendees in one feed.",
     headline: "Your whole event, captured by everyone there",
     subhead:
-      "Conferences, summits, trade shows, company offsites — turn hundreds of attendees into your content team with a single QR code.",
+      "Conferences, summits, trade shows, company offsites: turn hundreds of attendees into your content team with a single QR code.",
     intro:
-      "Your team can't be everywhere at a multi-track event, but your attendees are. Partyreel collects the keynote shots, the booth interactions, and the hallway conversations into one feed you can curate and reshare — with no app for attendees to install.",
+      "Your team can't be everywhere at a multi-track event, but your attendees are. Partyreel collects the keynote shots, the booth interactions, and the hallway conversations into one feed you can curate and reshare, with no app for attendees to install.",
     nestedThemes: [
       "corporate events",
       "summits",
@@ -200,18 +200,18 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: QrCode,
         title: "One code on every badge",
-        body: "Print the QR on badges, signage, or the slide deck — attendees scan and contribute in seconds.",
+        body: "Print the QR on badges, signage, or the slide deck. Attendees scan and contribute in seconds.",
       },
       {
         icon: ShieldCheck,
         title: "Control and safety",
-        body: "Review what shows, hide anything off-brand, and rest easy — a real person reviews every report.",
+        body: "Review what shows, hide anything off-brand, and rest easy: a real person reviews every report.",
       },
     ],
     faq: [
       {
         q: "How do attendees contribute photos?",
-        a: "They scan a QR code — on a badge, a sign, or a slide — and upload from their phone browser. No app, no account, no attendee onboarding.",
+        a: "They scan a QR code (on a badge, a sign, or a slide) and upload from their phone browser. No app, no account, no attendee onboarding.",
       },
       {
         q: "Can we review photos before they're public?",
@@ -223,7 +223,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "Does it work for large events?",
-        a: "Yes — there's no attendee limit, and you can pick a storage plan sized to the volume of media a big event generates.",
+        a: "Yes. There's no attendee limit, and you can pick a storage plan sized to the volume of media a big event generates.",
       },
     ],
     ctaTitle: "Capture your whole conference",
@@ -237,9 +237,9 @@ export const EVENT_TYPES: EventType[] = [
       "Pool everyone's photos from the whole trip instead of chasing them later.",
     headline: "One shared album for the whole trip",
     subhead:
-      "Group vacations, reunions, retreats, bachelor and bachelorette trips — pool everyone's photos instead of chasing them across five group chats when you get home.",
+      "Group vacations, reunions, retreats, bachelor and bachelorette trips: pool everyone's photos instead of chasing them across five group chats when you get home.",
     intro:
-      "No one person captures a whole trip. The best shots are spread across everyone's phones, and they never all end up in one place. Partyreel gives the group one album to fill — from the first airport selfie to the last sunset — so everyone leaves with all of it.",
+      "No one person captures a whole trip. The best shots are spread across everyone's phones, and they never all end up in one place. Partyreel gives the group one album to fill, from the first airport selfie to the last sunset, so everyone leaves with all of it.",
     nestedThemes: [
       "group vacations",
       "family reunions",
@@ -253,12 +253,12 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Plane,
         title: "The whole trip, from everyone",
-        body: "Every traveler's photos and videos in one album — not scattered across phones and chats.",
+        body: "Every traveler's photos and videos in one album, not scattered across phones and chats.",
       },
       {
         icon: Smartphone,
         title: "Add photos as you go",
-        body: "Scan once and upload from anywhere — no app, no account, works on everyone's phone.",
+        body: "Scan once and upload from anywhere. No app, no account, works on everyone's phone.",
       },
       {
         icon: Images,
@@ -268,13 +268,13 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: CalendarHeart,
         title: "Keeps the memories",
-        body: "Your trip album stays up until you take it down — come back to it years later.",
+        body: "Your trip album stays up until you take it down. Come back to it years later.",
       },
     ],
     faq: [
       {
         q: "How does everyone add their photos?",
-        a: "Share one QR code or link with the group. Everyone scans and uploads from their own phone — no app and no account needed.",
+        a: "Share one QR code or link with the group. Everyone scans and uploads from their own phone, with no app and no account needed.",
       },
       {
         q: "Can everyone download the photos afterward?",
@@ -286,7 +286,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "How long will the album last?",
-        a: "As long as you want — your trip album stays up until you delete it, so you can revisit it whenever.",
+        a: "As long as you want. Your trip album stays up until you delete it, so you can revisit it whenever.",
       },
     ],
     ctaTitle: "Make one album for the trip",

@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features` retrofit) + R3 (interactive demo) all deployed + live-tested on partyreel.com; R4 next.**
+- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features`) + R3 (interactive demo) all deployed + live-tested; R4 (event landing-page retrofit) built + Preview-verified, deploy pending; R5 (optional) closes the arc.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
   the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame` base + `AlbumFrame`
@@ -42,9 +42,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   new `media`/`guests` rows**, gone on refresh (console + network clean). Caught + fixed a real bug pre-deploy:
   the new public env var was added to the `env.ts` schema but not its `parsePublic()` reader, so it would've
   stayed `undefined` in prod. **Forward copy policy: no em-dashes in site/app copy** (CLAUDE.md + memory).
-  Next: **R4 — event landing pages retrofit** (distinct frame per type + the event-page body-copy em-dash
-  scrub). _(R3 is wired to the **Share Step Test** event as a stand-in; swapping in a curated event with catchy
-  media is a pre-launch polish item, not a blocker.)_
+  **R4 — event landing-page retrofit** gave each of the 4 event pages a DISTINCT hero frame + a DISTINCT
+  "Built for X" layout (bento / rows / quadrants / timeline) and turned the `/events` hub into a
+  frame-preview showcase (`EVENT_PRESENTATION` + the `eventFrame()` resolver + `BuiltFor`; see SYSTEMS
+  "Marketing site"), scrubbing all event-copy em-dashes (+ a no-em-dash guard, now **152 tests**). **Built +
+  verified via the gate + Preview MCP** (all 4 landing pages with the right hero frame — conferences = a
+  DECORATIVE QR, not `LiveQr` — + the right benefit layout, the hub's 4 frames height-aligned in a
+  fixed-stage, mobile 1-col, console clean); **deploy + a Chrome spot-check pending**. Next: **R5 (optional)** —
+  home teasers + consistency, closing the arc. _(R3 is wired to the **Share Step Test** event as a stand-in;
+  swapping in a curated event with catchy media is a pre-launch polish item, not a blocker.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1

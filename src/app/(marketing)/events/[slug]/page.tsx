@@ -3,13 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AlbumFrame } from "@/components/marketing/frames";
+import { BuiltFor } from "@/components/marketing/built-for";
+import { eventFrame } from "@/components/marketing/event-frame";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { Section } from "@/components/marketing/section";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
+import { EVENT_PRESENTATION } from "@/lib/constants/events-layout";
 
 export function generateStaticParams() {
   return EVENT_TYPE_SLUGS.map((slug) => ({ slug }));
@@ -77,10 +79,7 @@ export default async function EventTypePage({
               <Link href="/pricing">See pricing</Link>
             </Button>
           </div>
-          <AlbumFrame
-            className="mt-12 max-w-3xl"
-            label={`partyreel.com/a/${slug}`}
-          />
+          {eventFrame(EVENT_PRESENTATION[slug].frame, "hero", slug)}
         </Container>
       </section>
 
@@ -102,25 +101,12 @@ export default async function EventTypePage({
         </div>
       </Section>
 
-      <Section
+      <BuiltFor
+        layout={EVENT_PRESENTATION[slug].builtFor}
+        help={eventType.howItHelps}
+        navLabel={eventType.navLabel}
         className="bg-muted/30"
-        eyebrow="Why Partyreel"
-        heading={`Built for ${eventType.navLabel.toLowerCase()}`}
-      >
-        <div className="mt-14 grid gap-6 sm:grid-cols-2">
-          {eventType.howItHelps.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border bg-card p-6">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
-                <Icon className="size-5" />
-              </span>
-              <h3 className="mt-4 font-heading text-base font-medium">
-                {title}
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
+      />
 
       <Section eyebrow="FAQ" heading="Common questions">
         <div className="mx-auto mt-12 max-w-2xl divide-y rounded-xl border">
