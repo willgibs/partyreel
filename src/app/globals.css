@@ -214,6 +214,21 @@
       }
     }
   }
+
+  /* Lightbox swipe track (see media-lightbox.tsx). The settle/spring-back is a
+     plain transform transition so it's interruptible/retargetable mid-flight; the
+     component sets --lightbox-settle once per gesture (240ms commit / 200ms snap).
+     During an active drag [data-dragging] kills the transition for 1:1 finger
+     tracking. Gated on no-preference so reduced motion drops the autonomous slide
+     (the finger-follow is direct manipulation and stays); transform-only = GPU. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-lightbox-track] {
+      transition: transform var(--lightbox-settle, 240ms) var(--ease-emphasis);
+    }
+    [data-lightbox-track][data-dragging="true"] {
+      transition: none;
+    }
+  }
 }
 
 /* Help-center / blog article prose theme. Every color points at a design-system token

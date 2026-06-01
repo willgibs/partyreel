@@ -488,6 +488,25 @@ keyboard or Dismiss it.
   backdrop (`bg-black/90`) + object-contain media, whereas `ui/dialog.tsx`'s `DialogContent` hard-codes
   a light `bg-black/10` overlay + `max-w-sm`. Composing still gives radix's focus-trap / Esc /
   scroll-lock. Don't "fix" it to use `DialogContent`.
+- **Mobile swipe is a peek-the-neighbor windowed track ([media-lightbox.tsx](src/components/shared/media-lightbox.tsx)),
+  vanilla Pointer Events — no carousel lib.** The media area is a 3-slot track `[prev, current, next]`
+  translated under the finger; release commits on distance OR flick velocity, else springs back, with
+  diminishing-returns friction at the ends. Load-bearing, non-obvious bits: **(a)** finger-follow is
+  gated to `pointerType === "touch"` so mouse/pen are untouched (chevrons + keyboard stay the desktop
+  nav); **(b)** slots are **keyed by item id** so the slid-to neighbor's already-loaded `<img>` is
+  REUSED (moved, not reloaded) when it becomes current — that's what makes the settle seamless; the
+  commit then does an **animate-then-swap** recenter (one-frame `data-dragging` = `transition:none` so
+  the −2w→−1w jump is invisible); **(c)** only the **center** video gets `controls autoPlay` (neighbor
+  videos are muted, controls-less, `pointer-events-none` posters) + a `play()` effect on index change
+  (since a reused `<video>` won't honor `autoPlay`); **(d)** swipe-vs-scrub: a **playing** video
+  reserves its bottom `CONTROLS_STRIP_PX` for the native scrubber, a **paused** one swipes everywhere
+  (the fuzzy boundary is intentional, per Will); **(e)** `handleClose` is the single close funnel and
+  **cancels the in-flight settle timer** — without that, a timer firing after close calls
+  `onIndexChange(null! + dir)` and silently reopens; **(f)** a `suppressClick` ref (reset on
+  pointerdown, set on horizontal lock) stops the post-drag synthetic click from closing via the
+  backdrop tap. CSS lives in `globals.css` under `[data-lightbox-track]` (reduced-motion-guarded;
+  `--lightbox-settle` set per gesture). The change is centralized: ALL FOUR surfaces (public album,
+  guest `/e/`, host + admin moderation grids) inherit it from this one component.
 - **Grid video tiles are controls-less thumbnails on purpose.** `MediaTile`
   ([media-grid.tsx](src/components/app/media-grid.tsx)) renders `<video>` WITHOUT `controls` so the
   non-interactive element can sit inside the tile's open-the-lightbox `<button>` (a `<video controls>`

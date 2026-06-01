@@ -103,7 +103,8 @@ guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2
 `toGridItems`) and are `force-dynamic`; raw R2 keys/URLs are NEVER exposed to the browser (ADR-0003).
 The album uses the always-dark `gallery` surface so media is the hero — it stays dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
 ([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
-keyboard nav, video playback, and a **Save** that downloads the original. **Download = a SECOND
+keyboard nav, chevrons, **mobile swipe** (peek-the-neighbor; see the lightbox gotchas in CLAUDE.md),
+video playback, and a **Save** that downloads the original. **Download = a SECOND
 presign of the same key with `ResponseContentDisposition: attachment`** (`presignDownload`'s
 `downloadFilename`, named by [download-filename.ts](../src/lib/media/download-filename.ts)); the
 browser `download` attr can't force a cross-origin R2 save — the signed disposition does (so no
