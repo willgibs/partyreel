@@ -59,7 +59,16 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   `admin.partyreel.com`: both real accounts list + search-filter; willg97's detail matched Supabase exactly
   (52.5 KB active vs 2 GB cap, 2.6 MB raw counter, 1 event / 3 media), the operator's zero-state renders, both
   Stripe links resolve to the right TEST-mode customer (`cus_…`), apex `/admin/accounts` 404s, console clean.
-  **Next: proactive album moderation (the operator events/media browser + direct soft-remove).**
+  **Phase 5 (proactive album moderation) SHIPPED + LIVE-VERIFIED** (`d812ccc`): `/admin/albums` is the
+  operator's proactive counterpart to the reactive Reports queue, a recent-uploads feed across all events
+  (status-filterable) + an album drill-in (event metadata + per-status counts + the full media grid), with
+  direct soft-remove (pulls from every public album/gallery instantly; the 7-day purge cron reclaims the
+  bytes) + restore within the grace. Reuses the report-action soft-remove shape + the R2 presign /
+  `MediaTile` / `MediaLightbox` render path; writes go through `requireAdminAction` (AAL2) + the
+  service-role client. No migration, no new RPC. Chrome-verified on `admin.partyreel.com`: feed + filters +
+  drill-in render; removed an approved item → DB `status='removed'` + `removed_at`, `get_public_album` 3→2
+  and the public `/a/` album showed 2; restored it → 3 again, DB cleared; apex `/admin/albums` 404s; console
+  clean. **Next: Phase 6 = analytics & metrics (platform-wide dashboards).**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built

@@ -190,7 +190,9 @@ are **lockout-proof** (reachable at AAL1; break-glass = delete the factor in the
 an Open/All history filter, resolved rows read-only), **Accounts** (P4 read-only host browser: search by
 email/name, and a detail view of tier + subscription/Event-Pass state + ACTIVE storage vs effective cap +
 the raw `storage_used_bytes` counter + event/media counts, plus a test/live-aware Stripe customer
-deep-link for any billing change), and **Security** (MFA status). Triage status
+deep-link for any billing change), **Albums** (P5 proactive moderation: a recent-uploads feed across all
+events + an album drill-in, with direct soft-remove + restore within the grace), and **Security** (MFA
+status). Triage status
 writes go through `requireAdminAction` + the service-role admin client (deny-all tables); shared
 `TriageStatusControl` + `TriageFilter`. **Accounts is READ-ONLY** (no writes, no migration): service-role
 reads in [queries/accounts.ts](../src/lib/db/queries/accounts.ts) (the only cross-host `profiles` reader —
@@ -198,8 +200,16 @@ RLS scopes `profiles` to the owner, so the admin client is the sole path), with 
 over-capacity sweep's exact query (non-removed media in non-deleted events); the Stripe deep-link is the
 pure, unit-tested `buildStripeCustomerUrl` ([dashboard.ts](../src/lib/stripe/dashboard.ts), test/live
 derived from the `STRIPE_SECRET_KEY` prefix server-side, never exposing the key). The **Stripe webhook
-stays the SOLE writer** of tier/cap/subscription. Error tracking is **Sentry** (free tier — see ROADMAP "Admin
-portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
+stays the SOLE writer** of tier/cap/subscription. **Albums** (proactive moderation) is the operator's
+direct counterpart to the reactive Reports queue: cross-host media reads via service-role
+([queries/moderation.ts](../src/lib/db/queries/moderation.ts) — the only cross-host media reader, RLS
+scopes media to the owning host), presigned for render through the shared `toGridItems`/`MediaTile`/
+`MediaLightbox` path. Soft-remove reuses the reports "Action" shape (`status='removed'` + `removed_at`,
+the 7-day purge cron reclaims) and **restore** clears `removed_at` (→ `approved`); both go through
+`requireAdminAction` (AAL2). No migration, no new RPC, no new grants (a soft-remove is a plain
+status/removed_at update). Soft-remove pulls the item from every public album/gallery instantly (those
+reads already exclude `status='removed'`); immediate hard-purge for egregious content is deferred. Error
+tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 
 ## Observability (Sentry error tracking)

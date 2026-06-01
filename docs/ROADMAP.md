@@ -67,12 +67,17 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    Chrome-MCP verified on admin.partyreel.com: list + search-filter, both real accounts' details matched
    Supabase exactly (willg97 52.5 KB active / 2 GB cap / 2.6 MB raw / 1 event / 3 media), Stripe links →
    the correct TEST customer, apex `/admin/accounts` 404, console clean.
-5. **P5 — Proactive album moderation (NEXT)** — the operator events/media browser + direct soft-remove,
-   reusing the Phase-3 soft-remove → 7-day R2-reclaim path (`status='removed'` + `removed_at`, the purge
-   cron reclaims). Split out of P4 deliberately (P4 stayed accounts/billing only); this is the
-   upload-safety capstone the whole portal was built toward. Likely a media query keyed off events +
-   `requireAdminAction` soft-remove; no new tier/billing surface.
-6. **P6 — Analytics & metrics** — platform-wide dashboards (scans/views, signups, storage, revenue).
+5. ✅ **P5 — Proactive album moderation (SHIPPED + LIVE-VERIFIED).** `/admin/albums`: a recent-uploads
+   feed across all events (status-filterable) + an album drill-in (event metadata + per-status counts +
+   the full media grid). Direct **soft-remove** (reuses the reports "Action" shape — `status='removed'` +
+   `removed_at`; the 7-day purge cron reclaims; pulls from every public album/gallery instantly) +
+   **restore** within the grace. Reuses the R2 presign + `MediaTile`/`MediaLightbox` render path
+   ([queries/moderation.ts](src/lib/db/queries/moderation.ts), [moderation-grid.tsx](src/components/admin/moderation-grid.tsx));
+   writes via `requireAdminAction` (AAL2) + the service-role client. No migration, no new RPC, no new
+   grants. Chrome-MCP verified on admin.partyreel.com (remove → DB `removed` + `get_public_album` 3→2 +
+   the public `/a/` album showed 2; restore → 3 again; apex 404; console clean). Immediate hard-purge for
+   egregious content deferred.
+6. **P6 — Analytics & metrics (NEXT)** — platform-wide dashboards (scans/views, signups, storage, revenue).
 7. **P7 — Content & announcements + operator notifications** — announcement compose/publish UI;
    blog/help/careers management (file-vs-DB decided in its round); operator notifications.
 
