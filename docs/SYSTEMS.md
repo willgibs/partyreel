@@ -220,8 +220,8 @@ a best-effort `getPlatformRevenue` ([stripe/revenue.ts](../src/lib/stripe/revenu
 pure `computeMrrCents`, interval-normalized) + balance, or null → a graceful "unavailable" card. **Charts
 (P6b)** are `recharts` line + bar wrappers ([metrics-charts.tsx](../src/components/admin/metrics-charts.tsx),
 grayscale + the coral accent via CSS-var tokens); their per-day trends come from the SAME fetched rows via
-pure builders (no new query). recharts is client-only, so the charts render behind a `useSyncExternalStore`
-hydration gate (no ResponsiveContainer size warning); `react-is` is pinned to React 19 via a pnpm override
+pure builders (no new query). recharts `ResponsiveContainer` is seeded with a positive `initialDimension`
+so its first paint is valid (no "width(-1)/height(-1)" warning); `react-is` is pinned to React 19 via a pnpm override
 (the zod-override pattern). Error
 tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).

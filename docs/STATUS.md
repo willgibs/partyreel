@@ -76,10 +76,10 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   Chrome-verified on `admin.partyreel.com`: every KPI matched a direct Supabase cross-check (1 account /
   free, 1 event, 3 active media, 26 QR scans, 4 album views) and the revenue card matched the Stripe MCP
   (test-mode: $0 MRR / 0 subs, $0 available, $41.15 pending); apex `/admin/metrics` 404s; console clean.
-  **Phase 6b (charts) SHIPPED + LIVE-VERIFIED** (`7dce416`, console fix `1e4b78c`): `recharts` trend +
+  **Phase 6b (charts) SHIPPED + LIVE-VERIFIED** (`7dce416`, console fix `bb460b6`): `recharts` trend +
   distribution charts on `/admin/metrics` (signup + scans/views lines, tier / media-type / newsletter-source
   bars), grayscale + the coral accent. Per-day trends are pure builders over the SAME rows P6a fetched (no
-  new query); charts render behind a `useSyncExternalStore` hydration gate (no ResponsiveContainer warning),
+  new query); recharts `ResponsiveContainer` is seeded with `initialDimension` (no ResponsiveContainer warning),
   and `react-is` is pinned to React 19 via a pnpm override (the zod-override pattern). Chrome-verified on
   `admin.partyreel.com`: charts render + reconcile with the KPIs (QR scans 26 / album views 4 / 1 signup /
   2 photos + 1 video), console clean. **This completes the admin portal's P6. Next: P7 = content &

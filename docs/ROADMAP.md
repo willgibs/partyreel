@@ -91,8 +91,8 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
      (signup + scans/views trends, tier / media-type / newsletter-source bars), grayscale + the coral
      accent ([metrics-charts.tsx](src/components/admin/metrics-charts.tsx)). Per-day trends are pure
      builders over the rows P6a already fetched (no new query, no migration). recharts 3.8.1 + a `react-is`
-     pnpm override for React 19; charts render behind a `useSyncExternalStore` hydration gate (no
-     ResponsiveContainer warning). Chrome-verified: charts reconcile with the KPIs, console clean.
+     pnpm override for React 19; recharts `ResponsiveContainer` is seeded with `initialDimension` (no
+     ResponsiveContainer size warning). Chrome-verified: charts reconcile with the KPIs, console clean.
 7. **P7 — Content & announcements + operator notifications (NEXT)** — announcement compose/publish UI;
    blog/help/careers management (file-vs-DB decided in its round); operator notifications.
 
