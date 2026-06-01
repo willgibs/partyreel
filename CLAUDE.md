@@ -500,11 +500,14 @@ keyboard or Dismiss it.
   frame (rAF):** React can flush the transition-off recenter and the transition-on re-enable in the
   SAME frame before paint, so the recenter animates as a visible SECOND slide (the mobile "reanimate"
   glitch). `dragging` is left true until the NEXT gesture's `settleTo` flips it false (many frames
-  later); no transform changes in between, so nothing that should animate is suppressed; **(c)** only the **center** video gets `controls autoPlay` (neighbor
-  videos are muted, controls-less, `pointer-events-none` posters) + a `play()` effect on index change
-  (since a reused `<video>` won't honor `autoPlay`); **(d)** swipe-vs-scrub: a **playing** video
-  reserves its bottom `CONTROLS_STRIP_PX` for the native scrubber, a **paused** one swipes everywhere
-  (the fuzzy boundary is intentional, per Will); **(e)** `handleClose` is the single close funnel and
+  later); no transform changes in between, so nothing that should animate is suppressed; **(c)** videos are **CLICK-TO-PLAY, not autoplay** — the center video gets `controls`
+  (native play button) + `preload="metadata"` (poster only, not the file), neighbor videos are muted
+  controls-less `pointer-events-none` posters; an index-change effect keeps the new center paused and
+  **pauses a played video when you swipe past it** (+ resets `isPlayingRef`, since a controls-less
+  neighbor's onPause won't fire). Chosen so guests pick what to load (bandwidth) and swiping stays
+  clean (no controls overlay popping in after an autoplay); **(d)** swipe-vs-scrub: a **playing** video
+  (only after the guest taps play) reserves its bottom `CONTROLS_STRIP_PX` for the native scrubber, a
+  **paused** one swipes everywhere (the fuzzy boundary is intentional, per Will); **(e)** `handleClose` is the single close funnel and
   **cancels the in-flight settle timer** — without that, a timer firing after close calls
   `onIndexChange(null! + dir)` and silently reopens; **(f)** a `suppressClick` ref (reset on
   pointerdown, set on horizontal lock) stops the post-drag synthetic click from closing via the

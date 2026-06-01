@@ -134,13 +134,20 @@ export function MediaLightbox({
     return () => window.removeEventListener("keydown", onKey);
   }, [index, items.length, onIndexChange]);
 
-  // Autoplay the video that's currently centered (covers both the initial open and
-  // a swipe/keyboard move onto a video — `autoPlay` only fires on mount, but a
-  // neighbor <video> is REUSED, not remounted, when it becomes current).
+  // Videos are CLICK-TO-PLAY, not autoplay: a swiped-in video "sets" on its clean
+  // first frame with the native play button ready, so guests choose what to watch
+  // (saves bandwidth — `preload="metadata"` fetches only the poster, not the file)
+  // and swiping past videos stays clean (no controls overlay popping in after an
+  // autoplay). This effect upholds that: the newly-centered item starts paused, and
+  // a video you played then swiped past gets paused so it doesn't keep streaming
+  // off-screen. (Its onPause won't fire once it's a controls-less neighbor, so we
+  // reset isPlayingRef here too — it gates the swipe-vs-scrub heuristic.)
   useEffect(() => {
-    if (index === null) return;
+    isPlayingRef.current = false;
     const v = centerVideoRef.current;
-    if (v) void v.play().catch(() => {});
+    return () => {
+      v?.pause();
+    };
   }, [index]);
 
   // Single close funnel (Esc + the X both fire onOpenChange; backdrop tap calls this
@@ -378,8 +385,8 @@ export function MediaLightbox({
             data-center-media
             src={item.url}
             controls
-            autoPlay
             playsInline
+            preload="metadata"
             onPlay={() => {
               isPlayingRef.current = true;
             }}
