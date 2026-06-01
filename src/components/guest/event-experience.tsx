@@ -148,6 +148,11 @@ export function EventExperience({
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
           {event.name}
         </h1>
+        {event.host_display_name && (
+          <p className="text-xs text-muted-foreground/70">
+            Hosted by {event.host_display_name}
+          </p>
+        )}
         {event.event_date && (
           <p className="text-sm text-muted-foreground">
             {formatEventDate(event.event_date)}

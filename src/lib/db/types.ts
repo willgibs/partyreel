@@ -659,6 +659,7 @@ export type Database = {
           accepting_uploads: boolean
           description: string
           event_date: string
+          host_display_name: string
           id: string
           is_public: boolean
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]

@@ -23,6 +23,8 @@ export type GuestEvent = {
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
   // falls back to 'classic' for null/legacy values.
   qr_style: string;
+  // Joined from profiles — null if the host hasn't set a display name.
+  host_display_name: string | null;
 };
 
 export type GuestEventResult =
@@ -59,6 +61,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
       require_display_name: row.require_display_name,
       event_date: row.event_date ?? null,
       qr_style: row.qr_style,
+      host_display_name: row.host_display_name ?? null,
     },
   };
 });
