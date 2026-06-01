@@ -38,14 +38,14 @@ export default async function LoginPage({
           <CardHeader className="text-center">
             <CardTitle className="text-lg">Welcome to Partyreel</CardTitle>
             <CardDescription>
-              Sign in to create events and collect photos from your guests — no
+              Sign in to create events and collect photos from your guests. No
               app, no fuss.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {error === "auth_callback" && (
               <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                That sign-in link didn&rsquo;t work — it may have expired. Try
+                That sign-in link didn&rsquo;t work. It may have expired. Try
                 again below.
               </p>
             )}

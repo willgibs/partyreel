@@ -189,7 +189,7 @@ export function EventExperience({
           <MediaGrid items={items} />
         ) : (
           <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-            No photos yet — be the first to share one.
+            No photos yet. Be the first to share one.
           </p>
         )}
       </section>

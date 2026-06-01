@@ -112,7 +112,7 @@ export default async function DashboardPage() {
           </p>
           <p className="mt-1 text-muted-foreground">
             Upgrade or remove media by{" "}
-            <strong className="text-foreground">{graceDeadline}</strong> — after
+            <strong className="text-foreground">{graceDeadline}</strong>. After
             that we&rsquo;ll automatically reduce your storage (largest files
             first).{" "}
             <Link

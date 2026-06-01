@@ -109,8 +109,8 @@ export function EmailCapturePrompt({
       <div className="space-y-1">
         <p className="text-sm font-medium">Want a copy of the album?</p>
         <p className="text-xs text-muted-foreground">
-          Leave your email and the host can share the gallery with you — they
-          may keep this event private.
+          Leave your email and the host can share the gallery with you. They may
+          keep this event private.
         </p>
       </div>
       <Input

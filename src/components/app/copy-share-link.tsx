@@ -23,7 +23,7 @@ export function CopyShareLink({ url }: CopyShareLinkProps) {
       // Revert the icon after a beat; the toast is the durable confirmation.
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy — select the link and copy it manually.");
+      toast.error("Couldn't copy. Select the link and copy it manually.");
     }
   }
 

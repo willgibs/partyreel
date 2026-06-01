@@ -59,12 +59,12 @@ export function EventQr({ joinUrl, eventName, style }: EventQrProps) {
             <DropdownMenuItem
               onClick={() => qrRef.current?.download(filename, "svg")}
             >
-              SVG — best for print
+              SVG (best for print)
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => qrRef.current?.download(filename, "png")}
             >
-              PNG — image
+              PNG (best for screens)
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

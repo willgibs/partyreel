@@ -230,7 +230,7 @@ export function assertResendEnv(): {
   if (!RESEND_API_KEY || !EMAIL_FROM) {
     throw new Error(
       "Resend is not configured. Set RESEND_API_KEY and EMAIL_FROM (a verified " +
-        "sender, e.g. 'Partyreel <noreply@partyreel.com>') — see docs/PRICING.md.",
+        "sender, e.g. 'Partyreel <noreply@partyreel.com>'). See docs/PRICING.md.",
     );
   }
   return { RESEND_API_KEY, EMAIL_FROM };

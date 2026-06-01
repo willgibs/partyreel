@@ -18,7 +18,7 @@ import { env, serverEnv } from "@/lib/env";
 export function createAdminClient() {
   if (!serverEnv.SUPABASE_SECRET_KEY) {
     throw new Error(
-      "SUPABASE_SECRET_KEY is not set — the admin client cannot be created. " +
+      "SUPABASE_SECRET_KEY is not set. The admin client cannot be created. " +
         "Set it in the server environment (never as NEXT_PUBLIC_).",
     );
   }

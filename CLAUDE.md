@@ -650,10 +650,13 @@ class as the trigger-only functions.
   parentheses, a colon, or two sentences (whichever is most natural). Code comments and internal docs
   are exempt. This is a forward policy (write new/edited copy this way; fix opportunistically on pages
   you touch), not a blind retroactive find-replace. A **Vitest guard**
-  ([`no-em-dash-policy.test.ts`](src/lib/no-em-dash-policy.test.ts)) enforces this on the
-  **marketing surface** (it walks the TS AST, so it checks string/JSX copy and skips comments). When
-  you sweep a new surface clean, add its dir to that test's `SCAN` lists. The `(app)`/`(guest)` UI +
-  email templates still carry ~34 em-dashes (out of the guard's scope until they're swept, see ROADMAP).
+  ([`no-em-dash-policy.test.ts`](src/lib/no-em-dash-policy.test.ts)) enforces this across the **WHOLE
+  app** (`app` + `components` + `lib`): it walks the TS AST, so it checks string/template/JSX copy and
+  skips comments, and it flags both the literal `—` and the `&mdash;` HTML entity. So the entire
+  user-facing surface (marketing, the host/guest/auth UI, API/DB/validation messages, and the email
+  templates) is em-dash-free + regression-guarded: any new em-dash anywhere fails `pnpm test`. (When
+  recasting, fit the spot — a colon for a list, parens for an aside, a comma or two sentences for prose;
+  sharpen weak copy rather than mechanically dropping the dash.)
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.

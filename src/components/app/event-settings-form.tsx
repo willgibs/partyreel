@@ -162,7 +162,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                       <Input type="date" {...field} />
                     </FormControl>
                     <FormDescription>
-                      For your reference only — events never expire.
+                      For your reference only: events never expire.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -187,7 +187,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                     <div className="space-y-0.5">
                       <FormLabel>Accepting uploads</FormLabel>
                       <FormDescription>
-                        Turn off to freeze the album — guests can still view it.
+                        Turn off to freeze the album. Guests can still view it.
                       </FormDescription>
                     </div>
                     <FormControl>

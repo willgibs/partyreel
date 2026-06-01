@@ -61,9 +61,11 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   em-dash-clean AND regression-guarded**; (2) the **`/events` hub is enriched** into a full landing page (hero
   + SEO overview + the shared cards + a cross-event benefits 4-up + an aggregate FAQ with FAQPage JSON-LD,
   single-sourced in `EVENTS_HUB`; the shared `FaqAccordion` also backs each `[slug]`) — **built + Preview-verified,
-  deploy pending**. Remaining open follow-up (ROADMAP): the **`(app)`/`(guest)`/email em-dash sweep** (~34 the
-  guard's AST scan found, then widen the guard's SCAN). R3's demo is wired to the **Share Step Test** stand-in
-  event; swapping in curated media is a pre-launch item.)_
+  deploy pending**. (3) the **`(app)`/`(guest)`/email em-dash sweep is DONE** — recast all ~30 in the host/guest/
+  auth UI + email templates + lib errors, and **widened the AST guard to the whole app** (`app`+`components`+
+  `lib`, + the `&mdash;` entity), so the ENTIRE user-facing surface is em-dash-free + regression-guarded
+  (**built + verified, deploy pending**); no remaining em-dash debt. R3's demo is wired to the **Share Step
+  Test** stand-in event; swapping in curated media is a pre-launch item.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1

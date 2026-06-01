@@ -49,7 +49,7 @@ export function ReportDialog({ shareToken }: { shareToken: string }) {
         }
         setOpen(false);
         setReason("");
-        toast.success("Thanks — your report has been sent for review.");
+        toast.success("Thanks. Your report has been sent for review.");
       } catch (err) {
         toast.error("Couldn't submit your report.", {
           description: err instanceof Error ? err.message : undefined,

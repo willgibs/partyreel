@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         ok: false,
         code: "cap_reached",
         message: ctx.data.at_storage_cap
-          ? "This album is full right now — the host needs to free up space."
+          ? "This album is full right now. The host needs to free up space."
           : "This album has hit its upload limit for the month.",
       },
       { status: 409 },

@@ -100,7 +100,7 @@ export default async function PublicAlbumPage({
           <MediaGrid items={items} />
         ) : (
           <p className="py-16 text-center text-sm text-gallery-muted">
-            No photos yet — check back soon.
+            No photos yet. Check back soon.
           </p>
         )}
 

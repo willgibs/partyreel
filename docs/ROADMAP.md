@@ -110,10 +110,12 @@ details beyond a template feel.
   grep + the gate (152 tests/build) + a Preview read. A durable **AST-based Vitest guard**
   ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) now scans the marketing surface (string +
   JSX copy, comments exempt) so this can't silently recur.
-- **Extend the no-em-dash policy to the `(app)`/`(guest)`/email surface** — the guard's AST scan found **~34**
-  user-facing em-dashes still in the host/guest UI, error toasts, validation messages, and email templates
-  ([email/templates.ts](src/lib/email/templates.ts)). Recast them in context, then add those dirs to the
-  guard's `SCAN` lists so the whole app is covered (the policy is app-wide, not marketing-only).
+- ✅ **Extend the no-em-dash policy to the `(app)`/`(guest)`/email surface (DONE)** — recast all ~30 remaining
+  user-facing em-dashes (host/guest/auth UI, error toasts, validation + API/DB messages, the transactional
+  email templates [email/templates.ts](src/lib/email/templates.ts), and 2 dev-facing thrown errors) into
+  natural copy in context. **Widened the guard's `SCAN` to `app` + `components` + `lib`** (the whole app) +
+  made it flag the `&mdash;` HTML entity too, so the ENTIRE user-facing surface is now em-dash-free +
+  regression-guarded (any new em-dash anywhere fails `pnpm test`). **No remaining em-dash debt.**
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 

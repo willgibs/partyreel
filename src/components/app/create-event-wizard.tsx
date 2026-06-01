@@ -119,7 +119,7 @@ export function CreateEventWizard({
         <CardDescription>
           {step < 3
             ? "Name it, pick a QR style, and you're ready to collect photos."
-            : "Your event is live — share it with your guests."}
+            : "Your event is live. Share it with your guests."}
         </CardDescription>
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs">
           {STEP_LABELS.map((label, i) => {
@@ -216,7 +216,7 @@ export function CreateEventWizard({
                       <Input type="date" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Just for your reference — events never expire.
+                      Just for your reference: events never expire.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -281,7 +281,7 @@ export function CreateEventWizard({
               <div className="space-y-2">
                 <p className="text-sm font-medium">Guest join QR</p>
                 <p className="text-sm text-muted-foreground">
-                  Print or display this so guests can join — no app, no account.
+                  Print or display this so guests can join. No app, no account.
                 </p>
                 <div className="pt-1">
                   <EventQr

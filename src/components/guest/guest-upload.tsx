@@ -260,7 +260,7 @@ export function GuestUpload({
               {it.status === "done" && (
                 <p className="mt-1 text-xs text-muted-foreground">
                   {it.mediaStatus === "pending"
-                    ? "Sent — waiting for host approval"
+                    ? "Sent, waiting for host approval"
                     : "Posted to the gallery"}
                 </p>
               )}

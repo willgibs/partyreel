@@ -38,7 +38,7 @@ export function overCapGraceStartEmail(opts: {
     subject: "Your Partyreel storage is over the limit",
     html: layout(
       "You're over your storage limit",
-      `<p>Your account is now using more than your plan's ${opts.capLabel}. You have until <strong>${opts.deadline}</strong> to upgrade or remove some media. After that, we'll automatically reduce your storage (largest files first) to fit your plan — removed items stay recoverable for a short window.</p>`,
+      `<p>Your account is now using more than your plan's ${opts.capLabel}. You have until <strong>${opts.deadline}</strong> to upgrade or remove some media. After that, we'll automatically reduce your storage (largest files first) to fit your plan. Removed items stay recoverable for a short window.</p>`,
       { href: opts.dashboardUrl, label: "Manage storage" },
     ),
   };
@@ -52,7 +52,7 @@ export function overCapReminderEmail(opts: {
     subject: "Reminder: your Partyreel storage will be reduced soon",
     html: layout(
       "A few days left to resolve your storage",
-      `<p>Heads up — on <strong>${opts.deadline}</strong> we'll automatically reduce your storage to fit your plan if you're still over the limit. Upgrade or remove some media to keep everything.</p>`,
+      `<p>Heads up: on <strong>${opts.deadline}</strong> we'll automatically reduce your storage to fit your plan if you're still over the limit. Upgrade or remove some media to keep everything.</p>`,
       { href: opts.dashboardUrl, label: "Manage storage" },
     ),
   };
@@ -66,7 +66,7 @@ export function overCapReducedEmail(opts: { dashboardUrl: string }): {
     subject: "We reduced your Partyreel storage to fit your plan",
     html: layout(
       "Your storage was reduced",
-      `<p>Because your account stayed over its limit, we removed your largest files to bring it back under your plan. Removed items are recoverable for a short time — reply to this email if you need them back, or upgrade to restore more headroom.</p>`,
+      `<p>Because your account stayed over its limit, we removed your largest files to bring it back under your plan. Removed items are recoverable for a short time. Reply to this email if you need them back, or upgrade to restore more headroom.</p>`,
       { href: opts.dashboardUrl, label: "View your plan" },
     ),
   };
@@ -80,7 +80,7 @@ export function renewalNudgeEmail(opts: {
     subject: "Your Partyreel Event Pass expires soon",
     html: layout(
       "Renew your Event Pass",
-      `<p>Your Event Pass expires on <strong>${opts.expiresOn}</strong>. Renew to keep your event and its media online for another year — when a pass lapses, the account drops to the Free plan.</p>`,
+      `<p>Your Event Pass expires on <strong>${opts.expiresOn}</strong>. Renew to keep your event and its media online for another year. When a pass lapses, the account drops to the Free plan.</p>`,
       { href: opts.renewUrl, label: "Renew Event Pass" },
     ),
   };
@@ -95,7 +95,7 @@ export function inactivityWarningEmail(opts: {
     subject: "Your Partyreel event will be removed soon",
     html: layout(
       "Keep your event active",
-      `<p>Your event <strong>${esc(opts.eventName)}</strong> hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity — yours is set for removal on <strong>${opts.deadline}</strong>. Just sign in or open it before then to keep it.</p>`,
+      `<p>Your event <strong>${esc(opts.eventName)}</strong> hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity. Yours is set for removal on <strong>${opts.deadline}</strong>. Just sign in or open it before then to keep it.</p>`,
       { href: opts.dashboardUrl, label: "Keep my event" },
     ),
   };
@@ -110,7 +110,7 @@ export function inactivityRemovedEmail(opts: {
     subject: "Your Partyreel event was removed (recoverable for now)",
     html: layout(
       "Your event was removed",
-      `<p>Your event <strong>${esc(opts.eventName)}</strong> was removed after 6 months of inactivity (a free-account policy). It's still recoverable until <strong>${opts.recoverableUntil}</strong> — reply to this email if you need it back. After that it's permanently deleted.</p>`,
+      `<p>Your event <strong>${esc(opts.eventName)}</strong> was removed after 6 months of inactivity (a free-account policy). It's still recoverable until <strong>${opts.recoverableUntil}</strong>. Reply to this email if you need it back. After that it's permanently deleted.</p>`,
       { href: opts.dashboardUrl, label: "Go to Partyreel" },
     ),
   };
@@ -136,7 +136,7 @@ export function contactFormEmail(opts: {
   ${trimmedSubject ? `<p style="margin:4px 0;"><strong>Subject:</strong> ${esc(trimmedSubject)}</p>` : ""}
   <p style="margin:16px 0 4px;"><strong>Message:</strong></p>
   <p style="white-space:pre-wrap;margin:0;">${esc(opts.message)}</p>
-  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly — Partyreel contact form.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly (Partyreel contact form).</p>
 </div>`,
   };
 }
@@ -151,7 +151,7 @@ export function applicationReceivedEmail(opts: {
 }): { subject: string; html: string } {
   const links = opts.links?.trim();
   return {
-    subject: `Application: ${opts.role} — ${opts.name}`,
+    subject: `Application: ${opts.role} from ${opts.name}`,
     html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
   <h1 style="font-size:18px;font-weight:700;">New job application</h1>
   <p style="margin:4px 0;"><strong>Role:</strong> ${esc(opts.role)}</p>
@@ -159,7 +159,7 @@ export function applicationReceivedEmail(opts: {
   ${links ? `<p style="margin:4px 0;"><strong>Links:</strong> ${esc(links)}</p>` : ""}
   <p style="margin:16px 0 4px;"><strong>Message:</strong></p>
   <p style="white-space:pre-wrap;margin:0;">${esc(opts.message)}</p>
-  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly — Partyreel careers.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Reply to this email to respond directly (Partyreel careers).</p>
 </div>`,
   };
 }

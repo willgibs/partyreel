@@ -14,7 +14,7 @@ export const careerSchema = z.object({
   links: z
     .string()
     .trim()
-    .max(500, "That's a lot — keep links under 500 characters.")
+    .max(500, "That's a lot. Keep links under 500 characters.")
     .optional(),
   message: z
     .string()

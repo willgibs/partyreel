@@ -40,7 +40,7 @@ export const HELP_CATEGORIES = [
   {
     slug: "for-guests",
     title: "For guests",
-    blurb: "Joining and uploading — no app, no account, just a phone.",
+    blurb: "Joining and uploading: no app, no account, just a phone.",
     icon: Users,
   },
   {

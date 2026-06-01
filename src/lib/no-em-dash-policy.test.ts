@@ -10,19 +10,20 @@ import { describe, expect, it } from "vitest";
 // string/template literals + JSX text (comments are trivia, not AST nodes). That means a
 // `// foo <emdash> bar` comment never trips this, but a rendered `<p>foo <emdash> bar</p>`
 // or a `"foo <emdash> bar"` string does. This ends the manual-grep whack-a-mole: em-dashes
-// kept slipping into JSX / OG metadata that the data-only `JSON.stringify` guards never saw.
+// kept slipping into JSX / email-HTML / metadata that the data-only `JSON.stringify` guards
+// never saw.
 //
-// Scope: the directories that hold user-facing copy. EXPAND `SCAN` as more surfaces are
-// swept clean (e.g. the (app)/(guest) UI, emails, notifications). `*.test.ts` is skipped
-// (this file names the character to define the policy) as is the generated db/types.ts.
+// Scope is now the WHOLE app — `app` + `components` + `lib` cover every user-facing surface
+// (marketing, the host/guest/auth UI, API/DB/validation messages, and the email templates).
+// We flag both the literal em-dash AND the `&mdash;` HTML entity (email bodies are HTML).
+// `*.test.ts` is skipped (this file names the character to define the policy) as is the
+// generated db/types.ts.
 
-const EM_DASH = "—";
+const FORBIDDEN = ["—", "&mdash;"];
 const SRC = join(process.cwd(), "src");
 
-// Surfaces verified em-dash-free (the marketing polish arc). Each is a dir under src/ or a
-// specific file. Add more here once their copy has been swept.
-const SCAN_DIRS = ["app/(marketing)", "components/marketing", "lib/constants"];
-const SCAN_FILES = ["app/opengraph-image.tsx", "app/layout.tsx"];
+const SCAN_DIRS = ["app", "components", "lib"];
+const SCAN_FILES: string[] = [];
 
 const SKIP = /\.test\.tsx?$|[/\\]types\.ts$/;
 
@@ -53,8 +54,11 @@ function offenders(file: string): string[] {
       ts.isTemplateMiddle(node) ||
       ts.isTemplateTail(node) ||
       ts.isJsxText(node);
-    if (isCopy && (node as { text: string }).text.includes(EM_DASH)) {
-      hits.push((node as { text: string }).text.trim().slice(0, 80));
+    if (isCopy) {
+      const text = (node as { text: string }).text;
+      if (FORBIDDEN.some((bad) => text.includes(bad))) {
+        hits.push(text.trim().slice(0, 80));
+      }
     }
     ts.forEachChild(node, visit);
   };

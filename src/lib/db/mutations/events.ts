@@ -111,7 +111,7 @@ export async function updateEvent(
         ok: false,
         code: "limit_reached",
         message:
-          "Requiring an email is available on paid plans — upgrade to enable it.",
+          "Requiring an email is available on paid plans. Upgrade to enable it.",
       };
     }
   }

@@ -69,7 +69,7 @@ export function WelcomeFlow() {
               Welcome to Partyreel
             </h1>
             <p className="text-muted-foreground">
-              Collect every photo and video from your event — your guests just
+              Collect every photo and video from your event. Your guests just
               scan a QR code. No app, no accounts.
             </p>
           </div>
@@ -100,8 +100,8 @@ export function WelcomeFlow() {
               You&rsquo;re all set
             </h2>
             <p className="text-muted-foreground">
-              Create your first event and share the QR with your guests —
-              they&rsquo;ll start adding photos in seconds.
+              Create your first event and share the QR with your guests.
+              They&rsquo;ll start adding photos in seconds.
             </p>
           </div>
         )}

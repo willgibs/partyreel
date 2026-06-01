@@ -126,7 +126,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           <div className="space-y-2">
             <p className="text-sm font-medium">Guest join QR</p>
             <p className="text-sm text-muted-foreground">
-              Scanning opens the upload page — no app, no account.
+              Scanning opens the upload page. No app, no account.
             </p>
             <div className="flex flex-col items-center gap-3 pt-2">
               <EventQr
