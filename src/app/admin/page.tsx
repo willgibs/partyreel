@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BarChart3,
   Flag,
   Images,
   LifeBuoy,
@@ -36,6 +37,13 @@ export default async function AdminHomePage() {
   ]);
 
   const surfaces = [
+    {
+      href: "/admin/metrics",
+      icon: BarChart3,
+      title: "Metrics",
+      description: "Platform-wide signups, storage, engagement, and revenue.",
+      count: 0,
+    },
     {
       href: "/admin/support",
       icon: LifeBuoy,

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  BarChart3,
   Flag,
   Images,
   LayoutDashboard,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 // localhost (dev). Each new operational surface adds one NAV entry.
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/metrics", label: "Metrics", icon: BarChart3 },
   { href: "/admin/support", label: "Support", icon: LifeBuoy },
   { href: "/admin/applicants", label: "Applicants", icon: Users },
   { href: "/admin/accounts", label: "Accounts", icon: Wallet },
