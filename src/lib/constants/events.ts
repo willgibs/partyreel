@@ -299,3 +299,69 @@ export const EVENT_TYPE_SLUGS = EVENT_TYPES.map((eventType) => eventType.slug);
 export function getEventType(slug: string): EventType | undefined {
   return EVENT_TYPES.find((eventType) => eventType.slug === slug);
 }
+
+// Hub-level copy for the /events landing page (the cross-event story that frames the 4
+// type cards). Kept here so all event copy is single-sourced; `benefits`/`faq` reuse the
+// per-type shapes. This copy is DISTINCT from any single type — it speaks to "any event".
+export type EventsHub = {
+  eyebrow: string;
+  headline: string;
+  subhead: string;
+  /** SEO body paragraph that leads the type cards. */
+  overview: string;
+  benefits: EventTypeHelp[];
+  faq: FaqItem[];
+};
+
+export const EVENTS_HUB: EventsHub = {
+  eyebrow: "Events",
+  headline: "Every event, every photo, in one shared album",
+  subhead:
+    "Weddings, parties, conferences, trips: if your people show up with phones, Partyreel collects what they capture.",
+  overview:
+    "The best moments at any event are spread across everyone's cameras, and most of them never reach you. Partyreel turns every guest into a contributor: they scan one QR code and upload straight from their phone, so the whole night lands in a single album you control. Pick your kind of event below, or start free and have a QR ready in a minute.",
+  benefits: [
+    {
+      icon: QrCode,
+      title: "One QR for any guest list",
+      body: "Print it, project it, or share a link. Ten guests or a thousand, everyone joins the same way with nothing to install.",
+    },
+    {
+      icon: ListChecks,
+      title: "Curate before you share",
+      body: "Approve uploads before they appear, hide anything off-key, and publish one album you're proud of.",
+    },
+    {
+      icon: Film,
+      title: "Full quality, no watermark",
+      body: "Photos and long videos arrive at full resolution, ready to download and keep. We never stamp your memories.",
+    },
+    {
+      icon: Lock,
+      title: "Private, and yours to keep",
+      body: "Your album opens only to the link you share and stays out of search engines. It stays up until you delete it.",
+    },
+  ],
+  faq: [
+    {
+      q: "What kinds of events does Partyreel work for?",
+      a: "Any event where people bring phones: weddings, birthdays and parties, conferences and company offsites, group trips and reunions, and plenty more. The flow is the same every time, one QR code and a shared album.",
+    },
+    {
+      q: "Do my guests need an app or an account?",
+      a: "No. Guests scan your QR code and upload straight from their phone browser. There's nothing to install and no account to create, just a display name.",
+    },
+    {
+      q: "How many guests can contribute?",
+      a: "There's no guest limit. The same QR code works for a small dinner or a thousand-person conference, and everyone uploads to one shared album.",
+    },
+    {
+      q: "Can I control what shows up?",
+      a: "Yes. Turn on review to approve uploads before they go public, or hide and remove anything after the fact, so the final album is exactly what you want.",
+    },
+    {
+      q: "What does it cost?",
+      a: "You can start free with one event. Paid plans are sized by storage, and there's a one-time Event Pass for a single big event, with no per-guest fees on any plan.",
+    },
+  ],
+};

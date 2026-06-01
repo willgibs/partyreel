@@ -1,10 +1,10 @@
-import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BuiltFor } from "@/components/marketing/built-for";
 import { eventFrame } from "@/components/marketing/event-frame";
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { Section } from "@/components/marketing/section";
@@ -109,17 +109,7 @@ export default async function EventTypePage({
       />
 
       <Section eyebrow="FAQ" heading="Common questions">
-        <div className="mx-auto mt-12 max-w-2xl divide-y rounded-xl border">
-          {eventType.faq.map((item) => (
-            <details key={item.q} className="group px-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-medium">
-                {item.q}
-                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-open:rotate-180" />
-              </summary>
-              <p className="pb-4 text-sm text-muted-foreground">{item.a}</p>
-            </details>
-          ))}
-        </div>
+        <FaqAccordion items={eventType.faq} />
       </Section>
 
       <FinalCta />

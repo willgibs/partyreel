@@ -97,10 +97,11 @@ details beyond a template feel.
    density); deploy + Chrome spot-check pending._ **The marketing polish arc is complete.**
 
 **Polish-arc follow-ups (each its own small plan):**
-- **Enrich the `/events` hub beyond a directory** — it now shares `EventFrameCards` with the home Events
-  teaser, so the two currently look alike. Make the hub earn its place as a destination: an intro/overview,
-  cross-event benefits, an aggregate FAQ, and SEO body copy AROUND the shared cards. (Will flagged the
-  directory-redundancy + chose to keep + enrich the page rather than remove it.)
+- ✅ **Enrich the `/events` hub beyond a directory (DONE)** — the hub is now a real landing page: a hero
+  (headline + SEO overview) + the trust strip + the shared `EventFrameCards` + a cross-event benefits 4-up +
+  an aggregate FAQ with **FAQPage JSON-LD** (rich-result eligible), all single-sourced in the new `EVENTS_HUB`
+  block ([events.ts](src/lib/constants/events.ts)). The `<details>` FAQ was extracted to a shared
+  [FaqAccordion](src/components/marketing/faq-accordion.tsx) (hub + each `[slug]`). Gate + Preview verified.
 - ✅ **Em-dash sweep of the remaining marketing pages (DONE)** — recast all ~30 user-facing em-dashes across
   [careers.ts](src/lib/constants/careers.ts) + the careers/contact/blog/help/pricing/terms/privacy pages + the
   root OG card ([opengraph-image.tsx](src/app/opengraph-image.tsx)) into natural copy IN CONTEXT (colons for

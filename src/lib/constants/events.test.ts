@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  EVENTS_HUB,
   EVENT_TYPE_SLUGS,
   EVENT_TYPES,
   getEventType,
@@ -55,5 +56,26 @@ describe("event-type constants", () => {
     // Does NOT cover the [slug] OG image (JSX, not in EVENT_TYPES) — the repo
     // em-dash grep-gate guards that file.
     expect(JSON.stringify(EVENT_TYPES)).not.toContain("—");
+  });
+
+  it("EVENTS_HUB has complete hero, benefits, and faq copy", () => {
+    for (const field of [
+      EVENTS_HUB.eyebrow,
+      EVENTS_HUB.headline,
+      EVENTS_HUB.subhead,
+      EVENTS_HUB.overview,
+    ]) {
+      expect(field.trim()).not.toBe("");
+    }
+    expect(EVENTS_HUB.benefits.length).toBeGreaterThan(0);
+    for (const benefit of EVENTS_HUB.benefits) {
+      expect(benefit.title.trim()).not.toBe("");
+      expect(benefit.body.trim()).not.toBe("");
+    }
+    expect(EVENTS_HUB.faq.length).toBeGreaterThan(0);
+    for (const item of EVENTS_HUB.faq) {
+      expect(item.q.trim()).not.toBe("");
+      expect(item.a.trim()).not.toBe("");
+    }
   });
 });

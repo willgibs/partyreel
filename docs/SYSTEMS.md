@@ -210,7 +210,11 @@ renders the right frame for BOTH the hero and the **frame-preview hub** (each `/
 type's frame in a fixed-height "stage" so the cards align despite the frames' different aspect ratios — no
 transform-scale; the QR path stays decorative, never `liveQrUrl`); `BuiltFor`
 ([built-for.tsx](../src/components/marketing/built-for.tsx)) switches the 4 benefit layouts off one data
-shape), **`/contact`** (form →
+shape. The **hub page itself is now a full landing page** (not just the card directory): a hero
+(headline + SEO overview) + the trust strip + the shared `EventFrameCards` + a cross-event benefits 4-up +
+an aggregate FAQ with **FAQPage JSON-LD** (rich-result eligible), all single-sourced in the `EVENTS_HUB`
+block ([events.ts](../src/lib/constants/events.ts)); its `<details>` FAQ is the shared
+[FaqAccordion](../src/components/marketing/faq-accordion.tsx), reused by each `[slug]` page), **`/contact`** (form →
 deny-all `contact_submissions` via a Server Action + service-role admin insert; best-effort Resend
 notify via `sendOnce`; displayed `SUPPORT_EMAIL` vs. routed `CONTACT_NOTIFY_EMAIL` env — see
 [ADR-0005](adr/0005-marketing-form-submissions.md)), **`/careers`** (mission-focused hub + per-role
