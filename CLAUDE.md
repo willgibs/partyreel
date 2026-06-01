@@ -516,7 +516,12 @@ keyboard or Dismiss it.
   non-interactive element can sit inside the tile's open-the-lightbox `<button>` (a `<video controls>`
   is interactive content → an illegal button descendant). Playback (with controls) happens in the
   lightbox. On the host grid the moderation buttons are SIBLINGS of that button (not children), so
-  tapping a control never opens the lightbox — no `stopPropagation` needed.
+  tapping a control never opens the lightbox — no `stopPropagation` needed. **The video `src` carries
+  a `#t=0.1` media fragment — load-bearing, don't drop it.** iOS Safari paints a `<video>` BLACK
+  instead of its first frame unless the src tells it to seek+render one (`preload="metadata"` alone
+  paints the frame on desktop but NOT iOS); `#t=0.1` is the lightweight poster hack (no real thumbnails
+  generated). The fragment is client-only (never sent to R2), so it doesn't touch the presigned
+  signature. Covers all 3 grids (public album, guest `/e/`, host moderation) since they share `MediaTile`.
 
 **Phase 6 — unified guest event page (`/e/[qr_token]`) gotchas**
 
