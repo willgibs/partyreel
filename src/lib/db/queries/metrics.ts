@@ -8,10 +8,14 @@
 import "server-only";
 
 import {
+  buildEngagementTrend,
+  buildSignupTrend,
   countBySource,
   summarizeLinkStats,
   summarizeProfiles,
   type AccountMetrics,
+  type DayCount,
+  type EngagementDay,
   type EngagementMetrics,
   type SourceCount,
 } from "@/lib/metrics/aggregate";
@@ -35,9 +39,11 @@ export type GrowthMetrics = {
 };
 
 export type PlatformMetrics = {
-  accounts: AccountMetrics;
+  /** KPIs + the daily signup trend (zero-filled over the window) for the chart. */
+  accounts: AccountMetrics & { signupTrend: DayCount[] };
   content: ContentMetrics;
-  engagement: EngagementMetrics;
+  /** Totals + the daily scans/views trend for the chart. */
+  engagement: EngagementMetrics & { trend: EngagementDay[] };
   growth: GrowthMetrics;
   /** null = the live Stripe read failed (best-effort); the dashboard shows "unavailable". */
   revenue: PlatformRevenue | null;
@@ -77,7 +83,7 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
       .select(
         "tier, created_at, last_active_at, storage_used_bytes, stripe_subscription_id, is_admin",
       ),
-    admin.from("link_stats").select("kind, count"),
+    admin.from("link_stats").select("kind, day, count"),
     admin.from("newsletter_signups").select("source"),
     headCount(
       admin
@@ -134,10 +140,19 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
   if (linkStatsRes.error) throw linkStatsRes.error;
   if (sourcesRes.error) throw sourcesRes.error;
 
+  const profileRows = profilesRes.data ?? [];
+  const linkRows = linkStatsRes.data ?? [];
+
   return {
-    accounts: summarizeProfiles(profilesRes.data ?? []),
+    accounts: {
+      ...summarizeProfiles(profileRows),
+      signupTrend: buildSignupTrend(profileRows),
+    },
     content: { events, media, photos, videos },
-    engagement: summarizeLinkStats(linkStatsRes.data ?? []),
+    engagement: {
+      ...summarizeLinkStats(linkRows),
+      trend: buildEngagementTrend(linkRows),
+    },
     growth: {
       newsletterTotal,
       newsletterLast30,

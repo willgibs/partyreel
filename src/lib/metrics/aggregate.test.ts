@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildEngagementTrend,
+  buildSignupTrend,
   countBySource,
   summarizeLinkStats,
   summarizeProfiles,
@@ -86,9 +88,9 @@ describe("summarizeLinkStats", () => {
   it("sums counts by kind", () => {
     expect(
       summarizeLinkStats([
-        { kind: "qr_scan", count: 3 },
-        { kind: "album_view", count: 5 },
-        { kind: "qr_scan", count: 2 },
+        { kind: "qr_scan", day: "2026-05-30", count: 3 },
+        { kind: "album_view", day: "2026-05-30", count: 5 },
+        { kind: "qr_scan", day: "2026-05-31", count: 2 },
       ]),
     ).toEqual({ qrScans: 5, albumViews: 5 });
   });
@@ -113,5 +115,58 @@ describe("countBySource", () => {
       { source: "direct", count: 2 },
       { source: "landing", count: 1 },
     ]);
+  });
+});
+
+describe("buildSignupTrend", () => {
+  it("zero-fills the 30-day window and counts signups on their UTC day (excl. is_admin)", () => {
+    const trend = buildSignupTrend(
+      [
+        profile({ created_at: "2026-06-01T10:00:00.000Z" }),
+        profile({ created_at: "2026-06-01T23:30:00.000Z" }),
+        profile({ created_at: "2026-05-31T12:00:00.000Z" }),
+        profile({ is_admin: true, created_at: "2026-06-01T08:00:00.000Z" }),
+        profile({ created_at: "2026-01-01T00:00:00.000Z" }), // outside the window
+      ],
+      NOW,
+      30,
+    );
+    expect(trend).toHaveLength(30);
+    expect(trend[0].day).toBe("2026-05-03"); // oldest bucket
+    expect(trend[29]).toEqual({ day: "2026-06-01", count: 2 }); // newest
+    expect(trend[28]).toEqual({ day: "2026-05-31", count: 1 });
+    expect(trend.reduce((s, d) => s + d.count, 0)).toBe(3); // in-window, non-admin
+  });
+});
+
+describe("buildEngagementTrend", () => {
+  it("zero-fills + sums scans/views per day, dropping out-of-window days", () => {
+    const trend = buildEngagementTrend(
+      [
+        { kind: "qr_scan", day: "2026-06-01", count: 10 },
+        { kind: "qr_scan", day: "2026-06-01", count: 6 },
+        { kind: "album_view", day: "2026-06-01", count: 4 },
+        { kind: "qr_scan", day: "2026-05-31", count: 2 },
+        { kind: "album_view", day: "2020-01-01", count: 99 }, // outside the window
+      ],
+      NOW,
+      30,
+    );
+    expect(trend).toHaveLength(30);
+    expect(trend[29]).toEqual({
+      day: "2026-06-01",
+      qrScans: 16,
+      albumViews: 4,
+    });
+    expect(trend[28]).toEqual({ day: "2026-05-31", qrScans: 2, albumViews: 0 });
+    expect(trend[0]).toEqual({ day: "2026-05-03", qrScans: 0, albumViews: 0 });
+  });
+
+  it("empty input → an all-zero series of the requested length", () => {
+    const trend = buildEngagementTrend([], NOW, 7);
+    expect(trend).toHaveLength(7);
+    expect(trend.every((d) => d.qrScans === 0 && d.albumViews === 0)).toBe(
+      true,
+    );
   });
 });

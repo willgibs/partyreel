@@ -11,7 +11,14 @@ import {
 
 import { MetricCard } from "@/components/admin/metric-card";
 import {
+  DistributionChart,
+  TrendChart,
+  type DistributionDatum,
+  type TrendSeries,
+} from "@/components/admin/metrics-charts";
+import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -51,12 +58,58 @@ function Section({
   );
 }
 
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+const SIGNUP_SERIES: TrendSeries[] = [
+  { key: "count", label: "Signups", color: "var(--color-brand)" },
+];
+const ENGAGEMENT_SERIES: TrendSeries[] = [
+  { key: "qrScans", label: "QR scans", color: "var(--color-brand)" },
+  { key: "albumViews", label: "Album views", color: "var(--color-chart-3)" },
+];
+
 export default async function AdminMetricsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
   const { accounts, content, engagement, growth, revenue } =
     await getPlatformMetrics();
+
+  // Pro is the one bar tinted with the accent (paid emphasis); the rest stay grayscale.
+  const tierMixData: DistributionDatum[] = [
+    { label: "Free", value: accounts.tierMix.free },
+    { label: "Pro", value: accounts.tierMix.pro, color: "var(--color-brand)" },
+    {
+      label: "Event Pass",
+      value: accounts.eventPassHolders,
+      color: "var(--color-chart-3)",
+    },
+  ];
+  const mediaTypeData: DistributionDatum[] = [
+    { label: "Photos", value: content.photos },
+    { label: "Videos", value: content.videos },
+  ];
+  const sourceData: DistributionDatum[] = growth.bySource.map((s) => ({
+    label: s.source,
+    value: s.count,
+  }));
 
   return (
     <div className="space-y-8">
@@ -82,6 +135,15 @@ export default async function AdminMetricsPage() {
           value={num(accounts.paidSubscribers)}
         />
       </Section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="New signups (30 days)">
+          <TrendChart data={accounts.signupTrend} series={SIGNUP_SERIES} />
+        </ChartCard>
+        <ChartCard title="Tier mix">
+          <DistributionChart data={tierMixData} />
+        </ChartCard>
+      </div>
 
       <Section title="Content and storage">
         <MetricCard label="Events" value={num(content.events)} icon={Images} />
@@ -110,6 +172,15 @@ export default async function AdminMetricsPage() {
         />
       </Section>
 
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Scans and views (30 days)">
+          <TrendChart data={engagement.trend} series={ENGAGEMENT_SERIES} />
+        </ChartCard>
+        <ChartCard title="Media by type">
+          <DistributionChart data={mediaTypeData} />
+        </ChartCard>
+      </div>
+
       <Section title="Growth">
         <MetricCard
           label="Newsletter signups"
@@ -132,6 +203,14 @@ export default async function AdminMetricsPage() {
           value={num(growth.emailsLast30)}
         />
       </Section>
+
+      {sourceData.length > 0 ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ChartCard title="Newsletter by source">
+            <DistributionChart data={sourceData} />
+          </ChartCard>
+        </div>
+      ) : null}
 
       <Section title="Revenue">
         {revenue ? (
