@@ -8,6 +8,7 @@ import {
   resolveSubscriptionUpdate,
 } from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Stripe webhook = the SINGLE source of truth for a host's tier. CRITICAL: read the
@@ -33,6 +34,8 @@ export async function POST(request: Request) {
     );
   } catch {
     // Bad signature (or unconfigured secret) → reject. Never trust an unverified body.
+    // A spike here signals a misconfigured secret; capture as a warning (no body/PII).
+    captureWarning("webhook", "stripe signature verification failed");
     return new Response("Signature verification failed.", { status: 400 });
   }
 
@@ -54,6 +57,11 @@ export async function POST(request: Request) {
         })
         .eq("id", pass.userId);
       if (error) {
+        captureError(
+          "billing",
+          new Error(`event-pass provisioning: ${error.message}`),
+          { eventType: event.type },
+        );
         return new Response(`Provisioning failed: ${error.message}`, {
           status: 500,
         });
@@ -92,6 +100,11 @@ export async function POST(request: Request) {
       .eq("stripe_customer_id", patch.customerId);
     if (error) {
       // Let Stripe retry on a transient DB error.
+      captureError(
+        "billing",
+        new Error(`subscription provisioning: ${error.message}`),
+        { eventType: event.type },
+      );
       return new Response(`Provisioning failed: ${error.message}`, {
         status: 500,
       });

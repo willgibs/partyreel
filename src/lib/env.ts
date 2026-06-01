@@ -34,6 +34,11 @@ const publicSchema = z.object({
   // to this subdomain (the apex 404s /admin). Optional: unset in local dev, where
   // the portal is reachable directly at /admin and the proxy adds no host behavior.
   NEXT_PUBLIC_ADMIN_HOST: z.string().min(1).optional(),
+  // Sentry DSN (public by design — safe in the client bundle). When unset, Sentry is a
+  // no-op (commonInit sets enabled:false) so dev/unconfigured never sends and the build
+  // stays green. The build-time SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT (source-map
+  // upload) are read directly in next.config.ts, not here (build tooling, not app runtime).
+  NEXT_PUBLIC_SENTRY_DSN: z.string().min(1).optional(),
 });
 
 const serverSchema = z.object({
@@ -84,6 +89,7 @@ function parsePublic() {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_DEMO_QR_TOKEN: process.env.NEXT_PUBLIC_DEMO_QR_TOKEN,
     NEXT_PUBLIC_ADMIN_HOST: process.env.NEXT_PUBLIC_ADMIN_HOST,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   });
   if (!parsed.success) {
     throw new Error(

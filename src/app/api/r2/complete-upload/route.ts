@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createMedia } from "@/lib/db/mutations/guest";
 import { classifyMime } from "@/lib/media/validators";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { completeMultipartUpload } from "@/lib/r2/presign";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
@@ -62,7 +63,9 @@ export async function POST(request: Request) {
   if (upload_id) {
     try {
       await completeMultipartUpload({ key, uploadId: upload_id, parts });
-    } catch {
+    } catch (e) {
+      // A real R2/infra failure — previously swallowed (502 with no trace). Capture it.
+      captureError("upload", e, { key, upload_id });
       return NextResponse.json(
         {
           ok: false,
@@ -86,6 +89,15 @@ export async function POST(request: Request) {
   });
 
   if (!result.ok) {
+    // Routine user rejections (cap/limits/closed/session) are expected and handled below;
+    // only the UNEXPECTED codes (a key mismatch or an unmapped DB error) signal a bug.
+    if (result.code === "bad_key" || result.code === "unknown") {
+      captureWarning("upload", `create_media: ${result.code}`, {
+        code: result.code,
+        media_id,
+        key,
+      });
+    }
     const status =
       result.code === "invalid_session"
         ? 401

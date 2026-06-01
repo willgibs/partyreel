@@ -37,6 +37,7 @@ import {
 } from "@/lib/lifecycle/inactivity";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
+import { captureError } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey } from "@/lib/r2/keys";
 import { getSiteUrl } from "@/lib/site-url";
@@ -114,41 +115,29 @@ export async function GET(request: Request): Promise<Response> {
   const handled = new Set<string>();
   const sweeps: Record<string, unknown> = {};
 
-  try {
-    sweeps.expired_events = await sweepExpiredEvents(admin, now, handled);
-  } catch (e) {
-    sweeps.expired_events = { error: String(e) };
-  }
-  try {
-    sweeps.removed_media = await sweepRemovedMedia(admin, now, handled);
-  } catch (e) {
-    sweeps.removed_media = { error: String(e) };
-  }
-  try {
-    sweeps.orphans = await sweepOrphans(admin, now);
-  } catch (e) {
-    sweeps.orphans = { error: String(e) };
-  }
-  try {
-    sweeps.expired_passes = await sweepExpiredPasses(admin, now);
-  } catch (e) {
-    sweeps.expired_passes = { error: String(e) };
-  }
-  try {
-    sweeps.over_capacity = await sweepOverCapacity(admin, now);
-  } catch (e) {
-    sweeps.over_capacity = { error: String(e) };
-  }
-  try {
-    sweeps.renewal_nudges = await sweepRenewalNudges(admin, now);
-  } catch (e) {
-    sweeps.renewal_nudges = { error: String(e) };
-  }
-  try {
-    sweeps.inactive_free_events = await sweepInactiveFreeEvents(admin, now);
-  } catch (e) {
-    sweeps.inactive_free_events = { error: String(e) };
-  }
+  // Each sweep is independently guarded so one failure doesn't abort the rest. The catch
+  // ALSO reports to Sentry — a failed sweep was previously buried in the 200 response body
+  // (Vercel never alerts on it), so a broken sweep meant storage silently wasn't reclaimed.
+  const runSweep = async (name: string, fn: () => Promise<unknown>) => {
+    try {
+      sweeps[name] = await fn();
+    } catch (e) {
+      captureError("cron", e, { sweep: name });
+      sweeps[name] = { error: String(e) };
+    }
+  };
+
+  await runSweep("expired_events", () =>
+    sweepExpiredEvents(admin, now, handled),
+  );
+  await runSweep("removed_media", () => sweepRemovedMedia(admin, now, handled));
+  await runSweep("orphans", () => sweepOrphans(admin, now));
+  await runSweep("expired_passes", () => sweepExpiredPasses(admin, now));
+  await runSweep("over_capacity", () => sweepOverCapacity(admin, now));
+  await runSweep("renewal_nudges", () => sweepRenewalNudges(admin, now));
+  await runSweep("inactive_free_events", () =>
+    sweepInactiveFreeEvents(admin, now),
+  );
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }

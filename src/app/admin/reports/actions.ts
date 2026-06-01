@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { requireAdminAction } from "@/lib/auth/admin-context";
+import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Operator actions re-check authz IN EVERY action via the requireAdminAction seam
@@ -29,6 +30,10 @@ export async function dismissReportAction(
     .eq("status", "open");
 
   if (error) {
+    captureError("admin", new Error(error.message), {
+      action: "dismiss_report",
+      reportId,
+    });
     return {
       ok: false,
       code: "unknown",
@@ -60,6 +65,11 @@ export async function actionReportAction(
       .eq("id", mediaId)
       .neq("status", "removed");
     if (mErr) {
+      captureError("admin", new Error(mErr.message), {
+        action: "remove_media",
+        reportId,
+        mediaId,
+      });
       return {
         ok: false,
         code: "unknown",
@@ -79,6 +89,10 @@ export async function actionReportAction(
     .eq("status", "open");
 
   if (error) {
+    captureError("admin", new Error(error.message), {
+      action: "action_report",
+      reportId,
+    });
     return {
       ok: false,
       code: "unknown",
