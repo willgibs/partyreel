@@ -1,48 +1,33 @@
 import Link from "next/link";
-import {
-  BarChart3,
-  Flag,
-  Images,
-  LayoutDashboard,
-  LifeBuoy,
-  LogOut,
-  ShieldCheck,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { signOutAction } from "@/app/(auth)/actions";
+import { AdminNav } from "@/components/admin/admin-nav";
+import {
+  OperatorAlerts,
+  type OperatorAlertCounts,
+} from "@/components/admin/operator-alerts";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 
-// Chrome for the operations portal — deliberately distinct from the host AppShell
-// (an "Ops" mark + the operator nav) so it's obvious you're in the internal tool.
-// Links use the canonical /admin/* paths so they resolve on both the subdomain and
-// localhost (dev). Each new operational surface adds one NAV entry.
-const NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/metrics", label: "Metrics", icon: BarChart3 },
-  { href: "/admin/support", label: "Support", icon: LifeBuoy },
-  { href: "/admin/applicants", label: "Applicants", icon: Users },
-  { href: "/admin/accounts", label: "Accounts", icon: Wallet },
-  { href: "/admin/reports", label: "Reports", icon: Flag },
-  { href: "/admin/albums", label: "Albums", icon: Images },
-  { href: "/admin/security", label: "Security", icon: ShieldCheck },
-];
-
+// Chrome for the operations portal — deliberately distinct from the host AppShell (an "Ops" mark +
+// the operator nav) so it's obvious you're in the internal tool. The nav is a single dropdown
+// ([admin-nav.tsx]); the alerts bell surfaces pending work portal-wide ([operator-alerts.tsx]).
 export function AdminShell({
   email,
+  alerts,
   children,
 }: {
   email: string | null;
+  alerts: OperatorAlertCounts;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-full flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
         <Container className="flex h-14 items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <Link
               href="/admin"
               aria-label="Partyreel operations"
@@ -53,20 +38,10 @@ export function AdminShell({
                 Ops
               </span>
             </Link>
-            <nav className="flex items-center gap-1">
-              {NAV.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <Icon className="size-4" />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              ))}
-            </nav>
+            <AdminNav />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <OperatorAlerts {...alerts} />
             {email && (
               <span className="hidden text-xs text-muted-foreground md:inline">
                 {email}

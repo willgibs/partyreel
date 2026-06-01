@@ -5,6 +5,9 @@ import { MfaChallenge } from "@/components/admin/mfa-challenge";
 import { MfaEnroll } from "@/components/admin/mfa-enroll";
 import { Logo } from "@/components/shared/logo";
 import { requireAdmin } from "@/lib/auth/admin-context";
+import { countApplicationsByStatus } from "@/lib/db/queries/applications";
+import { countOpenReports } from "@/lib/db/queries/reports";
+import { countContactByStatus } from "@/lib/db/queries/support";
 
 // The operations portal segment. Canonical path is /admin on every host; in prod
 // requireAdmin() host-guards it to admin.<domain> (the apex 404s), redirects anon
@@ -53,5 +56,17 @@ export default async function AdminLayout({
     );
   }
 
-  return <AdminShell email={ctx.email}>{children}</AdminShell>;
+  // Pending-work counts for the header alerts bell (the same queries the Overview cards use). Cheap
+  // head-counts; refresh on page-load + post-triage revalidation (no real-time, matching the host bell).
+  const [support, applicants, reports] = await Promise.all([
+    countContactByStatus("new"),
+    countApplicationsByStatus("new"),
+    countOpenReports(),
+  ]);
+
+  return (
+    <AdminShell email={ctx.email} alerts={{ support, applicants, reports }}>
+      {children}
+    </AdminShell>
+  );
 }

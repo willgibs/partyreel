@@ -5,6 +5,7 @@ import {
   Flag,
   Images,
   LifeBuoy,
+  Megaphone,
   ShieldCheck,
   Users,
   Wallet,
@@ -77,6 +78,13 @@ export default async function AdminHomePage() {
       icon: Images,
       title: "Albums",
       description: "Browse recent uploads and remove unsafe media.",
+      count: 0,
+    },
+    {
+      href: "/admin/announcements",
+      icon: Megaphone,
+      title: "Announcements",
+      description: "Publish messages to every host's notification bell.",
       count: 0,
     },
     {
