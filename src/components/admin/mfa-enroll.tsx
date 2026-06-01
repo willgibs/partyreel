@@ -109,10 +109,14 @@ export function MfaEnroll() {
       </ol>
 
       <div className="flex flex-col items-center gap-3">
-        {/* Supabase-generated SVG (trusted output, not user input). */}
-        <div
-          className="size-44 rounded-lg bg-white p-2 [&>svg]:size-full"
-          dangerouslySetInnerHTML={{ __html: qr }}
+        {/* Supabase returns qr_code as a data:image/svg+xml URI — render it as an
+            <img> src. dangerouslySetInnerHTML would also print the "data:..."
+            scheme prefix as stray text above the code. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- inline data: URI, nothing to optimize */}
+        <img
+          src={qr}
+          alt="Two-factor authentication QR code"
+          className="size-44 rounded-lg bg-white p-2"
         />
         {secret && (
           <code className="rounded bg-muted px-2 py-1 text-center text-xs break-all">
