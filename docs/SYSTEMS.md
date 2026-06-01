@@ -182,7 +182,12 @@ follows the in-repo `emil-design-eng` skill). Text face is **Inter** with tighte
 [components/marketing/frames/](../src/components/marketing/frames) — a `BrowserFrame` base + a *vocabulary*
 of distinct decorative frames (`AlbumFrame`, `GalleryFrame`, `ReelFrame`, `PhoneFrame`,
 `QrFrame`) sharing the grayscale + sparse-`bg-brand/15` tokens; consumed by `/features` + the event pages
-(never one visual reused). **Pages:** home, **`/features`** (capability deep-dive — copy single-sourced
+(never one visual reused). **Pages:** **home** (**R5 home pass**: the `FeatureHighlights` teaser leads
+with a `GalleryFrame` spotlight + a benefit list, and the Events teaser renders the shared
+**`EventFrameCards`** — the SAME frame-preview cards as the `/events` hub, single-sourced in
+[event-frame-cards.tsx](../src/components/marketing/event-frame-cards.tsx) so they never drift; the hero
+(`AlbumFrame`) + `ReelTeaser` (`ReelFrame`) were already framed, so the home now alternates frame
+arrangements: hero → gallery-spotlight → event cards → reel-spotlight), **`/features`** (capability deep-dive — copy single-sourced
 in [features.ts](../src/lib/constants/features.ts), which also feeds the home `FeatureHighlights` teaser;
 **retrofitted (R2)** from 5 identical card grids into varied, frame-rich sections — a QR hero + phone /
 gallery / album spotlights (`FeatureSpotlight` + the `FEATURE_PRESENTATION` map in

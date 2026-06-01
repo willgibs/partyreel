@@ -11,7 +11,7 @@ const WITHOUT = [
 
 const WITH = [
   "One QR code, everything in one gallery",
-  "Guests upload in seconds — no app, no account",
+  "Guests upload in seconds, no app, no account",
   "You curate and share a single album",
   "Every angle of the night, together",
 ];

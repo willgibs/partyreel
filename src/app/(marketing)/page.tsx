@@ -16,7 +16,7 @@ import { TrustStrip } from "@/components/marketing/trust-strip";
 // description + canonical for SEO; the share card inherits these via the root.
 export const metadata: Metadata = {
   description:
-    "Partyreel collects every photo and video from your event. Guests scan a QR code and upload from their phones — no app, no account. Create an event free.",
+    "Partyreel collects every photo and video from your event. Guests scan a QR code and upload from their phones. No app, no account. Create an event free.",
   alternates: { canonical: "/" },
 };
 

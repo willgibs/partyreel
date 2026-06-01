@@ -16,7 +16,7 @@ export const HOW_IT_WORKS: HowItWorksStep[] = [
   {
     icon: QrCode,
     title: "Create an event, get a QR",
-    body: "Spin up an event in seconds and share one QR code — on a screen, a print-out, or a link.",
+    body: "Spin up an event in seconds and share one QR code: on a screen, a print-out, or a link.",
   },
   {
     icon: UploadCloud,

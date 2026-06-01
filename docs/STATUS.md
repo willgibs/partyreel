@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Marketing polish arc — R1 (Events rename) + R2 (frame library + `/features`) + R3 (interactive demo) all deployed + live-tested; R4 (event landing-page retrofit) built + Preview-verified, deploy pending; R5 (optional) closes the arc.**
+- **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
   the **media-frame library** ([frames/](../src/components/marketing/frames): `BrowserFrame` base + `AlbumFrame`
@@ -48,9 +48,18 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   "Marketing site"), scrubbing all event-copy em-dashes (+ a no-em-dash guard, now **152 tests**). **Built +
   verified via the gate + Preview MCP** (all 4 landing pages with the right hero frame — conferences = a
   DECORATIVE QR, not `LiveQr` — + the right benefit layout, the hub's 4 frames height-aligned in a
-  fixed-stage, mobile 1-col, console clean); **deploy + a Chrome spot-check pending**. Next: **R5 (optional)** —
-  home teasers + consistency, closing the arc. _(R3 is wired to the **Share Step Test** event as a stand-in;
-  swapping in a curated event with catchy media is a pre-launch polish item, not a blocker.)_
+  fixed-stage, mobile 1-col, console clean); **deployed + Chrome-tested live on partyreel.com** (all 4 pages
+  + the hub render the distinct frames; conferences QR confirmed decorative). **R5 — home pass (closes the
+  arc)**: the home `FeatureHighlights` teaser now leads with a `GalleryFrame` spotlight + a benefit list, and
+  the Events teaser shows the shared **`EventFrameCards`** (the SAME frame-preview cards as the `/events` hub,
+  single-sourced in [event-frame-cards.tsx](../src/components/marketing/event-frame-cards.tsx) so they never
+  drift); scrubbed the home + site-wide footer/`site.ts` em-dashes. **Built + verified via the gate + Preview
+  MCP** (both teasers, the hub unchanged by the refactor, mobile, console clean, balanced frame density —
+  hero→gallery-spotlight→event-cards→reel-spotlight alternation); **deploy + Chrome spot-check pending**.
+  _(Two polish-arc follow-ups logged in ROADMAP: **enrich the `/events` hub** beyond a directory, and an
+  **em-dash sweep of the remaining marketing pages** — careers/contact/blog/help/pricing/terms/privacy still
+  hold ~28 pre-policy em-dashes; the policy is forward + opportunistic, not a blind retroactive sweep. R3's
+  demo is wired to the **Share Step Test** stand-in event; swapping in curated media is a pre-launch item.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1

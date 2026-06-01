@@ -20,7 +20,7 @@ export type FaqItem = { q: string; a: string };
 export const FAQ_ITEMS: FaqItem[] = [
   {
     q: "Do my guests need to download an app?",
-    a: "No. Guests scan your QR code with their phone camera and upload right from the browser — there's nothing to install.",
+    a: "No. Guests scan your QR code with their phone camera and upload right from the browser. There's nothing to install.",
   },
   {
     q: "Do guests need an account?",
@@ -28,7 +28,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What can guests upload?",
-    a: `Photos and videos straight from their phones — videos up to ${videoMinutes} minutes and ${videoSize}, and photos up to ${photoSize} each.`,
+    a: `Photos and videos straight from their phones: videos up to ${videoMinutes} minutes and ${videoSize}, and photos up to ${photoSize} each.`,
   },
   {
     q: "Can I control what shows up?",
@@ -40,7 +40,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "How long do you keep my photos?",
-    a: "Your event stays up until you delete it — there's no expiry clock counting down on your memories.",
+    a: "Your event stays up until you delete it. There's no expiry clock counting down on your memories.",
   },
   {
     q: "What does it cost?",
@@ -48,6 +48,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What's an Event Pass?",
-    a: "A one-time payment for a single event with plenty of storage, kept for about a year — no subscription.",
+    a: "A one-time payment for a single event with plenty of storage, kept for about a year. No subscription.",
   },
 ];

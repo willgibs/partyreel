@@ -18,8 +18,8 @@ export function Hero() {
           Every photo from your party, in one place.
         </h1>
         <p className="max-w-xl text-lg text-pretty text-muted-foreground">
-          Partyreel collects the photos and videos your guests actually took —
-          no more chasing group chats the morning after.
+          Partyreel collects the photos and videos your guests actually took. No
+          more chasing group chats the morning after.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" className="h-11 px-6 text-base">

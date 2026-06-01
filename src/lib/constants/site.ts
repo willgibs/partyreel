@@ -20,4 +20,4 @@ export const BRAND_HEX = "#FB4817";
 export const SUPPORT_EMAIL = "help@partyreel.com";
 
 export const SITE_DESCRIPTION =
-  "Collect every photo and video from your event. Guests scan a QR code and upload in seconds — no app, no account.";
+  "Collect every photo and video from your event. Guests scan a QR code and upload in seconds. No app, no account.";

@@ -36,7 +36,7 @@ export function PricingTeaser() {
       className="bg-muted/30"
       eyebrow="Pricing"
       heading="Simple, storage-based pricing"
-      subhead="Start free. Upgrade when you need more events or bigger galleries — no per-guest fees."
+      subhead="Start free. Upgrade when you need more events or bigger galleries (no per-guest fees)."
     >
       <div className="mx-auto mt-12 grid max-w-3xl gap-4 sm:grid-cols-3">
         {items.map((item) => (

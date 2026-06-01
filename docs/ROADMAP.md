@@ -89,8 +89,22 @@ details beyond a template feel.
    + the `eventFrame()` resolver + `BuiltFor`; the `/events` hub became a frame-preview showcase. Scrubbed
    all event-copy em-dashes (+ a no-em-dash test guard). _Built + verified via the gate + Preview MCP
    (all 4 pages + hub, mobile, console clean); deploy + Chrome spot-check pending._
-5. **(optional) home teasers + consistency** — bring the frames to the home Features/Events teasers
-   (the `eventFrame()` resolver makes it a drop-in); final consistency sweep. Closes the arc. **← next**
+5. ✅ **Home pass (closes the arc)** — the home `FeatureHighlights` teaser leads with a `GalleryFrame`
+   spotlight + benefit list; the Events teaser shows the shared **`EventFrameCards`**
+   ([event-frame-cards.tsx](src/components/marketing/event-frame-cards.tsx)) — the same frame-preview cards
+   as the `/events` hub, single-sourced. Scrubbed the home + site-wide footer/`site.ts` em-dashes. _Built +
+   verified via the gate + Preview MCP (both teasers, hub unchanged, mobile, console clean, balanced frame
+   density); deploy + Chrome spot-check pending._ **The marketing polish arc is complete.**
+
+**Polish-arc follow-ups (each its own small plan):**
+- **Enrich the `/events` hub beyond a directory** — it now shares `EventFrameCards` with the home Events
+  teaser, so the two currently look alike. Make the hub earn its place as a destination: an intro/overview,
+  cross-event benefits, an aggregate FAQ, and SEO body copy AROUND the shared cards. (Will flagged the
+  directory-redundancy + chose to keep + enrich the page rather than remove it.)
+- **Em-dash sweep of the remaining marketing pages** — R5 cleaned the home + the site-wide footer/`site.ts`,
+  but [careers.ts](src/lib/constants/careers.ts) + the contact/blog/help/pricing/terms/privacy page copy
+  still hold ~28 user-facing em-dashes (they predate the policy; the policy is **forward + opportunistic**,
+  NOT a blind retroactive sweep). Recast them in a focused pass to make the whole marketing surface clean.
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 
