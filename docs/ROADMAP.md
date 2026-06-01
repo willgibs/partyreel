@@ -50,8 +50,13 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    SWALLOWED paths (upload finalizer, webhook provisioning + signature, all 7 cron sweeps via a `runSweep`
    helper, admin report actions); everything else rides `onRequestError`. Sentry stays out of the data
    layer. No DB change. DSN unset = clean no-op (gate stays green).
-3. **P3 — Support & moderation inbox** — triage `contact_submissions` + `job_applications` (status
-   workflow) + extend reports into a real queue. The tables already exist (deny-all RLS).
+3. ✅ **P3 — Support & moderation inbox (SHIPPED + LIVE-VERIFIED).** `/admin/support` (triage
+   `contact_submissions`) + `/admin/applicants` (triage `job_applications`): status workflow
+   (`new`/`in_progress`/`closed` via the single-source `triage.ts` + a DB CHECK), reply-from-inbox
+   `mailto` links, a server-rendered status filter, and Overview count badges. Reports gained an
+   Open/All filter (`listReports`) with resolved rows read-only. Additive migration added
+   `handled_by`/`handled_at` (RLS unchanged). Chrome-MCP verified end-to-end (status change DB-confirmed,
+   filters, mailto, reports history, apex 404, no hydration errors).
 4. **P4 — Accounts & billing** — user search/detail, tier/subscription/storage, promo codes (Stripe
    Coupons). Reads billing state; the Stripe webhook stays the source of truth for `tier`.
 5. **P5 — Analytics & metrics** — platform-wide dashboards (scans/views, signups, storage, revenue).

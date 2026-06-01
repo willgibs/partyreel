@@ -162,7 +162,8 @@ Lifecycle emails: over-cap grace/reduced, renewal nudge (14 d pre-expiry, shared
 
 `create_report` RPC (anon capability-token, **insert-only, never auto-hides**) + a discreet
 report dialog on the public album. Operator review in the **admin portal** (`/admin/reports`; see
-"Admin / operations portal") — dismiss/action. `reports` is RLS **deny-all** (operator-internal).
+"Admin / operations portal") — dismiss/action on open reports, plus an Open/All history view (resolved
+reports read-only). `reports` is RLS **deny-all** (operator-internal).
 v1 is reports/review only — **no scanner/NSFW filter** (v2+).
 
 ## Admin / operations portal
@@ -182,9 +183,14 @@ a `.partyreel.com` cookie domain). Login is **host-aware** ([login-form.tsx](../
 so the subdomain keeps its own session + deep-links to `/admin`. MFA enroll/step-up
 ([mfa-enroll.tsx](../src/components/admin/mfa-enroll.tsx)/[mfa-challenge.tsx](../src/components/admin/mfa-challenge.tsx))
 are **lockout-proof** (reachable at AAL1; break-glass = delete the factor in the Supabase dashboard /
-`auth.mfa_factors`). Surfaces today: **Reports** (the migrated review queue, moved out of `(app)`) +
-**Security** (MFA status). Error tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2),
-not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
+`auth.mfa_factors`). Surfaces today: **Support** + **Applicants** (P3 triage of `contact_submissions` /
+`job_applications` — status `new`/`in_progress`/`closed` single-sourced in
+[triage.ts](../src/lib/constants/triage.ts) + a DB CHECK, reply-from-inbox `mailto`, `handled_by`/
+`handled_at`, server-rendered status filter, Overview count badges), **Reports** (the review queue with
+an Open/All history filter, resolved rows read-only), and **Security** (MFA status). Triage status
+writes go through `requireAdminAction` + the service-role admin client (deny-all tables); shared
+`TriageStatusControl` + `TriageFilter`. Error tracking is **Sentry** (free tier — see ROADMAP "Admin
+portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 
 ## Observability (Sentry error tracking)

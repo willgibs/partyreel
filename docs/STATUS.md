@@ -45,7 +45,13 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   **Live-verified on prod (2026-06-01):** a deliberate bad-signature webhook POST created Sentry issue
   `JAVASCRIPT-NEXTJS-2` with the `area:webhook` tag + clean PII (resolved as a test). Client Session
   Replay is configured (on-error, media-blocked) but not yet exercised by a real client error.
-  **Next: Phase 3 = support & moderation inbox.**
+  **Phase 3 (support & moderation inbox) SHIPPED + LIVE-VERIFIED** (`e0903c2`): `/admin/support` +
+  `/admin/applicants` triage the previously write-only `contact_submissions` + `job_applications`
+  (status `new`/`in_progress`/`closed` + reply-from-inbox `mailto` + Overview count badges); reports
+  gained an Open/All history filter (resolved rows read-only). Additive migration (`handled_by`/
+  `handled_at` + status CHECK, RLS unchanged); advisors clean. Chrome-verified: status change
+  (DB-confirmed `handled_by`/`handled_at`), filters, mailto, reports history, apex 404, no hydration
+  errors. **Next: Phase 4 = accounts & billing.**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
