@@ -10,6 +10,10 @@ import "server-only";
 import type { GridMedia } from "@/components/app/media-grid";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
+import type {
+  ModerationGridItem,
+  ModerationMediaItem,
+} from "@/lib/moderation/operator-actions";
 import { presignDownload } from "@/lib/r2/presign";
 
 type MediaRow = { id: string; type: MediaKind; original_key: string };
@@ -32,6 +36,40 @@ export async function toGridItems(
         }),
       ]);
       return { id: m.id, type: m.type, url, downloadUrl };
+    }),
+  );
+}
+
+// The operator Albums variant: items span multiple events (the feed), so each presigns the
+// save-filename against its OWN event name, and the status + album context ride along (the
+// moderation grid needs status to pick Remove vs Restore, and the caption to link to the album).
+// Same presign primitives as toGridItems — just per-item event name.
+export async function toModerationFeedItems(
+  items: ModerationMediaItem[],
+): Promise<ModerationGridItem[]> {
+  return Promise.all(
+    items.map(async (m) => {
+      const [url, downloadUrl] = await Promise.all([
+        presignDownload({ key: m.originalKey }),
+        presignDownload({
+          key: m.originalKey,
+          downloadFilename: buildDownloadFilename({
+            eventName: m.eventName,
+            key: m.originalKey,
+            type: m.type,
+          }),
+        }),
+      ]);
+      return {
+        id: m.id,
+        type: m.type,
+        url,
+        downloadUrl,
+        status: m.status,
+        eventId: m.eventId,
+        eventName: m.eventName,
+        hostLabel: m.hostLabel,
+      };
     }),
   );
 }

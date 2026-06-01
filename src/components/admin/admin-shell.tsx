@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Flag,
+  Images,
   LayoutDashboard,
   LifeBuoy,
   LogOut,
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/admin/applicants", label: "Applicants", icon: Users },
   { href: "/admin/accounts", label: "Accounts", icon: Wallet },
   { href: "/admin/reports", label: "Reports", icon: Flag },
+  { href: "/admin/albums", label: "Albums", icon: Images },
   { href: "/admin/security", label: "Security", icon: ShieldCheck },
 ];
 

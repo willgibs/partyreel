@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Flag,
+  Images,
   LifeBuoy,
   ShieldCheck,
   Users,
@@ -62,6 +63,13 @@ export default async function AdminHomePage() {
       title: "Reports",
       description: "Review guest-reported content and act on it.",
       count: openReports,
+    },
+    {
+      href: "/admin/albums",
+      icon: Images,
+      title: "Albums",
+      description: "Browse recent uploads and remove unsafe media.",
+      count: 0,
     },
     {
       href: "/admin/security",
