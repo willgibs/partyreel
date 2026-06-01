@@ -16,7 +16,7 @@ export default function PrivacyPage() {
     <Container className="max-w-2xl py-20">
       <h1 className="text-3xl font-semibold tracking-tight">Privacy Policy</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Placeholder — the full policy lands before public launch.
+        Placeholder. The full policy lands before public launch.
       </p>
       <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">
         <p>

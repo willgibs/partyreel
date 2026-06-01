@@ -17,7 +17,7 @@ export default function TermsPage() {
         Terms of Service
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Placeholder — the full terms land before public launch.
+        Placeholder. The full terms land before public launch.
       </p>
       <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">
         <p>

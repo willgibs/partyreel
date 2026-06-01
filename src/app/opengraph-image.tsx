@@ -7,7 +7,7 @@ import { BRAND_HEX } from "@/lib/constants/site";
 // their own opengraph-image). 1200×630 is the standard large-summary card size.
 // No custom font on purpose — loading Geist into satori needs a readFile dance
 // (Next-16 gotcha); the built-in font is fine for a clean wordmark card.
-export const alt = "Partyreel — every photo from your party, in one place";
+export const alt = "Partyreel: every photo from your party, in one place";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -89,7 +89,7 @@ export default function OgImage() {
           color: "#a1a1aa",
         }}
       >
-        Guests scan a QR code and upload — no app, no account.
+        Guests scan a QR code and upload. No app, no account.
       </div>
     </div>,
     { ...size },

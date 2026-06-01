@@ -28,7 +28,7 @@ import { formatBytes } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple storage-based pricing. Start free with one event, upgrade to Pro for more storage, or buy a one-time Event Pass — no per-guest fees.",
+    "Simple storage-based pricing. Start free with one event, upgrade to Pro for more storage, or buy a one-time Event Pass. No per-guest fees.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -128,7 +128,7 @@ export default function PricingPage() {
                   planId={p.id}
                   variant={p.id === "pro_500" ? "default" : "outline"}
                 >
-                  {formatBytes(p.storageBytes)} — {p.priceLabel}
+                  {formatBytes(p.storageBytes)} for {p.priceLabel}
                 </CheckoutButton>
               ))}
             </div>
@@ -151,7 +151,7 @@ export default function PricingPage() {
                 {formatBytes(eventPass.storageBytes)} of storage
               </Feature>
               <Feature>{capacityLine(eventPass.storageBytes)}</Feature>
-              <Feature>No subscription — pay once</Feature>
+              <Feature>No subscription, pay once</Feature>
             </ul>
           </CardContent>
           <CardFooter>
@@ -168,8 +168,8 @@ export default function PricingPage() {
 
       <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
         Every plan supports videos up to {videoMinutes} minutes and {videoGb} GB
-        each. Your events stay up until you delete them — there&rsquo;s no
-        expiry clock counting down on your memories.
+        each. Your events stay up until you delete them. There&rsquo;s no expiry
+        clock counting down on your memories.
       </p>
     </Container>
   );

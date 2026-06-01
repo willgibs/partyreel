@@ -9,7 +9,7 @@ import { ContactForm } from "./contact-form";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with the Partyreel team — questions about your event, billing, or anything else. We usually reply within one business day.",
+    "Get in touch with the Partyreel team: questions about your event, billing, or anything else. We usually reply within one business day.",
   alternates: { canonical: "/contact" },
 };
 

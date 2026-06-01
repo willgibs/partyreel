@@ -50,8 +50,8 @@ export function HelpSearch({
             How can we help?
           </h1>
           <p className="max-w-xl text-lg text-pretty text-muted-foreground">
-            Guides for hosts and guests — setup, sharing, privacy, plans, and
-            the highlight reel.
+            Guides for hosts and guests: setup, sharing, privacy, plans, and the
+            highlight reel.
           </p>
           <div className="relative w-full max-w-xl">
             <Search

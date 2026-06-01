@@ -19,7 +19,7 @@ import { HelpSearch } from "./help-search";
 export const metadata: Metadata = {
   title: "Help center",
   description:
-    "Guides for Partyreel hosts and guests — create an event, share your QR code, curate your album, manage plans, and make a highlight reel.",
+    "Guides for Partyreel hosts and guests: create an event, share your QR code, curate your album, manage plans, and make a highlight reel.",
   alternates: { canonical: "/help" },
 };
 
@@ -126,7 +126,7 @@ export default function HelpIndexPage() {
             </h2>
             <p className="max-w-md text-pretty text-muted-foreground">
               Can&rsquo;t find what you&rsquo;re looking for? We&rsquo;re happy
-              to help — reach out and we&rsquo;ll get back to you.
+              to help. Reach out and we&rsquo;ll get back to you.
             </p>
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link href="/contact">

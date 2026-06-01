@@ -95,7 +95,7 @@ export default async function RolePage({
           <div className="mt-12 border-t pt-10">
             <h2 className="text-2xl font-semibold tracking-tight">Apply</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Send us a note and any links — we read every application.
+              Send us a note and any links. We read every application.
             </p>
             <div className="mt-6">
               <ApplicationForm roleSlug={job.slug} roleTitle={job.title} />

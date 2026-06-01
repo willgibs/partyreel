@@ -649,7 +649,11 @@ class as the trigger-only functions.
   blog, app UI), never use the em-dash; it now reads as an "AI copy" tell. Recast with a comma,
   parentheses, a colon, or two sentences (whichever is most natural). Code comments and internal docs
   are exempt. This is a forward policy (write new/edited copy this way; fix opportunistically on pages
-  you touch), not a blind retroactive find-replace.
+  you touch), not a blind retroactive find-replace. A **Vitest guard**
+  ([`no-em-dash-policy.test.ts`](src/lib/no-em-dash-policy.test.ts)) enforces this on the
+  **marketing surface** (it walks the TS AST, so it checks string/JSX copy and skips comments). When
+  you sweep a new surface clean, add its dir to that test's `SCAN` lists. The `(app)`/`(guest)` UI +
+  email templates still carry ~34 em-dashes (out of the guard's scope until they're swept, see ROADMAP).
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.

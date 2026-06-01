@@ -56,10 +56,11 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   drift); scrubbed the home + site-wide footer/`site.ts` em-dashes. **Built + verified via the gate + Preview
   MCP** (both teasers, the hub unchanged by the refactor, mobile, console clean, balanced frame density —
   hero→gallery-spotlight→event-cards→reel-spotlight alternation); **deploy + Chrome spot-check pending**.
-  _(Two polish-arc follow-ups logged in ROADMAP: **enrich the `/events` hub** beyond a directory, and an
-  **em-dash sweep of the remaining marketing pages** — careers/contact/blog/help/pricing/terms/privacy still
-  hold ~28 pre-policy em-dashes; the policy is forward + opportunistic, not a blind retroactive sweep. R3's
-  demo is wired to the **Share Step Test** stand-in event; swapping in curated media is a pre-launch item.)_
+  _(The **remaining-pages em-dash sweep is now DONE** — careers + contact/blog/help/pricing/terms/privacy + the
+  root OG card recast into natural copy in context; the **whole marketing surface is em-dash-clean**
+  (uncommitted, pending deploy). One polish-arc follow-up remains in ROADMAP: **enrich the `/events` hub**
+  beyond a directory. R3's demo is wired to the **Share Step Test** stand-in event; swapping in curated media
+  is a pre-launch item.)_
 - **Marketing site full build-out COMPLETE — all 7 rounds, deployed + live-tested on partyreel.com.**
   Expanding the scaffolded marketing site to a launch-ready full site (Features / Use cases / Help
   / Contact / Careers / Blog), designed as-if-complete (7-round plan in `.claude/plans/`). R1

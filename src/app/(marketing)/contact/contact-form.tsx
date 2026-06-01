@@ -50,7 +50,7 @@ export function ContactForm() {
       <div className="flex flex-col items-start gap-3 rounded-xl border bg-card p-6">
         <h3 className="font-heading text-base font-medium">Message sent</h3>
         <p className="text-sm text-muted-foreground">
-          Thanks for reaching out — we&rsquo;ll get back to you within one
+          Thanks for reaching out. We&rsquo;ll get back to you within one
           business day.
         </p>
         <Button variant="outline" size="sm" onClick={() => setSubmitted(false)}>

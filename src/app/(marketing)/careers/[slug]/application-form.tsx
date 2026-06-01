@@ -45,7 +45,7 @@ export function ApplicationForm({
     if (result.ok) {
       setSubmitted(true);
       form.reset();
-      toast.success("Application received — thanks!");
+      toast.success("Application received, thanks!");
     } else {
       toast.error(result.error);
     }
@@ -133,7 +133,7 @@ export function ApplicationForm({
               <FormControl>
                 <Textarea
                   rows={5}
-                  placeholder="Tell us why you'd be a great fit — and anything you'd love to work on."
+                  placeholder="Tell us why you'd be a great fit, and anything you'd love to work on."
                   {...field}
                 />
               </FormControl>

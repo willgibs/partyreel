@@ -18,7 +18,7 @@ import {
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Help build Partyreel — the easiest way to collect every photo, video, and highlight reel from an event. We're a small team that cares about craft, and we're hiring.",
+    "Help build Partyreel: the easiest way to collect every photo, video, and highlight reel from an event. We're a small team that cares about craft, and we're hiring.",
   alternates: { canonical: "/careers" },
 };
 

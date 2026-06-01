@@ -11,7 +11,7 @@ import { BlogList } from "./blog-list";
 export const metadata: Metadata = {
   title: "Blog",
   description:
-    "Guides, stories, and ideas on collecting every photo and video from your event — from the team building Partyreel.",
+    "Guides, stories, and ideas on collecting every photo and video from your event, from the team building Partyreel.",
   alternates: {
     canonical: "/blog",
     // RSS discovery → <link rel="alternate" type="application/rss+xml" …>
@@ -46,7 +46,7 @@ export default function BlogIndexPage() {
           </h1>
           <p className="max-w-xl text-lg text-pretty text-muted-foreground">
             Guides, stories, and ideas on collecting every photo and video from
-            your event — from the team building Partyreel.
+            your event, from the team building Partyreel.
           </p>
         </Container>
       </section>
@@ -61,7 +61,7 @@ export default function BlogIndexPage() {
             Start your first event free
           </h2>
           <p className="max-w-md text-pretty text-muted-foreground">
-            Create an event, share the QR, and watch the photos roll in — no app
+            Create an event, share the QR, and watch the photos roll in. No app
             or account for your guests.
           </p>
           <Button asChild size="lg" className="h-11 px-6 text-base">

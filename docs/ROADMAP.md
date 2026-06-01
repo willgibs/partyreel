@@ -101,10 +101,18 @@ details beyond a template feel.
   teaser, so the two currently look alike. Make the hub earn its place as a destination: an intro/overview,
   cross-event benefits, an aggregate FAQ, and SEO body copy AROUND the shared cards. (Will flagged the
   directory-redundancy + chose to keep + enrich the page rather than remove it.)
-- **Em-dash sweep of the remaining marketing pages** — R5 cleaned the home + the site-wide footer/`site.ts`,
-  but [careers.ts](src/lib/constants/careers.ts) + the contact/blog/help/pricing/terms/privacy page copy
-  still hold ~28 user-facing em-dashes (they predate the policy; the policy is **forward + opportunistic**,
-  NOT a blind retroactive sweep). Recast them in a focused pass to make the whole marketing surface clean.
+- ✅ **Em-dash sweep of the remaining marketing pages (DONE)** — recast all ~30 user-facing em-dashes across
+  [careers.ts](src/lib/constants/careers.ts) + the careers/contact/blog/help/pricing/terms/privacy pages + the
+  root OG card ([opengraph-image.tsx](src/app/opengraph-image.tsx)) into natural copy IN CONTEXT (colons for
+  lists, commas for asides, two sentences for trailing tags). **The whole marketing surface is now
+  em-dash-clean** — only code comments + the `.not.toContain("—")` test-guard literals remain. Verified by
+  grep + the gate (152 tests/build) + a Preview read. A durable **AST-based Vitest guard**
+  ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) now scans the marketing surface (string +
+  JSX copy, comments exempt) so this can't silently recur.
+- **Extend the no-em-dash policy to the `(app)`/`(guest)`/email surface** — the guard's AST scan found **~34**
+  user-facing em-dashes still in the host/guest UI, error toasts, validation messages, and email templates
+  ([email/templates.ts](src/lib/email/templates.ts)). Recast them in context, then add those dirs to the
+  guard's `SCAN` lists so the whole app is covered (the policy is app-wide, not marketing-only).
 
 ## ⏸️ Tabled — needs a product + architecture decision first
 
