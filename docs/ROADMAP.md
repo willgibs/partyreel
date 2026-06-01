@@ -171,6 +171,14 @@ details beyond a template feel.
   behind the Pro tier; keep the host `(app)` layout at AAL1 by default (don't force 2FA on all hosts)
   and only enforce AAL2 for hosts who opted in. Will's idea (2026-06-01), surfaced while building the
   admin portal.
+- **Privacy policy: Sentry session-recording disclosure (pre-launch; copy drafted).** The `/privacy`
+  page is still a stub ([privacy/page.tsx](src/app/(marketing)/privacy/page.tsx)); when the real policy
+  is written, include a line covering Sentry's on-error, media-blocked, text-masked Session Replay.
+  Drop-in draft (no em-dashes, matches the tone): _"Error monitoring and session replay: We use Sentry
+  to detect and diagnose technical errors. When an error occurs, Sentry may record a short,
+  privacy-masked replay of that session to help us fix it. These recordings block all images and video
+  and mask all text, so your photos, videos, and anything you type are never captured. We never use
+  session replay for advertising or analytics."_
 - **Notification center signals (extend the bell)** — link-activity "new since last seen" deltas
   (from `link_stats`) and billing/payment alerts (needs a denormalized Stripe `past_due` flag on
   `profiles` first). Each = one read in `getNotificationData` + one case in `buildNotifications`.

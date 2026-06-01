@@ -41,9 +41,11 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   **Round 2 (Sentry error tracking) BUILT + gate-green** (`7d997cb`): `@sentry/nextjs` app-wide, errors
   + 10% tracing + on-error Session Replay (media-blocked, text-masked), DSN-gated no-op, manual captures
   at the swallowed paths (upload finalizer / webhook provisioning / all 7 cron sweeps / admin actions),
-  everything else via `onRequestError`. Build clean under Turbopack (post-build source maps). Live-verify
-  (smoke test) pending Will's Sentry project + env vars (see below). **Next: Phase 3 = support &
-  moderation inbox.**
+  everything else via `onRequestError`. Build clean under Turbopack (post-build source maps).
+  **Live-verified on prod (2026-06-01):** a deliberate bad-signature webhook POST created Sentry issue
+  `JAVASCRIPT-NEXTJS-2` with the `area:webhook` tag + clean PII (resolved as a test). Client Session
+  Replay is configured (on-error, media-blocked) but not yet exercised by a real client error.
+  **Next: Phase 3 = support & moderation inbox.**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
@@ -155,14 +157,12 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 The agent can't do these — they need a human in a dashboard:
 
-- **Sentry (admin portal R2) go-live** — create a **free Sentry project** (Next.js platform); copy the
-  **DSN**; create an **Organization Auth Token** (Settings → Auth Tokens). In **Vercel** set
-  `NEXT_PUBLIC_SENTRY_DSN` (Production + Preview, + `.env.local`) and the build-time `SENTRY_AUTH_TOKEN`
-  / `SENTRY_ORG` / `SENTRY_PROJECT`; redeploy. Add an email **alert rule** for new issues. Then ping the
-  agent for the live smoke test (a temporary admin-gated trigger → confirm an issue with source-mapped
-  stack + `area` tag + scrubbed PII, and a Replay with media blocked / text masked). **Also a copy task
-  (not code):** add a **privacy-policy** line about Sentry session recording (on-error, media-blocked +
-  text-masked).
+- **Sentry R2 leftovers (env + capture DONE + smoke-verified).** Remaining: (1) confirm the **email
+  alert rule** fires, Sentry auto-creates a default "new issue" rule and the smoke test just created
+  issue `JAVASCRIPT-NEXTJS-2`, so check the inbox; if nothing arrived, add one via Sentry → Alerts →
+  Create Alert → Issues + enable Settings → Account → Notifications → Issue Alerts (the MCP can't create
+  alert rules). (2) The **privacy-policy** session-recording line (drafted in ROADMAP near-term) lands
+  when the `/privacy` stub becomes the real policy.
 - **Resend** — set `RESEND_API_KEY` + `EMAIL_FROM` (`Partyreel <noreply@partyreel.com>`, no
   quotes in Vercel) + **verify a sending domain (DNS)**. Until then transactional email is dark.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
@@ -185,6 +185,8 @@ the Stripe **TEST** products/prices + webhook endpoint + Billing Portal + the 5 
 in the redirect allow-list; `admin.partyreel.com` added in Vercel (same project) with
 `NEXT_PUBLIC_ADMIN_HOST` set; `hi@willgibs.com` enrolled TOTP (holds the factor). Break-glass if
 the authenticator is lost: delete the factor in the Supabase dashboard (`auth.mfa_factors`).
+**Sentry (R2):** the `javascript-nextjs` project + DSN + the 4 env vars are set in Vercel + deployed;
+capture smoke-verified on prod (org `partyreel`).
 
 ## After any change
 
