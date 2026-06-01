@@ -101,7 +101,7 @@ guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2
 **`/a/[token]`** (approved-only), and the **guest event page `/e/[token]`** (live + polling — see
 "Guest join"). All **presign R2 keys server-side** (`presignDownload`, 1 h TTL; via the shared
 `toGridItems`) and are `force-dynamic`; raw R2 keys/URLs are NEVER exposed to the browser (ADR-0003).
-The album uses the always-dark `gallery` surface so media is the hero. Tiles open a shared **lightbox**
+The album uses the always-dark `gallery` surface so media is the hero — it stays dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
 ([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
 keyboard nav, video playback, and a **Save** that downloads the original. **Download = a SECOND
 presign of the same key with `ResponseContentDisposition: attachment`** (`presignDownload`'s

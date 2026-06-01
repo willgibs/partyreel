@@ -22,9 +22,13 @@
       Galleries are dark in BOTH light & dark themes so media pops. Use
       `bg-gallery text-gallery-foreground` rather than toggling the theme.
 
-  Theming strategy: shadcn `.dark` class variant (NOT prefers-color-scheme).
-  No global theme toggle ships in the foundation — gallery darkness comes from
-  the --gallery tokens, not from forcing `.dark`.
+  Theming strategy: shadcn `.dark` class variant (the CSS uses NO
+  prefers-color-scheme media query). next-themes drives the class globally
+  (attribute="class"): it defaults to the visitor's device setting
+  (defaultTheme="system"), and the account menu (UserMenu) is the only UI to
+  override to Light / Dark / System. The preference is global, so it styles the
+  marketing site too. Gallery darkness is independent: it comes from the
+  always-dark --gallery tokens, not from forcing `.dark`.
   ────────────────────────────────────────────────────────────────────────────
 */
 

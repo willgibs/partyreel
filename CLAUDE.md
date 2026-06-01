@@ -161,6 +161,12 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
 - CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme`, dark
   via `@custom-variant dark`. No `tailwind.config.js`. PostCSS uses only
   `@tailwindcss/postcss`.
+- **Theme is global via `next-themes`** (`attribute="class"`, `defaultTheme="system"`,
+  `enableSystem`), mounted in `src/components/providers.tsx`; `<html>` carries
+  `suppressHydrationWarning` (the pre-paint class set). The host account menu
+  (`UserMenu`) is the ONLY toggle UI (Light / Dark / System) — the preference is
+  global, so it styles the marketing site too. The always-dark gallery (`--gallery*`,
+  never overridden in `.dark`) is theme-immune.
 
 **zod v4** — use top-level `z.url()` (not `z.string().url()`); `error.issues`
 (not `.errors`). See `src/lib/env.ts`.

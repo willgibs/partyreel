@@ -47,9 +47,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // <html> carries suppressHydrationWarning because next-themes sets the theme
+  // class (+ color-scheme) on it in a pre-paint script, so the server-rendered
+  // and hydrated class attribute differ by design. Scoped to this element only.
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
