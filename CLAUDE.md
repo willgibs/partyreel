@@ -495,8 +495,12 @@ keyboard or Dismiss it.
   gated to `pointerType === "touch"` so mouse/pen are untouched (chevrons + keyboard stay the desktop
   nav); **(b)** slots are **keyed by item id** so the slid-to neighbor's already-loaded `<img>` is
   REUSED (moved, not reloaded) when it becomes current — that's what makes the settle seamless; the
-  commit then does an **animate-then-swap** recenter (one-frame `data-dragging` = `transition:none` so
-  the −2w→−1w jump is invisible); **(c)** only the **center** video gets `controls autoPlay` (neighbor
+  commit then does an **animate-then-swap** recenter that holds `data-dragging` (`transition:none`)
+  through the index-swap so the −2w→−1w jump is instant. **Do NOT re-enable the transition on the next
+  frame (rAF):** React can flush the transition-off recenter and the transition-on re-enable in the
+  SAME frame before paint, so the recenter animates as a visible SECOND slide (the mobile "reanimate"
+  glitch). `dragging` is left true until the NEXT gesture's `settleTo` flips it false (many frames
+  later); no transform changes in between, so nothing that should animate is suppressed; **(c)** only the **center** video gets `controls autoPlay` (neighbor
   videos are muted, controls-less, `pointer-events-none` posters) + a `play()` effect on index change
   (since a reused `<video>` won't honor `autoPlay`); **(d)** swipe-vs-scrub: a **playing** video
   reserves its bottom `CONTROLS_STRIP_PX` for the native scrubber, a **paused** one swipes everywhere

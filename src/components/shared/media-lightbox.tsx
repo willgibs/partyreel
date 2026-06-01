@@ -189,9 +189,19 @@ export function MediaLightbox({
       if (dir === 0) return; // spring-back: nothing to finalize (offset back at 0)
 
       // Animate-then-swap: once the neighbor has slid fully to center, swap the
-      // index and recenter the new window WITHOUT animation (one-frame `dragging`
-      // = transition:none) so the -2·w → -1·w jump is invisible. transitionend is
-      // the trigger; the timeout is a belt-and-suspenders fallback.
+      // index and recenter the new window WITHOUT animation by shifting the index +
+      // resetting the offset in one batch while `dragging` holds transition:none, so
+      // the -2·w → -1·w jump is invisible. transitionend is the trigger; the timeout
+      // is a belt-and-suspenders fallback.
+      //
+      // We deliberately do NOT re-enable the transition here (e.g. via rAF): a next-
+      // frame re-enable races the browser's recalc — React can flush the transition-
+      // off recenter and the transition-on re-enable in the SAME frame before paint,
+      // so the recenter animates as a visible SECOND slide (the mobile "reanimate"
+      // glitch). Leaving `dragging` true keeps transition:none until the next
+      // gesture's settleTo flips it false; by then many frames have painted, so the
+      // jump never animates. No transform changes happen in between, so nothing that
+      // SHOULD animate is suppressed.
       const finish = () => {
         if (finishRef.current !== finish) return; // already ran / superseded
         finishRef.current = null;
@@ -202,7 +212,6 @@ export function MediaLightbox({
         setDragging(true);
         onIndexChange(index! + dir);
         setOffset(0);
-        requestAnimationFrame(() => setDragging(false));
       };
       finishRef.current = finish;
       settleTimerRef.current = window.setTimeout(finish, SETTLE_MS + 80);
