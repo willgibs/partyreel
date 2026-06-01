@@ -191,8 +191,9 @@ an Open/All history filter, resolved rows read-only), **Accounts** (P4 read-only
 email/name, and a detail view of tier + subscription/Event-Pass state + ACTIVE storage vs effective cap +
 the raw `storage_used_bytes` counter + event/media counts, plus a test/live-aware Stripe customer
 deep-link for any billing change), **Albums** (P5 proactive moderation: a recent-uploads feed across all
-events + an album drill-in, with direct soft-remove + restore within the grace), and **Security** (MFA
-status). Triage status
+events + an album drill-in, with direct soft-remove + restore within the grace), **Metrics** (P6 platform
+analytics: KPIs across accounts / content / engagement / growth + live Stripe revenue, charts in P6b), and
+**Security** (MFA status). Triage status
 writes go through `requireAdminAction` + the service-role admin client (deny-all tables); shared
 `TriageStatusControl` + `TriageFilter`. **Accounts is READ-ONLY** (no writes, no migration): service-role
 reads in [queries/accounts.ts](../src/lib/db/queries/accounts.ts) (the only cross-host `profiles` reader —
@@ -208,7 +209,15 @@ scopes media to the owning host), presigned for render through the shared `toGri
 the 7-day purge cron reclaims) and **restore** clears `removed_at` (→ `approved`); both go through
 `requireAdminAction` (AAL2). No migration, no new RPC, no new grants (a soft-remove is a plain
 status/removed_at update). Soft-remove pulls the item from every public album/gallery instantly (those
-reads already exclude `status='removed'`); immediate hard-purge for egregious content is deferred. Error
+reads already exclude `status='removed'`); immediate hard-purge for egregious content is deferred.
+**Metrics** (P6a) is a platform-wide dashboard: one service-role aggregator
+([queries/metrics.ts](../src/lib/db/queries/metrics.ts)) rolls existing tables up via cheap `head:true`
+counts + small column fetches fed to PURE, unit-tested reducers ([lib/metrics/aggregate.ts](../src/lib/metrics/aggregate.ts)),
+so it stays **migration-free**; "Media" inner-joins events so active-media stays consistent with the
+active-events count. **Revenue is read LIVE from Stripe** (the source of truth, vs the lossy synced tier):
+a best-effort `getPlatformRevenue` ([stripe/revenue.ts](../src/lib/stripe/revenue.ts)) returns MRR (the
+pure `computeMrrCents`, interval-normalized) + balance, or null → a graceful "unavailable" card. Charts
+(recharts) are the deferred P6b cut. Error
 tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 

@@ -77,7 +77,19 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    grants. Chrome-MCP verified on admin.partyreel.com (remove → DB `removed` + `get_public_album` 3→2 +
    the public `/a/` album showed 2; restore → 3 again; apex 404; console clean). Immediate hard-purge for
    egregious content deferred.
-6. **P6 — Analytics & metrics (NEXT)** — platform-wide dashboards (scans/views, signups, storage, revenue).
+6. **P6 — Analytics & metrics** — platform-wide operator dashboard. Split into two cuts (numbers first,
+   then charts) so the new charting dependency never blocks shipping the metrics.
+   - ✅ **P6a — dashboard, numbers + live revenue (SHIPPED + LIVE-VERIFIED).** `/admin/metrics`: KPI stat
+     cards across accounts / content+storage / engagement / growth + a live Stripe revenue card (MRR +
+     balance, best-effort → graceful "unavailable"). Migration-free: a service-role aggregator
+     ([queries/metrics.ts](src/lib/db/queries/metrics.ts)) of `head:true` counts + small fetches fed to
+     pure, unit-tested reducers ([lib/metrics/aggregate.ts](src/lib/metrics/aggregate.ts)); revenue via the
+     existing `getStripe` (pure `computeMrrCents`). "Media" inner-joins events for consistency with the
+     active-events count. Chrome-verified: KPIs matched a Supabase cross-check, revenue matched the Stripe
+     MCP (test-mode $0 MRR / $41.15 pending), apex 404, console clean.
+   - **P6b — charts (NEXT).** Layer recharts trend + distribution viz onto the shipped P6a data (own the
+     new client dep + its React-19/Turbopack/SSR verification in a focused cut). Context7 doc-check before
+     `pnpm add recharts`; extend the reducers with per-day trend builders from the rows already fetched.
 7. **P7 — Content & announcements + operator notifications** — announcement compose/publish UI;
    blog/help/careers management (file-vs-DB decided in its round); operator notifications.
 

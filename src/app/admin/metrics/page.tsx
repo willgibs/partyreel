@@ -27,6 +27,8 @@ export const metadata: Metadata = { title: "Metrics" };
 // Explicit en-US locale so the number/currency render is deterministic across server + client (no React
 // #418 hydration mismatch — that bites only with locale-less toLocaleString).
 const num = (n: number) => n.toLocaleString("en-US");
+const plural = (n: number, singular: string) =>
+  `${num(n)} ${n === 1 ? singular : `${singular}s`}`;
 function money(cents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -86,7 +88,7 @@ export default async function AdminMetricsPage() {
         <MetricCard
           label="Media"
           value={num(content.media)}
-          sub={`${num(content.photos)} photos, ${num(content.videos)} videos`}
+          sub={`${plural(content.photos, "photo")}, ${plural(content.videos, "video")}`}
         />
         <MetricCard
           label="Storage used"

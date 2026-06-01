@@ -93,8 +93,8 @@ export default async function AdminHomePage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Operations</h1>
         <p className="text-sm text-muted-foreground">
-          Internal tools for running Partyreel. Accounts, analytics, and content
-          land in upcoming rounds.
+          Internal tools for running Partyreel. Content and announcements land
+          in an upcoming round.
         </p>
       </div>
 

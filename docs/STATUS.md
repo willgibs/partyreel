@@ -68,7 +68,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   service-role client. No migration, no new RPC. Chrome-verified on `admin.partyreel.com`: feed + filters +
   drill-in render; removed an approved item → DB `status='removed'` + `removed_at`, `get_public_album` 3→2
   and the public `/a/` album showed 2; restored it → 3 again, DB cleared; apex `/admin/albums` 404s; console
-  clean. **Next: Phase 6 = analytics & metrics (platform-wide dashboards).**
+  clean. **Phase 6a (analytics dashboard, numbers + live revenue) SHIPPED + LIVE-VERIFIED** (`53c82b3`):
+  `/admin/metrics` shows platform KPIs across four families (accounts / content+storage / engagement /
+  growth) as stat cards + a live Stripe revenue card (MRR + balance, best-effort). Migration-free:
+  service-role aggregator (head-counts + small fetches → pure, unit-tested reducers) + the existing
+  `getStripe` client; "Media" inner-joins events to stay consistent with the active-events count.
+  Chrome-verified on `admin.partyreel.com`: every KPI matched a direct Supabase cross-check (1 account /
+  free, 1 event, 3 active media, 26 QR scans, 4 album views) and the revenue card matched the Stripe MCP
+  (test-mode: $0 MRR / 0 subs, $0 available, $41.15 pending); apex `/admin/metrics` 404s; console clean.
+  **Next: Phase 6b = charts (recharts trend + distribution viz layered on the shipped data).**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
