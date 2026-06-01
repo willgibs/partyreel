@@ -187,6 +187,29 @@ are **lockout-proof** (reachable at AAL1; break-glass = delete the factor in the
 not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 
+## Observability (Sentry error tracking)
+
+App-wide error tracking via **`@sentry/nextjs`** (free Developer tier; see ROADMAP "Admin portal" R2).
+**DSN-gated:** `NEXT_PUBLIC_SENTRY_DSN` unset → `enabled: false` no-op, so dev + an unconfigured build
+stay green (mirrors `assert*Env`). Wiring: [instrumentation.ts](../src/instrumentation.ts) (`register()`
++ `onRequestError = captureRequestError`, which **auto-captures unhandled throws** in route handlers,
+Server Components, and the proxy), [instrumentation-client.ts](../src/instrumentation-client.ts) (browser
+init + Session Replay), and `src/sentry.server.config.ts` / `src/sentry.edge.config.ts` — all spread one
+**`commonInit`** ([lib/observability/sentry.ts](../src/lib/observability/sentry.ts), the single source
+for DSN + sampling + the `scrubEvent` PII `beforeSend`). `next.config.ts` wraps with `withSentryConfig`
+(`useRunAfterProductionCompileHook` = Turbopack **post-build** source maps, needs `@sentry/nextjs`
+≥10.13; upload gated on the build-time `SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT`, so it builds
+without creds). **Scope:** errors (always) + **10% tracing** + **on-error Session Replay**
+(`replaysOnErrorSampleRate: 1`, session 0; `blockAllMedia` + `maskAllText` so guests' photos + typed text
+are never recorded). **Manual captures go ONLY where errors were swallowed** (everything else rides
+`onRequestError`), via `captureError(area, err, extra?)` / `captureWarning(area, msg, extra?)` (coarse
+`area` tag): the upload finalizer's `completeMultipartUpload` catch, the Stripe webhook's provisioning
+failures + a signature warning (**never re-reads the raw body**), all 7 purge-cron sweeps (a `runSweep`
+helper), and the admin report-action DB errors. **Invariants:** keep Sentry **out of `src/lib/db/*`**
+(capture at route/action entry points); `sendDefaultPii: false` + `scrubEvent` strips presigned-URL
+query strings + emails. Engineering errors → Sentry; operator upload-safety review → the reports queue
+(the portal links out to Sentry, no embedded viewer).
+
 ## Marketing site
 
 Public `(marketing)` route group on the shared domain. Nav is a single source

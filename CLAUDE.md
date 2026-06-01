@@ -584,6 +584,27 @@ assignable to type '0'`. Fixed by `pnpm.overrides: { "zod": "$zod" }` in
   timestamp in [report-review.tsx](src/components/app/report-review.tsx) does). Caught live on the admin
   reports queue, only fires when such a value actually renders (an empty list hid it).
 
+**Sentry / observability (R2)**
+
+- **DSN-gated no-op.** `NEXT_PUBLIC_SENTRY_DSN` unset → `commonInit.enabled = false`; Sentry sends
+  nothing and the build stays green (dev + unconfigured). Don't add a hard assert.
+- **One shared `commonInit`** ([lib/observability/sentry.ts](src/lib/observability/sentry.ts)) feeds all
+  three runtimes (server/edge/client configs). Add capture sites via `captureError(area, …)` /
+  `captureWarning(area, …)` — **never `import @sentry/nextjs` inside `src/lib/db/*`**; capture at the
+  route/action layer (the data layer stays Sentry-free).
+- **Capture only SWALLOWED errors.** Unhandled throws auto-capture via `onRequestError`
+  ([instrumentation.ts](src/instrumentation.ts)). Manual captures are only for try/catch that returns
+  instead of throwing (the upload finalizer, the webhook, the cron `runSweep`, admin actions). Skip
+  routine user rejections (cap/limits/closed) — not bugs, capturing them is noise + quota burn.
+- **Turbopack source maps** need `useRunAfterProductionCompileHook: true` in `withSentryConfig` +
+  `@sentry/nextjs` ≥ 10.13 (post-build upload). **Don't use `excludeServerRoutes`** (unsupported under
+  Turbopack); `disableLogger` is deprecated (removed).
+- **Never let Sentry touch the Stripe webhook's raw body** — it reads `req.text()` once for the
+  signature; capture only the already-parsed error/event.
+- **PII** — `sendDefaultPii: false` + `scrubEvent` (strips presigned-URL query strings + emails). Session
+  Replay is **on-error only** + `blockAllMedia` + `maskAllText` (guests' photos + typed text never
+  recorded); note session recording in the privacy policy.
+
 ---
 
 ## Architecture & routing

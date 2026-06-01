@@ -41,10 +41,15 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    into `/admin/reports`. No schema change. Chrome-MCP verified end-to-end (apex 404, perimeter, the
    `?next=` callback fix, MFA→AAL2, report dismiss/action DB-confirmed; a `toLocaleString` hydration
    #418 caught + fixed). The host-aware auth callback (`8c7a237`) is a shared win for any future subdomain.
-2. ⏭️ **R2 — Sentry error tracking** (app-wide; free tier). `@sentry/nextjs`: `instrumentation.ts` +
-   `onRequestError`, server/edge/client configs, `withSentryConfig` source maps, PII scrub in
-   `beforeSend`, `captureException` in the caught paths (upload/webhook/cron/admin), email alerts.
-   **Verify `@sentry/nextjs` supports Next 16 + Turbopack via Context7 before installing.** No DB.
+2. ✅ **R2 — Sentry error tracking (BUILT + gate-green; live-verify pending Will's Sentry project +
+   env vars).** `@sentry/nextjs@10.55` app-wide: `instrumentation.ts` + `onRequestError` (auto-captures
+   unhandled throws incl. the proxy), server/edge/client configs sharing one DSN-gated `commonInit`
+   ([lib/observability/sentry.ts](src/lib/observability/sentry.ts)); `withSentryConfig` Turbopack
+   post-build source maps (`useRunAfterProductionCompileHook`). Errors + 10% tracing + **on-error
+   Session Replay** (`blockAllMedia` + `maskAllText`). Manual `captureError`/`captureWarning` only at the
+   SWALLOWED paths (upload finalizer, webhook provisioning + signature, all 7 cron sweeps via a `runSweep`
+   helper, admin report actions); everything else rides `onRequestError`. Sentry stays out of the data
+   layer. No DB change. DSN unset = clean no-op (gate stays green).
 3. **P3 — Support & moderation inbox** — triage `contact_submissions` + `job_applications` (status
    workflow) + extend reports into a real queue. The tables already exist (deny-all RLS).
 4. **P4 — Accounts & billing** — user search/detail, tier/subscription/storage, promo codes (Stripe

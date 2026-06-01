@@ -38,7 +38,12 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   through `requireAdminAction` (DB-confirmed: resolved_by = admin, dismissed item's media untouched);
   console clean. Two fixes shipped during verification: the host-aware callback (commit `8c7a237`) and
   a pre-existing report-timestamp hydration error (React #418, `21a9526`); the QR render (`c44536d`).
-  **Next: Round 2 = Sentry** error tracking (free tier; see ROADMAP "Admin portal").
+  **Round 2 (Sentry error tracking) BUILT + gate-green** (`7d997cb`): `@sentry/nextjs` app-wide, errors
+  + 10% tracing + on-error Session Replay (media-blocked, text-masked), DSN-gated no-op, manual captures
+  at the swallowed paths (upload finalizer / webhook provisioning / all 7 cron sweeps / admin actions),
+  everything else via `onRequestError`. Build clean under Turbopack (post-build source maps). Live-verify
+  (smoke test) pending Will's Sentry project + env vars (see below). **Next: Phase 3 = support &
+  moderation inbox.**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
@@ -150,6 +155,14 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 The agent can't do these — they need a human in a dashboard:
 
+- **Sentry (admin portal R2) go-live** — create a **free Sentry project** (Next.js platform); copy the
+  **DSN**; create an **Organization Auth Token** (Settings → Auth Tokens). In **Vercel** set
+  `NEXT_PUBLIC_SENTRY_DSN` (Production + Preview, + `.env.local`) and the build-time `SENTRY_AUTH_TOKEN`
+  / `SENTRY_ORG` / `SENTRY_PROJECT`; redeploy. Add an email **alert rule** for new issues. Then ping the
+  agent for the live smoke test (a temporary admin-gated trigger → confirm an issue with source-mapped
+  stack + `area` tag + scrubbed PII, and a Replay with media blocked / text masked). **Also a copy task
+  (not code):** add a **privacy-policy** line about Sentry session recording (on-error, media-blocked +
+  text-masked).
 - **Resend** — set `RESEND_API_KEY` + `EMAIL_FROM` (`Partyreel <noreply@partyreel.com>`, no
   quotes in Vercel) + **verify a sending domain (DNS)**. Until then transactional email is dark.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
