@@ -87,10 +87,13 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
      existing `getStripe` (pure `computeMrrCents`). "Media" inner-joins events for consistency with the
      active-events count. Chrome-verified: KPIs matched a Supabase cross-check, revenue matched the Stripe
      MCP (test-mode $0 MRR / $41.15 pending), apex 404, console clean.
-   - **P6b — charts (NEXT).** Layer recharts trend + distribution viz onto the shipped P6a data (own the
-     new client dep + its React-19/Turbopack/SSR verification in a focused cut). Context7 doc-check before
-     `pnpm add recharts`; extend the reducers with per-day trend builders from the rows already fetched.
-7. **P7 — Content & announcements + operator notifications** — announcement compose/publish UI;
+   - ✅ **P6b — charts (SHIPPED + LIVE-VERIFIED).** `recharts` line + bar charts on `/admin/metrics`
+     (signup + scans/views trends, tier / media-type / newsletter-source bars), grayscale + the coral
+     accent ([metrics-charts.tsx](src/components/admin/metrics-charts.tsx)). Per-day trends are pure
+     builders over the rows P6a already fetched (no new query, no migration). recharts 3.8.1 + a `react-is`
+     pnpm override for React 19; charts render behind a `useSyncExternalStore` hydration gate (no
+     ResponsiveContainer warning). Chrome-verified: charts reconcile with the KPIs, console clean.
+7. **P7 — Content & announcements + operator notifications (NEXT)** — announcement compose/publish UI;
    blog/help/careers management (file-vs-DB decided in its round); operator notifications.
 
 ## ✅ Done — marketing site full build-out (all 7 rounds)
