@@ -187,9 +187,18 @@ are **lockout-proof** (reachable at AAL1; break-glass = delete the factor in the
 `job_applications` — status `new`/`in_progress`/`closed` single-sourced in
 [triage.ts](../src/lib/constants/triage.ts) + a DB CHECK, reply-from-inbox `mailto`, `handled_by`/
 `handled_at`, server-rendered status filter, Overview count badges), **Reports** (the review queue with
-an Open/All history filter, resolved rows read-only), and **Security** (MFA status). Triage status
+an Open/All history filter, resolved rows read-only), **Accounts** (P4 read-only host browser: search by
+email/name, and a detail view of tier + subscription/Event-Pass state + ACTIVE storage vs effective cap +
+the raw `storage_used_bytes` counter + event/media counts, plus a test/live-aware Stripe customer
+deep-link for any billing change), and **Security** (MFA status). Triage status
 writes go through `requireAdminAction` + the service-role admin client (deny-all tables); shared
-`TriageStatusControl` + `TriageFilter`. Error tracking is **Sentry** (free tier — see ROADMAP "Admin
+`TriageStatusControl` + `TriageFilter`. **Accounts is READ-ONLY** (no writes, no migration): service-role
+reads in [queries/accounts.ts](../src/lib/db/queries/accounts.ts) (the only cross-host `profiles` reader —
+RLS scopes `profiles` to the owner, so the admin client is the sole path), with ACTIVE storage reusing the
+over-capacity sweep's exact query (non-removed media in non-deleted events); the Stripe deep-link is the
+pure, unit-tested `buildStripeCustomerUrl` ([dashboard.ts](../src/lib/stripe/dashboard.ts), test/live
+derived from the `STRIPE_SECRET_KEY` prefix server-side, never exposing the key). The **Stripe webhook
+stays the SOLE writer** of tier/cap/subscription. Error tracking is **Sentry** (free tier — see ROADMAP "Admin
 portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 

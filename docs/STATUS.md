@@ -51,7 +51,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   gained an Open/All history filter (resolved rows read-only). Additive migration (`handled_by`/
   `handled_at` + status CHECK, RLS unchanged); advisors clean. Chrome-verified: status change
   (DB-confirmed `handled_by`/`handled_at`), filters, mailto, reports history, apex 404, no hydration
-  errors. **Next: Phase 4 = accounts & billing.**
+  errors. **Phase 4 (accounts & billing) SHIPPED + LIVE-VERIFIED** (`9282aa6`): `/admin/accounts` is a
+  read-only host browser, search by email/name plus a detail view of tier + subscription/Event-Pass state +
+  ACTIVE storage vs effective cap (and the raw `storage_used_bytes` counter) + event/media counts + a
+  test/live-aware Stripe customer deep-link. No migration, no writes (the Stripe webhook stays the sole tier
+  writer); the service-role reads reuse the over-capacity sweep's active-bytes query. Chrome-verified on
+  `admin.partyreel.com`: both real accounts list + search-filter; willg97's detail matched Supabase exactly
+  (52.5 KB active vs 2 GB cap, 2.6 MB raw counter, 1 event / 3 media), the operator's zero-state renders, both
+  Stripe links resolve to the right TEST-mode customer (`cus_…`), apex `/admin/accounts` 404s, console clean.
+  **Next: proactive album moderation (the operator events/media browser + direct soft-remove).**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built

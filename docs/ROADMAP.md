@@ -41,8 +41,7 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    into `/admin/reports`. No schema change. Chrome-MCP verified end-to-end (apex 404, perimeter, the
    `?next=` callback fix, MFA→AAL2, report dismiss/action DB-confirmed; a `toLocaleString` hydration
    #418 caught + fixed). The host-aware auth callback (`8c7a237`) is a shared win for any future subdomain.
-2. ✅ **R2 — Sentry error tracking (BUILT + gate-green; live-verify pending Will's Sentry project +
-   env vars).** `@sentry/nextjs@10.55` app-wide: `instrumentation.ts` + `onRequestError` (auto-captures
+2. ✅ **R2 — Sentry error tracking (SHIPPED + LIVE-VERIFIED).** `@sentry/nextjs@10.55` app-wide: `instrumentation.ts` + `onRequestError` (auto-captures
    unhandled throws incl. the proxy), server/edge/client configs sharing one DSN-gated `commonInit`
    ([lib/observability/sentry.ts](src/lib/observability/sentry.ts)); `withSentryConfig` Turbopack
    post-build source maps (`useRunAfterProductionCompileHook`). Errors + 10% tracing + **on-error
@@ -57,10 +56,24 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    Open/All filter (`listReports`) with resolved rows read-only. Additive migration added
    `handled_by`/`handled_at` (RLS unchanged). Chrome-MCP verified end-to-end (status change DB-confirmed,
    filters, mailto, reports history, apex 404, no hydration errors).
-4. **P4 — Accounts & billing** — user search/detail, tier/subscription/storage, promo codes (Stripe
-   Coupons). Reads billing state; the Stripe webhook stays the source of truth for `tier`.
-5. **P5 — Analytics & metrics** — platform-wide dashboards (scans/views, signups, storage, revenue).
-6. **P6 — Content & announcements + operator notifications** — announcement compose/publish UI;
+4. ✅ **P4 — Accounts & billing (SHIPPED + LIVE-VERIFIED).** `/admin/accounts`: a read-only host browser
+   (search by email/name) + a detail view of tier + subscription/Event-Pass state + ACTIVE storage vs
+   effective cap (and the raw `storage_used_bytes` counter) + event/media counts + a test/live-aware Stripe
+   customer deep-link. **Read-only by design** (no migration, no writes): billing changes go through Stripe
+   (the webhook stays the SOLE writer of tier/cap/subscription), promo codes are managed in Stripe (no
+   in-portal coupon surface). Service-role reads ([queries/accounts.ts](src/lib/db/queries/accounts.ts))
+   reuse the over-capacity sweep's active-bytes query; `buildStripeCustomerUrl`
+   ([dashboard.ts](src/lib/stripe/dashboard.ts)) is pure + unit-tested (test/live from the key prefix).
+   Chrome-MCP verified on admin.partyreel.com: list + search-filter, both real accounts' details matched
+   Supabase exactly (willg97 52.5 KB active / 2 GB cap / 2.6 MB raw / 1 event / 3 media), Stripe links →
+   the correct TEST customer, apex `/admin/accounts` 404, console clean.
+5. **P5 — Proactive album moderation (NEXT)** — the operator events/media browser + direct soft-remove,
+   reusing the Phase-3 soft-remove → 7-day R2-reclaim path (`status='removed'` + `removed_at`, the purge
+   cron reclaims). Split out of P4 deliberately (P4 stayed accounts/billing only); this is the
+   upload-safety capstone the whole portal was built toward. Likely a media query keyed off events +
+   `requireAdminAction` soft-remove; no new tier/billing surface.
+6. **P6 — Analytics & metrics** — platform-wide dashboards (scans/views, signups, storage, revenue).
+7. **P7 — Content & announcements + operator notifications** — announcement compose/publish UI;
    blog/help/careers management (file-vs-DB decided in its round); operator notifications.
 
 ## ✅ Done — marketing site full build-out (all 7 rounds)
