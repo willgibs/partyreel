@@ -193,8 +193,12 @@ the raw `storage_used_bytes` counter + event/media counts, plus a test/live-awar
 deep-link for any billing change), **Albums** (P5 proactive moderation: a recent-uploads feed across all
 events + an album drill-in, with direct soft-remove + restore within the grace), **Metrics** (P6 platform
 analytics: KPIs across accounts / content / engagement / growth + live Stripe revenue, with trend +
-distribution charts), and
-**Security** (MFA status). Triage status
+distribution charts), **Announcements** (P7 operator compose/publish to the host notification bell), and
+**Security** (MFA status). The 8+ surfaces are reached via a **single header dropdown** (P7,
+[admin-nav.tsx](../src/components/admin/admin-nav.tsx), `usePathname` active-section), and a header
+**operator-alerts bell** ([operator-alerts.tsx](../src/components/admin/operator-alerts.tsx)) surfaces
+pending work (new support / applicants / open reports) portal-wide from the existing count queries.
+Triage status
 writes go through `requireAdminAction` + the service-role admin client (deny-all tables); shared
 `TriageStatusControl` + `TriageFilter`. **Accounts is READ-ONLY** (no writes, no migration): service-role
 reads in [queries/accounts.ts](../src/lib/db/queries/accounts.ts) (the only cross-host `profiles` reader —
@@ -222,7 +226,12 @@ pure `computeMrrCents`, interval-normalized) + balance, or null → a graceful "
 grayscale + the coral accent via CSS-var tokens); their per-day trends come from the SAME fetched rows via
 pure builders (no new query). recharts `ResponsiveContainer` is seeded with a positive `initialDimension`
 so its first paint is valid (no "width(-1)/height(-1)" warning); `react-is` is pinned to React 19 via a pnpm override
-(the zod-override pattern). Error
+(the zod-override pattern). **Announcements (P7)** is the operator compose/publish surface for the
+EXISTING `announcements` table (the operator used raw SQL before): an AAL2-gated action
+([announcements/actions.ts](../src/app/admin/announcements/actions.ts)) inserts via the service-role
+client (the table has no host write policy), validated by the shared zod schema; a future `published_at`
+= scheduled (the host read RLS hides it until then). Hosts read it via the UNCHANGED notification center.
+Error
 tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2), not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
 on localhost, though auth/MFA only complete on the live subdomain).
 

@@ -93,8 +93,19 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
      builders over the rows P6a already fetched (no new query, no migration). recharts 3.8.1 + a `react-is`
      pnpm override for React 19; recharts `ResponsiveContainer` is seeded with `initialDimension` (no
      ResponsiveContainer size warning). Chrome-verified: charts reconcile with the KPIs, console clean.
-7. **P7 — Content & announcements + operator notifications (NEXT)** — announcement compose/publish UI;
-   blog/help/careers management (file-vs-DB decided in its round); operator notifications.
+7. ✅ **P7 — Header nav dropdown + operator alerts + announcements UI (SHIPPED + LIVE-VERIFIED).** The 8+
+   -item nav bar collapsed into a single active-aware dropdown ([admin-nav.tsx](src/components/admin/admin-nav.tsx));
+   a header operator-alerts bell surfaces pending work portal-wide (reusing the existing
+   support/applicants/reports count queries); and `/admin/announcements` is an operator compose/publish
+   surface (optional CTA link + scheduling + delete) writing the existing `announcements` table via an
+   AAL2-gated action — hosts read it through the unchanged notification center. Migration-free.
+   Chrome-MCP verified (nav active state, alerts bell vs DB, publish→host-visible→delete, apex 404, console
+   clean). **The blog/help/careers CMS was DEFERRED** — that content stays file-based (blog/help MDX in
+   `content/`, careers in `src/lib/constants/careers.ts`), edited in-repo via PR.
+
+This completes the planned admin-portal phases (R1–P7). Remaining admin backlog is opportunistic: the
+content CMS (deferred above), an operator-action audit log (solo admin), per-announcement edit + read
+receipts, and live-Stripe subscription health on the account detail (logged in their phases).
 
 ## ✅ Done — marketing site full build-out (all 7 rounds)
 

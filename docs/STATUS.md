@@ -82,8 +82,17 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   new query); recharts `ResponsiveContainer` is seeded with `initialDimension` (no ResponsiveContainer warning),
   and `react-is` is pinned to React 19 via a pnpm override (the zod-override pattern). Chrome-verified on
   `admin.partyreel.com`: charts render + reconcile with the KPIs (QR scans 26 / album views 4 / 1 signup /
-  2 photos + 1 video), console clean. **This completes the admin portal's P6. Next: P7 = content &
-  announcements + operator notifications.**
+  2 photos + 1 video), console clean. **Phase 7 (header nav dropdown + operator alerts + announcements UI)
+  SHIPPED + LIVE-VERIFIED** (`b1df0d7`): the 8+ -item nav bar is now a single active-aware dropdown
+  ([admin-nav.tsx](../src/components/admin/admin-nav.tsx)); a header operator-alerts bell surfaces pending
+  work portal-wide (from the existing count queries); and `/admin/announcements` is an operator
+  compose/publish surface (optional CTA link + scheduling + delete) writing the existing announcements
+  table that hosts read via the unchanged notification bell. Migration-free (reuses DropdownMenu,
+  requireAdminAction + the admin client, the RHF + zodResolver form pattern). Chrome-verified on
+  `admin.partyreel.com`: nav dropdown shows the active section + all surfaces, the alerts bell matched the
+  DB (all-zero → "Nothing pending"), a publish → DB host-visible → delete round-trip, apex
+  `/admin/announcements` 404s, console clean. **This completes the planned admin-portal phases (R1–P7); the
+  blog/help/careers CMS stays deferred (that content is edited in-repo).**
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
