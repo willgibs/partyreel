@@ -1,23 +1,29 @@
 /**
- * Operator-internal report reads for /admin. Uses the SERVICE-ROLE admin client
- * (bypasses the reports table's deny-all RLS by design — reports are
- * operator-internal; hosts must NOT see reports on their own events). The page
- * gates on profiles.is_admin before ever calling this.
+ * Operator-internal report reads for /admin/reports. Uses the SERVICE-ROLE admin client
+ * (bypasses the reports table's deny-all RLS by design — reports are operator-internal; hosts
+ * must NOT see reports on their own events). The page gates on requireAdmin() before calling this.
  *
- * Reported media is presigned HERE (server-side) so the operator can see the
- * content — raw R2 keys never reach the browser (ADR-0003). We fetch events +
- * media in batched `.in()` lookups rather than PostgREST embeds to keep the
- * shapes flat and the nullable media_id easy to reason about.
+ * Reported media is presigned HERE (server-side) so the operator can see the content — raw R2
+ * keys never reach the browser (ADR-0003). Events + media are fetched in batched `.in()` lookups
+ * rather than PostgREST embeds to keep the shapes flat and the nullable media_id easy to reason about.
  */
 import "server-only";
 
+import type { Database } from "@/lib/db/types";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type OpenReport = {
+export type ReportStatus = Database["public"]["Enums"]["report_status"];
+
+/** "open" = the active queue; "all" = full history (resolved rows render read-only in the UI). */
+export type ReportFilter = "open" | "all";
+
+export type ReviewReport = {
   id: string;
   reason: string | null;
   created_at: string;
+  status: ReportStatus;
+  resolved_at: string | null;
   event: { id: string; name: string } | null;
   media: {
     id: string;
@@ -27,14 +33,18 @@ export type OpenReport = {
   } | null;
 };
 
-export async function listOpenReports(): Promise<OpenReport[]> {
+export async function listReports(
+  filter: ReportFilter = "open",
+): Promise<ReviewReport[]> {
   const admin = createAdminClient();
 
-  const { data: reports, error } = await admin
+  let query = admin
     .from("reports")
-    .select("id, reason, created_at, event_id, media_id")
-    .eq("status", "open")
-    .order("created_at", { ascending: true });
+    .select("id, reason, created_at, status, resolved_at, event_id, media_id")
+    .order("created_at", { ascending: false });
+  if (filter === "open") query = query.eq("status", "open");
+
+  const { data: reports, error } = await query;
   if (error) throw error;
   if (!reports || reports.length === 0) return [];
 
@@ -75,7 +85,20 @@ export async function listOpenReports(): Promise<OpenReport[]> {
     id: r.id,
     reason: r.reason,
     created_at: r.created_at,
+    status: r.status,
+    resolved_at: r.resolved_at,
     event: eventById.get(r.event_id) ?? null,
     media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
   }));
+}
+
+/** Open-report count for the Overview badge. Cheap head+count query. */
+export async function countOpenReports(): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("reports")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "open");
+  if (error) throw error;
+  return count ?? 0;
 }

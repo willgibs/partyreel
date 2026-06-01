@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Flag, LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
+import {
+  Flag,
+  LayoutDashboard,
+  LifeBuoy,
+  LogOut,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 import { signOutAction } from "@/app/(auth)/actions";
 import { Container } from "@/components/shared/container";
@@ -12,6 +19,8 @@ import { Button } from "@/components/ui/button";
 // localhost (dev). Each new operational surface adds one NAV entry.
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/support", label: "Support", icon: LifeBuoy },
+  { href: "/admin/applicants", label: "Applicants", icon: Users },
   { href: "/admin/reports", label: "Reports", icon: Flag },
   { href: "/admin/security", label: "Security", icon: ShieldCheck },
 ];

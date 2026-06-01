@@ -45,6 +45,8 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          handled_at: string | null
+          handled_by: string | null
           id: string
           message: string
           name: string
@@ -56,6 +58,8 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          handled_at?: string | null
+          handled_by?: string | null
           id?: string
           message: string
           name: string
@@ -67,6 +71,8 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          handled_at?: string | null
+          handled_by?: string | null
           id?: string
           message?: string
           name?: string
@@ -75,7 +81,15 @@ export type Database = {
           subject?: string | null
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contact_submissions_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
@@ -219,6 +233,8 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          handled_at: string | null
+          handled_by: string | null
           id: string
           links: string | null
           message: string
@@ -232,6 +248,8 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          handled_at?: string | null
+          handled_by?: string | null
           id?: string
           links?: string | null
           message: string
@@ -245,6 +263,8 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          handled_at?: string | null
+          handled_by?: string | null
           id?: string
           links?: string | null
           message?: string
@@ -255,7 +275,15 @@ export type Database = {
           status?: string
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       link_stats: {
         Row: {
@@ -425,6 +453,7 @@ export type Database = {
           email?: string | null
           id: string
           is_admin?: boolean
+          last_active_at?: string
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Flag, ShieldCheck } from "lucide-react";
+import { ArrowRight, Flag, LifeBuoy, ShieldCheck, Users } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardDescription,
@@ -8,40 +9,67 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
+import { countApplicationsByStatus } from "@/lib/db/queries/applications";
+import { countOpenReports } from "@/lib/db/queries/reports";
+import { countContactByStatus } from "@/lib/db/queries/support";
 
-// Portal landing. Re-checks authz as its own entry point (the layout already
-// gated, but every page re-verifies). The card grid is the nav home; each new
-// operational surface (support, accounts, analytics, content) adds a card here.
-const SURFACES = [
-  {
-    href: "/admin/reports",
-    icon: Flag,
-    title: "Reports",
-    description: "Review guest-reported content and act on it.",
-  },
-  {
-    href: "/admin/security",
-    icon: ShieldCheck,
-    title: "Security",
-    description: "Two-factor and portal-access protections.",
-  },
-];
+export const dynamic = "force-dynamic";
 
+// Portal landing. Re-checks authz as its own entry point. The card grid is the nav home; the
+// badge on each card is the pending-work count (new submissions/applications, open reports).
 export default async function AdminHomePage() {
-  await requireAdmin();
+  const ctx = await requireAdmin();
+  if (ctx.aal !== "aal2") return null;
+
+  const [newSupport, newApplicants, openReports] = await Promise.all([
+    countContactByStatus("new"),
+    countApplicationsByStatus("new"),
+    countOpenReports(),
+  ]);
+
+  const surfaces = [
+    {
+      href: "/admin/support",
+      icon: LifeBuoy,
+      title: "Support",
+      description: "Contact form submissions to triage.",
+      count: newSupport,
+    },
+    {
+      href: "/admin/applicants",
+      icon: Users,
+      title: "Applicants",
+      description: "Job applications to review.",
+      count: newApplicants,
+    },
+    {
+      href: "/admin/reports",
+      icon: Flag,
+      title: "Reports",
+      description: "Review guest-reported content and act on it.",
+      count: openReports,
+    },
+    {
+      href: "/admin/security",
+      icon: ShieldCheck,
+      title: "Security",
+      description: "Two-factor and portal-access protections.",
+      count: 0,
+    },
+  ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Operations</h1>
         <p className="text-sm text-muted-foreground">
-          Internal tools for running Partyreel. Support, accounts, analytics,
-          and content land in upcoming rounds.
+          Internal tools for running Partyreel. Accounts, analytics, and content
+          land in upcoming rounds.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {SURFACES.map(({ href, icon: Icon, title, description }) => (
+        {surfaces.map(({ href, icon: Icon, title, description, count }) => (
           <Link key={href} href={href} className="group">
             <Card className="h-full transition-colors group-hover:border-foreground/20">
               <CardHeader>
@@ -49,7 +77,10 @@ export default async function AdminHomePage() {
                   <Icon className="size-5 text-muted-foreground" />
                   <ArrowRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
-                <CardTitle className="text-base">{title}</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  {title}
+                  {count > 0 ? <Badge>{count}</Badge> : null}
+                </CardTitle>
                 <CardDescription>{description}</CardDescription>
               </CardHeader>
             </Card>
