@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { ArrowLeft, LifeBuoy, LogOut } from "lucide-react";
+import Link from "next/link";
 
 import { signOutAction } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -40,6 +41,21 @@ export function UserMenu({ email, displayName }: UserMenuProps) {
           this later w-56. align=end so it hangs from the right edge. */}
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {/* Cross-group nav so a host can hop to the marketing site or help center
+            without signing out; their session persists, and /login now redirects
+            an already-authenticated visitor straight back into the app. Both are
+            plain Links (same tab) — the menu closes and navigates on select. */}
+        <DropdownMenuItem asChild>
+          <Link href="/">
+            <ArrowLeft /> Back to site
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/help">
+            <LifeBuoy /> Help center
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {/* Sign-out is a server action; a form submit clears cookies on the
             response, then signOutAction redirects to /login. */}
