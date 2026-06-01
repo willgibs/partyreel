@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Flag, LifeBuoy, ShieldCheck, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Flag,
+  LifeBuoy,
+  ShieldCheck,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,6 +48,13 @@ export default async function AdminHomePage() {
       title: "Applicants",
       description: "Job applications to review.",
       count: newApplicants,
+    },
+    {
+      href: "/admin/accounts",
+      icon: Wallet,
+      title: "Accounts",
+      description: "Look up host accounts, billing, and storage.",
+      count: 0,
     },
     {
       href: "/admin/reports",

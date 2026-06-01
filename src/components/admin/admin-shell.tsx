@@ -6,6 +6,7 @@ import {
   LogOut,
   ShieldCheck,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { signOutAction } from "@/app/(auth)/actions";
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/support", label: "Support", icon: LifeBuoy },
   { href: "/admin/applicants", label: "Applicants", icon: Users },
+  { href: "/admin/accounts", label: "Accounts", icon: Wallet },
   { href: "/admin/reports", label: "Reports", icon: Flag },
   { href: "/admin/security", label: "Security", icon: ShieldCheck },
 ];
