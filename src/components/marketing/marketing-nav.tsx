@@ -99,7 +99,7 @@ export function MarketingNavMobile({ className }: { className?: string }) {
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
           {PRIMARY_NAV.map((item) =>
             isNavGroup(item) ? (
-              <div key={item.label} className="py-2">
+              <div key={item.label} className="flex flex-col py-2">
                 <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
                   {item.label}
                 </p>
