@@ -26,16 +26,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Admin / operations portal — Round 1 (perimeter + auth foundation) BUILT + gate-green
-  (typecheck/lint/154 tests/build/format); live verification BLOCKED on the manual steps below.**
-  A new `admin.partyreel.com` portal in this SAME app: one `requireAdmin()` seam
+- **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
+  `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP
   MFA (AAL2)**; host-isolated session; the report review migrated out of `(app)/admin` into
-  `/admin/reports`; a Security page. Solo-admin-now / team-later (the seam is the future-RBAC swap
-  point — see SYSTEMS "Admin / operations portal"). Once the manual steps are done, verify on the
-  subdomain via Chrome MCP: sign in → enroll TOTP → AAL2 → portal renders; report review works;
-  `partyreel.com/admin` 404s; host app + apex unaffected; no random logouts. **Next: Round 2 =
-  Sentry** error tracking (free tier; see ROADMAP "Admin portal").
+  `/admin/reports`; Overview + Security pages. Solo-admin-now / team-later (the seam is the
+  future-RBAC swap point, see SYSTEMS "Admin / operations portal"). **Chrome-MCP verified end-to-end:**
+  `partyreel.com/admin` → 404 (apex never serves it); subdomain root → `/admin` → `/login` redirect;
+  Google login as `hi@willgibs.com` lands on the subdomain (the `?next=` callback bug is fixed) →
+  MFA enroll → AAL2 → portal; Overview/Reports/Security render; report **Dismiss + Action** work
+  through `requireAdminAction` (DB-confirmed: resolved_by = admin, dismissed item's media untouched);
+  console clean. Two fixes shipped during verification: the host-aware callback (commit `8c7a237`) and
+  a pre-existing report-timestamp hydration error (React #418, `21a9526`); the QR render (`c44536d`).
+  **Next: Round 2 = Sentry** error tracking (free tier; see ROADMAP "Admin portal").
 - **Marketing polish arc — R1–R4 all deployed + live-tested on partyreel.com; R5 (home pass) built + Preview-verified, deploy pending. The 5-round arc is COMPLETE.**
   Post-build-out polish in focused rounds (see ROADMAP "Marketing polish arc"). **R1** renamed the section
   to **Events** (`/use-cases` → `/events`, nav `Events ▾`; **no 301s** — old `/use-cases*` 404). **R2** built
@@ -147,15 +150,6 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 The agent can't do these — they need a human in a dashboard:
 
-- **Admin portal (Round 1) go-live — do these IN ORDER (the order avoids MFA lockout):** (1) Supabase
-  → Auth → **enable MFA (TOTP)**; (2) Supabase → Auth → URL Configuration → add redirect URL
-  `https://admin.partyreel.com/auth/callback`; (3) Vercel → Domains → **add `admin.partyreel.com`**
-  (same project, no separate deploy); (4) Vercel env → set
-  **`NEXT_PUBLIC_ADMIN_HOST=admin.partyreel.com`** (+ `.env.local`) and redeploy; (5) sign in at the
-  subdomain (magic link to `hi@willgibs.com`) → enroll TOTP → AAL2; (6) confirm `is_admin=true` for
-  `hi@willgibs.com` (already set — verify via the Supabase MCP). Keep the TOTP secret as a backup;
-  break-glass if the authenticator is lost = delete the factor in the Supabase dashboard
-  (Authentication → Users → the account → MFA, i.e. `auth.mfa_factors`).
 - **Resend** — set `RESEND_API_KEY` + `EMAIL_FROM` (`Partyreel <noreply@partyreel.com>`, no
   quotes in Vercel) + **verify a sending domain (DNS)**. Until then transactional email is dark.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
@@ -174,6 +168,10 @@ The agent can't do these — they need a human in a dashboard:
 **Already done (don't redo):** R2 bucket + creds + CORS + lifecycle rule, the apex
 `partyreel.com` domain, `CRON_SECRET` (Vercel), `profiles.is_admin = true` for the operator, and
 the Stripe **TEST** products/prices + webhook endpoint + Billing Portal + the 5 env vars.
+**Admin portal go-live (done):** Supabase TOTP MFA enabled + `admin.partyreel.com/auth/callback`
+in the redirect allow-list; `admin.partyreel.com` added in Vercel (same project) with
+`NEXT_PUBLIC_ADMIN_HOST` set; `hi@willgibs.com` enrolled TOTP (holds the factor). Break-glass if
+the authenticator is lost: delete the factor in the Supabase dashboard (`auth.mfa_factors`).
 
 ## After any change
 

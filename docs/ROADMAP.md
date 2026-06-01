@@ -34,11 +34,13 @@ solo hardened admin now / team later via the one `requireAdmin()` seam (no RBAC 
 `admin.partyreel.com` subdomain in THIS app; free TOTP MFA (AAL2); **Sentry** for errors (free
 Developer tier, pay only when a team is added); defer the admin-action audit log.
 
-1. ✅ **R1 — Perimeter + auth foundation (BUILT + gate-green; live-verify pending the STATUS manual
-   steps).** Subdomain routing (proxy root-redirect + layout host-guard so the apex 404s `/admin`), the
-   `requireAdmin`/`requireAdminAction` seam ([admin-context.ts](src/lib/auth/admin-context.ts)),
-   lockout-proof MFA enroll/step-up, `AdminShell`, host-aware login, and the report review migrated out
-   of `(app)/admin` into `/admin/reports`. No schema change.
+1. ✅ **R1 — Perimeter + auth foundation (SHIPPED + LIVE-VERIFIED on admin.partyreel.com).** Subdomain
+   routing (proxy root-redirect + layout host-guard so the apex 404s `/admin`), the `requireAdmin`/
+   `requireAdminAction` seam ([admin-context.ts](src/lib/auth/admin-context.ts)), lockout-proof MFA
+   enroll/step-up, `AdminShell`, host-aware login, and the report review migrated out of `(app)/admin`
+   into `/admin/reports`. No schema change. Chrome-MCP verified end-to-end (apex 404, perimeter, the
+   `?next=` callback fix, MFA→AAL2, report dismiss/action DB-confirmed; a `toLocaleString` hydration
+   #418 caught + fixed). The host-aware auth callback (`8c7a237`) is a shared win for any future subdomain.
 2. ⏭️ **R2 — Sentry error tracking** (app-wide; free tier). `@sentry/nextjs`: `instrumentation.ts` +
    `onRequestError`, server/edge/client configs, `withSentryConfig` source maps, PII scrub in
    `beforeSend`, `captureException` in the caught paths (upload/webhook/cron/admin), email alerts.
@@ -158,6 +160,12 @@ details beyond a template feel.
 
 ## Near-term follow-ups (ready to build; deferred from shipped cuts)
 
+- **Host 2FA (opt-in, Pro perk)** — let Pro-plan hosts enable TOTP 2FA on their own accounts. **Free**
+  (app-based TOTP), and reuses the admin MFA infra: generalize `mfa-enroll` / `mfa-challenge`
+  ([components/admin](src/components/admin)) + the AAL read out of the admin seam. Gate the opt-in
+  behind the Pro tier; keep the host `(app)` layout at AAL1 by default (don't force 2FA on all hosts)
+  and only enforce AAL2 for hosts who opted in. Will's idea (2026-06-01), surfaced while building the
+  admin portal.
 - **Notification center signals (extend the bell)** — link-activity "new since last seen" deltas
   (from `link_stats`) and billing/payment alerts (needs a denormalized Stripe `past_due` flag on
   `profiles` first). Each = one read in `getNotificationData` + one case in `buildNotifications`.

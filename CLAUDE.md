@@ -562,10 +562,15 @@ assignable to type '0'`. Fixed by `pnpm.overrides: { "zod": "$zod" }` in
 - **Keep admin auth cookies HOST-ISOLATED.** `@supabase/ssr` cookies are host-only by default — do NOT
   set a `.partyreel.com` cookie `domain`, or the AAL2 admin session leaks to the apex. The admin signs
   in separately at the subdomain.
-- **`callbackUrl()` in [login-form.tsx](src/components/auth/login-form.tsx) is host-aware** — on the
-  admin host it uses `window.location.origin` (NOT the apex `NEXT_PUBLIC_SITE_URL`) + `?next=/admin`,
-  so the session cookie lands on the subdomain. The subdomain's `/auth/callback` must be in Supabase's
-  redirect allow-list. Don't revert it to the fixed site URL.
+- **Auth callback is host-aware; the redirectTo must be the BARE `/auth/callback`.** On the admin host
+  `callbackUrl()` ([login-form.tsx](src/components/auth/login-form.tsx)) uses `window.location.origin`
+  (NOT the apex `NEXT_PUBLIC_SITE_URL`) so the session cookie lands on the subdomain; the
+  [callback route](src/app/(auth)/auth/callback/route.ts) then picks the landing per host (admin host →
+  `/admin`). **GOTCHA (cost a deploy in R1):** do NOT append a `?next=` query to the redirectTo. A
+  non-wildcard Supabase redirect-allow-list entry (`https://admin.partyreel.com/auth/callback`) does
+  NOT match a query-bearing URL, so Supabase silently falls back to the **Site URL** (apex) and the
+  login lands on `partyreel.com/?code=…` (never exchanged → no session). Keep the redirectTo query-free
+  (current approach), or widen the allow-list entry to `…/auth/callback**`.
 - **Perimeter:** the proxy redirects the admin-subdomain root → `/admin`; the layout host-guards so the
   **apex 404s `/admin`** (when `NEXT_PUBLIC_ADMIN_HOST` is set). Unset (dev) → `/admin` is reachable
   directly on localhost, but **auth/MFA only complete on the live subdomain** (localhost isn't in the
@@ -573,6 +578,11 @@ assignable to type '0'`. Fixed by `pnpm.overrides: { "zod": "$zod" }` in
   in dev + prod.
 - **Error tracking = Sentry** (free Developer tier), not an in-portal log table. The admin-action audit
   log is deferred (solo admin). See ROADMAP "Admin portal".
+- **Locale/tz renders need `suppressHydrationWarning`.** `new Date(x).toLocaleString()` (or any
+  `Intl`/locale/timezone formatting) renders in the server's tz/locale during SSR and the browser's on
+  hydration → a React **#418** text mismatch. Wrap those spans in `suppressHydrationWarning` (the report
+  timestamp in [report-review.tsx](src/components/app/report-review.tsx) does). Caught live on the admin
+  reports queue, only fires when such a value actually renders (an empty list hid it).
 
 ---
 
