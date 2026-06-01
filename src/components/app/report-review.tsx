@@ -66,7 +66,12 @@ function ReportCard({ report }: { report: OpenReport }) {
           {report.event?.name ?? "Unknown event"}
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          {new Date(report.created_at).toLocaleString()}
+          {/* toLocaleString() renders in the server's tz/locale during SSR and the
+              browser's on hydration -> a text mismatch (React #418). The viewer's
+              local time is what we want, so let the client value win. */}
+          <span suppressHydrationWarning>
+            {new Date(report.created_at).toLocaleString()}
+          </span>
           {report.media ? " · item reported" : " · album reported"}
         </p>
       </CardHeader>
