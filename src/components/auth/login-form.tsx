@@ -29,20 +29,23 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 // Absolute callback URL. Must match an entry in Supabase Auth's redirect
-// allow-list, or the link/OAuth redirect is rejected.
+// allow-list, or the redirect is rejected and Supabase falls back to the Site
+// URL. So we send the BARE `/auth/callback` (no query — a `?next=` breaks an
+// exact, non-wildcard allow-list entry) and let the callback choose where to land
+// based on the host it runs on (the admin subdomain → /admin).
 //
 // On the admin subdomain we MUST use the live origin (NOT the configured apex
 // NEXT_PUBLIC_SITE_URL) so the session cookie lands on admin.<domain> and the
-// admin session stays host-isolated; we also deep-link past login to /admin.
-// Everywhere else, prefer the configured site origin and fall back to the live
-// origin so local dev (where NEXT_PUBLIC_SITE_URL may be unset) still works.
+// admin session stays host-isolated. Everywhere else, prefer the configured site
+// origin and fall back to the live origin so local dev (where NEXT_PUBLIC_SITE_URL
+// may be unset) still works.
 function callbackUrl() {
   const onAdminHost =
     typeof window !== "undefined" && isAdminHost(window.location.host);
   const origin = onAdminHost
     ? window.location.origin
     : (env.NEXT_PUBLIC_SITE_URL ?? window.location.origin);
-  return `${origin}/auth/callback${onAdminHost ? "?next=/admin" : ""}`;
+  return `${origin}/auth/callback`;
 }
 
 // lucide-react dropped brand glyphs, so the Google "G" is inlined here.
