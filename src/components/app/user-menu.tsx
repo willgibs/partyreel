@@ -42,17 +42,19 @@ export function UserMenu({ email, displayName }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* Cross-group nav so a host can hop to the marketing site or help center
-            without signing out; their session persists, and /login now redirects
-            an already-authenticated visitor straight back into the app. Both are
-            plain Links (same tab) — the menu closes and navigates on select. */}
+        {/* Cross-group links to the marketing site + help center. They open in a
+            NEW tab (target=_blank) so the host keeps their place in the app and can
+            use either as a side reference rather than navigating away; rel=noopener
+            is the standard pairing for _blank. (Signing out is unaffected, and the
+            recent /login guard means even a same-tab return would land them back in
+            the app.) */}
         <DropdownMenuItem asChild>
-          <Link href="/">
+          <Link href="/" target="_blank" rel="noopener noreferrer">
             <ArrowLeft /> Back to site
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/help">
+          <Link href="/help" target="_blank" rel="noopener noreferrer">
             <LifeBuoy /> Help center
           </Link>
         </DropdownMenuItem>
