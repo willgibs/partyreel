@@ -161,9 +161,31 @@ Lifecycle emails: over-cap grace/reduced, renewal nudge (14 d pre-expiry, shared
 ## Safety (reports / operator review)
 
 `create_report` RPC (anon capability-token, **insert-only, never auto-hides**) + a discreet
-report dialog on the public album. Operator review at **`/admin`** (gated by
-`profiles.is_admin`) — dismiss/action. `reports` is RLS **deny-all** (operator-internal). v1 is
-reports/review only — **no scanner/NSFW filter** (v2+).
+report dialog on the public album. Operator review in the **admin portal** (`/admin/reports`; see
+"Admin / operations portal") — dismiss/action. `reports` is RLS **deny-all** (operator-internal).
+v1 is reports/review only — **no scanner/NSFW filter** (v2+).
+
+## Admin / operations portal
+
+Internal tool for running Partyreel, served on the **`admin.partyreel.com` subdomain by the SAME
+Next app** (route segment [src/app/admin/](../src/app/admin) with its own `AdminShell` chrome,
+distinct from the host `AppShell`). Three hard gates, all behind ONE seam
+([admin-context.ts](../src/lib/auth/admin-context.ts)): `getUser()` + `profiles.is_admin` + **AAL2
+(app-based TOTP MFA, free)**. `requireAdmin()` (pages/layouts: anon → login, non-admin →
+`notFound()` 404, leak-proof) and `requireAdminAction()` (actions/routes: returns an `ActionResult`,
+**requires AAL2** for writes) are the only entry points — **never read `is_admin` directly**; this
+is the single seam a future `staff_members`+roles model swaps into (solo admin now, team later).
+**Perimeter:** the proxy ([proxy.ts](../src/proxy.ts)) redirects the subdomain root → `/admin`; the
+layout host-guards so the **apex 404s `/admin`** (existence never leaks); admin auth cookies are
+**host-isolated** (separate login at the subdomain — `@supabase/ssr` cookies are host-only; never set
+a `.partyreel.com` cookie domain). Login is **host-aware** ([login-form.tsx](../src/components/auth/login-form.tsx))
+so the subdomain keeps its own session + deep-links to `/admin`. MFA enroll/step-up
+([mfa-enroll.tsx](../src/components/admin/mfa-enroll.tsx)/[mfa-challenge.tsx](../src/components/admin/mfa-challenge.tsx))
+are **lockout-proof** (reachable at AAL1; break-glass = delete the factor in the Supabase dashboard /
+`auth.mfa_factors`). Surfaces today: **Reports** (the migrated review queue, moved out of `(app)`) +
+**Security** (MFA status). Error tracking is **Sentry** (free tier — see ROADMAP "Admin portal" R2),
+not an in-portal log. Gated by `NEXT_PUBLIC_ADMIN_HOST` (unset in dev → `/admin` reachable directly
+on localhost, though auth/MFA only complete on the live subdomain).
 
 ## Marketing site
 

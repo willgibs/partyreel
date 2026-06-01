@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { ReportReviewList } from "@/components/app/report-review";
 import {
@@ -8,20 +7,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getProfile } from "@/lib/db/queries/profile";
+import { requireAdmin } from "@/lib/auth/admin-context";
 import { listOpenReports } from "@/lib/db/queries/reports";
 
-// Operator-internal report review. Lives under the (app) getUser() gate; we ALSO
-// re-check is_admin here and notFound() (a 404, not a 403) for non-admins so the
-// route's existence never leaks. Presigned review URLs are per-request — never
-// statically cache.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Review reports" };
+export const metadata: Metadata = { title: "Reports" };
 
-export default async function AdminPage() {
-  const profile = await getProfile();
-  if (!profile?.is_admin) notFound();
+export default async function AdminReportsPage() {
+  const ctx = await requireAdmin();
+  // Don't fetch + presign reported media until MFA is satisfied. The layout shows
+  // the gate at AAL1; this guards the data path as its own entry point.
+  if (ctx.aal !== "aal2") return null;
 
   const reports = await listOpenReports();
 

@@ -1,0 +1,57 @@
+import type { Metadata } from "next";
+
+import { AdminShell } from "@/components/admin/admin-shell";
+import { MfaChallenge } from "@/components/admin/mfa-challenge";
+import { MfaEnroll } from "@/components/admin/mfa-enroll";
+import { Logo } from "@/components/shared/logo";
+import { requireAdmin } from "@/lib/auth/admin-context";
+
+// The operations portal segment. Canonical path is /admin on every host; in prod
+// requireAdmin() host-guards it to admin.<domain> (the apex 404s), redirects anon
+// users to login, and 404s logged-in non-admins. Never statically cache (auth +
+// per-request presigned review URLs live under here).
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: { default: "Operations", template: "%s · Partyreel Ops" },
+  // Defense in depth alongside robots.ts — the portal must never be indexed.
+  robots: { index: false, follow: false },
+};
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const ctx = await requireAdmin();
+
+  // MFA gate. An admin at AAL1 must enroll a first factor (or step up if one
+  // exists) before the portal renders. This screen is intentionally reachable at
+  // AAL1 — that's what makes first-time enrollment lockout-proof.
+  if (ctx.aal !== "aal2") {
+    return (
+      <div className="flex min-h-svh items-center justify-center p-6">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="space-y-2 text-center">
+            <div className="flex justify-center">
+              <Logo />
+            </div>
+            <h1 className="text-lg font-semibold tracking-tight">
+              {ctx.mfaEnrolled
+                ? "Verify it's you"
+                : "Secure the operations portal"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {ctx.mfaEnrolled
+                ? "This portal requires two-factor authentication."
+                : "Set up two-factor authentication to continue. It's required for everyone with portal access."}
+            </p>
+          </div>
+          {ctx.mfaEnrolled ? <MfaChallenge /> : <MfaEnroll />}
+        </div>
+      </div>
+    );
+  }
+
+  return <AdminShell email={ctx.email}>{children}</AdminShell>;
+}

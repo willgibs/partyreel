@@ -3,31 +3,26 @@
 import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
-import { getProfile } from "@/lib/db/queries/profile";
+import { requireAdminAction } from "@/lib/auth/admin-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Operator actions re-check authz IN EVERY action — getProfile() runs getUser()
-// and a null/non-admin profile is rejected (the (app) gate + the page check are
-// not enough; an action is its own entry point). Writes use the service-role
-// admin client to bypass the reports deny-all RLS.
-const NOT_AUTHORIZED: ActionResult = {
-  ok: false,
-  code: "unauthorized",
-  message: "Not authorized.",
-};
+// Operator actions re-check authz IN EVERY action via the requireAdminAction seam
+// (re-validates the user, confirms admin, AND requires AAL2 — an action is its own
+// entry point; the layout gate is not enough). Writes use the service-role admin
+// client to bypass the reports deny-all RLS.
 
 export async function dismissReportAction(
   reportId: string,
 ): Promise<ActionResult> {
-  const profile = await getProfile();
-  if (!profile?.is_admin) return NOT_AUTHORIZED;
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
 
   const admin = createAdminClient();
   const { error } = await admin
     .from("reports")
     .update({
       status: "dismissed",
-      resolved_by: profile.id,
+      resolved_by: auth.ctx.userId,
       resolved_at: new Date().toISOString(),
     })
     .eq("id", reportId)
@@ -41,7 +36,7 @@ export async function dismissReportAction(
     };
   }
 
-  revalidatePath("/admin");
+  revalidatePath("/admin/reports");
   return { ok: true };
 }
 
@@ -49,8 +44,8 @@ export async function actionReportAction(
   reportId: string,
   mediaId: string | null,
 ): Promise<ActionResult> {
-  const profile = await getProfile();
-  if (!profile?.is_admin) return NOT_AUTHORIZED;
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
 
   const admin = createAdminClient();
 
@@ -77,7 +72,7 @@ export async function actionReportAction(
     .from("reports")
     .update({
       status: "actioned",
-      resolved_by: profile.id,
+      resolved_by: auth.ctx.userId,
       resolved_at: new Date().toISOString(),
     })
     .eq("id", reportId)
@@ -91,6 +86,6 @@ export async function actionReportAction(
     };
   }
 
-  revalidatePath("/admin");
+  revalidatePath("/admin/reports");
   return { ok: true };
 }

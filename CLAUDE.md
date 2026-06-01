@@ -544,6 +544,36 @@ assignable to type '0'`. Fixed by `pnpm.overrides: { "zod": "$zod" }` in
   hand-authored (still semicolon-free to match the other generated primitives);
   don't expect `shadcn add form` to produce it.
 
+**Admin / operations portal (subdomain + MFA)**
+
+- **Served on `admin.partyreel.com` by THIS app, gated by ONE seam.** Every admin page/layout/action
+  funnels through `requireAdmin()` / `requireAdminAction()`
+  ([src/lib/auth/admin-context.ts](src/lib/auth/admin-context.ts)) — **never read `profiles.is_admin`
+  directly** (this seam is the single swap point for a future `staff_members`+roles model — solo admin
+  now, team later). `requireAdmin` redirects anon → `/login`, `notFound()`s non-admins (404,
+  leak-proof), and exposes `ctx.aal`; `requireAdminAction` returns an `ActionResult` and **requires
+  AAL2** (MFA) for writes.
+- **MFA is a hard gate (free app-based TOTP / AAL2).** The `/admin` layout renders the enroll/step-up
+  gate until the session is AAL2. The gate is **reachable at AAL1 on purpose** (never lock yourself out
+  of first enrollment) — ship any AAL2 page-gate together with the AAL1 fallback. Break-glass = delete
+  the factor in the Supabase dashboard (`auth.mfa_factors`). `getAuthenticatorAssuranceLevel()` →
+  `currentLevel`/`nextLevel` (`nextLevel === 'aal2'` means a verified factor exists → show "step up",
+  else "enroll").
+- **Keep admin auth cookies HOST-ISOLATED.** `@supabase/ssr` cookies are host-only by default — do NOT
+  set a `.partyreel.com` cookie `domain`, or the AAL2 admin session leaks to the apex. The admin signs
+  in separately at the subdomain.
+- **`callbackUrl()` in [login-form.tsx](src/components/auth/login-form.tsx) is host-aware** — on the
+  admin host it uses `window.location.origin` (NOT the apex `NEXT_PUBLIC_SITE_URL`) + `?next=/admin`,
+  so the session cookie lands on the subdomain. The subdomain's `/auth/callback` must be in Supabase's
+  redirect allow-list. Don't revert it to the fixed site URL.
+- **Perimeter:** the proxy redirects the admin-subdomain root → `/admin`; the layout host-guards so the
+  **apex 404s `/admin`** (when `NEXT_PUBLIC_ADMIN_HOST` is set). Unset (dev) → `/admin` is reachable
+  directly on localhost, but **auth/MFA only complete on the live subdomain** (localhost isn't in the
+  Supabase redirect allow-list). Canonical path is `/admin/*` on every host so `AdminShell` nav works
+  in dev + prod.
+- **Error tracking = Sentry** (free Developer tier), not an in-portal log table. The admin-action audit
+  log is deferred (solo admin). See ROADMAP "Admin portal".
+
 ---
 
 ## Architecture & routing

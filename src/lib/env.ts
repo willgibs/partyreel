@@ -29,6 +29,11 @@ const publicSchema = z.object({
   // guest page runs in demo mode (uploads simulated client-side, never persisted —
   // see lib/demo.ts). Optional: unset → no demo surfaces anywhere.
   NEXT_PUBLIC_DEMO_QR_TOKEN: z.string().min(1).optional(),
+  // Host that serves the internal admin/operations portal (e.g.
+  // "admin.partyreel.com"). When set, the proxy + the /admin layout gate the portal
+  // to this subdomain (the apex 404s /admin). Optional: unset in local dev, where
+  // the portal is reachable directly at /admin and the proxy adds no host behavior.
+  NEXT_PUBLIC_ADMIN_HOST: z.string().min(1).optional(),
 });
 
 const serverSchema = z.object({
@@ -78,6 +83,7 @@ function parsePublic() {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_DEMO_QR_TOKEN: process.env.NEXT_PUBLIC_DEMO_QR_TOKEN,
+    NEXT_PUBLIC_ADMIN_HOST: process.env.NEXT_PUBLIC_ADMIN_HOST,
   });
   if (!parsed.success) {
     throw new Error(

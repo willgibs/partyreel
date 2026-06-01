@@ -25,6 +25,32 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
    MCP to seed/inspect state — test data is disposable).
 7. **Record** — advance STATUS + the SYSTEMS entry + this backlog + any ADR, same change.
 
+## 🚧 Admin / operations portal (in progress)
+
+A large, multi-round internal portal so Will can run Partyreel (and later invite teammates) instead of
+reading operator data by hand in SQL/MCP. Overarching plan + locked decisions: the approved plan file +
+SYSTEMS "Admin / operations portal". **Each phase gets its own dedicated planning round.** Decisions:
+solo hardened admin now / team later via the one `requireAdmin()` seam (no RBAC tables yet);
+`admin.partyreel.com` subdomain in THIS app; free TOTP MFA (AAL2); **Sentry** for errors (free
+Developer tier, pay only when a team is added); defer the admin-action audit log.
+
+1. ✅ **R1 — Perimeter + auth foundation (BUILT + gate-green; live-verify pending the STATUS manual
+   steps).** Subdomain routing (proxy root-redirect + layout host-guard so the apex 404s `/admin`), the
+   `requireAdmin`/`requireAdminAction` seam ([admin-context.ts](src/lib/auth/admin-context.ts)),
+   lockout-proof MFA enroll/step-up, `AdminShell`, host-aware login, and the report review migrated out
+   of `(app)/admin` into `/admin/reports`. No schema change.
+2. ⏭️ **R2 — Sentry error tracking** (app-wide; free tier). `@sentry/nextjs`: `instrumentation.ts` +
+   `onRequestError`, server/edge/client configs, `withSentryConfig` source maps, PII scrub in
+   `beforeSend`, `captureException` in the caught paths (upload/webhook/cron/admin), email alerts.
+   **Verify `@sentry/nextjs` supports Next 16 + Turbopack via Context7 before installing.** No DB.
+3. **P3 — Support & moderation inbox** — triage `contact_submissions` + `job_applications` (status
+   workflow) + extend reports into a real queue. The tables already exist (deny-all RLS).
+4. **P4 — Accounts & billing** — user search/detail, tier/subscription/storage, promo codes (Stripe
+   Coupons). Reads billing state; the Stripe webhook stays the source of truth for `tier`.
+5. **P5 — Analytics & metrics** — platform-wide dashboards (scans/views, signups, storage, revenue).
+6. **P6 — Content & announcements + operator notifications** — announcement compose/publish UI;
+   blog/help/careers management (file-vs-DB decided in its round); operator notifications.
+
 ## ✅ Done — marketing site full build-out (all 7 rounds)
 
 Expanded the scaffolded marketing site into a launch-ready, "as-if-complete" site. One shared

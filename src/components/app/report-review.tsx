@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   actionReportAction,
   dismissReportAction,
-} from "@/app/(app)/admin/actions";
+} from "@/app/admin/reports/actions";
 import { MediaTile } from "@/components/app/media-grid";
 import { Button } from "@/components/ui/button";
 import {

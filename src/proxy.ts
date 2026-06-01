@@ -9,11 +9,25 @@
  * getUser(), and each Server Function must re-verify authz itself. Treating the
  * proxy as the security boundary is a known footgun — don't.
  */
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
+import { isAdminHost } from "@/lib/auth/admin-host";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
+  // On the admin subdomain, send the bare root to the portal. The portal's
+  // canonical path stays /admin on EVERY host (dev included) — the admin layout
+  // host-guards + auth-gates it, and the apex 404s /admin — so this is just a
+  // convenience redirect, NOT the security boundary. Everything else (including
+  // /login + /auth/callback on the subdomain) gets the usual session refresh.
+  if (
+    request.nextUrl.pathname === "/" &&
+    isAdminHost(request.headers.get("host"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    return NextResponse.redirect(url);
+  }
   return updateSession(request);
 }
 

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { isAdminHost } from "@/lib/auth/admin-host";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,13 +28,21 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-// Absolute callback URL. Prefer the configured site origin; fall back to the
-// live origin so local dev (where NEXT_PUBLIC_SITE_URL may be unset) still works.
-// Must match an entry in Supabase Auth's redirect allow-list, or the link/OAuth
-// redirect is rejected.
+// Absolute callback URL. Must match an entry in Supabase Auth's redirect
+// allow-list, or the link/OAuth redirect is rejected.
+//
+// On the admin subdomain we MUST use the live origin (NOT the configured apex
+// NEXT_PUBLIC_SITE_URL) so the session cookie lands on admin.<domain> and the
+// admin session stays host-isolated; we also deep-link past login to /admin.
+// Everywhere else, prefer the configured site origin and fall back to the live
+// origin so local dev (where NEXT_PUBLIC_SITE_URL may be unset) still works.
 function callbackUrl() {
-  const origin = env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
-  return `${origin}/auth/callback`;
+  const onAdminHost =
+    typeof window !== "undefined" && isAdminHost(window.location.host);
+  const origin = onAdminHost
+    ? window.location.origin
+    : (env.NEXT_PUBLIC_SITE_URL ?? window.location.origin);
+  return `${origin}/auth/callback${onAdminHost ? "?next=/admin" : ""}`;
 }
 
 // lucide-react dropped brand glyphs, so the Google "G" is inlined here.
