@@ -215,6 +215,23 @@
     }
   }
 
+  /* Contact form success message fades + rises in when it replaces the form
+     (the shared FormCard shell stays put, so only the inner content settles).
+     Mirrors the [data-media-tile] entrance above: strong --ease-emphasis curve,
+     transform + opacity only (GPU), @starting-style fires once on the swap.
+     Reduced motion skips the movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-contact-success] {
+      transition:
+        opacity 220ms var(--ease-emphasis),
+        transform 220ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+  }
+
   /* Lightbox swipe track (see media-lightbox.tsx). The settle/spring-back is a
      plain transform transition so it's interruptible/retargetable mid-flight; the
      component sets --lightbox-settle once per gesture (240ms commit / 200ms snap).
