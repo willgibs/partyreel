@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Play } from "lucide-react";
 
 import { MediaLightbox } from "@/components/shared/media-lightbox";
+import { videoPosterSrc } from "@/lib/media/poster";
 
 export type GridMedia = {
   id: string;
@@ -40,12 +41,8 @@ export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
   return (
     <>
       <video
-        // iOS Safari paints a <video> BLACK instead of its first frame unless the src
-        // carries a media fragment telling it to seek+render a frame — desktop renders the
-        // frame from `preload="metadata"` alone, iOS does not. `#t=0.1` is the lightweight
-        // poster hack (we don't generate real thumbnails). The fragment is client-only
-        // (never sent to R2), so it does NOT touch the presigned-URL signature.
-        src={`${item.url}#t=0.1`}
+        // iOS shows a black box without this poster fragment — see videoPosterSrc.
+        src={videoPosterSrc(item.url)}
         preload="metadata"
         muted
         playsInline

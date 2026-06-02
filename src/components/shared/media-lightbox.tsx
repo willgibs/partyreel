@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import type { GridMedia } from "@/components/app/media-grid";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
+import { videoPosterSrc } from "@/lib/media/poster";
 
 // Shared full-screen media viewer for BOTH galleries (public album + host grid).
 // Built by composing the radix Dialog PRIMITIVES rather than the wrapped
@@ -383,7 +384,7 @@ export function MediaLightbox({
           <video
             ref={centerVideoRef}
             data-center-media
-            src={item.url}
+            src={videoPosterSrc(item.url)}
             controls
             playsInline
             preload="metadata"
@@ -397,9 +398,10 @@ export function MediaLightbox({
           />
         ) : (
           // Neighbor video: a muted, controls-less first-frame poster — never
-          // autoplays or steals the swipe (pointer-events-none).
+          // autoplays or steals the swipe (pointer-events-none). Same posterized src
+          // as the center so the element isn't reloaded when it becomes current.
           <video
-            src={item.url}
+            src={videoPosterSrc(item.url)}
             muted
             playsInline
             preload="metadata"
