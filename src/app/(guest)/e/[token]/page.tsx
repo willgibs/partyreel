@@ -71,8 +71,9 @@ export async function generateMetadata({
 //   password + no cookie → header + <PasswordGate> (name shown, no gallery/upload)
 //   password + unlocked  → full experience, media via the admin-read (the anon RPC
 //                          gates on visibility='open', so it never serves password media)
-//   open                 → header + upload + live gallery + share
-// (accepting_uploads is handled inside the upload panel: a disabled control when off.)
+//   open                 → header + action row (save / invite) + upload + live gallery
+// (accepting_uploads off → view-only: the upload panel is gone, leaving the action row +
+//  a "uploads closed" line + the gallery. EventExperience handles that layout branch.)
 export default async function GuestEventPage({
   params,
 }: {
@@ -138,14 +139,16 @@ export default async function GuestEventPage({
       : await getEventMediaByQrToken(token);
   const initialItems = await toGridItems(media, event.name);
 
-  // Require-email gate (verified, Phase 2c): ONLY when the host requires it, check for a
-  // confirmed Supabase session. The gallery still renders (viewing is allowed) — only the
-  // UPLOAD area is swapped for <VerifyEmailPrompt> (EventExperience does that via the prop).
-  // getUser() runs ONLY for require_email events, so open/password events add no auth
-  // round-trip. Demo never gates (its uploads are simulated).
+  // Require-email gate (verified, Phase 2c): ONLY when the host requires it AND is still
+  // accepting uploads, check for a confirmed Supabase session. The gallery still renders
+  // (viewing is allowed) — only the UPLOAD area is swapped for <VerifyEmailPrompt>
+  // (EventExperience does that via the prop). When uploads are OFF the event is view-only
+  // (ADR-0010), so there's nothing to gate — skip the check entirely (no verify prompt on
+  // a closed event). getUser() runs ONLY for accepting + require_email events, so every
+  // other path adds no auth round-trip. Demo never gates (its uploads are simulated).
   const isDemo = isDemoToken(token);
   let needsEmailVerification = false;
-  if (event.require_email && !isDemo) {
+  if (event.accepting_uploads && event.require_email && !isDemo) {
     const supabase = await createClient();
     const {
       data: { user },

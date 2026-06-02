@@ -16,9 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 
-// Compact, non-intrusive "invite more guests" card on the event page: a small QR
-// (tap to enlarge) + share/copy the JOIN link (so recipients land here and can
-// upload too). Shows the host's chosen qr_style; the join link is the capability.
+// The "Invite" action (Part 2 redesign): one compact button in the header action row
+// that opens a dialog holding everything share-related — the event QR (host's chosen
+// qr_style), Copy link, native Share, and Download. The QR no longer sits inline
+// mid-page (that split upload from the gallery); folding it behind one trigger keeps
+// upload + gallery contiguous. The join link IS the capability: recipients land on
+// /e/[qr_token] and can view + add photos (whatever the configs allow).
 export function GuestShare({
   joinUrl,
   qrStyle,
@@ -63,33 +66,54 @@ export function GuestShare({
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card/50 p-3">
-      <Dialog>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            aria-label="Enlarge the QR code"
-            className="shrink-0 cursor-pointer rounded-lg bg-white p-1.5 ring-1 ring-border transition-transform outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95"
-          >
-            <StyledQr value={joinUrl} size={72} style={style} />
-          </button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-xs">
-          <DialogHeader>
-            <DialogTitle>Invite others</DialogTitle>
-            <DialogDescription>
-              Scan to join {eventName} and add photos.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-3">
-            <div className="rounded-xl bg-white p-3">
-              <StyledQr
-                ref={enlargedQr}
-                value={joinUrl}
-                size={232}
-                style={style}
-              />
-            </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="active:scale-[0.98] motion-reduce:active:scale-100"
+        >
+          <Share2 /> Invite
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-xs">
+        <DialogHeader>
+          <DialogTitle>Invite guests</DialogTitle>
+          <DialogDescription>
+            Share the link or let them scan the code to join {eventName} and add
+            photos.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-xl bg-white p-3">
+            <StyledQr
+              ref={enlargedQr}
+              value={joinUrl}
+              size={232}
+              style={style}
+            />
+          </div>
+          <div className="flex w-full flex-wrap justify-center gap-2">
+            {canShare && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={nativeShare}
+                className="active:scale-[0.98] motion-reduce:active:scale-100"
+              >
+                <Share2 /> Share
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={copyLink}
+              className="active:scale-[0.98] motion-reduce:active:scale-100"
+            >
+              {copied ? <Check /> : <Copy />} Copy link
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -97,29 +121,13 @@ export function GuestShare({
               onClick={() =>
                 enlargedQr.current?.download(`${eventName}-qr`, "png")
               }
+              className="active:scale-[0.98] motion-reduce:active:scale-100"
             >
-              <Download /> Download QR
+              <Download /> Download
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">Invite more guests</p>
-        <p className="mb-2 text-xs text-muted-foreground">
-          Share the link or let them scan the code.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {canShare && (
-            <Button type="button" size="sm" onClick={nativeShare}>
-              <Share2 /> Share
-            </Button>
-          )}
-          <Button type="button" variant="outline" size="sm" onClick={copyLink}>
-            {copied ? <Check /> : <Copy />} Copy link
-          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

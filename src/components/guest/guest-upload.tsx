@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
-  Lock,
   RefreshCw,
 } from "lucide-react";
 
@@ -38,7 +37,9 @@ export type UploadedItem = {
   status: string;
 };
 
-// The upload panel: a prominent dropzone + the per-file queue. Joining is
+// The upload panel: a prominent dropzone + the per-file queue. EventExperience only
+// mounts this when the host is accepting uploads (uploads-off is the view-only state of
+// the page now, handled upstream — there's no disabled control here anymore). Joining is
 // just-in-time and SILENT — a first-time guest picks files and a guest session is
 // created behind the scenes (no prompts; guest names were removed in Phase 2b, and a
 // require_email event is gated at the PAGE level before this panel ever renders, via
@@ -226,26 +227,6 @@ export function GuestUpload({
 
   const doneCount = items.filter((it) => it.status === "done").length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
-
-  // Uploads turned off by the host — show a clearly disabled control so guests
-  // understand (and can ask the host to flip it back on). Gallery still renders.
-  if (!event.accepting_uploads) {
-    return (
-      <div className="space-y-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled
-          className="w-full justify-center"
-        >
-          <Lock /> Uploads disabled
-        </Button>
-        <p className="text-center text-xs text-muted-foreground">
-          The host has turned off new uploads for now.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

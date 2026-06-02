@@ -220,6 +220,7 @@ export function SaveEventButton({
         disabled={busy}
         aria-pressed={saved}
         className={cn(
+          "active:scale-[0.98] motion-reduce:active:scale-100",
           tone === "gallery" &&
             "border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white",
         )}

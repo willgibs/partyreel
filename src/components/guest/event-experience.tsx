@@ -172,37 +172,46 @@ export function EventExperience({
         )}
       </header>
 
-      {/* Always-visible growth lever: save this event to your dashboard. For a signed-out
-          visitor it's the "create a free account to save" moment, surfaced up front (not
-          only after an upload). Hidden in the demo (it isn't a real event). */}
-      {!isDemo && (
-        <div className="mt-4 flex justify-center">
-          <SaveEventButton eventId={event.id} qrToken={qrToken} />
-        </div>
-      )}
-
-      <div className="mt-7">
-        {needsEmailVerification ? (
-          <VerifyEmailPrompt qrToken={qrToken} />
-        ) : (
-          <GuestUpload
-            event={event}
-            qrToken={qrToken}
-            sessionToken={sessionToken}
-            onSession={setSessionToken}
-            onUploaded={handleUploaded}
-            isDemo={isDemo}
-          />
-        )}
-      </div>
-
-      <div className="mt-5">
+      {/* Action row (Part 2 redesign): Save (the growth lever) + Invite (share/QR),
+          directly under the header so the upload panel and gallery stay CONTIGUOUS below
+          (the share no longer splits them). Save is the "create a free account to save"
+          moment for signed-out visitors; hidden in the demo (not a real event). Invite
+          folds the QR + link share behind one trigger. */}
+      <div className="mt-5 flex items-center justify-center gap-2">
+        {!isDemo && <SaveEventButton eventId={event.id} qrToken={qrToken} />}
         <GuestShare
           joinUrl={joinUrl}
           qrStyle={event.qr_style}
           eventName={event.name}
         />
       </div>
+
+      {/* Upload — only while the host is accepting uploads. When off, the event is
+          view-only (a state of the ONE page, ADR-0010): the panel is simply gone, with a
+          quiet line in its place. require_email is gated upstream (the page sets
+          needsEmailVerification only when uploads are on), so this swap is upload-only. */}
+      {event.accepting_uploads ? (
+        <div className="mt-7">
+          {needsEmailVerification ? (
+            <VerifyEmailPrompt qrToken={qrToken} />
+          ) : (
+            <GuestUpload
+              event={event}
+              qrToken={qrToken}
+              sessionToken={sessionToken}
+              onSession={setSessionToken}
+              onUploaded={handleUploaded}
+              isDemo={isDemo}
+            />
+          )}
+        </div>
+      ) : (
+        !isDemo && (
+          <p className="mt-7 text-center text-sm text-muted-foreground">
+            The host has closed uploads. You can still browse the gallery.
+          </p>
+        )
+      )}
 
       <section className="mt-9">
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
