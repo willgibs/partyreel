@@ -76,7 +76,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   calls (the demo event by contrast makes ZERO `/api` calls — simulated). The `guests` table is
   confirmed column-less of `display_name`; the host settings dropped the "Require a display name"
   toggle (Require email + the Video row intact). **Cut 2c (verified-email OTP + shared `<EmailSignIn>`)
-  BUILT + gate-green, pending live verification.** "Require email" is now a VERIFIED email (Supabase
+  SHIPPED** (commit `2b389d6`). "Require email" is now a VERIFIED email (Supabase
   native OTP — 6-digit code primary + magic-link fallback): `create_guest` derives `user_id` + `email`
   from `auth.uid()` (require_email = a confirmed session), keeping its 2-arg signature
   (create-or-replace → no re-grant, advisors UNCHANGED, NO deploy window). New `guests.user_id`
@@ -86,8 +86,14 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   Migration `…144343_phase2c_guest_user_id_verified_email`; typecheck/lint/test (197)/build green; the
   `/login` OTP UI render-verified locally (6 slots + link fallback). **Human prereqs DONE** (Will set
   the apex `…/auth/callback**` allowlist + the `{{ .Token }}` email template; anon sign-ins stay off).
-  **Verify on partyreel.com:** host login via code + link → /dashboard; a require_email event →
-  `<VerifyEmailPrompt>` → code → upload → DB-confirm `guests.user_id` + email stamped. ADR-0008.
+  **Deployed gate LIVE-VERIFIED** (curl, on a spun-up temp require_email event): an unverified
+  `POST /api/guests` returned **422 `email_required`** ("A verified email is required to upload to
+  this event."), and `/e/` server-rendered the `<VerifyEmailPrompt>` (+ the "Email me a code" OTP UI)
+  while the event name still showed (viewing allowed). The `create_guest` verified-identity branch is
+  rolled-back-contract-proven (anon → raises; verified user → stamps `user_id`+`email`). **Remaining =
+  the human OTP test** (needs the emailed code, master-plan-intended): on partyreel.com, host `/login`
+  → type the 6-digit code → /dashboard (and the link → /dashboard); a require_email event →
+  `<VerifyEmailPrompt>` → code → upload → `guests.user_id` stamped. ADR-0008.
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP
