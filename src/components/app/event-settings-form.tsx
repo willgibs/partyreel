@@ -212,6 +212,18 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                       <FormDescription>
                         {VISIBILITY_HINTS[value]}
                       </FormDescription>
+                      {passwordLocked && !event.has_password && (
+                        <p className="text-sm text-muted-foreground">
+                          Password protection is a paid feature.{" "}
+                          <Link
+                            href="/pricing"
+                            className="font-medium text-foreground underline underline-offset-4"
+                          >
+                            Upgrade to enable
+                          </Link>
+                          .
+                        </p>
+                      )}
                       {value === "password" && (
                         <div
                           data-settings-reveal
@@ -222,13 +234,17 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                             hasPassword={event.has_password}
                             locked={passwordLocked}
                             onPasswordSet={() =>
-                              form.setValue("visibility", "password", {
-                                shouldDirty: false,
+                              // The action already persisted visibility='password';
+                              // re-baseline the field (resetField, not setValue) so the
+                              // main "Save changes" doesn't linger enabled for what is now
+                              // a net-zero change after using the password panel.
+                              form.resetField("visibility", {
+                                defaultValue: "password",
                               })
                             }
                             onPasswordCleared={() =>
-                              form.setValue("visibility", "open", {
-                                shouldDirty: false,
+                              form.resetField("visibility", {
+                                defaultValue: "open",
                               })
                             }
                           />
