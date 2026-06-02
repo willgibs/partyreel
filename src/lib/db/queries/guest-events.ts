@@ -21,7 +21,6 @@ export type GuestEvent = {
   has_password: boolean;
   accepting_uploads: boolean;
   require_email: boolean;
-  require_display_name: boolean;
   event_date: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
   // falls back to 'classic' for null/legacy values.
@@ -62,7 +61,6 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
       has_password: row.has_password,
       accepting_uploads: row.accepting_uploads,
       require_email: row.require_email,
-      require_display_name: row.require_display_name,
       event_date: row.event_date ?? null,
       qr_style: row.qr_style,
       host_display_name: row.host_display_name ?? null,

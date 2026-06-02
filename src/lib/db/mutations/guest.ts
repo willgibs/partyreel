@@ -30,23 +30,17 @@ export type CreateGuestResult =
     }
   | {
       ok: false;
-      code:
-        | "not_found"
-        | "display_name_required"
-        | "email_required"
-        | "unknown";
+      code: "not_found" | "email_required" | "unknown";
       message: string;
     };
 
 export async function createGuest(input: {
   qrToken: string;
-  displayName?: string | null;
   email?: string | null;
 }): Promise<CreateGuestResult> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_guest", {
     p_qr_token: input.qrToken,
-    p_display_name: input.displayName ?? undefined,
     p_email: input.email ?? undefined,
   });
 
@@ -59,10 +53,11 @@ export async function createGuest(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
-      const isEmail = /email/i.test(error.message);
+      // Post Phase 2b the ONLY check_violation create_guest raises is the require_email
+      // gate (the display-name requirement was removed with the column).
       return {
         ok: false,
-        code: isEmail ? "email_required" : "display_name_required",
+        code: "email_required",
         message: error.message,
       };
     }

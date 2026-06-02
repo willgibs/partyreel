@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -36,9 +37,6 @@ import {
 import { Input } from "@/components/ui/input";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { uploadFile } from "@/lib/upload/uploader";
-import { buildJoinSchema, type JoinValues } from "@/lib/validation/join";
-
-const DISPLAY_NAME_KEY = "pr_display_name";
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
 type Item = {
@@ -59,9 +57,10 @@ export type UploadedItem = {
 };
 
 // The upload panel: a prominent dropzone + the per-file queue. Joining is
-// just-in-time — a first-time guest picks files, THEN gets a lightweight name
-// prompt (no upfront gate, since the gallery is public). Each completed upload is
-// reported to the coordinator (which renders it optimistically in the gallery).
+// just-in-time and SILENT — a first-time guest picks files and a guest session is
+// created behind the scenes (no name prompt; guest names were removed in Phase 2b).
+// The one exception is a require_email event, which still asks for an email up front.
+// Each completed upload is reported to the coordinator (optimistic gallery render).
 // Demo mode: fake an upload (a brief progress ramp) and return a synthetic "approved"
 // outcome. Nothing hits the network — the gallery renders the local file via the
 // existing optimistic-tile path, and the synthetic id never appears in the poll, so
@@ -113,9 +112,11 @@ export function GuestUpload({
   useEffect(() => {
     sessionRef.current = sessionToken;
   }, [sessionToken]);
-  // Files picked before a session exists — uploaded once the guest gives a name.
+  // Files picked before a session exists — uploaded once the session is created.
   const pendingFilesRef = useRef<File[]>([]);
-  const [namePromptOpen, setNamePromptOpen] = useState(false);
+  // Only require_email events still prompt (for the email); names were removed
+  // (Phase 2b), so the common just-in-time join is silent.
+  const [emailPromptOpen, setEmailPromptOpen] = useState(false);
 
   const sync = useCallback((next: Item[]) => {
     itemsRef.current = next;
@@ -188,28 +189,64 @@ export function GuestUpload({
     [runQueue, sync],
   );
 
+  const handleJoined = useCallback(
+    (token: string) => {
+      onSession(token);
+      sessionRef.current = token; // runQueue (called below) sees it immediately
+      setEmailPromptOpen(false);
+      const stashed = pendingFilesRef.current;
+      pendingFilesRef.current = [];
+      if (stashed.length) enqueue(stashed);
+    },
+    [onSession, enqueue],
+  );
+
+  // Field-less join: names are gone (Phase 2b) and no email is required, so create the
+  // guest session silently and go straight to uploading. Demo never touches the network.
+  const joinSilently = useCallback(async () => {
+    if (isDemo) {
+      handleJoined("demo");
+      return;
+    }
+    try {
+      const res = await fetch("/api/guests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_token: qrToken }),
+      });
+      const body = (await res.json()) as
+        | { ok: true; session_token: string }
+        | { ok: false; message: string };
+      if (!body.ok) {
+        pendingFilesRef.current = [];
+        toast.error("Couldn't start uploading", { description: body.message });
+        return;
+      }
+      handleJoined(body.session_token);
+    } catch {
+      pendingFilesRef.current = [];
+      toast.error("Couldn't start uploading", {
+        description: "Check your connection and try again.",
+      });
+    }
+  }, [isDemo, qrToken, handleJoined]);
+
   const addFiles = useCallback(
     (files: File[]) => {
       if (sessionRef.current) {
         enqueue(files);
         return;
       }
-      pendingFilesRef.current = files; // stash until they give a name
-      setNamePromptOpen(true);
+      // No session yet. Names are gone, so the join is silent — UNLESS the host requires
+      // an email, which still needs a one-field prompt (until 2c's verified OTP).
+      pendingFilesRef.current = files;
+      if (!isDemo && event.require_email) {
+        setEmailPromptOpen(true);
+      } else {
+        void joinSilently();
+      }
     },
-    [enqueue],
-  );
-
-  const handleJoined = useCallback(
-    (token: string) => {
-      onSession(token);
-      sessionRef.current = token; // runQueue (called below) sees it immediately
-      setNamePromptOpen(false);
-      const stashed = pendingFilesRef.current;
-      pendingFilesRef.current = [];
-      if (stashed.length) enqueue(stashed);
-    },
-    [onSession, enqueue],
+    [enqueue, isDemo, event.require_email, joinSilently],
   );
 
   const doneCount = items.filter((it) => it.status === "done").length;
@@ -316,85 +353,55 @@ export function GuestUpload({
         </button>
       )}
 
-      <NamePrompt
-        open={namePromptOpen}
+      <EmailPrompt
+        open={emailPromptOpen}
         onOpenChange={(open) => {
           if (!open) pendingFilesRef.current = [];
-          setNamePromptOpen(open);
+          setEmailPromptOpen(open);
         }}
-        event={event}
         qrToken={qrToken}
         onJoined={handleJoined}
-        isDemo={isDemo}
       />
     </div>
   );
 }
 
-// Lightweight just-in-time join. Same /api/guests contract + schema as the old
-// full-page JoinForm, but compact (the gallery is already visible behind it).
-function NamePrompt({
+// Email-only just-in-time prompt — shown ONLY for require_email events (guest names
+// were removed in Phase 2b; without require_email the join is silent). Same /api/guests
+// contract. Cut 2c replaces this with a verified-OTP page gate.
+function EmailPrompt({
   open,
   onOpenChange,
-  event,
   qrToken,
   onJoined,
-  isDemo,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  event: GuestEvent;
   qrToken: string;
   onJoined: (sessionToken: string) => void;
-  isDemo: boolean;
 }) {
-  const schema = useMemo(
-    () => buildJoinSchema(event.require_display_name, event.require_email),
-    [event.require_display_name, event.require_email],
-  );
-  const form = useForm<JoinValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { display_name: "", email: "" },
+  const form = useForm<{ email: string }>({
+    resolver: zodResolver(z.object({ email: z.email() })),
+    defaultValues: { email: "" },
   });
 
-  async function onSubmit(values: JoinValues) {
-    if (isDemo) {
-      // Demo: never create a real guest session. Remember the name locally and let
-      // the queue (which simulates) proceed via a sentinel session token.
-      if (values.display_name) {
-        localStorage.setItem(DISPLAY_NAME_KEY, values.display_name);
-      }
-      onJoined("demo");
-      return;
-    }
+  async function onSubmit(values: { email: string }) {
     const res = await fetch("/api/guests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        qr_token: qrToken,
-        display_name: values.display_name || undefined,
-        email: values.email || undefined,
-      }),
+      body: JSON.stringify({ qr_token: qrToken, email: values.email }),
     });
     const body = (await res.json()) as
       | { ok: true; session_token: string }
       | { ok: false; code: string; message: string };
 
     if (!body.ok) {
-      if (body.code === "display_name_required") {
-        form.setError("display_name", { message: body.message });
-        return;
-      }
       if (body.code === "email_required") {
         form.setError("email", { message: body.message });
         return;
       }
       toast.error("Couldn't join", { description: body.message });
       return;
-    }
-
-    if (values.display_name) {
-      localStorage.setItem(DISPLAY_NAME_KEY, values.display_name);
     }
     onJoined(body.session_token);
   }
@@ -403,31 +410,27 @@ function NamePrompt({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add your name</DialogTitle>
+          <DialogTitle>Add your email</DialogTitle>
           <DialogDescription>
-            So the host knows who shared these. No app, no account.
+            This event asks guests for an email before uploading. No app, no
+            account.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="display_name"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Your name{" "}
-                    {!event.require_display_name && (
-                      <span className="font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    )}
-                  </FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       autoFocus
-                      autoComplete="name"
-                      placeholder="e.g. Alex"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      placeholder="you@email.com"
                       {...field}
                     />
                   </FormControl>
@@ -435,27 +438,6 @@ function NamePrompt({
                 </FormItem>
               )}
             />
-            {event.require_email && (
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        inputMode="email"
-                        autoComplete="email"
-                        placeholder="you@email.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             <DialogFooter>
               <Button
                 type="submit"

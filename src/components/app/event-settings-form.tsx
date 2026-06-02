@@ -87,7 +87,6 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
       event_date: event.event_date ?? "",
       visibility: event.visibility,
       accepting_uploads: event.accepting_uploads,
-      require_display_name: event.require_display_name,
       require_email: event.require_email,
       moderation_mode: event.moderation_mode,
     },
@@ -313,26 +312,6 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                         onCheckedChange={(checked) =>
                           field.onChange(checked ? "hold_for_approval" : "live")
                         }
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="require_display_name"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>Require a display name</FormLabel>
-                      <FormDescription>
-                        Guests pick a name before uploading.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   </FormItem>

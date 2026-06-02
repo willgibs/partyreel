@@ -106,7 +106,6 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
-          require_display_name: boolean
           require_email: boolean
           share_token: string
           updated_at: string
@@ -126,7 +125,6 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
-          require_display_name?: boolean
           require_email?: boolean
           share_token?: string
           updated_at?: string
@@ -146,7 +144,6 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
-          require_display_name?: boolean
           require_email?: boolean
           share_token?: string
           updated_at?: string
@@ -165,7 +162,6 @@ export type Database = {
       guests: {
         Row: {
           created_at: string
-          display_name: string | null
           email: string | null
           event_id: string
           id: string
@@ -173,7 +169,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          display_name?: string | null
           email?: string | null
           event_id: string
           id?: string
@@ -181,7 +176,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          display_name?: string | null
           email?: string | null
           event_id?: string
           id?: string
@@ -636,7 +630,7 @@ export type Database = {
       }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
-        Args: { p_display_name?: string; p_email?: string; p_qr_token: string }
+        Args: { p_email?: string; p_qr_token: string }
         Returns: Json
       }
       create_media: {
@@ -683,7 +677,6 @@ export type Database = {
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           qr_style: string
-          require_display_name: boolean
           require_email: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]

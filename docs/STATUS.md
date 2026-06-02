@@ -62,8 +62,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   video); a guest video presign on the deployed API returned **403 `video_not_allowed`** ("This event
   accepts photos only.") while a photo presign returned **200** (the guest dropzone still OFFERS video —
   the tier never leaks; rejection is server-side); pricing page shows Free = "Photos only", paid =
-  "Photos and video". Cuts 2b (remove guest display names) + 2c (verified-email OTP + shared
-  `<EmailSignIn>`) next.
+  "Photos and video". **Cut 2b (remove guest display names) BUILT + gate-green, pending live
+  verification.** Dropped `guests.display_name` + `events.require_display_name`; `create_guest` is now
+  2-arg `(p_qr_token, p_email)` + `get_event_by_qr_token` drops `require_display_name` (both
+  DROP+CREATE+re-grant; advisors UNCHANGED; the HOST "Hosted by" byline is a separate
+  `profiles.display_name` and is untouched); the just-in-time guest join is now **field-less + silent**
+  (an email-only prompt remains for `require_email` events, still unverified until 2c);
+  `validation/join.ts` deleted. Migration `…071249_phase2b_drop_guest_display_names`;
+  typecheck/lint/test (198)/build green. **Verify on partyreel.com:** pick a file on an open event →
+  uploads with NO prompt; gallery renders. Cut 2c (verified-email OTP + shared `<EmailSignIn>`) next.
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP

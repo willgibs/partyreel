@@ -25,10 +25,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { qr_token, display_name, email } = parsed.data;
+  const { qr_token, email } = parsed.data;
   const result = await createGuest({
     qrToken: qr_token,
-    displayName: display_name ?? null,
     email: email || null,
   });
 
@@ -36,8 +35,7 @@ export async function POST(request: Request) {
     const status =
       result.code === "not_found"
         ? 404
-        : result.code === "display_name_required" ||
-            result.code === "email_required"
+        : result.code === "email_required"
           ? 422
           : 500;
     return NextResponse.json(

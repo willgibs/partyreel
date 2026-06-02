@@ -44,7 +44,7 @@ service-role / webhook only.
 
 `events` (host_id, opaque `qr_token`/`share_token` (DB-generated), `moderation_mode`,
 `visibility` (`open|password|private`, ADR-0007) + `event_password_hash` (bcrypt; never
-client-read), `accepting_uploads`, `require_display_name`/`require_email`, `qr_style`,
+client-read), `accepting_uploads`, `require_email`, `qr_style`,
 `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([create-event-wizard.tsx](../src/components/app/create-event-wizard.tsx)) — Details → QR
 design → Share — which creates **once at commit** via the non-redirecting `createEventInWizard`
@@ -83,9 +83,10 @@ minimal header (logo + a quiet "start for free" CTA) + the event header + easy u
 lock — no name/gallery/upload); `password` → a `<PasswordGate>` (name shown) until a signed unlock
 cookie, then the full experience (media via the server admin-read); `open` → the full experience;
 `accepting_uploads=false` → gallery + a disabled "Uploads disabled" control
-([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time** — a
-first-time guest picks files, THEN gives a name (no upfront gate; the gallery is public).
-`create_guest` issues a `session_token` (localStorage, returning-guest). Upload is **browser → R2
+([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time + SILENT** —
+a first-time guest picks files and `create_guest` issues a `session_token` (localStorage,
+returning-guest) behind the scenes; guest display names were removed (Phase 2b), so the ONLY join
+prompt is an email field on `require_email` events. Upload is **browser → R2
 direct** (single PUT < 100 MB else multipart) via `/api/r2/presign-upload` + `/api/r2/complete-upload`;
 `create_media` writes the row + ledger + enforces caps; `get_upload_context` is the presign-time
 pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guests/gallery` every
@@ -367,7 +368,7 @@ hero QR + a home-hero **"Try the live demo"** CTA become real links, and that ev
 `/e/[qr_token]` guest page runs in **DEMO MODE** — threaded as `isDemo` from the page
 ([page.tsx](<../src/app/(guest)/e/[token]/page.tsx>)) through `event-experience.tsx` to
 [guest-upload.tsx](../src/components/guest/guest-upload.tsx): a banner shows, the ~12 s gallery poll is
-**paused**, the name prompt still appears (authentic), but on submit it **skips `POST /api/guests`**
+**paused**, the silent just-in-time join **skips `POST /api/guests`**
 (sentinel session) and the queue **skips `uploadFile`** — `simulateUpload` returns a synthetic
 `approved` outcome so the existing **optimistic-tile path** prepends a local `createObjectURL` tile that
 is **never persisted** (no presign / R2 PUT / `create_media` / `create_guest`; email-capture suppressed).

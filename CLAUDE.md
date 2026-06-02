@@ -567,6 +567,18 @@ keyboard or Dismiss it.
   video, rejected at presign). All 4 RPCs were create-or-replace (jsonb returns / same signatures) so
   **advisors are UNCHANGED** — no new RPC/grant. Client mirror: `videosAllowedForTier(tier) = tier !==
   'free'` ([tiers.ts](src/lib/constants/tiers.ts), Vitest-guarded).
+- **Guest display names were REMOVED (config rework Phase 2 — cut 2b).** Dropped `guests.display_name`
+  + `events.require_display_name`; `create_guest` is now **2-arg** `(p_qr_token, p_email)` and
+  `get_event_by_qr_token` no longer returns `require_display_name` (both DROP+CREATE+**re-grant** — a
+  signature/return-shape change; advisors still UNCHANGED, both stay anon+authenticated). The HOST
+  byline "Hosted by {name}" is `profiles.display_name` → `host_display_name` and is SEPARATE — do NOT
+  conflate it with the dropped guest column (`handle_new_user` sets the host one, untouched). The
+  just-in-time join is now **field-less + silent** for the common case (pick files → `POST /api/guests
+  {qr_token}` via `joinSilently` → upload, NO dialog); the `<EmailPrompt>` (was `NamePrompt`) shows
+  ONLY on `require_email` events and is still UNVERIFIED — **cut 2c** makes it a verified OTP, moves it
+  to a page-level gate, and deletes this prompt. `create_guest`'s ONLY remaining check_violation is the
+  require_email gate (the `email_required` mapping in [mutations/guest.ts](src/lib/db/mutations/guest.ts)).
+  `validation/join.ts` (`buildJoinSchema`) was DELETED.
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and

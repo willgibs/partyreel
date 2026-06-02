@@ -37,7 +37,6 @@ export const createEventSchema = z.object({
   // password itself is set/cleared by its own RPC (set_event_password).
   visibility: z.enum(Constants.public.Enums.event_visibility).default("open"),
   accepting_uploads: z.boolean().default(true),
-  require_display_name: z.boolean().default(true),
   require_email: z.boolean().default(false),
   // Enum sourced from the generated DB Constants so it stays in lockstep with
   // the Postgres `moderation_mode` enum without restating the values here.

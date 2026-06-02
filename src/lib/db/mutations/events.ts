@@ -59,7 +59,6 @@ export async function createEvent(
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
-    require_display_name: values.require_display_name,
     require_email: values.require_email,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
@@ -151,8 +150,6 @@ export async function updateEvent(
   }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
-  if (values.require_display_name !== undefined)
-    patch.require_display_name = values.require_display_name;
   if (values.require_email !== undefined)
     patch.require_email = values.require_email;
   if (values.moderation_mode !== undefined)
