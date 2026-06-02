@@ -168,8 +168,15 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
   affordances. The shared `<EmailSignIn>` stays UNCHANGED (guests use it; password UI is additive in
   `password-sign-in.tsx`). **Dashboard lockstep:** keep "Secure password change" **OFF** (ON forces a
   reauth nonce → breaks the RPC design); "Minimum password length" must equal `MIN_PASSWORD_LENGTH` (8)
-  in [validation/auth.ts](src/lib/validation/auth.ts); enable leaked-password protection. The two RPCs
-  are authenticated-only (0029), never anon (0028). See STATUS "Blocked on a human".
+  in [validation/auth.ts](src/lib/validation/auth.ts); enable leaked-password protection.
+- **GOTCHA — `has_password()` must NOT read `auth.users.encrypted_password`.** GoTrue writes a NON-NULL
+  bcrypt PLACEHOLDER for every email OTP/magic-link signup (`providers=['email']`; Google-origin stays
+  NULL), so `encrypted_password IS NOT NULL` is true for OTP-origin hosts who never set a password —
+  they'd see the `/account` CHANGE form asking for a current password they don't have (live-caught, fixed
+  in `…210158_account_password_set_flag`). Fix: a service-role-only `profiles.password_set_at`, stamped
+  by **`mark_password_set()`** which the client calls right after every successful `updateUser({password})`;
+  `has_password()` reads the flag. The THREE account RPCs (`has_password` / `verify_current_password` /
+  `mark_password_set`) are authenticated-only (0029), never anon (0028). See STATUS "Blocked on a human".
 
 **Tailwind v4**
 

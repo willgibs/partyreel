@@ -81,6 +81,12 @@ export function AccountSecurityForm({
         return;
       }
 
+      // Stamp our own "user set a password" flag so has_password() flips to true. We can't
+      // trust auth.users.encrypted_password — GoTrue gives OTP/magic-link signups a
+      // placeholder hash (live-verified), so this flag is the only honest signal of a
+      // user-chosen password. Best-effort; the next visit re-derives from it.
+      await supabase.rpc("mark_password_set");
+
       toast.success(mode === "change" ? "Password changed." : "Password set.");
       setCurrent("");
       setPassword("");

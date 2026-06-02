@@ -258,6 +258,9 @@ function SetInitialPassword({ onDone }: { onDone: () => void }) {
         });
         return;
       }
+      // Stamp the "user set a password" flag (has_password() reads it, NOT the unreliable
+      // GoTrue encrypted_password — OTP signups get a placeholder hash). Best-effort.
+      await supabase.rpc("mark_password_set");
       toast.success("You're all set.");
       onDone();
     });

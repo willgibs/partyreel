@@ -47,8 +47,19 @@ RPCs that only READ `auth.users` and return booleans (the hash never leaves the 
   chosen check). It only READS (`extensions.crypt(...) = hash`), so the session is never disrupted — the
   actual change is `updateUser()` on the **browser** client. First-time **set** uses only the session.
 
-Both appear in the **authenticated** advisor list (`0029`), never the anon list (`0028`) — same class
-as `set_event_password`. No table/column/enum change; `handle_new_user` is unchanged.
+**Live testing then forced a third object** (migration `…210158_account_password_set_flag`): GoTrue
+writes a NON-NULL bcrypt `encrypted_password` **placeholder** for every email OTP/magic-link signup
+(`providers=['email']`), while Google-origin accounts stay NULL — so `has_password()` reading
+`encrypted_password IS NOT NULL` wrongly returned true for OTP-origin hosts, showing them the CHANGE
+form (asking for a current password they never set). `auth.users` cannot tell a real password from the
+placeholder (both are `$2a$` bcrypt, `providers=['email']` either way), so we track it ourselves: a
+service-role-only **`profiles.password_set_at`** column, stamped by a third RPC **`mark_password_set()`**
+that the client calls right after every successful `updateUser({password})`; `has_password()` now reads
+the flag. (Google-origin accounts read NULL correctly and were never affected.)
+
+All three RPCs appear in the **authenticated** advisor list (`0029`), never the anon list (`0028`) —
+same class as `set_event_password`. The only schema change is the `password_set_at` column;
+`handle_new_user` is unchanged.
 
 **Generic sign-in error.** `signInWithPassword` returns the same `Invalid login credentials` for a
 wrong password, an account with no password set, and an unknown email (anti-enumeration). The UI NEVER

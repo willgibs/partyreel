@@ -440,6 +440,7 @@ export type Database = {
           id: string
           is_admin: boolean
           last_active_at: string
+          password_set_at: string | null
           storage_cap_bytes: number | null
           storage_grace_until: string | null
           storage_used_bytes: number
@@ -458,6 +459,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           last_active_at?: string
+          password_set_at?: string | null
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number
@@ -476,6 +478,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           last_active_at?: string
+          password_set_at?: string | null
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number
@@ -765,6 +768,10 @@ export type Database = {
       has_password: {
         Args: never
         Returns: boolean
+      }
+      mark_password_set: {
+        Args: never
+        Returns: undefined
       }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
