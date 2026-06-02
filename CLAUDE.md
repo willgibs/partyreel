@@ -624,8 +624,22 @@ keyboard or Dismiss it.
   RETIRED** (one token; upload is config-gated, not token-gated) — any older gotcha below mentioning
   `/a/`, `share_token`, "the album page", or "share_token vs qr_token must not derive" is SUPERSEDED.
   Per-event OG now lives at `(guest)/e/[token]/opengraph-image.tsx`; the host dashboard + create-wizard
-  show ONE link + config-aware copy; `share-urls.ts` exposes a single `eventUrl`. **Part 2 (deferred):
-  the event-page flow redesign** (header → a share/QR/save action cluster → upload → gallery).
+  show ONE link + config-aware copy; `share-urls.ts` exposes a single `eventUrl`.
+- **Event-page FLOW (one-link Part 2; ADR-0010).** [event-experience.tsx](src/components/guest/event-experience.tsx)
+  renders header (name + "Hosted by") → a quiet **`[Save event] [Invite]` action row** → upload (only
+  when accepting) → gallery, CONTIGUOUS (the share is no longer wedged between upload + gallery). Load-
+  bearing, non-obvious bits: **(a)** `GuestShare` ([guest-share.tsx](src/components/guest/guest-share.tsx))
+  is now an **Invite trigger + dialog** (one outline button → a modal holding the QR + Copy link + native
+  Share + Download); it's NOT an inline-QR card anymore. **(b)** `SaveEventButton` stays its OWN auth-aware
+  island in the row (it already renders `variant="outline" size="sm"`, so Save + Invite match for free);
+  Save is hidden in the demo. **(c) Uploads-off = the view-only STATE of the one page:** when
+  `!accepting_uploads`, EventExperience renders NO upload panel (the old in-panel "Uploads disabled"
+  button is GONE) — just a quiet "uploads closed" line, then the gallery. **(d) `needsEmailVerification`
+  is gated on `accepting_uploads` in the PAGE RSC** (`accepting_uploads && require_email && !isDemo`): a
+  closed event NEVER shows `<VerifyEmailPrompt>` (uploads-off wins → view-only). Don't drop that
+  `accepting_uploads &&` — without it a require_email + closed event wrongly asks guests to verify to
+  upload to a closed event. **(e)** ALL the gallery poll / reconcile-by-id / optimistic / `sessionRef`
+  machinery is unchanged — the redesign only moved JSX, it did not touch the live-gallery logic.
 - **Saved events (config rework Phase 3 — accounts/growth; ADR-0009).** A signed-in visitor can SAVE
   an event to their dashboard ("Saved" tab). It is **FREE** (the account-creation growth driver), and
   it AUGMENTS the anonymous capability flow (ADR-0004) — the upload pipeline is untouched. Load-bearing:
@@ -808,8 +822,11 @@ src/app/
 - **Login lives in `(auth)`, not `(app)`, on purpose.** The `(app)` layout
   redirects anon users to `/login`; if `/login` were under that gate it would
   redirect to itself forever.
-- The always-dark `gallery` surface (`bg-gallery text-gallery-foreground`, media-as-hero) is
-  RETAINED for the Part 2 view-only redesign; the `/a/` album it used to power is removed (ADR-0010).
+- The always-dark `gallery` surface (`bg-gallery text-gallery-foreground`, media-as-hero) is currently
+  UNUSED as a full-page surface: the `/a/` album it powered is removed (ADR-0010), and the one-link Part 2
+  view-only state shipped as a config-driven panel-removal on the normal themed event page (NOT a dark
+  redesign). The tokens are kept in the design system (the lightbox backdrop + `SaveEventButton`'s
+  `tone="gallery"` variant still reference them) and remain available if a future media-as-hero surface wants them.
 
 ---
 

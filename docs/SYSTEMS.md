@@ -77,16 +77,20 @@ single-sourced with the marketing page ([how-it-works.ts](../src/lib/constants/h
 
 `/e/[token]` ([page](../src/app/(guest)/e/[token]/page.tsx)) — the scanned-QR landing page is one
 **unified, formal event page** ([event-experience.tsx](../src/components/guest/event-experience.tsx)):
-minimal header (logo + a quiet "start for free" CTA) + the event header + easy upload at the top, a
-**live gallery** below, and an in-page **QR + share**. The opaque `qr_token` IS the authorization
+minimal header (logo + a quiet "start for free" CTA) + the event header, then a quiet
+**`[Save event] [Invite]` action row** (one-link Part 2; ADR-0010), the **upload panel** (only when
+accepting), and a **live gallery** below — contiguous, with no share wedged between upload + gallery.
+The opaque `qr_token` IS the authorization
 (ADR-0004). **State follows `visibility` (ADR-0007):** `private` → a **locked screen** (master
 lock — no name/gallery/upload); `password` → a `<PasswordGate>` (name shown) until a signed unlock
 cookie, then the full experience (media via the server admin-read); `open` → the full experience;
-`accepting_uploads=false` → gallery + a disabled "Uploads disabled" control
-([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time + SILENT** —
+`accepting_uploads=false` → the **view-only state** of the one page: the upload panel is removed
+entirely (a quiet "uploads closed" line in its place), leaving the action row + gallery. **Joining is just-in-time + SILENT** —
 a first-time guest picks files and `create_guest` issues a `session_token` (localStorage,
 returning-guest) behind the scenes; guest names are gone (Phase 2b). A **`require_email`** event is
-instead gated at the PAGE level before the upload panel renders (Phase 2c, ADR-0008): `/e/` swaps the
+instead gated at the PAGE level before the upload panel renders (Phase 2c, ADR-0008) — but ONLY when
+uploads are on (the RSC gates `needsEmailVerification` on `accepting_uploads`, so a closed event stays
+view-only with no verify prompt; one-link Part 2): `/e/` swaps the
 upload slot for `<VerifyEmailPrompt>` (the shared `<EmailSignIn>` OTP — 6-digit code + magic-link
 fallback), the gallery still shows; on verify, `create_guest` derives identity from `auth.uid()` and
 stamps `guests.user_id` (account-from-guest). Upload is **browser → R2
@@ -97,8 +101,9 @@ pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guest
 **optimistically** at the top (local blob, deduped against the poll by media id —
 [merge-gallery-items.ts](../src/lib/guest/merge-gallery-items.ts)). Gallery media come from the new
 **`get_event_media_by_qr_token`** RPC (approved, newest-first, gated `visibility='open'` — a
-password event's media comes from the server admin-read instead); it's qr-keyed (the single event link; ADR-0010). The in-page
-**share = the JOIN link** ([guest-share.tsx](../src/components/guest/guest-share.tsx)), so invited
+password event's media comes from the server admin-read instead); it's qr-keyed (the single event link; ADR-0010). The **Invite**
+action ([guest-share.tsx](../src/components/guest/guest-share.tsx)) is one button in the action row → a
+dialog holding the event QR + Copy link + native Share + Download; the link IS the JOIN link, so invited
 guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2/](../src/lib/r2/)).
 
 ## Galleries
@@ -106,7 +111,7 @@ guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2
 **Two surfaces share `MediaGrid` + the lightbox:** the host event page and the **guest event page
 `/e/[token]`** (live + polling — see "Guest join"; with uploads off it reads as a view-only album). All **presign R2 keys server-side** (`presignDownload`, 1 h TTL; via the shared
 `toGridItems`) and are `force-dynamic`; raw R2 keys/URLs are NEVER exposed to the browser (ADR-0003).
-The always-dark `gallery` surface (retained for the Part 2 view-only redesign; ADR-0010) keeps media the hero — it stays dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
+The always-dark `gallery` surface is now UNUSED as a full page (Part 2's view-only state shipped as a panel-removal on the themed event page, not a dark redesign; ADR-0010) — its `--gallery` tokens persist for the lightbox backdrop + `SaveEventButton`'s `tone="gallery"`, and keep media the hero: they stay dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
 ([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
 keyboard nav, chevrons, **mobile swipe** (peek-the-neighbor; see the lightbox gotchas in CLAUDE.md),
 video playback, and a **Save** that downloads the original. **Download = a SECOND

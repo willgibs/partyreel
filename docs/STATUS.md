@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **One-link consolidation — Part 1 (data + routing) BUILT + gate-green; deploy + live verify pending.**
+- **One-link consolidation — Part 1 (data + routing) SHIPPED + LIVE-VERIFIED** (commit `37707d8`).
   Collapsed the two-token model (the `/e/[qr_token]` event page + the separate `/a/[share_token]` album)
   to ONE link per event: **`/e/[qr_token]`**, where the host's configs
   (`visibility`/`accepting_uploads`/`require_email`) drive what a guest sees ("view-only album after the
@@ -36,10 +36,35 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   9 → 8** (get_public_album gone), no new entries; rolled-back RPC contract check passed. Deleted `/a/`
   (page + OG) + moved the per-event OG to `/e/`; saved cards now link `/e/`; the report control moved to
   `/e/`; the host dashboard + create-wizard show ONE link + **config-aware copy**; `MakeYourOwn` retired.
-  typecheck/lint/test (201)/build green. ADR-0010 (supersedes the ADR-0004 two-token split). **Part 2
-  (the event-page flow redesign — header → share/QR/save action cluster → upload → gallery) is its own
-  next round.** Deploy + live verify (one link across open/password/private/uploads-off; saved → `/e/`;
-  report from `/e/`; `/a/` 404s; OG unfurl) pending.
+  typecheck/lint/test (201)/build green. ADR-0010 (supersedes the ADR-0004 two-token split).
+  **Chrome-MCP verified on prod:** an old `/a/[share_token]` URL now **404s** (route gone, deploy live);
+  the single `/e/[qr_token]` event page renders (header → upload → one Share card → gallery); the
+  reworked `get_saved_events` returns `qr_token` (DB-confirmed) and the dashboard **Saved** card links
+  `/e/<32-char qr_token>` (NOT `/a/`, JS-asserted) with a server-presigned cover; and the **host event
+  page now shows ONE link** ("One link does it all." — QR + `https://partyreel.com/e/…` + config-aware
+  "Anyone with this link can view and add photos." + a single "74 views" metric, no Album-link column);
+  and the per-event **OG moved to `/e/`** (the link's `og:image` resolves from
+  `/e/<qr_token>/opengraph-image-…`, `og:title` = the event name). (Other config-aware copy states +
+  report-from-`/e/` are contract-checked/gate-verified — the only live event is the configured demo, so
+  the `!isDemo` report footer can't be exercised on it.)
+- **One-link consolidation — Part 2 (event-page flow redesign) SHIPPED + LIVE-VERIFIED** (commit
+  `d4b0902`). The disjoint flow (share card wedged between upload + gallery; Save in a third spot) is
+  fixed: header (title + host) → a quiet **[Save event] [Invite]** action row → upload (only when
+  accepting) → gallery, contiguous. `GuestShare` became an **Invite trigger + dialog** (QR + copy +
+  share + download folded behind one button — no inline QR mid-page); **uploads-off removes the upload
+  panel entirely** (the view-only state of the one page) with a quiet "uploads closed" line; and the
+  page RSC now gates `needsEmailVerification` on `accepting_uploads` too (**uploads-off wins → view-only,
+  never a verify prompt** — fixes a latent require_email-on-a-closed-event awkwardness). All
+  poll/optimistic/session machinery preserved; press feedback (`active:scale`) on the row buttons.
+  typecheck/lint/test (201)/build green. **Chrome-MCP cross-state matrix on prod (a spun-up non-demo QA
+  event, configs flipped via the Supabase MCP, signed-out + signed-in + 402px mobile):** open+uploads-on
+  (row + contiguous upload→gallery), the Invite dialog (QR + copy/share/download), uploads-off
+  (view-only line, no panel), password (gate → unlock → full + row), private (locked screen),
+  require_email+uploads-on (VerifyEmailPrompt in the upload slot, gallery visible), **require_email +
+  uploads-off (NO verify prompt → view-only, the precedence fix)**, signed-out Save (create-account
+  dialog), and demo (Save hidden, Invite shown, gallery tiles contiguous). The config rework + the
+  one-link follow-on are now fully COMPLETE. **Part 2's locked-but-deferred items:** none — the redesign
+  shipped as the chosen "Quiet action row" with the post-upload `SaveAccountPrompt` kept.
 - **Host-side media upload (two-way media flow) — SHIPPED + LIVE-VERIFIED on partyreel.com**
   (commit `06554ff`). The host can now add media directly from the event page (e.g. a photographer's
   batch), not just curate guest uploads. New `create_media_as_host` + `get_host_upload_context` RPCs

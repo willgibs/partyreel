@@ -45,8 +45,13 @@ event" is just `accepting_uploads = false`, a *state* of the one page rather tha
 - Old `/a/[share_token]` links 404 — acceptable (pre-launch, only disposable test data existed).
 - The `link_hit_kind` enum keeps the now-unused `album_view` value (don't drop enum values; the admin
   metrics still read historical counts); the host page records only `qr_scan`.
-- **Part 2 (deferred): the event-page flow redesign** — header → a polished share/QR/save action
-  cluster → upload → gallery, so the single page feels intentional in both collecting and view-only
-  states. Part 1 (this ADR) is the data/routing consolidation only; the `/e/` UI is otherwise unchanged.
+- **Part 2 (SHIPPED, commit `d4b0902`): the event-page flow redesign** — header → a quiet
+  `[Save event] [Invite]` action row → upload (only when accepting) → gallery, contiguous. `GuestShare`
+  became an Invite trigger + dialog (QR + copy/share/download behind one button); uploads-off removes the
+  upload panel entirely (the view-only state) with a quiet "uploads closed" line; and the page RSC gates
+  `needsEmailVerification` on `accepting_uploads` too (uploads-off wins → view-only, never a verify
+  prompt). Shipped as the chosen "Quiet action row" (QR folded into the Invite dialog, not inline);
+  the post-upload `SaveAccountPrompt` was kept. Live-verified across the full visibility × upload × auth
+  matrix on prod. The poll/optimistic/session machinery is unchanged.
 - Extends ADR-0004 (capability tokens stay) and refines ADR-0007 (visibility) + ADR-0009 (saved
   events now link to `/e/`).
