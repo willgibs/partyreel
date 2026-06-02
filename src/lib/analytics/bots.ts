@@ -3,7 +3,7 @@
  *
  * `link_stats` counters can't be cleaned retroactively, so we skip recording
  * non-human traffic AT INGEST. This targets the high-volume offenders: search
- * crawlers + the chat/social unfurlers that fetch `/a/[token]` (and its OG image)
+ * crawlers + the chat/social unfurlers that fetch `/e/[token]` (and its OG image)
  * whenever a share link is pasted. It's a pragmatic filter to keep counts
  * meaningful — NOT a security boundary, and not exhaustive.
  */

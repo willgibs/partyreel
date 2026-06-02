@@ -26,6 +26,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
+- **One-link consolidation — Part 1 (data + routing) BUILT + gate-green; deploy + live verify pending.**
+  Collapsed the two-token model (the `/e/[qr_token]` event page + the separate `/a/[share_token]` album)
+  to ONE link per event: **`/e/[qr_token]`**, where the host's configs
+  (`visibility`/`accepting_uploads`/`require_email`) drive what a guest sees ("view-only album after the
+  event" = `accepting_uploads=false`). Migration `…183720_one_link_consolidation`:
+  `create_report`/`verify_event_password`/`save_event` re-keyed to `qr_token`, `get_saved_events` returns
+  `qr_token`, **`get_public_album` DROPPED + the `share_token` column DROPPED**. Advisors: **anon list
+  9 → 8** (get_public_album gone), no new entries; rolled-back RPC contract check passed. Deleted `/a/`
+  (page + OG) + moved the per-event OG to `/e/`; saved cards now link `/e/`; the report control moved to
+  `/e/`; the host dashboard + create-wizard show ONE link + **config-aware copy**; `MakeYourOwn` retired.
+  typecheck/lint/test (201)/build green. ADR-0010 (supersedes the ADR-0004 two-token split). **Part 2
+  (the event-page flow redesign — header → share/QR/save action cluster → upload → gallery) is its own
+  next round.** Deploy + live verify (one link across open/password/private/uploads-off; saved → `/e/`;
+  report from `/e/`; `/a/` 404s; OG unfurl) pending.
 - **Host-side media upload (two-way media flow) — SHIPPED + LIVE-VERIFIED on partyreel.com**
   (commit `06554ff`). The host can now add media directly from the event page (e.g. a photographer's
   batch), not just curate guest uploads. New `create_media_as_host` + `get_host_upload_context` RPCs

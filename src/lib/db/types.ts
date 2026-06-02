@@ -107,7 +107,6 @@ export type Database = {
           qr_style: string
           qr_token: string
           require_email: boolean
-          share_token: string
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -126,7 +125,6 @@ export type Database = {
           qr_style?: string
           qr_token?: string
           require_email?: boolean
-          share_token?: string
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -145,7 +143,6 @@ export type Database = {
           qr_style?: string
           qr_token?: string
           require_email?: boolean
-          share_token?: string
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -705,7 +702,7 @@ export type Database = {
         Returns: Json
       }
       create_report: {
-        Args: { p_media_id?: string; p_reason?: string; p_share_token: string }
+        Args: { p_media_id?: string; p_qr_token: string; p_reason?: string }
         Returns: Json
       }
       get_event_by_qr_token: {
@@ -743,7 +740,6 @@ export type Database = {
         }
         Returns: Json
       }
-      get_public_album: { Args: { p_share_token: string }; Returns: Json }
       get_saved_events: {
         Args: never
         Returns: {
@@ -754,8 +750,8 @@ export type Database = {
           has_password: boolean
           host_display_name: string
           name: string
+          qr_token: string
           saved_at: string
-          share_token: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
@@ -781,7 +777,7 @@ export type Database = {
         Returns: undefined
       }
       save_event: {
-        Args: { p_qr_token?: string; p_share_token?: string }
+        Args: { p_qr_token: string }
         Returns: string
       }
       set_event_password: {
@@ -797,11 +793,7 @@ export type Database = {
         }[]
       }
       verify_event_password: {
-        Args: {
-          p_password?: string
-          p_qr_token?: string
-          p_share_token?: string
-        }
+        Args: { p_password?: string; p_qr_token: string }
         Returns: string
       }
     }

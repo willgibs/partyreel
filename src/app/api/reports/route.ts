@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { createReport } from "@/lib/db/mutations/report";
 import { reportSchema } from "@/lib/validation/report";
 
-// POST a public report against an album (or a specific item). Anonymous: the
-// share_token in the body is the capability (ADR-0004); create_report validates
+// POST a public report against an event (or a specific item). Anonymous: the
+// qr_token in the body is the capability (ADR-0004); create_report validates
 // it inside the RPC. INSERT-ONLY — reporting never hides content (anti-griefing),
 // an operator reviews via /admin.
 export async function POST(request: Request) {
@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { share_token, media_id, reason } = parsed.data;
+  const { qr_token, media_id, reason } = parsed.data;
   const result = await createReport({
-    shareToken: share_token,
+    qrToken: qr_token,
     mediaId: media_id ?? null,
     reason: reason || null,
   });

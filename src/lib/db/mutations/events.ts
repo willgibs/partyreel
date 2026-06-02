@@ -48,8 +48,8 @@ export async function createEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // NEVER set qr_token/share_token: the DB defaults generate the unguessable
-  // capability tokens. Empty strings normalize to null for the nullable columns.
+  // NEVER set qr_token: the DB default generates the unguessable capability token.
+  // Empty strings normalize to null for the nullable columns.
   const insert: TablesInsert<"events"> = {
     host_id: user.id,
     name: values.name,

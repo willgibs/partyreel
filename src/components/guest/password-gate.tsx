@@ -9,18 +9,15 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type PasswordGateProps = {
+  // The event's qr_token (the single link); the unlock cookie is event-scoped.
   token: string;
-  // qr for the /e/ join page, share for the /a/ album (the cookie is event-scoped,
-  // so unlocking via either reveals both).
-  tokenKind: "qr" | "share";
   eventName: string;
-  // /a/ renders on the always-dark gallery surface; /e/ on the themed guest surface.
+  // Kept for the polished view-only redesign (Part 2); /e/ uses the default light.
   variant?: "light" | "dark";
 };
 
 export function PasswordGate({
   token,
-  tokenKind,
   eventName,
   variant = "light",
 }: PasswordGateProps) {
@@ -39,11 +36,7 @@ export function PasswordGate({
       const res = await fetch("/api/guests/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          tokenKind === "qr"
-            ? { qr_token: token, password }
-            : { share_token: token, password },
-        ),
+        body: JSON.stringify({ qr_token: token, password }),
       });
       // Wait for the Set-Cookie before refreshing so the RSC sees it.
       if (res.ok) {
@@ -75,7 +68,7 @@ export function PasswordGate({
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
-          This album is password protected. Enter the password the host shared
+          This event is password protected. Enter the password the host shared
           to view it.
         </p>
       </div>
@@ -91,7 +84,7 @@ export function PasswordGate({
             placeholder="Password"
             autoComplete="off"
             autoFocus
-            aria-label="Album password"
+            aria-label="Event password"
             aria-invalid={error ? true : undefined}
             className={cn(
               "pr-10",
@@ -128,7 +121,7 @@ export function PasswordGate({
           className="w-full active:scale-[0.99]"
           disabled={pending || !password.trim()}
         >
-          {pending ? "Unlocking…" : "Unlock album"}
+          {pending ? "Unlocking…" : "Unlock"}
         </Button>
       </form>
     </div>

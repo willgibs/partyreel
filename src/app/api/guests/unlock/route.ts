@@ -1,5 +1,5 @@
 /**
- * Password-unlock for a protected album. Body: { qr_token? | share_token?, password }.
+ * Password-unlock for a protected event. Body: { qr_token, password }.
  * Verifies the password via the anon `verify_event_password` RPC (which returns the
  * event id on a bcrypt match, else null) and, on success, sets the signed httpOnly
  * unlock cookie. The client then router.refresh()es so the RSC re-resolves with the
@@ -37,12 +37,11 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { qr_token, share_token, password } = parsed.data;
+  const { qr_token, password } = parsed.data;
 
   const supabase = await createClient();
-  // Send exactly one token (the RPC rejects both/neither). The other defaults to null.
   const { data: eventId, error } = await supabase.rpc("verify_event_password", {
-    ...(qr_token ? { p_qr_token: qr_token } : { p_share_token: share_token }),
+    p_qr_token: qr_token,
     p_password: password,
   });
 

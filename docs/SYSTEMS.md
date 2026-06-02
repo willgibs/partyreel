@@ -42,7 +42,7 @@ service-role / webhook only.
 
 ## Events & the create flow
 
-`events` (host_id, opaque `qr_token`/`share_token` (DB-generated), `moderation_mode`,
+`events` (host_id, opaque `qr_token` (DB-generated; the single event link, ADR-0010), `moderation_mode`,
 `visibility` (`open|password|private`, ADR-0007) + `event_password_hash` (bcrypt; never
 client-read), `accepting_uploads`, `require_email`, `qr_style`,
 `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
@@ -97,17 +97,16 @@ pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guest
 **optimistically** at the top (local blob, deduped against the poll by media id —
 [merge-gallery-items.ts](../src/lib/guest/merge-gallery-items.ts)). Gallery media come from the new
 **`get_event_media_by_qr_token`** RPC (approved, newest-first, gated `visibility='open'` — a
-password event's media comes from the server admin-read instead); it's qr-keyed (the share-token `/a/` album is separate + unchanged). The in-page
+password event's media comes from the server admin-read instead); it's qr-keyed (the single event link; ADR-0010). The in-page
 **share = the JOIN link** ([guest-share.tsx](../src/components/guest/guest-share.tsx)), so invited
 guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2/](../src/lib/r2/)).
 
 ## Galleries
 
-**Three surfaces share `MediaGrid` + the lightbox:** the host event page, the public album
-**`/a/[token]`** (approved-only), and the **guest event page `/e/[token]`** (live + polling — see
-"Guest join"). All **presign R2 keys server-side** (`presignDownload`, 1 h TTL; via the shared
+**Two surfaces share `MediaGrid` + the lightbox:** the host event page and the **guest event page
+`/e/[token]`** (live + polling — see "Guest join"; with uploads off it reads as a view-only album). All **presign R2 keys server-side** (`presignDownload`, 1 h TTL; via the shared
 `toGridItems`) and are `force-dynamic`; raw R2 keys/URLs are NEVER exposed to the browser (ADR-0003).
-The album uses the always-dark `gallery` surface so media is the hero — it stays dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
+The always-dark `gallery` surface (retained for the Part 2 view-only redesign; ADR-0010) keeps media the hero — it stays dark in **every** theme (the `--gallery` tokens are never overridden in `.dark`), independent of the **global Light/Dark/System theme toggle** in the host account menu ([user-menu.tsx](../src/components/app/user-menu.tsx), next-themes `.dark` class). Tiles open a shared **lightbox**
 ([media-lightbox.tsx](../src/components/shared/media-lightbox.tsx)) — full-screen view, ←/→ +
 keyboard nav, chevrons, **mobile swipe** (peek-the-neighbor; see the lightbox gotchas in CLAUDE.md),
 video playback, and a **Save** that downloads the original. **Download = a SECOND
@@ -117,7 +116,7 @@ browser `download` attr can't force a cross-origin R2 save — the signed dispos
 bucket-CORS change). Both grids (public `MediaGrid` + `HostMediaGrid`) wrap each tile in a button
 that opens the lightbox; **video tiles render controls-less thumbnails** (a controls-less `<video>`
 is non-interactive → button-legal; it plays with controls inside the lightbox). **No new security
-surface** — same approved media, same capability boundary (share_token / host RLS). Host **bulk-zip
+surface** — same approved media, same capability boundary (qr_token / host RLS). Host **bulk-zip
 download is deferred** (ROADMAP).
 
 ## Moderation & curation
@@ -383,10 +382,10 @@ token equality).
 
 ## Growth loop
 
-Branded share pages + a `MakeYourOwn` "make your own Partyreel" CTA on the album + post-upload
-state. **SEO/OG**: `metadataBase` + `next/og` code-generated images (site-wide + per-event album
-card), `sitemap.ts`/`robots.ts` (marketing only); `/a/` + `/e/` emit OG so links unfurl but stay
-**`robots noindex`** (opaque tokens must never be indexed). **Guest email capture**: a soft,
+Branded share pages + the post-upload growth state. **SEO/OG**: `metadataBase` + `next/og`
+code-generated images (site-wide + a per-event card at `(guest)/e/[token]/opengraph-image.tsx`),
+`sitemap.ts`/`robots.ts` (marketing only); `/e/` emits OG so the one link unfurls but stays
+**`robots noindex`** (the opaque token must never be indexed). **Guest email capture**: a soft,
 one-time post-upload prompt → `capture_guest_email` RPC sets `guests.email` + upserts the durable
 `newsletter_signups` list (survives event/guest deletion).
 
@@ -394,20 +393,20 @@ one-time post-upload prompt → `capture_guest_email` RPC sets `guests.email` + 
 
 A signed-in visitor can SAVE any event to their dashboard ("Saved" tab) — the FREE
 account-creation growth payoff (ADR-0009). Augments the anonymous capability flow; the upload
-pipeline is untouched. **Save = `save_event(p_qr_token, p_share_token)`** (authenticated-only
+pipeline is untouched. **Save = `save_event(p_qr_token)`** (authenticated-only
 SECURITY DEFINER): resolves the event from the page's TOKEN (never a client id), refuses
 `private`/your-own events, idempotent. Status-check + **unsave = plain per-user RLS**
 (`saved_events_owner_all`, `auth.uid() = user_id`) from the browser client. **Read =
 `get_saved_events()`** (authenticated-only SECURITY DEFINER, `auth.uid()`-based, no `p_user_id`)
 — reads non-owned events' names/covers (so it MUST be DEFINER), MASKS by visibility (cover NULL
 for password/private; private fully blanked + `accessible=false`; deleted excluded), and returns
-only **`share_token`, never `qr_token`** (the capability split) → saved cards link to
-`/a/[share_token]`. Covers presigned server-side. Both RPCs sit in the authenticated advisor list
+the event's **`qr_token`** (the single link; ADR-0010) → saved cards link to
+`/e/[qr_token]`. Covers presigned server-side. Both RPCs sit in the authenticated advisor list
 (0029) ONLY, never anon (0028); `saved_events` is RLS-policied. The **Save button**
 ([save-event-button.tsx](src/components/guest/save-event-button.tsx)) is the always-visible lever
 (shown to signed-out visitors too → a "create a free account to save" dialog: shared
 `<EmailSignIn>` + Google; a `pr_pending_save_` localStorage flag finishes the save after a redirect
-sign-in), mounted on the `/e/` header + the `/a/` album footer. The post-upload
+sign-in), mounted on the `/e/` header (one link now; ADR-0010). The post-upload
 `<SaveAccountPrompt>` replaced the newsletter `EmailCapturePrompt` (account-first; the newsletter
 opt-in folded into the save dialog). Dashboard = "Your events" + "Saved" tabs over a shared
 cover-art `<EventCard>` (owned covers via one batched newest-approved-media query).

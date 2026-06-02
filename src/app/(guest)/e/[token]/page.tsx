@@ -121,7 +121,7 @@ export default async function GuestEventPage({
     return (
       <div className="flex min-h-full flex-1 flex-col">
         <GuestHeader />
-        <PasswordGate token={token} tokenKind="qr" eventName={event.name} />
+        <PasswordGate token={token} eventName={event.name} />
       </div>
     );
   }

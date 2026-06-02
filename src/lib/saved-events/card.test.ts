@@ -11,7 +11,7 @@ function row(overrides: Partial<SavedEventRow>): SavedEventRow {
     event_date: "2026-07-04",
     visibility: "open",
     has_password: false,
-    share_token: "share123",
+    qr_token: "qr123",
     cover_key: "events/e1/cover.jpg",
     accessible: true,
     ...overrides,
@@ -22,7 +22,7 @@ describe("savedEventCardProps", () => {
   it("open event: links to the album, shows cover + byline", () => {
     const card = savedEventCardProps(row({}), "https://cdn/cover.jpg");
     expect(card.accessible).toBe(true);
-    expect(card.href).toBe("/a/share123"); // share_token, NEVER qr_token
+    expect(card.href).toBe("/e/qr123"); // the single event link
     expect(card.name).toBe("Summer Party");
     expect(card.coverUrl).toBe("https://cdn/cover.jpg");
     expect(card.byline).toBe("Hosted by Alex");
@@ -36,7 +36,7 @@ describe("savedEventCardProps", () => {
       null,
     );
     expect(card.accessible).toBe(true);
-    expect(card.href).toBe("/a/share123");
+    expect(card.href).toBe("/e/qr123");
     expect(card.name).toBe("Summer Party");
     expect(card.coverUrl).toBeNull();
     expect(card.passwordProtected).toBe(true);
@@ -51,7 +51,7 @@ describe("savedEventCardProps", () => {
         name: null,
         host_display_name: null,
         event_date: null,
-        share_token: null,
+        qr_token: null,
         cover_key: null,
       }),
       "https://cdn/should-not-appear.jpg",

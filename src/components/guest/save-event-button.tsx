@@ -63,16 +63,14 @@ function GoogleIcon() {
 export function SaveEventButton({
   eventId,
   qrToken,
-  shareToken,
   tone = "default",
   sessionToken,
   offerNewsletter = false,
   onSaved,
 }: {
   eventId: string;
-  qrToken?: string;
-  shareToken?: string;
-  /** "gallery" = styled for the always-dark album surface. */
+  qrToken: string;
+  /** "gallery" = a dark-surface variant kept for the Part 2 redesign. */
   tone?: "default" | "gallery";
   /** Guest capability token — enables the optional newsletter opt-in (post-upload card). */
   sessionToken?: string;
@@ -92,7 +90,6 @@ export function SaveEventButton({
     const supabase = createClient();
     const { data, error } = await supabase.rpc("save_event", {
       p_qr_token: qrToken,
-      p_share_token: shareToken,
     });
     if (error || !data) return false;
     setSaved(true);
@@ -100,7 +97,7 @@ export function SaveEventButton({
       localStorage.removeItem(pendingKey(eventId));
     onSaved?.();
     return true;
-  }, [eventId, qrToken, shareToken, onSaved]);
+  }, [eventId, qrToken, onSaved]);
 
   // Best-effort newsletter capture (post-upload card only). The verified account's email
   // goes on the marketing list via the existing capture_guest_email RPC (keyed by the

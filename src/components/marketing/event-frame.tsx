@@ -26,7 +26,7 @@ export function eventFrame(
       return (
         <AlbumFrame
           className={hero ? "mt-12 w-full max-w-3xl" : "w-full"}
-          label={slug ? `partyreel.com/a/${slug}` : undefined}
+          label={slug ? `partyreel.com/e/${slug}` : undefined}
         />
       );
     case "reel":

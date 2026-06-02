@@ -32,13 +32,12 @@ export type ActionResult =
   | { ok: false; code: ActionErrorCode; message: string };
 
 // The created event's host-facing essentials, returned to the create wizard so
-// its share step can build the real (scannable) QR + album URL. These tokens are
+// its share step can build the real (scannable) QR + event link. The qr_token is
 // already shown to the host on the event page — safe to hand back here.
 export type CreatedEvent = {
   id: string;
   name: string;
   qr_token: string;
-  share_token: string;
   qr_style: string;
 };
 
@@ -55,7 +54,7 @@ function firstIssue(message: string | undefined): ActionResult {
 }
 
 // The create wizard (Phase 6 cut #2) is the sole create path: it RETURNS the new
-// event (no redirect) so the wizard's share step can render the real QR + album
+// event (no redirect) so the wizard's share step can render the real QR + event
 // link. The wizard owns navigation ("Go to your event").
 export async function createEventInWizard(
   input: CreateEventInput,
@@ -82,7 +81,6 @@ export async function createEventInWizard(
       id: e.id,
       name: e.name,
       qr_token: e.qr_token,
-      share_token: e.share_token,
       qr_style: e.qr_style,
     },
   };

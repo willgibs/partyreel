@@ -18,12 +18,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Discreet album-level report control on the public gallery. Anonymous: it POSTs
-// the album's share_token (its capability) + an optional reason to /api/reports.
-// Reporting NEVER hides content — it just queues an operator review (anti-griefing
-// — see create_report). The trigger is muted to fit the always-dark gallery; the
-// Dialog itself renders on the default themed surface via the portal.
-export function ReportDialog({ shareToken }: { shareToken: string }) {
+// Discreet report control on the event page. Anonymous: it POSTs the event's
+// qr_token (its capability) + an optional reason to /api/reports. Reporting NEVER
+// hides content — it just queues an operator review (anti-griefing — see
+// create_report). The trigger is a muted link; the Dialog renders on the default
+// themed surface via the portal.
+export function ReportDialog({ qrToken }: { qrToken: string }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -35,7 +35,7 @@ export function ReportDialog({ shareToken }: { shareToken: string }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            share_token: shareToken,
+            qr_token: qrToken,
             reason: reason.trim() || undefined,
           }),
         });
@@ -64,14 +64,14 @@ export function ReportDialog({ shareToken }: { shareToken: string }) {
         <Button
           variant="ghost"
           size="sm"
-          className="text-gallery-muted hover:bg-white/10 hover:text-gallery-foreground"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          <Flag /> Report this album
+          <Flag /> Report
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Report this album</DialogTitle>
+          <DialogTitle>Report this event</DialogTitle>
           <DialogDescription>
             Tell us what&rsquo;s wrong and our team will review it. Reports are
             anonymous.
@@ -90,7 +90,7 @@ export function ReportDialog({ shareToken }: { shareToken: string }) {
             maxLength={2000}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="What's the problem with this album?"
+            placeholder="What's the problem here?"
           />
         </div>
         <DialogFooter>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye, QrCode } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
@@ -63,8 +63,8 @@ export default async function EventDetailPage({ params }: PageProps) {
   // Build the guest-facing absolute URLs server-side. The tokens are the
   // capability (ADR-0004); they come straight from the row the DB generated.
   const siteUrl = await getSiteUrl();
-  const joinUrl = `${siteUrl}/e/${event.qr_token}`;
-  const albumUrl = `${siteUrl}/a/${event.share_token}`;
+  // One link per event (ADR-00010): the QR encodes it, and the host shares it.
+  const eventLink = `${siteUrl}/e/${event.qr_token}`;
 
   // Live gallery — presign each object key server-side (never expose raw keys).
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
@@ -98,6 +98,20 @@ export default async function EventDetailPage({ params }: PageProps) {
   const pendingItems = galleryItems.filter((m) => m.status === "pending");
   const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
+  // One "views" metric now (the album/join split is gone); sum keeps historical counts.
+  const views = linkStats.qrScans + linkStats.albumViews;
+  // Config-aware: what a guest can do with the link, driven by visibility + uploads.
+  const accessLine =
+    event.visibility === "private"
+      ? "Private. Only you can open this link."
+      : event.visibility === "password"
+        ? event.accepting_uploads
+          ? "Anyone with this link and the password can view and add photos."
+          : "Anyone with this link and the password can view the photos. Uploads are closed."
+        : event.accepting_uploads
+          ? "Anyone with this link can view and add photos."
+          : "Anyone with this link can view the photos. Uploads are closed.";
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -123,52 +137,29 @@ export default async function EventDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>Share with guests</CardTitle>
           <CardDescription>
-            Print or display the QR code so guests can join, or send them the
-            album link.
+            Print or display the QR, or send guests the link. One link does it
+            all.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-8 sm:grid-cols-2 sm:items-start">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Guest join QR</p>
-            <p className="text-sm text-muted-foreground">
-              Scanning opens the upload page. No app, no account.
-            </p>
-            <div className="flex flex-col items-center gap-3 pt-2">
-              <EventQr
-                joinUrl={joinUrl}
-                eventName={event.name}
-                style={resolveQrPreset(event.qr_style)}
-              />
-              <QrDesignerDialog
-                eventId={event.id}
-                joinUrl={joinUrl}
-                current={event.qr_style}
-              />
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <QrCode className="size-3.5" />
-                {linkStats.qrScans} join-link{" "}
-                {linkStats.qrScans === 1 ? "visit" : "visits"}
-              </p>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col items-center gap-3">
+            <EventQr
+              joinUrl={eventLink}
+              eventName={event.name}
+              style={resolveQrPreset(event.qr_style)}
+            />
+            <QrDesignerDialog
+              eventId={event.id}
+              joinUrl={eventLink}
+              current={event.qr_style}
+            />
           </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Album link</p>
-            <p className="text-sm text-muted-foreground">
-              {event.visibility === "open"
-                ? "Anyone with this link can view the album."
-                : event.visibility === "password"
-                  ? "Anyone with this link and the password can view the album."
-                  : "While private, only you can view the album. The link stays locked."}
-            </p>
-            <div className="pt-2">
-              <CopyShareLink url={albumUrl} />
-            </div>
-            <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
-              <Eye className="size-3.5" />
-              {linkStats.albumViews} album{" "}
-              {linkStats.albumViews === 1 ? "view" : "views"}
-            </p>
-          </div>
+          <CopyShareLink url={eventLink} />
+          <p className="text-sm text-muted-foreground">{accessLine}</p>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Eye className="size-3.5" />
+            {views} {views === 1 ? "view" : "views"}
+          </p>
         </CardContent>
       </Card>
 

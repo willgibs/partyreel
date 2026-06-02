@@ -614,20 +614,31 @@ keyboard or Dismiss it.
   **"Email OTP Length" setting MUST equal `OTP_LENGTH`** in
   [email-sign-in.tsx](src/components/auth/email-sign-in.tsx) (it was 8 vs a 6-slot input → verify would
   silently fail; both are 6 now, Supabase's email-OTP minimum).
+- **ONE link per event (one-link consolidation; ADR-0010 — SUPERSEDES the two-token split).** Every
+  event has a SINGLE link **`/e/[qr_token]`** (what the QR encodes). The `/a/[share_token]` album, the
+  `events.share_token` column, and `get_public_album` are **GONE**; `create_report` /
+  `verify_event_password` / `save_event` all key off `qr_token`, and `get_saved_events` returns
+  `qr_token`. What a guest sees is driven by CONFIGS: `visibility` gates access (open/password/private),
+  `accepting_uploads` gates contributing, `require_email` gates identity — "view-only album after the
+  event" is just `accepting_uploads=false`, a STATE of the one page. **The ADR-0004 capability split is
+  RETIRED** (one token; upload is config-gated, not token-gated) — any older gotcha below mentioning
+  `/a/`, `share_token`, "the album page", or "share_token vs qr_token must not derive" is SUPERSEDED.
+  Per-event OG now lives at `(guest)/e/[token]/opengraph-image.tsx`; the host dashboard + create-wizard
+  show ONE link + config-aware copy; `share-urls.ts` exposes a single `eventUrl`. **Part 2 (deferred):
+  the event-page flow redesign** (header → a share/QR/save action cluster → upload → gallery).
 - **Saved events (config rework Phase 3 — accounts/growth; ADR-0009).** A signed-in visitor can SAVE
   an event to their dashboard ("Saved" tab). It is **FREE** (the account-creation growth driver), and
   it AUGMENTS the anonymous capability flow (ADR-0004) — the upload pipeline is untouched. Load-bearing:
-  - **Save = the `save_event(p_qr_token, p_share_token)` capability RPC** (authenticated-only SECURITY
+  - **Save = the `save_event(p_qr_token)` capability RPC** (authenticated-only SECURITY
     DEFINER): resolves the event from the page's TOKEN (never a client `event_id`), **refuses `private`
     + your-own events** (owner → no-op), idempotent. Status-check + **unsave are plain per-user RLS**
     (`saved_events_owner_all`, `auth.uid() = user_id`) straight from the browser client — no API route.
   - **`get_saved_events()` (authenticated-only SECURITY DEFINER, `auth.uid()`-based, NO `p_user_id`)**
     reads the names/covers of events the saver does NOT own → it MUST be SECURITY DEFINER. It MASKS by
     visibility: `open` → cover; **`password` → cover NULL** (gated media must NEVER leak as a thumbnail);
-    `private` → all NULL + `accessible=false`; deleted → excluded. It returns ONLY **`share_token`,
-    NEVER `qr_token`** (handing a share-only saver the upload token would escalate view→upload — the
-    capability split). Saved cards link to **`/a/[share_token]`**. Cover keys are **presigned
-    server-side** (ADR-0003); raw R2 keys never reach the browser.
+    `private` → all NULL + `accessible=false`; deleted → excluded. It returns the event's **`qr_token`**
+    (the single link; ADR-0010), masked to null for private. Saved cards link to **`/e/[qr_token]`**.
+    Cover keys are **presigned server-side** (ADR-0003); raw R2 keys never reach the browser.
   - **Advisors:** `save_event` + `get_saved_events` are the only adds — both in the **authenticated
     (0029)** list, NEVER **anon (0028)**; `saved_events` has a policy (no `rls_enabled_no_policy` INFO).
     +2 authenticated, 0 anon (asserted).
@@ -790,15 +801,15 @@ src/app/
   (marketing)/            # public: /, /pricing, /privacy, /terms   → MarketingHeader/Footer
   (auth)/                 # public: /login, /auth/callback          → no gate (see below)
   (app)/                  # GATED: /dashboard …  layout.tsx runs getUser() → redirect /login
-  (guest)/                # token routes: /e/[token] (join+upload), /a/[token] (public album)
+  (guest)/                # token route: /e/[token] — the single event link (view+upload, config-driven)
   api/                    # route handlers — most are 501 stubs until their phase
 ```
 
 - **Login lives in `(auth)`, not `(app)`, on purpose.** The `(app)` layout
   redirects anon users to `/login`; if `/login` were under that gate it would
   redirect to itself forever.
-- The **public album `/a/[token]` uses the always-dark `gallery` surface**
-  (`bg-gallery text-gallery-foreground`) so media is the hero in any theme.
+- The always-dark `gallery` surface (`bg-gallery text-gallery-foreground`, media-as-hero) is
+  RETAINED for the Part 2 view-only redesign; the `/a/` album it used to power is removed (ADR-0010).
 
 ---
 
@@ -836,8 +847,9 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` flags the 9 capability-token RPCs as ACCEPTED BY DESIGN — do not
-"fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
+**`get_advisors` flags the 8 capability-token RPCs as ACCEPTED BY DESIGN — do not
+"fix" them.** (`get_public_album` was REMOVED in the one-link consolidation — ADR-0010, dropping the
+anon list from 9 to 8.) It reports `get_event_by_qr_token`,
 `create_guest`, `create_media`, `get_upload_context` (Phase 2), `create_report`
 (Phase 3), `capture_guest_email` (Phase 6 — guest email capture),
 `get_event_media_by_qr_token` (Phase 6 — unified guest event page), and

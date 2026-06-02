@@ -8,8 +8,8 @@
  * Defaults below MIRROR the `events` column defaults in
  * supabase/migrations/…_init_schema.sql, so an event created with only a name
  * lands identically whether validated on the client or re-parsed on the server.
- * `qr_token`/`share_token` are intentionally ABSENT — the DB generates those and
- * the app must never supply them.
+ * `qr_token` is intentionally ABSENT — the DB generates it and the app must never
+ * supply it.
  */
 import { z } from "zod";
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type CopyShareLinkProps = {
-  /** Public album URL (…/a/<share_token>) guests can view without an account. */
+  /** The event link (…/e/<qr_token>) guests open without an account. */
   url: string;
 };
 

@@ -24,14 +24,14 @@ export type SavedEventRow = {
   event_date: string | null;
   visibility: Database["public"]["Enums"]["event_visibility"];
   has_password: boolean;
-  share_token: string | null;
+  qr_token: string | null;
   cover_key: string | null;
   accessible: boolean;
 };
 
 export type SavedEventCardData = {
   eventId: string;
-  /** `/a/[share_token]` when accessible, else null (the card renders disabled). */
+  /** `/e/[qr_token]` when accessible, else null (the card renders disabled). */
   href: string | null;
   name: string;
   dateLabel: string;
@@ -50,9 +50,9 @@ export function savedEventCardProps(
   return {
     eventId: row.event_id,
     accessible,
-    // Capability split: link to the ALBUM (share_token), never the qr_token. Private
-    // saves resolve to null → a disabled card.
-    href: accessible && row.share_token ? `/a/${row.share_token}` : null,
+    // One link per event: deep-link to the event page (qr_token). Private saves
+    // resolve to null → a disabled card.
+    href: accessible && row.qr_token ? `/e/${row.qr_token}` : null,
     name: accessible ? (row.name ?? "Untitled event") : "Private event",
     dateLabel: accessible
       ? row.event_date

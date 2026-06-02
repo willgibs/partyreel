@@ -16,7 +16,7 @@ import {
   resolveQrPreset,
   type QrStyleKey,
 } from "@/lib/constants/qr-presets";
-import { eventShareUrls, previewJoinUrl } from "@/lib/events/share-urls";
+import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
 import {
   createEventSchema,
   type CreateEventInput,
@@ -57,7 +57,7 @@ type CreateEventWizardProps = {
 // The streamlined create flow (Phase 6 cut #2): details → QR design → share.
 // Everything is collected client-side and the event is created ONCE, at commit
 // (end of the design step), so nothing is persisted until the host commits (no
-// abandoned events). The share step needs the real qr_token/share_token, so this
+// abandoned events). The share step needs the real qr_token, so this
 // uses createEventInWizard (which RETURNS the event) rather than redirecting on
 // create. Only `name` is required — the rest is optional/defaulted.
 export function CreateEventWizard({
@@ -83,7 +83,9 @@ export function CreateEventWizard({
   // picker's selection reactive and satisfies the react-hooks compiler lint.
   const qrStyle = (useWatch({ control: form.control, name: "qr_style" }) ??
     DEFAULT_QR_PRESET) as QrStyleKey;
-  const shareUrls = createdEvent ? eventShareUrls(siteUrl, createdEvent) : null;
+  const eventLink = createdEvent
+    ? eventUrl(siteUrl, createdEvent.qr_token)
+    : null;
 
   async function goToDesign() {
     // Only the name gates progress; validate just it before advancing.
@@ -269,7 +271,7 @@ export function CreateEventWizard({
           </>
         )}
 
-        {step === 3 && createdEvent && shareUrls && (
+        {step === 3 && createdEvent && eventLink && (
           <>
             <CardContent className="space-y-5">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
@@ -278,22 +280,22 @@ export function CreateEventWizard({
                   {createdEvent.name} is ready.
                 </span>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Guest join QR</p>
-                <p className="text-sm text-muted-foreground">
-                  Print or display this so guests can join. No app, no account.
-                </p>
-                <div className="pt-1">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Your event link</p>
+                  <p className="text-sm text-muted-foreground">
+                    Print or display the QR, or share the link. Guests just open
+                    it. No app, no account.
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-3 pt-1">
                   <EventQr
-                    joinUrl={shareUrls.joinUrl}
+                    joinUrl={eventLink}
                     eventName={createdEvent.name}
                     style={resolveQrPreset(createdEvent.qr_style)}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Public album link</p>
-                <CopyShareLink url={shareUrls.albumUrl} />
+                <CopyShareLink url={eventLink} />
               </div>
             </CardContent>
             <CardFooter className="justify-end">

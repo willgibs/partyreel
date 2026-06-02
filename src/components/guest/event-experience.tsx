@@ -8,6 +8,7 @@ import {
   GuestUpload,
   type UploadedItem,
 } from "@/components/guest/guest-upload";
+import { ReportDialog } from "@/components/guest/report-dialog";
 import { SaveEventButton } from "@/components/guest/save-event-button";
 import { VerifyEmailPrompt } from "@/components/guest/verify-email-prompt";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -217,6 +218,14 @@ export function EventExperience({
           </p>
         )}
       </section>
+
+      {/* Discreet anonymous report path (the report capability is the qr_token).
+          Hidden in the demo (nothing real to report). */}
+      {!isDemo && (
+        <footer className="mt-8 flex justify-center border-t border-border/60 pt-5">
+          <ReportDialog qrToken={qrToken} />
+        </footer>
+      )}
     </div>
   );
 }

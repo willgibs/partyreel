@@ -1,25 +1,29 @@
 import { ImageResponse } from "next/og";
 
-import { getPublicAlbum } from "@/lib/db/queries/album";
 import { BRAND_HEX } from "@/lib/constants/site";
+import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 
-// Per-event share card: the event name on the branded dark surface. Overrides the
-// site-wide opengraph-image for /a/[token] so a shared album unfurls with the real
-// event name. Private/missing albums fall back to a generic card (no existence leak).
-export const alt = "A Partyreel event album";
+// Per-event share card: the event name on the branded dark surface, so a pasted
+// event link unfurls with the real name. Private/missing events fall back to a
+// generic card (no existence/name leak — same rule as generateMetadata). Overrides
+// the site-wide opengraph-image for /e/[token]. One link per event (ADR-00010).
+export const alt = "A Partyreel event";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const BRAND = BRAND_HEX;
 
-export default async function AlbumOgImage({
+export default async function EventOgImage({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const result = await getPublicAlbum(token);
-  const eventName = result.ok ? result.data.event.name : "A Partyreel event";
+  const result = await getEventByQrToken(token);
+  const eventName =
+    result.ok && result.data.visibility !== "private"
+      ? result.data.name
+      : "A Partyreel event";
   // Guard against pathological names blowing out the layout.
   const heading =
     eventName.length > 70 ? `${eventName.slice(0, 69)}…` : eventName;
