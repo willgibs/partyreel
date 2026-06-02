@@ -49,17 +49,21 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   into "Visibility & access" (`ToggleGroup` + conditional password sub-panel) + "Guest uploads"
   cards; `UNLOCK_COOKIE_SECRET` set in Vercel; verified on a phone (gate + wrong-password reject +
   unlock persists across album + 12 s poll; Private locks; Open unchanged; hash absent from client
-  payloads). ADR-0007. **Phase 2 (uploads & identity) IN PROGRESS — cut 2a (video = Pro-only) BUILT +
-  gate-green, pending live verification.** A free host's event is photos-only for guests AND the host:
+  payloads). ADR-0007. **Phase 2 (uploads & identity) IN PROGRESS — cut 2a (video = Pro-only) SHIPPED +
+  LIVE-VERIFIED** (commit `6bdd0bd`). A free host's event is photos-only for guests AND the host:
   the `tier='free'` video gate sits at the top of the tier-caps block in BOTH `create_media` +
   `create_media_as_host` (authoritative); `get_upload_context`/`get_host_upload_context` gained an
   advisory `video_blocked` flag the presign routes fail fast on; the host upload picker hides video on
   Free (`videosAllowedForTier`) + a read-only "Video uploads" settings status row; pricing reframed
   (video = Pro/Event-Pass). Migration `…_phase2a_video_pro_gate` applied; advisors **UNCHANGED** (no
   new RPC/grant); rolled-back RPC contract checks pass; typecheck/lint/test (202)/build green.
-  **Verify on partyreel.com:** free event → guest video rejected ("photos only") + host video picker
-  hidden; upgrade host → video works; free photo still works. Cuts 2b (remove guest display names) +
-  2c (verified-email OTP + shared `<EmailSignIn>`) next.
+  **Chrome-MCP verified on prod (host `willg97@gmail.com`, Free):** the settings "Video uploads →
+  Photos only" row + upgrade link; the host picker forced to `accept="image/*"` ("Add photos", no
+  video); a guest video presign on the deployed API returned **403 `video_not_allowed`** ("This event
+  accepts photos only.") while a photo presign returned **200** (the guest dropzone still OFFERS video —
+  the tier never leaks; rejection is server-side); pricing page shows Free = "Photos only", paid =
+  "Photos and video". Cuts 2b (remove guest display names) + 2c (verified-email OTP + shared
+  `<EmailSignIn>`) next.
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP
