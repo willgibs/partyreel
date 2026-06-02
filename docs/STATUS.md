@@ -5,7 +5,7 @@
 > pick-up-a-task loop read [`ROADMAP.md`](ROADMAP.md); for how to work in the repo read
 > [`CLAUDE.md`](../CLAUDE.md).
 
-**Updated:** 2026-06-01
+**Updated:** 2026-06-02
 
 ## Where we are
 
@@ -40,7 +40,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   `status='approved'` with `storage_used_bytes` +103 and monthly ingress +103 (exact); the item shows
   in the public `/a/` album (guests see it); console clean. Verification artifact soft-removed (album
   back to 3).
-
+- **Config/permissions rework — Phase 1 (3-state access + Pro password protection) BUILT, pending
+  live verification.** `events.is_public` → an `event_visibility` enum (`open|password|private`);
+  new Pro-only password gate (bcrypt via `set/clear_event_password`; the 9th anon RPC
+  `verify_event_password`; a signed httpOnly unlock cookie; password media served only via a
+  cookie-guarded server admin-read — the anon RPCs gate on `visibility='open'`). Event settings
+  redesigned into "Visibility & access" (3-way `ToggleGroup` selector + conditional password
+  sub-panel) + "Guest uploads" cards. Migration applied + advisors clean (9 anon RPCs; set/clear
+  authenticated-only) + rolled-back RPC contract checks pass; typecheck/lint/test/build green.
+  **Human prereq before live test:** set `UNLOCK_COOKIE_SECRET` in Vercel + `.env.local`. **Verify on
+  partyreel.com:** set an event to Password (Pro host), scan the QR on a phone, unlock, wrong-password
+  rejection, album + 12 s poll stay unlocked; Private fully locks; Open unchanged; confirm the hash is
+  NOT in any client payload. ADR-0007. Phase 1 of a 3-phase rework (master plan: access →
+  uploads/identity → accounts/saved events).
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP

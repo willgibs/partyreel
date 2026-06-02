@@ -246,6 +246,22 @@
       transition: none;
     }
   }
+
+  /* The password sub-panel in event settings + the guest password gate ease in when
+     revealed: opacity + a small rise, @starting-style so it fires on mount only.
+     Never scale from 0. transform+opacity only; reduced motion gets no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-settings-reveal],
+    [data-password-gate] {
+      transition:
+        opacity 220ms var(--ease-emphasis),
+        transform 220ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+  }
 }
 
 /* Help-center / blog article prose theme. Every color points at a design-system token

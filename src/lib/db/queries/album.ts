@@ -30,6 +30,10 @@ export type PublicAlbum = {
     name: string;
     description: string | null;
     event_date: string | null;
+    // 3-state access. For a `password` album the envelope is returned (name shown on
+    // the gate) but `media` is []; the page admin-reads it after the unlock cookie.
+    visibility: Database["public"]["Enums"]["event_visibility"];
+    has_password: boolean;
   };
   media: AlbumMedia[];
 };

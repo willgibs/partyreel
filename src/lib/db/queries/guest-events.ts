@@ -15,7 +15,10 @@ export type GuestEvent = {
   name: string;
   description: string | null;
   moderation_mode: Database["public"]["Enums"]["moderation_mode"];
-  is_public: boolean;
+  // 3-state access (open|password|private). `has_password` says whether a password
+  // is set WITHOUT ever exposing the hash (the RPC returns only the boolean).
+  visibility: Database["public"]["Enums"]["event_visibility"];
+  has_password: boolean;
   accepting_uploads: boolean;
   require_email: boolean;
   require_display_name: boolean;
@@ -55,7 +58,8 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
       name: row.name,
       description: row.description ?? null,
       moderation_mode: row.moderation_mode,
-      is_public: row.is_public,
+      visibility: row.visibility,
+      has_password: row.has_password,
       accepting_uploads: row.accepting_uploads,
       require_email: row.require_email,
       require_display_name: row.require_display_name,

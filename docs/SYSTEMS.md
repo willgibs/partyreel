@@ -43,7 +43,8 @@ service-role / webhook only.
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token`/`share_token` (DB-generated), `moderation_mode`,
-`is_public`, `accepting_uploads`, `require_display_name`/`require_email`, `qr_style`,
+`visibility` (`open|password|private`, ADR-0007) + `event_password_hash` (bcrypt; never
+client-read), `accepting_uploads`, `require_display_name`/`require_email`, `qr_style`,
 `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([create-event-wizard.tsx](../src/components/app/create-event-wizard.tsx)) — Details → QR
 design → Share — which creates **once at commit** via the non-redirecting `createEventInWizard`
@@ -78,8 +79,9 @@ single-sourced with the marketing page ([how-it-works.ts](../src/lib/constants/h
 **unified, formal event page** ([event-experience.tsx](../src/components/guest/event-experience.tsx)):
 minimal header (logo + a quiet "start for free" CTA) + the event header + easy upload at the top, a
 **live gallery** below, and an in-page **QR + share**. The opaque `qr_token` IS the authorization
-(ADR-0004). **State follows the host's flags:** `is_public=false` → a **private/locked screen**
-(master lock — no name/gallery/upload); `is_public=true` → the full experience;
+(ADR-0004). **State follows `visibility` (ADR-0007):** `private` → a **locked screen** (master
+lock — no name/gallery/upload); `password` → a `<PasswordGate>` (name shown) until a signed unlock
+cookie, then the full experience (media via the server admin-read); `open` → the full experience;
 `accepting_uploads=false` → gallery + a disabled "Uploads disabled" control
 ([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time** — a
 first-time guest picks files, THEN gives a name (no upfront gate; the gallery is public).
@@ -90,8 +92,8 @@ pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guest
 ~12 s** (paused when the tab is hidden) + refetches on each upload; a guest's own LIVE uploads show
 **optimistically** at the top (local blob, deduped against the poll by media id —
 [merge-gallery-items.ts](../src/lib/guest/merge-gallery-items.ts)). Gallery media come from the new
-**`get_event_media_by_qr_token`** RPC (approved, newest-first, `is_public`-gated — the 8th anon
-capability RPC); it's qr-keyed (the share-token `/a/` album is separate + unchanged). The in-page
+**`get_event_media_by_qr_token`** RPC (approved, newest-first, gated `visibility='open'` — a
+password event's media comes from the server admin-read instead); it's qr-keyed (the share-token `/a/` album is separate + unchanged). The in-page
 **share = the JOIN link** ([guest-share.tsx](../src/components/guest/guest-share.tsx)), so invited
 guests can view AND upload. R2 presign via the shared `toGridItems` ([src/lib/r2/](../src/lib/r2/)).
 

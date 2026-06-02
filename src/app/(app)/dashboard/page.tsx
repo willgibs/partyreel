@@ -219,9 +219,13 @@ export default async function DashboardPage() {
                       >
                         {event.accepting_uploads ? "Open" : "Closed"}
                       </Badge>
-                      {event.is_public && (
-                        <Badge variant="outline">Public album</Badge>
-                      )}
+                      <Badge variant="outline">
+                        {event.visibility === "open"
+                          ? "Public album"
+                          : event.visibility === "password"
+                            ? "Password"
+                            : "Private"}
+                      </Badge>
                       {event.moderation_mode === "hold_for_approval" && (
                         <Badge variant="outline">Reviewing</Badge>
                       )}

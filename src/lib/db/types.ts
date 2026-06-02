@@ -98,9 +98,9 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           event_date: string | null
+          event_password_hash: string | null
           host_id: string
           id: string
-          is_public: boolean
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at: string | null
@@ -110,6 +110,7 @@ export type Database = {
           require_email: boolean
           share_token: string
           updated_at: string
+          visibility: Database["public"]["Enums"]["event_visibility"]
         }
         Insert: {
           accepting_uploads?: boolean
@@ -117,9 +118,9 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           event_date?: string | null
+          event_password_hash?: string | null
           host_id: string
           id?: string
-          is_public?: boolean
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at?: string | null
@@ -129,6 +130,7 @@ export type Database = {
           require_email?: boolean
           share_token?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["event_visibility"]
         }
         Update: {
           accepting_uploads?: boolean
@@ -136,9 +138,9 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           event_date?: string | null
+          event_password_hash?: string | null
           host_id?: string
           id?: string
-          is_public?: boolean
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name?: string
           purge_at?: string | null
@@ -148,6 +150,7 @@ export type Database = {
           require_email?: boolean
           share_token?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["event_visibility"]
         }
         Relationships: [
           {
@@ -631,6 +634,7 @@ export type Database = {
         }
         Returns: Json
       }
+      clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
         Args: { p_display_name?: string; p_email?: string; p_qr_token: string }
         Returns: Json
@@ -673,14 +677,15 @@ export type Database = {
           accepting_uploads: boolean
           description: string
           event_date: string
+          has_password: boolean
           host_display_name: string
           id: string
-          is_public: boolean
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           qr_style: string
           require_display_name: boolean
           require_email: boolean
+          visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
       get_event_media_by_qr_token: {
@@ -724,6 +729,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_event_password: {
+        Args: { p_event_id: string; p_password: string }
+        Returns: undefined
+      }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
@@ -732,8 +741,17 @@ export type Database = {
           monthly_ingress_bytes: number
         }[]
       }
+      verify_event_password: {
+        Args: {
+          p_password?: string
+          p_qr_token?: string
+          p_share_token?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
+      event_visibility: "open" | "password" | "private"
       link_hit_kind: "qr_scan" | "album_view"
       media_status: "pending" | "approved" | "hidden" | "removed"
       media_type: "photo" | "video"
@@ -868,6 +886,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      event_visibility: ["open", "password", "private"],
       link_hit_kind: ["qr_scan", "album_view"],
       media_status: ["pending", "approved", "hidden", "removed"],
       media_type: ["photo", "video"],

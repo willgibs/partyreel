@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,12 +12,17 @@ import {
   updateEventAction,
 } from "@/app/(app)/dashboard/actions";
 import { isSettingLocked, type Tier } from "@/lib/constants/tiers";
+import type { HostEvent } from "@/lib/db/queries/events";
 import {
   updateEventSchema,
   type UpdateEventInput,
   type UpdateEventValues,
 } from "@/lib/validation/event";
-import type { Tables } from "@/lib/db/types";
+import { EventPasswordControl } from "@/components/app/event-password-control";
+import {
+  VISIBILITY_HINTS,
+  VisibilitySelector,
+} from "@/components/app/visibility-selector";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,7 +55,9 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 type EventSettingsFormProps = {
-  event: Tables<"events">;
+  // Hash-free host event (see queries/events.ts): carries `visibility` + `has_password`,
+  // never the bcrypt hash.
+  event: HostEvent;
   tier: Tier;
 };
 
@@ -58,26 +65,34 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
   const [isSaving, startSaving] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
 
-  // Tier-gated settings: locked toggles are disabled with an upgrade hint. The
-  // server (updateEvent) re-enforces the gate — this is UX, not the boundary.
+  // Tier-gated settings: locked controls are disabled with an upgrade hint. The
+  // server re-enforces the gate — this is UX, not the boundary.
   const emailLocked = isSettingLocked("require_email", tier);
+  const passwordLocked = isSettingLocked("password", tier);
 
-  // updateEventSchema is createEventSchema.partial(), so every field is
-  // optional; we still prefill from the row so the switches/inputs are
-  // controlled from the first render.
+  // updateEventSchema is createEventSchema.partial(), so every field is optional; we
+  // still prefill from the row so the controls are controlled from the first render.
   const form = useForm<UpdateEventInput, unknown, UpdateEventValues>({
     resolver: zodResolver(updateEventSchema),
     defaultValues: {
       name: event.name,
       description: event.description ?? "",
       event_date: event.event_date ?? "",
-      is_public: event.is_public,
+      visibility: event.visibility,
       accepting_uploads: event.accepting_uploads,
       require_display_name: event.require_display_name,
       require_email: event.require_email,
       moderation_mode: event.moderation_mode,
     },
   });
+
+  // Block the general save while "Password" is selected but no password is set — the
+  // password sub-panel is the commit for that path, and the server rejects the bare
+  // open->password transition anyway (defense-in-depth).
+  const visibility =
+    useWatch({ control: form.control, name: "visibility" }) ?? "open";
+  const passwordSelectedWithoutHash =
+    visibility === "password" && !event.has_password;
 
   function onSubmit(values: UpdateEventValues) {
     startSaving(async () => {
@@ -94,8 +109,8 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
 
   function onDelete() {
     startDeleting(async () => {
-      // On success deleteEventAction redirects to /dashboard (throws
-      // NEXT_REDIRECT), so we only reach the toast on a real failure.
+      // On success deleteEventAction redirects to /dashboard (throws NEXT_REDIRECT),
+      // so we only reach the toast on a real failure.
       const result = await deleteEventAction(event.id);
       if (!result || result.ok) return;
       toast.error("Couldn't delete the event.", {
@@ -173,9 +188,65 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Sharing &amp; uploads</CardTitle>
+              <CardTitle>Visibility &amp; access</CardTitle>
+              <CardDescription>Control who can see the album.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="visibility"
+                render={({ field }) => {
+                  const value = field.value ?? "open";
+                  return (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Who can see this album?</FormLabel>
+                      <FormControl>
+                        <VisibilitySelector
+                          value={value}
+                          onValueChange={field.onChange}
+                          passwordDisabled={
+                            passwordLocked && !event.has_password
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {VISIBILITY_HINTS[value]}
+                      </FormDescription>
+                      {value === "password" && (
+                        <div
+                          data-settings-reveal
+                          className="rounded-lg border border-border/60 bg-muted/30 p-3"
+                        >
+                          <EventPasswordControl
+                            eventId={event.id}
+                            hasPassword={event.has_password}
+                            locked={passwordLocked}
+                            onPasswordSet={() =>
+                              form.setValue("visibility", "password", {
+                                shouldDirty: false,
+                              })
+                            }
+                            onPasswordCleared={() =>
+                              form.setValue("visibility", "open", {
+                                shouldDirty: false,
+                              })
+                            }
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Guest uploads</CardTitle>
               <CardDescription>
-                Control who can see the album and how guests contribute.
+                Control whether and how guests contribute.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -188,26 +259,6 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                       <FormLabel>Accepting uploads</FormLabel>
                       <FormDescription>
                         Turn off to freeze the album. Guests can still view it.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="is_public"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>Public album</FormLabel>
-                      <FormDescription>
-                        Anyone with the share link can view the album.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -303,7 +354,11 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={isSaving || !form.formState.isDirty}
+              disabled={
+                isSaving ||
+                !form.formState.isDirty ||
+                passwordSelectedWithoutHash
+              }
             >
               {isSaving ? "Saving…" : "Save changes"}
             </Button>

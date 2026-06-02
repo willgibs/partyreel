@@ -148,10 +148,13 @@ export default async function EventDetailPage({ params }: PageProps) {
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Public album link</p>
+            <p className="text-sm font-medium">Album link</p>
             <p className="text-sm text-muted-foreground">
-              Anyone with this link can view the album
-              {event.is_public ? "." : " once you make it public."}
+              {event.visibility === "open"
+                ? "Anyone with this link can view the album."
+                : event.visibility === "password"
+                  ? "Anyone with this link and the password can view the album."
+                  : "While private, only you can view the album. The link stays locked."}
             </p>
             <div className="pt-2">
               <CopyShareLink url={albumUrl} />

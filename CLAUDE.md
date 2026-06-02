@@ -532,17 +532,28 @@ keyboard or Dismiss it.
 
 **Phase 6 — unified guest event page (`/e/[qr_token]`) gotchas**
 
-- **`is_public` is now a MASTER LOCK on the guest page, not just album visibility.** Off → the
-  `/e/` page renders a private/locked screen (no name, gallery, OR upload) — this intentionally
-  retired the old "collect privately" combo (public-off + accepting-on). `generateMetadata` also
-  hides the name for a private event (no unfurl leak). `accepting_uploads` is the separate
-  upload-only gate (public + accepting-off = gallery + a disabled "Uploads disabled" control).
-- **New 8th anon capability RPC `get_event_media_by_qr_token`** — approved media, newest-first,
-  **`is_public`-gated** (qr_token IS the capability; mirrors `get_public_album` but qr-keyed +
-  media-only). It MUST appear in the `get_advisors` anon list (accepted by design, now 8 RPCs).
-  `get_event_by_qr_token` gained `qr_style` (return-shape change → DROP+CREATE+**re-grant**).
-  **No `share_token` is exposed to the guest page** — the in-page share is the JOIN link, the
-  gallery is qr-keyed (capability split intact); the `/a/[share_token]` album stays separate.
+- **Access is a 3-state `events.visibility` enum (`open|password|private`), NOT a boolean** — the
+  old `is_public` was dropped in the config rework (ADR-0007). **`private` is the master lock:** the
+  `/e/` page renders a locked screen (no name/gallery/upload) and `generateMetadata` hides the name.
+  **`password`** shows a `<PasswordGate>` (name shown — link-shared, not the secret) until a signed
+  unlock cookie is present, then the full experience. **`open`** is the old public path.
+  `accepting_uploads` stays the separate upload-only gate (open/unlocked + accepting-off = gallery +
+  a disabled "Uploads disabled" control).
+- **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`** — a password event's
+  media must NEVER stream through `get_event_media_by_qr_token` / `get_public_album`. Password media
+  is served only via the SERVER admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock
+  cookie) after `/api/guests/unlock` verifies the password. The bcrypt **hash never leaves the DB**
+  (RPCs expose `has_password` only; `getEvent`/`listEvents` drop it → a hash-free `HostEvent`). The
+  unlock cookie is a signed HMAC of `{eid,exp}` (`UNLOCK_COOKIE_SECRET`, ~12 h) — the cookie name
+  isn't the boundary, the signed eid is. The password is set/cleared ONLY by `set_event_password` /
+  `clear_event_password` (host-auth SECURITY DEFINER, the column is revoked from the host's UPDATE
+  grant). **Human prereq:** set `UNLOCK_COOKIE_SECRET` in Vercel + `.env.local`. See ADR-0007 +
+  `lib/events/unlock-token.ts`.
+- **`get_event_media_by_qr_token`** — qr-keyed approved media, newest-first, gated `visibility='open'`.
+  `get_event_by_qr_token` returns `visibility` + `has_password` (return-shape changes need
+  DROP+CREATE+**re-grant**). **No `share_token` is exposed to the guest page** — the in-page share is
+  the JOIN link, the gallery is qr-keyed (capability split intact); the `/a/[share_token]` album
+  stays separate.
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and
@@ -735,12 +746,16 @@ src/app/
 types` output byte-for-byte).
 - After any schema change: run advisors (`get_advisors`) and regenerate types.
 
-**`get_advisors` flags the 8 capability-token RPCs as ACCEPTED BY DESIGN — do not
+**`get_advisors` flags the 9 capability-token RPCs as ACCEPTED BY DESIGN — do not
 "fix" them.** It reports `get_event_by_qr_token`, `get_public_album`,
 `create_guest`, `create_media`, `get_upload_context` (Phase 2), `create_report`
-(Phase 3), `capture_guest_email` (Phase 6 — guest email capture), and
-`get_event_media_by_qr_token` (Phase 6 — unified guest event page) as SECURITY
-DEFINER functions executable by `anon` (and `authenticated`).
+(Phase 3), `capture_guest_email` (Phase 6 — guest email capture),
+`get_event_media_by_qr_token` (Phase 6 — unified guest event page), and
+`verify_event_password` (config rework Phase 1 — password unlock; ADR-0007) as SECURITY
+DEFINER functions executable by `anon` (and `authenticated`). **`set_event_password` /
+`clear_event_password` are SECURITY DEFINER but REVOKED from `anon`/PUBLIC** (authenticated-only,
+the same class as `create_media_as_host`) — they appear ONLY in the authenticated advisor list,
+never the anon one.
 That is intentional: the opaque token IS the authorization (ADR-0004). Revoking
 their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only
 functions were locked down in migration `…_lock_down_trigger_functions` — those are

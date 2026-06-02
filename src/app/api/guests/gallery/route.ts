@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getApprovedMediaForUnlock } from "@/lib/db/queries/guest-events-admin";
 import {
   getEventByQrToken,
   getEventMediaByQrToken,
@@ -9,10 +10,14 @@ import { toGridItems } from "@/lib/r2/grid-items";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Poll target for the guest event page's LIVE gallery. Body: { qr_token }.
-// Returns approved media (newest-first, presigned) — and EMPTY for a private /
-// deleted event, because get_event_media_by_qr_token enforces `is_public`. The
-// qr_token IS the capability (ADR-0004); reading a public album needs no session.
+// Poll target for the guest event page's LIVE gallery. Body: { qr_token }. Returns
+// approved media (newest-first, presigned). Visibility-aware, mirroring the page:
+//   open                 → the anon RPC (gates on visibility='open')
+//   password             → the server admin-read, which SELF-GUARDS on the unlock
+//                          cookie (returns [] when the request isn't unlocked); the
+//                          anon RPC never serves password media
+//   private / deleted    → []
+// The qr_token IS the capability (ADR-0004); reading an open album needs no session.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -35,12 +40,16 @@ export async function POST(request: Request) {
     );
   }
 
-  // The event name is only needed to build a friendly download filename; the
-  // is_public gate lives in the media RPC, so a private event yields no items.
   const event = await getEventByQrToken(qrToken);
-  if (!event.ok) return NextResponse.json({ ok: true, items: [] });
+  if (!event.ok || event.data.visibility === "private") {
+    return NextResponse.json({ ok: true, items: [] });
+  }
 
-  const media = await getEventMediaByQrToken(qrToken);
+  const media =
+    event.data.visibility === "password"
+      ? await getApprovedMediaForUnlock(event.data.id)
+      : await getEventMediaByQrToken(qrToken);
+
   const items = await toGridItems(media, event.data.name);
   return NextResponse.json({ ok: true, items });
 }

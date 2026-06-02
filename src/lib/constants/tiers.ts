@@ -189,10 +189,12 @@ export function plansForTier(tier: Tier): Plan[] {
 }
 
 /**
- * Host event-settings gated to paid tiers (locked + an upgrade hint on Free).
- * `require_email` is the first; more are added here as they become tier-gated.
+ * Host event-settings gated to paid tiers (locked + an upgrade hint on Free):
+ * `require_email` (verified-email uploads) and `password` (password-protected
+ * albums). Add more here as they become tier-gated. ("Locked" = `tier === "free"`,
+ * so paid tiers — pro + event_pass — all have them.)
  */
-export const GATED_EVENT_SETTINGS = ["require_email"] as const;
+export const GATED_EVENT_SETTINGS = ["require_email", "password"] as const;
 export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];
 
 export function isSettingLocked(

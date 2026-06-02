@@ -17,9 +17,8 @@
  *
  * Each sweep is independently try/caught so one failure doesn't abort the rest.
  */
-import { createHash, timingSafeEqual } from "node:crypto";
-
 import { effectiveStorageCap, toBillingTier } from "@/lib/constants/tiers";
+import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
@@ -85,14 +84,6 @@ function keysOf(rows: MediaRow[]): string[] {
     if (r.preview_key) keys.push(r.preview_key);
   }
   return keys;
-}
-
-function constantTimeEquals(a: string, b: string): boolean {
-  // Hash to a fixed length first: timingSafeEqual throws on unequal-length buffers,
-  // and we don't want to leak the secret's length via that error/short-circuit.
-  const ha = createHash("sha256").update(a).digest();
-  const hb = createHash("sha256").update(b).digest();
-  return timingSafeEqual(ha, hb);
 }
 
 export async function GET(request: Request): Promise<Response> {

@@ -73,6 +73,10 @@ const serverSchema = z.object({
   // Optional — the action defaults to SUPPORT_EMAIL (help@partyreel.com). Set in
   // Vercel to an inbox you read; swap it later (no code change) once help@ receives.
   CONTACT_NOTIFY_EMAIL: z.email().optional(),
+  // HMAC secret for the password-protected-album unlock cookie (Phase 1). A random
+  // string; `.optional()` so the app builds without it. assertUnlockEnv() asserts it
+  // at request time (the unlock route 500s if unset). Set in Vercel + .env.local.
+  UNLOCK_COOKIE_SECRET: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -118,6 +122,7 @@ function parseServer() {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
     CONTACT_NOTIFY_EMAIL: process.env.CONTACT_NOTIFY_EMAIL,
+    UNLOCK_COOKIE_SECRET: process.env.UNLOCK_COOKIE_SECRET,
   });
   if (!parsed.success) {
     throw new Error(
@@ -246,4 +251,21 @@ export function assertResendEnv(): {
     );
   }
   return { RESEND_API_KEY, EMAIL_FROM };
+}
+
+/**
+ * Assert UNLOCK_COOKIE_SECRET is present and return it. Call at REQUEST time (the
+ * password-unlock route) — it stays `.optional()` so the app builds/deploys before
+ * the secret is set. A missing secret means we can't sign/verify the unlock cookie,
+ * so the unlock route must fail closed (500) rather than mint an unsigned cookie.
+ */
+export function assertUnlockEnv(): { UNLOCK_COOKIE_SECRET: string } {
+  const { UNLOCK_COOKIE_SECRET } = serverEnv;
+  if (!UNLOCK_COOKIE_SECRET) {
+    throw new Error(
+      "UNLOCK_COOKIE_SECRET is not configured. Set it in Vercel + .env.local so " +
+        "password-protected albums can sign the unlock cookie.",
+    );
+  }
+  return { UNLOCK_COOKIE_SECRET };
 }

@@ -84,7 +84,13 @@ export default async function AdminAlbumDetailPage({
               {hostLabel ?? "View account"}
             </Link>
           </Row>
-          <Row label="Visibility">{event.is_public ? "Public" : "Private"}</Row>
+          <Row label="Visibility">
+            {event.visibility === "open"
+              ? "Public"
+              : event.visibility === "password"
+                ? "Password protected"
+                : "Private"}
+          </Row>
           <Row label="Uploads">
             {event.accepting_uploads ? "Open" : "Closed"}
           </Row>

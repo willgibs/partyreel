@@ -4,12 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  clearEventPassword,
   createEvent,
+  setEventPassword,
   softDeleteEvent,
   updateEvent,
 } from "@/lib/db/mutations/events";
 import {
   createEventSchema,
+  eventPasswordSchema,
   updateEventSchema,
   type CreateEventInput,
   type UpdateEventInput,
@@ -96,6 +99,35 @@ export async function updateEventAction(
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${id}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+// Password set/change — its own action (NOT the general save) so the raw password
+// rides a dedicated path. Setting a password also flips the event to visibility=
+// 'password' (atomic in the RPC); the form re-syncs the selector after this resolves.
+export async function setEventPasswordAction(
+  eventId: string,
+  password: string,
+): Promise<ActionResult> {
+  const parsed = eventPasswordSchema.safeParse({ password });
+  if (!parsed.success) return firstIssue(parsed.error.issues[0]?.message);
+
+  const result = await setEventPassword(eventId, parsed.data.password);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function clearEventPasswordAction(
+  eventId: string,
+): Promise<ActionResult> {
+  const result = await clearEventPassword(eventId);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
   revalidatePath("/dashboard");
   return { ok: true };
 }

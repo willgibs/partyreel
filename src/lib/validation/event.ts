@@ -31,7 +31,11 @@ export const createEventSchema = z.object({
   // expire; see tiers.ts anti-abuse note). "" is allowed so a cleared date input
   // round-trips; the mutation normalizes "" → null before it hits the DB.
   event_date: z.union([z.iso.date(), z.literal("")]).optional(),
-  is_public: z.boolean().default(true),
+  // 3-state access (open|password|private), sourced from the generated DB Constants
+  // so it stays in lockstep with the Postgres event_visibility enum. 'password' is a
+  // valid shape, but the mutation only persists it when a hash already exists — the
+  // password itself is set/cleared by its own RPC (set_event_password).
+  visibility: z.enum(Constants.public.Enums.event_visibility).default("open"),
   accepting_uploads: z.boolean().default(true),
   require_display_name: z.boolean().default(true),
   require_email: z.boolean().default(false),
@@ -53,3 +57,13 @@ export type CreateEventInput = z.input<typeof createEventSchema>;
 export type CreateEventValues = z.output<typeof createEventSchema>;
 export type UpdateEventInput = z.input<typeof updateEventSchema>;
 export type UpdateEventValues = z.output<typeof updateEventSchema>;
+
+// Album password (set / change). The DB RPC (set_event_password) re-checks tier +
+// length (defense-in-depth); this is the shared client + action shape.
+export const eventPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(4, "Use at least 4 characters.")
+    .max(128, "Keep the password under 128 characters."),
+});
+export type EventPasswordValues = z.output<typeof eventPasswordSchema>;

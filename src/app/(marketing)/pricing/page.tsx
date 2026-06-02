@@ -116,6 +116,7 @@ export default function PricingPage() {
             <ul className="space-y-2.5 text-sm">
               <Feature>Unlimited events</Feature>
               <Feature>No watermark</Feature>
+              <Feature>Password-protected albums</Feature>
               <Feature>Pick the storage you need:</Feature>
             </ul>
           </CardContent>

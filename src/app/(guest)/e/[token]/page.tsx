@@ -6,24 +6,28 @@ import { after } from "next/server";
 import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
+import { PasswordGate } from "@/components/guest/password-gate";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
+import { getApprovedMediaForUnlock } from "@/lib/db/queries/guest-events-admin";
 import {
   getEventByQrToken,
   getEventMediaByQrToken,
 } from "@/lib/db/queries/guest-events";
 import { isDemoToken } from "@/lib/demo";
+import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { getSiteUrl } from "@/lib/site-url";
 
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
 
-// The qr_token is an opaque capability — noindex (don't index join links), but
-// emit OG so a pasted link previews. A PRIVATE event (is_public=false) is a master
-// lock: don't leak its name in unfurls either.
+// The qr_token is an opaque capability — noindex (don't index join links), but emit OG
+// so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
+// nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
+// isn't the secret) but no description; OPEN gets the full unfurl.
 export async function generateMetadata({
   params,
 }: {
@@ -31,15 +35,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   const result = await getEventByQrToken(token);
-  if (!result.ok || !result.data.is_public) {
+  if (!result.ok || result.data.visibility === "private") {
     return {
       title: result.ok ? "Private event" : "Join event",
       robots: { index: false },
     };
   }
 
-  const title = `Add photos to ${result.data.name}`;
-  const description = `Add your photos and videos to ${result.data.name}. No app, no account, just your phone.`;
+  const event = result.data;
+  if (event.visibility === "password") {
+    const title = event.name;
+    return {
+      title,
+      robots: { index: false, follow: false },
+      openGraph: { title, url: `/e/${token}`, type: "website" },
+      twitter: { card: "summary_large_image", title },
+    };
+  }
+
+  const title = `Add photos to ${event.name}`;
+  const description = `Add your photos and videos to ${event.name}. No app, no account, just your phone.`;
   return {
     title,
     description,
@@ -49,11 +64,14 @@ export async function generateMetadata({
   };
 }
 
-// The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS
-// the capability (ADR-0004). State is a function of the host's flags:
-//   is_public=false           → private/locked screen (master lock; no name/gallery/upload)
-//   is_public=true            → header + upload + live gallery + share
-//   (accepting_uploads is handled inside the upload panel: a disabled control when off)
+// The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS the
+// capability (ADR-0004). State is a function of the host's `visibility`:
+//   private              → locked screen (master lock; no name/gallery/upload)
+//   password + no cookie → header + <PasswordGate> (name shown, no gallery/upload)
+//   password + unlocked  → full experience, media via the admin-read (the anon RPC
+//                          gates on visibility='open', so it never serves password media)
+//   open                 → header + upload + live gallery + share
+// (accepting_uploads is handled inside the upload panel: a disabled control when off.)
 export default async function GuestEventPage({
   params,
 }: {
@@ -74,8 +92,8 @@ export default async function GuestEventPage({
     after(() => recordLinkHit(event.id, "qr_scan"));
   }
 
-  // Master lock: a private event reveals nothing — no name, gallery, or upload.
-  if (!event.is_public) {
+  // Private: master lock — reveal nothing (no name, gallery, or upload).
+  if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
         <GuestHeader />
@@ -95,14 +113,29 @@ export default async function GuestEventPage({
     );
   }
 
-  // Public: SSR the first gallery batch (presigned) + the join URL the share UI
-  // hands to other guests. The client then polls /api/guests/gallery for updates.
+  // Password: gate until this request holds a valid unlock cookie for the event.
+  const unlocked =
+    event.visibility === "password" ? await isUnlocked(event.id) : true;
+  if (event.visibility === "password" && !unlocked) {
+    return (
+      <div className="flex min-h-full flex-1 flex-col">
+        <GuestHeader />
+        <PasswordGate token={token} tokenKind="qr" eventName={event.name} />
+      </div>
+    );
+  }
+
+  // Open, or password + unlocked: SSR the first gallery batch (presigned) + the join
+  // URL. A password event's media comes from the server-side admin-read (the anon RPC
+  // only serves 'open' events); an open event uses the anon RPC. The client then polls
+  // /api/guests/gallery for updates.
   const siteUrl = await getSiteUrl();
   const joinUrl = `${siteUrl.replace(/\/+$/, "")}/e/${token}`;
-  const initialItems = await toGridItems(
-    await getEventMediaByQrToken(token),
-    event.name,
-  );
+  const media =
+    event.visibility === "password"
+      ? await getApprovedMediaForUnlock(event.id)
+      : await getEventMediaByQrToken(token);
+  const initialItems = await toGridItems(media, event.name);
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

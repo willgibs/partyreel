@@ -55,7 +55,9 @@ export async function createEvent(
     name: values.name,
     description: values.description || null,
     event_date: values.event_date || null,
-    is_public: values.is_public,
+    // A brand-new event can't be password-protected (no hash exists yet; the password
+    // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
+    visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
     require_display_name: values.require_display_name,
     require_email: values.require_email,
@@ -124,7 +126,29 @@ export async function updateEvent(
     patch.description = values.description || null;
   if (values.event_date !== undefined)
     patch.event_date = values.event_date || null;
-  if (values.is_public !== undefined) patch.is_public = values.is_public;
+  // open/private patch freely; 'password' is reachable ONLY when a hash already
+  // exists (set_event_password is the sole creator). This allows editing an existing
+  // password event (which resubmits visibility='password' unchanged) and re-activating
+  // a dormant password, while blocking a bare open->password transition here. Reading
+  // the hash is server-side only (never returned to the client).
+  if (values.visibility !== undefined) {
+    if (values.visibility === "password") {
+      const { data: existing } = await supabase
+        .from("events")
+        .select("event_password_hash")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (!existing?.event_password_hash) {
+        return {
+          ok: false,
+          code: "unknown",
+          message: "Set a password to protect this album.",
+        };
+      }
+    }
+    patch.visibility = values.visibility;
+  }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
   if (values.require_display_name !== undefined)
@@ -187,4 +211,62 @@ export async function softDeleteEvent(
     };
   }
   return { ok: true, data: { id } };
+}
+
+// Password set/change + clear go through their own SECURITY DEFINER RPCs (NOT the
+// updateEvent patch) so the raw password never rides the general write and the hash
+// column stays revoked from the host's direct UPDATE grant.
+
+export async function setEventPassword(
+  eventId: string,
+  password: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  // The RPC verifies ownership + non-free tier + min length, bcrypt-hashes, and flips
+  // visibility='password' atomically. It is the ONLY writer of event_password_hash.
+  const { error } = await supabase.rpc("set_event_password", {
+    p_event_id: eventId,
+    p_password: password,
+  });
+  if (error) {
+    // check_violation (23514) = Free tier / too short — the RPC's message is friendly.
+    if (error.code === CHECK_VIOLATION) {
+      return { ok: false, code: "limit_reached", message: error.message };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't set the password. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+export async function clearEventPassword(
+  eventId: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  // Clears the hash and reverts visibility to 'open' ONLY when it was 'password' (a
+  // private event stays private — never silently exposed).
+  const { error } = await supabase.rpc("clear_event_password", {
+    p_event_id: eventId,
+  });
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't remove the password. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
 }

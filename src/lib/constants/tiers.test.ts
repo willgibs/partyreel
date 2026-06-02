@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   BILLING_TIERS,
   DEFAULT_STORAGE_CAP_BYTES,
+  GATED_EVENT_SETTINGS,
   GIGABYTE,
   MAX_EVENTS,
   MONTHLY_INGRESS_BYTES,
@@ -118,6 +119,14 @@ describe("isSettingLocked (tier-gated event settings)", () => {
     expect(isSettingLocked("require_email", "free")).toBe(true);
     expect(isSettingLocked("require_email", "pro")).toBe(false);
     expect(isSettingLocked("require_email", "event_pass")).toBe(false);
+  });
+  it("locks password on Free, unlocks on paid tiers", () => {
+    expect(isSettingLocked("password", "free")).toBe(true);
+    expect(isSettingLocked("password", "pro")).toBe(false);
+    expect(isSettingLocked("password", "event_pass")).toBe(false);
+  });
+  it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
+    expect([...GATED_EVENT_SETTINGS]).toEqual(["require_email", "password"]);
   });
 });
 

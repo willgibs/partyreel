@@ -7,15 +7,30 @@
  * Every read filters `deleted_at IS NULL`: soft-deleted rows persist (until the
  * Phase 3 R2 purge) but must never surface, and only deletion frees an event
  * slot (anti-abuse — see tiers.ts).
+ *
+ * SECURITY: these feed the host UI (incl. the "use client" EventSettingsForm), so
+ * the rows are mapped to `HostEvent`, which DROPS `event_password_hash`. We read the
+ * hash server-side only to derive `has_password`, then discard it — it must never be
+ * serialized into a Client Component payload.
  */
 import "server-only";
 
 import type { Tables } from "@/lib/db/types";
 import { createClient } from "@/lib/supabase/server";
 
-export type EventRow = Tables<"events">;
+/** A host event row with the bcrypt password hash dropped + `has_password` derived. */
+export type HostEvent = Omit<Tables<"events">, "event_password_hash"> & {
+  has_password: boolean;
+};
 
-export async function listEvents(): Promise<EventRow[]> {
+function toHostEvent(row: Tables<"events">): HostEvent {
+  // `event_password_hash` is referenced (to derive the boolean) but excluded from
+  // `rest`, so the returned object never carries the hash.
+  const { event_password_hash, ...rest } = row;
+  return { ...rest, has_password: event_password_hash != null };
+}
+
+export async function listEvents(): Promise<HostEvent[]> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,10 +43,10 @@ export async function listEvents(): Promise<EventRow[]> {
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map(toHostEvent);
 }
 
-export async function getEvent(id: string): Promise<EventRow | null> {
+export async function getEvent(id: string): Promise<HostEvent | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,7 +60,7 @@ export async function getEvent(id: string): Promise<EventRow | null> {
     .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  return data ? toHostEvent(data) : null;
 }
 
 /** Counts the host's existing (non-deleted) events — the number compared to
