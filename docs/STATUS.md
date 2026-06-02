@@ -100,7 +100,22 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   (`verifyOtp`) — blocked by the **built-in email rate limit** (429, handled gracefully), which the
   custom-SMTP follow-up fixes; the UI renders (6 slots) and the verified-session path is proven via the
   Google flow above. ADR-0008. **Follow-up flagged:** custom SMTP for auth emails (built-in is
-  rate-limited / not for production).
+  rate-limited / not for production). **Phase 3 (accounts & saved events) BUILT + gate-green — this
+  COMPLETES the config rework.** A signed-in visitor can SAVE an event to their dashboard ("Saved"
+  tab); it is FREE (the account-from-guest growth driver). New `saved_events` table (per-user RLS,
+  both FKs `on delete cascade`) + `save_event(token)` capability RPC (authenticated-only; resolves the
+  event from the page's token, refuses private/your-own, idempotent) + `get_saved_events()`
+  visibility-masking read (authenticated-only; cover NULL for password/private, returns `share_token`
+  NOT `qr_token` — the capability split). Advisors: **+2 authenticated (0029), 0 anon (0028)**;
+  `saved_events` policied (no INFO). The **Save button is the always-visible growth lever** (shown to
+  signed-out visitors too → a "create a free account to save" dialog: shared `<EmailSignIn>` + Google;
+  a `pr_pending_save_` flag completes the save after a redirect sign-in), mounted on `/e/` header +
+  `/a/` album footer. The post-upload `<SaveAccountPrompt>` REPLACED the newsletter `EmailCapturePrompt`
+  (deleted) — account-first, newsletter opt-in folded into the save dialog. Dashboard reframed into
+  "Your events" + "Saved" tabs over a shared cover-art `<EventCard>` (the whole dashboard gained
+  covers). Migration `…162326_phase3_saved_events`; rolled-back RPC/RLS contract check passed;
+  typecheck/lint/test (201)/build green. ADR-0009. **Live verification on partyreel.com is the next
+  step** (logged-out save→account, toggle, private/delete cascade, post-upload card, owned covers).
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP
@@ -287,6 +302,14 @@ The agent can't do these — they need a human in a dashboard:
   when the `/privacy` stub becomes the real policy.
 - **Resend** — set `RESEND_API_KEY` + `EMAIL_FROM` (`Partyreel <noreply@partyreel.com>`, no
   quotes in Vercel) + **verify a sending domain (DNS)**. Until then transactional email is dark.
+  **Auth emails (OTP / magic link) are a SEPARATE pipe:** they go through Supabase's **built-in SMTP,
+  capped project-wide at 2 emails/hour** (Pro-locked) — the real ceiling on the `require_email` OTP
+  flow (this is what blocked the live OTP-keystroke test). **Custom SMTP** (point Supabase Auth at the
+  same Resend sending domain) lifts that cap and is the deferred unblock; whoever wires it should
+  re-verify the OTP flow end-to-end (host `/login` code + a `require_email` guest verify). The per-IP
+  auth rate limits were already reviewed + raised (2026-06-02: "Sign-ups and sign-ins" + "Token
+  verifications" 30 → 150 / 5 min per IP) so an event-crowd OTP burst on shared WiFi isn't 429'd
+  post-SMTP — see the CLAUDE.md gotcha for the reasoning. SMS / anonymous / Web3 limits are unused.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
   vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
   [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_

@@ -8,6 +8,7 @@ import {
   GuestUpload,
   type UploadedItem,
 } from "@/components/guest/guest-upload";
+import { SaveEventButton } from "@/components/guest/save-event-button";
 import { VerifyEmailPrompt } from "@/components/guest/verify-email-prompt";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
@@ -169,6 +170,15 @@ export function EventExperience({
           </p>
         )}
       </header>
+
+      {/* Always-visible growth lever: save this event to your dashboard. For a signed-out
+          visitor it's the "create a free account to save" moment, surfaced up front (not
+          only after an upload). Hidden in the demo (it isn't a real event). */}
+      {!isDemo && (
+        <div className="mt-4 flex justify-center">
+          <SaveEventButton eventId={event.id} qrToken={qrToken} />
+        </div>
+      )}
 
       <div className="mt-7">
         {needsEmailVerification ? (

@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarPlus } from "lucide-react";
+import { Bookmark, CalendarPlus } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
+import { EventCard } from "@/components/app/event-card";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { UnsaveButton } from "@/components/app/unsave-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
@@ -25,22 +22,30 @@ import {
   toBillingTier,
   withinLimit,
 } from "@/lib/constants/tiers";
-import { listEvents } from "@/lib/db/queries/events";
+import { getEventCoverUrls, listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getSavedEventCards } from "@/lib/db/queries/saved-events";
 import { formatBytes, formatEventDate } from "@/lib/utils";
 import { shouldShowWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  // Both reads are RLS-scoped to the signed-in host; the (app) layout already
+  // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
-  const [events, profile] = await Promise.all([listEvents(), getProfile()]);
+  const [events, profile, savedCards] = await Promise.all([
+    listEvents(),
+    getProfile(),
+    getSavedEventCards(),
+  ]);
 
   // First-time host welcome (Phase 6): a brand-new account (welcomed_at null) gets the one-time
   // intro before the dashboard. Existing hosts were backfilled, so this only fires for new
   // signups; /welcome sets the marker before returning here, so there's no redirect loop.
   if (shouldShowWelcome(profile?.welcomed_at)) redirect("/welcome");
+
+  // Cover art for the owned cards: newest approved media per event, presigned (one batched query).
+  const coverUrls = await getEventCoverUrls(events.map((e) => e.id));
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const maxEvents = MAX_EVENTS[tier];
@@ -86,7 +91,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Your events</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
             {used} of {formatLimit(maxEvents)} event
             {maxEvents === 1 ? "" : "s"} used
@@ -182,61 +187,99 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      {events.length === 0 ? (
-        <EmptyState
-          icon={CalendarPlus}
-          title="No events yet"
-          description="Create your first event to generate a QR code and start collecting photos from your guests."
-          action={
-            <Button asChild>
-              <Link href="/dashboard/new">
-                <CalendarPlus /> Create your first event
-              </Link>
-            </Button>
-          }
-        />
-      ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <li key={event.id}>
-              <Link
-                href={`/dashboard/${event.id}`}
-                className="block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <Card className="h-full transition-colors hover:bg-muted/40">
-                  <CardHeader>
-                    <CardTitle className="truncate">{event.name}</CardTitle>
-                    <CardDescription>
-                      {event.event_date
+      <Tabs defaultValue="owned">
+        <TabsList variant="line">
+          <TabsTrigger value="owned">Your events</TabsTrigger>
+          <TabsTrigger value="saved">
+            Saved{savedCards.length > 0 ? ` (${savedCards.length})` : ""}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="owned" className="pt-4">
+          {events.length === 0 ? (
+            <EmptyState
+              icon={CalendarPlus}
+              title="No events yet"
+              description="Create your first event to generate a QR code and start collecting photos from your guests."
+              action={
+                <Button asChild>
+                  <Link href="/dashboard/new">
+                    <CalendarPlus /> Create your first event
+                  </Link>
+                </Button>
+              }
+            />
+          ) : (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <li key={event.id}>
+                  <EventCard
+                    href={`/dashboard/${event.id}`}
+                    name={event.name}
+                    dateLabel={
+                      event.event_date
                         ? formatEventDate(event.event_date)
-                        : "No date set"}
-                    </CardDescription>
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      <Badge
-                        variant={
-                          event.accepting_uploads ? "secondary" : "outline"
-                        }
-                      >
-                        {event.accepting_uploads ? "Open" : "Closed"}
-                      </Badge>
-                      <Badge variant="outline">
-                        {event.visibility === "open"
-                          ? "Public album"
-                          : event.visibility === "password"
-                            ? "Password"
-                            : "Private"}
-                      </Badge>
-                      {event.moderation_mode === "hold_for_approval" && (
-                        <Badge variant="outline">Reviewing</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+                        : "No date set"
+                    }
+                    coverUrl={coverUrls.get(event.id) ?? null}
+                    badges={
+                      <>
+                        <Badge
+                          variant={
+                            event.accepting_uploads ? "secondary" : "outline"
+                          }
+                        >
+                          {event.accepting_uploads ? "Open" : "Closed"}
+                        </Badge>
+                        <Badge variant="outline">
+                          {event.visibility === "open"
+                            ? "Public album"
+                            : event.visibility === "password"
+                              ? "Password"
+                              : "Private"}
+                        </Badge>
+                        {event.moderation_mode === "hold_for_approval" && (
+                          <Badge variant="outline">Reviewing</Badge>
+                        )}
+                      </>
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+
+        <TabsContent value="saved" className="pt-4">
+          {savedCards.length === 0 ? (
+            <EmptyState
+              icon={Bookmark}
+              title="No saved events yet"
+              description="Open any event link and tap Save to keep it here, ready to revisit whenever you want."
+            />
+          ) : (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {savedCards.map((card) => (
+                <li key={card.eventId}>
+                  <EventCard
+                    href={card.href}
+                    name={card.name}
+                    dateLabel={card.dateLabel}
+                    byline={card.byline}
+                    coverUrl={card.coverUrl}
+                    badges={
+                      card.accessible && card.passwordProtected ? (
+                        <Badge variant="outline">Password</Badge>
+                      ) : null
+                    }
+                    action={<UnsaveButton eventId={card.eventId} />}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

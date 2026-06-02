@@ -601,6 +601,49 @@ keyboard or Dismiss it.
   `router.refresh()`. **Human prereqs (live only):** the **apex** Supabase allowlist must be
   `https://partyreel.com/auth/callback**` (the guest link carries `?next=/e/[token]`); the magic-link
   email template must contain `{{ .Token }}` (the code). ADR-0008.
+- **Supabase auth rate limits are PER-IP, and an event concentrates guests behind ONE IP** (venue
+  WiFi NAT / carrier CGNAT), so the OTP `require_email` path is the one that can 429 a *crowd*, not a
+  lone abuser. Reviewed + tuned 2026-06-02 (Dashboard → Authentication → Rate Limits): **"Sign-ups and
+  sign-ins" + "Token verifications" raised 30 → 150 per 5 min per IP** so a burst of guests verifying
+  email on shared WiFi isn't blocked around the 31st. Low abuse risk here (OTP + Google only, no
+  passwords to stuff; the code is 6-digit, single-use, ~1 h expiry, with a separate per-code attempt
+  cap; the email-send cap independently governs spend). **The real email bottleneck is the
+  project-wide "Sending emails: 2/hour" cap (Pro-locked) — raising the per-IP limits does NOT touch
+  it;** custom SMTP (the deferred Resend task) or Supabase Pro is the email unblock. SMS / anonymous /
+  Web3 limits are unused (anon sign-ins stay OFF per ADR-0008). Related dashboard↔code lockstep: the
+  **"Email OTP Length" setting MUST equal `OTP_LENGTH`** in
+  [email-sign-in.tsx](src/components/auth/email-sign-in.tsx) (it was 8 vs a 6-slot input → verify would
+  silently fail; both are 6 now, Supabase's email-OTP minimum).
+- **Saved events (config rework Phase 3 — accounts/growth; ADR-0009).** A signed-in visitor can SAVE
+  an event to their dashboard ("Saved" tab). It is **FREE** (the account-creation growth driver), and
+  it AUGMENTS the anonymous capability flow (ADR-0004) — the upload pipeline is untouched. Load-bearing:
+  - **Save = the `save_event(p_qr_token, p_share_token)` capability RPC** (authenticated-only SECURITY
+    DEFINER): resolves the event from the page's TOKEN (never a client `event_id`), **refuses `private`
+    + your-own events** (owner → no-op), idempotent. Status-check + **unsave are plain per-user RLS**
+    (`saved_events_owner_all`, `auth.uid() = user_id`) straight from the browser client — no API route.
+  - **`get_saved_events()` (authenticated-only SECURITY DEFINER, `auth.uid()`-based, NO `p_user_id`)**
+    reads the names/covers of events the saver does NOT own → it MUST be SECURITY DEFINER. It MASKS by
+    visibility: `open` → cover; **`password` → cover NULL** (gated media must NEVER leak as a thumbnail);
+    `private` → all NULL + `accessible=false`; deleted → excluded. It returns ONLY **`share_token`,
+    NEVER `qr_token`** (handing a share-only saver the upload token would escalate view→upload — the
+    capability split). Saved cards link to **`/a/[share_token]`**. Cover keys are **presigned
+    server-side** (ADR-0003); raw R2 keys never reach the browser.
+  - **Advisors:** `save_event` + `get_saved_events` are the only adds — both in the **authenticated
+    (0029)** list, NEVER **anon (0028)**; `saved_events` has a policy (no `rls_enabled_no_policy` INFO).
+    +2 authenticated, 0 anon (asserted).
+  - **The generated `get_saved_events` return type understates nullability** (a `RETURNS TABLE` fn types
+    every column non-null). `SavedEventRow` in [saved-events/card.ts](src/lib/saved-events/card.ts) models
+    the TRUE nullability (the RPC masks to null); the query layer casts to it. Same quirk the guest-events
+    DTO already normalizes — don't trust the generated nullability for RETURNS TABLE fns.
+  - **The Save button is the always-visible growth lever** ([save-event-button.tsx](src/components/guest/save-event-button.tsx))
+    — shown to **signed-out** visitors too; click → "create a free account to save" dialog (shared
+    `<EmailSignIn>` code-first OTP + Google). A `pr_pending_save_${eventId}` localStorage flag completes
+    the save after a REDIRECT sign-in (Google / magic-link) returns; the in-page code path saves directly
+    in `onVerified`. Mounts on `/e/` (header, hidden in demo) + `/a/` (album footer, `tone="gallery"`).
+  - **The post-upload `<SaveAccountPrompt>` REPLACED the newsletter `EmailCapturePrompt`** (deleted) —
+    account-first, with the newsletter opt-in folded into the save dialog as a checkbox (captured via the
+    existing `capture_guest_email` RPC on the in-page code path only). The `/api/guests/email` route is
+    now unreferenced (left as a valid `capture_guest_email` entry point; a later cleanup).
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and

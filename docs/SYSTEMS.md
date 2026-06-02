@@ -390,6 +390,28 @@ card), `sitemap.ts`/`robots.ts` (marketing only); `/a/` + `/e/` emit OG so links
 one-time post-upload prompt → `capture_guest_email` RPC sets `guests.email` + upserts the durable
 `newsletter_signups` list (survives event/guest deletion).
 
+## Saved events (accounts-from-guest growth)
+
+A signed-in visitor can SAVE any event to their dashboard ("Saved" tab) — the FREE
+account-creation growth payoff (ADR-0009). Augments the anonymous capability flow; the upload
+pipeline is untouched. **Save = `save_event(p_qr_token, p_share_token)`** (authenticated-only
+SECURITY DEFINER): resolves the event from the page's TOKEN (never a client id), refuses
+`private`/your-own events, idempotent. Status-check + **unsave = plain per-user RLS**
+(`saved_events_owner_all`, `auth.uid() = user_id`) from the browser client. **Read =
+`get_saved_events()`** (authenticated-only SECURITY DEFINER, `auth.uid()`-based, no `p_user_id`)
+— reads non-owned events' names/covers (so it MUST be DEFINER), MASKS by visibility (cover NULL
+for password/private; private fully blanked + `accessible=false`; deleted excluded), and returns
+only **`share_token`, never `qr_token`** (the capability split) → saved cards link to
+`/a/[share_token]`. Covers presigned server-side. Both RPCs sit in the authenticated advisor list
+(0029) ONLY, never anon (0028); `saved_events` is RLS-policied. The **Save button**
+([save-event-button.tsx](src/components/guest/save-event-button.tsx)) is the always-visible lever
+(shown to signed-out visitors too → a "create a free account to save" dialog: shared
+`<EmailSignIn>` + Google; a `pr_pending_save_` localStorage flag finishes the save after a redirect
+sign-in), mounted on the `/e/` header + the `/a/` album footer. The post-upload
+`<SaveAccountPrompt>` replaced the newsletter `EmailCapturePrompt` (account-first; the newsletter
+opt-in folded into the save dialog). Dashboard = "Your events" + "Saved" tabs over a shared
+cover-art `<EventCard>` (owned covers via one batched newest-approved-media query).
+
 ## Link analytics
 
 Per-event-per-day **aggregate counts, NO PII** ([link_stats](../supabase/migrations/) `event_id,

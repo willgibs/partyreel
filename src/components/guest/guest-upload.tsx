@@ -12,8 +12,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import { EmailCapturePrompt } from "@/components/guest/email-capture-prompt";
 import { FileDropzone } from "@/components/guest/file-dropzone";
+import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -306,10 +306,13 @@ export function GuestUpload({
         </ul>
       )}
 
-      {/* Soft one-time email capture — skip it when the host already required an
-          email at join (they have it). The prompt self-hides once shown. */}
-      {doneCount > 0 && !event.require_email && !isDemo && (
-        <EmailCapturePrompt
+      {/* Post-upload growth card: save this event by creating a free account (Phase 3).
+          The unified successor to the newsletter capture — account-first, with the
+          newsletter opt-in folded into the save dialog. Shown once a guest has
+          contributed; self-hides after dismiss or if already signed in + saved. */}
+      {doneCount > 0 && !isDemo && (
+        <SaveAccountPrompt
+          eventId={event.id}
           qrToken={qrToken}
           sessionToken={sessionToken ?? ""}
         />

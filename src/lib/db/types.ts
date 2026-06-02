@@ -552,6 +552,39 @@ export type Database = {
           },
         ]
       }
+      saved_events: {
+        Row: {
+          event_id: string
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sent_emails: {
         Row: {
           dedupe_key: string
@@ -711,6 +744,21 @@ export type Database = {
         Returns: Json
       }
       get_public_album: { Args: { p_share_token: string }; Returns: Json }
+      get_saved_events: {
+        Args: never
+        Returns: {
+          accessible: boolean
+          cover_key: string
+          event_date: string
+          event_id: string
+          has_password: boolean
+          host_display_name: string
+          name: string
+          saved_at: string
+          share_token: string
+          visibility: Database["public"]["Enums"]["event_visibility"]
+        }[]
+      }
       get_upload_context: {
         Args: {
           p_session_token: string
@@ -731,6 +779,10 @@ export type Database = {
           p_kind: Database["public"]["Enums"]["link_hit_kind"]
         }
         Returns: undefined
+      }
+      save_event: {
+        Args: { p_qr_token?: string; p_share_token?: string }
+        Returns: string
       }
       set_event_password: {
         Args: { p_event_id: string; p_password: string }

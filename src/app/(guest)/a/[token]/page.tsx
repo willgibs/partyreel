@@ -8,6 +8,7 @@ import { MediaGrid } from "@/components/app/media-grid";
 import { MakeYourOwn } from "@/components/guest/make-your-own";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { ReportDialog } from "@/components/guest/report-dialog";
+import { SaveEventButton } from "@/components/guest/save-event-button";
 import { Logo } from "@/components/shared/logo";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
@@ -152,7 +153,14 @@ export default async function PublicAlbumPage({
             path (share_token is the capability). */}
         <footer className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-6 sm:flex-row sm:justify-between">
           <MakeYourOwn variant="dark" />
-          <ReportDialog shareToken={token} />
+          <div className="flex items-center gap-3">
+            <SaveEventButton
+              eventId={event.id}
+              shareToken={token}
+              tone="gallery"
+            />
+            <ReportDialog shareToken={token} />
+          </div>
         </footer>
       </div>
     </div>

@@ -37,6 +37,9 @@ Pass = 4c) is what remains.
   `create_media_as_host`, mirrored client-side by `videosAllowedForTier`). The first-event
   experience must still shine; it sells the upgrade. **Primary upgrade triggers:** a 2nd event,
   outgrowing event #1's storage, wanting video, or password/verified-email access controls.
+- **Saving events is FREE** (Phase 3, ADR-0009): any signed-in visitor can save an event to
+  their dashboard. Deliberately ungated — it's the account-creation growth driver (a saved event
+  is the reason a guest makes a free account), not a paid perk.
 - **Event Pass** is per-event, fixed ~1-yr term, with a cheap renewal near the end; at
   expiry without renewal it enters the over-capacity retention flow (PRD).
 - ≈ figures assume ~4 MB/photo and ~150 MB/min 1080p video — illustrative; the in-app
@@ -255,6 +258,37 @@ through `sendOnce()` (deduped via `sent_emails`) so the daily cron sends at most
 state — stays well under the free tier early. **Human setup:** create a Resend API key +
 **verify a sending domain** (DNS) → set `RESEND_API_KEY` + `EMAIL_FROM`
 (e.g. `Partyreel <noreply@partyreel.com>`) in `.env.local` + Vercel.
+
+**Custom SMTP for Supabase Auth emails (reuse Resend) — runbook.** Supabase's built-in
+email service (`noreply@mail.app.supabase.io`) is rate-limited (project-wide ~2 emails/hour,
+Pro-locked) and not production-grade — it's the real ceiling on the verified-email OTP flow
+(ADR-0008). Point Supabase Auth at the SAME Resend sending domain so the OTP code / magic
+link + the confirm/reset templates send via Resend. **Dashboard-only (no MCP/API path);
+Will pastes the credentials.**
+
+- _Prereq:_ `partyreel.com` must be **verified** in Resend (DNS) — custom SMTP bounces on an
+  unverified sender domain. (Same domain as `EMAIL_FROM`; verify it's green in Resend → Domains.)
+- _Supabase Dashboard → Authentication → Emails → **SMTP Settings** → enable custom SMTP, then:_
+  | Field | Value |
+  | --- | --- |
+  | Sender email | `noreply@partyreel.com` (matches `EMAIL_FROM`) |
+  | Sender name | `Partyreel` |
+  | Host | `smtp.resend.com` |
+  | Port | `465` (implicit SSL/TLS; `587` STARTTLS also works) |
+  | Username | `resend` |
+  | Password | the `RESEND_API_KEY` value (the `re_…` key — Resend's SMTP password) |
+- _Then raise the email cap:_ Authentication → **Rate Limits** → "Rate limit for sending emails"
+  becomes editable once custom SMTP is on (it's locked low on the built-in service). Raise it
+  from ~2/hr to a sane value (e.g. 100/hr), bounded by Resend's own caps below. **This step is
+  what actually lifts the OTP bottleneck** — enabling SMTP alone doesn't.
+- _Verify (live, partyreel.com):_ request a sign-in OTP at `/login`; confirm the email arrives
+  **from `noreply@partyreel.com`** (not `…mail.app.supabase.io`) with the 6-digit code; re-run the
+  `require_email` guest verify on a guest `/e/[token]` event (the crowd path); cross-check the send
+  in Resend → Emails.
+- _Caveat (cost):_ with custom SMTP the real ceiling becomes **Resend's** free tier (3,000/mo and a
+  daily cap, ~100/day) — auth OTP now shares that quota with the lifecycle email. An event crowd all
+  verifying email in one evening could hit the daily cap; size up to Resend's paid tier ($20/mo = 50k)
+  if launch volume needs it. Keep "Email OTP Length" = **6** (already set; mirrors `OTP_LENGTH`).
 
 **Event Pass renewal:** a cheaper **$15 one-time renewal price** (test
 `price_1TcVuOPtjqmVkBwkTCXTKOIs`) on the same Event Pass product → set

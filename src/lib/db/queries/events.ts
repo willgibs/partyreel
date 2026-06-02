@@ -16,6 +16,7 @@
 import "server-only";
 
 import type { Tables } from "@/lib/db/types";
+import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
 
 /** A host event row with the bcrypt password hash dropped + `has_password` derived. */
@@ -78,4 +79,47 @@ export async function countActiveEvents(): Promise<number> {
     .is("deleted_at", null);
   if (error) throw error;
   return count ?? 0;
+}
+
+/**
+ * Cover image URL per event for the dashboard cards: the newest APPROVED,
+ * non-removed media's `original_key`, presigned inline. One batched query (not
+ * N+1); RLS scopes to the host's own media. Events with no approved media are
+ * absent from the map (the card falls back to a placeholder). Keys never reach
+ * the browser — we presign here.
+ */
+export async function getEventCoverUrls(
+  eventIds: string[],
+): Promise<Map<string, string>> {
+  const urls = new Map<string, string>();
+  if (eventIds.length === 0) return urls;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return urls;
+
+  const { data, error } = await supabase
+    .from("media")
+    .select("event_id, original_key")
+    .in("event_id", eventIds)
+    .eq("status", "approved")
+    .is("removed_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  // newest-first → the first row seen per event_id is its cover.
+  const coverKey = new Map<string, string>();
+  for (const row of data ?? []) {
+    if (!coverKey.has(row.event_id))
+      coverKey.set(row.event_id, row.original_key);
+  }
+  const entries = await Promise.all(
+    [...coverKey].map(
+      async ([id, key]) => [id, await presignDownload({ key })] as const,
+    ),
+  );
+  for (const [id, url] of entries) urls.set(id, url);
+  return urls;
 }

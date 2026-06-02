@@ -104,9 +104,12 @@ export function MediaLightbox({
   onIndexChange: (index: number) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
-  const prevItem = index !== null && index > 0 ? (items[index - 1] ?? null) : null;
+  const prevItem =
+    index !== null && index > 0 ? (items[index - 1] ?? null) : null;
   const nextItem =
-    index !== null && index < items.length - 1 ? (items[index + 1] ?? null) : null;
+    index !== null && index < items.length - 1
+      ? (items[index + 1] ?? null)
+      : null;
   const hasPrev = index !== null && index > 0;
   const hasNext = index !== null && index < items.length - 1;
 
@@ -243,7 +246,8 @@ export function MediaLightbox({
       let allowSwipe = true;
       if (current?.type === "video" && isPlayingRef.current) {
         const rect = centerVideoRef.current?.getBoundingClientRect();
-        if (rect && e.clientY > rect.bottom - CONTROLS_STRIP_PX) allowSwipe = false;
+        if (rect && e.clientY > rect.bottom - CONTROLS_STRIP_PX)
+          allowSwipe = false;
       }
 
       gestureRef.current = {
@@ -326,9 +330,13 @@ export function MediaLightbox({
       const dt = Math.max(1, e.timeStamp - g.startTime);
       const v = dx / dt; // px/ms, signed
       const next =
-        dx < 0 && g.hasNext && (v < -COMMIT_VELOCITY || -dx > g.width * COMMIT_RATIO);
+        dx < 0 &&
+        g.hasNext &&
+        (v < -COMMIT_VELOCITY || -dx > g.width * COMMIT_RATIO);
       const prev =
-        dx > 0 && g.hasPrev && (v > COMMIT_VELOCITY || dx > g.width * COMMIT_RATIO);
+        dx > 0 &&
+        g.hasPrev &&
+        (v > COMMIT_VELOCITY || dx > g.width * COMMIT_RATIO);
 
       if (next) settleTo(-g.width, 1);
       else if (prev) settleTo(g.width, -1);
