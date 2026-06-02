@@ -86,14 +86,21 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   Migration `…144343_phase2c_guest_user_id_verified_email`; typecheck/lint/test (197)/build green; the
   `/login` OTP UI render-verified locally (6 slots + link fallback). **Human prereqs DONE** (Will set
   the apex `…/auth/callback**` allowlist + the `{{ .Token }}` email template; anon sign-ins stay off).
-  **Deployed gate LIVE-VERIFIED** (curl, on a spun-up temp require_email event): an unverified
-  `POST /api/guests` returned **422 `email_required`** ("A verified email is required to upload to
-  this event."), and `/e/` server-rendered the `<VerifyEmailPrompt>` (+ the "Email me a code" OTP UI)
-  while the event name still showed (viewing allowed). The `create_guest` verified-identity branch is
-  rolled-back-contract-proven (anon → raises; verified user → stamps `user_id`+`email`). **Remaining =
-  the human OTP test** (needs the emailed code, master-plan-intended): on partyreel.com, host `/login`
-  → type the 6-digit code → /dashboard (and the link → /dashboard); a require_email event →
-  `<VerifyEmailPrompt>` → code → upload → `guests.user_id` stamped. ADR-0008.
+  **LIVE-VERIFIED on partyreel.com (Chrome-MCP, host willg97):** Google sign-in → `/auth/callback` →
+  `/dashboard` (the login refactor is regression-safe); on a spun-up temp `require_email` event, a
+  signed-out `POST /api/guests` returned **422 `email_required`** ("A verified email is required…") and
+  `/e/` SSR'd the `<VerifyEmailPrompt>` (viewing still allowed), while the SAME event opened by the
+  **verified** willg97 showed the **dropzone** (no prompt) → an upload **stamped `guests.user_id` =
+  willg97's auth id + `guests.email`** (account-from-guest, end-to-end). `create_guest`'s
+  verified-identity branch is also rolled-back-contract-proven. **OTP-length fix (caught live):** the
+  Supabase "Email OTP Length" was **8**, mismatching the 6-slot input (verify would've failed); Will
+  set it to **6** (Supabase's email-OTP minimum), and a new `OTP_LENGTH` constant in
+  [email-sign-in.tsx](../src/components/auth/email-sign-in.tsx) now pins the input to the dashboard
+  setting (hand-synced pair). The only un-pressed step is typing the 6-digit code in the OTP UI
+  (`verifyOtp`) — blocked by the **built-in email rate limit** (429, handled gracefully), which the
+  custom-SMTP follow-up fixes; the UI renders (6 slots) and the verified-session path is proven via the
+  Google flow above. ADR-0008. **Follow-up flagged:** custom SMTP for auth emails (built-in is
+  rate-limited / not for production).
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP

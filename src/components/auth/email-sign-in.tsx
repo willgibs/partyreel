@@ -28,6 +28,14 @@ const emailSchema = z.object({
 });
 type EmailValues = z.infer<typeof emailSchema>;
 
+// MUST stay in lockstep with the Supabase "Email OTP Length" setting (Dashboard →
+// Authentication → Sign In / Providers → Email). Supabase enforces a 6-digit MINIMUM for
+// email OTP (a 4-digit email code isn't offered), and 6 is the standard. This is a
+// hand-synced pair, like tier_limits() ↔ tiers.ts: if the dashboard length changes, change
+// this constant (it drives both the input maxLength and the rendered slot count). The OTP
+// won't verify if the two drift.
+const OTP_LENGTH = 6;
+
 // Shared dual-path email sign-in. Entering an email sends ONE Supabase email that contains
 // BOTH a 6-digit code AND a magic link (signInWithOtp). The user can either type the code
 // here (verifyOtp — no redirect, the robust path that survives the iPhone-PWA magic-link
@@ -116,7 +124,7 @@ export function EmailSignIn({
         </div>
         <div className="flex flex-col items-center gap-2">
           <InputOTP
-            maxLength={6}
+            maxLength={OTP_LENGTH}
             autoFocus
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -129,12 +137,9 @@ export function EmailSignIn({
             onComplete={onCodeComplete}
           >
             <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-              <InputOTPSlot index={3} />
-              <InputOTPSlot index={4} />
-              <InputOTPSlot index={5} />
+              {Array.from({ length: OTP_LENGTH }, (_, i) => (
+                <InputOTPSlot key={i} index={i} />
+              ))}
             </InputOTPGroup>
           </InputOTP>
           {verifying && (
