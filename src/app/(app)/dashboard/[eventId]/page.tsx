@@ -7,6 +7,7 @@ import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
 import { QrDesignerDialog } from "@/components/app/qr-designer-dialog";
 import { EventSettingsForm } from "@/components/app/event-settings-form";
+import { EventUploads } from "@/components/app/event-uploads";
 import {
   ApproveAllPendingButton,
   HostMediaGrid,
@@ -186,27 +187,11 @@ export default async function EventDetailPage({ params }: PageProps) {
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Uploads</CardTitle>
-          <CardDescription>
-            {media.length > 0
-              ? `${media.length} ${media.length === 1 ? "item" : "items"} from your guests.`
-              : "Photos and videos your guests upload will appear here."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {visibleItems.length > 0 ? (
-            <HostMediaGrid eventId={event.id} items={visibleItems} />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {pendingItems.length > 0
-                ? "Everything uploaded so far is awaiting your review above."
-                : "No uploads yet. Share the QR code above to get started."}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <EventUploads
+        eventId={event.id}
+        items={visibleItems}
+        pendingCount={pendingItems.length}
+      />
 
       <EventSettingsForm event={event} tier={tier} />
     </div>

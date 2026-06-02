@@ -124,6 +124,18 @@ events. Mutations: `setMediaStatus`/`removeMedia`/`approveAllPending`. **Remove 
 (`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after a
 7-day grace.
 
+**Host upload (two-way media).** The host can also add media directly from the event page (e.g. a
+photographer's batch), not just curate guest uploads. An "Add photos" toggle in the Uploads card
+header ([event-uploads.tsx](../src/components/app/event-uploads.tsx)) reveals a dropzone
+([host-upload.tsx](../src/components/app/host-upload.tsx)) that reuses the shared `uploadFile` against
+authenticated **`/api/host/r2/{presign,complete}-upload`** routes. These call the
+**`create_media_as_host`** RPC — the AUTHENTICATED twin of `create_media` (auth's via `auth.uid()` +
+event ownership, NOT a capability token): same per-file limits + cap/ingress enforcement (host uploads
+**count against the plan**), but `status='approved'` always (the host is the moderator) and
+`guest_id = NULL` (**host upload = `guest_id IS NULL`**). It is `authenticated`-only (never anon).
+Host and guest media are indistinguishable in the grid/album (one seamless album); the component
+`router.refresh()`es after a batch so new rows appear.
+
 ## Lifecycle & the purge cron
 
 [`/api/cron/purge`](../src/app/api/cron/purge/route.ts) — daily (`0 4 * * *`), timing-safe

@@ -146,7 +146,11 @@ export function GuestUpload({
           ? await simulateUpload(next.file, onProgress)
           : await uploadFile({
               file: next.file,
-              sessionToken: token,
+              endpoints: {
+                presign: "/api/r2/presign-upload",
+                complete: "/api/r2/complete-upload",
+              },
+              identity: { session_token: token },
               onProgress,
             });
         if (outcome.ok) {

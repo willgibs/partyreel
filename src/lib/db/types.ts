@@ -649,6 +649,20 @@ export type Database = {
         }
         Returns: Json
       }
+      create_media_as_host: {
+        Args: {
+          p_duration_seconds?: number
+          p_event_id: string
+          p_file_size_bytes: number
+          p_height?: number
+          p_media_id: string
+          p_original_key: string
+          p_preview_key?: string
+          p_type: Database["public"]["Enums"]["media_type"]
+          p_width?: number
+        }
+        Returns: Json
+      }
       create_report: {
         Args: { p_media_id?: string; p_reason?: string; p_share_token: string }
         Returns: Json
@@ -680,6 +694,13 @@ export type Database = {
           type: Database["public"]["Enums"]["media_type"]
           width: number
         }[]
+      }
+      get_host_upload_context: {
+        Args: {
+          p_event_id: string
+          p_type: Database["public"]["Enums"]["media_type"]
+        }
+        Returns: Json
       }
       get_public_album: { Args: { p_share_token: string }; Returns: Json }
       get_upload_context: {

@@ -561,6 +561,37 @@ keyboard or Dismiss it.
   (transform/opacity only, `prefers-reduced-motion`-safe), so a guest's just-uploaded photo visibly
   lands at the top; `active:scale` press feedback on tiles/dropzone. Keep UI motion < 300 ms.
 
+**Host upload (two-way media flow) gotchas**
+
+- **Media flow is two-way: hosts upload too, NOT just guests.** A host adds media from the
+  event page (e.g. a photographer's batch) via the **`create_media_as_host`** RPC (migration
+  `…_host_uploads`). It is the AUTHENTICATED twin of `create_media`: same key-prefix check,
+  same per-file limits, same monthly-ingress + storage-cap enforcement (host uploads **count
+  against caps** — the anti-abuse invariant), but it auth's via `auth.uid()` + event ownership
+  (not a capability token), sets `status='approved'` UNCONDITIONALLY (the host is the
+  moderator — no `moderation_mode` branch), and inserts `guest_id = NULL`. **Host upload =
+  `guest_id IS NULL`** (the `media` table comment already anticipated this).
+- **A host CANNOT just RLS-insert into `media`** even though `media_host_all` would allow the
+  row — that bypasses the ledger + `storage_used_bytes` accounting (RPC/service-role-write-only)
+  and the cap check → unmetered free storage. The RPC is the ONLY host-write path that keeps the
+  accounting honest. Don't add a direct-insert shortcut.
+- **No `accepting_uploads` check for the host** — that toggle is the GUEST gate; the host owns
+  the event and can add even with guest uploads paused. (Deleted events are still blocked.)
+- **The host routes are `/api/host/r2/{presign,complete}-upload`** (authenticated; `getUser()`
+  gate + `event_id` body), mirroring the guest `/api/r2/*` routes. `uploadFile()`
+  ([uploader.ts](src/lib/upload/uploader.ts)) is now **shared**: the caller passes the endpoint
+  pair + an `identity` object (`{ session_token }` guest / `{ event_id }` host) merged into both
+  request bodies — presign/complete response shapes are identical, so don't fork it.
+- **`HostUpload` is a SEPARATE component** ([host-upload.tsx](src/components/app/host-upload.tsx)),
+  deliberately NOT a refactor of the delicate `GuestUpload` (no join/demo/email/`sessionRef`). It
+  reuses `FileDropzone` + `uploadFile`. After the batch drains it calls **`router.refresh()`** (once,
+  not per file) so the new auto-approved rows appear in the server-rendered host grid — route
+  handlers don't `revalidatePath` like the moderation server actions do.
+- The "Add photos" toggle lives in the **Uploads card header** via the
+  [event-uploads.tsx](src/components/app/event-uploads.tsx) client wrapper (header button + inline
+  panel share open-state). Host media is **visually indistinguishable** from guest media in the
+  grid/album (one seamless album) — by design; the data keeps the distinction if a badge is wanted later.
+
 **Postgres / plpgsql** — integer literals are **int4**, so `2 * 1024 * 1024 * 1024`
 (2 GB) overflows int4 (max ~2.15e9) and throws `integer out of range` — even when
 assigned to a `bigint` constant, during DECLARE init _before the body runs_. Force
@@ -715,6 +746,17 @@ their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only
 functions were locked down in migration `…_lock_down_trigger_functions` — those are
 _not_ meant to be callable.) The separate "Leaked Password Protection Disabled" WARN
 is unrelated — Partyreel uses magic-link/OAuth, not passwords.
+
+**The two host-upload RPCs (`create_media_as_host`, `get_host_upload_context`) are
+`authenticated`-ONLY and ACCEPTED BY DESIGN under lint `0029` — they are NOT on the
+anon (`0028`) list above.** They're SECURITY DEFINER but `revoke ... from public, anon`
++ `grant ... to authenticated`, and each authorizes internally via `auth.uid()` + event
+ownership (the FIRST `auth.uid()`-in-SECURITY-DEFINER functions here — it resolves fine
+under `set search_path = ''`). So `get_advisors` lists them under
+`authenticated_security_definer_function_executable` (0029) and NEVER under
+`anon_security_definer_function_executable` (0028). That split IS the security property:
+if either ever appears in the anon (0028) list, an over-broad grant slipped in. Don't
+revoke the `authenticated` grant (breaks host upload).
 
 **`purge_media_rows` must stay REVOKED from `anon`/`authenticated` (service-role
 only).** It's SECURITY DEFINER like the others but service-role-internal (the purge

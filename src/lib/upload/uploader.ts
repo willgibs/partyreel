@@ -1,10 +1,12 @@
 /**
- * Browser-side upload orchestration for guests. Runs in a client component.
+ * Browser-side upload orchestration, shared by the guest and host flows. Runs in a
+ * client component. The caller passes the endpoint pair + identity fields (guest =
+ * { session_token }; host = { event_id }) — the two pipelines are otherwise identical.
  *
- * Per file: measure dimensions/duration → client-validate → POST presign-upload →
+ * Per file: measure dimensions/duration → client-validate → POST presign →
  * upload bytes DIRECTLY to R2 (single PUT or multipart, via XHR for progress) →
- * POST complete-upload (which calls create_media). The server derives the R2 key
- * from the capability token; this module never constructs keys.
+ * POST complete (which records the media row). The server derives the R2 key from
+ * the identity (token or owned event); this module never constructs keys.
  *
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
@@ -113,10 +115,16 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 export async function uploadFile(args: {
   file: File;
-  sessionToken: string;
+  // The presign/complete route pair to hit. Guest -> /api/r2/*; host -> /api/host/r2/*.
+  // Both pairs return identical response shapes, so the orchestration below is shared.
+  endpoints: { presign: string; complete: string };
+  // Auth fields merged into BOTH request bodies: { session_token } (guest capability)
+  // or { event_id } (host, authorized server-side via getUser()). Spread first so it
+  // can never override a server-derived field.
+  identity: Record<string, string>;
   onProgress?: (fraction: number) => void;
 }): Promise<UploadOutcome> {
-  const { file, sessionToken, onProgress } = args;
+  const { file, endpoints, identity, onProgress } = args;
 
   const kind = classifyMime(file.type);
   if (!kind) return { ok: false, message: "That file type isn't supported." };
@@ -130,9 +138,9 @@ export async function uploadFile(args: {
   });
   if (!localCheck.ok) return { ok: false, message: localCheck.reason };
 
-  // 1. Presign (server validates session + caps and builds the key).
-  const presign = await postJson<PresignResponse>("/api/r2/presign-upload", {
-    session_token: sessionToken,
+  // 1. Presign (server validates identity + caps and builds the key).
+  const presign = await postJson<PresignResponse>(endpoints.presign, {
+    ...identity,
     content_type: file.type,
     size_bytes: file.size,
     duration_seconds: measured.duration,
@@ -185,9 +193,9 @@ export async function uploadFile(args: {
     };
   }
 
-  // 3. Complete (assembles multipart in R2, then records via create_media).
-  const complete = await postJson<CompleteResponse>("/api/r2/complete-upload", {
-    session_token: sessionToken,
+  // 3. Complete (assembles multipart in R2, then records the media row).
+  const complete = await postJson<CompleteResponse>(endpoints.complete, {
+    ...identity,
     media_id: presign.media_id,
     key: presign.key,
     content_type: presign.content_type,

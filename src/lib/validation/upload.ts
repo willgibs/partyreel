@@ -59,7 +59,35 @@ export const completeUploadSchema = z.object({
   parts: z.array(partSchema).default([]),
 });
 
+// ─── Host upload variants (authenticated) ────────────────────────────────────
+// The host upload twin of the two presign/complete schemas above. The auth model
+// differs: these carry `event_id` instead of a capability `session_token`, and the
+// route authorizes the caller via getUser() + event ownership (the RPC re-checks).
+// The R2 key is still server-derived (the client never supplies key/media_id at
+// presign), so the same path-traversal / cross-event-write defense holds.
+export const hostPresignUploadSchema = z.object({
+  event_id: z.uuid(),
+  content_type: z.string().trim().min(1),
+  size_bytes: z.number().int().positive(),
+  duration_seconds: z.number().positive().optional(),
+});
+
+export const hostCompleteUploadSchema = z.object({
+  event_id: z.uuid(),
+  media_id: z.uuid(),
+  key: z.string().trim().min(1),
+  content_type: z.string().trim().min(1),
+  size_bytes: z.number().int().positive(),
+  duration_seconds: z.number().positive().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  upload_id: z.string().min(1).nullable(),
+  parts: z.array(partSchema).default([]),
+});
+
 export type JoinInput = z.input<typeof joinSchema>;
 export type EmailCaptureInput = z.input<typeof emailCaptureSchema>;
 export type PresignUploadInput = z.input<typeof presignUploadSchema>;
 export type CompleteUploadInput = z.input<typeof completeUploadSchema>;
+export type HostPresignUploadInput = z.input<typeof hostPresignUploadSchema>;
+export type HostCompleteUploadInput = z.input<typeof hostCompleteUploadSchema>;
