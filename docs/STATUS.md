@@ -26,18 +26,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Host-side media upload (two-way media flow) — BUILT + DB-CONTRACT-VERIFIED, pending live R2
-  verification.** The host can now add media directly from the event page (e.g. a photographer's
+- **Host-side media upload (two-way media flow) — SHIPPED + LIVE-VERIFIED on partyreel.com**
+  (commit `06554ff`). The host can now add media directly from the event page (e.g. a photographer's
   batch), not just curate guest uploads. New `create_media_as_host` + `get_host_upload_context` RPCs
   (migration `…_host_uploads`, applied) — the AUTHENTICATED twin of the guest upload RPCs:
   `auth.uid()` + event-ownership auth, same per-file limits + cap/ingress enforcement (host uploads
   **count against the plan**), `status='approved'` always, `guest_id=NULL`. Authenticated-only
   (advisors confirm: 2 new lint-0029 entries, 0 new anon/0028). Shared `uploadFile` now takes the
   endpoint pair + identity; new `/api/host/r2/*` routes; `HostUpload` + `EventUploads` ("Add photos"
-  in the Uploads card header). **Rolled-back RPC contract check passed** (happy path: `guest_id` null +
-  `approved` + counters += exact bytes; key-prefix/oversize → check_violation; non-owner & null-uid →
-  rejected). `typecheck`/`lint`/`test` (191) green. **Still TODO:** end-to-end upload on partyreel.com
-  (localhost/preview can't complete R2 PUTs — needs the prod origin + bucket CORS).
+  in the Uploads card header). Rolled-back RPC contract check + `typecheck`/`lint`/`test` (191) green.
+  **Chrome-MCP verified on prod (host `willg97@gmail.com`):** Add-photos toggle reveals the dropzone →
+  upload → "Added to the album" → grid count 3→4; DB-confirmed the new row is `guest_id=NULL` +
+  `status='approved'` with `storage_used_bytes` +103 and monthly ingress +103 (exact); the item shows
+  in the public `/a/` album (guests see it); console clean. Verification artifact soft-removed (album
+  back to 3).
 
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
