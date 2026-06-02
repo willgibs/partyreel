@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,6 +36,11 @@ type EmailValues = z.infer<typeof emailSchema>;
 // won't verify if the two drift.
 const OTP_LENGTH = 6;
 
+// Resend cooldown (seconds) — matches the custom-SMTP per-user minimum interval (Supabase
+// Auth → Emails → SMTP → "Minimum interval per user", 60 s). Below that, a resend silently
+// no-ops, so we disable the button + show a countdown rather than let an early re-tap fail.
+const RESEND_COOLDOWN_S = 60;
+
 // Shared dual-path email sign-in. Entering an email sends ONE Supabase email that contains
 // BOTH a 6-digit code AND a magic link (signInWithOtp). The user can either type the code
 // here (verifyOtp — no redirect, the robust path that survives the iPhone-PWA magic-link
@@ -58,6 +63,14 @@ export function EmailSignIn({
   const [verifying, setVerifying] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  // Tick the resend cooldown down to 0 (re-armed each second via the resendIn dep).
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   const form = useForm<EmailValues>({
     resolver: zodResolver(emailSchema),
@@ -78,7 +91,10 @@ export function EmailSignIn({
   }
 
   async function onEmailSubmit(values: EmailValues) {
-    if (await sendCode(values.email)) setSentTo(values.email);
+    if (await sendCode(values.email)) {
+      setSentTo(values.email);
+      setResendIn(RESEND_COOLDOWN_S);
+    }
   }
 
   async function onCodeComplete(value: string) {
@@ -108,6 +124,7 @@ export function EmailSignIn({
     if (ok) {
       setCode("");
       setCodeError(null);
+      setResendIn(RESEND_COOLDOWN_S);
       toast.success("Sent a new code.");
     }
   }
@@ -154,10 +171,14 @@ export function EmailSignIn({
           <button
             type="button"
             onClick={resend}
-            disabled={resending}
+            disabled={resending || resendIn > 0}
             className="text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
           >
-            {resending ? "Sending…" : "Resend code"}
+            {resending
+              ? "Sending…"
+              : resendIn > 0
+                ? `Resend in ${resendIn}s`
+                : "Resend code"}
           </button>
           <span className="text-muted-foreground/40">·</span>
           <button
