@@ -20,6 +20,7 @@ import { isDemoToken } from "@/lib/demo";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { getSiteUrl } from "@/lib/site-url";
+import { createClient } from "@/lib/supabase/server";
 
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
@@ -137,6 +138,21 @@ export default async function GuestEventPage({
       : await getEventMediaByQrToken(token);
   const initialItems = await toGridItems(media, event.name);
 
+  // Require-email gate (verified, Phase 2c): ONLY when the host requires it, check for a
+  // confirmed Supabase session. The gallery still renders (viewing is allowed) — only the
+  // UPLOAD area is swapped for <VerifyEmailPrompt> (EventExperience does that via the prop).
+  // getUser() runs ONLY for require_email events, so open/password events add no auth
+  // round-trip. Demo never gates (its uploads are simulated).
+  const isDemo = isDemoToken(token);
+  let needsEmailVerification = false;
+  if (event.require_email && !isDemo) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    needsEmailVerification = !user || !user.email_confirmed_at;
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <GuestHeader />
@@ -145,7 +161,8 @@ export default async function GuestEventPage({
         qrToken={token}
         joinUrl={joinUrl}
         initialItems={initialItems}
-        isDemo={isDemoToken(token)}
+        isDemo={isDemo}
+        needsEmailVerification={needsEmailVerification}
       />
     </div>
   );

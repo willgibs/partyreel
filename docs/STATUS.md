@@ -75,8 +75,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   upload (`guest_id` set, status approved) → gallery, with real `/api/guests` + `/api/r2/*` network
   calls (the demo event by contrast makes ZERO `/api` calls — simulated). The `guests` table is
   confirmed column-less of `display_name`; the host settings dropped the "Require a display name"
-  toggle (Require email + the Video row intact). Cut 2c (verified-email OTP + shared `<EmailSignIn>`)
-  next.
+  toggle (Require email + the Video row intact). **Cut 2c (verified-email OTP + shared `<EmailSignIn>`)
+  BUILT + gate-green, pending live verification.** "Require email" is now a VERIFIED email (Supabase
+  native OTP — 6-digit code primary + magic-link fallback): `create_guest` derives `user_id` + `email`
+  from `auth.uid()` (require_email = a confirmed session), keeping its 2-arg signature
+  (create-or-replace → no re-grant, advisors UNCHANGED, NO deploy window). New `guests.user_id`
+  (account-from-guest). The require-email collection moved to a PAGE-LEVEL gate on `/e/` (swaps the
+  upload slot for `<VerifyEmailPrompt>`, gallery stays); a shared `<EmailSignIn>` (hand-authored
+  `input-otp`) backs both the host `/login` and the guest prompt; "Switch guest" now `signOut()`s.
+  Migration `…144343_phase2c_guest_user_id_verified_email`; typecheck/lint/test (197)/build green; the
+  `/login` OTP UI render-verified locally (6 slots + link fallback). **Human prereqs DONE** (Will set
+  the apex `…/auth/callback**` allowlist + the `{{ .Token }}` email template; anon sign-ins stay off).
+  **Verify on partyreel.com:** host login via code + link → /dashboard; a require_email event →
+  `<VerifyEmailPrompt>` → code → upload → DB-confirm `guests.user_id` + email stamped. ADR-0008.
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP

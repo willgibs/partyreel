@@ -19,3 +19,13 @@ export function isAdminHost(host: string | null | undefined): boolean {
   if (!ADMIN_HOST || !host) return false;
   return host.split(":")[0].toLowerCase() === ADMIN_HOST.toLowerCase();
 }
+
+/**
+ * Where a freshly signed-in user should land, host-aware: the admin subdomain → the
+ * portal, everywhere else → the host dashboard. Mirrors the `/auth/callback` route's
+ * fallback (which additionally honors a same-origin `?next=`). Used by the in-page OTP
+ * verify on `/login` (which navigates client-side, bypassing the callback route).
+ */
+export function loginTarget(host: string | null | undefined): string {
+  return isAdminHost(host) ? "/admin" : "/dashboard";
+}

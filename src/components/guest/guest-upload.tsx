@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -17,25 +15,9 @@ import {
 import { EmailCapturePrompt } from "@/components/guest/email-capture-prompt";
 import { FileDropzone } from "@/components/guest/file-dropzone";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { createClient } from "@/lib/supabase/client";
 import { uploadFile } from "@/lib/upload/uploader";
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
@@ -58,9 +40,10 @@ export type UploadedItem = {
 
 // The upload panel: a prominent dropzone + the per-file queue. Joining is
 // just-in-time and SILENT — a first-time guest picks files and a guest session is
-// created behind the scenes (no name prompt; guest names were removed in Phase 2b).
-// The one exception is a require_email event, which still asks for an email up front.
-// Each completed upload is reported to the coordinator (optimistic gallery render).
+// created behind the scenes (no prompts; guest names were removed in Phase 2b, and a
+// require_email event is gated at the PAGE level before this panel ever renders, via
+// <VerifyEmailPrompt>). Each completed upload is reported to the coordinator (optimistic
+// gallery render).
 // Demo mode: fake an upload (a brief progress ramp) and return a synthetic "approved"
 // outcome. Nothing hits the network — the gallery renders the local file via the
 // existing optimistic-tile path, and the synthetic id never appears in the poll, so
@@ -114,9 +97,7 @@ export function GuestUpload({
   }, [sessionToken]);
   // Files picked before a session exists — uploaded once the session is created.
   const pendingFilesRef = useRef<File[]>([]);
-  // Only require_email events still prompt (for the email); names were removed
-  // (Phase 2b), so the common just-in-time join is silent.
-  const [emailPromptOpen, setEmailPromptOpen] = useState(false);
+  const router = useRouter();
 
   const sync = useCallback((next: Item[]) => {
     itemsRef.current = next;
@@ -193,7 +174,6 @@ export function GuestUpload({
     (token: string) => {
       onSession(token);
       sessionRef.current = token; // runQueue (called below) sees it immediately
-      setEmailPromptOpen(false);
       const stashed = pendingFilesRef.current;
       pendingFilesRef.current = [];
       if (stashed.length) enqueue(stashed);
@@ -237,16 +217,11 @@ export function GuestUpload({
         enqueue(files);
         return;
       }
-      // No session yet. Names are gone, so the join is silent — UNLESS the host requires
-      // an email, which still needs a one-field prompt (until 2c's verified OTP).
+      // No session yet → silent join (no prompts; require_email is gated at the page).
       pendingFilesRef.current = files;
-      if (!isDemo && event.require_email) {
-        setEmailPromptOpen(true);
-      } else {
-        void joinSilently();
-      }
+      void joinSilently();
     },
-    [enqueue, isDemo, event.require_email, joinSilently],
+    [enqueue, joinSilently],
   );
 
   const doneCount = items.filter((it) => it.status === "done").length;
@@ -343,114 +318,22 @@ export function GuestUpload({
       {sessionToken && (
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
+            // Clear the capability session AND sign out any verified Supabase session
+            // (shared-device bleed), then refresh so a require_email event re-gates.
             onSession(null);
             sessionRef.current = null;
+            if (!isDemo) {
+              await createClient().auth.signOut();
+              router.refresh();
+            }
           }}
           className="block w-full pt-1 text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
         >
           Not you? Switch guest
         </button>
       )}
-
-      <EmailPrompt
-        open={emailPromptOpen}
-        onOpenChange={(open) => {
-          if (!open) pendingFilesRef.current = [];
-          setEmailPromptOpen(open);
-        }}
-        qrToken={qrToken}
-        onJoined={handleJoined}
-      />
     </div>
-  );
-}
-
-// Email-only just-in-time prompt — shown ONLY for require_email events (guest names
-// were removed in Phase 2b; without require_email the join is silent). Same /api/guests
-// contract. Cut 2c replaces this with a verified-OTP page gate.
-function EmailPrompt({
-  open,
-  onOpenChange,
-  qrToken,
-  onJoined,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  qrToken: string;
-  onJoined: (sessionToken: string) => void;
-}) {
-  const form = useForm<{ email: string }>({
-    resolver: zodResolver(z.object({ email: z.email() })),
-    defaultValues: { email: "" },
-  });
-
-  async function onSubmit(values: { email: string }) {
-    const res = await fetch("/api/guests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qr_token: qrToken, email: values.email }),
-    });
-    const body = (await res.json()) as
-      | { ok: true; session_token: string }
-      | { ok: false; code: string; message: string };
-
-    if (!body.ok) {
-      if (body.code === "email_required") {
-        form.setError("email", { message: body.message });
-        return;
-      }
-      toast.error("Couldn't join", { description: body.message });
-      return;
-    }
-    onJoined(body.session_token);
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add your email</DialogTitle>
-          <DialogDescription>
-            This event asks guests for an email before uploading. No app, no
-            account.
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      autoFocus
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="you@email.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? "Starting…" : "Start uploading"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
   );
 }
 

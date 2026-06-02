@@ -25,10 +25,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { qr_token, email } = parsed.data;
+  const { qr_token } = parsed.data;
   const result = await createGuest({
     qrToken: qr_token,
-    email: email || null,
   });
 
   if (!result.ok) {

@@ -36,12 +36,13 @@ export type CreateGuestResult =
 
 export async function createGuest(input: {
   qrToken: string;
-  email?: string | null;
 }): Promise<CreateGuestResult> {
   const supabase = await createClient();
+  // create_guest derives identity (user_id + email) from the VERIFIED session
+  // (auth.uid()) — never from the client (Phase 2c). The RLS server client carries the
+  // guest's JWT once they've verified, so auth.uid() resolves inside the RPC.
   const { data, error } = await supabase.rpc("create_guest", {
     p_qr_token: input.qrToken,
-    p_email: input.email ?? undefined,
   });
 
   if (error) {
@@ -53,8 +54,9 @@ export async function createGuest(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
-      // Post Phase 2b the ONLY check_violation create_guest raises is the require_email
-      // gate (the display-name requirement was removed with the column).
+      // The only check_violation create_guest raises is the require_email gate — now "a
+      // VERIFIED email is required" (Phase 2c). The /e/ page gates this up front via
+      // <VerifyEmailPrompt>, so reaching here means a direct-API call or a race.
       return {
         ok: false,
         code: "email_required",

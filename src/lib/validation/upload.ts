@@ -11,13 +11,12 @@
 import { z } from "zod";
 
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
-// Guest display names were removed (Phase 2b) — the join carries only the
-// capability `qr_token` + an optional email (for require_email events, until 2c
-// makes it a verified OTP). create_guest is the authority on which fields are
-// REQUIRED (per the event's require_* flags); this only validates shape/format.
+// The join carries ONLY the capability `qr_token`. Identity (for require_email events)
+// is now a VERIFIED Supabase session (Phase 2c): create_guest derives the email from
+// auth.uid() and raises if a require_email event has no verified session. No email is
+// ever sent in this request.
 export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
-  email: z.union([z.email(), z.literal("")]).optional(),
 });
 
 // ─── POST /api/guests/email (post-upload email capture) ──────────────────────

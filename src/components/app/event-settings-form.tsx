@@ -323,9 +323,10 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between gap-4">
                     <div className="space-y-0.5">
-                      <FormLabel>Require an email</FormLabel>
+                      <FormLabel>Require a verified email</FormLabel>
                       <FormDescription>
-                        Ask guests for an email before they can upload.
+                        Guests verify an email (a 6-digit code) before
+                        uploading.
                         {emailLocked && (
                           <>
                             {" "}

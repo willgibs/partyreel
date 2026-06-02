@@ -8,6 +8,7 @@ import {
   GuestUpload,
   type UploadedItem,
 } from "@/components/guest/guest-upload";
+import { VerifyEmailPrompt } from "@/components/guest/verify-email-prompt";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
@@ -24,6 +25,7 @@ export function EventExperience({
   joinUrl,
   initialItems,
   isDemo,
+  needsEmailVerification,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -31,6 +33,9 @@ export function EventExperience({
   initialItems: GridMedia[];
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
+  /** require_email event + the viewer hasn't verified an email — swap upload for the
+   *  verify prompt (the gallery still shows; viewing is allowed). Phase 2c. */
+  needsEmailVerification: boolean;
 }) {
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
@@ -166,14 +171,18 @@ export function EventExperience({
       </header>
 
       <div className="mt-7">
-        <GuestUpload
-          event={event}
-          qrToken={qrToken}
-          sessionToken={sessionToken}
-          onSession={setSessionToken}
-          onUploaded={handleUploaded}
-          isDemo={isDemo}
-        />
+        {needsEmailVerification ? (
+          <VerifyEmailPrompt qrToken={qrToken} />
+        ) : (
+          <GuestUpload
+            event={event}
+            qrToken={qrToken}
+            sessionToken={sessionToken}
+            onSession={setSessionToken}
+            onUploaded={handleUploaded}
+            isDemo={isDemo}
+          />
+        )}
       </div>
 
       <div className="mt-5">

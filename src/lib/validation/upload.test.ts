@@ -173,15 +173,9 @@ describe("joinSchema", () => {
     expect(joinSchema.safeParse({}).success).toBe(false);
   });
 
-  it("rejects a malformed email", () => {
-    expect(joinSchema.safeParse({ qr_token: "q", email: "nope" }).success).toBe(
-      false,
-    );
-  });
-
-  it("allows an empty email", () => {
-    expect(joinSchema.safeParse({ qr_token: "q", email: "" }).success).toBe(
-      true,
-    );
+  it("accepts a lone qr_token (identity is the verified session, not the body)", () => {
+    // Phase 2c: the join carries ONLY qr_token; require-email is a verified Supabase
+    // session derived inside create_guest, never a field in this request.
+    expect(joinSchema.safeParse({ qr_token: "q" }).success).toBe(true);
   });
 });

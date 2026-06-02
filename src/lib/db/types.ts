@@ -166,6 +166,7 @@ export type Database = {
           event_id: string
           id: string
           session_token: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -173,6 +174,7 @@ export type Database = {
           event_id: string
           id?: string
           session_token: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -180,6 +182,7 @@ export type Database = {
           event_id?: string
           id?: string
           session_token?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -187,6 +190,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

@@ -1,38 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MailCheck } from "lucide-react";
 
+import { EmailSignIn } from "@/components/auth/email-sign-in";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { isAdminHost } from "@/lib/auth/admin-host";
+import { isAdminHost, loginTarget } from "@/lib/auth/admin-host";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/client";
-
-const loginSchema = z.object({
-  email: z.email("Enter a valid email address."),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
 
 // Absolute callback URL. Must match an entry in Supabase Auth's redirect
 // allow-list, or the redirect is rejected and Supabase falls back to the Site
 // URL. So we send the BARE `/auth/callback` (no query — a `?next=` breaks an
 // exact, non-wildcard allow-list entry) and let the callback choose where to land
-// based on the host it runs on (the admin subdomain → /admin).
+// based on the host it runs on (the admin subdomain → /admin). This is the
+// magic-LINK + Google redirect target; the OTP CODE path verifies in-page (no
+// redirect) and navigates via onVerified below.
 //
 // On the admin subdomain we MUST use the live origin (NOT the configured apex
 // NEXT_PUBLIC_SITE_URL) so the session cookie lands on admin.<domain> and the
@@ -73,25 +58,8 @@ function GoogleIcon() {
 }
 
 export function LoginForm() {
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "" },
-  });
-
-  async function onSubmit(values: LoginValues) {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: values.email,
-      options: { emailRedirectTo: callbackUrl() },
-    });
-    if (error) {
-      toast.error("Couldn't send the link", { description: error.message });
-      return;
-    }
-    setSentTo(values.email);
-  }
 
   async function signInWithGoogle() {
     setGoogleLoading(true);
@@ -109,61 +77,18 @@ export function LoginForm() {
     }
   }
 
-  if (sentTo) {
-    return (
-      <div className="space-y-4 text-center">
-        <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
-          <MailCheck className="size-5" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Check your email</p>
-          <p className="text-sm text-muted-foreground">
-            We sent a sign-in link to{" "}
-            <span className="font-medium text-foreground">{sentTo}</span>. Open
-            it on this device to continue.
-          </p>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => setSentTo(null)}>
-          Use a different email
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="you@email.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting
-              ? "Sending…"
-              : "Email me a sign-in link"}
-          </Button>
-        </form>
-      </Form>
+      {/* Dual-path email sign-in (6-digit code + magic-link fallback). On a successful
+          in-page code verify, land host-aware (the magic link instead routes through
+          /auth/callback). */}
+      <EmailSignIn
+        emailRedirectTo={callbackUrl()}
+        onVerified={() => {
+          router.push(loginTarget(window.location.host));
+          router.refresh();
+        }}
+      />
 
       <div className="flex items-center gap-3">
         <Separator className="flex-1" />

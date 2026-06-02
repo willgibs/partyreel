@@ -579,6 +579,28 @@ keyboard or Dismiss it.
   to a page-level gate, and deletes this prompt. `create_guest`'s ONLY remaining check_violation is the
   require_email gate (the `email_required` mapping in [mutations/guest.ts](src/lib/db/mutations/guest.ts)).
   `validation/join.ts` (`buildJoinSchema`) was DELETED.
+- **Verified-email gate via OTP (config rework Phase 2 — cut 2c).** "Require email" is now a VERIFIED
+  email (Supabase native OTP: 6-digit code primary + magic-link fallback — both arrive in ONE
+  `signInWithOtp` email). **`create_guest` derives identity (`user_id` + `email`) from `auth.uid()` →
+  `auth.users`, NEVER the client** — `require_email` = "a confirmed session" (`auth.uid()` not null AND
+  `email_confirmed_at` not null); the RPC is the trust boundary. It KEEPS its **2-arg signature**
+  (`create-or-replace`, `p_email` now IGNORED) → NO re-grant, advisors UNCHANGED, and **NO
+  deploy-window breakage** (the old build's `create_guest(qr, email)` kept working — strictly better
+  than 2b's DROP+re-grant). **`guests.user_id`** (new; `on delete set null`; indexed; deliberately NO
+  unique `(event_id,user_id)` — that would break anonymous multi-join, the `session_token` is the
+  dedupe) is the account-from-guest link (a verifying guest becomes a free account via the existing
+  `handle_new_user`). The require-email collection MOVED from a just-in-time prompt to a **PAGE-LEVEL
+  gate**: `/e/[token]` calls `getUser()` **ONLY when `event.require_email`** (no auth round-trip on
+  open/password events) and passes `needsEmailVerification` so `event-experience.tsx` swaps the upload
+  slot for `<VerifyEmailPrompt>` (the gallery STAYS visible — viewing is allowed); verify →
+  `router.refresh()` → the RSC re-runs `getUser()` → the dropzone renders → the silent `create_guest`
+  stamps `user_id`. **Shared `<EmailSignIn>`** ([email-sign-in.tsx](src/components/auth/email-sign-in.tsx),
+  code via `verifyOtp({type:'email'})` + the link) backs BOTH the host `/login` and the guest prompt;
+  `input-otp` is **hand-authored** ([ui/input-otp.tsx](src/components/ui/input-otp.tsx) — radix-nova
+  lacks the wrapper, like `form`). **"Switch guest" now also `signOut()`** (shared-device bleed) +
+  `router.refresh()`. **Human prereqs (live only):** the **apex** Supabase allowlist must be
+  `https://partyreel.com/auth/callback**` (the guest link carries `?next=/e/[token]`); the magic-link
+  email template must contain `{{ .Token }}` (the code). ADR-0008.
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and

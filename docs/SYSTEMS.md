@@ -85,8 +85,11 @@ cookie, then the full experience (media via the server admin-read); `open` → t
 `accepting_uploads=false` → gallery + a disabled "Uploads disabled" control
 ([guest-upload.tsx](../src/components/guest/guest-upload.tsx)). **Joining is just-in-time + SILENT** —
 a first-time guest picks files and `create_guest` issues a `session_token` (localStorage,
-returning-guest) behind the scenes; guest display names were removed (Phase 2b), so the ONLY join
-prompt is an email field on `require_email` events. Upload is **browser → R2
+returning-guest) behind the scenes; guest names are gone (Phase 2b). A **`require_email`** event is
+instead gated at the PAGE level before the upload panel renders (Phase 2c, ADR-0008): `/e/` swaps the
+upload slot for `<VerifyEmailPrompt>` (the shared `<EmailSignIn>` OTP — 6-digit code + magic-link
+fallback), the gallery still shows; on verify, `create_guest` derives identity from `auth.uid()` and
+stamps `guests.user_id` (account-from-guest). Upload is **browser → R2
 direct** (single PUT < 100 MB else multipart) via `/api/r2/presign-upload` + `/api/r2/complete-upload`;
 `create_media` writes the row + ledger + enforces caps; `get_upload_context` is the presign-time
 pre-check. The **live gallery** seeds from an SSR batch then **polls `/api/guests/gallery` every
