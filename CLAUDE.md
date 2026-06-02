@@ -502,7 +502,9 @@ keyboard or Dismiss it.
   glitch). `dragging` is left true until the NEXT gesture's `settleTo` flips it false (many frames
   later); no transform changes in between, so nothing that should animate is suppressed; **(c)** videos are **CLICK-TO-PLAY, not autoplay** — the center video gets `controls`
   (native play button) + `preload="metadata"` (poster only, not the file), neighbor videos are muted
-  controls-less `pointer-events-none` posters; an index-change effect keeps the new center paused and
+  controls-less `pointer-events-none` posters with a `<PlayBadge>` overlay (shared with the grid) so a
+  video reads as a video the moment it peeks in mid-swipe (center uses the native button instead); an
+  index-change effect keeps the new center paused and
   **pauses a played video when you swipe past it** (+ resets `isPlayingRef`, since a controls-less
   neighbor's onPause won't fire). Chosen so guests pick what to load (bandwidth) and swiping stays
   clean (no controls overlay popping in after an autoplay); **(d)** swipe-vs-scrub: a **playing** video

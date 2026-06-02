@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Play } from "lucide-react";
 
 import { MediaLightbox } from "@/components/shared/media-lightbox";
+import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
 
 export type GridMedia = {
@@ -48,11 +48,7 @@ export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
         playsInline
         className="size-full bg-black object-cover"
       />
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <span className="flex size-10 items-center justify-center rounded-full bg-black/50 text-white">
-          <Play className="size-5 translate-x-px fill-current" />
-        </span>
-      </span>
+      <PlayBadge />
     </>
   );
 }

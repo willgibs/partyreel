@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import type { GridMedia } from "@/components/app/media-grid";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
+import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
 
 // Shared full-screen media viewer for BOTH galleries (public album + host grid).
@@ -47,7 +48,7 @@ const SPRINGBACK_MS = 200; // release-snap is a touch quicker than a commit
 // Slot = one full-stage-width cell of the track. 3 of them = 300% wide; the track
 // is translated so the middle slot sits in the (overflow-hidden) stage viewport.
 const SLOT_CLASS =
-  "flex h-full shrink-0 grow-0 basis-full items-center justify-center px-2 pb-6";
+  "relative flex h-full shrink-0 grow-0 basis-full items-center justify-center px-2 pb-6";
 
 type Gesture = {
   pointerId: number;
@@ -397,18 +398,24 @@ export function MediaLightbox({
             className="max-h-full max-w-full rounded-md bg-black select-none"
           />
         ) : (
-          // Neighbor video: a muted, controls-less first-frame poster — never
-          // autoplays or steals the swipe (pointer-events-none). Same posterized src
-          // as the center so the element isn't reloaded when it becomes current.
-          <video
-            src={videoPosterSrc(item.url)}
-            muted
-            playsInline
-            preload="metadata"
-            tabIndex={-1}
-            aria-hidden
-            className="pointer-events-none max-h-full max-w-full rounded-md bg-black select-none"
-          />
+          // Neighbor video: a muted, controls-less first-frame poster + a play badge
+          // so it reads as a video the moment it peeks in mid-swipe (the center uses
+          // the native controls play button instead). Never autoplays or steals the
+          // swipe (pointer-events-none). Same posterized src as the center so the
+          // element isn't reloaded when it becomes current. The badge overlay matches
+          // the slot's padding so it lands on the media's center, not the slot's.
+          <>
+            <video
+              src={videoPosterSrc(item.url)}
+              muted
+              playsInline
+              preload="metadata"
+              tabIndex={-1}
+              aria-hidden
+              className="pointer-events-none max-h-full max-w-full rounded-md bg-black select-none"
+            />
+            <PlayBadge size="lg" overlayClassName="px-2 pb-6" />
+          </>
         )}
       </div>
     );
