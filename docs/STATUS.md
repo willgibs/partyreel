@@ -40,19 +40,26 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   `status='approved'` with `storage_used_bytes` +103 and monthly ingress +103 (exact); the item shows
   in the public `/a/` album (guests see it); console clean. Verification artifact soft-removed (album
   back to 3).
-- **Config/permissions rework — Phase 1 (3-state access + Pro password protection) BUILT, pending
-  live verification.** `events.is_public` → an `event_visibility` enum (`open|password|private`);
-  new Pro-only password gate (bcrypt via `set/clear_event_password`; the 9th anon RPC
-  `verify_event_password`; a signed httpOnly unlock cookie; password media served only via a
-  cookie-guarded server admin-read — the anon RPCs gate on `visibility='open'`). Event settings
-  redesigned into "Visibility & access" (3-way `ToggleGroup` selector + conditional password
-  sub-panel) + "Guest uploads" cards. Migration applied + advisors clean (9 anon RPCs; set/clear
-  authenticated-only) + rolled-back RPC contract checks pass; typecheck/lint/test/build green.
-  **Human prereq before live test:** set `UNLOCK_COOKIE_SECRET` in Vercel + `.env.local`. **Verify on
-  partyreel.com:** set an event to Password (Pro host), scan the QR on a phone, unlock, wrong-password
-  rejection, album + 12 s poll stay unlocked; Private fully locks; Open unchanged; confirm the hash is
-  NOT in any client payload. ADR-0007. Phase 1 of a 3-phase rework (master plan: access →
-  uploads/identity → accounts/saved events).
+- **Config/permissions rework — a 3-phase initiative** (master plan: access → uploads/identity →
+  accounts/saved events). **Phase 1 (3-state access + Pro password protection) SHIPPED +
+  LIVE-VERIFIED** (commits `ea02f32` + `c0721bc`): `events.is_public` → an `event_visibility` enum
+  (`open|password|private`); Pro-only password gate (bcrypt via `set/clear_event_password`; the 9th
+  anon RPC `verify_event_password`; a signed httpOnly unlock cookie; password media served only via a
+  cookie-guarded server admin-read — the anon RPCs gate on `visibility='open'`); settings redesigned
+  into "Visibility & access" (`ToggleGroup` + conditional password sub-panel) + "Guest uploads"
+  cards; `UNLOCK_COOKIE_SECRET` set in Vercel; verified on a phone (gate + wrong-password reject +
+  unlock persists across album + 12 s poll; Private locks; Open unchanged; hash absent from client
+  payloads). ADR-0007. **Phase 2 (uploads & identity) IN PROGRESS — cut 2a (video = Pro-only) BUILT +
+  gate-green, pending live verification.** A free host's event is photos-only for guests AND the host:
+  the `tier='free'` video gate sits at the top of the tier-caps block in BOTH `create_media` +
+  `create_media_as_host` (authoritative); `get_upload_context`/`get_host_upload_context` gained an
+  advisory `video_blocked` flag the presign routes fail fast on; the host upload picker hides video on
+  Free (`videosAllowedForTier`) + a read-only "Video uploads" settings status row; pricing reframed
+  (video = Pro/Event-Pass). Migration `…_phase2a_video_pro_gate` applied; advisors **UNCHANGED** (no
+  new RPC/grant); rolled-back RPC contract checks pass; typecheck/lint/test (202)/build green.
+  **Verify on partyreel.com:** free event → guest video rejected ("photos only") + host video picker
+  hidden; upgrade host → video works; free photo still works. Cuts 2b (remove guest display names) +
+  2c (verified-email OTP + shared `<EmailSignIn>`) next.
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP

@@ -16,6 +16,7 @@ import {
   planById,
   plansForTier,
   toBillingTier,
+  videosAllowedForTier,
   withinLimit,
   withinStorage,
 } from "@/lib/constants/tiers";
@@ -127,6 +128,14 @@ describe("isSettingLocked (tier-gated event settings)", () => {
   });
   it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
     expect([...GATED_EVENT_SETTINGS]).toEqual(["require_email", "password"]);
+  });
+});
+
+describe("videosAllowedForTier (Phase 2 video Pro-gate)", () => {
+  it("blocks video on Free, allows it on paid tiers", () => {
+    expect(videosAllowedForTier("free")).toBe(false);
+    expect(videosAllowedForTier("pro")).toBe(true);
+    expect(videosAllowedForTier("event_pass")).toBe(true);
   });
 });
 

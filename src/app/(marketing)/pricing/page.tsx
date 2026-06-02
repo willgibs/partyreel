@@ -43,6 +43,12 @@ function capacityLine(bytes: number): string {
   return `≈ ${cap.photos.toLocaleString()} photos or ${cap.videoMinutes.toLocaleString()} min of video`;
 }
 
+// Free is photos-only (video is a paid feature, Phase 2), so its capacity reads in
+// photos alone — never "or N min of video", which would imply video on Free.
+function photosCapacityLine(bytes: number): string {
+  return `≈ ${friendlyCapacity(bytes).photos.toLocaleString()} photos`;
+}
+
 function Feature({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2">
@@ -85,7 +91,8 @@ export default function PricingPage() {
             <ul className="space-y-2.5 text-sm">
               <Feature>1 event</Feature>
               <Feature>{formatBytes(free.storageBytes)} of storage</Feature>
-              <Feature>{capacityLine(free.storageBytes)}</Feature>
+              <Feature>{photosCapacityLine(free.storageBytes)}</Feature>
+              <Feature>Photos only</Feature>
               <Feature>No watermark</Feature>
             </ul>
           </CardContent>
@@ -115,6 +122,7 @@ export default function PricingPage() {
           <CardContent className="flex-1">
             <ul className="space-y-2.5 text-sm">
               <Feature>Unlimited events</Feature>
+              <Feature>Photos and video</Feature>
               <Feature>No watermark</Feature>
               <Feature>Password-protected albums</Feature>
               <Feature>Pick the storage you need:</Feature>
@@ -152,6 +160,7 @@ export default function PricingPage() {
                 {formatBytes(eventPass.storageBytes)} of storage
               </Feature>
               <Feature>{capacityLine(eventPass.storageBytes)}</Feature>
+              <Feature>Photos and video</Feature>
               <Feature>No subscription, pay once</Feature>
             </ul>
           </CardContent>
@@ -168,9 +177,9 @@ export default function PricingPage() {
       </div>
 
       <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
-        Every plan supports videos up to {videoMinutes} minutes and {videoGb} GB
-        each. Your events stay up until you delete them. There&rsquo;s no expiry
-        clock counting down on your memories.
+        Video uploads come with Pro and Event Pass, up to {videoMinutes} minutes
+        and {videoGb} GB each. Your events stay up until you delete them.
+        There&rsquo;s no expiry clock counting down on your memories.
       </p>
     </Container>
   );

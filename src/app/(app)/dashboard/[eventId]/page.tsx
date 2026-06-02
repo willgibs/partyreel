@@ -20,7 +20,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
-import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import {
+  DEFAULT_TIER,
+  toBillingTier,
+  videosAllowedForTier,
+} from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
 import { listEventMedia } from "@/lib/db/queries/media";
@@ -194,6 +198,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         eventId={event.id}
         items={visibleItems}
         pendingCount={pendingItems.length}
+        videosAllowed={videosAllowedForTier(tier)}
       />
 
       <EventSettingsForm event={event} tier={tier} />

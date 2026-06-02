@@ -91,6 +91,19 @@ export async function POST(request: Request) {
       { status: 404 },
     );
   }
+  // Phase 2: video is a paid feature. The host's picker is disabled up front on Free
+  // (videosAllowedForTier), so reaching here with a video is a race/bypass — a
+  // tier-framed message is fine since it's the owner.
+  if (ctx.data.video_blocked) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "video_not_allowed",
+        message: "Video uploads are available on the Pro plan.",
+      },
+      { status: 403 },
+    );
+  }
   if (ctx.data.at_storage_cap || ctx.data.at_monthly_cap) {
     return NextResponse.json(
       {

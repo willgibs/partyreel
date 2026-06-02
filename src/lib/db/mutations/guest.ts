@@ -143,6 +143,9 @@ export type UploadContext =
       // pre-checks — create_media is authoritative (see get_upload_context).
       at_storage_cap: boolean;
       at_monthly_cap: boolean;
+      // Phase 2: true when this is a video request on a FREE host (video is paid-only).
+      // Advisory — create_media is the authoritative gate. False for photo requests.
+      video_blocked: boolean;
     };
 
 export type UploadContextResult =
@@ -186,6 +189,7 @@ export type CreateMediaResult =
         | "cap_reached"
         | "too_large"
         | "too_long"
+        | "video_not_allowed"
         | "bad_key"
         | "unknown";
       message: string;
@@ -269,6 +273,16 @@ function mapCheckViolation(message: string): CreateMediaResult {
   }
   if (m.includes("longer than")) {
     return { ok: false, code: "too_long", message };
+  }
+  // Phase 2 video Pro-gate ("...available on paid plans."). Distinct from the size
+  // limits above (checked first), so "paid plan" uniquely identifies the video gate.
+  // A backstop: the presign route's video_blocked flag is the friendly pre-check.
+  if (m.includes("paid plan")) {
+    return {
+      ok: false,
+      code: "video_not_allowed",
+      message: "This event doesn't accept videos.",
+    };
   }
   if (m.includes("limit") || m.includes("capacity")) {
     return { ok: false, code: "cap_reached", message };

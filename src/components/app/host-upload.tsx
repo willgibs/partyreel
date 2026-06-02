@@ -33,7 +33,13 @@ type Item = {
   error?: string;
 };
 
-export function HostUpload({ eventId }: { eventId: string }) {
+export function HostUpload({
+  eventId,
+  videosAllowed,
+}: {
+  eventId: string;
+  videosAllowed: boolean;
+}) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
@@ -104,7 +110,7 @@ export function HostUpload({ eventId }: { eventId: string }) {
 
   return (
     <div className="space-y-4">
-      <FileDropzone onFiles={addFiles} />
+      <FileDropzone onFiles={addFiles} allowVideos={videosAllowed} />
 
       {items.length > 0 && (
         <ul className="space-y-2">

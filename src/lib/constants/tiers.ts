@@ -205,6 +205,18 @@ export function isSettingLocked(
 }
 
 /**
+ * Video uploads are a paid feature (Phase 2): a free event is photos-only, for
+ * guests AND the host. Authoritatively enforced in create_media /
+ * create_media_as_host (a free host's event rejects type='video'); this helper
+ * drives the host upload UI + the settings status row. Like isSettingLocked,
+ * "allowed" = any non-free tier (pro + event_pass). The universal 5-min / 2-GB
+ * video limits (lib/media/limits.ts) are orthogonal — they apply to paid video too.
+ */
+export function videosAllowedForTier(tier: Tier): boolean {
+  return tier !== "free";
+}
+
+/**
  * The canonical "can I add one more?" check for the event-count wall.
  * `null` limit = unlimited. `current` is the count BEFORE the new item.
  */

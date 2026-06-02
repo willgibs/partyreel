@@ -24,10 +24,14 @@ export function EventUploads({
   eventId,
   items,
   pendingCount,
+  videosAllowed,
 }: {
   eventId: string;
   items: GridMedia[];
   pendingCount: number;
+  // Phase 2: a free host's event is photos-only. Drives the host picker (no video
+  // selection) + the panel copy. The gate is authoritative at upload regardless.
+  videosAllowed: boolean;
 }) {
   const [adding, setAdding] = useState(false);
 
@@ -56,10 +60,11 @@ export function EventUploads({
         {adding && (
           <div className="rounded-xl border border-border bg-muted/30 p-4">
             <p className="mb-3 text-sm text-muted-foreground">
-              Add your own photos and videos, for example a batch from your
-              photographer. These post to the album right away.
+              {videosAllowed
+                ? "Add your own photos and videos, for example a batch from your photographer. These post to the album right away."
+                : "Add your own photos, for example a batch from your photographer. These post to the album right away."}
             </p>
-            <HostUpload eventId={eventId} />
+            <HostUpload eventId={eventId} videosAllowed={videosAllowed} />
           </div>
         )}
 

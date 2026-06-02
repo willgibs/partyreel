@@ -156,7 +156,11 @@ NEVER decrements (churn defense); `storage_used_bytes` drops only on hard-delete
 [tiers.ts](../src/lib/constants/tiers.ts) (Free 2 GB; Pro 100/500/2048 GB; Event Pass 75 GB)
 must mirror the SQL `tier_limits()` (a Vitest parity test guards it). `create_media` enforces
 `cap + 10% overflow buffer` + a **monthly ingress meter** (`storage_ledger.cumulative_bytes`,
-never refunds — the real anti-abuse guard). **Stripe** (`/api/stripe/{checkout,portal,webhook}`):
+never refunds — the real anti-abuse guard). **Video is Pro-only** (Phase 2): a `tier='free'` gate at
+the top of the tier-caps block in BOTH `create_media` + `create_media_as_host` rejects `type='video'`
+(a free event is photos-only for guests AND the host); `videosAllowedForTier` (client) + an advisory
+`video_blocked` flag (`get_upload_context`/`get_host_upload_context`) drive the upload UI. **Stripe**
+(`/api/stripe/{checkout,portal,webhook}`):
 the **raw-body webhook is the SOLE writer** of `tier`/`storage_cap_bytes`/`stripe_subscription_id`
 (via the admin client; idempotent, pure `resolveSubscriptionUpdate`). Price↔plan map +
 env-driven Price IDs in [src/lib/stripe/](../src/lib/stripe/) (NOT in the client-safe `tiers.ts`).

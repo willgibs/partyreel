@@ -11,7 +11,11 @@ import {
   deleteEventAction,
   updateEventAction,
 } from "@/app/(app)/dashboard/actions";
-import { isSettingLocked, type Tier } from "@/lib/constants/tiers";
+import {
+  isSettingLocked,
+  videosAllowedForTier,
+  type Tier,
+} from "@/lib/constants/tiers";
 import type { HostEvent } from "@/lib/db/queries/events";
 import {
   updateEventSchema,
@@ -69,6 +73,9 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
   // server re-enforces the gate — this is UX, not the boundary.
   const emailLocked = isSettingLocked("require_email", tier);
   const passwordLocked = isSettingLocked("password", tier);
+  // Video is a paid feature (Phase 2). This is a read-only STATUS, not a toggle —
+  // the gate is tier-driven and enforced at upload (create_media), not a host switch.
+  const videosAllowed = videosAllowedForTier(tier);
 
   // updateEventSchema is createEventSchema.partial(), so every field is optional; we
   // still prefill from the row so the controls are controlled from the first render.
@@ -364,6 +371,34 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                   </FormItem>
                 )}
               />
+              {/* Video uploads — a read-only STATUS, not a toggle. The gate is
+                  tier-driven and enforced at upload (create_media), so there's no
+                  host switch: a free event is photos-only for guests AND the host. */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Video uploads</p>
+                  <p className="text-sm text-muted-foreground">
+                    {videosAllowed
+                      ? "Guests and you can upload photos and video."
+                      : "This event accepts photos only."}
+                    {!videosAllowed && (
+                      <>
+                        {" "}
+                        <Link
+                          href="/pricing"
+                          className="font-medium text-foreground underline underline-offset-4"
+                        >
+                          Upgrade to allow video
+                        </Link>
+                        .
+                      </>
+                    )}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground">
+                  {videosAllowed ? "Photos & video" : "Photos only"}
+                </span>
+              </div>
             </CardContent>
           </Card>
 

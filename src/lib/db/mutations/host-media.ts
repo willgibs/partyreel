@@ -37,6 +37,9 @@ export type HostUploadContext = {
   // authoritative.
   at_storage_cap: boolean;
   at_monthly_cap: boolean;
+  // Phase 2: true when this is a video request on a FREE host (video is paid-only).
+  // Advisory — create_media_as_host is the authoritative gate. False for photos.
+  video_blocked: boolean;
 };
 
 export type HostUploadContextResult =
@@ -80,6 +83,7 @@ export type CreateHostMediaResult =
         | "cap_reached"
         | "too_large"
         | "too_long"
+        | "video_not_allowed"
         | "bad_key"
         | "unknown";
       message: string;
@@ -158,6 +162,16 @@ function mapHostCheckViolation(message: string): CreateHostMediaResult {
   }
   if (m.includes("longer than")) {
     return { ok: false, code: "too_long", message };
+  }
+  // Phase 2 video Pro-gate ("...available on paid plans."). Checked after the size
+  // limits, so "paid plan" uniquely identifies the video gate. A backstop — the host
+  // presign route's video_blocked flag + the disabled video picker are the front line.
+  if (m.includes("paid plan")) {
+    return {
+      ok: false,
+      code: "video_not_allowed",
+      message: "Video uploads are available on the Pro plan.",
+    };
   }
   if (m.includes("limit") || m.includes("capacity")) {
     return {

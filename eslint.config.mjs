@@ -27,6 +27,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent-tooling state, NOT app source: background-agent git worktrees live under
+    // .claude/worktrees/<name>/ (each a full repo copy incl. its own .next dev build).
+    // The root-anchored ".next/**" above doesn't catch those nested builds, so without
+    // this `pnpm lint` would walk thousands of generated chunks. Skills/config here
+    // aren't app source either.
+    ".claude/**",
   ]),
 ]);
 

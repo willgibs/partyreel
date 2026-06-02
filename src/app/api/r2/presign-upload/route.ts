@@ -96,6 +96,18 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
+  // Phase 2: a free event is photos-only. Fail fast (zero orphans). The message is
+  // EVENT-framed, never tier-framed — a guest must not learn the host's plan.
+  if (ctx.data.video_blocked) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "video_not_allowed",
+        message: "This event accepts photos only.",
+      },
+      { status: 403 },
+    );
+  }
   if (ctx.data.at_storage_cap || ctx.data.at_monthly_cap) {
     return NextResponse.json(
       {

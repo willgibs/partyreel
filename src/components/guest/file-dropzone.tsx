@@ -11,9 +11,15 @@ import { cn } from "@/lib/utils";
 export function FileDropzone({
   onFiles,
   disabled,
+  // Phase 2: when false (a free host's event), restrict the native picker to images
+  // so the host can't even select a video. Guests always leave this true — they never
+  // learn the host's tier, so a guest's video is rejected at presign instead (the
+  // event-framed "photos only" message). Default true preserves the guest behavior.
+  allowVideos = true,
 }: {
   onFiles: (files: File[]) => void;
   disabled?: boolean;
+  allowVideos?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -54,14 +60,16 @@ export function FileDropzone({
       <div className="flex size-12 items-center justify-center rounded-full bg-background text-primary shadow-sm">
         <ImagePlus className="size-6" />
       </div>
-      <p className="text-sm font-medium">Add photos &amp; videos</p>
+      <p className="text-sm font-medium">
+        {allowVideos ? "Add photos & videos" : "Add photos"}
+      </p>
       <p className="text-xs text-muted-foreground">
         Tap to choose, or drag them here
       </p>
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,video/*"
+        accept={allowVideos ? "image/*,video/*" : "image/*"}
         multiple
         hidden
         disabled={disabled}

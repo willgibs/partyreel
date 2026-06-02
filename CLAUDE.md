@@ -554,6 +554,19 @@ keyboard or Dismiss it.
   DROP+CREATE+**re-grant**). **No `share_token` is exposed to the guest page** — the in-page share is
   the JOIN link, the gallery is qr-keyed (capability split intact); the `/a/[share_token]` album
   stays separate.
+- **Video uploads are Pro-only (config rework Phase 2 — cut 2a).** A free host's event is photos-only
+  for guests AND the host. The AUTHORITATIVE gate is `if p_type='video' and v_profile.tier='free' then
+  raise` at the **TOP of the tier-caps block** (right after `v_profile`/`tier_limits()` load — NOT the
+  universal-limits block above it, where `v_profile.tier` isn't loaded yet → a silent no-op) in BOTH
+  `create_media` AND `create_media_as_host`. The universal 5-min/2-GB video limits (`limits.ts`) are
+  ORTHOGONAL — they still apply to PAID video. `get_upload_context` / `get_host_upload_context` return
+  an advisory `video_blocked` (`p_type='video' and tier='free'`) the presign routes fail fast on:
+  EVENT-framed ("This event accepts photos only.") for the guest — a guest must NEVER learn the host's
+  tier — tier-framed for the owner. The host upload picker hides video up front via
+  `videosAllowedForTier` (`FileDropzone allowVideos`, default true so the guest dropzone still offers
+  video, rejected at presign). All 4 RPCs were create-or-replace (jsonb returns / same signatures) so
+  **advisors are UNCHANGED** — no new RPC/grant. Client mirror: `videosAllowedForTier(tier) = tier !==
+  'free'` ([tiers.ts](src/lib/constants/tiers.ts), Vitest-guarded).
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and

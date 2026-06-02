@@ -25,15 +25,18 @@ Pass = 4c) is what remains.
 
 | Plan           | Price                     | Storage | ≈ holds                       | Events       |
 | -------------- | ------------------------- | ------- | ----------------------------- | ------------ |
-| **Free**       | $0                        | 2 GB    | ~500 photos / ~10 min video   | 1            |
+| **Free**       | $0                        | 2 GB    | ~500 photos (no video)        | 1            |
 | **Pro 100 GB** | $9/mo                     | 100 GB  | ~25k photos / ~10 hrs video   | unlimited    |
 | **Pro 500 GB** | $19/mo                    | 500 GB  | ~125k photos / ~50 hrs video  | unlimited    |
 | **Pro 2 TB**   | $39/mo                    | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
 | **Event Pass** | $24 one-time, ~$15/yr ren | 75 GB   | ~37k photos / ~15 hrs video   | 1 event/~1yr |
 
-- **Free** also gates host event-settings by tier (`require_email` is the first gated
-  toggle — locked on Free). The first-event experience must still shine; it sells the
-  upgrade. **Primary upgrade triggers:** a 2nd event, or outgrowing event #1's storage.
+- **Free** also gates features by tier: `require_email` + password-protected albums are
+  locked on Free, and **video is Pro-only** (Phase 2 — a free event is photos-only for guests
+  AND the host; video comes with Pro + Event Pass, enforced at upload in `create_media`/
+  `create_media_as_host`, mirrored client-side by `videosAllowedForTier`). The first-event
+  experience must still shine; it sells the upgrade. **Primary upgrade triggers:** a 2nd event,
+  outgrowing event #1's storage, wanting video, or password/verified-email access controls.
 - **Event Pass** is per-event, fixed ~1-yr term, with a cheap renewal near the end; at
   expiry without renewal it enters the over-capacity retention flow (PRD).
 - ≈ figures assume ~4 MB/photo and ~150 MB/min 1080p video — illustrative; the in-app
