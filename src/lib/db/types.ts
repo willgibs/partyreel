@@ -434,6 +434,7 @@ export type Database = {
       profiles: {
         Row: {
           announcements_seen_at: string | null
+          avatar_updated_at: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -453,6 +454,7 @@ export type Database = {
         }
         Insert: {
           announcements_seen_at?: string | null
+          avatar_updated_at?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -472,6 +474,7 @@ export type Database = {
         }
         Update: {
           announcements_seen_at?: string | null
+          avatar_updated_at?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null

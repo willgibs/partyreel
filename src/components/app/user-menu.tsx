@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
 import { signOutAction } from "@/app/(auth)/actions";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,8 @@ import {
 type UserMenuProps = {
   email: string | null;
   displayName: string | null;
+  /** Presigned avatar URL (server-side), or null to show the initial-letter fallback. */
+  avatarUrl: string | null;
 };
 
 // Theme picker options. Each mode has its own icon; the active one gets a trailing
@@ -86,7 +88,7 @@ function ThemeSubmenu() {
   );
 }
 
-export function UserMenu({ email, displayName }: UserMenuProps) {
+export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
   const label = displayName?.trim() || email || "Your account";
 
   return (
@@ -96,6 +98,8 @@ export function UserMenu({ email, displayName }: UserMenuProps) {
         className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <Avatar>
+          {/* radix Avatar.Image auto-falls-back to the initial when src is null/fails. */}
+          <AvatarImage src={avatarUrl ?? undefined} alt="" />
           <AvatarFallback>{initial(email, displayName)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

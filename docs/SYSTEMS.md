@@ -45,9 +45,23 @@ authenticated-only SECURITY DEFINER RPCs (return booleans; the hash never leaves
 **Guest email capture is NOT an auth account** (just `guests.email` + `newsletter_signups`) — a
 guest who later signs up creates their first real account then (see the v2 "guest → full-user
 conversion" item in ROADMAP).
+**Profile photos (avatars)** — a host uploads an avatar on `/account`
+([account-avatar-form.tsx](../src/components/app/account-avatar-form.tsx) + an interactive circular
+[avatar-cropper.tsx](../src/components/app/avatar-cropper.tsx)): the image is cropped + re-encoded to a
+512px WebP CLIENT-side, POSTed to **`/api/account/avatar`** (raw blob; the bytes bypass `create_media`,
+since avatars aren't event media — no cap/ledger), validated server-side (content-type + size +
+magic-byte WebP sniff, so no SVG/XSS), then PUT to a DETERMINISTIC R2 key **`avatars/<id>/avatar.webp`**
+([avatarObjectKey](../src/lib/r2/keys.ts)). Overwrite-on-replace ⇒ exactly one object per user ⇒ **zero
+orphans by construction** (the purge cron's media sweep only scans `events/`); DELETE removes the R2
+object **then** clears the marker (R2-first — the single orphan-prevention rule). `profiles.avatar_updated_at`
+is the existence marker (service-role-write-only, written by the route's admin client so it stays in
+lockstep with R2); when set, the server presigns a short-TTL GET ([avatar-url.ts](../src/lib/r2/avatar-url.ts))
+for the `<Avatar>` in the account card AND the **UserMenu** (radix `AvatarImage` auto-falls-back to the
+initial letter when the src is null/fails). Phase 1 of a 3-part build (avatar → display-name editing →
+guest "Hosted by" avatar+name).
 **Invariant:** `profiles` is host-writable only on `display_name, email, announcements_seen_at,
-welcomed_at` (the `grant update(...)` allowlist); `tier`/`storage_*`/`is_admin`/`stripe_*` are
-service-role / webhook only.
+welcomed_at` (the `grant update(...)` allowlist); `tier`/`storage_*`/`is_admin`/`stripe_*`/`avatar_updated_at`
+are service-role / webhook only.
 
 ## Events & the create flow
 

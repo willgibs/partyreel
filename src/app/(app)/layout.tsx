@@ -6,7 +6,9 @@ import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { touchHostActive } from "@/lib/db/mutations/profile";
 import { getNotificationData } from "@/lib/db/queries/notifications";
+import { getAvatarMarker } from "@/lib/db/queries/profile";
 import { buildNotifications } from "@/lib/notifications/build";
+import { presignAvatarUrl } from "@/lib/r2/avatar-url";
 import { createClient } from "@/lib/supabase/server";
 
 // Auth GATE for the host app. Every route in the (app) group renders inside
@@ -44,8 +46,15 @@ export default async function AppLayout({
   const metaName = user.user_metadata?.full_name;
   const displayName = typeof metaName === "string" ? metaName : null;
 
-  // Derive-on-read notification summary for the bell (always-current; runs on every host page).
-  const notifications = buildNotifications(await getNotificationData());
+  // Derive-on-read notification summary for the bell + the account-menu avatar, in parallel
+  // (both run on every host page). getAvatarMarker is a narrow read (just the timestamp);
+  // presignAvatarUrl returns null when there's no avatar (UserMenu shows the initial).
+  const [notificationData, avatarMarker] = await Promise.all([
+    getNotificationData(),
+    getAvatarMarker(user.id),
+  ]);
+  const notifications = buildNotifications(notificationData);
+  const avatarUrl = await presignAvatarUrl(user.id, avatarMarker);
 
   return (
     <AppShell
@@ -55,7 +64,11 @@ export default async function AppLayout({
             items={notifications.items}
             badgeCount={notifications.badgeCount}
           />
-          <UserMenu email={user.email ?? null} displayName={displayName} />
+          <UserMenu
+            email={user.email ?? null}
+            displayName={displayName}
+            avatarUrl={avatarUrl}
+          />
         </>
       }
     >

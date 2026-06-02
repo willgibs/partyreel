@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import {
   Card,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { presignAvatarUrl } from "@/lib/r2/avatar-url";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -30,6 +32,11 @@ export default async function AccountPage({
   ]);
   if (!profile) redirect("/login");
 
+  const avatarUrl = await presignAvatarUrl(
+    profile.id,
+    profile.avatar_updated_at,
+  );
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
@@ -40,9 +47,16 @@ export default async function AccountPage({
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>The email tied to your account.</CardDescription>
+          <CardDescription>
+            Your photo and the email tied to your account.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <AccountAvatarForm
+            avatarUrl={avatarUrl}
+            displayName={profile.display_name}
+            email={profile.email}
+          />
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Email</p>
             <p className="text-sm text-muted-foreground">

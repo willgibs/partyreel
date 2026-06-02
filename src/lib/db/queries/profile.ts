@@ -29,3 +29,20 @@ export async function getProfile(): Promise<ProfileRow | null> {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Just the avatar marker for the signed-in user — a NARROW read for the hot (app) layout path
+ * (runs on every host page), so we avoid a `select("*")` there. RLS (`profiles_select_own`)
+ * scopes the row to auth.uid(); the caller passes its already-validated user id (from the
+ * layout's getUser()) so we don't pay a second auth round-trip. Returns null when there's no
+ * avatar (the UI then renders the initial-letter fallback).
+ */
+export async function getAvatarMarker(userId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("avatar_updated_at")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.avatar_updated_at ?? null;
+}

@@ -21,6 +21,7 @@ export type SentryArea =
   | "cron"
   | "admin"
   | "media"
+  | "account"
   | "other";
 
 const dsn = env.NEXT_PUBLIC_SENTRY_DSN;
