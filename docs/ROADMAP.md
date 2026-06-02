@@ -214,6 +214,12 @@ details beyond a template feel.
 
 ## Near-term follow-ups (ready to build; deferred from shipped cuts)
 
+- **OTP "Resend code" 60 s cooldown** — the resend button in
+  [email-sign-in.tsx](src/components/auth/email-sign-in.tsx) has no cooldown; with custom SMTP's 60 s
+  per-user min interval, an early re-tap silently no-ops. Add a 60 s countdown (disable + "Resend in
+  N s") matching the interval. Surfaced during Phase 3 live testing (2026-06-02). _(Two related
+  human/config items — enable signups before launch, and add `{{ .Token }}` to the Confirm-signup
+  email template so new users get a code — are tracked in [STATUS.md](STATUS.md) "Blocked on a human".)_
 - **Host 2FA (opt-in, Pro perk)** — let Pro-plan hosts enable TOTP 2FA on their own accounts. **Free**
   (app-based TOTP), and reuses the admin MFA infra: generalize `mfa-enroll` / `mfa-challenge`
   ([components/admin](src/components/admin)) + the AAL read out of the admin seam. Gate the opt-in

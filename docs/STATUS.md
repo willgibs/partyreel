@@ -99,8 +99,8 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   setting (hand-synced pair). The only un-pressed step is typing the 6-digit code in the OTP UI
   (`verifyOtp`) — blocked by the **built-in email rate limit** (429, handled gracefully), which the
   custom-SMTP follow-up fixes; the UI renders (6 slots) and the verified-session path is proven via the
-  Google flow above. ADR-0008. **Follow-up flagged:** custom SMTP for auth emails (built-in is
-  rate-limited / not for production). **Phase 3 (accounts & saved events) BUILT + gate-green — this
+  Google flow above. ADR-0008. **Follow-up DONE (2026-06-02):** custom SMTP wired to Resend (the
+  built-in ~2/hr cap that blocked the live OTP keystroke is lifted; see Blocked-on-a-human → Resend for close-out). **Phase 3 (accounts & saved events) BUILT + gate-green — this
   COMPLETES the config rework.** A signed-in visitor can SAVE an event to their dashboard ("Saved"
   tab); it is FREE (the account-from-guest growth driver). New `saved_events` table (per-user RLS,
   both FKs `on delete cascade`) + `save_event(token)` capability RPC (authenticated-only; resolves the
@@ -114,8 +114,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   (deleted) — account-first, newsletter opt-in folded into the save dialog. Dashboard reframed into
   "Your events" + "Saved" tabs over a shared cover-art `<EventCard>` (the whole dashboard gained
   covers). Migration `…162326_phase3_saved_events`; rolled-back RPC/RLS contract check passed;
-  typecheck/lint/test (201)/build green. ADR-0009. **Live verification on partyreel.com is the next
-  step** (logged-out save→account, toggle, private/delete cascade, post-upload card, owned covers).
+  typecheck/lint/test (201)/build green. ADR-0009. **LIVE-VERIFIED end-to-end on partyreel.com
+  (Chrome-MCP, 2026-06-02, commit `7ab930f`):** the FULL account-from-guest growth loop — a
+  logged-out visitor on an album tapped **Save event** → "create a free account to save" dialog → a
+  brand-NEW email → custom SMTP delivered the confirm email (**from `noreply@partyreel.com`** — Resend
+  domain DNS-verified) → the link created a **new free account** (`handle_new_user`) and the
+  `pr_pending_save_` flag **auto-completed the save** on return (button → "Saved"); DB-confirmed a new
+  `profiles` row + `saved_events` row. Dashboard reframe renders ("Your events" empty state +
+  "**Saved (1)**" tabs); the Saved card shows the **cover** + "Hosted by …" byline + unsave; **unsave**
+  (✕) drops it; **masking** (event → private) renders a locked "Private event" card with NO
+  cover/name/link leak; **cascade** (event deleted) auto-removed the save (DB-confirmed). Fixture (a
+  temp operator-owned event) torn down. **Two config findings (NOT code) → Blocked-on-a-human:** (a)
+  Supabase **"Allow new signups" must be ON at launch** (account-from-guest is dead for new users
+  without it); (b) the **"Confirm signup" email template needs `{{ .Token }}`** so a new user also gets
+  the 6-digit code (new-user email is link-only today → only the link path works, which it does).
 - **Admin / operations portal — Round 1 (perimeter + auth foundation) SHIPPED + LIVE-VERIFIED on
   `admin.partyreel.com`.** A new portal in this SAME app: one `requireAdmin()` seam
   ([admin-context.ts](../src/lib/auth/admin-context.ts)) = `getUser()` + `is_admin` + **free TOTP
@@ -300,16 +312,27 @@ The agent can't do these — they need a human in a dashboard:
   Create Alert → Issues + enable Settings → Account → Notifications → Issue Alerts (the MCP can't create
   alert rules). (2) The **privacy-policy** session-recording line (drafted in ROADMAP near-term) lands
   when the `/privacy` stub becomes the real policy.
-- **Resend** — set `RESEND_API_KEY` + `EMAIL_FROM` (`Partyreel <noreply@partyreel.com>`, no
-  quotes in Vercel) + **verify a sending domain (DNS)**. Until then transactional email is dark.
-  **Auth emails (OTP / magic link) are a SEPARATE pipe:** they go through Supabase's **built-in SMTP,
-  capped project-wide at 2 emails/hour** (Pro-locked) — the real ceiling on the `require_email` OTP
-  flow (this is what blocked the live OTP-keystroke test). **Custom SMTP** (point Supabase Auth at the
-  same Resend sending domain) lifts that cap and is the deferred unblock; whoever wires it should
-  re-verify the OTP flow end-to-end (host `/login` code + a `require_email` guest verify). The per-IP
-  auth rate limits were already reviewed + raised (2026-06-02: "Sign-ups and sign-ins" + "Token
-  verifications" 30 → 150 / 5 min per IP) so an event-crowd OTP burst on shared WiFi isn't 429'd
-  post-SMTP — see the CLAUDE.md gotcha for the reasoning. SMS / anonymous / Web3 limits are unused.
+- **Resend + custom SMTP for auth emails — DONE + LIVE-VERIFIED 2026-06-02.** Auth emails (OTP /
+  magic link + confirm/reset) route through Resend SMTP (`smtp.resend.com:465`, sender
+  `Partyreel <noreply@partyreel.com>`, 60 s min interval); "Rate limit for sending emails" raised
+  2 → 100/hr (Resend's ~100/day is the real ceiling — bump at launch on paid Resend). **Verified via
+  the Phase 3 save flow:** a new-signup confirm email arrived **from `noreply@partyreel.com`** (not
+  `…mail.app.supabase.io`) and completed account creation — so the Resend sending domain (DNS) is
+  verified, which also un-darks the transactional lifecycle email (same domain). Per-IP auth limits
+  were raised (2026-06-02: "Sign-ups and sign-ins" + "Token verifications" 30 → 150 / 5 min per IP).
+  Runbook + cost caveat: [`PRICING.md`](PRICING.md). **Code follow-up (roadmapped):** a 60 s cooldown
+  on the OTP "Resend code" button to match the min interval. _(SMS / anonymous / Web3 limits unused.)_
+- **Enable "Allow new user signups" before launch — LAUNCH BLOCKER.** Currently OFF (Authentication →
+  Sign In / Providers). Account-from-guest (Phase 2c verified email + Phase 3 save-to-account) CANNOT
+  create a new account while it's off — `DISABLE_SIGNUP` blocks OTP, magic link, AND Google for new
+  users (caught in Phase 3 live testing; toggled on briefly for the test, then back off). Keep
+  **anonymous sign-ins OFF** (separate toggle, stays off per ADR-0008).
+- **Add `{{ .Token }}` to the "Confirm signup" email template.** A brand-NEW signup gets the
+  "Confirm signup" template (link-only today), NOT the "Magic Link" template — so the in-app
+  "enter your 6-digit code" OTP UI can't be completed by a new user (only the link path works, via the
+  Phase 3 `pr_pending_save_` flag). Mirror the code into the Confirm-signup template (as the Magic-Link
+  one already has it) so new users also get a code. Until then: new-user sign-in = link-only (works);
+  existing-user sign-in = code-or-link.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
   vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
   [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_

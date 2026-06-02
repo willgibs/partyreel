@@ -609,7 +609,7 @@ keyboard or Dismiss it.
   passwords to stuff; the code is 6-digit, single-use, ~1 h expiry, with a separate per-code attempt
   cap; the email-send cap independently governs spend). **The real email bottleneck is the
   project-wide "Sending emails: 2/hour" cap (Pro-locked) — raising the per-IP limits does NOT touch
-  it;** custom SMTP (the deferred Resend task) or Supabase Pro is the email unblock. SMS / anonymous /
+  it;** custom SMTP (DONE 2026-06-02 — auth email now routes via Resend SMTP) lifts it (Supabase Pro is the alternative). SMS / anonymous /
   Web3 limits are unused (anon sign-ins stay OFF per ADR-0008). Related dashboard↔code lockstep: the
   **"Email OTP Length" setting MUST equal `OTP_LENGTH`** in
   [email-sign-in.tsx](src/components/auth/email-sign-in.tsx) (it was 8 vs a 6-slot input → verify would

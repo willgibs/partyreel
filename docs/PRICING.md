@@ -278,9 +278,11 @@ Will pastes the credentials.**
   | Username | `resend` |
   | Password | the `RESEND_API_KEY` value (the `re_…` key — Resend's SMTP password) |
 - _Then raise the email cap:_ Authentication → **Rate Limits** → "Rate limit for sending emails"
-  becomes editable once custom SMTP is on (it's locked low on the built-in service). Raise it
-  from ~2/hr to a sane value (e.g. 100/hr), bounded by Resend's own caps below. **This step is
-  what actually lifts the OTP bottleneck** — enabling SMTP alone doesn't.
+  becomes editable once custom SMTP is on (Supabase defaults it to 30/hr; the built-in service
+  locked it to ~2/hr). Set it to **~100/hr** — enough to cover one event's guest-verification burst
+  in an hour, while Resend's ~100/day (free tier) stays the real ceiling (see the cost caveat); raise
+  to 500–1000/hr at launch on paid Resend. **This step is what actually lifts the OTP bottleneck** —
+  enabling SMTP alone doesn't.
 - _Verify (live, partyreel.com):_ request a sign-in OTP at `/login`; confirm the email arrives
   **from `noreply@partyreel.com`** (not `…mail.app.supabase.io`) with the 6-digit code; re-run the
   `require_email` guest verify on a guest `/e/[token]` event (the crowd path); cross-check the send
@@ -289,6 +291,11 @@ Will pastes the credentials.**
   daily cap, ~100/day) — auth OTP now shares that quota with the lifecycle email. An event crowd all
   verifying email in one evening could hit the daily cap; size up to Resend's paid tier ($20/mo = 50k)
   if launch volume needs it. Keep "Email OTP Length" = **6** (already set; mirrors `OTP_LENGTH`).
+- _Status (2026-06-02):_ custom SMTP **configured** — host `smtp.resend.com:465`, username `resend`,
+  sender `Partyreel <noreply@partyreel.com>`, **minimum interval 60 s per user**. _To close out:_ set
+  the email rate limit (above) + run the live OTP check. **Follow-up (code):** the "Resend code" button
+  ([email-sign-in.tsx](../src/components/auth/email-sign-in.tsx)) has no cooldown — add a 60 s countdown
+  so an early re-tap doesn't silently hit the 60 s min-interval.
 
 **Event Pass renewal:** a cheaper **$15 one-time renewal price** (test
 `price_1TcVuOPtjqmVkBwkTCXTKOIs`) on the same Event Pass product → set
