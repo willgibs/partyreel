@@ -56,9 +56,11 @@ export default async function AccountPage({
         <CardHeader>
           <CardTitle>Password</CardTitle>
           <CardDescription>
-            {passwordSet
-              ? "Change your password. You can still sign in with a code or with Google."
-              : "Add a password so you can sign in with your email and password. Signing in with a code or with Google keeps working too."}
+            {reset === "1"
+              ? "Set a new password. You can still sign in with a code or with Google."
+              : passwordSet
+                ? "Change your password. You can still sign in with a code or with Google."
+                : "Add a password so you can sign in with your email and password. Signing in with a code or with Google keeps working too."}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -26,21 +26,34 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Account email + password (ADR-0011) — SHIPPED in code, LIVE-VERIFICATION PENDING.** A traditional
-  email+password login, in PARALLEL with OTP/magic-link/Google (the password is one more credential on
-  the same `auth.users` row, so every path reaches the same account). `/login` now **leads with
-  password** ([password-sign-in.tsx](../src/components/auth/password-sign-in.tsx)) with "Create account"
-  (OTP-verify then set), "Forgot password?" (→ reuse OTP → `/account?reset=1`), "Email me a code
+- **Account email + password (ADR-0011) — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-02).** A
+  traditional email+password login, in PARALLEL with OTP/magic-link/Google (the password is one more
+  credential on the same `auth.users` row, so every path reaches the same account). `/login` now **leads
+  with password** ([password-sign-in.tsx](../src/components/auth/password-sign-in.tsx)) with "Create
+  account" (OTP-verify then set), "Forgot password?" (→ reuse OTP → `/account?reset=1`), "Email me a code
   instead", and Google. New **`/account`** page (UserMenu → Account) sets/changes the password
   (`updateUser` on the browser client; a `verify_current_password` RPC re-confirms the old one before a
-  change). Migration `…200420_account_password` adds two authenticated-only RPCs (`has_password`,
-  `verify_current_password`) — advisors **+2 authenticated (0029), 0 anon (0028)**; rolled-back RPC
-  contract check passed (bcrypt verify + null-guard + grants). typecheck/lint/**test 210**/build green.
-  **Live-verify on partyreel.com** (localhost can't complete auth) across: new account, returning login,
-  passwordless→add-password, change (wrong + right current), forgot, and the all-paths case (Google
-  account → add password → password login). **Gated on the human dashboard tasks below** (signups ON +
-  Confirm-signup `{{ .Token }}` + min length 8 + leaked-password protection ON + Secure-password-change
-  OFF).
+  change). Three authenticated-only RPCs (`has_password`, `verify_current_password`, `mark_password_set`;
+  migrations `…200420` + `…210158`) — advisors **+3 authenticated (0029), 0 anon (0028)**;
+  typecheck/lint/**test 210**/build green.
+- **LIVE-TEST FINDING + FIX (the headline catch):** GoTrue writes a non-null bcrypt `encrypted_password`
+  PLACEHOLDER for email OTP/magic-link signups (`providers=['email']`; Google = NULL), so the first
+  `has_password()` mislabeled OTP-origin hosts as "has password" → `/account` showed CHANGE mode (asking
+  for a current password they never set). Fixed: a service-role `profiles.password_set_at` stamped by
+  `mark_password_set()` after each `updateUser`; `has_password()` reads the flag (migration
+  `…210158_account_password_set_flag`). Re-deployed + re-verified.
+- **Chrome-MCP verified on prod (full matrix):** create-account via real Gmail OTP → set password →
+  dashboard; returning password login; wrong / no-password / post-change-old password all give the SAME
+  generic error (no enumeration leak); min-8 + confirm-mismatch validation; CHANGE mode wrong-current
+  (error + session intact) then right-current (changed, persists); OTP-origin passwordless → `/account`
+  SET mode → add password → flag stamped → CHANGE mode → **password login works** (the all-paths case);
+  `/account?reset=1` forces SET mode → set new; "Forgot password?" → code view + reset note; Supabase's
+  "new password must differ from old" surfaced cleanly. DB-confirmed `password_set_at` flips correctly.
+  Google-origin add-password + admin-subdomain password sign-in are structurally identical (flag-based
+  `has_password`; in-page nav, no new redirect-allow-list) — not separately driven live. **Human
+  dashboard tasks DONE** (signups ON, Confirm-signup `{{ .Token }}`, min length 8, Secure-password-change
+  OFF, Require-current-password OFF); **DEFERRED: leaked-password protection (Pro-gated).** Disposable
+  test aliases `hi+pwtest1/2@willgibs.com` left in place (purge with other test data pre-launch).
 - **One-link consolidation — Part 1 (data + routing) SHIPPED + LIVE-VERIFIED** (commit `37707d8`).
   Collapsed the two-token model (the `/e/[qr_token]` event page + the separate `/a/[share_token]` album)
   to ONE link per event: **`/e/[qr_token]`**, where the host's configs
