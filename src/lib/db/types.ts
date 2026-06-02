@@ -762,6 +762,10 @@ export type Database = {
         }
         Returns: Json
       }
+      has_password: {
+        Args: never
+        Returns: boolean
+      }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
         Returns: {
@@ -791,6 +795,10 @@ export type Database = {
           max_events: number
           monthly_ingress_bytes: number
         }[]
+      }
+      verify_current_password: {
+        Args: { p_password: string }
+        Returns: boolean
       }
       verify_event_password: {
         Args: { p_password?: string; p_qr_token: string }

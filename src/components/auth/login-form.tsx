@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { EmailSignIn } from "@/components/auth/email-sign-in";
+import { PasswordAuth } from "@/components/auth/password-sign-in";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { isAdminHost, loginTarget } from "@/lib/auth/admin-host";
@@ -16,8 +17,8 @@ import { createClient } from "@/lib/supabase/client";
 // URL. So we send the BARE `/auth/callback` (no query — a `?next=` breaks an
 // exact, non-wildcard allow-list entry) and let the callback choose where to land
 // based on the host it runs on (the admin subdomain → /admin). This is the
-// magic-LINK + Google redirect target; the OTP CODE path verifies in-page (no
-// redirect) and navigates via onVerified below.
+// magic-LINK + Google redirect target; the password + OTP CODE paths verify
+// in-page (no redirect) and navigate via router below.
 //
 // On the admin subdomain we MUST use the live origin (NOT the configured apex
 // NEXT_PUBLIC_SITE_URL) so the session cookie lands on admin.<domain> and the
@@ -60,6 +61,12 @@ function GoogleIcon() {
 export function LoginForm() {
   const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Lead with email + password (ADR-0011). The email-code path is the alternative AND the
+  // forgot-password route (verify ownership, then land on /account to set a new password).
+  const [view, setView] = useState<"password" | "code">("password");
+  // True when the code view was opened via "Forgot password?": after verifying, land on
+  // /account in set mode (no current-password field) instead of the dashboard.
+  const [codeReset, setCodeReset] = useState(false);
 
   async function signInWithGoogle() {
     setGoogleLoading(true);
@@ -79,16 +86,54 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
-      {/* Dual-path email sign-in (6-digit code + magic-link fallback). On a successful
-          in-page code verify, land host-aware (the magic link instead routes through
-          /auth/callback). */}
-      <EmailSignIn
-        emailRedirectTo={callbackUrl()}
-        onVerified={() => {
-          router.push(loginTarget(window.location.host));
-          router.refresh();
-        }}
-      />
+      {view === "password" ? (
+        // The lead: email + password sign-in, plus account creation (which proves ownership
+        // via the OTP path then sets the password). Forgot / "use a code" switch the view.
+        <PasswordAuth
+          emailRedirectTo={callbackUrl()}
+          onUseCode={() => {
+            setCodeReset(false);
+            setView("code");
+          }}
+          onForgot={() => {
+            setCodeReset(true);
+            setView("code");
+          }}
+        />
+      ) : (
+        // The alternative: the shared dual-path email sign-in (6-digit code + magic-link
+        // fallback). On a successful in-page verify, land host-aware — or, when we got here
+        // via "Forgot password?", on /account?reset=1 so the host can set a new password.
+        <div className="space-y-3">
+          {codeReset && (
+            <p className="text-sm text-muted-foreground">
+              Enter your email and we&rsquo;ll send a code. After you verify,
+              you can set a new password.
+            </p>
+          )}
+          <EmailSignIn
+            emailRedirectTo={callbackUrl()}
+            onVerified={() => {
+              router.push(
+                codeReset
+                  ? "/account?reset=1"
+                  : loginTarget(window.location.host),
+              );
+              router.refresh();
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setCodeReset(false);
+              setView("password");
+            }}
+            className="block w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Back to password sign-in
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <Separator className="flex-1" />

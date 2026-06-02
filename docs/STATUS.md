@@ -26,6 +26,21 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
+- **Account email + password (ADR-0011) — SHIPPED in code, LIVE-VERIFICATION PENDING.** A traditional
+  email+password login, in PARALLEL with OTP/magic-link/Google (the password is one more credential on
+  the same `auth.users` row, so every path reaches the same account). `/login` now **leads with
+  password** ([password-sign-in.tsx](../src/components/auth/password-sign-in.tsx)) with "Create account"
+  (OTP-verify then set), "Forgot password?" (→ reuse OTP → `/account?reset=1`), "Email me a code
+  instead", and Google. New **`/account`** page (UserMenu → Account) sets/changes the password
+  (`updateUser` on the browser client; a `verify_current_password` RPC re-confirms the old one before a
+  change). Migration `…200420_account_password` adds two authenticated-only RPCs (`has_password`,
+  `verify_current_password`) — advisors **+2 authenticated (0029), 0 anon (0028)**; rolled-back RPC
+  contract check passed (bcrypt verify + null-guard + grants). typecheck/lint/**test 210**/build green.
+  **Live-verify on partyreel.com** (localhost can't complete auth) across: new account, returning login,
+  passwordless→add-password, change (wrong + right current), forgot, and the all-paths case (Google
+  account → add password → password login). **Gated on the human dashboard tasks below** (signups ON +
+  Confirm-signup `{{ .Token }}` + min length 8 + leaked-password protection ON + Secure-password-change
+  OFF).
 - **One-link consolidation — Part 1 (data + routing) SHIPPED + LIVE-VERIFIED** (commit `37707d8`).
   Collapsed the two-token model (the `/e/[qr_token]` event page + the separate `/a/[share_token]` album)
   to ONE link per event: **`/e/[qr_token]`**, where the host's configs
@@ -361,17 +376,23 @@ The agent can't do these — they need a human in a dashboard:
   were raised (2026-06-02: "Sign-ups and sign-ins" + "Token verifications" 30 → 150 / 5 min per IP).
   Runbook + cost caveat: [`PRICING.md`](PRICING.md). **Code follow-up (roadmapped):** a 60 s cooldown
   on the OTP "Resend code" button to match the min interval. _(SMS / anonymous / Web3 limits unused.)_
-- **Enable "Allow new user signups" before launch — LAUNCH BLOCKER.** Currently OFF (Authentication →
-  Sign In / Providers). Account-from-guest (Phase 2c verified email + Phase 3 save-to-account) CANNOT
-  create a new account while it's off — `DISABLE_SIGNUP` blocks OTP, magic link, AND Google for new
-  users (caught in Phase 3 live testing; toggled on briefly for the test, then back off). Keep
-  **anonymous sign-ins OFF** (separate toggle, stays off per ADR-0008).
-- **Add `{{ .Token }}` to the "Confirm signup" email template.** A brand-NEW signup gets the
-  "Confirm signup" template (link-only today), NOT the "Magic Link" template — so the in-app
-  "enter your 6-digit code" OTP UI can't be completed by a new user (only the link path works, via the
-  Phase 3 `pr_pending_save_` flag). Mirror the code into the Confirm-signup template (as the Magic-Link
-  one already has it) so new users also get a code. Until then: new-user sign-in = link-only (works);
-  existing-user sign-in = code-or-link.
+- **"Allow new user signups" — DONE (ON as of 2026-06-02; keep ON for launch).** (Authentication →
+  Sign In / Providers.) When OFF, `DISABLE_SIGNUP` blocks OTP, magic link, AND Google for ALL new users,
+  so account-from-guest (Phase 2c verified email + Phase 3 save-to-account) AND account email+password
+  create (ADR-0011, same OTP signup path) all depend on it. Keep **anonymous sign-ins OFF** (separate
+  toggle, stays off per ADR-0008).
+- **`{{ .Token }}` in the "Confirm signup" email template — DONE (2026-06-02).** The template now renders
+  the 6-digit code (`{{ .Token }}`) above the `{{ .ConfirmationURL }}` link fallback, so a brand-NEW
+  signup can complete the in-app OTP UI (not only the link). This unblocks BOTH account-from-guest and
+  account email+password create (ADR-0011) — both use the same OTP confirm for new users.
+- **Account password dashboard settings (ADR-0011) — DONE 2026-06-02, except leaked-password.** Set:
+  "Minimum password length" = **8** (= `MIN_PASSWORD_LENGTH` in [validation/auth.ts](../src/lib/validation/auth.ts)),
+  "Email OTP length" = 6, **"Secure password change" OFF** and **"Require current password when updating"
+  OFF** — we enforce the current-password re-check ourselves via the `verify_current_password` RPC (so the
+  session isn't disrupted; the native toggles would conflict with the two-step flow).
+- **DEFERRED (pre-launch) — "Prevent use of leaked passwords" (HaveIBeenPwned).** Pro-plan-gated, so it
+  waits for the Supabase Pro upgrade. This is the long-standing "leaked-password WARN" advisor, now
+  ACTIONABLE since account passwords ship (ADR-0011). Enable it when upgrading to Pro.
 - **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
   vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
   [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_
@@ -399,5 +420,6 @@ capture smoke-verified on prod (org `partyreel`).
 
 Advance this file, the [`SYSTEMS.md`](SYSTEMS.md) entry if a feature changed, and the
 [`ROADMAP.md`](ROADMAP.md) box/backlog — same change. Re-run `get_advisors` after DDL (the
-expected set is the 7 anon capability RPCs + the deny-all INFOs + the unrelated leaked-password
-WARN — see SYSTEMS "Security & data model").
+expected set is the 8 anon capability RPCs + the deny-all INFOs + the leaked-password WARN (now
+ACTIONABLE post-ADR-0011 — enable HaveIBeenPwned; +2 authenticated-only RPCs `has_password` /
+`verify_current_password`) — see SYSTEMS "Security & data model").

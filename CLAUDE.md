@@ -155,6 +155,21 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
 - Clients live in `src/lib/supabase/`: `client` (browser), `server` (RSC/route
   handlers, async), `middleware` (proxy session refresh), `admin` (service-role,
   `server-only`, bypasses RLS).
+- **Account email+password (ADR-0011) is an ADDITIONAL credential, not a replacement.** The password
+  lives in `auth.users.encrypted_password` (Supabase-managed) — no app table stores it; the same account
+  is reachable via password, code, magic-link, AND Google (identities auto-link by verified email).
+  Flows: create = OTP-verify then `updateUser({password})`; a passwordless host adds one in `/account`
+  while logged in; return = `signInWithPassword`; forgot = reuse OTP → `/account?reset=1`.
+  **`updateUser({password})` runs on the BROWSER client** (it rotates the session; the browser cookie
+  write is unconditional). The current-password re-check before a CHANGE is the `verify_current_password`
+  RPC (READ-only → no session disruption); first-time SET needs only the session.
+  **`signInWithPassword`'s error is GENERIC by design** (wrong pw / no pw set / unknown email are
+  indistinguishable, anti-enumeration) — NEVER say "wrong password"; offer the code/Google/forgot
+  affordances. The shared `<EmailSignIn>` stays UNCHANGED (guests use it; password UI is additive in
+  `password-sign-in.tsx`). **Dashboard lockstep:** keep "Secure password change" **OFF** (ON forces a
+  reauth nonce → breaks the RPC design); "Minimum password length" must equal `MIN_PASSWORD_LENGTH` (8)
+  in [validation/auth.ts](src/lib/validation/auth.ts); enable leaked-password protection. The two RPCs
+  are authenticated-only (0029), never anon (0028). See STATUS "Blocked on a human".
 
 **Tailwind v4**
 
@@ -872,14 +887,19 @@ anon list from 9 to 8.) It reports `get_event_by_qr_token`,
 `get_event_media_by_qr_token` (Phase 6 — unified guest event page), and
 `verify_event_password` (config rework Phase 1 — password unlock; ADR-0007) as SECURITY
 DEFINER functions executable by `anon` (and `authenticated`). **`set_event_password` /
-`clear_event_password` are SECURITY DEFINER but REVOKED from `anon`/PUBLIC** (authenticated-only,
-the same class as `create_media_as_host`) — they appear ONLY in the authenticated advisor list,
-never the anon one.
+`clear_event_password`, plus `has_password` / `verify_current_password` (account
+email+password, ADR-0011), are SECURITY DEFINER but REVOKED from `anon`/PUBLIC**
+(authenticated-only, the same class as `create_media_as_host`) — they appear ONLY in the
+authenticated advisor list (lint `0029`), never the anon one (`0028`). (`has_password` /
+`verify_current_password` only READ `auth.users` and return booleans; the password hash never
+leaves the DB, same invariant as `verify_event_password`.)
 That is intentional: the opaque token IS the authorization (ADR-0004). Revoking
 their EXECUTE grant breaks the entire anonymous guest flow. (The trigger-only
 functions were locked down in migration `…_lock_down_trigger_functions` — those are
-_not_ meant to be callable.) The separate "Leaked Password Protection Disabled" WARN
-is unrelated — Partyreel uses magic-link/OAuth, not passwords.
+_not_ meant to be callable.) The "Leaked Password Protection Disabled" WARN is now
+**ACTIONABLE** (it used to be "unrelated — magic-link/OAuth only"): account email+password
+sign-in shipped (ADR-0011), so **enable HaveIBeenPwned leaked-password protection** in the
+Supabase dashboard (a launch task — see STATUS).
 
 **The two host-upload RPCs (`create_media_as_host`, `get_host_upload_context`) are
 `authenticated`-ONLY and ACCEPTED BY DESIGN under lint `0029` — they are NOT on the

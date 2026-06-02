@@ -7,6 +7,7 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Settings,
   Sun,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -103,6 +104,13 @@ export function UserMenu({ email, displayName }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {/* In-app account settings (email, password / sign-in). Same-tab, unlike the
+            external links below. */}
+        <DropdownMenuItem asChild>
+          <Link href="/account">
+            <Settings /> Account
+          </Link>
+        </DropdownMenuItem>
         {/* Cross-group links to the marketing site + help center. They open in a
             NEW tab (target=_blank) so the host keeps their place in the app and can
             use either as a side reference rather than navigating away; rel=noopener

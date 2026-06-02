@@ -225,7 +225,9 @@ details beyond a template feel.
   ([components/admin](src/components/admin)) + the AAL read out of the admin seam. Gate the opt-in
   behind the Pro tier; keep the host `(app)` layout at AAL1 by default (don't force 2FA on all hosts)
   and only enforce AAL2 for hosts who opted in. Will's idea (2026-06-01), surfaced while building the
-  admin portal.
+  admin portal. _(Account email+password now ships — [ADR-0011](adr/0011-email-password-auth.md) — so a
+  password + TOTP would be the full traditional 2FA story; the `verify_current_password` RPC + the
+  `/account` Security section are reusable seams.)_
 - **Privacy policy: Sentry session-recording disclosure (pre-launch; copy drafted).** The `/privacy`
   page is still a stub ([privacy/page.tsx](src/app/(marketing)/privacy/page.tsx)); when the real policy
   is written, include a line covering Sentry's on-error, media-blocked, text-masked Session Replay.

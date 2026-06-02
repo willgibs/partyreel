@@ -24,7 +24,7 @@ DRY single-sources table: [`CLAUDE.md`](../CLAUDE.md).
 
 ## Auth & host accounts
 
-Supabase Auth — **email magic-link + Google OAuth** (`(auth)/login`, `/auth/callback`). The
+Supabase Auth — **email + password, email magic-link/OTP, and Google OAuth** (`(auth)/login`, `/auth/callback`). The
 `(app)` layout ([layout.tsx](../src/app/(app)/layout.tsx)) is the single gate: `getUser()`
 (NOT `getSession()`) → redirect `/login` if anon. `handle_new_user` trigger creates a
 `profiles` row on signup (one row per `auth.users` row). Clients:
@@ -33,6 +33,15 @@ Supabase Auth — **email magic-link + Google OAuth** (`(auth)/login`, `/auth/ca
 Google for the same email land on the same account + `profiles` row (it refuses to link an
 _unverified_ email, anti-takeover; **SSO is the only non-linking exception** — not used here).
 Caveat: matching is exact-string, so Gmail dot/plus aliases (`will.g+x@…`) are distinct users.
+**Email + password ([ADR-0011](adr/0011-email-password-auth.md))** is an additional credential on that
+same `auth.users` row (Supabase-managed `encrypted_password`; no app column) — so the account is
+reachable through every path interchangeably. `/login` leads with password ([password-sign-in.tsx](../src/components/auth/password-sign-in.tsx);
+code + Google are the alternatives; "Create account" = OTP-verify then set; forgot = reuse OTP →
+`/account?reset=1`). The **`/account`** page (UserMenu → Account) sets/changes the password via
+`updateUser` on the browser client, with a `verify_current_password` RPC re-confirming the old password
+before a change (first-time set needs only the session). `has_password` / `verify_current_password` are
+authenticated-only SECURITY DEFINER RPCs (return booleans; the hash never leaves the DB). The shared
+`<EmailSignIn>` is reused UNCHANGED (guests still get the frictionless code-first path).
 **Guest email capture is NOT an auth account** (just `guests.email` + `newsletter_signups`) — a
 guest who later signs up creates their first real account then (see the v2 "guest → full-user
 conversion" item in ROADMAP).
