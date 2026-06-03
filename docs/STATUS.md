@@ -26,6 +26,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
+- **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
+  default 404 with four audience-aware pages sharing one animated core (`NotFoundScreen` +
+  single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),
+  **(marketing)** (bad blog/help/events/careers `[slug]`, content-only so the layout chrome isn't
+  doubled — a live-caught gotcha now in SYSTEMS), **(guest)/e/[token]** (dead/expired QR link → reassure
+  + ask-the-host + a growth-loop CTA and the live demo), and **(app)** (missing/not-yours dashboard
+  event, inside the authed AppShell). Curated quick links; `[data-not-found]` `@starting-style` fade+rise
+  stagger (reduced-motion-safe); em-dash-free. typecheck/lint/**test 253**/build green. **Live-verified
+  (Chrome MCP + curl, prod):** all four render correctly; every variant returns HTTP 404 + `noindex`
+  (host bad-id 307→`/login`, no leak); the marketing 404 shows single chrome with full nav (real DOM:
+  1 header / 1 footer); the guest demo footnote resolves to the real demo event; the host 404 renders
+  inside the AppShell (logged-in); zero console errors; and the "Visit the help center" escape route
+  navigates to the real `/help`. Plan: [404 plan](../../.claude/plans/i-d-like-to-add-temporal-rossum.md).
 - **Custom event link (slug) — SHIPPED + LIVE-VERIFIED on partyreel.com (Phases 1 + 2;
   2026-06-03; ADR-0012).** Pro / Event-Pass hosts get an optional
   human-friendly alias `/e/<slug>` for the one event link (the permanent `/e/<qr_token>` + QR are
