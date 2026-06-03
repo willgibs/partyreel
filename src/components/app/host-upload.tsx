@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { FileDropzone } from "@/components/guest/file-dropzone";
+import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { uploadFile } from "@/lib/upload/uploader";
@@ -173,31 +174,4 @@ function StatusIcon({ status }: { status: ItemStatus }) {
       <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
     );
   return <Clock className="size-4 shrink-0 text-muted-foreground/50" />;
-}
-
-function UploadThumbnail({ file }: { file: File }) {
-  // Lazy initializer creates the URL synchronously on mount so it's ready for the
-  // first render. The effect only handles cleanup — avoids the setState-in-effect
-  // lint error and skips the one-frame placeholder flash.
-  const [src] = useState(() => URL.createObjectURL(file));
-
-  useEffect(() => {
-    return () => URL.revokeObjectURL(src);
-  }, [src]);
-
-  if (file.type.startsWith("video/")) {
-    return (
-      <video
-        src={`${src}#t=0.1`}
-        className="size-10 shrink-0 rounded object-cover"
-        preload="metadata"
-        muted
-        playsInline
-      />
-    );
-  }
-
-  // blob: URLs can't go through next/image (no configured hostname).
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" className="size-10 shrink-0 rounded object-cover" onError={(e) => { e.currentTarget.classList.add('hidden'); }} />;
 }
