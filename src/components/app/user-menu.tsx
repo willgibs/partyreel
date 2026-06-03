@@ -89,8 +89,6 @@ function ThemeSubmenu() {
 }
 
 export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
-  const label = displayName?.trim() || email || "Your account";
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -106,7 +104,24 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
       {/* Override the trigger-width default (the avatar is tiny) — twMerge keeps
           this later w-56. align=end so it hangs from the right edge. */}
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+        {/* Who you're signed in as: the editable display name (when set — the design touch) above
+            the email (always shown — the critical "who am I" identifier). */}
+        <DropdownMenuLabel className="flex flex-col gap-0.5">
+          {displayName?.trim() ? (
+            <>
+              <span className="truncate leading-tight font-medium">
+                {displayName}
+              </span>
+              <span className="truncate text-xs leading-tight font-normal text-muted-foreground">
+                {email ?? "Your account"}
+              </span>
+            </>
+          ) : (
+            <span className="truncate leading-tight">
+              {email ?? "Your account"}
+            </span>
+          )}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {/* In-app account settings (email, password / sign-in). Same-tab, unlike the
             external links below. */}

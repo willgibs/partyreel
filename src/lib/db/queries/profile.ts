@@ -31,18 +31,26 @@ export async function getProfile(): Promise<ProfileRow | null> {
 }
 
 /**
- * Just the avatar marker for the signed-in user — a NARROW read for the hot (app) layout path
- * (runs on every host page), so we avoid a `select("*")` there. RLS (`profiles_select_own`)
- * scopes the row to auth.uid(); the caller passes its already-validated user id (from the
- * layout's getUser()) so we don't pay a second auth round-trip. Returns null when there's no
- * avatar (the UI then renders the initial-letter fallback).
+ * The bits the (app) header account menu needs — the host's editable display name + the avatar
+ * marker — in ONE narrow read for the hot layout path (runs on every host page), so we avoid a
+ * `select("*")` there. RLS (`profiles_select_own`) scopes the row to auth.uid(); the caller passes
+ * its already-validated user id (from the layout's getUser()) so there's no second auth round-trip.
+ *
+ * The menu reads `profiles.display_name` (the name the host edits in /account, Phase 2) — NOT
+ * `user_metadata` — so the account menu, the /account editor, and the guest "Hosted by" byline all
+ * show the SAME name. Either field may be null (no name set / no avatar); the UI falls back.
  */
-export async function getAvatarMarker(userId: string): Promise<string | null> {
+export async function getProfileMenu(
+  userId: string,
+): Promise<{ displayName: string | null; avatarMarker: string | null }> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("avatar_updated_at")
+    .select("display_name, avatar_updated_at")
     .eq("id", userId)
     .maybeSingle();
-  return data?.avatar_updated_at ?? null;
+  return {
+    displayName: data?.display_name ?? null,
+    avatarMarker: data?.avatar_updated_at ?? null,
+  };
 }

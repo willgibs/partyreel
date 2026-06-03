@@ -6,7 +6,7 @@ import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { touchHostActive } from "@/lib/db/mutations/profile";
 import { getNotificationData } from "@/lib/db/queries/notifications";
-import { getAvatarMarker } from "@/lib/db/queries/profile";
+import { getProfileMenu } from "@/lib/db/queries/profile";
 import { buildNotifications } from "@/lib/notifications/build";
 import { presignAvatarUrl } from "@/lib/r2/avatar-url";
 import { createClient } from "@/lib/supabase/server";
@@ -41,20 +41,17 @@ export default async function AppLayout({
   // throttled, best-effort (never blocks/breaks the gate). Covers sign-in + any host use.
   after(() => touchHostActive(user.id));
 
-  // OAuth (Google) populates user_metadata.full_name; magic-link users won't
-  // have one, so the menu falls back to the email for its label + initial.
-  const metaName = user.user_metadata?.full_name;
-  const displayName = typeof metaName === "string" ? metaName : null;
-
-  // Derive-on-read notification summary for the bell + the account-menu avatar, in parallel
-  // (both run on every host page). getAvatarMarker is a narrow read (just the timestamp);
-  // presignAvatarUrl returns null when there's no avatar (UserMenu shows the initial).
-  const [notificationData, avatarMarker] = await Promise.all([
+  // Derive-on-read notification summary for the bell + the account-menu profile (name + avatar),
+  // in parallel — both run on every host page. getProfileMenu is a narrow read (display_name +
+  // avatar marker); presignAvatarUrl returns null when there's no avatar (the menu shows the
+  // initial). The menu shows profiles.display_name (the EDITABLE name), so it matches /account and
+  // the guest byline — not user_metadata.
+  const [notificationData, menu] = await Promise.all([
     getNotificationData(),
-    getAvatarMarker(user.id),
+    getProfileMenu(user.id),
   ]);
   const notifications = buildNotifications(notificationData);
-  const avatarUrl = await presignAvatarUrl(user.id, avatarMarker);
+  const avatarUrl = await presignAvatarUrl(user.id, menu.avatarMarker);
 
   return (
     <AppShell
@@ -66,7 +63,7 @@ export default async function AppLayout({
           />
           <UserMenu
             email={user.email ?? null}
-            displayName={displayName}
+            displayName={menu.displayName}
             avatarUrl={avatarUrl}
           />
         </>
