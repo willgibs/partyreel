@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   completeUploadSchema,
-  emailCaptureSchema,
   hostCompleteUploadSchema,
   hostPresignUploadSchema,
   joinSchema,
@@ -134,37 +133,6 @@ describe("hostCompleteUploadSchema", () => {
     });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.parts).toEqual([]);
-  });
-});
-
-describe("emailCaptureSchema", () => {
-  it("requires a session_token and a valid email", () => {
-    expect(emailCaptureSchema.safeParse({ email: "a@b.com" }).success).toBe(
-      false,
-    );
-    expect(
-      emailCaptureSchema.safeParse({ session_token: "t", email: "nope" })
-        .success,
-    ).toBe(false);
-  });
-
-  it("defaults newsletter_opt_in to false", () => {
-    const result = emailCaptureSchema.safeParse({
-      session_token: "t",
-      email: "guest@example.com",
-    });
-    expect(result.success).toBe(true);
-    if (result.success) expect(result.data.newsletter_opt_in).toBe(false);
-  });
-
-  it("accepts an explicit opt-in", () => {
-    const result = emailCaptureSchema.safeParse({
-      session_token: "t",
-      email: "guest@example.com",
-      newsletter_opt_in: true,
-    });
-    expect(result.success).toBe(true);
-    if (result.success) expect(result.data.newsletter_opt_in).toBe(true);
   });
 });
 

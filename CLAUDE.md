@@ -689,8 +689,9 @@ keyboard or Dismiss it.
     in `onVerified`. Mounts on `/e/` (header, hidden in demo) + `/a/` (album footer, `tone="gallery"`).
   - **The post-upload `<SaveAccountPrompt>` REPLACED the newsletter `EmailCapturePrompt`** (deleted) —
     account-first, with the newsletter opt-in folded into the save dialog as a checkbox (captured via the
-    existing `capture_guest_email` RPC on the in-page code path only). The `/api/guests/email` route is
-    now unreferenced (left as a valid `capture_guest_email` entry point; a later cleanup).
+    existing `capture_guest_email` RPC on the in-page code path only). The old `/api/guests/email` route
+    + its `captureGuestEmail` server wrapper + `emailCaptureSchema` were REMOVED as dead code (the prompt
+    swap orphaned them — `capture_guest_email` is reached ONLY via the in-page browser RPC now).
 - **The live gallery polls `/api/guests/gallery` (~12 s) — reconcile by id, do NOT setState the raw
   poll result.** Each poll re-presigns, so the URLs change every call; replacing items wholesale
   re-downloads every `<img>` every 12 s. `event-experience.tsx` KEEPS existing items' URLs by id and

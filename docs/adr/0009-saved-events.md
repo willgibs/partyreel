@@ -61,5 +61,6 @@ a paid feature.
   deleting the event removes the save (cascade).
 - Extends ADR-0004 (capability tokens) + ADR-0008 (account-from-guest): the account layer sits ON TOP
   of the anonymous flow, never replacing it.
-- The `/api/guests/email` route is now unreferenced (its only caller, the newsletter prompt, was
-  replaced) — left in place (a valid `capture_guest_email` entry point) as a later cleanup.
+- The `/api/guests/email` route (+ its `captureGuestEmail` wrapper + `emailCaptureSchema`) was REMOVED
+  as dead code: its only caller (the newsletter prompt) was replaced, and `capture_guest_email` is now
+  reached only via the in-page browser RPC in `<SaveEventButton>`.

@@ -19,15 +19,6 @@ export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
 });
 
-// ─── POST /api/guests/email (post-upload email capture) ──────────────────────
-// A guest leaves an email after uploading, optionally opting into the newsletter.
-// session_token is the capability; capture_guest_email is authoritative.
-export const emailCaptureSchema = z.object({
-  session_token: z.string().trim().min(1),
-  email: z.email(),
-  newsletter_opt_in: z.boolean().default(false),
-});
-
 // ─── POST /api/r2/presign-upload ─────────────────────────────────────────────
 // No key / filename / media_id — the server builds the key.
 export const presignUploadSchema = z.object({
@@ -86,7 +77,6 @@ export const hostCompleteUploadSchema = z.object({
 });
 
 export type JoinInput = z.input<typeof joinSchema>;
-export type EmailCaptureInput = z.input<typeof emailCaptureSchema>;
 export type PresignUploadInput = z.input<typeof presignUploadSchema>;
 export type CompleteUploadInput = z.input<typeof completeUploadSchema>;
 export type HostPresignUploadInput = z.input<typeof hostPresignUploadSchema>;
