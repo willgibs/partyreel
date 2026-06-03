@@ -43,7 +43,9 @@ const THEME_OPTIONS = [
   { value: "system", label: "System", Icon: Monitor },
 ] as const;
 
-function initial(email: string | null, displayName: string | null) {
+// Exported so the guest event-page account menu (guest-account-menu.tsx) reuses the
+// exact same initial-letter logic as the host menu.
+export function initial(email: string | null, displayName: string | null) {
   const source = displayName?.trim() || email?.trim() || "";
   return source ? source.charAt(0).toUpperCase() : "?";
 }
@@ -53,7 +55,9 @@ function initial(email: string | null, displayName: string | null) {
 // the marketing site (this menu is the only toggle UI). `theme` is undefined during
 // SSR / first paint, so a `mounted` flag keeps the live state (trigger icon + active
 // check) hydration-safe; before mount we show the neutral Monitor (= system default).
-function ThemeSubmenu() {
+// Exported so the guest event-page account menu reuses this next-themes + hydration
+// wiring verbatim (the one piece both menus must never duplicate).
+export function ThemeSubmenu() {
   const { theme, setTheme } = useTheme();
   // Client-only gate (no set-state-in-effect) so the live theme renders only
   // after hydration; mirrors the useSyncExternalStore feature-detect in

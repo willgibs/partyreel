@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -16,7 +15,6 @@ import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import { createClient } from "@/lib/supabase/client";
 import { uploadFile } from "@/lib/upload/uploader";
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
@@ -98,7 +96,6 @@ export function GuestUpload({
   }, [sessionToken]);
   // Files picked before a session exists — uploaded once the session is created.
   const pendingFilesRef = useRef<File[]>([]);
-  const router = useRouter();
 
   const sync = useCallback((next: Item[]) => {
     itemsRef.current = next;
@@ -297,25 +294,6 @@ export function GuestUpload({
           qrToken={qrToken}
           sessionToken={sessionToken ?? ""}
         />
-      )}
-
-      {sessionToken && (
-        <button
-          type="button"
-          onClick={async () => {
-            // Clear the capability session AND sign out any verified Supabase session
-            // (shared-device bleed), then refresh so a require_email event re-gates.
-            onSession(null);
-            sessionRef.current = null;
-            if (!isDemo) {
-              await createClient().auth.signOut();
-              router.refresh();
-            }
-          }}
-          className="block w-full pt-1 text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
-        >
-          Not you? Switch guest
-        </button>
       )}
     </div>
   );

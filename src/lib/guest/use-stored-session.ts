@@ -15,6 +15,17 @@ function emit() {
   for (const listener of listeners) listener();
 }
 
+// Imperative setter usable OUTSIDE the hook — e.g. the guest header island, which is a
+// SIBLING of the EventExperience that owns useStoredSession, so it can't reach the hook's
+// setter. Writing here + firing the SAME module `emit()` notifies every useStoredSession
+// subscriber (the `listeners` Set is a module singleton shared across the client bundle),
+// so the header's sign-out clears the very session the upload panel is reading.
+export function setStoredSession(qrToken: string, value: string | null) {
+  if (value === null) localStorage.removeItem(sessionKey(qrToken));
+  else localStorage.setItem(sessionKey(qrToken), value);
+  emit();
+}
+
 // localStorage-backed session via useSyncExternalStore: the server snapshot is
 // null, so SSR/hydration render the no-session state and then swap in any stored
 // session on the client WITHOUT a hydration mismatch (the React-blessed pattern,
@@ -40,12 +51,8 @@ export function useStoredSession(
   );
 
   const setToken = useCallback(
-    (value: string | null) => {
-      if (value === null) localStorage.removeItem(key);
-      else localStorage.setItem(key, value);
-      emit();
-    },
-    [key],
+    (value: string | null) => setStoredSession(qrToken, value),
+    [qrToken],
   );
 
   return [token, setToken];

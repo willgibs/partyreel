@@ -1,9 +1,7 @@
-// Layout for the guest-facing token routes (/e/[token] join, /a/[token] album).
-// Mobile-first: guests arrive on a phone via a scanned QR, so the canvas is a
-// single narrow column with no host chrome. The public album opts into the
-// always-dark `gallery` surface itself (see globals.css --gallery tokens) so
-// media is the hero. Future guest-wide state (e.g. returning-guest display name
-// from localStorage, Phase 2) belongs here.
+// Layout for the guest-facing token route (/e/[token] — the single event link, ADR-0010).
+// Mobile-first: guests arrive on a phone via a scanned QR, so the canvas is a single narrow
+// column with no host chrome (the event page renders its own auth-aware header — see
+// guest-header.tsx: logged-out → "Start for free", logged-in → account menu).
 export default function GuestLayout({
   children,
 }: {

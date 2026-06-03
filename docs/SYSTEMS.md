@@ -113,7 +113,8 @@ single-sourced with the marketing page ([how-it-works.ts](../src/lib/constants/h
 
 `/e/[token]` ([page](../src/app/(guest)/e/[token]/page.tsx)) — the scanned-QR landing page is one
 **unified, formal event page** ([event-experience.tsx](../src/components/guest/event-experience.tsx)):
-minimal header (logo + a quiet "start for free" CTA) + the event header, then a quiet
+minimal **auth-aware header** (logo + a quiet "Start for free" CTA when signed out, the visitor's
+**account menu** when signed in — [guest-header.tsx](../src/components/guest/guest-header.tsx)) + the event header, then a quiet
 **`[Save event] [Invite]` action row** (one-link Part 2; ADR-0010), the **upload panel** (only when
 accepting), and a **live gallery** below — contiguous, with no share wedged between upload + gallery.
 The opaque `qr_token` IS the authorization

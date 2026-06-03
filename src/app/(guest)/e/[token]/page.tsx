@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
+import { GuestHeader } from "@/components/guest/guest-header";
 import { PasswordGate } from "@/components/guest/password-gate";
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import {
@@ -101,7 +99,7 @@ export default async function GuestEventPage({
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader />
+        <GuestHeader qrToken={token} eventId={event.id} />
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-3 px-5 py-20 text-center">
           <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Lock className="size-5" />
@@ -124,7 +122,7 @@ export default async function GuestEventPage({
   if (event.visibility === "password" && !unlocked) {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader />
+        <GuestHeader qrToken={token} eventId={event.id} />
         <PasswordGate token={token} eventName={event.name} />
       </div>
     );
@@ -168,7 +166,7 @@ export default async function GuestEventPage({
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <GuestHeader />
+      <GuestHeader qrToken={token} eventId={event.id} />
       <EventExperience
         event={event}
         qrToken={token}
@@ -179,20 +177,5 @@ export default async function GuestEventPage({
         hostAvatarUrl={hostAvatarUrl}
       />
     </div>
-  );
-}
-
-// Minimal, formal header — the host paid for this, so it's their event, not a
-// loud Partyreel page: just the logo + one quiet "start for free" CTA.
-function GuestHeader() {
-  return (
-    <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
-      <Link href="/" aria-label="Partyreel home">
-        <Logo />
-      </Link>
-      <Button asChild variant="ghost" size="sm">
-        <Link href="/">Start for free</Link>
-      </Button>
-    </header>
   );
 }

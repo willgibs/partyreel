@@ -646,6 +646,27 @@ keyboard or Dismiss it.
   `/a/`, `share_token`, "the album page", or "share_token vs qr_token must not derive" is SUPERSEDED.
   Per-event OG now lives at `(guest)/e/[token]/opengraph-image.tsx`; the host dashboard + create-wizard
   show ONE link + config-aware copy; `share-urls.ts` exposes a single `eventUrl`.
+- **The guest-page HEADER is an AUTH-AWARE client island** ([guest-header.tsx](src/components/guest/guest-header.tsx)),
+  NOT a static server header. Logged-out → the quiet "Start for free" CTA (unchanged); logged-in → the
+  visitor's account menu ([guest-account-menu.tsx](src/components/guest/guest-account-menu.tsx)) so they
+  feel signed in + can jump back into the app. It mirrors `SaveEventButton`: resolve auth with a LOCAL
+  `getSession()` (no network) — **do NOT add a server `getUser()` to the page RSC** (anonymous event
+  crowds behind one venue-NAT IP would each pay it + risk auth rate limits; the page already gates its
+  ONLY `getUser()` behind `require_email`). Default render = the CTA (matches SSR → zero flash for the
+  anonymous majority); a session triggers a one-frame CTA→avatar swap (fixed-height `h-8` slot so it
+  doesn't reflow). Display name + presigned avatar + event-ownership come from **`GET /api/me/menu?event=<id>`**,
+  fetched ONLY when a session exists (so anon never hits it): the avatar is presigned SERVER-side (raw R2
+  keys never reach the browser) and ownership is an **RLS-scoped `events` select** (`host_id` never leaks →
+  drives the owner-only "Manage event" deep link to `/dashboard/[eventId]`). The menu's **client-side Sign
+  out REPLACES the old "Not you? Switch guest" button**: it `setStoredSession(qrToken, null)` (clears the
+  guest capability + notifies `EventExperience` via the shared module-singleton `emit()` in
+  [use-stored-session.ts](src/lib/guest/use-stored-session.ts)), signs out, then `router.refresh()`s — so
+  the visitor STAYS on the event page and a `require_email` event re-gates to `<VerifyEmailPrompt>` (the
+  shared-device-bleed fix, relocated to a discoverable place + correctly gated on "is logged in" rather
+  than "has a capability token"). **`router.refresh()` re-runs only the SERVER tree**, so the island clears
+  its OWN `useState` (`setMenu(null)`) to collapse back to the CTA. `ThemeSubmenu`/`initial` are reused
+  (exported) from the host `UserMenu` — share the hard wiring, don't duplicate; the host menu KEEPS its
+  server-action sign-out (it redirects to `/login`, which is wrong for a guest page).
 - **Event-page FLOW (one-link Part 2; ADR-0010).** [event-experience.tsx](src/components/guest/event-experience.tsx)
   renders header (name + "Hosted by") → a quiet **`[Save event] [Invite]` action row** → upload (only
   when accepting) → gallery, CONTIGUOUS (the share is no longer wedged between upload + gallery). Load-
