@@ -11,7 +11,10 @@ import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
-import { getApprovedMediaForUnlock } from "@/lib/db/queries/guest-events-admin";
+import {
+  getApprovedMediaForUnlock,
+  getHostAvatarUrl,
+} from "@/lib/db/queries/guest-events-admin";
 import {
   getEventByQrToken,
   getEventMediaByQrToken,
@@ -139,6 +142,13 @@ export default async function GuestEventPage({
       : await getEventMediaByQrToken(token);
   const initialItems = await toGridItems(media, event.name);
 
+  // Host avatar for the "Hosted by" byline — a server-side admin read so host_id stays off the
+  // client (only the presigned URL is passed down). Gated on a set name, since the byline hides
+  // without one (Phase 3), so this is a no-op for nameless-host events.
+  const hostAvatarUrl = event.host_display_name?.trim()
+    ? await getHostAvatarUrl(event.id)
+    : null;
+
   // Require-email gate (verified, Phase 2c): ONLY when the host requires it AND is still
   // accepting uploads, check for a confirmed Supabase session. The gallery still renders
   // (viewing is allowed) — only the UPLOAD area is swapped for <VerifyEmailPrompt>
@@ -166,6 +176,7 @@ export default async function GuestEventPage({
         initialItems={initialItems}
         isDemo={isDemo}
         needsEmailVerification={needsEmailVerification}
+        hostAvatarUrl={hostAvatarUrl}
       />
     </div>
   );

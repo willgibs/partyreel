@@ -26,8 +26,8 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Profile photos + display names (3-part build) — Phase 1 (avatar upload) SHIPPED + LIVE-VERIFIED on
-  partyreel.com (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
+- **Profile photos + display names (3-part build) — Phases 1-2 (avatar upload + display-name editing)
+  SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
   circular cropper → 512px WebP re-encoded client-side → `POST /api/account/avatar` → a DETERMINISTIC
   R2 key `avatars/<id>/avatar.webp` (overwrite-on-replace = **zero orphans by construction**; DELETE is
   R2-first). `profiles.avatar_updated_at` (migration `…213758`, service-role-write-only) is the
@@ -38,9 +38,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   (zero orphans) and the marker in lockstep with the object's mtime; the route rejects bad bytes (415
   wrong-type, 422 magic-byte sniff on a client-bypass); no console errors. Decided with Will:
   interactive cropper · 512px "sharp & generous" · show on the guest byline.
-  **Phase 2** = display-name editing (drop the email-prefix `handle_new_user` fallback + backfill so
-  "no name set" is a real state); **Phase 3** = the guest "Hosted by" avatar + name gate (guest RPC
-  DROP+CREATE+re-grant). Plan: [profile-photos plan](../../.claude/plans/we-recently-created-an-silly-muffin.md).
+  **Phase 2** (display-name editor + dropping the email-prefix `handle_new_user` fallback + a one-time
+  backfill) is ALSO live-verified: set a name → DB write → shown, clear → null (`test 229` green); the
+  backfill nulled email-prefix names (willg97) while preserving real Google names (Will Gibson). The
+  `<DisplayNameForm>` writes `profiles.display_name` via an RLS self-update; the UserMenu label still
+  reads `user_metadata` (separate, unchanged). **Phase 3** (the guest "Hosted by" avatar + name gate) is
+  SHIPPED, verifying live: the `/e/[qr_token]` byline shows the host's photo (ONLY if an avatar exists,
+  no initials fallback) + name, and the whole line only when a real name is set. Implemented WITHOUT an
+  RPC change — a server-side admin read of `events.host_id` + `profiles.avatar_updated_at` → presign, so
+  `host_id` never reaches the client and **advisors stay UNCHANGED** (no migration). Plan: [profile-photos plan](../../.claude/plans/we-recently-created-an-silly-muffin.md).
 - **Account email + password (ADR-0011) — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-02).** A
   traditional email+password login, in PARALLEL with OTP/magic-link/Google (the password is one more
   credential on the same `auth.users` row, so every path reaches the same account). `/login` now **leads

@@ -28,6 +28,7 @@ export function EventExperience({
   initialItems,
   isDemo,
   needsEmailVerification,
+  hostAvatarUrl,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -38,6 +39,9 @@ export function EventExperience({
   /** require_email event + the viewer hasn't verified an email — swap upload for the
    *  verify prompt (the gallery still shows; viewing is allowed). Phase 2c. */
   needsEmailVerification: boolean;
+  /** Presigned host avatar URL for the "Hosted by" byline; null = no avatar (no photo shown,
+   *  never an initials fallback in this guest context). Phase 3. */
+  hostAvatarUrl: string | null;
 }) {
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
@@ -155,9 +159,20 @@ export function EventExperience({
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
           {event.name}
         </h1>
-        {event.host_display_name && (
-          <p className="text-xs text-muted-foreground/70">
-            Hosted by {event.host_display_name}
+        {/* "Hosted by" shows ONLY when the host set a real name (Phase 2: null = unset). The
+            photo shows ONLY if an avatar exists — no initials fallback in this guest context. */}
+        {event.host_display_name?.trim() && (
+          <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
+            <span>Hosted by</span>
+            {hostAvatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
+              <img
+                src={hostAvatarUrl}
+                alt=""
+                className="size-5 rounded-full object-cover"
+              />
+            )}
+            <span>{event.host_display_name}</span>
           </p>
         )}
         {event.event_date && (
