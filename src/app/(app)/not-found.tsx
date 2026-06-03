@@ -1,0 +1,43 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { CalendarX2 } from "lucide-react";
+
+import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { Button } from "@/components/ui/button";
+
+// Host-facing 404 for the (app) group — primarily the missing/not-yours dashboard event
+// (notFound() in dashboard/[eventId]/page). It renders INSIDE AppShell: the (app) layout's
+// getUser() auth gate has already passed by the time the page calls notFound(), so the
+// authed shell (logo, notification bell, user menu) composes correctly. AppShell already
+// wraps children in <main><Container>, so this does NOT add its own Container — just a
+// comfortable centered block.
+export const metadata: Metadata = {
+  title: "Event not found",
+};
+
+export default function AppNotFound() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center">
+      <NotFoundScreen
+        icon={CalendarX2}
+        title="We couldn't find that event"
+        description="It may have been deleted, or the link points to an event that no longer exists. Your other events are safe on your dashboard."
+        actions={
+          <>
+            <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Link href="/dashboard">Back to dashboard</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 px-6 text-base"
+            >
+              <Link href="/dashboard/new">Create an event</Link>
+            </Button>
+          </>
+        }
+      />
+    </div>
+  );
+}

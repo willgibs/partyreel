@@ -425,6 +425,39 @@ is unit-tested). `draft: true` posts are excluded from listing/sitemap/RSS. 4 la
 (satori needs a literal hex). **The 7-round marketing build-out is complete**; the **polish arc**
 (Events rename → frame library + `/features` → interactive demo) is now through Round 3 (ROADMAP).
 
+## Not-found pages (404)
+
+**Four** `not-found.tsx` files (the root catch-all + one per route group that needs tailored copy)
+share ONE animated core ([not-found-screen.tsx](../src/components/shared/not-found-screen.tsx) — icon
+→ h1 → subhead → CTA row → footnote; presentational/content-only, **no `Container` or chrome** so it
+composes into different wrappers without double-wrapping); the lost-visitor copy is itself
+single-sourced in [marketing-not-found.tsx](../src/components/marketing/marketing-not-found.tsx) (used
+by both the root and the marketing boundary). **Next 16:** a `not-found.tsx` is a Server Component,
+returns a 404 status, and auto-injects `noindex`; each renders inside its segment's layout chain.
+**The load-bearing gotcha (live-caught):** the root [not-found.tsx](../src/app/not-found.tsx) renders
+its OWN `MarketingHeader`/`Footer` because UNMATCHED URLs (`/nope`) fall through to `app/layout.tsx`
+with no group chrome — but a `notFound()` thrown INSIDE the marketing group renders the root boundary
+**inside** `(marketing)/layout.tsx`, which ALREADY renders header/footer, so the chrome **double-stacks**
+(two `<header>` + nested `<main>`). The fix is a [(marketing)/not-found.tsx](<../src/app/(marketing)/not-found.tsx>)
+boundary that renders ONLY the centered content — so marketing-route 404s use it (single chrome) and
+only genuinely-unmatched URLs hit the chrome-bearing root. By audience: **root** = an unmatched URL
+(lost visitor), with its own header/footer → home/help CTAs + features/pricing/contact links;
+**marketing** = a bad blog/help/events/careers `[slug]` (same lost-visitor content, NO chrome — the
+layout supplies it); **guest** ([(guest)/e/[token]/not-found.tsx](<../src/app/(guest)/e/[token]/not-found.tsx>))
+= a dead/expired event link (the real-world QR dead-end) → reassures ("double-check the link, ask the
+host") + a growth-loop "What is Partyreel?" CTA and the `DEMO_EVENT_URL` demo when configured, under a
+minimal `Logo` header in the narrow guest column (no `GuestHeader` — it needs a real token); **host**
+([(app)/not-found.tsx](<../src/app/(app)/not-found.tsx>)) = a missing/not-yours dashboard event,
+rendered INSIDE the already-authed `AppShell` (the `(app)` layout's `getUser()` gate has passed before
+the page calls `notFound()`) → back-to-dashboard / create-event. Tab titles on the dynamic
+`[slug]`/`[token]` variants come from the page's own `generateMetadata` (the house pattern: a fallback
+title there, `notFound()` in the body), so only the unmatched-URL root shows "Page not found ·
+Partyreel"; the 404 status + `noindex` hold on every variant. Entrance is the CSS-only
+`[data-not-found]` `@starting-style` fade+rise with a `--nf-i` top-down stagger (globals.css,
+reduced-motion-safe) — the one entrance that fires on first paint, so it degrades to fully-visible if
+an engine skips it. (Admin 404s still fall to the root not-found and CAN double-stack inside the admin
+shell — an `admin/not-found.tsx` is the same one-file fix if that ever matters; staff-only, deferred.)
+
 ## Interactive demo
 
 **Env-gated, no schema change** (polish-arc R3). A REAL curated event's `qr_token` is set in

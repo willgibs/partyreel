@@ -266,6 +266,38 @@
       }
     }
   }
+
+  /* The 404 / not-found hero (root app/not-found.tsx + the guest event-link and host
+     dashboard variants) fades + rises in on first paint. Same language as the
+     [data-media-tile] / settings reveals above: strong --ease-emphasis curve, transform +
+     opacity only (GPU), @starting-style so it animates from the pre-styled state on mount.
+     The inner blocks carry --nf-i (0,1,2,3) for a tasteful top-down stagger (icon →
+     heading → actions → footnote). Reduced motion gets a plain fade — no movement, no
+     stagger. CSS-only, so it runs in the Server Component not-found with no JS. NOTE: this
+     is the one entrance that fires on initial document load (the others mount post-poll /
+     post-interaction); if an engine skips @starting-style on first paint the page still
+     renders fully visible, so it degrades safely. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-not-found] > * {
+      transition:
+        opacity 240ms var(--ease-emphasis),
+        transform 240ms var(--ease-emphasis);
+      transition-delay: calc(var(--nf-i, 0) * 50ms);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-not-found] > * {
+      transition: opacity 200ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
 }
 
 /* Help-center / blog article prose theme. Every color points at a design-system token
