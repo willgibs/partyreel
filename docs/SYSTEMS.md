@@ -427,7 +427,7 @@ is unit-tested). `draft: true` posts are excluded from listing/sitemap/RSS. 4 la
 
 ## Not-found pages (404)
 
-**Four** `not-found.tsx` files (the root catch-all + one per route group that needs tailored copy)
+**Five** `not-found.tsx` files (the root catch-all + one per route group that needs tailored copy)
 share ONE animated core ([not-found-screen.tsx](../src/components/shared/not-found-screen.tsx) — icon
 → h1 → subhead → CTA row → footnote; presentational/content-only, **no `Container` or chrome** so it
 composes into different wrappers without double-wrapping); the lost-visitor copy is itself
@@ -449,14 +449,18 @@ host") + a growth-loop "What is Partyreel?" CTA and the `DEMO_EVENT_URL` demo wh
 minimal `Logo` header in the narrow guest column (no `GuestHeader` — it needs a real token); **host**
 ([(app)/not-found.tsx](<../src/app/(app)/not-found.tsx>)) = a missing/not-yours dashboard event,
 rendered INSIDE the already-authed `AppShell` (the `(app)` layout's `getUser()` gate has passed before
-the page calls `notFound()`) → back-to-dashboard / create-event. Tab titles on the dynamic
+the page calls `notFound()`) → back-to-dashboard / create-event; **admin**
+([admin/not-found.tsx](../src/app/admin/not-found.tsx)) = a missing account/album record, rendered
+inside the MFA-gated `AdminShell` (same content-only pattern as `(app)`) → back-to-overview. Tab titles
+on the dynamic
 `[slug]`/`[token]` variants come from the page's own `generateMetadata` (the house pattern: a fallback
 title there, `notFound()` in the body), so only the unmatched-URL root shows "Page not found ·
 Partyreel"; the 404 status + `noindex` hold on every variant. Entrance is the CSS-only
 `[data-not-found]` `@starting-style` fade+rise with a `--nf-i` top-down stagger (globals.css,
 reduced-motion-safe) — the one entrance that fires on first paint, so it degrades to fully-visible if
-an engine skips it. (Admin 404s still fall to the root not-found and CAN double-stack inside the admin
-shell — an `admin/not-found.tsx` is the same one-file fix if that ever matters; staff-only, deferred.)
+an engine skips it. (All five route groups now have their own boundary, so a `notFound()` renders
+single-chrome inside its group's layout — nothing falls back to the chrome-bearing root and
+double-stacks; the admin variant lands inside the MFA-gated `AdminShell`, like `(app)`.)
 
 ## Interactive demo
 
