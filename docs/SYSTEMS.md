@@ -59,6 +59,13 @@ lockstep with R2); when set, the server presigns a short-TTL GET ([avatar-url.ts
 for the `<Avatar>` in the account card AND the **UserMenu** (radix `AvatarImage` auto-falls-back to the
 initial letter when the src is null/fails). Phase 1 of a 3-part build (avatar → display-name editing →
 guest "Hosted by" avatar+name).
+**Display names** — `/account` has a Display name field
+([display-name-form.tsx](../src/components/app/display-name-form.tsx) → `updateDisplayNameAction`, a plain
+RLS self-update; an empty value clears it to null). `handle_new_user` NO LONGER falls back to the email
+local-part (Phase 2 migration + a one-time backfill that nulled rows where `display_name` == the email
+local-part), so a null `display_name` genuinely means "not set" — which is what the guest "Hosted by"
+byline (Phase 3) keys off. Google/OAuth still populate it from `full_name`; every other `display_name`
+reader already falls back to the email.
 **Invariant:** `profiles` is host-writable only on `display_name, email, announcements_seen_at,
 welcomed_at` (the `grant update(...)` allowlist); `tier`/`storage_*`/`is_admin`/`stripe_*`/`avatar_updated_at`
 are service-role / webhook only.

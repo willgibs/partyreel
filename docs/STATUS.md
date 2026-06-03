@@ -26,14 +26,18 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Profile photos + display names (3-part build) — Phase 1 (avatar upload) SHIPPED to `main`, live
-  verification in progress (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
+- **Profile photos + display names (3-part build) — Phase 1 (avatar upload) SHIPPED + LIVE-VERIFIED on
+  partyreel.com (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
   circular cropper → 512px WebP re-encoded client-side → `POST /api/account/avatar` → a DETERMINISTIC
   R2 key `avatars/<id>/avatar.webp` (overwrite-on-replace = **zero orphans by construction**; DELETE is
   R2-first). `profiles.avatar_updated_at` (migration `…213758`, service-role-write-only) is the
   existence marker; the `<Avatar>` in the account card + the **UserMenu** shows the presigned image,
   else the initial letter. Advisors **UNCHANGED** (column add, no new RPC); typecheck/lint/**test 225**
-  green. Decided with Will: interactive cropper · 512px "sharp & generous" · show on the guest byline.
+  green, and **live-verified end-to-end on prod** (Chrome MCP, account `willg97@gmail.com`): upload
+  (center-crop) → replace (zoom + pan) → remove, with **R2 held at exactly 1 object through the replace**
+  (zero orphans) and the marker in lockstep with the object's mtime; the route rejects bad bytes (415
+  wrong-type, 422 magic-byte sniff on a client-bypass); no console errors. Decided with Will:
+  interactive cropper · 512px "sharp & generous" · show on the guest byline.
   **Phase 2** = display-name editing (drop the email-prefix `handle_new_user` fallback + backfill so
   "no name set" is a real state); **Phase 3** = the guest "Hosted by" avatar + name gate (guest RPC
   DROP+CREATE+re-grant). Plan: [profile-photos plan](../../.claude/plans/we-recently-created-an-silly-muffin.md).

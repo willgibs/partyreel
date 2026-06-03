@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
+import { DisplayNameForm } from "@/components/app/display-name-form";
 import {
   Card,
   CardContent,
@@ -48,7 +49,7 @@ export default async function AccountPage({
         <CardHeader>
           <CardTitle>Profile</CardTitle>
           <CardDescription>
-            Your photo and the email tied to your account.
+            Your photo, name, and the email tied to your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -57,6 +58,7 @@ export default async function AccountPage({
             displayName={profile.display_name}
             email={profile.email}
           />
+          <DisplayNameForm displayName={profile.display_name} />
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Email</p>
             <p className="text-sm text-muted-foreground">
