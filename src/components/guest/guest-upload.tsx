@@ -336,5 +336,5 @@ function UploadThumbnail({ file }: { file: File }) {
 
   // blob: URLs can't go through next/image (no configured hostname).
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" className="size-10 shrink-0 rounded object-cover" />;
+  return <img src={src} alt="" className="size-10 shrink-0 rounded object-cover" onError={(e) => { e.currentTarget.classList.add('hidden'); }} />;
 }
