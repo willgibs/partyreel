@@ -27,18 +27,29 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 ## In flight / pending verification
 
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
-  default 404 with four audience-aware pages sharing one animated core (`NotFoundScreen` +
+  default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),
   **(marketing)** (bad blog/help/events/careers `[slug]`, content-only so the layout chrome isn't
   doubled — a live-caught gotcha now in SYSTEMS), **(guest)/e/[token]** (dead/expired QR link → reassure
   + ask-the-host + a growth-loop CTA and the live demo), and **(app)** (missing/not-yours dashboard
-  event, inside the authed AppShell). Curated quick links; `[data-not-found]` `@starting-style` fade+rise
+  event, inside the authed AppShell), and **admin** (missing account/album record, inside the MFA-gated
+  AdminShell). Curated quick links; `[data-not-found]` `@starting-style` fade+rise
   stagger (reduced-motion-safe); em-dash-free. typecheck/lint/**test 253**/build green. **Live-verified
-  (Chrome MCP + curl, prod):** all four render correctly; every variant returns HTTP 404 + `noindex`
+  (Chrome MCP + curl, prod):** all five render correctly; every variant returns HTTP 404 + `noindex`
   (host bad-id 307→`/login`, no leak); the marketing 404 shows single chrome with full nav (real DOM:
   1 header / 1 footer); the guest demo footnote resolves to the real demo event; the host 404 renders
-  inside the AppShell (logged-in); zero console errors; and the "Visit the help center" escape route
-  navigates to the real `/help`. Plan: [404 plan](../../.claude/plans/i-d-like-to-add-temporal-rossum.md).
+  inside the AppShell (logged-in); the admin 404 renders inside the Ops `AdminShell` for both
+  `/accounts/[id]` + `/albums/[eventId]` (single chrome, GET 404 confirmed, operator AAL2 session); zero
+  console errors; and the "Visit the help center" escape route navigates to the real `/help`. Plan:
+  [404 plan](../../.claude/plans/i-d-like-to-add-temporal-rossum.md).
+- **Upload thumbnail previews — VERIFIED + DRY'd on partyreel.com (2026-06-03).** The phone-camera-roll
+  thumbnail previews on the upload queue (commits 04ab35b / 238bee9) were confirmed present + correct on
+  BOTH the guest and host upload surfaces; the byte-for-byte-duplicated `UploadThumbnail` was extracted to
+  a shared [upload-thumbnail.tsx](../src/components/shared/upload-thumbnail.tsx) (used by both) that routes
+  the video poster through the single-source `videoPosterSrc()` and adds `<video>` `onError` parity. **Live-
+  verified (Chrome MCP, prod):** a valid image renders its thumbnail (`naturalWidth` > 0); a 0-byte /
+  corrupt file's broken-image is hidden so the slot collapses cleanly, on BOTH surfaces. typecheck/lint/
+  **test 253**/build green.
 - **Custom event link (slug) — SHIPPED + LIVE-VERIFIED on partyreel.com (Phases 1 + 2;
   2026-06-03; ADR-0012).** Pro / Event-Pass hosts get an optional
   human-friendly alias `/e/<slug>` for the one event link (the permanent `/e/<qr_token>` + QR are
