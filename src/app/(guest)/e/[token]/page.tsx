@@ -50,7 +50,7 @@ export async function generateMetadata({
     return {
       title,
       robots: { index: false, follow: false },
-      openGraph: { title, url: `/e/${token}`, type: "website" },
+      openGraph: { title, url: `/e/${event.qr_token}`, type: "website" },
       twitter: { card: "summary_large_image", title },
     };
   }
@@ -61,7 +61,7 @@ export async function generateMetadata({
     title,
     description,
     robots: { index: false, follow: false },
-    openGraph: { title, description, url: `/e/${token}`, type: "website" },
+    openGraph: { title, description, url: `/e/${event.qr_token}`, type: "website" },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -99,7 +99,7 @@ export default async function GuestEventPage({
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={token} eventId={event.id} />
+        <GuestHeader qrToken={event.qr_token} eventId={event.id} />
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-3 px-5 py-20 text-center">
           <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Lock className="size-5" />
@@ -122,8 +122,8 @@ export default async function GuestEventPage({
   if (event.visibility === "password" && !unlocked) {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={token} eventId={event.id} />
-        <PasswordGate token={token} eventName={event.name} />
+        <GuestHeader qrToken={event.qr_token} eventId={event.id} />
+        <PasswordGate token={event.qr_token} eventName={event.name} />
       </div>
     );
   }
@@ -133,11 +133,13 @@ export default async function GuestEventPage({
   // only serves 'open' events); an open event uses the anon RPC. The client then polls
   // /api/guests/gallery for updates.
   const siteUrl = await getSiteUrl();
-  const joinUrl = `${siteUrl.replace(/\/+$/, "")}/e/${token}`;
+  // Canonical (qr_token) link for the in-page share + the media poll — never the slug
+  // the guest may have arrived on (the media RPC + downstream RPCs match qr_token only).
+  const joinUrl = `${siteUrl.replace(/\/+$/, "")}/e/${event.qr_token}`;
   const media =
     event.visibility === "password"
       ? await getApprovedMediaForUnlock(event.id)
-      : await getEventMediaByQrToken(token);
+      : await getEventMediaByQrToken(event.qr_token);
   const initialItems = await toGridItems(media, event.name);
 
   // Host avatar for the "Hosted by" byline — a server-side admin read so host_id stays off the
@@ -154,7 +156,7 @@ export default async function GuestEventPage({
   // (ADR-0010), so there's nothing to gate — skip the check entirely (no verify prompt on
   // a closed event). getUser() runs ONLY for accepting + require_email events, so every
   // other path adds no auth round-trip. Demo never gates (its uploads are simulated).
-  const isDemo = isDemoToken(token);
+  const isDemo = isDemoToken(event.qr_token);
   let needsEmailVerification = false;
   if (event.accepting_uploads && event.require_email && !isDemo) {
     const supabase = await createClient();
@@ -169,7 +171,7 @@ export default async function GuestEventPage({
       <GuestHeader qrToken={token} eventId={event.id} />
       <EventExperience
         event={event}
-        qrToken={token}
+        qrToken={event.qr_token}
         joinUrl={joinUrl}
         initialItems={initialItems}
         isDemo={isDemo}

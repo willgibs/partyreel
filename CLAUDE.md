@@ -948,6 +948,17 @@ cron calls it via the admin client), so it must **never** appear in the advisor 
 above — if it ever shows up there, an over-broad grant slipped in. Same protection
 class as the trigger-only functions.
 
+**`set_event_slug` / `clear_event_slug` (custom event slugs, ADR-0012) are the newest
+`authenticated`-only host RPCs** (same class as the host-upload + password RPCs): SECURITY DEFINER,
+`auth.uid()` + ownership + tier-gated, on the 0029 list and NEVER 0028. **GOTCHA learned here —
+functions created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS
+EXECUTE to `anon`.** So the bare `revoke ... from public` that sufficed for the older CLI-created
+`set_event_password` did NOT remove anon's grant — `has_function_privilege('anon', …)` was still true
+and both slug RPCs showed up in the anon (0028) advisor list. **Any host-only RPC created via the MCP
+must explicitly `revoke execute ... from anon`** (not just `from public`); fixed in
+`…_custom_event_slug_revoke_anon`. Always re-run `get_advisors` after adding an RPC to confirm anon vs
+authenticated placement.
+
 ---
 
 ## Security guardrails (non-negotiable)

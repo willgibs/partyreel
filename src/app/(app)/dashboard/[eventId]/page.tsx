@@ -5,6 +5,7 @@ import { ArrowLeft, Eye } from "lucide-react";
 
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
+import { EventSlugControl } from "@/components/app/event-slug-control";
 import { QrDesignerDialog } from "@/components/app/qr-designer-dialog";
 import { EventSettingsForm } from "@/components/app/event-settings-form";
 import { EventUploads } from "@/components/app/event-uploads";
@@ -22,6 +23,7 @@ import {
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import {
   DEFAULT_TIER,
+  isSettingLocked,
   toBillingTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
@@ -154,7 +156,18 @@ export default async function EventDetailPage({ params }: PageProps) {
               current={event.qr_style}
             />
           </div>
-          <CopyShareLink url={eventLink} />
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">
+              Permanent link
+            </p>
+            <CopyShareLink url={eventLink} />
+          </div>
+          <EventSlugControl
+            eventId={event.id}
+            siteUrl={siteUrl}
+            slug={event.custom_slug}
+            locked={isSettingLocked("custom_slug", tier)}
+          />
           <p className="text-sm text-muted-foreground">{accessLine}</p>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Eye className="size-3.5" />

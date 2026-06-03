@@ -95,6 +95,7 @@ export type Database = {
         Row: {
           accepting_uploads: boolean
           created_at: string
+          custom_slug: string | null
           deleted_at: string | null
           description: string | null
           event_date: string | null
@@ -113,6 +114,7 @@ export type Database = {
         Insert: {
           accepting_uploads?: boolean
           created_at?: string
+          custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           event_date?: string | null
@@ -131,6 +133,7 @@ export type Database = {
         Update: {
           accepting_uploads?: boolean
           created_at?: string
+          custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           event_date?: string | null
@@ -675,6 +678,7 @@ export type Database = {
         Returns: Json
       }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
+      clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
         Args: { p_email?: string; p_qr_token: string }
         Returns: Json
@@ -715,6 +719,7 @@ export type Database = {
         Args: { p_qr_token: string }
         Returns: {
           accepting_uploads: boolean
+          custom_slug: string
           description: string
           event_date: string
           has_password: boolean
@@ -723,6 +728,7 @@ export type Database = {
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           qr_style: string
+          qr_token: string
           require_email: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
@@ -796,6 +802,10 @@ export type Database = {
       }
       set_event_password: {
         Args: { p_event_id: string; p_password: string }
+        Returns: undefined
+      }
+      set_event_slug: {
+        Args: { p_event_id: string; p_slug: string }
         Returns: undefined
       }
       tier_limits: {

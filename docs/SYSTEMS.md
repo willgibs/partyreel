@@ -80,14 +80,33 @@ are service-role / webhook only.
 
 `events` (host_id, opaque `qr_token` (DB-generated; the single event link, ADR-0010), `moderation_mode`,
 `visibility` (`open|password|private`, ADR-0007) + `event_password_hash` (bcrypt; never
-client-read), `accepting_uploads`, `require_email`, `qr_style`,
-`deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
+client-read), `accepting_uploads`, `require_email`, `qr_style`, `custom_slug` (optional Pro alias,
+ADR-0012), `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([create-event-wizard.tsx](../src/components/app/create-event-wizard.tsx)) — Details → QR
 design → Share — which creates **once at commit** via the non-redirecting `createEventInWizard`
 ([actions.ts](../src/app/(app)/dashboard/actions.ts)) so the Share step can show the real QR +
 album link. Settings are edited later on the event page ([event-settings-form.tsx](../src/components/app/event-settings-form.tsx),
 **not auto-save**). `enforce_event_limit` trigger guards `MAX_EVENTS`. **Events have no end
 date** — deletion is the only lifecycle exit (anti-abuse).
+
+## Custom event link (slug)
+
+Pro / Event-Pass hosts can set an optional **custom slug** — a human-friendly ALIAS for the one
+event link, `/e/<slug>` (e.g. `/e/sarahs-wedding`), editable anytime (ADR-0012). The permanent
+`/e/<qr_token>` link never changes and the QR always encodes it; the slug is NOT a second
+capability. `events.custom_slug` (nullable, case-insensitively unique among non-deleted events via
+a partial index, RPC-write-only) is set/cleared by `set_event_slug` / `clear_event_slug`
+(authenticated-only SECURITY DEFINER, tier-gated — the `event_password_hash` pattern).
+`get_event_by_qr_token` resolves `qr_token OR custom_slug` (token wins) and returns the **canonical
+qr_token**, which the guest page threads to every downstream qr-keyed RPC (media poll, `create_guest`,
+`save_event`, `create_report`, `verify_event_password`) so a slug arrival behaves exactly like a token
+arrival. Editing/removing a slug (or deleting the event) frees it for other events immediately (no
+old→new redirect). Validation + a reserved-word list live in
+[event.ts](../src/lib/validation/event.ts) + [reserved-slugs.ts](../src/lib/constants/reserved-slugs.ts);
+the host UI is [event-slug-control.tsx](../src/components/app/event-slug-control.tsx) in the "Share with
+guests" card (set / change / remove; reactive "taken" toast). Downgrade keeps the slug resolving +
+removable but not changeable (mirrors password). **Phase 2 (next planning round):** debounced live
+availability feedback + a change-warning dialog + slug suggestions.
 
 ## QR designer
 

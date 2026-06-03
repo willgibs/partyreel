@@ -12,6 +12,11 @@ import { createClient } from "@/lib/supabase/server";
 
 export type GuestEvent = {
   id: string;
+  // The CANONICAL permanent capability (ADR-0004). This page may be reached via a custom
+  // slug alias (ADR-0012), so every downstream qr_token-keyed call — the gallery poll,
+  // create_guest, save_event, create_report, verify_event_password — MUST use this, NOT
+  // the route param (those RPCs match qr_token only; a slug would resolve to nothing).
+  qr_token: string;
   name: string;
   description: string | null;
   moderation_mode: Database["public"]["Enums"]["moderation_mode"];
@@ -54,6 +59,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     ok: true,
     data: {
       id: row.id,
+      qr_token: row.qr_token,
       name: row.name,
       description: row.description ?? null,
       moderation_mode: row.moderation_mode,

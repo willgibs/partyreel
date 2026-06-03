@@ -28,3 +28,16 @@ export function eventUrl(siteUrl: string, qrToken: string): string {
 export function previewJoinUrl(siteUrl: string): string {
   return `${origin(siteUrl)}/e/${PREVIEW_TOKEN}`;
 }
+
+/**
+ * The host-facing "best" share URL: the custom slug when set, else the permanent
+ * qr_token URL (ADR-0012). For DASHBOARD display/copy of the prettier link only — the
+ * QR and the guest page's canonical link stay on the qr_token, since the slug is mutable
+ * and the printed/permanent link must never break.
+ */
+export function preferredEventUrl(
+  siteUrl: string,
+  { qrToken, customSlug }: { qrToken: string; customSlug: string | null },
+): string {
+  return eventUrl(siteUrl, customSlug ?? qrToken);
+}

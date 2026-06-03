@@ -126,8 +126,17 @@ describe("isSettingLocked (tier-gated event settings)", () => {
     expect(isSettingLocked("password", "pro")).toBe(false);
     expect(isSettingLocked("password", "event_pass")).toBe(false);
   });
+  it("locks custom_slug on Free, unlocks on paid tiers", () => {
+    expect(isSettingLocked("custom_slug", "free")).toBe(true);
+    expect(isSettingLocked("custom_slug", "pro")).toBe(false);
+    expect(isSettingLocked("custom_slug", "event_pass")).toBe(false);
+  });
   it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
-    expect([...GATED_EVENT_SETTINGS]).toEqual(["require_email", "password"]);
+    expect([...GATED_EVENT_SETTINGS]).toEqual([
+      "require_email",
+      "password",
+      "custom_slug",
+    ]);
   });
 });
 

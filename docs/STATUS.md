@@ -5,7 +5,7 @@
 > pick-up-a-task loop read [`ROADMAP.md`](ROADMAP.md); for how to work in the repo read
 > [`CLAUDE.md`](../CLAUDE.md).
 
-**Updated:** 2026-06-02
+**Updated:** 2026-06-03
 
 ## Where we are
 
@@ -26,6 +26,22 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
+- **Custom event link (slug) — Phase 1 (foundation) BUILT + DB-verified; live verification on
+  partyreel.com PENDING a deploy (2026-06-03; ADR-0012).** Pro / Event-Pass hosts get an optional
+  human-friendly alias `/e/<slug>` for the one event link (the permanent `/e/<qr_token>` + QR are
+  unchanged). Shipped: `events.custom_slug` (nullable, partial-unique case-insensitive among
+  non-deleted, RPC-write-only) + `set_event_slug`/`clear_event_slug` (authenticated-only, tier-gated);
+  `get_event_by_qr_token` resolves slug-or-token (token wins) and returns the canonical `qr_token`,
+  which the guest page threads to every downstream qr-keyed RPC; `EventSlugControl` in the "Share with
+  guests" card (set/change/remove, reactive "taken" toast). Verified: typecheck/lint/**test 241** green;
+  advisors clean (slug RPCs authenticated-only — anon list stays the 8 ADR-0010 capability RPCs; a
+  corrective migration revoked an MCP-default `anon` grant, see CLAUDE.md); a rolled-back RPC contract
+  check passed all 9 assertions (lowercase-normalize, resolve by-slug + by-token, token-shape reject,
+  free-tier reject, case-insensitive dup reject, freed-after-soft-delete, clear, non-owner reject).
+  **Next:** push to main → Chrome-MCP live-verify (set a slug on a Pro event, `/e/<slug>` resolves +
+  the live gallery keeps polling, change → old 404s, downgrade → dormant + removable). **Phase 2 is a
+  separate planning round:** debounced live availability feedback + change-warning dialog + slug
+  suggestions. Plan: [custom-slug plan](../../.claude/plans/i-d-like-to-add-fuzzy-quasar.md).
 - **Profile photos + display names (3-part build) — COMPLETE. Phases 1-3 (avatar upload · display-name
   editing · the guest "Hosted by" avatar+name byline) SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
   circular cropper → 512px WebP re-encoded client-side → `POST /api/account/avatar` → a DETERMINISTIC

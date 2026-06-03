@@ -5,14 +5,17 @@ import { redirect } from "next/navigation";
 
 import {
   clearEventPassword,
+  clearEventSlug,
   createEvent,
   setEventPassword,
+  setEventSlug,
   softDeleteEvent,
   updateEvent,
 } from "@/lib/db/mutations/events";
 import {
   createEventSchema,
   eventPasswordSchema,
+  eventSlugSchema,
   updateEventSchema,
   type CreateEventInput,
   type UpdateEventInput,
@@ -123,6 +126,35 @@ export async function clearEventPasswordAction(
   eventId: string,
 ): Promise<ActionResult> {
   const result = await clearEventPassword(eventId);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+// Custom slug set/change — its own action (NOT the general save). The slug is an
+// alias to the one /e/[token] link; the RPC enforces tier + format + uniqueness, and
+// changing it FREES the old slug for other events (no old->new redirect; ADR-0012).
+export async function setEventSlugAction(
+  eventId: string,
+  slug: string,
+): Promise<ActionResult> {
+  const parsed = eventSlugSchema.safeParse({ slug });
+  if (!parsed.success) return firstIssue(parsed.error.issues[0]?.message);
+
+  const result = await setEventSlug(eventId, parsed.data.slug);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function clearEventSlugAction(
+  eventId: string,
+): Promise<ActionResult> {
+  const result = await clearEventSlug(eventId);
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);

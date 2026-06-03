@@ -190,11 +190,17 @@ export function plansForTier(tier: Tier): Plan[] {
 
 /**
  * Host event-settings gated to paid tiers (locked + an upgrade hint on Free):
- * `require_email` (verified-email uploads) and `password` (password-protected
- * albums). Add more here as they become tier-gated. ("Locked" = `tier === "free"`,
- * so paid tiers — pro + event_pass — all have them.)
+ * `require_email` (verified-email uploads), `password` (password-protected albums),
+ * and `custom_slug` (a custom /e/[slug] link). Add more here as they become
+ * tier-gated. ("Locked" = `tier === "free"`, so paid tiers — pro + event_pass — all
+ * have them.) Note: locked only blocks CREATE/CHANGE; a downgraded host keeps the
+ * existing artifact and can still REMOVE it (see EventPasswordControl / clear_event_slug).
  */
-export const GATED_EVENT_SETTINGS = ["require_email", "password"] as const;
+export const GATED_EVENT_SETTINGS = [
+  "require_email",
+  "password",
+  "custom_slug",
+] as const;
 export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];
 
 export function isSettingLocked(

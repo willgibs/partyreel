@@ -33,6 +33,11 @@ export type MutationResult<T> =
 // the CODE, not the message — messages drift, the code is stable.
 const CHECK_VIOLATION = "23514";
 
+// Postgres unique_violation SQLSTATE. set_event_slug pre-checks availability with a
+// friendly message, but a same-instant race can still trip the partial unique index —
+// treat it as "taken" too (don't only handle 23514).
+const UNIQUE_VIOLATION = "23505";
+
 const UNAUTHORIZED = {
   ok: false as const,
   code: "unauthorized" as const,
@@ -263,6 +268,73 @@ export async function clearEventPassword(
       ok: false,
       code: "unknown",
       message: "Couldn't remove the password. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+// Custom slug set/change + clear go through their own SECURITY DEFINER RPCs (NOT the
+// updateEvent patch) so tier + format + case-insensitive uniqueness are enforced
+// atomically and custom_slug stays revoked from the host's direct UPDATE grant. The slug
+// is an ALIAS to the one /e/[token] link (ADR-0010 + ADR-0012), not a second capability.
+
+export async function setEventSlug(
+  eventId: string,
+  slug: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  // The RPC verifies ownership + non-free tier + format + uniqueness, then writes the
+  // normalized (lowercased) slug. It is one of the only two writers of custom_slug.
+  const { error } = await supabase.rpc("set_event_slug", {
+    p_event_id: eventId,
+    p_slug: slug,
+  });
+  if (error) {
+    // check_violation (23514) = Free tier / bad format / already taken — the RPC's
+    // message is friendly. unique_violation (23505) = a race past the pre-check.
+    if (error.code === CHECK_VIOLATION) {
+      return { ok: false, code: "limit_reached", message: error.message };
+    }
+    if (error.code === UNIQUE_VIOLATION) {
+      return {
+        ok: false,
+        code: "limit_reached",
+        message: "That custom link is already taken.",
+      };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't set the custom link. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+export async function clearEventSlug(
+  eventId: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  // Frees the slug (sets null) so another event can claim it. No tier check — a
+  // downgraded host can still remove a dormant slug (mirrors clear_event_password).
+  const { error } = await supabase.rpc("clear_event_slug", {
+    p_event_id: eventId,
+  });
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't remove the custom link. Please try again.",
     };
   }
   return { ok: true, data: { id: eventId } };

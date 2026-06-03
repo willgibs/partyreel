@@ -15,6 +15,7 @@ import { z } from "zod";
 
 import { Constants } from "@/lib/db/types";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
+import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
 
 export const createEventSchema = z.object({
   name: z
@@ -66,3 +67,25 @@ export const eventPasswordSchema = z.object({
     .max(128, "Keep the password under 128 characters."),
 });
 export type EventPasswordValues = z.output<typeof eventPasswordSchema>;
+
+// Custom event slug (Pro / Event-Pass) — an optional human-friendly ALIAS for the
+// /e/[token] link. Normalized to lowercase, then validated. The DB RPC (set_event_slug)
+// re-checks tier + format + uniqueness (defense-in-depth); this is the shared client +
+// action shape, and also owns the reserved-word policy (a brand/clarity list, not a
+// routing or security boundary — see lib/constants/reserved-slugs.ts).
+export const eventSlugSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "Custom links are at least 3 characters.")
+    .max(50, "Keep custom links to 50 characters or fewer.")
+    .regex(
+      /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
+      "Use lowercase letters, numbers, and hyphens (no leading or trailing hyphen).",
+    )
+    // A 32-hex slug could be mistaken for a qr_token in the shared /e/ namespace.
+    .refine((s) => !/^[0-9a-f]{32}$/.test(s), "That custom link isn't available.")
+    .refine((s) => !RESERVED_SLUGS.has(s), "That word is reserved. Try another."),
+});
+export type EventSlugValues = z.output<typeof eventSlugSchema>;
