@@ -51,11 +51,14 @@ encodes it.
   a future option (the reserved-word list is forward-compatible).
 - The `qr_token` is now exposed in the resolver's return (so the page can thread it). No privilege
   change — slug and token grant identical, config-gated access (ADR-0010), so this is not a leak.
-- **Advisors:** +2 authenticated SECURITY-DEFINER functions (`set_event_slug` / `clear_event_slug`),
-  0 new anon (the anon list stays the 8 ADR-0010 capability RPCs). Gotcha caught + fixed in a
+- **Advisors:** +3 authenticated SECURITY-DEFINER functions (`set_event_slug` / `clear_event_slug` /
+  `check_slug_available`), 0 new anon (the anon list stays the 8 ADR-0010 capability RPCs). Gotcha caught + fixed in a
   corrective migration: functions created via the Supabase MCP `apply_migration` inherit a default
   privilege that grants `anon` EXECUTE, so a host-only RPC needs an explicit `revoke ... from anon`
   (not just `from public`) — see CLAUDE.md.
-- **Phase 2 (separate planning round):** debounced LIVE availability feedback
-  (idle→checking→available/taken/invalid via a `check_slug_available` RPC), a change-warning dialog,
-  and slug suggestions from the event name. Phase 1's `EventSlugControl` is the shell those layer onto.
+- **Phase 2 (SHIPPED 2026-06-03, live-verified):** debounced LIVE availability as you type
+  (idle→checking→available/taken/invalid via the authenticated `check_slug_available` RPC, called from
+  the browser with a request-id race guard); a change/remove warning DIALOG (both break the live link,
+  so both confirm); a name-derived suggestion chip (`suggestSlug`); and the editor reused in the create
+  wizard's Share step. The sync classification is the pure `evaluateSlugInput`; the slug helpers live in
+  `lib/slug.ts`. `EventSlugControl` was the shell these layered onto.

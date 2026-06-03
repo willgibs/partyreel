@@ -677,6 +677,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_slug_available: {
+        Args: { p_event_id?: string; p_slug: string }
+        Returns: boolean
+      }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {

@@ -167,6 +167,7 @@ export default async function EventDetailPage({ params }: PageProps) {
             siteUrl={siteUrl}
             slug={event.custom_slug}
             locked={isSettingLocked("custom_slug", tier)}
+            eventName={event.name}
           />
           <p className="text-sm text-muted-foreground">{accessLine}</p>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

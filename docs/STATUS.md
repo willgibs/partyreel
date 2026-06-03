@@ -26,14 +26,14 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Custom event link (slug) — Phase 1 (foundation) SHIPPED + LIVE-VERIFIED on partyreel.com
-  (2026-06-03; commit e1dc223; ADR-0012).** Pro / Event-Pass hosts get an optional
+- **Custom event link (slug) — SHIPPED + LIVE-VERIFIED on partyreel.com (Phases 1 + 2;
+  2026-06-03; ADR-0012).** Pro / Event-Pass hosts get an optional
   human-friendly alias `/e/<slug>` for the one event link (the permanent `/e/<qr_token>` + QR are
   unchanged). Shipped: `events.custom_slug` (nullable, partial-unique case-insensitive among
   non-deleted, RPC-write-only) + `set_event_slug`/`clear_event_slug` (authenticated-only, tier-gated);
   `get_event_by_qr_token` resolves slug-or-token (token wins) and returns the canonical `qr_token`,
   which the guest page threads to every downstream qr-keyed RPC; `EventSlugControl` in the "Share with
-  guests" card (set/change/remove, reactive "taken" toast). Verified: typecheck/lint/**test 241** green;
+  guests" card (set/change/remove). Verified: typecheck/lint/**test 253** green;
   advisors clean (slug RPCs authenticated-only — anon list stays the 8 ADR-0010 capability RPCs; a
   corrective migration revoked an MCP-default `anon` grant, see CLAUDE.md); a rolled-back RPC contract
   check passed all 9 assertions (lowercase-normalize, resolve by-slug + by-token, token-shape reject,
@@ -44,9 +44,13 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   404s with NO redirect + the freed slug was immediately reclaimed by a second event; the server rejects
   case-insensitive duplicates, and the client rejects reserved / spaces / leading-hyphen / 32-hex /
   >50-char; the free tier shows the upgrade affordance; and on downgrade the slug keeps resolving + is
-  removable but not changeable. Test data cleaned up (DB back to baseline). **Phase 2 is a
-  separate planning round:** debounced live availability feedback + change-warning dialog + slug
-  suggestions. Plan: [custom-slug plan](../../.claude/plans/i-d-like-to-add-fuzzy-quasar.md).
+  removable but not changeable. **Phase 2 (live availability + dialog + suggestions + wizard) ALSO
+  SHIPPED + live-verified (2026-06-03):** the field shows debounced checking → available (green) / taken
+  (red) / invalid (via the `check_slug_available` RPC, browser-called + race-guarded); Change AND Remove
+  open a warning dialog (the old link breaks, no redirect); a name-derived suggestion chip fills the
+  field; and the same editor is offered in the create wizard's Share step (Pro) / as an upgrade nudge
+  (free). typecheck/lint/test 253 green; advisors clean (`check_slug_available` authenticated-only, never
+  anon). Test data cleaned up. Plan: [custom-slug plan](../../.claude/plans/i-d-like-to-add-fuzzy-quasar.md).
 - **Profile photos + display names (3-part build) — COMPLETE. Phases 1-3 (avatar upload · display-name
   editing · the guest "Hosted by" avatar+name byline) SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-02).** Hosts upload an avatar on `/account` via an interactive
   circular cropper → 512px WebP re-encoded client-side → `POST /api/account/avatar` → a DETERMINISTIC

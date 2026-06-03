@@ -16,6 +16,7 @@ import {
   resolveQrPreset,
   type QrStyleKey,
 } from "@/lib/constants/qr-presets";
+import { isSettingLocked, type Tier } from "@/lib/constants/tiers";
 import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
 import {
   createEventSchema,
@@ -45,6 +46,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
+import { EventSlugControl } from "@/components/app/event-slug-control";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
 
 const STEP_LABELS = ["Details", "Design", "Share"] as const;
@@ -52,6 +54,7 @@ const STEP_LABELS = ["Details", "Design", "Share"] as const;
 type CreateEventWizardProps = {
   siteUrl: string;
   planName: string;
+  tier: Tier;
 };
 
 // The streamlined create flow (Phase 6 cut #2): details → QR design → share.
@@ -63,6 +66,7 @@ type CreateEventWizardProps = {
 export function CreateEventWizard({
   siteUrl,
   planName,
+  tier,
 }: CreateEventWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -296,6 +300,13 @@ export function CreateEventWizard({
                   />
                 </div>
                 <CopyShareLink url={eventLink} />
+                <EventSlugControl
+                  eventId={createdEvent.id}
+                  siteUrl={siteUrl}
+                  slug={null}
+                  locked={isSettingLocked("custom_slug", tier)}
+                  eventName={createdEvent.name}
+                />
               </div>
             </CardContent>
             <CardFooter className="justify-end">

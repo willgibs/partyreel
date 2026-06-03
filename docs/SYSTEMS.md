@@ -104,9 +104,13 @@ arrival. Editing/removing a slug (or deleting the event) frees it for other even
 old→new redirect). Validation + a reserved-word list live in
 [event.ts](../src/lib/validation/event.ts) + [reserved-slugs.ts](../src/lib/constants/reserved-slugs.ts);
 the host UI is [event-slug-control.tsx](../src/components/app/event-slug-control.tsx) in the "Share with
-guests" card (set / change / remove; reactive "taken" toast). Downgrade keeps the slug resolving +
-removable but not changeable (mirrors password). **Phase 2 (next planning round):** debounced live
-availability feedback + a change-warning dialog + slug suggestions.
+guests" card (set / change / remove) AND reused verbatim in the create wizard's Share step. It has
+**debounced live availability** as you type (idle → checking → available / taken / invalid, via the
+authenticated `check_slug_available` RPC called straight from the browser with a request-id race guard;
+the synchronous classification is the pure `evaluateSlugInput` in [slug.ts](../src/lib/slug.ts)), a
+**change/remove warning dialog** (both break the live link, so both confirm), and a name-derived
+**suggestion chip** (`suggestSlug`). Downgrade keeps the slug resolving + removable but not changeable
+(mirrors password).
 
 ## QR designer
 

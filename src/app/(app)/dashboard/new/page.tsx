@@ -32,7 +32,7 @@ export default async function NewEventPage() {
       >
         <ArrowLeft className="size-4" /> Back to events
       </Link>
-      <CreateEventWizard siteUrl={siteUrl} planName={TIER_NAMES[tier]} />
+      <CreateEventWizard siteUrl={siteUrl} planName={TIER_NAMES[tier]} tier={tier} />
     </div>
   );
 }

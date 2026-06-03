@@ -11,19 +11,9 @@
  */
 import type { MediaKind } from "@/lib/media/limits";
 import { parseExtFromKey, parseMediaIdFromKey } from "@/lib/r2/keys";
+import { slugify } from "@/lib/slug";
 
 const FALLBACK_EXT: Record<MediaKind, string> = { photo: "jpg", video: "mp4" };
-
-function slugify(input: string): string {
-  return input
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "") // drop combining diacritics (é → e)
-    .toLowerCase()
-    .replace(/['’]/g, "") // apostrophes vanish, not hyphenate: "sarah's" → "sarahs"
-    .replace(/[^a-z0-9]+/g, "-") // everything else (incl. emoji/spaces) → hyphen
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-}
 
 export function buildDownloadFilename(params: {
   eventName: string;
