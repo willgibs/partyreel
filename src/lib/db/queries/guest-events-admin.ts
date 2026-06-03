@@ -43,10 +43,11 @@ export async function getApprovedMediaForUnlock(
  * The host's presigned avatar URL for an event's "Hosted by" byline, or null if the host has
  * no avatar. Server-only admin read (the guest page has no JWT): resolve events.host_id, then
  * the host's profiles.avatar_updated_at, then presign (reuses the Phase-1 helper; a null marker
- * → null). host_id NEVER leaves the server — only the short-lived presigned URL reaches the
- * browser — so the anon get_event_by_qr_token RPC needs no host_id/avatar columns (no contract
- * change, no host-id exposure). Callers gate this on a set host name (the byline hides without
- * one), so it's a no-op for nameless-host events.
+ * → null). The anon get_event_by_qr_token RPC stays UNCHANGED (no contract change): host_id is
+ * never returned as a separate field; it appears only inside the avatar's short-lived presigned
+ * URL PATH (avatars/<host_id>/avatar.webp) — exactly like eventId/mediaId in gallery media URLs —
+ * so it isn't separately enumerable (and only for hosts who set both a name + avatar). Callers
+ * gate this on a set host name (the byline hides without one), so it's a no-op for nameless hosts.
  */
 export async function getHostAvatarUrl(
   eventId: string,

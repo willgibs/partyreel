@@ -57,8 +57,14 @@ object **then** clears the marker (R2-first — the single orphan-prevention rul
 is the existence marker (service-role-write-only, written by the route's admin client so it stays in
 lockstep with R2); when set, the server presigns a short-TTL GET ([avatar-url.ts](../src/lib/r2/avatar-url.ts))
 for the `<Avatar>` in the account card AND the **UserMenu** (radix `AvatarImage` auto-falls-back to the
-initial letter when the src is null/fails). Phase 1 of a 3-part build (avatar → display-name editing →
-guest "Hosted by" avatar+name).
+initial letter when the src is null/fails). This is part one of the (now complete) 3-part profile-photos
+build; the other two: the `/account` **display-name editor** (next paragraph) and the guest **"Hosted by"
+byline** — on `/e/[qr_token]` ([event-experience.tsx](../src/components/guest/event-experience.tsx)) the
+host's photo shows next to their name (the photo ONLY if an avatar exists — no initials fallback in the
+guest context — and the whole line only when a real name is set), fed by a server-only admin read
+[`getHostAvatarUrl`](../src/lib/db/queries/guest-events-admin.ts) that presigns the host avatar by
+`events.host_id` + `profiles.avatar_updated_at` WITHOUT touching the anon `get_event_by_qr_token` RPC
+(no contract change; `host_id` rides only inside the avatar's presigned URL path, like media keys).
 **Display names** — `/account` has a Display name field
 ([display-name-form.tsx](../src/components/app/display-name-form.tsx) → `updateDisplayNameAction`, a plain
 RLS self-update; an empty value clears it to null). `handle_new_user` NO LONGER falls back to the email
