@@ -359,7 +359,7 @@ keyboard or Dismiss it.
 - **SEO/metadata infra** lives in `src/app/`: `metadataBase` is set in the root
   [layout.tsx](src/app/layout.tsx) (`env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com"`) —
   WITHOUT it Next errors on relative OG URLs. OG images are **code-generated via `next/og`**
-  (`opengraph-image.tsx` site-wide + `(guest)/a/[token]/opengraph-image.tsx` per-event with
+  (`opengraph-image.tsx` site-wide + `(guest)/e/[token]/opengraph-image.tsx` per-event with
   the event name) — no font loaded (the built-in font dodges the Next-16 satori font gotcha).
   `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes. **Local-dev gotcha:** in
   `pnpm dev` the emitted `og:image` URL shows the `localhost:3000` host (Next resolves
@@ -368,11 +368,11 @@ keyboard or Dismiss it.
   `og:image` to `https://partyreel.com/...`. The per-event OG URL also carries a Next hash
   suffix (`…/opengraph-image-<hash>?…`); read the real URL from the page's `<head>`, don't
   guess the path.
-- **Share pages emit OG tags but `robots: { index: false }`** — `/a/[token]` + `/e/[token]`
-  set `generateMetadata` (event name/description + per-event OG) so links unfurl in chat, but
-  the opaque share/qr token must NEVER be indexed (OG-for-social ≠ search-indexing). `robots.ts`
-  also disallows `/a/`,`/e/`,`/dashboard`,`/admin`,`/login`,`/auth`,`/api/`. The guest queries
-  (`getPublicAlbum`/`getEventByQrToken`) are wrapped in React `cache()` so generateMetadata +
+- **The event page emits OG tags but `robots: { index: false }`** — `/e/[token]`
+  sets `generateMetadata` (event name/description + per-event OG) so links unfurl in chat, but
+  the opaque qr_token must NEVER be indexed (OG-for-social ≠ search-indexing). `robots.ts`
+  also disallows `/e/`,`/dashboard`,`/admin`,`/login`,`/auth`,`/api/`. The guest query
+  `getEventByQrToken` is wrapped in React `cache()` so generateMetadata +
   the page + the OG image share one RPC per request.
 - **Guest email capture** (post-upload growth prompt) — a soft, one-time, dismissible card in
   [upload-client.tsx](src/components/guest/upload-client.tsx) (shown when `doneCount>0` and the
@@ -412,8 +412,8 @@ keyboard or Dismiss it.
   `CreateEventDialog` + the redirecting `createEventAction` were deleted. The wizard creates
   the event **once, at commit** (end of the design step) via `createEventInWizard`
   ([actions.ts](src/app/(app)/dashboard/actions.ts)), which **RETURNS** the event (id +
-  tokens) instead of redirecting — the Share step needs the real `qr_token`/`share_token` to
-  render a scannable QR + album link. Don't reintroduce redirect-on-create or a per-step
+  qr_token) instead of redirecting — the Share step needs the real `qr_token` to
+  render a scannable QR + the event link. Don't reintroduce redirect-on-create or a per-step
   create (would orphan events / break the share step).
 - **The wizard route must NOT guard at-cap with a `redirect`** — a Server Action refreshes
   the route it was called from, so an at-cap `redirect` on `/dashboard/new` fires on the
@@ -573,9 +573,8 @@ keyboard or Dismiss it.
   `lib/events/unlock-token.ts`.
 - **`get_event_media_by_qr_token`** — qr-keyed approved media, newest-first, gated `visibility='open'`.
   `get_event_by_qr_token` returns `visibility` + `has_password` (return-shape changes need
-  DROP+CREATE+**re-grant**). **No `share_token` is exposed to the guest page** — the in-page share is
-  the JOIN link, the gallery is qr-keyed (capability split intact); the `/a/[share_token]` album
-  stays separate.
+  DROP+CREATE+**re-grant**). The in-page share is the JOIN link and the gallery is qr-keyed — ONE token
+  now (the `/a/[share_token]` album + the `events.share_token` column are gone; ADR-0010).
 - **Video uploads are Pro-only (config rework Phase 2 — cut 2a).** A free host's event is photos-only
   for guests AND the host. The AUTHORITATIVE gate is `if p_type='video' and v_profile.tier='free' then
   raise` at the **TOP of the tier-caps block** (right after `v_profile`/`tier_limits()` load — NOT the
@@ -686,7 +685,9 @@ keyboard or Dismiss it.
     — shown to **signed-out** visitors too; click → "create a free account to save" dialog (shared
     `<EmailSignIn>` code-first OTP + Google). A `pr_pending_save_${eventId}` localStorage flag completes
     the save after a REDIRECT sign-in (Google / magic-link) returns; the in-page code path saves directly
-    in `onVerified`. Mounts on `/e/` (header, hidden in demo) + `/a/` (album footer, `tone="gallery"`).
+    in `onVerified`. Mounts in the `/e/` action row (next to Invite, hidden in demo) + inside the
+    post-upload `<SaveAccountPrompt>`. (Part 2 moved it into the action row; the old `/a/` album-footer
+    mount that used `tone="gallery"` is gone with the album.)
   - **The post-upload `<SaveAccountPrompt>` REPLACED the newsletter `EmailCapturePrompt`** (deleted) —
     account-first, with the newsletter opt-in folded into the save dialog as a checkbox (captured via the
     existing `capture_guest_email` RPC on the in-page code path only). The old `/api/guests/email` route
