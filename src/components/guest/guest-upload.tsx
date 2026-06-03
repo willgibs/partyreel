@@ -243,6 +243,7 @@ export function GuestUpload({
               className="rounded-lg border border-border bg-card p-3"
             >
               <div className="flex items-center justify-between gap-3">
+                <UploadThumbnail file={it.file} />
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {it.file.name}
                 </span>
@@ -309,4 +310,31 @@ function StatusIcon({ status }: { status: ItemStatus }) {
       <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
     );
   return <Clock className="size-4 shrink-0 text-muted-foreground/50" />;
+}
+
+function UploadThumbnail({ file }: { file: File }) {
+  // Lazy initializer creates the URL synchronously on mount so it's ready for the
+  // first render. The effect only handles cleanup — avoids the setState-in-effect
+  // lint error and skips the one-frame placeholder flash.
+  const [src] = useState(() => URL.createObjectURL(file));
+
+  useEffect(() => {
+    return () => URL.revokeObjectURL(src);
+  }, [src]);
+
+  if (file.type.startsWith("video/")) {
+    return (
+      <video
+        src={`${src}#t=0.1`}
+        className="size-10 shrink-0 rounded object-cover"
+        preload="metadata"
+        muted
+        playsInline
+      />
+    );
+  }
+
+  // blob: URLs can't go through next/image (no configured hostname).
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" className="size-10 shrink-0 rounded object-cover" />;
 }
