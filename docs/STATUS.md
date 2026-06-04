@@ -26,9 +26,9 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Security hardening initiative — Phase 1 (events write-grant lockdown) SHIPPED + DEPLOYED +
-  LIVE-VERIFIED on partyreel.com (2026-06-04; migration `…163011_lock_down_events_write_grant`, app
-  commit `ba8c08f`).** Closed a live CVE: `events` kept Supabase's default grant, so a free host could
+- **Security hardening initiative — Phase 1 (events lockdown) + Phase 2 (broad white-hat sweep) SHIPPED
+  + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-04; ADR-0014).** Phase 1 (migration
+  `…163011_lock_down_events_write_grant`, app commit `ba8c08f`): Closed a live CVE: `events` kept Supabase's default grant, so a free host could
   PATCH `event_password_hash`/`custom_slug`/`require_email`/`qr_token`/`purge_at` directly to steal Pro
   features (the earlier `set_event_password`/`set_event_slug` column-revokes were SILENT NO-OPS — a
   table-level grant overrides a column revoke; `has_column_privilege` confirmed all 17 columns were
@@ -40,10 +40,17 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   unchanged (the 2 new trigger fns absent from 0028/0029), types no-op, a **16/16 rolled-back contract
   matrix** (forbidden columns → permission-denied; granted columns + DEFINER RPCs + the pro-gate + CHECK
   all correct), and a **LIVE authenticated HTTP PATCH** from willg97's browser: every forbidden column →
-  **403**, a granted column → **204**. **Phase 2 (the broad white-hat sweep) is the next dedicated
-  plan-mode pass** — `saved_events`/`highlight_reels` (the other reachable write-policy tables) + the 9
-  deny-all tables' moot `authenticated`/`anon` grants + a SQL-injection / privilege-escalation /
-  cross-tenant / upload-poisoning audit of the whole data layer.
+  **403**, a granted column → **204**. **Phase 2 (the broad white-hat sweep) is DONE:**
+  (1) the least-privilege grant sweep extended to ALL tables (migration `…175656` — `saved_events` keeps
+  DELETE for the RLS unsave, `highlight_reels`/`media`-anon/`profiles`-insert-delete/the 9 deny-all tables
+  locked); (2) the **upload size-spoof cap-evasion** closed — `create_media`/`_as_host` trusted the client
+  `file_size_bytes` (a PUT-big-claim-tiny upload beat the cap), now re-derived from an R2 HEAD at complete
+  (`headObjectSize`), proven live (a `size_bytes:1` upload stored the real 50 KB); (3) a **venue-NAT-aware
+  unlock rate-limiter** (count failures + clear-on-success so a venue crowd is never blocked; deny-all
+  `unlock_attempts`, migration `…180225`), proven live (20 wrong → 429 + Retry-After 900; correct → 200 +
+  cleared). Verified by a 15/15 rolled-back matrix (privilege-escalation + cross-tenant) + an authoritative
+  function scan; advisors unchanged. Commits `cc5671e` / `9ba3a80` / `3cc3489`. Deferred: per-IP
+  rate-limiting for `create_report` + the presign routes (a future edge pass).
 
 - **Recovery / "Recently deleted" initiative — Phases 1–5 of 6 SHIPPED + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its

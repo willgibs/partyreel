@@ -599,9 +599,13 @@ product + architecture decision (worker platform) — see ROADMAP.
   can't express are triggers/CHECK (`enforce_event_pro_gates` = require_email Pro gate raising 42501;
   `events_password_requires_hash` CHECK). **A column-level `revoke update(col)` is a NO-OP unless the
   TABLE grant is revoked first** (the events CVE's root cause — verify with `has_column_privilege`).
-  **Phase 2 (broad white-hat) is the next dedicated pass:** `saved_events` + `highlight_reels` (the
-  other reachable write-policy tables), the 9 deny-all tables' moot grants, + a SQL-injection /
-  privilege-escalation / cross-tenant / upload-poisoning audit.
+  **Phase 2 (broad white-hat) is DONE** (ADR-0014): the grant sweep covers ALL tables (`saved_events`
+  keeps DELETE for the RLS unsave; `highlight_reels` / `media`-anon / `profiles`-insert-delete / the 9
+  deny-all tables locked); upload `file_size_bytes` is now RE-DERIVED from an R2 HEAD at complete
+  (`headObjectSize` — the client value is advisory only; closed a cap-evasion, the insert-side twin of
+  the Phase-1.5 PATCH one); and the album-password unlock endpoint has a venue-NAT-aware rate-limiter
+  (count failures + clear-on-success; deny-all `unlock_attempts`, pruned by the cron). `duration_seconds`/
+  `width`/`height` are non-authoritative. Deferred: per-IP limits on `create_report` + the presign routes.
 - **Table RLS shapes:** deny-all (operator/service-role-only) = `reports`, `sent_emails`,
   `newsletter_signups` (the accepted `rls_enabled_no_policy` INFO); host-read-via-policy =
   `link_stats`, `announcements`; host-all = `events`, `media`, etc.

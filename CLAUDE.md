@@ -1005,11 +1005,19 @@ authenticated placement.
   then `grant (cols)`; re-run `get_advisors` + `has_column_privilege` to confirm. Value-gates a bare
   grant can't express are enforced by triggers/CHECK: `require_email`'s Pro gate = `enforce_event_pro_gates`
   (raises 42501 on Free; distinct from `enforce_event_limit`'s 23514), and the
-  `events_password_requires_hash` CHECK forbids `visibility='password'` with a null hash. **Phase 2 (the
-  broad white-hat sweep) is the next dedicated pass:** `saved_events` + `highlight_reels` (the other
-  reachable write-policy tables), the 9 deny-all tables' moot `authenticated`/`anon` write grants
-  (defense-in-depth), + a SQL-injection / privilege-escalation / cross-tenant / upload-poisoning audit of
-  the whole data layer.
+  `events_password_requires_hash` CHECK forbids `visibility='password'` with a null hash. **Phase 2 — the broad
+  white-hat sweep — is DONE (2026-06-04; ADR-0014):** the least-privilege grant sweep extended to ALL
+  tables (`saved_events` keeps DELETE for the RLS unsave + INSERT only via `save_event`; `highlight_reels`,
+  `media`-anon, `profiles`-insert/delete, and the 9 deny-all tables locked — migration `…175656`); the
+  **upload size-spoof cap-evasion** (the insert-side twin of this CVE — `create_media`/`_as_host` trusted
+  the CLIENT `file_size_bytes`, so a PUT-big-claim-tiny upload beat the cap) is closed by re-deriving the
+  real size from an **R2 HEAD at complete** (`headObjectSize` in r2/presign.ts; the complete routes pass
+  the HEAD size, never the client's). `duration_seconds`/`width`/`height` stay client-supplied + are
+  NON-AUTHORITATIVE (the byte cap is the cost boundary). A **venue-NAT-aware unlock rate-limiter** shipped
+  (count failures + clear-on-success → a venue crowd is never blocked; deny-all `unlock_attempts`, migration
+  `…180225`). The audit confirmed the rest sound (every secdef RPC `search_path=''`, no dynamic SQL;
+  profiles already locked; cross-tenant + escalation proven via rolled-back matrices). **Deferred** (a
+  future edge pass): per-IP rate-limiting for `create_report` + the presign routes.
 - **The service-role / secret key is server-only.** It lives behind
   `src/lib/supabase/admin.ts` (`import "server-only"`) and must never be prefixed
   `NEXT_PUBLIC_` or reach a client bundle.
