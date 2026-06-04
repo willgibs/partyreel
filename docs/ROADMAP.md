@@ -298,3 +298,12 @@ details beyond a template feel.
   TTL); revisit a proxy/caching approach only if albums get huge.
 - **Cold storage for the storage tail** — evaluated + rejected (R2 IA only ~33% cheaper; Glacier
   = cross-cloud project). Revisit an R2 IA lifecycle rule only if tail cost grows.
+- **🛑 Media backup + orphan-sweep safety net (HIGH-RISK gap; deferred task created 2026-06-04).** ALL
+  user media lives in ONE R2 bucket with NO backup/versioning, and the daily cron's `sweepOrphans`
+  ([api/cron/purge/route.ts](../src/app/api/cron/purge/route.ts)) HARD-deletes any R2 object with no
+  matching Supabase `media` row — so a Supabase data-loss/unlink event (bad migration, snapshot restore,
+  mass row-delete, query/RLS bug) could let ONE cron run wipe the entire bucket, irreversibly. Concept
+  (a) an orphan-sweep **circuit-breaker** (abort if a run would delete more than a sane count/percentage;
+  a media-table health precondition; soft-delete-then-confirm) as the urgent interim guard, and (b) a real
+  **backup/redundancy** mechanism (R2 versioning / cross-bucket or cross-region replication / periodic
+  export). Design-first (ADR + phased plan, interim guard first). Cost-frugal.

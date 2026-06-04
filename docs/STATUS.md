@@ -110,7 +110,11 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   days from purge made the bell badge show "1" + the "Recently deleted items are about to be cleared"
   panel item dated Jun 7; reverting to 28 days out cleared the badge (threshold gates both ways), no
   console errors; the email copy is locked by templates.test.ts (live send stays gated on the human's
-  Resend key). **Next: Phase 6** (pre-launch hard reset of test data).
+  Resend key). **The recovery roadmap (Phases 1-5) is COMPLETE.** Phase 6 (pre-launch test-data hard
+  reset) is **DEFERRED to a future agent** (founder's call) — a runbook for just before launch, not
+  needed to finish this roadmap. Separately logged (HIGH-RISK, ROADMAP "Tech debt"): a media backup +
+  orphan-sweep circuit-breaker, since all media sits in one un-backed-up R2 bucket the daily cron could
+  mass-delete on a Supabase data-loss event.
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),
