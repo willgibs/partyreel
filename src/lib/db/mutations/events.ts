@@ -12,7 +12,6 @@ import "server-only";
 
 import { isSettingLocked, toBillingTier } from "@/lib/constants/tiers";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
-import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { createClient } from "@/lib/supabase/server";
 import type {
   CreateEventValues,
@@ -59,6 +58,27 @@ export async function createEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
+
+  // Tier gate (defense-in-depth). require_email is paid-only. The create wizard doesn't expose
+  // it and the enforce_event_pro_gates DB trigger is the hard backstop, but if a require_email
+  // ever reaches createEvent on Free, return a friendly message instead of a raw trigger error.
+  if (values.require_email === true) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tier")
+      .eq("id", user.id)
+      .single();
+    if (
+      isSettingLocked("require_email", toBillingTier(profile?.tier ?? "free"))
+    ) {
+      return {
+        ok: false,
+        code: "limit_reached",
+        message:
+          "Requiring an email is available on paid plans. Upgrade to enable it.",
+      };
+    }
+  }
 
   // NEVER set qr_token: the DB default generates the unguessable capability token.
   // Empty strings normalize to null for the nullable columns.
@@ -195,22 +215,16 @@ export async function softDeleteEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Soft delete — stamp deleted_at AND schedule the hard purge after the recovery window
-  // (RECENTLY_DELETED_WINDOW_DAYS). Freeing the slot is immediate (every read filters
-  // deleted_at IS NULL); the row + its R2 objects persist until the purge cron hard-deletes
-  // them after purge_at, giving the host a recoverable tail (PRD "Data retention & lifecycle").
-  // There is deliberately NO "end event" path that keeps media accessible without freeing the
-  // slot (anti-abuse — see tiers.ts).
-  const now = new Date();
-  const purgeAt = new Date(
-    now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-  );
+  // Soft delete — stamp deleted_at to free the event slot immediately (every read filters
+  // deleted_at IS NULL). purge_at (the 30-day hard-purge deadline) is DERIVED by the
+  // set_event_purge_at BEFORE trigger from deleted_at, so it is NOT written here and is NOT in
+  // the host's column grant (un-spoofable, single-sourced — mirrors media.purge_at). The row +
+  // its R2 objects persist until the purge cron hard-deletes them after purge_at, giving the
+  // host a recoverable tail (PRD "Data retention & lifecycle"). There is deliberately NO "end
+  // event" path that keeps media accessible without freeing the slot (anti-abuse — see tiers.ts).
   const { error } = await supabase
     .from("events")
-    .update({
-      deleted_at: now.toISOString(),
-      purge_at: purgeAt.toISOString(),
-    })
+    .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
     .is("deleted_at", null);
 

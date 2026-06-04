@@ -586,13 +586,13 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
     if (action === "none") continue;
 
     if (action === "remove") {
+      // purge_at is DERIVED by the set_event_purge_at trigger from deleted_at (single source,
+      // un-spoofable — mirrors media). We still compute purgeAt locally for the email's
+      // "recoverable until" date, but the persisted value comes from the trigger, not this write.
       const purgeAt = new Date(nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000);
       const { error: delErr } = await admin
         .from("events")
-        .update({
-          deleted_at: now.toISOString(),
-          purge_at: purgeAt.toISOString(),
-        })
+        .update({ deleted_at: now.toISOString() })
         .eq("id", e.id)
         .is("deleted_at", null);
       if (delErr) throw new Error(`inactive soft-delete: ${delErr.message}`);
