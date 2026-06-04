@@ -592,6 +592,16 @@ product + architecture decision (worker platform) — see ROADMAP.
   show as advisor WARNs **by design — do NOT revoke** (see CLAUDE.md "get_advisors").
 - **Service-role-locked RPCs** (`purge_media_rows`, `record_link_hit`) must stay REVOKED from
   anon/authenticated — they must NEVER appear in the anon advisor list.
+- **Host table writes are COLUMN-locked** (not just row-locked): `profiles`, `media`, and (security
+  Phase 1, `…163011_lock_down_events_write_grant`) `events` all `revoke insert,update,delete` from
+  `authenticated`/`anon` and re-grant ONLY legit columns. On `events`, `event_password_hash` /
+  `custom_slug` / `qr_token` / `purge_at` are RPC- / trigger- / default-only; value-gates a bare grant
+  can't express are triggers/CHECK (`enforce_event_pro_gates` = require_email Pro gate raising 42501;
+  `events_password_requires_hash` CHECK). **A column-level `revoke update(col)` is a NO-OP unless the
+  TABLE grant is revoked first** (the events CVE's root cause — verify with `has_column_privilege`).
+  **Phase 2 (broad white-hat) is the next dedicated pass:** `saved_events` + `highlight_reels` (the
+  other reachable write-policy tables), the 9 deny-all tables' moot grants, + a SQL-injection /
+  privilege-escalation / cross-tenant / upload-poisoning audit.
 - **Table RLS shapes:** deny-all (operator/service-role-only) = `reports`, `sent_emails`,
   `newsletter_signups` (the accepted `rls_enabled_no_policy` INFO); host-read-via-policy =
   `link_stats`, `announcements`; host-all = `events`, `media`, etc.

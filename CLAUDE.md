@@ -991,11 +991,25 @@ authenticated placement.
   writes `NEW.purge_at` WITHOUT the caller needing the column grant (the privilege check is only on the
   statement's SET-list), so it stays un-spoofable. Do NOT grant `update(purge_at)`. This is load-bearing: recovery Phase 1
   made the cap read `SUM(media.file_size_bytes)`, so the old broad grant let a host PATCH
-  `file_size_bytes=0` to evade it (confirmed + fixed). **KNOWN GAP (deferred to a post-roadmap security
-  phase): `events` is NOT column-locked** — `authenticated` can still directly UPDATE
-  `event_password_hash`/`custom_slug`/`qr_token`/`require_email`, bypassing the Pro gates + the
-  bcrypt/uniqueness RPCs. So any older comment claiming those `events` columns are "revoked from the
-  host's UPDATE grant" is ASPIRATIONAL, not yet true; audit every table for the same gap in that phase.
+  `file_size_bytes=0` to evade it (confirmed + fixed). **`events` is now column-locked too**
+  (security Phase 1, `…163011_lock_down_events_write_grant`): re-granted only `name`/`description`/
+  `event_date`/`visibility`/`accepting_uploads`/`require_email`/`moderation_mode`/`qr_style` (+
+  `insert(host_id)` + `update(deleted_at)`); `event_password_hash`/`custom_slug`/`qr_token`/`purge_at`
+  are revoked from the host (written ONLY by their RPCs / the `set_event_purge_at` trigger / the DB
+  default), and `anon` is fully revoked. **LESSON (this CVE's root cause): a column-level
+  `revoke update(col)` is a SILENT NO-OP while a table-level grant stands.** The earlier
+  `set_event_password`/`set_event_slug` migrations ran `revoke update(event_password_hash/custom_slug)`
+  but never revoked the TABLE grant, so live `has_column_privilege('authenticated', 'events', …)` was
+  TRUE for every column — a free host could PATCH a hash / `custom_slug` / `require_email=true` to steal
+  Pro features. You MUST `revoke insert,update,delete … from authenticated` at the TABLE level FIRST,
+  then `grant (cols)`; re-run `get_advisors` + `has_column_privilege` to confirm. Value-gates a bare
+  grant can't express are enforced by triggers/CHECK: `require_email`'s Pro gate = `enforce_event_pro_gates`
+  (raises 42501 on Free; distinct from `enforce_event_limit`'s 23514), and the
+  `events_password_requires_hash` CHECK forbids `visibility='password'` with a null hash. **Phase 2 (the
+  broad white-hat sweep) is the next dedicated pass:** `saved_events` + `highlight_reels` (the other
+  reachable write-policy tables), the 9 deny-all tables' moot `authenticated`/`anon` write grants
+  (defense-in-depth), + a SQL-injection / privilege-escalation / cross-tenant / upload-poisoning audit of
+  the whole data layer.
 - **The service-role / secret key is server-only.** It lives behind
   `src/lib/supabase/admin.ts` (`import "server-only"`) and must never be prefixed
   `NEXT_PUBLIC_` or reach a client bundle.

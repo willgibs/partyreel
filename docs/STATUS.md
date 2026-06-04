@@ -5,7 +5,7 @@
 > pick-up-a-task loop read [`ROADMAP.md`](ROADMAP.md); for how to work in the repo read
 > [`CLAUDE.md`](../CLAUDE.md).
 
-**Updated:** 2026-06-03
+**Updated:** 2026-06-04
 
 ## Where we are
 
@@ -25,6 +25,25 @@ confirmed** (2026-05-31): a core value prop — an auto-compiled, host-customiza
 downloadable reel of the event's favorite moments — featured as such on the new site.
 
 ## In flight / pending verification
+
+- **Security hardening initiative — Phase 1 (events write-grant lockdown) SHIPPED + DEPLOYED +
+  LIVE-VERIFIED on partyreel.com (2026-06-04; migration `…163011_lock_down_events_write_grant`, app
+  commit `ba8c08f`).** Closed a live CVE: `events` kept Supabase's default grant, so a free host could
+  PATCH `event_password_hash`/`custom_slug`/`require_email`/`qr_token`/`purge_at` directly to steal Pro
+  features (the earlier `set_event_password`/`set_event_slug` column-revokes were SILENT NO-OPS — a
+  table-level grant overrides a column revoke; `has_column_privilege` confirmed all 17 columns were
+  writable). Fix mirrors the `media`/`profiles` column-lock: `revoke insert,update,delete from
+  authenticated,anon` + re-grant only legit columns; `purge_at` trigger-derived (`set_event_purge_at`);
+  `require_email` Pro-gated by the `enforce_event_pro_gates` trigger (raises 42501); the
+  `events_password_requires_hash` CHECK forbids password-without-hash. App now writes only `deleted_at`
+  on soft-delete (+ the inactivity cron) and gates `require_email` in `createEvent`. Verified: advisors
+  unchanged (the 2 new trigger fns absent from 0028/0029), types no-op, a **16/16 rolled-back contract
+  matrix** (forbidden columns → permission-denied; granted columns + DEFINER RPCs + the pro-gate + CHECK
+  all correct), and a **LIVE authenticated HTTP PATCH** from willg97's browser: every forbidden column →
+  **403**, a granted column → **204**. **Phase 2 (the broad white-hat sweep) is the next dedicated
+  plan-mode pass** — `saved_events`/`highlight_reels` (the other reachable write-policy tables) + the 9
+  deny-all tables' moot `authenticated`/`anon` grants + a SQL-injection / privilege-escalation /
+  cross-tenant / upload-poisoning audit of the whole data layer.
 
 - **Recovery / "Recently deleted" initiative — Phases 1–5 of 6 SHIPPED + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
@@ -48,9 +67,9 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   zero their active bytes and beat the cap. Locked `media` writes to the moderation columns only
   (`revoke insert/update/delete from authenticated; grant update(status, removed_at)`); confirmed via a
   rolled-back RLS re-test (tamper/insert/delete blocked, moderation intact). The same default-grant gap
-  on `events` (a Pro-gate bypass: password_hash/custom_slug/qr_token/require_email) is logged for a
-  **dedicated post-roadmap security phase** (CLAUDE.md guardrails note the gap; `profiles` was already
-  safe).
+  on `events` (a Pro-gate bypass: password_hash/custom_slug/qr_token/require_email) was **CLOSED in the
+  dedicated security Phase 1** (see the Security hardening initiative entry above) — it turned out worse
+  than logged (the prior column-revokes were no-ops), now fully locked + live-verified.
   **Phase 2 (unified window + standby budget) SHIPPED (2026-06-03):** ONE 30-day recovery window for
   media + events (`RECENTLY_DELETED_WINDOW_DAYS`); `media.purge_at` is trigger-derived
   (`set_media_purge_at` = `removed_at + 30d` across every removal path — un-spoofable, NO grant change);
