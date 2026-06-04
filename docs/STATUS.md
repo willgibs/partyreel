@@ -43,7 +43,14 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   (`host_active_bytes` == manual active sum for the live account, exposing its physical-vs-active
   standby gap). Advisor baseline unchanged, types regen, 253 tests + typecheck + lint green. Optional
   browser at-cap click-through still offered (skipped to avoid polluting the public Demo event).
-  **Next: Phase 2** (unified 30-day window + bounded standby-budget eviction).
+  **Phase 1.5 security hotfix (SHIPPED, commit `cde3dc6`):** the post-Phase-1 dig found a cap-evasion
+  it had exposed — `media` kept Supabase's default grant, so a host could `PATCH file_size_bytes=0` to
+  zero their active bytes and beat the cap. Locked `media` writes to the moderation columns only
+  (`revoke insert/update/delete from authenticated; grant update(status, removed_at)`); confirmed via a
+  rolled-back RLS re-test (tamper/insert/delete blocked, moderation intact). The same default-grant gap
+  on `events` (a Pro-gate bypass: password_hash/custom_slug/qr_token/require_email) is logged for a
+  **dedicated post-roadmap security phase** (CLAUDE.md guardrails note the gap; `profiles` was already
+  safe). **Next: Phase 2** (unified 30-day window + bounded standby-budget eviction).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

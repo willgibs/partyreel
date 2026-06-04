@@ -981,6 +981,18 @@ authenticated placement.
 - **Never trust the client for tier/entitlements.** The Stripe webhook is the
   source of truth for `profiles.tier`; `tier` / `storage_cap_bytes` /
   `storage_used_bytes` are writable only by service-role / RPC, never the client.
+- **Host table writes are COLUMN-locked, not just row-locked.** RLS gates the ROW (ownership), NOT
+  which columns change, and Supabase's default grant gives `authenticated` UPDATE/INSERT/DELETE on
+  every column. So host-writable tables must `revoke insert,update,delete ... from authenticated` and
+  re-grant ONLY the legit columns. **`profiles`** (display_name/email/announcements_seen_at/welcomed_at)
+  and **`media`** (UPDATE `status`,`removed_at` only — `+purge_at` in recovery Phase 2; no insert/delete
+  — see `…_lock_down_media_write_grant`) are the locked models. This is load-bearing: recovery Phase 1
+  made the cap read `SUM(media.file_size_bytes)`, so the old broad grant let a host PATCH
+  `file_size_bytes=0` to evade it (confirmed + fixed). **KNOWN GAP (deferred to a post-roadmap security
+  phase): `events` is NOT column-locked** — `authenticated` can still directly UPDATE
+  `event_password_hash`/`custom_slug`/`qr_token`/`require_email`, bypassing the Pro gates + the
+  bcrypt/uniqueness RPCs. So any older comment claiming those `events` columns are "revoked from the
+  host's UPDATE grant" is ASPIRATIONAL, not yet true; audit every table for the same gap in that phase.
 - **The service-role / secret key is server-only.** It lives behind
   `src/lib/supabase/admin.ts` (`import "server-only"`) and must never be prefixed
   `NEXT_PUBLIC_` or reach a client bundle.
