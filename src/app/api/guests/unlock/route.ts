@@ -12,6 +12,13 @@
 import { NextResponse } from "next/server";
 
 import { signUnlock } from "@/lib/events/unlock-cookie";
+import { clientIp } from "@/lib/security/unlock-rate-limit";
+import {
+  checkUnlockRate,
+  clearUnlockFailures,
+  recordUnlockFailure,
+  unlockHashes,
+} from "@/lib/security/unlock-rate-limit-store";
 import { createClient } from "@/lib/supabase/server";
 import { unlockSchema } from "@/lib/validation/unlock";
 
@@ -39,6 +46,27 @@ export async function POST(request: Request) {
   }
   const { qr_token, password } = parsed.data;
 
+  // Rate-limit FAILED unlock attempts (venue-NAT-aware: count failures; a SUCCESS clears the IP, so a
+  // crowd on one venue WiFi entering the correct password is never blocked). Defense-in-depth: FAIL
+  // OPEN on any limiter error — bcrypt + the generic 401 below remain the real password gate.
+  let rlTokenHash: string | null = null;
+  let rlIpHash: string | null = null;
+  let gate = { allowed: true, retryAfterSec: 0 };
+  try {
+    const hashes = unlockHashes(qr_token, clientIp(request.headers));
+    rlTokenHash = hashes.tokenHash;
+    rlIpHash = hashes.ipHash;
+    gate = await checkUnlockRate(hashes.tokenHash, hashes.ipHash);
+  } catch {
+    gate = { allowed: true, retryAfterSec: 0 }; // limiter unavailable -> fail open
+  }
+  if (!gate.allowed) {
+    return NextResponse.json(
+      { ok: false, code: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(gate.retryAfterSec) } },
+    );
+  }
+
   const supabase = await createClient();
   const { data: eventId, error } = await supabase.rpc("verify_event_password", {
     p_qr_token: qr_token,
@@ -47,10 +75,20 @@ export async function POST(request: Request) {
 
   // null event id = wrong password / not a password event / no such event. Generic.
   if (error || !eventId) {
+    // Record the failure for the rate-limiter (best-effort; never blocks the response).
+    if (rlTokenHash && rlIpHash) {
+      await recordUnlockFailure(rlTokenHash, rlIpHash).catch(() => {});
+    }
     return NextResponse.json(
       { ok: false, code: "wrong_password" },
       { status: 401 },
     );
+  }
+
+  // Success — clear this IP's recorded failures so a venue crowd's earlier fat-fingering can't
+  // accumulate toward the cap (best-effort).
+  if (rlIpHash) {
+    await clearUnlockFailures(rlIpHash).catch(() => {});
   }
 
   let cookie: { name: string; value: string; maxAge: number };

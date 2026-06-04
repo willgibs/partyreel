@@ -148,6 +148,8 @@ export async function GET(request: Request): Promise<Response> {
   await runSweep("standby_budget", () =>
     sweepStandbyBudget(admin, now, handled),
   );
+  // Prune the unlock rate-limiter log — rows older than its longest window are dead weight.
+  await runSweep("unlock_attempts", () => sweepUnlockAttempts(admin, now));
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }
@@ -770,4 +772,19 @@ async function purgeRows(
   });
   if (error) throw new Error(`purge_media_rows: ${error.message}`);
   return (data ?? []).reduce((sum, r) => sum + Number(r.freed_bytes ?? 0), 0);
+}
+
+/**
+ * Sweep 9 — prune the unlock rate-limiter log. The limiter only counts failures within the last
+ * UNLOCK_EVENT_WINDOW_MIN (60 min), so rows older than a day are dead weight. Keeps the table tiny
+ * (and cleans up rows orphaned by deleted events — the table has no FK, by design).
+ */
+async function sweepUnlockAttempts(admin: AdminClient, now: Date) {
+  const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const { count, error } = await admin
+    .from("unlock_attempts")
+    .delete({ count: "exact" })
+    .lt("attempted_at", cutoff);
+  if (error) throw new Error(`prune unlock_attempts: ${error.message}`);
+  return { pruned: count ?? 0, before: cutoff };
 }

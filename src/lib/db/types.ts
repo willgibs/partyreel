@@ -667,6 +667,24 @@ export type Database = {
           },
         ]
       }
+      unlock_attempts: {
+        Row: {
+          attempted_at: string
+          ip_hash: string
+          token_hash: string
+        }
+        Insert: {
+          attempted_at?: string
+          ip_hash: string
+          token_hash: string
+        }
+        Update: {
+          attempted_at?: string
+          ip_hash?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
