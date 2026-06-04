@@ -34,6 +34,11 @@ import {
   WARN_BEFORE_DAYS,
   inactivityAction,
 } from "@/lib/lifecycle/inactivity";
+import {
+  RECENTLY_DELETED_BUDGET_MULTIPLIER,
+  RECENTLY_DELETED_WINDOW_DAYS,
+  selectForStandbyEviction,
+} from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { captureError } from "@/lib/observability/sentry";
@@ -49,11 +54,11 @@ export const dynamic = "force-dynamic";
 // R2 list/delete + DB deletes can take a while on a large backlog.
 export const maxDuration = 60;
 
-// Individually-removed media gets a short recoverable grace before hard-delete; the
-// 60-day event tail is separate (events.purge_at, set on soft-delete).
-const REMOVED_GRACE_DAYS = 7;
-// Default tail for legacy soft-deletes that predate purge_at (deleted_at + this).
-const EVENT_TAIL_DAYS = 60;
+// Soft-deleted media + events share ONE recoverable window: RECENTLY_DELETED_WINDOW_DAYS
+// (src/lib/lifecycle/recently-deleted.ts). Media: purge_at is trigger-derived (= removed_at +
+// window); events: purge_at is stamped on soft-delete, with the window as the legacy fallback for
+// rows that predate purge_at. On top of the time window, sweepStandbyBudget caps the TOTAL
+// recently-deleted bytes per account (the anti-abuse backstop).
 // An orphan candidate must be older than this — well past the 15-min presign TTL —
 // so we never race an in-flight upload (presigned, PUT in progress, create_media
 // not yet called) and delete a brand-new object.
@@ -84,6 +89,15 @@ function keysOf(rows: MediaRow[]): string[] {
     if (r.preview_key) keys.push(r.preview_key);
   }
   return keys;
+}
+
+/** Earlier of two ISO timestamps (nulls ignored). The bin "clock" for a removed item in a
+ * deleted event is the EARLIER of its removed_at / the event's deleted_at, so a restore that
+ * refreshes removed_at can't push it behind the event's older deletion in the eviction queue. */
+function minIso(a: string | null, b: string | null): string | null {
+  if (!a) return b;
+  if (!b) return a;
+  return a < b ? a : b;
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -129,6 +143,11 @@ export async function GET(request: Request): Promise<Response> {
   await runSweep("inactive_free_events", () =>
     sweepInactiveFreeEvents(admin, now),
   );
+  // LAST: after expired_events + removed_media (so `handled` excludes ids they purged) and after
+  // over_capacity (whose auto-reduce feeds the bin this run — youngest items, protected oldest-first).
+  await runSweep("standby_budget", () =>
+    sweepStandbyBudget(admin, now, handled),
+  );
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }
@@ -136,8 +155,8 @@ export async function GET(request: Request): Promise<Response> {
 /**
  * Sweep 1 — events whose recoverable tail has elapsed. Hard-delete their media (R2
  * + rows + usage), then the event rows (cascades to guests/reels/reports).
- * `coalesce(purge_at, deleted_at + 60d)` so legacy soft-deletes (no purge_at) are
- * still reclaimed instead of leaking storage forever.
+ * `coalesce(purge_at, deleted_at + the recovery window)` so legacy soft-deletes (no purge_at)
+ * are still reclaimed instead of leaking storage forever.
  */
 async function sweepExpiredEvents(
   admin: AdminClient,
@@ -146,7 +165,7 @@ async function sweepExpiredEvents(
 ) {
   const nowIso = now.toISOString();
   const legacyCutoffIso = new Date(
-    now.getTime() - EVENT_TAIL_DAYS * 86_400_000,
+    now.getTime() - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
   ).toISOString();
 
   const { data: events, error } = await admin
@@ -208,15 +227,13 @@ async function sweepRemovedMedia(
   now: Date,
   handled: Set<string>,
 ) {
-  const cutoffIso = new Date(
-    now.getTime() - REMOVED_GRACE_DAYS * 86_400_000,
-  ).toISOString();
-
+  // purge_at is trigger-derived (= removed_at + RECENTLY_DELETED_WINDOW_DAYS); reclaim once it passes.
   const { data: media, error } = await admin
     .from("media")
     .select("id, original_key, preview_key")
     .eq("status", "removed")
-    .lte("removed_at", cutoffIso);
+    .not("purge_at", "is", null)
+    .lte("purge_at", now.toISOString());
   if (error) throw new Error(`select removed media: ${error.message}`);
 
   const rows = ((media ?? []) as MediaRow[]).filter((r) => !handled.has(r.id));
@@ -329,12 +346,12 @@ function fmtDate(d: Date): string {
  * at upload before it can exceed cap, so it never lands here). Decisions key off ACTIVE
  * bytes (non-removed media in live events), NOT storage_used_bytes (which only drops at
  * hard-delete) — so an already-reduced account doesn't re-trigger while its removed media
- * waits out the 7-day purge. Per profile:
+ * waits out the recovery-window purge. Per profile:
  *   under cap            → clear any grace (resolved by upgrade / their own deletes).
  *   over + no grace      → open a 45-day grace + grace-start email.
  *   over + grace, near   → reminder email (within OVER_CAP_REMINDER_DAYS of the deadline).
  *   over + grace elapsed → auto-reduce (soft-remove largest-first via the Phase-3 path;
- *                          the removed_media sweep reclaims R2 + bytes after 7d) + email.
+ *                          the removed_media sweep reclaims R2 + bytes after the window) + email.
  * All emails go through sendOnce (deduped) so re-runs never re-send.
  */
 async function sweepOverCapacity(admin: AdminClient, now: Date) {
@@ -512,8 +529,8 @@ async function sweepRenewalNudges(admin: AdminClient, now: Date) {
 /**
  * Sweep 7 — free-tier inactivity removal. A free event is "active" while the LATEST of its
  * host's last_active_at + the event's created/updated + its newest upload is within
- * ~6 months. Past that → warning email (14 d out), then soft-delete (deleted_at + 60-day
- * purge_at, so sweep 1 reclaims it) + a recoverable-tail email. Targets free tier only
+ * ~6 months. Past that → warning email (14 d out), then soft-delete (deleted_at + purge_at =
+ * the recovery window, so sweep 1 reclaims it) + a recoverable-tail email. Targets free tier only
  * (PRD); paid accounts keep their events until they cancel. Pre-filtered by events.updated_at
  * (cheap), with last_active_at + uploads checked per candidate.
  */
@@ -563,7 +580,7 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
     if (action === "none") continue;
 
     if (action === "remove") {
-      const purgeAt = new Date(nowMs + EVENT_TAIL_DAYS * 86_400_000);
+      const purgeAt = new Date(nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000);
       const { error: delErr } = await admin
         .from("events")
         .update({
@@ -609,6 +626,132 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
   }
 
   return { candidates: events?.length ?? 0, warned, removed };
+}
+
+/**
+ * Sweep 8 — bounded standby budget (anti-abuse). Recovery decoupled the cap from physical bytes,
+ * so deleted-but-stored media no longer counts against the cap. This bounds the TOTAL such
+ * "standby" bytes per account to RECENTLY_DELETED_BUDGET_MULTIPLIER x the effective cap, evicting
+ * OLDEST-first when over — so a restore -> re-delete "timer refresh" can't accumulate junk (size is
+ * the bound, not the clock). The bin = a host's media that are status='removed' OR live in a
+ * soft-deleted event. Runs LAST so `handled` already excludes ids the expiry sweeps purged and so
+ * the bytes over_capacity just auto-reduced this run are seen (youngest -> survive oldest-first).
+ * Empty soft-deleted event shells (all media evicted) are left to sweepExpiredEvents.
+ */
+async function sweepStandbyBudget(
+  admin: AdminClient,
+  now: Date,
+  handled: Set<string>,
+) {
+  // Candidate hosts: anyone with binned bytes — (a) >=1 removed media (via the event join), (b) >=1
+  // soft-deleted event. Union, then load just those profiles' cap inputs (no full-profiles scan).
+  const { data: removedHosts, error: rhErr } = await admin
+    .from("media")
+    .select("events!inner(host_id)")
+    .eq("status", "removed");
+  if (rhErr) throw new Error(`standby removed hosts: ${rhErr.message}`);
+  const { data: deletedHosts, error: dhErr } = await admin
+    .from("events")
+    .select("host_id")
+    .not("deleted_at", "is", null);
+  if (dhErr) throw new Error(`standby deleted-event hosts: ${dhErr.message}`);
+
+  const hostIds = new Set<string>();
+  for (const r of removedHosts ?? [])
+    hostIds.add((r.events as unknown as { host_id: string }).host_id);
+  for (const e of deletedHosts ?? []) hostIds.add(e.host_id);
+  if (hostIds.size === 0) {
+    return {
+      candidates: 0,
+      over_budget: 0,
+      media_rows: 0,
+      r2_deleted: 0,
+      r2_errored: 0,
+      freed_bytes: 0,
+    };
+  }
+
+  const { data: profiles, error: pErr } = await admin
+    .from("profiles")
+    .select("id, tier, storage_cap_bytes")
+    .in("id", [...hostIds]);
+  if (pErr) throw new Error(`standby profiles: ${pErr.message}`);
+
+  type BinJoin = {
+    id: string;
+    original_key: string;
+    preview_key: string | null;
+    file_size_bytes: number;
+    removed_at: string | null;
+    events: { deleted_at: string | null };
+  };
+  const BIN_SELECT =
+    "id, original_key, preview_key, file_size_bytes, removed_at, events!inner(host_id, deleted_at)";
+
+  let overBudget = 0;
+  let mediaRows = 0;
+  let r2Deleted = 0;
+  let r2Errored = 0;
+  let freed = 0;
+
+  for (const p of profiles ?? []) {
+    const cap = effectiveStorageCap(toBillingTier(p.tier), p.storage_cap_bytes);
+    if (cap === null) continue; // unlimited tier — no standby budget to enforce
+    const budget = RECENTLY_DELETED_BUDGET_MULTIPLIER * cap;
+
+    // The bin via two DISJOINT queries (status='removed' vs in-a-deleted-event-and-not-removed),
+    // unioned in JS. Avoids a version-sensitive cross-table PostgREST .or; the sets can't overlap.
+    const { data: removedRows, error: rErr } = await admin
+      .from("media")
+      .select(BIN_SELECT)
+      .eq("events.host_id", p.id)
+      .eq("status", "removed");
+    if (rErr) throw new Error(`standby removed bin: ${rErr.message}`);
+    const { data: deletedRows, error: dErr } = await admin
+      .from("media")
+      .select(BIN_SELECT)
+      .eq("events.host_id", p.id)
+      .not("events.deleted_at", "is", null)
+      .neq("status", "removed");
+    if (dErr) throw new Error(`standby deleted-event bin: ${dErr.message}`);
+
+    const binRows = [
+      ...((removedRows ?? []) as unknown as BinJoin[]),
+      ...((deletedRows ?? []) as unknown as BinJoin[]),
+    ].filter((r) => !handled.has(r.id));
+
+    const standby = binRows.reduce((s, r) => s + r.file_size_bytes, 0);
+    if (standby <= budget) continue;
+    overBudget++;
+
+    const evictIds = selectForStandbyEviction(
+      binRows.map((r) => ({
+        id: r.id,
+        file_size_bytes: r.file_size_bytes,
+        binned_at: minIso(r.removed_at, r.events.deleted_at) ?? now.toISOString(),
+      })),
+      budget,
+    );
+    if (evictIds.length === 0) continue;
+
+    const evictSet = new Set(evictIds);
+    const evictRows = binRows.filter((r) => evictSet.has(r.id));
+    const r2 = await deleteR2Objects(keysOf(evictRows));
+    freed += await purgeRows(admin, evictIds);
+    evictIds.forEach((id) => handled.add(id));
+    mediaRows += evictIds.length;
+    r2Deleted += r2.deleted;
+    r2Errored += r2.errored.length;
+  }
+
+  return {
+    candidates: profiles?.length ?? 0,
+    over_budget: overBudget,
+    media_rows: mediaRows,
+    r2_deleted: r2Deleted,
+    r2_errored: r2Errored,
+    freed_bytes: freed,
+  };
 }
 
 /** Atomic hard-delete of rows + storage_used_bytes decrement; returns Σ freed bytes. */

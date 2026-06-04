@@ -50,7 +50,16 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   rolled-back RLS re-test (tamper/insert/delete blocked, moderation intact). The same default-grant gap
   on `events` (a Pro-gate bypass: password_hash/custom_slug/qr_token/require_email) is logged for a
   **dedicated post-roadmap security phase** (CLAUDE.md guardrails note the gap; `profiles` was already
-  safe). **Next: Phase 2** (unified 30-day window + bounded standby-budget eviction).
+  safe).
+  **Phase 2 (unified window + standby budget) SHIPPED (2026-06-03):** ONE 30-day recovery window for
+  media + events (`RECENTLY_DELETED_WINDOW_DAYS`); `media.purge_at` is trigger-derived
+  (`set_media_purge_at` = `removed_at + 30d` across every removal path — un-spoofable, NO grant change);
+  a new `sweepStandbyBudget` (8th cron sweep) bounds total deleted-but-stored bytes to 1x the effective
+  cap, oldest-first (the anti-abuse backstop — size is the bound, not the clock). Verified: 259 unit
+  tests (incl. `selectForStandbyEviction` anti-timer-refresh), rolled-back contract checks (trigger
+  derives purge_at on all paths + nulls on restore + un-spoofable 42501; bin definition + purge
+  decrement), advisors unchanged (`set_media_purge_at` absent from 0028/0029), typecheck/lint green.
+  **Next: Phase 3** (capacity-gated restore + permanent-delete-now RPCs — the user-facing recovery).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

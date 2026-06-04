@@ -12,6 +12,7 @@ import "server-only";
 
 import { isSettingLocked, toBillingTier } from "@/lib/constants/tiers";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { createClient } from "@/lib/supabase/server";
 import type {
   CreateEventValues,
@@ -188,14 +189,16 @@ export async function softDeleteEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Soft delete — stamp deleted_at AND schedule the hard purge 60 days out. Freeing
-  // the slot is immediate (every read filters deleted_at IS NULL); the row + its R2
-  // objects persist until the purge cron hard-deletes them after purge_at, giving the
-  // host a recoverable tail (PRD "Data retention & lifecycle"). There is deliberately
-  // NO "end event" path that keeps media accessible without freeing the slot
-  // (anti-abuse — see tiers.ts).
+  // Soft delete — stamp deleted_at AND schedule the hard purge after the recovery window
+  // (RECENTLY_DELETED_WINDOW_DAYS). Freeing the slot is immediate (every read filters
+  // deleted_at IS NULL); the row + its R2 objects persist until the purge cron hard-deletes
+  // them after purge_at, giving the host a recoverable tail (PRD "Data retention & lifecycle").
+  // There is deliberately NO "end event" path that keeps media accessible without freeing the
+  // slot (anti-abuse — see tiers.ts).
   const now = new Date();
-  const purgeAt = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+  const purgeAt = new Date(
+    now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+  );
   const { error } = await supabase
     .from("events")
     .update({

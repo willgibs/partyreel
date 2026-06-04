@@ -335,6 +335,7 @@ export type Database = {
           id: string
           original_key: string
           preview_key: string | null
+          purge_at: string | null
           reel_eligible: boolean
           removed_at: string | null
           status: Database["public"]["Enums"]["media_status"]
@@ -355,6 +356,7 @@ export type Database = {
           id?: string
           original_key: string
           preview_key?: string | null
+          purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
           status?: Database["public"]["Enums"]["media_status"]
@@ -375,6 +377,7 @@ export type Database = {
           id?: string
           original_key?: string
           preview_key?: string | null
+          purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
           status?: Database["public"]["Enums"]["media_status"]

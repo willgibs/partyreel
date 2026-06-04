@@ -191,8 +191,8 @@ download is deferred** (ROADMAP).
 ([host-media-grid.tsx](../src/components/app/host-media-grid.tsx)) does per-item
 Approve/Hide/Unhide/Remove + a **Pending review** queue (Approve all) for `hold_for_approval`
 events. Mutations: `setMediaStatus`/`removeMedia`/`approveAllPending`. **Remove is soft**
-(`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after a
-7-day grace.
+(`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after the
+unified recovery window (`RECENTLY_DELETED_WINDOW_DAYS`, 30d).
 
 **Host upload (two-way media).** The host can also add media directly from the event page (e.g. a
 photographer's batch), not just curate guest uploads. An "Add photos" toggle in the Uploads card
@@ -209,11 +209,15 @@ Host and guest media are indistinguishable in the grid/album (one seamless album
 ## Lifecycle & the purge cron
 
 [`/api/cron/purge`](../src/app/api/cron/purge/route.ts) — daily (`0 4 * * *`), timing-safe
-`Bearer $CRON_SECRET` (Vercel auto-sends it). **7 sweeps**: expired_events, removed_media,
-orphans, expired_passes, over_capacity, renewal_nudges, inactive_free_events (each
-independently try/caught). `purge_media_rows` RPC does the atomic R2-then-row reclaim +
-`storage_used_bytes` decrement (**service-role-only**, must stay REVOKED from anon). Soft-delete
-stamps `purge_at = deleted_at + 60d` (recoverable tail). **Three counters are deliberately
+`Bearer $CRON_SECRET` (Vercel auto-sends it). **8 sweeps**: expired_events, removed_media,
+orphans, expired_passes, over_capacity, renewal_nudges, inactive_free_events, **standby_budget**
+(each independently try/caught). `purge_media_rows` RPC does the atomic R2-then-row reclaim +
+`storage_used_bytes` decrement (**service-role-only**, must stay REVOKED from anon). **Unified
+recovery window** = `RECENTLY_DELETED_WINDOW_DAYS` (30d): events stamp `purge_at = deleted_at + 30d`
+on soft-delete; media's `purge_at` is **trigger-derived** (`set_media_purge_at` = `removed_at + 30d`
+across every removal path, un-spoofable — no host grant). **`standby_budget`** caps total
+deleted-but-stored bytes per account to `RECENTLY_DELETED_BUDGET_MULTIPLIER × effective cap`, evicting
+oldest-first — the anti-abuse backstop for the active-bytes cap (size is the bound, not the clock). **Three counters are deliberately
 different — don't reconcile:** per-event slot counts non-removed; the monthly `storage_ledger`
 NEVER decrements (churn defense); `storage_used_bytes` is the PHYSICAL meter and drops only on
 hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads ACTIVE bytes via
@@ -301,7 +305,7 @@ direct counterpart to the reactive Reports queue: cross-host media reads via ser
 ([queries/moderation.ts](../src/lib/db/queries/moderation.ts) — the only cross-host media reader, RLS
 scopes media to the owning host), presigned for render through the shared `toGridItems`/`MediaTile`/
 `MediaLightbox` path. Soft-remove reuses the reports "Action" shape (`status='removed'` + `removed_at`,
-the 7-day purge cron reclaims) and **restore** clears `removed_at` (→ `approved`); both go through
+the recovery-window purge cron reclaims) and **restore** clears `removed_at` (→ `approved`); both go through
 `requireAdminAction` (AAL2). No migration, no new RPC, no new grants (a soft-remove is a plain
 status/removed_at update). Soft-remove pulls the item from every public album/gallery instantly (those
 reads already exclude `status='removed'`); immediate hard-purge for egregious content is deferred.

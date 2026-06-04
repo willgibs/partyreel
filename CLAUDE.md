@@ -985,8 +985,11 @@ authenticated placement.
   which columns change, and Supabase's default grant gives `authenticated` UPDATE/INSERT/DELETE on
   every column. So host-writable tables must `revoke insert,update,delete ... from authenticated` and
   re-grant ONLY the legit columns. **`profiles`** (display_name/email/announcements_seen_at/welcomed_at)
-  and **`media`** (UPDATE `status`,`removed_at` only — `+purge_at` in recovery Phase 2; no insert/delete
-  — see `…_lock_down_media_write_grant`) are the locked models. This is load-bearing: recovery Phase 1
+  and **`media`** (UPDATE `status`,`removed_at` only; no insert/delete — see
+  `…_lock_down_media_write_grant`) are the locked models. **Recovery Phase 2 added `media.purge_at`
+  but did NOT change the grant** — `purge_at` is set by a BEFORE trigger (`set_media_purge_at`), which
+  writes `NEW.purge_at` WITHOUT the caller needing the column grant (the privilege check is only on the
+  statement's SET-list), so it stays un-spoofable. Do NOT grant `update(purge_at)`. This is load-bearing: recovery Phase 1
   made the cap read `SUM(media.file_size_bytes)`, so the old broad grant let a host PATCH
   `file_size_bytes=0` to evade it (confirmed + fixed). **KNOWN GAP (deferred to a post-roadmap security
   phase): `events` is NOT column-locked** — `authenticated` can still directly UPDATE
