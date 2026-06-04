@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Recovery / "Recently deleted" initiative — Phases 1–4 of 6 SHIPPED + DEPLOYED on partyreel.com (2026-06-03 → 06-04).** Master plan:
+- **Recovery / "Recently deleted" initiative — Phases 1–4 of 6 SHIPPED + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
   own dedicated plan; re-plan per phase). **Phase 1 (cap-meter refactor)** is live: the storage cap
   now enforces against **ACTIVE bytes** (new `host_active_bytes()` helper = non-removed media in
@@ -88,8 +88,15 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   room — with a light "+X in Recently deleted (frees automatically)" line + an over-standby-budget
   note (`overStandbyBudget`, single-sourced with the cron). NO migration; emil-design-eng applied
   (reused `[data-media-tile]` enter + `--ease-emphasis` + the Button press feedback, reduced-motion-
-  safe). 266 tests + typecheck + lint + build green. Per-item now; bulk Restore-all/Empty-bin deferred
-  (founder's call). **Next: Phase 5** (notifications + email) then 6 (pre-launch hard reset).
+  safe). 266 tests + typecheck + lint + build green. **LIVE-VERIFIED on partyreel.com** (host
+  willg97, Chrome MCP): the meter reads ACTIVE bytes (52.5 KB, not the physical 2.6 MB) + the "+103 B
+  in Recently deleted" line; the empty events tab + the event media bin (with the "Deletes in 28 days"
+  chip) render with NO console errors (so `getHostStorageSummary`'s RLS embed works live); restore-at-cap
+  is refused with the exact "Free up 3.8 KB to restore this, or upgrade your plan." toast + an Upgrade
+  CTA; and a happy restore POSTs 200, flips the row to approved (removed_at/purge_at nulled by the
+  trigger), and revalidates the gallery to 4 items (test state restored after). Per-item now; bulk
+  Restore-all/Empty-bin deferred (founder's call). **Next: Phase 5** (notifications + email) then 6
+  (pre-launch hard reset).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),
