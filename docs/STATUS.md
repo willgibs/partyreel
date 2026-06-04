@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Recovery / "Recently deleted" initiative — Phases 1–3 of 6 SHIPPED + DEPLOYED + DB-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
+- **Recovery / "Recently deleted" initiative — Phases 1–4 of 6 SHIPPED + DEPLOYED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
   own dedicated plan; re-plan per phase). **Phase 1 (cap-meter refactor)** is live: the storage cap
   now enforces against **ACTIVE bytes** (new `host_active_bytes()` helper = non-removed media in
@@ -74,8 +74,22 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   matrices (cross-tenant `not_found`, foreign-id purge boundary, `storage_used_bytes` unchanged on
   restore), and the full **restore_event** matrix (happy path + `media_still_removed`, `event_limit` at
   the free slot cap, `insufficient_space` with exact `needed_bytes`); 259 tests + typecheck + lint green.
-  **NO UI yet** (Phase 4 consumes these); migration `…_phase3_recovery_restore_rpcs`.
-  **Next: Phase 4** (host "Recently deleted" UI — apply the emil-design-eng skill).
+  (NO UI in Phase 3 — Phase 4 consumes these); migration `…_phase3_recovery_restore_rpcs`.
+  **Phase 4 (host "Recently deleted" UI) SHIPPED (2026-06-04):** two host bins on one model — a
+  dashboard **"Recently deleted" tab** of soft-deleted EVENTS (reused `EventCard` + a "Deletes in N
+  days" chip + a `RestoreEventButton`; `href=null` since a deleted event's detail page 404s) and a
+  per-event **"Recently deleted" section** of removed MEDIA (`RecentlyDeletedGrid`, modeled on the
+  admin moderation grid: per-tile Restore + Delete-permanently-with-confirm, no Save). RLS reads
+  (`listRecentlyDeletedEvents`/`listRecentlyDeletedMedia`, 30-day window; the countdown is computed
+  in the QUERY so the RSC stays render-pure — `Date.now()` in render trips react-hooks/purity);
+  writes reuse the Phase-3 actions; the lightbox hides Save when an item has no `downloadUrl` (no
+  download from the bin). The **dashboard storage meter now shows ACTIVE bytes** (`getHostStorageSummary`,
+  [storage.ts](src/lib/db/queries/storage.ts)) not the physical counter — so deleting visibly frees
+  room — with a light "+X in Recently deleted (frees automatically)" line + an over-standby-budget
+  note (`overStandbyBudget`, single-sourced with the cron). NO migration; emil-design-eng applied
+  (reused `[data-media-tile]` enter + `--ease-emphasis` + the Button press feedback, reduced-motion-
+  safe). 266 tests + typecheck + lint + build green. Per-item now; bulk Restore-all/Empty-bin deferred
+  (founder's call). **Next: Phase 5** (notifications + email) then 6 (pre-launch hard reset).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

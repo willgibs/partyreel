@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
+  binCountdownDays,
+  binCountdownLabel,
+  overStandbyBudget,
   selectForStandbyEviction,
 } from "@/lib/lifecycle/recently-deleted";
 
@@ -70,5 +73,45 @@ describe("selectForStandbyEviction", () => {
 
   it("constant mirrors the SQL interval in the media purge_at trigger", () => {
     expect(RECENTLY_DELETED_WINDOW_DAYS).toBe(30);
+  });
+});
+
+describe("binCountdownDays", () => {
+  const NOW = Date.parse("2026-06-04T00:00:00Z");
+
+  it("counts whole days until purge, rounding up", () => {
+    expect(binCountdownDays("2026-07-04T00:00:00Z", NOW)).toBe(30); // exactly 30d out
+    expect(binCountdownDays("2026-06-04T12:00:00Z", NOW)).toBe(1); // half a day -> 1
+  });
+
+  it("clamps an overdue item (cron not run yet) to 0", () => {
+    expect(binCountdownDays("2026-06-03T00:00:00Z", NOW)).toBe(0);
+  });
+
+  it("falls back to the full window when purge_at is missing", () => {
+    expect(binCountdownDays(null, NOW)).toBe(RECENTLY_DELETED_WINDOW_DAYS);
+  });
+});
+
+describe("overStandbyBudget", () => {
+  it("is false at or under the 1x-cap budget", () => {
+    expect(overStandbyBudget(100, 100)).toBe(false);
+    expect(overStandbyBudget(99, 100)).toBe(false);
+  });
+
+  it("is true above the budget", () => {
+    expect(overStandbyBudget(101, 100)).toBe(true);
+  });
+
+  it("is never over an unlimited (null) cap", () => {
+    expect(overStandbyBudget(Number.MAX_SAFE_INTEGER, null)).toBe(false);
+  });
+});
+
+describe("binCountdownLabel", () => {
+  it("reads naturally for 0 / 1 / N days", () => {
+    expect(binCountdownLabel(0)).toBe("Deletes today");
+    expect(binCountdownLabel(1)).toBe("Deletes in 1 day");
+    expect(binCountdownLabel(30)).toBe("Deletes in 30 days");
   });
 });

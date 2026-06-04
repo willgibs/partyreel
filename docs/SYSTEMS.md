@@ -232,8 +232,21 @@ there's no headroom); `restore_event` also re-checks the event slot (`event_limi
 media stay binned, returns `media_still_removed`). `purge_media_now` (host "delete now", skipping the
 30-day wait) deletes **R2-first** in the wrapper, then the RPC calls the service-role `purge_media_rows`.
 All RETURN jsonb `{ok,reason,…}` (expected refusals don't raise → the wrapper maps `data.reason`).
-Wrappers in [media.ts](../src/lib/db/mutations/media.ts), actions in `dashboard/[eventId]/actions.ts`; the
-host bin UI is Phase 4.
+Wrappers in [media.ts](../src/lib/db/mutations/media.ts), actions in `dashboard/[eventId]/actions.ts`.
+
+**Recovery UI (Phase 4)** — two host bins on one "Recently deleted" model. The dashboard
+([page.tsx](../src/app/(app)/dashboard/page.tsx)) gets a **tab of soft-deleted EVENTS** (reused
+`EventCard` with `href=null` — a deleted event's detail page 404s, so the card's only verb is Restore —
+plus a "Deletes in N days" chip + a `RestoreEventButton`); the event page gets a **section of removed
+MEDIA** (`RecentlyDeletedGrid`, modeled on the admin `ModerationGrid`: per-tile Restore + Delete-
+permanently-with-confirm). RLS reads (`listRecentlyDeletedEvents`/`listRecentlyDeletedMedia`, windowed
+to 30d; the countdown is computed in the QUERY, not the component, so the RSC stays render-pure); writes
+reuse the Phase-3 actions; the shared lightbox hides Save when an item has no `downloadUrl` (no
+original-file download from the bin). The **dashboard storage meter now reads ACTIVE bytes**
+(`getHostStorageSummary`, [storage.ts](../src/lib/db/queries/storage.ts)) instead of the physical
+counter — deleting visibly frees room — with a light "+X in Recently deleted (frees automatically)" line
+and an over-standby-budget note (`overStandbyBudget`, single-sourced with the cron). No migration; bulk
+Restore-all/Empty-bin is a deferred fast-follow.
 
 ## Storage caps, tiers & payments
 

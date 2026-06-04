@@ -47,3 +47,40 @@ export function selectForStandbyEviction(
   }
   return evict;
 }
+
+/**
+ * Whole days until a bin item's hard-purge, for the "Deletes in N days" countdown chip.
+ * Ceil so an item half a day out reads "1 day" (not "0"); clamped to >= 0 so a just-overdue
+ * item the cron hasn't reached yet reads "0" -> the UI shows "today". `nowMs` is passed in
+ * (pure + testable, no Date.now() inside). A null `purge_at` shouldn't happen (the
+ * set_media_purge_at trigger always stamps removed/deleted rows) but falls back to the full
+ * window rather than rendering a wrong "0".
+ */
+export function binCountdownDays(purgeAt: string | null, nowMs: number): number {
+  if (!purgeAt) return RECENTLY_DELETED_WINDOW_DAYS;
+  const ms = new Date(purgeAt).getTime() - nowMs;
+  return Math.max(0, Math.ceil(ms / 86_400_000));
+}
+
+/**
+ * Is the host's standby (recently-deleted) footprint OVER its budget — i.e. the cron's
+ * sweepStandbyBudget will evict the OLDEST items EARLY, before their 30-day window? Budget =
+ * RECENTLY_DELETED_BUDGET_MULTIPLIER x the account's effective cap; an unlimited cap (null) is
+ * never over. Single-sources the multiplier with the cron so the dashboard warning matches the
+ * actual eviction behaviour.
+ */
+export function overStandbyBudget(
+  standbyBytes: number,
+  effectiveCapBytes: number | null,
+): boolean {
+  if (effectiveCapBytes == null) return false;
+  return standbyBytes > effectiveCapBytes * RECENTLY_DELETED_BUDGET_MULTIPLIER;
+}
+
+/** UI label for the countdown chip from a whole-day count (see binCountdownDays). Single-sourced
+ * so the dashboard event cards + the event-detail media tiles read identically. */
+export function binCountdownLabel(days: number): string {
+  if (days <= 0) return "Deletes today";
+  if (days === 1) return "Deletes in 1 day";
+  return `Deletes in ${days} days`;
+}

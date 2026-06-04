@@ -11,8 +11,12 @@ export type GridMedia = {
   type: "photo" | "video";
   /** Short-lived presigned URL for INLINE render — built server-side; never a raw R2 key. */
   url: string;
-  /** Presigned `attachment` URL that saves the original (see lib/r2/presign.ts). */
-  downloadUrl: string;
+  /**
+   * Presigned `attachment` URL that saves the original (see lib/r2/presign.ts). OPTIONAL: the
+   * recovery "Recently deleted" bin omits it (no original-file download from the bin), which
+   * hides the lightbox Save button. Album/host grids always set it.
+   */
+  downloadUrl?: string;
   status?: "pending" | "approved" | "hidden" | "removed";
 };
 

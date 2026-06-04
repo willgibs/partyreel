@@ -453,19 +453,23 @@ export function MediaLightbox({
                   {index! + 1} / {items.length}
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button
-                    asChild
-                    variant="secondary"
-                    size="sm"
-                    className="bg-white/15 text-white hover:bg-white/25"
-                  >
-                    {/* Cross-origin force-download comes from the signed
-                        content-disposition, not this attribute — it's a harmless
-                        same-origin hint. */}
-                    <a href={current.downloadUrl} download>
-                      <Download /> Save
-                    </a>
-                  </Button>
+                  {/* Save is hidden when an item carries no download url — the recovery bin
+                      presigns INLINE only, so there's no original-file download from the bin. */}
+                  {current.downloadUrl && (
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                      className="bg-white/15 text-white hover:bg-white/25"
+                    >
+                      {/* Cross-origin force-download comes from the signed
+                          content-disposition, not this attribute — it's a harmless
+                          same-origin hint. */}
+                      <a href={current.downloadUrl} download>
+                        <Download /> Save
+                      </a>
+                    </Button>
+                  )}
                   <DialogPrimitive.Close asChild>
                     <Button
                       variant="ghost"

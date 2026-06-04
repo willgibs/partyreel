@@ -16,6 +16,10 @@
 import "server-only";
 
 import type { Tables } from "@/lib/db/types";
+import {
+  RECENTLY_DELETED_WINDOW_DAYS,
+  binCountdownDays,
+} from "@/lib/lifecycle/recently-deleted";
 import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
 
@@ -122,4 +126,42 @@ export async function getEventCoverUrls(
   );
   for (const [id, url] of entries) urls.set(id, url);
   return urls;
+}
+
+/**
+ * Soft-deleted events still within the recovery window, for the dashboard's "Recently deleted"
+ * tab. The INVERSE of listEvents(): `deleted_at IS NOT NULL` and within
+ * RECENTLY_DELETED_WINDOW_DAYS (older ones are about to be hard-purged by the cron — don't offer
+ * a restore that races it). Newest-deleted first. Covers reuse getEventCoverUrls() (a deleted
+ * event's media stay non-removed, so it still resolves a cover). RLS (events_host_all) scopes to
+ * the host's own rows regardless of deleted_at, so this reads only their deleted events.
+ */
+/** A soft-deleted event card for the dashboard bin, with the days-until-purge countdown. */
+export type DeletedHostEvent = HostEvent & { countdownDays: number };
+
+export async function listRecentlyDeletedEvents(): Promise<DeletedHostEvent[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // One `now` for BOTH the window filter and the per-card countdown — computed HERE (a query, not
+  // a component) so the page stays render-pure (no Date.now() in RSC render; react-hooks/purity).
+  const now = Date.now();
+  const windowStart = new Date(
+    now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+  ).toISOString();
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .not("deleted_at", "is", null)
+    .gte("deleted_at", windowStart)
+    .order("deleted_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    ...toHostEvent(row),
+    countdownDays: binCountdownDays(row.purge_at, now),
+  }));
 }

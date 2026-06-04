@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bookmark, CalendarPlus } from "lucide-react";
+import { Bookmark, CalendarPlus, Trash2 } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { EventCard } from "@/components/app/event-card";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { RestoreEventButton } from "@/components/app/restore-event-button";
 import { UnsaveButton } from "@/components/app/unsave-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +23,18 @@ import {
   toBillingTier,
   withinLimit,
 } from "@/lib/constants/tiers";
-import { getEventCoverUrls, listEvents } from "@/lib/db/queries/events";
+import {
+  getEventCoverUrls,
+  listEvents,
+  listRecentlyDeletedEvents,
+} from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSavedEventCards } from "@/lib/db/queries/saved-events";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import {
+  binCountdownLabel,
+  overStandbyBudget,
+} from "@/lib/lifecycle/recently-deleted";
 import { formatBytes, formatEventDate } from "@/lib/utils";
 import { shouldShowWelcome } from "@/lib/welcome";
 
@@ -33,19 +43,25 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
-  const [events, profile, savedCards] = await Promise.all([
-    listEvents(),
-    getProfile(),
-    getSavedEventCards(),
-  ]);
+  const [events, profile, savedCards, deletedEvents, storage] =
+    await Promise.all([
+      listEvents(),
+      getProfile(),
+      getSavedEventCards(),
+      listRecentlyDeletedEvents(),
+      getHostStorageSummary(),
+    ]);
 
   // First-time host welcome (Phase 6): a brand-new account (welcomed_at null) gets the one-time
   // intro before the dashboard. Existing hosts were backfilled, so this only fires for new
   // signups; /welcome sets the marker before returning here, so there's no redirect loop.
   if (shouldShowWelcome(profile?.welcomed_at)) redirect("/welcome");
 
-  // Cover art for the owned cards: newest approved media per event, presigned (one batched query).
-  const coverUrls = await getEventCoverUrls(events.map((e) => e.id));
+  // Cover art for the owned AND recently-deleted cards: newest approved media per event, presigned
+  // (one batched query — a deleted event's media stay non-removed, so it still resolves a cover).
+  const coverUrls = await getEventCoverUrls(
+    [...events, ...deletedEvents].map((e) => e.id),
+  );
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const maxEvents = MAX_EVENTS[tier];
@@ -62,7 +78,12 @@ export default async function DashboardPage() {
     tier,
     profile?.storage_cap_bytes ?? null,
   );
-  const storageUsed = profile?.storage_used_bytes ?? 0;
+  // The meter shows ACTIVE bytes (non-removed media in non-deleted events) — what the cap is
+  // enforced against since Recovery Phase 1, so deleting visibly frees room. (The physical
+  // storage_used_bytes counter only drops at hard-purge and no longer gates uploads.)
+  const storageUsed = storage.activeBytes;
+  const standbyBytes = storage.standbyBytes;
+  const overBudget = overStandbyBudget(standbyBytes, storageCap);
   const storagePct =
     storageCap && storageCap > 0
       ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
@@ -161,6 +182,14 @@ export default async function DashboardPage() {
             </p>
           </>
         )}
+        {standbyBytes > 0 && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {`+ ${formatBytes(standbyBytes)} in Recently deleted (frees automatically).` +
+              (overBudget
+                ? " Oldest items are removed early to stay within your plan's recovery limit."
+                : "")}
+          </p>
+        )}
         {(hasBilling || tier === "event_pass") && (
           <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
             {tier === "event_pass" && (
@@ -192,6 +221,10 @@ export default async function DashboardPage() {
           <TabsTrigger value="owned">Your events</TabsTrigger>
           <TabsTrigger value="saved">
             Saved{savedCards.length > 0 ? ` (${savedCards.length})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="deleted">
+            Recently deleted
+            {deletedEvents.length > 0 ? ` (${deletedEvents.length})` : ""}
           </TabsTrigger>
         </TabsList>
 
@@ -273,6 +306,39 @@ export default async function DashboardPage() {
                       ) : null
                     }
                     action={<UnsaveButton eventId={card.eventId} />}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+
+        <TabsContent value="deleted" className="pt-4">
+          {deletedEvents.length === 0 ? (
+            <EmptyState
+              icon={Trash2}
+              title="Nothing here"
+              description="Deleted events stay recoverable for 30 days, then they're cleared automatically."
+            />
+          ) : (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {deletedEvents.map((event) => (
+                <li key={event.id}>
+                  <EventCard
+                    href={null}
+                    name={event.name}
+                    dateLabel={
+                      event.event_date
+                        ? formatEventDate(event.event_date)
+                        : "No date set"
+                    }
+                    coverUrl={coverUrls.get(event.id) ?? null}
+                    badges={
+                      <Badge variant="outline">
+                        {binCountdownLabel(event.countdownDays)}
+                      </Badge>
+                    }
+                    action={<RestoreEventButton eventId={event.id} />}
                   />
                 </li>
               ))}

@@ -14,6 +14,10 @@ import {
   HostMediaGrid,
 } from "@/components/app/host-media-grid";
 import {
+  RecentlyDeletedGrid,
+  type BinMedia,
+} from "@/components/app/recently-deleted-grid";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -29,7 +33,7 @@ import {
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
-import { listEventMedia } from "@/lib/db/queries/media";
+import { listEventMedia, listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
@@ -70,9 +74,10 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // Live gallery — presign each object key server-side (never expose raw keys).
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
-  const [media, linkStats] = await Promise.all([
+  const [media, linkStats, deletedMedia] = await Promise.all([
     listEventMedia(event.id),
     getLinkStats(event.id),
+    listRecentlyDeletedMedia(event.id),
   ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
@@ -91,6 +96,19 @@ export default async function EventDetailPage({ params }: PageProps) {
       ]);
       return { id: m.id, type: m.type, url, downloadUrl, status: m.status };
     }),
+  );
+
+  // The event's "Recently deleted" bin: presign INLINE only (no download url -> the lightbox hides
+  // Save; no original-file download from the bin). countdownDays is computed in the query (keeps
+  // the page render-pure — no Date.now() in RSC render; react-hooks/purity).
+  const deletedItems: BinMedia[] = await Promise.all(
+    deletedMedia.map(async (m) => ({
+      id: m.id,
+      type: m.type,
+      url: await presignDownload({ key: m.original_key }),
+      status: m.status,
+      countdownDays: m.countdownDays,
+    })),
   );
 
   // Partition for the host view: hold_for_approval uploads arrive as 'pending'
@@ -205,6 +223,22 @@ export default async function EventDetailPage({ params }: PageProps) {
         pendingCount={pendingItems.length}
         videosAllowed={videosAllowedForTier(tier)}
       />
+
+      {deletedItems.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recently deleted</CardTitle>
+            <CardDescription>
+              {deletedItems.length}{" "}
+              {deletedItems.length === 1 ? "item" : "items"} you removed.
+              Restore anything within 30 days, or delete it permanently now.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentlyDeletedGrid eventId={event.id} items={deletedItems} />
+          </CardContent>
+        </Card>
+      )}
 
       <EventSettingsForm event={event} tier={tier} />
     </div>
