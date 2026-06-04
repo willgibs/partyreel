@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Recovery / "Recently deleted" initiative — Phases 1–4 of 6 SHIPPED + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
+- **Recovery / "Recently deleted" initiative — Phases 1–5 of 6 SHIPPED + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
   own dedicated plan; re-plan per phase). **Phase 1 (cap-meter refactor)** is live: the storage cap
   now enforces against **ACTIVE bytes** (new `host_active_bytes()` helper = non-removed media in
@@ -95,8 +95,18 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   is refused with the exact "Free up 3.8 KB to restore this, or upgrade your plan." toast + an Upgrade
   CTA; and a happy restore POSTs 200, flips the row to approved (removed_at/purge_at nulled by the
   trigger), and revalidates the gallery to 4 items (test state restored after). Per-item now; bulk
-  Restore-all/Empty-bin deferred (founder's call). **Next: Phase 5** (notifications + email) then 6
-  (pre-launch hard reset).
+  Restore-all/Empty-bin deferred (founder's call).
+  **Phase 5 (recovery notifications + email copy) SHIPPED (2026-06-04):** a derive-on-read bell alert
+  (`recovery_clearing`) fires when the host's soonest upcoming purge (across removed media + soft-deleted
+  events) is within `RECOVERY_PURGE_NUDGE_DAYS`=7 ("Recently deleted items are about to be cleared,"
+  linking to /dashboard); mirrors the pass-expiry pattern (`getNotificationData` returns the soonest
+  `purge_at`; the pure `buildNotifications` applies the threshold, unit-tested). The SYSTEM-removal emails
+  (over-cap grace/reduced, inactivity removed) now state the concrete 30-day window + point to the
+  self-serve in-app Recently-deleted restore (dropped "reply to this email"); `overCapReducedEmail` gained
+  a `recoverableUntil` param + the upgrade-first cap-gate note. NO new email/cron sweep, NO migration, NO
+  download-link courtesy (cut entirely), NO voluntary-delete email (bell-only by design). emil-design-eng
+  applied as RESTRAINT (no animation on the high-frequency bell; calm copy). 271 tests + typecheck + lint
+  + build green. **Next: Phase 6** (pre-launch hard reset of test data).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

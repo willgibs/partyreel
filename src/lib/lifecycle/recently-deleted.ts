@@ -22,6 +22,14 @@ export const RECENTLY_DELETED_WINDOW_DAYS = 30;
 export const RECENTLY_DELETED_BUDGET_MULTIPLIER = 1;
 
 /**
+ * How many days before an item's hard-purge the host gets a "Recently deleted is about to be
+ * cleared" nudge in the notification bell (the in-app, no-email channel: we never email a host
+ * about what they intentionally deleted). Sibling of RENEWAL_NUDGE_DAYS; the threshold is applied
+ * in the pure buildNotifications. Stays within the recovery window.
+ */
+export const RECOVERY_PURGE_NUDGE_DAYS = 7;
+
+/**
  * Pure oldest-first selection for the standby-budget eviction. Given a host's BIN items
  * (status='removed' OR in a soft-deleted event) and the byte budget, returns the ids to
  * HARD-purge — OLDEST `binned_at` first — until the remaining standby bytes fit under budget.

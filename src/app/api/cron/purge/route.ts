@@ -444,7 +444,13 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
         .eq("id", p.id);
       reduced++;
       if (p.email) {
-        const { subject, html } = overCapReducedEmail({ dashboardUrl });
+        const recoverableUntil = fmtDate(
+          new Date(now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000),
+        );
+        const { subject, html } = overCapReducedEmail({
+          recoverableUntil,
+          dashboardUrl,
+        });
         await sendOnce({
           kind: "over_cap_reduced",
           dedupeKey: `${p.id}:${graceUntil.toISOString()}`,

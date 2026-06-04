@@ -273,7 +273,10 @@ grace → largest-first auto-reduce into the removed tail. Detail: [PRICING.md](
 dedupe_key)`) before sending, so the daily cron can call it every run and Resend is hit at most
 once per state (free-tier frugality). Templates: [templates.ts](../src/lib/email/templates.ts).
 Lifecycle emails: over-cap grace/reduced, renewal nudge (14 d pre-expiry, shared
-`RENEWAL_NUDGE_DAYS`), free-tier inactivity warn/remove. **Needs `RESEND_API_KEY` + `EMAIL_FROM`
+`RENEWAL_NUDGE_DAYS`), free-tier inactivity warn/remove. The SYSTEM-removal notices (over-cap reduced, inactivity removed)
+state the concrete 30-day window + point to the in-app self-serve Recently-deleted restore (recovery
+Phase 5), not a "reply to this email" courtesy; voluntary deletes are never emailed (the bell nudge
+covers them in-app). **Needs `RESEND_API_KEY` + `EMAIL_FROM`
 + a verified sending domain** (human task — see STATUS).
 
 ## Safety (reports / operator review)
@@ -560,7 +563,9 @@ in the `(app)` header — no feed table. `getNotificationData` gathers signals e
 → the **pure** `buildNotifications` ([build.ts](../src/lib/notifications/build.ts)) → badge +
 panel. **v1 alerts** (STATE — persist until resolved): uploads-to-review (`media.status='pending'`),
 over-capacity (`storage_grace_until`), Event-Pass-expiring (`tier_expires_at` within
-`RENEWAL_NUDGE_DAYS`). **PLUS broadcast announcements**: a global `announcements` table
+`RENEWAL_NUDGE_DAYS`), recovery-clearing (soonest `purge_at` of removed media / soft-deleted
+events within `RECOVERY_PURGE_NUDGE_DAYS`: the in-app nudge to restore before the 30-day purge,
+bell-only, never emailed). **PLUS broadcast announcements**: a global `announcements` table
 (operator-write-only via RLS — host inserts are RLS-blocked; authored via SQL/MCP) with per-host
 read state via `profiles.announcements_seen_at`. **Extension point:** add a signal = one read in
 `getNotificationData` + one case in `buildNotifications`. **When building any new host surface,

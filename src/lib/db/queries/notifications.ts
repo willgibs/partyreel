@@ -19,7 +19,13 @@ export type NotificationData = Omit<NotificationSignals, "now">;
 export async function getNotificationData(): Promise<NotificationData> {
   const supabase = await createClient();
 
-  const [pending, profileRes, announcementsRes] = await Promise.all([
+  const [
+    pending,
+    profileRes,
+    announcementsRes,
+    soonestMediaRes,
+    soonestEventRes,
+  ] = await Promise.all([
     supabase
       .from("media")
       .select("id", { count: "exact", head: true })
@@ -35,14 +41,41 @@ export async function getNotificationData(): Promise<NotificationData> {
       .select("id, title, body, href, published_at")
       .order("published_at", { ascending: false })
       .limit(ANNOUNCEMENT_LIMIT),
+    // Soonest upcoming hard-purge, for the bell's "about to be cleared" nudge (the threshold is
+    // applied in buildNotifications). Two cheap reads: purge_at is indexed on media; events are few.
+    supabase
+      .from("media")
+      .select("purge_at")
+      .eq("status", "removed")
+      .not("purge_at", "is", null)
+      .order("purge_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("events")
+      .select("purge_at")
+      .not("deleted_at", "is", null)
+      .not("purge_at", "is", null)
+      .order("purge_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const profile = profileRes.data;
+  // Earlier of the two soonest purge dates (media vs events), or null if the bin is empty.
+  const purgeDates = [
+    soonestMediaRes.data?.purge_at,
+    soonestEventRes.data?.purge_at,
+  ].filter((d): d is string => Boolean(d));
+  const recoverySoonestPurgeAt =
+    purgeDates.length > 0 ? purgeDates.reduce((a, b) => (a < b ? a : b)) : null;
+
   return {
     pendingCount: pending.count ?? 0,
     storageGraceUntil: profile?.storage_grace_until ?? null,
     tier: profile?.tier ?? "free",
     tierExpiresAt: profile?.tier_expires_at ?? null,
+    recoverySoonestPurgeAt,
     announcements: announcementsRes.data ?? [],
     announcementsSeenAt: profile?.announcements_seen_at ?? null,
   };

@@ -15,6 +15,7 @@ function signals(
     storageGraceUntil: null,
     tier: "free",
     tierExpiresAt: null,
+    recoverySoonestPurgeAt: null,
     announcements: [],
     announcementsSeenAt: null,
     now: NOW,
@@ -136,5 +137,26 @@ describe("buildNotifications", () => {
     );
     // over_capacity + review = 2 alerts, + 1 unread announcement = 3
     expect(r.badgeCount).toBe(3);
+  });
+
+  it("recovery alert fires only when the soonest purge is within the nudge window", () => {
+    // NOW = 2026-06-01; RECOVERY_PURGE_NUDGE_DAYS = 7.
+    const within = buildNotifications(
+      signals({ recoverySoonestPurgeAt: "2026-06-05T00:00:00Z" }), // 4 days out
+    );
+    const alert = within.items.find((i) => i.kind === "recovery_clearing");
+    expect(alert?.href).toBe("/dashboard");
+    expect(alert?.date).toBe("2026-06-05T00:00:00Z");
+    expect(within.badgeCount).toBe(1);
+
+    const farOut = buildNotifications(
+      signals({ recoverySoonestPurgeAt: "2026-06-20T00:00:00Z" }), // 19 days out
+    );
+    expect(farOut.items.some((i) => i.kind === "recovery_clearing")).toBe(
+      false,
+    );
+
+    const none = buildNotifications(signals());
+    expect(none.items.some((i) => i.kind === "recovery_clearing")).toBe(false);
   });
 });

@@ -15,6 +15,7 @@
  * Adding a new signal later (e.g. co-host invites — see ROADMAP) = one new field here + one
  * read in `getNotificationData`. Keep it that simple.
  */
+import { RECOVERY_PURGE_NUDGE_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 
 const DAY_MS = 86_400_000;
@@ -23,6 +24,7 @@ export type NotificationKind =
   | "review"
   | "over_capacity"
   | "pass_expiring"
+  | "recovery_clearing"
   | "announcement";
 
 export type NotificationItem = {
@@ -52,6 +54,8 @@ export type NotificationSignals = {
   /** DB `profiles.tier` value. */
   tier: string;
   tierExpiresAt: string | null;
+  /** Soonest upcoming hard-purge across the host's removed media + soft-deleted events (min purge_at), or null. */
+  recoverySoonestPurgeAt: string | null;
   /** Recent published announcements (already filtered/limited upstream). */
   announcements: AnnouncementInput[];
   announcementsSeenAt: string | null;
@@ -94,6 +98,24 @@ export function buildNotifications(
         title: "Your Event Pass is expiring",
         body: "Renew to keep your extra storage.",
         date: signals.tierExpiresAt,
+        href: "/dashboard",
+        unread: true,
+      });
+      alertCount++;
+    }
+  }
+
+  // Recently-deleted items nearing permanent purge (the in-app nudge; bell-only by design, so we
+  // never email a host about what they intentionally deleted). Threshold mirrors pass-expiry.
+  if (signals.recoverySoonestPurgeAt) {
+    const purgeMs = new Date(signals.recoverySoonestPurgeAt).getTime();
+    if (purgeMs <= now.getTime() + RECOVERY_PURGE_NUDGE_DAYS * DAY_MS) {
+      items.push({
+        key: "recovery_clearing",
+        kind: "recovery_clearing",
+        title: "Recently deleted items are about to be cleared",
+        body: "Restore anything you want to keep, or it's gone for good.",
+        date: signals.recoverySoonestPurgeAt,
         href: "/dashboard",
         unread: true,
       });

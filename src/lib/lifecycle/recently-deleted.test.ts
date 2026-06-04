@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
+  RECOVERY_PURGE_NUDGE_DAYS,
   binCountdownDays,
   binCountdownLabel,
   overStandbyBudget,
@@ -113,5 +114,15 @@ describe("binCountdownLabel", () => {
     expect(binCountdownLabel(0)).toBe("Deletes today");
     expect(binCountdownLabel(1)).toBe("Deletes in 1 day");
     expect(binCountdownLabel(30)).toBe("Deletes in 30 days");
+  });
+});
+
+describe("RECOVERY_PURGE_NUDGE_DAYS", () => {
+  it("is a positive nudge window within the recovery window", () => {
+    expect(RECOVERY_PURGE_NUDGE_DAYS).toBe(7);
+    expect(RECOVERY_PURGE_NUDGE_DAYS).toBeGreaterThan(0);
+    expect(RECOVERY_PURGE_NUDGE_DAYS).toBeLessThanOrEqual(
+      RECENTLY_DELETED_WINDOW_DAYS,
+    );
   });
 });
