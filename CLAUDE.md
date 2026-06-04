@@ -235,10 +235,16 @@ asserts them lazily at request time so the app still builds without creds.
 
 **Phase 4 — payments / storage-cap model gotchas**
 
-- **The cap is account-level bytes, not item counts (Cut 4a).** `create_media` enforces
-  `storage_used_bytes + file > cap + cap/10` (a **10% overflow buffer**) where
-  `cap = coalesce(profiles.storage_cap_bytes, tier default)`. **Free's 2 GB default comes
-  from `tier_limits()`** (so there's NO backfill and NO `handle_new_user` change — null
+- **The cap is account-level bytes, not item counts (Cut 4a; cap meter reworked by Recovery
+  Phase 1).** `create_media` enforces `host_active_bytes(host) + file > cap + cap/10` (a **10%
+  overflow buffer**) where `cap = coalesce(profiles.storage_cap_bytes, tier default)`.
+  **`host_active_bytes()`** (migration `…_active_bytes_cap_meter`) sums NON-removed media in
+  NON-deleted events, so deleting frees cap room immediately (the Recovery "Recently deleted"
+  model). It is SECURITY DEFINER, REVOKED from anon/authenticated (internal-only — must NEVER
+  appear in the 0028/0029 advisor lists), and is the single source the 4 upload fns + the
+  over-cap sweep share. **`profiles.storage_used_bytes` is now the PHYSICAL meter ONLY** (++ on
+  create, −− only in `purge_media_rows`); it NO LONGER gates uploads. **Free's 2 GB default
+  comes from `tier_limits()`** (so there's NO backfill and NO `handle_new_user` change — null
   `storage_cap_bytes` is fine); the Stripe webhook (4b/4c) writes `storage_cap_bytes` for
   paid tiers. Per-event item caps are **gone**.
 - **The monthly meter is INGRESS BYTES, not counts.** `create_media` blocks when
@@ -252,7 +258,9 @@ asserts them lazily at request time so the app still builds without creds.
   function's return type); `enforce_event_limit` still reads `max_events` so it's unaffected.
 - **`get_upload_context` now returns `at_storage_cap` / `at_monthly_cap`** (was
   `at_event_cap`). It keeps the `p_type` param for signature/grant stability (no per-type
-  caps remain). It's a coarse pre-check — `create_media` stays authoritative.
+  caps remain). It's a coarse pre-check — `create_media` stays authoritative. (Both read
+  `host_active_bytes` since Recovery Phase 1, so the pre-check and the authoritative check
+  can't drift.)
 - **The `tier_type` enum still carries a retired `max`.** App code uses the 3-value
   `Tier` (`free|pro|event_pass`); coerce a DB `profiles.tier` with **`toBillingTier()`**
   (`max`→`pro`, unknown→`free`) before indexing the `tiers.ts` records. Don't try to drop

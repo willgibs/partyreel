@@ -26,6 +26,19 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
+- **Recovery / "Recently deleted" initiative — Phase 1 of 6 SHIPPED (2026-06-03).** Master plan:
+  [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
+  own dedicated plan; re-plan per phase). **Phase 1 (cap-meter refactor)** is live: the storage cap
+  now enforces against **ACTIVE bytes** (new `host_active_bytes()` helper = non-removed media in
+  non-deleted events) instead of the physical `storage_used_bytes`, so **deleting frees cap room
+  immediately** (the foundation for in-app recovery). `storage_used_bytes` stays the physical R2 meter
+  (drops only at hard-purge). Migration `…_active_bytes_cap_meter` `create-or-replace`d the 4 upload
+  fns (grants preserved; `host_active_bytes` revoked from anon/authenticated — absent from the 0028/0029
+  advisor lists) + 2 partial indexes. **Verified:** two rolled-back contract checks against the live
+  prod functions (`create_media` + `get_upload_context` — removed bytes excluded; a previously-blocked
+  upload now succeeds; over-active-cap still raises), advisor baseline unchanged, types regen, 253 tests
+  + typecheck + lint green. Optional browser at-cap click-through offered (skipped to avoid polluting the
+  public Demo event). **Next: Phase 2** (unified 30-day window + bounded standby-budget eviction).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

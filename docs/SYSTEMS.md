@@ -215,7 +215,9 @@ independently try/caught). `purge_media_rows` RPC does the atomic R2-then-row re
 `storage_used_bytes` decrement (**service-role-only**, must stay REVOKED from anon). Soft-delete
 stamps `purge_at = deleted_at + 60d` (recoverable tail). **Three counters are deliberately
 different — don't reconcile:** per-event slot counts non-removed; the monthly `storage_ledger`
-NEVER decrements (churn defense); `storage_used_bytes` drops only on hard-delete. R2 helpers:
+NEVER decrements (churn defense); `storage_used_bytes` is the PHYSICAL meter and drops only on
+hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads ACTIVE bytes via
+`host_active_bytes()`, so deleting frees cap room now). R2 helpers:
 [delete.ts](../src/lib/r2/delete.ts) (`parseMediaIdFromKey`).
 
 ## Storage caps, tiers & payments
@@ -223,8 +225,9 @@ NEVER decrements (churn defense); `storage_used_bytes` drops only on hard-delete
 **Storage-cap model** (not item counts): a tier = a total stored-bytes cap. **Single source**
 [tiers.ts](../src/lib/constants/tiers.ts) (Free 2 GB; Pro 100/500/2048 GB; Event Pass 75 GB)
 must mirror the SQL `tier_limits()` (a Vitest parity test guards it). `create_media` enforces
-`cap + 10% overflow buffer` + a **monthly ingress meter** (`storage_ledger.cumulative_bytes`,
-never refunds — the real anti-abuse guard). **Video is Pro-only** (Phase 2): a `tier='free'` gate at
+the cap against **ACTIVE bytes** (`host_active_bytes()` = non-removed media in non-deleted events;
+Recovery Phase 1) `+ 10% overflow buffer`, plus a **monthly ingress meter**
+(`storage_ledger.cumulative_bytes`, never refunds — the real delete/re-upload anti-abuse guard). **Video is Pro-only** (Phase 2): a `tier='free'` gate at
 the top of the tier-caps block in BOTH `create_media` + `create_media_as_host` rejects `type='video'`
 (a free event is photos-only for guests AND the host); `videosAllowedForTier` (client) + an advisory
 `video_blocked` flag (`get_upload_context`/`get_host_upload_context`) drive the upload UI. **Stripe**

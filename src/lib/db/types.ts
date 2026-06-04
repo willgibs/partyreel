@@ -782,6 +782,10 @@ export type Database = {
         Args: never
         Returns: boolean
       }
+      host_active_bytes: {
+        Args: { p_host_id: string }
+        Returns: number
+      }
       mark_password_set: {
         Args: never
         Returns: undefined
