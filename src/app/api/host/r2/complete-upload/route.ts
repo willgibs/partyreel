@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createMediaAsHost } from "@/lib/db/mutations/host-media";
 import { classifyMime } from "@/lib/media/validators";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { completeMultipartUpload } from "@/lib/r2/presign";
+import { completeMultipartUpload, headObjectSize } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
 import { hostCompleteUploadSchema } from "@/lib/validation/upload";
 
@@ -50,13 +50,14 @@ export async function POST(request: Request) {
     media_id,
     key,
     content_type,
-    size_bytes,
     duration_seconds,
     width,
     height,
     upload_id,
     parts,
   } = parsed.data;
+  // size_bytes is still accepted by the schema (the presign step uses it) but is NOT trusted here —
+  // we re-derive the authoritative size from R2 below.
 
   // Derive media_type server-side from the content-type (never trust a client type).
   const kind = classifyMime(content_type);
@@ -89,12 +90,29 @@ export async function POST(request: Request) {
     }
   }
 
+  // AUTHORITATIVE size: read the real stored bytes from R2 — never trust the client's size_bytes (a
+  // spoofed-low size would evade the storage cap, whose meter is SUM(media.file_size_bytes)).
+  let realSize: number;
+  try {
+    realSize = await headObjectSize({ key });
+  } catch {
+    captureWarning("upload", "head_object_failed", { key, media_id });
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "bad_key",
+        message: "Couldn't verify the uploaded file. Please retry.",
+      },
+      { status: 400 },
+    );
+  }
+
   const result = await createMediaAsHost({
     eventId: event_id,
     mediaId: media_id,
     type: kind,
     originalKey: key,
-    fileSizeBytes: size_bytes,
+    fileSizeBytes: realSize,
     durationSeconds: duration_seconds ?? null,
     width: width ?? null,
     height: height ?? null,

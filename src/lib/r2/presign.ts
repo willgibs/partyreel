@@ -23,6 +23,7 @@ import {
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   UploadPartCommand,
 } from "@aws-sdk/client-s3";
@@ -136,6 +137,29 @@ export async function completeMultipartUpload(params: {
       },
     }),
   );
+}
+
+/**
+ * AUTHORITATIVE stored-object size (bytes) via a server-side HEAD — the source of truth for an
+ * upload's file_size_bytes at completion. NEVER trust the client's declared size: the storage-cap
+ * meter is SUM(media.file_size_bytes), so a spoofed-low size would evade the cap (the insert-side
+ * twin of the media PATCH cap-evasion). HEAD is bodyless (no R2 checksum concern) and server-side
+ * (not browser-CORS-bound); R2 is strongly read-after-write consistent, so the object is present
+ * immediately after the single PUT / multipart complete. Throws if the object is missing or has no
+ * positive size, so the caller fails closed.
+ */
+export async function headObjectSize(params: { key: string }): Promise<number> {
+  const { key } = params;
+  const { R2_BUCKET } = assertR2Env();
+
+  const out = await getR2Client().send(
+    new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+  );
+  const size = out.ContentLength;
+  if (typeof size !== "number" || size <= 0) {
+    throw new Error(`HEAD returned no positive ContentLength for ${key}`);
+  }
+  return size;
 }
 
 /**
