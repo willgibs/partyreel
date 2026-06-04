@@ -25,7 +25,10 @@ type ActionErrorCode =
   | "validation"
   | "limit_reached"
   | "unauthorized"
-  | "unknown";
+  | "unknown"
+  | "insufficient_space"
+  | "event_limit"
+  | "event_deleted";
 
 // What the client form receives. Success that navigates (create/delete) never
 // returns — redirect() throws NEXT_REDIRECT. updateEventAction stays on the page

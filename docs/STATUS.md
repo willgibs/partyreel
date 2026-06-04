@@ -26,7 +26,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
 
 ## In flight / pending verification
 
-- **Recovery / "Recently deleted" initiative — Phase 1 of 6 SHIPPED + DEPLOYED + DB-VERIFIED on partyreel.com (2026-06-03).** Master plan:
+- **Recovery / "Recently deleted" initiative — Phases 1–3 of 6 SHIPPED + DEPLOYED + DB-VERIFIED on partyreel.com (2026-06-03 → 06-04).** Master plan:
   [recovery plan](../../.claude/plans/how-is-our-deletion-mutable-porcupine.md) (6 phases, each its
   own dedicated plan; re-plan per phase). **Phase 1 (cap-meter refactor)** is live: the storage cap
   now enforces against **ACTIVE bytes** (new `host_active_bytes()` helper = non-removed media in
@@ -59,7 +59,23 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   tests (incl. `selectForStandbyEviction` anti-timer-refresh), rolled-back contract checks (trigger
   derives purge_at on all paths + nulls on restore + un-spoofable 42501; bin definition + purge
   decrement), advisors unchanged (`set_media_purge_at` absent from 0028/0029), typecheck/lint green.
-  **Next: Phase 3** (capacity-gated restore + permanent-delete-now RPCs — the user-facing recovery).
+  **Phase 3 (capacity-gated restore + permanent-delete-now RPCs) SHIPPED + DB-VERIFIED (2026-06-04):**
+  three authenticated, ownership-gated SECURITY DEFINER RPCs — `restore_media` / `restore_event`
+  (capacity-gated against the BASE cap; refuse `insufficient_space` with `needed_bytes` when there's no
+  headroom; `restore_event` also re-checks the event slot → `event_limit`, and is all-or-nothing —
+  clearing `deleted_at` re-actives the whole non-removed set, independently-removed media stay binned,
+  returns `media_still_removed`) + `purge_media_now` (skip the 30-day wait; the wrapper deletes R2 first,
+  then the RPC calls the service-role `purge_media_rows`). All RETURN jsonb `{ok,reason,…}` for expected
+  refusals (no raise), so the UI gets `needed_bytes`/`max_events`. lib/db wrappers
+  (`restoreMedia`/`restoreEvent`/`purgeMediaNow`) + `'use server'` actions extend
+  `MutationResult`/`ActionErrorCode` with `insufficient_space|event_limit|event_deleted`; `captureError`
+  fires only on code `unknown` (refusals aren't bugs). Verified (all rolled back): advisors (3 RPCs in
+  0029, NONE in 0028; `purge_media_rows`/`host_active_bytes` off both), restore_media + purge_media_now
+  matrices (cross-tenant `not_found`, foreign-id purge boundary, `storage_used_bytes` unchanged on
+  restore), and the full **restore_event** matrix (happy path + `media_still_removed`, `event_limit` at
+  the free slot cap, `insufficient_space` with exact `needed_bytes`); 259 tests + typecheck + lint green.
+  **NO UI yet** (Phase 4 consumes these); migration `…_phase3_recovery_restore_rpcs`.
+  **Next: Phase 4** (host "Recently deleted" UI — apply the emil-design-eng skill).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),

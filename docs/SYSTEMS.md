@@ -224,6 +224,17 @@ hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads
 `host_active_bytes()`, so deleting frees cap room now). R2 helpers:
 [delete.ts](../src/lib/r2/delete.ts) (`parseMediaIdFromKey`).
 
+**Host-facing recovery (Phase 3)** — `restore_media` / `restore_event` / `purge_media_now`: authenticated,
+ownership-gated SECURITY DEFINER RPCs (0029-only; explicit `revoke … from anon`). Restore is
+**capacity-gated against the base cap** (no +10% buffer; refuse `insufficient_space` + `needed_bytes` when
+there's no headroom); `restore_event` also re-checks the event slot (`event_limit`) and is
+**all-or-nothing** (clearing `deleted_at` re-actives the whole non-removed set — independently-removed
+media stay binned, returns `media_still_removed`). `purge_media_now` (host "delete now", skipping the
+30-day wait) deletes **R2-first** in the wrapper, then the RPC calls the service-role `purge_media_rows`.
+All RETURN jsonb `{ok,reason,…}` (expected refusals don't raise → the wrapper maps `data.reason`).
+Wrappers in [media.ts](../src/lib/db/mutations/media.ts), actions in `dashboard/[eventId]/actions.ts`; the
+host bin UI is Phase 4.
+
 ## Storage caps, tiers & payments
 
 **Storage-cap model** (not item counts): a tier = a total stored-bytes cap. **Single source**

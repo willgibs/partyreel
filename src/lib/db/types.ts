@@ -793,6 +793,10 @@ export type Database = {
         Args: never
         Returns: undefined
       }
+      purge_media_now: {
+        Args: { p_media_ids: string[] }
+        Returns: Json
+      }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
         Returns: {
@@ -806,6 +810,14 @@ export type Database = {
           p_kind: Database["public"]["Enums"]["link_hit_kind"]
         }
         Returns: undefined
+      }
+      restore_event: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
+      restore_media: {
+        Args: { p_media_id: string }
+        Returns: Json
       }
       save_event: {
         Args: { p_qr_token: string }

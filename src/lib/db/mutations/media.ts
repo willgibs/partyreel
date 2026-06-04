@@ -9,16 +9,18 @@
  * actions, returning the shared `MutationResult` so the action maps failures to
  * toasts.
  *
- * IMPORTANT: nothing here touches R2 or any storage counter. "Remove" is SOFT
- * (status='removed' + removed_at); the Phase-3 purge cron is the ONLY path that
- * frees real bytes (R2 + row + profiles.storage_used_bytes). See
+ * MOSTLY no R2 / storage-counter touches: "Remove" is SOFT (status='removed' +
+ * removed_at); the purge cron normally frees real bytes. The EXCEPTION is the recovery
+ * Phase-3 `purgeMediaNow` (host "permanent delete now") — it deletes R2 then calls the
+ * `purge_media_now` RPC (rows + profiles.storage_used_bytes). See
  * src/app/api/cron/purge/route.ts.
  */
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
-
 import { type MutationResult } from "@/lib/db/mutations/events";
+import { deleteR2Objects } from "@/lib/r2/delete";
+import { createClient } from "@/lib/supabase/server";
+import { formatBytes } from "@/lib/utils";
 
 // PostgREST returns this when `.single()` matches zero rows — for a scoped
 // UPDATE that means "no such media in one of the host's events" (missing,
@@ -142,4 +144,180 @@ export async function approveAllPending(
     };
   }
   return { ok: true, data: { count: data?.length ?? 0 } };
+}
+
+/**
+ * Recovery (Phase 3) — host-facing restore + permanent-delete-now. These call the
+ * authenticated, ownership-gated SECURITY DEFINER RPCs (restore_media / restore_event /
+ * purge_media_now), which own the capacity + slot gates. The RPCs RETURN a jsonb
+ * {ok, reason, …} for EXPECTED refusals (we branch on data.reason — they do NOT raise),
+ * so insufficient_space can carry needed_bytes for the UI.
+ */
+type RestoreReason =
+  | "not_found"
+  | "not_removed"
+  | "event_deleted"
+  | "insufficient_space"
+  | "event_limit";
+
+type RestoreResult =
+  | { ok: true; media_still_removed?: number }
+  | {
+      ok: false;
+      reason: RestoreReason;
+      needed_bytes?: number;
+      max_events?: number;
+    };
+
+// Map an RPC refusal to a friendly MutationResult. insufficient_space bakes the byte
+// shortfall into the message; the Phase-4 UI keys a /pricing CTA on the code. Returns the
+// error variant (assignable to any MutationResult<T> — never returns ok:true).
+function mapRestoreRefusal(
+  r: Extract<RestoreResult, { ok: false }>,
+): MutationResult<never> {
+  switch (r.reason) {
+    case "insufficient_space":
+      return {
+        ok: false,
+        code: "insufficient_space",
+        message: `Free up ${formatBytes(r.needed_bytes ?? 0)} to restore this, or upgrade your plan.`,
+      };
+    case "event_limit":
+      return {
+        ok: false,
+        code: "event_limit",
+        message:
+          "You're at your event limit. Delete an event or upgrade to restore this one.",
+      };
+    case "event_deleted":
+      return {
+        ok: false,
+        code: "event_deleted",
+        message: "This item's event was deleted. Restore the event first.",
+      };
+    case "not_removed":
+      return {
+        ok: false,
+        code: "unknown",
+        message: "That item is no longer in Recently deleted.",
+      };
+    default:
+      return {
+        ok: false,
+        code: "unknown",
+        message: "That item is no longer available.",
+      };
+  }
+}
+
+/** Restore a soft-removed media item (capacity-gated in the RPC; pure status flip). */
+export async function restoreMedia(
+  mediaId: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data, error } = await supabase.rpc("restore_media", {
+    p_media_id: mediaId,
+  });
+  if (error || !data) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't restore that item. Please try again.",
+    };
+  }
+  const result = data as unknown as RestoreResult;
+  if (!result.ok) return mapRestoreRefusal(result);
+  return { ok: true, data: { id: mediaId } };
+}
+
+/** Restore a soft-deleted event (slot- + capacity-gated in the RPC). Independently-removed
+ * media stay in the bin; the success data carries how many (for the Phase-4 prompt). */
+export async function restoreEvent(
+  eventId: string,
+): Promise<MutationResult<{ id: string; mediaStillRemoved: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data, error } = await supabase.rpc("restore_event", {
+    p_event_id: eventId,
+  });
+  if (error || !data) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't restore that event. Please try again.",
+    };
+  }
+  const result = data as unknown as RestoreResult;
+  if (!result.ok) return mapRestoreRefusal(result);
+  return {
+    ok: true,
+    data: { id: eventId, mediaStillRemoved: result.media_still_removed ?? 0 },
+  };
+}
+
+/** Permanently delete removed media now (skip the 30-day wait). R2-FIRST, then the rows:
+ * read the host's OWN removed-media keys (RLS-scoped), delete the R2 objects, THEN the RPC
+ * re-validates own+removed and drops rows + decrements storage_used_bytes. A partial R2
+ * failure returns before the RPC so the rows survive and the daily cron reclaims them
+ * (idempotent) — mirrors the cron's R2-first safety. */
+export async function purgeMediaNow(
+  eventId: string,
+  mediaIds: string[],
+): Promise<MutationResult<{ purged: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data: rows, error: readErr } = await supabase
+    .from("media")
+    .select("id, original_key, preview_key")
+    .eq("event_id", eventId)
+    .in("id", mediaIds)
+    .eq("status", "removed");
+  if (readErr) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't delete those items. Please try again.",
+    };
+  }
+  const owned = rows ?? [];
+  if (owned.length > 0) {
+    const keys: string[] = [];
+    for (const row of owned) {
+      keys.push(row.original_key);
+      if (row.preview_key) keys.push(row.preview_key);
+    }
+    const r2 = await deleteR2Objects(keys);
+    if (r2.errored.length > 0) {
+      return {
+        ok: false,
+        code: "unknown",
+        message: "Couldn't fully delete those items. Please try again.",
+      };
+    }
+  }
+
+  const { error } = await supabase.rpc("purge_media_now", {
+    p_media_ids: mediaIds,
+  });
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't delete those items. Please try again.",
+    };
+  }
+  return { ok: true, data: { purged: owned.length } };
 }

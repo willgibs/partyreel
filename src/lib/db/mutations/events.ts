@@ -25,7 +25,13 @@ export type MutationResult<T> =
   | { ok: true; data: T }
   | {
       ok: false;
-      code: "limit_reached" | "unauthorized" | "unknown";
+      code:
+        | "limit_reached"
+        | "unauthorized"
+        | "unknown"
+        | "insufficient_space"
+        | "event_limit"
+        | "event_deleted";
       message: string;
     };
 
