@@ -106,7 +106,11 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   a `recoverableUntil` param + the upgrade-first cap-gate note. NO new email/cron sweep, NO migration, NO
   download-link courtesy (cut entirely), NO voluntary-delete email (bell-only by design). emil-design-eng
   applied as RESTRAINT (no animation on the high-frequency bell; calm copy). 271 tests + typecheck + lint
-  + build green. **Next: Phase 6** (pre-launch hard reset of test data).
+  + build green. **LIVE-VERIFIED on partyreel.com** (willg97, Chrome MCP): seeding a removed item to ~3
+  days from purge made the bell badge show "1" + the "Recently deleted items are about to be cleared"
+  panel item dated Jun 7; reverting to 28 days out cleared the badge (threshold gates both ways), no
+  console errors; the email copy is locked by templates.test.ts (live send stays gated on the human's
+  Resend key). **Next: Phase 6** (pre-launch hard reset of test data).
 - **404 / not-found pages — SHIPPED + LIVE-VERIFIED on partyreel.com (2026-06-03).** Replaced Next's
   default 404 with five audience-aware pages sharing one animated core (`NotFoundScreen` +
   single-sourced `MarketingNotFound`): **root** (unmatched URLs, brings its own marketing header/footer),
