@@ -9,6 +9,7 @@
  */
 import "server-only";
 
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import type { NotificationSignals } from "@/lib/notifications/build";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,6 +19,13 @@ export type NotificationData = Omit<NotificationSignals, "now">;
 
 export async function getNotificationData(): Promise<NotificationData> {
   const supabase = await createClient();
+
+  // Match the bin's recoverable window (listRecentlyDeleted*): only items still SHOWN in the bin
+  // count toward the nudge, so the alert never points at an aged-out item the bin won't display
+  // (a cron-lag boundary item with purge_at already past). Keeps the soonest purge in the future.
+  const windowStart = new Date(
+    Date.now() - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+  ).toISOString();
 
   const [
     pending,
@@ -48,6 +56,7 @@ export async function getNotificationData(): Promise<NotificationData> {
       .select("purge_at")
       .eq("status", "removed")
       .not("purge_at", "is", null)
+      .gte("removed_at", windowStart)
       .order("purge_at", { ascending: true })
       .limit(1)
       .maybeSingle(),
@@ -56,6 +65,7 @@ export async function getNotificationData(): Promise<NotificationData> {
       .select("purge_at")
       .not("deleted_at", "is", null)
       .not("purge_at", "is", null)
+      .gte("deleted_at", windowStart)
       .order("purge_at", { ascending: true })
       .limit(1)
       .maybeSingle(),
