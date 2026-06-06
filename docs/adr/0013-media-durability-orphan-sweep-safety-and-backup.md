@@ -110,7 +110,7 @@ Vercel, scales O(uploads)):
   (backstop for missed events + seeding); at scale use a copy-state index (KV/D1), not HEAD-per-object.
 - **Cost:** Workers Paid ~$5/mo fixed; R2↔R2 egress free; IA storage ~$0 now → $10/TB-mo.
 
-### Pillar C — DB backup posture  ·  AFTER B (small)
+### Pillar C — DB backup posture  ·  WORKFLOW AUTHORED (`.github/workflows/db-backup.yml`); pending 3 secrets + restore-verify
 
 Keep **Supabase Pro daily backups** (already on, 7-day). **Add a scheduled off-site logical
 `pg_dump`** (GitHub Actions cron — the natural home for the `pg_dump` binary, which Workers/edge

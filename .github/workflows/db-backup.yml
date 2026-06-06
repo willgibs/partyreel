@@ -1,0 +1,97 @@
+# Off-site logical Postgres backup — media-durability Pillar C (ADR-0013).
+#
+# Daily `supabase db dump` (schema + data of the app's schema) -> tar.gz -> the immutable R2 backup
+# bucket `partyreel-backup` under `db/`, via rclone (the Cloudflare-documented R2 tool; avoids the
+# AWS-SDK CRC-checksum gotcha that silently corrupts R2 uploads — see ADR-0003). This SUPPLEMENTS
+# Supabase Pro's daily backups (7-day, same-vendor) with an OFF-SITE, longer-retention copy that
+# survives a Supabase-account loss. The objects backup (Pillar B) is useless without these rows.
+#
+# REQUIRED GitHub repo secrets (Settings -> Secrets and variables -> Actions -> New repository secret):
+#   SUPABASE_DB_URL              direct/session Postgres connection string (port 5432 — NOT the 6543
+#                                transaction pooler; pg_dump needs a session connection). From the
+#                                Supabase dashboard: Project Settings -> Database -> Connection string.
+#   R2_BACKUP_ACCESS_KEY_ID      an R2 API token scoped to WRITE the partyreel-backup bucket
+#   R2_BACKUP_SECRET_ACCESS_KEY  (do NOT reuse the app's partyreel-only Object token)
+# The R2 account id / S3 endpoint is non-secret config (already in CLAUDE.md), set in `env` below.
+#
+# Until the secrets exist, every step SKIPS cleanly (no failed-run emails). To enable + verify:
+#   1) add the 3 secrets, 2) Actions tab -> "db-backup" -> Run workflow, 3) confirm a db/ object
+#   landed (`wrangler r2 object get partyreel-backup/db/<file>`), 4) test-restore it into a throwaway
+#   DB before trusting it (an unrestorable dump is worthless).
+
+name: db-backup
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC (after the app's 04:00 purge + 05:00 backup-reconcile crons)
+  workflow_dispatch: {} # manual runs (for the enable + verification check)
+
+# One backup at a time; never pile up overlapping runs.
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Non-secret config: the P3 R2 account's S3 endpoint + the backup bucket.
+      R2_ENDPOINT: https://8bd90d2f6a374d6cdff2f379e929b060.r2.cloudflarestorage.com
+      R2_BUCKET: partyreel-backup
+    steps:
+      - name: Guard — skip cleanly until secrets are configured
+        id: guard
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          R2_KEY: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$R2_KEY" ]; then
+            echo "Secrets not set yet — skipping. Configure SUPABASE_DB_URL + R2_BACKUP_* to enable."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Supabase CLI
+        if: steps.guard.outputs.ready == 'true'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install rclone
+        if: steps.guard.outputs.ready == 'true'
+        run: sudo apt-get update && sudo apt-get install -y rclone
+
+      - name: Dump schema + data
+        if: steps.guard.outputs.ready == 'true'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          # Supabase-aware dump (bundles a PG17-compatible pg_dump; scopes to the app schema).
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f data.sql
+          # Fail fast if the dump is empty or missing our core data (the real gate is a test-restore).
+          test -s schema.sql && test -s data.sql
+          grep -q "media" schema.sql || { echo "schema.sql missing the media table — aborting"; exit 1; }
+          tar -czf "pr-db-$STAMP.tar.gz" schema.sql data.sql
+          ls -l "pr-db-$STAMP.tar.gz"
+
+      - name: Upload to R2 (rclone)
+        if: steps.guard.outputs.ready == 'true'
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ env.R2_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          rclone copyto "pr-db-$STAMP.tar.gz" "R2:$R2_BUCKET/db/pr-db-$STAMP.tar.gz" --s3-no-check-bucket
+          echo "Uploaded db/pr-db-$STAMP.tar.gz to $R2_BUCKET (locked + IA by the bucket defaults)."
