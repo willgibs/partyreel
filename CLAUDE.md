@@ -19,6 +19,54 @@ site + host app + guest links all live on **one domain**. Full product context:
 
 ---
 
+## Infrastructure ownership (consolidated under partyr33l@gmail.com — 2026-06-06)
+
+All app infrastructure was migrated off the founder's personal accounts (willg97@gmail.com /
+hi@willgibs.com) onto a dedicated owner account **partyr33l@gmail.com ("P3")** — clean consolidation
+and sale-readiness. Runbook: [`.claude/plans/we-ve-basically-been-setting-optimized-sutton.md`](.claude/plans/we-ve-basically-been-setting-optimized-sutton.md).
+
+**Done — all P3-owned (verified live):**
+
+- **Supabase** — project `ddafaemglzmuekbtjwzn` (ref + API keys UNCHANGED — the project was _transferred_,
+  not recreated), now in P3's **"Partyreel Team"** org on **Pro** (daily backups ON; PITR off, pricey,
+  revisit). ⚠️ P3's Supabase MCP may be connected **read-only** — the database tool group
+  (`execute_sql` / `list_tables` / `apply_migration`) returns `MCP error -32600 … permission` if so;
+  re-auth the connector with the database scope (or use the dashboard SQL editor) for writes.
+- **Cloudflare R2** — NEW account **`8bd90d2f6a374d6cdff2f379e929b060`** (old `7982310e…` deleted),
+  bucket `partyreel` (ENAM), new **Object R/W** token. The account-id (S3 endpoint) changed; CORS +
+  abort-incomplete-multipart lifecycle re-applied. Setting CORS/lifecycle needs an **Admin** R2 token
+  (the app's Object token can't); a temp Admin token was used then revoked.
+- **Stripe** — same account `acct_1TcStrPtjqmVkBwk` (TEST mode), ownership transferred to P3 (keys /
+  price IDs / webhook / portal all preserved → no env change).
+- **Sentry** — same org `partyreel` / project `javascript-nextjs`, ownership transferred to P3 (DSN
+  unchanged; rotated to a new Org Auth Token).
+- **Resend** — new account under P3; `partyreel.com` re-verified; the Supabase custom-SMTP password
+  updated to the new key.
+- **Google OAuth** — new GCP project + Web client `401819547646-…apps.googleusercontent.com` under P3
+  (old project shut down), set in the Supabase Google provider (callback unchanged since the ref held).
+- **In-app operator** — `partyr33l@gmail.com` is `is_admin` + TOTP MFA (AAL2); `hi@willgibs.com` retired
+  (`is_admin=false`). `CONTACT_NOTIFY_EMAIL` → P3 (until a partyreel.com mailbox exists).
+
+**Deferred (still under willgibs / GoDaddy):**
+
+- **Vercel hosting** — prod still on the **willgibs Hobby** project (free), already running on P3's
+  backing services; move to a P3 **Pro** project at launch (so the 14-day Pro trial isn't burned during
+  the build phase). A P3 Pro project is already validated (`partyreel-ten.vercel.app`) and deploys the
+  willgibs repo via a cross-account Vercel GitHub-App grant. Domain cutover (remove from old project →
+  add to new + verify; watch for a `_vercel` TXT) happens then.
+- **Domain + DNS** — `partyreel.com` is registered AND DNS-hosted at **GoDaddy** (`ns05/06.domaincontrol.com`);
+  → P3 **Cloudflare** (registrar + DNS) ~late July (GoDaddy transfer-locked until then). Cloudflare is
+  R2-only today.
+- **GitHub repo** — stays `github.com/willgibs/partyreel`; transfer to P3 **at sale** (redirects persist;
+  re-point the Vercel Git connection then).
+
+**Notes:** Supabase + Vercel go **paid Pro** deliberately (scale-early + ADR-0013 DB backups),
+overriding the default cost-frugality lean. **"Allow new signups" is intentionally OFF** in Supabase
+Auth (pre-launch lockdown) — it must be ON at launch, and toggled on briefly to register a new internal
+account (e.g. P3's operator profile).
+
+---
+
 ## Commands
 
 ```bash
@@ -83,7 +131,7 @@ wrong (`AGENTS.md` warns this Next ≠ the Next you know). The workflow:
   or domains — those stay manual in the Vercel dashboard.
 - **Cloudflare R2 MCP** — bucket CRUD (`r2_bucket_get/list/create/delete`),
   `accounts_list`/`set_active_account`, `search_cloudflare_documentation`. Account
-  `7982310e22cd9430e06c34942acf3b9a`; Phase 2 bucket `partyreel` (ENAM). It does
+  `8bd90d2f6a374d6cdff2f379e929b060` (P3; old `7982310e…` deleted); bucket `partyreel` (ENAM). It does
   **not** create R2 API tokens or set bucket CORS — do those in the R2 dashboard,
   or set CORS via the S3 API (`@aws-sdk/client-s3` `PutBucketCorsCommand`) once creds exist.
 - **Stripe MCP** — Stripe catalog + API ops for Phase 4 billing. Account
@@ -283,7 +331,7 @@ is fine ONLY for pure UI/render work (e.g. a public album whose media already ex
 expected:** the project holds only disposable **test data** (nothing sensitive), and
 Supabase/R2 will be purged of orphans before launch — so seed, mutate, and inspect prod
 freely via the Supabase/R2 MCPs and the Chrome MCP (drive it logged in as the user; the
-host test account is `willg97@gmail.com`, the operator/admin is `hi@willgibs.com`).
+host test account is `willg97@gmail.com`, the operator/admin is `partyr33l@gmail.com`).
 **One Chrome gotcha:** on prod, Vercel injects its dev **Toolbar** (a floating circle at
 the right-middle edge) for logged-in Vercel team members only — it overlaps UI there
 (e.g. a lightbox's next-chevron) and is invisible to real guests/hosts; navigate by

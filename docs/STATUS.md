@@ -5,7 +5,7 @@
 > pick-up-a-task loop read [`ROADMAP.md`](ROADMAP.md); for how to work in the repo read
 > [`CLAUDE.md`](../CLAUDE.md).
 
-**Updated:** 2026-06-04
+**Updated:** 2026-06-06
 
 ## Where we are
 
@@ -25,6 +25,18 @@ confirmed** (2026-05-31): a core value prop — an auto-compiled, host-customiza
 downloadable reel of the event's favorite moments — featured as such on the new site.
 
 ## In flight / pending verification
+
+- **Infra ownership migration → partyr33l@gmail.com ("P3") — backing services DONE + live-verified
+  (2026-06-06).** Every backing service moved off the founder's personal accounts to the dedicated owner
+  account P3: Supabase (project `ddafaemglzmuekbtjwzn` unchanged, now P3 **"Partyreel Team" Pro** org),
+  Cloudflare R2 (NEW account `8bd90d2f…`, bucket re-created), Stripe (same acct, ownership transferred),
+  Sentry (same org, ownership transferred), Resend (new acct, domain re-verified), Google OAuth (new
+  client), and the in-app operator (`partyr33l@gmail.com` = is_admin + MFA; `hi@willgibs.com` retired).
+  Verified live: Google + email-OTP sign-in, R2 upload, Stripe upgrade→downgrade, admin AAL2 (P3 in /
+  hi@willgibs → `/admin` 404). **Deferred:** Vercel hosting (still willgibs Hobby → P3 **Pro** at launch),
+  domain + DNS (GoDaddy → P3 Cloudflare ~late July), GitHub repo (→ P3 at sale). Full per-service detail
+  + new IDs: CLAUDE.md "Infrastructure ownership"; runbook
+  `.claude/plans/we-ve-basically-been-setting-optimized-sutton.md`.
 
 - **Security hardening initiative — Phase 1 (events lockdown) + Phase 2 (broad white-hat sweep) SHIPPED
   + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-04; ADR-0014).** Phase 1 (migration
@@ -510,7 +522,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   [ADR-0005](adr/0005-marketing-form-submissions.md)). **Deployed + tested live via Chrome MCP** — the
   full battery passed: happy path → DB row + delivered email, validation, honeypot (no row), XSS
   stored literal + `esc()`-escaped in the email. Resend sending is set in Vercel;
-  `CONTACT_NOTIFY_EMAIL=hi@willgibs.com` (displayed `help@` fixed via `SUPPORT_EMAIL`; `help@`
+  `CONTACT_NOTIFY_EMAIL=partyr33l@gmail.com` (displayed `help@` fixed via `SUPPORT_EMAIL`; `help@`
   receiving via forwarding is a pre-launch TODO). **Round 5** added `/careers` — a mission-focused hub
   with varied sections + 2 roles (a neutral General Application + a fully-specified, remote/equity-
   framed **Reels Engineer** owning the reel) + a deny-all `job_applications` table (migration
@@ -552,7 +564,7 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   `EMAIL_FROM` + a sending domain are set (a test email arrives + doesn't re-send; the
   grace/renewal/inactivity transitions fire).
 - _(Test data on prod is disposable — host test account `willg97@gmail.com` with one "Share Step
-  Test" event holding 3 seeded test media from verification; operator/admin `hi@willgibs.com`. **Note:** that
+  Test" event holding 3 seeded test media from verification; operator/admin `partyr33l@gmail.com` (migrated 2026-06-06; was `hi@willgibs.com`). **Note:** that
   event currently backs the live demo (`NEXT_PUBLIC_DEMO_QR_TOKEN` = its `qr_token`), so repoint the env var
   before deleting/repurposing it.)_
 
@@ -611,7 +623,7 @@ The agent can't do these — they need a human in a dashboard:
 the Stripe **TEST** products/prices + webhook endpoint + Billing Portal + the 5 env vars.
 **Admin portal go-live (done):** Supabase TOTP MFA enabled + `admin.partyreel.com/auth/callback`
 in the redirect allow-list; `admin.partyreel.com` added in Vercel (same project) with
-`NEXT_PUBLIC_ADMIN_HOST` set; `hi@willgibs.com` enrolled TOTP (holds the factor). Break-glass if
+`NEXT_PUBLIC_ADMIN_HOST` set; `partyr33l@gmail.com` enrolled TOTP (holds the factor; `hi@willgibs.com` retired 2026-06-06). Break-glass if
 the authenticator is lost: delete the factor in the Supabase dashboard (`auth.mfa_factors`).
 **Sentry (R2):** the `javascript-nextjs` project + DSN + the 4 env vars are set in Vercel + deployed;
 capture smoke-verified on prod (org `partyreel`).
