@@ -17,18 +17,20 @@
  *
  * Each sweep is independently try/caught so one failure doesn't abort the rest.
  */
+import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { effectiveStorageCap, toBillingTier } from "@/lib/constants/tiers";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
+  orphanBreakerEmail,
   overCapGraceStartEmail,
   overCapReducedEmail,
   overCapReminderEmail,
   renewalNudgeEmail,
 } from "@/lib/email/templates";
 import { sendOnce } from "@/lib/email/send";
-import { assertCronEnv } from "@/lib/env";
+import { assertCronEnv, serverEnv } from "@/lib/env";
 import {
   INACTIVE_DAYS,
   WARN_BEFORE_DAYS,
@@ -44,6 +46,7 @@ import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { captureError } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey } from "@/lib/r2/keys";
+import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
 import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
@@ -268,6 +271,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
   const orphanKeys: string[] = [];
   let token: string | undefined;
   let pages = 0;
+  let objectsScanned = 0; // objects looked at this run — the breaker's fraction denominator
 
   do {
     const { objects, nextToken } = await listR2Objects({
@@ -275,6 +279,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
       continuationToken: token,
     });
     pages += 1;
+    objectsScanned += objects.length;
 
     // Group aged objects by mediaId so original+preview for one item resolve together.
     const keysByMediaId = new Map<string, string[]>();
@@ -303,6 +308,75 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
     token = nextToken ?? undefined;
   } while (token && pages < ORPHAN_PAGE_CAP);
 
+  // --- Circuit-breaker (ADR-0013, media durability) ---------------------------------------
+  // The sweep TRUSTS the DB to label an object an orphan. A lost/unlinked media set (bad
+  // migration, snapshot restore, mass row-delete, RLS/query bug) would make ~every object look
+  // orphaned, so one run could delete the entire bucket — and there is no backup to undo it.
+  // Before the single bulk delete, fail CLOSED if the candidate set looks pathological: delete
+  // nothing, alert loudly (Sentry + a deduped operator email), and let a human investigate. The
+  // safe failure mode is a storage LEAK, not data loss. NOTE: intentional bulk purges (the
+  // pre-launch test-data reset) trip this BY DESIGN — they must run via an explicit force-purge
+  // path (an S3-API script / a manual admin route), never this guarded daily cron.
+  if (orphanKeys.length > 0) {
+    const { count: mediaCount, error: countErr } = await admin
+      .from("media")
+      .select("id", { count: "exact", head: true });
+    if (countErr)
+      throw new Error(`count media for breaker: ${countErr.message}`);
+
+    const { trip, reason } = evaluateOrphanSweep({
+      mediaCount: mediaCount ?? 0,
+      candidateCount: orphanKeys.length,
+      objectsScanned,
+    });
+
+    if (trip) {
+      captureError(
+        "cron",
+        new Error(`orphan sweep circuit-breaker tripped: ${reason}`),
+        {
+          sweep: "orphans",
+          reason,
+          media_count: mediaCount ?? 0,
+          orphan_candidates: orphanKeys.length,
+          objects_scanned: objectsScanned,
+        },
+      );
+      // Deduped per (reason, day) so a stuck breaker pages once a day, not every run. A failure to
+      // SEND the alert must never become a delete, so swallow it — the Sentry capture above is the
+      // primary signal, and we still return without deleting.
+      try {
+        const { subject, html } = orphanBreakerEmail({
+          reason: reason ?? "unknown",
+          candidates: orphanKeys.length,
+          mediaCount: mediaCount ?? 0,
+          objectsScanned,
+        });
+        await sendOnce({
+          kind: "orphan_breaker",
+          dedupeKey: `${reason}:${now.toISOString().slice(0, 10)}`,
+          to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
+          subject,
+          html,
+        });
+      } catch (e) {
+        captureError("cron", e, { sweep: "orphans", phase: "breaker_alert" });
+      }
+
+      return {
+        scanned_pages: pages,
+        r2_deleted: 0,
+        r2_errored: 0,
+        more_remain: Boolean(token),
+        breaker_tripped: true,
+        breaker_reason: reason,
+        orphan_candidates: orphanKeys.length,
+        media_count: mediaCount ?? 0,
+        objects_scanned: objectsScanned,
+      };
+    }
+  }
+
   const r2 = orphanKeys.length
     ? await deleteR2Objects(orphanKeys)
     : { deleted: 0, errored: [] };
@@ -313,6 +387,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
     r2_errored: r2.errored.length,
     // True if we hit the page cap with more to list — next run continues from the top.
     more_remain: Boolean(token),
+    objects_scanned: objectsScanned,
   };
 }
 
@@ -591,7 +666,9 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
       // purge_at is DERIVED by the set_event_purge_at trigger from deleted_at (single source,
       // un-spoofable — mirrors media). We still compute purgeAt locally for the email's
       // "recoverable until" date, but the persisted value comes from the trigger, not this write.
-      const purgeAt = new Date(nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000);
+      const purgeAt = new Date(
+        nowMs + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+      );
       const { error: delErr } = await admin
         .from("events")
         .update({ deleted_at: now.toISOString() })
@@ -736,7 +813,8 @@ async function sweepStandbyBudget(
       binRows.map((r) => ({
         id: r.id,
         file_size_bytes: r.file_size_bytes,
-        binned_at: minIso(r.removed_at, r.events.deleted_at) ?? now.toISOString(),
+        binned_at:
+          minIso(r.removed_at, r.events.deleted_at) ?? now.toISOString(),
       })),
       budget,
     );

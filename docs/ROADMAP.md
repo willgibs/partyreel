@@ -298,12 +298,26 @@ details beyond a template feel.
   TTL); revisit a proxy/caching approach only if albums get huge.
 - **Cold storage for the storage tail** — evaluated + rejected (R2 IA only ~33% cheaper; Glacier
   = cross-cloud project). Revisit an R2 IA lifecycle rule only if tail cost grows.
-- **🛑 Media backup + orphan-sweep safety net (HIGH-RISK gap; deferred task created 2026-06-04).** ALL
-  user media lives in ONE R2 bucket with NO backup/versioning, and the daily cron's `sweepOrphans`
+- **Media durability (HIGH-RISK gap) — Pillar A SHIPPED 2026-06-06; B + C designed, next.** ALL user
+  media lives in ONE R2 bucket with NO backup, and the daily cron's `sweepOrphans`
   ([api/cron/purge/route.ts](../src/app/api/cron/purge/route.ts)) HARD-deletes any R2 object with no
-  matching Supabase `media` row — so a Supabase data-loss/unlink event (bad migration, snapshot restore,
-  mass row-delete, query/RLS bug) could let ONE cron run wipe the entire bucket, irreversibly. Concept
-  (a) an orphan-sweep **circuit-breaker** (abort if a run would delete more than a sane count/percentage;
-  a media-table health precondition; soft-delete-then-confirm) as the urgent interim guard, and (b) a real
-  **backup/redundancy** mechanism (R2 versioning / cross-bucket or cross-region replication / periodic
-  export). Design-first (ADR + phased plan, interim guard first). Cost-frugal.
+  matching `media` row — so a DB loss/unlink (bad migration, snapshot restore, mass delete, RLS/query bug)
+  could let ONE run wipe the bucket irreversibly. Decided in
+  [ADR-0013](adr/0013-media-durability-orphan-sweep-safety-and-backup.md); master plan
+  `.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`. **(A, DONE)** in-app orphan-sweep
+  **circuit-breaker** ([orphan-guard.ts](../src/lib/r2/orphan-guard.ts) `evaluateOrphanSweep` + the wiring in
+  `sweepOrphans`): trips (delete nothing + Sentry + deduped operator email) if `media` is empty, or candidates
+  exceed an absolute cap (1000) / a fraction (25%) of objects scanned. _Note: the `media` table is currently
+  empty, so the breaker is protectively ACTIVE pre-launch — reclaim intentional orphans via a force-purge path,
+  not the guarded cron._ **(B, NEXT — own plan)** real-time **Cloudflare Worker** (R2 event notifications →
+  Queue → consumer Worker) **+ a cron reconciliation Worker**, copying to a **second R2 bucket** (different
+  region, IA, **Bucket Lock** ≥ 30-d WORM) — Workers Paid ~$5/mo, zero egress, off Vercel; **Backblaze B2**
+  cross-vendor tier added later. **(C, after B)** keep Supabase **Pro** daily backups + a scheduled off-site
+  `pg_dump` → the locked bucket (`db/`); defer PITR ($100–400/mo). Findings: R2 has no native
+  versioning/replication; Bucket Lock GA + free; R2↔R2 egress free.
+- **Vercel cost & scale optimization (document → own plan).** Posture captured in ADR-0013 / the master plan.
+  Levers, in priority: the **12 s guest gallery poll** (`event-experience.tsx` `POLL_MS` → `/api/guests/gallery`,
+  ~7,200 invocations/guest/day) is the top driver — move to **Supabase Realtime** or conditional ETag/304s;
+  **front Vercel with Cloudflare** at launch (DNS already migrating there → cuts bandwidth + free DDoS/bot
+  protection); set Vercel **Spend Management** hard cap + usage alerts on Pro; `proxy.ts` runs `getUser()` per
+  request (revisit matcher scope); keep media on raw `<img>` + presigned R2 (already $0 image optimization).

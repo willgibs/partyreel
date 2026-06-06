@@ -224,6 +224,13 @@ hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads
 `host_active_bytes()`, so deleting frees cap room now). R2 helpers:
 [delete.ts](../src/lib/r2/delete.ts) (`parseMediaIdFromKey`).
 
+**Orphan-sweep safety + backup (ADR-0013).** The orphan sweep is guarded by a **circuit-breaker**
+(`evaluateOrphanSweep`, [orphan-guard.ts](../src/lib/r2/orphan-guard.ts)): it deletes NOTHING and alerts
+(Sentry + a deduped operator email) when the `media` table is empty or the orphan set exceeds an absolute
+(1000) / fractional (25% of objects scanned) cap, so a DB fault can't let one run wipe the (un-backed-up)
+bucket. Real durability is the next two pillars (not yet built): a real-time **Cloudflare Worker** copying
+every object to a **Bucket-Locked second R2 bucket** (different region, IA), plus an off-site `pg_dump`.
+
 **Host-facing recovery (Phase 3)** — `restore_media` / `restore_event` / `purge_media_now`: authenticated,
 ownership-gated SECURITY DEFINER RPCs (0029-only; explicit `revoke … from anon`). Restore is
 **capacity-gated against the base cap** (no +10% buffer; refuse `insufficient_space` + `needed_bytes` when

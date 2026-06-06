@@ -38,6 +38,8 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   + new IDs: CLAUDE.md "Infrastructure ownership"; runbook
   `.claude/plans/we-ve-basically-been-setting-optimized-sutton.md`.
 
+- **Media durability (ADR-0013) — Pillar A (orphan-sweep circuit-breaker) implemented 2026-06-06 (uncommitted; tests/typecheck/lint green).** The cron's orphan sweep now deletes nothing + alerts if the `media` table is empty or the orphan set is pathological, so a DB fault can't wipe the un-backed-up R2 bucket. Pillars B (real-time CF Worker → Bucket-Locked 2nd R2 bucket) + C (off-site `pg_dump`) are next, each its own plan. Master plan: `.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`. _Note: `media` is currently empty, so the breaker is protectively active pre-launch._
+
 - **Security hardening initiative — Phase 1 (events lockdown) + Phase 2 (broad white-hat sweep) SHIPPED
   + DEPLOYED + LIVE-VERIFIED on partyreel.com (2026-06-04; ADR-0014).** Phase 1 (migration
   `…163011_lock_down_events_write_grant`, app commit `ba8c08f`): Closed a live CVE: `events` kept Supabase's default grant, so a free host could

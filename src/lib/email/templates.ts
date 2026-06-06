@@ -144,6 +144,30 @@ export function contactFormEmail(opts: {
   };
 }
 
+// Internal operator alert — the orphan-sweep circuit-breaker tripped (ADR-0013). NOT host-facing,
+// so it skips layout()'s "you host an event" footer (mirrors contactFormEmail). No CTA: this is a
+// "go investigate" page, not a click-through. Sent at most once per (reason, day) via sendOnce.
+export function orphanBreakerEmail(opts: {
+  reason: string;
+  candidates: number;
+  mediaCount: number;
+  objectsScanned: number;
+}): { subject: string; html: string } {
+  return {
+    subject: `[Partyreel] Orphan-sweep blocked: no objects deleted (${opts.reason})`,
+    html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
+  <h1 style="font-size:18px;font-weight:700;">Orphan-sweep circuit-breaker tripped</h1>
+  <p style="margin:8px 0;">The daily purge cron's orphan sweep was about to delete an unusually large set of R2 objects, so it was blocked. <strong>No objects were deleted.</strong></p>
+  <p style="margin:4px 0;"><strong>Reason:</strong> ${esc(opts.reason)}</p>
+  <p style="margin:4px 0;"><strong>Orphan candidates:</strong> ${opts.candidates}</p>
+  <p style="margin:4px 0;"><strong>Objects scanned this run:</strong> ${opts.objectsScanned}</p>
+  <p style="margin:4px 0;"><strong>Media rows in DB:</strong> ${opts.mediaCount}</p>
+  <p style="margin:16px 0 4px;"><strong>What to check:</strong> confirm the Supabase <code>media</code> table is intact (not mid-restore, not a bad migration, not an RLS/query bug). If the DB is healthy and these really are orphans, run an explicit one-off purge with the breaker overridden. If not, the sweep correctly protected the bucket.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (orphan-sweep safety, ADR-0013). Sent at most once per day per reason.</p>
+</div>`,
+  };
+}
+
 // Internal operator notification for a /careers application. Reply-To = the applicant.
 export function applicationReceivedEmail(opts: {
   role: string;
