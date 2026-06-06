@@ -33,6 +33,9 @@ const eslintConfig = defineConfig([
     // this `pnpm lint` would walk thousands of generated chunks. Skills/config here
     // aren't app source either.
     ".claude/**",
+    // Cloudflare Workers (workers/*) are separately-deployed artifacts (Workers runtime, their own
+    // tsconfig/types/deploy), NOT part of the Next app. They're linted within their own package.
+    "workers/**",
   ]),
 ]);
 

@@ -1,0 +1,36 @@
+{
+  // Partyreel media-backup Worker (ADR-0013, Pillar B). Deployed SEPARATELY via `wrangler deploy`
+  // from this directory — it is NOT part of the Next.js app or the Vercel build.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "partyreel-backup",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-01",
+  "observability": { "enabled": true },
+
+  // Native R2 bindings (no S3 creds in the Worker). PRIMARY is the live bucket; BACKUP is the
+  // different-region, IA, Bucket-Locked copy. The human creates `partyreel-backup` first (README).
+  "r2_buckets": [
+    { "binding": "PRIMARY", "bucket_name": "partyreel" },
+    { "binding": "BACKUP", "bucket_name": "partyreel-backup" },
+  ],
+
+  // Consumer for the R2 object-create event notifications (the human wires the bucket -> queue
+  // subscription with `wrangler r2 bucket notification create ... --prefix events/`). Poison
+  // messages land in the DLQ after max_retries.
+  "queues": {
+    "consumers": [
+      {
+        "queue": "partyreel-backup",
+        "max_batch_size": 10,
+        "max_batch_timeout": 30,
+        "max_retries": 5,
+        "max_concurrency": 3,
+        "dead_letter_queue": "partyreel-backup-dlq",
+      },
+    ],
+  },
+
+  // Daily reconciliation sweep (05:00 UTC, after the app's 04:00 purge cron) — backstop for any
+  // missed event + the initial seed of pre-existing objects.
+  "triggers": { "crons": ["0 5 * * *"] },
+}

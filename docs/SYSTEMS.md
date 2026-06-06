@@ -228,8 +228,9 @@ hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads
 (`evaluateOrphanSweep`, [orphan-guard.ts](../src/lib/r2/orphan-guard.ts)): it deletes NOTHING and alerts
 (Sentry + a deduped operator email) when the `media` table is empty or the orphan set exceeds an absolute
 (1000) / fractional (25% of objects scanned) cap, so a DB fault can't let one run wipe the (un-backed-up)
-bucket. Real durability is the next two pillars (not yet built): a real-time **Cloudflare Worker** copying
-every object to a **Bucket-Locked second R2 bucket** (different region, IA), plus an off-site `pg_dump`.
+bucket. Real durability: **Pillar B** — the real-time **Cloudflare Worker** in `workers/backup/` copying every object
+to a **Bucket-Locked second R2 bucket** (different region, IA) — is **DEPLOYED + DR-drill-verified** (2026-06-06:
+~15 s replication, the lock blocks deletion, restore works); **Pillar C** (an off-site `pg_dump`) is next.
 
 **Host-facing recovery (Phase 3)** — `restore_media` / `restore_event` / `purge_media_now`: authenticated,
 ownership-gated SECURITY DEFINER RPCs (0029-only; explicit `revoke … from anon`). Restore is

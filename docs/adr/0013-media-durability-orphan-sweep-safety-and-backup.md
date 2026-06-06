@@ -1,7 +1,9 @@
 # ADR-0013 — Media durability: orphan-sweep safety rails + immutable backup
 
-- **Status:** Accepted (2026-06-06). **Pillar A (orphan-sweep circuit-breaker) implemented.**
-  Pillars B (media backup) + C (DB backup) designed + sequenced as their own phases.
+- **Status:** Accepted (2026-06-06). **Pillar A implemented** (commit `6f151c5`). **Pillar B DEPLOYED +
+  DR-drill-verified** (2026-06-06): the `workers/backup/` Worker replicates `events/` media to the WNAM
+  `partyreel-backup` bucket (IA, 35-day Bucket Lock). Drill: ~15 s replication, lock blocks deletion, restore
+  works, and the > 100 MB multipart copy path verified (130 MB byte-identical). **Pillar C** (DB backup) next.
 - **Phase:** one-off task (post-roadmap). Build steps + sequencing live in the master plan
   [`.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`](../../../.claude/plans/we-ve-recently-pushed-a-breezy-nest.md)
   (supersedes the first-pass `.claude/plans/media-durability-backup.md`).
@@ -90,15 +92,16 @@ admin route with a `force` flag + raised cap.
 **Optional Phase-1b (deferred):** two-phase quarantine (record candidates, delete only those still
 orphaned a run later) — heals transient unlink blips. The breaker already covers the catastrophic case.
 
-### Pillar B — Immutable media backup  ·  DEDICATED PLAN (infra-heavy)
+### Pillar B — Immutable media backup  ·  DEPLOYED + DR-drill-verified (`workers/backup/`)
 
 Real-time, append-only, immutable copy of all media, run entirely on **Cloudflare** (zero egress, off
 Vercel, scales O(uploads)):
 
 - **Backup target = a second R2 bucket** `partyreel-backup`, **different region** than ENAM, storage
   class **IA**, with a **Bucket Lock** retention ≥ the 30-day recovery window → WORM/tamper-proof DR
-  window nothing can delete (cron, compromised token, bug, ransomware). Append-only + a backup-side
-  lifecycle expiration past the lock window → bounded storage. _(Chosen over B2 first because the Worker
+  window nothing can delete (cron, compromised token, bug, ransomware). Append-only + **keep-all** for now
+  (a blanket age-from-creation expiry would drop backups of STILL-LIVE media); bound storage later with a
+  **deletion-aware prune** (drop a backup object once its primary is gone AND past the finite lock). _(Chosen over B2 first because the Worker
   binds two R2 buckets natively — simplest/most-robust at scale, zero egress; R2-durability is not a
   concern here. **B2 added later** as the cross-vendor + cheaper-$/TB tier when paid revenue justifies it.)_
 - **Replication Worker** (`workers/backup/`): R2 **event notification** (object-create) → **Queue** →

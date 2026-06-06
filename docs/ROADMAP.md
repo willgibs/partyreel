@@ -298,7 +298,7 @@ details beyond a template feel.
   TTL); revisit a proxy/caching approach only if albums get huge.
 - **Cold storage for the storage tail** — evaluated + rejected (R2 IA only ~33% cheaper; Glacier
   = cross-cloud project). Revisit an R2 IA lifecycle rule only if tail cost grows.
-- **Media durability (HIGH-RISK gap) — Pillar A SHIPPED 2026-06-06; B + C designed, next.** ALL user
+- **Media durability (HIGH-RISK gap) — Pillar A SHIPPED; Pillar B Worker authored (pending deploy); C designed.** ALL user
   media lives in ONE R2 bucket with NO backup, and the daily cron's `sweepOrphans`
   ([api/cron/purge/route.ts](../src/app/api/cron/purge/route.ts)) HARD-deletes any R2 object with no
   matching `media` row — so a DB loss/unlink (bad migration, snapshot restore, mass delete, RLS/query bug)
@@ -309,7 +309,7 @@ details beyond a template feel.
   `sweepOrphans`): trips (delete nothing + Sentry + deduped operator email) if `media` is empty, or candidates
   exceed an absolute cap (1000) / a fraction (25%) of objects scanned. _Note: the `media` table is currently
   empty, so the breaker is protectively ACTIVE pre-launch — reclaim intentional orphans via a force-purge path,
-  not the guarded cron._ **(B, NEXT — own plan)** real-time **Cloudflare Worker** (R2 event notifications →
+  not the guarded cron._ **(B, AUTHORED — `workers/backup/`, pending human deploy)** real-time **Cloudflare Worker** (R2 event notifications →
   Queue → consumer Worker) **+ a cron reconciliation Worker**, copying to a **second R2 bucket** (different
   region, IA, **Bucket Lock** ≥ 30-d WORM) — Workers Paid ~$5/mo, zero egress, off Vercel; **Backblaze B2**
   cross-vendor tier added later. **(C, after B)** keep Supabase **Pro** daily backups + a scheduled off-site
@@ -321,3 +321,14 @@ details beyond a template feel.
   **front Vercel with Cloudflare** at launch (DNS already migrating there → cuts bandwidth + free DDoS/bot
   protection); set Vercel **Spend Management** hard cap + usage alerts on Pro; `proxy.ts` runs `getUser()` per
   request (revisit matcher scope); keep media on raw `<img>` + presigned R2 (already $0 image optimization).
+- **Avatars → Supabase Storage (queued — dedicated agent; ADR-0013 / master plan).** Avatars currently live in R2
+  (`avatars/<uid>/avatar.webp`, overwrite-in-place); move them to Supabase Storage (public bucket + `profiles.avatar_url`
+  + RLS, CDN + resize). Account metadata belongs with the profile, it inherits Supabase Pro backups (closes the
+  avatar-durability gap), drops the per-render presign, and declutters R2 to pure event media. Migration of a working
+  feature; no new cost (Storage is in Pro). Order-independent vs. the media-backup Worker (which excludes avatars).
+- **Unified per-upload size limit + per-event upload config (queued — dedicated agent).** Replace per-type limits
+  (video 2 GB/5 min, photo 50 MB, avatar 512 KB) with a single **per-upload ceiling = min(remaining storage, ~5 GB)**,
+  enforced at presign. **Decisions (locked):** video stays **Pro-only** (Free = images, the upgrade driver); keep a
+  **very generous** upload duration cap (the highlight reel excludes over-length clips, not the upload); add a per-event
+  **`max_upload_bytes`** host config. **Upload-side optimization** (transcode/compress) is a separate, documented-only
+  future task. The backup Worker is already built for R2's ~5 GB ceiling, so no backup rework.
