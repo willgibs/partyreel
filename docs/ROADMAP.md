@@ -1,357 +1,104 @@
-# Partyreel — What's next / backlog
+# Partyreel — What's next
 
-> The v1 foundation shipped (the phased roadmap is complete — what exists is mapped in
-> [`SYSTEMS.md`](SYSTEMS.md)). The project is now in **one-off task mode**: a goal becomes its
-> own small plan. This file is the parking lot — deferred work + decisions kept ready so a new
-> agent needs only a goal. [`STATUS.md`](STATUS.md) is you-are-here; [`CLAUDE.md`](../CLAUDE.md)
-> is the operating guide; [`PRD.md`](PRD.md) is the product why; [`adr/`](adr/) holds decisions.
+> ROLE: what MIGHT be next — the curated upcoming work + the buckets where deferred work accrues.
+> BELONGS HERE: directly-upcoming tasks · the major-overhaul buckets · the launch checkpoint. · NOT HERE: how the system works (→ [`systems/`](systems)), the build history (→ [`CHANGELOG.md`](CHANGELOG.md)), current state (→ [`STATUS.md`](STATUS.md)), the comprehensive/speculative backlog (tracked outside these docs).
+> GROWS BY: prune (delete a line when it ships or is dropped) + append one-liners under the right bucket.
+
+**Provisional + non-binding.** Everything here is a CANDIDATE that may change — it is **not a spec, not an
+invariant**, and **must not constrain current implementation** (don't bend today's feature to fit a line
+below). An item is only "real" once it's **picked up into its own plan** (we re-plan per task, the house
+pattern). The load-bearing "what exists / don't-revert" layer is [`systems/`](systems); this file is just
+the shortlist of what could come next.
+
+**Where deferred work goes (the one rule):** when you defer something, add it as a **one-liner under the
+matching overhaul bucket or the launch checkpoint** below — never an inline "Deferred:" note elsewhere.
+When that overhaul finally runs, its whole accrued task log is already sitting here.
 
 ## Picking up a task
 
 A fresh agent given a goal can run this loop (defaults, not rails — use judgment):
 
-1. **Orient** — [`STATUS.md`](STATUS.md) (you-are-here + human blockers), then the relevant
-   [`SYSTEMS.md`](SYSTEMS.md) entry (what exists + invariants + the files); skim the linked
-   ADR/PRD for the why.
-2. **Doc-check** — before coding, pull current docs for the libraries/services the task touches
-   via the **Context7 MCP** (this stack drifts; see CLAUDE.md "Tooling").
-3. **Plan** — for anything non-trivial, write a short plan and clarify open product/UX choices
-   with the human (AskUserQuestion) **before** building. Reuse the DRY single-sources (CLAUDE.md).
+1. **Orient** — [`STATUS.md`](STATUS.md) (you-are-here), then the relevant [`systems/`](systems) doc (what
+   exists + invariants + the files; start at [`systems/README.md`](systems/README.md)); skim the linked
+   ADR for the why.
+2. **Doc-check** — before coding, pull current docs for the libraries/services the task touches via the
+   **Context7 MCP** (this stack drifts; see CLAUDE.md).
+3. **Plan** — for anything non-trivial, write a short plan and clarify open product/UX choices with the
+   human **before** building. Reuse the DRY single-sources (CLAUDE.md).
 4. **Build** — leave WHY-comments; use the MCPs (Supabase, R2, Vercel, Stripe) directly.
-5. **Test** — Vitest for pure logic + a rolled-back Supabase-MCP RPC contract check for any new
-   SQL; run `pnpm typecheck && lint && test && build` + `format`. After DDL run `get_advisors`.
-6. **Verify on partyreel.com** — host UI is auth-gated and auth/upload/email can't complete on
-   localhost (see CLAUDE.md "Local dev vs. live testing"); deploy + drive Chrome (+ the Supabase
-   MCP to seed/inspect state — test data is disposable).
-7. **Record** — advance STATUS + the SYSTEMS entry + this backlog + any ADR, same change.
+5. **Test** — Vitest for pure logic + a rolled-back Supabase-MCP RPC contract check for any new SQL; run
+   `pnpm typecheck && lint && test && build`. After DDL run `get_advisors`.
+6. **Verify on partyreel.com** — auth/upload/email/checkout can't complete on localhost (see CLAUDE.md);
+   deploy + drive Chrome, antagonistically (red-team the change), + the Supabase/R2 MCPs to seed/inspect.
+7. **Record (subtractively)** — update the owning `systems/` doc in place, move any shipping narrative to
+   [`CHANGELOG.md`](CHANGELOG.md), prune what your change made stale, and log any new deferred task as a
+   one-liner under its bucket here.
 
-## 🚧 Admin / operations portal (in progress)
+## Now (concrete, pick-up-able)
 
-A large, multi-round internal portal so Will can run Partyreel (and later invite teammates) instead of
-reading operator data by hand in SQL/MCP. Overarching plan + locked decisions: the approved plan file +
-SYSTEMS "Admin / operations portal". **Each phase gets its own dedicated planning round.** Decisions:
-solo hardened admin now / team later via the one `requireAdmin()` seam (no RBAC tables yet);
-`admin.partyreel.com` subdomain in THIS app; free TOTP MFA (AAL2); **Sentry** for errors (free
-Developer tier, pay only when a team is added); defer the admin-action audit log.
+- **Deletion-aware backup prune** — the inverse of the orphan sweep; bounds the keep-all backup bucket as
+  media churns (natural follow-on to the just-built backup). Handle with the orphan-sweep's care — see the
+  circuit-breaker symmetry + the "primary is 0 B today" landmine in [`systems/durability-backups.md`](systems/durability-backups.md).
+- **Per-photo uploader attribution** on gallery tiles — note: guest display names were removed (cut 2b), so
+  a name only exists for verified-email guests + host uploads, never anonymous guests (decide the UX). See
+  [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
+  like the reel). Per-item Save already ships.
+- **Avatars → Supabase Storage** (own round) — move avatars off R2 to a public Storage bucket +
+  `profiles.avatar_url`; closes the avatar-durability gap (Pro backups), drops the per-render presign,
+  declutters R2 to pure event media. See [`systems/auth-accounts.md`](systems/auth-accounts.md).
+- **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
+  with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
+  Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **Per-IP rate-limiting for `create_report` + the presign routes** — the deferred edge pass (the unlock
+  limiter is already in place). See [`systems/database-security.md`](systems/database-security.md).
+- **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
+- **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
+- **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
+  be driven via the Chrome MCP).
 
-1. ✅ **R1 — Perimeter + auth foundation (SHIPPED + LIVE-VERIFIED on admin.partyreel.com).** Subdomain
-   routing (proxy root-redirect + layout host-guard so the apex 404s `/admin`), the `requireAdmin`/
-   `requireAdminAction` seam ([admin-context.ts](src/lib/auth/admin-context.ts)), lockout-proof MFA
-   enroll/step-up, `AdminShell`, host-aware login, and the report review migrated out of `(app)/admin`
-   into `/admin/reports`. No schema change. Chrome-MCP verified end-to-end (apex 404, perimeter, the
-   `?next=` callback fix, MFA→AAL2, report dismiss/action DB-confirmed; a `toLocaleString` hydration
-   #418 caught + fixed). The host-aware auth callback (`8c7a237`) is a shared win for any future subdomain.
-2. ✅ **R2 — Sentry error tracking (SHIPPED + LIVE-VERIFIED).** `@sentry/nextjs@10.55` app-wide: `instrumentation.ts` + `onRequestError` (auto-captures
-   unhandled throws incl. the proxy), server/edge/client configs sharing one DSN-gated `commonInit`
-   ([lib/observability/sentry.ts](src/lib/observability/sentry.ts)); `withSentryConfig` Turbopack
-   post-build source maps (`useRunAfterProductionCompileHook`). Errors + 10% tracing + **on-error
-   Session Replay** (`blockAllMedia` + `maskAllText`). Manual `captureError`/`captureWarning` only at the
-   SWALLOWED paths (upload finalizer, webhook provisioning + signature, all 7 cron sweeps via a `runSweep`
-   helper, admin report actions); everything else rides `onRequestError`. Sentry stays out of the data
-   layer. No DB change. DSN unset = clean no-op (gate stays green).
-3. ✅ **P3 — Support & moderation inbox (SHIPPED + LIVE-VERIFIED).** `/admin/support` (triage
-   `contact_submissions`) + `/admin/applicants` (triage `job_applications`): status workflow
-   (`new`/`in_progress`/`closed` via the single-source `triage.ts` + a DB CHECK), reply-from-inbox
-   `mailto` links, a server-rendered status filter, and Overview count badges. Reports gained an
-   Open/All filter (`listReports`) with resolved rows read-only. Additive migration added
-   `handled_by`/`handled_at` (RLS unchanged). Chrome-MCP verified end-to-end (status change DB-confirmed,
-   filters, mailto, reports history, apex 404, no hydration errors).
-4. ✅ **P4 — Accounts & billing (SHIPPED + LIVE-VERIFIED).** `/admin/accounts`: a read-only host browser
-   (search by email/name) + a detail view of tier + subscription/Event-Pass state + ACTIVE storage vs
-   effective cap (and the raw `storage_used_bytes` counter) + event/media counts + a test/live-aware Stripe
-   customer deep-link. **Read-only by design** (no migration, no writes): billing changes go through Stripe
-   (the webhook stays the SOLE writer of tier/cap/subscription), promo codes are managed in Stripe (no
-   in-portal coupon surface). Service-role reads ([queries/accounts.ts](src/lib/db/queries/accounts.ts))
-   reuse the over-capacity sweep's active-bytes query; `buildStripeCustomerUrl`
-   ([dashboard.ts](src/lib/stripe/dashboard.ts)) is pure + unit-tested (test/live from the key prefix).
-   Chrome-MCP verified on admin.partyreel.com: list + search-filter, both real accounts' details matched
-   Supabase exactly (willg97 52.5 KB active / 2 GB cap / 2.6 MB raw / 1 event / 3 media), Stripe links →
-   the correct TEST customer, apex `/admin/accounts` 404, console clean.
-5. ✅ **P5 — Proactive album moderation (SHIPPED + LIVE-VERIFIED).** `/admin/albums`: a recent-uploads
-   feed across all events (status-filterable) + an album drill-in (event metadata + per-status counts +
-   the full media grid). Direct **soft-remove** (reuses the reports "Action" shape — `status='removed'` +
-   `removed_at`; the 7-day purge cron reclaims; pulls from every public album/gallery instantly) +
-   **restore** within the grace. Reuses the R2 presign + `MediaTile`/`MediaLightbox` render path
-   ([queries/moderation.ts](src/lib/db/queries/moderation.ts), [moderation-grid.tsx](src/components/admin/moderation-grid.tsx));
-   writes via `requireAdminAction` (AAL2) + the service-role client. No migration, no new RPC, no new
-   grants. Chrome-MCP verified on admin.partyreel.com (remove → DB `removed` + `get_public_album` 3→2 +
-   the public `/a/` album showed 2; restore → 3 again; apex 404; console clean). Immediate hard-purge for
-   egregious content deferred.
-6. **P6 — Analytics & metrics** — platform-wide operator dashboard. Split into two cuts (numbers first,
-   then charts) so the new charting dependency never blocks shipping the metrics.
-   - ✅ **P6a — dashboard, numbers + live revenue (SHIPPED + LIVE-VERIFIED).** `/admin/metrics`: KPI stat
-     cards across accounts / content+storage / engagement / growth + a live Stripe revenue card (MRR +
-     balance, best-effort → graceful "unavailable"). Migration-free: a service-role aggregator
-     ([queries/metrics.ts](src/lib/db/queries/metrics.ts)) of `head:true` counts + small fetches fed to
-     pure, unit-tested reducers ([lib/metrics/aggregate.ts](src/lib/metrics/aggregate.ts)); revenue via the
-     existing `getStripe` (pure `computeMrrCents`). "Media" inner-joins events for consistency with the
-     active-events count. Chrome-verified: KPIs matched a Supabase cross-check, revenue matched the Stripe
-     MCP (test-mode $0 MRR / $41.15 pending), apex 404, console clean.
-   - ✅ **P6b — charts (SHIPPED + LIVE-VERIFIED).** `recharts` line + bar charts on `/admin/metrics`
-     (signup + scans/views trends, tier / media-type / newsletter-source bars), grayscale + the coral
-     accent ([metrics-charts.tsx](src/components/admin/metrics-charts.tsx)). Per-day trends are pure
-     builders over the rows P6a already fetched (no new query, no migration). recharts 3.8.1 + a `react-is`
-     pnpm override for React 19; recharts `ResponsiveContainer` is seeded with `initialDimension` (no
-     ResponsiveContainer size warning). Chrome-verified: charts reconcile with the KPIs, console clean.
-7. ✅ **P7 — Header nav dropdown + operator alerts + announcements UI (SHIPPED + LIVE-VERIFIED).** The 8+
-   -item nav bar collapsed into a single active-aware dropdown ([admin-nav.tsx](src/components/admin/admin-nav.tsx));
-   a header operator-alerts bell surfaces pending work portal-wide (reusing the existing
-   support/applicants/reports count queries); and `/admin/announcements` is an operator compose/publish
-   surface (optional CTA link + scheduling + delete) writing the existing `announcements` table via an
-   AAL2-gated action — hosts read it through the unchanged notification center. Migration-free.
-   Chrome-MCP verified (nav active state, alerts bell vs DB, publish→host-visible→delete, apex 404, console
-   clean). **The blog/help/careers CMS was DEFERRED** — that content stays file-based (blog/help MDX in
-   `content/`, careers in `src/lib/constants/careers.ts`), edited in-repo via PR.
-8. **P8 — Backend operations & observability (PLANNED — dedicated round).** A first-class operator surface
-   for EVERY backend system, so the platform can be run + monitored entirely from `/admin` with **zero
-   agent/codebase work needed to manage it** and **zero possibility of a silent failure**. Global principle
-   (Will, 2026-06-07): _every backend system must be 100% manageable in the admin portal and emit
-   logs/health feedback that prove it ran correctly — a failure is always visible, never silent._ Scope:
-   - **Durability + lifecycle jobs surfaced + monitored:** the daily lifecycle cron (every sweep), the
-     off-site DB backup (GH Action), and the media-backup Worker (+ its DLQ) each report **last-run time,
-     outcome, and a freshness/health status** in `/admin` — with an explicit ALERT when a job hasn't
-     succeeded within its expected window (a missing nightly backup must page, not pass quietly).
-   - **Backup integrity at a glance:** newest `db/` dump (age + size), last restore-test result, backup-bucket
-     size/object count + lock status, and the orphan-sweep breaker's last decision.
-   - **Manageable, not just visible:** safe operator actions behind the AAL2 `requireAdminAction` seam
-     (trigger a backup/reconcile run, kick a restore-test, acknowledge/snooze an alert), replacing today's
-     manual `gh workflow run` / `wrangler` / SQL.
-   - **Logs/feedback hub:** surface the relevant Sentry issues + cron/Worker run history in-portal so Will
-     can check in, confirm health, and spot an error fast.
-   Likely needs a small `job_runs`/health table (jobs heartbeat their outcome) and/or reads of the GH
-   Actions / Cloudflare / Sentry APIs — decided in its own planning round. **Generalize the rule: when
-   building ANY new backend job, ship its admin management + health signal in the SAME change** (capture
-   the signal at the source, like the notification-center pattern) so this surface never has to be retrofitted.
+## Major overhauls (each its own planning round; drop related deferred tasks here)
 
-This completes the SHIPPED admin-portal phases (R1–P7); **P8 (backend ops & observability) is the next
-queued round.** Remaining admin backlog is opportunistic: the content CMS (deferred above), an
-operator-action audit log (solo admin), per-announcement edit + read receipts, and live-Stripe
-subscription health on the account detail (logged in their phases).
+- **Notification system** — the announcements overhaul · new bell signals (link-activity "new since last
+  seen" deltas; billing `past_due` alerts, needs a denormalized flag on `profiles`) · a durable per-item
+  feed + real-time push · per-item announcement un-read toggling. Build the foundational features first so
+  we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
+- **Admin / operations portal** — **P8 backend-ops & observability (the priority piece):** every backend
+  job (the cron sweeps, the media-backup Worker + DLQ, the DB backup) manageable + health-surfaced in
+  `/admin` with zero silent failures (a missing nightly backup pages, never passes quietly). Also: an
+  operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription health on
+  the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
+- **Vercel / Next.js optimization** — the **12s guest-gallery poll** (`event-experience.tsx` →
+  `/api/guests/gallery`, the top cost driver) → Supabase Realtime or conditional ETag/304s · front Vercel
+  with Cloudflare at launch (DNS already migrating there) · Vercel Spend-Management hard cap + alerts ·
+  revisit the `proxy.ts` per-request `getUser` matcher scope · a large-gallery presigned-read strategy
+  (proxy/cache vs the current per-request presign).
+- **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
+  `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
+- **Highlight reel (Tabled — needs a product + architecture decision first)** — stitch a reel from the best
+  clips (core-loop step 5). Scaffold exists; transcode/stitch runs in an **external worker, NOT Vercel**
+  (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg on Cloudflare Containers),
+  trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating. See [`systems/host-app.md`](systems/host-app.md).
 
-## ✅ Done — marketing site full build-out (all 7 rounds)
+## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
-Expanded the scaffolded marketing site into a launch-ready, "as-if-complete" site. One shared
-design system with the app — grayscale UI + the single **#FB4817** accent, media is the color;
-marketing just runs louder (type/layout/motion). Motion follows the in-repo `emil-design-eng`
-skill. All 7 rounds shipped (R1–R6 deployed + live-tested; R7 built + verified, deploy pending):
+- Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+- Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
+  (code unchanged); checklist in [`PRICING.md`](PRICING.md).
+- Tune `MONTHLY_INGRESS_BYTES.pro` `[eng]` — currently `null`/unmetered; set before Pro launch.
+- Real `/privacy` page `[content]` — replace the stub; include the drafted Sentry session-replay
+  disclosure line.
+- Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
+  event with catchy approved media.
+- Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks (needs a
+  paid Supabase branch or a local Postgres test DB).
+- Confirm the Sentry email-alert rule fires `[human]`.
+- Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — once the deletion-aware prune ships, the
+  "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing constraint goes away.
 
-1. ✅ **Foundation** — `marketing-nav.ts` single-source; config-driven header (dropdowns) + a
-   real mobile `Sheet` menu (there was none); multi-column footer; Org/Website/Breadcrumb
-   JSON-LD + a shared `SITE_URL`/brand constant; **#FB4817** accent + wider `Container`
-   (`max-w-7xl`) — both global, shared with the app.
-2. ✅ **Features** (`/features`) + `features.ts` single-source; highlight-reel elevated to a marquee.
-3. ✅ **Use cases** (renamed → **`/events`** in the polish arc below) — hub + 4 umbrella landing pages
-   (weddings / parties / conferences / trips), per-page OG + breadcrumb/FAQ JSON-LD; shared `album-frame`.
-4. ✅ **Contact** — form → `contact_submissions` (deny-all RLS) + best-effort Resend notify
-   (ADR-0005); deployed + Chrome-tested live (happy path, validation, honeypot, XSS-escaping).
-5. ✅ **Careers** — mission-focused hub + 2 roles (General Application + a fully-specified Reels
-   Engineer) → `job_applications` (same pattern); deployed + Chrome-tested live.
-6. ✅ **Help center** (`/help` + `/help/[slug]`) — new in-repo **MDX content pipeline**
-   (`content/help/*.mdx` + gray-matter + `next-mdx-remote/rsc` + build-time zod frontmatter validation;
-   [ADR-0006](adr/0006-mdx-content-pipeline.md)); categorized index + client-side search; **12 launch
-   articles**; per-article on-this-page TOC / related / Breadcrumb+Article JSON-LD / Contact CTA;
-   first-party MDX components (Callout / AlbumShowcase / inline limits-tiers spec components) + a
-   `prose-help` typography theme; `Resources ▾` header dropdown + footer column (Help + Contact). No DB
-   changes. **R7 reuses this pipeline.**
-7. ✅ **Blog** (`/blog` + `/blog/[slug]`) — the FINAL round. Reused the R6 pipeline via a generalized
-   **`content/collection.ts`** core (`help.ts`/`blog.ts` are thin wrappers); a date-sorted index with a
-   **client-side tag filter**, per-post pages (named-author byline, reading time, TOC, related, per-post
-   `next/og` card, Article JSON-LD with a `Person` author), and a **build-static RSS 2.0 feed**
-   (`/blog/feed.xml`, hand-rolled, no dep). A client-safe **authors registry** + **4 launch posts**; Blog
-   joins the `Resources ▾` nav. No DB changes.
+## Speculative / longer-horizon backlog
 
-**The 7-round build-out is complete.** _(Each round got its own focused plan file.)_
-
-## 🚧 Marketing polish arc — refining the complete build-out
-
-Post-build-out polish in focused rounds (each its own plan file; dedicate more per round as we go).
-**Whole-arc copy policy: NO em-dashes (`—`) in site/app copy** (reads as an AI tell) — see CLAUDE.md +
-memory. **Bar: max creative resources per page** — distinctive human copy, a *unique* visual
-presentation per page (the frame library is a vocabulary of frames, never one visual reused), UI
-details beyond a template feel.
-
-1. ✅ **Rename "Use cases" → "Events"** — `/use-cases` → `/events`; `events.ts` (`EVENT_TYPE*`, avoiding
-   the real `events` domain); nav `Events ▾` + footer column; all copy + internal links. No 301s (no
-   traffic / external links yet; old `/use-cases*` now 404). Cleaner presentation + unblocks round 3.
-2. ✅ **Media-frame library + `/features` retrofit** — `components/marketing/frames/`: a `BrowserFrame`
-   base + `AlbumFrame` (moved) / `GalleryFrame` / `ReelFrame` (promoted from reel-teaser) / `PhoneFrame` /
-   `QrFrame` (demo-ready). `/features` rebuilt from 5 identical card grids into a QR hero + phone/gallery/
-   album spotlights + the reel marquee + a bespoke privacy panel + a storage keepsake pair
-   (`FeatureSpotlight` + `FEATURE_PRESENTATION`). Scrubbed 29 em-dashes from `features.ts` + a no-em-dash
-   guard test.
-3. ✅ **Interactive demo** — a real demo QR in marketing → a curated demo event (env var
-   `NEXT_PUBLIC_DEMO_QR_TOKEN`, no schema change); the `/e/[qr_token]` guest page runs in **demo mode**:
-   "uploads" are simulated client-side (optimistic `createObjectURL` tile, never persisted), reusing the
-   existing optimistic-tile path. `QrFrame` renders a real scannable QR (`liveQrUrl`) + a "Try the live demo"
-   home CTA. Env-gated (decorative when unset). _Built + verified via the gate + Preview MCP + **live on
-   partyreel.com** (simulated upload wrote **zero** DB rows, Supabase-confirmed); **deployed**, pointed at the
-   Share Step Test event as a stand-in. Pre-launch: swap in a curated event with catchy media (STATUS)._
-4. ✅ **Event landing pages retrofit** — a distinct hero frame per type (weddings→album, parties→phone,
-   conferences→QR decorative, trips→reel) AND a distinct "Built for X" layout per type (bento / rows /
-   quadrants / timeline), driven by `EVENT_PRESENTATION` ([events-layout.ts](src/lib/constants/events-layout.ts))
-   + the `eventFrame()` resolver + `BuiltFor`; the `/events` hub became a frame-preview showcase. Scrubbed
-   all event-copy em-dashes (+ a no-em-dash test guard). _Built + verified via the gate + Preview MCP
-   (all 4 pages + hub, mobile, console clean); deploy + Chrome spot-check pending._
-5. ✅ **Home pass (closes the arc)** — the home `FeatureHighlights` teaser leads with a `GalleryFrame`
-   spotlight + benefit list; the Events teaser shows the shared **`EventFrameCards`**
-   ([event-frame-cards.tsx](src/components/marketing/event-frame-cards.tsx)) — the same frame-preview cards
-   as the `/events` hub, single-sourced. Scrubbed the home + site-wide footer/`site.ts` em-dashes. _Built +
-   verified via the gate + Preview MCP (both teasers, hub unchanged, mobile, console clean, balanced frame
-   density); deploy + Chrome spot-check pending._ **The marketing polish arc is complete.**
-
-**Polish-arc follow-ups (each its own small plan):**
-- ✅ **Enrich the `/events` hub beyond a directory (DONE)** — the hub is now a real landing page: a hero
-  (headline + SEO overview) + the trust strip + the shared `EventFrameCards` + a cross-event benefits 4-up +
-  an aggregate FAQ with **FAQPage JSON-LD** (rich-result eligible), all single-sourced in the new `EVENTS_HUB`
-  block ([events.ts](src/lib/constants/events.ts)). The `<details>` FAQ was extracted to a shared
-  [FaqAccordion](src/components/marketing/faq-accordion.tsx) (hub + each `[slug]`). Gate + Preview verified.
-- ✅ **Em-dash sweep of the remaining marketing pages (DONE)** — recast all ~30 user-facing em-dashes across
-  [careers.ts](src/lib/constants/careers.ts) + the careers/contact/blog/help/pricing/terms/privacy pages + the
-  root OG card ([opengraph-image.tsx](src/app/opengraph-image.tsx)) into natural copy IN CONTEXT (colons for
-  lists, commas for asides, two sentences for trailing tags). **The whole marketing surface is now
-  em-dash-clean** — only code comments + the `.not.toContain("—")` test-guard literals remain. Verified by
-  grep + the gate (152 tests/build) + a Preview read. A durable **AST-based Vitest guard**
-  ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) now scans the marketing surface (string +
-  JSX copy, comments exempt) so this can't silently recur.
-- ✅ **Extend the no-em-dash policy to the `(app)`/`(guest)`/email surface (DONE)** — recast all ~30 remaining
-  user-facing em-dashes (host/guest/auth UI, error toasts, validation + API/DB messages, the transactional
-  email templates [email/templates.ts](src/lib/email/templates.ts), and 2 dev-facing thrown errors) into
-  natural copy in context. **Widened the guard's `SCAN` to `app` + `components` + `lib`** (the whole app) +
-  made it flag the `&mdash;` HTML entity too, so the ENTIRE user-facing surface is now em-dash-free +
-  regression-guarded (any new em-dash anywhere fails `pnpm test`). **No remaining em-dash debt.**
-
-## ⏸️ Tabled — needs a product + architecture decision first
-
-- **Highlight reel (Phase 5)** — stitch a highlight reel from the best clips (core-loop step 5).
-  Scaffold exists (`highlight_reels` + media reel fields; see SYSTEMS). **Hard constraint:**
-  transcode/stitch runs in an **external worker, NOT Vercel** (ADR-0003). **Central open fork:**
-  where the worker runs — a **managed video API** (e.g. Shotstack, ~$0.20–0.40/rendered min,
-  fastest) vs. **self-hosted ffmpeg on Cloudflare Containers** (same account as R2 = zero egress,
-  cheapest at scale, most to build). Also open: trigger (on-demand vs. auto-on-event-complete),
-  clip-selection algorithm (start heuristic), output format + `preview_key`/poster generation,
-  any tier-gating (PRD's no-watermark stance steers away from a reel watermark). Resume with a
-  short product + architecture spec; the "Generate reel" entry point appears in the host gallery
-  only when it ships.
-
-## Near-term follow-ups (ready to build; deferred from shipped cuts)
-
-- **OTP "Resend code" 60 s cooldown** — the resend button in
-  [email-sign-in.tsx](src/components/auth/email-sign-in.tsx) has no cooldown; with custom SMTP's 60 s
-  per-user min interval, an early re-tap silently no-ops. Add a 60 s countdown (disable + "Resend in
-  N s") matching the interval. Surfaced during Phase 3 live testing (2026-06-02). _(Two related
-  human/config items — enable signups before launch, and add `{{ .Token }}` to the Confirm-signup
-  email template so new users get a code — are tracked in [STATUS.md](STATUS.md) "Blocked on a human".)_
-- **Host 2FA (opt-in, Pro perk)** — let Pro-plan hosts enable TOTP 2FA on their own accounts. **Free**
-  (app-based TOTP), and reuses the admin MFA infra: generalize `mfa-enroll` / `mfa-challenge`
-  ([components/admin](src/components/admin)) + the AAL read out of the admin seam. Gate the opt-in
-  behind the Pro tier; keep the host `(app)` layout at AAL1 by default (don't force 2FA on all hosts)
-  and only enforce AAL2 for hosts who opted in. Will's idea (2026-06-01), surfaced while building the
-  admin portal. _(Account email+password now ships — [ADR-0011](adr/0011-email-password-auth.md) — so a
-  password + TOTP would be the full traditional 2FA story; the `verify_current_password` RPC + the
-  `/account` Security section are reusable seams.)_
-- **Privacy policy: Sentry session-recording disclosure (pre-launch; copy drafted).** The `/privacy`
-  page is still a stub ([privacy/page.tsx](src/app/(marketing)/privacy/page.tsx)); when the real policy
-  is written, include a line covering Sentry's on-error, media-blocked, text-masked Session Replay.
-  Drop-in draft (no em-dashes, matches the tone): _"Error monitoring and session replay: We use Sentry
-  to detect and diagnose technical errors. When an error occurs, Sentry may record a short,
-  privacy-masked replay of that session to help us fix it. These recordings block all images and video
-  and mask all text, so your photos, videos, and anything you type are never captured. We never use
-  session replay for advertising or analytics."_
-- **Notification center signals (extend the bell)** — link-activity "new since last seen" deltas
-  (from `link_stats`) and billing/payment alerts (needs a denormalized Stripe `past_due` flag on
-  `profiles` first). Each = one read in `getNotificationData` + one case in `buildNotifications`.
-- **Announcement compose UI** — a small `/admin` form to publish `announcements` (today they're
-  authored via SQL/MCP). Also deferred: a durable per-item notification feed + real-time push,
-  and per-item announcement un-read toggling (today's marker is "all caught up as of a timestamp").
-- **Host access gates** (Phase-3 deferral) — per-event settings that gate guest access: a
-  **passphrase** (emoji/short phrase) to upload and/or view, and **require-upload-to-view**
-  (optionally an item minimum). Each needs an event-settings field + a gate in the
-  capability-token guest-flow / album RPCs.
-- **Guest "email me the album" auto-send** — the growth-loop capture is email-only today; the
-  automatic album-link email (reusing `sendOnce`) was deferred.
-- **Album download — bigger cuts** (per-item Save shipped in the lightbox): a host **"Download all"
-  (zip)** export — heavier; stream-zip or an external worker for large albums (ADR-0003 keeps
-  transcode/stitch off Vercel, same constraint applies to large zips) — and a **per-tile
-  hover/quick-download** on the grid. If galleries get huge, switch the download URL from the
-  current up-front per-item presign to a **lazy/route-based presign** (dovetails with the deferred
-  large-gallery read-proxy noted in `lib/r2/presign.ts`).
-- **Guest gallery follow-ups** — the unified live guest event page **shipped** (`/e/[qr_token]`:
-  guests now see + add to a live polling gallery + share the join link). Remaining: **per-photo
-  attribution** (uploader display-name on tiles — `get_event_media_by_qr_token` + `get_public_album`
-  would return `guest.display_name`), and the deferred **"email me the album" auto-send** (reuse
-  `sendOnce`; blocked on Resend). Also: a true file-picker upload e2e for the optimistic-tile path
-  couldn't be driven via the Chrome MCP (client-only logic, verified locally) — reconfirm on a real
-  device when convenient.
-
-## v2+ docket (post-core, bigger)
-
-- **Multi-account events (co-hosts + invited guests)** — let an owner link other accounts:
-  **co-hosts** (shared management) and **invite-only guests** (extending `require_email`).
-  **Co-hosting is paid-only** — the **owner** must be Pro / hold an Event Pass; co-hosts need no
-  plan of their own. **Additive model:** keep `events.host_id` as the owner/billing+storage
-  anchor, add an **`event_members(event_id, user_id, role)`** table, and broaden the host RLS
-  policies (`events_host_all`, `media_host_all`, …) from `host_id = auth.uid()` to
-  membership-based. Deferring causes no painful migration — but write near-term host RLS in a
-  membership-broadening-friendly way. **→ When this ships, wire co-host invitations into the
-  notification bell** ("you've been invited to co-host X / N pending invites" — Will: required
-  follow-up; it's a one-read + one-`buildNotifications`-case extension), and consider invite-only
-  guests there too.
-- **Referral program** — a % incentive with attribution + payouts (Stripe credits or Connect):
-  planners refer hosts; guests who sign up from an event page earn the host a cut on Pro
-  conversion. Substantial (attribution + payouts) → post-core.
-- **Guest → full-user conversion** — `require_email` becomes a _confirmed_ email (magic-link)
-  that quietly creates a latent account; a later traditional login triggers full signup/onboarding
-  and merges. Interacts with auth + the tier-gated `require_email`.
-- **Proactive CSAM filtering** — an upload-time hash-matching tool (PhotoDNA a candidate). v1
-  ships only the report/takedown + operator-review MVP.
-- **NSFW filtering** — only if a real need emerges; host-opt-in, image moderation on photos +
-  sampled video keyframes to keep cost down (≈ $1/1k images, video ≈ $0.10/min via Rekognition —
-  sample frames; Google Vision has no video moderation).
-- **AI support-recovery** — triage "I lost my media" emails, match sender → account/event,
-  auto-send a time-boxed download link (PRD "Data retention").
-
-## Tech debt / decisions to revisit
-
-- **Committed automated RPC integration suite** — today the RPC contract is checked via
-  rolled-back Supabase-MCP runs per change. A committed suite needs a paid Supabase branch or a
-  local Postgres test DB. Do before launch.
-- **Presigned read-URL strategy for very large galleries** — currently per-request presign (1 h
-  TTL); revisit a proxy/caching approach only if albums get huge.
-- **Cold storage for the storage tail** — evaluated + rejected (R2 IA only ~33% cheaper; Glacier
-  = cross-cloud project). Revisit an R2 IA lifecycle rule only if tail cost grows.
-- **Media durability (HIGH-RISK gap) — Pillar A SHIPPED; Pillar B Worker authored (pending deploy); C designed.** ALL user
-  media lives in ONE R2 bucket with NO backup, and the daily cron's `sweepOrphans`
-  ([api/cron/purge/route.ts](../src/app/api/cron/purge/route.ts)) HARD-deletes any R2 object with no
-  matching `media` row — so a DB loss/unlink (bad migration, snapshot restore, mass delete, RLS/query bug)
-  could let ONE run wipe the bucket irreversibly. Decided in
-  [ADR-0013](adr/0013-media-durability-orphan-sweep-safety-and-backup.md); master plan
-  `.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`. **(A, DONE)** in-app orphan-sweep
-  **circuit-breaker** ([orphan-guard.ts](../src/lib/r2/orphan-guard.ts) `evaluateOrphanSweep` + the wiring in
-  `sweepOrphans`): trips (delete nothing + Sentry + deduped operator email) if `media` is empty, or candidates
-  exceed an absolute cap (1000) / a fraction (25%) of objects scanned. _Note: the `media` table is currently
-  empty, so the breaker is protectively ACTIVE pre-launch — reclaim intentional orphans via a force-purge path,
-  not the guarded cron._ **(B, DONE — `workers/backup/`, deployed + DR-drill-verified 2026-06-06)** real-time **Cloudflare Worker** (R2 event notifications →
-  Queue → consumer Worker) **+ a cron reconciliation Worker**, copying to a **second R2 bucket** (different
-  region, IA, **Bucket Lock** ≥ 30-d WORM) — Workers Paid ~$5/mo, zero egress, off Vercel; **Backblaze B2**
-  cross-vendor tier added later. **(C, DONE 2026-06-07 — live + restore-verified)** Supabase **Pro** daily backups + a scheduled off-site
-  `pg_dump` → the locked bucket (`db/`) via `.github/workflows/db-backup.yml` (post-upload byte-size verify +
-  Node-24 opt-in); defer PITR ($100–400/mo). Findings: R2 has no native versioning/replication; Bucket Lock GA +
-  free; R2↔R2 egress free. **All three pillars shipped; the remaining durability backlog (deletion-aware backup
-  prune, B2 cross-vendor tier, fine-grained-PAT migration for CI push) is logged below + in the master plan.**
-- **Vercel cost & scale optimization (document → own plan).** Posture captured in ADR-0013 / the master plan.
-  Levers, in priority: the **12 s guest gallery poll** (`event-experience.tsx` `POLL_MS` → `/api/guests/gallery`,
-  ~7,200 invocations/guest/day) is the top driver — move to **Supabase Realtime** or conditional ETag/304s;
-  **front Vercel with Cloudflare** at launch (DNS already migrating there → cuts bandwidth + free DDoS/bot
-  protection); set Vercel **Spend Management** hard cap + usage alerts on Pro; `proxy.ts` runs `getUser()` per
-  request (revisit matcher scope); keep media on raw `<img>` + presigned R2 (already $0 image optimization).
-- **Avatars → Supabase Storage (queued — dedicated agent; ADR-0013 / master plan).** Avatars currently live in R2
-  (`avatars/<uid>/avatar.webp`, overwrite-in-place); move them to Supabase Storage (public bucket + `profiles.avatar_url`
-  + RLS, CDN + resize). Account metadata belongs with the profile, it inherits Supabase Pro backups (closes the
-  avatar-durability gap), drops the per-render presign, and declutters R2 to pure event media. Migration of a working
-  feature; no new cost (Storage is in Pro). Order-independent vs. the media-backup Worker (which excludes avatars).
-- **Unified per-upload size limit + per-event upload config (queued — dedicated agent).** Replace per-type limits
-  (video 2 GB/5 min, photo 50 MB, avatar 512 KB) with a single **per-upload ceiling = min(remaining storage, ~5 GB)**,
-  enforced at presign. **Decisions (locked):** video stays **Pro-only** (Free = images, the upgrade driver); keep a
-  **very generous** upload duration cap (the highlight reel excludes over-length clips, not the upload); add a per-event
-  **`max_upload_bytes`** host config. **Upload-side optimization** (transcode/compress) is a separate, documented-only
-  future task. The backup Worker is already built for R2's ~5 GB ceiling, so no backup rework.
+Bigger ideas that need product reshaping or a decision before they're roadmap-ready (co-hosts, referral
+program, guest→full-user conversion, host 2FA, proactive CSAM filtering, NSFW / host trust-level configs, a
+content CMS, a Backblaze B2 cross-vendor backup tier, …) are tracked **outside these docs** to keep this
+file to actual upcoming work. Pull one in here (as a Now task or a new overhaul bucket) when it's ready.

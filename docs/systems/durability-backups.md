@@ -56,7 +56,8 @@ needs BOTH halves.**
 - **The circuit-breaker is the one thing standing between a DB fault and an irreversible bucket wipe.** Keep
   its empty-table + absolute/fractional caps; do not "simplify" the orphan sweep to delete unconditionally.
 - **Bucket Lock = WORM.** The backup copy is intentionally keep-all + immutable; the lifecycle purge does
-  NOT touch it (a future deletion-aware prune handles that). Don't add a backup-delete path.
+  NOT touch it (a future **deletion-aware prune** handles that — see its own section below). Don't add a
+  backup-delete path.
 - **There is NO Docker in production.** The "Worker" is a Cloudflare edge function; Docker only exists inside
   the GitHub runner (to run `supabase db dump`) and was a local-only detail of the restore-test.
 - **R2 cost GOTCHA:** the R2 *overview* page's "Billable usage" donut is a FORECAST ARTIFACT that can show a
@@ -77,8 +78,29 @@ needs BOTH halves.**
 
 The zero-silent-failure mandate (every backend job must be manageable + health-visible from `/admin`) is
 admin-portal **P8** → [admin-observability.md](admin-observability.md) + [`../ROADMAP.md`](../ROADMAP.md).
-Remaining durability backlog (→ ROADMAP): a deletion-aware backup prune, the B2 cross-vendor tier, a
-fine-grained-PAT migration for the CI push.
+
+## Deletion-aware backup prune (NOT built yet — handle like the orphan sweep)
+
+The backup is **keep-all by design**: an age-based "expire after N days" rule was REJECTED because it would
+delete backups of media that is still LIVE in the primary. So the backup is **accrue-only** — when media
+leaves the primary (guest/host delete, the purge cron, the orphan sweep), the primary object disappears but
+its backup copy stays, so backup storage climbs as media churns (live today: primary `partyreel` ~0 B,
+backup `partyreel-backup` ~136 MB). The prune is the **inverse of the orphan sweep**: it reclaims a backup
+object only when **BOTH** (a) its primary counterpart no longer exists — an **existence check** against the
+primary ("deletion-aware", **NOT** an age rule) — AND (b) it is past the 35-day Bucket Lock.
+
+⚠️ **This is the single most dangerous job in the durability system — the ONLY job that DELETES from the
+backup (the last-resort copy).** It is symmetric to the orphan sweep and carries the identical "one bad run
+wipes everything" risk: any fault that makes the primary look empty/inconsistent (bad migration, outage,
+mass-delete) makes the prune conclude "every backup's source is gone → delete it all." **THE LANDMINE: the
+primary is ~0 B right now, so a naive prune run today would delete the ENTIRE backup.** It therefore MUST
+reuse/mirror the orphan-sweep **circuit-breaker** (`evaluateOrphanSweep`): fail-closed, refuse to prune when
+the primary looks empty/pathological, and **alert instead of deleting**. The 35-day lock is the hard
+secondary net (it physically blocks deleting anything recent even if the logic is buggy). **Build trigger:**
+only when the backup tail costs real money — accrue-only is correct + intentional and the cost is negligible
+today, so a backup-deleting job's risk isn't worth it yet. Building it also removes the pre-launch
+test-data-reset's "≥35 d before launch" timing constraint. It's a "Now" candidate in
+[`../ROADMAP.md`](../ROADMAP.md) and, as a backend job, belongs in admin P8 (managed + health-surfaced).
 
 ## See also
 

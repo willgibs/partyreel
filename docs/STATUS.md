@@ -570,65 +570,20 @@ downloadable reel of the event's favorite moments — featured as such on the ne
   event currently backs the live demo (`NEXT_PUBLIC_DEMO_QR_TOKEN` = its `qr_token`), so repoint the env var
   before deleting/repurposing it.)_
 
-## Blocked on a human ("manual instrument")
+## Pre-launch / human-blocked
 
-The agent can't do these — they need a human in a dashboard:
+The launch-gated + human/config tasks now live in [`ROADMAP.md`](ROADMAP.md) → **Launch checkpoint** (each
+tagged `[human]`/`[eng]`/`[content]`): leaked-password protection, Stripe test→live, `MONTHLY_INGRESS_BYTES.pro`,
+the real `/privacy` page, the demo-event swap, the committed RPC suite, the Sentry email-alert-rule check,
+the pre-launch test-data reset. Resolved config (custom SMTP, "allow signups" ON, the `{{ .Token }}` template,
+the account-password dashboard settings) shipped 2026-06-02 → [`CHANGELOG.md`](CHANGELOG.md).
 
-- **Sentry R2 leftovers (env + capture DONE + smoke-verified).** Remaining: (1) confirm the **email
-  alert rule** fires, Sentry auto-creates a default "new issue" rule and the smoke test just created
-  issue `JAVASCRIPT-NEXTJS-2`, so check the inbox; if nothing arrived, add one via Sentry → Alerts →
-  Create Alert → Issues + enable Settings → Account → Notifications → Issue Alerts (the MCP can't create
-  alert rules). (2) The **privacy-policy** session-recording line (drafted in ROADMAP near-term) lands
-  when the `/privacy` stub becomes the real policy.
-- **Resend + custom SMTP for auth emails — DONE + LIVE-VERIFIED 2026-06-02.** Auth emails (OTP /
-  magic link + confirm/reset) route through Resend SMTP (`smtp.resend.com:465`, sender
-  `Partyreel <noreply@partyreel.com>`, 60 s min interval); "Rate limit for sending emails" raised
-  2 → 100/hr (Resend's ~100/day is the real ceiling — bump at launch on paid Resend). **Verified via
-  the Phase 3 save flow:** a new-signup confirm email arrived **from `noreply@partyreel.com`** (not
-  `…mail.app.supabase.io`) and completed account creation — so the Resend sending domain (DNS) is
-  verified, which also un-darks the transactional lifecycle email (same domain). Per-IP auth limits
-  were raised (2026-06-02: "Sign-ups and sign-ins" + "Token verifications" 30 → 150 / 5 min per IP).
-  Runbook + cost caveat: [`PRICING.md`](PRICING.md). **Code follow-up (roadmapped):** a 60 s cooldown
-  on the OTP "Resend code" button to match the min interval. _(SMS / anonymous / Web3 limits unused.)_
-- **"Allow new user signups" — DONE (ON as of 2026-06-02; keep ON for launch).** (Authentication →
-  Sign In / Providers.) When OFF, `DISABLE_SIGNUP` blocks OTP, magic link, AND Google for ALL new users,
-  so account-from-guest (Phase 2c verified email + Phase 3 save-to-account) AND account email+password
-  create (ADR-0011, same OTP signup path) all depend on it. Keep **anonymous sign-ins OFF** (separate
-  toggle, stays off per ADR-0008).
-- **`{{ .Token }}` in the "Confirm signup" email template — DONE (2026-06-02).** The template now renders
-  the 6-digit code (`{{ .Token }}`) above the `{{ .ConfirmationURL }}` link fallback, so a brand-NEW
-  signup can complete the in-app OTP UI (not only the link). This unblocks BOTH account-from-guest and
-  account email+password create (ADR-0011) — both use the same OTP confirm for new users.
-- **Account password dashboard settings (ADR-0011) — DONE 2026-06-02, except leaked-password.** Set:
-  "Minimum password length" = **8** (= `MIN_PASSWORD_LENGTH` in [validation/auth.ts](../src/lib/validation/auth.ts)),
-  "Email OTP length" = 6, **"Secure password change" OFF** and **"Require current password when updating"
-  OFF** — we enforce the current-password re-check ourselves via the `verify_current_password` RPC (so the
-  session isn't disrupted; the native toggles would conflict with the two-step flow).
-- **DEFERRED (pre-launch) — "Prevent use of leaked passwords" (HaveIBeenPwned).** Pro-plan-gated, so it
-  waits for the Supabase Pro upgrade. This is the long-standing "leaked-password WARN" advisor, now
-  ACTIONABLE since account passwords ship (ADR-0011). Enable it when upgrading to Pro.
-- **Stripe test → live (before launch)** — re-create products/prices in LIVE + swap the 5 env
-  vars to `sk_live_…` / live `whsec_` / live price IDs (code needs no change). Checklist:
-  [`PRICING.md`](PRICING.md) "Test → Live cutover". _(Currently TEST mode, verified.)_
-- **`MONTHLY_INGRESS_BYTES.pro`** is still `null` (unmetered) — tune it before Pro launch.
-- **The interactive-demo event (polish-arc R3) — _pre-launch polish, NOT blocking._** `NEXT_PUBLIC_DEMO_QR_TOKEN`
-  is set in Vercel + deployed, pointed at the **Share Step Test** event as a stand-in (live-tested). Before
-  launch, swap it to a dedicated event with **catchy approved media** (public + accepting uploads) — its mostly
-  test media (a couple solid-color photos + a color-bars video that shows black until played) is fine for now
-  but not the showcase you want. Just update the env var to the new event's `qr_token` (+ `.env.local`).
-- **Supabase CLI** isn't installed locally; migrations are applied via the **Supabase MCP**
-  (`apply_migration`). To use `pnpm db:types` / `db:push`, install the CLI +
-  `supabase link --project-ref ddafaemglzmuekbtjwzn`.
-
-**Already done (don't redo):** R2 bucket + creds + CORS + lifecycle rule, the apex
-`partyreel.com` domain, `CRON_SECRET` (Vercel), `profiles.is_admin = true` for the operator, and
-the Stripe **TEST** products/prices + webhook endpoint + Billing Portal + the 5 env vars.
-**Admin portal go-live (done):** Supabase TOTP MFA enabled + `admin.partyreel.com/auth/callback`
-in the redirect allow-list; `admin.partyreel.com` added in Vercel (same project) with
-`NEXT_PUBLIC_ADMIN_HOST` set; `partyr33l@gmail.com` enrolled TOTP (holds the factor; `hi@willgibs.com` retired 2026-06-06). Break-glass if
-the authenticator is lost: delete the factor in the Supabase dashboard (`auth.mfa_factors`).
-**Sentry (R2):** the `javascript-nextjs` project + DSN + the 4 env vars are set in Vercel + deployed;
-capture smoke-verified on prod (org `partyreel`).
+**Already configured — DO NOT redo:** R2 bucket + creds + CORS + abort-multipart lifecycle rule; the apex
+`partyreel.com` domain; `CRON_SECRET` (Vercel); `profiles.is_admin` for the operator; the Stripe **TEST**
+products/prices + webhook endpoint + Billing Portal + the 5 env vars; Supabase TOTP MFA +
+`admin.partyreel.com/auth/callback` in the redirect allow-list + `NEXT_PUBLIC_ADMIN_HOST` in Vercel
+(`partyr33l@gmail.com` holds the TOTP factor; break-glass = delete it in the Supabase dashboard,
+`auth.mfa_factors`); the Sentry project + DSN + 4 env vars.
 
 ## After any change
 
