@@ -626,7 +626,11 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
   const { data: events, error } = await admin
     .from("events")
     .select(
-      "id, name, host_id, created_at, updated_at, profiles!inner(tier, email, last_active_at)",
+      // Disambiguate the events->profiles embed by FK name. saved_events (event_id + user_id->profiles)
+      // makes PostgREST infer a SECOND, many-to-many events<->profiles relationship, so a bare
+      // `profiles!inner` is ambiguous ("more than one relationship was found") and the sweep throws.
+      // Pin the direct host FK. The `.eq("profiles.tier", ...)` filter still targets it by resource name.
+      "id, name, host_id, created_at, updated_at, profiles!events_host_id_fkey!inner(tier, email, last_active_at)",
     )
     .eq("profiles.tier", "free")
     .is("deleted_at", null)
