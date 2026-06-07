@@ -102,10 +102,31 @@ Developer tier, pay only when a team is added); defer the admin-action audit log
    Chrome-MCP verified (nav active state, alerts bell vs DB, publish→host-visible→delete, apex 404, console
    clean). **The blog/help/careers CMS was DEFERRED** — that content stays file-based (blog/help MDX in
    `content/`, careers in `src/lib/constants/careers.ts`), edited in-repo via PR.
+8. **P8 — Backend operations & observability (PLANNED — dedicated round).** A first-class operator surface
+   for EVERY backend system, so the platform can be run + monitored entirely from `/admin` with **zero
+   agent/codebase work needed to manage it** and **zero possibility of a silent failure**. Global principle
+   (Will, 2026-06-07): _every backend system must be 100% manageable in the admin portal and emit
+   logs/health feedback that prove it ran correctly — a failure is always visible, never silent._ Scope:
+   - **Durability + lifecycle jobs surfaced + monitored:** the daily lifecycle cron (every sweep), the
+     off-site DB backup (GH Action), and the media-backup Worker (+ its DLQ) each report **last-run time,
+     outcome, and a freshness/health status** in `/admin` — with an explicit ALERT when a job hasn't
+     succeeded within its expected window (a missing nightly backup must page, not pass quietly).
+   - **Backup integrity at a glance:** newest `db/` dump (age + size), last restore-test result, backup-bucket
+     size/object count + lock status, and the orphan-sweep breaker's last decision.
+   - **Manageable, not just visible:** safe operator actions behind the AAL2 `requireAdminAction` seam
+     (trigger a backup/reconcile run, kick a restore-test, acknowledge/snooze an alert), replacing today's
+     manual `gh workflow run` / `wrangler` / SQL.
+   - **Logs/feedback hub:** surface the relevant Sentry issues + cron/Worker run history in-portal so Will
+     can check in, confirm health, and spot an error fast.
+   Likely needs a small `job_runs`/health table (jobs heartbeat their outcome) and/or reads of the GH
+   Actions / Cloudflare / Sentry APIs — decided in its own planning round. **Generalize the rule: when
+   building ANY new backend job, ship its admin management + health signal in the SAME change** (capture
+   the signal at the source, like the notification-center pattern) so this surface never has to be retrofitted.
 
-This completes the planned admin-portal phases (R1–P7). Remaining admin backlog is opportunistic: the
-content CMS (deferred above), an operator-action audit log (solo admin), per-announcement edit + read
-receipts, and live-Stripe subscription health on the account detail (logged in their phases).
+This completes the SHIPPED admin-portal phases (R1–P7); **P8 (backend ops & observability) is the next
+queued round.** Remaining admin backlog is opportunistic: the content CMS (deferred above), an
+operator-action audit log (solo admin), per-announcement edit + read receipts, and live-Stripe
+subscription health on the account detail (logged in their phases).
 
 ## ✅ Done — marketing site full build-out (all 7 rounds)
 
@@ -309,12 +330,14 @@ details beyond a template feel.
   `sweepOrphans`): trips (delete nothing + Sentry + deduped operator email) if `media` is empty, or candidates
   exceed an absolute cap (1000) / a fraction (25%) of objects scanned. _Note: the `media` table is currently
   empty, so the breaker is protectively ACTIVE pre-launch — reclaim intentional orphans via a force-purge path,
-  not the guarded cron._ **(B, AUTHORED — `workers/backup/`, pending human deploy)** real-time **Cloudflare Worker** (R2 event notifications →
+  not the guarded cron._ **(B, DONE — `workers/backup/`, deployed + DR-drill-verified 2026-06-06)** real-time **Cloudflare Worker** (R2 event notifications →
   Queue → consumer Worker) **+ a cron reconciliation Worker**, copying to a **second R2 bucket** (different
   region, IA, **Bucket Lock** ≥ 30-d WORM) — Workers Paid ~$5/mo, zero egress, off Vercel; **Backblaze B2**
-  cross-vendor tier added later. **(C, after B)** keep Supabase **Pro** daily backups + a scheduled off-site
-  `pg_dump` → the locked bucket (`db/`); defer PITR ($100–400/mo). Findings: R2 has no native
-  versioning/replication; Bucket Lock GA + free; R2↔R2 egress free.
+  cross-vendor tier added later. **(C, DONE 2026-06-07 — live + restore-verified)** Supabase **Pro** daily backups + a scheduled off-site
+  `pg_dump` → the locked bucket (`db/`) via `.github/workflows/db-backup.yml` (post-upload byte-size verify +
+  Node-24 opt-in); defer PITR ($100–400/mo). Findings: R2 has no native versioning/replication; Bucket Lock GA +
+  free; R2↔R2 egress free. **All three pillars shipped; the remaining durability backlog (deletion-aware backup
+  prune, B2 cross-vendor tier, fine-grained-PAT migration for CI push) is logged below + in the master plan.**
 - **Vercel cost & scale optimization (document → own plan).** Posture captured in ADR-0013 / the master plan.
   Levers, in priority: the **12 s guest gallery poll** (`event-experience.tsx` `POLL_MS` → `/api/guests/gallery`,
   ~7,200 invocations/guest/day) is the top driver — move to **Supabase Realtime** or conditional ETag/304s;

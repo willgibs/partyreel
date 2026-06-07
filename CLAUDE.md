@@ -1092,6 +1092,13 @@ authenticated placement.
 - **Leave WHY comments for the next agent.** Explain non-obvious decisions,
   gotchas, and what NOT to do — the existing files model this density. Don't
   narrate the obvious; do capture hard-won findings.
+- **Backend systems must be operable + observable from `/admin` — zero silent failures (Will, 2026-06-07).**
+  Every backend job (crons, Cloudflare Workers, the DB + media backups, the lifecycle sweeps) should be 100%
+  manageable in the admin portal and emit logs/health feedback that PROVE it ran correctly — a failure must
+  always surface as a visible alert, never pass quietly. When you build ANY new backend job, ship its admin
+  management + health signal in the SAME change (capture the signal at the source, like the notification-center
+  pattern); don't leave operation to SQL/CLI/one-off agent work. Tracked as admin-portal **P8** in
+  [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Keep the knowledge docs current as you learn.** This file, `docs/SYSTEMS.md`,
   `docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PRICING.md`, and the ADRs are living — when you hit
   a new gotcha, ship a feature, or change an approach, update them in the same change. The phased

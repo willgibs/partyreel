@@ -3,7 +3,11 @@
 - **Status:** Accepted (2026-06-06). **Pillar A implemented** (commit `6f151c5`). **Pillar B DEPLOYED +
   DR-drill-verified** (2026-06-06): the `workers/backup/` Worker replicates `events/` media to the WNAM
   `partyreel-backup` bucket (IA, 35-day Bucket Lock). Drill: ~15 s replication, lock blocks deletion, restore
-  works, and the > 100 MB multipart copy path verified (130 MB byte-identical). **Pillar C** (DB backup) next.
+  works, and the > 100 MB multipart copy path verified (130 MB byte-identical). **Pillar C LIVE +
+  restore-verified** (2026-06-07): the `db-backup.yml` GitHub Action dumps the DB nightly to
+  `partyreel-backup/db/` (object verified in R2, IA + 35-day lock); a logical dump restored cleanly into a
+  throwaway Postgres 17 with every table's row count matching production; hardened with a post-upload
+  byte-size verification (zero silent failures) + a Node-24 opt-in. **All three pillars shipped.**
 - **Phase:** one-off task (post-roadmap). Build steps + sequencing live in the master plan
   [`.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`](../../../.claude/plans/we-ve-recently-pushed-a-breezy-nest.md)
   (supersedes the first-pass `.claude/plans/media-durability-backup.md`).
@@ -110,12 +114,19 @@ Vercel, scales O(uploads)):
   (backstop for missed events + seeding); at scale use a copy-state index (KV/D1), not HEAD-per-object.
 - **Cost:** Workers Paid ~$5/mo fixed; R2↔R2 egress free; IA storage ~$0 now → $10/TB-mo.
 
-### Pillar C — DB backup posture  ·  WORKFLOW AUTHORED (`.github/workflows/db-backup.yml`); pending 3 secrets + restore-verify
+### Pillar C — DB backup posture  ·  LIVE + restore-verified (2026-06-07)
 
 Keep **Supabase Pro daily backups** (already on, 7-day). **Add a scheduled off-site logical
 `pg_dump`** (GitHub Actions cron — the natural home for the `pg_dump` binary, which Workers/edge
-functions can't run) → the immutable backup bucket `db/` prefix (lock-protected, ~90-day lifecycle).
-The dump is small (rows/metadata; media is in R2) → near-zero cost. **Defer PITR** ($100–400/mo).
+functions can't run) → the immutable backup bucket `db/` prefix (under the 35-day lock; **keep-all**, a
+deletion-aware prune bounds it later — NO blanket object-expiry, which would drop backups of still-live
+media). The dump is small (rows/metadata; media is in R2) → near-zero cost. **Defer PITR** ($100–400/mo).
+**Verified 2026-06-07:** the nightly run lands the dump in `partyreel-backup/db/`, and a logical dump
+restored cleanly into a throwaway Postgres 17 (15 tables / 33 functions / 10 policies / 23 rows, all
+matching live). **Hardened:** a post-upload byte-size verification fails the run if the object isn't present
+at the exact size (zero silent failures), and `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` moves `setup-cli` past
+GitHub's 2026-06-16 Node-20 cutover. The auth setup-loop root cause + the ~20-30 s Supabase pooler
+password-propagation lag are logged in the master plan + memory.
 
 ### Cross-cutting — Vercel cost & scale posture  ·  DOCUMENT ONLY
 
