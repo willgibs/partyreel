@@ -42,6 +42,9 @@ jobs:
       # Non-secret config: the P3 R2 account's S3 endpoint + the backup bucket.
       R2_ENDPOINT: https://8bd90d2f6a374d6cdff2f379e929b060.r2.cloudflarestorage.com
       R2_BUCKET: partyreel-backup
+      # Opt JS actions (supabase/setup-cli@v1) into Node 24 ahead of GitHub's 2026-06-16 forced
+      # cutover (Node 20 is deprecated). Verified working on a manual run before this landed.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Guard — skip cleanly until secrets are configured
         id: guard
@@ -93,5 +96,18 @@ jobs:
           RCLONE_CONFIG_R2_ENDPOINT: ${{ env.R2_ENDPOINT }}
         run: |
           set -euo pipefail
-          rclone copyto "pr-db-$STAMP.tar.gz" "R2:$R2_BUCKET/db/pr-db-$STAMP.tar.gz" --s3-no-check-bucket
-          echo "Uploaded db/pr-db-$STAMP.tar.gz to $R2_BUCKET (locked + IA by the bucket defaults)."
+          KEY="db/pr-db-$STAMP.tar.gz"
+          # rclone (apt 1.60.1) may log a transient "501 NotImplemented" on attempt 1 and succeed on
+          # retry — that is an R2-side blip, not a failure (the object lands). --s3-no-check-bucket skips
+          # a bucket HEAD that the lock/IA config can 501 on. The verify step below is the real gate.
+          rclone copyto "pr-db-$STAMP.tar.gz" "R2:$R2_BUCKET/$KEY" --s3-no-check-bucket
+          # Zero-silent-failure guard: a green rclone exit is necessary but NOT sufficient — independently
+          # confirm the object EXISTS in R2 at the exact local byte size, else fail the run loudly.
+          LOCAL_BYTES=$(stat -c%s "pr-db-$STAMP.tar.gz")
+          REMOTE_BYTES=$(rclone size "R2:$R2_BUCKET/$KEY" --s3-no-check-bucket --json 2>/dev/null | grep -oE '"bytes":[0-9]+' | grep -oE '[0-9]+' || true)
+          echo "verify: local=$LOCAL_BYTES remote=${REMOTE_BYTES:-MISSING}"
+          if [ "${REMOTE_BYTES:-0}" != "$LOCAL_BYTES" ]; then
+            echo "::error::Backup verification FAILED — $KEY missing or size-mismatched in $R2_BUCKET (local=$LOCAL_BYTES remote=${REMOTE_BYTES:-MISSING})"
+            exit 1
+          fi
+          echo "Verified $KEY in $R2_BUCKET ($REMOTE_BYTES bytes, IA + 35-day lock)."
