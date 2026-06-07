@@ -209,9 +209,9 @@ Host and guest media are indistinguishable in the grid/album (one seamless album
 ## Lifecycle & the purge cron
 
 [`/api/cron/purge`](../src/app/api/cron/purge/route.ts) — daily (`0 4 * * *`), timing-safe
-`Bearer $CRON_SECRET` (Vercel auto-sends it). **8 sweeps**: expired_events, removed_media,
-orphans, expired_passes, over_capacity, renewal_nudges, inactive_free_events, **standby_budget**
-(each independently try/caught). `purge_media_rows` RPC does the atomic R2-then-row reclaim +
+`Bearer $CRON_SECRET` (Vercel auto-sends it). **9 sweeps**: expired_events, removed_media,
+orphans, expired_passes, over_capacity, renewal_nudges, inactive_free_events, **standby_budget**,
+unlock_attempts (each independently try/caught). `purge_media_rows` RPC does the atomic R2-then-row reclaim +
 `storage_used_bytes` decrement (**service-role-only**, must stay REVOKED from anon). **Unified
 recovery window** = `RECENTLY_DELETED_WINDOW_DAYS` (30d): events stamp `purge_at = deleted_at + 30d`
 on soft-delete; media's `purge_at` is **trigger-derived** (`set_media_purge_at` = `removed_at + 30d`
@@ -228,9 +228,12 @@ hard-delete (since Recovery Phase 1 it NO LONGER gates uploads — the cap reads
 (`evaluateOrphanSweep`, [orphan-guard.ts](../src/lib/r2/orphan-guard.ts)): it deletes NOTHING and alerts
 (Sentry + a deduped operator email) when the `media` table is empty or the orphan set exceeds an absolute
 (1000) / fractional (25% of objects scanned) cap, so a DB fault can't let one run wipe the (un-backed-up)
-bucket. Real durability: **Pillar B** — the real-time **Cloudflare Worker** in `workers/backup/` copying every object
-to a **Bucket-Locked second R2 bucket** (different region, IA) — is **DEPLOYED + DR-drill-verified** (2026-06-06:
-~15 s replication, the lock blocks deletion, restore works); **Pillar C** (an off-site `pg_dump`) is next.
+bucket. Real durability (**all three pillars shipped**): **Pillar B** — the real-time **Cloudflare Worker** in `workers/backup/`
+copying every `events/` object to a **Bucket-Locked second R2 bucket** (WNAM, IA) — is **DEPLOYED + DR-drill-verified**
+(2026-06-06: ~15 s replication, the lock blocks deletion, restore works); **Pillar C** — an off-site nightly `pg_dump` →
+`partyreel-backup/db/` via [db-backup.yml](../.github/workflows/db-backup.yml) — is **LIVE + restore-verified** (2026-06-07:
+all row counts matched live; hardened with a post-upload byte-size verify + a Node-24 opt-in). See **Data flow & durability
+(the whole picture)** below for the consolidated map.
 
 **Host-facing recovery (Phase 3)** — `restore_media` / `restore_event` / `purge_media_now`: authenticated,
 ownership-gated SECURITY DEFINER RPCs (0029-only; explicit `revoke … from anon`). Restore is
@@ -255,6 +258,61 @@ original-file download from the bin). The **dashboard storage meter now reads AC
 counter — deleting visibly frees room — with a light "+X in Recently deleted (frees automatically)" line
 and an over-standby-budget note (`overStandbyBudget`, single-sourced with the cron). No migration; bulk
 Restore-all/Empty-bin is a deferred fast-follow.
+
+## Data flow & durability (the whole picture)
+
+The system has **two stores of truth**, and the durability work (ADR-0013) added a **backup shadow for each** —
+all of it running OFF the app (Cloudflare + GitHub Actions), so a backup failure is a durability risk, **never a
+user-facing outage**.
+
+- **Postgres rows** (Supabase) — events, media _metadata_, profiles, guests, ledgers…
+- **Media bytes** (R2 bucket `partyreel`) — the actual photos/videos (`events/…`) + avatars (`avatars/…`).
+
+**Media write:** phone → app → presigned PUT → PRIMARY R2 (`events/…`) → R2 fires an `object-created` event →
+Cloudflare **Queue** → the **Worker** (`partyreel-backup`) copies the object → BACKUP R2 (`partyreel-backup`, IA,
+locked). A failed copy retries → **DLQ**; a daily 05:00 UTC **reconciliation** (the Worker's `scheduled()`) re-copies
+anything the live path missed (and was the one-time seed). **Avatars are NOT backed up** (derivable; overwrite-in-place
+conflicts with the lock — the queued "avatars → Supabase Storage" initiative closes that gap).
+
+**Media read:** app reads the row → presigns a GET → the **browser pulls bytes straight from PRIMARY R2** (the backup is
+never in the read path).
+
+**Media delete / lifecycle:** soft-delete flag → 30-day window → the purge cron reclaims the row + the PRIMARY R2 object.
+The BACKUP copy is NOT touched (keep-all + locked; a future deletion-aware prune handles it). Orphan objects (a primary
+object with no row) are swept — behind the **circuit-breaker**.
+
+**Database backup:** Supabase Pro daily backup (7-day, same-vendor) **plus** the nightly off-site `pg_dump` →
+`partyreel-backup/db/` (GitHub Action — longer retention; survives a whole-Supabase-account loss).
+
+**Restore (DR):** rows ← Supabase backup OR the `db/` dump; bytes ← copy `partyreel-backup` → `partyreel`. A full restore
+needs **both** halves.
+
+**Three staggered daily jobs (each independent):** `04:00 UTC` Vercel Cron → `/api/cron/purge` (9-sweep lifecycle + the
+orphan breaker) · `05:00 UTC` Cloudflare Worker `scheduled()` → media-backup reconciliation · `06:00 UTC` GitHub Actions →
+DB dump → `partyreel-backup/db/`.
+
+**What's new vs the original system.** NEW infra (none in the user request path): the 2nd R2 bucket `partyreel-backup`
+(WNAM, IA, 35-day **Bucket Lock**/WORM); a **Cloudflare Worker** + **Queue** + **DLQ**; an R2 `object-create` notification
+on `events/`; the `db-backup.yml` GitHub Action; 3 new secrets (`SUPABASE_DB_URL`, `R2_BACKUP_*`). The orphan-sweep breaker
+is a code guard, not infra. **There is NO Docker in production** — the "Worker" is a Cloudflare edge function; Docker only
+exists inside the GitHub runner (to run `supabase db dump`) and was a local-only detail of the restore-test.
+
+**New failure points (all degrade a BACKUP, never the live app):**
+
+| Failure | Containment |
+| --- | --- |
+| Worker error / queue backlog | auto-retries → DLQ; daily reconciliation backstop |
+| Missed R2 event notification | reconciliation re-copies within 24 h |
+| GitHub DB-backup fails | run fails loudly + post-upload byte-size verify; **but a _persistent_ failure is only as visible as the Actions tab → this is what admin-portal P8 (observability) targets** |
+| DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
+| Avatars not backed up | out of scope by design (see above) |
+
+**Cost reality.** The entire roadmap added **one recurring charge: ~$5/mo Cloudflare Workers Paid** (required for Queues).
+R2 (2nd bucket, IA storage, ops) is **effectively $0** at this scale — deep inside the free tier (10 GB / 1M Class A /
+10M Class B per month) — growing at ~$0.01/GB-month; GitHub Actions is free. **GOTCHA:** the R2 _overview_ page's
+"Billable usage" donut is a **forecast artifact** that can show a scary number (~$9.92 observed with near-zero real usage,
+by rounding Class A up to its $9/million list rate). The authoritative truth is **Billing → Billable usage** (showed
+$0.00 total + $0.00 projected). A **$10 usage budget alert** (→ partyr33l@gmail.com) now guards against a real runaway.
 
 ## Storage caps, tiers & payments
 
