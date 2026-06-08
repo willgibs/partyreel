@@ -20,10 +20,13 @@
 import "server-only";
 
 import {
+  AbortMultipartUploadCommand,
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListPartsCommand,
+  type ListPartsCommandOutput,
   PutObjectCommand,
   UploadPartCommand,
 } from "@aws-sdk/client-s3";
@@ -46,15 +49,24 @@ export type PresignedUpload = {
   headers: Record<string, string>;
 };
 
-/** Single presigned PUT for small files. */
+/**
+ * Single presigned PUT for small files. Binds BOTH content-type and content-length into the
+ * signature: the browser auto-sends Content-Length = the body's byte length, so R2 rejects
+ * (403) any body whose size differs from `contentLength`. That caps the stored object at the
+ * presign-validated size — a client CANNOT PUT a bigger body than it declared (the cost/abuse
+ * guard against size-spoof-then-overstuff). `contentLength` is the declared (schema-capped)
+ * size_bytes.
+ */
 export async function presignUpload(params: {
   key: string;
   contentType: string;
+  contentLength: number;
   expiresInSeconds?: number;
 }): Promise<PresignedUpload> {
   const {
     key,
     contentType,
+    contentLength,
     expiresInSeconds = DEFAULT_UPLOAD_TTL_SECONDS,
   } = params;
   const { R2_BUCKET } = assertR2Env();
@@ -65,8 +77,12 @@ export async function presignUpload(params: {
       Bucket: R2_BUCKET,
       Key: key,
       ContentType: contentType,
+      ContentLength: contentLength,
     }),
-    { expiresIn: expiresInSeconds, signableHeaders: new Set(["content-type"]) },
+    {
+      expiresIn: expiresInSeconds,
+      signableHeaders: new Set(["content-type", "content-length"]),
+    },
   );
 
   return { url, headers: { "Content-Type": contentType } };
@@ -91,17 +107,25 @@ export async function createMultipartUpload(params: {
   return { uploadId: out.UploadId };
 }
 
-/** Presign a single part PUT within an in-progress multipart upload. */
+/**
+ * Presign a single part PUT within an in-progress multipart upload. Binds content-length into
+ * the signature (same rationale as presignUpload): R2 rejects (403) any part body whose size
+ * differs from `contentLength`, so a client can't over-stuff parts to assemble a >ceiling
+ * megafile. The caller passes each part's EXACT size (the fixed part size for parts 1..N-1, the
+ * remainder for the last part) so the browser's auto Content-Length matches the signature.
+ */
 export async function presignUploadPart(params: {
   key: string;
   uploadId: string;
   partNumber: number;
+  contentLength: number;
   expiresInSeconds?: number;
 }): Promise<{ url: string }> {
   const {
     key,
     uploadId,
     partNumber,
+    contentLength,
     expiresInSeconds = DEFAULT_UPLOAD_TTL_SECONDS,
   } = params;
   const { R2_BUCKET } = assertR2Env();
@@ -113,8 +137,12 @@ export async function presignUploadPart(params: {
       Key: key,
       UploadId: uploadId,
       PartNumber: partNumber,
+      ContentLength: contentLength,
     }),
-    { expiresIn: expiresInSeconds },
+    {
+      expiresIn: expiresInSeconds,
+      signableHeaders: new Set(["content-length"]),
+    },
   );
 
   return { url };
@@ -140,6 +168,55 @@ export async function completeMultipartUpload(params: {
       MultipartUpload: {
         Parts: ordered.map((p) => ({ ETag: p.eTag, PartNumber: p.partNumber })),
       },
+    }),
+  );
+}
+
+/**
+ * Sum the REAL byte sizes of every uploaded part of an in-progress multipart upload (paginated
+ * ListParts). The complete routes call this BEFORE assembling, so an over-stuffed multipart is
+ * ABORTED rather than completed into a >ceiling megafile orphan (which the real-time backup
+ * Worker would then replicate to the WORM bucket). Defense-in-depth behind the per-part
+ * content-length binding, which already bounds each part at the R2 edge.
+ */
+export async function sumMultipartParts(params: {
+  key: string;
+  uploadId: string;
+}): Promise<number> {
+  const { key, uploadId } = params;
+  const { R2_BUCKET } = assertR2Env();
+  const client = getR2Client();
+  let total = 0;
+  let partNumberMarker: string | undefined = undefined;
+  // Bounded: at the 10 GB ceiling that's 640 parts (1 page); the cap is a runaway backstop.
+  for (let page = 0; page < 50; page++) {
+    const out: ListPartsCommandOutput = await client.send(
+      new ListPartsCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        UploadId: uploadId,
+        PartNumberMarker: partNumberMarker,
+      }),
+    );
+    for (const p of out.Parts ?? []) total += p.Size ?? 0;
+    if (!out.IsTruncated) break;
+    partNumberMarker = out.NextPartNumberMarker;
+  }
+  return total;
+}
+
+/** Abort an in-progress multipart upload, deleting its parts (the over-size guard's hammer). */
+export async function abortMultipartUpload(params: {
+  key: string;
+  uploadId: string;
+}): Promise<void> {
+  const { key, uploadId } = params;
+  const { R2_BUCKET } = assertR2Env();
+  await getR2Client().send(
+    new AbortMultipartUploadCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      UploadId: uploadId,
     }),
   );
 }

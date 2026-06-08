@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { createMediaAsHost } from "@/lib/db/mutations/host-media";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { classifyMime } from "@/lib/media/validators";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { completeMultipartUpload, headObjectSize } from "@/lib/r2/presign";
+import {
+  abortMultipartUpload,
+  completeMultipartUpload,
+  headObjectSize,
+  sumMultipartParts,
+} from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
 import { hostCompleteUploadSchema } from "@/lib/validation/upload";
 
@@ -76,6 +82,27 @@ export async function POST(request: Request) {
   // finalized by the browser's PUT.)
   if (upload_id) {
     try {
+      // Cost/abuse guard: sum the REAL uploaded part sizes and ABORT (never assemble) if they
+      // exceed the 10 GB ceiling. Per-part content-length binding already caps each part at the
+      // R2 edge; this is the defense-in-depth backstop that stops an assembled megafile orphan
+      // (which the backup Worker would replicate to the WORM bucket) before it can exist.
+      const uploadedBytes = await sumMultipartParts({ key, uploadId: upload_id });
+      if (uploadedBytes > MAX_UPLOAD_BYTES) {
+        await abortMultipartUpload({ key, uploadId: upload_id }).catch(() => {});
+        captureWarning("upload", "oversize_multipart_aborted", {
+          key,
+          upload_id,
+          uploadedBytes,
+        });
+        return NextResponse.json(
+          {
+            ok: false,
+            code: "too_large",
+            message: "This upload exceeded the size limit and was discarded.",
+          },
+          { status: 413 },
+        );
+      }
       await completeMultipartUpload({ key, uploadId: upload_id, parts });
     } catch (e) {
       captureError("upload", e, { key, upload_id });

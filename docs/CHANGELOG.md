@@ -28,10 +28,28 @@ CHECK + an additive host column grant + CREATE-OR-REPLACE of `create_media` / `c
 `MAX_UPLOAD_BYTES` / `MIN_UPLOAD_CAP_BYTES` / `UPLOAD_CAP_PRESETS` in `lib/media/limits.ts`, mirrored by the SQL
 `c_max_upload_bytes` (`::bigint`-cast to dodge the int4 overflow). New "Max size per upload" control in the
 event-settings "Guest uploads" card (native `<select>` of presets, all tiers); marketing / FAQ / help / pricing
-copy updated to "up to 10 GB." Verified: typecheck + lint + 290 Vitest + build all green; rolled-back
-Supabase-MCP RPC contract checks confirm the gates (11 GB → ceiling reject, 200 MB vs a 100 MB host cap →
-host-cap reject, 10 MB → accept, video on a free host → gate reject). Shipped to partyreel.com for the live
-allow-list red-team of the upload + cap flows.
+copy updated to "up to 10 GB."
+
+**Megafile / cost-abuse hardening (same initiative, follow-up commit).** A presigned multipart upload didn't
+bind Content-Length, so a bad actor could declare a ≤10 GB upload, get up to ~640 part URLs, over-stuff each
+part, and call complete — assembling a multi-TB **orphan** in R2 that the real-time backup Worker would
+replicate into the 35-day WORM bucket (`create_media`'s ceiling guards the DB/cap accounting, NOT the R2
+object's existence; raising the ceiling 2 GB → 10 GB widened this). Closed at two layers: (1) **Content-Length
+is now bound into every presigned PUT + UploadPart** (the route signs each part's exact size — fixed part size
+for parts 1..N-1, the remainder for the last), so R2 rejects (403) any body larger than declared; (2) a
+**complete-time guard** sums the real uploaded part sizes via `ListParts` and ABORTS the multipart instead of
+assembling if the total exceeds the ceiling, so no oversized object is ever created (or backed up). New
+`sumMultipartParts` / `abortMultipartUpload` in `r2/presign.ts`; both complete routes call the guard before
+`completeMultipartUpload`.
+
+Verified: typecheck + lint + 290 Vitest + build all green; rolled-back Supabase-MCP RPC contract checks confirm
+the gates (11 GB → ceiling reject, 200 MB vs a 100 MB host cap → host-cap reject, 10 MB → accept, video on a
+free host → gate reject); the megafile hardening proven against the **real R2 bucket** (signed Content-Length:
+correct size → 200, oversized → 403 for both single-PUT and multipart parts; a legit 2-part multipart sums +
+assembles byte-exact). **Live on partyreel.com**: the "Max size per upload" control renders + persists through
+the authenticated write (DB shows the saved cap, reload reads it back), and a guest presign red-team returned
+the expected results (200 MB → 422 "capped at 100 MB"; 5 MB → presigned; 11 GB → 400 schema-bound). Feature
+commit `8e55910` + the hardening follow-up.
 
 ## 2026-06-08 — Avatars moved off R2 to Supabase Storage
 

@@ -49,6 +49,14 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
   The cap is read from the event row INSIDE the RPC (never a client/RPC param → un-spoofable); the guest presign
   route fast-fails over-cap claims but `create_media` is authoritative. Upload presign TTL is **2 h**: a
   multipart upload presigns all its parts up front, so the whole transfer must finish before they expire.
+- ★ **No upload can exceed its declared (≤10 GB) size — protects the pipeline + WORM backup from a megafile.**
+  Presigned PUT/UploadPart URLs **bind Content-Length** (`presignUpload`/`presignUploadPart` sign each part's
+  EXACT size), so R2 rejects (403) any over-stuffed body; AND the complete routes **sum the real part sizes
+  (`sumMultipartParts` → `ListParts`) and `abortMultipartUpload` instead of assembling** when the total exceeds
+  the ceiling. Without BOTH, an attacker could declare small, get ~640 part URLs, over-stuff each, and complete
+  into a multi-TB **orphan** the backup Worker would replicate into the 35-day-locked bucket (`create_media`'s
+  ceiling guards the DB/accounting, NOT the R2 object's existence). Don't drop either guard. *(Verified against
+  the real bucket: correct size → 200, oversized → 403; ADR-0003 + ADR-0014 posture.)*
 
 ## Gotchas (why it's like this — don't revert)
 

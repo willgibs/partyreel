@@ -129,6 +129,7 @@ export async function POST(request: Request) {
     const { url, headers } = await presignUpload({
       key,
       contentType: content_type,
+      contentLength: size_bytes,
     });
     return NextResponse.json({
       ok: true,
@@ -149,7 +150,18 @@ export async function POST(request: Request) {
   const parts = await Promise.all(
     Array.from({ length: partCount }, (_, i) => i + 1).map(
       async (partNumber) => {
-        const { url } = await presignUploadPart({ key, uploadId, partNumber });
+        // Each part's EXACT size, bound into the presign so R2 rejects an over-stuffed body
+        // (parts 1..N-1 = the fixed part size; the last part = the remainder).
+        const contentLength =
+          partNumber < partCount
+            ? MULTIPART_PART_SIZE_BYTES
+            : size_bytes - (partCount - 1) * MULTIPART_PART_SIZE_BYTES;
+        const { url } = await presignUploadPart({
+          key,
+          uploadId,
+          partNumber,
+          contentLength,
+        });
         return { partNumber, url };
       },
     ),
