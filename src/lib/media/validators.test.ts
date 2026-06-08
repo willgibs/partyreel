@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  MAX_PHOTO_BYTES,
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
-} from "@/lib/media/limits";
+import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 
 describe("classifyMime", () => {
@@ -26,55 +22,47 @@ describe("classifyMime", () => {
 });
 
 describe("validateUpload", () => {
-  it("accepts a photo exactly at the size ceiling", () => {
+  it("accepts a photo at the 10 GB ceiling", () => {
     expect(
-      validateUpload({ mime: "image/jpeg", sizeBytes: MAX_PHOTO_BYTES }).ok,
+      validateUpload({ mime: "image/jpeg", sizeBytes: MAX_UPLOAD_BYTES }).ok,
     ).toBe(true);
   });
 
-  it("rejects an over-size photo", () => {
+  it("accepts a video at the 10 GB ceiling (size is the only gate; no duration cap)", () => {
     expect(
-      validateUpload({ mime: "image/jpeg", sizeBytes: MAX_PHOTO_BYTES + 1 }).ok,
+      validateUpload({ mime: "video/mp4", sizeBytes: MAX_UPLOAD_BYTES }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects anything over the 10 GB ceiling, photo or video alike", () => {
+    expect(
+      validateUpload({ mime: "image/jpeg", sizeBytes: MAX_UPLOAD_BYTES + 1 })
+        .ok,
+    ).toBe(false);
+    expect(
+      validateUpload({ mime: "video/mp4", sizeBytes: MAX_UPLOAD_BYTES + 1 }).ok,
     ).toBe(false);
   });
 
-  it("rejects an over-size video", () => {
-    expect(
-      validateUpload({ mime: "video/mp4", sizeBytes: MAX_VIDEO_BYTES + 1 }).ok,
-    ).toBe(false);
-  });
-
-  it("rejects a too-long video", () => {
+  it("honors a stricter per-event maxBytes (the host cap)", () => {
+    // At/below the cap passes; one byte over is rejected.
     expect(
       validateUpload({
-        mime: "video/mp4",
-        sizeBytes: 1000,
-        durationSeconds: MAX_VIDEO_DURATION_SECONDS + 1,
+        mime: "image/jpeg",
+        sizeBytes: MIN_UPLOAD_CAP_BYTES,
+        maxBytes: MIN_UPLOAD_CAP_BYTES,
+      }).ok,
+    ).toBe(true);
+    expect(
+      validateUpload({
+        mime: "image/jpeg",
+        sizeBytes: MIN_UPLOAD_CAP_BYTES + 1,
+        maxBytes: MIN_UPLOAD_CAP_BYTES,
       }).ok,
     ).toBe(false);
   });
 
-  it("accepts a video exactly at the duration ceiling", () => {
-    expect(
-      validateUpload({
-        mime: "video/mp4",
-        sizeBytes: 1000,
-        durationSeconds: MAX_VIDEO_DURATION_SECONDS,
-      }).ok,
-    ).toBe(true);
-  });
-
-  it("accepts a video with unknown duration (size still enforced)", () => {
-    expect(
-      validateUpload({
-        mime: "video/mp4",
-        sizeBytes: 1000,
-        durationSeconds: null,
-      }).ok,
-    ).toBe(true);
-  });
-
-  it("rejects an unsupported type", () => {
+  it("rejects an unsupported type regardless of size", () => {
     expect(validateUpload({ mime: "application/zip", sizeBytes: 10 }).ok).toBe(
       false,
     );

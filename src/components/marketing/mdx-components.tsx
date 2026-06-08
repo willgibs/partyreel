@@ -5,11 +5,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { AlbumFrame } from "@/components/marketing/frames";
 import { slugify } from "@/lib/content/help";
 import { planById } from "@/lib/constants/tiers";
-import {
-  MAX_PHOTO_BYTES,
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
-} from "@/lib/media/limits";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { cn, formatBytes } from "@/lib/utils";
 
 // Components available to every MDX article (help now, blog later). next-mdx-remote v6
@@ -18,11 +14,8 @@ import { cn, formatBytes } from "@/lib/utils";
 // (never hard-code a cap; CLAUDE.md). Everything else is prose, styled by `prose-help`.
 
 // ── Inline spec values (single-sourced from limits.ts / tiers.ts) ───────────────
-const videoMinutes = Math.round(MAX_VIDEO_DURATION_SECONDS / 60);
-
-export const VideoMinutes = () => <>{videoMinutes}</>;
-export const VideoSize = () => <>{formatBytes(MAX_VIDEO_BYTES)}</>;
-export const PhotoSize = () => <>{formatBytes(MAX_PHOTO_BYTES)}</>;
+// The universal per-upload ceiling (photos + videos; size is the only gate).
+export const UploadSize = () => <>{formatBytes(MAX_UPLOAD_BYTES)}</>;
 export const FreeStorage = () => (
   <>{formatBytes(planById("free").storageBytes)}</>
 );
@@ -153,9 +146,7 @@ export const mdxComponents = {
   h3: H3,
   Callout,
   AlbumShowcase,
-  VideoMinutes,
-  VideoSize,
-  PhotoSize,
+  UploadSize,
   FreeStorage,
   EventPassStorage,
   EventPassPrice,

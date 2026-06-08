@@ -19,7 +19,7 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
 - Routes: guest [`/api/r2/presign-upload`](../../src/app/api/r2) + `/complete-upload`; host
   [`/api/host/r2/`](../../src/app/api/host/r2) `presign-upload` + `complete-upload`.
 - Shared uploader: [`upload/uploader.ts`](../../src/lib/upload/uploader.ts) (`uploadFile`).
-- Media constants: [`media/limits.ts`](../../src/lib/media/limits.ts) (5 min / 2 GB / 50 MB — single source),
+- Media constants: [`media/limits.ts`](../../src/lib/media/limits.ts) (10 GB per upload, size-only — single source; `MIN_UPLOAD_CAP_BYTES` + `UPLOAD_CAP_PRESETS` feed the host cap),
   [`media/poster.ts`](../../src/lib/media/poster.ts) (`videoPosterSrc`), [`media/download-filename.ts`](../../src/lib/media/download-filename.ts).
 - Render: [`media-grid.tsx`](../../src/components/app/media-grid.tsx) + the shared
   [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx) (used by all 4 surfaces);
@@ -43,6 +43,12 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
   auth via `auth.uid()` + event ownership (not a token), same per-file limits + cap/ingress enforcement
   (host uploads **count against the plan**), `status='approved'` unconditionally (the host is the
   moderator). No `accepting_uploads` check for the host (that toggle is the GUEST gate). → [billing-caps.md](billing-caps.md).
+- **One 10 GB per-upload ceiling, size-only** (photos + videos; no duration cap) enforced in `create_media*` on
+  the authoritative R2-HEAD size. A host may set a STRICTER per-event cap (`events.max_upload_bytes`, 25 MiB to
+  10 GB, or null = no cap) that bounds **guest** uploads only — the host's own `create_media_as_host` is exempt.
+  The cap is read from the event row INSIDE the RPC (never a client/RPC param → un-spoofable); the guest presign
+  route fast-fails over-cap claims but `create_media` is authoritative. Upload presign TTL is **2 h**: a
+  multipart upload presigns all its parts up front, so the whole transfer must finish before they expire.
 
 ## Gotchas (why it's like this — don't revert)
 

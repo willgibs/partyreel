@@ -10,6 +10,8 @@
  */
 import { z } from "zod";
 
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
 // The join carries ONLY the capability `qr_token`. Identity (for require_email events)
 // is now a VERIFIED Supabase session (Phase 2c): create_guest derives the email from
@@ -24,7 +26,7 @@ export const joinSchema = z.object({
 export const presignUploadSchema = z.object({
   session_token: z.string().trim().min(1),
   content_type: z.string().trim().min(1),
-  size_bytes: z.number().int().positive(),
+  size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
 });
 
@@ -41,7 +43,7 @@ export const completeUploadSchema = z.object({
   media_id: z.uuid(),
   key: z.string().trim().min(1),
   content_type: z.string().trim().min(1),
-  size_bytes: z.number().int().positive(),
+  size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
@@ -59,7 +61,7 @@ export const completeUploadSchema = z.object({
 export const hostPresignUploadSchema = z.object({
   event_id: z.uuid(),
   content_type: z.string().trim().min(1),
-  size_bytes: z.number().int().positive(),
+  size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
 });
 
@@ -68,7 +70,7 @@ export const hostCompleteUploadSchema = z.object({
   media_id: z.uuid(),
   key: z.string().trim().min(1),
   content_type: z.string().trim().min(1),
-  size_bytes: z.number().int().positive(),
+  size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),

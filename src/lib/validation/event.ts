@@ -16,6 +16,7 @@ import { z } from "zod";
 import { Constants } from "@/lib/db/types";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
+import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
 
 export const createEventSchema = z.object({
   name: z
@@ -39,6 +40,17 @@ export const createEventSchema = z.object({
   visibility: z.enum(Constants.public.Enums.event_visibility).default("open"),
   accepting_uploads: z.boolean().default(true),
   require_email: z.boolean().default(false),
+  // Host-configurable per-upload size cap for GUEST uploads (bytes). null = no host cap
+  // (the universal MAX_UPLOAD_BYTES applies). Bounds MIRROR the events_max_upload_bytes_range
+  // DB CHECK (defense-in-depth); the settings UI offers UPLOAD_CAP_PRESETS within this range.
+  // The host's own uploads are exempt (enforced in the RPCs, not here).
+  max_upload_bytes: z
+    .number()
+    .int()
+    .min(MIN_UPLOAD_CAP_BYTES)
+    .max(MAX_UPLOAD_BYTES)
+    .nullable()
+    .optional(),
   // Enum sourced from the generated DB Constants so it stays in lockstep with
   // the Postgres `moderation_mode` enum without restating the values here.
   moderation_mode: z

@@ -134,7 +134,6 @@ export async function uploadFile(args: {
   const localCheck = validateUpload({
     mime: file.type,
     sizeBytes: file.size,
-    durationSeconds: measured.duration ?? null,
   });
   if (!localCheck.ok) return { ok: false, message: localCheck.reason };
 

@@ -32,7 +32,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { assertR2Env } from "@/lib/env";
 import { getR2Client } from "@/lib/r2/client";
 
-const DEFAULT_UPLOAD_TTL_SECONDS = 15 * 60; // 15 min — room for a 50 MB mobile PUT
+// 2 h. A multipart upload presigns ALL its part URLs up front (in the presign route's
+// Promise.all), so the whole transfer must finish before they expire. At the 10 GB ceiling
+// that's ~640 parts; 2 h covers a 10 GB upload at ~12 Mbps (within median uplinks). SigV4
+// caps presigned-URL lifetime at 7 days; this is a write-only PUT to a server-derived key,
+// still gated by the authoritative complete-upload RPC, so a longer window is low-risk.
+const DEFAULT_UPLOAD_TTL_SECONDS = 2 * 60 * 60;
 const DEFAULT_DOWNLOAD_TTL_SECONDS = 60 * 60; // 1 h — gallery read URLs
 
 export type PresignedUpload = {

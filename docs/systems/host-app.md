@@ -7,8 +7,9 @@
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token` = the single DB-generated link (ADR-0010), `moderation_mode`,
-`visibility` + `event_password_hash`, `accepting_uploads`, `require_email`, `qr_style`, `custom_slug`,
-`deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
+`visibility` + `event_password_hash`, `accepting_uploads`, `require_email`, `max_upload_bytes` (host
+per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads are exempt), `qr_style`,
+`custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)): Details → QR design →
 Share. It creates **once at commit** via the non-redirecting `createEventInWizard`
 ([`dashboard/actions.ts`](../../src/app/(app)/dashboard/actions.ts)), which RETURNS the event (id +

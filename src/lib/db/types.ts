@@ -102,6 +102,7 @@ export type Database = {
           event_password_hash: string | null
           host_id: string
           id: string
+          max_upload_bytes: number | null
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at: string | null
@@ -121,6 +122,7 @@ export type Database = {
           event_password_hash?: string | null
           host_id: string
           id?: string
+          max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name: string
           purge_at?: string | null
@@ -140,6 +142,7 @@ export type Database = {
           event_password_hash?: string | null
           host_id?: string
           id?: string
+          max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
           name?: string
           purge_at?: string | null

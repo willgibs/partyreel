@@ -1,18 +1,12 @@
 import { planById } from "@/lib/constants/tiers";
-import {
-  MAX_PHOTO_BYTES,
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
-} from "@/lib/media/limits";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 // Single source for the FAQ — both the visible accordion (faq.tsx) and the
 // FAQPage JSON-LD (faq-jsonld.tsx) read this, so the structured data always
 // matches what users see (a Google requirement for FAQ rich results). Numbers
 // come from the limits/tiers single sources so the copy can't drift.
-const videoMinutes = Math.round(MAX_VIDEO_DURATION_SECONDS / 60);
-const videoSize = formatBytes(MAX_VIDEO_BYTES);
-const photoSize = formatBytes(MAX_PHOTO_BYTES);
+const uploadSize = formatBytes(MAX_UPLOAD_BYTES);
 const free = planById("free");
 
 export type FaqItem = { q: string; a: string };
@@ -28,7 +22,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What can guests upload?",
-    a: `Photos and videos straight from their phones: videos up to ${videoMinutes} minutes and ${videoSize}, and photos up to ${photoSize} each.`,
+    a: `Photos and videos straight from their phones, up to ${uploadSize} each, at full quality.`,
   },
   {
     q: "Can I control what shows up?",

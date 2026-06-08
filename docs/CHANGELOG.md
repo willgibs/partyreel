@@ -10,6 +10,29 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Per-upload limits: 10 GB ceiling + host-configurable per-event cap
+
+Retired the per-TYPE per-file limits (50 MB photo / 2 GB + 5-min video) for ONE universal **10 GB per-upload
+ceiling** across photos and videos: size is the only gate, the 5-minute duration cap is gone, and full-quality
+big files stop being friction. Video stays Pro-gated; the storage cap + monthly-ingress meter are unchanged.
+Restored the original "one guest can't fill the host's storage" protection as a host-configurable
+**per-event cap** (`events.max_upload_bytes`, 25 MiB to 10 GB, or null = no cap), available to **every tier**
+and bounding **guest** uploads only — the host's own batch uploads (`create_media_as_host`) are exempt, since
+the host owns the setting. The effective guest limit min(10 GB, host cap, remaining storage) is enforced
+server-side: the cap is read from the event row INSIDE the SECURITY DEFINER RPC (never client-supplied) and
+re-checked on the authoritative R2-HEAD size, so it can't be spoofed. Bumped the upload presign TTL 15 min →
+**2 h** (a multipart upload presigns all its parts up front, so a multi-GB transfer must finish before they
+expire). Migration `20260608120000_universal_upload_ceiling_and_host_cap`: nullable column + a 25 MiB–10 GB
+CHECK + an additive host column grant + CREATE-OR-REPLACE of `create_media` / `create_media_as_host` /
+`get_upload_context` (`get_advisors` unchanged from baseline; types regenerated). Single-sourced as
+`MAX_UPLOAD_BYTES` / `MIN_UPLOAD_CAP_BYTES` / `UPLOAD_CAP_PRESETS` in `lib/media/limits.ts`, mirrored by the SQL
+`c_max_upload_bytes` (`::bigint`-cast to dodge the int4 overflow). New "Max size per upload" control in the
+event-settings "Guest uploads" card (native `<select>` of presets, all tiers); marketing / FAQ / help / pricing
+copy updated to "up to 10 GB." Verified: typecheck + lint + 290 Vitest + build all green; rolled-back
+Supabase-MCP RPC contract checks confirm the gates (11 GB → ceiling reject, 200 MB vs a 100 MB host cap →
+host-cap reject, 10 MB → accept, video on a free host → gate reject). Shipped to partyreel.com for the live
+allow-list red-team of the upload + cap flows.
+
 ## 2026-06-08 — Avatars moved off R2 to Supabase Storage
 
 Profile avatars now live in a **public Supabase Storage `avatars` bucket** instead of the shared R2 media

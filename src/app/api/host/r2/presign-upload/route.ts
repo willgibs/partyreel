@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { event_id, content_type, size_bytes, duration_seconds } = parsed.data;
+  const { event_id, content_type, size_bytes } = parsed.data;
 
   // Classify + derive the extension SERVER-SIDE from the content-type.
   const kind = classifyMime(content_type);
@@ -68,12 +68,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Universal per-file limits (fail fast — zero orphans for too-big/too-long).
-  const check = validateUpload({
-    mime: content_type,
-    sizeBytes: size_bytes,
-    durationSeconds: duration_seconds ?? null,
-  });
+  // Universal 10 GB per-upload ceiling + MIME (fail fast — zero orphans for too-big files).
+  // The host is EXEMPT from the per-event host cap (max_upload_bytes bounds guests only).
+  const check = validateUpload({ mime: content_type, sizeBytes: size_bytes });
   if (!check.ok) {
     return NextResponse.json(
       { ok: false, code: "invalid_file", message: check.reason },

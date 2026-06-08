@@ -17,6 +17,7 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import type { HostEvent } from "@/lib/db/queries/events";
+import { UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
 import {
   updateEventSchema,
   type UpdateEventInput,
@@ -89,6 +90,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
       accepting_uploads: event.accepting_uploads,
       require_email: event.require_email,
       moderation_mode: event.moderation_mode,
+      max_upload_bytes: event.max_upload_bytes,
     },
   });
 
@@ -289,6 +291,45 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_upload_bytes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max size per upload</FormLabel>
+                    <FormControl>
+                      <select
+                        className="h-8 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                        value={field.value == null ? "" : String(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === ""
+                              ? null
+                              : Number(e.target.value),
+                          )
+                        }
+                      >
+                        {UPLOAD_CAP_PRESETS.map((preset) => (
+                          <option
+                            key={preset.label}
+                            value={
+                              preset.bytes == null ? "" : String(preset.bytes)
+                            }
+                          >
+                            {preset.label}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      Cap how large any single guest upload can be, so one guest
+                      can&rsquo;t fill your storage. Your own uploads
+                      aren&rsquo;t affected.
+                    </FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

@@ -15,11 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import {
-  MAX_PHOTO_BYTES,
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
-} from "@/lib/media/limits";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 // Single source for marketing feature copy. The home teaser (FeatureHighlights) and
@@ -27,9 +23,7 @@ import { formatBytes } from "@/lib/utils";
 // numbers are derived from the universal limits (lib/media/limits.ts) so they can't
 // contradict what the uploader actually enforces. (Copy is em-dash-free by policy; a
 // Vitest guard keeps it that way.)
-const videoMinutes = Math.round(MAX_VIDEO_DURATION_SECONDS / 60);
-const videoSize = formatBytes(MAX_VIDEO_BYTES);
-const photoSize = formatBytes(MAX_PHOTO_BYTES);
+const uploadSize = formatBytes(MAX_UPLOAD_BYTES);
 
 export type Feature = {
   icon: LucideIcon;
@@ -138,8 +132,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Film,
         title: "Big uploads, full quality",
         featured: true,
-        body: `Videos up to ${videoMinutes} minutes and ${videoSize}, photos up to ${photoSize}, uploaded straight to storage at full resolution.`,
-        longBody: `Phones shoot big, beautiful files, and Partyreel keeps them that way. Videos up to ${videoMinutes} minutes and ${videoSize}, photos up to ${photoSize}, uploaded straight to storage at full resolution, never squeezed down to fit a chat thread.`,
+        body: `Photos and videos up to ${uploadSize} each, uploaded straight to storage at full resolution.`,
+        longBody: `Phones shoot big, beautiful files, and Partyreel keeps them that way. Photos and videos up to ${uploadSize} each, uploaded straight to storage at full resolution, never squeezed down to fit a chat thread.`,
       },
     ],
   },

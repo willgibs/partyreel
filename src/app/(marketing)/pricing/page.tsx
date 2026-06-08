@@ -19,10 +19,7 @@ import {
   planById,
   plansForTier,
 } from "@/lib/constants/tiers";
-import {
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
-} from "@/lib/media/limits";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -32,10 +29,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-// Derived from the universal limits so the copy can never drift from what the
+// Derived from the universal limit so the copy can never drift from what the
 // uploader actually enforces (see lib/media/limits.ts).
-const videoMinutes = Math.round(MAX_VIDEO_DURATION_SECONDS / 60);
-const videoGb = Math.round(MAX_VIDEO_BYTES / 1024 ** 3);
+const uploadSize = formatBytes(MAX_UPLOAD_BYTES);
 
 // "≈ X photos or Y min of video" from a byte cap — translated for shoppers.
 function capacityLine(bytes: number): string {
@@ -177,8 +173,8 @@ export default function PricingPage() {
       </div>
 
       <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
-        Video uploads come with Pro and Event Pass, up to {videoMinutes} minutes
-        and {videoGb} GB each. Your events stay up until you delete them.
+        Video uploads come with Pro and Event Pass, up to {uploadSize} each.
+        Your events stay up until you delete them.
         There&rsquo;s no expiry clock counting down on your memories.
       </p>
     </Container>

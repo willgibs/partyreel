@@ -1,18 +1,16 @@
 /**
  * Pure media validators — no I/O, no DB. Safe to run on the client (pre-upload
- * UX: reject before wasting a multipart upload) AND on the server inside the
- * `create_media` RPC path (the real trust boundary — clients can lie).
+ * UX: reject before wasting a multipart upload) AND on the server in the presign
+ * route (a fast-fail; the create_media RPC is the real trust boundary — clients lie).
  *
- * Duration is best-effort: the browser measures it from the <video> element, so
- * server-side it may be absent. Size is always enforced; duration only when known.
+ * Size is the ONLY gate (no duration cap). The per-upload ceiling defaults to the
+ * universal MAX_UPLOAD_BYTES; callers may pass a stricter `maxBytes`.
  */
 
 import {
   ACCEPTED_PHOTO_MIME,
   ACCEPTED_VIDEO_MIME,
-  MAX_PHOTO_BYTES,
-  MAX_VIDEO_BYTES,
-  MAX_VIDEO_DURATION_SECONDS,
+  MAX_UPLOAD_BYTES,
   type MediaKind,
 } from "./limits";
 
@@ -28,29 +26,23 @@ export function classifyMime(mime: string): MediaKind | null {
 export function validateUpload(input: {
   mime: string;
   sizeBytes: number;
-  /** Seconds; omit/null when unknown (e.g. server-side). */
-  durationSeconds?: number | null;
+  /** Effective per-upload ceiling in bytes; defaults to the universal MAX_UPLOAD_BYTES. */
+  maxBytes?: number;
 }): ValidationResult {
   const kind = classifyMime(input.mime);
   if (!kind) {
     return { ok: false, reason: `Unsupported file type: ${input.mime}` };
   }
 
-  if (kind === "photo") {
-    if (input.sizeBytes > MAX_PHOTO_BYTES) {
-      return { ok: false, reason: "Photo exceeds the 50 MB limit." };
-    }
-    return { ok: true };
-  }
-
-  if (input.sizeBytes > MAX_VIDEO_BYTES) {
-    return { ok: false, reason: "Video exceeds the 2 GB limit." };
-  }
-  if (
-    input.durationSeconds != null &&
-    input.durationSeconds > MAX_VIDEO_DURATION_SECONDS
-  ) {
-    return { ok: false, reason: "Video is longer than 5 minutes." };
+  const max = input.maxBytes ?? MAX_UPLOAD_BYTES;
+  if (input.sizeBytes > max) {
+    return {
+      ok: false,
+      reason:
+        max < MAX_UPLOAD_BYTES
+          ? "This file is larger than this event allows."
+          : "This file is larger than the 10 GB maximum.",
+    };
   }
   return { ok: true };
 }

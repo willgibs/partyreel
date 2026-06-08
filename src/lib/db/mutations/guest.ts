@@ -96,6 +96,10 @@ export type UploadContext =
       // Phase 2: true when this is a video request on a FREE host (video is paid-only).
       // Advisory — create_media is the authoritative gate. False for photo requests.
       video_blocked: boolean;
+      // The guest-effective per-upload ceiling in bytes: least(10 GB, host's per-event cap).
+      // The host CEILING only (never remaining storage — at_storage_cap signals "full"), so
+      // a guest can't learn the host's usage. Advisory — create_media re-checks the host cap.
+      max_upload_bytes: number;
     };
 
 export type UploadContextResult =

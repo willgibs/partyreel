@@ -187,6 +187,11 @@ export async function updateEvent(
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
   if (values.qr_style !== undefined) patch.qr_style = values.qr_style;
+  // Host per-upload cap (guests only). A direct granted-column write — the column grant
+  // plus the events_max_upload_bytes_range CHECK are the DB boundary. null clears the cap
+  // (back to the universal 10 GB). No tier gate: it's available to every plan.
+  if (values.max_upload_bytes !== undefined)
+    patch.max_upload_bytes = values.max_upload_bytes;
 
   const { data, error } = await supabase
     .from("events")
