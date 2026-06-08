@@ -1,7 +1,7 @@
 # ADR-0014 — Data-layer security posture (white-hat hardening)
 
 - **Status:** Accepted + shipped (2026-06-04). The two-phase security initiative after the recovery roadmap.
-- **Phase:** post-roadmap security. Plan: [`.claude/plans/security-hardening.md`](../../../.claude/plans/security-hardening.md).
+- **Phase:** post-roadmap security (the plan was session-archived; the shipped result is in [CHANGELOG.md](../CHANGELOG.md) + [`../systems/database-security.md`](../systems/database-security.md)).
 - **Builds on:** ADR-0004 (anonymous capability tokens), ADR-0001 (Supabase-native RLS), ADR-0007 (password unlock).
 
 ## Context

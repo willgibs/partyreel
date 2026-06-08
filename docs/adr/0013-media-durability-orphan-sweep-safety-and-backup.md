@@ -8,9 +8,9 @@
   `partyreel-backup/db/` (object verified in R2, IA + 35-day lock); a logical dump restored cleanly into a
   throwaway Postgres 17 with every table's row count matching production; hardened with a post-upload
   byte-size verification (zero silent failures) + a Node-24 opt-in. **All three pillars shipped.**
-- **Phase:** one-off task (post-roadmap). Build steps + sequencing live in the master plan
-  [`.claude/plans/we-ve-recently-pushed-a-breezy-nest.md`](../../../.claude/plans/we-ve-recently-pushed-a-breezy-nest.md)
-  (supersedes the first-pass `.claude/plans/media-durability-backup.md`).
+- **Phase:** one-off task (post-roadmap). Build steps + sequencing were planned in the (session-archived)
+  durability master plan; the shipped result is captured here, in [CHANGELOG.md](../CHANGELOG.md), and in
+  [`../systems/durability-backups.md`](../systems/durability-backups.md).
 - **Supersedes (partially):** the "Cold storage evaluated + rejected" note in
   [`PRICING.md`](../PRICING.md) — that rejection stands for the _hot tail_, but Infrequent
   Access is **revived here for a cold backup** (retrieval fees only ever apply during a real restore).

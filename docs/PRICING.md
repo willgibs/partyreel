@@ -2,10 +2,10 @@
 
 Canonical home for the tier/pricing model. The product **why** is in
 [`PRD.md`](PRD.md) ("Monetization & anti-abuse" + "Data retention & lifecycle"); the
-**build** is [`ROADMAP.md`](ROADMAP.md) Phase 4. Prices here are **decided**
-(2026-05-29) and the storage-cap model is now **wired in code** (`tiers.ts` /
-`tier_limits()` SQL / `create_media`) as of **Cut 4a** — Stripe billing (Pro = 4b, Event
-Pass = 4c) is what remains.
+**engineering** (cap enforcement, the Stripe webhook/provisioning) is in
+[`systems/billing-caps.md`](systems/billing-caps.md). Prices were **decided** (2026-05-29) and the
+storage-cap model + Stripe billing (Pro subs, Event Pass, portal) are **shipped + live** (currently TEST
+mode; the live cutover is a launch task).
 
 ## Model
 

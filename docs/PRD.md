@@ -30,32 +30,29 @@ additive `event_members` table adds the rest._
 
 ## The core loop
 
-1. **Create** — host makes an event; the system issues a `qr_token` (→
-   `/e/[token]`) and a `share_token` (→ `/a/[token]`), and renders a QR code.
-2. **Join + upload** — a guest scans the QR, enters a display name, and uploads
-   photos/videos straight from their phone (browser → storage, direct).
+1. **Create** — host makes an event; the system issues a single `qr_token` (→
+   `/e/[qr_token]`) and renders a QR code (one link per event, ADR-0010).
+2. **Join + upload** — a guest scans the QR and uploads photos/videos straight from
+   their phone (browser → storage, direct; no app/account, a verified email only when the host requires one).
 3. **Curate** — uploads land live in the host's gallery. Depending on the
    event's moderation mode they're visible immediately (`live`) or wait in a
    queue (`hold_for_approval`). The host can hide/remove, lock uploads, and
    toggle public visibility.
-4. **Share** — the host shares the public album (`/a/[token]`, approved media
-   only). Each share surface carries a "make your own" CTA → growth loop, and shared
-   links unfurl with a branded, per-event preview card (but stay `noindex` — the share
-   token is a private capability). After a guest's first upload, a soft, one-time prompt
-   invites them to leave an email (so the host can share the album) with an optional
-   newsletter opt-in — feeding the guest → future-host loop. (Phase 6.)
+4. **Share** — the host shares the one event link; with uploads closed it reads as a
+   view-only album (approved media only). The link carries a "start for free" CTA → growth loop, and
+   unfurls with a branded, per-event preview card (but stays `noindex`, the `qr_token` is a private
+   capability). After a guest's first upload, a soft, one-time prompt invites them to create a free
+   account to save the event (with an optional newsletter opt-in), feeding the guest → future-host loop.
 5. **Reel** _(scaffold only in v1)_ — a highlight reel is stitched from the best
    clips. The schema supports it (`highlight_reels`, media reel fields); no
    processing ships in v1.
 
 ## Where this maps in the build
 
-The [roadmap](ROADMAP.md) ships the loop in order — **Phase 1** host auth + create ·
-**Phase 2** guest join + upload (steps 1–2, the core loop) · **Phase 3** curate +
-lifecycle (step 3) · **Phase 4** payments/tiers · **Phase 5** the highlight reel
-(step 5) · **Phase 6** growth/polish (the step-4 share CTA). ROADMAP carries the
-per-phase execution detail and the "how to pick up a phase" loop;
-[STATUS.md](STATUS.md) is the live "you are here."
+The phased build that shipped this loop is **complete** — steps 1–4 are live; step 5 (the reel) is
+scaffold-only. What exists today is mapped in [SYSTEMS.md](SYSTEMS.md) (→ the `systems/` deep docs); the
+dated build history is in [CHANGELOG.md](CHANGELOG.md); [STATUS.md](STATUS.md) is the live "you are here"
+and [ROADMAP.md](ROADMAP.md) is what might be next.
 
 ## Monetization & anti-abuse (the WHY behind the schema)
 
