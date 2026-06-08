@@ -8,7 +8,7 @@ import { touchHostActive } from "@/lib/db/mutations/profile";
 import { getNotificationData } from "@/lib/db/queries/notifications";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import { buildNotifications } from "@/lib/notifications/build";
-import { presignAvatarUrl } from "@/lib/r2/avatar-url";
+import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
 
 // Auth GATE for the host app. Every route in the (app) group renders inside
@@ -43,7 +43,7 @@ export default async function AppLayout({
 
   // Derive-on-read notification summary for the bell + the account-menu profile (name + avatar),
   // in parallel — both run on every host page. getProfileMenu is a narrow read (display_name +
-  // avatar marker); presignAvatarUrl returns null when there's no avatar (the menu shows the
+  // avatar marker); getAvatarUrl returns null when there's no avatar (the menu shows the
   // initial). The menu shows profiles.display_name (the EDITABLE name), so it matches /account and
   // the guest byline — not user_metadata.
   const [notificationData, menu] = await Promise.all([
@@ -51,7 +51,7 @@ export default async function AppLayout({
     getProfileMenu(user.id),
   ]);
   const notifications = buildNotifications(notificationData);
-  const avatarUrl = await presignAvatarUrl(user.id, menu.avatarMarker);
+  const avatarUrl = await getAvatarUrl(user.id, menu.avatarMarker);
 
   return (
     <AppShell

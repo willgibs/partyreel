@@ -10,6 +10,23 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Avatars moved off R2 to Supabase Storage
+
+Profile avatars now live in a **public Supabase Storage `avatars` bucket** instead of the shared R2 media
+bucket, cleanly separating account metadata from the durability-critical event media + its WORM backup. Pure
+backend swap: the client cropper and the `POST /api/account/avatar` validation (content-type + 512 KiB cap +
+magic-byte WebP sniff) are unchanged; only the storage backend moved. New `src/lib/supabase/avatar-storage.ts`
+(upload / remove / getUrl via the service-role admin client, which bypasses storage RLS, so the bucket needs
+no policies); the deterministic path `<id>/avatar.webp` + `upsert` keeps the one-object-per-user zero-orphan
+property. Reads are a stable public CDN URL with a `?v=<avatar_updated_at>` cache-bust (no per-render
+presign); `profiles.avatar_updated_at` stays the service-role-write-only existence marker + the `?v=` version.
+Removed the now-dead R2 avatar code (`r2/put.ts`, `r2/avatar-url.ts`, `avatarObjectKey`). Migration
+`20260608040803` creates the bucket (512 KiB + `image/webp` as defense-in-depth); 0 avatars existed, so the
+cut-over needed no backfill. Closes the ROADMAP "avatars → Supabase Storage" round + the durability doc's
+queued-initiative gap. Bytes ride Supabase infra durability (not pg_dump); avatars are derivable, so by design.
+Live-verified on partyreel.com (upload / replace / remove; one object held through replace; 415/413/422
+validation; guest "Hosted by" byline).
+
 ## 2026-06-07 — Deletion-aware backup prune (ADR-0013, Pillar B), deployed in dry-run
 
 Bounded the keep-all media backup: a weekly Worker cron (`0 6 * * 1`) reclaims a `partyreel-backup` object

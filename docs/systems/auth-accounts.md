@@ -59,13 +59,16 @@ one `profiles` row per signup.
   (6) in [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx); enable leaked-password protection.
 - **Avatars are deterministic + orphan-free by construction.** The cropper re-encodes to a 512px WebP
   client-side → `POST /api/account/avatar` (validated server-side: content-type + size + magic-byte WebP
-  sniff, so no SVG/XSS) → a DETERMINISTIC R2 key `avatars/<id>/avatar.webp` ([`avatarObjectKey`](../../src/lib/r2/keys.ts)).
-  Overwrite-on-replace ⇒ exactly one object per user ⇒ zero orphans (the purge cron's media sweep only scans
-  `events/`); DELETE removes the R2 object **then** clears the marker (R2-first). `profiles.avatar_updated_at`
-  (service-role-write-only) is the existence marker; when set, the server presigns a short-TTL GET
-  ([`avatar-url.ts`](../../src/lib/r2/avatar-url.ts)). The guest "Hosted by" byline reuses this via a
-  server-only admin read ([`getHostAvatarUrl`](../../src/lib/db/queries/guest-events-admin.ts)) keyed on
-  `events.host_id` — no anon-RPC change.
+  sniff, so no SVG/XSS) → a DETERMINISTIC object `<id>/avatar.webp` in the **public Supabase Storage
+  `avatars` bucket** ([`avatar-storage.ts`](../../src/lib/supabase/avatar-storage.ts), written via the
+  service-role admin client, which bypasses storage RLS — so the bucket needs no policies). Upload uses
+  `upsert` ⇒ exactly one object per user ⇒ zero orphans; DELETE removes the object **then** clears the marker
+  (object-first). `profiles.avatar_updated_at` (service-role-write-only) is the existence marker AND the
+  `?v=` cache-bust on the stable public CDN URL, so a replace busts caches without a per-render presign. The
+  guest "Hosted by" byline reuses this via a server-only admin read
+  ([`getHostAvatarUrl`](../../src/lib/db/queries/guest-events-admin.ts)) keyed on `events.host_id` — no
+  anon-RPC change. Bytes ride Supabase infra durability (separate from the R2 media WORM backup), not pg_dump;
+  derivable, so that's by design.
 - **`handle_new_user` no longer falls back to the email local-part** for `display_name` (a one-time backfill
   nulled those), so a null `display_name` genuinely means "not set" — which the guest "Hosted by" byline keys
   off. Google/OAuth still populate it from `full_name`.

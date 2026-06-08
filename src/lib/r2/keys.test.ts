@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  avatarObjectKey,
   mediaObjectKey,
   parseExtFromKey,
   parseMediaIdFromKey,
@@ -85,23 +84,5 @@ describe("parseExtFromKey", () => {
     expect(parseExtFromKey("events/e/photo/m/original")).toBeNull(); // no dot
     expect(parseExtFromKey("no-slashes-no-dot")).toBeNull();
     expect(parseExtFromKey("events/e/photo/m/.hidden")).toBeNull(); // dotfile, no name
-  });
-});
-
-describe("avatarObjectKey", () => {
-  const USER_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
-
-  it("builds the deterministic per-user webp layout", () => {
-    expect(avatarObjectKey(USER_ID)).toBe(`avatars/${USER_ID}/avatar.webp`);
-  });
-
-  it("is deterministic — one user always maps to one key (overwrite = zero orphans)", () => {
-    expect(avatarObjectKey(USER_ID)).toBe(avatarObjectKey(USER_ID));
-  });
-
-  it("is invisible to the media orphan sweep (parseMediaIdFromKey returns null)", () => {
-    // The purge cron only deletes keys it can positively identify as media; an avatar key
-    // must NEVER be matched, or the sweep could reap a live avatar.
-    expect(parseMediaIdFromKey(avatarObjectKey(USER_ID))).toBeNull();
   });
 });

@@ -41,9 +41,6 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
-- **Avatars → Supabase Storage** (own round) — move avatars off R2 to a public Storage bucket +
-  `profiles.avatar_url`; closes the avatar-durability gap (Pro backups), drops the per-render presign,
-  declutters R2 to pure event media. See [`systems/auth-accounts.md`](systems/auth-accounts.md).
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).

@@ -37,7 +37,8 @@ The durability work (ADR-0013) added a **backup shadow for each**, all running O
 GitHub Actions), so a backup failure is a durability risk, **never a user-facing outage**.
 
 - **Postgres rows** (Supabase) — events, media _metadata_, profiles, guests, ledgers, …
-- **Media bytes** (R2 bucket `partyreel`) — the photos/videos (`events/…`) + avatars (`avatars/…`).
+- **Media bytes** (R2 bucket `partyreel`) — the photos/videos (`events/…`). Profile avatars live separately
+  in Supabase Storage (public `avatars` bucket); derivable, so they ride Supabase infra durability, not this R2 WORM shadow.
 
 ## Data flows (the overview — mechanics live in [durability-backups.md](durability-backups.md))
 

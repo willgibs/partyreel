@@ -29,7 +29,8 @@ decision — see [ROADMAP.md](ROADMAP.md)).
 All backing services run under the dedicated owner account **partyr33l@gmail.com ("P3")** (the migration
 is recorded in [`CHANGELOG.md`](CHANGELOG.md)):
 
-- **Supabase** project `ddafaemglzmuekbtjwzn` (P3 "Partyreel Team", Pro; daily backups on). ⚠️ the P3
+- **Supabase** project `ddafaemglzmuekbtjwzn` (P3 "Partyreel Team", Pro; daily backups on; the public
+  `avatars` Storage bucket holds profile photos). ⚠️ the P3
   Supabase **MCP may be connected read-only** — the DB tool group returns a `permission` error if so;
   re-auth with the DB scope or use the dashboard SQL editor.
 - **Cloudflare R2** account `8bd90d2f6a374d6cdff2f379e929b060` — bucket `partyreel` (primary, ENAM) +

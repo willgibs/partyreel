@@ -17,8 +17,8 @@ import "server-only";
 
 import type { GuestMediaRow } from "@/lib/db/queries/guest-events";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
-import { presignAvatarUrl } from "@/lib/r2/avatar-url";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 
 export async function getApprovedMediaForUnlock(
   eventId: string,
@@ -40,14 +40,14 @@ export async function getApprovedMediaForUnlock(
 }
 
 /**
- * The host's presigned avatar URL for an event's "Hosted by" byline, or null if the host has
- * no avatar. Server-only admin read (the guest page has no JWT): resolve events.host_id, then
- * the host's profiles.avatar_updated_at, then presign (reuses the Phase-1 helper; a null marker
- * → null). The anon get_event_by_qr_token RPC stays UNCHANGED (no contract change): host_id is
- * never returned as a separate field; it appears only inside the avatar's short-lived presigned
- * URL PATH (avatars/<host_id>/avatar.webp) — exactly like eventId/mediaId in gallery media URLs —
- * so it isn't separately enumerable (and only for hosts who set both a name + avatar). Callers
- * gate this on a set host name (the byline hides without one), so it's a no-op for nameless hosts.
+ * The host's avatar URL for an event's "Hosted by" byline, or null if the host has no avatar.
+ * Server-only admin read (the guest page has no JWT): resolve events.host_id, then the host's
+ * profiles.avatar_updated_at, then build the URL (reuses getAvatarUrl; a null marker → null).
+ * The anon get_event_by_qr_token RPC stays UNCHANGED (no contract change): host_id is never
+ * returned as a separate field. It appears only inside the avatar's stable public Storage URL PATH
+ * (avatars/<host_id>/avatar.webp) — a non-PII UUID embedded in a URL like any object id, and only
+ * for hosts who set BOTH a name + avatar. Callers gate this on a set host name (the byline hides
+ * without one), so it's a no-op for nameless hosts.
  */
 export async function getHostAvatarUrl(
   eventId: string,
@@ -65,5 +65,5 @@ export async function getHostAvatarUrl(
     .select("avatar_updated_at")
     .eq("id", ev.host_id)
     .maybeSingle();
-  return presignAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
+  return getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
 }

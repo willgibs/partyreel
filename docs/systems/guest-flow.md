@@ -75,7 +75,7 @@ is an **Invite trigger + dialog** (QR + Copy link + native Share + Download), no
 [`guest-header.tsx`](../../src/components/guest/guest-header.tsx): logged-out → a quiet "Start for free"
 CTA (the SSR default → zero flash for the anonymous majority); logged-in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via `GET
-/api/me/menu?event=<id>` ONLY when a session exists (the avatar is presigned server-side; event-ownership
+/api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL; event-ownership
 is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out** clears the guest
 capability (`setStoredSession(qrToken, null)` via the module-singleton `emit()` in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts)), signs out, then `router.refresh()`s —

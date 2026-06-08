@@ -38,8 +38,8 @@ Live path: a PUT to PRIMARY R2 (`events/…`) fires an `object-created` notifica
 → the consumer **Worker** (`partyreel-backup`) copies the object → BACKUP R2 (`partyreel-backup`, WNAM, IA,
 **Bucket Lock** ≥ 35-day WORM). A failed copy retries → **DLQ**. A daily **05:00 UTC reconciliation** (the
 Worker's `scheduled()`) re-copies anything the live path missed (and was the one-time seed). **Avatars are
-NOT backed up** (derivable; overwrite-in-place conflicts with the lock — the queued "avatars → Supabase
-Storage" initiative closes that gap). Workers Paid ~$5/mo, zero egress, off Vercel; a Backblaze B2
+not in this R2 backup by design** — they now live in the public Supabase Storage `avatars` bucket (derivable,
+and overwrite-in-place would conflict with the lock anyway). Workers Paid ~$5/mo, zero egress, off Vercel; a Backblaze B2
 cross-vendor tier is a later add. DR-drill-verified (2026-06-06: ~15 s replication; the lock blocks
 deletion; restore works; >100 MB multipart copy byte-identical).
 
@@ -78,7 +78,7 @@ needs BOTH halves.**
 | Missed R2 event notification | reconciliation re-copies within 24 h |
 | GitHub DB-backup fails | run fails loudly + post-upload byte-size verify; **but a _persistent_ failure is only as visible as the Actions tab → this is exactly what admin-portal P8 (observability) targets** |
 | DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
-| Avatars not backed up | out of scope by design (see Pillar B) |
+| Avatars not in the R2 WORM backup | by design — on Supabase Storage (bytes ride Supabase infra durability, metadata in pg_dump); derivable, so no WORM tier needed |
 | Prune breaker tripped / source looks empty | deletes nothing, alerts (Sentry + deduped email); dry-run + the 36-day lock are independent backstops |
 
 The zero-silent-failure mandate (every backend job must be manageable + health-visible from `/admin`) is

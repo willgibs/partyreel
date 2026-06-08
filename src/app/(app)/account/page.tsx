@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
-import { presignAvatarUrl } from "@/lib/r2/avatar-url";
+import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -33,10 +33,7 @@ export default async function AccountPage({
   ]);
   if (!profile) redirect("/login");
 
-  const avatarUrl = await presignAvatarUrl(
-    profile.id,
-    profile.avatar_updated_at,
-  );
+  const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

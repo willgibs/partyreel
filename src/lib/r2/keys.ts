@@ -29,28 +29,6 @@ export function mediaObjectKey(params: {
   return `events/${eventId}/${kind}/${mediaId}/${variant}.${ext}`;
 }
 
-// The avatar filename is a FIXED literal on purpose — see avatarObjectKey.
-const AVATAR_FILENAME = "avatar.webp";
-
-/**
- * Avatar object key — a SEPARATE, deterministic layout from event media:
- *
- *   avatars/<userId>/avatar.webp
- *
- * Deterministic + overwrite-on-replace: there is only ever ONE object per user, so
- * replacing an avatar overwrites it in place and orphans are IMPOSSIBLE by construction
- * (no delete-then-write race, no orphan sweep needed). The filename is a literal constant —
- * deriving it (a hash, a second variant) would reintroduce orphans. Avatars are always
- * re-encoded to webp client-side, so the extension is fixed too.
- *
- * Deliberately INVISIBLE to parseMediaIdFromKey() below (3 segments, "avatars" prefix, no
- * mediaId), so the purge cron's orphan sweep — which lists only the `events/` prefix — never
- * touches it. Account deletion is the only avatar-cleanup path and must delete this exact key.
- */
-export function avatarObjectKey(userId: string): string {
-  return `avatars/${userId}/${AVATAR_FILENAME}`;
-}
-
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
