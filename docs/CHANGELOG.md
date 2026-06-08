@@ -10,7 +10,7 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-06-07 — Deletion-aware backup prune (ADR-0013, Pillar B), code-complete (ships in dry-run)
+## 2026-06-07 — Deletion-aware backup prune (ADR-0013, Pillar B), deployed in dry-run
 
 Bounded the keep-all media backup: a weekly Worker cron (`0 6 * * 1`) reclaims a `partyreel-backup` object
 once its source is gone, the inverse of the orphan sweep and the only job that deletes from the last-resort
@@ -22,9 +22,12 @@ orphan-sweep machinery), a **36-day age gate** (one day past the Bucket Lock), a
 primary only for the confirmed-gone set, so cost stays ~$0 into tens of millions of objects. New code:
 `workers/backup` `prune` branch + `prune-strategy.ts`; app `r2/prune-guard.ts` + `/api/internal/backup-prune`
 + `pruneBreakerEmail` + the shared `PRUNE_API_SECRET`. Observability is alert-only (the `/admin` job-runs
-heartbeat is deferred to admin P8). Verified: `pnpm typecheck`/`lint`/`test` (290) + `build` clean; worker
-`typecheck` + tests (15). PENDING (not yet live): a human `wrangler deploy` + the shared secret; the
-live-flip (`PRUNE_MODE`) + the destructive drill are launch-checkpoint tasks.
+heartbeat is deferred to admin P8). Verified: `pnpm typecheck`/`lint`/`test` (290) + `build` + worker `typecheck`/tests (15), plus a LIVE
+adversarial pass (endpoint auth 401/500, zod 400, breaker trip + operator email, dual-gate excludes existing
+rows; the deployed Worker's cron routing + empty-primary early-out = zero deletes). Worker + app route + the
+shared `PRUNE_API_SECRET` (Vercel + Cloudflare) are LIVE in dry-run ([#2](https://github.com/willgibs/partyreel/pull/2),
+[#3](https://github.com/willgibs/partyreel/pull/3)). PENDING: the live-flip (`PRUNE_MODE=live`) + the
+destructive drill, both post-launch (the 36-day age gate + the lock keep the delete path unreachable until then).
 
 ## 2026-06-07 — Documentation consolidation (in progress)
 
