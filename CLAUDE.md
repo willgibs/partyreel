@@ -51,9 +51,11 @@ A goal becomes its own small plan. Defaults, not rails — use judgment:
 3. **Plan** — for anything non-trivial, write a short plan and clarify open product/UX choices with the human (AskUserQuestion) **before** building. Reuse the DRY single-sources (below).
 4. **Build** — leave WHY-comments for the next agent; reuse `src/components/ui` + `src/components/shared`; use the MCPs directly.
 5. **Test (internal)** — Vitest for pure logic + a **rolled-back Supabase-MCP RPC contract check** for any new SQL (run RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists); run `pnpm typecheck && lint && test && build`. After any DDL run **`get_advisors`**.
-6. **Verify antagonistically on partyreel.com** — auth/upload/email/checkout can't complete on localhost (see "Local vs live"). Deploy, then **red-team your own change** via the Chrome MCP (force the error cases, the cross-tenant/escalation paths, the abuse paths) + the Supabase/R2 MCPs to seed/inspect. Test data is disposable.
-7. **Commit + push** — only when asked; **commit + push straight to `main` (do NOT create a feature branch)** — pre-launch we trade branch isolation for fewer Vercel builds (a branch push builds the branch AND queues the `main` deploy behind it; a bad `main` build is fixed forward while the data is disposable). Never `git add -A`, never commit secrets, never `--no-verify` or force-push without an explicit ask. End commit messages with the `Co-Authored-By` trailer.
+6. **Verify antagonistically — the bar is "force a break", not "prove a success"** (the most important step). Test EVERYTHING you can locally first: server routes, API handlers, RPCs, and DB logic all run against the REAL Supabase/R2 via `pnpm dev` + `.env.local`, so red-team that surface on localhost (fast, full control, no deploy). Deploy to partyreel.com for the allow-list-gated flows (auth/upload/email/checkout) AND a final live pass. Either way, **red-team your own change**: force the error cases, the cross-tenant/escalation/abuse paths, malformed inputs, and the catastrophic-fault paths — never just the happy path. Drive via curl + the Supabase/R2 MCPs (local) and the Chrome MCP (live); seed/inspect freely. Test data is disposable — break things on purpose to harden the foundation.
+7. **Commit + ship as you go (high agency)** — the moment `typecheck`/`lint`/`test`/`build` are green, **commit + push straight to `main` on your own initiative** to deploy + test live. Do NOT pause to ask permission to commit, and do NOT create a feature branch (a branch push builds the branch AND queues the `main` deploy behind it — wasted Vercel minutes; a bad `main` build is fixed forward on disposable data). Guardrails still hold: tests green first, never `git add -A` (stage explicitly), never commit secrets, never `--no-verify` or force-push. `Co-Authored-By` trailer on every commit. After pushing, confirm the deploy succeeded + the intended commit is live (Vercel MCP `list_deployments`/`get_deployment`, or poll the URL) before the live red-team.
 8. **Record (subtractively)** — update the owning `docs/systems/` doc **in place** (refine the line; don't append a dated block); move any shipping narrative to [`CHANGELOG.md`](docs/CHANGELOG.md); prune what your change made stale; log any new deferred task as a **one-liner under its ROADMAP bucket**. See "Keeping the docs healthy".
+
+**Autonomy — finish the job, don't pause mid-flow.** Carry a task all the way through: build → test → commit + deploy → red-team → `pnpm build` → report results. Don't stop after a deploy to wait for a go-ahead; flow straight into the aggressive review and conclude with the build + red-team findings. The ONE thing that should halt you is genuine hesitation about INTENT (a decision that might branch from the goal) — then ask (AskUserQuestion). High agency on execution; low presumption on direction.
 
 ---
 
@@ -109,17 +111,33 @@ Reach for the right one; prefer Context7 over web search/memory for any library/
 
 ---
 
-## Local dev vs. live testing — TEST ON partyreel.com
+## Local dev vs. live testing — local FIRST, then live
 
-`localhost:3000` is deliberately NOT in the allow-list of **any** tooling (Supabase redirect allow-list,
-R2 CORS, `NEXT_PUBLIC_SITE_URL`, Stripe redirect/return URLs), so `pnpm dev` renders UI but **cannot
-complete sign-in, an upload, or checkout** — by design; don't "fix" it by adding localhost. Default to
-verifying on the deployed site (push to `main` → Vercel deploys partyreel.com, then drive the **Chrome
-MCP**). `pnpm dev` + the **Preview MCP** is fine for pure UI/render work. **Live/DB testing is authorized
-and expected** — the project holds only disposable test data (host test account `willg97@gmail.com`,
-operator/admin `partyr33l@gmail.com`); seed/mutate/inspect prod via the Supabase/R2 MCPs. One Chrome
-gotcha: Vercel injects its dev **Toolbar** for logged-in team members (a floating circle at the
-right-middle edge) that overlaps UI and is invisible to real guests — navigate by keyboard or dismiss it.
+Test everything you can on localhost; it makes your review MORE comprehensive, not less. `pnpm dev` +
+`.env.local` runs server routes, API handlers, RPCs, and DB logic against the **real** Supabase/R2 (the
+service-role admin client, presign, queries all work locally), so red-team that surface locally first
+(fast, full control, no deploy). What localhost genuinely CANNOT do is the flows gated by external
+allow-lists: **sign-in** (Supabase redirect), **upload** (R2 CORS + `NEXT_PUBLIC_SITE_URL`), **email**
+round-trips, and **checkout** (Stripe redirect) — not in any allow-list by design; don't "fix" that by
+adding localhost. For those, and for a final adversarial pass, deploy (push to `main` → partyreel.com)
+and drive the **Chrome MCP**. **Live/DB testing is authorized + expected** — disposable test data only
+(host `willg97@gmail.com`, operator/admin `partyr33l@gmail.com`); seed/mutate/inspect prod via the
+Supabase/R2 MCPs. `pnpm dev` + the **Preview MCP** covers pure UI/render. Chrome gotcha: Vercel injects a
+dev **Toolbar** for logged-in team members (a floating circle, right-middle edge) that overlaps UI and is
+invisible to real guests — navigate by keyboard or dismiss it.
+
+---
+
+## Secrets & env vars
+
+When you introduce a new secret/env var, put it in **all three**: (1) `.env.local` (gitignored), (2) the
+Vercel project env as **NON-sensitive** — regardless of how secret it is, so values stay swappable
+pre-launch (flipping the critical ones to Vercel "Sensitive" is a launch task), and (3) `src/lib/env.ts`
+(zod-validated, `.optional()` + a lazy `assert*Env()`). Keep `.env.local` and Vercel in sync. Manage
+Vercel env vars **autonomously via the Vercel CLI** (`vercel env add/rm`; auth with `VERCEL_TOKEN` from
+`.env.local`) — the Vercel MCP can't write env vars. Cloudflare Worker secrets: `wrangler secret put`
+(write-only). Deploy auth is pre-wired: `wrangler` → P3 (`wrangler whoami` to confirm), `gh` →
+`willgibs/partyreel`, Vercel → the `VERCEL_TOKEN`. Never commit a real secret value to git.
 
 ---
 
@@ -148,7 +166,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git** — commit + push **straight to `main`** (pre-launch — do NOT create feature branches; it saves Vercel build minutes, and a bad `main` build is fixed forward). Never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push without an explicit ask. Commit only when asked. (Revisit branches/PR previews at launch — see [`docs/ROADMAP.md`](docs/ROADMAP.md).)
+**Git** — commit + push **straight to `main` on your own initiative once tests pass** (high agency, ship-as-you-go; pre-launch — NO feature branches: a branch push wastes Vercel builds, and a bad `main` build is fixed forward). Never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push. (Revisit branches/PR previews at launch — see [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 
@@ -185,7 +203,7 @@ also appear in full in the linked system doc — don't revert them.
 ## Database workflow
 
 - Schema is **Supabase-native**: SQL migrations + RLS + generated types are the source of truth (ADR-0001), in `supabase/migrations/`. Apply via the **Supabase MCP** `apply_migration` (the CLI isn't installed; keep the repo file = applied version).
-- `src/lib/db/types.ts` is **generated — do not hand-edit** (it's `.prettierignore`d so regeneration stays churn-free).
+- `src/lib/db/types.ts` is **generated — do not hand-edit**, but DO **read it as the fast source of truth for table + column names before hand-writing SQL or `.from(...)` queries** (don't assume column names like `owner_id`/`created_at`; or introspect live via the Supabase MCP). It's `.prettierignore`d so regeneration stays churn-free.
 - **After any schema change: run `get_advisors` + regenerate types.** The expected, accepted advisor set: the **8 anon capability RPCs** (lint `0028`, by design — never revoke), the **authenticated-only RPCs** (`0029`), the **service-role-only** fns (must appear in NEITHER list), the **deny-all** `rls_enabled_no_policy` INFOs, and the leaked-password WARN (a launch task). The full inventory + the column-lock + MCP-anon-grant lessons: [database-security.md](docs/systems/database-security.md).
 
 ---

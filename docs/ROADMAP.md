@@ -103,6 +103,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - Revisit the git workflow for production `[eng]` — pre-launch we commit straight to `main` (fewer Vercel
   builds, fix-forward on a bad build). At launch, reconsider feature branches + PR preview deploys so a bad
   build can't reach real users. The current rule lives in [`../CLAUDE.md`](../CLAUDE.md) (working loop + Git).
+- Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
+  values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
+  `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.
 
 ## Speculative / longer-horizon backlog
 
