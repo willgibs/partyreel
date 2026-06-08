@@ -210,6 +210,7 @@ export function HostMediaGrid({
         index={openIndex}
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
+        viewerIsHost
       />
     </>
   );

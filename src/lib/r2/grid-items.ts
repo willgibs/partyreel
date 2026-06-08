@@ -10,6 +10,7 @@ import "server-only";
 import type { GridMedia } from "@/components/app/media-grid";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
+import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import type {
   ModerationGridItem,
   ModerationMediaItem,
@@ -21,6 +22,10 @@ type MediaRow = { id: string; type: MediaKind; original_key: string };
 export async function toGridItems(
   media: MediaRow[],
   eventName: string,
+  // Optional uploader attribution (Phase 2), keyed by media id. GUEST callers pass this to show the
+  // name; they pass the WHOLE map but we copy ONLY name/isHost/isAnonymous here, NEVER email -- so a
+  // guest GridMedia can never carry an email (the host gallery builds its items separately, with email).
+  identities?: Map<string, UploaderIdentity>,
 ): Promise<GridMedia[]> {
   return Promise.all(
     media.map(async (m) => {
@@ -35,7 +40,16 @@ export async function toGridItems(
           }),
         }),
       ]);
-      return { id: m.id, type: m.type, url, downloadUrl };
+      const who = identities?.get(m.id);
+      return {
+        id: m.id,
+        type: m.type,
+        url,
+        downloadUrl,
+        uploaderName: who?.displayName ?? null,
+        isHost: who?.isHost ?? false,
+        isAnonymous: who?.isAnonymous ?? false,
+      };
     }),
   );
 }

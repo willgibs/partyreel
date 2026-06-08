@@ -33,6 +33,7 @@ import {
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
+import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { listEventMedia, listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
@@ -74,11 +75,13 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // Live gallery — presign each object key server-side (never expose raw keys).
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
-  const [media, linkStats, deletedMedia] = await Promise.all([
-    listEventMedia(event.id),
-    getLinkStats(event.id),
-    listRecentlyDeletedMedia(event.id),
-  ]);
+  const [media, linkStats, deletedMedia, uploaderIdentities] =
+    await Promise.all([
+      listEventMedia(event.id),
+      getLinkStats(event.id),
+      listRecentlyDeletedMedia(event.id),
+      getUploaderIdentities(event.id),
+    ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
@@ -94,7 +97,20 @@ export default async function EventDetailPage({ params }: PageProps) {
           }),
         }),
       ]);
-      return { id: m.id, type: m.type, url, downloadUrl, status: m.status };
+      // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that includes email
+      // (for identifying a guest); guest surfaces never carry it.
+      const who = uploaderIdentities.get(m.id);
+      return {
+        id: m.id,
+        type: m.type,
+        url,
+        downloadUrl,
+        status: m.status,
+        uploaderName: who?.displayName ?? null,
+        isHost: who?.isHost ?? false,
+        isAnonymous: who?.isAnonymous ?? false,
+        uploaderEmail: who?.email ?? null,
+      };
     }),
   );
 

@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { getApprovedMediaForUnlock } from "@/lib/db/queries/guest-events-admin";
+import {
+  getApprovedMediaForUnlock,
+  getUploaderIdentities,
+} from "@/lib/db/queries/guest-events-admin";
 import {
   getEventByQrToken,
   getEventMediaByQrToken,
 } from "@/lib/db/queries/guest-events";
+import { isDemoToken } from "@/lib/demo";
 import { toGridItems } from "@/lib/r2/grid-items";
 
 export const runtime = "nodejs";
@@ -50,6 +54,10 @@ export async function POST(request: Request) {
       ? await getApprovedMediaForUnlock(event.data.id)
       : await getEventMediaByQrToken(qrToken);
 
-  const items = await toGridItems(media, event.data.name);
+  // Uploader attribution (name + flags only — NEVER email on this guest path). Skip the demo.
+  const identities = isDemoToken(qrToken)
+    ? undefined
+    : await getUploaderIdentities(event.data.id);
+  const items = await toGridItems(media, event.data.name, identities);
   return NextResponse.json({ ok: true, items });
 }

@@ -19,6 +19,11 @@ import type { GuestMediaRow } from "@/lib/db/queries/guest-events";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
+import {
+  resolveUploaderIdentity,
+  type UploaderIdentity,
+  type UploaderRow,
+} from "@/lib/media/uploader-identity";
 
 export async function getApprovedMediaForUnlock(
   eventId: string,
@@ -66,4 +71,48 @@ export async function getHostAvatarUrl(
     .eq("id", ev.host_id)
     .maybeSingle();
   return getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
+}
+
+/**
+ * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
+ * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
+ * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarUrl). Returns the
+ * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isAnonymous onto
+ * the client (never email). Two batched reads: the host's name (for host uploads), then all media
+ * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().
+ */
+export async function getUploaderIdentities(
+  eventId: string,
+): Promise<Map<string, UploaderIdentity>> {
+  const admin = createAdminClient();
+
+  // The host's display name — attributed to host uploads (media.guest_id IS NULL). One read.
+  let hostName: string | null = null;
+  const { data: ev } = await admin
+    .from("events")
+    .select("host_id")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (ev?.host_id) {
+    const { data: hp } = await admin
+      .from("profiles")
+      .select("display_name")
+      .eq("id", ev.host_id)
+      .maybeSingle();
+    hostName = hp?.display_name ?? null;
+  }
+
+  // All media for the event with the uploader's guest + linked profile, one batched read.
+  const { data, error } = await admin
+    .from("media")
+    .select(
+      "id, guest_id, guests!media_guest_id_fkey(user_id, email, profiles!guests_user_id_fkey(display_name))",
+    )
+    .eq("event_id", eventId);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
+  const map = new Map<string, UploaderIdentity>();
+  for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+  return map;
 }

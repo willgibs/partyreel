@@ -18,6 +18,17 @@ export type GridMedia = {
    */
   downloadUrl?: string;
   status?: "pending" | "approved" | "hidden" | "removed";
+  /**
+   * Uploader attribution (Phase 2), rendered as a subtle caption in the lightbox (never on tiles).
+   * Resolved server-side. `uploaderName` is the public display name (null = anonymous OR, defensively,
+   * an unresolved name -> caption hides). `isHost` -> a "Host" badge. `isAnonymous` -> "Anonymous" +
+   * the info popover. `uploaderEmail` is HOST-GALLERY-ONLY: it is populated ONLY on the host dashboard
+   * path and NEVER on any guest surface (email-safety by construction).
+   */
+  uploaderName?: string | null;
+  isHost?: boolean;
+  isAnonymous?: boolean;
+  uploaderEmail?: string | null;
 };
 
 // Presentational thumbnail shared by the public album (MediaGrid below) and the
@@ -89,6 +100,7 @@ export function MediaGrid({ items }: { items: GridMedia[] }) {
         index={openIndex}
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
+        viewerIsHost={false}
       />
     </>
   );

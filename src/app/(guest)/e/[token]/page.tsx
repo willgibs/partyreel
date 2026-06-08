@@ -12,6 +12,7 @@ import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import {
   getApprovedMediaForUnlock,
   getHostAvatarUrl,
+  getUploaderIdentities,
 } from "@/lib/db/queries/guest-events-admin";
 import {
   getEventByQrToken,
@@ -142,7 +143,11 @@ export default async function GuestEventPage({
     event.visibility === "password"
       ? await getApprovedMediaForUnlock(event.id)
       : await getEventMediaByQrToken(event.qr_token);
-  const initialItems = await toGridItems(media, event.name);
+  // Uploader attribution (name + flags only on this guest page -- NEVER email). Skip the demo.
+  const identities = isDemoToken(event.qr_token)
+    ? undefined
+    : await getUploaderIdentities(event.id);
+  const initialItems = await toGridItems(media, event.name, identities);
 
   // Host avatar for the "Hosted by" byline — a server-side admin read so host_id stays off the
   // client (only the presigned URL is passed down). Gated on a set name, since the byline hides

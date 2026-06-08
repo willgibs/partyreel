@@ -12,10 +12,13 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { AnonymousInfo } from "@/components/shared/anonymous-info";
+import { PlayBadge } from "@/components/shared/play-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
-import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
+import { cn } from "@/lib/utils";
 
 // Shared full-screen media viewer for BOTH galleries (public album + host grid).
 // Built by composing the radix Dialog PRIMITIVES rather than the wrapped
@@ -92,16 +95,67 @@ function prefersReducedMotion() {
   );
 }
 
+// Subtle uploader attribution caption (Phase 2). Bare name (no "Uploaded by"); host uploads add a
+// "Host" badge; anonymous shows "Anonymous" + a tap (i) explainer. The EMAIL line renders only when
+// the item carries one (host gallery only — guest items never do). Renders nothing when there's no
+// attribution (the demo, or a defensively-null name). `pointer-events-none` so it never blocks a
+// swipe; only the (i) + email re-enable pointers.
+function UploaderCaption({
+  item,
+  viewerIsHost,
+}: {
+  item: GridMedia;
+  viewerIsHost: boolean;
+}) {
+  const name = item.uploaderName?.trim() || null;
+  if (!item.isAnonymous && !item.isHost && name === null) return null;
+
+  return (
+    <div className="flex max-w-[85%] flex-col items-center gap-1 text-center">
+      <span className="inline-flex items-center gap-1.5 text-sm text-white/85">
+        {item.isAnonymous ? (
+          <>
+            Anonymous
+            <span className="pointer-events-auto">
+              <AnonymousInfo viewerIsHost={viewerIsHost} />
+            </span>
+          </>
+        ) : (
+          <>
+            {name && <span>{name}</span>}
+            {item.isHost && (
+              <Badge
+                variant="secondary"
+                className="bg-white/15 text-white hover:bg-white/15"
+              >
+                Host
+              </Badge>
+            )}
+          </>
+        )}
+      </span>
+      {item.uploaderEmail && (
+        <span className="pointer-events-auto text-xs text-white/55">
+          {item.uploaderEmail}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function MediaLightbox({
   items,
   index,
   onClose,
   onIndexChange,
+  viewerIsHost = false,
 }: {
   items: GridMedia[];
   index: number | null;
   onClose: () => void;
   onIndexChange: (index: number) => void;
+  /** Host gallery? Drives the (i) explainer copy + lets the host-only email line render. */
+  viewerIsHost?: boolean;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const prevItem =
@@ -117,6 +171,16 @@ export function MediaLightbox({
   // dragging toggles `transition: none` so the track tracks the finger 1:1.
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
+  // Center video play state (mirrors isPlayingRef, but as STATE so the caption re-renders): the
+  // attribution caption fades out while a video plays so it never fights the native scrubber.
+  const [centerPlaying, setCenterPlaying] = useState(false);
+  // Reset the play state when the viewer navigates to a new item (the new item's video always starts
+  // paused). React's "adjust state during render on a prop change" pattern -- NOT a setState-in-effect.
+  const [trackedIndex, setTrackedIndex] = useState(index);
+  if (index !== trackedIndex) {
+    setTrackedIndex(index);
+    setCenterPlaying(false);
+  }
 
   const trackRef = useRef<HTMLDivElement>(null);
   const centerVideoRef = useRef<HTMLVideoElement>(null);
@@ -399,9 +463,11 @@ export function MediaLightbox({
             preload="metadata"
             onPlay={() => {
               isPlayingRef.current = true;
+              setCenterPlaying(true);
             }}
             onPause={() => {
               isPlayingRef.current = false;
+              setCenterPlaying(false);
             }}
             className="max-h-full max-w-full rounded-md bg-black select-none"
           />
@@ -534,6 +600,22 @@ export function MediaLightbox({
                     <ChevronRight className="size-7" />
                   </Button>
                 )}
+
+                {/* Uploader attribution: fixed bottom-center over the stage (like the counter, it
+                    doesn't slide with the swipe), clear of a playing video's native scrubber strip.
+                    Keyed by id so it re-fades per item; fades out while the center video plays.
+                    pointer-events-none so it never blocks a swipe (the (i) + email re-enable taps). */}
+                <div
+                  key={current.id}
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 bottom-16 z-10 flex justify-center px-4 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
+                    centerPlaying
+                      ? "opacity-0"
+                      : "opacity-100 motion-safe:animate-in motion-safe:fade-in-0",
+                  )}
+                >
+                  <UploaderCaption item={current} viewerIsHost={viewerIsHost} />
+                </div>
               </div>
             </>
           )}
