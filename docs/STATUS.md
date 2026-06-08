@@ -47,7 +47,7 @@ is recorded in [`CHANGELOG.md`](CHANGELOG.md)):
 The launch-gated + human/config tasks live in [`ROADMAP.md`](ROADMAP.md) → **Launch checkpoint** (each
 tagged `[human]`/`[eng]`/`[content]`): leaked-password protection, Stripe test→live, `MONTHLY_INGRESS_BYTES.pro`,
 the real `/privacy` page, the demo-event swap, the committed RPC suite, the Sentry email-alert-rule check,
-the pre-launch test-data reset, the backup-prune live-flip (`PRUNE_MODE`) + its shared `PRUNE_API_SECRET`.
+the pre-launch test-data reset, the backup-prune live-flip (`PRUNE_MODE=live`, post-launch).
 Resolved config (custom SMTP, "allow signups" ON, the `{{ .Token }}`
 template, the account-password dashboard settings) is recorded in [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -57,7 +57,8 @@ products/prices + webhook endpoint + Billing Portal + the 5 env vars; Supabase T
 `admin.partyreel.com/auth/callback` in the redirect allow-list + `NEXT_PUBLIC_ADMIN_HOST` in Vercel
 (`partyr33l@gmail.com` holds the TOTP factor; break-glass = delete it in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup GitHub
-Action secrets.
+Action secrets; the deletion-aware prune (deployed in dry-run, both crons) + its shared `PRUNE_API_SECRET`
+(Vercel + the Worker).
 
 ## After any change
 
