@@ -77,6 +77,12 @@ const serverSchema = z.object({
   // string; `.optional()` so the app builds without it. assertUnlockEnv() asserts it
   // at request time (the unlock route 500s if unset). Set in Vercel + .env.local.
   UNLOCK_COOKIE_SECRET: z.string().min(1).optional(),
+  // Shared bearer secret for the backup-prune confirm endpoint (ADR-0013). The media-backup Worker
+  // (workers/backup, the weekly `prune` branch) POSTs candidate mediaIds to /api/internal/backup-prune
+  // with `Authorization: Bearer $PRUNE_API_SECRET`; the route verifies it (timing-safe) before any DB
+  // confirm. `.optional()` so the app builds without it; assertPruneApiEnv() asserts at request time so
+  // the route fails closed rather than confirm deletions for an unauthenticated caller.
+  PRUNE_API_SECRET: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -123,6 +129,7 @@ function parseServer() {
     EMAIL_FROM: process.env.EMAIL_FROM,
     CONTACT_NOTIFY_EMAIL: process.env.CONTACT_NOTIFY_EMAIL,
     UNLOCK_COOKIE_SECRET: process.env.UNLOCK_COOKIE_SECRET,
+    PRUNE_API_SECRET: process.env.PRUNE_API_SECRET,
   });
   if (!parsed.success) {
     throw new Error(
@@ -268,4 +275,21 @@ export function assertUnlockEnv(): { UNLOCK_COOKIE_SECRET: string } {
     );
   }
   return { UNLOCK_COOKIE_SECRET };
+}
+
+/**
+ * Assert PRUNE_API_SECRET is present and return it. Call at REQUEST time (the backup-prune confirm
+ * endpoint) — it stays `.optional()` so the app builds/deploys before the secret is set. A missing
+ * secret means we can't authenticate the backup Worker's invocation, so the route must fail closed
+ * (500) rather than confirm backup deletions for an unauthenticated caller.
+ */
+export function assertPruneApiEnv(): { PRUNE_API_SECRET: string } {
+  const { PRUNE_API_SECRET } = serverEnv;
+  if (!PRUNE_API_SECRET) {
+    throw new Error(
+      "PRUNE_API_SECRET is not configured. Set it in Vercel + the backup Worker " +
+        "(wrangler secret put PRUNE_API_SECRET) so the deletion-aware prune can authenticate.",
+    );
+  }
+  return { PRUNE_API_SECRET };
 }

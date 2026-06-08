@@ -168,6 +168,33 @@ export function orphanBreakerEmail(opts: {
   };
 }
 
+// Internal operator alert — the backup-prune circuit-breaker tripped (ADR-0013). NOT host-facing, so it
+// skips layout()'s "you host an event" footer (mirrors orphanBreakerEmail). No CTA: a "go investigate"
+// page. Sent at most once per (reason, day) via sendOnce. The prune is the ONLY job that deletes from the
+// last-resort backup, so a trip means it REFUSED to run and deleted nothing.
+export function pruneBreakerEmail(opts: {
+  reason: string;
+  candidates: number;
+  mediaCount: number;
+  objectsScanned: number;
+  mode: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[Partyreel] Backup prune blocked: no objects deleted (${opts.reason})`,
+    html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
+  <h1 style="font-size:18px;font-weight:700;">Backup-prune circuit-breaker tripped</h1>
+  <p style="margin:8px 0;">The weekly deletion-aware backup prune was about to delete backup objects whose source looked gone, but the source looks pathological, so it was blocked. <strong>No backup objects were deleted.</strong></p>
+  <p style="margin:4px 0;"><strong>Reason:</strong> ${esc(opts.reason)}</p>
+  <p style="margin:4px 0;"><strong>Prune candidates:</strong> ${opts.candidates}</p>
+  <p style="margin:4px 0;"><strong>Backup objects scanned this run:</strong> ${opts.objectsScanned}</p>
+  <p style="margin:4px 0;"><strong>Media rows in DB:</strong> ${opts.mediaCount}</p>
+  <p style="margin:4px 0;"><strong>Prune mode:</strong> ${esc(opts.mode)}</p>
+  <p style="margin:16px 0 4px;"><strong>What to check:</strong> confirm the Supabase <code>media</code> table is intact (not mid-restore, not a bad migration, not an RLS/query bug) and the primary R2 bucket is populated. The prune deletes from the last-resort backup, so it fails closed: it deleted nothing and is waiting for a healthy source.</p>
+  <p style="color:#888;font-size:12px;margin-top:24px;">Partyreel operations alert (backup-prune safety, ADR-0013). Sent at most once per day per reason.</p>
+</div>`,
+  };
+}
+
 // Internal operator notification for a /careers application. Reply-To = the applicant.
 export function applicationReceivedEmail(opts: {
   role: string;

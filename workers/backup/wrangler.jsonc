@@ -30,7 +30,18 @@
     ],
   },
 
-  // Daily reconciliation sweep (05:00 UTC, after the app's 04:00 purge cron) — backstop for any
-  // missed event + the initial seed of pre-existing objects.
-  "triggers": { "crons": ["0 5 * * *"] },
+  // Two scheduled crons share scheduled() (it branches on controller.cron):
+  //   05:00 UTC daily   — reconciliation sweep (backstop for any missed event + the initial seed).
+  //   06:00 UTC Mondays — the deletion-aware prune (bounds the keep-all backup as media churns).
+  // Both run after the app's 04:00 purge cron; the weekly prune runs after that day's reconcile.
+  "triggers": { "crons": ["0 5 * * *", "0 6 * * 1"] },
+
+  // Plain vars (NOT secrets). PRUNE_MODE gates the prune: "dryrun" (default) runs the full pipeline but
+  // deletes NOTHING; a human flips it to "live" post-launch (redeploy) once the primary is populated.
+  // PRUNE_API_URL is the app endpoint the prune calls to row-confirm gone media + run its breaker. The
+  // matching PRUNE_API_SECRET is a SECRET — set it with `wrangler secret put PRUNE_API_SECRET`.
+  "vars": {
+    "PRUNE_MODE": "dryrun",
+    "PRUNE_API_URL": "https://partyreel.com/api/internal/backup-prune",
+  },
 }
