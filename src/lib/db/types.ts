@@ -731,6 +731,7 @@ export type Database = {
           p_event_id: string
           p_file_size_bytes: number
           p_height?: number
+          p_host_id: string
           p_media_id: string
           p_original_key: string
           p_preview_key?: string

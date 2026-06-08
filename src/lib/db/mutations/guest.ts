@@ -12,6 +12,7 @@
 import "server-only";
 
 import type { Database } from "@/lib/db/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 type MediaType = Database["public"]["Enums"]["media_type"];
@@ -160,7 +161,10 @@ export async function createMedia(input: {
   width?: number | null;
   height?: number | null;
 }): Promise<CreateMediaResult> {
-  const supabase = await createClient();
+  // Server-mediated (H1): create_media is service-role-only (revoked from anon/authenticated), so it can't
+  // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
+  // size and calls here via the admin client. The session_token in the body remains the guest capability.
+  const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("create_media", {
     p_session_token: input.sessionToken,
     p_media_id: input.mediaId,

@@ -135,6 +135,7 @@ export async function POST(request: Request) {
   }
 
   const result = await createMediaAsHost({
+    hostId: user.id,
     eventId: event_id,
     mediaId: media_id,
     type: kind,

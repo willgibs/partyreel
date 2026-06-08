@@ -18,6 +18,7 @@
 import "server-only";
 
 import type { Database } from "@/lib/db/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 type MediaType = Database["public"]["Enums"]["media_type"];
@@ -90,6 +91,7 @@ export type CreateHostMediaResult =
     };
 
 export async function createMediaAsHost(input: {
+  hostId: string;
   eventId: string;
   mediaId: string;
   type: MediaType;
@@ -100,8 +102,12 @@ export async function createMediaAsHost(input: {
   width?: number | null;
   height?: number | null;
 }): Promise<CreateHostMediaResult> {
-  const supabase = await createClient();
+  // Server-mediated (H1): create_media_as_host is service-role-only now, so it can't be called directly via
+  // PostgREST with a spoofed size. The admin client has no auth.uid(), so we pass the route's
+  // getUser()-verified host id as the trusted p_host_id (the RPC's ownership join uses it).
+  const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("create_media_as_host", {
+    p_host_id: input.hostId,
     p_event_id: input.eventId,
     p_media_id: input.mediaId,
     p_type: input.type,
