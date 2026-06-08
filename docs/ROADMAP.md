@@ -36,9 +36,6 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 ## Now (concrete, pick-up-able)
 
-- **Deletion-aware backup prune** — the inverse of the orphan sweep; bounds the keep-all backup bucket as
-  media churns (natural follow-on to the just-built backup). Handle with the orphan-sweep's care — see the
-  circuit-breaker symmetry + the "primary is 0 B today" landmine in [`systems/durability-backups.md`](systems/durability-backups.md).
 - **Per-photo uploader attribution** on gallery tiles — note: guest display names were removed (cut 2b), so
   a name only exists for verified-email guests + host uploads, never anonymous guests (decide the UX). See
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
@@ -64,10 +61,14 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   feed + real-time push · per-item announcement un-read toggling. Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
 - **Admin / operations portal** — **P8 backend-ops & observability (the priority piece):** every backend
-  job (the cron sweeps, the media-backup Worker + DLQ, the DB backup) manageable + health-surfaced in
-  `/admin` with zero silent failures (a missing nightly backup pages, never passes quietly). Also: an
-  operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription health on
-  the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
+  job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)
+  manageable + health-surfaced in `/admin` with zero silent failures (a missing nightly backup pages,
+  never passes quietly). The prune currently ships **alert-only** (breaker trips page via Sentry + a
+  deduped email); a job-runs heartbeat that ALSO catches "a job silently stopped running" lands here.
+  (At very large scale, the prune+reconcile per-run bucket scans can move to a merge-join / deletion
+  tombstone / shared copy-state index — see [`systems/durability-backups.md`](systems/durability-backups.md).)
+  Also: an operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription
+  health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
 - **Vercel / Next.js optimization** — the **12s guest-gallery poll** (`event-experience.tsx` →
   `/api/guests/gallery`, the top cost driver) → Supabase Realtime or conditional ETag/304s · front Vercel
   with Cloudflare at launch (DNS already migrating there) · Vercel Spend-Management hard cap + alerts ·
@@ -93,8 +94,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks (needs a
   paid Supabase branch or a local Postgres test DB).
 - Confirm the Sentry email-alert rule fires `[human]`.
-- Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — once the deletion-aware prune ships, the
-  "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing constraint goes away.
+- Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — the deletion-aware prune has shipped (in
+  dry-run), so the "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing
+  constraint is gone.
+- Flip the backup prune to live `[human]` — set `PRUNE_MODE=live` in `workers/backup/wrangler.jsonc` +
+  redeploy once the primary is populated (it ships in dry-run, deleting nothing). Also set the shared
+  `PRUNE_API_SECRET` (Vercel + `wrangler secret put`). See [`systems/durability-backups.md`](systems/durability-backups.md).
 
 ## Speculative / longer-horizon backlog
 

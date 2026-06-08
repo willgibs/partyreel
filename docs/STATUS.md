@@ -17,7 +17,8 @@ page (live polling gallery, 3-state visibility, verified-email gate, saved event
 moderation + the daily lifecycle cron + the "Recently deleted" recovery, the storage-cap tier model +
 Stripe (Pro subs, Event Pass, portal), the growth loop + link analytics + the notification bell, the
 album lightbox + per-item download, the admin portal (R1–P7), the marketing site (7 rounds + polish arc),
-media durability (all 3 pillars), and the data-layer security hardening. Canonical domain
+media durability (all 3 pillars + the deletion-aware backup prune, shipping in dry-run), and the
+data-layer security hardening. Canonical domain
 **partyreel.com**.
 
 **Only scaffolded:** the highlight reel (DB scaffold only; the build is tabled pending a worker-platform
@@ -46,7 +47,8 @@ is recorded in [`CHANGELOG.md`](CHANGELOG.md)):
 The launch-gated + human/config tasks live in [`ROADMAP.md`](ROADMAP.md) → **Launch checkpoint** (each
 tagged `[human]`/`[eng]`/`[content]`): leaked-password protection, Stripe test→live, `MONTHLY_INGRESS_BYTES.pro`,
 the real `/privacy` page, the demo-event swap, the committed RPC suite, the Sentry email-alert-rule check,
-the pre-launch test-data reset. Resolved config (custom SMTP, "allow signups" ON, the `{{ .Token }}`
+the pre-launch test-data reset, the backup-prune live-flip (`PRUNE_MODE`) + its shared `PRUNE_API_SECRET`.
+Resolved config (custom SMTP, "allow signups" ON, the `{{ .Token }}`
 template, the account-password dashboard settings) is recorded in [`CHANGELOG.md`](CHANGELOG.md).
 
 **Already configured — DO NOT redo:** R2 buckets + creds + CORS + abort-multipart lifecycle rule; the apex

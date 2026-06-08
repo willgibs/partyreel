@@ -10,6 +10,22 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-07 — Deletion-aware backup prune (ADR-0013, Pillar B), code-complete (ships in dry-run)
+
+Bounded the keep-all media backup: a weekly Worker cron (`0 6 * * 1`) reclaims a `partyreel-backup` object
+once its source is gone, the inverse of the orphan sweep and the only job that deletes from the last-resort
+backup. Layered safety: a **dual existence check** (prune only when BOTH the `media` row is gone AND the
+primary R2 object is absent, so no single-source fault can wrongly prune), an app-side
+**`media_table_empty` circuit-breaker** that fails closed + alerts (Sentry + a deduped email, reusing the
+orphan-sweep machinery), a **36-day age gate** (one day past the Bucket Lock), a **per-run delete clamp**
+(500), and **dry-run by default** (deletes nothing until `PRUNE_MODE=live`). DB-first ordering HEADs the
+primary only for the confirmed-gone set, so cost stays ~$0 into tens of millions of objects. New code:
+`workers/backup` `prune` branch + `prune-strategy.ts`; app `r2/prune-guard.ts` + `/api/internal/backup-prune`
++ `pruneBreakerEmail` + the shared `PRUNE_API_SECRET`. Observability is alert-only (the `/admin` job-runs
+heartbeat is deferred to admin P8). Verified: `pnpm typecheck`/`lint`/`test` (290) + `build` clean; worker
+`typecheck` + tests (15). PENDING (not yet live): a human `wrangler deploy` + the shared secret; the
+live-flip (`PRUNE_MODE`) + the destructive drill are launch-checkpoint tasks.
+
 ## 2026-06-07 — Documentation consolidation (in progress)
 
 - **Phase 1 — system reference layer** (`be7dd8e`): added `docs/systems/` (12 per-system reference docs +
