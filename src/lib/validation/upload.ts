@@ -13,10 +13,9 @@ import { z } from "zod";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
-// The join carries ONLY the capability `qr_token`. Identity (for require_email events)
-// is now a VERIFIED Supabase session (Phase 2c): create_guest derives the email from
-// auth.uid() and raises if a require_email event has no verified session. No email is
-// ever sent in this request.
+// The join carries ONLY the capability `qr_token`. Identity (for account-required events)
+// is a signed-in Supabase session: create_guest derives the email from auth.uid() and raises
+// if an account-required event has no verified session. No email is ever sent in this request.
 export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
 });

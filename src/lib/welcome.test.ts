@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { HOW_IT_WORKS } from "@/lib/constants/how-it-works";
-import { shouldShowWelcome } from "@/lib/welcome";
+import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 
 describe("first-time welcome", () => {
   it("shows the welcome until welcomed_at is set", () => {
@@ -9,6 +9,15 @@ describe("first-time welcome", () => {
     expect(shouldShowWelcome(undefined)).toBe(true);
     expect(shouldShowWelcome("")).toBe(true);
     expect(shouldShowWelcome("2026-05-30T00:00:00Z")).toBe(false);
+  });
+
+  it("needsDisplayName is true until a non-blank name is set", () => {
+    expect(needsDisplayName(null)).toBe(true);
+    expect(needsDisplayName(undefined)).toBe(true);
+    expect(needsDisplayName("")).toBe(true);
+    expect(needsDisplayName("   ")).toBe(true);
+    expect(needsDisplayName("AJ")).toBe(false);
+    expect(needsDisplayName("Will Gibson")).toBe(false);
   });
 
   it("the how-it-works story is three single-sourced steps", () => {

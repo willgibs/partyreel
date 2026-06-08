@@ -23,7 +23,7 @@ type MenuData = {
 //
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately
-// avoids a server auth round-trip on the common path (see its require_email-only getUser()). We
+// avoids a server auth round-trip on the common path (see its upload-path getUser()). We
 // mirror SaveEventButton: getSession() is LOCAL (no network) and the header is a pure UI
 // affordance (no data is gated by it; real authz stays in RLS + the route's getUser()). The
 // richer profile + ownership data is fetched from /api/me/menu ONLY when a session exists, so
@@ -95,7 +95,7 @@ export function GuestHeader({
   // capability session FIRST (sync, even on a flaky network — notifies EventExperience so the next
   // guest on a shared device doesn't upload under this one's session_token), collapse the menu back
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
-  // (shared-device bleed), then refresh so a require_email event re-gates to <VerifyEmailPrompt>.
+  // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
   const handleSignOut = useCallback(async () => {
     setStoredSession(qrToken, null);
     setMenu(null);

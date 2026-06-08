@@ -40,9 +40,9 @@ export type UploadedItem = {
 // mounts this when the host is accepting uploads (uploads-off is the view-only state of
 // the page now, handled upstream — there's no disabled control here anymore). Joining is
 // just-in-time and SILENT — a first-time guest picks files and a guest session is
-// created behind the scenes (no prompts; guest names were removed in Phase 2b, and a
-// require_email event is gated at the PAGE level before this panel ever renders, via
-// <VerifyEmailPrompt>). Each completed upload is reported to the coordinator (optimistic
+// created behind the scenes (no prompts; an account-required event is gated at the PAGE level
+// before this panel ever renders, via <EnterEventPrompt>, and a signed-in uploader sets a
+// display name first). Each completed upload is reported to the coordinator (optimistic
 // gallery render).
 // Demo mode: fake an upload (a brief progress ramp) and return a synthetic "approved"
 // outcome. Nothing hits the network — the gallery renders the local file via the
@@ -216,7 +216,7 @@ export function GuestUpload({
         enqueue(files);
         return;
       }
-      // No session yet → silent join (no prompts; require_email is gated at the page).
+      // No session yet → silent join (no prompts; account-required events are gated at the page).
       pendingFilesRef.current = files;
       void joinSilently();
     },

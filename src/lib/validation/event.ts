@@ -39,7 +39,9 @@ export const createEventSchema = z.object({
   // password itself is set/cleared by its own RPC (set_event_password).
   visibility: z.enum(Constants.public.Enums.event_visibility).default("open"),
   accepting_uploads: z.boolean().default(true),
-  require_email: z.boolean().default(false),
+  // Anonymous uploads are ON by default; turning them OFF (require an account to upload) is a paid
+  // gate (GATED_EVENT_SETTINGS). Mirrors the events.allow_anonymous_uploads column default (true).
+  allow_anonymous_uploads: z.boolean().default(true),
   // Host-configurable per-upload size cap for GUEST uploads (bytes). null = no host cap
   // (the universal MAX_UPLOAD_BYTES applies). Bounds MIRROR the events_max_upload_bytes_range
   // DB CHECK (defense-in-depth); the settings UI offers UPLOAD_CAP_PRESETS within this range.

@@ -48,7 +48,7 @@ const RESEND_COOLDOWN_S = 60;
 //
 // The component owns NO navigation: the caller's `onVerified` runs after a successful code
 // verify (the link path instead navigates through the callback route). Consumers: the host
-// `/login` and the guest `<VerifyEmailPrompt>`.
+// `/login` and the guest `<EnterEventPrompt>`.
 export function EmailSignIn({
   emailRedirectTo,
   shouldCreateUser = true,

@@ -8,12 +8,15 @@ import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
+import {
+  DISPLAY_NAME_GUIDANCE,
+  DISPLAY_NAME_MAX_LENGTH,
+} from "@/lib/validation/profile";
 
-// Display-name editor on the account page. A blank submit clears the name (→ null), which is the
-// "no name set" state the guest "Hosted by" byline hides on. Saves via a server action (RLS
-// self-update), then router.refresh() so the server-rendered surfaces (UserMenu label, byline)
-// re-read it.
+// Display-name editor on the account page. The name is REQUIRED now (Phase 1) and public, so there
+// is no blank-clears-it path; it is also profanity-checked server-side. Saves via the single
+// display-name server action, then router.refresh() so the server-rendered surfaces (UserMenu label,
+// uploader attribution, "Hosted by" byline) re-read it.
 export function DisplayNameForm({
   displayName,
 }: {
@@ -32,7 +35,7 @@ export function DisplayNameForm({
         toast.error(res.message);
         return;
       }
-      toast.success(value.trim() ? "Name saved." : "Name cleared.");
+      toast.success("Name saved.");
       router.refresh();
     });
   }
@@ -55,13 +58,11 @@ export function DisplayNameForm({
           maxLength={DISPLAY_NAME_MAX_LENGTH}
           autoComplete="name"
         />
-        <Button type="submit" disabled={saving || !dirty}>
+        <Button type="submit" disabled={saving || !dirty || !value.trim()}>
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Shown to guests on your events. Leave blank to hide it.
-      </p>
+      <p className="text-xs text-muted-foreground">{DISPLAY_NAME_GUIDANCE}</p>
     </form>
   );
 }

@@ -14,23 +14,65 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { SetNameStep } from "@/components/shared/set-name-step";
 
 const STEP_COUNT = 3;
 
-// First-time host welcome (Phase 6) — a streamlined, multi-step intro (NOT a coachmark
-// overlay). Every exit (Create / Look around / Skip) persists `profiles.welcomed_at` via
-// markWelcomedAction BEFORE navigating, so the /dashboard guard doesn't bounce the host back
-// to /welcome. The "how it works" copy is single-sourced (shared with the marketing page).
-export function WelcomeFlow() {
+// First-time onboarding. Two phases, both reached via the /dashboard + /dashboard/new gates:
+//   1. "name" — a REQUIRED display name (Phase 1 identity foundation), shown when the account has
+//      none. No skip; it's the public name on every upload. Prefilled from an OAuth name if present.
+//   2. "tutorial" — the original 3-step intro, shown when welcomed_at is null.
+// A brand-new account does name -> tutorial; an already-welcomed but nameless account does name
+// only (then straight to /dashboard); a named-but-unwelcomed account does the tutorial only. Each
+// exit persists welcomed_at via markWelcomedAction BEFORE navigating so the gate doesn't bounce back
+// (skipped when the tutorial wasn't shown, since welcomed_at is already set).
+export function WelcomeFlow({
+  needsName,
+  needsWelcome,
+  namePrefill,
+}: {
+  needsName: boolean;
+  needsWelcome: boolean;
+  namePrefill: string;
+}) {
   const router = useRouter();
+  const [phase, setPhase] = useState<"name" | "tutorial">(
+    needsName ? "name" : "tutorial",
+  );
   const [step, setStep] = useState(1);
   const [isLeaving, startLeaving] = useTransition();
 
   function leave(to: string) {
     startLeaving(async () => {
-      await markWelcomedAction();
+      if (needsWelcome) await markWelcomedAction();
       router.push(to);
     });
+  }
+
+  if (phase === "name") {
+    return (
+      <Card className="mx-auto w-full max-w-lg">
+        <CardHeader className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Welcome to Partyreel
+          </h1>
+          <p className="text-muted-foreground">
+            First, the name your guests will see on the photos you add.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SetNameStep
+            title="Add your name"
+            prefill={namePrefill}
+            submitLabel={needsWelcome ? "Continue" : "Save and continue"}
+            onSaved={() => {
+              if (needsWelcome) setPhase("tutorial");
+              else router.push("/dashboard");
+            }}
+          />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

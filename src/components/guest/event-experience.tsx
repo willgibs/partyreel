@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
 import { GuestShare } from "@/components/guest/guest-share";
@@ -10,7 +11,8 @@ import {
 } from "@/components/guest/guest-upload";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { SaveEventButton } from "@/components/guest/save-event-button";
-import { VerifyEmailPrompt } from "@/components/guest/verify-email-prompt";
+import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
+import { SetNameStep } from "@/components/shared/set-name-step";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
@@ -27,7 +29,8 @@ export function EventExperience({
   joinUrl,
   initialItems,
   isDemo,
-  needsEmailVerification,
+  needsAccount,
+  needsName,
   hostAvatarUrl,
 }: {
   event: GuestEvent;
@@ -36,13 +39,17 @@ export function EventExperience({
   initialItems: GridMedia[];
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
-  /** require_email event + the viewer hasn't verified an email — swap upload for the
-   *  verify prompt (the gallery still shows; viewing is allowed). Phase 2c. */
-  needsEmailVerification: boolean;
+  /** Account-required event (allow_anonymous_uploads = false) + viewer not signed in — swap the
+   *  upload panel for the "Enter event" account-or-login flow (the gallery still shows). Phase 1. */
+  needsAccount: boolean;
+  /** Signed-in uploader without a public display name — show the required name step before the
+   *  upload panel (their uploads are attributed). Phase 1. */
+  needsName: boolean;
   /** Presigned host avatar URL for the "Hosted by" byline; null = no avatar (no photo shown,
    *  never an initials fallback in this guest context). Phase 3. */
   hostAvatarUrl: string | null;
 }) {
+  const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
   const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
@@ -203,12 +210,22 @@ export function EventExperience({
 
       {/* Upload — only while the host is accepting uploads. When off, the event is
           view-only (a state of the ONE page, ADR-0010): the panel is simply gone, with a
-          quiet line in its place. require_email is gated upstream (the page sets
-          needsEmailVerification only when uploads are on), so this swap is upload-only. */}
+          quiet line in its place. The identity gates are computed upstream (the page only sets
+          needsAccount / needsName when uploads are on), so this swap is upload-only: an
+          account-required event shows "Enter event" first; a signed-in but nameless uploader
+          sets a name first; otherwise the upload panel (anonymous-friendly). */}
       {event.accepting_uploads ? (
         <div className="mt-7">
-          {needsEmailVerification ? (
-            <VerifyEmailPrompt qrToken={qrToken} />
+          {needsAccount ? (
+            <EnterEventPrompt qrToken={qrToken} />
+          ) : needsName ? (
+            <div className="rounded-xl border border-border bg-card p-5">
+              <SetNameStep
+                title="Add your name to upload"
+                submitLabel="Save and continue"
+                onSaved={() => router.refresh()}
+              />
+            </div>
           ) : (
             <GuestUpload
               event={event}

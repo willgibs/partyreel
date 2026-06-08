@@ -59,23 +59,27 @@ export async function createEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Tier gate (defense-in-depth). require_email is paid-only. The create wizard doesn't expose
-  // it and the enforce_event_pro_gates DB trigger is the hard backstop, but if a require_email
-  // ever reaches createEvent on Free, return a friendly message instead of a raw trigger error.
-  if (values.require_email === true) {
+  // Tier gate (defense-in-depth). Turning OFF anonymous uploads (require an account to upload) is
+  // paid-only. The create wizard doesn't expose it and the enforce_event_pro_gates DB trigger is
+  // the hard backstop, but if it ever reaches createEvent on Free, return a friendly message
+  // instead of a raw trigger error.
+  if (values.allow_anonymous_uploads === false) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("tier")
       .eq("id", user.id)
       .single();
     if (
-      isSettingLocked("require_email", toBillingTier(profile?.tier ?? "free"))
+      isSettingLocked(
+        "allow_anonymous_uploads",
+        toBillingTier(profile?.tier ?? "free"),
+      )
     ) {
       return {
         ok: false,
         code: "limit_reached",
         message:
-          "Requiring an email is available on paid plans. Upgrade to enable it.",
+          "Requiring an account to upload is available on paid plans. Upgrade to enable it.",
       };
     }
   }
@@ -91,7 +95,7 @@ export async function createEvent(
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
-    require_email: values.require_email,
+    allow_anonymous_uploads: values.allow_anonymous_uploads,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
   };
@@ -129,22 +133,25 @@ export async function updateEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Tier gate (defense-in-depth — the settings UI also disables this toggle on
-  // Free). require_email is paid-only; never trust the client to honor the lock.
-  if (values.require_email === true) {
+  // Tier gate (defense-in-depth — the settings UI also disables this toggle on Free). Turning OFF
+  // anonymous uploads (require an account) is paid-only; never trust the client to honor the lock.
+  if (values.allow_anonymous_uploads === false) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("tier")
       .eq("id", user.id)
       .single();
     if (
-      isSettingLocked("require_email", toBillingTier(profile?.tier ?? "free"))
+      isSettingLocked(
+        "allow_anonymous_uploads",
+        toBillingTier(profile?.tier ?? "free"),
+      )
     ) {
       return {
         ok: false,
         code: "limit_reached",
         message:
-          "Requiring an email is available on paid plans. Upgrade to enable it.",
+          "Requiring an account to upload is available on paid plans. Upgrade to enable it.",
       };
     }
   }
@@ -182,8 +189,8 @@ export async function updateEvent(
   }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
-  if (values.require_email !== undefined)
-    patch.require_email = values.require_email;
+  if (values.allow_anonymous_uploads !== undefined)
+    patch.allow_anonymous_uploads = values.allow_anonymous_uploads;
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
   if (values.qr_style !== undefined) patch.qr_style = values.qr_style;

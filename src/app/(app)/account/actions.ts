@@ -1,7 +1,9 @@
 "use server";
 
 import { verifyCurrentPassword } from "@/lib/db/queries/account";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { containsProfanity } from "@/lib/validation/profanity";
 import { displayNameSchema } from "@/lib/validation/profile";
 
 // What the client account forms receive. The password WRITE is supabase.auth.updateUser() on
@@ -44,11 +46,13 @@ export async function verifyCurrentPasswordAction(
   return { ok: true };
 }
 
-// Set or CLEAR the host's display name (the name shown to guests under "Hosted by"). A plain
-// RLS self-update via the regular client: display_name is in the profiles update-grant allowlist
-// and scoped by profiles_update_own, so the host owns this field (unlike avatar_updated_at /
-// tier / storage_*, which are service-role only). An empty value (after trim) clears it to NULL,
-// the "no name set" state the guest byline hides on (Phase 3).
+// Set the user's public display name (uploader attribution + the "Hosted by" byline). REQUIRED
+// now (Phase 1 identity foundation): there is no blank-clears-it path. This is the SINGLE write
+// path for display_name, and it is authoritative: the authenticated UPDATE grant on
+// profiles.display_name was revoked (Migration B), so the column is service-role-write-only and a
+// direct client write can't bypass the length/reserved/profanity checks. We authorize via getUser,
+// then write the caller's OWN row with the admin client (mirrors the avatar service-role write).
+// Profanity is checked server-side only, so the obscenity matcher never ships to the browser.
 export async function updateDisplayNameAction(
   name: string,
 ): Promise<ActionResult> {
@@ -60,7 +64,13 @@ export async function updateDisplayNameAction(
       message: parsed.error.issues[0]?.message ?? "Please check your name.",
     };
   }
-  const value = parsed.data.length > 0 ? parsed.data : null;
+  if (containsProfanity(parsed.data)) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "Please choose a different name.",
+    };
+  }
 
   const supabase = await createClient();
   const {
@@ -74,9 +84,10 @@ export async function updateDisplayNameAction(
     };
   }
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
-    .update({ display_name: value })
+    .update({ display_name: parsed.data })
     .eq("id", user.id);
   if (error) {
     return {

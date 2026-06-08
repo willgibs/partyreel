@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { CreateEventWizard } from "@/components/app/create-event-wizard";
 import { DEFAULT_TIER, TIER_NAMES, toBillingTier } from "@/lib/constants/tiers";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSiteUrl } from "@/lib/site-url";
+import { needsDisplayName } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "New event" };
 
@@ -22,6 +24,11 @@ export const metadata: Metadata = { title: "New event" };
 // wizard toasts + redirects). So this route just renders the wizard.
 export default async function NewEventPage() {
   const [profile, siteUrl] = await Promise.all([getProfile(), getSiteUrl()]);
+
+  // A host's name shows publicly on their own uploads + the "Hosted by" byline, so require it
+  // before they can create an event (deep-link guard; the dashboard gate covers the normal path).
+  if (needsDisplayName(profile?.display_name)) redirect("/welcome");
+
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
   return (

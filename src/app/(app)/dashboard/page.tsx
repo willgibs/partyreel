@@ -36,7 +36,7 @@ import {
   overStandbyBudget,
 } from "@/lib/lifecycle/recently-deleted";
 import { formatBytes, formatEventDate } from "@/lib/utils";
-import { shouldShowWelcome } from "@/lib/welcome";
+import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -52,10 +52,13 @@ export default async function DashboardPage() {
       getHostStorageSummary(),
     ]);
 
-  // First-time host welcome (Phase 6): a brand-new account (welcomed_at null) gets the one-time
-  // intro before the dashboard. Existing hosts were backfilled, so this only fires for new
-  // signups; /welcome sets the marker before returning here, so there's no redirect loop.
-  if (shouldShowWelcome(profile?.welcomed_at)) redirect("/welcome");
+  // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
+  // account must set a public display name (Phase 1) before reaching the dashboard. /welcome sets
+  // both markers before returning here, so there's no redirect loop. (/account is intentionally NOT
+  // gated so a nameless user can still set their name there.)
+  if (needsDisplayName(profile?.display_name) || shouldShowWelcome(profile?.welcomed_at)) {
+    redirect("/welcome");
+  }
 
   // Cover art for the owned AND recently-deleted cards: newest approved media per event, presigned
   // (one batched query — a deleted event's media stay non-removed, so it still resolves a cover).

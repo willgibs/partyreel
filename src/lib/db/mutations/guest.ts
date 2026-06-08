@@ -54,9 +54,9 @@ export async function createGuest(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
-      // The only check_violation create_guest raises is the require_email gate — now "a
-      // VERIFIED email is required" (Phase 2c). The /e/ page gates this up front via
-      // <VerifyEmailPrompt>, so reaching here means a direct-API call or a race.
+      // The only check_violation create_guest raises is the account-required gate (an account,
+      // i.e. a verified session, is required to upload). The /e/ page gates this up front via
+      // <EnterEventPrompt>, so reaching here means a direct-API call or a race.
       return {
         ok: false,
         code: "email_required",

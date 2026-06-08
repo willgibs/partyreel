@@ -94,6 +94,7 @@ export type Database = {
       events: {
         Row: {
           accepting_uploads: boolean
+          allow_anonymous_uploads: boolean
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
@@ -108,12 +109,12 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
-          require_email: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
         Insert: {
           accepting_uploads?: boolean
+          allow_anonymous_uploads?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -128,12 +129,12 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
-          require_email?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
         Update: {
           accepting_uploads?: boolean
+          allow_anonymous_uploads?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -148,7 +149,6 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
-          require_email?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -747,6 +747,7 @@ export type Database = {
         Args: { p_qr_token: string }
         Returns: {
           accepting_uploads: boolean
+          allow_anonymous_uploads: boolean
           custom_slug: string
           description: string
           event_date: string
@@ -757,7 +758,6 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
-          require_email: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
@@ -802,22 +802,10 @@ export type Database = {
         }
         Returns: Json
       }
-      has_password: {
-        Args: never
-        Returns: boolean
-      }
-      host_active_bytes: {
-        Args: { p_host_id: string }
-        Returns: number
-      }
-      mark_password_set: {
-        Args: never
-        Returns: undefined
-      }
-      purge_media_now: {
-        Args: { p_media_ids: string[] }
-        Returns: Json
-      }
+      has_password: { Args: never; Returns: boolean }
+      host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      mark_password_set: { Args: never; Returns: undefined }
+      purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
         Returns: {
@@ -832,18 +820,9 @@ export type Database = {
         }
         Returns: undefined
       }
-      restore_event: {
-        Args: { p_event_id: string }
-        Returns: Json
-      }
-      restore_media: {
-        Args: { p_media_id: string }
-        Returns: Json
-      }
-      save_event: {
-        Args: { p_qr_token: string }
-        Returns: string
-      }
+      restore_event: { Args: { p_event_id: string }; Returns: Json }
+      restore_media: { Args: { p_media_id: string }; Returns: Json }
+      save_event: { Args: { p_qr_token: string }; Returns: string }
       set_event_password: {
         Args: { p_event_id: string; p_password: string }
         Returns: undefined

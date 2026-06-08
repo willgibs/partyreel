@@ -17,11 +17,13 @@ import {
   getEventByQrToken,
   getEventMediaByQrToken,
 } from "@/lib/db/queries/guest-events";
+import { getProfileMenu } from "@/lib/db/queries/profile";
 import { isDemoToken } from "@/lib/demo";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
+import { needsDisplayName } from "@/lib/welcome";
 
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
@@ -149,21 +151,27 @@ export default async function GuestEventPage({
     ? await getHostAvatarUrl(event.id)
     : null;
 
-  // Require-email gate (verified, Phase 2c): ONLY when the host requires it AND is still
-  // accepting uploads, check for a confirmed Supabase session. The gallery still renders
-  // (viewing is allowed) — only the UPLOAD area is swapped for <VerifyEmailPrompt>
-  // (EventExperience does that via the prop). When uploads are OFF the event is view-only
-  // (ADR-0010), so there's nothing to gate — skip the check entirely (no verify prompt on
-  // a closed event). getUser() runs ONLY for accepting + require_email events, so every
-  // other path adds no auth round-trip. Demo never gates (its uploads are simulated).
+  // Upload-path gates (Phase 1 identity). Anonymous uploaders are never asked for anything; only an
+  // account-required event (allow_anonymous_uploads = false) gates a NOT-signed-in viewer to "Enter
+  // event", and any SIGNED-IN uploader without a public display name sets one first (their upload is
+  // attributed). The gallery still renders (viewing is always allowed) — only the UPLOAD area swaps.
+  // When uploads are OFF the event is view-only (ADR-0010), so there's nothing to gate. getUser()
+  // runs ONLY on the accepting-uploads path; with no session it's a cheap local null. Demo never
+  // gates (its uploads are simulated).
   const isDemo = isDemoToken(event.qr_token);
-  let needsEmailVerification = false;
-  if (event.accepting_uploads && event.require_email && !isDemo) {
+  let needsAccount = false;
+  let needsName = false;
+  if (event.accepting_uploads && !isDemo) {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    needsEmailVerification = !user || !user.email_confirmed_at;
+    if (user?.email_confirmed_at) {
+      const menu = await getProfileMenu(user.id);
+      needsName = needsDisplayName(menu.displayName);
+    } else {
+      needsAccount = !event.allow_anonymous_uploads;
+    }
   }
 
   return (
@@ -175,7 +183,8 @@ export default async function GuestEventPage({
         joinUrl={joinUrl}
         initialItems={initialItems}
         isDemo={isDemo}
-        needsEmailVerification={needsEmailVerification}
+        needsAccount={needsAccount}
+        needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
       />
     </div>

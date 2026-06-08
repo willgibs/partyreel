@@ -116,10 +116,10 @@ describe("toBillingTier (DB tier_type → billing Tier)", () => {
 });
 
 describe("isSettingLocked (tier-gated event settings)", () => {
-  it("locks require_email on Free, unlocks on paid tiers", () => {
-    expect(isSettingLocked("require_email", "free")).toBe(true);
-    expect(isSettingLocked("require_email", "pro")).toBe(false);
-    expect(isSettingLocked("require_email", "event_pass")).toBe(false);
+  it("locks allow_anonymous_uploads on Free, unlocks on paid tiers", () => {
+    expect(isSettingLocked("allow_anonymous_uploads", "free")).toBe(true);
+    expect(isSettingLocked("allow_anonymous_uploads", "pro")).toBe(false);
+    expect(isSettingLocked("allow_anonymous_uploads", "event_pass")).toBe(false);
   });
   it("locks password on Free, unlocks on paid tiers", () => {
     expect(isSettingLocked("password", "free")).toBe(true);
@@ -133,7 +133,7 @@ describe("isSettingLocked (tier-gated event settings)", () => {
   });
   it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
     expect([...GATED_EVENT_SETTINGS]).toEqual([
-      "require_email",
+      "allow_anonymous_uploads",
       "password",
       "custom_slug",
     ]);

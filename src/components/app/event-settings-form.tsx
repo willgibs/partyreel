@@ -72,7 +72,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
 
   // Tier-gated settings: locked controls are disabled with an upgrade hint. The
   // server re-enforces the gate — this is UX, not the boundary.
-  const emailLocked = isSettingLocked("require_email", tier);
+  const anonLocked = isSettingLocked("allow_anonymous_uploads", tier);
   const passwordLocked = isSettingLocked("password", tier);
   // Video is a paid feature (Phase 2). This is a read-only STATUS, not a toggle —
   // the gate is tier-driven and enforced at upload (create_media), not a host switch.
@@ -88,7 +88,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
       event_date: event.event_date ?? "",
       visibility: event.visibility,
       accepting_uploads: event.accepting_uploads,
-      require_email: event.require_email,
+      allow_anonymous_uploads: event.allow_anonymous_uploads,
       moderation_mode: event.moderation_mode,
       max_upload_bytes: event.max_upload_bytes,
     },
@@ -360,22 +360,22 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
               />
               <FormField
                 control={form.control}
-                name="require_email"
+                name="allow_anonymous_uploads"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between gap-4">
                     <div className="space-y-0.5">
-                      <FormLabel>Require a verified email</FormLabel>
+                      <FormLabel>Allow anonymous uploads</FormLabel>
                       <FormDescription>
-                        Guests verify an email (a 6-digit code) before
-                        uploading.
-                        {emailLocked && (
+                        On by default. Turn this off to require guests to sign in
+                        before uploading, so every upload is tied to a name.
+                        {anonLocked && (
                           <>
                             {" "}
                             <Link
                               href="/pricing"
                               className="font-medium text-foreground underline underline-offset-4"
                             >
-                              Upgrade to enable
+                              Upgrade to require an account
                             </Link>
                             .
                           </>
@@ -386,7 +386,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled={emailLocked}
+                        disabled={anonLocked}
                       />
                     </FormControl>
                   </FormItem>

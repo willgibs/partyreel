@@ -20,7 +20,7 @@ import {
 //   1. it adds a "Dashboard" entry (the guest page has no app nav) + an owner-only "Manage event"
 //      deep link, so a signed-in visitor can get back into the app;
 //   2. Sign out runs CLIENT-side (the onSignOut prop), so the visitor STAYS on the event page and
-//      a require_email event re-gates — the job the removed "Not you? Switch guest" button did.
+//      an account-required event re-gates, the job the removed "Not you? Switch guest" button did.
 // It reuses the host menu's ThemeSubmenu (next-themes + hydration wiring) + initial() so the
 // shared logic is single-sourced; the layout below intentionally mirrors UserMenu's.
 export function GuestAccountMenu({

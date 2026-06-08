@@ -62,7 +62,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   // event resolves to null, which we treat as a 404 (no leaking existence).
   if (!event) notFound();
 
-  // Tier gates the settings form (e.g. require_email is paid-only). The (app)
+  // Tier gates the settings form (e.g. requiring an account is paid-only). The (app)
   // layout already gated on getUser(), so profile is the signed-in host's.
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
