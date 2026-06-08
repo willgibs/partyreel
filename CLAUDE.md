@@ -134,8 +134,9 @@ When you introduce a new secret/env var, put it in **all three**: (1) `.env.loca
 Vercel project env as **NON-sensitive** — regardless of how secret it is, so values stay swappable
 pre-launch (flipping the critical ones to Vercel "Sensitive" is a launch task), and (3) `src/lib/env.ts`
 (zod-validated, `.optional()` + a lazy `assert*Env()`). Keep `.env.local` and Vercel in sync. Manage
-Vercel env vars **autonomously via the Vercel CLI** (`vercel env add/rm`; auth with `VERCEL_TOKEN` from
-`.env.local`) — the Vercel MCP can't write env vars. Cloudflare Worker secrets: `wrangler secret put`
+Vercel env vars **autonomously via the Vercel CLI** (`npx vercel`, verified): one-time
+`npx vercel link --yes --project partyreel --token "$VERCEL_TOKEN"` (writes gitignored `.vercel/`), then
+`npx vercel env add/rm/ls --token "$VERCEL_TOKEN"`. The Vercel MCP can't write env vars. Cloudflare Worker secrets: `wrangler secret put`
 (write-only). Deploy auth is pre-wired: `wrangler` → P3 (`wrangler whoami` to confirm), `gh` →
 `willgibs/partyreel`, Vercel → the `VERCEL_TOKEN`. Never commit a real secret value to git.
 
