@@ -120,7 +120,11 @@ service-role admin client, presign, queries all work locally), so red-team that 
 allow-lists: **sign-in** (Supabase redirect), **upload** (R2 CORS + `NEXT_PUBLIC_SITE_URL`), **email**
 round-trips, and **checkout** (Stripe redirect) — not in any allow-list by design; don't "fix" that by
 adding localhost. For those, and for a final adversarial pass, deploy (push to `main` → partyreel.com)
-and drive the **Chrome MCP**. **Live/DB testing is authorized + expected** — disposable test data only
+and drive the **Chrome MCP**. That live pass runs in the test browser profile **kept signed in as the test
+host** (`willg97@gmail.com`); Will authenticates, never you (a safety rule bars you from entering
+passwords/OTPs to authenticate). **If that session is logged out, STOP and ask Will to sign in — NEVER skip,
+shorten, or silently downgrade the live red-team because you're logged out** (that silent pivot is a real
+failure mode; surface it loudly instead of pivoting to a lesser check). **Live/DB testing is authorized + expected** — disposable test data only
 (host `willg97@gmail.com`, operator/admin `partyr33l@gmail.com`); seed/mutate/inspect prod via the
 Supabase/R2 MCPs. `pnpm dev` + the **Preview MCP** covers pure UI/render. Chrome gotcha: Vercel injects a
 dev **Toolbar** for logged-in team members (a floating circle, right-middle edge) that overlaps UI and is
