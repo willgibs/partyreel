@@ -42,9 +42,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   `allow_anonymous_uploads`, email-primary "Enter event", `display_name` service-role-write-only. **P2 SHIPPED
   2026-06-08**: the lightbox attribution caption (uploader name public / email host-gallery-only / "Anonymous"
   + a context-aware info popover; NOT on the dense grid tiles), resolved by one admin-read; email-leak
-  red-teamed live. **NEXT = P3** — claim anonymous uploads on signup (also lands the deferred anon-RPC
-  server-mediation below) + **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab, add
-  an "Uploads" tab, rename "Recently deleted"→"Trash"). See
+  red-teamed live. **P3 claim is PLANNED** (2026-06-08; detailed plan in the master-plan file): auto-claim a
+  browser's anonymous uploads on sign-in via a new authenticated `claim_anonymous_uploads` RPC + localStorage
+  `pr_session_*` enumeration + a subtle toast. **Sequencing (Will's split, 2026-06-08): the server-mediation
+  remediation below runs FIRST** (its own dedicated phase — it closes live findings + hardens the claim's write
+  path), THEN the P3 claim, THEN **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab,
+  add an "Uploads" tab, rename "Recently deleted"→"Trash"). See
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
@@ -58,8 +61,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   EXECUTE on `create_media`/`create_media_as_host`/`verify_event_password`/`create_report`/`create_guest`/
   `capture_guest_email`; route each through its Next handler via the service-role client with server-derived
   trusted values (R2-HEAD size, verified email, host_id) + rate limits. The negative-size CHECK stopgap
-  already shipped (commit `415962b`). Run the full fix **AFTER** the uploader-attribution initiative (it
-  rewrites `create_guest`/`capture_guest_email`). Plan: `~/.claude/plans/we-just-added-and-dapper-storm.md`.
+  already shipped (commit `415962b`). **NOW THE NEXT DEDICATED PHASE (Will's split, 2026-06-08): runs BEFORE
+  the P3 claim** — H2 is a LIVE unthrottled password brute-force oracle, and this hardens the write path the
+  claim builds on. Re-enter plan mode to refresh it against the post-P1/P2 end-state before executing. Plan:
+  `~/.claude/plans/we-just-added-and-dapper-storm.md`.
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
