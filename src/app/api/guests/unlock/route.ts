@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 
 import { signUnlock } from "@/lib/events/unlock-cookie";
+import { captureWarning } from "@/lib/observability/sentry";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import {
   checkUnlockRate,
@@ -19,7 +20,7 @@ import {
   recordUnlockFailure,
   unlockHashes,
 } from "@/lib/security/unlock-rate-limit-store";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { unlockSchema } from "@/lib/validation/unlock";
 
 // node:crypto (cookie HMAC) needs the Node runtime; presigned-free but keep it node.
@@ -57,8 +58,14 @@ export async function POST(request: Request) {
     rlTokenHash = hashes.tokenHash;
     rlIpHash = hashes.ipHash;
     gate = await checkUnlockRate(hashes.tokenHash, hashes.ipHash);
-  } catch {
-    gate = { allowed: true, retryAfterSec: 0 }; // limiter unavailable -> fail open
+  } catch (e) {
+    // Fail OPEN (availability-first; bcrypt + the generic 401 remain the password gate) but ALERT.
+    // Now that verify_event_password is service-role-only, this limiter is the SOLE, unbypassable
+    // throttle on guessing -- a silent limiter outage is an open brute-force window, so surface it.
+    gate = { allowed: true, retryAfterSec: 0 };
+    captureWarning("security", "unlock_limiter_unavailable_fail_open", {
+      reason: e instanceof Error ? e.message : String(e),
+    });
   }
   if (!gate.allowed) {
     return NextResponse.json(
@@ -67,7 +74,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createClient();
+  // Service-role admin client: verify_event_password is now revoked from anon/authenticated, so this
+  // route is the ONLY caller -> every guess is forced through the rate limiter above (H2).
+  const supabase = createAdminClient();
   const { data: eventId, error } = await supabase.rpc("verify_event_password", {
     p_qr_token: qr_token,
     p_password: password,

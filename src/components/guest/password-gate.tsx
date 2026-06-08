@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock } from "lucide-react";
 
@@ -28,9 +34,21 @@ export function PasswordGate({
   const [pending, start] = useTransition();
   const dark = variant === "dark";
 
+  // Client-side first barrier (cost/DDoS): after a burst of wrong guesses, impose a short cooldown
+  // BEFORE the next server hit, so honest hammering doesn't cost a Vercel invocation per try. The
+  // server-side limiter (now the sole, unbypassable throttle once verify_event_password is
+  // service-role-only) is the real guard; this just keeps honest-traffic load + cost down.
+  const failsRef = useRef(0);
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+  useEffect(() => {
+    if (cooldownLeft <= 0) return;
+    const id = setTimeout(() => setCooldownLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [cooldownLeft]);
+
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!password.trim() || pending) return;
+    if (!password.trim() || pending || cooldownLeft > 0) return;
     setError(null);
     start(async () => {
       const res = await fetch("/api/guests/unlock", {
@@ -43,6 +61,9 @@ export function PasswordGate({
         router.refresh();
         return;
       }
+      // Client throttle: after every 5 wrong guesses, a 20s cooldown before the next server hit.
+      failsRef.current += 1;
+      if (failsRef.current % 5 === 0) setCooldownLeft(20);
       setError("That password didn't work. Try again.");
     });
   }
@@ -106,22 +127,28 @@ export function PasswordGate({
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
-        {error && (
+        {(cooldownLeft > 0 || error) && (
           <p
             className={cn(
               "text-sm",
               dark ? "text-red-300" : "text-destructive",
             )}
           >
-            {error}
+            {cooldownLeft > 0
+              ? `Too many attempts. Try again in ${cooldownLeft}s.`
+              : error}
           </p>
         )}
         <Button
           type="submit"
           className="w-full active:scale-[0.99]"
-          disabled={pending || !password.trim()}
+          disabled={pending || !password.trim() || cooldownLeft > 0}
         >
-          {pending ? "Unlocking…" : "Unlock"}
+          {pending
+            ? "Unlocking…"
+            : cooldownLeft > 0
+              ? `Wait ${cooldownLeft}s`
+              : "Unlock"}
         </Button>
       </form>
     </div>
