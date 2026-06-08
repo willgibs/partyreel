@@ -23,7 +23,7 @@ media/DB write·read·delete·backup·restore pathways, the 3 staggered daily jo
 | --- | --- | --- | --- |
 | **Architecture** | The whole-picture mental model: route groups, the two stores of truth, data flows, the 3 daily jobs | [architecture.md](systems/architecture.md) | 0002 |
 | **Auth & accounts** | Host/operator auth (email+password · OTP/magic-link · Google), identity linking, avatars, display names, the `profiles` column-lock | [auth-accounts.md](systems/auth-accounts.md) | 0011, 0008 |
-| **Guest flow** | The `/e/[qr_token]` event page: 3-state visibility, capability tokens, password/unlock, `require_email` OTP, silent join, the live gallery, demo mode | [guest-flow.md](systems/guest-flow.md) | 0004, 0007, 0008, 0010 |
+| **Guest flow** | The `/e/[qr_token]` event page: 3-state visibility, capability tokens, password/unlock, the `allow_anonymous_uploads` account gate, silent join, the live gallery, demo mode | [guest-flow.md](systems/guest-flow.md) | 0004, 0007, 0008, 0010, 0015 |
 | **Host app** | The host's event surfaces: create wizard, QR designer, custom slug, first-time welcome, settings, host-side moderation/curation, the host-upload entry | [host-app.md](systems/host-app.md) | 0010, 0012, 0007 |
 | **Uploads & R2 (media)** | The media system: presign/complete (guest + host), the `create_media*` write path, R2 config, keys/delete, galleries, the lightbox, downloads, the video poster | [uploads-and-r2.md](systems/uploads-and-r2.md) | 0003, 0014 |
 | **Billing & caps** | The entitlement engine: the storage-cap model (`host_active_bytes`, monthly ingress), video gating, Stripe checkout/portal/webhook + provisioning | [billing-caps.md](systems/billing-caps.md) | — (+ [PRICING.md](PRICING.md)) |

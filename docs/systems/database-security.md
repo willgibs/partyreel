@@ -50,11 +50,12 @@ The expected, accepted set:
 - **Host table writes are COLUMN-locked, not just row-locked.** RLS gates the ROW (ownership); Supabase's
   default grant gives `authenticated` UPDATE/INSERT/DELETE on EVERY column. So host-writable tables must
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
-  - **`profiles`** — writable: `display_name`, `email`, `announcements_seen_at`, `welcomed_at`. Service-role/webhook only: `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
+  - **`profiles`** — writable: `email`, `announcements_seen_at`, `welcomed_at`. Service-role only: `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
   - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`.
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `require_email`, `moderation_mode`, `qr_style` (+ `insert(host_id)`, `update(deleted_at)`). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes` (+ `insert(host_id)`, `update(deleted_at)`). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
 - **Value-gates a bare grant can't express are triggers/CHECK:** `enforce_event_pro_gates` (the
-  `require_email` Pro gate, raises 42501), the `events_password_requires_hash` CHECK (no
+  `allow_anonymous_uploads` Pro gate — raises 42501 when a Free host tries to turn anonymous uploads OFF),
+  the `events_password_requires_hash` CHECK (no
   `visibility='password'` without a hash), `enforce_event_limit` (MAX_EVENTS, raises 23514).
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side (ADR-0003). → [uploads-and-r2.md](uploads-and-r2.md).
 - **The Stripe webhook is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
@@ -66,7 +67,7 @@ The expected, accepted set:
 - **A column-level `revoke update(col)` is a SILENT NO-OP while a TABLE-level grant stands** (the root
   cause of the `events` Pro-bypass CVE: the earlier `set_event_password`/`set_event_slug` column-revokes
   did nothing because the table grant was never revoked, so a free host could PATCH
-  `event_password_hash`/`custom_slug`/`require_email` to steal Pro features). You MUST
+  `event_password_hash`/`custom_slug`/`allow_anonymous_uploads` to steal Pro features). You MUST
   `revoke insert,update,delete … from authenticated` at the TABLE level FIRST, then `grant (cols)`. Verify
   with `has_column_privilege`, then re-run `get_advisors`. (ADR-0014; fixed in `…163011_lock_down_events_write_grant`.)
 - **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
@@ -78,7 +79,7 @@ The expected, accepted set:
   `file_size_bytes` (PUT-big-claim-tiny beat the cap). The real size is now re-derived from an R2 HEAD at
   complete (`headObjectSize`, [`../../src/lib/r2/presign.ts`](../../src/lib/r2/presign.ts)); the client value is advisory. → [uploads-and-r2.md](uploads-and-r2.md).
 - **Auth rate limits are PER-IP, and an event concentrates guests behind ONE venue/CGNAT IP** — so the OTP
-  `require_email` path can 429 a *crowd*. The album-password unlock has a venue-NAT-aware rate-limiter
+  account-required ("Enter event") path can 429 a *crowd*. The album-password unlock has a venue-NAT-aware rate-limiter
   (count failures + clear-on-success, deny-all `unlock_attempts`). Deferred: per-IP limits on `create_report` + the presign routes.
 
 ## Workflow (every schema change)

@@ -143,6 +143,10 @@ Vercel env vars **autonomously via the Vercel CLI** (`npx vercel`, verified): on
 `npx vercel env add/rm/ls --token "$VERCEL_TOKEN"`. The Vercel MCP can't write env vars. Cloudflare Worker secrets: `wrangler secret put`
 (write-only). Deploy auth is pre-wired: `wrangler` → P3 (`wrangler whoami` to confirm), `gh` →
 `willgibs/partyreel`, Vercel → the `VERCEL_TOKEN`. Never commit a real secret value to git.
+**`git push` auth runs through the `gh` credential helper** (`gh auth setup-git`, configured globally), so
+pushes use `gh`'s token with NO macOS-keychain prompt. If a `git-credential-osxkeychain` dialog ever appears
+(e.g. after a `gh` re-auth), re-run `gh auth setup-git`. The Vercel project link lives in gitignored
+`.vercel/project.json` (project `prj_GYSqbhJExHe0GQXXsgqxGBglwNLf`, org `team_DLm5Sv9cov0Cg60zrXAZjUi2`).
 
 ---
 

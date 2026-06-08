@@ -33,7 +33,7 @@ additive `event_members` table adds the rest._
 1. **Create** — host makes an event; the system issues a single `qr_token` (→
    `/e/[qr_token]`) and renders a QR code (one link per event, ADR-0010).
 2. **Join + upload** — a guest scans the QR and uploads photos/videos straight from
-   their phone (browser → storage, direct; no app/account, a verified email only when the host requires one).
+   their phone (browser → storage, direct; no app/account, an account only when the host turns off anonymous uploads).
 3. **Curate** — uploads land live in the host's gallery. Depending on the
    event's moderation mode they're visible immediately (`live`) or wait in a
    queue (`hold_for_approval`). The host can hide/remove, lock uploads, and
@@ -84,8 +84,8 @@ item-cap model until the Phase 4 rework lands. Full tier table, the shaped targe
 **Tiers (structure decided; GB + prices set in Phase 4):**
 
 - **Free** — 1 event, modest storage, plus **tier-gated event settings** (the
-  host-settings UI locks toggles by tier; **`require_email` is the first gated toggle**
-  — locked on Free, unlocked on Pro/Event Pass; more added as we go). The first-event
+  host-settings UI locks toggles by tier; e.g. **`allow_anonymous_uploads` is ON for all, but turning it
+  OFF (require an account to upload) is gated** — locked on Free, unlocked on Pro/Event Pass). The first-event
   experience must still shine; it sells the upgrade.
 - **Pro** — subscription with a **storage selector** (**3 storage tiers** to start, at
   rising prices; the top is the premium anchor), unlimited events sharing that storage.

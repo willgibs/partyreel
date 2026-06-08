@@ -18,7 +18,7 @@ A new gotcha lands in the system doc below that owns it (not in CLAUDE.md). If a
 | --- | --- |
 | [architecture.md](architecture.md) | The whole-picture mental model: route groups, the two stores of truth, the media/DB data flows, the 3 daily jobs. **Read first when you've lost the thread.** |
 | [auth-accounts.md](auth-accounts.md) | Host/operator auth, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock. |
-| [guest-flow.md](guest-flow.md) | The `/e/[token]` event page: visibility states, capability tokens, password/unlock, `require_email` OTP, silent join, the live gallery, demo mode. |
+| [guest-flow.md](guest-flow.md) | The `/e/[token]` event page: visibility states, capability tokens, password/unlock, the `allow_anonymous_uploads` account gate, silent join, the live gallery, demo mode. |
 | [host-app.md](host-app.md) | The host's event surfaces: create wizard, QR designer, custom slug, welcome, settings, host-side moderation + the host-upload entry. |
 | [uploads-and-r2.md](uploads-and-r2.md) | The media system: presign/complete, the `create_media*` write path, R2 config, keys/delete, galleries, the lightbox, downloads, the video poster. |
 | [billing-caps.md](billing-caps.md) | The entitlement engine: the cap model (`host_active_bytes`, ingress), video gating, the Stripe checkout/portal/webhook + provisioning. |

@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `require_email` OTP gate, silent join, the auth-aware header island, the live gallery polling, demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config (→ [host-app.md](host-app.md)).
+> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery polling, demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config (→ [host-app.md](host-app.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -40,23 +40,28 @@ is an **Invite trigger + dialog** (QR + Copy link + native Share + Download), no
 - **The unlock cookie is a signed HMAC of `{eid,exp}`** (`UNLOCK_COOKIE_SECRET`, ~12 h) — the cookie *name*
   isn't the boundary, the **signed eid** is. Password is set/cleared ONLY by `set_event_password` /
   `clear_event_password` (host-auth SECURITY DEFINER; the column is revoked from the host UPDATE grant).
-- **The page calls `getUser()` ONLY when `event.require_email`** — an anonymous event crowd behind one
-  venue-NAT IP must not each pay a server auth round-trip (rate-limit risk). The header island resolves
-  auth with a LOCAL `getSession()` (no network); do NOT add a server `getUser()` to the page RSC.
-- **`needsEmailVerification` is gated on `accepting_uploads`** in the page RSC (`accepting_uploads &&
-  require_email && !isDemo`) — a closed event NEVER shows `<VerifyEmailPrompt>` (uploads-off wins →
-  view-only). Don't drop the `accepting_uploads &&`.
+- **The page calls `getUser()` on the upload path** (`accepting_uploads && !isDemo`) to compute the identity
+  gates. With NO session it's a cheap LOCAL null (no network), so an anonymous event crowd behind one
+  venue-NAT IP doesn't each pay an auth round-trip; only a signed-in viewer triggers a JWT validation. The
+  header island still resolves its own auth with a LOCAL `getSession()`.
+- **Two upload-path gates, both gated on `accepting_uploads`** (a closed event is view-only, never gated):
+  `needsAccount` = `!allow_anonymous_uploads && not signed in` → swap the upload slot for `<EnterEventPrompt>`;
+  `needsName` = signed in but no `display_name` → swap for the required name step (the upload is attributed).
+  Anonymous uploaders on an anonymous-allowed event are never gated. Don't drop the `accepting_uploads &&`.
 
 ## Joining + identity
 
 - **Silent, just-in-time, field-less for the common case:** a first-time guest picks files → `POST
   /api/guests {qr_token}` → `create_guest` issues a `session_token` (localStorage, returning-guest) behind
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
-- **`require_email` = a VERIFIED email via OTP** (ADR-0008): a PAGE-LEVEL gate swaps the upload slot for
-  `<VerifyEmailPrompt>` (the shared [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx) — 6-digit
-  code + magic-link), the gallery stays visible. `create_guest` derives identity (`user_id` + `email`) from
-  `auth.uid()`, NEVER the client — `require_email` = "a confirmed session"; on verify it stamps
-  `guests.user_id` (account-from-guest). The require-email collection is a page gate, not a just-in-time prompt.
+- **`allow_anonymous_uploads = false` ⇒ an account is required to upload** (Phase 1; renamed + inverted from
+  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). A PAGE-LEVEL gate swaps the upload
+  slot for `<EnterEventPrompt>` — an email-primary "Enter event" (the shared
+  [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
+  secondary password login; the gallery stays visible. `create_guest` derives identity (`user_id` + `email`)
+  from `auth.uid()`, NEVER the client, and raises when `not allow_anonymous_uploads` and there's no confirmed
+  session; on a session it stamps `guests.user_id` (account-from-guest). No verification-only paths exist — an
+  account simply proves ownership. A signed-in uploader with no `display_name` then hits the required name step.
 
 ## Live gallery + optimistic uploads
 
@@ -79,7 +84,7 @@ CTA (the SSR default → zero flash for the anonymous majority); logged-in → t
 is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out** clears the guest
 capability (`setStoredSession(qrToken, null)` via the module-singleton `emit()` in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts)), signs out, then `router.refresh()`s —
-so the visitor STAYS on the event page and a `require_email` event re-gates to `<VerifyEmailPrompt>` (the
+so the visitor STAYS on the event page and an account-required event re-gates to `<EnterEventPrompt>` (the
 shared-device-bleed fix).
 
 ## Demo mode

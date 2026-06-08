@@ -36,8 +36,14 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 ## Now (concrete, pick-up-able)
 
-- **Per-photo uploader attribution** on gallery tiles — note: guest display names were removed (cut 2b), so
-  a name only exists for verified-email guests + host uploads, never anonymous guests (decide the UX). See
+- **Uploader attribution + unified identity** (4-phase initiative; ADR-0015; master plan
+  `~/.claude/plans/after-becoming-familiar-with-purring-beaver.md`; re-enter plan mode per phase). **P1
+  SHIPPED 2026-06-08**: required profanity-filtered public display names, `require_email`→
+  `allow_anonymous_uploads`, email-primary "Enter event", `display_name` service-role-write-only. **NEXT =
+  P2** — the lightbox attribution UI (uploader name shown publicly / email host-only / "Anonymous" + info
+  tooltip, subtle bottom-center caption; NOT on the dense grid tiles). Then **P3** claim anonymous uploads on
+  signup (also lands the deferred anon-RPC server-mediation below) + **P4** dashboard consolidation (merge
+  Your-events+Saved into one "Events" tab, add an "Uploads" tab, rename "Recently deleted"→"Trash"). See
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.

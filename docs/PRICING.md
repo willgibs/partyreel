@@ -31,7 +31,7 @@ mode; the live cutover is a launch task).
 | **Pro 2 TB**   | $39/mo                    | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
 | **Event Pass** | $24 one-time, ~$15/yr ren | 75 GB   | ~37k photos / ~15 hrs video   | 1 event/~1yr |
 
-- **Free** also gates features by tier: `require_email` + password-protected albums are
+- **Free** also gates features by tier: requiring an account to upload (turning off `allow_anonymous_uploads`) + password-protected albums are
   locked on Free, and **video is Pro-only** (Phase 2 — a free event is photos-only for guests
   AND the host; video comes with Pro + Event Pass, enforced at upload in `create_media`/
   `create_media_as_host`, mirrored client-side by `videosAllowedForTier`). The first-event
@@ -142,7 +142,7 @@ export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
 };
 
 /** Host event-settings gated to paid tiers (locked + upgrade hint on Free). */
-export const GATED_EVENT_SETTINGS = ["require_email"] as const;
+export const GATED_EVENT_SETTINGS = ["allow_anonymous_uploads", "password", "custom_slug"] as const;
 export function isSettingLocked(
   _setting: (typeof GATED_EVENT_SETTINGS)[number],
   tier: Tier,
@@ -285,7 +285,7 @@ Will pastes the credentials.**
   enabling SMTP alone doesn't.
 - _Verify (live, partyreel.com):_ request a sign-in OTP at `/login`; confirm the email arrives
   **from `noreply@partyreel.com`** (not `…mail.app.supabase.io`) with the 6-digit code; re-run the
-  `require_email` guest verify on a guest `/e/[token]` event (the crowd path); cross-check the send
+  account-required ("Enter event") sign-in on a guest `/e/[token]` event (the crowd path); cross-check the send
   in Resend → Emails.
 - _Caveat (cost):_ with custom SMTP the real ceiling becomes **Resend's** free tier (3,000/mo and a
   daily cap, ~100/day) — auth OTP now shares that quota with the lifecycle email. An event crowd all

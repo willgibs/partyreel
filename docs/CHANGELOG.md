@@ -10,6 +10,32 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Identity foundation: required display names + `allow_anonymous_uploads` (uploader-attribution P1)
+
+Phase 1 of the uploader-attribution / unified-identity initiative (commit `9238531`; ADR-0015). Every account
+now always has a **public display name**: required at every signup/onboarding path (host welcome + a guest
+name step), profanity-filtered via **`obscenity`** (tuned word-boundary so it does NOT block real names like
+Anushka/Shitij/Dickson while still catching slurs/leetspeak/compounds), and reserved/impersonation-blocked
+(`admin`, `partyreel`, etc.). The check is **authoritative**: the `authenticated` UPDATE grant on
+`profiles.display_name` was revoked, so the column is service-role-write-only and the validated
+`updateDisplayNameAction` (getUser → validate → profanity → admin client) is the only write path, unbypassable
+by a direct API call. `handle_new_user` now leaves `display_name` NULL for ALL signups (incl. OAuth); onboarding
+prefills the guarded input from `user_metadata`, so even a Google name flows through the one filter.
+
+"Verify email to upload" was reframed as account entry: the host setting `events.require_email` was renamed +
+inverted to **`allow_anonymous_uploads`** (default on; turning it off — requiring an account — stays Pro-gated),
+and an account-required event shows an email-primary **"Enter event"** flow (`EnterEventPrompt`, with a secondary
+password login) instead of the old verify prompt. There are no verification-only paths; an account simply proves
+ownership.
+
+Migrations `20260608093908` (column rename + `create_guest`/`get_event_by_qr_token`/`enforce_event_pro_gates`
+recreated, values flipped) and `20260608093939` (display_name grant lockdown + `handle_new_user`). Verified:
+typecheck/lint/test (297) /build green; `get_advisors` clean; rolled-back `create_guest` contract check (blocks
+anon when an account is required, allows otherwise); live red-team on partyreel.com (profanity + reserved
+rejected, short name "AJ" saved, empty disables Save, the "Allow anonymous uploads" Free-lock + upgrade hint,
+guest page renders clean). Built on the security agent's baseline; the deferred anon-RPC server-mediation stays
+owned by P3. P2 (lightbox attribution UI), P3 (claim anonymous uploads), P4 (dashboard consolidation) pending.
+
 ## 2026-06-08 — Per-upload limits: 10 GB ceiling + host-configurable per-event cap
 
 Retired the per-TYPE per-file limits (50 MB photo / 2 GB + 5-min video) for ONE universal **10 GB per-upload

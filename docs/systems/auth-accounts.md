@@ -1,7 +1,7 @@
 # Auth & host accounts
 
 > ROLE: how hosts (and operators) authenticate + the account/profile model.
-> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity / `require_email` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
+> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity / `allow_anonymous_uploads` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -31,9 +31,10 @@ one `profiles` row per signup.
   never the old get/set/remove.
 - Supabase's **OAuth Server** (project-as-IdP beta toggle) stays **OFF** — Partyreel is a client of Google
   OAuth, not an IdP.
-- **`profiles` is host-writable only on `display_name`, `email`, `announcements_seen_at`, `welcomed_at`**
-  (the `grant update(...)` allowlist); `tier` / `storage_*` / `is_admin` / `stripe_*` / `avatar_updated_at`
-  / `password_set_at` are service-role / webhook only. → [database-security.md](database-security.md).
+- **`profiles` is host-writable only on `email`, `announcements_seen_at`, `welcomed_at`** (the `grant
+  update(...)` allowlist); `display_name` (Phase 1: client UPDATE revoked, see the display-name gotcha below),
+  `tier` / `storage_*` / `is_admin` / `stripe_*` / `avatar_updated_at` / `password_set_at` are service-role /
+  webhook only. → [database-security.md](database-security.md).
 - The password hash never leaves the DB: `has_password` / `verify_current_password` are authenticated-only
   SECURITY DEFINER RPCs that return booleans.
 
@@ -69,9 +70,15 @@ one `profiles` row per signup.
   ([`getHostAvatarUrl`](../../src/lib/db/queries/guest-events-admin.ts)) keyed on `events.host_id` — no
   anon-RPC change. Bytes ride Supabase infra durability (separate from the R2 media WORM backup), not pg_dump;
   derivable, so that's by design.
-- **`handle_new_user` no longer falls back to the email local-part** for `display_name` (a one-time backfill
-  nulled those), so a null `display_name` genuinely means "not set" — which the guest "Hosted by" byline keys
-  off. Google/OAuth still populate it from `full_name`.
+- **Display name is REQUIRED, public, and service-role-write-only (Phase 1, ADR-0015).** `handle_new_user`
+  leaves `display_name` NULL for ALL signups (incl. OAuth — it no longer copies `full_name`/`name`), so null
+  genuinely means "not set"; the host onboarding step + the guest upload name step then collect it, PREFILLING
+  the input from `user_metadata.full_name` for OAuth (so even a Google name passes through the one filter). The
+  ONLY write path is `updateDisplayNameAction` (getUser → `displayNameSchema` (min 1 / max 60 / reserved-name)
+  → `containsProfanity` (`obscenity`, tuned word-boundary so real names like Anushka/Shitij aren't blocked) →
+  ADMIN-client write); the `authenticated` UPDATE grant on the column was revoked so a public name can't be set
+  unfiltered. A null/invalid name gates `/dashboard` (+ `/dashboard/new`) and the guest upload to the name step;
+  `/account` is exempt so it can be set there. The "Hosted by" byline + uploader attribution render it.
 
 ## See also
 
