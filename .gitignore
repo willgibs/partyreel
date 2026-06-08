@@ -35,6 +35,10 @@ yarn-error.log*
 # …but DO commit the template (no secrets in it).
 !.env.example
 
+# wrangler local dev secrets (Cloudflare Workers) — never commit
+.dev.vars
+.dev.vars.*
+
 # vercel
 .vercel
 
