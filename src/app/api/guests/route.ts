@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createGuest } from "@/lib/db/mutations/guest";
+import { createClient } from "@/lib/supabase/server";
 import { joinSchema } from "@/lib/validation/upload";
 
 // POST joins a guest to an event via the create_guest RPC (validated by the
@@ -25,9 +26,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // create_guest is service-role-only (H3); derive the TRUSTED user id here from the verified session (or
+  // null for an anonymous guest). The RPC reads the verified email from auth.users for this id, so the
+  // client can't supply an identity or email.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { qr_token } = parsed.data;
   const result = await createGuest({
     qrToken: qr_token,
+    userId: user?.id ?? null,
   });
 
   if (!result.ok) {

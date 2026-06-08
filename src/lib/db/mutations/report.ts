@@ -9,7 +9,7 @@
  */
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Postgres SQLSTATEs the RPC raises (stable; match the code, not the message).
 const NO_DATA_FOUND = "P0002"; // bad/expired qr_token → event not found
@@ -28,7 +28,9 @@ export async function createReport(input: {
   mediaId?: string | null;
   reason?: string | null;
 }): Promise<CreateReportResult> {
-  const supabase = await createClient();
+  // Server-mediated (H3): create_report is service-role-only now (revoked from anon). The qr_token in the
+  // body stays the capability the RPC validates; the /api/reports route adds the per-IP rate limit (H3b).
+  const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("create_report", {
     p_qr_token: input.qrToken,
     p_media_id: input.mediaId ?? undefined,

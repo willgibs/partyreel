@@ -37,13 +37,15 @@ export type CreateGuestResult =
 
 export async function createGuest(input: {
   qrToken: string;
+  userId: string | null;
 }): Promise<CreateGuestResult> {
-  const supabase = await createClient();
-  // create_guest derives identity (user_id + email) from the VERIFIED session
-  // (auth.uid()) — never from the client (Phase 2c). The RLS server client carries the
-  // guest's JWT once they've verified, so auth.uid() resolves inside the RPC.
+  // Server-mediated (H3): create_guest is service-role-only now. The admin client has no auth.uid(), so the
+  // /api/guests route passes the getUser()-verified user id as the trusted p_user_id (null for an anonymous
+  // guest); the RPC still reads the verified EMAIL from auth.users for that id (never the client).
+  const supabase = createAdminClient();
   const { data, error } = await supabase.rpc("create_guest", {
     p_qr_token: input.qrToken,
+    p_user_id: input.userId ?? undefined,
   });
 
   if (error) {

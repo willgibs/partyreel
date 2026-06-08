@@ -105,17 +105,16 @@ export function SaveEventButton({
   const captureNewsletter = useCallback(async () => {
     if (!sessionToken) return;
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user?.email) {
-        await supabase.rpc("capture_guest_email", {
-          p_session_token: sessionToken,
-          p_email: user.email,
-          p_newsletter_opt_in: true,
-        });
-      }
+      // Server-mediated (H3): the email is derived from the verified session inside the route (never sent
+      // from the client), so capture_guest_email can't be poisoned with a victim's address.
+      await fetch("/api/guests/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: sessionToken,
+          newsletter_opt_in: true,
+        }),
+      });
     } catch {
       // swallow — a newsletter write must never fail the save
     }
