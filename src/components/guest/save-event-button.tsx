@@ -99,9 +99,9 @@ export function SaveEventButton({
     return true;
   }, [eventId, qrToken, onSaved]);
 
-  // Best-effort newsletter capture (post-upload card only). The verified account's email
-  // goes on the marketing list via the existing capture_guest_email RPC (keyed by the
-  // guest session_token). Never blocks the save.
+  // Best-effort newsletter capture (post-upload card only). Posts to /api/guests/capture-email, which
+  // derives the verified account email server-side (getUser) and calls capture_guest_email via the
+  // service-role client (ADR-0016 -- the email is never client-supplied). Never blocks the save.
   const captureNewsletter = useCallback(async () => {
     if (!sessionToken) return;
     try {
