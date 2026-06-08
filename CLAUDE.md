@@ -52,7 +52,7 @@ A goal becomes its own small plan. Defaults, not rails — use judgment:
 4. **Build** — leave WHY-comments for the next agent; reuse `src/components/ui` + `src/components/shared`; use the MCPs directly.
 5. **Test (internal)** — Vitest for pure logic + a **rolled-back Supabase-MCP RPC contract check** for any new SQL (run RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists); run `pnpm typecheck && lint && test && build`. After any DDL run **`get_advisors`**.
 6. **Verify antagonistically on partyreel.com** — auth/upload/email/checkout can't complete on localhost (see "Local vs live"). Deploy, then **red-team your own change** via the Chrome MCP (force the error cases, the cross-tenant/escalation paths, the abuse paths) + the Supabase/R2 MCPs to seed/inspect. Test data is disposable.
-7. **Commit + push** — only when asked; branch first if on `main`; never `git add -A`, never commit secrets, never `--no-verify` or force-push without an explicit ask. End commit messages with the `Co-Authored-By` trailer.
+7. **Commit + push** — only when asked; **commit + push straight to `main` (do NOT create a feature branch)** — pre-launch we trade branch isolation for fewer Vercel builds (a branch push builds the branch AND queues the `main` deploy behind it; a bad `main` build is fixed forward while the data is disposable). Never `git add -A`, never commit secrets, never `--no-verify` or force-push without an explicit ask. End commit messages with the `Co-Authored-By` trailer.
 8. **Record (subtractively)** — update the owning `docs/systems/` doc **in place** (refine the line; don't append a dated block); move any shipping narrative to [`CHANGELOG.md`](docs/CHANGELOG.md); prune what your change made stale; log any new deferred task as a **one-liner under its ROADMAP bucket**. See "Keeping the docs healthy".
 
 ---
@@ -148,7 +148,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git** — never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push without an explicit ask. Branch first if on `main`. Commit only when asked.
+**Git** — commit + push **straight to `main`** (pre-launch — do NOT create feature branches; it saves Vercel build minutes, and a bad `main` build is fixed forward). Never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push without an explicit ask. Commit only when asked. (Revisit branches/PR previews at launch — see [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 
