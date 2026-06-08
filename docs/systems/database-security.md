@@ -26,22 +26,33 @@ service-role admin client (`server-only`).
 
 The expected, accepted set:
 
-- **8 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
-  revoke):** `get_event_by_qr_token`, `create_guest`, `create_media`, `get_upload_context`,
-  `create_report`, `capture_guest_email`, `get_event_media_by_qr_token`, `verify_event_password`. The
-  opaque token IS the authorization (ADR-0004); revoking EXECUTE breaks the whole guest flow.
-  (`get_public_album` was DROPPED in the one-link consolidation, ADR-0010, taking the list 9 → 8.)
-- **Authenticated-only RPCs (lint `0029`):** the host/account RPCs — `create_media_as_host`,
-  `get_host_upload_context`, `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
+- **3 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
+  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`. The
+  opaque token IS the authorization (ADR-0004); these only READ visibility-gated event/media state, so anon
+  EXECUTE is safe. (Was 8 — the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below.
+  `get_public_album` was DROPPED in the one-link consolidation, ADR-0010.)
+- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `create_media`,
+  `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
+  A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
+  route-level guard (the ADR-0014 R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
+  (H1) + an unthrottled password oracle (H2) + spam/victim-email poisoning (H3). FIX (ADR-0016): `revoke
+  execute … from public, anon, authenticated`; the Next routes invoke them via the **service-role admin
+  client** with **server-derived trusted values** (R2-HEAD size; `getUser()` user_id/host_id; the verified
+  email read from `auth.users`, never the client). THE LESSON: enforce at the boundary the attacker actually
+  reaches — an anon RPC grant IS the attack surface, not the route wrapping it.
+- **Authenticated-only RPCs (lint `0029`):** the host/account RPCs — `get_host_upload_context`,
+  `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
-  `save_event`/`get_saved_events`, `restore_media`/`restore_event`/`purge_media_now`. SECURITY DEFINER but
+  `save_event`/`get_saved_events`, `restore_media`/`restore_event`/`purge_media_now`. (`create_media_as_host`
+  MOVED to service-role-only above when its size authority was hardened.) SECURITY DEFINER but
   `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via `auth.uid()` +
   ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
-- **Service-role-only (must NEVER appear in either advisor list):** `purge_media_rows`, `record_link_hit`,
-  `host_active_bytes`, and the trigger-only functions (`set_media_purge_at`, `set_event_purge_at`,
-  `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`, …). If one shows up, an over-broad grant slipped in.
+- **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
+  RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
+  (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,
+  …). If an unexpected one shows up, an over-broad grant slipped in.
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
-  `newsletter_signups`, `unlock_attempts` (operator/service-role-only).
+  `newsletter_signups`, `unlock_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
 - **The "Leaked Password Protection Disabled" WARN is now ACTIONABLE** (post-ADR-0011 account passwords) —
   enable HaveIBeenPwned in the Supabase dashboard (a launch task; Pro-gated).
 

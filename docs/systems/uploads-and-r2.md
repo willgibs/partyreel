@@ -72,10 +72,14 @@ on the HOST gallery only**.
 
 ## Gotchas (why it's like this — don't revert)
 
-- **Upload size-spoof is closed by an R2 HEAD at complete (ADR-0014).** The complete routes re-derive the
-  real `file_size_bytes` from `headObjectSize` and pass THAT to the RPC, never the client's claim (a
-  PUT-big-claim-tiny upload used to beat the cap). `duration_seconds` / `width` / `height` stay
-  client-supplied + NON-authoritative (the byte cap is the cost boundary).
+- **Upload size-spoof is closed by an R2 HEAD at complete (ADR-0014) + a server-only RPC (ADR-0016).** The
+  complete routes re-derive the real `file_size_bytes` from `headObjectSize` and pass THAT to the RPC, never
+  the client's claim (a PUT-big-claim-tiny upload used to beat the cap). The R2-HEAD size is now TRULY
+  authoritative because `create_media` / `create_media_as_host` are **service-role-only** (ADR-0016): the
+  complete-upload route is the ONLY caller, so the prior anon-PostgREST bypass — which let a client call the
+  RPC directly with a spoofed size, dodging the HEAD — is closed (the `415962b` CHECK is the belt-and-braces
+  floor). `duration_seconds` / `width` / `height` stay client-supplied + NON-authoritative (the byte cap is
+  the cost boundary).
 - **`uploadFile()` is shared, don't fork it.** The caller passes the endpoint pair + an `identity` object
   (`{ session_token }` guest / `{ event_id }` host) merged into both request bodies; presign/complete
   response shapes are identical. `HostUpload` is a SEPARATE component (no join/demo/email/`sessionRef`

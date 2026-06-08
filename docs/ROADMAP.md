@@ -54,17 +54,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Per-IP rate-limiting for `create_report` + the presign routes** — the deferred edge pass (the unlock
-  limiter is already in place). See [`systems/database-security.md`](systems/database-security.md). (Folded
-  into the server-mediation remediation below.)
-- **Server-mediate the guest write/password RPCs** (H1/H2/H3 pentest remediation, 2026-06-08) — revoke anon
-  EXECUTE on `create_media`/`create_media_as_host`/`verify_event_password`/`create_report`/`create_guest`/
-  `capture_guest_email`; route each through its Next handler via the service-role client with server-derived
-  trusted values (R2-HEAD size, verified email, host_id) + rate limits. The negative-size CHECK stopgap
-  already shipped (commit `415962b`). **NOW THE NEXT DEDICATED PHASE (Will's split, 2026-06-08): runs BEFORE
-  the P3 claim** — H2 is a LIVE unthrottled password brute-force oracle, and this hardens the write path the
-  claim builds on. Re-enter plan mode to refresh it against the post-P1/P2 end-state before executing. Plan:
-  `~/.claude/plans/we-just-added-and-dapper-storm.md`.
+- **Venue-NAT-aware per-IP rate limit for `create_guest` / `create_report`** — the ONE deferred piece of the
+  security remediation (the server-mediation H1/H2/H3 + the password-strength UI **SHIPPED 2026-06-08,
+  ADR-0016**; see CHANGELOG). A naive per-IP cap would block legitimate venue crowds (a wedding behind one
+  WiFi NAT = many legit joins/IP), so it needs the unlock limiter's count-failures/clear-on-success design —
+  its own pass. Vercel's edge firewall is the volumetric backstop meanwhile. See
+  [`systems/database-security.md`](systems/database-security.md).
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't

@@ -213,7 +213,7 @@ also appear in full in the linked system doc — don't revert them.
 
 - Schema is **Supabase-native**: SQL migrations + RLS + generated types are the source of truth (ADR-0001), in `supabase/migrations/`. Apply via the **Supabase MCP** `apply_migration` (the CLI isn't installed; keep the repo file = applied version).
 - `src/lib/db/types.ts` is **generated — do not hand-edit**, but DO **read it as the fast source of truth for table + column names before hand-writing SQL or `.from(...)` queries** (don't assume column names like `owner_id`/`created_at`; or introspect live via the Supabase MCP). It's `.prettierignore`d so regeneration stays churn-free.
-- **After any schema change: run `get_advisors` + regenerate types.** The expected, accepted advisor set: the **8 anon capability RPCs** (lint `0028`, by design — never revoke), the **authenticated-only RPCs** (`0029`), the **service-role-only** fns (must appear in NEITHER list), the **deny-all** `rls_enabled_no_policy` INFOs, and the leaked-password WARN (a launch task). The full inventory + the column-lock + MCP-anon-grant lessons: [database-security.md](docs/systems/database-security.md).
+- **After any schema change: run `get_advisors` + regenerate types.** The expected, accepted advisor set: the **3 anon READ RPCs** (lint `0028`, by design — never revoke; the guest write/password RPCs were server-mediated to service-role-only, ADR-0016), the **authenticated-only RPCs** (`0029`), the **service-role-only** fns (must appear in NEITHER list), the **deny-all** `rls_enabled_no_policy` INFOs, and the leaked-password WARN (a launch task). The full inventory + the column-lock + MCP-anon-grant + server-mediation lessons: [database-security.md](docs/systems/database-security.md).
 
 ---
 

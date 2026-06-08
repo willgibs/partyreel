@@ -10,6 +10,33 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Security remediation: server-mediated guest RPCs (pentest H1/H2/H3)
+
+Closed the externally-exploitable findings from the 2026-06-08 live pentest by SERVER-MEDIATING the six guest
+write/password RPCs (ADR-0016; commits `2e4c909` H1, `2d63b38` H2, `b3b48e3` H3a, `1bcf61f` password UI).
+Root cause: each was `anon` EXECUTE-granted, so directly PostgREST-callable, bypassing every route-level guard.
+
+- **H1 (cost-bomb):** `create_media` + `create_media_as_host` are now service-role-only; the complete-upload
+  routes call them via the admin client with the authoritative R2-HEAD size. `create_media_as_host`'s
+  `auth.uid()` ownership became a trusted `p_host_id` from `getUser()`. Live-verified with two real uploads
+  (host 5.7 MB + guest 10 MB through the new path); the direct anon attack now returns `42501`.
+- **H2 (password oracle):** `verify_event_password` is service-role-only; the unlock route (admin client) is
+  the sole caller, so the venue-NAT limiter is unbypassable (20/IP → `429`, blocking even the correct password
+  once tripped). The limiter keeps fail-open but now Sentry-alerts; a client-side cooldown keeps honest-traffic
+  cost off Vercel. Password minimums kept (8 accounts / 4 events) with a soft live strength meter as guidance.
+- **H3 (spam/poison):** `create_guest` (now a trusted `p_user_id`; the verified email is read from `auth.users`,
+  the client `p_email` dropped) / `create_report` / `capture_guest_email` (new `/api/guests/capture-email`
+  route deriving the email from the verified session) are all service-role-only. Anon attacks (incl.
+  `capture_guest_email` with a victim address) now return `42501`; legit join + report still work.
+
+The anon advisor set shrank 8 → 3 (reads only); the six are service-role-only. The `415962b` CHECK remains the
+floor. DEFERRED: a venue-NAT-aware per-IP rate limit for `create_guest`/`create_report` (a naive per-IP cap
+would block legitimate venue crowds; it needs the unlock limiter's count-failures design) → ROADMAP; Vercel's
+edge firewall is the volumetric backstop. `typecheck`/`lint`/`test (310)`/`build` green; every phase
+live-red-teamed on partyreel.com.
+
+---
+
 ## 2026-06-08 — Per-photo uploader attribution caption (uploader-attribution P2)
 
 Phase 2 of the uploader-attribution initiative (commit `69b8b71`; builds on P1's required display names). The
