@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { verifyCurrentPasswordAction } from "@/app/(app)/account/actions";
+import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,6 +147,7 @@ export function AccountSecurityForm({
         <p className="text-xs text-muted-foreground">
           At least {MIN_PASSWORD_LENGTH} characters.
         </p>
+        <PasswordStrengthMeter value={password} />
       </div>
 
       <div className="space-y-1.5">

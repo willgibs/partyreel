@@ -9,6 +9,7 @@ import {
   clearEventPasswordAction,
   setEventPasswordAction,
 } from "@/app/(app)/dashboard/actions";
+import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -163,6 +164,7 @@ export function EventPasswordControl({
           </Button>
         )}
       </div>
+      <PasswordStrengthMeter value={password} />
       <p className="text-xs text-muted-foreground">
         Guests enter this to view the album. Share it with them separately. You
         can change it anytime, but you won&rsquo;t be able to see it again.
