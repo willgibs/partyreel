@@ -9,7 +9,9 @@
 Browser → R2 **direct** upload (single PUT < 100 MB, else multipart) via presign + complete routes; a
 SECURITY DEFINER RPC writes the `media` row + ledger and enforces caps; the same media renders in a shared
 grid + lightbox, presigned server-side. Two upload identities share one pipeline: anonymous **guests**
-(capability token) and authenticated **hosts** (a photographer's batch).
+(capability token) and authenticated **hosts** (a photographer's batch). The lightbox shows a subtle uploader
+caption — display name, a **Host** badge, or **Anonymous** + an info popover — with the uploader's **email shown
+on the HOST gallery only**.
 
 ## Where it lives
 
@@ -24,6 +26,10 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
 - Render: [`media-grid.tsx`](../../src/components/app/media-grid.tsx) + the shared
   [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx) (used by all 4 surfaces);
   host add-photos [`event-uploads.tsx`](../../src/components/app/event-uploads.tsx) → [`host-upload.tsx`](../../src/components/app/host-upload.tsx).
+- Uploader attribution: the pure CASE helper [`media/uploader-identity.ts`](../../src/lib/media/uploader-identity.ts)
+  (`resolveUploaderIdentity`) + the admin-read resolver `getUploaderIdentities(eventId)` in
+  [`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts); the caption + tap-to-open explainer live in
+  `media-lightbox.tsx` + [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) / [`ui/popover.tsx`](../../src/components/ui/popover.tsx).
 - Env: R2 vars stay `.optional()` in [`env.ts`](../../src/lib/env.ts); `assertR2Env()` asserts them lazily at request time.
 
 ## Invariants (don't break)
@@ -36,6 +42,12 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
   any of it. *(Cross-cutting landmine — echoed in CLAUDE.md.)*
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side (1 h TTL, via the shared
   `toGridItems`); the render routes are `force-dynamic` (ADR-0003).
+- ★ **Uploader email is HOST-gallery-only — guest surfaces NEVER carry it.** Attribution is resolved by ONE
+  admin-read (`getUploaderIdentities`); the host dashboard spreads the `email`, but every guest-facing item is
+  built by `toGridItems`, which copies ONLY name + `isHost`/`isAnonymous` and NEVER email. Email-safe by
+  construction (not a runtime viewer flag), guarded by a standing source test (`grid-items.email-safety.test.ts`).
+  Live-verified: the anonymous SSR + `/api/guests/gallery` payloads carry no email field (item keys are
+  `id, type, url, downloadUrl, uploaderName, isHost, isAnonymous`).
 - **`create_media*` is the ONLY write path into `media`.** A host CANNOT RLS-insert directly even though
   `media_host_all` would allow the row — that bypasses the ledger + `storage_used_bytes` accounting + the
   cap check (unmetered free storage). The RPC keeps the accounting honest.
@@ -87,6 +99,15 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
 - **The lightbox composes the radix Dialog PRIMITIVES, not the wrapped `<DialogContent>`** — it needs a
   dark, edge-to-edge `bg-black/90` backdrop + object-contain media, whereas `ui/dialog.tsx` hard-codes a
   light overlay + `max-w-sm`. Composing still gives the focus-trap / Esc / scroll-lock. Don't "fix" it.
+- **Attribution resolves via an ADMIN read, because `profiles` RLS is own-row-only.** A host's normal query
+  CANNOT read a guest's `display_name` (the `profiles_select_own` policy), so `getUploaderIdentities` uses the
+  service-role client (mirrors `getHostAvatarUrl`). The pure `resolveUploaderIdentity` CASE: `guest_id` null →
+  Host (name = host's display name, no email); `guests.user_id` null → Anonymous; else → the guest's
+  `display_name` + (host-only) `guests.email`. A set `user_id` with a null name renders NOTHING (not
+  "Anonymous"). Attribution is **lightbox-only** — `MediaTile` reads just `type` + `url`, so dense grid tiles
+  stay clean by construction. The caption **fades out while a center video plays** (the ~64px control zone is
+  fuzzy across platforms) and respects `prefers-reduced-motion`. Demo tokens skip the resolver (no attribution
+  on simulated tiles). The nested info popover closes on the first Esc, the lightbox on the second.
 - **Mobile swipe = a peek-the-neighbor 3-slot track, vanilla Pointer Events (no carousel lib).** The
   load-bearing, non-obvious bits: finger-follow is gated to `pointerType === "touch"` (mouse/pen keep
   chevrons + keyboard); slots are **keyed by item id** so the slid-to neighbor's already-loaded `<img>` is

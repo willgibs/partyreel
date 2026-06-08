@@ -10,6 +10,31 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Per-photo uploader attribution caption (uploader-attribution P2)
+
+Phase 2 of the uploader-attribution initiative (commit `69b8b71`; builds on P1's required display names). The
+media lightbox now shows **who** uploaded each photo/video: a subtle bottom-center caption — the uploader's
+public **display name**, a **"Host"** badge for the host's own uploads, or **"Anonymous"** with a tap-to-open
+info popover whose copy is context-aware (guests see "The host has enabled anonymous uploads for this event.";
+the host sees a nudge to require accounts in Settings). Attribution is **lightbox-only** — the dense grid tiles
+stay clean by construction (`MediaTile` reads only `type` + `url`).
+
+Identity is resolved server-side by ONE shared admin-read (`getUploaderIdentities`), required because
+`profiles` RLS is own-row-only so a host's normal query can't read guests' names (mirrors the `getHostAvatarUrl`
+byline pattern). A pure `resolveUploaderIdentity` CASE classifies host / anonymous / named-guest. The uploader's
+**email is shown on the HOST gallery only**: the host dashboard spreads it, but every guest-facing item is built
+by `toGridItems`, which copies only name + flags and never email, so email-safety is by construction (not a
+runtime flag) and pinned by a standing source test. No migration (reads existing tables + FKs).
+
+Live-verified on partyreel.com (staged four identities against one real photo): the host view showed
+name+"Host" (no email), named guests showed name + email, anonymous showed "Anonymous" + the host-copy popover;
+the guest view showed the same minus every email, with the guest-copy popover; and an **anonymous fetch of the
+SSR HTML + `/api/guests/gallery` JSON carried zero email** (item keys: `id, type, url, downloadUrl,
+uploaderName, isHost, isAnonymous`). Nested Esc closes the popover first, the lightbox second. `pnpm typecheck
+&& lint && test && build` green.
+
+---
+
 ## 2026-06-08 — Identity foundation: required display names + `allow_anonymous_uploads` (uploader-attribution P1)
 
 Phase 1 of the uploader-attribution / unified-identity initiative (commit `9238531`; ADR-0015). Every account
