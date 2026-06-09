@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-08 — Security: abuse-focused rate limiter for guest write endpoints (H3b)
+
+Closed the one deferred piece of the server-mediation remediation (commit `7bb2b53`): the now
+service-role-only `create_guest` / `create_report` / `capture-email` routes had no throttle. Per Will, the
+limiter is ABUSE-focused, NOT volume-focused (an event app gets heavy LEGITIMATE traffic from one NAT IP, so
+a per-IP volume cap would block the core use case).
+
+- Venue-safe design: the primary signal is cross-event BREADTH (one IP touching many DISTINCT events = a
+  scraper; a venue is exactly ONE event, so it never trips) + a high per-(IP,event) backstop (runaway-bot
+  guard); raw volumetric DoS stays the Vercel edge firewall's job. Deny-all `action_attempts` (HMAC hashes
+  only, mirrors `unlock_attempts`) + the `action_rate` service-role RPC (the `COUNT(DISTINCT)` breadth in one
+  round-trip); `abuse-rate-limit.ts` (pure, unit-tested) + the server-only store; wired into the three routes
+  (`429` + `Retry-After`; fail-OPEN + Sentry on a limiter error; cron-pruned).
+- Hygiene: explicit `grant execute … to service_role` for `create_media` / `create_report` /
+  `capture_guest_email` (they had relied on Supabase's implicit default grant — verified working, now explicit).
+- Live-verified on partyreel.com: the report backstop trips at 16 (15× `200` → `429`); 12/12 venue joins to
+  ONE event all allowed (0 throttled); the six direct anon RPCs return `404`; an identity-forgery probe (body
+  `user_id`) left the guest row `user_id` NULL. Rolled-back contract check (breadth = 3 distinct, backstop =
+  2, no cross-IP bleed); typecheck/lint/test (317)/build green; advisors clean (`action_rate` in neither 0028
+  nor 0029; new `action_attempts` deny-all INFO).
+
 ## 2026-06-08 — Security remediation: server-mediated guest RPCs (pentest H1/H2/H3)
 
 Closed the externally-exploitable findings from the 2026-06-08 live pentest by SERVER-MEDIATING the six guest

@@ -20,7 +20,7 @@ service-role admin client (`server-only`).
   (RSC/route handlers, async), `middleware` (proxy refresh), `admin` (service-role, `server-only`, bypasses RLS).
 - Data access only via [`../../src/lib/db/`](../../src/lib/db) (queries/mutations) — never inline SQL in components.
 - Generated types: [`../../src/lib/db/types.ts`](../../src/lib/db/types.ts) — **do not hand-edit** (`.prettierignore`d so regen stays churn-free).
-- Unlock rate-limiter: [`../../src/lib/security/unlock-rate-limit.ts`](../../src/lib/security/unlock-rate-limit.ts).
+- Rate-limiters: [`unlock-rate-limit.ts`](../../src/lib/security/unlock-rate-limit.ts) (album-password unlock) + [`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts) (guest write endpoints; cross-event breadth).
 
 ## The advisor model (`get_advisors` — run after EVERY schema change)
 
@@ -52,7 +52,7 @@ The expected, accepted set:
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,
   …). If an unexpected one shows up, an over-broad grant slipped in.
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
-  `newsletter_signups`, `unlock_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
+  `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
 - **Leaked Password Protection (HaveIBeenPwned) is ENABLED** (2026-06-08) — that WARN is cleared. Supabase
   now rejects pwned ACCOUNT passwords at set/change; the account-security form surfaces the rejection via the
   `updateUser` error. It's an Auth feature → applies to `auth.users` passwords ONLY, not event passwords
@@ -91,9 +91,14 @@ The expected, accepted set:
 - **Upload size-spoof (closed, ADR-0014):** `create_media`/`_as_host` once trusted the CLIENT
   `file_size_bytes` (PUT-big-claim-tiny beat the cap). The real size is now re-derived from an R2 HEAD at
   complete (`headObjectSize`, [`../../src/lib/r2/presign.ts`](../../src/lib/r2/presign.ts)); the client value is advisory. → [uploads-and-r2.md](uploads-and-r2.md).
-- **Auth rate limits are PER-IP, and an event concentrates guests behind ONE venue/CGNAT IP** — so the OTP
-  account-required ("Enter event") path can 429 a *crowd*. The album-password unlock has a venue-NAT-aware rate-limiter
-  (count failures + clear-on-success, deny-all `unlock_attempts`). Deferred: per-IP limits on `create_report` + the presign routes.
+- **Rate limits must be ABUSE-focused, NOT volume-focused — an event concentrates guests behind ONE venue/
+  CGNAT IP**, so a naive per-IP volume cap 429s a *crowd*. Two venue-safe limiters: the album-password unlock
+  (count failures + clear-on-success, deny-all `unlock_attempts`), and the **abuse-focused limiter** for the
+  server-mediated guest writes (`create_guest`/`create_report`/`capture-email`) — deny-all `action_attempts`
+  + the `action_rate` RPC, keyed on cross-event BREADTH (one IP touching many DISTINCT events = a scraper; a
+  venue is ONE event → never trips) + a high per-(IP,event) backstop ([`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts)).
+  Raw volumetric DoS is the Vercel edge firewall's job (a launch task). The OTP "Enter event" path is still
+  PER-IP (Supabase Auth) — venue-OTP volume is a launch consideration.
 
 ## Workflow (every schema change)
 

@@ -69,12 +69,18 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Venue-NAT-aware per-IP rate limit for `create_guest` / `create_report`** — the ONE deferred piece of the
-  security remediation (the server-mediation H1/H2/H3 + the password-strength UI **SHIPPED 2026-06-08,
-  ADR-0016**; see CHANGELOG). A naive per-IP cap would block legitimate venue crowds (a wedding behind one
-  WiFi NAT = many legit joins/IP), so it needs the unlock limiter's count-failures/clear-on-success design —
-  its own pass. Vercel's edge firewall is the volumetric backstop meanwhile. See
-  [`systems/database-security.md`](systems/database-security.md).
+- **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
+  round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
+  only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,
+  full UA + UA client hints, and a durable FIRST-PARTY device id (localStorage/cookie UUID) that survives
+  session-token rotation. Extract + retain key EXIF (GPS, device make/model/serial, capture time) into a
+  locked record AND strip EXIF from the publicly-served variant (also fixes a latent GPS-privacy leak). On a
+  report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
+  remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
+  (18 U.S.C. §2258A(h): 90d, +90 on LE request) preservation hold (a legal mandate + safe harbor, not
+  "storage"); NO PhotoDNA (enterprise-grade, too costly now). Store as deny-all service-role PII, defined
+  retention, admin/legal-only access. Confirm the policy with counsel. (The abuse-focused rate limiter that
+  was the last deferred security piece SHIPPED 2026-06-08, commit `7bb2b53`.)
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
