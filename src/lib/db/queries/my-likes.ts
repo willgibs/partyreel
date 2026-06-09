@@ -33,23 +33,18 @@ export async function getMyLikeCards(): Promise<{
   if (error) throw error;
 
   const rows = data ?? [];
-  const items = (
-    await toMyUploadsItems(
-      rows.map((r) => ({
-        id: r.id,
-        type: r.type,
-        originalKey: r.original_key,
-        eventName: r.event_name,
-        // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
-        eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
-        eventQrToken: r.event_qr_token,
-      })),
-    )
-  ).map((item) => ({
-    // Every item on the Likes tab is, by definition, liked by the viewer — seed the provider so the
-    // hearts render filled on first paint without a round-trip. No count is set (host-only).
-    ...item,
-    likedByMe: true,
-  }));
+  const items = await toMyUploadsItems(
+    rows.map((r) => ({
+      id: r.id,
+      type: r.type,
+      originalKey: r.original_key,
+      eventName: r.event_name,
+      // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
+      eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
+      eventQrToken: r.event_qr_token,
+    })),
+  );
+  // Every item here is liked by the viewer by definition; the Likes-tab gallery seeds the LikesProvider
+  // with these ids (its initialLikedIds), so the hearts paint filled instantly. No count (host-only).
   return { items, truncated: rows.length >= MY_LIKES_LIMIT };
 }

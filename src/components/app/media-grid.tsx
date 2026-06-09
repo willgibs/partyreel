@@ -41,13 +41,11 @@ export type GridMedia = {
   eventQrToken?: string | null;
   /**
    * Likes (Phase 5). `likeCount` is HOST-ONLY (set solely on the host management gallery via
-   * get_event_like_counts; never on a guest surface) and drives the read-only count badge/chip.
-   * `likedByMe` is an OPTIONAL instant-paint seed for the like button's fill state (the Likes tab sets
-   * it true); the LikesProvider otherwise resolves liked state itself. Both omitted on surfaces without
-   * likes (recovery bin, operator), leaving them unchanged.
+   * get_event_like_counts; never on a guest surface) and drives the read-only count badge/chip. Omitted on
+   * surfaces without likes (guest galleries, recovery bin, operator), leaving them unchanged. (Per-user
+   * liked/heart state is owned by the LikesProvider, NOT carried on the item.)
    */
   likeCount?: number;
-  likedByMe?: boolean;
 };
 
 // Presentational thumbnail shared by the public album (MediaGrid below) and the
