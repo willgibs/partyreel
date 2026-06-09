@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { LikeButton } from "@/components/likes/like-button";
 import { MediaLightbox } from "@/components/shared/media-lightbox";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
@@ -38,6 +39,15 @@ export type GridMedia = {
   eventName?: string | null;
   eventDateLabel?: string | null;
   eventQrToken?: string | null;
+  /**
+   * Likes (Phase 5). `likeCount` is HOST-ONLY (set solely on the host management gallery via
+   * get_event_like_counts; never on a guest surface) and drives the read-only count badge/chip.
+   * `likedByMe` is an OPTIONAL instant-paint seed for the like button's fill state (the Likes tab sets
+   * it true); the LikesProvider otherwise resolves liked state itself. Both omitted on surfaces without
+   * likes (recovery bin, operator), leaving them unchanged.
+   */
+  likeCount?: number;
+  likedByMe?: boolean;
 };
 
 // Presentational thumbnail shared by the public album (MediaGrid below) and the
@@ -114,7 +124,7 @@ export function MediaGrid({
           <li
             key={item.id}
             data-media-tile
-            className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
+            className="group relative aspect-square overflow-hidden rounded-lg bg-black/10"
           >
             <button
               type="button"
@@ -124,6 +134,8 @@ export function MediaGrid({
             >
               <MediaTile item={item} />
             </button>
+            {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}
+            <LikeButton item={item} variant="tile" />
           </li>
         ))}
       </ul>

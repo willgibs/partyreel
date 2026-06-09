@@ -12,6 +12,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { ChevronLeft, ChevronRight, Download, Trash2, X } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Badge } from "@/components/ui/badge";
@@ -556,6 +557,10 @@ export function MediaLightbox({
                   {index! + 1} / {items.length}
                 </span>
                 <div className="flex items-center gap-2">
+                  {/* Like button (guest surfaces + tabs: a LikesProvider is present) / host-only
+                      count chip (host gallery items carry likeCount). They never co-occur. */}
+                  <LikeButton item={current} variant="lightbox" />
+                  <LikeCountBadge count={current.likeCount} />
                   {/* Save is hidden when an item carries no download url — the recovery bin
                       presigns INLINE only, so there's no original-file download from the bin. */}
                   {current.downloadUrl && (

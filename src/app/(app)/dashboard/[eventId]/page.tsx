@@ -34,6 +34,7 @@ import {
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
+import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { listEventMedia, listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
@@ -75,12 +76,15 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // Live gallery — presign each object key server-side (never expose raw keys).
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
-  const [media, linkStats, deletedMedia, uploaderIdentities] =
+  // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a curation signal shown as a
+  // subtle per-tile badge; it never reaches a guest surface.
+  const [media, linkStats, deletedMedia, uploaderIdentities, likeCounts] =
     await Promise.all([
       listEventMedia(event.id),
       getLinkStats(event.id),
       listRecentlyDeletedMedia(event.id),
       getUploaderIdentities(event.id),
+      getEventLikeCounts(event.id),
     ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
@@ -110,6 +114,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         isHost: who?.isHost ?? false,
         isAnonymous: who?.isAnonymous ?? false,
         uploaderEmail: who?.email ?? null,
+        likeCount: likeCounts.get(m.id) ?? 0,
       };
     }),
   );

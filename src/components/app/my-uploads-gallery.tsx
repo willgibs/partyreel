@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { removeMyUploadAction } from "@/app/(app)/dashboard/actions";
 import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 
 // The personal cross-event "Uploads" gallery (Phase 4): a flat, newest-first grid of the viewer's OWN
 // uploads (host + guest), reusing the public MediaGrid. View + per-item download in the lightbox, plus the
@@ -41,7 +42,10 @@ export function MyUploadsGallery({
 
   return (
     <div className="space-y-4">
-      <MediaGrid items={optimisticItems} onDeleteItem={handleDelete} />
+      {/* Likes toggle in place here (mode "keep"); delete-your-own is the separate Trash action. */}
+      <LikesProvider mediaIds={optimisticItems.map((m) => m.id)}>
+        <MediaGrid items={optimisticItems} onDeleteItem={handleDelete} />
+      </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">
           Showing your {optimisticItems.length} most recent uploads.

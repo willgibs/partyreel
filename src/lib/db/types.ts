@@ -429,6 +429,39 @@ export type Database = {
           },
         ]
       }
+      media_likes: {
+        Row: {
+          liked_at: string
+          media_id: string
+          user_id: string
+        }
+        Insert: {
+          liked_at?: string
+          media_id: string
+          user_id: string
+        }
+        Update: {
+          liked_at?: string
+          media_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_likes_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_signups: {
         Row: {
           created_at: string
@@ -800,6 +833,13 @@ export type Database = {
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
+      get_event_like_counts: {
+        Args: { p_event_id: string }
+        Returns: {
+          like_count: number
+          media_id: string
+        }[]
+      }
       get_event_media_by_qr_token: {
         Args: { p_qr_token: string }
         Returns: {
@@ -818,6 +858,19 @@ export type Database = {
           p_type: Database["public"]["Enums"]["media_type"]
         }
         Returns: Json
+      }
+      get_my_likes: {
+        Args: { p_limit?: number }
+        Returns: {
+          event_date: string
+          event_id: string
+          event_name: string
+          event_qr_token: string
+          id: string
+          liked_at: string
+          original_key: string
+          type: Database["public"]["Enums"]["media_type"]
+        }[]
       }
       get_my_uploads: {
         Args: { p_limit?: number }
@@ -858,6 +911,7 @@ export type Database = {
       }
       has_password: { Args: never; Returns: boolean }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      like_media: { Args: { p_media_id: string }; Returns: Json }
       mark_password_set: { Args: never; Returns: undefined }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {

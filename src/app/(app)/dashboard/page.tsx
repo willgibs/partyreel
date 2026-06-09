@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarPlus, Trash2, Upload } from "lucide-react";
+import { CalendarPlus, Heart, Trash2, Upload } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { DashboardTabs } from "@/components/app/dashboard-tabs";
 import { EventCard } from "@/components/app/event-card";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
 import { UnsaveButton } from "@/components/app/unsave-button";
@@ -30,6 +31,7 @@ import {
   listEvents,
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
+import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSavedEventCards } from "@/lib/db/queries/saved-events";
@@ -43,8 +45,8 @@ import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-// The dashboard tab is deep-linkable via ?tab= (events | uploads | deleted) — see DashboardTabs.
-const VALID_TABS = ["events", "uploads", "deleted"] as const;
+// The dashboard tab is deep-linkable via ?tab= (events | uploads | likes | deleted) — see DashboardTabs.
+const VALID_TABS = ["events", "uploads", "likes", "deleted"] as const;
 
 export default async function DashboardPage({
   searchParams,
@@ -55,7 +57,7 @@ export default async function DashboardPage({
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
-  const [events, profile, savedCards, deletedEvents, storage, uploads] =
+  const [events, profile, savedCards, deletedEvents, storage, uploads, likes] =
     await Promise.all([
       listEvents(),
       getProfile(),
@@ -63,6 +65,7 @@ export default async function DashboardPage({
       listRecentlyDeletedEvents(),
       getHostStorageSummary(),
       getMyUploadCards(),
+      getMyLikeCards(),
     ]);
 
   // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
@@ -261,6 +264,7 @@ export default async function DashboardPage({
         <TabsList variant="line">
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="uploads">Uploads</TabsTrigger>
+          <TabsTrigger value="likes">Likes</TabsTrigger>
           <TabsTrigger value="deleted">
             Trash
             {deletedEvents.length > 0 ? ` (${deletedEvents.length})` : ""}
@@ -357,6 +361,18 @@ export default async function DashboardPage({
               items={uploads.items}
               truncated={uploads.truncated}
             />
+          )}
+        </TabsContent>
+
+        <TabsContent value="likes" className="pt-4">
+          {likes.items.length === 0 ? (
+            <EmptyState
+              icon={Heart}
+              title="No likes yet"
+              description="Tap the heart on any photo or video to save it here."
+            />
+          ) : (
+            <MyLikesGallery items={likes.items} truncated={likes.truncated} />
           )}
         </TabsContent>
 

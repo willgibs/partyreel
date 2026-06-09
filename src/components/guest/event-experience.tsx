@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -257,7 +258,11 @@ export function EventExperience({
             : "Gallery"}
         </h2>
         {items.length > 0 ? (
-          <MediaGrid items={items} />
+          // Likes are enabled here: anonymous guests get the like button -> the create-account flow,
+          // signed-in guests toggle in place. Counts stay host-only (not shown on this surface).
+          <LikesProvider mediaIds={items.map((m) => m.id)}>
+            <MediaGrid items={items} />
+          </LikesProvider>
         ) : (
           <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
             No photos yet. Be the first to share one.

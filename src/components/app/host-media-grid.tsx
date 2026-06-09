@@ -11,6 +11,7 @@ import {
   setMediaStatusAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { LikeCountBadge } from "@/components/likes/like-button";
 import { MediaLightbox } from "@/components/shared/media-lightbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,13 @@ function HostMediaTile({
       >
         <MediaTile item={item} />
       </button>
+
+      {/* HOST-ONLY like count (curation signal): bottom-left, clear of the top-left status badge and
+          the top control bar. Hidden at 0. */}
+      <LikeCountBadge
+        count={item.likeCount}
+        className="absolute bottom-1.5 left-1.5 z-10"
+      />
 
       {status !== "approved" && (
         <Badge
