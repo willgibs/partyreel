@@ -736,6 +736,10 @@ export type Database = {
         Args: { p_event_id?: string; p_slug: string }
         Returns: boolean
       }
+      claim_anonymous_uploads: {
+        Args: { p_session_tokens: string[] }
+        Returns: number
+      }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {

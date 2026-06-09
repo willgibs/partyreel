@@ -16,6 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -239,6 +240,10 @@ export function SaveEventButton({
           <EmailSignIn
             emailRedirectTo={emailRedirectTo}
             onVerified={async () => {
+              // In-page OTP verify (no reload) -> claim this browser's anonymous uploads directly. Silent:
+              // the "Saved to your dashboard." toast below is the feedback here. The redirect paths (Google /
+              // magic link) reload /e/ and are covered by the EventExperience claim mount instead.
+              void claimAnonymousUploads({ silent: true });
               const ok = await save();
               if (offerNewsletter && optIn) await captureNewsletter();
               setOpen(false);

@@ -12,6 +12,7 @@ import {
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { SaveEventButton } from "@/components/guest/save-event-button";
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
+import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
@@ -156,6 +157,10 @@ export function EventExperience({
 
   return (
     <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-8">
+      {/* Claim anonymous uploads when a magic-link return lands the visitor here signed-in. Silent on the
+          guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
+          toast); self-guards when logged out. */}
+      <ClaimUploadsOnAuth silent />
       {isDemo && (
         <div className="mb-6 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-center text-xs text-muted-foreground">
           You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t

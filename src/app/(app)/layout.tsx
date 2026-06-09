@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
+import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { touchHostActive } from "@/lib/db/mutations/profile";
 import { getNotificationData } from "@/lib/db/queries/notifications";
 import { getProfileMenu } from "@/lib/db/queries/profile";
@@ -69,6 +70,10 @@ export default async function AppLayout({
         </>
       }
     >
+      {/* Claim this browser's anonymous uploads once a host lands signed-in (loud: the account context).
+          Self-guards + self-dedupes; the welcome/name gate lives in the page, not here, so it still fires
+          during onboarding. */}
+      <ClaimUploadsOnAuth />
       {children}
     </AppShell>
   );

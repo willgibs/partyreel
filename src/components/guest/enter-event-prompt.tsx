@@ -8,6 +8,7 @@ import { EmailSignIn } from "@/components/auth/email-sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 import { signInSchema } from "@/lib/validation/auth";
 
@@ -40,7 +41,12 @@ export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
           <>
             <EmailSignIn
               emailRedirectTo={emailRedirectTo}
-              onVerified={() => router.refresh()}
+              onVerified={async () => {
+                // In-page OTP verify does router.refresh() (no remount), so claim directly here. Silent:
+                // the guest page isn't the account context + must not stack with other toasts.
+                await claimAnonymousUploads({ silent: true });
+                router.refresh();
+              }}
             />
             <button
               type="button"
@@ -52,7 +58,11 @@ export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
           </>
         ) : (
           <PasswordLogin
-            onSignedIn={() => router.refresh()}
+            onSignedIn={async () => {
+              // Password sign-in is in-page (no remount); claim directly, silent (see above).
+              await claimAnonymousUploads({ silent: true });
+              router.refresh();
+            }}
             onUseEmail={() => setMode("email")}
           />
         )}

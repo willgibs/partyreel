@@ -2,11 +2,15 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { SESSION_PREFIX } from "@/lib/guest/session-tokens";
+
 // The session_token is the guest's upload capability (ADR-0004). Persist it per
 // event (keyed by qr_token) so a returning guest / refresh skips the join step
-// instead of creating a duplicate guest.
+// instead of creating a duplicate guest. SESSION_PREFIX + the pure token enumeration
+// live in ./session-tokens (dependency-free so they stay unit-testable + shared with
+// the claim helper).
 function sessionKey(qrToken: string) {
-  return `pr_session_${qrToken}`;
+  return `${SESSION_PREFIX}${qrToken}`;
 }
 
 // Same-tab subscribers — the native `storage` event only fires in OTHER tabs.
