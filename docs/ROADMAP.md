@@ -45,10 +45,25 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   red-teamed live. **P3 claim is PLANNED** (2026-06-08; detailed plan in the master-plan file): auto-claim a
   browser's anonymous uploads on sign-in via a new authenticated `claim_anonymous_uploads` RPC + localStorage
   `pr_session_*` enumeration + a subtle toast. **Sequencing (Will's split, 2026-06-08): the server-mediation
-  remediation below runs FIRST** (its own dedicated phase — it closes live findings + hardens the claim's write
-  path), THEN the P3 claim, THEN **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab,
+  remediation SHIPPED 2026-06-08 (ADR-0016: H1/H2/H3 + the password-strength UI; see CHANGELOG)** — so NEXT =
+  the P3 claim, THEN **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab,
   add an "Uploads" tab, rename "Recently deleted"→"Trash"). See
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
+  not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
+  `visibility='open'`) still lets an anonymous guest VIEW the full gallery; only UPLOAD is gated. That lets
+  free-riders collect everyone's photos with zero friction while contributing has friction — bad for the host
+  and it dissuades contribution. **Reframe:** make the account the incentive to SEE the photos. An anonymous
+  visitor to a gated event gets a **gate modal** ("enter your email to access this event") over a **teaser
+  gallery** (a few real images shown, the rest withheld), paywall-style. **Unify with the event password:** the
+  password gate uses the same modal; when BOTH password + account are required it's **multi-step in one modal**
+  (password first, then account). ★ **Server-enforced, NOT a CSS blur over a fully-loaded gallery** — the teaser
+  returns only N images from the anon RPC; the full set requires the unlock cookie / a session, so dev-tools
+  can't reveal it. Builds on the existing password model (the anon media RPC already gates on `visibility='open'`
+  + the unlock cookie — extend that to account-required + add the teaser). Touches the `/e/` gate logic,
+  `<EnterEventPrompt>` + `<PasswordGate>` → a shared modal, the anon media RPC (teaser vs full), the
+  unlock-cookie model. ADR-0004 / ADR-0007. (Captured 2026-06-08 from a live observation.) See
+  [`systems/guest-flow.md`](systems/guest-flow.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
