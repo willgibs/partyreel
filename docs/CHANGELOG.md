@@ -34,6 +34,9 @@ lever). Commit `5152c58`.
   lock (`authenticated` has no INSERT). Live on partyreel.com (seeded media): host like via the lightbox → DB
   row + the Likes tab populates + the host gallery shows "♥ 1"; unlike → row deleted + tile drops. Anon→signup
   dialog + the desktop/mobile responsive split verified locally (Preview MCP).
+- **Follow-up (`9256c8e`):** `MyLikesGallery` now owns its empty state, so unliking the LAST item on the Likes
+  tab shows "No likes yet" INSTANTLY (unlike is a client-only delete with no server revalidation, so deciding
+  empty in the component avoids a refetch + dedupes the copy). Live-verified.
 
 ---
 

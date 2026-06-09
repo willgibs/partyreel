@@ -57,7 +57,8 @@ The expected, accepted set:
   (`remove_my_upload(uuid)` soft-deletes one of those uploads, re-checking the SAME host-arm/guest-arm ownership;
   a guest's self-deletion is marked `removed_by_uploader=true` = private to the host. → [lifecycle-recovery.md](lifecycle-recovery.md).)
   (**Likes:** `like_media(uuid)` favorites a media the caller can SEE — host of its event, OR a guest of it, OR an
-  OPEN album — idempotent insert; `get_my_likes(integer)` is the cross-event "Likes" tab feed and RE-APPLIES that
+  OPEN album (a password/private PURE viewer who never joined as a guest can't like — an INTENTIONAL v1
+  boundary, not a bug) — idempotent insert; `get_my_likes(integer)` is the cross-event "Likes" tab feed and RE-APPLIES that
   access predicate so a now-inaccessible like never leaks its presigned key; `get_event_like_counts(uuid)` is
   HOST-GATED (returns zero rows to a non-host) — the ONLY count path, so a like count NEVER reaches a guest
   (host-only counts, enforced at the data layer). Unlike + heart-state are owner-RLS straight from the browser.
