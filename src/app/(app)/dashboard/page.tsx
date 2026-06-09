@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarPlus, Heart, Trash2, Upload } from "lucide-react";
+import { CalendarPlus, Trash2, Upload } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { DashboardTabs } from "@/components/app/dashboard-tabs";
@@ -365,15 +365,9 @@ export default async function DashboardPage({
         </TabsContent>
 
         <TabsContent value="likes" className="pt-4">
-          {likes.items.length === 0 ? (
-            <EmptyState
-              icon={Heart}
-              title="No likes yet"
-              description="Tap the heart on any photo or video to save it here."
-            />
-          ) : (
-            <MyLikesGallery items={likes.items} truncated={likes.truncated} />
-          )}
+          {/* MyLikesGallery owns its own empty state, so unliking the LAST item shows "No likes yet"
+              instantly (unlike is a client-only delete with no server revalidation to update this count). */}
+          <MyLikesGallery items={likes.items} truncated={likes.truncated} />
         </TabsContent>
 
         <TabsContent value="deleted" className="pt-4">
