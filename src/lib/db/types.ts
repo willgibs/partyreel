@@ -362,6 +362,7 @@ export type Database = {
           purge_at: string | null
           reel_eligible: boolean
           removed_at: string | null
+          removed_by_uploader: boolean
           status: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
           updated_at: string
@@ -383,6 +384,7 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
           updated_at?: string
@@ -404,6 +406,7 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
           type?: Database["public"]["Enums"]["media_type"]
           updated_at?: string
@@ -871,6 +874,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      remove_my_upload: { Args: { p_media_id: string }; Returns: Json }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       save_event: { Args: { p_qr_token: string }; Returns: string }

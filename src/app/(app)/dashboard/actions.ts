@@ -12,6 +12,8 @@ import {
   softDeleteEvent,
   updateEvent,
 } from "@/lib/db/mutations/events";
+import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
+import { captureError } from "@/lib/observability/sentry";
 import {
   createEventSchema,
   eventPasswordSchema,
@@ -171,4 +173,26 @@ export async function deleteEventAction(id: string): Promise<ActionResult> {
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
+}
+
+// Delete-own from the "Uploads" tab. Mirrors removeMediaAction, but goes through the cross-event
+// remove_my_upload RPC (the caller may own a guest upload in another host's event, where they hold no
+// RLS write). captureError only on 'unknown' (a 'no longer available' refusal is expected, not a bug);
+// the tab lives under /dashboard so revalidate that. Area "media" (no "dashboard" Sentry area exists).
+export async function removeMyUploadAction(
+  mediaId: string,
+): Promise<ActionResult> {
+  const result = await removeMyUpload(mediaId);
+  if (!result.ok) {
+    if (result.code === "unknown") {
+      captureError("media", new Error(result.message), {
+        action: "remove_my_upload",
+        mediaId,
+      });
+    }
+    return result;
+  }
+
+  revalidatePath("/dashboard");
+  return { ok: true };
 }

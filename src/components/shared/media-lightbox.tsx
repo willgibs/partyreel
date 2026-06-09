@@ -9,14 +9,25 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Trash2, X } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -168,6 +179,7 @@ export function MediaLightbox({
   onClose,
   onIndexChange,
   viewerIsHost = false,
+  onDeleteCurrent,
 }: {
   items: GridMedia[];
   index: number | null;
@@ -175,6 +187,12 @@ export function MediaLightbox({
   onIndexChange: (index: number) => void;
   /** Host gallery? Drives the (i) explainer copy + lets the host-only email line render. */
   viewerIsHost?: boolean;
+  /**
+   * Opt-in delete (the personal "Uploads" tab). When set, a Trash button shows in the header behind a
+   * confirm; the caller owns the removal + closing the viewer (it shrinks the list). Omitted everywhere
+   * else (public album, host grid, recovery bin), so those lightboxes are unchanged.
+   */
+  onDeleteCurrent?: (item: GridMedia) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const prevItem =
@@ -554,6 +572,43 @@ export function MediaLightbox({
                         <Download /> Save
                       </a>
                     </Button>
+                  )}
+                  {onDeleteCurrent && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-white hover:bg-white/15 hover:text-white"
+                          aria-label="Delete"
+                          title="Delete"
+                        >
+                          <Trash2 />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete this upload?</DialogTitle>
+                          <DialogDescription>
+                            It will be removed from the event right away, and
+                            permanently deleted after a short grace period.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DialogClose>
+                          <DialogClose asChild>
+                            <Button
+                              variant="destructive"
+                              onClick={() => onDeleteCurrent(current)}
+                            >
+                              Delete
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   )}
                   <DialogPrimitive.Close asChild>
                     <Button

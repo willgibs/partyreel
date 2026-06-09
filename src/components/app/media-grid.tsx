@@ -93,8 +93,18 @@ export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
 
 // Public-album grid. Tiles are buttons that open the shared lightbox (full-screen
 // view + Save); the grid owns the open index so prev/next walks the whole set.
-// Host moderation controls live in HostMediaGrid, never here.
-export function MediaGrid({ items }: { items: GridMedia[] }) {
+// Host moderation controls live in HostMediaGrid, never here. The OPTIONAL
+// `onDeleteItem` is the one per-item action this grid exposes: the personal
+// "Uploads" tab passes it to surface a delete button in the lightbox; the public
+// album omits it (read-only). On delete we close the viewer and hand the id up —
+// the parent owns the list (optimistic removal), so the tile just disappears.
+export function MediaGrid({
+  items,
+  onDeleteItem,
+}: {
+  items: GridMedia[];
+  onDeleteItem?: (id: string) => void;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
@@ -124,6 +134,14 @@ export function MediaGrid({ items }: { items: GridMedia[] }) {
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
         viewerIsHost={false}
+        onDeleteCurrent={
+          onDeleteItem
+            ? (item) => {
+                setOpenIndex(null);
+                onDeleteItem(item.id);
+              }
+            : undefined
+        }
       />
     </>
   );
