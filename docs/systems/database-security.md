@@ -53,8 +53,10 @@ The expected, accepted set:
   …). If an unexpected one shows up, an over-broad grant slipped in.
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
   `newsletter_signups`, `unlock_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
-- **The "Leaked Password Protection Disabled" WARN is now ACTIONABLE** (post-ADR-0011 account passwords) —
-  enable HaveIBeenPwned in the Supabase dashboard (a launch task; Pro-gated).
+- **Leaked Password Protection (HaveIBeenPwned) is ENABLED** (2026-06-08) — that WARN is cleared. Supabase
+  now rejects pwned ACCOUNT passwords at set/change; the account-security form surfaces the rejection via the
+  `updateUser` error. It's an Auth feature → applies to `auth.users` passwords ONLY, not event passwords
+  (those keep the 4-char min + the strength-meter guidance). No app change was needed.
 
 ## Invariants (don't break)
 
