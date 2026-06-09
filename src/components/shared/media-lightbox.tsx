@@ -143,6 +143,25 @@ function UploaderCaption({
   );
 }
 
+// Event-context caption for the cross-event personal "Uploads" gallery (Phase 4): which event this media
+// belongs to, as a subtle link to that event. Gated on `eventName`, so the album/host lightboxes (which
+// never set it) are unaffected. `pointer-events-auto` on the link (the container is pointer-events-none).
+function EventContextCaption({ item }: { item: GridMedia }) {
+  const name = item.eventName?.trim() || null;
+  if (!name) return null;
+  const label = item.eventDateLabel ? `${name} · ${item.eventDateLabel}` : name;
+  return item.eventQrToken ? (
+    <a
+      href={`/e/${item.eventQrToken}`}
+      className="pointer-events-auto max-w-[85%] truncate text-xs text-white/65 underline-offset-4 hover:text-white hover:underline"
+    >
+      {label}
+    </a>
+  ) : (
+    <span className="max-w-[85%] truncate text-xs text-white/65">{label}</span>
+  );
+}
+
 export function MediaLightbox({
   items,
   index,
@@ -608,13 +627,14 @@ export function MediaLightbox({
                 <div
                   key={current.id}
                   className={cn(
-                    "pointer-events-none absolute inset-x-0 bottom-16 z-10 flex justify-center px-4 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
+                    "pointer-events-none absolute inset-x-0 bottom-16 z-10 flex flex-col items-center gap-1 px-4 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
                     centerPlaying
                       ? "opacity-0"
                       : "opacity-100 motion-safe:animate-in motion-safe:fade-in-0",
                   )}
                 >
                   <UploaderCaption item={current} viewerIsHost={viewerIsHost} />
+                  <EventContextCaption item={current} />
                 </div>
               </div>
             </>

@@ -22,6 +22,7 @@ describe("savedEventCardProps", () => {
   it("open event: links to the album, shows cover + byline", () => {
     const card = savedEventCardProps(row({}), "https://cdn/cover.jpg");
     expect(card.accessible).toBe(true);
+    expect(card.savedAt).toBe("2026-06-02T00:00:00Z"); // threaded for the merged-tab recency sort
     expect(card.href).toBe("/e/qr123"); // the single event link
     expect(card.name).toBe("Summer Party");
     expect(card.coverUrl).toBe("https://cdn/cover.jpg");

@@ -31,6 +31,8 @@ export type SavedEventRow = {
 
 export type SavedEventCardData = {
   eventId: string;
+  /** When the event was saved — the recency key for the merged "Events" tab sort (Phase 4). */
+  savedAt: string;
   /** `/e/[qr_token]` when accessible, else null (the card renders disabled). */
   href: string | null;
   name: string;
@@ -49,6 +51,7 @@ export function savedEventCardProps(
   const accessible = row.accessible;
   return {
     eventId: row.event_id,
+    savedAt: row.saved_at,
     accessible,
     // One link per event: deep-link to the event page (qr_token). Private saves
     // resolve to null → a disabled card.

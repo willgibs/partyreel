@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { Image as ImageIcon, Lock } from "lucide-react";
+import { Bookmark, CalendarCheck, Image as ImageIcon, Lock } from "lucide-react";
 
 /**
- * Shared dashboard event card with cover art, used by BOTH tabs ("Your events"
- * and "Saved"). Presentational + server-renderable. The cover is a presigned R2
- * URL (or a placeholder); raw keys never reach here.
+ * Shared dashboard event card with cover art, used in the merged "Events" tab (hosted
+ * + saved, Phase 4) and the "Trash" tab. Presentational + server-renderable. The cover
+ * is a presigned R2 URL (or a placeholder); raw keys never reach here.
  *
  * `href: null` renders a DISABLED card (a saved event the host has since made
  * private) — non-clickable, muted, lock glyph. `action` (e.g. an unsave button)
- * is rendered OUTSIDE the link so tapping it never navigates.
+ * is rendered OUTSIDE the link so tapping it never navigates. `kind` adds a subtle
+ * top-left provenance glyph (hosted vs saved) for the interleaved Events tab.
  */
 export function EventCard({
   href,
@@ -18,6 +19,7 @@ export function EventCard({
   badges,
   byline,
   action,
+  kind,
 }: {
   href: string | null;
   name: string;
@@ -26,6 +28,8 @@ export function EventCard({
   badges?: React.ReactNode;
   byline?: string | null;
   action?: React.ReactNode;
+  /** Provenance marker for the merged Events tab: a top-left glyph (hosted vs saved). */
+  kind?: "hosted" | "saved";
 }) {
   const locked = href === null;
 
@@ -66,13 +70,27 @@ export function EventCard({
       {href ? (
         <Link
           href={href}
-          className="block h-full overflow-hidden rounded-xl border border-border bg-card transition-colors hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="block h-full overflow-hidden rounded-xl border border-border bg-card transition-[transform,background-color] duration-150 ease-emphasis hover:bg-muted/40 active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           {body}
         </Link>
       ) : (
         <div className="block h-full cursor-default overflow-hidden rounded-xl border border-dashed border-border bg-muted/20 opacity-75">
           {body}
+        </div>
+      )}
+      {/* Provenance glyph (top-LEFT; the action slot owns top-right). Static, subtle. */}
+      {kind && (
+        <div
+          className="pointer-events-none absolute top-2 left-2 z-10 flex items-center justify-center rounded-md bg-background/80 p-1 text-muted-foreground shadow-sm ring-1 ring-border/60 backdrop-blur-sm"
+          title={kind === "hosted" ? "You're hosting this event" : "A saved event"}
+        >
+          {kind === "hosted" ? (
+            <CalendarCheck className="size-3.5" aria-hidden />
+          ) : (
+            <Bookmark className="size-3.5" aria-hidden />
+          )}
+          <span className="sr-only">{kind === "hosted" ? "Hosting" : "Saved"}</span>
         </div>
       )}
       {action && <div className="absolute top-2 right-2 z-10">{action}</div>}

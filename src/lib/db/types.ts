@@ -816,6 +816,21 @@ export type Database = {
         }
         Returns: Json
       }
+      get_my_uploads: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          event_date: string
+          event_id: string
+          event_name: string
+          event_qr_token: string
+          id: string
+          is_host_upload: boolean
+          original_key: string
+          preview_key: string
+          type: Database["public"]["Enums"]["media_type"]
+        }[]
+      }
       get_saved_events: {
         Args: never
         Returns: {

@@ -87,3 +87,45 @@ export async function toModerationFeedItems(
     }),
   );
 }
+
+// One row of the personal "Uploads" feed (Phase 4) -- the user's own media across MANY events.
+export type MyUploadRow = {
+  id: string;
+  type: MediaKind;
+  originalKey: string;
+  eventName: string;
+  eventDateLabel: string | null;
+  eventQrToken: string;
+};
+
+// The personal cross-event Uploads variant: like the moderation feed, items span events, so each
+// presigns its save-filename against its OWN event name; the event context (name/date/token) rides
+// along for the lightbox caption. NO uploader attribution (it's all the viewer's own media).
+export async function toMyUploadsItems(
+  rows: MyUploadRow[],
+): Promise<GridMedia[]> {
+  return Promise.all(
+    rows.map(async (m) => {
+      const [url, downloadUrl] = await Promise.all([
+        presignDownload({ key: m.originalKey }),
+        presignDownload({
+          key: m.originalKey,
+          downloadFilename: buildDownloadFilename({
+            eventName: m.eventName,
+            key: m.originalKey,
+            type: m.type,
+          }),
+        }),
+      ]);
+      return {
+        id: m.id,
+        type: m.type,
+        url,
+        downloadUrl,
+        eventName: m.eventName,
+        eventDateLabel: m.eventDateLabel,
+        eventQrToken: m.eventQrToken,
+      };
+    }),
+  );
+}

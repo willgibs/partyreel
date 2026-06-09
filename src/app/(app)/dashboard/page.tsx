@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bookmark, CalendarPlus, Trash2 } from "lucide-react";
+import { CalendarPlus, Trash2, Upload } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
+import { DashboardTabs } from "@/components/app/dashboard-tabs";
 import { EventCard } from "@/components/app/event-card";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
 import { UnsaveButton } from "@/components/app/unsave-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
@@ -28,6 +30,7 @@ import {
   listEvents,
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
+import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSavedEventCards } from "@/lib/db/queries/saved-events";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
@@ -40,16 +43,26 @@ import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
+// The dashboard tab is deep-linkable via ?tab= (events | uploads | deleted) — see DashboardTabs.
+const VALID_TABS = ["events", "uploads", "deleted"] as const;
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
-  const [events, profile, savedCards, deletedEvents, storage] =
+  const [events, profile, savedCards, deletedEvents, storage, uploads] =
     await Promise.all([
       listEvents(),
       getProfile(),
       getSavedEventCards(),
       listRecentlyDeletedEvents(),
       getHostStorageSummary(),
+      getMyUploadCards(),
     ]);
 
   // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
@@ -65,6 +78,31 @@ export default async function DashboardPage() {
   const coverUrls = await getEventCoverUrls(
     [...events, ...deletedEvents].map((e) => e.id),
   );
+
+  // The merged "Events" tab (Phase 4): hosted + saved interleaved by recency. Hosted sort by created_at,
+  // saved by saved_at, so a just-created OR just-saved event lands at the top. ISO timestamps compare
+  // lexically = chronologically. Each item keeps its own renderer (hosted = manage link + status badges;
+  // saved = byline + unsave + visibility masking) via the `kind` discriminator.
+  const mergedEvents = [
+    ...events.map((event) => ({
+      kind: "hosted" as const,
+      sortDate: event.created_at,
+      event,
+    })),
+    ...savedCards.map((card) => ({
+      kind: "saved" as const,
+      sortDate: card.savedAt,
+      card,
+    })),
+  ].sort((a, b) =>
+    a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0,
+  );
+
+  const activeTab = VALID_TABS.includes(
+    (tab ?? "") as (typeof VALID_TABS)[number],
+  )
+    ? tab!
+    : "events";
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const maxEvents = MAX_EVENTS[tier];
@@ -187,7 +225,7 @@ export default async function DashboardPage() {
         )}
         {standbyBytes > 0 && (
           <p className="mt-1.5 text-xs text-muted-foreground">
-            {`+ ${formatBytes(standbyBytes)} in Recently deleted (frees automatically).` +
+            {`+ ${formatBytes(standbyBytes)} in Trash (frees automatically).` +
               (overBudget
                 ? " Oldest items are removed early to stay within your plan's recovery limit."
                 : "")}
@@ -219,24 +257,22 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      <Tabs defaultValue="owned">
+      <DashboardTabs defaultValue={activeTab}>
         <TabsList variant="line">
-          <TabsTrigger value="owned">Your events</TabsTrigger>
-          <TabsTrigger value="saved">
-            Saved{savedCards.length > 0 ? ` (${savedCards.length})` : ""}
-          </TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="uploads">Uploads</TabsTrigger>
           <TabsTrigger value="deleted">
-            Recently deleted
+            Trash
             {deletedEvents.length > 0 ? ` (${deletedEvents.length})` : ""}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="owned" className="pt-4">
-          {events.length === 0 ? (
+        <TabsContent value="events" className="pt-4">
+          {mergedEvents.length === 0 ? (
             <EmptyState
               icon={CalendarPlus}
               title="No events yet"
-              description="Create your first event to generate a QR code and start collecting photos from your guests."
+              description="Create an event to collect photos from your guests, or open any event link and tap Save to keep it here."
               action={
                 <Button asChild>
                   <Link href="/dashboard/new">
@@ -247,72 +283,80 @@ export default async function DashboardPage() {
             />
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {events.map((event) => (
-                <li key={event.id}>
-                  <EventCard
-                    href={`/dashboard/${event.id}`}
-                    name={event.name}
-                    dateLabel={
-                      event.event_date
-                        ? formatEventDate(event.event_date)
-                        : "No date set"
-                    }
-                    coverUrl={coverUrls.get(event.id) ?? null}
-                    badges={
-                      <>
-                        <Badge
-                          variant={
-                            event.accepting_uploads ? "secondary" : "outline"
-                          }
-                        >
-                          {event.accepting_uploads ? "Open" : "Closed"}
-                        </Badge>
-                        <Badge variant="outline">
-                          {event.visibility === "open"
-                            ? "Public album"
-                            : event.visibility === "password"
-                              ? "Password"
-                              : "Private"}
-                        </Badge>
-                        {event.moderation_mode === "hold_for_approval" && (
-                          <Badge variant="outline">Reviewing</Badge>
-                        )}
-                      </>
-                    }
-                  />
-                </li>
-              ))}
+              {mergedEvents.map((item) =>
+                item.kind === "hosted" ? (
+                  <li key={`h-${item.event.id}`}>
+                    <EventCard
+                      kind="hosted"
+                      href={`/dashboard/${item.event.id}`}
+                      name={item.event.name}
+                      dateLabel={
+                        item.event.event_date
+                          ? formatEventDate(item.event.event_date)
+                          : "No date set"
+                      }
+                      coverUrl={coverUrls.get(item.event.id) ?? null}
+                      badges={
+                        <>
+                          <Badge
+                            variant={
+                              item.event.accepting_uploads
+                                ? "secondary"
+                                : "outline"
+                            }
+                          >
+                            {item.event.accepting_uploads ? "Open" : "Closed"}
+                          </Badge>
+                          <Badge variant="outline">
+                            {item.event.visibility === "open"
+                              ? "Public album"
+                              : item.event.visibility === "password"
+                                ? "Password"
+                                : "Private"}
+                          </Badge>
+                          {item.event.moderation_mode ===
+                            "hold_for_approval" && (
+                            <Badge variant="outline">Reviewing</Badge>
+                          )}
+                        </>
+                      }
+                    />
+                  </li>
+                ) : (
+                  <li key={`s-${item.card.eventId}`}>
+                    <EventCard
+                      kind="saved"
+                      href={item.card.href}
+                      name={item.card.name}
+                      dateLabel={item.card.dateLabel}
+                      byline={item.card.byline}
+                      coverUrl={item.card.coverUrl}
+                      badges={
+                        item.card.accessible && item.card.passwordProtected ? (
+                          <Badge variant="outline">Password</Badge>
+                        ) : null
+                      }
+                      action={<UnsaveButton eventId={item.card.eventId} />}
+                    />
+                  </li>
+                ),
+              )}
             </ul>
           )}
         </TabsContent>
 
-        <TabsContent value="saved" className="pt-4">
-          {savedCards.length === 0 ? (
+        <TabsContent value="uploads" className="pt-4">
+          {uploads.items.length === 0 ? (
             <EmptyState
-              icon={Bookmark}
-              title="No saved events yet"
-              description="Open any event link and tap Save to keep it here, ready to revisit whenever you want."
+              icon={Upload}
+              title="No uploads yet"
+              description="Photos and videos you add to your events, or share with others, show up here."
             />
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {savedCards.map((card) => (
-                <li key={card.eventId}>
-                  <EventCard
-                    href={card.href}
-                    name={card.name}
-                    dateLabel={card.dateLabel}
-                    byline={card.byline}
-                    coverUrl={card.coverUrl}
-                    badges={
-                      card.accessible && card.passwordProtected ? (
-                        <Badge variant="outline">Password</Badge>
-                      ) : null
-                    }
-                    action={<UnsaveButton eventId={card.eventId} />}
-                  />
-                </li>
-              ))}
-            </ul>
+            <MyUploadsGallery
+              items={uploads.items}
+              truncated={uploads.truncated}
+            />
           )}
         </TabsContent>
 
@@ -348,7 +392,7 @@ export default async function DashboardPage() {
             </ul>
           )}
         </TabsContent>
-      </Tabs>
+      </DashboardTabs>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MediaLightbox } from "@/components/shared/media-lightbox";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
+import { cn } from "@/lib/utils";
 
 export type GridMedia = {
   id: string;
@@ -29,6 +30,14 @@ export type GridMedia = {
   isHost?: boolean;
   isAnonymous?: boolean;
   uploaderEmail?: string | null;
+  /**
+   * Cross-event "Uploads" context (Phase 4), rendered as a subtle link in the lightbox (never on tiles).
+   * Set ONLY by the personal Uploads gallery (a flat feed spanning events); the album/host grids omit
+   * them, so their lightbox is unaffected. `eventQrToken` links the caption to that event's page.
+   */
+  eventName?: string | null;
+  eventDateLabel?: string | null;
+  eventQrToken?: string | null;
 };
 
 // Presentational thumbnail shared by the public album (MediaGrid below) and the
@@ -42,14 +51,28 @@ export type GridMedia = {
 // `type` + `url`, so it also accepts thinner shapes (e.g. the operator report
 // thumbnail) that have no downloadUrl/lightbox.
 export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
+  // Fade a photo in on load so presigned images don't pop in jarringly (opacity-only -> reduced-motion
+  // safe). The `complete` check covers a cached image that finished loading before React attached onLoad,
+  // so it can never get stuck invisible at opacity-0.
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+  }, []);
+
   if (item.type === "photo") {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
       <img
+        ref={imgRef}
         src={item.url}
         alt=""
         loading="lazy"
-        className="size-full object-cover"
+        onLoad={() => setLoaded(true)}
+        className={cn(
+          "size-full object-cover transition-opacity duration-300 ease-out",
+          loaded ? "opacity-100" : "opacity-0",
+        )}
       />
     );
   }

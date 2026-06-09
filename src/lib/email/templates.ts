@@ -69,7 +69,7 @@ export function overCapReducedEmail(opts: {
     subject: "We reduced your Partyreel storage to fit your plan",
     html: layout(
       "Your storage was reduced",
-      `<p>Because your account stayed over its limit, we removed your largest files to bring it back under your plan. They stay in Recently deleted until <strong>${opts.recoverableUntil}</strong>. You're over your limit, so upgrade or free up space first, then restore them from each event's Recently deleted section.</p>`,
+      `<p>Because your account stayed over its limit, we removed your largest files to bring it back under your plan. They stay in Trash until <strong>${opts.recoverableUntil}</strong>. You're over your limit, so upgrade or free up space first, then restore them from each event's Trash section.</p>`,
       { href: opts.dashboardUrl, label: "Manage storage" },
     ),
   };
@@ -113,7 +113,7 @@ export function inactivityRemovedEmail(opts: {
     subject: "Your Partyreel event was removed (recoverable for now)",
     html: layout(
       "Your event was removed",
-      `<p>Your event <strong>${esc(opts.eventName)}</strong> was removed after 6 months of inactivity (a free-account policy). It's still recoverable until <strong>${opts.recoverableUntil}</strong>: restore it yourself from your dashboard's Recently deleted tab. After that it's permanently deleted.</p>`,
+      `<p>Your event <strong>${esc(opts.eventName)}</strong> was removed after 6 months of inactivity (a free-account policy). It's still recoverable until <strong>${opts.recoverableUntil}</strong>: restore it yourself from your dashboard's Trash tab. After that it's permanently deleted.</p>`,
       { href: opts.dashboardUrl, label: "Restore my event" },
     ),
   };

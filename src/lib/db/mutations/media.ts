@@ -199,7 +199,7 @@ function mapRestoreRefusal(
       return {
         ok: false,
         code: "unknown",
-        message: "That item is no longer in Recently deleted.",
+        message: "That item is no longer in Trash.",
       };
     default:
       return {
