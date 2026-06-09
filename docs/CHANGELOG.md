@@ -10,6 +10,33 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Gated gallery P1: server-enforced gallery access + teaser (gate the VIEW)
+
+Account-required (`allow_anonymous_uploads = false`) and password events previously gated only UPLOAD, so an
+anonymous visitor could harvest the whole gallery friction-free while contributing had friction. P1 of the
+gated-gallery initiative (ROADMAP "gate the gallery VIEW") flips it: account creation becomes the incentive to
+SEE. A signed-out viewer of a gated event is capped SERVER-SIDE to a real-photo teaser, the rest withheld until
+they qualify. Commit `4707dc4`.
+
+- **Access model:** a pure `resolveGalleryAccess(event, {isOwner, isAuthed, isUnlocked}) -> none|teaser|full`
+  (`src/lib/events/gallery-access.ts`) is the single source of truth, enforced IDENTICALLY by the RSC and the
+  `/api/guests/gallery` poll via the server-only `loadGalleryForAccess`. The poll was previously UNAUTHENTICATED,
+  so gating only the RSC would have been a trivial bypass (call the poll directly) — closing that was the crux.
+- **Teaser** = the newest `TEASER_LIMIT` (9) approved PHOTOS + a total count for "+N more", in one
+  `count:'exact'` round trip via a new self-guarded `getApprovedPhotoTeaser` admin read (photos-only; password
+  requires the unlock cookie, open is public, else nothing). Withheld media NEVER leaves the server (not a CSS
+  blur). **Privacy rule:** a password event stays `none` until unlocked — real teaser photos appear only after
+  the password is proven. Owner + signed-in + demo bypass to `full`; `needsAccount` was removed (the teaser
+  state subsumes it).
+- **No DDL** (all capping is server-side TypeScript), so `get_advisors` is unchanged (the same 3 anon read RPCs).
+- **Verified:** the full access matrix as Vitest unit tests; locally via curl against the real prod Supabase
+  (open+anon → full/12; open+account-required anon → teaser/9 + total 12, photos only; password no-cookie →
+  none/0; password+unlock → teaser/9), and the RSC payload contained exactly 9 media keys with the 3 withheld
+  absent. Live on partyreel.com: the anonymous poll returned teaser/9; the signed-in test host saw the FULL
+  gallery + upload panel (no teaser caption, no account gate), confirming signed-in users are NOT over-gated.
+- **Next:** P2 (the unified `welcome -> password? -> account?` entry modal + the first-visit welcome, folding in
+  `<PasswordGate>` + `<EnterEventPrompt>`) and P3 (host relabel to "Require guest accounts" + a live preview).
+
 ## 2026-06-09 — Likes: favorite media + a "Likes" dashboard tab (host-only counts)
 
 Logged-in users can like any photo/video they can see; the likes collect in a new dashboard **Likes** tab

@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-07
+**Updated:** 2026-06-09
 
 ## Where we are
 
@@ -23,6 +23,10 @@ data-layer security hardening. Canonical domain
 
 **Only scaffolded:** the highlight reel (DB scaffold only; the build is tabled pending a worker-platform
 decision — see [ROADMAP.md](ROADMAP.md)).
+
+**In flight:** the gated-gallery initiative — P1 (server-enforced `none/teaser/full` view access + the
+real-photo teaser) shipped 2026-06-09; the unified entry modal (P2) + the host "Require guest accounts"
+relabel (P3) are next ([ROADMAP.md](ROADMAP.md)).
 
 ## Infrastructure
 

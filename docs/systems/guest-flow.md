@@ -29,9 +29,33 @@ they're never shown here → [host-app.md](host-app.md), [database-security.md](
 - **`private`** = the master lock → a locked screen (no name / gallery / upload); `generateMetadata` hides the name.
 - **`password`** → a `<PasswordGate>` (name shown — it's link-shared, not the secret) until a signed unlock
   cookie is present, then the full experience.
-- **`open`** → the full experience.
+- **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
+  viewer then gets a teaser (see "Gallery access" below).
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
   entirely (a quiet "uploads closed" line), leaving the action row + gallery.
+
+## Gallery access: `none` / `teaser` / `full` (the gated VIEW, P1)
+
+Viewing is no longer all-or-nothing. A pure `resolveGalleryAccess(event, {isOwner, isAuthed, isUnlocked})`
+([`gallery-access.ts`](../../src/lib/events/gallery-access.ts)) maps a viewer to one level, enforced
+IDENTICALLY by the RSC and the poll via the server-only `loadGalleryForAccess`
+([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)):
+
+- **`full`** — the whole gallery. The owner (host), any signed-in viewer of an account-required event, an
+  unlocked viewer of a password event with no account gate, and the demo. Open + anonymous-allowed is always
+  full (unchanged).
+- **`teaser`** — the newest `TEASER_LIMIT` (9) approved PHOTOS + a total count (a "+N more" caption); the rest
+  withheld. Shown to a NOT-signed-in viewer of an account-required event (open, or password AFTER unlock). The
+  account is the incentive to see the rest.
+- **`none`** — nothing real. A password event BEFORE the unlock cookie. The privacy rule: real teaser photos
+  appear ONLY once the password is proven (never before it).
+
+★ **The withheld set never reaches the browser** — the teaser is a capped server read (`getApprovedPhotoTeaser`,
+self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a CSS blur over a loaded gallery,
+so dev-tools or a direct poll call can't reveal it. ★ **The poll enforces the SAME level** — it was previously
+unauthenticated, so gating only the RSC would be a trivial bypass. This is P1; the unified entry modal (P2,
+folding in `<PasswordGate>` + `<EnterEventPrompt>`) and the host "Require guest accounts" relabel (P3) follow
+(→ [ROADMAP.md](../ROADMAP.md)).
 
 ## Invariants (don't break)
 
@@ -44,22 +68,26 @@ they're never shown here → [host-app.md](host-app.md), [database-security.md](
 - **The unlock cookie is a signed HMAC of `{eid,exp}`** (`UNLOCK_COOKIE_SECRET`, ~12 h) — the cookie *name*
   isn't the boundary, the **signed eid** is. Password is set/cleared ONLY by `set_event_password` /
   `clear_event_password` (host-auth SECURITY DEFINER; the column is revoked from the host UPDATE grant).
-- **The page calls `getUser()` on the upload path** (`accepting_uploads && !isDemo`) to compute the identity
-  gates. With NO session it's a cheap LOCAL null (no network), so an anonymous event crowd behind one
-  venue-NAT IP doesn't each pay an auth round-trip; only a signed-in viewer triggers a JWT validation. The
-  header island still resolves its own auth with a LOCAL `getSession()`.
-- **Two upload-path gates, both gated on `accepting_uploads`** (a closed event is view-only, never gated):
-  `needsAccount` = `!allow_anonymous_uploads && not signed in` → swap the upload slot for `<EnterEventPrompt>`;
-  `needsName` = signed in but no `display_name` → swap for the required name step (the upload is attributed).
-  Anonymous uploaders on an anonymous-allowed event are never gated. Don't drop the `accepting_uploads &&`.
+- **The page calls `getUser()` for every non-private, non-demo event** (to resolve the access level + the
+  identity gates — the gate must know whether the viewer is signed in; P1 relaxed this from the old
+  upload-path-only call). With NO session it's a cheap LOCAL null (no network), so an anonymous event crowd
+  behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check (`isEventOwner`, an explicit
+  `host_id = uid` match — NOT reliant on the open-event RLS read) runs ONLY when signed in. The header island
+  still resolves its own auth with a LOCAL `getSession()`.
+- **Upload slot follows the access level + `accepting_uploads`** (a closed event is view-only, never gated):
+  `access === 'teaser'` → swap the slot for the account step (`<EnterEventPrompt>`, the path to `full`);
+  otherwise, while accepting, `needsName` (signed in but no `display_name`) → the required name step (the upload
+  is attributed), else the upload panel. Anonymous uploaders on an anonymous-allowed event are never gated.
+  (`needsAccount` was REMOVED — the `teaser` access state subsumes it.)
 
 ## Joining + identity
 
 - **Silent, just-in-time, field-less for the common case:** a first-time guest picks files → `POST
   /api/guests {qr_token}` → `create_guest` issues a `session_token` (localStorage, returning-guest) behind
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
-- **`allow_anonymous_uploads = false` ⇒ an account is required to upload** (Phase 1; renamed + inverted from
-  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). A PAGE-LEVEL gate swaps the upload
+- **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
+  gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
+  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). The account step swaps the upload
   slot for `<EnterEventPrompt>` — an email-primary "Enter event" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
   secondary password login; the gallery stays visible. `create_guest` derives identity (`user_id` + `email`)

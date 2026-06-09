@@ -43,21 +43,21 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   `get_my_uploads` shape is already filter-ready for — now with a **like-count** sort dimension (Likes shipped
   2026-06-09 → [`CHANGELOG.md`](CHANGELOG.md)). (Delete-own from the Uploads tab SHIPPED 2026-06-09 via the
   security-bearing `remove_my_upload` RPC, "soft but private to the host" → [`CHANGELOG.md`](CHANGELOG.md).)
-- **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
-  not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
-  `visibility='open'`) still lets an anonymous guest VIEW the full gallery; only UPLOAD is gated. That lets
-  free-riders collect everyone's photos with zero friction while contributing has friction — bad for the host
-  and it dissuades contribution. **Reframe:** make the account the incentive to SEE the photos. An anonymous
-  visitor to a gated event gets a **gate modal** ("enter your email to access this event") over a **teaser
-  gallery** (a few real images shown, the rest withheld), paywall-style. **Unify with the event password:** the
-  password gate uses the same modal; when BOTH password + account are required it's **multi-step in one modal**
-  (password first, then account). ★ **Server-enforced, NOT a CSS blur over a fully-loaded gallery** — the teaser
-  returns only N images from the anon RPC; the full set requires the unlock cookie / a session, so dev-tools
-  can't reveal it. Builds on the existing password model (the anon media RPC already gates on `visibility='open'`
-  + the unlock cookie — extend that to account-required + add the teaser). Touches the `/e/` gate logic,
-  `<EnterEventPrompt>` + `<PasswordGate>` → a shared modal, the anon media RPC (teaser vs full), the
-  unlock-cookie model. ADR-0004 / ADR-0007. (Captured 2026-06-08 from a live observation.) See
-  [`systems/guest-flow.md`](systems/guest-flow.md).
+- **Gated gallery — make account creation the INCENTIVE to SEE (3-phase initiative). P1 SHIPPED 2026-06-09**
+  (server-enforced `none|teaser|full` access + the capped real-photo teaser; the previously-unauthenticated
+  poll bypass closed → [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md)). The
+  reframe (from a live observation): a signed-out viewer of an account-required event sees a teaser, not the
+  full gallery, so the account is the reward, not just an upload-blocker. **Remaining:**
+  - **P2 — the unified entry modal + first-visit welcome.** One ordered `welcome → password? → account?` modal
+    (fold `<PasswordGate>` + `<EnterEventPrompt>` into shared steps; password BEFORE account); a light,
+    one-tap-dismiss welcome on the FIRST visit per event (per-device), even for public events (the friendly
+    front door + mini-guide). Teaser sits behind it; the password step's `none` backdrop is decorative (no real
+    images). Motion per the master plan's design-and-motion spec (anchored shell, `blur(2px)` step crossfade,
+    NON-dismissible gate steps, staggered teaser→full reveal). Removes the `/e/` password early-return (the
+    modal owns it).
+  - **P3 — host relabel + live preview.** Rename the upload-centric toggle to "Require guest accounts" (keep the
+    boolean column, invert the switch) + a live "what your guests will experience" summary across the
+    password × accounts combos. ADR-0004 / ADR-0007.
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
