@@ -16,6 +16,7 @@ import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
@@ -31,7 +32,8 @@ export function EventExperience({
   joinUrl,
   initialItems,
   isDemo,
-  needsAccount,
+  access,
+  teaserTotal,
   needsName,
   hostAvatarUrl,
 }: {
@@ -41,9 +43,12 @@ export function EventExperience({
   initialItems: GridMedia[];
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
-  /** Account-required event (allow_anonymous_uploads = false) + viewer not signed in — swap the
-   *  upload panel for the "Enter event" account-or-login flow (the gallery still shows). Phase 1. */
-  needsAccount: boolean;
+  /** Server-resolved gallery access (none/teaser/full). In P1 it is `teaser` or `full` here (the page
+   *  early-returns for the password `none` gate). `teaser` swaps the upload area for the account step
+   *  (EnterEventPrompt) and shows a "create an account to see all" caption under the capped grid. */
+  access: GalleryAccess;
+  /** Total approved-photo count for the "+N more" teaser caption; null outside the teaser. */
+  teaserTotal: number | null;
   /** Signed-in uploader without a public display name — show the required name step before the
    *  upload panel (their uploads are attributed). Phase 1. */
   needsName: boolean;
@@ -56,6 +61,9 @@ export function EventExperience({
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
   const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
   const blobUrls = useRef(new Map<string, string>()); // mediaId → object URL
+  // Last server-resolved access, so we can resync the gallery when the gate flips (teaser → full
+  // after the viewer signs in via the in-page account step, which triggers a router.refresh()).
+  const prevAccess = useRef(access);
 
   // Re-fetch the latest approved media (presigned) and reconcile optimistic tiles.
   const refresh = useCallback(async () => {
@@ -136,6 +144,15 @@ export function EventExperience({
     };
   }, []);
 
+  // When the gate flips (access changed via a server re-render, e.g. teaser → full after sign-in),
+  // adopt the server's fresh set for the new level so the gallery expands immediately (the next poll
+  // would also bring it, but this avoids the lag). Guarded so it never clobbers ongoing poll updates.
+  useEffect(() => {
+    if (prevAccess.current === access) return;
+    prevAccess.current = access;
+    setServerItems(initialItems);
+  }, [access, initialItems]);
+
   const handleUploaded = useCallback(
     (u: UploadedItem) => {
       // Only LIVE uploads are public immediately, so only those go to the top
@@ -214,17 +231,18 @@ export function EventExperience({
         />
       </div>
 
-      {/* Upload — only while the host is accepting uploads. When off, the event is
-          view-only (a state of the ONE page, ADR-0010): the panel is simply gone, with a
-          quiet line in its place. The identity gates are computed upstream (the page only sets
-          needsAccount / needsName when uploads are on), so this swap is upload-only: an
-          account-required event shows "Enter event" first; a signed-in but nameless uploader
-          sets a name first; otherwise the upload panel (anonymous-friendly). */}
-      {event.accepting_uploads ? (
+      {/* Below the header: the account step, the upload panel, or a closed-uploads line. A `teaser`
+          viewer (account-required, signed out) gets the "Enter event" account step first (the path to
+          the full gallery; the unified modal subsumes this in P2). Otherwise, while the host accepts
+          uploads: a signed-in but nameless uploader sets a name first, else the upload panel
+          (anonymous-friendly). When uploads are off the event is view-only (ADR-0010): a quiet line. */}
+      {access === "teaser" ? (
         <div className="mt-7">
-          {needsAccount ? (
-            <EnterEventPrompt qrToken={qrToken} />
-          ) : needsName ? (
+          <EnterEventPrompt qrToken={qrToken} />
+        </div>
+      ) : event.accepting_uploads ? (
+        <div className="mt-7">
+          {needsName ? (
             <div className="rounded-xl border border-border bg-card p-5">
               <SetNameStep
                 title="Add your name to upload"
@@ -266,6 +284,13 @@ export function EventExperience({
         ) : (
           <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
             No photos yet. Be the first to share one.
+          </p>
+        )}
+        {access === "teaser" && (
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            {teaserTotal !== null && teaserTotal > items.length
+              ? `Create a free account to see all ${teaserTotal} photos.`
+              : "Create a free account to see everything and add your own."}
           </p>
         )}
       </section>

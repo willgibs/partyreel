@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server";
 
-import {
-  getApprovedMediaForUnlock,
-  getUploaderIdentities,
-} from "@/lib/db/queries/guest-events-admin";
-import {
-  getEventByQrToken,
-  getEventMediaByQrToken,
-} from "@/lib/db/queries/guest-events";
+import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { isDemoToken } from "@/lib/demo";
-import { toGridItems } from "@/lib/r2/grid-items";
+import { resolveGalleryAccess } from "@/lib/events/gallery-access";
+import {
+  isEventOwner,
+  loadGalleryForAccess,
+} from "@/lib/events/gallery-access.server";
+import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Poll target for the guest event page's LIVE gallery. Body: { qr_token }. Returns
-// approved media (newest-first, presigned). Visibility-aware, mirroring the page:
-//   open                 → the anon RPC (gates on visibility='open')
-//   password             → the server admin-read, which SELF-GUARDS on the unlock
-//                          cookie (returns [] when the request isn't unlocked); the
-//                          anon RPC never serves password media
-//   private / deleted    → []
-// The qr_token IS the capability (ADR-0004); reading an open album needs no session.
+// Poll target for the guest event page's LIVE gallery. Body: { qr_token }. Returns the access-capped
+// approved media (newest-first, presigned) + the resolved access level. This is a media surface, so it
+// enforces the SAME gallery access as the page (resolveGalleryAccess + loadGalleryForAccess): gating
+// only the RSC would be trivially bypassed by calling here directly. An account-required (or password)
+// event caps a signed-out viewer to the teaser; the full set never leaves the server.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -46,18 +42,40 @@ export async function POST(request: Request) {
 
   const event = await getEventByQrToken(qrToken);
   if (!event.ok || event.data.visibility === "private") {
-    return NextResponse.json({ ok: true, items: [] });
+    return NextResponse.json({
+      ok: true,
+      items: [],
+      access: "none",
+      teaserTotal: null,
+    });
   }
 
-  const media =
+  // Same access computation as the RSC. Skip the demo (always full). Authorize with getUser(), never
+  // getSession(); the owner select runs only when signed in.
+  const isDemo = isDemoToken(qrToken);
+  let isAuthed = false;
+  let isOwner = false;
+  if (!isDemo) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      isAuthed = Boolean(user.email_confirmed_at);
+      isOwner = await isEventOwner(event.data.id, user.id, supabase);
+    }
+  }
+  const unlocked =
     event.data.visibility === "password"
-      ? await getApprovedMediaForUnlock(event.data.id)
-      : await getEventMediaByQrToken(qrToken);
-
-  // Uploader attribution (name + flags only — NEVER email on this guest path). Skip the demo.
-  const identities = isDemoToken(qrToken)
-    ? undefined
-    : await getUploaderIdentities(event.data.id);
-  const items = await toGridItems(media, event.data.name, identities);
-  return NextResponse.json({ ok: true, items });
+      ? await isUnlocked(event.data.id)
+      : true;
+  const access = isDemo
+    ? "full"
+    : resolveGalleryAccess(event.data, {
+        isOwner,
+        isAuthed,
+        isUnlocked: unlocked,
+      });
+  const { items, teaserTotal } = await loadGalleryForAccess(event.data, access);
+  return NextResponse.json({ ok: true, items, access, teaserTotal });
 }

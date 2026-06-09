@@ -15,7 +15,7 @@
  */
 import "server-only";
 
-import type { GuestMediaRow } from "@/lib/db/queries/guest-events";
+import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -42,6 +42,44 @@ export async function getApprovedMediaForUnlock(
     type: m.type,
     original_key: m.original_key,
   }));
+}
+
+/**
+ * Server-capped TEASER for the gated gallery: the newest `limit` approved PHOTOS plus the TOTAL count
+ * of approved photos (for the "+N more" affordance), in ONE round trip via PostgREST `count: "exact"`.
+ *
+ * SELF-GUARDED by visibility, mirroring getApprovedMediaForUnlock: a password event requires the
+ * unlock cookie (so a careless caller can't dump a locked album's teaser), an open event's photos are
+ * already public, and anything else (private) returns nothing. The teaser is a strict SUBSET of what
+ * the viewer could otherwise see, so it leaks strictly less.
+ */
+export async function getApprovedPhotoTeaser(
+  event: Pick<GuestEvent, "id" | "visibility">,
+  limit: number,
+): Promise<{ rows: GuestMediaRow[]; total: number }> {
+  if (event.visibility === "password") {
+    if (!(await isUnlocked(event.id))) return { rows: [], total: 0 };
+  } else if (event.visibility !== "open") {
+    return { rows: [], total: 0 };
+  }
+
+  const { data, count, error } = await createAdminClient()
+    .from("media")
+    .select("id, type, original_key", { count: "exact" })
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .eq("type", "photo")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return {
+    rows: (data ?? []).map((m) => ({
+      id: m.id,
+      type: m.type,
+      original_key: m.original_key,
+    })),
+    total: count ?? 0,
+  };
 }
 
 /**

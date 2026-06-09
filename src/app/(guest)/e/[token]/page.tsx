@@ -9,19 +9,16 @@ import { GuestHeader } from "@/components/guest/guest-header";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
-import {
-  getApprovedMediaForUnlock,
-  getHostAvatarUrl,
-  getUploaderIdentities,
-} from "@/lib/db/queries/guest-events-admin";
-import {
-  getEventByQrToken,
-  getEventMediaByQrToken,
-} from "@/lib/db/queries/guest-events";
+import { getHostAvatarUrl } from "@/lib/db/queries/guest-events-admin";
+import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import { isDemoToken } from "@/lib/demo";
+import { resolveGalleryAccess } from "@/lib/events/gallery-access";
+import {
+  isEventOwner,
+  loadGalleryForAccess,
+} from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
-import { toGridItems } from "@/lib/r2/grid-items";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { needsDisplayName } from "@/lib/welcome";
@@ -131,52 +128,55 @@ export default async function GuestEventPage({
     );
   }
 
-  // Open, or password + unlocked: SSR the first gallery batch (presigned) + the join
-  // URL. A password event's media comes from the server-side admin-read (the anon RPC
-  // only serves 'open' events); an open event uses the anon RPC. The client then polls
-  // /api/guests/gallery for updates.
+  // Open, or password + unlocked. Resolve this viewer's gallery ACCESS (none/teaser/full) and load
+  // exactly that much media server-side, so the withheld set never reaches the browser (the gated-
+  // gallery security core). The client polls /api/guests/gallery, which enforces the SAME access.
   const siteUrl = await getSiteUrl();
-  // Canonical (qr_token) link for the in-page share + the media poll — never the slug
-  // the guest may have arrived on (the media RPC + downstream RPCs match qr_token only).
+  // Canonical (qr_token) link for the in-page share + the media poll, never the slug the guest may
+  // have arrived on (the media RPC + downstream RPCs match qr_token only).
   const joinUrl = `${siteUrl.replace(/\/+$/, "")}/e/${event.qr_token}`;
-  const media =
-    event.visibility === "password"
-      ? await getApprovedMediaForUnlock(event.id)
-      : await getEventMediaByQrToken(event.qr_token);
-  // Uploader attribution (name + flags only on this guest page -- NEVER email). Skip the demo.
-  const identities = isDemoToken(event.qr_token)
-    ? undefined
-    : await getUploaderIdentities(event.id);
-  const initialItems = await toGridItems(media, event.name, identities);
 
-  // Host avatar for the "Hosted by" byline — a server-side admin read so host_id stays off the
-  // client (only the presigned URL is passed down). Gated on a set name, since the byline hides
-  // without one (Phase 3), so this is a no-op for nameless-host events.
-  const hostAvatarUrl = event.host_display_name?.trim()
-    ? await getHostAvatarUrl(event.id)
-    : null;
-
-  // Upload-path gates (Phase 1 identity). Anonymous uploaders are never asked for anything; only an
-  // account-required event (allow_anonymous_uploads = false) gates a NOT-signed-in viewer to "Enter
-  // event", and any SIGNED-IN uploader without a public display name sets one first (their upload is
-  // attributed). The gallery still renders (viewing is always allowed) — only the UPLOAD area swaps.
-  // When uploads are OFF the event is view-only (ADR-0010), so there's nothing to gate. getUser()
-  // runs ONLY on the accepting-uploads path; with no session it's a cheap local null. Demo never
-  // gates (its uploads are simulated).
+  // Auth state for the gate (+ the name nudge). Skipped for the demo (always full, never gates). We
+  // now run getUser() for EVERY non-private event (not just the accepting-uploads path): the gate must
+  // know whether the viewer is signed in. For the anonymous majority it's a cheap local null, and the
+  // owner select runs ONLY when signed in. Authorize with getUser(), never getSession().
   const isDemo = isDemoToken(event.qr_token);
-  let needsAccount = false;
-  let needsName = false;
-  if (event.accepting_uploads && !isDemo) {
+  let isAuthed = false;
+  let isOwner = false;
+  let userId: string | null = null;
+  if (!isDemo) {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (user?.email_confirmed_at) {
-      const menu = await getProfileMenu(user.id);
-      needsName = needsDisplayName(menu.displayName);
-    } else {
-      needsAccount = !event.allow_anonymous_uploads;
+    if (user) {
+      userId = user.id;
+      isAuthed = Boolean(user.email_confirmed_at);
+      isOwner = await isEventOwner(event.id, user.id, supabase);
     }
+  }
+  const access = isDemo
+    ? "full"
+    : resolveGalleryAccess(event, { isOwner, isAuthed, isUnlocked: unlocked });
+  const { items: initialItems, teaserTotal } = await loadGalleryForAccess(
+    event,
+    access,
+  );
+
+  // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
+  // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
+  // (Phase 3), so this is a no-op for nameless-host events.
+  const hostAvatarUrl = event.host_display_name?.trim()
+    ? await getHostAvatarUrl(event.id)
+    : null;
+
+  // Display-name nudge: a SIGNED-IN uploader without a public name sets one before uploading (so their
+  // upload is attributed). Only meaningful in the `full` state; an account-required event viewed by an
+  // un-signed-in guest is `teaser`, where the account step (EnterEventPrompt) comes first.
+  let needsName = false;
+  if (isAuthed && userId && event.accepting_uploads && access === "full") {
+    const menu = await getProfileMenu(userId);
+    needsName = needsDisplayName(menu.displayName);
   }
 
   return (
@@ -188,7 +188,8 @@ export default async function GuestEventPage({
         joinUrl={joinUrl}
         initialItems={initialItems}
         isDemo={isDemo}
-        needsAccount={needsAccount}
+        access={access}
+        teaserTotal={teaserTotal}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
       />
