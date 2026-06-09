@@ -10,6 +10,38 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Attribution P4: dashboard consolidation (Events + Uploads + Trash)
+
+The FINAL phase of the uploader-attribution + unified-identity initiative (commit `622b519`). Turns the
+unified `guests.user_id` (P3) into a personal home, and CLOSES the initiative (P1 identity → P2 attribution →
+P3 claim → P4 dashboard).
+
+- **Merged "Your events" + "Saved" into one "Events" tab** — interleaved by recency (hosted by `created_at`,
+  saved by `saved_at`, so a just-created OR just-saved event lands top), each card icon-differentiated
+  (hosted calendar glyph vs saved bookmark) on the shared `EventCard`. Threaded `saved_at` through
+  `SavedEventCardData` for the sort; preserved saved-event visibility masking + Unsave + the disabled/lock state.
+- **New "Uploads" tab** — the user's own media across ALL events (host + guest) via a new authenticated
+  SECURITY DEFINER `get_my_uploads(p_limit)` RPC (UNION ALL of host-arm + guest-arm, provably disjoint;
+  `is_host_upload` + event/type/date make it filter-ready for a future cross-gallery filter; excludes
+  soft-deleted events + non-approved/removed media; no masking — own uploads). Flat newest-first `MediaGrid`
+  + lightbox (view + per-item download); a new `toMyUploadsItems` presigns per-item against each item's OWN
+  event (ADR-0003); a gated event-context caption links each item to `/e/`. 200 cap + a truncation footer (no
+  silent cap). Delete-own deferred (a future security-bearing RPC).
+- **"Recently deleted" → "Trash"** across all user-facing copy (dashboard tab + storage-meter line, the
+  per-event media section, 2 recovery emails, the bell nudge, the mutations error, + the email test). Internal
+  identifiers + the `value="deleted"` tab key stay.
+- Dashboard Tabs are now deep-linkable via `?tab=` (events|uploads|deleted) with instant client switching
+  (`history.replaceState`, no server round-trip). Save-on-signup unchanged (verified it still lands cleanly).
+- Design craft (emil-design-eng): press feedback + reduced-motion on the cards, an opacity load-fade on
+  gallery photos (`complete`-checked so a cached image can't stick at opacity-0), the lightbox event caption
+  fades via the house `--ease-emphasis`, crisp non-animated tab swaps.
+- Live-verified on partyreel.com (staged, then torn down): the Events tab interleaved a hosted event (calendar
+  glyph) + a just-saved event (bookmark glyph + unsave) by recency; the Uploads tab rendered the live RPC's
+  item with the lightbox event caption "Partyreel Demo · July 9, 2026" + the Save button; the Trash tab + the
+  `?tab=` deep-link survived a refresh. `get_my_uploads` advisor 0029 (never 0028); a rolled-back contract
+  matrix (A/B isolation, status/removed/soft-deleted-event exclusions, `is_host_upload`, disjoint UNION ALL,
+  limit/sort, grant auth/anon); typecheck/lint/test (321)/build green.
+
 ## 2026-06-09 — Attribution P3: claim anonymous uploads on sign-in
 
 When an anonymous guest later authenticates, their prior anonymous uploads FROM THIS BROWSER silently become

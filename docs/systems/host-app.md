@@ -4,6 +4,22 @@
 > BELONGS HERE: the `events` model + create wizard, QR designer, custom slug, first-time welcome, event settings, host curation/moderation, the host-upload UI entry. · NOT HERE: the upload pipeline + R2 (→ [uploads-and-r2.md](uploads-and-r2.md)), the guest experience (→ [guest-flow.md](guest-flow.md)), caps/billing (→ [billing-caps.md](billing-caps.md)), operator-side moderation/reports (→ [admin-observability.md](admin-observability.md)).
 > GROWS BY: integrate-in-place.
 
+## Dashboard landing (Events · Uploads · Trash)
+
+[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, consolidated into three tabs
+(Phase 4), deep-linkable via `?tab=` ([`dashboard-tabs.tsx`](../../src/components/app/dashboard-tabs.tsx)
+syncs the URL with `history.replaceState` so switching stays instant, no server round-trip):
+- **Events** — hosted + saved events MERGED into one list, interleaved by recency (hosted by `created_at`,
+  saved by `saved_at`, so a just-created OR just-saved event lands top) + icon-differentiated (a calendar
+  glyph vs a bookmark) on the shared `EventCard`. Saved cards keep their visibility masking + unsave (→
+  [notifications-analytics-growth.md](notifications-analytics-growth.md)).
+- **Uploads** — the host's OWN media across ALL events (host uploads + guest uploads), via the authenticated
+  `get_my_uploads` RPC (UNION of host-arm + guest-arm; `is_host_upload` + event/type/date make it filter-ready
+  for a future cross-gallery filter; presigned server-side; ≤200 with a truncation footer). Reuses `MediaGrid`
+  + the lightbox (view + per-item download) + a gated event-context caption per item → [uploads-and-r2.md](uploads-and-r2.md).
+- **Trash** — the soft-deleted EVENTS recovery bin (user-facing rename of "Recently deleted", Phase 4) →
+  [lifecycle-recovery.md](lifecycle-recovery.md).
+
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token` = the single DB-generated link (ADR-0010), `moderation_mode`,

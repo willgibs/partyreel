@@ -36,18 +36,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 ## Now (concrete, pick-up-able)
 
-- **Uploader attribution + unified identity** (4-phase initiative; ADR-0015; master plan
-  `~/.claude/plans/after-becoming-familiar-with-purring-beaver.md`; re-enter plan mode per phase). **P1
-  SHIPPED 2026-06-08**: required profanity-filtered public display names, `require_email`→
-  `allow_anonymous_uploads`, email-primary "Enter event", `display_name` service-role-write-only. **P2 SHIPPED
-  2026-06-08**: the lightbox attribution caption (uploader name public / email host-gallery-only / "Anonymous"
-  + a context-aware info popover; NOT on the dense grid tiles), resolved by one admin-read; email-leak
-  red-teamed live. **P3 claim SHIPPED 2026-06-09** (commit `5123f7f`): auto-claim a browser's anonymous
-  uploads on sign-in via the authenticated `claim_anonymous_uploads(text[])` RPC + localStorage `pr_session_*`
-  enumeration + a subtle success toast; live-verified (no-theft `IS NULL` guard, idempotent, ≤1000 bound).
-  NEXT = **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab, add an "Uploads" tab
-  keyed on the `guests.user_id` P3 populates, rename "Recently deleted"→"Trash"). See
-  [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **Uploader attribution + unified identity (4-phase initiative) — SHIPPED + CLOSED 2026-06-09** (ADR-0015;
+  full record in [`CHANGELOG.md`](CHANGELOG.md)): P1 required public display names + `allow_anonymous_uploads`,
+  P2 the lightbox attribution caption, P3 claim-anonymous-uploads-on-sign-in, P4 the merged Events tab + the
+  Uploads hub + "Recently deleted"→"Trash". **Deferred follow-ups:** delete-own from the Uploads tab (a
+  security-bearing `remove_my_upload` RPC — re-check the row is the caller's via the host-arm/guest-arm
+  ownership, SECURITY DEFINER — + a per-item action; P4 shipped read-only); and the cross-gallery sort/filter
+  system the `get_my_uploads` shape is already filter-ready for.
 - **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
   not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
   `visibility='open'`) still lets an anonymous guest VIEW the full gallery; only UPLOAD is gated. That lets

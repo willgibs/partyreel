@@ -68,7 +68,10 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
   to the in-app self-serve Recently-deleted restore (NOT "reply to this email"); voluntary deletes are
   never emailed (the bell nudge covers them in-app → [notifications-analytics-growth.md](notifications-analytics-growth.md)).
 
-## Host-facing recovery ("Recently deleted")
+## Host-facing recovery (the "Trash" tab)
+
+> User-facing label is **"Trash"** (Phase 4 rename); the model + the internal identifiers
+> (`recently-deleted.ts`, `listRecentlyDeleted*`, the `value="deleted"` tab key) keep the "recently deleted" name.
 
 - **RPCs** (`restore_media` / `restore_event` / `purge_media_now`): authenticated, ownership-gated SECURITY
   DEFINER (0029-only; explicit `revoke … from anon`). Restore is **capacity-gated against the BASE cap** (no
@@ -84,7 +87,7 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
   (`listRecentlyDeletedEvents`/`listRecentlyDeletedMedia`, windowed to 30d; the countdown is computed in the
   QUERY so the RSC stays render-pure). The dashboard storage meter reads ACTIVE bytes
   (`getHostStorageSummary`, [`db/queries/storage.ts`](../../src/lib/db/queries/storage.ts)) + a "+X in
-  Recently deleted (frees automatically)" line + an over-standby-budget note. The lightbox hides Save when an
+  Trash (frees automatically)" line + an over-standby-budget note. The lightbox hides Save when an
   item has no `downloadUrl` (no download from the bin).
 
 ## See also

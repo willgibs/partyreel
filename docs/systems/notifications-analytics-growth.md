@@ -50,8 +50,10 @@ Per-event-per-day **aggregate counts, NO PII** (`link_stats`: `event_id, kind, d
 
 ## Saved events (accounts-from-guest growth — ADR-0009)
 
-A signed-in visitor can SAVE any event to their dashboard "Saved" tab — the FREE account-creation growth
-payoff. It AUGMENTS the anonymous capability flow; the upload pipeline is untouched.
+A signed-in visitor can SAVE any event to their dashboard — the FREE account-creation growth payoff. It
+AUGMENTS the anonymous capability flow; the upload pipeline is untouched. (Phase 4: saved events now live in
+the unified **"Events"** tab, interleaved with hosted events by recency + icon-differentiated; the recency
+key is `saved_at`, threaded through `SavedEventCardData` → [host-app.md](host-app.md).)
 
 - **Save = `save_event(p_qr_token)`** (authenticated-only SECURITY DEFINER): resolves the event from the
   page's TOKEN (never a client `event_id`), refuses `private` + your-own events (owner → no-op), idempotent.
