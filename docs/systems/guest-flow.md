@@ -62,6 +62,16 @@ is an **Invite trigger + dialog** (QR + Copy link + native Share + Download), no
   from `auth.uid()`, NEVER the client, and raises when `not allow_anonymous_uploads` and there's no confirmed
   session; on a session it stamps `guests.user_id` (account-from-guest). No verification-only paths exist — an
   account simply proves ownership. A signed-in uploader with no `display_name` then hits the required name step.
+- **Claiming anonymous uploads on sign-in (P3):** an anonymous upload is a `guests` row with `user_id IS
+  NULL`; the browser still holds its `session_token` in `localStorage` (`pr_session_{qr_token}`). When the
+  visitor later authenticates, a client helper ([`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts))
+  enumerates those tokens (by the shared `SESSION_PREFIX` in [`session-tokens.ts`](../../src/lib/guest/session-tokens.ts))
+  and calls the authenticated `claim_anonymous_uploads(text[])` RPC, which stamps `user_id = auth.uid()` onto
+  the still-unclaimed matches (`user_id IS NULL` ⇒ never steals an owned row; ≤1000 bound; never writes
+  `email`, preserving the verified-at-join invariant). Fires from a mount in the `(app)` layout (a loud "added
+  your uploads" toast) + the guest `EventExperience` (silent, so it never stacks with the "Saved" toast) + the
+  in-page sign-in handlers; module-level guards dedupe, and the RPC's `IS NULL` makes a reload's re-run a
+  silent 0-op (no sessionStorage flag). P4's Uploads tab will key on the `guests.user_id` this populates.
 
 ## Live gallery + optimistic uploads
 

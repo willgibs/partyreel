@@ -10,6 +10,32 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Attribution P3: claim anonymous uploads on sign-in
+
+When an anonymous guest later authenticates, their prior anonymous uploads FROM THIS BROWSER silently become
+theirs (the third phase of the uploader-attribution + identity initiative; commit `5123f7f`). An anonymous
+upload is a `guests` row with `user_id IS NULL`; the browser still holds its `session_token` in `localStorage`
+(`pr_session_{qr_token}`). On sign-in a client helper enumerates those tokens and the DB stamps them to the
+new account.
+
+- New authenticated SECURITY DEFINER `claim_anonymous_uploads(text[])` (migration `…609120000`) stamps
+  `guests.user_id = auth.uid()` only where `session_token = ANY(...)` AND `user_id IS NULL` (the `IS NULL`
+  guard makes it theft-proof + idempotent; ≤1000-token bound; never writes `email`). Browser-callable by
+  design (mirrors `save_event`): identity is `auth.uid()` and the tokens are held capabilities, so there is no
+  client-spoofable value for server-mediation to protect (cf. ADR-0016).
+- `src/lib/guest/session-tokens.ts` (the shared `SESSION_PREFIX` + a pure, unit-tested
+  `collectStoredSessionTokens`) + `src/lib/guest/claim-uploads.ts` (best-effort helper; module in-flight/done
+  guards; no sessionStorage — the `IS NULL` filter makes a reload's re-run a silent 0-op). Mounted via
+  `<ClaimUploadsOnAuth>` in the `(app)` layout (loud toast) + the guest `EventExperience` (silent), plus direct
+  silent calls in the in-page sign-in handlers (`EnterEventPrompt`, the save dialog). The toast is loud only in
+  the account context; silent on guest `/e/` paths so it never stacks with the "Saved" toast.
+- Live-verified on partyreel.com: a real host sign-in + many reloads claimed 14 staged anonymous rows to the
+  test host; an operator-owned row was NEVER touched (no theft); the success toast "We added your uploads to
+  your account." renders on the dashboard (confirmed visually by Will — the auto-claim fires ~1-3s post-load
+  once the data-heavy dashboard hydrates). Rolled-back contract matrix (claims the NULL row, leaves a foreign
+  row, idempotent re-run, 1001-array → `program_limit_exceeded`, grant auth=true/anon=false, never writes
+  email); typecheck/lint/test (321)/build green; advisor `0029` (never `0028`).
+
 ## 2026-06-08 — Security: abuse-focused rate limiter for guest write endpoints (H3b)
 
 Closed the one deferred piece of the server-mediation remediation (commit `7bb2b53`): the now

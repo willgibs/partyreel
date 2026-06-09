@@ -43,10 +43,14 @@ The expected, accepted set:
 - **Authenticated-only RPCs (lint `0029`):** the host/account RPCs — `get_host_upload_context`,
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
-  `save_event`/`get_saved_events`, `restore_media`/`restore_event`/`purge_media_now`. (`create_media_as_host`
-  MOVED to service-role-only above when its size authority was hardened.) SECURITY DEFINER but
-  `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via `auth.uid()` +
-  ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
+  `save_event`/`get_saved_events`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`.
+  (`create_media_as_host` MOVED to service-role-only above when its size authority was hardened.) SECURITY
+  DEFINER but `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via
+  `auth.uid()` + ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
+  (`claim_anonymous_uploads(text[])` stamps `guests.user_id = auth.uid()` onto a browser's still-unclaimed
+  anonymous uploads; authorized by the held `session_token` capabilities + the `user_id IS NULL` no-theft
+  guard, so — unlike the anon WRITE RPCs above — there is no client-spoofable value to protect, and it stays
+  browser-callable rather than server-mediated. → [guest-flow.md](guest-flow.md).)
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,

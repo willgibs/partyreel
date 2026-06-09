@@ -42,12 +42,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   `allow_anonymous_uploads`, email-primary "Enter event", `display_name` service-role-write-only. **P2 SHIPPED
   2026-06-08**: the lightbox attribution caption (uploader name public / email host-gallery-only / "Anonymous"
   + a context-aware info popover; NOT on the dense grid tiles), resolved by one admin-read; email-leak
-  red-teamed live. **P3 claim is PLANNED** (2026-06-08; detailed plan in the master-plan file): auto-claim a
-  browser's anonymous uploads on sign-in via a new authenticated `claim_anonymous_uploads` RPC + localStorage
-  `pr_session_*` enumeration + a subtle toast. **Sequencing (Will's split, 2026-06-08): the server-mediation
-  remediation SHIPPED 2026-06-08 (ADR-0016: H1/H2/H3 + the password-strength UI; see CHANGELOG)** — so NEXT =
-  the P3 claim, THEN **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab,
-  add an "Uploads" tab, rename "Recently deleted"→"Trash"). See
+  red-teamed live. **P3 claim SHIPPED 2026-06-09** (commit `5123f7f`): auto-claim a browser's anonymous
+  uploads on sign-in via the authenticated `claim_anonymous_uploads(text[])` RPC + localStorage `pr_session_*`
+  enumeration + a subtle success toast; live-verified (no-theft `IS NULL` guard, idempotent, ≤1000 bound).
+  NEXT = **P4** dashboard consolidation (merge Your-events+Saved into one "Events" tab, add an "Uploads" tab
+  keyed on the `guests.user_id` P3 populates, rename "Recently deleted"→"Trash"). See
   [`systems/guest-flow.md`](systems/guest-flow.md) + [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
   not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
@@ -105,7 +104,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   `/api/guests/gallery`, the top cost driver) → Supabase Realtime or conditional ETag/304s · front Vercel
   with Cloudflare at launch (DNS already migrating there) · Vercel Spend-Management hard cap + alerts ·
   revisit the `proxy.ts` per-request `getUser` matcher scope · a large-gallery presigned-read strategy
-  (proxy/cache vs the current per-request presign).
+  (proxy/cache vs the current per-request presign) · the **`(app)` dashboard first-load latency** (~1-3s to
+  hydrate, observed 2026-06-09 via client-effect timing — the layout fans out `getUser` + notifications +
+  profile + avatar, then the page adds events + storage; profile the chain + parallelize/stream/cache).
 - **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
   `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
 - **Highlight reel (Tabled — needs a product + architecture decision first)** — stitch a reel from the best
