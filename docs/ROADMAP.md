@@ -39,10 +39,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Uploader attribution + unified identity (4-phase initiative) — SHIPPED + CLOSED 2026-06-09** (ADR-0015;
   full record in [`CHANGELOG.md`](CHANGELOG.md)): P1 required public display names + `allow_anonymous_uploads`,
   P2 the lightbox attribution caption, P3 claim-anonymous-uploads-on-sign-in, P4 the merged Events tab + the
-  Uploads hub + "Recently deleted"→"Trash". **Deferred follow-ups:** delete-own from the Uploads tab (a
-  security-bearing `remove_my_upload` RPC — re-check the row is the caller's via the host-arm/guest-arm
-  ownership, SECURITY DEFINER — + a per-item action; P4 shipped read-only); and the cross-gallery sort/filter
-  system the `get_my_uploads` shape is already filter-ready for.
+  Uploads hub + "Recently deleted"→"Trash". **Deferred follow-up:** the cross-gallery sort/filter system the
+  `get_my_uploads` shape is already filter-ready for. (Delete-own from the Uploads tab SHIPPED 2026-06-09 via
+  the security-bearing `remove_my_upload` RPC, "soft but private to the host" → [`CHANGELOG.md`](CHANGELOG.md).)
 - **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
   not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
   `visibility='open'`) still lets an anonymous guest VIEW the full gallery; only UPLOAD is gated. That lets

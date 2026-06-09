@@ -10,6 +10,33 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Delete-own uploads from the Uploads tab (`remove_my_upload`)
+
+The deferred follow-up to attribution P4 (the read-only Uploads hub): a per-item delete in the dashboard
+"Uploads" tab (commit `b087e46`).
+
+- **New SECURITY DEFINER `remove_my_upload(p_media_id)` RPC** (authenticated-only, lint 0029 — never 0028)
+  re-checks ownership against the SAME host-arm/guest-arm predicates as `get_my_uploads` (`auth.uid()`-based,
+  no client-supplied trust) then soft-removes, reusing the 30-day recovery machinery (the `set_media_purge_at`
+  trigger derives `purge_at`; the cron auto-purges). Idempotent — a repeat remove never resets `removed_at`.
+- **"Soft, but private to the host"** (the product call): a guest's self-deletion of an upload they made to
+  someone else's event is marked `media.removed_by_uploader=true` and hidden from that host's restore path
+  (excluded from `listRecentlyDeletedMedia` + refused by `restore_media`); the uploader's deletion wins. A
+  host deleting their own event's upload leaves it `false` (host-restorable, like the event-gallery Remove).
+  The new column is write-locked (NOT in the `authenticated (status, removed_at)` grant), so only the
+  owner-context RPC sets it.
+- **UI:** an opt-in Trash control in the shared lightbox (behind a confirm), wired only by the Uploads tab;
+  `useOptimistic` removal + `revalidatePath`, toast on failure. The album / host / recovery lightboxes are
+  unchanged (the prop is omitted there).
+
+Verified: a rolled-back Supabase RPC contract matrix (both arms; cross-tenant → `not_found`; idempotency; bin
+exclusion; `restore_media` privacy refusal; `purge_at = removed_at + 30d`) + advisors (`remove_my_upload` in
+0029, anon EXECUTE denied, `has_column_privilege` on the marker = false). Live on partyreel.com (signed in as
+the test host; seeded then torn down): deleted a host upload (→ `removed_by_uploader=false`, lands in that
+event's Trash) AND a guest upload to another host's event (→ `removed_by_uploader=true`, excluded from that
+host's bin + restore refused) through the real lightbox → confirm → action → optimistic-removal path; the
+active-bytes meter freed immediately. All 321 unit tests green.
+
 ## 2026-06-09 — Attribution P4: dashboard consolidation (Events + Uploads + Trash)
 
 The FINAL phase of the uploader-attribution + unified-identity initiative (commit `622b519`). Turns the

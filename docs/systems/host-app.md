@@ -16,7 +16,9 @@ syncs the URL with `history.replaceState` so switching stays instant, no server 
 - **Uploads** — the host's OWN media across ALL events (host uploads + guest uploads), via the authenticated
   `get_my_uploads` RPC (UNION of host-arm + guest-arm; `is_host_upload` + event/type/date make it filter-ready
   for a future cross-gallery filter; presigned server-side; ≤200 with a truncation footer). Reuses `MediaGrid`
-  + the lightbox (view + per-item download) + a gated event-context caption per item → [uploads-and-r2.md](uploads-and-r2.md).
+  + the lightbox (view + per-item download + **delete-own** via a confirm-gated Trash control → the
+  `remove_my_upload` RPC; optimistic removal) + a gated event-context caption per item →
+  [uploads-and-r2.md](uploads-and-r2.md). A guest's self-deletion stays private to the host → [lifecycle-recovery.md](lifecycle-recovery.md).
 - **Trash** — the soft-deleted EVENTS recovery bin (user-facing rename of "Recently deleted", Phase 4) →
   [lifecycle-recovery.md](lifecycle-recovery.md).
 
