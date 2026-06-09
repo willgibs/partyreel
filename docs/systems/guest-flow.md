@@ -19,6 +19,10 @@ Auth-aware header → event header ("Hosted by" name+avatar) → a quiet **`[Sav
 row** → the upload panel (only when accepting) → the live gallery. The share is no longer wedged between
 upload and gallery (one-link Part 2, ADR-0010). `GuestShare` ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx))
 is an **Invite trigger + dialog** (QR + Copy link + native Share + Download), not an inline card.
+Each gallery tile (a desktop hover-reveal) + the lightbox carry a **like** button (Phase 5 — a favorite on
+one media, distinct from the event-level Save); a signed-out tap opens the SAME create-account dialog as
+Save (a `LikesProvider` wraps the gallery, replaying the like after sign-in). Like COUNTS are host-only, so
+they're never shown here → [host-app.md](host-app.md), [database-security.md](database-security.md).
 
 ## State follows `visibility` (ADR-0007) — a 3-state enum, NOT a boolean
 

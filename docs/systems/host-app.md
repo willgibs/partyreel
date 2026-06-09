@@ -4,10 +4,10 @@
 > BELONGS HERE: the `events` model + create wizard, QR designer, custom slug, first-time welcome, event settings, host curation/moderation, the host-upload UI entry. · NOT HERE: the upload pipeline + R2 (→ [uploads-and-r2.md](uploads-and-r2.md)), the guest experience (→ [guest-flow.md](guest-flow.md)), caps/billing (→ [billing-caps.md](billing-caps.md)), operator-side moderation/reports (→ [admin-observability.md](admin-observability.md)).
 > GROWS BY: integrate-in-place.
 
-## Dashboard landing (Events · Uploads · Trash)
+## Dashboard landing (Events · Uploads · Likes · Trash)
 
-[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, consolidated into three tabs
-(Phase 4), deep-linkable via `?tab=` ([`dashboard-tabs.tsx`](../../src/components/app/dashboard-tabs.tsx)
+[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, consolidated into four tabs
+(Phase 4; **Likes** added Phase 5), deep-linkable via `?tab=` ([`dashboard-tabs.tsx`](../../src/components/app/dashboard-tabs.tsx)
 syncs the URL with `history.replaceState` so switching stays instant, no server round-trip):
 - **Events** — hosted + saved events MERGED into one list, interleaved by recency (hosted by `created_at`,
   saved by `saved_at`, so a just-created OR just-saved event lands top) + icon-differentiated (a calendar
@@ -19,6 +19,13 @@ syncs the URL with `history.replaceState` so switching stays instant, no server 
   + the lightbox (view + per-item download + **delete-own** via a confirm-gated Trash control → the
   `remove_my_upload` RPC; optimistic removal) + a gated event-context caption per item →
   [uploads-and-r2.md](uploads-and-r2.md). A guest's self-deletion stays private to the host → [lifecycle-recovery.md](lifecycle-recovery.md).
+- **Likes** (Phase 5) — every photo/video the viewer has LIKED across all events (newest-liked first), via the
+  authenticated `get_my_likes` RPC (it re-applies the like access predicate, so a now-inaccessible like drops
+  out + never leaks its key). Reuses `MediaGrid` + the lightbox; here the heart (tile or lightbox) UNLIKES and
+  drops the item. "Like" = a favorite collected from ANY gallery (distinct from Save = an event bookmark);
+  anonymous guests get the like button + the same create-account flow as Save. The per-event like COUNT is
+  HOST-ONLY — a subtle "♥ N" badge on the event-detail management gallery (`get_event_like_counts`,
+  host-gated), never on a guest surface; it also seeds the future sort/filter. → [database-security.md](database-security.md), [guest-flow.md](guest-flow.md).
 - **Trash** — the soft-deleted EVENTS recovery bin (user-facing rename of "Recently deleted", Phase 4) →
   [lifecycle-recovery.md](lifecycle-recovery.md).
 

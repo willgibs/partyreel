@@ -10,6 +10,33 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Likes: favorite media + a "Likes" dashboard tab (host-only counts)
+
+Logged-in users can like any photo/video they can see; the likes collect in a new dashboard **Likes** tab
+(mirroring Uploads). Anonymous guests get the like button + the SAME create-account flow as Save (a capture
+lever). Commit `5152c58`.
+
+- **DB (migration `20260609160000`):** a `media_likes` table (PK `media_id+user_id`; owner-RLS SELECT/DELETE;
+  INSERT/UPDATE REVOKED so the only write path is the RPC). Three authenticated-only RPCs (lint 0029, never
+  0028 — NO new anon RPC): `like_media` (access-checked idempotent insert — host OR guest OR open-album),
+  `get_event_like_counts` (HOST-GATED counts), `get_my_likes` (the Likes-tab feed; re-applies the access
+  predicate so a now-inaccessible like never leaks its presigned key). Unlike + heart-state are owner-RLS
+  straight from the browser (mirrors save/unsave).
+- **Host-only counts** (Will's call), enforced at the DATA layer: counts come ONLY from the host-gated RPC and
+  show ONLY on the host management gallery as a subtle "♥ N" badge (a curation signal; also makes the data
+  ready for the future sort/filter system). No count ever reaches a guest.
+- **UI:** a `LikesProvider` (one per gallery — optimistic toggle + ONE shared anon→signup dialog with
+  pending-intent replay) + a `LikeButton` (desktop tile hover-reveal + the lightbox control row; mobile gets it
+  only in the lightbox). Wired into the guest event page, the Uploads tab, and the new Likes tab (where an
+  unlike drops the tile). `GoogleIcon` extracted + shared with Save.
+- **Verified:** a rolled-back contract matrix (every access arm — host/open/guest/denied — the host-gated count
+  returning zero to a non-host, the leak guard); `get_advisors` (the 3 RPCs in 0029, none in 0028); the grant
+  lock (`authenticated` has no INSERT). Live on partyreel.com (seeded media): host like via the lightbox → DB
+  row + the Likes tab populates + the host gallery shows "♥ 1"; unlike → row deleted + tile drops. Anon→signup
+  dialog + the desktop/mobile responsive split verified locally (Preview MCP).
+
+---
+
 ## 2026-06-09 — Delete-own uploads from the Uploads tab (`remove_my_upload`)
 
 The deferred follow-up to attribution P4 (the read-only Uploads hub): a per-item delete in the dashboard

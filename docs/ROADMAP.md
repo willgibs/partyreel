@@ -40,8 +40,14 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   full record in [`CHANGELOG.md`](CHANGELOG.md)): P1 required public display names + `allow_anonymous_uploads`,
   P2 the lightbox attribution caption, P3 claim-anonymous-uploads-on-sign-in, P4 the merged Events tab + the
   Uploads hub + "Recently deleted"→"Trash". **Deferred follow-up:** the cross-gallery sort/filter system the
-  `get_my_uploads` shape is already filter-ready for. (Delete-own from the Uploads tab SHIPPED 2026-06-09 via
-  the security-bearing `remove_my_upload` RPC, "soft but private to the host" → [`CHANGELOG.md`](CHANGELOG.md).)
+  `get_my_uploads` shape is already filter-ready for — now with a **like-count** sort dimension (Likes shipped
+  2026-06-09 → [`CHANGELOG.md`](CHANGELOG.md)). (Delete-own from the Uploads tab SHIPPED 2026-06-09 via the
+  security-bearing `remove_my_upload` RPC, "soft but private to the host" → [`CHANGELOG.md`](CHANGELOG.md).)
+- **Likes follow-ups (small, deferred 2026-06-09):** (a) the Likes tab shows a blank area (not the "No likes
+  yet" empty state) after unliking the LAST item, until a refresh — unlike has no server revalidation, so a
+  `router.refresh()` (or a client 0-count recheck) would close it; (b) password-event PURE viewers (unlocked
+  but never joined as a guest) can't like in v1 (the access predicate needs a guest/host row or an open album)
+  — add a server-mediated like route (ADR-0016 style, re-checking the unlock cookie) only if that edge matters.
 - **Gate the gallery VIEW behind the account/password for gated events (make account creation the INCENTIVE,
   not just an upload-blocker)** — TODAY an account-required event (`allow_anonymous_uploads=false`,
   `visibility='open'`) still lets an anonymous guest VIEW the full gallery; only UPLOAD is gated. That lets

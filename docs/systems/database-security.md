@@ -43,7 +43,8 @@ The expected, accepted set:
 - **Authenticated-only RPCs (lint `0029`):** the host/account RPCs — `get_host_upload_context`,
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
-  `save_event`/`get_saved_events`/`get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`.
+  `save_event`/`get_saved_events`/`get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`,
+  `like_media`/`get_my_likes`/`get_event_like_counts`.
   (`create_media_as_host` MOVED to service-role-only above when its size authority was hardened.) SECURITY
   DEFINER but `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via
   `auth.uid()` + ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
@@ -55,6 +56,12 @@ The expected, accepted set:
   own, like `get_saved_events`; SECURITY DEFINER + `auth.uid()`, filter-ready, ≤200. → [host-app.md](host-app.md).)
   (`remove_my_upload(uuid)` soft-deletes one of those uploads, re-checking the SAME host-arm/guest-arm ownership;
   a guest's self-deletion is marked `removed_by_uploader=true` = private to the host. → [lifecycle-recovery.md](lifecycle-recovery.md).)
+  (**Likes:** `like_media(uuid)` favorites a media the caller can SEE — host of its event, OR a guest of it, OR an
+  OPEN album — idempotent insert; `get_my_likes(integer)` is the cross-event "Likes" tab feed and RE-APPLIES that
+  access predicate so a now-inaccessible like never leaks its presigned key; `get_event_like_counts(uuid)` is
+  HOST-GATED (returns zero rows to a non-host) — the ONLY count path, so a like count NEVER reaches a guest
+  (host-only counts, enforced at the data layer). Unlike + heart-state are owner-RLS straight from the browser.
+  → [host-app.md](host-app.md).)
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,
@@ -73,6 +80,7 @@ The expected, accepted set:
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
   - **`profiles`** — writable: `email`, `announcements_seen_at`, `welcomed_at`. Service-role only: `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
   - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. `removed_by_uploader` is likewise ungranted (set only by the owner-context `remove_my_upload` RPC — a guest's private self-deletion marker).
+  - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes` (+ `insert(host_id)`, `update(deleted_at)`). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
 - **Value-gates a bare grant can't express are triggers/CHECK:** `enforce_event_pro_gates` (the
   `allow_anonymous_uploads` Pro gate — raises 42501 when a Free host tries to turn anonymous uploads OFF),
