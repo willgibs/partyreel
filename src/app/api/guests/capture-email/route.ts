@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { captureWarning } from "@/lib/observability/sentry";
+import {
+  abuseHashes,
+  checkAbuseRate,
+  recordAbuseEvent,
+} from "@/lib/security/abuse-rate-limit-store";
+import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,6 +50,29 @@ export async function POST(request: Request) {
     );
   }
 
+  // Abuse limiter: a light per-IP cap (already gated by a verified session, so abuse is bounded by account
+  // creation). Fail OPEN. The scope is a constant ("") → the per-scope count IS the per-IP count.
+  let captureKeys: { ipHash: string; scopeHash: string } | null = null;
+  try {
+    captureKeys = abuseHashes(clientIp(request.headers), "capture", "");
+    const gate = await checkAbuseRate(
+      "capture",
+      captureKeys.ipHash,
+      captureKeys.scopeHash,
+    );
+    if (!gate.allowed) {
+      return NextResponse.json(
+        { ok: false, code: "rate_limited" },
+        { status: 429, headers: { "Retry-After": String(gate.retryAfterSec) } },
+      );
+    }
+  } catch {
+    captureWarning("security", "abuse_limiter_unavailable_fail_open", {
+      kind: "capture",
+    });
+    captureKeys = null;
+  }
+
   // Email comes from the verified session, not the client. Best-effort: a newsletter write must never
   // surface an error to the user (the caller swallows it), so we 200 even on a DB error.
   const admin = createAdminClient();
@@ -53,6 +83,13 @@ export async function POST(request: Request) {
   });
   if (error) {
     return NextResponse.json({ ok: false, code: "failed" }, { status: 200 });
+  }
+  if (captureKeys) {
+    await recordAbuseEvent(
+      "capture",
+      captureKeys.ipHash,
+      captureKeys.scopeHash,
+    ).catch(() => {});
   }
   return NextResponse.json({ ok: true });
 }

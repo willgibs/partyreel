@@ -1,0 +1,84 @@
+/**
+ * Server-only store for the abuse rate-limiter. Reads/writes the deny-all `action_attempts` table via the
+ * service-role admin client; the breadth COUNT(DISTINCT) runs in the `action_rate` SECURITY DEFINER RPC
+ * (PostgREST can't COUNT DISTINCT). Privacy: stores ONLY HMAC hashes keyed by UNLOCK_COOKIE_SECRET (the
+ * existing rate-limit hashing secret) — never a raw IP or qr_token. See `abuse-rate-limit.ts` for the design
+ * + the per-kind thresholds; the guest routes wire it (and fail OPEN on any error).
+ */
+import "server-only";
+
+import { createHmac } from "node:crypto";
+
+import { serverEnv } from "@/lib/env";
+import {
+  ABUSE_LIMITS,
+  abuseRateDecision,
+  type AbuseKind,
+} from "@/lib/security/abuse-rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+function hmac(secret: string, input: string): string {
+  return createHmac("sha256", secret).update(input).digest("hex");
+}
+
+/**
+ * Derive the per-IP key + the per-event scope key (HMAC; never stores raw IP/qr_token). `scopeValue` is the
+ * qr_token for `join`/`report`; for per-IP-only kinds (`capture`) pass "" — the scope becomes a constant so
+ * the per-scope count IS the per-IP count. Throws if the secret is unset (callers catch + fail OPEN).
+ */
+export function abuseHashes(
+  ip: string,
+  kind: AbuseKind,
+  scopeValue: string,
+): { ipHash: string; scopeHash: string } {
+  const secret = serverEnv.UNLOCK_COOKIE_SECRET;
+  if (!secret) throw new Error("UNLOCK_COOKIE_SECRET unset");
+  return {
+    ipHash: hmac(secret, `a-ip:${ip}`),
+    scopeHash: hmac(secret, `a-scope:${kind}:${scopeValue}`),
+  };
+}
+
+/** Read the breadth + backstop snapshot (one RPC) and decide. Reads via the service-role client. */
+export async function checkAbuseRate(
+  kind: AbuseKind,
+  ipHash: string,
+  scopeHash: string,
+): Promise<{ allowed: boolean; retryAfterSec: number }> {
+  const cfg = ABUSE_LIMITS[kind];
+  const admin = createAdminClient();
+  const breadthSince = new Date(
+    Date.now() - cfg.breadthWindowMin * 60_000,
+  ).toISOString();
+  const scopeSince = new Date(
+    Date.now() - cfg.scopeWindowMin * 60_000,
+  ).toISOString();
+  const { data } = await admin.rpc("action_rate", {
+    p_kind: kind,
+    p_ip_hash: ipHash,
+    p_scope_hash: scopeHash,
+    p_breadth_since: breadthSince,
+    p_scope_since: scopeSince,
+  });
+  const snap = (data ?? {}) as {
+    distinct_scopes?: number;
+    scope_hits?: number;
+  };
+  return abuseRateDecision(
+    kind,
+    Number(snap.distinct_scopes ?? 0),
+    Number(snap.scope_hits ?? 0),
+  );
+}
+
+/** Record ONE action event (best-effort; callers ignore errors). */
+export async function recordAbuseEvent(
+  kind: AbuseKind,
+  ipHash: string,
+  scopeHash: string,
+): Promise<void> {
+  const admin = createAdminClient();
+  await admin
+    .from("action_attempts")
+    .insert({ kind, ip_hash: ipHash, scope_hash: scopeHash });
+}

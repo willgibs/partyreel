@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_attempts: {
+        Row: {
+          created_at: string
+          ip_hash: string
+          kind: string
+          scope_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          ip_hash: string
+          kind: string
+          scope_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          ip_hash?: string
+          kind?: string
+          scope_hash?: string | null
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           body: string
@@ -693,6 +714,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      action_rate: {
+        Args: {
+          p_breadth_since: string
+          p_ip_hash: string
+          p_kind: string
+          p_scope_hash: string
+          p_scope_since: string
+        }
+        Returns: Json
+      }
       capture_guest_email: {
         Args: {
           p_email: string

@@ -153,6 +153,7 @@ export async function GET(request: Request): Promise<Response> {
   );
   // Prune the unlock rate-limiter log — rows older than its longest window are dead weight.
   await runSweep("unlock_attempts", () => sweepUnlockAttempts(admin, now));
+  await runSweep("action_attempts", () => sweepActionAttempts(admin, now));
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }
@@ -868,5 +869,20 @@ async function sweepUnlockAttempts(admin: AdminClient, now: Date) {
     .delete({ count: "exact" })
     .lt("attempted_at", cutoff);
   if (error) throw new Error(`prune unlock_attempts: ${error.message}`);
+  return { pruned: count ?? 0, before: cutoff };
+}
+
+/**
+ * Sweep 10 — prune the abuse rate-limiter log (`action_attempts`). The limiter's widest window is 60 min, so
+ * rows older than a day are dead weight (and this cleans up rows orphaned by deleted events — no FK, by
+ * design). Mirrors sweep 9 (unlock_attempts).
+ */
+async function sweepActionAttempts(admin: AdminClient, now: Date) {
+  const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const { count, error } = await admin
+    .from("action_attempts")
+    .delete({ count: "exact" })
+    .lt("created_at", cutoff);
+  if (error) throw new Error(`prune action_attempts: ${error.message}`);
   return { pruned: count ?? 0, before: cutoff };
 }
