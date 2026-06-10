@@ -10,6 +10,33 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 rebuild program Phase 1: the identity exploration playground
+
+The v0→V1 full-app refactor/redesign program kicked off (8 phases; the program plan + settled decisions
+live in the session plan file; the active-state pointer is in [STATUS.md](STATUS.md)). Phase 1 shipped:
+commit `36627e3`.
+
+- A gated `(dev)/design` route group at **/design**: production 404s unless `?key=` timing-safe-matches
+  the new `DESIGN_PREVIEW_KEY` env var (set in `.env.local` + Vercel; dev mode is open); `noindex`,
+  linked nowhere, absent from the sitemap.
+- Three complete identity hypotheses as scoped token sheets (`design.css` `.dir-*` overrides of the raw
+  `@theme` vars) + per-direction display faces (Fraunces / Space Grotesk / Bricolage Grotesque, loaded
+  only on /design): **A Monochrome Editorial** (light paper, serif, ZERO accent), **B Monochrome
+  Night** (dark glass, zero accent, media as the light source), **C Warm Celebration** (the single
+  accent exploration, golden-amber). Set composition is 2 monochrome + 1 accent per Will's mid-build
+  call: brand color reads too loud next to photos; accent never rides inline iconography in ANY
+  direction.
+- Five identical-markup screens per direction (guest entry in a phone shell, live gallery + lightbox,
+  host dashboard, marketing hero, system specimen) + LIVE motion specimens per the emil-design-eng
+  craft standard (custom curves, <300ms, `@starting-style`, press feedback, reduced-motion variants).
+  Real Unsplash-licensed sample photos in `public/design/` make the media-is-the-color test honest.
+- Verified: full suite green; all three directions walked locally (Preview MCP, desktop + mobile);
+  live gate red-teamed on partyreel.com (no/wrong/empty key, subpages, bogus direction, param-case all
+  404; correct key 200 on all four pages; `noindex` meta confirmed; sitemap clean); full-page
+  screenshot pack captured FROM LIVE (Playwright, 3 directions x 2 widths) and delivered.
+- **No DDL, no production-surface changes.** Exit: Will picks a winner + remix notes; the choice gets
+  an ADR and the winning sheet transplants into `@theme` in Phase 2.
+
 ## 2026-06-09 — Gated gallery P3: host relabel + live guest-experience preview (initiative CLOSED)
 
 The final phase; the 3-phase gated-gallery initiative ([ADR-0017](adr/0017-gated-gallery-view-access.md)) is

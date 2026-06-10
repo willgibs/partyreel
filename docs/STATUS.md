@@ -4,13 +4,21 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-09
+**Updated:** 2026-06-10
 
 ## Where we are
 
+**THE ACTIVE INITIATIVE: the v0→V1 full-app refactor/redesign program** (approved 2026-06-10; 8 phases,
+each re-entering plan mode for sign-off; the program plan + settled decisions live in Will's session
+plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 (identity exploration) SHIPPED
+2026-06-10: three direction token sheets behind the gated **/design** route (`DESIGN_PREVIEW_KEY`).
+**Blocked on Will: pick a winning direction (+ remix notes) at /design** — Phase 2 (design foundation +
+safety nets) starts from that pick. Settled program decisions (hybrid doorbell gallery, 2-mono+1-accent
+identity set, emil-design-eng as the binding craft bar) are in the memory/plan; don't re-litigate.
+
 The **v1 foundation is built and verified in production** — the focused phased build is complete and the
-project is in **one-off-task mode** (a goal → its own small plan → build → verify on partyreel.com →
-record). Everything live is mapped in [`SYSTEMS.md`](SYSTEMS.md) (the index → the `systems/` deep docs);
+project was in **one-off-task mode** (a goal → its own small plan → build → verify on partyreel.com →
+record) until the program above took over as the main thread. Everything live is mapped in [`SYSTEMS.md`](SYSTEMS.md) (the index → the `systems/` deep docs);
 the dated shipping history is in [`CHANGELOG.md`](CHANGELOG.md). Live + verified: host auth (incl. email+
 password), the create wizard + QR designer + first-time welcome + custom slug, the unified guest event
 page (live polling gallery, 3-state visibility, verified-email gate, saved events), guest + host upload,
