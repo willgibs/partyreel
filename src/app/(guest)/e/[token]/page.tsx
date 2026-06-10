@@ -6,7 +6,6 @@ import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
-import { PasswordGate } from "@/components/guest/password-gate";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { getHostAvatarUrl } from "@/lib/db/queries/guest-events-admin";
@@ -68,11 +67,10 @@ export async function generateMetadata({
 
 // The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS the
 // capability (ADR-0004). State is a function of the host's `visibility`:
-//   private              → locked screen (master lock; no name/gallery/upload)
-//   password + no cookie → header + <PasswordGate> (name shown, no gallery/upload)
-//   password + unlocked  → full experience, media via the admin-read (the anon RPC
-//                          gates on visibility='open', so it never serves password media)
-//   open                 → header + action row (save / invite) + upload + live gallery
+//   private              → locked screen (master lock; no name/gallery/upload), an early return here
+//   password / account   → EventExperience renders the gate via the entry modal; an unsatisfied gate
+//                          resolves to access `none` (locked backdrop) or `teaser` (capped preview)
+//   open + anon / full   → header + action row (save / invite) + upload + live gallery
 // (accepting_uploads off → view-only: the upload panel is gone, leaving the action row +
 //  a "uploads closed" line + the gallery. EventExperience handles that layout branch.)
 export default async function GuestEventPage({
@@ -116,17 +114,12 @@ export default async function GuestEventPage({
     );
   }
 
-  // Password: gate until this request holds a valid unlock cookie for the event.
+  // Password unlock state, feeding the access resolution + the entry modal's password step. The
+  // password gate is no longer a full-page early-return (P2): the entry modal (in EventExperience)
+  // owns it, so a not-yet-unlocked password event resolves to access `none` (a locked backdrop with
+  // the modal over it).
   const unlocked =
     event.visibility === "password" ? await isUnlocked(event.id) : true;
-  if (event.visibility === "password" && !unlocked) {
-    return (
-      <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={event.qr_token} eventId={event.id} />
-        <PasswordGate token={event.qr_token} eventName={event.name} />
-      </div>
-    );
-  }
 
   // Open, or password + unlocked. Resolve this viewer's gallery ACCESS (none/teaser/full) and load
   // exactly that much media server-side, so the withheld set never reaches the browser (the gated-
@@ -192,6 +185,7 @@ export default async function GuestEventPage({
         teaserTotal={teaserTotal}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
+        isOwner={isOwner}
       />
     </div>
   );

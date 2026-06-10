@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, Images } from "lucide-react";
 
 import { EmailSignIn } from "@/components/auth/email-sign-in";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,12 @@ import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 import { signInSchema } from "@/lib/validation/auth";
 
-// Shown on the /e/ page when the host requires an account to upload (allow_anonymous_uploads =
-// false). All roads lead to an account: email is PRIMARY (one tap sends a code + magic link that
-// creates the account or logs in, no password needed), with a subtle password option for returning
-// users. After auth, router.refresh() re-runs the page RSC, which then shows the name step (a brand-
-// new account) or the upload panel. The gallery stays visible behind this -- viewing is always
-// allowed; only uploading needs the account.
+// The entry modal's ACCOUNT step (account-required events, allow_anonymous_uploads = false). All roads
+// lead to an account: email is PRIMARY (one tap sends a code + magic link that creates the account or
+// logs in, no password needed), with a subtle password option for returning users. After auth,
+// router.refresh() re-runs the page RSC -> access becomes `full` -> the modal closes (then the name
+// step, if a brand-new account, or the upload panel). P1 gated the VIEW, so an account now unlocks
+// SEEING the full gallery, not just uploading. Renders inside the Dialog (no card wrapper of its own).
 export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<"email" | "password">("email");
@@ -27,14 +27,14 @@ export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
       : `/auth/callback?next=/e/${qrToken}`;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 text-center">
+    <div className="text-center">
       <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
-        <LogIn className="size-5" />
+        <Images className="size-5" />
       </div>
-      <p className="text-sm font-medium">Enter event to add photos</p>
+      <p className="text-sm font-medium">See all the photos</p>
       <p className="mx-auto mt-1 mb-4 max-w-xs text-sm text-muted-foreground">
-        This event asks guests to sign in first. We&rsquo;ll email you a one-tap
-        link, no password needed.
+        Create a free account to see everything and add your own. We&rsquo;ll
+        email you a one-tap link, no password needed.
       </p>
       <div className="mx-auto max-w-xs text-left">
         {mode === "email" ? (

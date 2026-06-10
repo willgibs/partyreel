@@ -69,10 +69,9 @@ export function PasswordGate({
   }
 
   return (
-    <div
-      data-password-gate
-      className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-4 px-5 py-20 text-center"
-    >
+    <div className="flex w-full flex-col items-center gap-4 text-center">
+      {/* Rendered as the entry modal's password STEP (the modal provides the surface + entrance);
+          no full-screen wrapper. The form + the 5-wrong/20s cooldown + the unlock call are unchanged. */}
       <div
         className={cn(
           "flex size-11 items-center justify-center rounded-full",

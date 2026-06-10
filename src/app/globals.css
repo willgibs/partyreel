@@ -247,14 +247,14 @@
     }
   }
 
-  /* The password sub-panel in event settings, the guest password gate, the OTP code-entry
-     crossfade (email -> "enter your code", in <EmailSignIn>), and the custom-link live
-     availability status line (re-keyed per verdict in <EventSlugControl>, so it fades on each
-     change) ease in when revealed: opacity + a small rise, @starting-style so it fires on
+  /* The password sub-panel in event settings, the entry-modal steps (welcome/password/account, each
+     re-keyed so it crossfades on every step change), the OTP code-entry crossfade (email -> "enter your
+     code", in <EmailSignIn>), and the custom-link live availability status line (re-keyed per verdict in
+     <EventSlugControl>) ease in when revealed: opacity + a small rise, @starting-style so it fires on
      mount only. Never scale from 0. transform+opacity only; reduced motion gets no movement. */
   @media (prefers-reduced-motion: no-preference) {
     [data-settings-reveal],
-    [data-password-gate],
+    [data-entry-step],
     [data-otp-entry],
     [data-slug-status] {
       transition:

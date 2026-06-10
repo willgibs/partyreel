@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 
 import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
-import { LikesProvider } from "@/components/likes/likes-provider";
+import {
+  EntryModal,
+  type EntryModalHandle,
+} from "@/components/guest/entry-modal";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -12,11 +16,13 @@ import {
 } from "@/components/guest/guest-upload";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { SaveEventButton } from "@/components/guest/save-event-button";
-import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
+import { LikesProvider } from "@/components/likes/likes-provider";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
+import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
+import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
@@ -36,6 +42,7 @@ export function EventExperience({
   teaserTotal,
   needsName,
   hostAvatarUrl,
+  isOwner,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -43,9 +50,9 @@ export function EventExperience({
   initialItems: GridMedia[];
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
-  /** Server-resolved gallery access (none/teaser/full). In P1 it is `teaser` or `full` here (the page
-   *  early-returns for the password `none` gate). `teaser` swaps the upload area for the account step
-   *  (EnterEventPrompt) and shows a "create an account to see all" caption under the capped grid. */
+  /** Server-resolved gallery access (none/teaser/full), driving the entry modal's gate. `none` =
+   *  password not yet unlocked (a locked backdrop; the modal shows the password step). `teaser` = the
+   *  capped preview + a "See all" button that opens the modal's account step. `full` = full experience. */
   access: GalleryAccess;
   /** Total approved-photo count for the "+N more" teaser caption; null outside the teaser. */
   teaserTotal: number | null;
@@ -55,6 +62,8 @@ export function EventExperience({
   /** Presigned host avatar URL for the "Hosted by" byline; null = no avatar (no photo shown,
    *  never an initials fallback in this guest context). Phase 3. */
   hostAvatarUrl: string | null;
+  /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
+  isOwner: boolean;
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
@@ -62,8 +71,11 @@ export function EventExperience({
   const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
   const blobUrls = useRef(new Map<string, string>()); // mediaId → object URL
   // Last server-resolved access, so we can resync the gallery when the gate flips (teaser → full
-  // after the viewer signs in via the in-page account step, which triggers a router.refresh()).
+  // after the viewer signs in via the entry modal, which triggers a router.refresh()).
   const prevAccess = useRef(access);
+  const entryRef = useRef<EntryModalHandle>(null);
+  // The gate(s) for this access level (none -> password; teaser -> account); drives the entry modal.
+  const gateSteps = gateStepsForAccess(access);
 
   // Re-fetch the latest approved media (presigned) and reconcile optimistic tiles.
   const refresh = useCallback(async () => {
@@ -108,7 +120,8 @@ export function EventExperience({
   // In demo mode there's nothing to poll — the curated media is static and the
   // simulated tiles are local-only — so skip it entirely.
   useEffect(() => {
-    if (isDemo) return;
+    // Nothing to poll at `none` (no gallery behind the password gate) or in the demo.
+    if (isDemo || access === "none") return;
     let timer: ReturnType<typeof setInterval> | null = null;
     const start = () => {
       if (!timer) timer = setInterval(refresh, POLL_MS);
@@ -133,7 +146,7 @@ export function EventExperience({
       stop();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [refresh, isDemo]);
+  }, [refresh, isDemo, access]);
 
   // Revoke any lingering blob URLs on unmount.
   useEffect(() => {
@@ -179,6 +192,14 @@ export function EventExperience({
           guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
           toast); self-guards when logged out. */}
       <ClaimUploadsOnAuth silent />
+      <EntryModal
+        ref={entryRef}
+        qrToken={qrToken}
+        eventName={event.name}
+        gateSteps={gateSteps}
+        isOwner={isOwner}
+        isDemo={isDemo}
+      />
       {isDemo && (
         <div className="mb-6 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-center text-xs text-muted-foreground">
           You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t
@@ -189,118 +210,135 @@ export function EventExperience({
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
           {event.name}
         </h1>
-        {/* "Hosted by" shows ONLY when the host set a real name (Phase 2: null = unset). The
-            photo shows ONLY if an avatar exists — no initials fallback in this guest context. */}
-        {event.host_display_name?.trim() && (
-          <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
-            <span>Hosted by</span>
-            {hostAvatarUrl && (
-              // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
-              <img
-                src={hostAvatarUrl}
-                alt=""
-                className="size-5 rounded-full object-cover"
-              />
+        {/* Host / date / description are hidden at `none` so a locked password event behind the modal
+            reveals only the NAME (matching the OG metadata + the old locked screen). "Hosted by" shows
+            only when the host set a real name; the avatar only if one exists (no initials fallback here). */}
+        {access !== "none" && (
+          <>
+            {event.host_display_name?.trim() && (
+              <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
+                <span>Hosted by</span>
+                {hostAvatarUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
+                  <img
+                    src={hostAvatarUrl}
+                    alt=""
+                    className="size-5 rounded-full object-cover"
+                  />
+                )}
+                <span>{event.host_display_name}</span>
+              </p>
             )}
-            <span>{event.host_display_name}</span>
-          </p>
-        )}
-        {event.event_date && (
-          <p className="text-sm text-muted-foreground">
-            {formatEventDate(event.event_date)}
-          </p>
-        )}
-        {event.description && (
-          <p className="mx-auto max-w-prose text-sm text-pretty text-muted-foreground">
-            {event.description}
-          </p>
+            {event.event_date && (
+              <p className="text-sm text-muted-foreground">
+                {formatEventDate(event.event_date)}
+              </p>
+            )}
+            {event.description && (
+              <p className="mx-auto max-w-prose text-sm text-pretty text-muted-foreground">
+                {event.description}
+              </p>
+            )}
+          </>
         )}
       </header>
 
-      {/* Action row (Part 2 redesign): Save (the growth lever) + Invite (share/QR),
-          directly under the header so the upload panel and gallery stay CONTIGUOUS below
-          (the share no longer splits them). Save is the "create a free account to save"
-          moment for signed-out visitors; hidden in the demo (not a real event). Invite
-          folds the QR + link share behind one trigger. */}
-      <div className="mt-5 flex items-center justify-center gap-2">
-        {!isDemo && <SaveEventButton eventId={event.id} qrToken={qrToken} />}
-        <GuestShare
-          joinUrl={joinUrl}
-          qrStyle={event.qr_style}
-          eventName={event.name}
-        />
-      </div>
-
-      {/* Below the header: the account step, the upload panel, or a closed-uploads line. A `teaser`
-          viewer (account-required, signed out) gets the "Enter event" account step first (the path to
-          the full gallery; the unified modal subsumes this in P2). Otherwise, while the host accepts
-          uploads: a signed-in but nameless uploader sets a name first, else the upload panel
-          (anonymous-friendly). When uploads are off the event is view-only (ADR-0010): a quiet line. */}
-      {access === "teaser" ? (
-        <div className="mt-7">
-          <EnterEventPrompt qrToken={qrToken} />
-        </div>
-      ) : event.accepting_uploads ? (
-        <div className="mt-7">
-          {needsName ? (
-            <div className="rounded-xl border border-border bg-card p-5">
-              <SetNameStep
-                title="Add your name to upload"
-                submitLabel="Save and continue"
-                onSaved={() => router.refresh()}
-              />
-            </div>
-          ) : (
-            <GuestUpload
-              event={event}
-              qrToken={qrToken}
-              sessionToken={sessionToken}
-              onSession={setSessionToken}
-              onUploaded={handleUploaded}
-              isDemo={isDemo}
-            />
-          )}
+      {access === "none" ? (
+        // Password not yet unlocked: a quiet locked backdrop. The entry modal (the firm password step)
+        // overlays this; nothing real is shown until the password is entered.
+        <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-3 py-10 text-center text-muted-foreground">
+          <div className="flex size-11 items-center justify-center rounded-full bg-muted">
+            <Lock className="size-5" />
+          </div>
+          <p className="text-sm">
+            This event is private. Enter the password to view it.
+          </p>
         </div>
       ) : (
-        !isDemo && (
-          <p className="mt-7 text-center text-sm text-muted-foreground">
-            The host has closed uploads. You can still browse the gallery.
-          </p>
-        )
-      )}
+        <>
+          {/* Action row: Save (the growth lever) + Invite (share/QR), directly under the header. Save
+              is the "create a free account to save" moment; hidden in the demo (not a real event). */}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            {!isDemo && <SaveEventButton eventId={event.id} qrToken={qrToken} />}
+            <GuestShare
+              joinUrl={joinUrl}
+              qrStyle={event.qr_style}
+              eventName={event.name}
+            />
+          </div>
 
-      <section className="mt-9">
-        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-          {items.length > 0
-            ? `${items.length} ${items.length === 1 ? "photo" : "photos"} & videos`
-            : "Gallery"}
-        </h2>
-        {items.length > 0 ? (
-          // Likes are enabled here: anonymous guests get the like button -> the create-account flow,
-          // signed-in guests toggle in place. Counts stay host-only (not shown on this surface).
-          <LikesProvider mediaIds={items.map((m) => m.id)}>
-            <MediaGrid items={items} />
-          </LikesProvider>
-        ) : (
-          <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-            No photos yet. Be the first to share one.
-          </p>
-        )}
-        {access === "teaser" && (
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            {teaserTotal !== null && teaserTotal > items.length
-              ? `Create a free account to see all ${teaserTotal} photos.`
-              : "Create a free account to see everything and add your own."}
-          </p>
-        )}
-      </section>
+          {/* Upload area — only at `full` access (a `teaser` viewer must create an account first, which
+              the entry modal / the "See all" button own). While accepting: a signed-in but nameless
+              uploader sets a name first, else the upload panel. Uploads off => a quiet view-only line. */}
+          {access === "full" &&
+            (event.accepting_uploads ? (
+              <div className="mt-7">
+                {needsName ? (
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <SetNameStep
+                      title="Add your name to upload"
+                      submitLabel="Save and continue"
+                      onSaved={() => router.refresh()}
+                    />
+                  </div>
+                ) : (
+                  <GuestUpload
+                    event={event}
+                    qrToken={qrToken}
+                    sessionToken={sessionToken}
+                    onSession={setSessionToken}
+                    onUploaded={handleUploaded}
+                    isDemo={isDemo}
+                  />
+                )}
+              </div>
+            ) : (
+              !isDemo && (
+                <p className="mt-7 text-center text-sm text-muted-foreground">
+                  The host has closed uploads. You can still browse the gallery.
+                </p>
+              )
+            ))}
 
-      {/* Discreet anonymous report path (the report capability is the qr_token).
-          Hidden in the demo (nothing real to report). */}
-      {!isDemo && (
-        <footer className="mt-8 flex justify-center border-t border-border/60 pt-5">
-          <ReportDialog qrToken={qrToken} />
-        </footer>
+          <section className="mt-9">
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+              {items.length > 0
+                ? `${items.length} ${items.length === 1 ? "photo" : "photos"} & videos`
+                : "Gallery"}
+            </h2>
+            {items.length > 0 ? (
+              // Likes: anonymous guests get the like button -> the create-account flow; signed-in
+              // guests toggle in place. Counts stay host-only (not shown on this surface).
+              <LikesProvider mediaIds={items.map((m) => m.id)}>
+                <MediaGrid items={items} />
+              </LikesProvider>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+                No photos yet. Be the first to share one.
+              </p>
+            )}
+            {access === "teaser" && (
+              // The teaser boundary CTA: re-opens the entry modal to the account step (the soft paywall).
+              <div className="mt-5 flex justify-center">
+                <Button
+                  onClick={() => entryRef.current?.openToGate()}
+                  className="active:scale-[0.99]"
+                >
+                  {teaserTotal !== null && teaserTotal > items.length
+                    ? `See all ${teaserTotal} photos`
+                    : "Create a free account to see everything"}
+                </Button>
+              </div>
+            )}
+          </section>
+
+          {/* Discreet anonymous report path (the report capability is the qr_token). */}
+          {!isDemo && (
+            <footer className="mt-8 flex justify-center border-t border-border/60 pt-5">
+              <ReportDialog qrToken={qrToken} />
+            </footer>
+          )}
+        </>
       )}
     </div>
   );
