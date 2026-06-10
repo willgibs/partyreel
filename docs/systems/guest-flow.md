@@ -27,8 +27,8 @@ they're never shown here → [host-app.md](host-app.md), [database-security.md](
 ## State follows `visibility` (ADR-0007) — a 3-state enum, NOT a boolean
 
 - **`private`** = the master lock → a locked screen (no name / gallery / upload); `generateMetadata` hides the name.
-- **`password`** → a `<PasswordGate>` (name shown — it's link-shared, not the secret) until a signed unlock
-  cookie is present, then the full experience.
+- **`password`** → access `none`: a quiet locked backdrop (name shown — it's link-shared, not the secret) with
+  the entry modal's password step over it, until a signed unlock cookie is present; then the full experience.
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
   viewer then gets a teaser (see "Gallery access" below).
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
@@ -53,9 +53,31 @@ IDENTICALLY by the RSC and the poll via the server-only `loadGalleryForAccess`
 ★ **The withheld set never reaches the browser** — the teaser is a capped server read (`getApprovedPhotoTeaser`,
 self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a CSS blur over a loaded gallery,
 so dev-tools or a direct poll call can't reveal it. ★ **The poll enforces the SAME level** — it was previously
-unauthenticated, so gating only the RSC would be a trivial bypass. This is P1; the unified entry modal (P2,
-folding in `<PasswordGate>` + `<EnterEventPrompt>`) and the host "Require guest accounts" relabel (P3) follow
+unauthenticated, so gating only the RSC would be a trivial bypass. The guest-facing gate for these levels is the
+entry modal (below). The host "Require guest accounts" relabel + live preview (P3) is the remaining phase
 (→ [ROADMAP.md](../ROADMAP.md)).
+
+## The entry modal (welcome + the gates, P2)
+
+One `Dialog` ([`entry-modal.tsx`](../../src/components/guest/entry-modal.tsx)) drives all guest entry, with
+ordered steps that adapt to the event: `welcome → password? → account?`. The CURRENT step is always the first
+un-satisfied one; advancement is SERVER-DRIVEN — each step's existing form (`<PasswordGate>` / `<EnterEventPrompt>`,
+reused as step bodies) calls `router.refresh()` on success, which re-runs the RSC, drops the satisfied gate from
+the access-derived `gateSteps` ([`gateStepsForAccess`](../../src/lib/guest/entry-steps.ts)), and re-derives the
+step. No client step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + unit-tested).
+
+- **welcome** — the always-on friendly front door + mini-guide, shown on the FIRST visit per device
+  (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts), the
+  `useSyncExternalStore` pattern; server snapshot "seen" = no flash), even on a fully public event. Suppressed
+  for the owner + the demo. The button reads "Continue" when a gate follows, else "View event".
+- **Dismissibility fits what's behind each step** ("dismiss to what?"): welcome is freely dismissable (X /
+  backdrop / Escape) to the page behind it; the **password** step is FIRM (`showCloseButton={false}` + prevented
+  `onInteractOutside`/`onEscapeKeyDown`) since nothing is behind it but the locked event; the **account** step
+  closes back to the browsable teaser, and the gallery's "See all N photos" button re-opens it (the
+  `EntryModalHandle.openToGate` ref). Shell is Radix `Dialog` only (a swipe-away drawer would mis-signal a
+  must-complete gate). Step crossfade via `[data-entry-step]` (globals.css).
+- **Auto-open** when the welcome is due OR the first gate is `password` (it IS the page); an `account`-only gate
+  does NOT auto-open on a return visit — the guest browses the teaser, opening the account step on desire.
 
 ## Invariants (don't break)
 
@@ -74,11 +96,11 @@ folding in `<PasswordGate>` + `<EnterEventPrompt>`) and the host "Require guest 
   behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check (`isEventOwner`, an explicit
   `host_id = uid` match — NOT reliant on the open-event RLS read) runs ONLY when signed in. The header island
   still resolves its own auth with a LOCAL `getSession()`.
-- **Upload slot follows the access level + `accepting_uploads`** (a closed event is view-only, never gated):
-  `access === 'teaser'` → swap the slot for the account step (`<EnterEventPrompt>`, the path to `full`);
-  otherwise, while accepting, `needsName` (signed in but no `display_name`) → the required name step (the upload
-  is attributed), else the upload panel. Anonymous uploaders on an anonymous-allowed event are never gated.
-  (`needsAccount` was REMOVED — the `teaser` access state subsumes it.)
+- **The upload slot is `full`-only** (a `teaser`/`none` viewer has not entered; the entry modal owns the
+  account/password gate). At `full`, while `accepting_uploads`: `needsName` (signed in, no `display_name`) → the
+  required name step (the upload is attributed), else the upload panel (anonymous-friendly); uploads off → the
+  view-only line. At `teaser` the slot is just the gallery + a "See all N photos" button that opens the modal's
+  account step; at `none` a locked backdrop (name only). (`needsAccount` was REMOVED — `access` drives it.)
 
 ## Joining + identity
 
@@ -87,10 +109,10 @@ folding in `<PasswordGate>` + `<EnterEventPrompt>`) and the host "Require guest 
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
 - **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
   gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). The account step swaps the upload
-  slot for `<EnterEventPrompt>` — an email-primary "Enter event" (the shared
+  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). The account step lives in the entry
+  modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
-  secondary password login; the gallery stays visible. `create_guest` derives identity (`user_id` + `email`)
+  secondary password login; the teaser shows behind it. `create_guest` derives identity (`user_id` + `email`)
   from `auth.uid()`, NEVER the client, and raises when `not allow_anonymous_uploads` and there's no confirmed
   session; on a session it stamps `guests.user_id` (account-from-guest). No verification-only paths exist — an
   account simply proves ownership. A signed-in uploader with no `display_name` then hits the required name step.

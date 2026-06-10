@@ -43,21 +43,15 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   `get_my_uploads` shape is already filter-ready for — now with a **like-count** sort dimension (Likes shipped
   2026-06-09 → [`CHANGELOG.md`](CHANGELOG.md)). (Delete-own from the Uploads tab SHIPPED 2026-06-09 via the
   security-bearing `remove_my_upload` RPC, "soft but private to the host" → [`CHANGELOG.md`](CHANGELOG.md).)
-- **Gated gallery — make account creation the INCENTIVE to SEE (3-phase initiative). P1 SHIPPED 2026-06-09**
-  (server-enforced `none|teaser|full` access + the capped real-photo teaser; the previously-unauthenticated
-  poll bypass closed → [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md)). The
-  reframe (from a live observation): a signed-out viewer of an account-required event sees a teaser, not the
-  full gallery, so the account is the reward, not just an upload-blocker. **Remaining:**
-  - **P2 — the unified entry modal + first-visit welcome.** One ordered `welcome → password? → account?` modal
-    (fold `<PasswordGate>` + `<EnterEventPrompt>` into shared steps; password BEFORE account); a light,
-    one-tap-dismiss welcome on the FIRST visit per event (per-device), even for public events (the friendly
-    front door + mini-guide). Teaser sits behind it; the password step's `none` backdrop is decorative (no real
-    images). Motion per the master plan's design-and-motion spec (anchored shell, `blur(2px)` step crossfade,
-    NON-dismissible gate steps, staggered teaser→full reveal). Removes the `/e/` password early-return (the
-    modal owns it).
+- **Gated gallery — make account creation the INCENTIVE to SEE (3-phase initiative). P1 + P2 SHIPPED 2026-06-09**
+  (→ [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md)). P1: server-enforced
+  `none|teaser|full` access + the capped real-photo teaser (the previously-unauthenticated poll bypass closed).
+  P2: the unified entry `Dialog` (`welcome → password? → account?`, server-driven via `router.refresh()`; the
+  always-on first-visit welcome; dismissibility fits what's behind each step — welcome easy, password firm,
+  account closes to the teaser; Radix Dialog only, NOT a swipe-away drawer). **Remaining:**
   - **P3 — host relabel + live preview.** Rename the upload-centric toggle to "Require guest accounts" (keep the
     boolean column, invert the switch) + a live "what your guests will experience" summary across the
-    password × accounts combos. ADR-0004 / ADR-0007.
+    password × accounts combos. ADR-0004 / ADR-0007. (Re-enter plan mode for a dedicated P3 round.)
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits

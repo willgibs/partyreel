@@ -10,6 +10,36 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Gated gallery P2: the unified entry modal + first-visit welcome
+
+P1's server-enforced gate gets its face. One `Dialog` ([`entry-modal.tsx`](systems/guest-flow.md)) drives all
+guest entry with ordered steps that adapt to the event: `welcome → password? → account?`. Commit `966ee0e`.
+
+- **Server-driven steps:** `computeEntry` (pure, unit-tested) derives the ordered steps from the access-derived
+  `gateSteps` + a first-visit flag; each step's existing form (`<PasswordGate>` / `<EnterEventPrompt>`, reused as
+  step bodies) advances via `router.refresh()` → the RSC re-resolves → the satisfied gate drops. No client
+  step-machine.
+- **Welcome** = the always-on friendly front door + a light mini-guide, shown on the first visit per device
+  (`pr_welcome_<qrToken>` via `useSyncExternalStore`), even on a fully public event; suppressed for the
+  owner/demo. The button reads "Continue" when a gate follows, else "View event".
+- **Dismissibility fits what's behind each step** (Will's "dismiss to what?"): welcome freely dismissable to the
+  page behind; password FIRM (no X / backdrop / Escape — nothing behind it but the locked event); account closes
+  to the browsable teaser, re-opened by the gallery's "See all N photos" button. Shell is Radix `Dialog` ONLY (a
+  swipe-away drawer would mis-signal a must-complete gate) — a deliberate reshape from the master sketch's
+  Drawer-on-mobile idea.
+- Removed the full-page password early-return (the modal owns it); the `none` state renders a locked backdrop
+  revealing only the NAME (privacy parity with the OG metadata + the old locked screen). `<EnterEventPrompt>`
+  reframed for the VIEW gate ("See all the photos"); `<PasswordGate>` lost its full-screen wrapper (now a step
+  body); a `[data-entry-step]` crossfade.
+- **No DDL.** Verified locally against the real prod DB (anonymous localhost = a true guest context): the welcome
+  ("View event" public / "Continue" gated), the account step over the teaser + the "See all" re-open, the FIRM
+  password step (no Close), the locked-backdrop name-only privacy, first-visit-fires-once. Live render confirmed
+  on partyreel.com (the welcome modal renders for a signed-in non-owner first visit; no SSR/hydration crash). The
+  signed-out OTP-completion inside the modal reuses the unchanged `<EnterEventPrompt>`/`<EmailSignIn>` flow (live
+  since P1). Testing note: a stale service worker in the test browser profile was masking edits mid-session (the
+  app ships NO service worker; cleared it) — a localhost-caching gotcha worth remembering.
+- **Next:** P3 (host relabel to "Require guest accounts" + a live "what your guests will experience" preview).
+
 ## 2026-06-09 — Gated gallery P1: server-enforced gallery access + teaser (gate the VIEW)
 
 Account-required (`allow_anonymous_uploads = false`) and password events previously gated only UPLOAD, so an

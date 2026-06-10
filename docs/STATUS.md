@@ -24,9 +24,9 @@ data-layer security hardening. Canonical domain
 **Only scaffolded:** the highlight reel (DB scaffold only; the build is tabled pending a worker-platform
 decision — see [ROADMAP.md](ROADMAP.md)).
 
-**In flight:** the gated-gallery initiative — P1 (server-enforced `none/teaser/full` view access + the
-real-photo teaser) shipped 2026-06-09; the unified entry modal (P2) + the host "Require guest accounts"
-relabel (P3) are next ([ROADMAP.md](ROADMAP.md)).
+**In flight:** the gated-gallery initiative — P1 (server-enforced `none/teaser/full` view access + teaser) and
+P2 (the unified entry modal + first-visit welcome) shipped 2026-06-09; the host "Require guest accounts" relabel
++ live preview (P3) is the remaining phase ([ROADMAP.md](ROADMAP.md)).
 
 ## Infrastructure
 
