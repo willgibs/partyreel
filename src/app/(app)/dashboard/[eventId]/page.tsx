@@ -33,6 +33,7 @@ import {
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
+import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { listEventMedia, listRecentlyDeletedMedia } from "@/lib/db/queries/media";
@@ -141,17 +142,13 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // One "views" metric now (the album/join split is gone); sum keeps historical counts.
   const views = linkStats.qrScans + linkStats.albumViews;
-  // Config-aware: what a guest can do with the link, driven by visibility + uploads.
-  const accessLine =
-    event.visibility === "private"
-      ? "Private. Only you can open this link."
-      : event.visibility === "password"
-        ? event.accepting_uploads
-          ? "Anyone with this link and the password can view and add photos."
-          : "Anyone with this link and the password can view the photos. Uploads are closed."
-        : event.accepting_uploads
-          ? "Anyone with this link can view and add photos."
-          : "Anyone with this link can view the photos. Uploads are closed.";
+  // Config-aware: what a guest experiences with the link (visibility + accounts + uploads). Shares the
+  // single-source helper with the settings form's live preview, so the two never drift.
+  const accessLine = guestExperienceSummary({
+    visibility: event.visibility,
+    accountRequired: !event.allow_anonymous_uploads,
+    acceptingUploads: event.accepting_uploads,
+  });
 
   return (
     <div className="space-y-8">

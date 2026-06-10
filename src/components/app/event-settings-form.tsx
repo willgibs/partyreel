@@ -17,6 +17,7 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import type { HostEvent } from "@/lib/db/queries/events";
+import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
 import {
   updateEventSchema,
@@ -101,6 +102,20 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
     useWatch({ control: form.control, name: "visibility" }) ?? "open";
   const passwordSelectedWithoutHash =
     visibility === "password" && !event.has_password;
+
+  // Live "what your guests will experience" summary — recomputed as the host flips the access toggles
+  // (visibility/password + accounts + uploads). Shares one source with the dashboard access line.
+  const accountRequired = !(
+    useWatch({ control: form.control, name: "allow_anonymous_uploads" }) ?? true
+  );
+  const acceptingUploads =
+    useWatch({ control: form.control, name: "accepting_uploads" }) ??
+    event.accepting_uploads;
+  const guestSummary = guestExperienceSummary({
+    visibility,
+    accountRequired,
+    acceptingUploads,
+  });
 
   function onSubmit(values: UpdateEventValues) {
     startSaving(async () => {
@@ -364,10 +379,11 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between gap-4">
                     <div className="space-y-0.5">
-                      <FormLabel>Allow anonymous uploads</FormLabel>
+                      <FormLabel>Require guest accounts</FormLabel>
                       <FormDescription>
-                        On by default. Turn this off to require guests to sign in
-                        before uploading, so every upload is tied to a name.
+                        When on, guests create a free account to see the full
+                        gallery and add photos (a few previews show first). Off
+                        lets anyone with the link view and add anonymously.
                         {anonLocked && (
                           <>
                             {" "}
@@ -384,14 +400,22 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                        checked={!field.value}
+                        onCheckedChange={(checked) => field.onChange(!checked)}
                         disabled={anonLocked}
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
+              {/* Live "what your guests will experience" line — re-keyed so it crossfades on each change. */}
+              <p
+                key={guestSummary}
+                data-settings-reveal
+                className="text-sm text-muted-foreground"
+              >
+                {guestSummary}
+              </p>
               {/* Video uploads — a read-only STATUS, not a toggle. The gate is
                   tier-driven and enforced at upload (create_media), so there's no
                   host switch: a free event is photos-only for guests AND the host. */}
