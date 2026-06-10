@@ -1,0 +1,256 @@
+/*
+  V1 identity exploration token sheets (program Phase 1; gated /design route).
+
+  Each `.dir-*` scope is a COMPLETE visual hypothesis: it redefines every raw
+  token the screens consume (globals.css maps Tailwind utilities to these via
+  `@theme inline`, so overriding the raw vars on a wrapper re-themes the whole
+  subtree). Sheets define ALL surface vars so the visitor's light/dark theme
+  cannot leak into a direction; what you see is the direction, deterministically.
+
+  Per-direction treatment rides on three hooks the screens share:
+    [data-dir-display] - display/heading type (family, tracking, weight)
+    [data-dir-card]    - the card surface treatment (hairline vs shadow vs glass)
+    [data-dir-press] / [data-dir-enter] / [data-dir-stagger] - the motion system
+
+  Motion follows the craft standard (emil-design-eng): strong custom curves only,
+  UI under 300ms, entrances from scale(0.95-0.98)+opacity via @starting-style,
+  transitions (interruptible) not keyframes, reduced-motion keeps the fade and
+  drops the movement.
+*/
+
+/* ───────────────────────────── A. Monochrome Editorial ─────────────────────
+   Pure black/white chrome, ZERO accent: --brand maps to ink so anything
+   accent-tinted renders monochrome. The photos are the only color. Type-led
+   (Fraunces display), hairline borders, generous air, near-instant motion. */
+.dir-monochrome {
+  --background: oklch(0.995 0 0);
+  --foreground: oklch(0.13 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.13 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.13 0 0);
+  --primary: oklch(0.13 0 0);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.13 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.13 0 0);
+  --destructive: oklch(0.55 0.21 27);
+  --border: oklch(0.905 0 0);
+  --input: oklch(0.905 0 0);
+  --ring: oklch(0.3 0 0);
+  --radius: 0.5rem;
+
+  /* No accent, by design: brand-colored things become ink. */
+  --brand: oklch(0.13 0 0);
+  --brand-foreground: oklch(0.99 0 0);
+
+  --font-heading: var(--font-display-a);
+  --dir-like: oklch(0.97 0 0); /* liked-state on the dark gallery surface: white ink */
+  --dir-duration: 170ms;
+  --dir-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dir-monochrome [data-dir-display] {
+  font-family: var(--font-display-a);
+  /* Fraunces is a serif: editorial tracking sits near zero, not Inter-tight. */
+  letter-spacing: -0.01em;
+  font-weight: 560;
+}
+
+.dir-monochrome [data-dir-card] {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* Hairline only. Depth comes from type and spacing, never shadow. */
+}
+
+/* ───────────────────────────── C. Warm Celebration ─────────────────────────
+   The SINGLE accent exploration: golden-amber sunset, warm paper, soft layered
+   elevation, rounded geometry (radius 1rem), Bricolage Grotesque display.
+   Softer settles, and the ONE celebratory moment lives here (upload success on
+   the specimen page). Even here the accent stays off inline iconography:
+   CTA + punctuation only. */
+.dir-celebration {
+  --background: oklch(0.985 0.009 80);
+  --foreground: oklch(0.235 0.022 50);
+  --card: oklch(0.999 0.004 85);
+  --card-foreground: oklch(0.235 0.022 50);
+  --popover: oklch(0.999 0.004 85);
+  --popover-foreground: oklch(0.235 0.022 50);
+  /* Amber CTA: dark warm ink ON amber (white on amber fails contrast). */
+  --primary: oklch(0.74 0.145 68);
+  --primary-foreground: oklch(0.22 0.04 55);
+  --secondary: oklch(0.95 0.02 78);
+  --secondary-foreground: oklch(0.3 0.03 55);
+  --muted: oklch(0.955 0.016 80);
+  --muted-foreground: oklch(0.49 0.04 62);
+  --accent: oklch(0.95 0.02 78);
+  --accent-foreground: oklch(0.3 0.03 55);
+  --destructive: oklch(0.56 0.21 27);
+  --border: oklch(0.9 0.022 78);
+  --input: oklch(0.9 0.022 78);
+  --ring: oklch(0.74 0.145 68);
+  --radius: 1rem;
+
+  --brand: oklch(0.74 0.145 68);
+  --brand-foreground: oklch(0.22 0.04 55);
+
+  --font-heading: var(--font-display-b);
+  --dir-like: oklch(0.78 0.14 68); /* liked-state on the dark gallery surface: amber, brightened for dark */
+  --dir-duration: 250ms;
+  --dir-ease: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Two-layer warm shadow: a contact line + a soft ambient bloom. */
+  --dir-shadow:
+    0 1px 2px oklch(0.35 0.05 60 / 0.07), 0 10px 28px -10px oklch(0.45 0.09 62 / 0.2);
+}
+
+.dir-celebration [data-dir-display] {
+  font-family: var(--font-display-b);
+  letter-spacing: -0.02em;
+  font-weight: 640;
+}
+
+.dir-celebration [data-dir-card] {
+  background: var(--card);
+  border: 1px solid oklch(0.92 0.018 78 / 0.7);
+  border-radius: var(--radius);
+  box-shadow: var(--dir-shadow);
+}
+
+/* ───────────────────────────── B. Monochrome Night ─────────────────────────
+   The second monochrome hypothesis: dark-first, translucent glass cards
+   (backdrop-blur), STILL pure black/white. Against near-black the media is
+   the light source. Inverted-ink CTAs (white button, black text), Space
+   Grotesk display, blur-masked crossfades. Grows out of the gallery's
+   always-dark heritage. */
+.dir-night {
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.96 0 0);
+  --card: oklch(0.21 0 0 / 0.62);
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.21 0 0);
+  --popover-foreground: oklch(0.96 0 0);
+  /* Inverted ink: the CTA is light, the room is dark. */
+  --primary: oklch(0.96 0 0);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.245 0 0);
+  --muted-foreground: oklch(0.71 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.85 0 0);
+  --radius: 0.75rem;
+
+  /* No accent, by design: brand-colored things become light ink. */
+  --brand: oklch(0.96 0 0);
+  --brand-foreground: oklch(0.15 0 0);
+
+  --font-heading: var(--font-display-c);
+  --dir-like: oklch(0.96 0 0); /* liked-state on the dark gallery surface: white ink */
+  --dir-duration: 230ms;
+  --dir-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dir-night [data-dir-display] {
+  font-family: var(--font-display-c);
+  letter-spacing: -0.02em;
+  font-weight: 560;
+}
+
+.dir-night [data-dir-card] {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* A faint neutral wash behind Night screens so the glass has something to
+   blur. Monochrome: light, not color. */
+.dir-night[data-dir-root] {
+  background-image:
+    radial-gradient(36rem 24rem at 85% -5%, oklch(0.45 0 0 / 0.2), transparent 65%),
+    radial-gradient(28rem 20rem at 0% 100%, oklch(0.4 0 0 / 0.14), transparent 60%);
+}
+
+/* ───────────────────────────── Shared motion system ────────────────────────
+   Press feedback is constant across directions (craft standard: 100-160ms);
+   settle/entrance durations are the per-direction personality knob. */
+[data-dir-press] {
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+[data-dir-press]:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-dir-enter] {
+    transition:
+      opacity var(--dir-duration, 200ms) var(--dir-ease, ease-out),
+      transform var(--dir-duration, 200ms) var(--dir-ease, ease-out),
+      filter var(--dir-duration, 200ms) var(--dir-ease, ease-out);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  /* Night's signature: entrances de-blur (the emil blur-mask trick). Scoped to
+     C only; A/B keep pure transform+opacity. */
+  .dir-night [data-dir-enter] {
+    @starting-style {
+      filter: blur(6px);
+    }
+  }
+
+  /* Decorative top-down stagger for grids/lists: children carry --i. Delays
+     stay in the 30-80ms craft band via the 45ms step. */
+  [data-dir-stagger] > * {
+    transition:
+      opacity var(--dir-duration, 200ms) var(--dir-ease, ease-out),
+      transform var(--dir-duration, 200ms) var(--dir-ease, ease-out);
+    transition-delay: calc(var(--i, 0) * 45ms);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(6px) scale(0.985);
+    }
+  }
+}
+
+/* Celebration's one delight moment (upload success): a ring blooms outward and
+   fades while the check settles in. Resting state IS the finished state
+   (invisible, expanded) so the @starting-style transition plays once per mount
+   and the element never needs cleanup. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-dir-celebrate-ring] {
+    opacity: 0;
+    transform: scale(1.35);
+    transition:
+      opacity 420ms var(--dir-ease, ease-out),
+      transform 420ms var(--dir-ease, ease-out);
+    @starting-style {
+      opacity: 0.9;
+      transform: scale(0.7);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dir-enter],
+  [data-dir-stagger] > * {
+    transition: opacity 180ms ease-out;
+    @starting-style {
+      opacity: 0;
+    }
+  }
+  [data-dir-celebrate-ring] {
+    opacity: 0;
+  }
+}

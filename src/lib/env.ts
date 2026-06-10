@@ -83,6 +83,12 @@ const serverSchema = z.object({
   // confirm. `.optional()` so the app builds without it; assertPruneApiEnv() asserts at request time so
   // the route fails closed rather than confirm deletions for an unauthenticated caller.
   PRUNE_API_SECRET: z.string().min(1).optional(),
+  // Gate key for the V1 identity-exploration playground at /design (the (dev) route group).
+  // Production requires `?key=` to match (timing-safe, see app/(dev)/design/gate.ts); dev mode is
+  // open. `.optional()`: unset in prod means the playground simply 404s everywhere. Not a classic
+  // secret (it gates mockups, no data), but kept server-side so the URL can't be derived from the
+  // bundle.
+  DESIGN_PREVIEW_KEY: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -130,6 +136,7 @@ function parseServer() {
     CONTACT_NOTIFY_EMAIL: process.env.CONTACT_NOTIFY_EMAIL,
     UNLOCK_COOKIE_SECRET: process.env.UNLOCK_COOKIE_SECRET,
     PRUNE_API_SECRET: process.env.PRUNE_API_SECRET,
+    DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
   });
   if (!parsed.success) {
     throw new Error(
