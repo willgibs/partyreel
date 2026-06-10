@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-09 — Gated gallery P3: host relabel + live guest-experience preview (initiative CLOSED)
+
+The final phase; the 3-phase gated-gallery initiative ([ADR-0017](adr/0017-gated-gallery-view-access.md)) is
+complete. Commit `4bd003a`.
+
+- The upload-framed "Allow anonymous uploads" toggle is relabeled **"Require guest accounts"** (a display
+  inversion of the same `allow_anonymous_uploads` column: switch ON = accounts required = stored `false`; the
+  schema + the server Pro-gate are untouched), with a reframed description for the view-gating.
+- A new pure `guestExperienceSummary({visibility, accountRequired, acceptingUploads})` (unit-tested) renders a
+  live "what your guests will experience" line under the access controls (re-keyed so it crossfades as the host
+  flips the toggles). The dashboard event-detail access line now uses the SAME helper — one source, no drift
+  (and the dashboard line now reflects the accounts gate too).
+- **No DDL.** Verified: the helper matrix (Vitest); live on partyreel.com as the signed-in host (the relabel +
+  reframed copy + the Free-tier upgrade lock + the live summary render, and the dashboard access line shows the
+  same sentence). The inverted switch is correct-by-construction (symmetric `!field.value` / `!checked`,
+  type-checked; the read side confirmed live by the summary reflecting `accountRequired`).
+
+**Initiative complete (P1 + P2 + P3):** account creation is now the incentive to SEE — a signed-out viewer of a
+gated event gets a server-enforced real-photo teaser behind a unified entry modal, the host controls access with
+clear labels + a live preview, and the full set never leaves the server. Rationale + the access model: ADR-0017.
+
 ## 2026-06-09 — Gated gallery P2: the unified entry modal + first-visit welcome
 
 P1's server-enforced gate gets its face. One `Dialog` ([`entry-modal.tsx`](systems/guest-flow.md)) drives all

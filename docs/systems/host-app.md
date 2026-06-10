@@ -53,6 +53,11 @@ guards `MAX_EVENTS`. **Events have no end date** — deletion is the only lifecy
   because the real `qr_token` doesn't exist pre-insert.
 - **Settings are NOT auto-save** — toggles (e.g. moderation mode) persist only on **Save changes**. When
   verifying a settings change, click Save and confirm the DB; don't assume the toggle wrote on change.
+- **The "Require guest accounts" toggle (gated-gallery P3, [ADR-0017](../adr/0017-gated-gallery-view-access.md))
+  is `allow_anonymous_uploads` shown INVERTED** (switch ON = accounts required = `allow_anonymous_uploads:false`);
+  the column/schema/server Pro-gate are unchanged. A live "what your guests will experience" line under the
+  access controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
+  ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
 
 ## QR designer

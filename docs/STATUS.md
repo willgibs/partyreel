@@ -23,11 +23,6 @@ data-layer security hardening. Canonical domain
 
 **Only scaffolded:** the highlight reel (DB scaffold only; the build is tabled pending a worker-platform
 decision — see [ROADMAP.md](ROADMAP.md)).
-
-**In flight:** the gated-gallery initiative — P1 (server-enforced `none/teaser/full` view access + teaser) and
-P2 (the unified entry modal + first-visit welcome) shipped 2026-06-09; the host "Require guest accounts" relabel
-+ live preview (P3) is the remaining phase ([ROADMAP.md](ROADMAP.md)).
-
 ## Infrastructure
 
 All backing services run under the dedicated owner account **partyr33l@gmail.com ("P3")** (the migration
