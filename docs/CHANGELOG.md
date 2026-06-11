@@ -10,6 +10,26 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 program Phase 1, round 3.5: swappable type + Instrument tuning + craft pass
+
+Will locked Instrument Serif as the working face with two requirements: the design system must make
+the face EASILY SWAPPABLE, and Instrument needed more apparent size plus a touch more weight (it ships
+in 400 only). Commit `73b30bf`.
+
+- **Swappable-face architecture:** one generic `[data-dir-display]` rule reads five variables
+  (`--display-font/adjust/tracking/weight/stroke`); a face is a block of five values and nothing else.
+  Swapping the brand face = changing one block. Phase 2 lifts this shape into the `@theme` type tokens.
+- **Instrument tuning:** calibration bumped ABOVE Inter parity (`font-size-adjust: 0.58`; its hairline
+  strokes read smaller than its metrics) + a `0.013em` text-stroke as synthetic display weight
+  (uniform stem thickening beats browser faux-bold; `font-synthesis: none` so engines can't fake one).
+- **Craft pass on the touchpoints** (6-agent parallel critique, confirmed findings applied): press
+  feedback on every pressable, the bottom sheet enters as one unit, full-screen CTA semibold +
+  safe-area padding, dropzone contrast, FAB shadow/grouping, queue-row hierarchy, gallery stagger
+  demos + leading-snug, quiet-tier shape legibility, px-labeled size ramp.
+- Verified: suite green; calibration + stroke confirmed via computed styles. NOTE: Vercel dropped the
+  webhook for `73b30bf` (no build was created for a successfully pushed commit, first occurrence);
+  re-fired by the next push.
+
 ## 2026-06-10 — V1 program Phase 1, round 3: type calibration + component touchpoints
 
 Will's round-2 read: Instrument Serif is the favorite BUT renders visibly smaller than Inter at equal
