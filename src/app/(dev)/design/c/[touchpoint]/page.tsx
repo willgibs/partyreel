@@ -14,6 +14,7 @@ import { StateVariants } from "../../components/state-variants";
 import { UploadVariants } from "../../components/upload-variants";
 import { requireDesignKey, withDesignKey } from "../../gate";
 import { ModeShell } from "../../mode-shell";
+import { SelectionScope } from "../../selection";
 import { getTouchpoint, TOUCHPOINTS, type TouchpointId } from "../../touchpoints";
 
 const VARIANTS: Record<TouchpointId, React.ComponentType> = {
@@ -79,7 +80,8 @@ export default async function TouchpointPage({
       <ModeShell fontClass="font-opt-instrument">
         <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-2">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-            Component touchpoint
+            Touchpoint {TOUCHPOINTS.findIndex((t) => t.id === touchpoint.id) + 1}{" "}
+            of {TOUCHPOINTS.length}
           </p>
           <h1
             data-dir-display
@@ -88,8 +90,8 @@ export default async function TouchpointPage({
             {touchpoint.title}
           </h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            {touchpoint.note}. Pick a number per touchpoint; mixing across
-            touchpoints is the point.
+            {touchpoint.note}. Tap Select on a variant; your pick saves in this
+            browser and collects on the hub board.
           </p>
           {touchpoint.decision !== undefined && (
             <p className="mt-3 flex items-center gap-2 text-sm font-medium">
@@ -107,7 +109,9 @@ export default async function TouchpointPage({
         </header>
 
         <div className="mx-auto w-full max-w-5xl px-4 pb-20">
-          <Variants />
+          <SelectionScope id={touchpoint.id}>
+            <Variants />
+          </SelectionScope>
         </div>
       </ModeShell>
     </div>

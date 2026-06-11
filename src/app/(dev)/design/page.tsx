@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Palette } from "lucide-react";
 
 import { requireDesignKey, withDesignKey } from "./gate";
+import { PicksBoard } from "./selection";
 import { TOUCHPOINTS } from "./touchpoints";
 
 // THE DESIGN LAB INDEX - the standing internal system for prototyping,
@@ -28,9 +29,12 @@ export default async function DesignIndexPage({
       <p className="mt-3 text-sm text-muted-foreground">
         The system is locked: monochrome in both modes, base Instrument Serif.
         What remains is choosing the components. Review each touchpoint below
-        (both modes, ideally on a phone), pick a variant number, add remix
-        notes; picks get recorded here and become the build spec.
+        (both modes, ideally on a phone), tap Select on a variant, and your
+        picks collect on the board: screenshot it or Copy summary, add
+        numbered notes, and the ratified set becomes the build spec.
       </p>
+
+      <PicksBoard />
 
       <Link
         href={withDesignKey("/design/system", key)}
@@ -58,12 +62,15 @@ export default async function DesignIndexPage({
         </span>
       </h2>
       <ul className="mt-3 space-y-2">
-        {TOUCHPOINTS.map((t) => (
+        {TOUCHPOINTS.map((t, i) => (
           <li key={t.id}>
             <Link
               href={withDesignKey(`/design/c/${t.id}`, key)}
               className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
             >
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted font-mono text-[11px] font-semibold">
+                {i + 1}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 text-sm font-medium">
                   {t.title}
