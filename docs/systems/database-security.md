@@ -66,7 +66,13 @@ The expected, accepted set:
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,
-  …). If an unexpected one shows up, an over-broad grant slipped in.
+  `notify_gallery_change` [the gallery doorbell, Phase 3], …). If an unexpected one shows up, an over-broad
+  grant slipped in.
+- **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING by
+  design, and `realtime.messages` has NO day-partitions until the Realtime service first activates (the first
+  client channel subscription creates them). So on a project that has never had a realtime connection, a
+  DB-trigger broadcast silently no-ops — verify with a real subscription, not just SQL. The doorbell trigger
+  additionally wraps `realtime.send` in its own exception guard so a Realtime outage can never fail a media write.
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
   `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
 - **Leaked Password Protection (HaveIBeenPwned) is ENABLED** (2026-06-08) — that WARN is cleared. Supabase
