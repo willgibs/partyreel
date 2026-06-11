@@ -1,24 +1,17 @@
-import type { Direction } from "../directions";
 import { MotionSpecimens } from "./specimens";
-
-const DISPLAY_FONT: Record<Direction["id"], string> = {
-  monochrome: "Fraunces",
-  night: "Space Grotesk",
-  celebration: "Bricolage Grotesque",
-};
 
 /**
  * Screen 5: the system specimen. Judges the SYSTEM rather than a screen: type
  * scale, the color policy stated out loud, component states, and live motion.
  */
-export function SpecimenScreen({ direction }: { direction: Direction }) {
+export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
   return (
     <div className="space-y-3 py-6">
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Type */}
         <div data-dir-card className="p-5">
           <p className="text-[11px] font-medium text-muted-foreground">
-            Type · {DISPLAY_FONT[direction.id]} display, Inter body
+            Type · {typeLabel} display, Inter body
           </p>
           <p data-dir-display className="mt-3 text-5xl leading-none">
             Aa
@@ -58,19 +51,11 @@ export function SpecimenScreen({ direction }: { direction: Direction }) {
                 </p>
               </div>
             ))}
-            {direction.hasAccent && (
-              <div className="flex-1">
-                <div className="h-12 rounded-[calc(var(--radius)*0.6)] bg-brand" />
-                <p className="mt-1 text-center text-[10px] text-muted-foreground">
-                  Accent
-                </p>
-              </div>
-            )}
           </div>
           <p className="mt-4 text-sm leading-relaxed">
-            {direction.hasAccent
-              ? "One accent, used to punctuate: the primary CTA and the liked state. Never on inline icons, never as a surface wash. The media still supplies the color."
-              : "No accent color exists. The chrome is ink and paper; every drop of color on screen arrives with the photos and videos. Semantic states (errors) keep their meaning."}
+            No accent color exists. The chrome is ink and paper; every drop of
+            color on screen arrives with the photos and videos. Semantic states
+            (errors) keep their meaning.
           </p>
           <div className="mt-3 flex items-center gap-2">
             <span className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
@@ -155,9 +140,10 @@ export function SpecimenScreen({ direction }: { direction: Direction }) {
       {/* Motion, live. */}
       <div>
         <p className="mb-2 text-[11px] font-medium text-muted-foreground">
-          Motion · {direction.motion}
+          Motion · Crisp, 200ms strong ease-out, zero bounce. Dark mode adds a
+          blur-masked entrance.
         </p>
-        <MotionSpecimens direction={direction} />
+        <MotionSpecimens />
       </div>
     </div>
   );

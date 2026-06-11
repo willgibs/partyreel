@@ -3,22 +3,20 @@
 import { useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
 
-import type { Direction } from "../directions";
-
 /**
- * The LIVE motion specimens: press, enter, stagger, modal, and (Celebration
- * only) the one celebratory moment. Replays work by remounting keyed subtrees,
- * so every entrance is the same @starting-style transition the real product
- * would use: interruptible, transform+opacity only, reduced-motion aware.
+ * The LIVE motion specimens: press, enter, stagger, modal, upload success.
+ * Replays work by remounting keyed subtrees, so every entrance is the same
+ * @starting-style transition the real product would use: interruptible,
+ * transform+opacity only, reduced-motion aware.
  */
-export function MotionSpecimens({ direction }: { direction: Direction }) {
+export function MotionSpecimens() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <PressSpec />
       <EnterSpec />
       <StaggerSpec />
       <ModalSpec />
-      {direction.hasAccent && <CelebrateSpec />}
+      <UploadSuccessSpec />
       <ToastSpec />
     </div>
   );
@@ -132,19 +130,16 @@ function ModalSpec() {
   );
 }
 
-/** Celebration only: the ONE delight moment, reserved for upload success. */
-function CelebrateSpec() {
+/** Upload success: the moment that matters most, still ink-quiet. */
+function UploadSuccessSpec() {
   const [run, setRun] = useState(0);
   return (
-    <Stage label="Upload success · the one celebration" onReplay={() => setRun((n) => n + 1)}>
-      <div key={run} className="relative flex items-center justify-center">
-        <span data-dir-celebrate-ring className="absolute size-14 rounded-full border-2 border-brand" />
-        <span
-          data-dir-enter
-          className="flex size-11 items-center justify-center rounded-full bg-brand text-brand-foreground"
-        >
+    <Stage label="Upload success" onReplay={() => setRun((n) => n + 1)}>
+      <div key={run} data-dir-enter className="flex flex-col items-center gap-2">
+        <span className="flex size-11 items-center justify-center rounded-full bg-foreground text-background">
           <Check className="size-5" />
         </span>
+        <p className="text-xs font-medium">Posted to the gallery</p>
       </div>
     </Stage>
   );

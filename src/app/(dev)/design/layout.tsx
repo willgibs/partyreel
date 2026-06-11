@@ -1,24 +1,42 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Fraunces, Space_Grotesk } from "next/font/google";
+import {
+  Fraunces,
+  Geist,
+  Instrument_Serif,
+  Newsreader,
+  Space_Grotesk,
+} from "next/font/google";
 
 import "./design.css";
 
-// The three direction display faces load ONLY on /design (nested layouts scope
+// The candidate display faces load ONLY on /design (nested layouts scope
 // next/font payloads to their subtree), so the production bundle is untouched.
-// Each exposes a --font-display-* var consumed by design.css's [data-dir-display]
-// hooks and --font-heading overrides.
+// Each exposes a --font-display-* var consumed by design.css's .font-opt-*
+// tuning blocks. Inter (option F, the control) needs no load: it is the app's
+// root --font-sans.
 const fraunces = Fraunces({
-  variable: "--font-display-a",
+  variable: "--font-display-fraunces",
   subsets: ["latin"],
 });
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-display-b",
+const instrument = Instrument_Serif({
+  variable: "--font-display-instrument",
+  subsets: ["latin"],
+  weight: "400", // single-weight face; the lightness IS the look
+});
+
+const newsreader = Newsreader({
+  variable: "--font-display-newsreader",
   subsets: ["latin"],
 });
 
 const spaceGrotesk = Space_Grotesk({
-  variable: "--font-display-c",
+  variable: "--font-display-space",
+  subsets: ["latin"],
+});
+
+const geist = Geist({
+  variable: "--font-display-geist",
   subsets: ["latin"],
 });
 
@@ -34,7 +52,7 @@ export default function DesignLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div
-      className={`${fraunces.variable} ${bricolage.variable} ${spaceGrotesk.variable} min-h-dvh`}
+      className={`${fraunces.variable} ${instrument.variable} ${newsreader.variable} ${spaceGrotesk.variable} ${geist.variable} min-h-dvh`}
     >
       {children}
     </div>

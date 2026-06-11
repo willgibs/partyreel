@@ -2,27 +2,29 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { DIRECTIONS, getDirection } from "../directions";
+import { FONT_OPTIONS, getFontOption } from "../fonts";
 import { requireDesignKey, withDesignKey } from "../gate";
+import { ModeShell } from "../mode-shell";
 import { DashboardScreen } from "../screens/dashboard-screen";
 import { EntryModalScreen } from "../screens/entry-modal-screen";
 import { GalleryScreen } from "../screens/gallery-screen";
 import { MarketingHeroScreen } from "../screens/marketing-hero-screen";
 import { SpecimenScreen } from "../screens/specimen-screen";
 
-// One direction, all five screens, inside its `.dir-*` token scope. The switcher
-// bar stays OUTSIDE the scope so navigation chrome never tints the judgment.
-export default async function DirectionPage({
+// One type option, all five screens, on the locked mono system. The switcher
+// bar stays OUTSIDE the mono scope so navigation chrome never tints the
+// judgment; the light/dark toggle lives INSIDE (it is part of the system now).
+export default async function FontOptionPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ direction: string }>;
+  params: Promise<{ font: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const key = await requireDesignKey(searchParams);
-  const { direction: slug } = await params;
-  const direction = getDirection(slug);
-  if (!direction) notFound();
+  const { font: slug } = await params;
+  const option = getFontOption(slug);
+  if (!option) notFound();
 
   return (
     <div>
@@ -33,43 +35,40 @@ export default async function DirectionPage({
             className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            Directions
+            Type options
           </Link>
           <span className="ml-auto flex items-center gap-1">
-            {DIRECTIONS.map((d) => (
+            {FONT_OPTIONS.map((f) => (
               <Link
-                key={d.id}
-                href={withDesignKey(`/design/${d.id}`, key)}
-                aria-current={d.id === direction.id ? "page" : undefined}
+                key={f.id}
+                href={withDesignKey(`/design/${f.id}`, key)}
+                aria-current={f.id === option.id ? "page" : undefined}
                 className={`flex size-7 items-center justify-center rounded-md font-mono text-xs font-semibold transition-colors ${
-                  d.id === direction.id
+                  f.id === option.id
                     ? "bg-foreground text-background"
                     : "text-muted-foreground hover:bg-muted"
                 }`}
               >
-                {d.letter}
+                {f.letter}
               </Link>
             ))}
           </span>
         </div>
       </nav>
 
-      <div
-        data-dir-root
-        className={`${direction.wrapperClass} bg-background text-foreground`}
-      >
-        <header className="mx-auto w-full max-w-5xl px-4 pt-10 pb-4">
+      <ModeShell fontClass={option.wrapperClass}>
+        <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-4">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-            Direction {direction.letter}
+            Monochrome · type option {option.letter}
           </p>
           <h1
             data-dir-display
             className="mt-1 text-3xl tracking-tight text-balance"
           >
-            {direction.name}
+            {option.name}
           </h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            {direction.tagline}
+            {option.blurb}
           </p>
         </header>
 
@@ -90,10 +89,10 @@ export default async function DirectionPage({
             title="System specimen"
             note="Type, color policy, components, live motion"
           >
-            <SpecimenScreen direction={direction} />
+            <SpecimenScreen typeLabel={option.name} />
           </Section>
         </div>
-      </div>
+      </ModeShell>
     </div>
   );
 }

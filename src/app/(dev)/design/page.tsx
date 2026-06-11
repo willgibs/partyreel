@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { DIRECTIONS } from "./directions";
+import { FONT_OPTIONS } from "./fonts";
 import { requireDesignKey, withDesignKey } from "./gate";
 
-// The exploration index: a neutral shell (deliberately unstyled by any
-// direction) linking the three identity hypotheses. Gated; see gate.ts.
+// The exploration index, round 2: the identity is settled (monochrome, both
+// modes); TYPE is the variable. A neutral shell (deliberately unstyled by the
+// mono sheet) linking the candidate display faces. Gated; see gate.ts.
 export default async function DesignIndexPage({
   searchParams,
 }: {
@@ -16,35 +17,36 @@ export default async function DesignIndexPage({
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-16">
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-        Partyreel V1
+        Partyreel V1 · round 2
       </p>
       <h1 className="font-heading mt-2 text-3xl font-semibold tracking-tight">
-        Identity exploration
+        Monochrome, set in six voices
       </h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Three complete visual hypotheses, each rendered as the same five
-        screens: guest entry, live gallery, host dashboard, marketing hero, and
-        a system specimen with live motion. Judge them on your phone, in the
-        light you would really see them in.
+        The identity is settled: pure monochrome, light and dark as one system
+        (following the device, light when unknown). Each option below swaps
+        ONLY the display face on that locked system, across the same five
+        screens. Use the light/dark toggle on any page; your choice carries
+        across options.
       </p>
 
-      <ul className="mt-10 space-y-4">
-        {DIRECTIONS.map((dir) => (
-          <li key={dir.id}>
+      <ul className="mt-10 space-y-3">
+        {FONT_OPTIONS.map((opt) => (
+          <li key={opt.id}>
             <Link
-              href={withDesignKey(`/design/${dir.id}`, key)}
+              href={withDesignKey(`/design/${opt.id}`, key)}
               className="group flex items-start gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-foreground/30"
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted font-mono text-sm font-semibold">
-                {dir.letter}
+                {opt.letter}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 font-medium">
-                  {dir.name}
+                  {opt.name}
                   <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </span>
                 <span className="mt-1 block text-sm text-muted-foreground">
-                  {dir.tagline}
+                  {opt.blurb}
                 </span>
               </span>
             </Link>
