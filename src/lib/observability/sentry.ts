@@ -14,6 +14,8 @@ import * as Sentry from "@sentry/nextjs";
 import { env } from "@/lib/env";
 
 // Coarse source area for filtering issues. Extend as new capture sites land.
+// The render:* areas are the route-group error boundaries (error.tsx /
+// global-error.tsx) so render crashes filter separately from handled flows.
 export type SentryArea =
   | "upload"
   | "webhook"
@@ -23,7 +25,13 @@ export type SentryArea =
   | "media"
   | "account"
   | "security"
-  | "other";
+  | "other"
+  | "render:app"
+  | "render:guest"
+  | "render:marketing"
+  | "render:admin"
+  | "render:auth"
+  | "render:global";
 
 const dsn = env.NEXT_PUBLIC_SENTRY_DSN;
 

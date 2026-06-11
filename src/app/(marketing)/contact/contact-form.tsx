@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { showActionError } from "@/lib/errors";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
 import { submitContactForm } from "./actions";
@@ -52,7 +53,7 @@ export function ContactForm() {
       form.reset();
       toast.success("Thanks! Your message is on its way.");
     } else {
-      toast.error(result.error);
+      showActionError(result);
     }
   }
 

@@ -10,7 +10,15 @@ import { serverEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { careerSchema, type CareerInput } from "@/lib/validation/careers";
 
-export type CareerResult = { ok: true } | { ok: false; error: string };
+// Failure arm carries a taxonomy code (slice 4 proof adoption); the client
+// resolves copy via showActionError, so `message` is only for overrides.
+export type CareerResult =
+  | { ok: true }
+  | {
+      ok: false;
+      code: "validation" | "not_found" | "send_failed";
+      message?: string;
+    };
 
 export async function submitApplication(
   roleSlug: string,
@@ -18,7 +26,7 @@ export async function submitApplication(
 ): Promise<CareerResult> {
   const parsed = careerSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Please check the form and try again." };
+    return { ok: false, code: "validation" };
   }
   const data = parsed.data;
 
@@ -29,7 +37,7 @@ export async function submitApplication(
 
   const role = getJob(roleSlug);
   if (!role) {
-    return { ok: false, error: "That role is no longer open." };
+    return { ok: false, code: "not_found", message: "That role is no longer open." };
   }
 
   const admin = createAdminClient();
@@ -52,7 +60,7 @@ export async function submitApplication(
 
   if (error || !row) {
     console.error("job_applications insert failed:", error);
-    return { ok: false, error: "Something went wrong. Please try again." };
+    return { ok: false, code: "send_failed" };
   }
 
   // Best-effort notification — never blocks the success response.

@@ -9,7 +9,11 @@ import { serverEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
-export type ContactResult = { ok: true } | { ok: false; error: string };
+// Failure arm carries a taxonomy code (slice 4 proof adoption); the client
+// resolves copy via showActionError, so `message` is only for overrides.
+export type ContactResult =
+  | { ok: true }
+  | { ok: false; code: "validation" | "send_failed"; message?: string };
 
 export async function submitContactForm(
   input: ContactInput,
@@ -17,7 +21,7 @@ export async function submitContactForm(
   // Re-validate server-side — never trust the client.
   const parsed = contactSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Please check the form and try again." };
+    return { ok: false, code: "validation" };
   }
   const data = parsed.data;
 
@@ -46,7 +50,7 @@ export async function submitContactForm(
 
   if (error || !row) {
     console.error("contact_submissions insert failed:", error);
-    return { ok: false, error: "Something went wrong. Please try again." };
+    return { ok: false, code: "send_failed" };
   }
 
   // Best-effort notification — a missing/unconfigured/failed email must NEVER cost the

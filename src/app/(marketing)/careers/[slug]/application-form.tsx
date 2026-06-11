@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { showActionError } from "@/lib/errors";
 import { careerSchema, type CareerInput } from "@/lib/validation/careers";
 
 import { submitApplication } from "../actions";
@@ -47,7 +48,7 @@ export function ApplicationForm({
       form.reset();
       toast.success("Application received, thanks!");
     } else {
-      toast.error(result.error);
+      showActionError(result);
     }
   }
 
