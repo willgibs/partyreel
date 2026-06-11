@@ -151,11 +151,10 @@ export default async function GuestEventPage({
   const access = isDemo
     ? "full"
     : resolveGalleryAccess(event, { isOwner, isAuthed, isUnlocked: unlocked });
-  const {
-    items: initialItems,
-    teaserTotal,
-    etag: initialEtag,
-  } = await loadGalleryForAccess(event, access);
+  // Deliberately NOT awaited (Phase 3 streaming): the gallery load presigns
+  // 2 URLs per item, the slowest part of this page. The shell streams first;
+  // LiveGallery resolves this inside its Suspense boundary.
+  const galleryPromise = loadGalleryForAccess(event, access);
 
   // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
   // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
@@ -180,11 +179,9 @@ export default async function GuestEventPage({
         event={event}
         qrToken={event.qr_token}
         joinUrl={joinUrl}
-        initialItems={initialItems}
-        initialEtag={initialEtag}
+        galleryPromise={galleryPromise}
         isDemo={isDemo}
         access={access}
-        teaserTotal={teaserTotal}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
         isOwner={isOwner}
