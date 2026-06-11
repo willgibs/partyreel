@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 program Phase 1, round 3: type calibration + component touchpoints
+
+Will's round-2 read: Instrument Serif is the favorite BUT renders visibly smaller than Inter at equal
+CSS size, and the other faces didn't land. Commit `df97085`.
+
+- **The size lesson, made systematic:** in-browser canvas metrics confirmed the gap (x-height ratio
+  0.51 vs Inter's 0.55, ~8%; DM Serif runs 15% small). Every display face now carries a one-time
+  `font-size-adjust: 0.55` calibration in its `.font-opt-*` block, normalizing rendered x-height to
+  Inter's - so standardized heading scales need NO per-use adjustment. Phase 2 inherits this as the
+  per-face calibration in the type tokens. Unsupported browsers degrade to the uncalibrated size.
+- **New serif slate** in Instrument's high-contrast neighborhood: Gloock, DM Serif Display, Prata,
+  Playfair Display (+ Instrument calibrated, + Inter control); the round-2 grotesks/soft serifs gone.
+- **Component touchpoints** (the new explored variable): `/design/c/[touchpoint]` - guest entry
+  (centered card / bottom sheet / full-screen welcome), upload moment (dropzone card / floating action
+  bar / add-tile-in-grid), gallery grid (uniform / masonry / edge-to-edge), event header (left
+  editorial / centered formal / cover hero), buttons (soft rect / pill / sharp + size ramp). All set
+  in Instrument on the locked mono system, light/dark toggleable, phone-framed where mobile-first.
+- Verified: suite green; calibration confirmed live (computed `fontSizeAdjust: 0.55`); gate re-checked
+  on all 11 new routes (404 keyless/bogus, 200 keyed); 11-capture pack from live delivered.
+- Exit: Will picks per-touchpoint variant numbers + the typeface (or asks for another round).
+
 ## 2026-06-10 — V1 program Phase 1, round 2: monochrome locked, type exploration
 
 Round-1 verdict (Will): **monochrome won, both modes** - zero accent ever; light (paper, hairline) and

@@ -12,11 +12,14 @@
 each re-entering plan mode for sign-off; the program plan + settled decisions live in Will's session
 plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 (identity exploration) round 1
 SHIPPED 2026-06-10 and **MONOCHROME WON, both modes** (zero accent; light = paper/hairline, dark =
-glass/media-as-light; theme follows system, light when unretrievable). Round 2 SHIPPED same day: the
-gated **/design** route (`DESIGN_PREVIEW_KEY`) now serves the locked mono system in SIX display-face
-options (Fraunces, Instrument Serif, Newsreader, Space Grotesk, Geist, Inter control) with a per-page
-light/dark/system toggle. **Blocked on Will: pick the typeface (+ remix notes) at /design** — Phase 2
-(design foundation + safety nets) starts from that pick. Settled program decisions (hybrid doorbell
+glass/media-as-light; theme follows system, light when unretrievable). Round 3 SHIPPED same day on the
+gated **/design** route (`DESIGN_PREVIEW_KEY`): Instrument Serif is the working type favorite, now
+**size-calibrated** (`font-size-adjust: 0.55` per face - display serifs render ~8-15% smaller than
+Inter at equal CSS size; the calibration lives once per face so standard heading scales need no
+per-use tweaks) alongside a new serif slate (Gloock, DM Serif Display, Prata, Playfair, Inter
+control), plus **component variants at 5 UX touchpoints** (`/design/c/*`: entry, upload, gallery grid,
+header, buttons - 2-3 options each). **Blocked on Will: per-touchpoint variant picks + the typeface
+call** — Phase 2 (design foundation + safety nets) starts from those picks. Settled program decisions (hybrid doorbell
 gallery, monochrome identity, emil-design-eng as the binding craft bar) are in the memory/plan; don't
 re-litigate.
 
