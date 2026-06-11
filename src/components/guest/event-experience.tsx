@@ -24,10 +24,15 @@ import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
+import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
 
-const POLL_MS = 12_000;
+// The hybrid doorbell cadence (Phase 3): while the Realtime channel is live,
+// pings drive refreshes and the poll is just a 60s safety net; if the socket
+// drops, fall back to the old 12s blind poll until it reconnects.
+const FAST_POLL_MS = 12_000;
+const SLOW_POLL_MS = 60_000;
 
 // The live guest event experience: event header + upload + share, with a gallery
 // that polls (newest-first) and reflects the guest's own uploads instantly. Only
@@ -128,15 +133,27 @@ export function EventExperience({
     }
   }, [qrToken]);
 
-  // Poll on an interval, paused while the tab is hidden (frugality + correctness).
-  // In demo mode there's nothing to poll — the curated media is static and the
-  // simulated tiles are local-only — so skip it entirely.
+  // The doorbell: a contentless Realtime ping per gallery change, coalesced
+  // inside the hook (immediate refresh, bursts collapse into one trailing
+  // refetch) — and the ETag makes even redundant refetches cheap.
+  const liveEnabled = !isDemo && access !== "none";
+  const { live } = useGalleryDoorbell({
+    qrToken,
+    enabled: liveEnabled,
+    onRefresh: () => void refresh(),
+  });
+
+  // The fallback poll, paused while the tab is hidden (frugality + correctness):
+  // a 60s safety net while the doorbell is live, the old 12s cadence when the
+  // socket is down. In demo mode there's nothing to poll — the curated media is
+  // static and the simulated tiles are local-only — so skip it entirely.
   useEffect(() => {
     // Nothing to poll at `none` (no gallery behind the password gate) or in the demo.
-    if (isDemo || access === "none") return;
+    if (!liveEnabled) return;
+    const pollMs = live ? SLOW_POLL_MS : FAST_POLL_MS;
     let timer: ReturnType<typeof setInterval> | null = null;
     const start = () => {
-      if (!timer) timer = setInterval(refresh, POLL_MS);
+      if (!timer) timer = setInterval(refresh, pollMs);
     };
     const stop = () => {
       if (timer) {
@@ -158,7 +175,7 @@ export function EventExperience({
       stop();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [refresh, isDemo, access]);
+  }, [refresh, liveEnabled, live]);
 
   // Revoke any lingering blob URLs on unmount.
   useEffect(() => {
