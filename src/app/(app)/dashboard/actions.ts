@@ -122,8 +122,9 @@ export async function setEventPasswordAction(
   const result = await setEventPassword(eventId, parsed.data.password);
   if (!result.ok) return result;
 
+  // Event-detail only: the dashboard card badge derives from the visibility
+  // ENUM (updateEventAction's concern), never from the password hash.
   revalidatePath(`/dashboard/${eventId}`);
-  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -134,7 +135,6 @@ export async function clearEventPasswordAction(
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);
-  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -151,8 +151,8 @@ export async function setEventSlugAction(
   const result = await setEventSlug(eventId, parsed.data.slug);
   if (!result.ok) return result;
 
+  // Event-detail only: dashboard cards never render the slug.
   revalidatePath(`/dashboard/${eventId}`);
-  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -163,7 +163,6 @@ export async function clearEventSlugAction(
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);
-  revalidatePath("/dashboard");
   return { ok: true };
 }
 

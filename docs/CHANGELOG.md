@@ -10,6 +10,47 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-11 — V1 program PHASE 3 COMPLETE: data & delivery architecture (the doorbell gallery)
+
+Eight slices, each shipped green + live-verified; the blind 12s poll became the hybrid doorbell.
+Commits `60e9848` (S1) · `4f0c200` (S2) · `7431758` (S3) · `238c554` (S4) · `9ed17ad` (S5) ·
+`3aafa50` (S6) · `2322299` (S7) · the S8 docs/fix commit.
+
+- **S1 stable presigns:** gallery read URLs are deterministic within 30-min signing buckets
+  (`signingDate` pinned; 90-min TTL) — browser image cache works across refetches. Live-verified
+  byte-identical URLs across polls.
+- **S2 ETag/304:** the poll route fingerprints the viewer-visible gallery (content + access +
+  teaserTotal + bucket id) and answers unchanged galleries with a bare 304 BEFORE presigning.
+  Red-teamed the cross-access invariant: a teaser validator with full-access cookies 200s (and the
+  reverse); no-ETag early returns; content-change invalidation.
+- **S3 doorbell trigger:** `notify_gallery_change()` rings the PUBLIC channel `gallery:<qr_token>`
+  on approved-set changes only; realtime.send failures can never fail a media write. 5-assertion
+  rolled-back contract check; advisors unchanged. Field find: `realtime.send` no-ops SILENTLY until
+  the Realtime service first activates (no day-partitions before the first client subscription).
+- **S4 doorbell client:** public-channel subscription + a leading-edge coalescer (~2s suppression +
+  jitter + trailing flush); poll drops to 60s while live, 12s when the socket is down. Verified with
+  an in-page MutationObserver: **doorbell-to-render 1.05s on a DB approve** (only the ping path
+  explains it at a 60s cadence).
+- **S5 upload consolidation:** one pipeline engine (`upload/server-pipeline.ts`) + 4 thin strategy
+  routes; the hardened RPC layer untouched (ADR-0016). 10 pre-refactor error-path curl fixtures
+  re-run post-refactor: byte-identical. Live single-PUT upload through the new pipeline (join →
+  presign → R2 PUT → complete `approved`) rendered in the open live tab in **<1s**.
+- **S6 streaming scaffold:** the guest RSC passes the gallery as a PROMISE; the shell streams first
+  (curl-verified order: shell ~4KB → skeleton ~14KB → tiles ~85KB); `LiveGallery` owns the moved
+  machinery via React 19 `use()` + `key={access}`; dashboard + event-detail get `loading.tsx`.
+- **S7 code splits:** lazy lightbox (mount latch + pointerover preload, 4 call sites; the component
+  file untouched so the pins import it directly), React.lazy EntryModal (forwardRef), lazy admin
+  recharts.
+- **S8:** revalidation map + slug/password trims, the cacheComponents deferral rationale, the perf
+  after-column (steady-state poll 200/74.6KB/120-presigns/12s → **304/0B/0-presigns/60s**, p50
+  509→331ms; guest DCL 776→496ms, load 1055→703ms; wire JS 567→561KB with the heavy chunks now
+  interaction-deferred), and these records.
+- **Phase-close adversarial review** (10 agents over the full diff): 1 confirmed finding (the
+  loading.tsx files nested a second `<main>` with wrong geometry — fixed same-day), 4 refuted
+  (notably: forged doorbell pings by token holders only induce cheap coalesced 304 polls — the
+  capability model holds).
+- 410 tests green throughout (the 47 behavior pins survived the LiveGallery extraction untouched).
+
 ## 2026-06-11 — V1 program PHASE 2 COMPLETE: the V1 system live (foundation + safety nets)
 
 Five slices, each shipped green + live-verified; the Phase 1 spec became production reality.

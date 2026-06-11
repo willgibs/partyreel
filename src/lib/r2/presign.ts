@@ -14,8 +14,9 @@
  *     (ExposeHeaders: ["ETag"]). Parts must be sorted ascending on complete.
  *   • Always presign over KEYS from lib/r2/keys.ts; the caller derives the key
  *     server-side from the capability token — never from client input.
- *   • Read URLs (gallery) get a short TTL; per-request presign for now (large-
- *     gallery proxy strategy is deferred — see docs/STATUS.md).
+ *   • Read URLs (gallery) presign STABLE (signing date pinned to 30-min buckets
+ *     — see presign-bucket.ts + presignDownload's `stable` flag); a per-media
+ *     proxy for very large galleries stays deferred (ROADMAP).
  */
 import "server-only";
 

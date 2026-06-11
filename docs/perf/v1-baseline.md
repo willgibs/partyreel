@@ -1,4 +1,4 @@
-# V1 perf baseline (pre-Phase-3)
+# V1 perf baseline (pre-Phase-3) + the Phase-3 after-column
 
 > ROLE: the measured "before" that Phase 3+ wins are judged against, with the exact repeatable
 > methodology. Re-run the same commands after each architecture phase and append a dated column to
@@ -7,6 +7,24 @@
 
 **Baseline date:** 2026-06-11 · **commit:** `adc3f0c` (Phase 2 slices 1-4 live) ·
 **deployment:** iad1, Next 16.2.6/Turbopack.
+
+## PHASE 3 AFTER-COLUMN (2026-06-11, commit `2322299` live)
+
+Same methodologies as below; the seeded event carried 3 fake rows + 1 real uploaded photo (4 items)
+vs the baseline's 60, so absolute payloads aren't comparable — the structural deltas are.
+
+| Metric | Pre-Phase-3 | Post-Phase-3 | Note |
+| --- | --- | --- | --- |
+| Steady-state poll (no change) | 200, 74.6 KB, 120 presigns, p50 509 ms, every 12 s | **304, 0 B, 0 presigns, p50 331 ms / p90 427 ms, every 60 s** | the structural win: ~25× fewer polls, each free of payload+presigns; the residual 331 ms is the DB roundtrips (event + access + rows), as predicted — the ≤150 ms aspiration was optimistic |
+| Change propagation | next 12 s poll | **doorbell <1 s** (live upload → open tab 1.0 s; local moderation flip 840 ms) | Realtime broadcast + leading-edge coalescer |
+| Full-payload cadence | every poll | once per 30-min presign bucket (the ETag rolls with it) | URLs stay browser-cacheable within the bucket |
+| `/e/[token]` wire JS (br) | 567 KB | **561 KB** | the lightbox (~700-line gesture machine), entry modal, and admin recharts now load OFF the critical path (interaction-deferred chunks); the eager-set byte drop itself is small — the win is when work happens, not total bytes |
+| `/e/[token]` TTFB / DCL / load (med, n=5) | 56 / 776 / 1055 ms | **51 / 496 / 703 ms** | streaming shell (gallery no longer blocks first byte on 2-per-item presigns) + splits |
+| `/` wire JS | 439 KB | 439 KB | untouched, as expected |
+
+Doorbell-to-render methodology: a MutationObserver inside the open page timestamps the DOM change;
+the trigger time comes from the DB (`now()` on the mutating statement) or the upload `complete`
+response time — immune to the observer's own polling latency.
 
 ## 1. First-load JS per route (brotli wire bytes, live)
 

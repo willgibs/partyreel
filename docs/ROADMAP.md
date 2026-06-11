@@ -84,13 +84,16 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   tombstone / shared copy-state index — see [`systems/durability-backups.md`](systems/durability-backups.md).)
   Also: an operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription
   health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
-- **Vercel / Next.js optimization** — the **12s guest-gallery poll** (`event-experience.tsx` →
-  `/api/guests/gallery`, the top cost driver) → Supabase Realtime or conditional ETag/304s · front Vercel
+- **Vercel / Next.js optimization** — ~~the 12s guest-gallery poll~~ SHIPPED Phase 3 (doorbell +
+  ETag/304 + stable presigns → [`systems/guest-flow.md`](systems/guest-flow.md)) · front Vercel
   with Cloudflare at launch (DNS already migrating there) · Vercel Spend-Management hard cap + alerts ·
   revisit the `proxy.ts` per-request `getUser` matcher scope · a large-gallery presigned-read strategy
-  (proxy/cache vs the current per-request presign) · the **`(app)` dashboard first-load latency** (~1-3s to
-  hydrate, observed 2026-06-09 via client-effect timing — the layout fans out `getUser` + notifications +
-  profile + avatar, then the page adds events + storage; profile the chain + parallelize/stream/cache).
+  (per-media proxy/pagination beyond the Phase-3 stable buckets) · Realtime concurrent-connection quota
+  (one socket per open guest tab) at launch scale · `cacheComponents`/"use cache" adoption post-launch
+  (deferral rationale → [`systems/architecture.md`](systems/architecture.md)) · the **`(app)` dashboard
+  first-load latency** (~1-3s to hydrate, observed 2026-06-09 — the layout fans out `getUser` +
+  notifications + profile + avatar, then the page adds events + storage; Phase 5 streams/parallelizes
+  the chain; Phase 3 added the interim `loading.tsx` skeletons).
 - **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
   `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
 - **Share studio (QR + share-content configurator)** — (Will, 2026-06-11, from the V1 design lab's QR-card

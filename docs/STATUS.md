@@ -22,11 +22,18 @@ decisions + `/design/demo`. **PHASE 2 COMPLETE (2026-06-11): the V1 system is LI
 — production tokens (mono both modes, brand→ink alias), Instrument Serif via the `font-heading`
 five-knob utility, the primitive craft pass, 47 behavior pins ahead of the Phase 4-5 decomposition,
 the error taxonomy + route-group boundaries (live-verified incl. the gated `/design/boom` probe →
-Sentry `render:global`), and the perf baselines Phase 3 is judged against. Current truth:
-[`systems/design-system.md`](systems/design-system.md) + [`perf/v1-baseline.md`](perf/v1-baseline.md).
-Interim accepted: "new skin on old bones" (e.g. the marketing hero is still Inter, functional headings
-still misuse `font-heading`) until each surface's owning phase (4-6) corrects it.
-**Next: Phase 3 (data/delivery architecture - the doorbell gallery) re-enters plan mode.**
+Sentry `render:global`), and the perf baselines Phase 3 is judged against.
+**PHASE 3 COMPLETE (2026-06-11): the hybrid doorbell gallery is LIVE** — Realtime contentless pings
+(doorbell-to-render <1s, live-verified) + ETag/304 conditional polls (0B/0-presigns on no-change,
+60s cadence while the socket is live) + 30-min stable presign buckets (browser cache works), the
+upload pipeline consolidated to one engine + 4 thin strategy routes (RPC layer untouched), the
+guest page streams (shell first, gallery behind Suspense), and the heavy chunks (lightbox, entry
+modal, admin charts) load off the critical path. Current truth:
+[`systems/design-system.md`](systems/design-system.md) · [`systems/guest-flow.md`](systems/guest-flow.md)
+· [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md) · [`perf/v1-baseline.md`](perf/v1-baseline.md)
+(the Phase-3 after-column). Interim accepted: "new skin on old bones" (marketing hero still Inter,
+functional headings still misuse `font-heading`) until each surface's owning phase (4-6) corrects it.
+**Next: Phase 4 (the guest redesign - the flagship surface) re-enters plan mode.**
 Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
 craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
 

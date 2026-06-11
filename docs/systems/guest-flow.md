@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery polling, demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config (→ [host-app.md](host-app.md)).
+> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery (doorbell + conditional poll), demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config (→ [host-app.md](host-app.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -127,17 +127,40 @@ step. No client step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.t
   in-page sign-in handlers; module-level guards dedupe, and the RPC's `IS NULL` makes a reload's re-run a
   silent 0-op (no sessionStorage flag). P4's Uploads tab will key on the `guests.user_id` this populates.
 
-## Live gallery + optimistic uploads
+## Live gallery: the hybrid doorbell (Phase 3)
 
-- The gallery seeds from an SSR batch then **polls `/api/guests/gallery` every ~12 s** (paused on
-  `document.hidden`) + refetches on each upload. **Reconcile by id — do NOT `setState` the raw poll
-  result:** each poll re-presigns, so URLs change every call; replacing wholesale re-downloads every `<img>`
-  every 12 s. Keep existing items' URLs by id; presign only genuinely-new items
-  ([`merge-gallery-items.ts`](../../src/lib/guest/merge-gallery-items.ts)).
+- **Architecture:** [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) owns all gallery
+  state; [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) is the SHELL around it
+  and streams it in via `<Suspense>` (the RSC passes `loadGalleryForAccess` down UN-awaited; `use()`
+  resolves it behind [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the
+  presign-heavy payload never blocks the shell's paint). `key={access}` remounts it on an access flip
+  (teaser → full after sign-in) — a clean re-seed, no resync effects.
+- **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
+  Realtime broadcast channel `gallery:<qr_token>` whenever the approved-visible set changes (uploads,
+  moderation flips, restores, purges — pending/hidden-internal transitions stay silent). The token IS the
+  channel capability (ADR-0004); the ping carries no data, the refetch is access-gated server-side.
+  Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts) + a leading-edge
+  coalescer ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts): immediate refetch, ~2 s
+  suppression + jitter, one trailing flush for bursts). Measured doorbell-to-render: **<1 s live**.
+- **The conditional poll:** the fallback cadence keys solely off the channel state — **60 s** while
+  `SUBSCRIBED` (a safety net), **12 s** when the socket is down; paused on `document.hidden`. Every
+  poll sends `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload,
+  zero presigns) — see the route notes in [uploads-and-r2.md](uploads-and-r2.md) and the ETag invariant
+  below.
+- ★ **The gallery ETag must never validate across access levels** — the fingerprint
+  ([`gallery-fingerprint.ts`](../../src/lib/events/gallery-fingerprint.ts)) hashes `access` +
+  `teaserTotal` + the item ids/attribution + the presign bucket id, and the not-found/private early
+  return carries NO ETag. Red-teamed: a teaser validator replayed with full-access cookies must 200.
+  The bucket id rolls the ETag every 30 min so clients re-pull fresh URLs before old ones expire.
+- **Reconcile by id — do NOT `setState` the raw poll result:** the client keeps already-rendered items'
+  URL objects by id (so `<img>`s never reload) and adopts fresh presigns only for genuinely-new items
+  ([`merge-gallery-items.ts`](../../src/lib/guest/merge-gallery-items.ts)). Long-tab staleness is
+  unchanged from the pre-doorbell era by design (kept-object merge).
 - **Optimistic tiles only for LIVE-approved media:** a completed upload prepends a local `createObjectURL`
-  tile (deduped against the poll by media id, then the blob is revoked) — but ONLY when `create_media`
-  returned `approved`. Hold-for-approval items stay pending. The queue reads a `sessionRef` synced in an
-  effect (refs can't be written in render).
+  tile (deduped against the next refetch by media id, then the blob is revoked) — but ONLY when
+  `create_media` returned `approved`. Hold-for-approval items stay pending until the host's approval
+  rings the doorbell. Upload completions reach LiveGallery through a `LiveGalleryHandle` callback ref
+  (with a pre-mount buffer, since the gallery streams in async).
 
 ## Auth-aware header island
 

@@ -66,6 +66,28 @@ GitHub Actions), so a backup failure is a durability risk, **never a user-facing
 (Queues need it). R2 is ~$0 at this scale. Full cost notes + the R2 billing-donut gotcha →
 [durability-backups.md](durability-backups.md).
 
+## Cache & revalidation (the map)
+
+Every authed/guest page is dynamic (cookies), and Next 15+'s client-router staleTime for dynamic
+segments defaults to 0 — so the `revalidatePath` calls in server actions are belt-and-braces
+freshness, kept HONEST (only the paths whose rendered data the action changed), not maximal:
+
+- **Event mutations** (`updateEventAction`, create, delete, restore, `removeMyUploadAction`) →
+  `/dashboard/[eventId]` + `/dashboard` (cards render name/date/visibility; the Uploads/Trash tabs
+  live on `/dashboard`).
+- **Password + slug actions** → `/dashboard/[eventId]` ONLY (the dashboard card badge derives from
+  the visibility ENUM, never the hash; cards never render the slug). Trimmed in Phase 3.
+- **Moderation/media actions** (`[eventId]/actions.ts`) → `/dashboard/[eventId]` (+ `/dashboard`
+  where the Uploads tab is affected). **Admin actions** → their own `/admin/*` paths.
+- The guest gallery is NOT in this system: it's client-fetched via the conditional poll + doorbell
+  (→ [guest-flow.md](guest-flow.md)); `router.refresh()` appears only in guest in-page auth flows.
+
+**`cacheComponents` / `"use cache"` is consciously DEFERRED** (Phase 3 decision): enabling it
+inverts the dynamic-by-default contract app-wide (every dynamic read must move behind `"use cache"`
+or explicit Suspense), a forced refactor that would fight the Phase 4-6 surface decompositions.
+Revisit post-launch when the surfaces are final. Streaming today = plain `<Suspense>`/`loading.tsx`
+(the guest gallery + the dashboard skeletons, Phase 3).
+
 ## Where each concern lives
 
 The full index is [`README.md`](README.md). The data layer is `src/lib/db/*` (queries/mutations, never

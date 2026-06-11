@@ -8,9 +8,9 @@ export function GallerySkeleton() {
   return (
     <section className="mt-9" aria-hidden>
       <Skeleton className="mb-3 h-5 w-36" />
-      <div className="grid grid-cols-2 gap-0.5 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-[3px]" />
+          <Skeleton key={i} className="aspect-square rounded-lg" />
         ))}
       </div>
     </section>

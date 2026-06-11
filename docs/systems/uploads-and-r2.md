@@ -19,7 +19,14 @@ on the HOST gallery only**.
   (incl. `presignDownload`, `headObjectSize`). Keys: [`r2/keys.ts`](../../src/lib/r2/keys.ts) (`mediaObjectKey`,
   `parseMediaIdFromKey`, `parseExtFromKey` — single source). Bulk: [`r2/delete.ts`](../../src/lib/r2/delete.ts).
 - Routes: guest [`/api/r2/presign-upload`](../../src/app/api/r2) + `/complete-upload`; host
-  [`/api/host/r2/`](../../src/app/api/host/r2) `presign-upload` + `complete-upload`.
+  [`/api/host/r2/`](../../src/app/api/host/r2) `presign-upload` + `complete-upload` — all four are THIN
+  strategy adapters over the ONE pipeline engine
+  [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts) (Phase 3): the engine owns the
+  shared spine (parse → zod → server-side classify/ext → `validateUpload` → key build →
+  single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC),
+  the strategies own the per-identity gates + status mapping. Part-size math single-sourced in
+  [`upload/part-plan.ts`](../../src/lib/upload/part-plan.ts). Response JSON shapes/key order are the
+  `uploadFile()` contract — byte-for-byte frozen (curl-fixture verified at the refactor).
 - Shared uploader: [`upload/uploader.ts`](../../src/lib/upload/uploader.ts) (`uploadFile`).
 - Media constants: [`media/limits.ts`](../../src/lib/media/limits.ts) (10 GB per upload, size-only — single source; `MIN_UPLOAD_CAP_BYTES` + `UPLOAD_CAP_PRESETS` feed the host cap),
   [`media/poster.ts`](../../src/lib/media/poster.ts) (`videoPosterSrc`), [`media/download-filename.ts`](../../src/lib/media/download-filename.ts).
@@ -40,8 +47,14 @@ on the HOST gallery only**.
   Set(["content-type"])`. Bucket **CORS must allow PUT/POST/GET/HEAD + `content-type` and EXPOSE `ETag`**
   (multipart completion needs ETag); a lifecycle rule aborts incomplete multipart uploads. Don't remove
   any of it. *(Cross-cutting landmine — echoed in CLAUDE.md.)*
-- **Never expose raw R2 keys/URLs to the browser** — presign server-side (1 h TTL, via the shared
-  `toGridItems`); the render routes are `force-dynamic` (ADR-0003).
+- **Never expose raw R2 keys/URLs to the browser** — presign server-side via the shared `toGridItems`;
+  the render routes are `force-dynamic` (ADR-0003). **Gallery read presigns are STABLE (Phase 3):**
+  `presignDownload({ stable: true })` pins the SigV4 signing date to the current 30-min bucket
+  ([`r2/presign-bucket.ts`](../../src/lib/r2/presign-bucket.ts)), so two presigns of the same key in a
+  bucket are byte-identical — the browser image cache works across refetches and the gallery ETag rolls
+  with the bucket. TTL is 90 min (2× bucket + slack; a URL minted at minute 29 still outlives the next
+  full bucket). Trade-off, accepted: a leaked read URL lives ≤90 min vs the old 60. Upload PUT/part
+  presigns are NEVER stable (one-shot; freshness is the point).
 - ★ **Uploader email is HOST-gallery-only — guest surfaces NEVER carry it.** Attribution is resolved by ONE
   admin-read (`getUploaderIdentities`); the host dashboard spreads the `email`, but every guest-facing item is
   built by `toGridItems`, which copies ONLY name + `isHost`/`isAnonymous` and NEVER email. Email-safe by
