@@ -10,6 +10,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 program Phase 1, round 2: monochrome locked, type exploration
+
+Round-1 verdict (Will): **monochrome won, both modes** - zero accent ever; light (paper, hairline) and
+dark (glass, media as the light source) ship as ONE system following the device preference, light when
+unretrievable. Commit `a1e1569`.
+
+- /design restructured around the verdict: one `.mono` token sheet (light + `[data-mode="dark"]`
+  variants; geometry unified to the light radius, revisit in Phase 2), a per-page light/dark/system
+  toggle (`mode-shell.tsx`, `useSyncExternalStore` per the house pattern, server snapshot = light by
+  construction), and **type as the explored variable**: `/design/[font]` serves six display faces
+  (Fraunces, Instrument Serif, Newsreader, Space Grotesk, Geist, Inter-as-control) on identical
+  screens, each with per-face optical tuning (`.font-opt-*`).
+- The accent direction (Warm Celebration) retired; the upload-success motion specimen is ink-quiet.
+- Verified: suite green; toggle + both modes walked locally (a dev-server route-cache restart was
+  needed after the `[direction]`→`[font]` rename - prod build unaffected); live gate re-red-teamed on
+  the new routes (no/wrong key + bogus slug 404; all six 200 with the key); 12-capture pack (6 faces x
+  2 modes, full-page, from live) delivered.
+- Exit: Will picks the typeface (+ remix notes) → Phase 2 starts from the locked mono sheet + face.
+
 ## 2026-06-10 — V1 rebuild program Phase 1: the identity exploration playground
 
 The v0→V1 full-app refactor/redesign program kicked off (8 phases; the program plan + settled decisions

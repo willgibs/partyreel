@@ -10,11 +10,15 @@
 
 **THE ACTIVE INITIATIVE: the v0→V1 full-app refactor/redesign program** (approved 2026-06-10; 8 phases,
 each re-entering plan mode for sign-off; the program plan + settled decisions live in Will's session
-plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 (identity exploration) SHIPPED
-2026-06-10: three direction token sheets behind the gated **/design** route (`DESIGN_PREVIEW_KEY`).
-**Blocked on Will: pick a winning direction (+ remix notes) at /design** — Phase 2 (design foundation +
-safety nets) starts from that pick. Settled program decisions (hybrid doorbell gallery, 2-mono+1-accent
-identity set, emil-design-eng as the binding craft bar) are in the memory/plan; don't re-litigate.
+plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 (identity exploration) round 1
+SHIPPED 2026-06-10 and **MONOCHROME WON, both modes** (zero accent; light = paper/hairline, dark =
+glass/media-as-light; theme follows system, light when unretrievable). Round 2 SHIPPED same day: the
+gated **/design** route (`DESIGN_PREVIEW_KEY`) now serves the locked mono system in SIX display-face
+options (Fraunces, Instrument Serif, Newsreader, Space Grotesk, Geist, Inter control) with a per-page
+light/dark/system toggle. **Blocked on Will: pick the typeface (+ remix notes) at /design** — Phase 2
+(design foundation + safety nets) starts from that pick. Settled program decisions (hybrid doorbell
+gallery, monochrome identity, emil-design-eng as the binding craft bar) are in the memory/plan; don't
+re-litigate.
 
 The **v1 foundation is built and verified in production** — the focused phased build is complete and the
 project was in **one-off-task mode** (a goal → its own small plan → build → verify on partyreel.com →
