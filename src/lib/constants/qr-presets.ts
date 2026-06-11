@@ -45,11 +45,13 @@ export type QrStyleKey = (typeof QR_STYLE_KEYS)[number];
 /** Mirrors the `events.qr_style` DB default; new events render this until changed. */
 export const DEFAULT_QR_PRESET: QrStyleKey = "classic";
 
-// Pure black on white is the scanner-safest pairing; BRAND only tints corners.
+// Pure black on white is the scanner-safest pairing.
 const INK = "#000000";
 const PAPER = "#ffffff";
-// Mirrors --brand / BRAND_HEX = #FB4817 (the single accent). Hardcoded because the
-// lib renders to SVG/canvas and can't read the CSS custom property; keep in sync.
+// The legacy coral corner tint, INTENTIONALLY retained under the V1 mono
+// system: existing events keep their chosen preset rendering, scanners locate
+// corners by SHAPE so the color is decode-safe, and the share studio (ROADMAP)
+// redesigns the preset set wholesale. No longer tied to any UI token.
 const BRAND = "#FB4817";
 
 export const QR_PRESETS: Record<QrStyleKey, QrPreset> = {

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
-// Font CSS variables must match the names referenced in globals.css `@theme`
-// (--font-sans / --font-mono). Renaming one side without the other silently
-// drops the typeface back to the browser default.
+// Font CSS variables must match the names referenced in globals.css
+// (--font-sans / --font-mono in @theme; --font-display consumed by the
+// font-heading utility's five-knob display layer). Renaming one side without
+// the other silently drops the typeface back to the browser default.
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -17,6 +18,16 @@ const inter = Inter({
 const geistMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+});
+
+// THE IDENTITY FACE (V1 program, Phase 1 verdict): base Instrument Serif,
+// single weight - calibration + synthetic display weight live on the
+// font-heading utility in globals.css. next/font self-hosts it (build-time
+// download, served from our domain).
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 // metadataBase makes the file-based opengraph-image + relative metadata URLs
@@ -54,7 +65,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>

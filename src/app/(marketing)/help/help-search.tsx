@@ -64,7 +64,7 @@ export function HelpSearch({
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search help articles…"
               aria-label="Search help articles"
-              className="h-12 w-full rounded-full border bg-background pr-4 pl-12 text-base shadow-sm transition-[box-shadow,border-color] duration-150 outline-none placeholder:text-muted-foreground focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30"
+              className="h-12 w-full rounded-full border bg-background pr-4 pl-12 text-base shadow-sm transition-[box-shadow,border-color] duration-150 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
             />
           </div>
         </Container>

@@ -8,27 +8,52 @@
 
 /*
   ────────────────────────────────────────────────────────────────────────────
-  Partyreel design system — clean & minimal, media-first.
+  Partyreel V1 design system — MONOCHROME, media-first (program Phase 2).
 
-  Direction (see docs/PRD.md): the UI stays neutral and understated so guest
-  photos/videos are the hero. Color is used sparingly.
+  The locked identity (Phase 1, /design lab; spec = touchpoints.ts decisions):
+    • ZERO brand color. Chrome is ink and paper; the guests' photos/videos
+      supply ALL hue. `--brand` aliases `--primary` so legacy brand-tinted UI
+      renders as ink automatically. STATE feedback always gets color (mono
+      bans brand color, never meaning): --success green, --warning amber,
+      --like rose, --destructive red — punctuation only, never a wash.
+      "Saturate your neutrals" (Hobday) was consciously DECLINED: zero-chroma
+      purity IS the brand point.
+    • Both modes are one system: light = paper + hairline borders, dark =
+      near-black + translucent card + lighter-is-closer elevation. No pure
+      black/white anywhere (bg 0.99 / card 0.997 in light; fg 0.96 in dark).
+    • THE ROUNDING SYSTEM: sharp corners on general UI (--radius 2px),
+      rounder on interactive elements — the radius contrast itself signals
+      "pressable". Actions ride --radius-action (16px @ the 40px button,
+      scaled ~0.4×height: -lg @48px, -sm @32px). Media tiles get --radius-tile
+      (3px, tight-gap grids don't open corner holes). The FLOATING layer
+      (menus/tooltips/toasts) rides --radius-float (sharp reads broken there).
+      Nested corners follow inner = outer − gap (Hobday); sharp-surface/
+      round-action is the system's one deliberate exception to that math.
+    • THE ELEVATION CONTRACT: light mode floats on ONE soft shadow family
+      (--shadow-float, blur = 2× offset, single top light source); dark mode
+      uses NO shadows — depth = lighter surface steps (bg 0.14 → card 0.21 →
+      popover 0.23) + borders. One depth technique per mode, never mixed.
+    • TYPE: Instrument Serif is the IDENTITY face (page titles, event names,
+      marquees) via the `font-heading` utility below — size-calibrated
+      (font-size-adjust 0.6; display serifs render ~18% small at equal CSS
+      size) and stroke-weighted (the face ships 400 only; 0.013em text-stroke
+      beats faux-bold). FUNCTIONAL headings (settings sections, labels,
+      controls) stay Inter — the system rule from the lab. Swapping the brand
+      face forever = repoint --font-display + retune the five knobs in the
+      font-heading utility.
+    • MOTION: strong custom curves only (--ease-emphasis out, --ease-in-out-
+      strong move, --ease-drawer sheets), UI under 300ms, exits faster than
+      enters, entrances from scale(0.98)+opacity via @starting-style,
+      reduced-motion keeps the fade and drops movement. Before animating:
+      100+ uses/day = never; occasional = standard; rare = delight allowed.
+    • --gallery* (always-dark canvas) → guest gallery / media surfaces stay
+      dark in BOTH themes so media pops. Use `bg-gallery` etc., never force
+      `.dark`.
 
-  Token layers:
-    • shadcn neutral palette (Nova preset)  → primary/secondary/muted/etc.
-      Primary is near-black: buttons/links read as premium monochrome.
-    • --brand* (restrained coral accent)     → logo, key CTAs, active states ONLY.
-      Do NOT splash brand color across surfaces; it should punctuate, not dominate.
-    • --gallery* (always-dark canvas)         → guest gallery / media surfaces.
-      Galleries are dark in BOTH light & dark themes so media pops. Use
-      `bg-gallery text-gallery-foreground` rather than toggling the theme.
-
-  Theming strategy: shadcn `.dark` class variant (the CSS uses NO
-  prefers-color-scheme media query). next-themes drives the class globally
-  (attribute="class"): it defaults to the visitor's device setting
-  (defaultTheme="system"), and the account menu (UserMenu) is the only UI to
-  override to Light / Dark / System. The preference is global, so it styles the
-  marketing site too. Gallery darkness is independent: it comes from the
-  always-dark --gallery tokens, not from forcing `.dark`.
+  Theming: shadcn `.dark` class via next-themes (attribute="class",
+  defaultTheme="system" — follows the device, light when unretrievable; the
+  account menu is the only override UI). The /design lab keeps a self-
+  contained copy of these values (dedup deferred to Phase 8).
   ────────────────────────────────────────────────────────────────────────────
 */
 
@@ -39,21 +64,31 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --font-heading: var(--font-sans);
 
-  /* Refined heading tracking: every heading uses `tracking-tight` and NO body text
-     does, so tightening this one token modernizes all headings in a single knob.
-     Intentionally diverges from Tailwind's default -0.025em (Inter is built for
-     negative display tracking). */
-  --tracking-tight: -0.03em;
+  /* Headings: Instrument Serif wants ZERO tracking (Inter wanted -0.03em).
+     The 90+ existing `tracking-tight` usages become no-ops by design; they
+     get pruned per-surface in later phases. */
+  --tracking-tight: 0em;
 
-  /* Motion — a STRONG ease-out (built-in CSS easings are too weak; per the
-     emil-design-eng skill). Tasteful UI transitions stay under ~300ms. */
+  /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
+     eng). emphasis = enter/exit ease-out; in-out-strong = on-screen movement;
+     drawer = sheets/drawers (the iOS curve). UI stays under ~300ms; exits run
+     faster than enters. */
   --ease-emphasis: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* Brand accent — restrained, used sparingly (logo, primary CTA, active state). */
+  /* Brand = ink (aliased to primary in :root). Kept as a token so any future
+     accent decision is a two-line change, never a sweep. */
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+
+  /* State colors — feedback always gets color; brand never does. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-like: var(--like);
 
   /* Media-first gallery surface — always dark so photos/videos are the hero. */
   --color-gallery: var(--gallery);
@@ -61,14 +96,6 @@
   --color-gallery-muted: var(--gallery-muted);
   --color-gallery-border: var(--gallery-border);
 
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -90,6 +117,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* The rounding system (see header). The legacy sm..4xl scale stays mapped
+     (everything in it is now "sharp family"); interactive + floating layers
+     use the dedicated tokens. */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -97,48 +128,82 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-action: var(--radius-action);
+  --radius-action-lg: var(--radius-action-lg);
+  --radius-action-sm: var(--radius-action-sm);
+  --radius-tile: var(--radius-tile);
+  --radius-float: var(--radius-float);
+
+  /* The elevation contract: the one light-mode shadow family (floating layer
+     only); resolves to nothing in dark (lighter-is-closer instead). */
+  --shadow-float: var(--shadow-float);
+
+  /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
+     (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction
+     motion, and a strong curve stutters at the loop point. */
+  --animate-shimmer: shimmer 1.8s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Light = paper. No pure white anywhere (Hobday): bg 0.99, card 0.997 —
+     the lift is real but hairlines, not contrast, do the layering. */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.13 0 0);
+  --card: oklch(0.997 0 0);
+  --card-foreground: oklch(0.13 0 0);
+  --popover: oklch(0.997 0 0);
+  --popover-foreground: oklch(0.13 0 0);
+  --primary: oklch(0.13 0 0);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.13 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.13 0 0);
+  --destructive: oklch(0.55 0.21 27);
+  --border: oklch(0.905 0 0);
+  --input: oklch(0.905 0 0);
+  --ring: oklch(0.3 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 
-  /* Brand accent = #FB4817 (vivid orange-red). The ONE non-grayscale UI color — used to
-     PUNCTUATE (logo, key CTAs, active state), never splashed across surfaces; media supplies the
-     rest of the color. White foreground reads ~3.5:1, so reserve brand-bg text for large/bold
-     (CTA) sizes. Marketing may lean on it a bit more than the app, but from this same token. */
-  --brand: oklch(0.6568 0.222 34.66);
-  --brand-foreground: oklch(0.985 0 0);
+  /* The rounding system (rationale in the header). */
+  --radius: 0.125rem;
+  --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
+  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
+  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
+  --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
+  --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
+
+  /* Brand = ink. The alias keeps every legacy brand-tinted class coherent
+     under the mono identity with zero sweeps. */
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+
+  /* State colors (feedback always colored; punctuation, never a wash). */
+  --success: oklch(0.6 0.16 150);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.8 0.14 80);
+  --warning-foreground: oklch(0.25 0.05 70);
+  --like: oklch(0.63 0.21 15);
+
+  /* Elevation: the floating layer's one shadow family (blur = 2x offset,
+     single top light source). Dark mode zeroes it (see .dark). */
+  --shadow-float:
+    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
 
   /* Gallery canvas — identical in light & dark (media-first, theme-independent). */
   --gallery: oklch(0.155 0 0);
@@ -148,41 +213,49 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
+  /* Dark = the night system: near-black room, translucent card, and the
+     lighter-is-closer elevation ladder (bg 0.14 -> card 0.21 -> popover/menu
+     0.23 opaque). NO shadows in dark (the contract); borders + surface steps
+     carry depth. */
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.96 0 0);
+  --card: oklch(0.21 0 0 / 0.62);
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.23 0 0);
+  --popover-foreground: oklch(0.96 0 0);
+  --primary: oklch(0.96 0 0);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.245 0 0);
+  --muted-foreground: oklch(0.71 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --ring: oklch(0.85 0 0);
 
-  /* Slightly brighter so #FB4817 still reads against dark surfaces. */
-  --brand: oklch(0.69 0.215 34.66);
-  --brand-foreground: oklch(0.985 0 0);
+  /* Charts re-ramp BRIGHTER on near-black (the light ramp disappears). */
+  --chart-1: oklch(0.92 0 0);
+  --chart-2: oklch(0.78 0 0);
+  --chart-3: oklch(0.64 0 0);
+  --chart-4: oklch(0.5 0 0);
+  --chart-5: oklch(0.38 0 0);
+
+  /* Brand stays the ink alias (now light ink on dark). */
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+
+  /* State colors brighten so they still pop against near-black. */
+  --success: oklch(0.7 0.16 150);
+  --success-foreground: oklch(0.13 0 0);
+  --warning: oklch(0.84 0.14 82);
+  --warning-foreground: oklch(0.25 0.05 70);
+  --like: oklch(0.68 0.2 15);
+
+  /* Dark mode has NO shadows; an invisible value keeps the utility valid. */
+  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
 }
@@ -300,6 +373,27 @@
   }
 }
 
+/* THE IDENTITY TYPE UTILITY — the five-knob display layer (program Phase 1).
+   `font-heading` = Instrument Serif for IDENTITY moments only (page titles,
+   event names, marquees); functional headings stay Inter (the system rule).
+   Knobs: the face (--font-display, loaded in the root layout), the SIZE
+   CALIBRATION (font-size-adjust 0.6 — display serifs render ~18% small at
+   equal CSS size; measured in-browser, Inter parity is 0.55, IS deliberately
+   sits above it because hairline strokes read smaller than metrics), zero
+   tracking, the real weight (400 — the face ships ONE weight), and the
+   SYNTHETIC display weight (0.013em text-stroke; beats faux-bold, which
+   font-synthesis:none forbids). Swap the brand face forever by repointing
+   --font-display + retuning these five lines. Unsupported font-size-adjust
+   degrades to the uncalibrated (smaller) rendering, never breaks. */
+@utility font-heading {
+  font-family: var(--font-display, var(--font-sans));
+  font-size-adjust: 0.6;
+  letter-spacing: 0em;
+  font-weight: 400;
+  -webkit-text-stroke: 0.013em;
+  font-synthesis: none;
+}
+
 /* Help-center / blog article prose theme. Every color points at a design-system token
    (--foreground / --brand / --border / --gallery…), and those tokens already flip under
    `.dark` — so `prose prose-help` adapts to dark mode automatically, WITHOUT needing
@@ -322,4 +416,23 @@
   --tw-prose-pre-bg: var(--gallery);
   --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
+}
+
+/* GLOBAL REDUCED-MOTION GUARD. 0.01ms, NEVER 0: radix exit-unmount and the
+   lightbox settle wait on transitionend/animationend, and a 0 duration means
+   those events never fire (stuck-open overlays). iteration-count 1 stops
+   infinite loops (shimmer, spinners) - a static loader icon still reads as
+   loading. Component-level motion-reduce:/no-preference gates stay as the
+   first line; this is the safety net under everything else. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

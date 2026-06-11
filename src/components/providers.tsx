@@ -26,7 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+      {/* skipDelayDuration: once one tooltip has shown, siblings within 300ms
+          open instantly - scanning a toolbar doesn't re-pay the delay. */}
+      <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+        {children}
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

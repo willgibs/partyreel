@@ -27,7 +27,7 @@ export function PlayBadge({
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-full bg-black/50 text-white",
+          "flex items-center justify-center rounded-full bg-gallery/50 text-gallery-foreground",
           circle,
         )}
       >

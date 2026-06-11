@@ -8,10 +8,11 @@ export const SITE_URL = env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com";
 
 export const SITE_NAME = "Partyreel";
 
-// The brand accent as a literal sRGB hex for OG/satori rendering (next/og can't
-// read the `--brand` oklch token). Keep in sync with `--brand` (#FB4817) in
-// globals.css.
-export const BRAND_HEX = "#FB4817";
+// The brand mark color as a literal sRGB hex for OG/satori rendering (next/og
+// can't read CSS tokens). V1 mono system: brand collapsed to INK - keep in
+// sync with `--primary`/`--brand` in globals.css (the real logo/OG design pass
+// lands in Phase 6).
+export const BRAND_HEX = "#101010";
 
 // Public-facing support/contact address shown on the marketing site (and referenced
 // in the contact notification email). This DISPLAYED address stays fixed; where
