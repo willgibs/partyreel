@@ -49,6 +49,14 @@ export type GridMedia = {
    * liked/heart state is owned by the LikesProvider, NOT carried on the item.)
    */
   likeCount?: number;
+  /**
+   * Natural media geometry + video length (Phase 4 masonry/badges). Write-once at create_media,
+   * so immutable per id (they ride OUTSIDE the gallery ETag fingerprint). Null on rows uploaded
+   * before client-side measurement existed; consumers fall back to a 1:1 tile.
+   */
+  width?: number | null;
+  height?: number | null;
+  durationSeconds?: number | null;
 };
 
 // Presentational thumbnail shared by the public album (MediaGrid below) and the

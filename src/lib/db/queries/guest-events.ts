@@ -76,11 +76,20 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
   };
 });
 
-/** Just the fields the gallery presign needs (keys stay server-side, ADR-0003). */
+/**
+ * The fields the gallery needs (keys stay server-side, ADR-0003). Dimensions +
+ * duration feed the masonry tiles / video badges (Phase 4); they're WRITE-ONCE
+ * at create_media (mutations only ever flip status fields), so they're stable
+ * per id. Nullable: pre-measure-era rows and failed client measures are null
+ * (the grid falls back to 1:1).
+ */
 export type GuestMediaRow = {
   id: string;
   type: Database["public"]["Enums"]["media_type"];
   original_key: string;
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
 };
 
 // Approved media for the qr_token's event, NEWEST-FIRST, returned ONLY when the
@@ -95,9 +104,14 @@ export async function getEventMediaByQrToken(
     p_qr_token: qrToken,
   });
   if (error) throw error;
+  // The generated RPC types overstate non-nullness (the columns are nullable);
+  // normalize like `description` above so callers see honest nulls.
   return (data ?? []).map((m) => ({
     id: m.id,
     type: m.type,
     original_key: m.original_key,
+    width: m.width ?? null,
+    height: m.height ?? null,
+    duration_seconds: m.duration_seconds ?? null,
   }));
 }

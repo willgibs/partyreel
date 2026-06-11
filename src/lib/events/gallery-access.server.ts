@@ -97,7 +97,8 @@ export async function loadGalleryRowsForAccess(
  * The conditional-request validator for a loaded gallery: hashes the viewer-visible content
  * (ids in order + attribution exactly as toGridItems would emit it) + the access level +
  * the current presign bucket. MUST mirror toGridItems' identity fallbacks (`?? null/false`)
- * or a 304 could hide an attribution change.
+ * or a 304 could hide an attribution change. Dimensions/duration are deliberately NOT
+ * hashed (write-once per id - see gallery-fingerprint.ts).
  */
 export function galleryEtagFor(
   access: GalleryAccess,

@@ -13,6 +13,12 @@
  * The bucket id makes the ETag roll when the presign bucket rolls (~30 min),
  * capping any 304 streak so clients re-pull fresh URLs before old ones expire.
  *
+ * DELIBERATELY OUTSIDE the hash: width/height/durationSeconds (Phase 4 masonry
+ * data). They are write-once at create_media (mutations only ever flip status
+ * fields), so they're a pure function of the already-hashed id - hashing them
+ * would add bytes without adding sensitivity. A field that can CHANGE for an
+ * existing id must go INSIDE the hash (and bump g1 -> g2).
+ *
  * Pure module (node:crypto only) so the hash rules are Vitest-pinnable.
  */
 import { createHash } from "node:crypto";

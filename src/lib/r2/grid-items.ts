@@ -17,7 +17,15 @@ import type {
 } from "@/lib/moderation/operator-actions";
 import { presignDownload } from "@/lib/r2/presign";
 
-type MediaRow = { id: string; type: MediaKind; original_key: string };
+type MediaRow = {
+  id: string;
+  type: MediaKind;
+  original_key: string;
+  /** Write-once at create_media; null on pre-measure-era rows (grid: 1:1 fallback). */
+  width?: number | null;
+  height?: number | null;
+  duration_seconds?: number | null;
+};
 
 export async function toGridItems(
   media: MediaRow[],
@@ -50,6 +58,11 @@ export async function toGridItems(
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
         isAnonymous: who?.isAnonymous ?? false,
+        // Masonry geometry + video badge data (Phase 4). Immutable per id, so
+        // they ride OUTSIDE the gallery ETag fingerprint (gallery-fingerprint.ts).
+        width: m.width ?? null,
+        height: m.height ?? null,
+        durationSeconds: m.duration_seconds ?? null,
       };
     }),
   );

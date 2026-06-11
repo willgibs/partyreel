@@ -55,4 +55,22 @@ describe("galleryEtag", () => {
     const withString = galleryEtag({ ...base, items: [item({ uploaderName: "null" })] });
     expect(withNull).not.toBe(withString);
   });
+
+  it("the fingerprint input shape excludes dimensions BY DESIGN (write-once per id)", () => {
+    // Phase 4 threads width/height/durationSeconds through the payload for the
+    // masonry; they are immutable per media id, so they ride OUTSIDE the hash.
+    // Extra unknown fields on input items must therefore never wobble the etag
+    // (the canonical form picks named fields only).
+    const a = galleryEtag(base);
+    const b = galleryEtag({
+      ...base,
+      items: base.items.map((i) => ({
+        ...i,
+        width: 1600,
+        height: 1200,
+        durationSeconds: 12,
+      }) as GalleryFingerprintItem),
+    });
+    expect(b).toBe(a);
+  });
 });
