@@ -1,165 +1,43 @@
-import { NextResponse } from "next/server";
-
 import { createMedia } from "@/lib/db/mutations/guest";
-import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
-import { classifyMime } from "@/lib/media/validators";
-import { captureError, captureWarning } from "@/lib/observability/sentry";
 import {
-  abortMultipartUpload,
-  completeMultipartUpload,
-  headObjectSize,
-  sumMultipartParts,
-} from "@/lib/r2/presign";
+  runCompletePipeline,
+  type CompleteStrategy,
+} from "@/lib/upload/server-pipeline";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
-// Finalizes an upload. For multipart, assembles the object in R2 from the per-part
-// ETags the browser collected; then records it via create_media (the authoritative
-// gate for caps/limits/key-prefix + atomic ledger/status write). A duplicate
-// media_id on retry is mapped to success (create_media rolls back cleanly).
+// Finalizes a guest upload. The pipeline engine owns the shared spine
+// (multipart sum/abort guard + assemble, the R2-HEAD authoritative size);
+// this strategy owns the create_media wrapper call (the authoritative gate
+// for caps/limits/key-prefix + atomic ledger/status write) and the guest
+// error-status mapping. A duplicate media_id on retry maps to success.
+const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
+  schema: completeUploadSchema,
+  captureLabel: "create_media",
+  createRecord(parsed, kind, realSize) {
+    return createMedia({
+      sessionToken: parsed.session_token,
+      mediaId: parsed.media_id,
+      type: kind,
+      originalKey: parsed.key,
+      fileSizeBytes: realSize,
+      durationSeconds: parsed.duration_seconds ?? null,
+      width: parsed.width ?? null,
+      height: parsed.height ?? null,
+    });
+  },
+  errorStatus(code) {
+    return code === "invalid_session"
+      ? 401
+      : code === "uploads_closed"
+        ? 403
+        : code === "cap_reached"
+          ? 409
+          : code === "bad_key"
+            ? 400
+            : 422;
+  },
+};
+
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { ok: false, code: "bad_request", message: "Invalid request body." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = completeUploadSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "bad_request",
-        message: "Invalid completion request.",
-      },
-      { status: 400 },
-    );
-  }
-  const {
-    session_token,
-    media_id,
-    key,
-    content_type,
-    duration_seconds,
-    width,
-    height,
-    upload_id,
-    parts,
-  } = parsed.data;
-  // size_bytes is still accepted by the schema (the presign step uses it) but is NOT trusted here —
-  // we re-derive the authoritative size from R2 below.
-
-  // Derive media_type server-side from the content-type (never trust a client type).
-  const kind = classifyMime(content_type);
-  if (!kind) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "unsupported_type",
-        message: "That file type isn't supported.",
-      },
-      { status: 415 },
-    );
-  }
-
-  // Multipart: assemble the object before recording it. (Single-PUT is already
-  // finalized by the browser's PUT, so there's nothing to complete in R2.)
-  if (upload_id) {
-    try {
-      // Cost/abuse guard: sum the REAL uploaded part sizes and ABORT (never assemble) if they
-      // exceed the 10 GB ceiling. Per-part content-length binding already caps each part at the
-      // R2 edge; this is the defense-in-depth backstop that stops an assembled megafile orphan
-      // (which the backup Worker would replicate to the WORM bucket) before it can exist.
-      const uploadedBytes = await sumMultipartParts({ key, uploadId: upload_id });
-      if (uploadedBytes > MAX_UPLOAD_BYTES) {
-        await abortMultipartUpload({ key, uploadId: upload_id }).catch(() => {});
-        captureWarning("upload", "oversize_multipart_aborted", {
-          key,
-          upload_id,
-          uploadedBytes,
-        });
-        return NextResponse.json(
-          {
-            ok: false,
-            code: "too_large",
-            message: "This upload exceeded the size limit and was discarded.",
-          },
-          { status: 413 },
-        );
-      }
-      await completeMultipartUpload({ key, uploadId: upload_id, parts });
-    } catch (e) {
-      // A real R2/infra failure — previously swallowed (502 with no trace). Capture it.
-      captureError("upload", e, { key, upload_id });
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "complete_failed",
-          message: "Couldn't finalize the upload. Please retry.",
-        },
-        { status: 502 },
-      );
-    }
-  }
-
-  // AUTHORITATIVE size: read the real stored bytes from R2 — never trust the client's size_bytes (a
-  // spoofed-low size would evade the storage cap, whose meter is SUM(media.file_size_bytes)).
-  let realSize: number;
-  try {
-    realSize = await headObjectSize({ key });
-  } catch {
-    captureWarning("upload", "head_object_failed", { key, media_id });
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "bad_key",
-        message: "Couldn't verify the uploaded file. Please retry.",
-      },
-      { status: 400 },
-    );
-  }
-
-  const result = await createMedia({
-    sessionToken: session_token,
-    mediaId: media_id,
-    type: kind,
-    originalKey: key,
-    fileSizeBytes: realSize,
-    durationSeconds: duration_seconds ?? null,
-    width: width ?? null,
-    height: height ?? null,
-  });
-
-  if (!result.ok) {
-    // Routine user rejections (cap/limits/closed/session) are expected and handled below;
-    // only the UNEXPECTED codes (a key mismatch or an unmapped DB error) signal a bug.
-    if (result.code === "bad_key" || result.code === "unknown") {
-      captureWarning("upload", `create_media: ${result.code}`, {
-        code: result.code,
-        media_id,
-        key,
-      });
-    }
-    const status =
-      result.code === "invalid_session"
-        ? 401
-        : result.code === "uploads_closed"
-          ? 403
-          : result.code === "cap_reached"
-            ? 409
-            : result.code === "bad_key"
-              ? 400
-              : 422;
-    return NextResponse.json(
-      { ok: false, code: result.code, message: result.message },
-      { status },
-    );
-  }
-
-  // {media_id, status} on a fresh insert; {idempotent:true} on a retry.
-  const status = "idempotent" in result.data ? "recorded" : result.data.status;
-  return NextResponse.json({ ok: true, status });
+  return runCompletePipeline(request, guestCompleteStrategy);
 }
