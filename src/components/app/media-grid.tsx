@@ -69,7 +69,14 @@ export type GridMedia = {
 // here — keep it a clean primitive both surfaces reuse. It renders from only
 // `type` + `url`, so it also accepts thinner shapes (e.g. the operator report
 // thumbnail) that have no downloadUrl/lightbox.
-export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
+export function MediaTile({
+  item,
+  playBadge = "center",
+}: {
+  item: Pick<GridMedia, "type" | "url">;
+  /** "none" lets a caller (the guest masonry) supply its own corner badge. */
+  playBadge?: "center" | "none";
+}) {
   // Fade a photo in on load so presigned images don't pop in jarringly (opacity-only -> reduced-motion
   // safe). The `complete` check covers a cached image that finished loading before React attached onLoad,
   // so it can never get stuck invisible at opacity-0.
@@ -105,7 +112,7 @@ export function MediaTile({ item }: { item: Pick<GridMedia, "type" | "url"> }) {
         playsInline
         className="size-full bg-black object-cover"
       />
-      <PlayBadge />
+      {playBadge === "center" && <PlayBadge />}
     </>
   );
 }

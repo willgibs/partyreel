@@ -17,7 +17,8 @@
 import { use, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { Ref } from "react";
 
-import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import type { GridMedia } from "@/components/app/media-grid";
+import { GuestMasonry } from "@/components/guest/guest-masonry";
 import type { UploadedItem } from "@/components/guest/guest-upload";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
@@ -196,7 +197,7 @@ export function LiveGallery({
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
-          <MediaGrid items={items} />
+          <GuestMasonry items={items} />
         </LikesProvider>
       ) : (
         <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">

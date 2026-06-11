@@ -8,9 +8,14 @@ export function GallerySkeleton() {
   return (
     <section className="mt-9" aria-hidden>
       <Skeleton className="mb-3 h-5 w-36" />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-lg" />
+      {/* Mirrors the masonry geometry (columns + varied heights + 3px gaps). */}
+      <div className="columns-2 gap-[3px]">
+        {["4/5", "1/1", "3/4", "4/3", "1/1", "4/5"].map((ratio, i) => (
+          <Skeleton
+            key={i}
+            className="mb-[3px] w-full rounded-[3px]"
+            style={{ aspectRatio: ratio }}
+          />
         ))}
       </div>
     </section>

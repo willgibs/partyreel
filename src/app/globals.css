@@ -275,12 +275,16 @@
      photo (and others' live uploads) visibly land at the top of the gallery, and
      albums settle in gently on load. @starting-style fires only on mount, so the
      reconcile-by-id poll never re-animates unchanged tiles. transform+opacity
-     only (GPU); reduced motion gets a plain fade, no movement. */
+     only (GPU); reduced motion gets a plain fade, no movement.
+     STAGGER (Phase 4): the guest masonry sets --tile-i on the SEED render only
+     (45ms steps, capped so deep galleries don't queue forever); doorbell/poll
+     arrivals carry --tile-i: 0 and land immediately. */
   @media (prefers-reduced-motion: no-preference) {
     [data-media-tile] {
       transition:
         opacity 240ms var(--ease-emphasis),
         transform 240ms var(--ease-emphasis);
+      transition-delay: min(calc(var(--tile-i, 0) * 45ms), 540ms);
       @starting-style {
         opacity: 0;
         transform: translateY(8px) scale(0.98);
