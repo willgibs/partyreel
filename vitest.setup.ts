@@ -1,0 +1,152 @@
+/**
+ * Component-project setup (jsdom): polyfills + global mocks for the browser
+ * APIs the pinned components touch but jsdom lacks. Loaded only by the
+ * `component` vitest project (see vitest.config.ts); the node `unit` project
+ * never sees this file.
+ */
+import { afterEach, beforeEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+// src/lib/env.ts validates the public vars EAGERLY on import; components that
+// transitively import the supabase client need these to exist. Dummies only -
+// component pins never hit a network.
+process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://test.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??= "test-publishable-key";
+
+// RTL auto-cleanup hooks into globals (off here); register it explicitly so
+// each test starts from an empty document.
+afterEach(cleanup);
+
+// React 19 + RTL act() integration.
+(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
+
+/* ── matchMedia, with a reduced-motion knob ──────────────────────────────
+   Default = no-preference so the lightbox runs its ANIMATED settle path;
+   tests opt into the reduced-motion instant path via setReducedMotion(true). */
+let reducedMotion = false;
+
+/** Flip the (prefers-reduced-motion) media result for the current test. */
+export function setReducedMotion(value: boolean) {
+  reducedMotion = value;
+}
+
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: (query: string) => ({
+    matches: query.includes("prefers-reduced-motion") ? reducedMotion : false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }),
+});
+
+/* ── Layout + geometry (jsdom has no layout engine) ────────────────────── */
+const RECT = {
+  x: 0,
+  y: 0,
+  width: 800,
+  height: 600,
+  top: 0,
+  left: 0,
+  bottom: 600,
+  right: 800,
+  toJSON: () => ({}),
+};
+Element.prototype.getBoundingClientRect = vi.fn(() => ({ ...RECT }));
+
+/* ── DOMMatrixReadOnly: the lightbox reads m41 (translateX) off the live
+   transform when a drag interrupts a settle. Parse the two forms jsdom's
+   getComputedStyle can return. ───────────────────────────────────────── */
+if (!("DOMMatrixReadOnly" in globalThis)) {
+  class DOMMatrixReadOnlyPolyfill {
+    m41 = 0;
+    constructor(transform?: string) {
+      if (!transform) return;
+      // jsdom's getComputedStyle returns the UNRESOLVED inline string, so the
+      // lightbox's `translateX(calc(-100% + Npx))` must be resolved here
+      // against the mocked 800px stage (see the RECT mock above) - a real
+      // browser would hand back a resolved matrix instead.
+      const calc = transform.match(
+        /translateX\(calc\(-100% \+ (-?[\d.]+)px\)\)/,
+      );
+      if (calc) {
+        this.m41 = -800 + parseFloat(calc[1]);
+        return;
+      }
+      const tx = transform.match(/translateX\((-?[\d.]+)px\)/);
+      if (tx) {
+        this.m41 = parseFloat(tx[1]);
+        return;
+      }
+      const matrix = transform.match(/matrix\(([^)]+)\)/);
+      if (matrix) {
+        const parts = matrix[1].split(",").map((s) => parseFloat(s.trim()));
+        if (parts.length === 6) this.m41 = parts[4];
+      }
+    }
+  }
+  (globalThis as Record<string, unknown>).DOMMatrixReadOnly =
+    DOMMatrixReadOnlyPolyfill;
+}
+
+/* ── Pointer events: jsdom lacks the constructor + capture methods (radix
+   and the lightbox call them inside try/catch, but the stubs keep paths
+   deterministic). ──────────────────────────────────────────────────────── */
+if (typeof window.PointerEvent === "undefined") {
+  class PointerEventPolyfill extends MouseEvent {
+    pointerId: number;
+    pointerType: string;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 0;
+      this.pointerType = init.pointerType ?? "mouse";
+    }
+  }
+  (window as unknown as Record<string, unknown>).PointerEvent =
+    PointerEventPolyfill;
+}
+Element.prototype.setPointerCapture = vi.fn();
+Element.prototype.releasePointerCapture = vi.fn();
+Element.prototype.hasPointerCapture = vi.fn(() => false);
+Element.prototype.scrollIntoView = vi.fn();
+
+// jsdom has no blob URL support; thumbnails/measure paths just need a string.
+if (typeof URL.createObjectURL === "undefined") {
+  URL.createObjectURL = vi.fn(() => "blob:vitest-mock");
+  URL.revokeObjectURL = vi.fn();
+}
+
+if (!("ResizeObserver" in globalThis)) {
+  (globalThis as Record<string, unknown>).ResizeObserver = class {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+  };
+}
+
+/* ── Sonner: spy on toasts everywhere; stub the Toaster so trees that render
+   components/ui/sonner.tsx don't crash. vi.unmock("sonner") per-file if a
+   test ever needs the real thing. ─────────────────────────────────────── */
+vi.mock("sonner", () => ({
+  toast: Object.assign(vi.fn(), {
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+    loading: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+  Toaster: () => null,
+}));
+
+beforeEach(() => {
+  localStorage.clear();
+  reducedMotion = false;
+});
+
+// jest-dom matchers (toHaveTextContent, toBeInTheDocument, ...) for vitest.
+import "@testing-library/jest-dom/vitest";
