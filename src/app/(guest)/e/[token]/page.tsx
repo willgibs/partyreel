@@ -151,10 +151,11 @@ export default async function GuestEventPage({
   const access = isDemo
     ? "full"
     : resolveGalleryAccess(event, { isOwner, isAuthed, isUnlocked: unlocked });
-  const { items: initialItems, teaserTotal } = await loadGalleryForAccess(
-    event,
-    access,
-  );
+  const {
+    items: initialItems,
+    teaserTotal,
+    etag: initialEtag,
+  } = await loadGalleryForAccess(event, access);
 
   // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
   // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
@@ -180,6 +181,7 @@ export default async function GuestEventPage({
         qrToken={event.qr_token}
         joinUrl={joinUrl}
         initialItems={initialItems}
+        initialEtag={initialEtag}
         isDemo={isDemo}
         access={access}
         teaserTotal={teaserTotal}

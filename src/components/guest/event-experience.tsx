@@ -37,6 +37,7 @@ export function EventExperience({
   qrToken,
   joinUrl,
   initialItems,
+  initialEtag,
   isDemo,
   access,
   teaserTotal,
@@ -48,6 +49,8 @@ export function EventExperience({
   qrToken: string;
   joinUrl: string;
   initialItems: GridMedia[];
+  /** The RSC-computed gallery ETag, so the very first poll can answer 304. */
+  initialEtag: string | null;
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
   /** Server-resolved gallery access (none/teaser/full), driving the entry modal's gate. `none` =
@@ -70,6 +73,9 @@ export function EventExperience({
   const [serverItems, setServerItems] = useState<GridMedia[]>(initialItems);
   const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
   const blobUrls = useRef(new Map<string, string>()); // mediaId → object URL
+  // The current conditional-request validator: sent as If-None-Match so an
+  // unchanged gallery answers a bare 304 (no payload, no presigns server-side).
+  const etagRef = useRef<string | null>(initialEtag);
   // Last server-resolved access, so we can resync the gallery when the gate flips (teaser → full
   // after the viewer signs in via the entry modal, which triggers a router.refresh()).
   const prevAccess = useRef(access);
@@ -82,12 +88,18 @@ export function EventExperience({
     try {
       const res = await fetch("/api/guests/gallery", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(etagRef.current ? { "If-None-Match": etagRef.current } : {}),
+        },
         body: JSON.stringify({ qr_token: qrToken }),
       });
+      // 304 = nothing changed since the validator we hold; skip all state work.
+      if (res.status === 304) return;
       if (!res.ok) return;
       const body = (await res.json()) as { ok: boolean; items?: GridMedia[] };
       if (!body.ok || !body.items) return;
+      etagRef.current = res.headers.get("etag");
       const items = body.items;
       // Reconcile by id: KEEP already-rendered items' presigned URLs so unchanged
       // media doesn't re-download every poll (the presign signature changes each
@@ -164,7 +176,10 @@ export function EventExperience({
     if (prevAccess.current === access) return;
     prevAccess.current = access;
     setServerItems(initialItems);
-  }, [access, initialItems]);
+    // The old validator belongs to the previous access level; adopt the fresh
+    // server-rendered one (access is hashed in, so they can never cross-match).
+    etagRef.current = initialEtag;
+  }, [access, initialItems, initialEtag]);
 
   const handleUploaded = useCallback(
     (u: UploadedItem) => {
