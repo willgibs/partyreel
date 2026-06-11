@@ -10,6 +10,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-11 — V1 program PHASE 1 COMPLETE: all 10 touchpoints ratified (round 7)
+
+Will's final numbered form + notes landed; the lab now records the COMPLETE V1 component spec.
+Commit `05b28e1`.
+
+- **Entry = V4 adaptive sheet** (the verdict that also settles the header question): public events
+  keep the real-gallery backdrop, locked/empty show the ghost grid + real count; lock mark above the
+  heading; the account step framed as the host's SAFETY choice in natural copy, not a capture gate.
+- **Header = V1 left editorial** (no cover-image pressure on hosts). Upload combo drops the add tile:
+  header Add on load, floating Add on scroll, never both; play badges mark video tiles.
+- **Rounding finalized:** surfaces 2px (near-sharp), NEW `--radius-tile` 3px + 3px gaps for media
+  (corners no longer open holes), actions stay 16px-at-40px height-scaled.
+- **Warning state added** (amber tokens, both modes): needs-review chips wear it. Event cards get
+  meta-pill icons + the REAL per-event QR top-left (tiny on purpose; taps open the share suite).
+- **Lightbox:** ~30% gracious side tap zones, whisper scrims, swipe primary with tight neighbor
+  slide-in. **Forms:** SYSTEM RULE - Instrument for identity moments only; functional headings in
+  Inter. Demo recomposed to the final spec.
+- The full decision record + remix notes live in `src/app/(dev)/design/touchpoints.ts`.
+- **Phase 1 of the v0→V1 program is COMPLETE** (identity, type, component spec all locked; the lab
+  stays as the standing design instrument). Next: Phase 2 (design foundation + safety nets)
+  re-enters plan mode.
+
 ## 2026-06-11 — V1 program Phase 1, round 6: 8 of 10 touchpoints ratified + the cohesive demo
 
 Will's 10-note decision round, synthesized into the lab. Commit `4378d89`.

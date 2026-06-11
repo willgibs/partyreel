@@ -17,11 +17,14 @@ calibration + 0.013em stroke weight; swappable via the five-variable display lay
 `src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is now the
 STANDING DESIGN LAB (Will's call - it persists beyond Phase 1): `/design/system` = the locked-system
 reference; `touchpoints.ts` = the decision record (picks land as `decision` config → Selected badges).
-**Blocked on Will: variant picks for the 10 touchpoints** (`/design/c/*`: entry, upload, gallery,
-header, buttons, lightbox, event-card, forms, states, qr-card) — those picks close Phase 1; Phase 2
-(design foundation + safety nets) re-enters plan mode from them. Settled program decisions (hybrid doorbell
-gallery, monochrome identity, emil-design-eng as the binding craft bar) are in the memory/plan; don't
-re-litigate.
+**PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** (entry = adaptive sheet + ghost grid w/
+safety framing · upload = floating+tile combo sans add-tile · masonry · header = left editorial · sharp
+surfaces + round actions + 3px tile radius · floating-pill lightbox · stat-forward card w/ real mini QR
++ warning review chip · card-section forms w/ Inter functional headings, focused column for guided
+flows · photographic empty · QR presets, share studio on ROADMAP). The full spec = `touchpoints.ts`
+decisions + `/design/demo`. **Next: Phase 2 (design foundation + safety nets) re-enters plan mode.**
+Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
+craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
 
 The **v1 foundation is built and verified in production** — the focused phased build is complete and the
 project was in **one-off-task mode** (a goal → its own small plan → build → verify on partyreel.com →
