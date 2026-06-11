@@ -46,19 +46,19 @@ export function ButtonVariants() {
             data-dir-press
             className="h-12 rounded-[var(--radius)] bg-primary px-7 text-base font-medium text-primary-foreground"
           >
-            Hero CTA
+            Hero CTA · 48px
           </button>
           <button
             data-dir-press
             className="h-10 rounded-[var(--radius)] bg-primary px-5 text-sm font-medium text-primary-foreground"
           >
-            Standard
+            Guest standard · 40px
           </button>
           <button
             data-dir-press
-            className="h-8 rounded-[calc(var(--radius)*0.8)] bg-primary px-3.5 text-xs font-medium text-primary-foreground"
+            className="h-8 rounded-[var(--radius)] bg-primary px-3.5 text-xs font-medium text-primary-foreground"
           >
-            Compact
+            Host compact · 32px
           </button>
           <button
             data-dir-press
@@ -94,9 +94,11 @@ function ShapeRow({ radius }: { radius: string }) {
       >
         Save event
       </button>
+      {/* Quiet tier gets a whisper of surface here so its SHAPE is judgeable
+          in the comparison; in the app it stays bare until hover/press. */}
       <button
         data-dir-press
-        className="h-11 w-full text-sm font-medium text-muted-foreground"
+        className="h-11 w-full bg-muted/50 text-sm font-medium text-muted-foreground"
         style={{ borderRadius: radius }}
       >
         Just browsing

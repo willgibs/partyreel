@@ -36,7 +36,7 @@ export const FONT_OPTIONS: FontOption[] = [
     letter: "A",
     name: "Instrument Serif",
     blurb:
-      "The working favorite: light fashion-editorial serif, single weight. Now size-calibrated so it sits correctly in a standard heading scale.",
+      "The working favorite, now tuned: size calibrated above Inter parity (its hairlines read smaller than its metrics) plus a hairline stroke for display weight, since the face ships in 400 only.",
     wrapperClass: "font-opt-instrument",
   },
   {

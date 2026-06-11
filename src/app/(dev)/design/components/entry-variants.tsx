@@ -16,7 +16,7 @@ export function EntryVariants() {
         name="Centered card"
         rationale="The classic modal: focused, symmetrical, fastest to dismiss. The gallery stays visible around it."
       >
-        <GalleryBackdrop dim="bg-black/45" />
+        <GalleryBackdrop dim="bg-black/50" />
         <div className="absolute inset-0 flex items-center p-5">
           <WelcomeCard compact />
         </div>
@@ -31,6 +31,7 @@ export function EntryVariants() {
         <div className="absolute inset-x-0 bottom-0">
           <div
             data-dir-card
+            data-dir-enter
             className="rounded-b-none border-b-0 p-5 pt-3"
             style={{
               borderTopLeftRadius: "calc(var(--radius) * 2.2)",
@@ -59,7 +60,7 @@ export function EntryVariants() {
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
           </div>
-          <div className="flex flex-col px-6 pb-6">
+          <div className="flex flex-col px-6 pb-8">
             <p
               data-dir-display
               className="mt-2 text-center text-3xl leading-tight text-balance"
@@ -70,9 +71,11 @@ export function EntryVariants() {
               Add your photos and browse everyone&rsquo;s. No app, no account.
             </p>
             <FeatureRows className="mt-5" />
+            {/* Semibold here only: at full-screen scale next to text-3xl
+                display, a medium CTA reads secondary. */}
             <button
               data-dir-press
-              className="mt-6 h-11 w-full rounded-[var(--radius)] bg-primary text-sm font-medium text-primary-foreground"
+              className="mt-6 h-11 w-full rounded-[var(--radius)] bg-primary text-sm font-semibold text-primary-foreground"
             >
               Continue
             </button>

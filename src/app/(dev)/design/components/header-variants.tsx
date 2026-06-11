@@ -59,6 +59,8 @@ export function HeaderVariants() {
         <div className="absolute inset-0">
           <div className="relative h-[42%]">
             <Image src={COVER_PHOTO} alt="" fill sizes="320px" className="object-cover" />
+            {/* 65% floor assumes a bright/warm cover; production needs the
+                overlay tuned (or sampled) per cover photo - a Phase 2 note. */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-4 text-white">
               <p data-dir-display className="text-2xl leading-tight text-balance">
@@ -89,11 +91,17 @@ function Actions({ className }: { className?: string }) {
         <ImageUp className="size-3.5" />
         Add photos
       </button>
-      <button className="flex h-8 items-center justify-center gap-1.5 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-3 text-xs font-medium">
+      <button
+        data-dir-press
+        className="flex h-8 items-center justify-center gap-1.5 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-3 text-xs font-medium"
+      >
         <Bookmark className="size-3.5" />
         Save
       </button>
-      <button className="flex h-8 items-center justify-center gap-1.5 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-3 text-xs font-medium">
+      <button
+        data-dir-press
+        className="flex h-8 items-center justify-center gap-1.5 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-3 text-xs font-medium"
+      >
         <Share className="size-3.5" />
         Invite
       </button>

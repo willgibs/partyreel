@@ -18,7 +18,7 @@ export function UploadVariants() {
       >
         <Page>
           <div
-            className="mt-4 flex flex-col items-center gap-1.5 border border-dashed border-foreground/30 bg-muted/40 py-7"
+            className="mt-4 flex flex-col items-center gap-1.5 border border-dashed border-foreground/40 bg-muted/60 py-7"
             style={{ borderRadius: "var(--radius)" }}
           >
             <ImageUp className="size-5 text-muted-foreground" />
@@ -43,11 +43,13 @@ export function UploadVariants() {
         <div className="absolute inset-x-0 bottom-4 flex justify-center">
           <button
             data-dir-press
-            className="flex h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_10px_30px_-10px_rgba(0,0,0,0.45)]"
+            className="flex h-11 items-center gap-3 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_6px_16px_rgba(0,0,0,0.18)]"
           >
-            <ImageUp className="size-4" />
-            Add photos
-            <span className="ml-1 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px]">
+            <span className="flex items-center gap-2">
+              <ImageUp className="size-4" />
+              Add photos
+            </span>
+            <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px]">
               2 uploading
             </span>
           </button>
@@ -100,9 +102,9 @@ function QueueRow() {
         <Image src={PHOTOS[0]} alt="" fill sizes="36px" className="object-cover" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-medium">IMG_2041.jpg</p>
+        <p className="truncate text-xs font-medium">IMG_2041.jpg</p>
         <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
-          <div className="h-full w-2/3 rounded-full bg-foreground" />
+          <div className="h-full w-2/3 rounded-full bg-foreground/70" />
         </div>
       </div>
       <span className="text-[10px] text-muted-foreground">2 of 3</span>

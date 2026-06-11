@@ -101,75 +101,94 @@
     radial-gradient(28rem 20rem at 0% 100%, oklch(0.4 0 0 / 0.14), transparent 60%);
 }
 
-/* ───────────────────────────── The type options ────────────────────────────
-   Only the display face + its optical tuning vary. Body stays Inter (the app
-   --font-sans) in every option; F swaps nothing, it IS the control.
+/* ───────────────────────────── The type layer ──────────────────────────────
+   THE SWAPPABLE-FACE ARCHITECTURE (Will, 2026-06-10): one generic display
+   rule reads five variables; a face is a block of five variable values and
+   NOTHING else. Swapping the brand face anywhere, forever = changing one
+   block. Phase 2 lifts exactly this shape into the @theme type tokens.
 
-   SIZE CALIBRATION (the round-3 lesson, Will 2026-06-10): display serifs run
-   visibly smaller than Inter at the same CSS font-size (smaller x-height for
-   the em box; measured in-browser via canvas: Inter x-height ratio 0.55 vs
-   Instrument 0.51, Gloock 0.51, DM Serif 0.48, Prata 0.52, Playfair 0.52).
-   `font-size-adjust: 0.55` normalizes every face's RENDERED x-height to
-   Inter's, once, here - so the standardized heading scale needs no per-use
-   fine adjustment anywhere in the app. Phase 2 carries this into the type
-   tokens as the per-face calibration. Unsupported browsers degrade to the
-   uncalibrated (smaller) rendering, never break. */
+   The five knobs per face:
+     --display-font      the loaded family
+     --display-adjust    SIZE CALIBRATION: font-size-adjust normalizes the
+                         RENDERED x-height per em. Inter = 0.55 (measured
+                         in-browser; serif natives run 0.48-0.52, why they
+                         read small at equal CSS size). Instrument runs 0.58,
+                         deliberately ABOVE Inter parity: its hairline strokes
+                         read smaller than its metrics (Will's call).
+     --display-tracking  per-face optical tracking
+     --display-weight    real weight where the face has one
+     --display-stroke    SYNTHETIC WEIGHT for single-weight faces: a hairline
+                         text-stroke thickens stems uniformly (far better than
+                         browser faux-bold). Instrument ships 400 ONLY, so its
+                         "semibold" is 0.013em of stroke: noticeably less thin,
+                         deliberately not overdone.
+   Unsupported font-size-adjust degrades to the uncalibrated (smaller)
+   rendering, never breaks. font-synthesis is off so no engine fakes a bold
+   behind our back. */
+[data-dir-display] {
+  font-family: var(--display-font, var(--font-sans));
+  font-size-adjust: var(--display-adjust, none);
+  letter-spacing: var(--display-tracking, -0.03em);
+  font-weight: var(--display-weight, 650);
+  -webkit-text-stroke: var(--display-stroke, 0) currentColor;
+  font-synthesis: none;
+}
+
+/* The working favorite. To make Instrument THE face app-wide in Phase 2,
+   this block's values become the token defaults - that is the whole swap. */
 .font-opt-instrument {
   --font-heading: var(--font-display-instrument);
-}
-.font-opt-instrument [data-dir-display] {
-  font-family: var(--font-display-instrument);
-  font-size-adjust: 0.55; /* +8% apparent: matches Inter's x-height */
-  letter-spacing: 0em; /* single 400 weight; its lightness is the look */
-  font-weight: 400;
+  --display-font: var(--font-display-instrument);
+  --display-adjust: 0.58;
+  --display-tracking: 0em;
+  --display-weight: 400;
+  --display-stroke: 0.013em;
 }
 
 .font-opt-gloock {
   --font-heading: var(--font-display-gloock);
-}
-.font-opt-gloock [data-dir-display] {
-  font-family: var(--font-display-gloock);
-  font-size-adjust: 0.55;
-  letter-spacing: -0.005em;
-  font-weight: 400;
+  --display-font: var(--font-display-gloock);
+  --display-adjust: 0.55;
+  --display-tracking: -0.005em;
+  --display-weight: 400;
+  --display-stroke: 0;
 }
 
 .font-opt-dmserif {
   --font-heading: var(--font-display-dmserif);
-}
-.font-opt-dmserif [data-dir-display] {
-  font-family: var(--font-display-dmserif);
-  font-size-adjust: 0.55; /* +15%: DM runs smallest of the slate */
-  letter-spacing: -0.005em;
-  font-weight: 400;
+  --display-font: var(--font-display-dmserif);
+  --display-adjust: 0.55; /* +15%: DM runs smallest of the slate */
+  --display-tracking: -0.005em;
+  --display-weight: 400;
+  --display-stroke: 0;
 }
 
 .font-opt-prata {
   --font-heading: var(--font-display-prata);
-}
-.font-opt-prata [data-dir-display] {
-  font-family: var(--font-display-prata);
-  font-size-adjust: 0.55;
-  letter-spacing: 0em;
-  font-weight: 400;
+  --display-font: var(--font-display-prata);
+  --display-adjust: 0.55;
+  --display-tracking: 0em;
+  --display-weight: 400;
+  --display-stroke: 0;
 }
 
 .font-opt-playfair {
   --font-heading: var(--font-display-playfair);
-}
-.font-opt-playfair [data-dir-display] {
-  font-family: var(--font-display-playfair);
-  font-size-adjust: 0.55;
-  letter-spacing: -0.01em;
-  font-weight: 540;
+  --display-font: var(--font-display-playfair);
+  --display-adjust: 0.55;
+  --display-tracking: -0.01em;
+  --display-weight: 540;
+  --display-stroke: 0;
 }
 
-.font-opt-inter [data-dir-display] {
-  /* The control: the app's own Inter at the app's own tracking. NO
-     font-size-adjust: Inter IS the size reference everything calibrates to. */
-  font-family: var(--font-sans);
-  letter-spacing: -0.03em;
-  font-weight: 650;
+/* The control: the app's own Inter at the app's own tracking. NO adjust:
+   Inter IS the size reference everything calibrates to. */
+.font-opt-inter {
+  --display-font: var(--font-sans);
+  --display-adjust: none;
+  --display-tracking: -0.03em;
+  --display-weight: 650;
+  --display-stroke: 0;
 }
 
 /* ───────────────────────────── Shared motion system ────────────────────────
