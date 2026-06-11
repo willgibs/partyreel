@@ -1,47 +1,38 @@
 import type { Metadata } from "next";
-import {
-  DM_Serif_Display,
-  Gloock,
-  Instrument_Serif,
-  Playfair_Display,
-  Prata,
-} from "next/font/google";
+import { Instrument_Serif, Noto_Serif_Display, Oswald } from "next/font/google";
+import localFont from "next/font/local";
 
 import "./design.css";
 
 // The candidate display faces load ONLY on /design (nested layouts scope
 // next/font payloads to their subtree), so the production bundle is untouched.
-// Each exposes a --font-display-* var consumed by design.css's .font-opt-*
-// tuning blocks. Round 3 slate: Instrument Serif is the working favorite; the
-// rest are high-contrast display serifs in its neighborhood (the round-2
-// grotesks + softer serifs didn't land). Inter (option F, the control) needs
-// no load: it is the app's root --font-sans.
+// NOTE next/font SELF-HOSTS even the Google faces: files are downloaded at
+// build time and served from our own domain, zero runtime Google requests -
+// which is why vendoring the GitHub fork below is the same hosting story.
+// Inter (the control) needs no load: it is the app's root --font-sans.
 const instrument = Instrument_Serif({
   variable: "--font-display-instrument",
   subsets: ["latin"],
-  weight: "400", // single-weight face; the lightness IS the look
+  weight: "400", // single-weight face; option A synthesizes weight via stroke
 });
 
-const gloock = Gloock({
-  variable: "--font-display-gloock",
+// Eli Heuer's multi-weight fork of Instrument Serif (OFL), built from UFO
+// sources and vendored in fonts-local/ (see its README for provenance).
+const instrumentsFork = localFont({
+  src: "./fonts-local/InstrumentsSerifVF.woff2",
+  variable: "--font-display-instruments",
+  weight: "400 900",
+});
+
+// The all-caps condensed exploration (the MasterClass register).
+const oswald = Oswald({
+  variable: "--font-display-oswald",
   subsets: ["latin"],
-  weight: "400",
 });
 
-const dmSerif = DM_Serif_Display({
-  variable: "--font-display-dmserif",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const prata = Prata({
-  variable: "--font-display-prata",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-display-playfair",
+// The display cut of Google's Noto family (the right Noto for headings).
+const notoSerifDisplay = Noto_Serif_Display({
+  variable: "--font-display-noto",
   subsets: ["latin"],
 });
 
@@ -57,7 +48,7 @@ export default function DesignLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div
-      className={`${instrument.variable} ${gloock.variable} ${dmSerif.variable} ${prata.variable} ${playfair.variable} min-h-dvh`}
+      className={`${instrument.variable} ${instrumentsFork.variable} ${oswald.variable} ${notoSerifDisplay.variable} min-h-dvh`}
     >
       {children}
     </div>

@@ -20,17 +20,17 @@ export default async function DesignIndexPage({
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-16">
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-        Partyreel V1 · round 3
+        Partyreel V1 · round 4
       </p>
       <h1 className="font-heading mt-2 text-3xl font-semibold tracking-tight">
-        Components and a sharper type slate
+        Instrument, bigger, and three challengers
       </h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Monochrome is locked, light and dark as one system. Two open questions:
-        which components fit the major touchpoints (set in Instrument Serif,
-        the working favorite, now size-calibrated to Inter&rsquo;s apparent
-        size), and the typeface itself (a new serif slate around Instrument;
-        the round-2 faces that didn&rsquo;t land are gone).
+        Monochrome is locked, light and dark as one system. Instrument Serif
+        leads and is bumped again (0.60 calibration); challenging it: the
+        multi-weight Instruments Serif fork (real drawn weight, built from
+        source and self-hosted), an all-caps condensed register, and Noto
+        Serif Display. If none wins, Instrument carries into Phase 2 as is.
       </p>
 
       <h2 className="mt-10 text-sm font-semibold">

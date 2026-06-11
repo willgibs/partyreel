@@ -131,53 +131,53 @@
   letter-spacing: var(--display-tracking, -0.03em);
   font-weight: var(--display-weight, 650);
   -webkit-text-stroke: var(--display-stroke, 0) currentColor;
+  text-transform: var(--display-transform, none);
   font-synthesis: none;
 }
 
-/* The working favorite. To make Instrument THE face app-wide in Phase 2,
-   this block's values become the token defaults - that is the whole swap. */
+/* The benchmark. To make Instrument THE face app-wide in Phase 2, this
+   block's values become the token defaults - that is the whole swap.
+   0.60 is the round-4 bump (round 3.5 sat at 0.58; Inter parity is 0.55):
+   +18% over native. Watch tight display leading when pushing further. */
 .font-opt-instrument {
   --font-heading: var(--font-display-instrument);
   --display-font: var(--font-display-instrument);
-  --display-adjust: 0.58;
+  --display-adjust: 0.6;
   --display-tracking: 0em;
   --display-weight: 400;
   --display-stroke: 0.013em;
 }
 
-.font-opt-gloock {
-  --font-heading: var(--font-display-gloock);
-  --display-font: var(--font-display-gloock);
-  --display-adjust: 0.55;
-  --display-tracking: -0.005em;
-  --display-weight: 400;
-  --display-stroke: 0;
-}
-
-.font-opt-dmserif {
-  --font-heading: var(--font-display-dmserif);
-  --display-font: var(--font-display-dmserif);
-  --display-adjust: 0.55; /* +15%: DM runs smallest of the slate */
-  --display-tracking: -0.005em;
-  --display-weight: 400;
-  --display-stroke: 0;
-}
-
-.font-opt-prata {
-  --font-heading: var(--font-display-prata);
-  --display-font: var(--font-display-prata);
-  --display-adjust: 0.55;
+/* The multi-weight fork (vendored, see fonts-local/README.md): REAL drawn
+   weight at 600 instead of A's synthetic stroke. Same calibration as A so
+   the weight treatment is the only variable between them. */
+.font-opt-instruments {
+  --font-heading: var(--font-display-instruments);
+  --display-font: var(--font-display-instruments);
+  --display-adjust: 0.6;
   --display-tracking: 0em;
-  --display-weight: 400;
+  --display-weight: 600;
   --display-stroke: 0;
 }
 
-.font-opt-playfair {
-  --font-heading: var(--font-display-playfair);
-  --display-font: var(--font-display-playfair);
+/* All-caps condensed (the MasterClass register). Caps want open tracking;
+   Oswald's x-height already runs taller than Inter so no size adjust. */
+.font-opt-oswald {
+  --font-heading: var(--font-display-oswald);
+  --display-font: var(--font-display-oswald);
+  --display-adjust: none;
+  --display-tracking: 0.05em;
+  --display-weight: 550;
+  --display-stroke: 0;
+  --display-transform: uppercase;
+}
+
+.font-opt-noto {
+  --font-heading: var(--font-display-noto);
+  --display-font: var(--font-display-noto);
   --display-adjust: 0.55;
   --display-tracking: -0.01em;
-  --display-weight: 540;
+  --display-weight: 560;
   --display-stroke: 0;
 }
 
