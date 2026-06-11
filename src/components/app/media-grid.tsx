@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LikeButton } from "@/components/likes/like-button";
-import { MediaLightbox } from "@/components/shared/media-lightbox";
+import {
+  MediaLightboxLazy,
+  preloadMediaLightbox,
+} from "@/components/shared/media-lightbox.lazy";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
@@ -117,7 +120,11 @@ export function MediaGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <ul
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+        onPointerEnter={preloadMediaLightbox}
+        onTouchStart={preloadMediaLightbox}
+      >
         {items.map((item, i) => (
           <li
             key={item.id}
@@ -138,7 +145,7 @@ export function MediaGrid({
         ))}
       </ul>
 
-      <MediaLightbox
+      <MediaLightboxLazy
         items={items}
         index={openIndex}
         onClose={() => setOpenIndex(null)}

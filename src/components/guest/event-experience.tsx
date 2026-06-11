@@ -1,13 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useRef } from "react";
+import { Suspense, lazy, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 
-import {
-  EntryModal,
-  type EntryModalHandle,
-} from "@/components/guest/entry-modal";
+import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
@@ -28,6 +25,17 @@ import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
+
+// Code split (Phase 3): the entry-modal tree (welcome/password/account steps)
+// only matters pre-gate; React.lazy (NOT next/dynamic - the modal is a
+// forwardRef and dynamic() doesn't forward refs) moves it out of first-load
+// JS. Its auto-open already waits for hydration, so the async chunk just
+// shifts that by a beat.
+const EntryModalLazy = lazy(() =>
+  import("@/components/guest/entry-modal").then((m) => ({
+    default: m.EntryModal,
+  })),
+);
 
 // The guest event SHELL (Phase 3 streaming split): header + entry modal +
 // upload slot render immediately; the presign-heavy gallery streams in behind
@@ -100,14 +108,16 @@ export function EventExperience({
           guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
           toast); self-guards when logged out. */}
       <ClaimUploadsOnAuth silent />
-      <EntryModal
-        ref={entryRef}
-        qrToken={qrToken}
-        eventName={event.name}
-        gateSteps={gateSteps}
-        isOwner={isOwner}
-        isDemo={isDemo}
-      />
+      <Suspense fallback={null}>
+        <EntryModalLazy
+          ref={entryRef}
+          qrToken={qrToken}
+          eventName={event.name}
+          gateSteps={gateSteps}
+          isOwner={isOwner}
+          isDemo={isDemo}
+        />
+      </Suspense>
       {isDemo && (
         <div className="mb-6 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-center text-xs text-muted-foreground">
           You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t

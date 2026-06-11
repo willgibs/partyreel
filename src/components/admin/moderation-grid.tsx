@@ -11,7 +11,10 @@ import {
 } from "@/app/admin/albums/actions";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { MediaTile } from "@/components/app/media-grid";
-import { MediaLightbox } from "@/components/shared/media-lightbox";
+import {
+  MediaLightboxLazy,
+  preloadMediaLightbox,
+} from "@/components/shared/media-lightbox.lazy";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,7 +178,11 @@ export function ModerationGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+      <ul
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
+        onPointerEnter={preloadMediaLightbox}
+        onTouchStart={preloadMediaLightbox}
+      >
         {items.map((item, i) => (
           <ModerationTile
             key={item.id}
@@ -187,7 +194,7 @@ export function ModerationGrid({
         ))}
       </ul>
 
-      <MediaLightbox
+      <MediaLightboxLazy
         items={items}
         index={openIndex}
         onClose={() => setOpenIndex(null)}

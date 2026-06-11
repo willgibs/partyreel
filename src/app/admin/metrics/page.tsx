@@ -11,11 +11,11 @@ import {
 
 import { MetricCard } from "@/components/admin/metric-card";
 import {
-  DistributionChart,
-  TrendChart,
+  DistributionChartLazy as DistributionChart,
+  TrendChartLazy as TrendChart,
   type DistributionDatum,
   type TrendSeries,
-} from "@/components/admin/metrics-charts";
+} from "@/components/admin/metrics-charts.lazy";
 import {
   Card,
   CardContent,

@@ -12,7 +12,10 @@ import {
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { LikeCountBadge } from "@/components/likes/like-button";
-import { MediaLightbox } from "@/components/shared/media-lightbox";
+import {
+  MediaLightboxLazy,
+  preloadMediaLightbox,
+} from "@/components/shared/media-lightbox.lazy";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -201,7 +204,11 @@ export function HostMediaGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <ul
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+        onPointerEnter={preloadMediaLightbox}
+        onTouchStart={preloadMediaLightbox}
+      >
         {items.map((item, i) => (
           <HostMediaTile
             key={item.id}
@@ -213,7 +220,7 @@ export function HostMediaGrid({
         ))}
       </ul>
 
-      <MediaLightbox
+      <MediaLightboxLazy
         items={items}
         index={openIndex}
         onClose={() => setOpenIndex(null)}
