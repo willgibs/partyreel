@@ -21,7 +21,9 @@ export function ReelFrame({ className }: { className?: string }) {
           <div className="absolute inset-x-3 bottom-3 flex items-center gap-2">
             <span className="text-[10px] font-medium text-white/80">0:12</span>
             <span className="relative h-1 flex-1 rounded-full bg-white/25">
-              <span className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-brand" />
+              {/* Gallery-relative, NOT bg-brand: this sits on the always-dark
+                  player, where light-mode brand (ink) reads as a notch. */}
+              <span className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-gallery-foreground/90" />
             </span>
             <span className="text-[10px] font-medium text-white/80">0:48</span>
           </div>

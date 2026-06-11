@@ -45,7 +45,7 @@ export default async function EventTypeOgImage({
             width: "64px",
             height: "64px",
             borderRadius: "16px",
-            backgroundColor: BRAND_HEX,
+            backgroundColor: "#fafafa",
           }}
         >
           <svg
@@ -53,7 +53,7 @@ export default async function EventTypeOgImage({
             height="40"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#ffffff"
+            stroke={BRAND_HEX}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

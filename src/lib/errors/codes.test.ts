@@ -20,6 +20,7 @@ import type {
 } from "@/lib/db/mutations/host-media";
 import type { MutationResult } from "@/lib/db/mutations/events";
 import type { CreateReportResult } from "@/lib/db/mutations/report";
+import type { GuestEventResult } from "@/lib/db/queries/guest-events";
 
 import {
   DEFAULT_ERROR_MESSAGE,
@@ -49,8 +50,13 @@ type _report = Expect<IsSubtype<CodeOf<CreateReportResult>, ErrorCode>>;
 type _dashboard = Expect<IsSubtype<CodeOf<DashboardActionResult>, ErrorCode>>;
 type _account = Expect<IsSubtype<CodeOf<AccountActionResult>, ErrorCode>>;
 
+// Queries with code-carrying failure arms
+type _guestEvent = Expect<IsSubtype<CodeOf<GuestEventResult>, ErrorCode>>;
+
 // API-route inline codes (no exported types; the literal lists below mirror
-// the routes and act as the tripwire when one of them grows a code).
+// the routes and act as the tripwire when one of them grows a code). Listed
+// per route file - when you add a code to a route, add it to ITS mirror here
+// (and to ErrorCode + FALLBACK_MESSAGES) or this suite fails to compile.
 type AvatarRouteCode =
   | "unauthorized"
   | "unsupported_type"
@@ -67,29 +73,53 @@ type GuestPresignCode =
   | "video_not_allowed"
   | "cap_reached"
   | "too_large";
+type HostPresignCode =
+  | "unauthorized"
+  | "bad_request"
+  | "unsupported_type"
+  | "invalid_file"
+  | "not_found"
+  | "video_not_allowed"
+  | "cap_reached";
 type GuestRouteCode = "bad_request" | "rate_limited";
 type UnlockRouteCode =
   | "bad_request"
   | "rate_limited"
   | "wrong_password"
   | "not_configured";
+type CaptureEmailCode =
+  | "unauthorized"
+  | "bad_request"
+  | "rate_limited"
+  | "failed";
+type GalleryRouteCode = "bad_request";
 type StripeRouteCode =
   | "unauthorized"
   | "bad_request"
   | "not_eligible"
   | "no_customer";
+type MeMenuCode = "unauthorized";
+type ReportsRouteCode = "bad_request" | "rate_limited";
+// Guest api/r2/complete-upload inline codes; the host route adds unauthorized.
 type CompleteUploadCode =
   | "bad_request"
   | "unsupported_type"
   | "too_large"
   | "complete_failed"
   | "bad_key";
+type HostCompleteUploadCode = CompleteUploadCode | "unauthorized";
 type _avatar = Expect<IsSubtype<AvatarRouteCode, ErrorCode>>;
 type _presign = Expect<IsSubtype<GuestPresignCode, ErrorCode>>;
+type _hostPresign = Expect<IsSubtype<HostPresignCode, ErrorCode>>;
 type _guests = Expect<IsSubtype<GuestRouteCode, ErrorCode>>;
 type _unlock = Expect<IsSubtype<UnlockRouteCode, ErrorCode>>;
+type _captureEmail = Expect<IsSubtype<CaptureEmailCode, ErrorCode>>;
+type _gallery = Expect<IsSubtype<GalleryRouteCode, ErrorCode>>;
 type _stripe = Expect<IsSubtype<StripeRouteCode, ErrorCode>>;
+type _meMenu = Expect<IsSubtype<MeMenuCode, ErrorCode>>;
+type _reports = Expect<IsSubtype<ReportsRouteCode, ErrorCode>>;
 type _complete = Expect<IsSubtype<CompleteUploadCode, ErrorCode>>;
+type _hostComplete = Expect<IsSubtype<HostCompleteUploadCode, ErrorCode>>;
 
 // Keep TS from flagging the assertion aliases as unused.
 export type _TaxonomyAssertions = [
@@ -102,12 +132,19 @@ export type _TaxonomyAssertions = [
   _report,
   _dashboard,
   _account,
+  _guestEvent,
   _avatar,
   _presign,
+  _hostPresign,
   _guests,
   _unlock,
+  _captureEmail,
+  _gallery,
   _stripe,
+  _meMenu,
+  _reports,
   _complete,
+  _hostComplete,
 ];
 
 // --- runtime: copy rules + resolution ---------------------------------------

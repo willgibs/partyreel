@@ -11,7 +11,6 @@ export const alt = "Partyreel: every photo from your party, in one place";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = BRAND_HEX;
 
 export default function OgImage() {
   return new ImageResponse(
@@ -36,7 +35,7 @@ export default function OgImage() {
             width: "104px",
             height: "104px",
             borderRadius: "26px",
-            backgroundColor: BRAND,
+            backgroundColor: "#fafafa",
           }}
         >
           <svg
@@ -44,7 +43,7 @@ export default function OgImage() {
             height="64"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#ffffff"
+            stroke={BRAND_HEX}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

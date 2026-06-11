@@ -11,7 +11,6 @@ export const alt = "A Partyreel event";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = BRAND_HEX;
 
 export default async function EventOgImage({
   params,
@@ -50,7 +49,7 @@ export default async function EventOgImage({
             width: "64px",
             height: "64px",
             borderRadius: "16px",
-            backgroundColor: BRAND,
+            backgroundColor: "#fafafa",
           }}
         >
           <svg
@@ -58,7 +57,7 @@ export default async function EventOgImage({
             height="40"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#ffffff"
+            stroke={BRAND_HEX}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
