@@ -10,6 +10,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 program Phase 1, round 5: the design lab + the selection round begins
+
+Type verdict landed (Will): **base Instrument Serif locked** (0.60 calibration + 0.013em stroke;
+final sizing tweaks happen in the built UI if needed). Commit `449884f`.
+
+- **/design formalized as the standing internal design lab** (Will's call: maintain an internal
+  system for prototyping, comparison, and selection): `/design/system` is the locked-system
+  reference (five screens + live specimen); `touchpoints.ts` is the DECISION RECORD - Will's pick
+  per touchpoint lands as `decision` config and renders as Selected badges on the index ("N of 10
+  decided") and the touchpoint page. The lab is the record, not just the showroom. (This supersedes
+  the Phase 8 "remove or keep the playground" question: it stays.)
+- The type slate retired; the vendored weighted fork stays in `fonts-local/` unused (README notes
+  how to resurrect it if real weights are ever needed).
+- **Five new touchpoints** join the original five for the selection round: lightbox chrome (pinned /
+  floating pill / immersive auto-hide), host event card (cover-led / compact row / stat-forward
+  overlay), forms & inputs (card sections / inline rows / focused column), empty & loading states
+  (typographic / iconographic / photographic promise), QR table card (minimal ink / invitation
+  frame / photo-backed) - the QR cards use the app's real `StyledQr` + classic mono preset, so the
+  codes actually scan.
+- Verified: suite green; all 12 lab routes 200 behind the gate, retired font routes 404, keyless
+  404; 13-capture pack from live. **Phase 1 exit = the 10 touchpoint picks.**
+
 ## 2026-06-10 — V1 program Phase 1, round 4: IS bigger + the weighted fork + two new registers
 
 Will: Instrument still leads but reads small; try the multi-weight fork he found, an all-caps

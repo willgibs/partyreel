@@ -10,16 +10,16 @@
 
 **THE ACTIVE INITIATIVE: the v0→V1 full-app refactor/redesign program** (approved 2026-06-10; 8 phases,
 each re-entering plan mode for sign-off; the program plan + settled decisions live in Will's session
-plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 (identity exploration) round 1
-SHIPPED 2026-06-10 and **MONOCHROME WON, both modes** (zero accent; light = paper/hairline, dark =
-glass/media-as-light; theme follows system, light when unretrievable). Round 3 SHIPPED same day on the
-gated **/design** route (`DESIGN_PREVIEW_KEY`): Instrument Serif is the working type favorite, now
-**size-calibrated** (`font-size-adjust: 0.55` per face - display serifs render ~8-15% smaller than
-Inter at equal CSS size; the calibration lives once per face so standard heading scales need no
-per-use tweaks) alongside a new serif slate (Gloock, DM Serif Display, Prata, Playfair, Inter
-control), plus **component variants at 5 UX touchpoints** (`/design/c/*`: entry, upload, gallery grid,
-header, buttons - 2-3 options each). **Blocked on Will: per-touchpoint variant picks + the typeface
-call** — Phase 2 (design foundation + safety nets) starts from those picks. Settled program decisions (hybrid doorbell
+plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 verdicts so far (all 2026-06-10):
+**MONOCHROME, both modes** (zero accent; light = paper/hairline, dark = glass/media-as-light; theme
+follows system, light when unretrievable) and **base Instrument Serif** (0.60 `font-size-adjust`
+calibration + 0.013em stroke weight; swappable via the five-variable display layer in
+`src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is now the
+STANDING DESIGN LAB (Will's call - it persists beyond Phase 1): `/design/system` = the locked-system
+reference; `touchpoints.ts` = the decision record (picks land as `decision` config → Selected badges).
+**Blocked on Will: variant picks for the 10 touchpoints** (`/design/c/*`: entry, upload, gallery,
+header, buttons, lightbox, event-card, forms, states, qr-card) — those picks close Phase 1; Phase 2
+(design foundation + safety nets) re-enters plan mode from them. Settled program decisions (hybrid doorbell
 gallery, monochrome identity, emil-design-eng as the binding craft bar) are in the memory/plan; don't
 re-litigate.
 
