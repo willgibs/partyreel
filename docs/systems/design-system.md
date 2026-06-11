@@ -1,0 +1,146 @@
+# Design system (V1 identity + tokens + motion)
+
+> ROLE: the locked V1 visual system: token contracts, type, rounding, elevation, motion, state
+> colors, the error taxonomy's UX contract, and the craft-guidance stack.
+> BELONGS HERE: what the system IS + its invariants + don't-reverts. · NOT HERE: how it was chosen
+> (→ the design lab + `adr/`), per-surface redesigns (each surface's owning phase), shipping
+> narrative (→ [`../CHANGELOG.md`](../CHANGELOG.md)).
+> GROWS BY: edit-in-place as tokens/rules evolve; the lab (`/design`) stays the experimentation
+> venue, this doc records what's ratified.
+
+## What it is
+
+Ratified in V1 program Phase 1 (the gated `/design` lab; decisions live in
+`src/app/(dev)/design/touchpoints.ts`), made real in Phase 2: production tokens in
+[`src/app/globals.css`](../../src/app/globals.css), the craft pass across `src/components/ui/*`,
+and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is a standing
+instrument: prototype + compare there, ratify into `touchpoints.ts`, then transplant here.
+
+## The identity: monochrome, media is the color
+
+- **Zero-chroma chrome in BOTH modes.** Light = paper (bg `oklch(0.99 0 0)`, card `0.997`, fg
+  `0.13`); dark = night (bg `0.14`, translucent card `oklch(0.21 0 0 / 0.62)`, opaque popover
+  `0.23`). No pure white anywhere (Hobday rule, adopted): the bg/card lift is real but hairlines do
+  the layering, not contrast.
+- **`--brand` is an ALIAS of `--primary`** (ink). Don't reintroduce a brand hue; photography
+  supplies all color. ("Saturate your neutrals" was consciously DECLINED: zero-chroma is the
+  identity; a 0.002-0.004 warm-tint variant may get a lab round later, never silently.)
+- **Feedback is ALWAYS colored** (the one exception): `--success` green, `--warning` amber,
+  `--like` rose, `--destructive` red, each with light/dark variants. State, not decoration.
+- **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
+- `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
+  pass is Phase 6.
+- The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events
+  keep their chosen rendering, scanners locate corners by shape, and the share studio (ROADMAP)
+  redesigns presets wholesale. No longer tied to any UI token.
+
+## Type: the five-knob display layer
+
+`font-heading` is a Tailwind `@utility` in globals.css, NOT a theme font token. Five knobs: face
+(`--font-display` = Instrument Serif, loaded in the root layout via next/font), size calibration
+(`font-size-adjust: 0.6`; display serifs render ~18% small at equal CSS size), zero tracking, real
+weight 400 (the face ships one weight), synthetic display weight (`-webkit-text-stroke: 0.013em`;
+`font-synthesis: none` forbids faux-bold). Swap the brand face forever by repointing
+`--font-display` + retuning those five lines.
+
+**The system rule: Instrument is for IDENTITY moments only** (page titles, event names, marquees);
+functional headings stay Inter. Pre-V1 surfaces still misuse `font-heading` on functional headings;
+each surface's owning phase (4-6) corrects its own. `--tracking-tight` is `0em` (IS wants zero), so
+legacy `tracking-tight` usages are no-ops cleaned per-surface.
+
+## Rounding: sharp surfaces, round actions
+
+| Layer | Token | Value |
+| --- | --- | --- |
+| Surfaces (cards, inputs, sections) | `--radius` | `0.125rem` (sharp) |
+| Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height; in-between sizes interpolate: h-6 `0.6rem`, h-7 `0.7rem`, h-9 `0.9rem`) |
+| Media tiles | `--radius-tile` | `3px` + half gaps so corners don't open holes |
+| Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements) |
+
+Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the
+system's DELIBERATE exception to it. The legacy `rounded-sm..4xl` scale stays mapped off `--radius`
+(all "sharp family") — `rounded-xl` is now tiny, so floating panels must use `rounded-float`, never
+`rounded-xl`. Measurements ride Tailwind's 4px grid + the 0.4-height radius ratio (the system's
+math).
+
+## Elevation contract (one depth technique per mode)
+
+- **Light:** exactly one shadow family, `--shadow-float` (soft, blur = 2x offset, single top light
+  source), floating layer only. Surfaces are hairline-led, no shadows.
+- **Dark:** NO shadows anywhere (`--shadow-float` resolves to a zero shadow in `.dark`). Depth =
+  lighter-is-closer surface steps (bg 0.14 → card 0.21 → popover 0.23+) + borders + the glass card.
+- Components use the `shadow-float` utility; never reintroduce `shadow-md/lg` on primitives (the
+  tabs active pill sheds its `shadow-sm` in dark for the same reason).
+- The dark translucent card ships WITHOUT blanket backdrop-blur (alpha composites fine; blur only
+  where a surface sits over media).
+
+## Motion
+
+Three curves in `@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entrances/UI),
+`--ease-in-out-strong` `cubic-bezier(0.77,0,0.175,1)` (moves/toggles), `--ease-drawer`
+`cubic-bezier(0.32,0.72,0,1)` (sheets). Rules: UI under 300ms; **exits faster than enters**
+(`data-closed:duration-*` composes with tw-animate via `--tw-duration` — verified); press feedback =
+`active:scale-[0.97]` on buttons; explicit transition properties, never `transition-all` on
+primitives. Current timings: dialog 200/150 · dropdown/popover 175/120 · tooltip 150/100 (+
+`skipDelayDuration` 300) · sheet 300/200 on the drawer curve. Skeletons shimmer via a
+background-position sweep (`--animate-shimmer`, linear on purpose: ambient loop, a strong curve
+stutters at the loop point).
+
+**Reduced motion:** a global guard in globals.css clamps animation/transition durations to
+`0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on
+`transitionend`/`animationend`) and stops infinite loops. Component-level
+`motion-reduce:`/`no-preference` gates stay as the first line.
+
+## Icon + small-type rules
+
+Icons paired with text render muted (`text-muted-foreground`/reduced opacity) unless they ARE the
+action. Small labels get positive tracking; letter-spacing/line-height run inverse to size.
+
+## Error taxonomy (the UX contract)
+
+`src/lib/errors/`: `ErrorCode` is the superset union of every failure code; per-file result unions
+stay narrow and MUST fit inside it (compiler-enforced by `codes.test.ts` — adding a route code
+without taxonomy copy fails the build). Failure arms are `{ ok: false, code, message? }`; clients
+surface via `showActionError`/`showErrorToast` (producer message > `FALLBACK_MESSAGES[code]` >
+generic default). Copy rules: plain language, no em-dashes, no internals.
+
+**Boundaries:** every route group has an `error.tsx` → the shared `RouteError` (generic copy +
+`digest` as the support handle — it NEVER renders `error.message`; that's the security invariant)
+tagged `render:app|guest|marketing|admin|auth` in Sentry; `global-error.tsx` is dependency-free
+(own html/body, inline styles) for root-layout death. The gated `/design/boom` probe throws on
+purpose to verify the chain against the real prod build (dev shows the overlay instead).
+`notFound()` is never caught by these (verified).
+
+## The craft guidance stack
+
+**emil-design-eng (the installed skill) is PRIMARY; Hobday's Safe Rules
+(anthonyhobday.com/sideprojects/saferules) are a SECONDARY advisory; neither is a bible.**
+Synthesis (Phase 2): *adopted* — no pure white surfaces, the elevation contract (no dark shadows,
+lighter-is-closer, one depth technique per mode), nested-corner math, muted paired icons,
+small-label tracking, the 4px-grid + radius-ratio math. *Already true* — near-black/near-white
+extremes, contrast hierarchy, brightness-distinct palette, ~2x horizontal button padding, two
+typefaces (Geist Mono = a documented utility exception for code/counts), ~70ch prose. *Declined or
+deferred with reasons* — saturate-neutrals DECLINED (zero-chroma identity); body ≥16px DEFERRED to
+Phase 4+ guest-surface guidance (guest reading copy targets 15-16px; dense host/admin UI may stay
+14px); 12-column grid noted for the Phase 6 marketing rebuild.
+
+## Where it lives
+
+`src/app/globals.css` (tokens + utilities + guards, the single source) ·
+`src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
+`src/lib/errors/` (taxonomy) · `src/components/shared/route-error.tsx` + the route-group
+`error.tsx` files · `src/app/(dev)/design/` (the lab: reference `design.css`, `touchpoints.ts`
+decision record, `/design/boom` probe). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
+
+## Gotchas / don't-revert
+
+- The lab's `design.css` deliberately DUPLICATES production tokens (a frozen reference sheet);
+  dedup is a Phase 8 task, don't "fix" it early.
+- 47 behavior pins (`*.test.tsx`, the component vitest project) freeze MediaLightbox / GuestUpload /
+  LikesProvider behavior ahead of the Phase 4-5 decomposition — they assert behavior only, never
+  styles, so token/craft changes don't touch them.
+- jsdom can't run the lightbox pause-on-navigate effect (portal/commit timing); that one pin was
+  dropped on purpose — cover it in live device passes.
+- `vitest.setup.ts` mocks sonner globally; `vi.unmock("sonner")` is the per-file escape hatch.
+- shadcn `src/components/ui/*` files are semicolon-free (generator style); app code uses
+  semicolons. Don't reformat either direction.

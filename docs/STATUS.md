@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-10
+**Updated:** 2026-06-11
 
 ## Where we are
 
@@ -17,12 +17,16 @@ calibration + 0.013em stroke weight; swappable via the five-variable display lay
 `src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is now the
 STANDING DESIGN LAB (Will's call - it persists beyond Phase 1): `/design/system` = the locked-system
 reference; `touchpoints.ts` = the decision record (picks land as `decision` config → Selected badges).
-**PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** (entry = adaptive sheet + ghost grid w/
-safety framing · upload = floating+tile combo sans add-tile · masonry · header = left editorial · sharp
-surfaces + round actions + 3px tile radius · floating-pill lightbox · stat-forward card w/ real mini QR
-+ warning review chip · card-section forms w/ Inter functional headings, focused column for guided
-flows · photographic empty · QR presets, share studio on ROADMAP). The full spec = `touchpoints.ts`
-decisions + `/design/demo`. **Next: Phase 2 (design foundation + safety nets) re-enters plan mode.**
+**PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** — the full spec = `touchpoints.ts`
+decisions + `/design/demo`. **PHASE 2 COMPLETE (2026-06-11): the V1 system is LIVE on partyreel.com**
+— production tokens (mono both modes, brand→ink alias), Instrument Serif via the `font-heading`
+five-knob utility, the primitive craft pass, 47 behavior pins ahead of the Phase 4-5 decomposition,
+the error taxonomy + route-group boundaries (live-verified incl. the gated `/design/boom` probe →
+Sentry `render:global`), and the perf baselines Phase 3 is judged against. Current truth:
+[`systems/design-system.md`](systems/design-system.md) + [`perf/v1-baseline.md`](perf/v1-baseline.md).
+Interim accepted: "new skin on old bones" (e.g. the marketing hero is still Inter, functional headings
+still misuse `font-heading`) until each surface's owning phase (4-6) corrects it.
+**Next: Phase 3 (data/delivery architecture - the doorbell gallery) re-enters plan mode.**
 Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
 craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
 

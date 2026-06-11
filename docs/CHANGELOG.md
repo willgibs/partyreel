@@ -10,6 +10,43 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-11 — V1 program PHASE 2 COMPLETE: the V1 system live (foundation + safety nets)
+
+Five slices, each shipped green + live-verified; the Phase 1 spec became production reality.
+Commits `329aa82` (S1) · `39089de` (S2+S3) · `adc3f0c` (S4) · `f0c24b1` (probe).
+
+- **S1 - behavior pins:** vitest split into unit (node) + component (jsdom) projects; 47 pins
+  freeze MediaLightbox (20: gesture lock, edge damp, commit/springback timing via a synthetic-clock
+  shift + DOMMatrix polyfill), GuestUpload (11: one-at-a-time queue, JIT join, demo, retry) and
+  LikesProvider (16: seed/replay/optimistic/revert) ahead of the Phase 4-5 decomposition. Pins
+  assert behavior only - the visual flip didn't touch them. (jsdom can't drive the lightbox
+  pause-on-navigate effect; that pin was dropped, covered by live device passes.)
+- **S2 - token transplant + type flip:** globals.css rewritten to the mono system (paper/night,
+  brand→ink alias collapsed all 88 brand usages, state colors, the rounding system, the elevation
+  contract, three motion curves, `font-heading` as the five-knob @utility, sidebar tokens removed);
+  Instrument Serif self-hosted via next/font; `BRAND_HEX` → ink (all 4 OG cards re-verified
+  legible); icon.svg ink; the one focus-state brand usage → ring tokens; QR coral corners
+  intentionally retained (scanner-safe).
+- **S3 - primitive craft:** button press-scale on `--ease-emphasis` + radius-rides-height; floating
+  panels → `rounded-float` + `shadow-float` (zero shadows in dark - the contract); exits-faster
+  durations proven composing with tw-animate; switch/progress strong curves; skeleton shimmer;
+  empty-state quiet variant; play-badge → gallery tokens; the global 0.01ms reduced-motion guard.
+- **S4 - error taxonomy + boundaries:** `src/lib/errors/` (34-code superset, total fallback-copy
+  map, compiler-enforced subtype assertions over every result union); `error.tsx` in all 5 route
+  groups via the shared `RouteError` (never renders `error.message`) + dependency-free
+  `global-error.tsx`; Sentry `SentryArea` grew `render:*`; contact + careers migrated to coded
+  failure arms as proof adoption.
+- **S5 - baselines + records:** `docs/perf/v1-baseline.md` (wire JS 439-567 KB/route; gallery poll
+  p50 509 ms live / 74.6 KB / 120 presigns per poll at 60 items - the doorbell's comparison base;
+  live TTFB/DCL/load medians) + `docs/systems/design-system.md` + this record.
+- **Live verification:** mono + IS confirmed on partyreel.com (computed-style probes, both modes,
+  390px); the gated `/design/boom` probe (PERMANENT lab instrument) crashed prod render →
+  global-error rendered generic + digest with zero message leakage → Sentry event tagged
+  `render:global`; gate red-teamed (no/wrong key 404, right key 500); `notFound()` paths still 404;
+  poll-baseline seed rows deleted + storage counter verified untouched. Two intentional Sentry
+  issues from the probe (`JAVASCRIPT-NEXTJS-J`/`-H`) remain unresolved (permission-gated): resolve
+  from the Sentry UI.
+
 ## 2026-06-11 — V1 program PHASE 1 COMPLETE: all 10 touchpoints ratified (round 7)
 
 Will's final numbered form + notes landed; the lab now records the COMPLETE V1 component spec.
