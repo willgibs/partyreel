@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useImperativeHandle, useRef } from "react";
+import type { Ref } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -16,218 +16,88 @@ import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import { uploadFile } from "@/lib/upload/uploader";
+import {
+  useUploadQueue,
+  type QueueItem,
+  type QueueItemStatus,
+} from "@/lib/guest/use-upload-queue";
 
-type ItemStatus = "queued" | "uploading" | "done" | "error";
-type Item = {
-  id: string;
-  file: File;
-  status: ItemStatus;
-  progress: number;
-  mediaStatus?: string;
-  error?: string;
+export type { UploadedItem } from "@/lib/guest/use-upload-queue";
+
+export type GuestUploadHandle = {
+  /** Open the OS file picker (the header Add / floating pill / empty CTA target). */
+  openPicker: () => void;
+  /** Reset an errored queue item and re-run (the in-tile retry's target). */
+  retry: (id: string) => void;
 };
 
-export type UploadedItem = {
-  mediaId: string;
-  file: File;
-  kind: "photo" | "video";
-  /** create_media status: 'approved' (live) or 'pending' (hold_for_approval). */
-  status: string;
-};
-
-// The upload panel: a prominent dropzone + the per-file queue. EventExperience only
-// mounts this when the host is accepting uploads (uploads-off is the view-only state of
-// the page now, handled upstream — there's no disabled control here anymore). Joining is
-// just-in-time and SILENT — a first-time guest picks files and a guest session is
-// created behind the scenes (no prompts; an account-required event is gated at the PAGE level
-// before this panel ever renders, via <EnterEventPrompt>, and a signed-in uploader sets a
-// display name first). Each completed upload is reported to the coordinator (optimistic
-// gallery render).
-// Demo mode: fake an upload (a brief progress ramp) and return a synthetic "approved"
-// outcome. Nothing hits the network — the gallery renders the local file via the
-// existing optimistic-tile path, and the synthetic id never appears in the poll, so
-// it survives until refresh. No presign / R2 PUT / create_media.
-async function simulateUpload(
-  file: File,
-  onProgress: (fraction: number) => void,
-): Promise<{
-  ok: true;
-  status: "approved";
-  mediaId: string;
-  kind: "photo" | "video";
-}> {
-  for (const fraction of [0.3, 0.6, 0.85, 1]) {
-    await new Promise((resolve) => setTimeout(resolve, 120));
-    onProgress(fraction);
-  }
-  return {
-    ok: true,
-    status: "approved",
-    mediaId: crypto.randomUUID(),
-    kind: file.type.startsWith("video/") ? "video" : "photo",
-  };
-}
-
+// The upload ENGINE (Phase 4): the queue machine lives in useUploadQueue; this
+// component owns the file-input surface + the per-file UI. EventExperience only
+// mounts it when the host is accepting uploads. Joining is just-in-time and
+// SILENT (account-required events are gated at the PAGE level via the entry
+// modal; a signed-in uploader sets a display name first). Each completed upload
+// reports to the coordinator (optimistic gallery render). `onQueueChange`
+// mirrors every queue snapshot upward so the gallery tiles / floating pill /
+// header button can subscribe (S5).
 export function GuestUpload({
+  ref,
   event,
   qrToken,
   sessionToken,
   onSession,
   onUploaded,
+  onQueueChange,
   isDemo,
 }: {
+  ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
   qrToken: string;
   sessionToken: string | null;
   onSession: (token: string | null) => void;
-  onUploaded: (item: UploadedItem) => void;
+  onUploaded: (item: import("@/lib/guest/use-upload-queue").UploadedItem) => void;
+  /** Mirrors every queue snapshot upward (the S5 tile/pill subscribers). */
+  onQueueChange?: (items: QueueItem[]) => void;
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
 }) {
-  const [items, setItems] = useState<Item[]>([]);
-  // Ref mirror so the sequential queue runner reads current state synchronously.
-  const itemsRef = useRef<Item[]>([]);
-  const processingRef = useRef(false);
-  // The session can flip null→token WHILE this panel is mounted (just-in-time
-  // join), so the queue reads a ref, not the prop, to avoid a stale closure.
-  const sessionRef = useRef(sessionToken);
+  const { items, addFiles, retry } = useUploadQueue({
+    qrToken,
+    sessionToken,
+    onSession,
+    onUploaded,
+    isDemo,
+  });
+
   useEffect(() => {
-    sessionRef.current = sessionToken;
-  }, [sessionToken]);
-  // Files picked before a session exists — uploaded once the session is created.
-  const pendingFilesRef = useRef<File[]>([]);
+    onQueueChange?.(items);
+  }, [items, onQueueChange]);
 
-  const sync = useCallback((next: Item[]) => {
-    itemsRef.current = next;
-    setItems(next);
-  }, []);
-
-  const patch = useCallback(
-    (id: string, p: Partial<Item>) => {
-      sync(itemsRef.current.map((it) => (it.id === id ? { ...it, ...p } : it)));
-    },
-    [sync],
-  );
-
-  // One file at a time — robust on flaky mobile connections.
-  const runQueue = useCallback(async () => {
-    if (processingRef.current) return;
-    const token = sessionRef.current;
-    if (!token) return;
-    processingRef.current = true;
-    try {
-      for (;;) {
-        const next = itemsRef.current.find((it) => it.status === "queued");
-        if (!next) break;
-        patch(next.id, { status: "uploading", progress: 0, error: undefined });
-        const onProgress = (f: number) =>
-          patch(next.id, { progress: Math.round(f * 100) });
-        const outcome = isDemo
-          ? await simulateUpload(next.file, onProgress)
-          : await uploadFile({
-              file: next.file,
-              endpoints: {
-                presign: "/api/r2/presign-upload",
-                complete: "/api/r2/complete-upload",
-              },
-              identity: { session_token: token },
-              onProgress,
-            });
-        if (outcome.ok) {
-          patch(next.id, {
-            status: "done",
-            progress: 100,
-            mediaStatus: outcome.status,
-          });
-          onUploaded({
-            mediaId: outcome.mediaId,
-            file: next.file,
-            kind: outcome.kind,
-            status: outcome.status,
-          });
-        } else {
-          patch(next.id, { status: "error", error: outcome.message });
-        }
-      }
-    } finally {
-      processingRef.current = false;
-    }
-  }, [patch, onUploaded, isDemo]);
-
-  const enqueue = useCallback(
-    (files: File[]) => {
-      const additions: Item[] = files.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        status: "queued",
-        progress: 0,
-      }));
-      sync([...itemsRef.current, ...additions]);
-      void runQueue();
-    },
-    [runQueue, sync],
-  );
-
-  const handleJoined = useCallback(
-    (token: string) => {
-      onSession(token);
-      sessionRef.current = token; // runQueue (called below) sees it immediately
-      const stashed = pendingFilesRef.current;
-      pendingFilesRef.current = [];
-      if (stashed.length) enqueue(stashed);
-    },
-    [onSession, enqueue],
-  );
-
-  // Field-less join: names are gone (Phase 2b) and no email is required, so create the
-  // guest session silently and go straight to uploading. Demo never touches the network.
-  const joinSilently = useCallback(async () => {
-    if (isDemo) {
-      handleJoined("demo");
-      return;
-    }
-    try {
-      const res = await fetch("/api/guests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qr_token: qrToken }),
-      });
-      const body = (await res.json()) as
-        | { ok: true; session_token: string }
-        | { ok: false; message: string };
-      if (!body.ok) {
-        pendingFilesRef.current = [];
-        toast.error("Couldn't start uploading", { description: body.message });
-        return;
-      }
-      handleJoined(body.session_token);
-    } catch {
-      pendingFilesRef.current = [];
-      toast.error("Couldn't start uploading", {
-        description: "Check your connection and try again.",
-      });
-    }
-  }, [isDemo, qrToken, handleJoined]);
-
-  const addFiles = useCallback(
-    (files: File[]) => {
-      if (sessionRef.current) {
-        enqueue(files);
-        return;
-      }
-      // No session yet → silent join (no prompts; account-required events are gated at the page).
-      pendingFilesRef.current = files;
-      void joinSilently();
-    },
-    [enqueue, joinSilently],
-  );
+  // The imperative picker: a hidden input the shell's Add affordances click.
+  // (FileDropzone keeps its own input while it lives; both feed addFiles.)
+  const pickerRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle(ref, () => ({
+    openPicker: () => pickerRef.current?.click(),
+    retry,
+  }));
 
   const doneCount = items.filter((it) => it.status === "done").length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
 
   return (
     <div className="space-y-4">
+      <input
+        ref={pickerRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          // Reset so re-picking the same file fires change again.
+          e.target.value = "";
+          if (files.length) addFiles(files);
+        }}
+      />
       <FileDropzone onFiles={addFiles} />
 
       {holdForApproval && (
@@ -265,18 +135,7 @@ export function GuestUpload({
                   <p className="min-w-0 flex-1 text-xs text-destructive">
                     {it.error}
                   </p>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      patch(it.id, {
-                        status: "queued",
-                        progress: 0,
-                        error: undefined,
-                      });
-                      void runQueue();
-                    }}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => retry(it.id)}>
                     <RefreshCw className="size-3.5" /> Retry
                   </Button>
                 </div>
@@ -301,7 +160,7 @@ export function GuestUpload({
   );
 }
 
-function StatusIcon({ status }: { status: ItemStatus }) {
+function StatusIcon({ status }: { status: QueueItemStatus }) {
   if (status === "done")
     return <CheckCircle2 className="size-4 shrink-0 text-primary" />;
   if (status === "error")

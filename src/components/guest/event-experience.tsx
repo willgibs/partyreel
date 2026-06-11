@@ -9,6 +9,7 @@ import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
+  type GuestUploadHandle,
   type UploadedItem,
 } from "@/components/guest/guest-upload";
 import {
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
 
@@ -86,8 +88,9 @@ export function EventExperience({
   // The live media count: seeded by the RSC stats, kept current by LiveGallery
   // (incl. optimistic tiles). M (contributors) stays static per load.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
-  // Interim Add target (until S5's openPicker): scroll the upload slot into view.
-  const uploadSlotRef = useRef<HTMLDivElement | null>(null);
+  // The upload engine handle + the lifted queue snapshot (S5's tile/pill feed).
+  const uploadRef = useRef<GuestUploadHandle>(null);
+  const [, setQueue] = useState<QueueItem[]>([]);
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -217,12 +220,7 @@ export function EventExperience({
                 type="button"
                 size="lg"
                 className="w-full"
-                onClick={() =>
-                  uploadSlotRef.current?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  })
-                }
+                onClick={() => uploadRef.current?.openPicker()}
               >
                 <ImageUp /> Add photos
               </Button>
@@ -252,7 +250,7 @@ export function EventExperience({
               uploader sets a name first, else the upload panel. Uploads off => a quiet view-only line. */}
           {access === "full" &&
             (event.accepting_uploads ? (
-              <div className="mt-7" ref={uploadSlotRef}>
+              <div className="mt-7">
                 {needsName ? (
                   <div className="rounded-xl border border-border bg-card p-5">
                     <SetNameStep
@@ -263,11 +261,13 @@ export function EventExperience({
                   </div>
                 ) : (
                   <GuestUpload
+                    ref={uploadRef}
                     event={event}
                     qrToken={qrToken}
                     sessionToken={sessionToken}
                     onSession={setSessionToken}
                     onUploaded={handleUploaded}
+                    onQueueChange={setQueue}
                     isDemo={isDemo}
                   />
                 )}

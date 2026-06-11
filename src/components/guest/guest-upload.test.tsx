@@ -152,6 +152,9 @@ describe("GuestUpload: queue", () => {
     await screen.findByText("Posted to the gallery");
     expect(onUploaded).toHaveBeenCalledWith({
       mediaId: "med-1",
+      // Phase 4: the queue id rides along so the gallery can re-key its
+      // optimistic blob URL (queueId -> mediaId) with zero flicker.
+      queueId: expect.any(String),
       file,
       kind: "photo",
       status: "approved",
@@ -299,5 +302,93 @@ describe("GuestUpload: moderation copy", () => {
         "The host reviews uploads before they appear in the gallery.",
       ),
     ).not.toBeInTheDocument();
+  });
+});
+
+// ─── Phase 4 contracts: the lifted queue + the imperative handle ─────────────
+// These pin the NEW subscriber surface (onQueueChange snapshots + handle.retry
+// + handle.openPicker) BEFORE S5 swaps the per-file list UI for in-gallery
+// tiles, so the visual swap lands against an already-pinned contract.
+import type {
+  GuestUploadHandle,
+} from "./guest-upload";
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { createRef } from "react";
+
+function mountWithQueue(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
+  const snapshots: QueueItem[][] = [];
+  const handleRef = createRef<GuestUploadHandle>();
+  const base = mount({
+    ...props,
+    ref: handleRef,
+    onQueueChange: (items: QueueItem[]) => snapshots.push(items),
+  });
+  return { ...base, snapshots, handleRef };
+}
+
+describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
+  it("onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done", async () => {
+    let report!: (f: number) => void;
+    let resolveUpload!: (v: Awaited<ReturnType<typeof uploadFile>>) => void;
+    mockUploadFile.mockImplementation(
+      ({ onProgress }) =>
+        new Promise((resolve) => {
+          report = onProgress!;
+          resolveUpload = resolve;
+        }),
+    );
+    const { addFiles, snapshots } = mountWithQueue();
+    addFiles([makeFile()]);
+
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
+    report(0.5);
+    await waitFor(() => {
+      const last = snapshots.at(-1)!;
+      expect(last[0]).toMatchObject({
+        kind: "photo",
+        status: "uploading",
+        progress: 50,
+      });
+    });
+    resolveUpload({ ok: true, status: "approved", mediaId: "med-9", kind: "photo" });
+    await waitFor(() => {
+      const last = snapshots.at(-1)!;
+      expect(last[0]).toMatchObject({ status: "done", progress: 100 });
+    });
+  });
+
+  it("handle.retry(id) resets an errored item and re-runs the queue", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-1",
+        kind: "photo",
+      });
+    const { addFiles, snapshots, handleRef } = mountWithQueue();
+    addFiles([makeFile()]);
+
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({
+        status: "error",
+        error: "Nope.",
+      }),
+    );
+    handleRef.current!.retry(snapshots.at(-1)![0].id);
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
+    );
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+  });
+
+  it("handle.openPicker clicks the hidden file input", () => {
+    const { container, handleRef } = mountWithQueue();
+    const hidden = container.querySelector(
+      'input[type="file"][hidden]',
+    ) as HTMLInputElement;
+    const clickSpy = vi.spyOn(hidden, "click");
+    handleRef.current!.openPicker();
+    expect(clickSpy).toHaveBeenCalled();
   });
 });
