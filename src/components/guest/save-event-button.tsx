@@ -45,11 +45,17 @@ export function SaveEventButton({
   sessionToken,
   offerNewsletter = false,
   onSaved,
+  triggerClassName,
+  triggerLabel,
 }: {
   eventId: string;
   qrToken: string;
   /** "gallery" = a dark-surface variant kept for the Part 2 redesign. */
   tone?: "default" | "gallery";
+  /** Lets the header action row size/stretch the trigger (Phase 4). */
+  triggerClassName?: string;
+  /** Shorter trigger label for tight rows (default "Save event"). */
+  triggerLabel?: string;
   /** Guest capability token — enables the optional newsletter opt-in (post-upload card). */
   sessionToken?: string;
   /** Show a "send me updates" checkbox in the create-account dialog (folds the old
@@ -200,9 +206,10 @@ export function SaveEventButton({
           "active:scale-[0.98] motion-reduce:active:scale-100",
           tone === "gallery" &&
             "border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white",
+          triggerClassName,
         )}
       >
-        <Icon /> {saved ? "Saved" : "Save event"}
+        <Icon /> {saved ? "Saved" : (triggerLabel ?? "Save event")}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

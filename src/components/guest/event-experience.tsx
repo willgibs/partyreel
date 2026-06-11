@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, lazy, useCallback, useRef } from "react";
+import { Suspense, lazy, useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
+import { ImageUp, Lock } from "lucide-react";
 
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
@@ -20,6 +20,7 @@ import { ReportDialog } from "@/components/guest/report-dialog";
 import { SaveEventButton } from "@/components/guest/save-event-button";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
+import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
@@ -46,6 +47,7 @@ export function EventExperience({
   qrToken,
   joinUrl,
   galleryPromise,
+  stats,
   isDemo,
   access,
   needsName,
@@ -58,6 +60,9 @@ export function EventExperience({
   /** The RSC's gallery load, NOT awaited server-side — LiveGallery resolves it
    *  via use() inside the Suspense boundary so the shell paints first. */
   galleryPromise: Promise<GalleryPayload>;
+  /** Header stats (Phase 4): numbers only, never identities. N goes live via
+   *  LiveGallery's onCountChange; M (contributors) is static per load. */
+  stats: { approvedTotal: number; contributorCount: number };
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
   /** Server-resolved gallery access (none/teaser/full), driving the entry modal's gate. `none` =
@@ -78,6 +83,11 @@ export function EventExperience({
   const entryRef = useRef<EntryModalHandle>(null);
   // The gate(s) for this access level (none -> password; teaser -> account); drives the entry modal.
   const gateSteps = gateStepsForAccess(access);
+  // The live media count: seeded by the RSC stats, kept current by LiveGallery
+  // (incl. optimistic tiles). M (contributors) stays static per load.
+  const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  // Interim Add target (until S5's openPicker): scroll the upload slot into view.
+  const uploadSlotRef = useRef<HTMLDivElement | null>(null);
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -119,41 +129,64 @@ export function EventExperience({
         />
       </Suspense>
       {isDemo && (
-        <div className="mb-6 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-center text-xs text-muted-foreground">
+        <div className="mb-6 rounded-lg border border-border bg-muted/40 px-3 py-2 text-center text-[13px] text-muted-foreground">
           You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t
           saved.
         </div>
       )}
-      <header className="space-y-1 text-center">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance">
+      {/* LEFT-EDITORIAL header (the ratified V1, per the lab demo composition):
+          identity title, one byline line, the stats line, then the action block.
+          PRIVACY RULE: at `none` (locked password event) only the NAME renders —
+          no byline/stats/avatar (matches the OG metadata; the entry sheet owns
+          the count tease). "Hosted by" shows only when the host set a real name;
+          the avatar only if one exists (no initials fallback here). */}
+      <header>
+        <h1 className="font-heading text-[24px] leading-snug text-balance">
           {event.name}
         </h1>
-        {/* Host / date / description are hidden at `none` so a locked password event behind the modal
-            reveals only the NAME (matching the OG metadata + the old locked screen). "Hosted by" shows
-            only when the host set a real name; the avatar only if one exists (no initials fallback here). */}
         {access !== "none" && (
           <>
-            {event.host_display_name?.trim() && (
-              <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
-                <span>Hosted by</span>
-                {hostAvatarUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
-                  <img
-                    src={hostAvatarUrl}
-                    alt=""
-                    className="size-5 rounded-full object-cover"
-                  />
+            {(event.host_display_name?.trim() || event.event_date) && (
+              <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+                {event.host_display_name?.trim() && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground/70">Hosted by</span>
+                    {hostAvatarUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
+                      <img
+                        src={hostAvatarUrl}
+                        alt=""
+                        className="size-5 rounded-full object-cover"
+                      />
+                    )}
+                    <span className="font-medium text-foreground">
+                      {event.host_display_name}
+                    </span>
+                  </span>
                 )}
-                <span>{event.host_display_name}</span>
+                {event.host_display_name?.trim() && event.event_date && (
+                  <span aria-hidden className="text-muted-foreground/50">
+                    ·
+                  </span>
+                )}
+                {event.event_date && (
+                  <span>{formatEventDate(event.event_date)}</span>
+                )}
               </p>
             )}
-            {event.event_date && (
-              <p className="text-sm text-muted-foreground">
-                {formatEventDate(event.event_date)}
-              </p>
-            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
+              {" & videos"}
+              {stats.contributorCount > 0 && (
+                <>
+                  {" "}
+                  from {stats.contributorCount}{" "}
+                  {stats.contributorCount === 1 ? "guest" : "guests"}
+                </>
+              )}
+            </p>
             {event.description && (
-              <p className="mx-auto max-w-prose text-sm text-pretty text-muted-foreground">
+              <p className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground">
                 {event.description}
               </p>
             )}
@@ -163,26 +196,55 @@ export function EventExperience({
 
       {access === "none" ? (
         // Password not yet unlocked: a quiet locked backdrop. The entry modal (the firm password step)
-        // overlays this; nothing real is shown until the password is entered.
+        // overlays this; nothing real is shown until the password is entered. (S6 swaps
+        // this for the ghost grid + count tease.)
         <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-3 py-10 text-center text-muted-foreground">
           <div className="flex size-11 items-center justify-center rounded-full bg-muted">
             <Lock className="size-5" />
           </div>
-          <p className="text-sm">
+          <p className="text-[15px]">
             This event is private. Enter the password to view it.
           </p>
         </div>
       ) : (
         <>
-          {/* Action row: Save (the growth lever) + Invite (share/QR), directly under the header. Save
-              is the "create a free account to save" moment; hidden in the demo (not a real event). */}
-          <div className="mt-5 flex items-center justify-center gap-2">
-            {!isDemo && <SaveEventButton eventId={event.id} qrToken={qrToken} />}
-            <GuestShare
-              joinUrl={joinUrl}
-              qrStyle={event.qr_style}
-              eventName={event.name}
-            />
+          {/* The action block (ratified header): a full-width primary Add (only when
+              the viewer can actually upload right now) over the 2-col secondary row —
+              Save (the growth lever; hidden in the demo) + Invite (share/QR). */}
+          <div className="mt-4">
+            {access === "full" && event.accepting_uploads && !needsName && (
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                onClick={() =>
+                  uploadSlotRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  })
+                }
+              >
+                <ImageUp /> Add photos
+              </Button>
+            )}
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {!isDemo ? (
+                <SaveEventButton
+                  eventId={event.id}
+                  qrToken={qrToken}
+                  triggerLabel="Save"
+                  triggerClassName="h-9 w-full"
+                />
+              ) : (
+                <span aria-hidden />
+              )}
+              <GuestShare
+                joinUrl={joinUrl}
+                qrStyle={event.qr_style}
+                eventName={event.name}
+                triggerClassName="h-9 w-full"
+              />
+            </div>
           </div>
 
           {/* Upload area — only at `full` access (a `teaser` viewer must create an account first, which
@@ -190,7 +252,7 @@ export function EventExperience({
               uploader sets a name first, else the upload panel. Uploads off => a quiet view-only line. */}
           {access === "full" &&
             (event.accepting_uploads ? (
-              <div className="mt-7">
+              <div className="mt-7" ref={uploadSlotRef}>
                 {needsName ? (
                   <div className="rounded-xl border border-border bg-card p-5">
                     <SetNameStep
@@ -212,7 +274,7 @@ export function EventExperience({
               </div>
             ) : (
               !isDemo && (
-                <p className="mt-7 text-center text-sm text-muted-foreground">
+                <p className="mt-7 text-center text-[15px] text-muted-foreground">
                   The host has closed uploads. You can still browse the gallery.
                 </p>
               )
@@ -231,6 +293,7 @@ export function EventExperience({
               access={access}
               isDemo={isDemo}
               onOpenGate={() => entryRef.current?.openToGate()}
+              onCountChange={setMediaCount}
             />
           </Suspense>
 

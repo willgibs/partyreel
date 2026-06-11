@@ -50,6 +50,7 @@ export function LiveGallery({
   access,
   isDemo,
   onOpenGate,
+  onCountChange,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -60,6 +61,8 @@ export function LiveGallery({
   isDemo: boolean;
   /** Re-opens the entry modal at its gate step (the teaser CTA's action). */
   onOpenGate: () => void;
+  /** Keeps the shell header's live media count current (incl. optimistic tiles). */
+  onCountChange?: (count: number) => void;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -186,13 +189,14 @@ export function LiveGallery({
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
+  // The header owns the visible count line (Phase 4); keep it current.
+  const count = items.length;
+  useEffect(() => {
+    onCountChange?.(count);
+  }, [count, onCountChange]);
+
   return (
-    <section className="mt-9">
-      <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-        {items.length > 0
-          ? `${items.length} ${items.length === 1 ? "photo" : "photos"} & videos`
-          : "Gallery"}
-      </h2>
+    <section className="mt-3">
       {items.length > 0 ? (
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.

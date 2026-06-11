@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -26,10 +27,13 @@ export function GuestShare({
   joinUrl,
   qrStyle,
   eventName,
+  triggerClassName,
 }: {
   joinUrl: string;
   qrStyle: string;
   eventName: string;
+  /** Lets the header action row size/stretch the trigger (Phase 4). */
+  triggerClassName?: string;
 }) {
   const style = resolveQrPreset(qrStyle);
   const enlargedQr = useRef<StyledQrHandle>(null);
@@ -72,7 +76,10 @@ export function GuestShare({
           type="button"
           variant="outline"
           size="sm"
-          className="active:scale-[0.98] motion-reduce:active:scale-100"
+          className={cn(
+            "active:scale-[0.98] motion-reduce:active:scale-100",
+            triggerClassName,
+          )}
         >
           <Share2 /> Invite
         </Button>

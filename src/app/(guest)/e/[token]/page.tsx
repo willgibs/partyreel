@@ -8,7 +8,10 @@ import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
-import { getHostAvatarUrl } from "@/lib/db/queries/guest-events-admin";
+import {
+  getGalleryStats,
+  getHostAvatarUrl,
+} from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import { isDemoToken } from "@/lib/demo";
@@ -156,10 +159,26 @@ export default async function GuestEventPage({
   // LiveGallery resolves this inside its Suspense boundary.
   const galleryPromise = loadGalleryForAccess(event, access);
 
+  // Header stats (Phase 4): cheap awaited read (numbers only — never identities).
+  // For a LOCKED password event this still returns counts: the ratified entry
+  // tease (the sheet says "N photos are waiting"; the header shows name only).
+  const stats = await getGalleryStats(event);
+
+  // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
+  // access `none` the page must reveal the event NAME + media COUNT only, and
+  // props serialize into the RSC flight payload whether or not the UI renders
+  // them - so blank the host name + description (and skip the avatar read)
+  // BEFORE they reach the client. Previously these leaked in the payload of
+  // locked pages even though the header hid them.
+  const shellEvent =
+    access === "none"
+      ? { ...event, host_display_name: null, description: null }
+      : event;
+
   // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
   // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
   // (Phase 3), so this is a no-op for nameless-host events.
-  const hostAvatarUrl = event.host_display_name?.trim()
+  const hostAvatarUrl = shellEvent.host_display_name?.trim()
     ? await getHostAvatarUrl(event.id)
     : null;
 
@@ -176,10 +195,11 @@ export default async function GuestEventPage({
     <div className="flex min-h-full flex-1 flex-col">
       <GuestHeader qrToken={token} eventId={event.id} />
       <EventExperience
-        event={event}
+        event={shellEvent}
         qrToken={event.qr_token}
         joinUrl={joinUrl}
         galleryPromise={galleryPromise}
+        stats={stats}
         isDemo={isDemo}
         access={access}
         needsName={needsName}

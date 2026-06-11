@@ -91,6 +91,43 @@ export async function getApprovedPhotoTeaser(
 }
 
 /**
+ * Header stats for the guest page (Phase 4): the approved media count + how many
+ * distinct people contributed (distinct uploader guests, +1 if the host uploaded
+ * anything). One admin select of guest_id over approved rows — NUMBERS ONLY ever
+ * leave this function (no identities; the contributor count is as benign as the
+ * media count).
+ *
+ * Visibility posture: open events are public; a LOCKED password event still gets
+ * counts — that's the ratified entry tease ("N photos are waiting" over the ghost
+ * grid; cardinality only, zero media URLs pre-unlock). Private never reaches here
+ * (the page early-returns), but returns zeros defensively.
+ */
+export async function getGalleryStats(
+  event: Pick<GuestEvent, "id" | "visibility">,
+): Promise<{ approvedTotal: number; contributorCount: number }> {
+  if (event.visibility !== "open" && event.visibility !== "password") {
+    return { approvedTotal: 0, contributorCount: 0 };
+  }
+  const { data, error } = await createAdminClient()
+    .from("media")
+    .select("guest_id")
+    .eq("event_id", event.id)
+    .eq("status", "approved");
+  if (error) throw error;
+  const rows = data ?? [];
+  const guests = new Set<string>();
+  let hostUploaded = false;
+  for (const r of rows) {
+    if (r.guest_id) guests.add(r.guest_id);
+    else hostUploaded = true;
+  }
+  return {
+    approvedTotal: rows.length,
+    contributorCount: guests.size + (hostUploaded ? 1 : 0),
+  };
+}
+
+/**
  * The host's avatar URL for an event's "Hosted by" byline, or null if the host has no avatar.
  * Server-only admin read (the guest page has no JWT): resolve events.host_id, then the host's
  * profiles.avatar_updated_at, then build the URL (reuses getAvatarUrl; a null marker → null).
