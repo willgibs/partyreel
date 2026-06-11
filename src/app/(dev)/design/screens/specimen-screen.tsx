@@ -53,11 +53,20 @@ export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
             ))}
           </div>
           <p className="mt-4 text-sm leading-relaxed">
-            No accent color exists. The chrome is ink and paper; every drop of
-            color on screen arrives with the photos and videos. Semantic states
-            (errors) keep their meaning.
+            No BRAND color exists: the chrome is ink and paper, and the photos
+            supply the rest. STATE colors are allowed for instant meaning
+            (success green, error red), as punctuation only, never a wash.
           </p>
           <div className="mt-3 flex items-center gap-2">
+            <span
+              className="rounded-full px-2.5 py-1 text-[11px] font-medium"
+              style={{
+                background: "var(--success)",
+                color: "var(--success-foreground)",
+              }}
+            >
+              Posted to the gallery
+            </span>
             <span className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
               Waiting for host approval
             </span>
@@ -77,25 +86,25 @@ export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
           <div className="mt-3 flex flex-wrap items-center gap-2.5">
             <button
               data-dir-press
-              className="h-10 rounded-[calc(var(--radius)*0.8)] bg-primary px-5 text-sm font-medium text-primary-foreground"
+              className="h-10 rounded-[var(--radius-action)] bg-primary px-5 text-sm font-medium text-primary-foreground"
             >
               Start free
             </button>
             <button
               data-dir-press
-              className="h-10 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-5 text-sm font-medium"
+              className="h-10 rounded-[var(--radius-action)] border border-border bg-card px-5 text-sm font-medium"
             >
               Save event
             </button>
             <button
               data-dir-press
-              className="h-10 rounded-[calc(var(--radius)*0.8)] px-4 text-sm font-medium text-muted-foreground"
+              className="h-10 rounded-[var(--radius-action)] px-4 text-sm font-medium text-muted-foreground"
             >
               Just browsing
             </button>
             <button
               data-dir-press
-              className="h-10 rounded-[calc(var(--radius)*0.8)] bg-destructive/10 px-5 text-sm font-medium text-destructive"
+              className="h-10 rounded-[var(--radius-action)] bg-destructive/10 px-5 text-sm font-medium text-destructive"
             >
               Delete
             </button>

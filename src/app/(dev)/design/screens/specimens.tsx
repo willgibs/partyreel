@@ -57,7 +57,7 @@ function PressSpec() {
     <Stage label="Press feedback · 140ms">
       <button
         data-dir-press
-        className="h-10 rounded-[calc(var(--radius)*0.8)] bg-primary px-5 text-sm font-medium text-primary-foreground"
+        className="h-10 rounded-[var(--radius-action)] bg-primary px-5 text-sm font-medium text-primary-foreground"
       >
         Hold me down
       </button>
@@ -108,7 +108,7 @@ function ModalSpec() {
       <button
         data-dir-press
         onClick={() => setOpen(true)}
-        className="h-9 rounded-[calc(var(--radius)*0.8)] border border-border bg-card px-4 text-sm font-medium"
+        className="h-9 rounded-[var(--radius-action-sm)] border border-border bg-card px-4 text-sm font-medium"
       >
         Open
       </button>
@@ -119,7 +119,7 @@ function ModalSpec() {
             <button
               data-dir-press
               onClick={() => setOpen(false)}
-              className="mt-2.5 h-8 w-full rounded-[calc(var(--radius)*0.7)] bg-primary text-xs font-medium text-primary-foreground"
+              className="mt-2.5 h-8 w-full rounded-[var(--radius-action-sm)] bg-primary text-xs font-medium text-primary-foreground"
             >
               Close
             </button>
@@ -130,13 +130,19 @@ function ModalSpec() {
   );
 }
 
-/** Upload success: the moment that matters most, still ink-quiet. */
+/** Upload success: the one moment that earns STATE color (green = certain). */
 function UploadSuccessSpec() {
   const [run, setRun] = useState(0);
   return (
-    <Stage label="Upload success" onReplay={() => setRun((n) => n + 1)}>
+    <Stage label="Upload success · state green" onReplay={() => setRun((n) => n + 1)}>
       <div key={run} data-dir-enter className="flex flex-col items-center gap-2">
-        <span className="flex size-11 items-center justify-center rounded-full bg-foreground text-background">
+        <span
+          className="flex size-11 items-center justify-center rounded-full"
+          style={{
+            background: "var(--success)",
+            color: "var(--success-foreground)",
+          }}
+        >
           <Check className="size-5" />
         </span>
         <p className="text-xs font-medium">Posted to the gallery</p>
@@ -149,7 +155,13 @@ function ToastSpec() {
   return (
     <Stage label="Toast (static)">
       <div data-dir-card className="flex w-11/12 items-center gap-2.5 p-3">
-        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+        <span
+          className="flex size-5 shrink-0 items-center justify-center rounded-full"
+          style={{
+            background: "var(--success)",
+            color: "var(--success-foreground)",
+          }}
+        >
           <Check className="size-3" />
         </span>
         <div className="min-w-0">

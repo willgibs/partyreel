@@ -42,19 +42,37 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "entry",
     title: "Guest entry",
     note: "How the welcome moment is staged on a guest's phone",
-    variants: ["Centered card", "Bottom sheet", "Full-screen welcome"],
+    variants: [
+      "Centered card",
+      "Bottom sheet",
+      "Full-screen welcome",
+      "Adaptive sheet + ghost grid",
+      "Full-screen marquee",
+      "Inline teaser + sticky bar",
+    ],
   },
   {
     id: "upload",
     title: "Upload moment",
     note: "Where adding photos lives and how progress feels",
-    variants: ["Dropzone card", "Floating action bar", "Add tile in the grid"],
+    variants: [
+      "Dropzone card",
+      "Floating action bar",
+      "Add tile in the grid",
+      "Floating + tile combo",
+    ],
+    decision: 4,
+    decisionNote:
+      "2+3 combined: add tile first, floating dynamic-state button, in-gallery progress, green check (state colors allowed for clarity)",
   },
   {
     id: "gallery",
     title: "Gallery grid",
     note: "How the media field itself is laid out",
     variants: ["Uniform grid", "Masonry columns", "Edge-to-edge"],
+    decision: 2,
+    decisionNote:
+      "unique and personalized vs standard grids; this creative separation is global philosophy",
   },
   {
     id: "header",
@@ -66,37 +84,60 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "buttons",
     title: "Buttons & shape",
     note: "The pressable language: shape, weight, sizes",
-    variants: ["Soft rectangle", "Pill", "Sharp"],
+    variants: [
+      "Soft rectangle",
+      "Pill",
+      "Sharp",
+      "Sharp surfaces, round actions",
+    ],
+    decision: 4,
+    decisionNote:
+      "sharp general UI + 16px-at-40px-height scaled radius on interactive elements; one token to go full pill later",
   },
   {
     id: "lightbox",
     title: "Lightbox chrome",
     note: "Controls and attribution around a full-screen photo",
     variants: ["Pinned chrome", "Floating pill", "Immersive auto-hide"],
+    decision: 2,
+    decisionNote:
+      "max media space + mobile-friendly floating pattern; no like counts (utility not social), attribution baked under the pill, subtle swipe hints, video state designed",
   },
   {
     id: "event-card",
     title: "Host event card",
     note: "The dashboard's atomic unit: one event at a glance",
     variants: ["Cover-led", "Compact row", "Stat-forward overlay"],
+    decision: 3,
+    decisionNote:
+      "refined pills + QR chip top-left (opens QR/link modal); leans on the cover image, which keeps proving useful",
   },
   {
     id: "forms",
     title: "Forms & inputs",
     note: "The settings language: fields, toggles, sections",
     variants: ["Card sections", "Inline rows", "Focused column"],
+    decision: 1,
+    decisionNote:
+      "V1 refined for settings/management; V3 focused column for onboarding + event creation; V2 too tight",
   },
   {
     id: "states",
     title: "Empty & loading",
     note: "What nothing looks like, and what almost-something looks like",
     variants: ["Typographic", "Iconographic", "Photographic promise"],
+    decision: 3,
+    decisionNote:
+      "ghost mosaic fills the visible field, CTA centered in it; empty-state header drops the primary Add in favor of the CTA",
   },
   {
     id: "qr-card",
     title: "QR table card",
     note: "The printed growth artifact guests actually scan",
     variants: ["Minimal ink", "Invitation frame", "Photo-backed"],
+    decision: 1,
+    decisionNote:
+      "V1 AND V3 both ship as presets; the real feature is the share studio (configurator) now on the ROADMAP",
   },
 ];
 

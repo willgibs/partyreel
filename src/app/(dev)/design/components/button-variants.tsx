@@ -37,6 +37,59 @@ export function ButtonVariants() {
         </Variant>
       </div>
 
+      <Variant
+        n={4}
+        name="Sharp surfaces, round actions"
+        rationale="THE SELECTED SYSTEM: general UI stays sharp (6px cards), interactive elements round to 16px at the 40px standard and scale by height - the radius contrast itself says pressable. One token set flips it to full pill later."
+        framed={false}
+      >
+        <div data-dir-card className="p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              data-dir-press
+              className="h-12 rounded-[var(--radius-action-lg)] bg-primary px-7 text-base font-medium text-primary-foreground"
+            >
+              Hero · 19px
+            </button>
+            <button
+              data-dir-press
+              className="h-10 rounded-[var(--radius-action)] bg-primary px-5 text-sm font-medium text-primary-foreground"
+            >
+              Standard · 16px
+            </button>
+            <button
+              data-dir-press
+              className="h-8 rounded-[var(--radius-action-sm)] bg-primary px-3.5 text-xs font-medium text-primary-foreground"
+            >
+              Compact · 13px
+            </button>
+            <button
+              data-dir-press
+              className="h-10 rounded-[var(--radius-action)] border border-border bg-card px-5 text-sm font-medium"
+            >
+              Secondary
+            </button>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            {/* The contrast on one row: sharp input surface, round action. */}
+            <div className="h-10 flex-1 rounded-[var(--radius)] border border-input bg-background px-3.5 text-sm leading-10 text-muted-foreground">
+              Sharp surface (inputs, cards)
+            </div>
+            <button
+              data-dir-press
+              className="h-10 shrink-0 rounded-[var(--radius-action)] bg-primary px-5 text-sm font-medium text-primary-foreground"
+            >
+              Round action
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Tokens: --radius (surfaces) + --radius-action / -lg / -sm (height
+            ratio 0.4). Retune or go full pill by changing the action tokens
+            once; every instance follows.
+          </p>
+        </div>
+      </Variant>
+
       <div data-dir-card className="p-5">
         <p className="text-[11px] font-medium text-muted-foreground">
           Size ramp · one shape, four jobs

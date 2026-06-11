@@ -128,16 +128,13 @@ export function GalleryScreen() {
         <div className="flex items-center justify-between px-4 py-3.5">
           <p className="text-xs text-gallery-muted">Photo by Dana</p>
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-xs">
-              {/* Liked-state color is per-direction (--dir-like): plain brand
-                  ink would vanish against the always-dark gallery surface. */}
-              <Heart
-                className="size-4"
-                style={{ color: "var(--dir-like)" }}
-                fill="currentColor"
-              />
-              12
-            </span>
+            {/* Liked = rose fill (state color); no count shown to guests
+                (likes are utility, not social pressure). */}
+            <Heart
+              className="size-4"
+              style={{ color: "var(--dir-like)" }}
+              fill="currentColor"
+            />
             <Download className="size-4 text-gallery-muted" />
             <Share className="size-4 text-gallery-muted" />
           </div>

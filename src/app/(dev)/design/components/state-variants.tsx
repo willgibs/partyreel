@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Camera, ImageUp } from "lucide-react";
+import { Bookmark, Camera, ImageUp, Share } from "lucide-react";
 
 import { PhoneShell } from "../screens/phone-shell";
 import { EVENT_NAME, PHOTOS } from "../screens/sample-photos";
@@ -65,36 +65,62 @@ export function StateVariants() {
 
       <Variant
         n={3}
-        name="Photographic promise"
-        rationale="Even empty, the page previews what it becomes: a ghosted mosaic behind the call. Media-first to the last pixel."
+        name="Photographic promise (selected, revised)"
+        rationale="THE SELECTED SPEC: the ghost mosaic fills the whole visible field and the call centers inside it. The header drops its primary Add (this CTA is the add) and keeps the 2-up secondaries."
+        framed={false}
       >
-        <Page>
-          <div className="relative mt-6">
-            <div className="grid grid-cols-3 gap-1.5 opacity-25 grayscale">
-              {PHOTOS.slice(0, 6).map((src) => (
-                <div
-                  key={src}
-                  className="relative aspect-square overflow-hidden"
-                  style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
-                >
-                  <Image src={src} alt="" fill sizes="100px" className="object-cover" />
-                </div>
-              ))}
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <p data-dir-display className="text-xl leading-snug">
-                This is where it all lands
-              </p>
+        <PhoneShell className="max-w-[320px]">
+          <div className="absolute inset-0 flex flex-col overflow-hidden px-4 pt-12">
+            <p data-dir-display className="text-xl leading-snug">
+              {EVENT_NAME}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              0 photos & videos
+            </p>
+            {/* Empty-state header: secondaries only, evenly split. */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 data-dir-press
-                className="mt-3 h-10 rounded-[var(--radius)] bg-primary px-5 text-[13px] font-medium text-primary-foreground"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[var(--radius-action-sm)] border border-border bg-card text-xs font-medium"
               >
-                Be the first to add one
+                <Bookmark className="size-3.5" />
+                Save
+              </button>
+              <button
+                data-dir-press
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[var(--radius-action-sm)] border border-border bg-card text-xs font-medium"
+              >
+                <Share className="size-3.5" />
+                Invite
               </button>
             </div>
+            {/* The mosaic owns ALL remaining height; the CTA centers in it. */}
+            <div className="relative mt-3 flex-1 overflow-hidden pb-4">
+              <div className="grid h-full grid-cols-3 content-start gap-1.5 opacity-25 grayscale">
+                {[...PHOTOS, ...PHOTOS].slice(0, 15).map((src, i) => (
+                  <div
+                    key={`${src}-${i}`}
+                    className="relative aspect-square overflow-hidden"
+                    style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                  >
+                    <Image src={src} alt="" fill sizes="100px" className="object-cover" />
+                  </div>
+                ))}
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                <p data-dir-display className="text-2xl leading-snug text-balance">
+                  This is where it all lands
+                </p>
+                <button
+                  data-dir-press
+                  className="mt-4 h-10 rounded-[var(--radius-action)] bg-primary px-5 text-[13px] font-semibold text-primary-foreground"
+                >
+                  Be the first to add a photo
+                </button>
+              </div>
+            </div>
           </div>
-          <SkeletonStrip label="Loading: ghosted tiles" ghost />
-        </Page>
+        </PhoneShell>
       </Variant>
     </div>
   );

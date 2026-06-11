@@ -42,14 +42,31 @@
   --border: oklch(0.905 0 0);
   --input: oklch(0.905 0 0);
   --ring: oklch(0.3 0 0);
-  --radius: 0.5rem;
+
+  /* THE ROUNDING SYSTEM (Will, round 6): sharp corners on general UI,
+     rounder corners on interactive elements - the radius contrast itself
+     signals "this is pressable". Surfaces ride --radius (sharp); actions
+     ride --radius-action, defined as 16px at the standard 40px button and
+     SCALED BY HEIGHT elsewhere (ratio 0.4): hero 48px -> 1.2rem, compact
+     32px -> 0.8rem. ONE knob to re-tune globally; set the three action
+     tokens to 999px to go full pill later. */
+  --radius: 0.375rem;
+  --radius-action: 1rem; /* 16px @ h-10 (40px) */
+  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
+  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
 
   /* No accent exists: brand-colored things render as ink. */
   --brand: oklch(0.13 0 0);
   --brand-foreground: oklch(0.99 0 0);
 
-  /* Liked-state on the always-dark gallery surface: white ink in both modes. */
-  --dir-like: oklch(0.97 0 0);
+  /* STATE COLORS (Will, round 6): mono bans BRAND color, never MEANING -
+     state feedback ALWAYS gets color, as punctuation, never a wash.
+     Success = green (the upload check reads instantly); liked = the
+     standard rose heart (white read as empty/unliked); error = the
+     destructive red above. */
+  --success: oklch(0.6 0.16 150);
+  --success-foreground: oklch(0.99 0 0);
+  --dir-like: oklch(0.63 0.21 15);
 
   --dir-duration: 200ms;
   --dir-ease: cubic-bezier(0.23, 1, 0.32, 1);
@@ -80,6 +97,11 @@
 
   --brand: oklch(0.96 0 0);
   --brand-foreground: oklch(0.15 0 0);
+
+  /* State colors brighten against near-black so they still pop. */
+  --success: oklch(0.7 0.16 150);
+  --success-foreground: oklch(0.13 0 0);
+  --dir-like: oklch(0.68 0.2 15);
 }
 
 /* Card surface: hairline paper in light, glass in dark. */

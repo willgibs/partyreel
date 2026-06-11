@@ -1,12 +1,16 @@
 import Image from "next/image";
-import { Camera, Images, Smartphone } from "lucide-react";
+import { Camera, Images, Lock, Smartphone, Users } from "lucide-react";
 
 import { COVER_PHOTO, EVENT_NAME, PHOTOS } from "../screens/sample-photos";
 import { Variant } from "./variant-frame";
 
 /**
- * Touchpoint: the guest entry moment. Three stagings of the same welcome
- * content; the gates (password/account) would inherit whichever staging wins.
+ * Touchpoint: the guest entry moment, THE core capture mechanic. Round-6
+ * additions (V4-V6) attack Will's tension head-on: the teaser must
+ * incentivize the account WITHOUT leaking real media on password events and
+ * WITHOUT falling flat on empty events. The shared trick: tease the
+ * gallery's SHAPE and COUNT (ghost tiles + real numbers), never its pixels -
+ * which also keeps the server-side never-leak invariant trivially true.
  */
 export function EntryVariants() {
   return (
@@ -34,8 +38,8 @@ export function EntryVariants() {
             data-dir-enter
             className="rounded-b-none border-b-0 p-5 pt-3"
             style={{
-              borderTopLeftRadius: "calc(var(--radius) * 2.2)",
-              borderTopRightRadius: "calc(var(--radius) * 2.2)",
+              borderTopLeftRadius: "calc(var(--radius-action) * 1.4)",
+              borderTopRightRadius: "calc(var(--radius-action) * 1.4)",
             }}
           >
             <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-muted-foreground/30" />
@@ -75,13 +79,159 @@ export function EntryVariants() {
                 display, a medium CTA reads secondary. */}
             <button
               data-dir-press
-              className="mt-6 h-11 w-full rounded-[var(--radius)] bg-primary text-sm font-semibold text-primary-foreground"
+              className="mt-6 h-11 w-full rounded-[var(--radius-action)] bg-primary text-sm font-semibold text-primary-foreground"
             >
               Continue
             </button>
           </div>
         </div>
       </Variant>
+
+      <Variant
+        n={4}
+        name="Adaptive sheet + ghost grid"
+        rationale="The sheet's incentive without the leak: behind it sits the gallery's SHAPE (ghost tiles) plus the real count. Password events stay sealed, empty events read as a door about to open, and the want-in pull survives."
+      >
+        <div className="absolute inset-0">
+          <div className="px-4 pt-12 pb-2">
+            <p data-dir-display className="text-lg">
+              {EVENT_NAME}
+            </p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Lock className="size-3" />
+              128 photos & videos inside
+            </p>
+          </div>
+          <GhostGrid />
+        </div>
+        <div className="absolute inset-x-0 bottom-0">
+          <div
+            data-dir-card
+            data-dir-enter
+            className="rounded-b-none border-b-0 p-5 pt-3"
+            style={{
+              borderTopLeftRadius: "calc(var(--radius-action) * 1.4)",
+              borderTopRightRadius: "calc(var(--radius-action) * 1.4)",
+            }}
+          >
+            <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-muted-foreground/30" />
+            <p data-dir-display className="text-center text-xl leading-snug text-balance">
+              128 photos are waiting
+            </p>
+            <p className="mt-1.5 text-center text-[13px] text-muted-foreground">
+              From 43 guests at {EVENT_NAME}, growing live. Create a free
+              account to open the gallery and add your own.
+            </p>
+            <button
+              data-dir-press
+              className="mt-4 h-11 w-full rounded-[var(--radius-action)] bg-primary text-sm font-semibold text-primary-foreground"
+            >
+              See all 128 photos
+            </button>
+            <button className="mt-1.5 h-9 w-full text-[13px] text-muted-foreground">
+              Just browsing
+            </button>
+          </div>
+        </div>
+      </Variant>
+
+      <Variant
+        n={5}
+        name="Full-screen marquee"
+        rationale="Numbers AS the teaser: the count in display type is the whole pitch. Identical for open, locked, and empty events (empty flips to a be-the-first invitation); zero pixels ever at stake."
+      >
+        <div className="absolute inset-0 flex flex-col px-6 pt-14 pb-8">
+          <p className="text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
+            {EVENT_NAME}
+          </p>
+          <div className="flex flex-1 flex-col justify-center">
+            <p data-dir-display className="text-7xl leading-none">
+              128
+            </p>
+            <p data-dir-display className="mt-1 text-2xl leading-snug text-balance">
+              photos & videos inside
+            </p>
+            <p className="mt-3 flex items-center gap-2 text-[13px] text-muted-foreground">
+              <Users className="size-4 shrink-0" />
+              From 43 guests, growing as the night goes on
+            </p>
+          </div>
+          <button
+            data-dir-press
+            className="h-11 w-full rounded-[var(--radius-action)] bg-primary text-sm font-semibold text-primary-foreground"
+          >
+            Create a free account to open it
+          </button>
+          <button className="mt-1.5 h-9 w-full text-[13px] text-muted-foreground">
+            Just browsing
+          </button>
+        </div>
+      </Variant>
+
+      <Variant
+        n={6}
+        name="Inline teaser + sticky bar"
+        rationale="No modal at all: the page IS the pitch. A capped grid (real when allowed, ghost when locked or empty) fades into a sticky account bar - the same floating-bottom pattern as upload and lightbox."
+      >
+        <div className="absolute inset-0">
+          <div className="px-4 pt-12 pb-2">
+            <p data-dir-display className="text-lg">
+              {EVENT_NAME}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Hosted by Maya · 128 photos & videos
+            </p>
+          </div>
+          <div className="relative px-4">
+            <div className="grid grid-cols-3 gap-1.5">
+              {PHOTOS.slice(0, 9).map((src) => (
+                <div
+                  key={src}
+                  className="relative aspect-square overflow-hidden"
+                  style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                >
+                  <Image src={src} alt="" fill sizes="100px" className="object-cover" />
+                </div>
+              ))}
+            </div>
+            {/* The fade says "there's more" without showing it. */}
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
+          </div>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 p-3">
+          <div data-dir-card className="p-3.5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
+            <p className="text-center text-[13px] font-medium">
+              You&rsquo;re seeing 9 of 128
+            </p>
+            <button
+              data-dir-press
+              className="mt-2.5 h-10 w-full rounded-[var(--radius-action)] bg-primary text-[13px] font-semibold text-primary-foreground"
+            >
+              Create a free account to see the rest
+            </button>
+          </div>
+        </div>
+      </Variant>
+    </div>
+  );
+}
+
+/* Ghost tiles: the gallery's silhouette with zero real pixels. A faint
+   camera glyph every few cells keeps it readable as "photos live here". */
+function GhostGrid() {
+  return (
+    <div className="grid grid-cols-3 gap-1.5 px-4">
+      {Array.from({ length: 9 }, (_, i) => (
+        <div
+          key={i}
+          className="flex aspect-square items-center justify-center border border-border/70 bg-muted/60"
+          style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+        >
+          {i % 4 === 1 && (
+            <Camera className="size-4 text-muted-foreground/40" />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -139,7 +289,7 @@ function WelcomeCard({
       <FeatureRows className="mt-4" />
       <button
         data-dir-press
-        className="mt-5 h-11 w-full rounded-[var(--radius)] bg-primary text-sm font-medium text-primary-foreground"
+        className="mt-5 h-11 w-full rounded-[var(--radius-action)] bg-primary text-sm font-medium text-primary-foreground"
       >
         Continue
       </button>

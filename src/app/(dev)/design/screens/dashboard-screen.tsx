@@ -24,7 +24,7 @@ export function DashboardScreen() {
           </div>
           <button
             data-dir-press
-            className="flex h-9 items-center gap-1.5 rounded-[calc(var(--radius)*0.8)] bg-primary px-3.5 text-sm font-medium text-primary-foreground"
+            className="flex h-9 items-center gap-1.5 rounded-[var(--radius-action-sm)] bg-primary px-3.5 text-sm font-medium text-primary-foreground"
           >
             <Plus className="size-4" />
             New event

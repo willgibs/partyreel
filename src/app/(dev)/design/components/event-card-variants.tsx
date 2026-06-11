@@ -89,8 +89,8 @@ export function EventCardVariants() {
 
       <Variant
         n={3}
-        name="Stat-forward overlay"
-        rationale="One surface: the name and the numbers live in the photo's light. The most poster-like, needs the gradient to stay honest."
+        name="Stat-forward overlay (selected, revised)"
+        rationale="THE SELECTED SPEC: one surface, the name and numbers in the photo's light. Refined pills (hairline, consistent height), and the QR chip top-left opens the QR + link sharing modal straight from the dashboard."
         framed={false}
       >
         <div className="space-y-4">
@@ -102,19 +102,27 @@ export function EventCardVariants() {
             >
               <Image src={e.cover} alt="" fill sizes="340px" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+              {/* QR + link access, one tap from the card. */}
+              <button
+                data-dir-press
+                aria-label="QR and sharing"
+                className="absolute top-2.5 left-2.5 flex size-8 items-center justify-center rounded-[var(--radius-action-sm)] bg-black/45 text-white backdrop-blur-sm"
+              >
+                <QrCode className="size-4" />
+              </button>
               {e.pending > 0 && <PendingChip n={e.pending} />}
               <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                 <p data-dir-display className="text-lg leading-snug">
                   {e.name}
                 </p>
-                <div className="mt-1.5 flex items-center gap-1.5 text-[10px]">
-                  <span className="rounded-full bg-white/15 px-2 py-0.5 backdrop-blur-sm">
+                <div className="mt-2 flex items-center gap-1.5 text-[10px] font-medium">
+                  <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 backdrop-blur-sm">
                     {e.date}
                   </span>
-                  <span className="rounded-full bg-white/15 px-2 py-0.5 backdrop-blur-sm">
+                  <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 backdrop-blur-sm">
                     {e.meta.split(" · ")[0]}
                   </span>
-                  <span className="rounded-full bg-white/15 px-2 py-0.5 backdrop-blur-sm">
+                  <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 backdrop-blur-sm">
                     {e.status}
                   </span>
                 </div>

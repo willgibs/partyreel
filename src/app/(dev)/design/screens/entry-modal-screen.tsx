@@ -80,7 +80,7 @@ export function EntryModalScreen() {
             </ul>
             <button
               data-dir-press
-              className="mt-5 h-11 w-full rounded-[var(--radius)] bg-primary text-sm font-medium text-primary-foreground"
+              className="mt-5 h-11 w-full rounded-[var(--radius-action)] bg-primary text-sm font-medium text-primary-foreground"
             >
               Continue
             </button>

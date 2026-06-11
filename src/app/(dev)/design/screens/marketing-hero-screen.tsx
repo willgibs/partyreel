@@ -31,11 +31,11 @@ export function MarketingHeroScreen() {
         <div className="mt-6 flex items-center justify-center gap-3">
           <button
             data-dir-press
-            className="h-11 rounded-[calc(var(--radius)*0.9)] bg-primary px-6 text-sm font-medium text-primary-foreground"
+            className="h-11 rounded-[var(--radius-action)] bg-primary px-6 text-sm font-medium text-primary-foreground"
           >
             Start free
           </button>
-          <button className="h-11 rounded-[calc(var(--radius)*0.9)] px-4 text-sm font-medium text-muted-foreground">
+          <button className="h-11 rounded-[var(--radius-action)] px-4 text-sm font-medium text-muted-foreground">
             See how it works
           </button>
         </div>

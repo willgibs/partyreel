@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Palette } from "lucide-react";
+import { ArrowRight, Check, Palette, Sparkles } from "lucide-react";
 
 import { requireDesignKey, withDesignKey } from "./gate";
 import { PicksBoard } from "./selection";
@@ -51,6 +51,25 @@ export default async function DesignIndexPage({
           <span className="mt-1 block text-sm text-muted-foreground">
             Monochrome + Instrument Serif: the five reference screens and the
             live specimen every decision renders against.
+          </span>
+        </span>
+      </Link>
+
+      <Link
+        href={withDesignKey("/design/demo", key)}
+        className="group mt-3 flex items-center gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-foreground/30"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+          <Sparkles className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2 font-medium">
+            The cohesive demo
+            <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </span>
+          <span className="mt-1 block text-sm text-muted-foreground">
+            Everything picked so far, composed on one screen set. Rebuilt each
+            round as decisions land.
           </span>
         </span>
       </Link>

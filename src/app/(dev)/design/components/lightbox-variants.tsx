@@ -1,7 +1,15 @@
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Download, Heart, Share, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Heart,
+  Play,
+  Share,
+  X,
+} from "lucide-react";
 
-import { EVENT_NAME, PORTRAIT_PHOTO } from "../screens/sample-photos";
+import { EVENT_NAME, PHOTOS, PORTRAIT_PHOTO } from "../screens/sample-photos";
 import { Variant } from "./variant-frame";
 
 /**
@@ -33,30 +41,75 @@ export function LightboxVariants() {
 
       <Variant
         n={2}
-        name="Floating pill"
-        rationale="The photo runs edge to edge; one floating pill carries the actions. Lighter chrome, controls stay thumb-reach."
+        name="Floating pill (selected, revised)"
+        rationale="THE SELECTED SPEC: full-bleed media, one floating pill, attribution on its own legible bar beneath. Heart is utility (NO count); subtle edge hints make swipe discoverable; the second stage shows the video state."
         framed={false}
       >
-        <Stage>
-          <div className="absolute inset-0">
-            <Image
-              src={PORTRAIT_PHOTO}
-              alt=""
-              fill
-              sizes="360px"
-              className="object-cover"
-            />
-          </div>
-          <span className="absolute top-2.5 right-2.5 flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
-            <X className="size-3.5 text-white" />
-          </span>
-          <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5">
-            <p className="text-[10px] text-white/75">Photo by Dana · 14 of 128</p>
-            <div className="flex items-center gap-4 rounded-full bg-black/55 px-4 py-2 backdrop-blur-sm">
-              <ActionRow light />
+        <div className="space-y-3">
+          <Stage h={300}>
+            <div className="absolute inset-0">
+              <Image
+                src={PORTRAIT_PHOTO}
+                alt=""
+                fill
+                sizes="360px"
+                className="object-cover"
+              />
             </div>
-          </div>
-        </Stage>
+            <span className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+              <X className="size-4 text-white" />
+            </span>
+            {/* Subtle-but-clear swipe affordance: soft edge scrims + chevrons. */}
+            <div className="absolute inset-y-0 left-0 flex w-8 items-center justify-start bg-gradient-to-r from-black/25 to-transparent pl-1">
+              <ChevronLeft className="size-4 text-white/70" />
+            </div>
+            <div className="absolute inset-y-0 right-0 flex w-8 items-center justify-end bg-gradient-to-l from-black/25 to-transparent pr-1">
+              <ChevronRight className="size-4 text-white/70" />
+            </div>
+            <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5">
+              <div className="flex items-center gap-5 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                <ActionRow light />
+              </div>
+              {/* Attribution gets its OWN bar: always legible, never inside
+                  the tap targets. */}
+              <span className="rounded-full bg-black/55 px-3 py-1 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+                Photo by Dana · 14 of 128
+              </span>
+            </div>
+          </Stage>
+          <Stage h={300}>
+            <div className="absolute inset-0">
+              <Image
+                src={PHOTOS[8]}
+                alt=""
+                fill
+                sizes="360px"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/25" />
+            </div>
+            <span className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+              <X className="size-4 text-white" />
+            </span>
+            {/* VIDEO state: center play, scrubber joins the pill stack. */}
+            <span className="absolute top-1/2 left-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 backdrop-blur-sm">
+              <Play className="ml-0.5 size-6 text-white" fill="currentColor" />
+            </span>
+            <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5 px-6">
+              <div className="flex w-full max-w-[260px] items-center gap-2.5 rounded-full bg-black/55 px-4 py-2.5 backdrop-blur-sm">
+                <span className="text-[10px] text-white">0:12</span>
+                <span className="relative h-1 flex-1 rounded-full bg-white/30">
+                  <span className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-white" />
+                </span>
+                <span className="text-[10px] text-white/70">0:38</span>
+                <ActionRow light compact />
+              </div>
+              <span className="rounded-full bg-black/55 px-3 py-1 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+                Video by Sam · 15 of 128
+              </span>
+            </div>
+          </Stage>
+        </div>
       </Variant>
 
       <Variant
@@ -93,10 +146,17 @@ export function LightboxVariants() {
   );
 }
 
-function Stage({ children }: { children: React.ReactNode }) {
+function Stage({
+  children,
+  h = 420,
+}: {
+  children: React.ReactNode;
+  h?: number;
+}) {
   return (
     <div
-      className="relative flex h-[420px] flex-col overflow-hidden rounded-[var(--radius)] bg-gallery text-gallery-foreground"
+      className="relative flex flex-col overflow-hidden rounded-[var(--radius)] bg-gallery text-gallery-foreground"
+      style={{ height: `${h}px` }}
     >
       {children}
     </div>
@@ -122,20 +182,26 @@ function Media() {
   );
 }
 
-function ActionRow({ light = false }: { light?: boolean }) {
+/* No like COUNT anywhere a guest sees (utility, not social pressure); the
+   liked state reads via the rose fill (state color), unliked via outline. */
+function ActionRow({
+  light = false,
+  compact = false,
+}: {
+  light?: boolean;
+  compact?: boolean;
+}) {
   const muted = light ? "text-white/80" : "text-gallery-muted";
+  const size = compact ? "size-3.5" : "size-4";
   return (
-    <div className="flex items-center gap-4">
-      <span className={`flex items-center gap-1.5 text-[11px] ${light ? "text-white" : ""}`}>
-        <Heart
-          className="size-4"
-          style={{ color: "var(--dir-like)" }}
-          fill="currentColor"
-        />
-        12
-      </span>
-      <Download className={`size-4 ${muted}`} />
-      <Share className={`size-4 ${muted}`} />
+    <div className={`flex items-center ${compact ? "gap-2.5" : "gap-4"}`}>
+      <Heart
+        className={size}
+        style={{ color: "var(--dir-like)" }}
+        fill="currentColor"
+      />
+      <Download className={`${size} ${muted}`} />
+      <Share className={`${size} ${muted}`} />
     </div>
   );
 }

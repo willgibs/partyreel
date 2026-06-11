@@ -93,6 +93,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   profile + avatar, then the page adds events + storage; profile the chain + parallelize/stream/cache).
 - **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
   `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
+- **Share studio (QR + share-content configurator)** — (Will, 2026-06-11, from the V1 design lab's QR-card
+  round) an in-app generator for polished share outputs so hosts never build their own: card presets
+  (minimal-ink + photo-backed won the lab round), per-common-event-type curated stock cover images +
+  generic sets (hosts rarely have a cover BEFORE the event), toggles for link/date/cover, mobile/story
+  vs printable formats, multiple file types, drag-and-drop element placement as the stretch goal. Doubles
+  as a growth lever (every output carries the QR) and keeps hosts on-site. Slots into the V1 program
+  around Phases 5-6; needs its own planning round.
 - **Highlight reel (Tabled — needs a product + architecture decision first)** — stitch a reel from the best
   clips (core-loop step 5). Scaffold exists; transcode/stitch runs in an **external worker, NOT Vercel**
   (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg on Cloudflare Containers),

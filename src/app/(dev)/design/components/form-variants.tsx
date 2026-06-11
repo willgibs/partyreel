@@ -13,24 +13,49 @@ export function FormVariants() {
     <div aria-hidden className="grid gap-8 py-4 md:grid-cols-2 xl:grid-cols-3">
       <Variant
         n={1}
-        name="Card sections"
-        rationale="Each concern gets a card: clear territory, labels above fields. Familiar, a little tall on long forms."
+        name="Card sections (selected, refined)"
+        rationale="THE SELECTED SPEC for settings/management, after the polish pass: display-type section headers with purpose lines, taller inputs, toggle rows that explain themselves, and a save bar that owns the bottom. (V3 stays the spec for guided flows.)"
       >
         <Page title="Event settings">
-          <div data-dir-card className="mt-4 space-y-3.5 p-4">
-            <SectionLabel>Details</SectionLabel>
-            <Field label="Event name" value="Maya & Jay's Wedding" />
-            <Field label="Event date" value="June 14, 2026" />
+          <div data-dir-card className="mt-4 p-4">
+            <p data-dir-display className="text-base leading-snug">Details</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              What guests see on the invite and the album.
+            </p>
+            <div className="mt-3.5 space-y-3">
+              <Field label="Event name" value="Maya & Jay's Wedding" />
+              <Field label="Event date" value="June 14, 2026" />
+            </div>
           </div>
-          <div data-dir-card className="mt-3 space-y-1 p-4">
-            <SectionLabel>Access</SectionLabel>
-            <ToggleRow label="Accepting uploads" on />
-            <ToggleRow label="Require guest accounts" />
+          <div data-dir-card className="mt-3 p-4">
+            <p data-dir-display className="text-base leading-snug">Access</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Who can see and add to the gallery.
+            </p>
+            <div className="mt-2 divide-y divide-border/70">
+              <RichToggleRow
+                label="Accepting uploads"
+                hint="Guests can add photos and videos"
+                on
+              />
+              <RichToggleRow
+                label="Require guest accounts"
+                hint="Guests sign in before seeing the full gallery"
+              />
+            </div>
           </div>
-          <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-[var(--radius)] bg-destructive/10 py-2.5 text-xs font-medium text-destructive">
-            <Trash2 className="size-3.5" />
-            Delete event
-          </button>
+          <div className="mt-3 flex items-center gap-2">
+            <button className="flex h-9 shrink-0 items-center gap-1.5 rounded-[var(--radius-action-sm)] px-3 text-xs font-medium text-destructive">
+              <Trash2 className="size-3.5" />
+              Delete
+            </button>
+            <button
+              data-dir-press
+              className="h-10 flex-1 rounded-[var(--radius-action)] bg-primary text-[13px] font-semibold text-primary-foreground"
+            >
+              Save changes
+            </button>
+          </div>
         </Page>
       </Variant>
 
@@ -101,21 +126,41 @@ function Page({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-      {children}
-    </p>
-  );
-}
-
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="mb-1 text-[11px] font-medium">{label}</p>
-      <div className="rounded-[calc(var(--radius)*0.8)] border border-input bg-background px-3 py-2 text-[13px]">
+      {/* Inputs stay on the SHARP surface radius: the round-vs-sharp contrast
+          is reserved for actions (the rounding system). */}
+      <div className="flex h-10 items-center rounded-[var(--radius)] border border-input bg-background px-3 text-[13px]">
         {value}
       </div>
+    </div>
+  );
+}
+
+function RichToggleRow({
+  label,
+  hint,
+  on = false,
+}: {
+  label: string;
+  hint: string;
+  on?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <div className="min-w-0">
+        <p className="text-[13px] font-medium">{label}</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
+      </div>
+      <span
+        className={`flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+          on ? "bg-foreground" : "bg-muted"
+        }`}
+      >
+        <span className={`size-4 rounded-full bg-background ${on ? "ml-auto" : ""}`} />
+      </span>
     </div>
   );
 }

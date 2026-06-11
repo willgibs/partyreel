@@ -57,6 +57,42 @@ export function UploadVariants() {
       </Variant>
 
       <Variant
+        n={4}
+        name="Floating + tile combo"
+        rationale="THE SELECTED SPEC (2+3): the add tile leads the grid, the floating button carries dynamic state (idle, uploading count, done), progress lives on the arriving tiles, and completion lands a green check - state color so certainty reads instantly."
+      >
+        <Page>
+          <div className="mt-4 grid grid-cols-3 gap-1.5">
+            <button
+              data-dir-press
+              className="flex aspect-square flex-col items-center justify-center gap-1 border border-dashed border-foreground/35 bg-muted/40"
+              style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+            >
+              <Plus className="size-5" />
+              <span className="text-[10px] font-medium">Add</span>
+            </button>
+            {PHOTOS.slice(0, 8).map((src, i) => (
+              <Tile key={src} src={src} uploading={i === 0} done={i === 1} />
+            ))}
+          </div>
+        </Page>
+        <div className="absolute inset-x-0 bottom-4 flex justify-center">
+          <button
+            data-dir-press
+            className="flex h-11 items-center gap-3 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_6px_16px_rgba(0,0,0,0.18)]"
+          >
+            <span className="flex items-center gap-2">
+              <ImageUp className="size-4" />
+              Add photos
+            </span>
+            <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px]">
+              2 uploading
+            </span>
+          </button>
+        </div>
+      </Variant>
+
+      <Variant
         n={3}
         name="Add tile in the grid"
         rationale="Upload IS a gallery cell: the lightest chrome possible, photos stay the whole story. Progress shows on the arriving tiles."
@@ -145,7 +181,15 @@ function Tile({
         </div>
       )}
       {done && (
-        <span className="absolute top-1.5 right-1.5 flex size-4.5 items-center justify-center rounded-full bg-white text-black">
+        /* Done is ALWAYS state-green (round-6 policy): certainty must read
+           at a glance, and white reads as chrome. */
+        <span
+          className="absolute top-1.5 right-1.5 flex size-4.5 items-center justify-center rounded-full"
+          style={{
+            background: "var(--success)",
+            color: "var(--success-foreground)",
+          }}
+        >
           <Check className="size-3" />
         </span>
       )}
