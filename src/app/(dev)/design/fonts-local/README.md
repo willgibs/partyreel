@@ -9,3 +9,8 @@ cubics) after a mechanical master-compatibility repair: 51 on-curve points in
 the Black master were labeled `line` where Regular has `curve` (flattened
 segments, control points retained), which varLib rejects; relabeling them
 `curve` restores valid, visually identical segments. Geometry untouched.
+
+STATUS (round 5): RETAINED, UNUSED. The round-4 verdict chose base Instrument
+Serif (stroke-weighted) over this fork; the file stays vendored as the
+ready-made option should real drawn weights ever be needed (re-add a
+next/font/local load in layout.tsx to resurrect).

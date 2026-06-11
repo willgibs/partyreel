@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { FONT_OPTIONS, getFontOption } from "../fonts";
 import { requireDesignKey, withDesignKey } from "../gate";
 import { ModeShell } from "../mode-shell";
 import { DashboardScreen } from "../screens/dashboard-screen";
@@ -11,20 +9,16 @@ import { GalleryScreen } from "../screens/gallery-screen";
 import { MarketingHeroScreen } from "../screens/marketing-hero-screen";
 import { SpecimenScreen } from "../screens/specimen-screen";
 
-// One type option, all five screens, on the locked mono system. The switcher
-// bar stays OUTSIDE the mono scope so navigation chrome never tints the
-// judgment; the light/dark toggle lives INSIDE (it is part of the system now).
-export default async function FontOptionPage({
-  params,
+// THE LOCKED SYSTEM, as a standing reference: monochrome in both modes +
+// base Instrument Serif (0.60 calibration, hairline-stroke display weight).
+// This page replaced the type-option slate when the round-4 verdict landed;
+// it is the canvas every touchpoint decision renders against.
+export default async function SystemReferencePage({
   searchParams,
 }: {
-  params: Promise<{ font: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const key = await requireDesignKey(searchParams);
-  const { font: slug } = await params;
-  const option = getFontOption(slug);
-  if (!option) notFound();
 
   return (
     <div>
@@ -35,40 +29,26 @@ export default async function FontOptionPage({
             className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            Type options
+            Lab index
           </Link>
-          <span className="ml-auto flex items-center gap-1">
-            {FONT_OPTIONS.map((f) => (
-              <Link
-                key={f.id}
-                href={withDesignKey(`/design/${f.id}`, key)}
-                aria-current={f.id === option.id ? "page" : undefined}
-                className={`flex size-7 items-center justify-center rounded-md font-mono text-xs font-semibold transition-colors ${
-                  f.id === option.id
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {f.letter}
-              </Link>
-            ))}
-          </span>
         </div>
       </nav>
 
-      <ModeShell fontClass={option.wrapperClass}>
+      <ModeShell fontClass="font-opt-instrument">
         <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-4">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-            Monochrome · type option {option.letter}
+            The locked system
           </p>
           <h1
             data-dir-display
             className="mt-1 text-3xl tracking-tight text-balance"
           >
-            {option.name}
+            Monochrome, set in Instrument Serif
           </h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            {option.blurb}
+            Both modes, zero accent, media as the only color. Type is base
+            Instrument Serif, size-calibrated and stroke-weighted; sizing gets
+            a final tune once built into the real UI if needed.
           </p>
         </header>
 
@@ -89,7 +69,7 @@ export default async function FontOptionPage({
             title="System specimen"
             note="Type, color policy, components, live motion"
           >
-            <SpecimenScreen typeLabel={option.name} />
+            <SpecimenScreen typeLabel="Instrument Serif" />
           </Section>
         </div>
       </ModeShell>

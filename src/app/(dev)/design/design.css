@@ -135,10 +135,14 @@
   font-synthesis: none;
 }
 
-/* The benchmark. To make Instrument THE face app-wide in Phase 2, this
-   block's values become the token defaults - that is the whole swap.
-   0.60 is the round-4 bump (round 3.5 sat at 0.58; Inter parity is 0.55):
-   +18% over native. Watch tight display leading when pushing further. */
+/* THE LOCKED FACE (round-4 verdict): base Instrument Serif. In Phase 2 this
+   block's values become the @theme token defaults - that is the whole swap,
+   forever. 0.60 calibration = +18% over native (Inter parity is 0.55; IS
+   hairlines read smaller than metrics); the 0.013em stroke is its synthetic
+   display weight (the face ships 400 only; font-synthesis stays off). The
+   retired explorations (weighted fork, caps-condensed, Noto, the round-3
+   slate) live in git history; the vendored fork font is retained unused in
+   fonts-local/ should real weights ever be needed. */
 .font-opt-instrument {
   --font-heading: var(--font-display-instrument);
   --display-font: var(--font-display-instrument);
@@ -146,49 +150,6 @@
   --display-tracking: 0em;
   --display-weight: 400;
   --display-stroke: 0.013em;
-}
-
-/* The multi-weight fork (vendored, see fonts-local/README.md): REAL drawn
-   weight at 600 instead of A's synthetic stroke. Same calibration as A so
-   the weight treatment is the only variable between them. */
-.font-opt-instruments {
-  --font-heading: var(--font-display-instruments);
-  --display-font: var(--font-display-instruments);
-  --display-adjust: 0.6;
-  --display-tracking: 0em;
-  --display-weight: 600;
-  --display-stroke: 0;
-}
-
-/* All-caps condensed (the MasterClass register). Caps want open tracking;
-   Oswald's x-height already runs taller than Inter so no size adjust. */
-.font-opt-oswald {
-  --font-heading: var(--font-display-oswald);
-  --display-font: var(--font-display-oswald);
-  --display-adjust: none;
-  --display-tracking: 0.05em;
-  --display-weight: 550;
-  --display-stroke: 0;
-  --display-transform: uppercase;
-}
-
-.font-opt-noto {
-  --font-heading: var(--font-display-noto);
-  --display-font: var(--font-display-noto);
-  --display-adjust: 0.55;
-  --display-tracking: -0.01em;
-  --display-weight: 560;
-  --display-stroke: 0;
-}
-
-/* The control: the app's own Inter at the app's own tracking. NO adjust:
-   Inter IS the size reference everything calibrates to. */
-.font-opt-inter {
-  --display-font: var(--font-sans);
-  --display-adjust: none;
-  --display-tracking: -0.03em;
-  --display-weight: 650;
-  --display-stroke: 0;
 }
 
 /* ───────────────────────────── Shared motion system ────────────────────────

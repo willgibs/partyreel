@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 
 import { ButtonVariants } from "../../components/button-variants";
 import { EntryVariants } from "../../components/entry-variants";
+import { EventCardVariants } from "../../components/event-card-variants";
+import { FormVariants } from "../../components/form-variants";
 import { GalleryVariants } from "../../components/gallery-variants";
 import { HeaderVariants } from "../../components/header-variants";
+import { LightboxVariants } from "../../components/lightbox-variants";
+import { QrCardVariants } from "../../components/qr-card-variants";
+import { StateVariants } from "../../components/state-variants";
 import { UploadVariants } from "../../components/upload-variants";
 import { requireDesignKey, withDesignKey } from "../../gate";
 import { ModeShell } from "../../mode-shell";
@@ -17,11 +22,17 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   gallery: GalleryVariants,
   header: HeaderVariants,
   buttons: ButtonVariants,
+  lightbox: LightboxVariants,
+  "event-card": EventCardVariants,
+  forms: FormVariants,
+  states: StateVariants,
+  "qr-card": QrCardVariants,
 };
 
-// One UX touchpoint, 2-3 variants side by side, on the locked mono system set
-// in Instrument Serif (the working type favorite, size-calibrated). The
-// light/dark toggle applies here too: judge each variant in both modes.
+// One UX touchpoint, 2-3 variants side by side, on the locked system
+// (monochrome + Instrument Serif). When Will picks, the decision lands in
+// touchpoints.ts and renders here as the Selected badge - the lab is the
+// record, not just the showroom.
 export default async function TouchpointPage({
   params,
   searchParams,
@@ -68,7 +79,7 @@ export default async function TouchpointPage({
       <ModeShell fontClass="font-opt-instrument">
         <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-2">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-            Component touchpoint · set in Instrument Serif
+            Component touchpoint
           </p>
           <h1
             data-dir-display
@@ -80,6 +91,19 @@ export default async function TouchpointPage({
             {touchpoint.note}. Pick a number per touchpoint; mixing across
             touchpoints is the point.
           </p>
+          {touchpoint.decision !== undefined && (
+            <p className="mt-3 flex items-center gap-2 text-sm font-medium">
+              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-background">
+                <Check className="size-3" />
+              </span>
+              Selected: variant {touchpoint.decision}
+              {touchpoint.decisionNote && (
+                <span className="font-normal text-muted-foreground">
+                  · {touchpoint.decisionNote}
+                </span>
+              )}
+            </p>
+          )}
         </header>
 
         <div className="mx-auto w-full max-w-5xl px-4 pb-20">
