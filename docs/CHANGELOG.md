@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — V1 program Phase 1, round 4: IS bigger + the weighted fork + two new registers
+
+Will: Instrument still leads but reads small; try the multi-weight fork he found, an all-caps
+condensed (MasterClass register), and Noto. Commit `799e66b`.
+
+- **A bumped again:** `font-size-adjust` 0.58 → 0.60 (+18% over native); hero verified clip-free at
+  `leading-[1.08]`. (Hosting answer recorded: next/font SELF-HOSTS the Google faces too - build-time
+  download, served from our domain, zero runtime Google requests.)
+- **B, the fork (the build story):** `eliheuer/instruments-serif` (OFL-1.1) ships UFO sources only.
+  fontmake rejected the variable build: 51 on-curve points in the Black master labeled `line` where
+  Regular has `curve`. Mechanically repaired (relabel only, geometry untouched), then built as a
+  **CFF2 variable** (`-o variable-cff2`; the TTF path crashes cu2qu on the now-degenerate cubics) and
+  vendored as a 22KB woff2 via `next/font/local` with license + provenance in
+  `src/app/(dev)/design/fonts-local/`. Shown at weight 600 with A's exact calibration so the weight
+  treatment (real vs stroke) is the only variable. Repaired glyphs verified clean at 600.
+- **C/D:** Oswald all-caps condensed (new `--display-transform` knob in the swappable layer; measured
+  x-ratio 0.58 → no adjust) and Noto Serif Display (measured 0.54, near-parity).
+- Verified: suite green; all five options + the vendored woff2 confirmed serving live behind the gate;
+  7-capture pack delivered. Standing call: if none of the new variations wins, Instrument Serif
+  carries into Phase 2 as is.
+
 ## 2026-06-10 — V1 program Phase 1, round 3.5: swappable type + Instrument tuning + craft pass
 
 Will locked Instrument Serif as the working face with two requirements: the design system must make
