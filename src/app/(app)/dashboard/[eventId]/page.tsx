@@ -92,9 +92,10 @@ export default async function EventDetailPage({ params }: PageProps) {
   const galleryItems = await Promise.all(
     media.map(async (m) => {
       const [url, downloadUrl] = await Promise.all([
-        presignDownload({ key: m.original_key }),
+        presignDownload({ key: m.original_key, stable: true }),
         presignDownload({
           key: m.original_key,
+          stable: true,
           downloadFilename: buildDownloadFilename({
             eventName: event.name,
             key: m.original_key,
@@ -127,7 +128,7 @@ export default async function EventDetailPage({ params }: PageProps) {
     deletedMedia.map(async (m) => ({
       id: m.id,
       type: m.type,
-      url: await presignDownload({ key: m.original_key }),
+      url: await presignDownload({ key: m.original_key, stable: true }),
       status: m.status,
       countdownDays: m.countdownDays,
     })),

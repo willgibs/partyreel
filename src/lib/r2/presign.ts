@@ -34,6 +34,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { assertR2Env } from "@/lib/env";
 import { getR2Client } from "@/lib/r2/client";
+import {
+  STABLE_DOWNLOAD_TTL_SECONDS,
+  presignBucketStart,
+} from "@/lib/r2/presign-bucket";
 
 // 2 h. A multipart upload presigns ALL its part URLs up front (in the presign route's
 // Promise.all), so the whole transfer must finish before they expire. At the 10 GB ceiling
@@ -259,16 +263,26 @@ export async function headObjectSize(params: { key: string }): Promise<number> {
  * `downloadFilename` must be header-safe ASCII (no quotes/controls) — callers use
  * buildDownloadFilename(), which slugs to `[a-z0-9-.]`, so `filename="…"` alone is
  * safe and no RFC-5987 `filename*` encoding is required.
+ *
+ * `stable: true` (the gallery mode, Phase 3): pins SigV4's signingDate to the
+ * current 30-min bucket start (presign-bucket.ts), making the URL DETERMINISTIC
+ * within the bucket — identical across polls and viewers, so the browser image
+ * cache actually works. TTL becomes 90 min (2x bucket + slack) so a URL minted
+ * late in a bucket still outlives the next full bucket; the gallery ETag folds
+ * the bucket id in, so clients re-pull fresh URLs on the roll. Upload presigns
+ * never use this (each upload is one-shot; freshness is the point there).
  */
 export async function presignDownload(params: {
   key: string;
   expiresInSeconds?: number;
   downloadFilename?: string;
+  stable?: boolean;
 }): Promise<string> {
   const {
     key,
     expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS,
     downloadFilename,
+    stable = false,
   } = params;
   const { R2_BUCKET } = assertR2Env();
 
@@ -281,6 +295,11 @@ export async function presignDownload(params: {
         ResponseContentDisposition: `attachment; filename="${downloadFilename}"`,
       }),
     }),
-    { expiresIn: expiresInSeconds },
+    stable
+      ? {
+          expiresIn: STABLE_DOWNLOAD_TTL_SECONDS,
+          signingDate: new Date(presignBucketStart(Date.now())),
+        }
+      : { expiresIn: expiresInSeconds },
   );
 }

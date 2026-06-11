@@ -30,9 +30,10 @@ export async function toGridItems(
   return Promise.all(
     media.map(async (m) => {
       const [url, downloadUrl] = await Promise.all([
-        presignDownload({ key: m.original_key }),
+        presignDownload({ key: m.original_key, stable: true }),
         presignDownload({
           key: m.original_key,
+          stable: true,
           downloadFilename: buildDownloadFilename({
             eventName,
             key: m.original_key,
@@ -64,9 +65,10 @@ export async function toModerationFeedItems(
   return Promise.all(
     items.map(async (m) => {
       const [url, downloadUrl] = await Promise.all([
-        presignDownload({ key: m.originalKey }),
+        presignDownload({ key: m.originalKey, stable: true }),
         presignDownload({
           key: m.originalKey,
+          stable: true,
           downloadFilename: buildDownloadFilename({
             eventName: m.eventName,
             key: m.originalKey,
@@ -107,9 +109,10 @@ export async function toMyUploadsItems(
   return Promise.all(
     rows.map(async (m) => {
       const [url, downloadUrl] = await Promise.all([
-        presignDownload({ key: m.originalKey }),
+        presignDownload({ key: m.originalKey, stable: true }),
         presignDownload({
           key: m.originalKey,
+          stable: true,
           downloadFilename: buildDownloadFilename({
             eventName: m.eventName,
             key: m.originalKey,
