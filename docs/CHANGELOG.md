@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-11 — V1 program Phase 1, round 6: 8 of 10 touchpoints ratified + the cohesive demo
+
+Will's 10-note decision round, synthesized into the lab. Commit `4378d89`.
+
+- **Ratified** (decision config): upload = floating+tile combo w/ green check; gallery = masonry;
+  buttons = the sharp-surface/round-action radius system (16px @ 40px, height-scaled action tokens,
+  one knob to go pill); lightbox = floating pill (revised: NO like counts for guests, attribution on
+  its own bar, edge swipe hints, designed video state); event card = stat-forward overlay (refined
+  pills + QR share chip); forms = card sections refined for management, focused column for guided
+  flows; empty = photographic promise (mosaic fills the field, CTA centered); qr-card = minimal ink
+  AND photo-backed as presets. **Open: entry (1) and header (4)**, header pending the entry verdict.
+- **Policy locked: state feedback always gets color** (mono bans BRAND color, never MEANING): success
+  green tokens (light+dark), liked = rose heart (white read as unliked), error red. Specimen updated.
+- **Three new entry options** (V4 adaptive sheet + ghost grid, V5 count marquee, V6 inline teaser +
+  sticky bar) all tease the gallery's SHAPE and COUNT, never pixels - so password + empty events hold
+  and the account incentive survives.
+- **/design/demo**: the cohesive composition of current picks (event page, lightbox, brand-new event),
+  hand-rebuilt per round per Will's call (deliberately not generated from localStorage).
+- **Share studio** (QR/share-content configurator) filed on the ROADMAP as its own feature.
+- Verified: suite green, demo + revisions walked locally, live behind the gate.
+
 ## 2026-06-10 — Design lab: the selection mechanism (picks board + copy summary)
 
 Will's workflow ask, built into the lab. Commit `b103359`.
