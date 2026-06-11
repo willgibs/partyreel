@@ -10,6 +10,20 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-10 — Design lab: the selection mechanism (picks board + copy summary)
+
+Will's workflow ask, built into the lab. Commit `b103359`.
+
+- Every variant card carries a **Select** control; picks persist per-browser in localStorage
+  (`design-picks`, `useSyncExternalStore` per the house pattern, SSR-safe).
+- The hub gains the **numbered picks board** (touchpoints 1-10 with variant number + NAME): pass the
+  whole set as a screenshot, or **Copy summary** for a numbered text block that maps 1:1 onto numbered
+  remix notes in a message.
+- Two layers by design: localStorage = Will's WORKING picks (filled badge); `decision` config in
+  `touchpoints.ts` = the RATIFIED record the agent commits once passed (outlined badge + "locked").
+- Verified: select → store → board live-tested locally end to end; suite green; live on
+  partyreel.com behind the gate.
+
 ## 2026-06-10 — V1 program Phase 1, round 5: the design lab + the selection round begins
 
 Type verdict landed (Will): **base Instrument Serif locked** (0.60 calibration + 0.013em stroke;
