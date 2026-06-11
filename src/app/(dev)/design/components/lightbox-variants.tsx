@@ -42,7 +42,7 @@ export function LightboxVariants() {
       <Variant
         n={2}
         name="Floating pill (selected, revised)"
-        rationale="THE SELECTED SPEC: full-bleed media, one floating pill, attribution on its own legible bar beneath. Heart is utility (NO count); subtle edge hints make swipe discoverable; the second stage shows the video state."
+        rationale="THE SELECTED SPEC: full-bleed media, one floating pill, attribution on its own bar. Heart is utility (NO count); side tap zones are gracious (~30% each) while swipe stays primary with the next media sliding in tight; second stage = the video state."
         framed={false}
       >
         <div className="space-y-3">
@@ -59,11 +59,12 @@ export function LightboxVariants() {
             <span className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
               <X className="size-4 text-white" />
             </span>
-            {/* Subtle-but-clear swipe affordance: soft edge scrims + chevrons. */}
-            <div className="absolute inset-y-0 left-0 flex w-8 items-center justify-start bg-gradient-to-r from-black/25 to-transparent pl-1">
+            {/* Gracious side tap zones (~30% each) with a whisper of scrim;
+                swipe stays primary on touch, the neighbor sliding in tight. */}
+            <div className="absolute inset-y-0 left-0 flex w-[30%] items-center justify-start bg-gradient-to-r from-black/15 to-transparent pl-1.5">
               <ChevronLeft className="size-4 text-white/70" />
             </div>
-            <div className="absolute inset-y-0 right-0 flex w-8 items-center justify-end bg-gradient-to-l from-black/25 to-transparent pr-1">
+            <div className="absolute inset-y-0 right-0 flex w-[30%] items-center justify-end bg-gradient-to-l from-black/15 to-transparent pr-1.5">
               <ChevronRight className="size-4 text-white/70" />
             </div>
             <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5">

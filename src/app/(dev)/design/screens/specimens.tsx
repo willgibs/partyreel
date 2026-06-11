@@ -88,7 +88,7 @@ function StaggerSpec() {
   const [run, setRun] = useState(0);
   return (
     <Stage label="Gallery stagger · 45ms steps" onReplay={() => setRun((n) => n + 1)}>
-      <div key={run} data-dir-stagger className="grid w-3/4 grid-cols-3 gap-1.5">
+      <div key={run} data-dir-stagger className="grid w-3/4 grid-cols-3 gap-[3px]">
         {Array.from({ length: 6 }, (_, i) => (
           <div
             key={i}

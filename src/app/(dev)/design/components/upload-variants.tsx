@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Check, ImageUp, Plus } from "lucide-react";
+import { Check, ImageUp, Play, Plus } from "lucide-react";
 
 import { EVENT_NAME, PHOTOS } from "../screens/sample-photos";
 import { Variant } from "./variant-frame";
@@ -59,20 +59,18 @@ export function UploadVariants() {
       <Variant
         n={4}
         name="Floating + tile combo"
-        rationale="THE SELECTED SPEC (2+3): the add tile leads the grid, the floating button carries dynamic state (idle, uploading count, done), progress lives on the arriving tiles, and completion lands a green check - state color so certainty reads instantly."
+        rationale="THE SELECTED SPEC (revised): no add tile (busy) - the header's wide Add owns page-top, the floating button takes over on scroll (never both visible). Dynamic state in the pill, progress on arriving tiles, green completion check, subtle play badge marks videos."
       >
         <Page>
-          <div className="mt-4 grid grid-cols-3 gap-1.5">
-            <button
-              data-dir-press
-              className="flex aspect-square flex-col items-center justify-center gap-1 border border-dashed border-foreground/35 bg-muted/40"
-              style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
-            >
-              <Plus className="size-5" />
-              <span className="text-[10px] font-medium">Add</span>
-            </button>
-            {PHOTOS.slice(0, 8).map((src, i) => (
-              <Tile key={src} src={src} uploading={i === 0} done={i === 1} />
+          <div className="mt-4 grid grid-cols-3 gap-[3px]">
+            {PHOTOS.slice(0, 9).map((src, i) => (
+              <Tile
+                key={src}
+                src={src}
+                uploading={i === 0}
+                done={i === 1}
+                video={i === 4}
+              />
             ))}
           </div>
         </Page>
@@ -98,11 +96,11 @@ export function UploadVariants() {
         rationale="Upload IS a gallery cell: the lightest chrome possible, photos stay the whole story. Progress shows on the arriving tiles."
       >
         <Page>
-          <div className="mt-4 grid grid-cols-3 gap-1.5">
+          <div className="mt-4 grid grid-cols-3 gap-[3px]">
             <button
               data-dir-press
               className="flex aspect-square flex-col items-center justify-center gap-1 border border-dashed border-foreground/35 bg-muted/40"
-              style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+              style={{ borderRadius: "var(--radius-tile)" }}
             >
               <Plus className="size-5" />
               <span className="text-[10px] font-medium">Add</span>
@@ -150,7 +148,7 @@ function QueueRow() {
 
 function Grid({ from, rows = 2 }: { from: number; rows?: number }) {
   return (
-    <div className="mt-4 grid grid-cols-3 gap-1.5">
+    <div className="mt-4 grid grid-cols-3 gap-[3px]">
       {PHOTOS.slice(from, from + rows * 3).map((src) => (
         <Tile key={src} src={src} />
       ))}
@@ -162,17 +160,25 @@ function Tile({
   src,
   uploading = false,
   done = false,
+  video = false,
 }: {
   src: string;
   uploading?: boolean;
   done?: boolean;
+  video?: boolean;
 }) {
   return (
     <div
       className="relative aspect-square overflow-hidden"
-      style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+      style={{ borderRadius: "var(--radius-tile)" }}
     >
       <Image src={src} alt="" fill sizes="100px" className="object-cover" />
+      {video && (
+        /* Subtle type marker: videos read as videos before they're tapped. */
+        <span className="absolute bottom-1.5 left-1.5 flex size-4.5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+          <Play className="ml-px size-2.5 text-white" fill="currentColor" />
+        </span>
+      )}
       {uploading && (
         <div className="absolute inset-0 flex items-end bg-black/35 p-1.5">
           <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">

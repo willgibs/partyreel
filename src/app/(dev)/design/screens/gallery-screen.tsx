@@ -63,12 +63,12 @@ export function GalleryScreen() {
                 Updates as guests add
               </p>
             </div>
-            <div data-dir-stagger className="grid grid-cols-3 gap-1.5">
+            <div data-dir-stagger className="grid grid-cols-3 gap-[3px]">
               {PHOTOS.slice(0, 8).map((src, i) => (
                 <div
                   key={src}
                   style={
-                    { "--i": i, borderRadius: "calc(var(--radius) * 0.6)" } as React.CSSProperties
+                    { "--i": i, borderRadius: "var(--radius-tile)" } as React.CSSProperties
                   }
                   className="relative aspect-square overflow-hidden"
                 >
@@ -90,7 +90,7 @@ export function GalleryScreen() {
                 </div>
               ))}
               <div
-                style={{ "--i": 8, borderRadius: "calc(var(--radius) * 0.6)" } as React.CSSProperties}
+                style={{ "--i": 8, borderRadius: "var(--radius-tile)" } as React.CSSProperties}
                 className="relative flex aspect-square items-center justify-center overflow-hidden bg-muted"
               >
                 <span className="text-xs font-medium text-muted-foreground">

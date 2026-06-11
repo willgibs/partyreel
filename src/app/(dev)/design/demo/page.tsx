@@ -9,7 +9,7 @@ import {
   Download,
   Heart,
   ImageUp,
-  Plus,
+  Play,
   Share,
   X,
 } from "lucide-react";
@@ -131,21 +131,13 @@ export default async function CohesiveDemoPage({
                 {/* Masonry with the add tile leading; one uploading, one just
                     landed (green check, state color). */}
                 <div className="mt-3 flex-1 overflow-hidden">
-                  <div className="columns-2 gap-1.5">
-                    <button
-                      data-dir-press
-                      className="mb-1.5 flex aspect-square w-full flex-col items-center justify-center gap-1 border border-dashed border-foreground/35 bg-muted/40"
-                      style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
-                    >
-                      <Plus className="size-5" />
-                      <span className="text-[10px] font-medium">Add</span>
-                    </button>
-                    {[PORTRAIT_PHOTO, ...PHOTOS].slice(0, 7).map((src, i) => (
+                  <div className="columns-2 gap-[3px]">
+                    {[PORTRAIT_PHOTO, ...PHOTOS].slice(0, 8).map((src, i) => (
                       <div
                         key={src}
-                        className="relative mb-1.5 w-full overflow-hidden"
+                        className="relative mb-[3px] w-full overflow-hidden"
                         style={{
-                          borderRadius: "calc(var(--radius) * 0.6)",
+                          borderRadius: "var(--radius-tile)",
                           aspectRatio:
                             i % 3 === 0 ? "3/4" : i % 3 === 1 ? "1/1" : "4/3",
                         }}
@@ -173,6 +165,11 @@ export default async function CohesiveDemoPage({
                             }}
                           >
                             <Check className="size-3" />
+                          </span>
+                        )}
+                        {i === 4 && (
+                          <span className="absolute bottom-1.5 left-1.5 flex size-4.5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+                            <Play className="ml-px size-2.5 text-white" fill="currentColor" />
                           </span>
                         )}
                       </div>
@@ -274,7 +271,7 @@ export default async function CohesiveDemoPage({
                       <div
                         key={`${src}-${i}`}
                         className="relative aspect-square overflow-hidden"
-                        style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                        style={{ borderRadius: "var(--radius-tile)" }}
                       >
                         <Image
                           src={src}

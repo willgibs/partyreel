@@ -131,12 +131,12 @@ function Actions({ className }: { className?: string }) {
 
 function MiniGrid() {
   return (
-    <div className="mt-4 grid grid-cols-3 gap-1.5">
+    <div className="mt-4 grid grid-cols-3 gap-[3px]">
       {PHOTOS.slice(1, 7).map((src) => (
         <div
           key={src}
           className="relative aspect-square overflow-hidden"
-          style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+          style={{ borderRadius: "var(--radius-tile)" }}
         >
           <Image src={src} alt="" fill sizes="100px" className="object-cover" />
         </div>

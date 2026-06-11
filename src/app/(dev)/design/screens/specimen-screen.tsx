@@ -21,7 +21,9 @@ export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Body text stays in Inter for clarity at small sizes. The display
-            face carries the personality; the body carries the information.
+            face is for IDENTITY moments (page titles, event names, marquees);
+            functional headings (settings sections, labels) stay in Inter so
+            controls read as controls.
           </p>
           <p className="mt-2 font-mono text-xs text-muted-foreground">
             CAPTION / 12px mono for counts and timestamps
@@ -43,7 +45,7 @@ export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
             ].map(([label, token]) => (
               <div key={label} className="flex-1">
                 <div
-                  className="h-12 rounded-[calc(var(--radius)*0.6)] border border-border"
+                  className="h-12 rounded-[var(--radius-tile)] border border-border"
                   style={{ background: token }}
                 />
                 <p className="mt-1 text-center text-[10px] text-muted-foreground">
@@ -131,7 +133,7 @@ export function SpecimenScreen({ typeLabel }: { typeLabel: string }) {
               <div className="h-3 w-2/5 animate-pulse rounded-full bg-muted" />
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-4 gap-1.5">
+          <div className="mt-4 grid grid-cols-4 gap-[3px]">
             {Array.from({ length: 4 }, (_, i) => (
               <div
                 key={i}

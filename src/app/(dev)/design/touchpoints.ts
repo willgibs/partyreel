@@ -50,6 +50,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "Full-screen marquee",
       "Inline teaser + sticky bar",
     ],
+    decision: 4,
+    decisionNote:
+      "the perfect combo: V2 staging for public events (real backdrop), ghost grid when locked/empty; lock mark above the heading; the account step framed as the host's safety choice, not a capture gate",
   },
   {
     id: "upload",
@@ -63,7 +66,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     ],
     decision: 4,
     decisionNote:
-      "2+3 combined: add tile first, floating dynamic-state button, in-gallery progress, green check (state colors allowed for clarity)",
+      "combo minus the add tile (too busy): header Add on load, floating Add appears on scroll (never both), in-gallery progress, green check, subtle play badge on video tiles",
   },
   {
     id: "gallery",
@@ -79,6 +82,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     title: "Event header",
     note: "The event's identity block above the gallery",
     variants: ["Left editorial", "Centered formal", "Cover hero"],
+    decision: 1,
+    decisionNote:
+      "minimal and fully contextual, no cover-image pressure on the host, more room for the gallery; meta UI keeps refining",
   },
   {
     id: "buttons",
@@ -119,7 +125,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     variants: ["Card sections", "Inline rows", "Focused column"],
     decision: 1,
     decisionNote:
-      "V1 refined for settings/management; V3 focused column for onboarding + event creation; V2 too tight",
+      "V1 refined for settings/management; V3 focused column for onboarding + creation. SYSTEM RULE: Instrument is for identity moments (page titles, event names); functional section headings use Inter",
   },
   {
     id: "states",
@@ -137,7 +143,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     variants: ["Minimal ink", "Invitation frame", "Photo-backed"],
     decision: 1,
     decisionNote:
-      "V1 AND V3 both ship as presets; the real feature is the share studio (configurator) now on the ROADMAP",
+      "expand the QR tool: V1 AND V3 are the base presets; the share studio (configurator) is the real feature, on the ROADMAP",
   },
 ];
 

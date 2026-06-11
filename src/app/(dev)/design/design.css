@@ -43,14 +43,17 @@
   --input: oklch(0.905 0 0);
   --ring: oklch(0.3 0 0);
 
-  /* THE ROUNDING SYSTEM (Will, round 6): sharp corners on general UI,
+  /* THE ROUNDING SYSTEM (Will, rounds 6-7): sharp corners on general UI,
      rounder corners on interactive elements - the radius contrast itself
-     signals "this is pressable". Surfaces ride --radius (sharp); actions
-     ride --radius-action, defined as 16px at the standard 40px button and
-     SCALED BY HEIGHT elsewhere (ratio 0.4): hero 48px -> 1.2rem, compact
-     32px -> 0.8rem. ONE knob to re-tune globally; set the three action
-     tokens to 999px to go full pill later. */
-  --radius: 0.375rem;
+     signals "this is pressable". Surfaces ride --radius (now NEAR-SHARP,
+     2px, per the round-7 sharper call); actions ride --radius-action,
+     defined as 16px at the standard 40px button and SCALED BY HEIGHT
+     elsewhere (ratio 0.4). Media tiles get their OWN subtle token
+     (--radius-tile): rounder than surfaces but well under buttons, so
+     tight-gap grids don't open holes at the corners. ONE knob each to
+     re-tune globally; set the action tokens to 999px to go full pill. */
+  --radius: 0.125rem;
+  --radius-tile: 3px;
   --radius-action: 1rem; /* 16px @ h-10 (40px) */
   --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
   --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
@@ -59,13 +62,16 @@
   --brand: oklch(0.13 0 0);
   --brand-foreground: oklch(0.99 0 0);
 
-  /* STATE COLORS (Will, round 6): mono bans BRAND color, never MEANING -
+  /* STATE COLORS (Will, rounds 6-7): mono bans BRAND color, never MEANING -
      state feedback ALWAYS gets color, as punctuation, never a wash.
      Success = green (the upload check reads instantly); liked = the
-     standard rose heart (white read as empty/unliked); error = the
-     destructive red above. */
+     standard rose heart (white read as empty/unliked); warning = amber
+     (the needs-review chip must be noticeable); error = the destructive
+     red above. */
   --success: oklch(0.6 0.16 150);
   --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.8 0.14 80);
+  --warning-foreground: oklch(0.25 0.05 70);
   --dir-like: oklch(0.63 0.21 15);
 
   --dir-duration: 200ms;
@@ -101,6 +107,8 @@
   /* State colors brighten against near-black so they still pop. */
   --success: oklch(0.7 0.16 150);
   --success-foreground: oklch(0.13 0 0);
+  --warning: oklch(0.84 0.14 82);
+  --warning-foreground: oklch(0.25 0.05 70);
   --dir-like: oklch(0.68 0.2 15);
 }
 

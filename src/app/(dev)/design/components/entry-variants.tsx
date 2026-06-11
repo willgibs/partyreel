@@ -90,7 +90,7 @@ export function EntryVariants() {
       <Variant
         n={4}
         name="Adaptive sheet + ghost grid"
-        rationale="The sheet's incentive without the leak: behind it sits the gallery's SHAPE (ghost tiles) plus the real count. Password events stay sealed, empty events read as a door about to open, and the want-in pull survives."
+        rationale="THE SELECTED SPEC: V2's staging with the leak solved. Public events keep the real backdrop; locked/empty events show the gallery's SHAPE (ghost tiles) + the real count. The account step reads as the host's safety choice, not a capture gate."
       >
         <div className="absolute inset-0">
           <div className="px-4 pt-12 pb-2">
@@ -115,12 +115,17 @@ export function EntryVariants() {
             }}
           >
             <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-muted-foreground/30" />
-            <p data-dir-display className="text-center text-xl leading-snug text-balance">
+            {/* The friendly private mark: protection, not a paywall. */}
+            <span className="mx-auto flex size-9 items-center justify-center rounded-full bg-muted">
+              <Lock className="size-4 text-muted-foreground" />
+            </span>
+            <p data-dir-display className="mt-2.5 text-center text-xl leading-snug text-balance">
               128 photos are waiting
             </p>
             <p className="mt-1.5 text-center text-[13px] text-muted-foreground">
-              From 43 guests at {EVENT_NAME}, growing live. Create a free
-              account to open the gallery and add your own.
+              From 43 guests at {EVENT_NAME}, growing live. For everyone&rsquo;s
+              safety, the host asks guests to verify their email before opening
+              the gallery.
             </p>
             <button
               data-dir-press
@@ -183,12 +188,12 @@ export function EntryVariants() {
             </p>
           </div>
           <div className="relative px-4">
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-[3px]">
               {PHOTOS.slice(0, 9).map((src) => (
                 <div
                   key={src}
                   className="relative aspect-square overflow-hidden"
-                  style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                  style={{ borderRadius: "var(--radius-tile)" }}
                 >
                   <Image src={src} alt="" fill sizes="100px" className="object-cover" />
                 </div>
@@ -220,12 +225,12 @@ export function EntryVariants() {
    camera glyph every few cells keeps it readable as "photos live here". */
 function GhostGrid() {
   return (
-    <div className="grid grid-cols-3 gap-1.5 px-4">
+    <div className="grid grid-cols-3 gap-[3px] px-4">
       {Array.from({ length: 9 }, (_, i) => (
         <div
           key={i}
           className="flex aspect-square items-center justify-center border border-border/70 bg-muted/60"
-          style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+          style={{ borderRadius: "var(--radius-tile)" }}
         >
           {i % 4 === 1 && (
             <Camera className="size-4 text-muted-foreground/40" />
@@ -248,12 +253,12 @@ function GalleryBackdrop({ dim }: { dim: string }) {
             128 photos & videos
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-1 px-4">
+        <div className="grid grid-cols-3 gap-[3px] px-4">
           {PHOTOS.slice(0, 9).map((src) => (
             <div
               key={src}
               className="relative aspect-square overflow-hidden"
-              style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+              style={{ borderRadius: "var(--radius-tile)" }}
             >
               <Image src={src} alt="" fill sizes="100px" className="object-cover" />
             </div>

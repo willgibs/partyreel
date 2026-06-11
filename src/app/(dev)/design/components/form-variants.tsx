@@ -14,11 +14,14 @@ export function FormVariants() {
       <Variant
         n={1}
         name="Card sections (selected, refined)"
-        rationale="THE SELECTED SPEC for settings/management, after the polish pass: display-type section headers with purpose lines, taller inputs, toggle rows that explain themselves, and a save bar that owns the bottom. (V3 stays the spec for guided flows.)"
+        rationale="THE SELECTED SPEC for settings/management: Inter section headings (the serif is for identity moments, not controls), purpose lines, taller inputs, self-explaining toggle rows, a save bar that owns the bottom. (V3 stays the spec for guided flows.)"
       >
         <Page title="Event settings">
           <div data-dir-card className="mt-4 p-4">
-            <p data-dir-display className="text-base leading-snug">Details</p>
+            {/* SYSTEM RULE (round 7): Instrument is for IDENTITY moments
+                (page titles, event names); functional section headings stay
+                in Inter so settings read as controls, not prose. */}
+            <p className="text-[13px] font-semibold">Details</p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               What guests see on the invite and the album.
             </p>
@@ -28,7 +31,7 @@ export function FormVariants() {
             </div>
           </div>
           <div data-dir-card className="mt-3 p-4">
-            <p data-dir-display className="text-base leading-snug">Access</p>
+            <p className="text-[13px] font-semibold">Access</p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               Who can see and add to the gallery.
             </p>

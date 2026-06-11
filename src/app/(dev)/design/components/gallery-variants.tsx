@@ -17,13 +17,13 @@ export function GalleryVariants() {
         rationale="Square crops, even gaps: calm, scannable, photographic democracy. The camera-roll feel everyone already knows."
       >
         <Page>
-          <div data-dir-stagger className="mt-3 grid grid-cols-3 gap-1.5">
+          <div data-dir-stagger className="mt-3 grid grid-cols-3 gap-[3px]">
             {all.slice(0, 12).map((src, i) => (
               <div
                 key={src}
                 className="relative aspect-square overflow-hidden"
                 style={
-                  { "--i": i, borderRadius: "calc(var(--radius) * 0.6)" } as React.CSSProperties
+                  { "--i": i, borderRadius: "var(--radius-tile)" } as React.CSSProperties
                 }
               >
                 <Image src={src} alt="" fill sizes="100px" className="object-cover" />
@@ -39,15 +39,15 @@ export function GalleryVariants() {
         rationale="Natural aspect ratios in flowing columns: editorial, every photo keeps its own shape, verticals get their height."
       >
         <Page>
-          <div data-dir-stagger className="mt-3 columns-2 gap-1.5">
+          <div data-dir-stagger className="mt-3 columns-2 gap-[3px]">
             {[PORTRAIT_PHOTO, ...PHOTOS].slice(0, 9).map((src, i) => (
               <div
                 key={src}
-                className="relative mb-1.5 w-full overflow-hidden"
+                className="relative mb-[3px] w-full overflow-hidden"
                 style={
                   {
                     "--i": i,
-                    borderRadius: "calc(var(--radius) * 0.6)",
+                    borderRadius: "var(--radius-tile)",
                     aspectRatio: i % 3 === 0 ? "3/4" : i % 3 === 1 ? "1/1" : "4/3",
                   } as React.CSSProperties
                 }

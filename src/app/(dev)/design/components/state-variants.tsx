@@ -101,7 +101,7 @@ export function StateVariants() {
                   <div
                     key={`${src}-${i}`}
                     className="relative aspect-square overflow-hidden"
-                    style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                    style={{ borderRadius: "var(--radius-tile)" }}
                   >
                     <Image src={src} alt="" fill sizes="100px" className="object-cover" />
                   </div>
@@ -146,12 +146,12 @@ function SkeletonStrip({ label, ghost = false }: { label: string; ghost?: boolea
   return (
     <div className="absolute inset-x-4 bottom-5">
       <p className="mb-1.5 text-[10px] text-muted-foreground">{label}</p>
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-4 gap-[3px]">
         {Array.from({ length: 4 }, (_, i) => (
           <div
             key={i}
             className={`aspect-square animate-pulse ${ghost ? "bg-foreground/8" : "bg-muted"}`}
-            style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+            style={{ borderRadius: "var(--radius-tile)" }}
           />
         ))}
       </div>

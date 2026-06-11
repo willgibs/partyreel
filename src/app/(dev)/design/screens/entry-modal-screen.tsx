@@ -24,12 +24,12 @@ export function EntryModalScreen() {
               128 photos & videos
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-1 px-4">
+          <div className="grid grid-cols-3 gap-[3px] px-4">
             {PHOTOS.slice(0, 9).map((src) => (
               <div
                 key={src}
                 className="relative aspect-square overflow-hidden"
-                style={{ borderRadius: "calc(var(--radius) * 0.6)" }}
+                style={{ borderRadius: "var(--radius-tile)" }}
               >
                 <Image
                   src={src}
