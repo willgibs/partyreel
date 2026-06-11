@@ -1,17 +1,23 @@
 /**
- * Round 2 of the identity exploration: MONOCHROME WON (both modes), so the
- * system is now fixed and TYPE is the variable. Each option swaps only the
- * display face on the locked mono token sheet; body text stays Inter in every
- * option except F, the Inter-everywhere control. The `.font-*` classes in
- * design.css carry per-face tracking/weight tuning (a serif and a grotesk
- * want different optical compensation at display sizes).
+ * Round 3 of the identity exploration. Instrument Serif is the WORKING
+ * favorite (not final), with one hard-won lesson baked in: its native
+ * rendered size runs visibly smaller than Inter at the same CSS font-size
+ * (small x-height for its em box). The fix is systematic, not per-use:
+ * every display face carries a one-time `font-size-adjust` calibration in
+ * its `.font-opt-*` block (design.css) that normalizes apparent size to
+ * Inter's x-height, so standardized heading scales need NO fine adjustment.
+ * Phase 2 inherits this as a per-face calibration token in the type scale.
+ *
+ * The round-2 grotesks + softer serifs didn't land; this slate explores
+ * Instrument's high-contrast-display-serif neighborhood instead. Inter
+ * stays as the control.
  */
 export type FontOptionId =
-  | "fraunces"
   | "instrument"
-  | "newsreader"
-  | "space-grotesk"
-  | "geist"
+  | "gloock"
+  | "dm-serif"
+  | "prata"
+  | "playfair"
   | "inter";
 
 export type FontOption = {
@@ -26,51 +32,51 @@ export type FontOption = {
 
 export const FONT_OPTIONS: FontOption[] = [
   {
-    id: "fraunces",
-    letter: "A",
-    name: "Fraunces",
-    blurb:
-      "The round-1 editorial serif: warm, characterful, a little literary. Photos feel like a magazine feature.",
-    wrapperClass: "font-opt-fraunces",
-  },
-  {
     id: "instrument",
-    letter: "B",
+    letter: "A",
     name: "Instrument Serif",
     blurb:
-      "A lighter, fashion-editorial serif in a single weight. Sharper and more modern than Fraunces, quieter on the page.",
+      "The working favorite: light fashion-editorial serif, single weight. Now size-calibrated so it sits correctly in a standard heading scale.",
     wrapperClass: "font-opt-instrument",
   },
   {
-    id: "newsreader",
+    id: "gloock",
+    letter: "B",
+    name: "Gloock",
+    blurb:
+      "A high-contrast display serif with sharper, darker strokes. Instrument's vibe with more presence per glyph.",
+    wrapperClass: "font-opt-gloock",
+  },
+  {
+    id: "dm-serif",
     letter: "C",
-    name: "Newsreader",
+    name: "DM Serif Display",
     blurb:
-      "A literary news serif with optical sizing. Softer rhythm, reads warm without leaning vintage.",
-    wrapperClass: "font-opt-newsreader",
+      "Rounder and friendlier than Instrument while staying editorial. The most approachable of the slate.",
+    wrapperClass: "font-opt-dmserif",
   },
   {
-    id: "space-grotesk",
+    id: "prata",
     letter: "D",
-    name: "Space Grotesk",
+    name: "Prata",
     blurb:
-      "The round-1 night face: a technical grotesk with personality in the details. Crisp against both paper and glass.",
-    wrapperClass: "font-opt-space",
+      "A Didone-leaning single-weight serif: thin hairlines, formal elegance. The most luxurious read.",
+    wrapperClass: "font-opt-prata",
   },
   {
-    id: "geist",
+    id: "playfair",
     letter: "E",
-    name: "Geist",
+    name: "Playfair Display",
     blurb:
-      "A Swiss-modern grotesk built for interfaces. The most neutral option: the photos do absolutely all the talking.",
-    wrapperClass: "font-opt-geist",
+      "The classic high-contrast display serif, variable weight. More traditional than Instrument; a known quantity.",
+    wrapperClass: "font-opt-playfair",
   },
   {
     id: "inter",
     letter: "F",
     name: "Inter (control)",
     blurb:
-      "Inter everywhere, display included: the baseline to beat. If a face above does not clearly beat this, it is not earning its load time.",
+      "Inter everywhere, display included: the baseline to beat. If a serif above does not clearly beat this, it is not earning its load time.",
     wrapperClass: "font-opt-inter",
   },
 ];

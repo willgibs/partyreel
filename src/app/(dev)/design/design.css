@@ -103,54 +103,70 @@
 
 /* ───────────────────────────── The type options ────────────────────────────
    Only the display face + its optical tuning vary. Body stays Inter (the app
-   --font-sans) in every option; F swaps nothing, it IS the control. */
-.font-opt-fraunces {
-  --font-heading: var(--font-display-fraunces);
-}
-.font-opt-fraunces [data-dir-display] {
-  font-family: var(--font-display-fraunces);
-  letter-spacing: -0.01em; /* serif: near-zero, not Inter-tight */
-  font-weight: 560;
-}
+   --font-sans) in every option; F swaps nothing, it IS the control.
 
+   SIZE CALIBRATION (the round-3 lesson, Will 2026-06-10): display serifs run
+   visibly smaller than Inter at the same CSS font-size (smaller x-height for
+   the em box; measured in-browser via canvas: Inter x-height ratio 0.55 vs
+   Instrument 0.51, Gloock 0.51, DM Serif 0.48, Prata 0.52, Playfair 0.52).
+   `font-size-adjust: 0.55` normalizes every face's RENDERED x-height to
+   Inter's, once, here - so the standardized heading scale needs no per-use
+   fine adjustment anywhere in the app. Phase 2 carries this into the type
+   tokens as the per-face calibration. Unsupported browsers degrade to the
+   uncalibrated (smaller) rendering, never break. */
 .font-opt-instrument {
   --font-heading: var(--font-display-instrument);
 }
 .font-opt-instrument [data-dir-display] {
   font-family: var(--font-display-instrument);
+  font-size-adjust: 0.55; /* +8% apparent: matches Inter's x-height */
   letter-spacing: 0em; /* single 400 weight; its lightness is the look */
   font-weight: 400;
 }
 
-.font-opt-newsreader {
-  --font-heading: var(--font-display-newsreader);
+.font-opt-gloock {
+  --font-heading: var(--font-display-gloock);
 }
-.font-opt-newsreader [data-dir-display] {
-  font-family: var(--font-display-newsreader);
+.font-opt-gloock [data-dir-display] {
+  font-family: var(--font-display-gloock);
+  font-size-adjust: 0.55;
   letter-spacing: -0.005em;
-  font-weight: 500;
+  font-weight: 400;
 }
 
-.font-opt-space {
-  --font-heading: var(--font-display-space);
+.font-opt-dmserif {
+  --font-heading: var(--font-display-dmserif);
 }
-.font-opt-space [data-dir-display] {
-  font-family: var(--font-display-space);
-  letter-spacing: -0.02em;
-  font-weight: 560;
+.font-opt-dmserif [data-dir-display] {
+  font-family: var(--font-display-dmserif);
+  font-size-adjust: 0.55; /* +15%: DM runs smallest of the slate */
+  letter-spacing: -0.005em;
+  font-weight: 400;
 }
 
-.font-opt-geist {
-  --font-heading: var(--font-display-geist);
+.font-opt-prata {
+  --font-heading: var(--font-display-prata);
 }
-.font-opt-geist [data-dir-display] {
-  font-family: var(--font-display-geist);
-  letter-spacing: -0.025em;
-  font-weight: 600;
+.font-opt-prata [data-dir-display] {
+  font-family: var(--font-display-prata);
+  font-size-adjust: 0.55;
+  letter-spacing: 0em;
+  font-weight: 400;
+}
+
+.font-opt-playfair {
+  --font-heading: var(--font-display-playfair);
+}
+.font-opt-playfair [data-dir-display] {
+  font-family: var(--font-display-playfair);
+  font-size-adjust: 0.55;
+  letter-spacing: -0.01em;
+  font-weight: 540;
 }
 
 .font-opt-inter [data-dir-display] {
-  /* The control: the app's own Inter at the app's own tracking. */
+  /* The control: the app's own Inter at the app's own tracking. NO
+     font-size-adjust: Inter IS the size reference everything calibrates to. */
   font-family: var(--font-sans);
   letter-spacing: -0.03em;
   font-weight: 650;
