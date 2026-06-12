@@ -10,7 +10,7 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-06-12 — V1 program PHASE 4.5: the guest ARRIVAL experience (built; closing on the device pass)
+## 2026-06-12 — V1 program PHASE 4.5 COMPLETE: the guest ARRIVAL experience
 
 Opened from Will's iPhone pass of the live gated entry (sheet popped like a load artifact, dishonest
 drag bar, autofocus keyboard ambush, small type, disconnected steps, zero unlock feedback) + the
@@ -29,8 +29,11 @@ exits-faster override was a NO-OP (vaul's close is a keyframe animation, not a t
 ratified in-place button morph had been replaced by a step swap, the ratified 55svh welcome
 presence + h-11 password input + warm error copy never shipped, `event_date` leaked into locked
 pages via the new welcome byline (redaction extended), StrictMode dev ghost clones, hold
-idempotence. 454 pins green. Remaining to CLOSE the phase: Will's iPhone matrix (the consolidated
-live pass), the full red-team, the perf after-note, and reverting Test Wedding to `open`.
+idempotence. 454 pins green. CLOSE (2026-06-12): final live red-team clean (locked flight payload
+= name + count only incl. the new date redaction; zero presigns; generic 401; unlock→full e2e),
+wire JS 571 KB (+9, the perf note), Test Wedding reverted to `open`. Per Will, on-device
+choreography fine-tuning deferred to a post-roadmap lab round (lab = direction, not a per-phase
+finetune gate).
 
 ## 2026-06-11 — V1 program PHASE 4 COMPLETE: the guest redesign (the flagship surface)
 

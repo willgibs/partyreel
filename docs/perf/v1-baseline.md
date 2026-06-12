@@ -8,6 +8,13 @@
 **Baseline date:** 2026-06-11 · **commit:** `adc3f0c` (Phase 2 slices 1-4 live) ·
 **deployment:** iad1, Next 16.2.6/Turbopack.
 
+## PHASE 4.5 NOTE (2026-06-12, the arrival experience)
+
+`/e/[token]` wire JS: **571 KB br** (vs 562 KB at the Phase-4 close, +9 KB): the Vaul drawer +
+the arrival machinery (shell, step container, beat/hold hooks, reveal curtain). The heavy entry
+content stays in the lazy entry chunk; the steady-state poll numbers are untouched (no
+gallery-route changes this phase).
+
 ## PHASE 4 NOTE (2026-06-11, the guest redesign)
 
 The guest page was rebuilt to the ratified spec (masonry, in-gallery upload tiles, adaptive entry

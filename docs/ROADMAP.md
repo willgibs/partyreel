@@ -68,6 +68,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
   be driven via the Chrome MCP).
+- **Arrival choreography fine-tune (post-roadmap lab round)** — Will's call closing P4.5: the lab sets
+  direction during the program; on-device finetuning (beat/heights/morph timing via the touchpoint-11
+  player + a real gated event) batches into one round after the V1 phases land. Include the
+  password+account lighter-path feel and the account-step in-place-morph judgment call.
 
 ## Major overhauls (each its own planning round; drop related deferred tasks here)
 
