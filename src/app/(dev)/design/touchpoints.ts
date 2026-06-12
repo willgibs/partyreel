@@ -22,7 +22,8 @@ export type TouchpointId =
   | "event-card"
   | "forms"
   | "states"
-  | "qr-card";
+  | "qr-card"
+  | "arrival";
 
 export type Touchpoint = {
   id: TouchpointId;
@@ -144,6 +145,18 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "expand the QR tool: V1 AND V3 are the base presets; the share studio (configurator) is the real feature, on the ROADMAP",
+  },
+  {
+    // Phase 4.5 (Will's iPhone pass of the live gated entry, 2026-06-11): the
+    // arrival is judged as ONE choreographed flow, not static screens - this
+    // touchpoint's variants are composed TIMING/PRESENCE presets played by an
+    // interactive flow player (real Vaul sheet physics, fake password "demo").
+    // The knob tuning Will lands on rides into decisionNote verbatim and
+    // becomes the production constants.
+    id: "arrival",
+    title: "Guest arrival",
+    note: "The gated first-open as one choreographed flow: stage, invitation, threshold, reveal",
+    variants: ["Calm arrival", "Swift arrival", "Stately arrival"],
   },
 ];
 

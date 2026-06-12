@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
 
+import { ArrivalVariants } from "../../components/arrival-variants";
 import { ButtonVariants } from "../../components/button-variants";
 import { EntryVariants } from "../../components/entry-variants";
 import { EventCardVariants } from "../../components/event-card-variants";
@@ -28,6 +29,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   forms: FormVariants,
   states: StateVariants,
   "qr-card": QrCardVariants,
+  arrival: ArrivalVariants,
 };
 
 // One UX touchpoint, 2-3 variants side by side, on the locked system
