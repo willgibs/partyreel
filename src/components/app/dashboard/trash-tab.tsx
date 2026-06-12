@@ -12,11 +12,10 @@ import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { formatEventDate } from "@/lib/utils";
 
 /**
- * The Trash tab as a STREAMED boundary (Phase 5 S1). It receives the
- * deleted-events promise (created un-awaited in the page body) and presigns
- * the bin covers inside the boundary. The tab LABEL stays a static "Trash":
- * the count used to stream into the trigger, but a Suspense boundary inside
- * the radix <button> breaks streaming/hydration (see page.tsx).
+ * The Trash tab as a STREAMED boundary (Phase 5 S1). It receives the SHARED
+ * deleted-events promise (created un-awaited in the page body - the tab label's
+ * <TrashCount> consumes the same one, so the query runs once) and presigns the
+ * bin covers inside the boundary.
  */
 export async function TrashTab({
   deletedPromise,

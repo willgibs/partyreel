@@ -13,6 +13,7 @@ import {
 import { EventsTab } from "@/components/app/dashboard/events-tab";
 import { LikesTab } from "@/components/app/dashboard/likes-tab";
 import { StorageCard } from "@/components/app/dashboard/storage-card";
+import { TrashCount } from "@/components/app/dashboard/trash-count";
 import { TrashTab } from "@/components/app/dashboard/trash-tab";
 import { UploadsTab } from "@/components/app/dashboard/uploads-tab";
 import { Button } from "@/components/ui/button";
@@ -164,14 +165,11 @@ export default async function DashboardPage({
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="uploads">Uploads</TabsTrigger>
           <TabsTrigger value="likes">Likes</TabsTrigger>
-          {/* The label stays STATIC: a Suspense boundary inside the radix
-              trigger <button> injects streaming markers (<template> +
-              completion scripts) into parser-hostile HTML - the browser can
-              relocate them, React's boundary completion then misses its
-              target, and the WHOLE tabs subtree strands on fallbacks with
-              dead clicks (observed live). The count renders inside the
-              panel instead. */}
-          <TabsTrigger value="deleted">Trash</TabsTrigger>
+          <TabsTrigger value="deleted">
+            <Suspense fallback={<>Trash</>}>
+              <TrashCount deletedPromise={deletedPromise} />
+            </Suspense>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="events" className="pt-4">
