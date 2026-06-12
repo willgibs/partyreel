@@ -23,7 +23,9 @@ export type TouchpointId =
   | "forms"
   | "states"
   | "qr-card"
-  | "arrival";
+  | "arrival"
+  | "host-event"
+  | "host-dashboard";
 
 export type Touchpoint = {
   id: TouchpointId;
@@ -160,6 +162,23 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "Calm with a longer pause - THE PRODUCTION CONSTANTS: arrival beat 700ms (password return visits 350ms, reduced motion 0) / welcome tall (~55svh) / step transition slide (directional 16px crossfade + 300ms height glide) / success morph + hold 900ms in --success green / type bumped (welcome hero 28px, gate titles 22px, page h1 28px)",
+  },
+  {
+    // Phase 5 (Will at plan review, 2026-06-12): Phase 1 ratified COMPONENTS
+    // but never the host PAGE COMPOSITIONS - "the host event page feels
+    // terribly designed". These two touchpoints stage page ARCHITECTURES by
+    // composing the already-ratified pieces (stat-forward cards, masonry,
+    // card-section forms). Direction-setting; finetuning stays post-roadmap.
+    id: "host-event",
+    title: "Host event page",
+    note: "How one event's management surface is composed: gallery, share, review queue, settings",
+    variants: ["Gallery-first", "Command center", "Tabbed surfaces"],
+  },
+  {
+    id: "host-dashboard",
+    title: "Host dashboard",
+    note: "How the home surface is composed: events, storage, the personal tabs",
+    variants: ["Cards-first", "Ambient storage", "Single feed"],
   },
 ];
 

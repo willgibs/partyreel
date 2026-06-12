@@ -4,6 +4,8 @@ import { ArrowLeft, Check } from "lucide-react";
 
 import { ArrivalVariants } from "../../components/arrival-variants";
 import { ButtonVariants } from "../../components/button-variants";
+import { HostDashboardVariants } from "../../components/host-dashboard-variants";
+import { HostEventVariants } from "../../components/host-event-variants";
 import { EntryVariants } from "../../components/entry-variants";
 import { EventCardVariants } from "../../components/event-card-variants";
 import { FormVariants } from "../../components/form-variants";
@@ -30,6 +32,8 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   states: StateVariants,
   "qr-card": QrCardVariants,
   arrival: ArrivalVariants,
+  "host-event": HostEventVariants,
+  "host-dashboard": HostDashboardVariants,
 };
 
 // One UX touchpoint, 2-3 variants side by side, on the locked system
