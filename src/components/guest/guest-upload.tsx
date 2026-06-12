@@ -2,24 +2,13 @@
 
 import { useEffect, useImperativeHandle, useRef } from "react";
 import type { Ref } from "react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
+import { toast } from "sonner";
 
-import { FileDropzone } from "@/components/guest/file-dropzone";
 import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
-import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
   useUploadQueue,
   type QueueItem,
-  type QueueItemStatus,
 } from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
@@ -31,14 +20,15 @@ export type GuestUploadHandle = {
   retry: (id: string) => void;
 };
 
-// The upload ENGINE (Phase 4): the queue machine lives in useUploadQueue; this
-// component owns the file-input surface + the per-file UI. EventExperience only
-// mounts it when the host is accepting uploads. Joining is just-in-time and
-// SILENT (account-required events are gated at the PAGE level via the entry
-// modal; a signed-in uploader sets a display name first). Each completed upload
-// reports to the coordinator (optimistic gallery render). `onQueueChange`
-// mirrors every queue snapshot upward so the gallery tiles / floating pill /
-// header button can subscribe (S5).
+// The upload ENGINE (Phase 4): the queue machine lives in useUploadQueue; the
+// visible upload UI lives in the GALLERY (pending tiles with progress/error,
+// the green landed check) and the Add affordances (header button + floating
+// pill) - so this component renders only the hidden file input, the
+// hold-for-approval notice, the settle/error toasts, and the post-upload
+// growth prompt. Joining stays just-in-time and SILENT (account-required
+// events are gated at the PAGE level; a signed-in uploader sets a display
+// name first). `onQueueChange` mirrors every queue snapshot upward for the
+// tile/pill subscribers.
 export function GuestUpload({
   ref,
   event,
@@ -55,7 +45,7 @@ export function GuestUpload({
   sessionToken: string | null;
   onSession: (token: string | null) => void;
   onUploaded: (item: import("@/lib/guest/use-upload-queue").UploadedItem) => void;
-  /** Mirrors every queue snapshot upward (the S5 tile/pill subscribers). */
+  /** Mirrors every queue snapshot upward (the tile/pill subscribers). */
   onQueueChange?: (items: QueueItem[]) => void;
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
@@ -72,8 +62,32 @@ export function GuestUpload({
     onQueueChange?.(items);
   }, [items, onQueueChange]);
 
-  // The imperative picker: a hidden input the shell's Add affordances click.
-  // (FileDropzone keeps its own input while it lives; both feed addFiles.)
+  // Settle/error toasts: the per-file list is gone, so transient outcomes
+  // surface as toasts (an approved upload's feedback is the tile itself +
+  // the green check; only hold-for-approval and errors need words). One
+  // toast per item per outcome.
+  const toastedRef = useRef(new Set<string>());
+  useEffect(() => {
+    for (const it of items) {
+      if (it.status === "done" && it.mediaStatus === "pending") {
+        const key = `${it.id}:pending`;
+        if (!toastedRef.current.has(key)) {
+          toastedRef.current.add(key);
+          toast.success("Sent, waiting for host approval");
+        }
+      }
+      if (it.status === "error") {
+        const key = `${it.id}:error:${it.error}`;
+        if (!toastedRef.current.has(key)) {
+          toastedRef.current.add(key);
+          toast.error("Couldn't add that photo", { description: it.error });
+        }
+      }
+    }
+  }, [items]);
+
+  // The imperative picker: the ONE file input on the page; every Add
+  // affordance clicks it.
   const pickerRef = useRef<HTMLInputElement>(null);
   useImperativeHandle(ref, () => ({
     openPicker: () => pickerRef.current?.click(),
@@ -98,51 +112,11 @@ export function GuestUpload({
           if (files.length) addFiles(files);
         }}
       />
-      <FileDropzone onFiles={addFiles} />
 
       {holdForApproval && (
         <p className="rounded-md bg-muted px-3 py-2 text-center text-xs text-muted-foreground">
           The host reviews uploads before they appear in the gallery.
         </p>
-      )}
-
-      {items.length > 0 && (
-        <ul className="space-y-2">
-          {items.map((it) => (
-            <li
-              key={it.id}
-              className="rounded-lg border border-border bg-card p-3"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <UploadThumbnail file={it.file} />
-                <span className="min-w-0 flex-1 truncate text-sm">
-                  {it.file.name}
-                </span>
-                <StatusIcon status={it.status} />
-              </div>
-              {it.status === "uploading" && (
-                <Progress value={it.progress} className="mt-2" />
-              )}
-              {it.status === "done" && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {it.mediaStatus === "pending"
-                    ? "Sent, waiting for host approval"
-                    : "Posted to the gallery"}
-                </p>
-              )}
-              {it.status === "error" && (
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <p className="min-w-0 flex-1 text-xs text-destructive">
-                    {it.error}
-                  </p>
-                  <Button size="sm" variant="ghost" onClick={() => retry(it.id)}>
-                    <RefreshCw className="size-3.5" /> Retry
-                  </Button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
       )}
 
       {/* Post-upload growth card: save this event by creating a free account (Phase 3).
@@ -158,16 +132,4 @@ export function GuestUpload({
       )}
     </div>
   );
-}
-
-function StatusIcon({ status }: { status: QueueItemStatus }) {
-  if (status === "done")
-    return <CheckCircle2 className="size-4 shrink-0 text-primary" />;
-  if (status === "error")
-    return <AlertCircle className="size-4 shrink-0 text-destructive" />;
-  if (status === "uploading")
-    return (
-      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
-    );
-  return <Clock className="size-4 shrink-0 text-muted-foreground/50" />;
 }

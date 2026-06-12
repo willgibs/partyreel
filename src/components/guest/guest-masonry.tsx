@@ -19,7 +19,7 @@
  */
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Play } from "lucide-react";
+import { Check, Play, RefreshCw } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { LikeButton } from "@/components/likes/like-button";
@@ -32,7 +32,31 @@ function tileAspect(item: GridMedia): string {
   return item.width && item.height ? `${item.width} / ${item.height}` : "1 / 1";
 }
 
-export function GuestMasonry({ items }: { items: GridMedia[] }) {
+/** An in-flight upload rendered as a gallery tile (Phase 4: progress lives IN
+ *  the gallery, not a separate file list). `url` is a local object URL. */
+export type PendingTile = {
+  queueId: string;
+  url: string;
+  kind: "photo" | "video";
+  status: "queued" | "uploading" | "error";
+  progress: number;
+  error?: string;
+};
+
+export function GuestMasonry({
+  items,
+  pending = [],
+  justLandedIds,
+  onRetryPending,
+}: {
+  items: GridMedia[];
+  /** In-flight uploads, rendered FIRST (newest activity leads the flow). */
+  pending?: PendingTile[];
+  /** Media ids that JUST landed (the ~2.5s green --success check window). */
+  justLandedIds?: Set<string>;
+  /** Tap-to-retry for an errored pending tile. */
+  onRetryPending?: (queueId: string) => void;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   // The ids present at FIRST render: only these stagger (later arrivals enter
   // instantly). useState initializer = render-once capture, no ref-in-render.
@@ -45,6 +69,59 @@ export function GuestMasonry({ items }: { items: GridMedia[] }) {
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
+        {pending.map((p) => (
+          <div
+            key={p.queueId}
+            data-media-tile
+            style={{ borderRadius: "var(--radius-tile)" } as CSSProperties}
+            className="relative mb-[3px] w-full overflow-hidden bg-black/10"
+          >
+            {/* The local preview sizes itself (natural blob dimensions). */}
+            {p.kind === "photo" ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL
+              <img
+                src={p.url}
+                alt=""
+                className={p.status === "error" ? "w-full opacity-40" : "w-full"}
+              />
+            ) : (
+              <video
+                src={p.url}
+                muted
+                playsInline
+                preload="metadata"
+                className={
+                  p.status === "error"
+                    ? "w-full bg-black opacity-40"
+                    : "w-full bg-black"
+                }
+              />
+            )}
+            {p.status !== "error" ? (
+              // Uploading: a thin progress bar in a soft scrim strip at the
+              // tile's foot (the ratified in-gallery progress treatment).
+              <div className="absolute inset-x-0 bottom-0 bg-black/35 p-1.5">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+                  <div
+                    data-pending-progress
+                    className="h-full rounded-full bg-white transition-[width] duration-200 ease-emphasis"
+                    style={{ width: `${p.progress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              // Error: dimmed preview + the retry affordance covering the tile.
+              <button
+                type="button"
+                onClick={() => onRetryPending?.(p.queueId)}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/45 text-white outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+              >
+                <RefreshCw className="size-4" aria-hidden />
+                <span className="text-xs font-medium">Tap to retry</span>
+              </button>
+            )}
+          </div>
+        ))}
         {items.map((item, i) => (
           <div
             key={item.id}
@@ -72,6 +149,17 @@ export function GuestMasonry({ items }: { items: GridMedia[] }) {
                 className="pointer-events-none absolute bottom-1.5 left-1.5 flex size-4.5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm"
               >
                 <Play className="ml-px size-2.5 fill-white text-white" />
+              </span>
+            )}
+            {justLandedIds?.has(item.id) && (
+              // The ~2.5s "it landed" confirmation: state feedback is always
+              // colored (--success), then the badge unmounts.
+              <span
+                aria-hidden
+                data-just-landed
+                className="pointer-events-none absolute top-1.5 right-1.5 flex size-4.5 items-center justify-center rounded-full bg-success text-success-foreground"
+              >
+                <Check className="size-3" strokeWidth={3} />
               </span>
             )}
             {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}

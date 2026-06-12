@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ImageUp, Lock } from "lucide-react";
 
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
+import { FloatingAddButton } from "@/components/guest/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
@@ -25,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
+import { useInViewSentinel } from "@/lib/guest/use-in-view-sentinel";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
@@ -88,9 +90,20 @@ export function EventExperience({
   // The live media count: seeded by the RSC stats, kept current by LiveGallery
   // (incl. optimistic tiles). M (contributors) stays static per load.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
-  // The upload engine handle + the lifted queue snapshot (S5's tile/pill feed).
+  // The upload engine handle + the lifted queue snapshot feeding the gallery
+  // tiles, the floating pill count, and the header Add.
   const uploadRef = useRef<GuestUploadHandle>(null);
-  const [, setQueue] = useState<QueueItem[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const inFlightUploads = queue.filter((it) => it.status !== "done");
+  const uploadingCount = queue.filter(
+    (it) => it.status === "uploading" || it.status === "queued",
+  ).length;
+  // "Header Add on load, floating Add on scroll, never both": the pill shows
+  // only while the header action block's sentinel is out of view.
+  const { sentinelRef, inView: headerActionsInView } =
+    useInViewSentinel<HTMLDivElement>();
+  const canUpload =
+    access === "full" && event.accepting_uploads && !needsName;
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -214,8 +227,8 @@ export function EventExperience({
           {/* The action block (ratified header): a full-width primary Add (only when
               the viewer can actually upload right now) over the 2-col secondary row —
               Save (the growth lever; hidden in the demo) + Invite (share/QR). */}
-          <div className="mt-4">
-            {access === "full" && event.accepting_uploads && !needsName && (
+          <div className="mt-4" ref={sentinelRef}>
+            {canUpload && (
               <Button
                 type="button"
                 size="lg"
@@ -294,8 +307,18 @@ export function EventExperience({
               isDemo={isDemo}
               onOpenGate={() => entryRef.current?.openToGate()}
               onCountChange={setMediaCount}
+              pendingUploads={inFlightUploads}
+              onRetryUpload={(id) => uploadRef.current?.retry(id)}
             />
           </Suspense>
+
+          {/* The floating Add pill: only while the header's Add is scrolled away
+              (never both), and only when the viewer can actually upload. */}
+          <FloatingAddButton
+            show={canUpload && !headerActionsInView}
+            uploadingCount={uploadingCount}
+            onClick={() => uploadRef.current?.openPicker()}
+          />
 
           {/* Discreet anonymous report path (the report capability is the qr_token). */}
           {!isDemo && (

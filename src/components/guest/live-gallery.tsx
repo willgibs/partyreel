@@ -18,8 +18,12 @@ import { use, useCallback, useEffect, useImperativeHandle, useRef, useState } fr
 import type { Ref } from "react";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import { GuestMasonry } from "@/components/guest/guest-masonry";
+import {
+  GuestMasonry,
+  type PendingTile,
+} from "@/components/guest/guest-masonry";
 import type { UploadedItem } from "@/components/guest/guest-upload";
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
@@ -51,6 +55,8 @@ export function LiveGallery({
   isDemo,
   onOpenGate,
   onCountChange,
+  pendingUploads = [],
+  onRetryUpload,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -63,11 +69,26 @@ export function LiveGallery({
   onOpenGate: () => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
   onCountChange?: (count: number) => void;
+  /** In-flight queue items (status !== done) from the shell — rendered as
+   *  progress tiles at the head of the masonry (Phase 4). */
+  pendingUploads?: QueueItem[];
+  /** Tap-to-retry on an errored pending tile (round-trips to the queue handle). */
+  onRetryUpload?: (queueId: string) => void;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
   const [optimistic, setOptimistic] = useState<GridMedia[]>([]);
   const blobUrls = useRef(new Map<string, string>()); // mediaId → object URL
+  // The PENDING-tile blob ledger: object URLs keyed by QUEUE id while a file
+  // uploads, RE-KEYED to the media id at approved completion (the same URL
+  // object, so the tile's <img src> never changes — zero flicker as a pending
+  // tile becomes the optimistic tile).
+  const pendingBlobs = useRef(new Map<string, string>());
+  // Media ids inside their ~2.5s "just landed" green-check window.
+  const [justLandedIds, setJustLandedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const landedTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   // The current conditional-request validator: sent as If-None-Match so an
   // unchanged gallery answers a bare 304 (no payload, no presigns server-side).
   const etagRef = useRef<string | null>(seed.etag);
@@ -160,32 +181,106 @@ export function LiveGallery({
     };
   }, [refresh, liveEnabled, live]);
 
-  // Revoke any lingering blob URLs on unmount.
+  // Revoke any lingering blob URLs + green-check timers on unmount.
   useEffect(() => {
     const blobs = blobUrls.current;
+    const pending = pendingBlobs.current;
+    const timers = landedTimers.current;
     return () => {
       for (const url of blobs.values()) URL.revokeObjectURL(url);
       blobs.clear();
+      for (const url of pending.values()) URL.revokeObjectURL(url);
+      pending.clear();
+      for (const t of timers.values()) clearTimeout(t);
+      timers.clear();
     };
   }, []);
 
   useImperativeHandle(ref, () => ({
     notifyUploaded(u) {
       // Only LIVE uploads are public immediately, so only those go to the top
-      // optimistically. Hold-for-approval items stay pending (the upload list
-      // shows "waiting for host approval"); they appear once the host approves
-      // (which rings the doorbell).
+      // optimistically. Hold-for-approval items get a settle toast (the engine
+      // owns it) and appear once the host's approval rings the doorbell.
       if (u.status === "approved") {
-        const url = URL.createObjectURL(u.file);
+        // THE RE-KEY: adopt the pending tile's object URL under the media id
+        // (same URL object -> the <img src> never changes, zero flicker as
+        // the pending tile becomes the optimistic tile).
+        const url =
+          pendingBlobs.current.get(u.queueId) ?? URL.createObjectURL(u.file);
+        pendingBlobs.current.delete(u.queueId);
         blobUrls.current.set(u.mediaId, url);
         setOptimistic((prev) => [
           { id: u.mediaId, type: u.kind, url, downloadUrl: url },
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
+        // Open the green-check window for this media id (~2.5s, then fade).
+        setJustLandedIds((prev) => new Set(prev).add(u.mediaId));
+        const old = landedTimers.current.get(u.mediaId);
+        if (old) clearTimeout(old);
+        landedTimers.current.set(
+          u.mediaId,
+          setTimeout(() => {
+            landedTimers.current.delete(u.mediaId);
+            setJustLandedIds((prev) => {
+              const next = new Set(prev);
+              next.delete(u.mediaId);
+              return next;
+            });
+          }, 2500),
+        );
       }
       if (!isDemo) void refresh();
     },
   }));
+
+  // The render-facing mirror of the pending-blob ledger (refs + object-URL
+  // minting are side effects, so they live in the effect below; render reads
+  // this state map only). A tile waits one frame for its URL — invisible.
+  const [pendingUrls, setPendingUrls] = useState<ReadonlyMap<string, string>>(
+    () => new Map(),
+  );
+  useEffect(() => {
+    let changed = false;
+    const live = new Set(pendingUploads.map((q) => q.id));
+    for (const q of pendingUploads) {
+      if (!pendingBlobs.current.has(q.id)) {
+        pendingBlobs.current.set(q.id, URL.createObjectURL(q.file));
+        changed = true;
+      }
+    }
+    // Revoke entries whose queue items vanished WITHOUT completing (a re-keyed
+    // approved upload was already MOVED to blobUrls in notifyUploaded and
+    // deleted here, so this only catches abandonment/hold-for-approval).
+    for (const [queueId, url] of pendingBlobs.current) {
+      if (!live.has(queueId)) {
+        URL.revokeObjectURL(url);
+        pendingBlobs.current.delete(queueId);
+        changed = true;
+      }
+    }
+    if (changed) setPendingUrls(new Map(pendingBlobs.current));
+  }, [pendingUploads]);
+
+  // Build the pending TILES from the snapshot + the URL mirror.
+  const pendingTiles: PendingTile[] = pendingUploads.flatMap((q) => {
+    const url = pendingUrls.get(q.id);
+    if (!url) return [];
+    return [
+      {
+        queueId: q.id,
+        url,
+        kind: q.kind,
+        status:
+          q.status === "error"
+            ? ("error" as const)
+            : q.status === "queued"
+              ? ("queued" as const)
+              : ("uploading" as const),
+        progress: q.progress,
+        error: q.error,
+      },
+    ];
+  });
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
@@ -197,11 +292,16 @@ export function LiveGallery({
 
   return (
     <section className="mt-3">
-      {items.length > 0 ? (
+      {items.length > 0 || pendingTiles.length > 0 ? (
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
-          <GuestMasonry items={items} />
+          <GuestMasonry
+            items={items}
+            pending={pendingTiles}
+            justLandedIds={justLandedIds}
+            onRetryPending={onRetryUpload}
+          />
         </LikesProvider>
       ) : (
         <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">

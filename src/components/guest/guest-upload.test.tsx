@@ -113,6 +113,9 @@ describe("GuestUpload: queue", () => {
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
   });
 
+  // Phase 4: the per-file list UI moved into GALLERY TILES; progress now
+  // surfaces through the lifted queue snapshots (the same wiring the tiles
+  // read). Same coverage - onProgress reaches an observable output at 50%.
   it("patches per-file progress through the onProgress callback", async () => {
     let report!: (f: number) => void;
     mockUploadFile.mockImplementation(
@@ -121,24 +124,20 @@ describe("GuestUpload: queue", () => {
           report = onProgress!;
         }),
     );
-    const { addFiles } = mount();
+    const { addFiles, snapshots } = mountWithQueue();
     addFiles([makeFile()]);
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
     report(0.5);
-    // The wrapper feeds `value` only into the indicator transform (it never
-    // reaches radix's aria-valuenow), so the indicator position IS the
-    // observable progress output.
-    await screen.findByRole("progressbar");
     await waitFor(() => {
-      const indicator = document.querySelector(
-        '[data-slot="progress-indicator"]',
-      ) as HTMLElement;
-      expect(indicator.style.transform).toBe("translateX(-50%)");
+      expect(snapshots.at(-1)?.[0]).toMatchObject({
+        status: "uploading",
+        progress: 50,
+      });
     });
   });
 
-  it("approved outcome: reports onUploaded and shows the posted copy", async () => {
+  it("approved outcome: reports onUploaded and mounts the growth prompt", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "approved",
@@ -149,21 +148,24 @@ describe("GuestUpload: queue", () => {
     const file = makeFile();
     addFiles([file]);
 
-    await screen.findByText("Posted to the gallery");
-    expect(onUploaded).toHaveBeenCalledWith({
-      mediaId: "med-1",
-      // Phase 4: the queue id rides along so the gallery can re-key its
-      // optimistic blob URL (queueId -> mediaId) with zero flicker.
-      queueId: expect.any(String),
-      file,
-      kind: "photo",
-      status: "approved",
-    });
+    // Phase 4: an approved upload's feedback IS the gallery tile + the green
+    // check (no copy here); the contract is the payload + the growth prompt.
+    await waitFor(() =>
+      expect(onUploaded).toHaveBeenCalledWith({
+        mediaId: "med-1",
+        // The queue id rides along so the gallery can re-key its optimistic
+        // blob URL (queueId -> mediaId) with zero flicker.
+        queueId: expect.any(String),
+        file,
+        kind: "photo",
+        status: "approved",
+      }),
+    );
     // doneCount > 0 mounts the save-account growth prompt (non-demo).
-    expect(screen.getByTestId("save-account-prompt")).toBeInTheDocument();
+    await screen.findByTestId("save-account-prompt");
   });
 
-  it("pending outcome shows the waiting-for-approval copy", async () => {
+  it("pending outcome surfaces the waiting-for-approval copy (as a toast)", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "pending",
@@ -173,10 +175,15 @@ describe("GuestUpload: queue", () => {
     const { addFiles } = mount({ event: HOLD_EVENT });
     addFiles([makeFile()]);
 
-    await screen.findByText("Sent, waiting for host approval");
+    // Phase 4: the per-file list is gone; the pinned copy fires as a toast.
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Sent, waiting for host approval",
+      ),
+    );
   });
 
-  it("failure marks the item, shows the message, and Retry re-runs it", async () => {
+  it("failure surfaces the message and retry re-runs it", async () => {
     mockUploadFile
       .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
       .mockResolvedValueOnce({
@@ -185,13 +192,20 @@ describe("GuestUpload: queue", () => {
         mediaId: "med-1",
         kind: "photo",
       });
-    const { addFiles } = mount();
+    const { addFiles, snapshots, handleRef } = mountWithQueue();
     addFiles([makeFile()]);
 
-    await screen.findByText("That upload failed.");
-    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
-
-    await screen.findByText("Posted to the gallery");
+    // Phase 4: the error surfaces as a toast + an in-tile retry; the retry
+    // path runs through the imperative handle (what the tile calls).
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Couldn't add that photo", {
+        description: "That upload failed.",
+      }),
+    );
+    handleRef.current!.retry(snapshots.at(-1)![0].id);
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
+    );
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
   });
 });
