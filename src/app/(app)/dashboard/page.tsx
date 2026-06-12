@@ -6,9 +6,8 @@ import { CalendarPlus } from "lucide-react";
 
 import { DashboardTabs } from "@/components/app/dashboard-tabs";
 import {
-  EventGridSkeleton,
-  MediaGridSkeleton,
   StorageCardSkeleton,
+  TabsSectionSkeleton,
 } from "@/components/app/dashboard/dashboard-skeletons";
 import { EventsTab } from "@/components/app/dashboard/events-tab";
 import { LikesTab } from "@/components/app/dashboard/likes-tab";
@@ -193,40 +192,39 @@ export default async function DashboardPage({
         </p>
       )}
 
-      <DashboardTabs defaultValue={activeTab}>
-        <TabsList variant="line">
-          <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="uploads">Uploads</TabsTrigger>
-          <TabsTrigger value="likes">Likes</TabsTrigger>
-          {/* Static label: streamed content inside the trigger <button> is
-              parser-hostile (one of the stranded shapes - stream-probe). */}
-          <TabsTrigger value="deleted">Trash</TabsTrigger>
-        </TabsList>
+      {/* ONE boundary around the WHOLE tabs block, OUTSIDE radix: Suspense
+          completions strand when the boundary lives INSIDE TabsContent (both
+          async-server children and use()-clients - empirically pinned on
+          /design/stream-probe + two production attempts; the StorageCard
+          boundary above and the guest page prove boundaries OUTSIDE radix
+          complete fine). The shell + storage still stream first; the tabs
+          pop in as one unit when the slowest tab dataset lands. */}
+      <Suspense fallback={<TabsSectionSkeleton />}>
+        <DashboardTabs defaultValue={activeTab}>
+          <TabsList variant="line">
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="uploads">Uploads</TabsTrigger>
+            <TabsTrigger value="likes">Likes</TabsTrigger>
+            <TabsTrigger value="deleted">Trash</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="events" className="pt-4">
-          <Suspense fallback={<EventGridSkeleton />}>
+          <TabsContent value="events" className="pt-4">
             <EventsTab promise={eventsPromise} />
-          </Suspense>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="uploads" className="pt-4">
-          <Suspense fallback={<MediaGridSkeleton />}>
+          <TabsContent value="uploads" className="pt-4">
             <UploadsTab promise={uploadsPromise} />
-          </Suspense>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="likes" className="pt-4">
-          <Suspense fallback={<MediaGridSkeleton />}>
+          <TabsContent value="likes" className="pt-4">
             <LikesTab promise={likesPromise} />
-          </Suspense>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="deleted" className="pt-4">
-          <Suspense fallback={<EventGridSkeleton />}>
+          <TabsContent value="deleted" className="pt-4">
             <TrashTab promise={trashPromise} />
-          </Suspense>
-        </TabsContent>
-      </DashboardTabs>
+          </TabsContent>
+        </DashboardTabs>
+      </Suspense>
     </div>
   );
 }

@@ -50,3 +50,21 @@ export function MediaGridSkeleton() {
     </div>
   );
 }
+
+/** The whole tabs block (the ONE boundary that streams it - Suspense
+ *  completions strand INSIDE radix TabsContent, so the boundary lives
+ *  OUTSIDE the tabs; see /design/stream-probe). */
+export function TabsSectionSkeleton() {
+  return (
+    <div aria-busy>
+      <div className="flex gap-4 border-b border-border/70 pb-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-5 w-16" />
+        ))}
+      </div>
+      <div className="pt-4">
+        <EventGridSkeleton />
+      </div>
+    </div>
+  );
+}
