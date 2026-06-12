@@ -59,6 +59,7 @@ export function LiveGallery({
   pendingUploads = [],
   onRetryUpload,
   onAddFirst,
+  joinUrl,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -79,6 +80,8 @@ export function LiveGallery({
   /** Present only when the viewer can upload — the empty-state CTA opens the
    *  picker (Phase 4: at 0 items the header drops its Add, the empty CTA owns it). */
   onAddFirst?: () => void;
+  /** The event JOIN url for the lightbox Share button. */
+  joinUrl?: string;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -306,6 +309,7 @@ export function LiveGallery({
             pending={pendingTiles}
             justLandedIds={justLandedIds}
             onRetryPending={onRetryUpload}
+            shareUrl={joinUrl}
           />
         </LikesProvider>
       ) : (

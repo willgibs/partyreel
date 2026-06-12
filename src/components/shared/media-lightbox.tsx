@@ -9,7 +9,15 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { ChevronLeft, ChevronRight, Download, Trash2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Share2,
+  Trash2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
@@ -107,70 +115,75 @@ function prefersReducedMotion() {
   );
 }
 
-// Subtle uploader attribution caption (Phase 2). Bare name (no "Uploaded by"); host uploads add a
-// "Host" badge; anonymous shows "Anonymous" + a tap (i) explainer. The EMAIL line renders only when
-// the item carries one (host gallery only — guest items never do). Renders nothing when there's no
-// attribution (the demo, or a defensively-null name). `pointer-events-none` so it never blocks a
-// swipe; only the (i) + email re-enable pointers.
-function UploaderCaption({
+// THE ATTRIBUTION PILL (Phase 4): a floating capsule under the action pill —
+// bare name (no "Uploaded by"); host uploads add a "Host" badge; anonymous
+// shows "Anonymous" + a tap (i) explainer; the host-gallery-only email line
+// renders when present. The position COUNTER always renders ("i+1 of N"), so
+// the pill exists even on a bare item (no attribution) and the counter pin
+// stays satisfiable. `pointer-events-none` shell so it never blocks a swipe;
+// the (i), email, and event link re-enable taps.
+function AttributionPill({
   item,
   viewerIsHost,
+  position,
 }: {
   item: GridMedia;
   viewerIsHost: boolean;
+  position: string;
 }) {
   const name = item.uploaderName?.trim() || null;
-  if (!item.isAnonymous && !item.isHost && name === null) return null;
+  const hasAttribution = item.isAnonymous || item.isHost || name !== null;
+  const eventName = item.eventName?.trim() || null;
+  const eventLabel =
+    eventName &&
+    (item.eventDateLabel ? `${eventName} · ${item.eventDateLabel}` : eventName);
 
   return (
-    <div className="flex max-w-[85%] flex-col items-center gap-1 text-center">
-      <span className="inline-flex items-center gap-1.5 text-sm text-white/85">
-        {item.isAnonymous ? (
-          <>
-            Anonymous
-            <span className="pointer-events-auto">
-              <AnonymousInfo viewerIsHost={viewerIsHost} />
-            </span>
-          </>
-        ) : (
-          <>
-            {name && <span>{name}</span>}
-            {item.isHost && (
-              <Badge
-                variant="secondary"
-                className="bg-white/15 text-white hover:bg-white/15"
-              >
-                Host
-              </Badge>
-            )}
-          </>
-        )}
+    <div className="pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90">
+        {hasAttribution &&
+          (item.isAnonymous ? (
+            <>
+              Anonymous
+              <span className="pointer-events-auto">
+                <AnonymousInfo viewerIsHost={viewerIsHost} />
+              </span>
+            </>
+          ) : (
+            <>
+              {name && <span>{name}</span>}
+              {item.isHost && (
+                <Badge
+                  variant="secondary"
+                  className="bg-white/15 text-white hover:bg-white/15"
+                >
+                  Host
+                </Badge>
+              )}
+            </>
+          ))}
+        {hasAttribution && <span className="text-white/40">·</span>}
+        <span className="tabular-nums text-white/70">{position}</span>
       </span>
       {item.uploaderEmail && (
-        <span className="pointer-events-auto text-xs text-white/55">
+        <span className="pointer-events-auto text-[10px] text-white/55">
           {item.uploaderEmail}
         </span>
       )}
+      {eventLabel &&
+        (item.eventQrToken ? (
+          <a
+            href={`/e/${item.eventQrToken}`}
+            className="pointer-events-auto max-w-[85%] truncate text-[10px] text-white/65 underline-offset-4 hover:text-white hover:underline"
+          >
+            {eventLabel}
+          </a>
+        ) : (
+          <span className="max-w-[85%] truncate text-[10px] text-white/65">
+            {eventLabel}
+          </span>
+        ))}
     </div>
-  );
-}
-
-// Event-context caption for the cross-event personal "Uploads" gallery (Phase 4): which event this media
-// belongs to, as a subtle link to that event. Gated on `eventName`, so the album/host lightboxes (which
-// never set it) are unaffected. `pointer-events-auto` on the link (the container is pointer-events-none).
-function EventContextCaption({ item }: { item: GridMedia }) {
-  const name = item.eventName?.trim() || null;
-  if (!name) return null;
-  const label = item.eventDateLabel ? `${name} · ${item.eventDateLabel}` : name;
-  return item.eventQrToken ? (
-    <a
-      href={`/e/${item.eventQrToken}`}
-      className="pointer-events-auto max-w-[85%] truncate text-xs text-white/65 underline-offset-4 hover:text-white hover:underline"
-    >
-      {label}
-    </a>
-  ) : (
-    <span className="max-w-[85%] truncate text-xs text-white/65">{label}</span>
   );
 }
 
@@ -181,6 +194,7 @@ export function MediaLightbox({
   onIndexChange,
   viewerIsHost = false,
   onDeleteCurrent,
+  shareUrl,
 }: {
   items: GridMedia[];
   index: number | null;
@@ -189,11 +203,17 @@ export function MediaLightbox({
   /** Host gallery? Drives the (i) explainer copy + lets the host-only email line render. */
   viewerIsHost?: boolean;
   /**
-   * Opt-in delete (the personal "Uploads" tab). When set, a Trash button shows in the header behind a
+   * Opt-in delete (the personal "Uploads" tab). When set, a Trash button shows in the pill behind a
    * confirm; the caller owns the removal + closing the viewer (it shrinks the list). Omitted everywhere
    * else (public album, host grid, recovery bin), so those lightboxes are unchanged.
    */
   onDeleteCurrent?: (item: GridMedia) => void;
+  /**
+   * Opt-in Share button (the guest event page passes the event JOIN url — never a
+   * presigned media URL). Native share with a clipboard fallback. Omitted on host/
+   * personal surfaces, so their pill carries no Share.
+   */
+  shareUrl?: string;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const prevItem =
@@ -462,15 +482,44 @@ export function MediaLightbox({
     [settleTo],
   );
 
-  // Tap the dark letterbox (the slot box itself, not the media or a control) to
-  // close — but never as the click that trails a drag.
+  // Tap the dark letterbox (the slot box itself, not the media or a control):
+  // the ratified ~30% side zones NAVIGATE, the center third CLOSES. Implemented
+  // as click-position thirds (NOT real overlay elements, which would intercept
+  // pointerdown and kill the swipe). Never as the click that trails a drag.
   const onBackdropClick = useCallback(
     (e: ReactMouseEvent<HTMLDivElement>) => {
       if (suppressClickRef.current) return;
-      if (e.target === e.currentTarget) handleClose();
+      if (e.target !== e.currentTarget) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const fraction = rect.width ? (e.clientX - rect.left) / rect.width : 0.5;
+      // Side zones NAVIGATE (or no-op at an edge — never an accidental close);
+      // only the center third closes.
+      if (fraction < 0.3) {
+        if (index !== null && index > 0) onIndexChange(index - 1);
+      } else if (fraction > 0.7) {
+        if (index !== null && index < items.length - 1) onIndexChange(index + 1);
+      } else {
+        handleClose();
+      }
     },
-    [handleClose],
+    [handleClose, index, items.length, onIndexChange],
   );
+
+  // Share the event JOIN url (guest surfaces only) — native sheet, clipboard fallback.
+  const onShare = useCallback(async () => {
+    if (!shareUrl || typeof navigator === "undefined") return;
+    const nav = navigator;
+    try {
+      if (typeof nav.share === "function") {
+        await nav.share({ url: shareUrl });
+        return;
+      }
+      await nav.clipboard.writeText(shareUrl);
+      toast.success("Link copied.");
+    } catch {
+      // User dismissed the sheet, or clipboard denied — nothing to do.
+    }
+  }, [shareUrl]);
 
   function renderSlot(
     item: GridMedia | null,
@@ -552,96 +601,40 @@ export function MediaLightbox({
 
           {current && (
             <>
-              <div className="flex items-center justify-between gap-2 p-3">
-                <span className="text-sm text-white/70 tabular-nums">
-                  {index! + 1} / {items.length}
-                </span>
-                <div className="flex items-center gap-2">
-                  {/* Like button (guest surfaces + tabs: a LikesProvider is present) / host-only
-                      count chip (host gallery items carry likeCount). They never co-occur. */}
-                  <LikeButton item={current} variant="lightbox" />
-                  <LikeCountBadge count={current.likeCount} />
-                  {/* Save is hidden when an item carries no download url — the recovery bin
-                      presigns INLINE only, so there's no original-file download from the bin. */}
-                  {current.downloadUrl && (
-                    <Button
-                      asChild
-                      variant="secondary"
-                      size="sm"
-                      className="bg-white/15 text-white hover:bg-white/25"
-                    >
-                      {/* Cross-origin force-download comes from the signed
-                          content-disposition, not this attribute — it's a harmless
-                          same-origin hint. */}
-                      <a href={current.downloadUrl} download>
-                        <Download /> Save
-                      </a>
-                    </Button>
-                  )}
-                  {onDeleteCurrent && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-white hover:bg-white/15 hover:text-white"
-                          aria-label="Delete"
-                          title="Delete"
-                        >
-                          <Trash2 />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete this upload?</DialogTitle>
-                          <DialogDescription>
-                            It will be removed from the event right away, and
-                            permanently deleted after a short grace period.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                          </DialogClose>
-                          <DialogClose asChild>
-                            <Button
-                              variant="destructive"
-                              onClick={() => onDeleteCurrent(current)}
-                            >
-                              Delete
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  <DialogPrimitive.Close asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-white hover:bg-white/15 hover:text-white"
-                      aria-label="Close"
-                    >
-                      <X />
-                    </Button>
-                  </DialogPrimitive.Close>
-                </div>
-              </div>
+              {/* Floating CLOSE (the only top-edge chrome now — the ratified V2
+                  maximizes media space). Safe-area inset for notched phones. */}
+              <DialogPrimitive.Close asChild>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="absolute top-[calc(0.625rem+env(safe-area-inset-top))] right-2.5 z-20 flex size-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100"
+                >
+                  <X className="size-4" />
+                </button>
+              </DialogPrimitive.Close>
 
-              {/* Stage: clips the off-screen neighbor slots; positioning context for
-                  the chevrons (which sit OUTSIDE the track, so a tap on a chevron
-                  never starts a swipe). */}
+              {/* Stage: clips the off-screen neighbor slots; positioning context
+                  for the scrims + chevrons (OUTSIDE the track, so a tap there
+                  never starts a swipe) and the floating pill stack. */}
               <div className="relative min-h-0 flex-1 overflow-hidden">
+                {/* Whisper scrims: decorative gradient hints (pointer-events-none
+                    so they never intercept the swipe); the chevron buttons on top
+                    re-enable pointers. The actual side-TAP nav is the thirds logic
+                    in onBackdropClick. */}
                 {hasPrev && (
-                  <Button
-                    variant="ghost"
-                    size="icon-lg"
-                    aria-label="Previous"
-                    onClick={() => onIndexChange(index! - 1)}
-                    className="absolute top-1/2 left-1 z-10 -translate-y-1/2 text-white hover:bg-white/15 hover:text-white sm:left-3"
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-[30%] items-center bg-gradient-to-r from-black/15 to-transparent pl-1.5"
                   >
-                    <ChevronLeft className="size-7" />
-                  </Button>
+                    <button
+                      type="button"
+                      aria-label="Previous"
+                      onClick={() => onIndexChange(index! - 1)}
+                      className="pointer-events-auto flex size-9 items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70"
+                    >
+                      <ChevronLeft className="size-5" />
+                    </button>
+                  </div>
                 )}
 
                 {/* The swipe track. `touch-pan-y` lets the browser keep vertical
@@ -669,32 +662,117 @@ export function MediaLightbox({
                 </div>
 
                 {hasNext && (
-                  <Button
-                    variant="ghost"
-                    size="icon-lg"
-                    aria-label="Next"
-                    onClick={() => onIndexChange(index! + 1)}
-                    className="absolute top-1/2 right-1 z-10 -translate-y-1/2 text-white hover:bg-white/15 hover:text-white sm:right-3"
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-[30%] items-center justify-end bg-gradient-to-l from-black/15 to-transparent pr-1.5"
                   >
-                    <ChevronRight className="size-7" />
-                  </Button>
+                    <button
+                      type="button"
+                      aria-label="Next"
+                      onClick={() => onIndexChange(index! + 1)}
+                      className="pointer-events-auto flex size-9 items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70"
+                    >
+                      <ChevronRight className="size-5" />
+                    </button>
+                  </div>
                 )}
 
-                {/* Uploader attribution: fixed bottom-center over the stage (like the counter, it
-                    doesn't slide with the swipe), clear of a playing video's native scrubber strip.
-                    Keyed by id so it re-fades per item; fades out while the center video plays.
-                    pointer-events-none so it never blocks a swipe (the (i) + email re-enable taps). */}
+                {/* THE FLOATING PILL STACK (the ratified V2): an action pill over
+                    an attribution pill, centered at the foot, floating over the
+                    media. Lifts above a playing video's native scrubber strip;
+                    the attribution pill fades while the video plays. */}
                 <div
-                  key={current.id}
                   className={cn(
-                    "pointer-events-none absolute inset-x-0 bottom-16 z-10 flex flex-col items-center gap-1 px-4 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
+                    "absolute inset-x-0 z-10 flex flex-col items-center gap-1.5",
                     centerPlaying
-                      ? "opacity-0"
-                      : "opacity-100 motion-safe:animate-in motion-safe:fade-in-0",
+                      ? "bottom-[calc(5rem+env(safe-area-inset-bottom))]"
+                      : "bottom-[calc(1rem+env(safe-area-inset-bottom))]",
                   )}
                 >
-                  <UploaderCaption item={current} viewerIsHost={viewerIsHost} />
-                  <EventContextCaption item={current} />
+                  {/* Action pill: Like / Save / Share / Delete. Host-only count
+                      chip never co-occurs with the guest Like. */}
+                  <div className="flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                    <LikeButton item={current} variant="lightbox" />
+                    <LikeCountBadge count={current.likeCount} />
+                    {/* Save hidden when an item carries no download url (the
+                        recovery bin presigns INLINE only). */}
+                    {current.downloadUrl && (
+                      <a
+                        href={current.downloadUrl}
+                        download
+                        aria-label="Save"
+                        title="Save"
+                        className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                      >
+                        <Download className="size-5" />
+                      </a>
+                    )}
+                    {shareUrl && (
+                      <button
+                        type="button"
+                        onClick={onShare}
+                        aria-label="Share"
+                        title="Share"
+                        className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                      >
+                        <Share2 className="size-5" />
+                      </button>
+                    )}
+                    {onDeleteCurrent && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="Delete"
+                            title="Delete"
+                            className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                          >
+                            <Trash2 className="size-5" />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete this upload?</DialogTitle>
+                            <DialogDescription>
+                              It will be removed from the event right away, and
+                              permanently deleted after a short grace period.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="destructive"
+                                onClick={() => onDeleteCurrent(current)}
+                              >
+                                Delete
+                              </Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
+
+                  {/* Attribution pill (keyed by id so it re-fades per item; fades
+                      while the center video plays). The counter ALWAYS renders. */}
+                  <div
+                    key={current.id}
+                    className={cn(
+                      "motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
+                      centerPlaying
+                        ? "opacity-0"
+                        : "opacity-100 motion-safe:animate-in motion-safe:fade-in-0",
+                    )}
+                  >
+                    <AttributionPill
+                      item={current}
+                      viewerIsHost={viewerIsHost}
+                      position={`${index! + 1} of ${items.length}`}
+                    />
+                  </div>
                 </div>
               </div>
             </>

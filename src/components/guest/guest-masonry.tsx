@@ -48,6 +48,7 @@ export function GuestMasonry({
   pending = [],
   justLandedIds,
   onRetryPending,
+  shareUrl,
 }: {
   items: GridMedia[];
   /** In-flight uploads, rendered FIRST (newest activity leads the flow). */
@@ -56,6 +57,8 @@ export function GuestMasonry({
   justLandedIds?: Set<string>;
   /** Tap-to-retry for an errored pending tile. */
   onRetryPending?: (queueId: string) => void;
+  /** The event JOIN url for the lightbox Share button (guest surface only). */
+  shareUrl?: string;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   // The ids present at FIRST render: only these stagger (later arrivals enter
@@ -174,6 +177,7 @@ export function GuestMasonry({
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
         viewerIsHost={false}
+        shareUrl={shareUrl}
       />
     </>
   );

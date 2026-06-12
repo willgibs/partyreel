@@ -320,6 +320,7 @@ export function EventExperience({
               onAddFirst={
                 canUpload ? () => uploadRef.current?.openPicker() : undefined
               }
+              joinUrl={joinUrl}
             />
           </Suspense>
 

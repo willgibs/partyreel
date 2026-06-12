@@ -245,28 +245,55 @@ describe("MediaLightbox: chrome contracts", () => {
     expect(onIndexChange).not.toHaveBeenCalled();
   });
 
-  it("a tap on the letterbox closes; the click trailing a drag does NOT", () => {
+  it("a CENTER tap on the letterbox closes; the click trailing a drag does NOT", () => {
     const { onClose } = mount();
     const centerSlot = track().children[1] as HTMLElement;
 
-    // Drag first: the trailing click must be swallowed.
+    // Drag first: the trailing click (even in the center third) is swallowed.
     startDrag(track(), 400, 0);
     firePointer(track(), "pointermove", { x: 320, t: 200 });
     firePointer(track(), "pointerup", { x: 320, t: 400 });
-    fireEvent.click(centerSlot);
+    fireEvent.click(centerSlot, { clientX: 400 });
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("a clean tap on the letterbox closes the viewer", () => {
-    const { onClose } = mount();
+  it("a clean CENTER-third tap on the letterbox closes the viewer", () => {
+    // Phase 4: side thirds NAVIGATE, only the center third closes (geometry
+    // from the 800px-wide getBoundingClientRect mock → 400 is dead center).
+    const { onClose, onIndexChange } = mount();
     const centerSlot = track().children[1] as HTMLElement;
-    fireEvent.click(centerSlot);
+    fireEvent.click(centerSlot, { clientX: 400 });
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onIndexChange).not.toHaveBeenCalled();
   });
 
-  it("the position counter reflects the controlled index", () => {
+  it("a LEFT-third letterbox tap steps to the previous item (no close)", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 1);
+    const centerSlot = track().children[1] as HTMLElement;
+    fireEvent.click(centerSlot, { clientX: 80 }); // 0.1 → left third
+    expect(onIndexChange).toHaveBeenCalledWith(0);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("a RIGHT-third letterbox tap steps to the next item (no close)", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 1);
+    const centerSlot = track().children[1] as HTMLElement;
+    fireEvent.click(centerSlot, { clientX: 720 }); // 0.9 → right third
+    expect(onIndexChange).toHaveBeenCalledWith(2);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("a side tap at an edge is a NO-OP (never an accidental close)", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 0); // no prev
+    const centerSlot = track().children[1] as HTMLElement;
+    fireEvent.click(centerSlot, { clientX: 80 }); // left third, but at item 0
+    expect(onIndexChange).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("the position counter reflects the controlled index (pill format)", () => {
     mount(PHOTOS, 1);
-    expect(screen.getByText("2 / 3")).toBeInTheDocument();
+    expect(screen.getByText(/2 of 3/)).toBeInTheDocument();
   });
 });
 
