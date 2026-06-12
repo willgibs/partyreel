@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Images } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 import { EmailSignIn } from "@/components/auth/email-sign-in";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,14 @@ import { signInSchema } from "@/lib/validation/auth";
 // router.refresh() re-runs the page RSC -> access becomes `full` -> the modal closes (then the name
 // step, if a brand-new account, or the upload panel). P1 gated the VIEW, so an account now unlocks
 // SEEING the full gallery, not just uploading. Renders inside the Dialog (no card wrapper of its own).
-export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
+export function EnterEventPrompt({
+  qrToken,
+  mediaTotal,
+}: {
+  qrToken: string;
+  /** Approved media count for the "N photos are waiting" tease. */
+  mediaTotal?: number;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<"email" | "password">("email");
   const emailRedirectTo =
@@ -28,13 +35,19 @@ export function EnterEventPrompt({ qrToken }: { qrToken: string }) {
 
   return (
     <div className="text-center">
-      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
-        <Images className="size-5" />
+      {/* The ratified gate framing: lock mark above the heading, the REAL count
+          as the promise, and the account step as the HOST'S safety choice. */}
+      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Lock className="size-5" />
       </div>
-      <p className="text-sm font-medium">See all the photos</p>
-      <p className="mx-auto mt-1 mb-4 max-w-xs text-sm text-muted-foreground">
-        Create a free account to see everything and add your own. We&rsquo;ll
-        email you a one-tap link, no password needed.
+      <p className="font-heading text-xl text-balance">
+        {mediaTotal && mediaTotal > 0
+          ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
+          : "See all the photos"}
+      </p>
+      <p className="mx-auto mt-1 mb-4 max-w-xs text-[15px] text-muted-foreground">
+        For everyone&rsquo;s safety, the host asks guests to verify their email
+        before opening the gallery. One tap, no password needed.
       </p>
       <div className="mx-auto max-w-xs text-left">
         {mode === "email" ? (

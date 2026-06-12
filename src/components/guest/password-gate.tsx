@@ -81,10 +81,10 @@ export function PasswordGate({
         <Lock className="size-5" />
       </div>
       <div className="space-y-1">
-        <h1 className="text-lg font-semibold tracking-tight">{eventName}</h1>
+        <h1 className="font-heading text-xl text-balance">{eventName}</h1>
         <p
           className={cn(
-            "max-w-xs text-sm",
+            "max-w-xs text-[15px]",
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
@@ -140,7 +140,7 @@ export function PasswordGate({
         )}
         <Button
           type="submit"
-          className="w-full active:scale-[0.99]"
+          className="h-11 w-full text-[15px]"
           disabled={pending || !password.trim() || cooldownLeft > 0}
         >
           {pending

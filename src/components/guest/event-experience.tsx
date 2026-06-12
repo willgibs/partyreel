@@ -7,6 +7,7 @@ import { ImageUp, Lock } from "lucide-react";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { FloatingAddButton } from "@/components/guest/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
+import { GhostGrid } from "@/components/guest/ghost-grid";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -142,6 +143,7 @@ export function EventExperience({
           gateSteps={gateSteps}
           isOwner={isOwner}
           isDemo={isDemo}
+          mediaTotal={stats.approvedTotal}
         />
       </Suspense>
       {isDemo && (
@@ -211,16 +213,19 @@ export function EventExperience({
       </header>
 
       {access === "none" ? (
-        // Password not yet unlocked: a quiet locked backdrop. The entry modal (the firm password step)
-        // overlays this; nothing real is shown until the password is entered. (S6 swaps
-        // this for the ghost grid + count tease.)
-        <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-3 py-10 text-center text-muted-foreground">
-          <div className="flex size-11 items-center justify-center rounded-full bg-muted">
-            <Lock className="size-5" />
+        // Password not yet unlocked: the GHOST-GRID backdrop (the ratified V4
+        // entry) — shape + the real COUNT tease, zero pixels. The firm password
+        // sheet overlays this; nothing real shows until the password lands.
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Lock className="size-4" aria-hidden />
+            <p className="text-[15px]">
+              {stats.approvedTotal > 0
+                ? `${stats.approvedTotal} ${stats.approvedTotal === 1 ? "photo" : "photos"} & videos inside`
+                : "This event is private"}
+            </p>
           </div>
-          <p className="text-[15px]">
-            This event is private. Enter the password to view it.
-          </p>
+          <GhostGrid />
         </div>
       ) : (
         <>

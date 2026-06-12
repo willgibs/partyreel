@@ -46,8 +46,14 @@ export const EntryModal = forwardRef<
     gateSteps: GateStep[];
     isOwner: boolean;
     isDemo: boolean;
+    /** Approved media count (numbers only) — the gate steps' "N photos are
+     *  waiting" tease (the ratified cardinality-only leak). */
+    mediaTotal?: number;
   }
->(function EntryModal({ qrToken, eventName, gateSteps, isOwner, isDemo }, ref) {
+>(function EntryModal(
+  { qrToken, eventName, gateSteps, isOwner, isDemo, mediaTotal },
+  ref,
+) {
   const [seen, markSeen] = useWelcomeSeen(qrToken);
   // `proceeded` = the guest advanced past the welcome into the gate (keeps a non-auto-opening account
   // gate open). `manuallyClosed` = they closed the account step back to the teaser.
@@ -108,11 +114,26 @@ export const EntryModal = forwardRef<
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
+        // The ADAPTIVE SHEET chrome (Phase 4): a bottom-pinned full-width sheet
+        // on phones (max-sm: utilities neutralize the dialog's centered
+        // translate + pin it to the bottom with big top corners + a slide-up),
+        // the centered float on sm+. max-sm: lands LAST in the merged className,
+        // so it beats the base utilities at equal specificity. The step machine,
+        // firmness, and welcome-seen wiring are untouched.
+        data-entry-sheet
         showCloseButton={!isFirm}
         onInteractOutside={isFirm ? (e) => e.preventDefault() : undefined}
         onEscapeKeyDown={isFirm ? (e) => e.preventDefault() : undefined}
-        className="sm:max-w-sm"
+        className="sm:max-w-sm max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:w-full max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-b-none max-sm:rounded-t-[calc(var(--radius-action)*1.4)] max-sm:pb-[calc(1rem+env(safe-area-inset-bottom))] max-sm:data-open:slide-in-from-bottom-6 max-sm:data-closed:slide-out-to-bottom-6"
       >
+        {/* The drag-indicator bar: DISMISSIBLE steps only (a drag bar on the
+            firm password step would promise a swipe-away it blocks). */}
+        {!isFirm && (
+          <div
+            aria-hidden
+            className="mx-auto -mt-1 mb-1 h-1 w-9 rounded-full bg-muted-foreground/30 sm:hidden"
+          />
+        )}
         {/* a11y name (Radix requires a title); each step renders its own visible heading. */}
         <DialogTitle className="sr-only">
           {current === "password"
@@ -133,13 +154,20 @@ export const EntryModal = forwardRef<
             <WelcomeStep
               eventName={eventName}
               gateNext={steps.length > 1}
+              // "Just browsing" only when a BROWSABLE teaser sits behind (an
+              // account gate); a password gate has nothing to browse, and it
+              // would auto-reopen anyway.
+              browseAvailable={steps[1] === "account"}
               onContinue={continueFromWelcome}
+              onBrowse={() => markSeen()}
             />
           )}
           {current === "password" && (
             <PasswordGate token={qrToken} eventName={eventName} />
           )}
-          {current === "account" && <EnterEventPrompt qrToken={qrToken} />}
+          {current === "account" && (
+            <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -151,42 +179,57 @@ export const EntryModal = forwardRef<
 function WelcomeStep({
   eventName,
   gateNext,
+  browseAvailable,
   onContinue,
+  onBrowse,
 }: {
   eventName: string;
   gateNext: boolean;
+  /** A browsable teaser exists behind the next gate (account gates only). */
+  browseAvailable: boolean;
   onContinue: () => void;
+  /** Dismiss to the teaser (marks the welcome seen WITHOUT advancing). */
+  onBrowse: () => void;
 }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-brand/10 text-brand">
+      <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
         <PartyPopper className="size-6" />
       </div>
       <div className="space-y-1">
-        <p className="font-heading text-lg font-semibold tracking-tight text-balance">
+        <p className="font-heading text-xl text-balance">
           You&rsquo;re invited to {eventName}
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground">
           A shared gallery for the whole event.
         </p>
       </div>
-      <ul className="w-full space-y-2.5 text-left text-sm">
+      <ul className="w-full space-y-2.5 text-left text-[15px]">
         <li className="flex items-center gap-3">
-          <Camera className="size-4 shrink-0 text-brand" />
+          <Camera className="size-4 shrink-0 text-muted-foreground" />
           Add your photos and videos
         </li>
         <li className="flex items-center gap-3">
-          <Images className="size-4 shrink-0 text-brand" />
+          <Images className="size-4 shrink-0 text-muted-foreground" />
           See everyone&rsquo;s shots in one place
         </li>
         <li className="flex items-center gap-3">
-          <Smartphone className="size-4 shrink-0 text-brand" />
+          <Smartphone className="size-4 shrink-0 text-muted-foreground" />
           No app to download, just your phone
         </li>
       </ul>
-      <Button onClick={onContinue} className="w-full active:scale-[0.99]">
+      <Button onClick={onContinue} className="h-11 w-full text-[15px]">
         {gateNext ? "Continue" : "View event"}
       </Button>
+      {browseAvailable && (
+        <Button
+          variant="ghost"
+          onClick={onBrowse}
+          className="-mt-2 w-full text-muted-foreground"
+        >
+          Just browsing
+        </Button>
+      )}
     </div>
   );
 }
