@@ -680,10 +680,14 @@ export function MediaLightbox({
                 {/* THE FLOATING PILL STACK (the ratified V2): an action pill over
                     an attribution pill, centered at the foot, floating over the
                     media. Lifts above a playing video's native scrubber strip;
-                    the attribution pill fades while the video plays. */}
+                    the attribution pill fades while the video plays.
+                    pointer-events-none on the wrapper so its full-width flanks
+                    stay transparent to the swipe/tap track beneath (inset-x-0
+                    stretches the box edge-to-edge even though items-center only
+                    centers the children) - pointers re-enable on just the pills. */}
                 <div
                   className={cn(
-                    "absolute inset-x-0 z-10 flex flex-col items-center gap-1.5",
+                    "pointer-events-none absolute inset-x-0 z-10 flex flex-col items-center gap-1.5",
                     centerPlaying
                       ? "bottom-[calc(5rem+env(safe-area-inset-bottom))]"
                       : "bottom-[calc(1rem+env(safe-area-inset-bottom))]",
@@ -691,7 +695,7 @@ export function MediaLightbox({
                 >
                   {/* Action pill: Like / Save / Share / Delete. Host-only count
                       chip never co-occurs with the guest Like. */}
-                  <div className="flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                  <div className="pointer-events-auto flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
                     <LikeButton item={current} variant="lightbox" />
                     <LikeCountBadge count={current.likeCount} />
                     {/* Save hidden when an item carries no download url (the
@@ -761,7 +765,7 @@ export function MediaLightbox({
                   <div
                     key={current.id}
                     className={cn(
-                      "motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
+                      "pointer-events-auto motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-emphasis",
                       centerPlaying
                         ? "opacity-0"
                         : "opacity-100 motion-safe:animate-in motion-safe:fade-in-0",
