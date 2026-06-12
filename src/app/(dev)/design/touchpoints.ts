@@ -157,6 +157,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     title: "Guest arrival",
     note: "The gated first-open as one choreographed flow: stage, invitation, threshold, reveal",
     variants: ["Calm arrival", "Swift arrival", "Stately arrival"],
+    decision: 1,
+    decisionNote:
+      "Calm with a longer pause - THE PRODUCTION CONSTANTS: arrival beat 700ms (password return visits 350ms, reduced motion 0) / welcome tall (~55svh) / step transition slide (directional 16px crossfade + 300ms height glide) / success morph + hold 900ms in --success green / type bumped (welcome hero 28px, gate titles 22px, page h1 28px)",
   },
 ];
 

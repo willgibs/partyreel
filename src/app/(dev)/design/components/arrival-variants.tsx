@@ -21,7 +21,12 @@ import { Variant } from "./variant-frame";
  * exact values ride into the ratification notes.
  */
 export function ArrivalVariants() {
-  const [tuning, setTuning] = useState<ArrivalTuning>(ARRIVAL_PRESETS.calm);
+  // The RATIFIED tuning (Will, 2026-06-12): Calm with the beat raised to
+  // 700ms - the player opens at the production constants.
+  const [tuning, setTuning] = useState<ArrivalTuning>({
+    ...ARRIVAL_PRESETS.calm,
+    beatMs: 700,
+  });
   const [copied, setCopied] = useState(false);
 
   async function copyTuning() {
