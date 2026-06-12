@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useState,
   useSyncExternalStore,
@@ -60,6 +61,10 @@ export const EntryModal = forwardRef<
     hostName?: string | null;
     eventDate?: string | null;
     hostAvatarUrl?: string | null;
+    /** The success-hold signal for the page's REVEAL CURTAIN: the freshly
+     *  mounted header/gallery wait at their pre-entrance state while the
+     *  beat holds, then rise AS the sheet exits (event-experience). */
+    onHoldingChange?: (holding: boolean) => void;
   }
 >(function EntryModal(
   {
@@ -72,6 +77,7 @@ export const EntryModal = forwardRef<
     hostName,
     eventDate,
     hostAvatarUrl,
+    onHoldingChange,
   },
   ref,
 ) {
@@ -109,7 +115,23 @@ export const EntryModal = forwardRef<
   // the refresh roundtrip) until the RSC drops the gate, then releases into
   // the reveal. `holding` ORs into open so the derived close can't slam shut
   // before the beat plays.
-  const { holding, slow, stalled, onUnlocked } = useSuccessHold({ current });
+  const { holding, heldStep, slow, stalled, onUnlocked } = useSuccessHold({
+    current,
+  });
+  // Mirror the hold to the page (the reveal curtain). Post-commit, parent
+  // setState from a child effect - the sanctioned external-sync shape.
+  useEffect(() => {
+    onHoldingChange?.(holding);
+  }, [holding, onHoldingChange]);
+  // A success must be SEEN (clear any prior manual close), and an unlocking
+  // guest has definitionally advanced past the welcome: `proceeded` keeps the
+  // surface open when the hold releases into a NON-auto-opening account step
+  // (the lighter path for a returning guest, who never tapped Continue).
+  function handleUnlocked() {
+    setManuallyClosed(false);
+    setProceeded(true);
+    onUnlocked();
+  }
 
   const open =
     (hydrated &&
@@ -138,18 +160,46 @@ export const EntryModal = forwardRef<
     ref,
     () => ({
       // The teaser's "See all" caption re-opens the gate (to the account step).
+      // A no-op while the success beat holds (the plan's hold contract).
       openToGate: () => {
+        if (holding) return;
         setManuallyClosed(false);
         setProceeded(true);
       },
     }),
-    [],
+    [holding],
   );
+
+  // THE HELD VIEW + EXIT LATCH (Phase 4.5 audit fixes): while a PASSWORD hold
+  // plays, the gate stays PLANTED and its own button morphs green (the
+  // ratified in-place success - no step swap); an ACCOUNT hold shows the
+  // SuccessStep instead (the OTP machinery has no single button to morph,
+  // and the plan's out-of-scope clause bars reworking EmailSignIn internals -
+  // a recorded judgment call). While the shell is closed/exiting, the LAST
+  // open-state view stays latched so the sheet never deflates to an empty
+  // strip mid-exit (the step content would otherwise unmount in the same
+  // commit that starts the close).
+  const stepKey = holding
+    ? heldStep === "password"
+      ? "password"
+      : "success"
+    : isReviewing
+      ? "welcome-review"
+      : (current ?? "none");
+  const [lastKey, setLastKey] = useState(stepKey);
+  if (open && stepKey !== lastKey) setLastKey(stepKey);
+  const displayKey = open ? stepKey : lastKey;
 
   // THE HONEST-AFFORDANCE TABLE (Phase 4.5, ratified): dismissal exists only
   // when there is something to dismiss TO. A welcome whose NEXT step is the
-  // firm password gate is held (the continuous invitation -> gate flow).
+  // firm password gate is held (the continuous invitation -> gate flow), ANY
+  // step is held while the success beat plays (`current` flips under the
+  // hold when the refresh lands - without this row the X/handle would pop in
+  // over the "You're in" view and a dismissal could corrupt the release),
+  // and a CLOSED/exiting shell is held so affordances can't pop in mid-exit.
   const dismissMode: DismissMode =
+    !open ||
+    holding ||
     current === "password" ||
     (current === "welcome" && steps[1] === "password")
       ? "held"
@@ -157,6 +207,7 @@ export const EntryModal = forwardRef<
 
   // Fired by the shell ONLY for a user dismissal of a "free" surface.
   function handleDismiss() {
+    if (holding) return; // defense in depth; the hold is never dismissable
     if (current === "welcome") {
       // Dismissing the welcome marks it seen; re-derivation decides what shows: an account gate
       // closes to the teaser, public closes to the gallery (password welcomes are held, never here).
@@ -184,34 +235,34 @@ export const EntryModal = forwardRef<
       dismissMode={dismissMode}
       onDismiss={handleDismiss}
       title={
-        isReviewing || current === "welcome"
-          ? `Welcome to ${eventName}`
-          : current === "password"
-            ? `${eventName} is private`
-            : "See all the photos"
+        holding
+          ? "You're in"
+          : isReviewing || current === "welcome"
+            ? `Welcome to ${eventName}`
+            : current === "password"
+              ? `${eventName} is private`
+              : "See all the photos"
       }
       description={
-        isReviewing || current === "welcome"
-          ? "A shared gallery for the whole event."
-          : current === "password"
-            ? "Enter the event password to view it."
-            : "Create a free account to see the full gallery and add your own photos."
+        holding
+          ? "Opening the gallery."
+          : isReviewing || current === "welcome"
+            ? "A shared gallery for the whole event."
+            : current === "password"
+              ? "Enter the event password to view it."
+              : "Create a free account to see the full gallery and add your own photos."
       }
     >
-      <EntryStepTransition
-        stepKey={
-          holding ? "success" : isReviewing ? "welcome-review" : (current ?? "none")
-        }
-        direction={direction}
-      >
+      <EntryStepTransition stepKey={displayKey} direction={direction}>
         <div className="relative pt-1">
-          {holding ? (
+          {displayKey === "success" && (
             <SuccessStep
               slow={slow}
               stalled={stalled}
               onRetry={() => router.refresh()}
             />
-          ) : isReviewing ? (
+          )}
+          {displayKey === "welcome-review" && (
             <WelcomeStep
               eventName={eventName}
               hostName={hostName}
@@ -229,60 +280,64 @@ export const EntryModal = forwardRef<
               }}
               onBrowse={() => {}}
             />
-          ) : (
-            <>
-              {/* The gate steps carry a chevron back to the welcome (R5: the
-                  guest can always re-read what this is). */}
-              {(current === "password" || current === "account") && (
-                <button
-                  type="button"
-                  aria-label="Back to the welcome"
-                  onClick={() => {
-                    setDirection("back");
-                    setReviewing(true);
-                  }}
-                  className="absolute top-0 left-0 flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <ChevronLeft className="size-5" />
-                </button>
-              )}
-              {current === "welcome" && (
-                <WelcomeStep
-                  eventName={eventName}
-                  hostName={hostName}
-                  eventDate={eventDate}
-                  hostAvatarUrl={hostAvatarUrl}
-                  mediaTotal={mediaTotal}
-                  gateNext={steps.length > 1}
-                  // "Just browsing" only when a BROWSABLE teaser sits behind (an
-                  // account gate); a password gate has nothing to browse, and it
-                  // would auto-reopen anyway.
-                  browseAvailable={steps[1] === "account"}
-                  onContinue={continueFromWelcome}
-                  onBrowse={() => markSeen()}
-                />
-              )}
-              {/* pt-7 clears the absolute back chevron's row so it never
-                  overlaps the centered gate heading (long event names). */}
-              {current === "password" && (
-                <div className="pt-7">
-                  <PasswordGate
-                    token={qrToken}
-                    eventName={eventName}
-                    onUnlocked={onUnlocked}
-                  />
-                </div>
-              )}
-              {current === "account" && (
-                <div className="pt-7">
-                  <EnterEventPrompt
-                    qrToken={qrToken}
-                    mediaTotal={mediaTotal}
-                    onUnlocked={onUnlocked}
-                  />
-                </div>
-              )}
-            </>
+          )}
+          {/* The gate steps carry a chevron back to the welcome (R5: the
+              guest can always re-read what this is) - hidden while the
+              success beat plays (nothing to go back to mid-celebration). */}
+          {(displayKey === "password" || displayKey === "account") &&
+            !holding && (
+              <button
+                type="button"
+                aria-label="Back to the welcome"
+                onClick={() => {
+                  setDirection("back");
+                  setReviewing(true);
+                }}
+                className="absolute top-0 left-0 flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            )}
+          {displayKey === "welcome" && (
+            <WelcomeStep
+              eventName={eventName}
+              hostName={hostName}
+              eventDate={eventDate}
+              hostAvatarUrl={hostAvatarUrl}
+              mediaTotal={mediaTotal}
+              gateNext={steps.length > 1}
+              // "Just browsing" only when a BROWSABLE teaser sits behind (an
+              // account gate); a password gate has nothing to browse, and it
+              // would auto-reopen anyway.
+              browseAvailable={steps[1] === "account"}
+              onContinue={continueFromWelcome}
+              onBrowse={() => markSeen()}
+            />
+          )}
+          {/* pt-7 clears the absolute back chevron's row so it never
+              overlaps the centered gate heading (long event names). The gate
+              stays MOUNTED through the password hold + the exit (the latch
+              keeps displayKey "password"), so its in-place morph rides the
+              whole choreography on one instance. */}
+          {displayKey === "password" && (
+            <div className="pt-7">
+              <PasswordGate
+                token={qrToken}
+                eventName={eventName}
+                onUnlocked={handleUnlocked}
+                stalled={stalled}
+                onRetry={() => router.refresh()}
+              />
+            </div>
+          )}
+          {displayKey === "account" && (
+            <div className="pt-7">
+              <EnterEventPrompt
+                qrToken={qrToken}
+                mediaTotal={mediaTotal}
+                onUnlocked={handleUnlocked}
+              />
+            </div>
           )}
         </div>
       </EntryStepTransition>
@@ -374,7 +429,11 @@ function WelcomeStep({
   const count = mediaTotal ?? 0;
 
   return (
-    <div className="flex flex-col gap-5">
+    // data-welcome-step: the ratified "tall" presence (~55svh) applies ONLY
+    // inside the phone sheet, via [data-entry-drawer] [data-welcome-step] in
+    // globals.css; the desktop dialog stays content-height. The CTA block's
+    // mt-auto pins it to the sheet's foot when the minimum height engages.
+    <div data-welcome-step className="flex flex-col gap-5">
       <div className="flex flex-col">
         <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           You&rsquo;re invited to
@@ -423,7 +482,7 @@ function WelcomeStep({
         </p>
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="mt-auto flex flex-col gap-1">
         <Button
           onClick={onContinue}
           size="lg"

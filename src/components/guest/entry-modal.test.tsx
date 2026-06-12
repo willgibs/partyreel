@@ -21,7 +21,18 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 vi.mock("@/components/auth/email-sign-in", () => ({
-  EmailSignIn: () => <div data-testid="email-sign-in" />,
+  // The stub exposes the verify trigger so the hold pins can complete the
+  // account gate without the real OTP machinery.
+  EmailSignIn: ({ onVerified }: { onVerified: () => void }) => (
+    <div data-testid="email-sign-in">
+      <button type="button" data-testid="stub-verify" onClick={onVerified}>
+        verify
+      </button>
+    </div>
+  ),
+}));
+vi.mock("@/lib/guest/claim-uploads", () => ({
+  claimAnonymousUploads: vi.fn().mockResolvedValue(undefined),
 }));
 // The arrival BEAT (its own pins in use-arrival-beat.test.ts) just delays the
 // auto-open; here it must resolve instantly so the surface renders for the
@@ -158,6 +169,60 @@ describe("the back affordance (reviewing the welcome)", () => {
     expect(
       screen.queryByRole("button", { name: "Back to the welcome" }),
     ).toBeNull();
+  });
+
+  it("the success hold is dismissal-proof, even on a free step", async () => {
+    const { ref } = renderModal({ gateSteps: ["account"] });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    expect(
+      await screen.findByText("Welcome to the party"),
+    ).toBeInTheDocument();
+    // The account step is normally "free", but the HOLD is held: no X, the
+    // Escape is inert, and openToGate is a no-op until the beat resolves.
+    expect(closeButton()).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByText("Welcome to the party")).toBeInTheDocument();
+    act(() => ref.current!.openToGate());
+    expect(screen.getByText("Welcome to the party")).toBeInTheDocument();
+  });
+
+  it("the lighter path hands a RETURNING guest forward to the account step", async () => {
+    // Welcome already seen -> the guest lands straight on the password gate
+    // with `proceeded` false. The unlock must still hand forward (the audit's
+    // dead-end finding: without setProceeded in handleUnlocked, the sheet
+    // closed to the teaser after "You're in").
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true } as Response));
+    localStorage.setItem(`pr_welcome_${QR}`, "1");
+    const { rerender } = renderModal({ gateSteps: ["password"] });
+    const input = screen.getByLabelText("Event password");
+    fireEvent.change(input, { target: { value: "pw" } });
+    fireEvent.submit(input.closest("form")!);
+    // Let the unlock promise resolve under fake timers. The PLANTED gate's
+    // morph subtext is the unique marker (the sr-only a11y title also says
+    // "You're in").
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10);
+    });
+    expect(screen.getByText("Opening the gallery")).toBeInTheDocument();
+    expect(screen.getByLabelText("Event password")).toBeInTheDocument();
+    // The refresh lands: the password gate drops, the account gate surfaces.
+    rerender(
+      <EntryModal
+        qrToken={QR}
+        eventName="Test Wedding"
+        gateSteps={["account"]}
+        isOwner={false}
+        isDemo={false}
+      />,
+    );
+    // The beat resolves -> the held view hands FORWARD, no exit.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+    });
+    expect(screen.getByTestId("email-sign-in")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("the surface closes mid-review when the flow resolves server-side", () => {

@@ -444,26 +444,75 @@
     }
   }
 
-  /* The guest entry SHEET (Vaul, Phase 4.5): vaul writes its 500ms iOS-curve
-     transition as an INLINE style, so the house exits-faster rule (and the
-     reduced-motion clamp below) must out-rank it with !important. Scoped to
-     data-state="closed" so drag-release snap physics (which reuse the
-     open-state transition) stay untouched. The ENTER keeps vaul's native
-     500ms drawer curve: the arrival is a sanctioned rare/first-time moment
-     (the craft standard's exception to the under-300ms rule). */
+  /* The RATIFIED welcome presence ("tall ~55svh", the Calm arrival): inside
+     the phone sheet the invitation stands toward screen center instead of
+     hugging the bottom edge (Will's "eyes go to center"). Drawer-scoped: the
+     desktop dialog stays content-height. The step container's height
+     transition turns the welcome -> gate shrink into the same glide. */
+  [data-entry-drawer] [data-welcome-step] {
+    min-height: 55svh;
+  }
+
+  /* The guest entry SHEET (Vaul, Phase 4.5): vaul's 500ms iOS-curve motion
+     lives in its INJECTED STYLESHEET - and with no snapPoints the open/close
+     runs on KEYFRAME ANIMATIONS (slideToBottom / fadeOut), NOT the transition
+     (that drives drag-release snap-back, which happens under
+     data-state="open" and stays untouched here). So the exits-faster rule
+     must override animation-duration (transition-duration kept as
+     belt-and-braces); !important + the data-state="closed" scope keep it
+     surgical. The ENTER keeps vaul's native 500ms drawer curve: the arrival
+     is a sanctioned rare/first-time moment (the craft standard's exception
+     to the under-300ms rule). */
   @media (prefers-reduced-motion: no-preference) {
     [data-entry-drawer][data-state="closed"] {
+      animation-duration: 250ms !important;
       transition-duration: 250ms !important;
     }
     [data-entry-overlay][data-state="closed"] {
+      animation-duration: 200ms !important;
       transition-duration: 200ms !important;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    /* The global 0.01ms clamp loses to vaul's inline style; this one wins. */
+    /* The global clamp already covers the keyframes; this adds the
+       transition side (drag-release) for the entry surface explicitly. */
     [data-entry-drawer],
     [data-entry-overlay] {
+      animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* THE REVEAL CURTAIN (Phase 4.5): while the entry sheet's success beat
+     holds, the freshly mounted reveal targets + masonry tiles wait at their
+     pre-entrance state; when the hold releases (the attribute drops) they
+     rise through their normal transitions + delays - the reveal plays AS the
+     sheet exits instead of invisibly behind it during the refresh roundtrip.
+     Reduced motion never holds anything back (no curtain rules = the plain
+     reduced fades run on mount). */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal-curtain] [data-reveal] {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    [data-reveal-curtain] [data-media-tile] {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  /* The gate button's ratified success morph: the re-keyed check + "You're
+     in" pops in (from scale(0.9), never scale(0)) as the button turns
+     --success green. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-unlock-success] {
+      transition:
+        opacity 200ms var(--ease-emphasis),
+        transform 200ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: scale(0.9);
+      }
     }
   }
 

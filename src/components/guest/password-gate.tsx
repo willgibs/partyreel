@@ -8,7 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Check, Eye, EyeOff, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,10 @@ type PasswordGateProps = {
   /** Fired the instant the unlock succeeds, so the entry surface can hold the
    *  "You're in" beat over the router.refresh() roundtrip (Phase 4.5 S5). */
   onUnlocked?: () => void;
+  /** The held beat ran past the watchdog (the refresh hung): show Retry.
+   *  The unlock cookie is set, so retrying always recovers. */
+  stalled?: boolean;
+  onRetry?: () => void;
 };
 
 export function PasswordGate({
@@ -30,6 +34,8 @@ export function PasswordGate({
   eventName,
   variant = "light",
   onUnlocked,
+  stalled = false,
+  onRetry,
 }: PasswordGateProps) {
   const router = useRouter();
   const [password, setPassword] = useState("");
@@ -77,7 +83,7 @@ export function PasswordGate({
       // Client throttle: after every 5 wrong guesses, a 20s cooldown before the next server hit.
       failsRef.current += 1;
       if (failsRef.current % 5 === 0) setCooldownLeft(20);
-      setError("That password didn't work. Try again.");
+      setError("That password didn't work. Give it another try.");
     });
   }
 
@@ -130,7 +136,9 @@ export function PasswordGate({
             aria-label="Event password"
             aria-invalid={error ? true : undefined}
             className={cn(
-              "pr-10",
+              // h-11 + 16px text: the ratified gate input size (16px also
+              // stops the iOS focus auto-zoom).
+              "h-11 pr-10 text-base",
               dark &&
                 "border-white/20 bg-white/5 text-white placeholder:text-white/40",
             )}
@@ -149,7 +157,7 @@ export function PasswordGate({
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
-        {(cooldownLeft > 0 || error) && (
+        {(cooldownLeft > 0 || error) && !done && (
           <p
             className={cn(
               "text-sm",
@@ -157,21 +165,64 @@ export function PasswordGate({
             )}
           >
             {cooldownLeft > 0
-              ? `Too many attempts. Try again in ${cooldownLeft}s.`
+              ? `Too many tries. You can go again in ${cooldownLeft}s.`
               : error}
           </p>
         )}
-        <Button
-          type="submit"
-          className="h-11 w-full text-[15px]"
-          disabled={pending || done || !password.trim() || cooldownLeft > 0}
-        >
-          {pending || done
-            ? "Unlocking…"
-            : cooldownLeft > 0
-              ? `Wait ${cooldownLeft}s`
-              : "Unlock"}
-        </Button>
+        {/* THE RATIFIED SUCCESS MORPH (the lab pick Will judged): the gate
+            stays PLANTED and the Unlock button itself morphs to --success
+            green with a re-keyed check + "You're in" for the whole held beat;
+            the subtext says what's happening. If the refresh hangs past the
+            watchdog, the button becomes the Retry (the cookie is set, so it
+            always recovers; the form never re-enables). */}
+        {done && stalled ? (
+          <Button
+            type="button"
+            onClick={onRetry}
+            className="h-12 w-full text-[15px]"
+          >
+            Open the gallery
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            className={cn(
+              "h-12 w-full text-[15px] transition-colors duration-200",
+              done &&
+                "bg-success text-success-foreground hover:bg-success disabled:opacity-100",
+            )}
+            disabled={pending || done || !password.trim() || cooldownLeft > 0}
+          >
+            {done ? (
+              <span
+                key="in"
+                data-unlock-success
+                className="flex items-center gap-2"
+              >
+                <Check className="size-4.5" />
+                You&rsquo;re in
+              </span>
+            ) : pending ? (
+              "Unlocking…"
+            ) : cooldownLeft > 0 ? (
+              `Wait ${cooldownLeft}s`
+            ) : (
+              "Unlock"
+            )}
+          </Button>
+        )}
+        {done && (
+          <p
+            className={cn(
+              "text-center text-sm",
+              dark ? "text-white/60" : "text-muted-foreground",
+            )}
+          >
+            {stalled
+              ? "You're unlocked, the gallery just didn't open. Give it one more tap."
+              : "Opening the gallery"}
+          </p>
+        )}
       </form>
     </div>
   );

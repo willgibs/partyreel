@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * THE SUCCESS HOLD (Phase 4.5 S5). On unlock, the gate forms fire
@@ -42,6 +42,8 @@ export function useSuccessHold({
   watchdogMs?: number;
 }): {
   holding: boolean;
+  /** The step the success fired on (drives the held in-place morph view). */
+  heldStep: string | null;
   /** Past the slow threshold but still holding: swap to "Opening the gallery". */
   slow: boolean;
   /** The refresh hung past the watchdog: offer Retry. */
@@ -53,8 +55,14 @@ export function useSuccessHold({
   const [beatDone, setBeatDone] = useState(false);
   const [slow, setSlow] = useState(false);
   const [stalled, setStalled] = useState(false);
+  // Idempotence guard read inside the callback (state would be stale there).
+  const holdingRef = useRef(false);
 
   const onUnlocked = useCallback(() => {
+    // Idempotent: a second success signal mid-hold must not re-anchor
+    // heldStep (it could record the LANDED step and brick the release).
+    if (holdingRef.current) return;
+    holdingRef.current = true;
     setHeldStep(current);
     setHolding(true);
     setBeatDone(false);
@@ -84,8 +92,15 @@ export function useSuccessHold({
     setHolding(false);
   }
 
+  // Keep the idempotence latch in sync post-commit (re-arms after a release,
+  // e.g. for the account gate that follows a password unlock).
+  useEffect(() => {
+    holdingRef.current = holding;
+  }, [holding]);
+
   return {
     holding,
+    heldStep: holding ? heldStep : null,
     slow: holding && slow,
     // Only stalled while genuinely stuck (a landed refresh is releasing, not stalled).
     stalled: holding && stalled && !landed,

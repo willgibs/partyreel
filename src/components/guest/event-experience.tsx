@@ -108,6 +108,12 @@ export function EventExperience({
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
+  // THE REVEAL CURTAIN (Phase 4.5): while the entry sheet's success beat
+  // holds, the freshly mounted reveal targets + masonry tiles wait at their
+  // pre-entrance state (globals.css [data-reveal-curtain]); when the hold
+  // releases the attribute drops and everything rises AS the sheet exits,
+  // instead of playing invisibly behind it during the refresh roundtrip.
+  const [holdCurtain, setHoldCurtain] = useState(false);
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -133,7 +139,10 @@ export function EventExperience({
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-8">
+    <div
+      className="mx-auto w-full max-w-2xl flex-1 px-5 py-8"
+      data-reveal-curtain={holdCurtain ? "" : undefined}
+    >
       {/* Claim anonymous uploads when a magic-link return lands the visitor here signed-in. Silent on the
           guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
           toast); self-guards when logged out. */}
@@ -153,6 +162,7 @@ export function EventExperience({
           hostName={event.host_display_name}
           eventDate={event.event_date}
           hostAvatarUrl={hostAvatarUrl}
+          onHoldingChange={setHoldCurtain}
         />
       </Suspense>
       {isDemo && (

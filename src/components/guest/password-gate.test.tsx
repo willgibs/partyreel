@@ -73,12 +73,51 @@ describe("PasswordGate", () => {
     expect(vi.mocked(global.fetch)).toHaveBeenCalledTimes(1);
   });
 
+  it("the ratified in-place morph: the gate stays planted and the button turns success", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
+    renderGate(vi.fn());
+    submit("right-password");
+    // The button itself morphs (data-unlock-success span: check + "You're in")
+    // while the WHOLE gate stays mounted - no step swap.
+    expect(await screen.findByText(/You(’|')re in/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Event password")).toBeInTheDocument();
+    expect(screen.getByLabelText("Event password")).toBeDisabled();
+    expect(screen.getByText("Opening the gallery")).toBeInTheDocument();
+  });
+
+  it("a stalled hold turns the button into Retry (the form never re-enables)", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
+    const onRetry = vi.fn();
+    const { rerender } = render(
+      <PasswordGate
+        token="testtoken1234"
+        eventName="Test Wedding"
+        onUnlocked={vi.fn()}
+        onRetry={onRetry}
+      />,
+    );
+    submit("right-password");
+    await screen.findByText(/You(’|')re in/);
+    rerender(
+      <PasswordGate
+        token="testtoken1234"
+        eventName="Test Wedding"
+        onUnlocked={vi.fn()}
+        stalled
+        onRetry={onRetry}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open the gallery" }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Event password")).toBeDisabled();
+  });
+
   it("does not fire onUnlocked on a wrong password", async () => {
     vi.mocked(global.fetch).mockResolvedValue({ ok: false } as Response);
     const onUnlocked = vi.fn();
     renderGate(onUnlocked);
     submit("wrong");
-    await screen.findByText("That password didn't work. Try again.");
+    await screen.findByText("That password didn't work. Give it another try.");
     expect(onUnlocked).not.toHaveBeenCalled();
   });
 
@@ -87,14 +126,14 @@ describe("PasswordGate", () => {
     renderGate();
     submit("wrong");
     expect(
-      await screen.findByText("That password didn't work. Try again."),
+      await screen.findByText("That password didn't work. Give it another try."),
     ).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText("Event password"), {
       target: { value: "wrong2" },
     });
     expect(
-      screen.queryByText("That password didn't work. Try again."),
+      screen.queryByText("That password didn't work. Give it another try."),
     ).toBeNull();
   });
 });

@@ -103,7 +103,13 @@ function StepLayer({
     // data-dir attribute is read fresh off the DOM at cleanup time).
     const container = containerRef.current;
     return () => {
-      if (!el || !container || !container.isConnected) return;
+      // el.isConnected discriminates a REAL key-swap deletion (the node is
+      // already detached when this passive cleanup runs; cloneNode still
+      // captures its final DOM) from a dev StrictMode setup->cleanup->setup
+      // cycle (the node is still live - cloning it would paint a ghost
+      // duplicate over the real content on every step in dev).
+      if (!el || el.isConnected || !container || !container.isConnected)
+        return;
       const exitDir = container.dataset.dir ?? "fwd";
       const clone = el.cloneNode(true) as HTMLElement;
       clone.removeAttribute("data-entry-step");

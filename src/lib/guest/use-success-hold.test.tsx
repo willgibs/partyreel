@@ -80,6 +80,31 @@ describe("useSuccessHold", () => {
     expect(result.current.holding).toBe(true); // the form never reappears; Retry is offered
   });
 
+  it("onUnlocked is idempotent: a second call mid-hold cannot re-anchor the held step", () => {
+    vi.useFakeTimers();
+    const { result, rerender } = setup();
+    act(() => result.current.onUnlocked());
+    // The refresh lands mid-hold...
+    act(() => rerender({ current: "account" }));
+    // ...and a stray second success signal fires. If it re-anchored heldStep
+    // to "account", the release would never see a landing and the hold would
+    // brick. It must be ignored.
+    act(() => result.current.onUnlocked());
+    act(() => vi.advanceTimersByTime(900));
+    expect(result.current.holding).toBe(false);
+  });
+
+  it("exposes the held step while holding (drives the planted-gate morph)", () => {
+    vi.useFakeTimers();
+    const { result, rerender } = setup();
+    expect(result.current.heldStep).toBeNull();
+    act(() => result.current.onUnlocked());
+    expect(result.current.heldStep).toBe("password");
+    act(() => vi.advanceTimersByTime(900));
+    act(() => rerender({ current: null }));
+    expect(result.current.heldStep).toBeNull(); // released
+  });
+
   it("a landed refresh is never reported as stalled", () => {
     vi.useFakeTimers();
     const { result, rerender } = setup();

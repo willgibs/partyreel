@@ -167,12 +167,18 @@ export default async function GuestEventPage({
   // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
   // access `none` the page must reveal the event NAME + media COUNT only, and
   // props serialize into the RSC flight payload whether or not the UI renders
-  // them - so blank the host name + description (and skip the avatar read)
-  // BEFORE they reach the client. Previously these leaked in the payload of
-  // locked pages even though the header hid them.
+  // them - so blank the host name + description + DATE (and skip the avatar
+  // read) BEFORE they reach the client. The date joined the redaction in
+  // Phase 4.5: the entry welcome's byline would otherwise show it on locked
+  // pages, where the pre-4.5 page never revealed it.
   const shellEvent =
     access === "none"
-      ? { ...event, host_display_name: null, description: null }
+      ? {
+          ...event,
+          host_display_name: null,
+          description: null,
+          event_date: null,
+        }
       : event;
 
   // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client

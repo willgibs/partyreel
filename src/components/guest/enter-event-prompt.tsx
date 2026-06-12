@@ -63,6 +63,11 @@ export function EnterEventPrompt({
               inputClassName="h-11 text-base"
               buttonClassName="h-11 text-[15px]"
               onVerified={async () => {
+                // Blur FIRST so the iOS keyboard retracts during the success
+                // beat, never mid-exit (without reaching into EmailSignIn).
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
                 // In-page OTP verify does router.refresh() (no remount), so claim directly here. Silent:
                 // the guest page isn't the account context + must not stack with other toasts.
                 await claimAnonymousUploads({ silent: true });
@@ -82,6 +87,10 @@ export function EnterEventPrompt({
         ) : (
           <PasswordLogin
             onSignedIn={async () => {
+              // Blur first (see onVerified above), then claim + hold + refresh.
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
               // Password sign-in is in-page (no remount); claim directly, silent (see above).
               await claimAnonymousUploads({ silent: true });
               onUnlocked?.();

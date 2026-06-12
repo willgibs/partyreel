@@ -96,7 +96,7 @@ export function EntryShell({
         <Drawer.Content
           data-entry-drawer
           onCloseAutoFocus={(e) => e.preventDefault()}
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10 outline-none"
+          className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[calc(var(--radius-action)*1.4)] bg-popover px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10 outline-none"
         >
           {/* The handle is REAL now (vaul drag target) and renders only when
               dragging actually dismisses - the R2 honesty rule. */}
