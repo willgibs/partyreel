@@ -6,7 +6,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Camera, ChevronLeft, Images } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Camera, Check, ChevronLeft, Images } from "lucide-react";
 
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
@@ -15,6 +16,7 @@ import { PasswordGate } from "@/components/guest/password-gate";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
+import { useSuccessHold } from "@/lib/guest/use-success-hold";
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
 import { formatEventDate } from "@/lib/utils";
 
@@ -101,11 +103,20 @@ export const EntryModal = forwardRef<
     enabled: autoOpen,
     ms: current === "welcome" ? ARRIVAL_BEAT_MS.welcome : ARRIVAL_BEAT_MS.password,
   });
+  const router = useRouter();
+  // THE SUCCESS HOLD (Phase 4.5 S5): on unlock the gate fires onUnlocked() +
+  // router.refresh(); this holds the sheet on the "You're in" beat (masking
+  // the refresh roundtrip) until the RSC drops the gate, then releases into
+  // the reveal. `holding` ORs into open so the derived close can't slam shut
+  // before the beat plays.
+  const { holding, slow, stalled, onUnlocked } = useSuccessHold({ current });
+
   const open =
-    hydrated &&
-    current !== null &&
-    ((autoOpen && beatReady) || proceeded) &&
-    !manuallyClosed;
+    (hydrated &&
+      current !== null &&
+      ((autoOpen && beatReady) || proceeded) &&
+      !manuallyClosed) ||
+    holding;
 
   // THE BACK AFFORDANCE (Phase 4.5 S3): `reviewing` is a transient client
   // view OVER the server-driven machine - a gate step's chevron re-shows the
@@ -188,11 +199,19 @@ export const EntryModal = forwardRef<
       }
     >
       <EntryStepTransition
-        stepKey={isReviewing ? "welcome-review" : (current ?? "none")}
+        stepKey={
+          holding ? "success" : isReviewing ? "welcome-review" : (current ?? "none")
+        }
         direction={direction}
       >
         <div className="relative pt-1">
-          {isReviewing ? (
+          {holding ? (
+            <SuccessStep
+              slow={slow}
+              stalled={stalled}
+              onRetry={() => router.refresh()}
+            />
+          ) : isReviewing ? (
             <WelcomeStep
               eventName={eventName}
               hostName={hostName}
@@ -247,12 +266,20 @@ export const EntryModal = forwardRef<
                   overlaps the centered gate heading (long event names). */}
               {current === "password" && (
                 <div className="pt-7">
-                  <PasswordGate token={qrToken} eventName={eventName} />
+                  <PasswordGate
+                    token={qrToken}
+                    eventName={eventName}
+                    onUnlocked={onUnlocked}
+                  />
                 </div>
               )}
               {current === "account" && (
                 <div className="pt-7">
-                  <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+                  <EnterEventPrompt
+                    qrToken={qrToken}
+                    mediaTotal={mediaTotal}
+                    onUnlocked={onUnlocked}
+                  />
                 </div>
               )}
             </>
@@ -262,6 +289,54 @@ export const EntryModal = forwardRef<
     </EntryShell>
   );
 });
+
+// THE SUCCESS BEAT (Phase 4.5 S5): the held "You're in" view that masks the
+// refresh roundtrip. A --success green check (the system's sanctioned feedback
+// color), "You're in", and "Opening the gallery" once it runs slow. If the
+// refresh hangs past the watchdog, a Retry (the unlock cookie is already set,
+// so it always recovers). On the full path this exits into the reveal; on a
+// password->account hop it hands forward to the account step.
+function SuccessStep({
+  slow,
+  stalled,
+  onRetry,
+}: {
+  slow: boolean;
+  stalled: boolean;
+  onRetry: () => void;
+}) {
+  if (stalled) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-6 text-center">
+        <p className="font-heading text-[22px] leading-tight text-balance">
+          That took longer than it should
+        </p>
+        <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
+          You&rsquo;re unlocked, the gallery just didn&rsquo;t open. Give it one
+          more tap.
+        </p>
+        <Button onClick={onRetry} size="lg" className="w-full text-[15px]">
+          Open the gallery
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col items-center gap-4 py-8 text-center">
+      <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
+        <Check className="size-7" />
+      </div>
+      <div>
+        <p className="font-heading text-[24px] leading-tight">
+          You&rsquo;re in
+        </p>
+        <p className="mt-1 text-base text-muted-foreground">
+          {slow ? "Opening the gallery" : "Welcome to the party"}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 // THE INVITATION (Phase 4.5): the warm front door. An eyebrow over the event
 // name as the Instrument Serif hero, the host's byline, the count as social

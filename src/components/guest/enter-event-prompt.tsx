@@ -21,10 +21,14 @@ import { signInSchema } from "@/lib/validation/auth";
 export function EnterEventPrompt({
   qrToken,
   mediaTotal,
+  onUnlocked,
 }: {
   qrToken: string;
   /** Approved media count for the "N photos are waiting" tease. */
   mediaTotal?: number;
+  /** Fired the instant access is granted, so the entry surface can hold the
+   *  "You're in" beat over the router.refresh() roundtrip (Phase 4.5 S5). */
+  onUnlocked?: () => void;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"email" | "password">("email");
@@ -62,6 +66,8 @@ export function EnterEventPrompt({
                 // In-page OTP verify does router.refresh() (no remount), so claim directly here. Silent:
                 // the guest page isn't the account context + must not stack with other toasts.
                 await claimAnonymousUploads({ silent: true });
+                // Hold the success beat over the refresh, then it reveals (S5).
+                onUnlocked?.();
                 router.refresh();
               }}
             />
@@ -78,6 +84,7 @@ export function EnterEventPrompt({
             onSignedIn={async () => {
               // Password sign-in is in-page (no remount); claim directly, silent (see above).
               await claimAnonymousUploads({ silent: true });
+              onUnlocked?.();
               router.refresh();
             }}
             onUseEmail={() => setMode("email")}

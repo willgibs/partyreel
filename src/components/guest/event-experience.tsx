@@ -178,7 +178,11 @@ export function EventExperience({
         {access !== "none" && (
           <>
             {(event.host_display_name?.trim() || event.event_date) && (
-              <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+              <p
+                data-reveal
+                style={{ "--reveal-i": 0 } as React.CSSProperties}
+                className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
+              >
                 {event.host_display_name?.trim() && (
                   <span className="flex items-center gap-1.5">
                     <span className="text-muted-foreground/70">Hosted by</span>
@@ -205,7 +209,11 @@ export function EventExperience({
                 )}
               </p>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p
+              data-reveal
+              style={{ "--reveal-i": 1 } as React.CSSProperties}
+              className="mt-1 text-xs text-muted-foreground"
+            >
               {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
               {" & videos"}
               {stats.contributorCount > 0 && (
@@ -217,7 +225,11 @@ export function EventExperience({
               )}
             </p>
             {event.description && (
-              <p className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground">
+              <p
+                data-reveal
+                style={{ "--reveal-i": 2 } as React.CSSProperties}
+                className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground"
+              >
                 {event.description}
               </p>
             )}
@@ -255,8 +267,15 @@ export function EventExperience({
         <>
           {/* The action block (ratified header): a full-width primary Add (only when
               the viewer can actually upload right now) over the 2-col secondary row —
-              Save (the growth lever; hidden in the demo) + Invite (share/QR). */}
-          <div className="mt-4" ref={sentinelRef}>
+              Save (the growth lever; hidden in the demo) + Invite (share/QR).
+              data-reveal: rises in last on the unlock reveal (the masonry's own
+              seeded stagger carries from here). */}
+          <div
+            className="mt-4"
+            ref={sentinelRef}
+            data-reveal
+            style={{ "--reveal-i": 3 } as React.CSSProperties}
+          >
             {canUpload && !galleryEmpty && (
               <Button
                 type="button"

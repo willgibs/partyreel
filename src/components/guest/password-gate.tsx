@@ -20,18 +20,24 @@ type PasswordGateProps = {
   eventName: string;
   // Kept for the polished view-only redesign (Part 2); /e/ uses the default light.
   variant?: "light" | "dark";
+  /** Fired the instant the unlock succeeds, so the entry surface can hold the
+   *  "You're in" beat over the router.refresh() roundtrip (Phase 4.5 S5). */
+  onUnlocked?: () => void;
 };
 
 export function PasswordGate({
   token,
   eventName,
   variant = "light",
+  onUnlocked,
 }: PasswordGateProps) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
   const [pending, start] = useTransition();
+  const inputRef = useRef<HTMLInputElement>(null);
   const dark = variant === "dark";
 
   // Client-side first barrier (cost/DDoS): after a burst of wrong guesses, impose a short cooldown
@@ -48,7 +54,7 @@ export function PasswordGate({
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!password.trim() || pending || cooldownLeft > 0) return;
+    if (!password.trim() || pending || cooldownLeft > 0 || done) return;
     setError(null);
     start(async () => {
       const res = await fetch("/api/guests/unlock", {
@@ -58,6 +64,13 @@ export function PasswordGate({
       });
       // Wait for the Set-Cookie before refreshing so the RSC sees it.
       if (res.ok) {
+        // Blur FIRST so the iOS keyboard retracts during the success beat,
+        // never mid-exit (the visualViewport jump). Then hold the beat (the
+        // entry surface masks the refresh) and refresh in parallel. `done`
+        // disables the form so a second submit can't fire.
+        inputRef.current?.blur();
+        setDone(true);
+        onUnlocked?.();
         router.refresh();
         return;
       }
@@ -100,12 +113,14 @@ export function PasswordGate({
       <form onSubmit={onSubmit} className="w-full space-y-3">
         <div className="relative">
           <Input
+            ref={inputRef}
             type={show ? "text" : "password"}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
               if (error) setError(null);
             }}
+            disabled={done}
             placeholder="Password"
             autoComplete="off"
             // NO autofocus (Phase 4.5 R3): on iOS the keyboard ambushed the
@@ -149,9 +164,9 @@ export function PasswordGate({
         <Button
           type="submit"
           className="h-11 w-full text-[15px]"
-          disabled={pending || !password.trim() || cooldownLeft > 0}
+          disabled={pending || done || !password.trim() || cooldownLeft > 0}
         >
-          {pending
+          {pending || done
             ? "Unlocking…"
             : cooldownLeft > 0
               ? `Wait ${cooldownLeft}s`

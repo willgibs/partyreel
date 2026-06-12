@@ -19,8 +19,14 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn());
 });
 
-function renderGate() {
-  return render(<PasswordGate token="testtoken1234" eventName="Test Wedding" />);
+function renderGate(onUnlocked?: () => void) {
+  return render(
+    <PasswordGate
+      token="testtoken1234"
+      eventName="Test Wedding"
+      onUnlocked={onUnlocked}
+    />,
+  );
 }
 
 function submit(value: string) {
@@ -49,6 +55,31 @@ describe("PasswordGate", () => {
       "/api/guests/unlock",
       expect.objectContaining({ method: "POST" }),
     );
+  });
+
+  it("fires onUnlocked once, blurs the input, and blocks a re-submit on ok", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
+    const onUnlocked = vi.fn();
+    renderGate(onUnlocked);
+    const input = screen.getByLabelText("Event password");
+    input.focus();
+    submit("right-password");
+    await waitFor(() => expect(onUnlocked).toHaveBeenCalledTimes(1));
+    // Blurred so the iOS keyboard retracts during the success beat.
+    expect(document.activeElement).not.toBe(input);
+    // The form is now disabled: a second submit fires nothing more.
+    fireEvent.submit(input.closest("form")!);
+    expect(onUnlocked).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(global.fetch)).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not fire onUnlocked on a wrong password", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({ ok: false } as Response);
+    const onUnlocked = vi.fn();
+    renderGate(onUnlocked);
+    submit("wrong");
+    await screen.findByText("That password didn't work. Try again.");
+    expect(onUnlocked).not.toHaveBeenCalled();
   });
 
   it("shows the error copy on a wrong password and clears it on typing", async () => {

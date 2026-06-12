@@ -372,6 +372,35 @@
     }
   }
 
+  /* THE REVEAL (Phase 4.5 S5): when the password/account gate clears, the
+     locked branch unmounts and the header's byline/stats/description/actions
+     MOUNT fresh, so @starting-style fires once for exactly them - they rise in
+     a small stagger behind the exiting sheet (the planted h1 does NOT remount,
+     so it stays put as the fixed point). The masonry's own seeded --tile-i
+     stagger carries the cascade from the actions down. Base delay 150ms +
+     50ms/step overlaps the sheet's 250ms exit tail. Fires once on an open
+     event's first load too (subtle). Reduced motion = fade, no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      transition:
+        opacity 240ms var(--ease-emphasis),
+        transform 240ms var(--ease-emphasis);
+      transition-delay: calc(150ms + var(--reveal-i, 0) * 50ms);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      transition: opacity 200ms ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
   /* The entry steps hand off DIRECTIONALLY inside one height-animated
      container (entry-step-transition.tsx, Phase 4.5): forward enters from
      the right, back from the left (overriding the shared rise above; the
