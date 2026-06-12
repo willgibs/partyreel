@@ -6,10 +6,17 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Camera, Images, PartyPopper, Smartphone } from "lucide-react";
+import {
+  Camera,
+  ChevronLeft,
+  Images,
+  PartyPopper,
+  Smartphone,
+} from "lucide-react";
 
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
+import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
@@ -79,6 +86,22 @@ export const EntryModal = forwardRef<
   const open =
     hydrated && current !== null && (autoOpen || proceeded) && !manuallyClosed;
 
+  // THE BACK AFFORDANCE (Phase 4.5 S3): `reviewing` is a transient client
+  // view OVER the server-driven machine - a gate step's chevron re-shows the
+  // welcome content; its primary returns forward. The machine never knows
+  // (markSeen/steps untouched). Direction is event-driven state: only the
+  // chevron goes "back". Both reset when the FLOW advances (the sanctioned
+  // adjust-state-during-render pattern).
+  const [reviewing, setReviewing] = useState(false);
+  const [direction, setDirection] = useState<"fwd" | "back">("fwd");
+  const [prevStep, setPrevStep] = useState(current);
+  if (current !== prevStep) {
+    setPrevStep(current);
+    setReviewing(false);
+    setDirection("fwd");
+  }
+  const isReviewing = reviewing && current !== "welcome" && current !== null;
+
   useImperativeHandle(
     ref,
     () => ({
@@ -129,40 +152,78 @@ export const EntryModal = forwardRef<
       dismissMode={dismissMode}
       onDismiss={handleDismiss}
       title={
-        current === "password"
-          ? `${eventName} is private`
-          : current === "account"
-            ? "See all the photos"
-            : `Welcome to ${eventName}`
+        isReviewing || current === "welcome"
+          ? `Welcome to ${eventName}`
+          : current === "password"
+            ? `${eventName} is private`
+            : "See all the photos"
       }
       description={
-        current === "password"
-          ? "Enter the event password to view it."
-          : current === "account"
-            ? "Create a free account to see the full gallery and add your own photos."
-            : "A shared gallery for the whole event."
+        isReviewing || current === "welcome"
+          ? "A shared gallery for the whole event."
+          : current === "password"
+            ? "Enter the event password to view it."
+            : "Create a free account to see the full gallery and add your own photos."
       }
     >
-      <div data-entry-step key={current} className="pt-1">
-        {current === "welcome" && (
-          <WelcomeStep
-            eventName={eventName}
-            gateNext={steps.length > 1}
-            // "Just browsing" only when a BROWSABLE teaser sits behind (an
-            // account gate); a password gate has nothing to browse, and it
-            // would auto-reopen anyway.
-            browseAvailable={steps[1] === "account"}
-            onContinue={continueFromWelcome}
-            onBrowse={() => markSeen()}
-          />
-        )}
-        {current === "password" && (
-          <PasswordGate token={qrToken} eventName={eventName} />
-        )}
-        {current === "account" && (
-          <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
-        )}
-      </div>
+      <EntryStepTransition
+        stepKey={isReviewing ? "welcome-review" : (current ?? "none")}
+        direction={direction}
+      >
+        <div className="relative pt-1">
+          {isReviewing ? (
+            <WelcomeStep
+              eventName={eventName}
+              gateNext
+              browseAvailable={false}
+              continueLabel={
+                current === "password" ? "Back to the password" : "Back"
+              }
+              onContinue={() => {
+                setDirection("fwd");
+                setReviewing(false);
+              }}
+              onBrowse={() => {}}
+            />
+          ) : (
+            <>
+              {/* The gate steps carry a chevron back to the welcome (R5: the
+                  guest can always re-read what this is). */}
+              {(current === "password" || current === "account") && (
+                <button
+                  type="button"
+                  aria-label="Back to the welcome"
+                  onClick={() => {
+                    setDirection("back");
+                    setReviewing(true);
+                  }}
+                  className="absolute top-0 left-0 flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+              )}
+              {current === "welcome" && (
+                <WelcomeStep
+                  eventName={eventName}
+                  gateNext={steps.length > 1}
+                  // "Just browsing" only when a BROWSABLE teaser sits behind (an
+                  // account gate); a password gate has nothing to browse, and it
+                  // would auto-reopen anyway.
+                  browseAvailable={steps[1] === "account"}
+                  onContinue={continueFromWelcome}
+                  onBrowse={() => markSeen()}
+                />
+              )}
+              {current === "password" && (
+                <PasswordGate token={qrToken} eventName={eventName} />
+              )}
+              {current === "account" && (
+                <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+              )}
+            </>
+          )}
+        </div>
+      </EntryStepTransition>
     </EntryShell>
   );
 });
@@ -173,6 +234,7 @@ function WelcomeStep({
   eventName,
   gateNext,
   browseAvailable,
+  continueLabel,
   onContinue,
   onBrowse,
 }: {
@@ -180,6 +242,8 @@ function WelcomeStep({
   gateNext: boolean;
   /** A browsable teaser exists behind the next gate (account gates only). */
   browseAvailable: boolean;
+  /** Override for the review view ("Back to the password"). */
+  continueLabel?: string;
   onContinue: () => void;
   /** Dismiss to the teaser (marks the welcome seen WITHOUT advancing). */
   onBrowse: () => void;
@@ -212,7 +276,7 @@ function WelcomeStep({
         </li>
       </ul>
       <Button onClick={onContinue} className="h-11 w-full text-[15px]">
-        {gateNext ? "Continue" : "View event"}
+        {continueLabel ?? (gateNext ? "Continue" : "View event")}
       </Button>
       {browseAvailable && (
         <Button

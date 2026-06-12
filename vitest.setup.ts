@@ -5,7 +5,14 @@
  * never sees this file.
  */
 import { afterEach, beforeEach, vi } from "vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
+
+// Entry-step EXIT CLONES (entry-step-transition.tsx) are inert pixels that
+// linger ~320ms during a step handoff; exclude them from text queries the
+// same way aria-hidden already excludes them from role queries.
+configure({
+  defaultIgnore: "script, style, [data-entry-exit], [data-entry-exit] *",
+});
 
 // src/lib/env.ts validates the public vars EAGERLY on import; components that
 // transitively import the supabase client need these to exist. Dummies only -

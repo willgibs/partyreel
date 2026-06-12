@@ -344,6 +344,49 @@
     }
   }
 
+  /* The entry steps hand off DIRECTIONALLY inside one height-animated
+     container (entry-step-transition.tsx, Phase 4.5): forward enters from
+     the right, back from the left (overriding the shared rise above; the
+     first layer of a mount carries no data-dir and keeps the rise). The
+     outgoing step leaves a static clone that fades the OPPOSITE way - an
+     INVERTED @starting-style: it mounts visible and transitions to hidden.
+     Reduced motion simply never shows the exit clone. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-entry-step][data-dir="fwd"] {
+      @starting-style {
+        opacity: 0;
+        transform: translateX(16px);
+      }
+    }
+    [data-entry-step][data-dir="back"] {
+      @starting-style {
+        opacity: 0;
+        transform: translateX(-16px);
+      }
+    }
+    [data-entry-exit] {
+      opacity: 0;
+      transition:
+        opacity 160ms var(--ease-emphasis),
+        transform 160ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    [data-entry-exit][data-exit-dir="fwd"] {
+      transform: translateX(-16px);
+    }
+    [data-entry-exit][data-exit-dir="back"] {
+      transform: translateX(16px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-entry-exit] {
+      display: none;
+    }
+  }
+
   /* The guest entry SHEET (Vaul, Phase 4.5): vaul writes its 500ms iOS-curve
      transition as an INLINE style, so the house exits-faster rule (and the
      reduced-motion clamp below) must out-rank it with !important. Scoped to

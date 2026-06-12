@@ -124,3 +124,57 @@ describe("flow wiring", () => {
     expect(screen.queryByText(/invited/)).toBeNull();
   });
 });
+
+describe("the back affordance (reviewing the welcome)", () => {
+  it("the gate's chevron re-shows the welcome and returns without touching the machine", () => {
+    renderModal({ gateSteps: ["password"] });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Event password")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Back to the welcome" }),
+    );
+    expect(
+      screen.getByText(/You(’|')re invited to Test Wedding/),
+    ).toBeInTheDocument();
+    // The review is a VIEW, not a step: no browse path, the primary returns.
+    expect(screen.queryByText("Just browsing")).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Back to the password" }),
+    );
+    expect(screen.getByLabelText("Event password")).toBeInTheDocument();
+  });
+
+  it("no chevron on the welcome itself", () => {
+    renderModal({ gateSteps: ["password"] });
+    expect(
+      screen.queryByRole("button", { name: "Back to the welcome" }),
+    ).toBeNull();
+  });
+
+  it("the surface closes mid-review when the flow resolves server-side", () => {
+    const { rerender, ref } = (() => {
+      const r = renderModal({ gateSteps: ["password"] });
+      return r;
+    })();
+    void ref;
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Back to the welcome" }),
+    );
+    expect(screen.getByText(/You(’|')re invited/)).toBeInTheDocument();
+    // The unlock landed: the RSC re-derives and the password gate vanishes.
+    rerender(
+      <EntryModal
+        qrToken={QR}
+        eventName="Test Wedding"
+        gateSteps={[]}
+        isOwner={false}
+        isDemo={false}
+      />,
+    );
+    expect(screen.queryByLabelText("Event password")).toBeNull();
+    expect(screen.queryByText(/You(’|')re invited/)).toBeNull();
+  });
+});
