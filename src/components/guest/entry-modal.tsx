@@ -9,14 +9,9 @@ import {
 import { Camera, Images, PartyPopper, Smartphone } from "lucide-react";
 
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
+import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
 
@@ -26,17 +21,23 @@ const subscribeNoop = () => () => {};
 export type EntryModalHandle = { openToGate: () => void };
 
 /**
- * The unified guest ENTRY modal: one Dialog whose ordered steps adapt to the event
+ * The unified guest ENTRY surface: one shell (a Vaul drawer on phones, the
+ * centered Dialog on sm+ - see entry-shell.tsx) whose ordered steps adapt to the event
  * (`welcome -> password? -> account?`). The CURRENT step is always the first un-satisfied one; it is
  * SERVER-DRIVEN -- each step's existing form (`<PasswordGate>` / `<EnterEventPrompt>`) calls
  * `router.refresh()` on success, which re-runs the RSC, drops the satisfied gate from `gateSteps`, and
  * re-derives the step here. No client step-machine to desync.
  *
- * Dismissibility fits what's behind each step (the "dismiss to what?" rule):
- * - welcome: freely dismissable -> the page behind (full gallery if public; teaser if gated).
- * - password: FIRM (no X / backdrop / Escape) -- it IS the gated page, nothing real behind it.
- * - account: closes (a deliberate X) back to the BROWSABLE teaser; the gallery's "See all" caption
- *   re-opens it via the `openToGate` handle.
+ * Dismissibility fits what's behind each step (the "dismiss to what?" rule,
+ * tightened in Phase 4.5 to the HONEST-AFFORDANCE table):
+ * - welcome BEFORE a password gate: HELD (the old X "closed" it only for the
+ *   firm gate to instantly re-open - a disorienting lie; the flow is now
+ *   continuous: Continue is the path, drag rubber-bands).
+ * - welcome before an account gate / standalone: free -> dismiss to the page
+ *   behind (teaser or full gallery), marking the welcome seen.
+ * - password: HELD (it IS the gated page, nothing real behind it).
+ * - account: free -> closes to the BROWSABLE teaser; the gallery's "See all"
+ *   caption re-opens it via the `openToGate` handle.
  */
 export const EntryModal = forwardRef<
   EntryModalHandle,
@@ -90,13 +91,20 @@ export const EntryModal = forwardRef<
     [],
   );
 
-  const isFirm = current === "password"; // nothing behind it, so no casual dismiss
+  // THE HONEST-AFFORDANCE TABLE (Phase 4.5, ratified): dismissal exists only
+  // when there is something to dismiss TO. A welcome whose NEXT step is the
+  // firm password gate is held (the continuous invitation -> gate flow).
+  const dismissMode: DismissMode =
+    current === "password" ||
+    (current === "welcome" && steps[1] === "password")
+      ? "held"
+      : "free";
 
-  function handleOpenChange(next: boolean) {
-    if (next) return; // open is fully controlled; we never open via Radix
+  // Fired by the shell ONLY for a user dismissal of a "free" surface.
+  function handleDismiss() {
     if (current === "welcome") {
-      // Dismissing the welcome marks it seen; re-derivation decides what shows: a password gate
-      // re-opens (it auto-opens), an account gate closes to the teaser, public closes to the gallery.
+      // Dismissing the welcome marks it seen; re-derivation decides what shows: an account gate
+      // closes to the teaser, public closes to the gallery (password welcomes are held, never here).
       markSeen();
     } else if (current === "account") {
       setManuallyClosed(true); // close to the browsable teaser; the "See all" caption reopens it
@@ -111,66 +119,51 @@ export const EntryModal = forwardRef<
     if (steps.length > 1) setProceeded(true);
   }
 
+  // Nothing renders pre-hydration (open is always false there anyway); the
+  // early return keeps the shell branch (drawer vs dialog) client-only.
+  if (!hydrated) return null;
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        // The ADAPTIVE SHEET chrome (Phase 4): a bottom-pinned full-width sheet
-        // on phones (max-sm: utilities neutralize the dialog's centered
-        // translate + pin it to the bottom with big top corners + a slide-up),
-        // the centered float on sm+. max-sm: lands LAST in the merged className,
-        // so it beats the base utilities at equal specificity. The step machine,
-        // firmness, and welcome-seen wiring are untouched.
-        data-entry-sheet
-        showCloseButton={!isFirm}
-        onInteractOutside={isFirm ? (e) => e.preventDefault() : undefined}
-        onEscapeKeyDown={isFirm ? (e) => e.preventDefault() : undefined}
-        className="sm:max-w-sm max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:w-full max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-b-none max-sm:rounded-t-[calc(var(--radius-action)*1.4)] max-sm:pb-[calc(1rem+env(safe-area-inset-bottom))] max-sm:data-open:slide-in-from-bottom-6 max-sm:data-closed:slide-out-to-bottom-6"
-      >
-        {/* The drag-indicator bar: DISMISSIBLE steps only (a drag bar on the
-            firm password step would promise a swipe-away it blocks). */}
-        {!isFirm && (
-          <div
-            aria-hidden
-            className="mx-auto -mt-1 mb-1 h-1 w-9 rounded-full bg-muted-foreground/30 sm:hidden"
+    <EntryShell
+      open={open}
+      dismissMode={dismissMode}
+      onDismiss={handleDismiss}
+      title={
+        current === "password"
+          ? `${eventName} is private`
+          : current === "account"
+            ? "See all the photos"
+            : `Welcome to ${eventName}`
+      }
+      description={
+        current === "password"
+          ? "Enter the event password to view it."
+          : current === "account"
+            ? "Create a free account to see the full gallery and add your own photos."
+            : "A shared gallery for the whole event."
+      }
+    >
+      <div data-entry-step key={current} className="pt-1">
+        {current === "welcome" && (
+          <WelcomeStep
+            eventName={eventName}
+            gateNext={steps.length > 1}
+            // "Just browsing" only when a BROWSABLE teaser sits behind (an
+            // account gate); a password gate has nothing to browse, and it
+            // would auto-reopen anyway.
+            browseAvailable={steps[1] === "account"}
+            onContinue={continueFromWelcome}
+            onBrowse={() => markSeen()}
           />
         )}
-        {/* a11y name (Radix requires a title); each step renders its own visible heading. */}
-        <DialogTitle className="sr-only">
-          {current === "password"
-            ? `${eventName} is private`
-            : current === "account"
-              ? "See all the photos"
-              : `Welcome to ${eventName}`}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          {current === "password"
-            ? "Enter the event password to view it."
-            : current === "account"
-              ? "Create a free account to see the full gallery and add your own photos."
-              : "A shared gallery for the whole event."}
-        </DialogDescription>
-        <div data-entry-step key={current} className="pt-1">
-          {current === "welcome" && (
-            <WelcomeStep
-              eventName={eventName}
-              gateNext={steps.length > 1}
-              // "Just browsing" only when a BROWSABLE teaser sits behind (an
-              // account gate); a password gate has nothing to browse, and it
-              // would auto-reopen anyway.
-              browseAvailable={steps[1] === "account"}
-              onContinue={continueFromWelcome}
-              onBrowse={() => markSeen()}
-            />
-          )}
-          {current === "password" && (
-            <PasswordGate token={qrToken} eventName={eventName} />
-          )}
-          {current === "account" && (
-            <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        {current === "password" && (
+          <PasswordGate token={qrToken} eventName={eventName} />
+        )}
+        {current === "account" && (
+          <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+        )}
+      </div>
+    </EntryShell>
   );
 });
 

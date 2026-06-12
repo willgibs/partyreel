@@ -344,6 +344,29 @@
     }
   }
 
+  /* The guest entry SHEET (Vaul, Phase 4.5): vaul writes its 500ms iOS-curve
+     transition as an INLINE style, so the house exits-faster rule (and the
+     reduced-motion clamp below) must out-rank it with !important. Scoped to
+     data-state="closed" so drag-release snap physics (which reuse the
+     open-state transition) stay untouched. The ENTER keeps vaul's native
+     500ms drawer curve: the arrival is a sanctioned rare/first-time moment
+     (the craft standard's exception to the under-300ms rule). */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-entry-drawer][data-state="closed"] {
+      transition-duration: 250ms !important;
+    }
+    [data-entry-overlay][data-state="closed"] {
+      transition-duration: 200ms !important;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* The global 0.01ms clamp loses to vaul's inline style; this one wins. */
+    [data-entry-drawer],
+    [data-entry-overlay] {
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* The 404 / not-found hero (root app/not-found.tsx + the guest event-link and host
      dashboard variants) fades + rises in on first paint. Same language as the
      [data-media-tile] / settings reveals above: strong --ease-emphasis curve, transform +

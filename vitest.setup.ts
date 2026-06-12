@@ -20,28 +20,44 @@ afterEach(cleanup);
 // React 19 + RTL act() integration.
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 
-/* ── matchMedia, with a reduced-motion knob ──────────────────────────────
+/* ── matchMedia, with reduced-motion + viewport knobs ────────────────────
    Default = no-preference so the lightbox runs its ANIMATED settle path;
-   tests opt into the reduced-motion instant path via setReducedMotion(true). */
+   tests opt into the reduced-motion instant path via setReducedMotion(true).
+   (min-width: Npx) queries resolve against a mocked viewport width
+   (default 1024 = DESKTOP, so entry-shell pins run the Dialog branch -
+   vaul's drawer needs real layout/pointer machinery jsdom lacks). */
 let reducedMotion = false;
+let viewportWidth = 1024;
 
 /** Flip the (prefers-reduced-motion) media result for the current test. */
 export function setReducedMotion(value: boolean) {
   reducedMotion = value;
 }
 
+/** Set the mocked viewport width for (min-width: Npx) queries. */
+export function setViewportWidth(px: number) {
+  viewportWidth = px;
+}
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: (query: string) => ({
-    matches: query.includes("prefers-reduced-motion") ? reducedMotion : false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }),
+  value: (query: string) => {
+    const minWidth = query.match(/\(min-width:\s*([\d.]+)px\)/);
+    return {
+      matches: query.includes("prefers-reduced-motion")
+        ? reducedMotion
+        : minWidth
+          ? viewportWidth >= parseFloat(minWidth[1])
+          : false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
+  },
 });
 
 /* ── Layout + geometry (jsdom has no layout engine) ────────────────────── */
@@ -146,6 +162,7 @@ vi.mock("sonner", () => ({
 beforeEach(() => {
   localStorage.clear();
   reducedMotion = false;
+  viewportWidth = 1024;
 });
 
 // jest-dom matchers (toHaveTextContent, toBeInTheDocument, ...) for vitest.

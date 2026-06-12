@@ -103,7 +103,10 @@ export function PasswordGate({
             }}
             placeholder="Password"
             autoComplete="off"
-            autoFocus
+            // NO autofocus (Phase 4.5 R3): on iOS the keyboard ambushed the
+            // mid-transition sheet and covered it. The keyboard now rises only
+            // on an intentional tap; the drawer's repositionInputs lifts the
+            // focused field above it.
             aria-label="Event password"
             aria-invalid={error ? true : undefined}
             className={cn(
