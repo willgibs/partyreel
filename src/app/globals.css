@@ -344,6 +344,34 @@
     }
   }
 
+  /* ACT 1 "the stage" (Phase 4.5): the locked guest page settles in on first
+     paint - the event name, the lock line, then the ghost grid rise with a
+     small stagger (--arrive-i) so the page reads as composed BEFORE the entry
+     sheet arrives (the arrival beat), instead of everything popping at once.
+     Same language as [data-not-found]: --ease-emphasis, transform+opacity,
+     @starting-style on mount (degrades to fully-visible if an engine skips
+     it on first paint). Reduced motion gets a plain fade, no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-arrive] {
+      transition:
+        opacity 280ms var(--ease-emphasis),
+        transform 280ms var(--ease-emphasis);
+      transition-delay: calc(var(--arrive-i, 0) * 60ms);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-arrive] {
+      transition: opacity 200ms ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
   /* The entry steps hand off DIRECTIONALLY inside one height-animated
      container (entry-step-transition.tsx, Phase 4.5): forward enters from
      the right, back from the left (overriding the shared rise above; the

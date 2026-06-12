@@ -23,6 +23,13 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/auth/email-sign-in", () => ({
   EmailSignIn: () => <div data-testid="email-sign-in" />,
 }));
+// The arrival BEAT (its own pins in use-arrival-beat.test.ts) just delays the
+// auto-open; here it must resolve instantly so the surface renders for the
+// affordance/flow assertions.
+vi.mock("@/lib/guest/use-arrival-beat", async (orig) => ({
+  ...(await orig<typeof import("@/lib/guest/use-arrival-beat")>()),
+  useArrivalBeat: () => true,
+}));
 
 const QR = "testtoken1234";
 
@@ -50,7 +57,7 @@ describe("the honest-affordance table", () => {
   it("HOLDS the welcome before a password gate (no X; Continue is the path)", () => {
     renderModal({ gateSteps: ["password"] });
     expect(
-      screen.getByText(/You(’|')re invited to Test Wedding/),
+      screen.getByText(/You(’|')re invited to/),
     ).toBeInTheDocument();
     expect(closeButton()).toBeNull();
     // No "Just browsing" either: a password gate has nothing to browse.
@@ -117,9 +124,9 @@ describe("flow wiring", () => {
   it("a public event's welcome dismisses to the gallery (no gate behind)", () => {
     renderModal({ gateSteps: [] });
     expect(
-      screen.getByRole("button", { name: "View event" }),
+      screen.getByRole("button", { name: "View the gallery" }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "View event" }));
+    fireEvent.click(screen.getByRole("button", { name: "View the gallery" }));
     expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
     expect(screen.queryByText(/invited/)).toBeNull();
   });
@@ -135,7 +142,7 @@ describe("the back affordance (reviewing the welcome)", () => {
       screen.getByRole("button", { name: "Back to the welcome" }),
     );
     expect(
-      screen.getByText(/You(’|')re invited to Test Wedding/),
+      screen.getByText(/You(’|')re invited to/),
     ).toBeInTheDocument();
     // The review is a VIEW, not a step: no browse path, the primary returns.
     expect(screen.queryByText("Just browsing")).toBeNull();

@@ -35,25 +35,29 @@ export function EnterEventPrompt({
 
   return (
     <div className="text-center">
-      {/* The ratified gate framing: lock mark above the heading, the REAL count
-          as the promise, and the account step as the HOST'S safety choice. */}
-      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Lock className="size-5" />
-      </div>
-      <p className="font-heading text-xl text-balance">
+      {/* The ratified gate framing (Phase 4.5 warm rewrite): the "almost in"
+          eyebrow, the REAL count as the promise, and the account step as the
+          HOST'S safety choice (intent preserved, tone softened). */}
+      <p className="flex items-center justify-center gap-1.5 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <Lock className="size-3" aria-hidden />
+        Almost in
+      </p>
+      <p className="mt-1.5 font-heading text-[22px] leading-tight text-balance">
         {mediaTotal && mediaTotal > 0
           ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
           : "See all the photos"}
       </p>
-      <p className="mx-auto mt-1 mb-4 max-w-xs text-[15px] text-muted-foreground">
-        For everyone&rsquo;s safety, the host asks guests to verify their email
-        before opening the gallery. One tap, no password needed.
+      <p className="mx-auto mt-2 mb-4 max-w-xs text-base leading-relaxed text-muted-foreground">
+        To keep this gallery just for guests, the host asks for a quick email
+        check. One tap, no password needed, and you&rsquo;re in.
       </p>
       <div className="mx-auto max-w-xs text-left">
         {mode === "email" ? (
           <>
             <EmailSignIn
               emailRedirectTo={emailRedirectTo}
+              inputClassName="h-11 text-base"
+              buttonClassName="h-11 text-[15px]"
               onVerified={async () => {
                 // In-page OTP verify does router.refresh() (no remount), so claim directly here. Silent:
                 // the guest page isn't the account context + must not stack with other toasts.
@@ -165,7 +169,11 @@ function PasswordLogin({
           </button>
         </div>
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button
+        type="submit"
+        className="h-11 w-full text-[15px]"
+        disabled={pending}
+      >
         {pending ? "Signing in…" : "Log in"}
       </Button>
       <button

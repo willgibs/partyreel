@@ -6,13 +6,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import {
-  Camera,
-  ChevronLeft,
-  Images,
-  PartyPopper,
-  Smartphone,
-} from "lucide-react";
+import { Camera, ChevronLeft, Images } from "lucide-react";
 
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
@@ -20,7 +14,9 @@ import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
+import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
+import { formatEventDate } from "@/lib/utils";
 
 // Stable no-op subscribe for the hydration flag (useSyncExternalStore wants a stable subscribe).
 const subscribeNoop = () => () => {};
@@ -55,11 +51,26 @@ export const EntryModal = forwardRef<
     isOwner: boolean;
     isDemo: boolean;
     /** Approved media count (numbers only) — the gate steps' "N photos are
-     *  waiting" tease (the ratified cardinality-only leak). */
+     *  waiting" tease + the welcome's count proof (the ratified
+     *  cardinality-only leak). */
     mediaTotal?: number;
+    /** Welcome byline (null on locked pages: the redacted shellEvent). */
+    hostName?: string | null;
+    eventDate?: string | null;
+    hostAvatarUrl?: string | null;
   }
 >(function EntryModal(
-  { qrToken, eventName, gateSteps, isOwner, isDemo, mediaTotal },
+  {
+    qrToken,
+    eventName,
+    gateSteps,
+    isOwner,
+    isDemo,
+    mediaTotal,
+    hostName,
+    eventDate,
+    hostAvatarUrl,
+  },
   ref,
 ) {
   const [seen, markSeen] = useWelcomeSeen(qrToken);
@@ -83,8 +94,18 @@ export const EntryModal = forwardRef<
     isDemo,
   });
   const current = steps[0] ?? null;
+  // The arrival beat holds ONLY the auto-open (Act 1 settles, then Act 2
+  // arrives); proceeded/openToGate stay instant. 700ms for the first-visit
+  // invitation, 350ms for a password re-visit (see ARRIVAL_BEAT_MS).
+  const beatReady = useArrivalBeat({
+    enabled: autoOpen,
+    ms: current === "welcome" ? ARRIVAL_BEAT_MS.welcome : ARRIVAL_BEAT_MS.password,
+  });
   const open =
-    hydrated && current !== null && (autoOpen || proceeded) && !manuallyClosed;
+    hydrated &&
+    current !== null &&
+    ((autoOpen && beatReady) || proceeded) &&
+    !manuallyClosed;
 
   // THE BACK AFFORDANCE (Phase 4.5 S3): `reviewing` is a transient client
   // view OVER the server-driven machine - a gate step's chevron re-shows the
@@ -174,6 +195,10 @@ export const EntryModal = forwardRef<
           {isReviewing ? (
             <WelcomeStep
               eventName={eventName}
+              hostName={hostName}
+              eventDate={eventDate}
+              hostAvatarUrl={hostAvatarUrl}
+              mediaTotal={mediaTotal}
               gateNext
               browseAvailable={false}
               continueLabel={
@@ -205,6 +230,10 @@ export const EntryModal = forwardRef<
               {current === "welcome" && (
                 <WelcomeStep
                   eventName={eventName}
+                  hostName={hostName}
+                  eventDate={eventDate}
+                  hostAvatarUrl={hostAvatarUrl}
+                  mediaTotal={mediaTotal}
                   gateNext={steps.length > 1}
                   // "Just browsing" only when a BROWSABLE teaser sits behind (an
                   // account gate); a password gate has nothing to browse, and it
@@ -214,11 +243,17 @@ export const EntryModal = forwardRef<
                   onBrowse={() => markSeen()}
                 />
               )}
+              {/* pt-7 clears the absolute back chevron's row so it never
+                  overlaps the centered gate heading (long event names). */}
               {current === "password" && (
-                <PasswordGate token={qrToken} eventName={eventName} />
+                <div className="pt-7">
+                  <PasswordGate token={qrToken} eventName={eventName} />
+                </div>
               )}
               {current === "account" && (
-                <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+                <div className="pt-7">
+                  <EnterEventPrompt qrToken={qrToken} mediaTotal={mediaTotal} />
+                </div>
               )}
             </>
           )}
@@ -228,10 +263,17 @@ export const EntryModal = forwardRef<
   );
 });
 
-// The always-on friendly front door: a light mini-guide. The host's event voice (minimal Partyreel
-// branding). One primary button advances ("Continue" when a gate follows) or dismisses ("View event").
+// THE INVITATION (Phase 4.5): the warm front door. An eyebrow over the event
+// name as the Instrument Serif hero, the host's byline, the count as social
+// proof, then two reading rows in the host's event voice (minimal Partyreel
+// branding). One primary advances ("Continue" when a gate follows) or
+// dismisses ("View the gallery"). The whole block staggers in on mount.
 function WelcomeStep({
   eventName,
+  hostName,
+  eventDate,
+  hostAvatarUrl,
+  mediaTotal,
   gateNext,
   browseAvailable,
   continueLabel,
@@ -239,6 +281,10 @@ function WelcomeStep({
   onBrowse,
 }: {
   eventName: string;
+  hostName?: string | null;
+  eventDate?: string | null;
+  hostAvatarUrl?: string | null;
+  mediaTotal?: number;
   gateNext: boolean;
   /** A browsable teaser exists behind the next gate (account gates only). */
   browseAvailable: boolean;
@@ -248,45 +294,78 @@ function WelcomeStep({
   /** Dismiss to the teaser (marks the welcome seen WITHOUT advancing). */
   onBrowse: () => void;
 }) {
+  const host = hostName?.trim();
+  const hasByline = Boolean(host || eventDate);
+  const count = mediaTotal ?? 0;
+
   return (
-    <div className="flex flex-col items-center gap-4 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <PartyPopper className="size-6" />
-      </div>
-      <div className="space-y-1">
-        <p className="font-heading text-xl text-balance">
-          You&rsquo;re invited to {eventName}
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col">
+        <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          You&rsquo;re invited to
         </p>
-        <p className="text-[15px] text-muted-foreground">
-          A shared gallery for the whole event.
+        <p className="mt-1.5 font-heading text-[28px] leading-[1.15] text-balance">
+          {eventName}
+        </p>
+        {hasByline && (
+          <p className="mt-2 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            {host && (
+              <>
+                {hostAvatarUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
+                  <img
+                    src={hostAvatarUrl}
+                    alt=""
+                    className="size-5 rounded-full object-cover"
+                  />
+                )}
+                <span>
+                  Hosted by{" "}
+                  <span className="font-medium text-foreground">{host}</span>
+                </span>
+              </>
+            )}
+            {host && eventDate && (
+              <span aria-hidden className="text-muted-foreground/50">
+                ·
+              </span>
+            )}
+            {eventDate && <span>{formatEventDate(eventDate)}</span>}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3.5">
+        <p className="flex items-start gap-3 text-base leading-relaxed">
+          <Camera className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+          Add your photos and videos in seconds. No app, no account.
+        </p>
+        <p className="flex items-start gap-3 text-base leading-relaxed">
+          <Images className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+          {count > 0
+            ? `Everyone's shots land in one gallery. ${count} ${count === 1 ? "is" : "are"} already inside.`
+            : "Everyone's shots land in one gallery, yours included."}
         </p>
       </div>
-      <ul className="w-full space-y-2.5 text-left text-[15px]">
-        <li className="flex items-center gap-3">
-          <Camera className="size-4 shrink-0 text-muted-foreground" />
-          Add your photos and videos
-        </li>
-        <li className="flex items-center gap-3">
-          <Images className="size-4 shrink-0 text-muted-foreground" />
-          See everyone&rsquo;s shots in one place
-        </li>
-        <li className="flex items-center gap-3">
-          <Smartphone className="size-4 shrink-0 text-muted-foreground" />
-          No app to download, just your phone
-        </li>
-      </ul>
-      <Button onClick={onContinue} className="h-11 w-full text-[15px]">
-        {continueLabel ?? (gateNext ? "Continue" : "View event")}
-      </Button>
-      {browseAvailable && (
+
+      <div className="flex flex-col gap-1">
         <Button
-          variant="ghost"
-          onClick={onBrowse}
-          className="-mt-2 w-full text-muted-foreground"
+          onClick={onContinue}
+          size="lg"
+          className="w-full text-[15px]"
         >
-          Just browsing
+          {continueLabel ?? (gateNext ? "Continue" : "View the gallery")}
         </Button>
-      )}
+        {browseAvailable && (
+          <Button
+            variant="ghost"
+            onClick={onBrowse}
+            className="w-full text-muted-foreground"
+          >
+            Just browsing
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

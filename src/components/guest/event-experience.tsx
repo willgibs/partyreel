@@ -147,6 +147,12 @@ export function EventExperience({
           isOwner={isOwner}
           isDemo={isDemo}
           mediaTotal={stats.approvedTotal}
+          // The welcome's byline. On a locked page `event` is the REDACTED
+          // shellEvent (host_display_name null), so the host name hides
+          // itself there - the privacy rule needs no extra guard.
+          hostName={event.host_display_name}
+          eventDate={event.event_date}
+          hostAvatarUrl={hostAvatarUrl}
         />
       </Suspense>
       {isDemo && (
@@ -162,7 +168,11 @@ export function EventExperience({
           the count tease). "Hosted by" shows only when the host set a real name;
           the avatar only if one exists (no initials fallback here). */}
       <header>
-        <h1 className="font-heading text-[24px] leading-snug text-balance">
+        <h1
+          data-arrive
+          style={{ "--arrive-i": 0 } as React.CSSProperties}
+          className="font-heading text-[28px] leading-snug text-balance"
+        >
           {event.name}
         </h1>
         {access !== "none" && (
@@ -219,8 +229,14 @@ export function EventExperience({
         // Password not yet unlocked: the GHOST-GRID backdrop (the ratified V4
         // entry) — shape + the real COUNT tease, zero pixels. The firm password
         // sheet overlays this; nothing real shows until the password lands.
+        // Act 1 "the stage": the lock line + grid settle in (data-arrive) under
+        // the planted name, instead of popping, before the sheet arrives.
         <div className="mt-8 space-y-4">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <div
+            data-arrive
+            style={{ "--arrive-i": 1 } as React.CSSProperties}
+            className="flex items-center justify-center gap-2 text-muted-foreground"
+          >
             <Lock className="size-4" aria-hidden />
             <p className="text-[15px]">
               {stats.approvedTotal > 0
@@ -228,7 +244,12 @@ export function EventExperience({
                 : "This event is private"}
             </p>
           </div>
-          <GhostGrid />
+          <div
+            data-arrive
+            style={{ "--arrive-i": 2 } as React.CSSProperties}
+          >
+            <GhostGrid />
+          </div>
         </div>
       ) : (
         <>

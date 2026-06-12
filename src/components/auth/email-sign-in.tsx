@@ -22,6 +22,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 const emailSchema = z.object({
   email: z.email("Enter a valid email address."),
@@ -53,10 +54,16 @@ export function EmailSignIn({
   emailRedirectTo,
   shouldCreateUser = true,
   onVerified,
+  inputClassName,
+  buttonClassName,
 }: {
   emailRedirectTo: string;
   shouldCreateUser?: boolean;
   onVerified: () => void;
+  /** Optional size overrides (the guest gate bumps to h-11; /login keeps
+   *  the default). Defaults preserve every existing call site. */
+  inputClassName?: string;
+  buttonClassName?: string;
 }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -213,6 +220,7 @@ export function EmailSignIn({
                   inputMode="email"
                   autoComplete="email"
                   placeholder="you@email.com"
+                  className={inputClassName}
                   {...field}
                 />
               </FormControl>
@@ -222,7 +230,7 @@ export function EmailSignIn({
         />
         <Button
           type="submit"
-          className="w-full"
+          className={cn("w-full", buttonClassName)}
           disabled={form.formState.isSubmitting}
         >
           {form.formState.isSubmitting ? "Sending…" : "Email me a code"}

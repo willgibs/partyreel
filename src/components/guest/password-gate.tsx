@@ -69,27 +69,32 @@ export function PasswordGate({
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-4 text-center">
-      {/* Rendered as the entry modal's password STEP (the modal provides the surface + entrance);
-          no full-screen wrapper. The form + the 5-wrong/20s cooldown + the unlock call are unchanged. */}
-      <div
-        className={cn(
-          "flex size-11 items-center justify-center rounded-full",
-          dark ? "bg-white/10 text-white" : "bg-muted text-muted-foreground",
-        )}
-      >
-        <Lock className="size-5" />
-      </div>
-      <div className="space-y-1">
-        <h1 className="font-heading text-xl text-balance">{eventName}</h1>
+    <div className="flex w-full flex-col gap-4">
+      {/* Rendered as the entry modal's password STEP (the modal provides the
+          surface + entrance + the back chevron); no full-screen wrapper. The
+          warm "almost in" framing: protection, not a wall. The form + the
+          5-wrong/20s cooldown + the unlock call are unchanged. */}
+      <div className="flex flex-col">
         <p
           className={cn(
-            "max-w-xs text-[15px]",
+            "flex items-center justify-center gap-1.5 text-xs font-medium tracking-[0.14em] uppercase",
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
-          This event is password protected. Enter the password the host shared
-          to view it.
+          <Lock className="size-3" aria-hidden />
+          Almost in
+        </p>
+        <h1 className="mt-1.5 text-center font-heading text-[22px] leading-tight text-balance">
+          {eventName} is private
+        </h1>
+        <p
+          className={cn(
+            "mt-2 text-center text-base leading-relaxed",
+            dark ? "text-white/60" : "text-muted-foreground",
+          )}
+        >
+          The host keeps this gallery private for guests. Enter the password
+          from your invite to come in.
         </p>
       </div>
       <form onSubmit={onSubmit} className="w-full space-y-3">
