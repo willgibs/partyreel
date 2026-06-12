@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -51,6 +51,15 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
   },
+};
+
+// The browser UI tint per scheme (Phase 4 PWA): ink in dark, paper in light,
+// matching the mono system so the standalone status bar / address bar blends in.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#101010" },
+  ],
 };
 
 export default function RootLayout({
