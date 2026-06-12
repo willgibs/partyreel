@@ -105,6 +105,9 @@ export function EventExperience({
     useInViewSentinel<HTMLDivElement>();
   const canUpload =
     access === "full" && event.accepting_uploads && !needsName;
+  // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
+  // (its centered CTA), so the header drops its Add to avoid two primaries.
+  const galleryEmpty = mediaCount === 0;
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -233,7 +236,7 @@ export function EventExperience({
               the viewer can actually upload right now) over the 2-col secondary row —
               Save (the growth lever; hidden in the demo) + Invite (share/QR). */}
           <div className="mt-4" ref={sentinelRef}>
-            {canUpload && (
+            {canUpload && !galleryEmpty && (
               <Button
                 type="button"
                 size="lg"
@@ -314,13 +317,16 @@ export function EventExperience({
               onCountChange={setMediaCount}
               pendingUploads={inFlightUploads}
               onRetryUpload={(id) => uploadRef.current?.retry(id)}
+              onAddFirst={
+                canUpload ? () => uploadRef.current?.openPicker() : undefined
+              }
             />
           </Suspense>
 
           {/* The floating Add pill: only while the header's Add is scrolled away
-              (never both), and only when the viewer can actually upload. */}
+              (never both), and never over the empty-state CTA. */}
           <FloatingAddButton
-            show={canUpload && !headerActionsInView}
+            show={canUpload && !galleryEmpty && !headerActionsInView}
             uploadingCount={uploadingCount}
             onClick={() => uploadRef.current?.openPicker()}
           />

@@ -18,6 +18,7 @@ import { use, useCallback, useEffect, useImperativeHandle, useRef, useState } fr
 import type { Ref } from "react";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import {
   GuestMasonry,
   type PendingTile,
@@ -57,6 +58,7 @@ export function LiveGallery({
   onCountChange,
   pendingUploads = [],
   onRetryUpload,
+  onAddFirst,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -74,6 +76,9 @@ export function LiveGallery({
   pendingUploads?: QueueItem[];
   /** Tap-to-retry on an errored pending tile (round-trips to the queue handle). */
   onRetryUpload?: (queueId: string) => void;
+  /** Present only when the viewer can upload — the empty-state CTA opens the
+   *  picker (Phase 4: at 0 items the header drops its Add, the empty CTA owns it). */
+  onAddFirst?: () => void;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -304,9 +309,12 @@ export function LiveGallery({
           />
         </LikesProvider>
       ) : (
-        <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-          No photos yet. Be the first to share one.
-        </p>
+        // The photographic-promise empty state (full/teaser with nothing yet).
+        // The CTA only appears when uploads are possible (onAddFirst present);
+        // a teaser viewer's CTA below owns the account path instead.
+        <GalleryEmptyState
+          onAddFirst={access === "full" ? onAddFirst : undefined}
+        />
       )}
       {access === "teaser" && (
         // The teaser boundary CTA: re-opens the entry modal to the account step
