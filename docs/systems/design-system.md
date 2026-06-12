@@ -120,9 +120,18 @@ lighter-is-closer, one depth technique per mode), nested-corner math, muted pair
 small-label tracking, the 4px-grid + radius-ratio math. *Already true* — near-black/near-white
 extremes, contrast hierarchy, brightness-distinct palette, ~2x horizontal button padding, two
 typefaces (Geist Mono = a documented utility exception for code/counts), ~70ch prose. *Declined or
-deferred with reasons* — saturate-neutrals DECLINED (zero-chroma identity); body ≥16px DEFERRED to
-Phase 4+ guest-surface guidance (guest reading copy targets 15-16px; dense host/admin UI may stay
-14px); 12-column grid noted for the Phase 6 marketing rebuild.
+deferred with reasons* — saturate-neutrals DECLINED (zero-chroma identity); 12-column grid noted for
+the Phase 6 marketing rebuild. **Guest reading-copy rule (NOW REAL, Phase 4):** guest-facing reading
+copy is 15-16px (`text-[15px]`/`text-base` on event description, gate prompts, growth cards, entry
+sheet rows); dense/structural UI (captions, counters, secondary labels) stays sm/xs. Host/admin keep
+14px until their phases.
+
+## Stagger (the gallery entrance)
+
+The `[data-media-tile]` `@starting-style` entrance (Phase 2) gains a per-index delay (Phase 4):
+`transition-delay: min(calc(var(--tile-i, 0) * 45ms), 540ms)`. The guest masonry sets `--tile-i` on the
+SEED render ONLY (a render-once ids `Set`); doorbell/poll-arrived tiles carry `--tile-i: 0` and land
+immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-motion drops the move.
 
 ## Where it lives
 

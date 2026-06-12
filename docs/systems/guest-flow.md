@@ -13,22 +13,60 @@ per event (ADR-0010 — the old `/a/[share_token]` album + `get_public_album` ar
 `get_event_by_qr_token` resolves `qr_token` OR `custom_slug` (token wins) and returns the canonical
 `qr_token`, which the page threads to every downstream qr-keyed RPC.
 
-## Flow (top to bottom, contiguous)
+## Flow (top to bottom, contiguous) — the V1 redesign (Phase 4)
 
-Auth-aware header → event header ("Hosted by" name+avatar) → a quiet **`[Save event] [Invite]` action
-row** → the upload panel (only when accepting) → the live gallery. The share is no longer wedged between
-upload and gallery (one-link Part 2, ADR-0010). `GuestShare` ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx))
-is an **Invite trigger + dialog** (QR + Copy link + native Share + Download), not an inline card.
-Each gallery tile (a desktop hover-reveal) + the lightbox carry a **like** button (Phase 5 — a favorite on
-one media, distinct from the event-level Save); a signed-out tap opens the SAME create-account dialog as
-Save (a `LikesProvider` wraps the gallery, replaying the like after sign-in). Like COUNTS are host-only, so
-they're never shown here → [host-app.md](host-app.md), [database-security.md](database-security.md).
+The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
+is the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line**
+("N photos & videos from M guests") → the **action block**: a full-width primary **Add photos** over a
+2-col **`[Save] [Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`);
+a **floating Add pill** ([`floating-add-button.tsx`](../../src/components/guest/floating-add-button.tsx))
+appears once the header Add scrolls out of view (an `IntersectionObserver` sentinel —
+[`use-in-view-sentinel.ts`](../../src/lib/guest/use-in-view-sentinel.ts) — never both, never over the
+empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + native Share + Download).
+- **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
+  is one admin select over approved media → `{approvedTotal, contributorCount}` (distinct uploader guests
+  +1 if the host uploaded). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes
+  live via `LiveGallery`'s `onCountChange`; M is static per load. Threaded from the page RSC, NOT the poll
+  route (ETag semantics untouched).
+- **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): CSS `columns-2`
+  + 3px gaps/radius, tiles at their NATURAL aspect ratio (the plumbed `width`/`height`; 1:1 fallback for
+  pre-measure rows — dims ride OUTSIDE the gallery ETag hash, write-once per id). A 45ms entrance stagger
+  applies to the SEED render only (`--tile-i`; doorbell/poll arrivals get 0). Videos wear a small CORNER
+  play badge (the shared centered `PlayBadge` stays on other surfaces; `MediaTile` gained `playBadge="none"`).
+  Guest-only — host/personal grids keep `MediaGrid`'s square grid until Phase 5.
+- **Upload lives IN the gallery**: the queue machine is [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)
+  (one-at-a-time, JIT silent join, demo sim, retry — moved verbatim, the pins encode it). `GuestUpload` is a
+  thin engine (hidden input + `{openPicker, retry}` handle + `onQueueChange`); in-flight items render as
+  masonry tiles with a progress bar / dimmed error + "Tap to retry" / a ~2.5s green `--success` check.
+  ★ **The blob re-key**: a pending tile's object URL is keyed by queue id, re-keyed to the media id at
+  approved completion (`UploadedItem.queueId`) — the SAME URL object, so the `<img src>` never changes
+  (zero flicker as a pending tile becomes the optimistic tile). Hold-for-approval completions show NO
+  optimistic tile (a settle toast fires; the host's approval rings the doorbell and the tile arrives).
+- **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
+  photographic promise — a faint grayscale ghost mosaic (the optimized `public/guest-ghost` WebPs) with a
+  centered `font-heading` CTA. At 0 items the header drops its Add (the CTA owns it).
+- **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), Phase 4
+  chrome): full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
+  Delete) over an ATTRIBUTION PILL ("[name] [Host] / Anonymous(i) · i+1 of N" — the counter always
+  renders). ~30% side tap zones NAVIGATE via thirds logic in `onBackdropClick` (left→prev, right→next,
+  edge→no-op, center→close); whisper scrims are pointer-events-none so they never kill the swipe. The
+  **gesture machinery is verbatim** (the 17 physics pins). ★ The Share button is guest-only and shares
+  the event JOIN url (`shareUrl` prop) — NEVER a presigned media URL; absent on host/personal surfaces.
+- Each tile (desktop hover-reveal) + the lightbox carry a **like** button (Phase 5); a signed-out tap
+  opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). Like
+  COUNTS are host-only → [host-app.md](host-app.md), [database-security.md](database-security.md).
+- **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
+  make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
+  nothing event-specific.
 
 ## State follows `visibility` (ADR-0007) — a 3-state enum, NOT a boolean
 
 - **`private`** = the master lock → a locked screen (no name / gallery / upload); `generateMetadata` hides the name.
-- **`password`** → access `none`: a quiet locked backdrop (name shown — it's link-shared, not the secret) with
-  the entry modal's password step over it, until a signed unlock cookie is present; then the full experience.
+- **`password`** → access `none`: a **ghost-grid backdrop** + the real "N photos & videos inside" count tease
+  (name shown — it's link-shared, not the secret) with the entry modal's password step over it, until a
+  signed unlock cookie is present; then the full experience. ★ **The page passes a REDACTED `shellEvent`
+  at access `none`** (`host_display_name` + `description` blanked) so they never reach the RSC flight
+  payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4 hardening).
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
   viewer then gets a teaser (see "Gallery access" below).
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
@@ -76,6 +114,12 @@ step. No client step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.t
   closes back to the browsable teaser, and the gallery's "See all N photos" button re-opens it (the
   `EntryModalHandle.openToGate` ref). Shell is Radix `Dialog` only (a swipe-away drawer would mis-signal a
   must-complete gate). Step crossfade via `[data-entry-step]` (globals.css).
+- **The adaptive SHEET (Phase 4)**: on phones the dialog is a bottom-pinned sheet (the `max-sm:` utilities
+  on `DialogContent` neutralize the centered translate + pin it to the bottom with action-radius top
+  corners + a slide-up + safe-area padding), the centered float on sm+. A **drag-indicator bar shows on
+  dismissible steps ONLY** (never the firm password step — it would promise a swipe-away it blocks). The
+  step chrome is reskinned (font-heading headings, 15px copy, h-11 actions, the account step's lock mark +
+  "N photos are waiting" + the host-safety framing); the MACHINE above is untouched.
 - **Auto-open** when the welcome is due OR the first gate is `password` (it IS the page); an `account`-only gate
   does NOT auto-open on a return visit — the guest browses the teaser, opening the account step on desire.
 

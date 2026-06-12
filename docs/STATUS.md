@@ -28,12 +28,18 @@ Sentry `render:global`), and the perf baselines Phase 3 is judged against.
 60s cadence while the socket is live) + 30-min stable presign buckets (browser cache works), the
 upload pipeline consolidated to one engine + 4 thin strategy routes (RPC layer untouched), the
 guest page streams (shell first, gallery behind Suspense), and the heavy chunks (lightbox, entry
-modal, admin charts) load off the critical path. Current truth:
-[`systems/design-system.md`](systems/design-system.md) · [`systems/guest-flow.md`](systems/guest-flow.md)
-· [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md) · [`perf/v1-baseline.md`](perf/v1-baseline.md)
-(the Phase-3 after-column). Interim accepted: "new skin on old bones" (marketing hero still Inter,
-functional headings still misuse `font-heading`) until each surface's owning phase (4-6) corrects it.
-**Next: Phase 4 (the guest redesign - the flagship surface) re-enters plan mode.**
+modal, admin charts) load off the critical path.
+**PHASE 4 COMPLETE (2026-06-11): the guest page `/e/[token]` is REBUILT to the ratified spec** —
+left-editorial header + live stats, the masonry gallery (natural ratios), in-gallery upload tiles +
+the floating Add pill (the queue extracted to `useUploadQueue`; the dropzone retired), the adaptive
+entry sheet + ghost-grid locked tease, the photographic-promise empty state, the floating-pill
+lightbox (gesture machinery verbatim), and a PWA manifest (installable; no service worker). The
+locked-page payload is redacted (name + count only); `getGalleryStats` ships numbers never
+identities; the lightbox Share uses the join url never a media URL. Current truth:
+[`systems/guest-flow.md`](systems/guest-flow.md) (rewritten) · [`systems/design-system.md`](systems/design-system.md)
+(reading-copy rule now real) · [`perf/v1-baseline.md`](perf/v1-baseline.md). Interim accepted: host +
+marketing surfaces still pre-V1 (functional `font-heading` misuse, square host grids) until Phases 5-6.
+**Next: Phase 5 (the host app redesign) re-enters plan mode.**
 Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
 craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
 

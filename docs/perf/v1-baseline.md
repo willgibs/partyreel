@@ -8,6 +8,17 @@
 **Baseline date:** 2026-06-11 · **commit:** `adc3f0c` (Phase 2 slices 1-4 live) ·
 **deployment:** iad1, Next 16.2.6/Turbopack.
 
+## PHASE 4 NOTE (2026-06-11, the guest redesign)
+
+The guest page was rebuilt to the ratified spec (masonry, in-gallery upload tiles, adaptive entry
+sheet, floating-pill lightbox, empty state). Bundle impact is essentially FLAT — `/e/[token]` wire
+JS is **562 KB br** (vs 561 KB at the Phase-3 close): the redesign's new code (masonry, the upload
+bridge, the entry sheet) roughly offsets, and the heavy chunks (lightbox, entry modal) were already
+interaction-deferred in Phase 3. The empty-state ghost mosaic adds ~60 KB of one-time WebP only on
+0-media events (9 purpose-sized grayscale tiles). The doorbell/ETag/poll machinery is unchanged, so
+the section-2 poll numbers below still hold. No new blocking awaits on the page (stats is a single
+cheap column select; the gallery still streams).
+
 ## PHASE 3 AFTER-COLUMN (2026-06-11, commit `2322299` live)
 
 Same methodologies as below; the seeded event carried 3 fake rows + 1 real uploaded photo (4 items)

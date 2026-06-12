@@ -10,6 +10,52 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-11 — V1 program PHASE 4 COMPLETE: the guest redesign (the flagship surface)
+
+Nine slices, each shipped green + live-verified; the live guest page `/e/[token]` rebuilt to the
+ratified Phase-1 spec while preserving every behavior (47→417 pins, updated never deleted). Commits
+`af93082` (S1) · `80f1f0d` (S2) · `bc05694` (S3) · `b82597a` (S4) · `f81dd1e` (S5) · `6afa008` (S6) ·
+`caa7628` (S7) · `d912513` (S8) · `a553972`+close (S9).
+
+- **S1 dimensions:** width/height/duration_seconds plumbed RPC→GuestMediaRow→toGridItems→GridMedia
+  (nullable; outside the ETag hash since write-once per id). Cross-access ETag invariant re-verified.
+- **S2 masonry:** the ratified V2 grid (CSS columns-2, 3px gaps/radius, natural aspect ratios, 1:1
+  null fallback, seeded 45ms stagger, corner play badge). Guest-only; host grids untouched.
+- **S3 header + stats:** the left-editorial header (byline + "N photos & videos from M guests" +
+  full-width Add + Save/Invite row, 15px reading copy). New `getGalleryStats` admin read (numbers
+  only, never identities). HARDENING found red-teaming: host name + description leaked into the RSC
+  flight payload of LOCKED pages (props serialize even when the UI hides them) → the page now passes
+  a redacted `shellEvent` at access `none` (name + count only).
+- **S4 queue extraction:** the upload machine moved verbatim into `useUploadQueue`; GuestUpload
+  became a thin engine + `{openPicker, retry}` handle + `onQueueChange`. 3 new contract pins added
+  BEFORE the UI moved.
+- **S5 in-gallery upload:** progress/error/retry/green-check render as masonry tiles; the blob
+  re-key (queueId→mediaId, same URL object) makes a pending tile become the optimistic tile with
+  zero flicker; floating Add pill via an IntersectionObserver sentinel (never both Adds); the
+  dropzone + per-file list retired. Live-verified end to end (a 1MB upload: pending tile in 5ms,
+  complete + green check in 2.1s, header live-bumped).
+- **S6 entry sheet:** the adaptive bottom sheet (max-sm: utilities), ghost grid + locked count tease,
+  the host-safety account framing, drag bar on dismissible steps only. The step machine untouched;
+  password firmness re-verified (Escape/backdrop/X inert), unlock flow live-verified.
+- **S7 empty state:** the photographic-promise ghost mosaic (sample pack re-optimized to ~60KB total
+  of grayscale WebP) + centered CTA; header drops its Add at 0 items.
+- **S8 lightbox surgery:** the floating-pill chrome on the SHARED viewer (action pill + attribution
+  pill, floating close, thirds tap nav via onBackdropClick, whisper scrims, guest-only `shareUrl` =
+  join url never a media URL). The gesture machinery kept byte-verbatim (17 physics pins). Counter
+  pin reformatted + 4 new side-tap pins.
+- **S9 PWA + close:** the web manifest + ink-aperture icon set (192/512/maskable/apple) + viewport
+  theme color (no service worker, settled); save-prompt reskin; the docs + perf note + this record.
+- **Phase-close adversarial review** (5-lens workflow over the full diff): two real in-phase
+  regressions confirmed + fixed (`b6e3daa`), no others. (1) The S8 floating pill stack was
+  `absolute inset-x-0 z-10` with no `pointer-events-none`, so its full-width flanks sat above the
+  swipe track and ate pointerdown across the bottom strip — killing swipe-nav + center-tap-close on
+  all 6 shared-viewer surfaces; restored to `pointer-events-none` wrapper + `pointer-events-auto` on
+  just the pills. (2) The S5 floating Add pill stayed dead after a password unlock: the sentinel's
+  mount-only `[]`-effect read a null ref (the node renders only at access ≠ `none`) and never re-ran,
+  and unlock flips access via `router.refresh()` without remounting; switched to a callback ref that
+  re-attaches the IntersectionObserver whenever the node mounts.
+- Bundle flat (`/e/[token]` 562 KB vs 561 KB); 417 tests green throughout.
+
 ## 2026-06-11 — V1 program PHASE 3 COMPLETE: data & delivery architecture (the doorbell gallery)
 
 Eight slices, each shipped green + live-verified; the blind 12s poll became the hybrid doorbell.
