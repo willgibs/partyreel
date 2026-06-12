@@ -133,6 +133,26 @@ The `[data-media-tile]` `@starting-style` entrance (Phase 2) gains a per-index d
 SEED render ONLY (a render-once ids `Set`); doorbell/poll-arrived tiles carry `--tile-i: 0` and land
 immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-motion drops the move.
 
+## The arrival choreography (Phase 4.5, ratified "Calm + 700ms")
+
+The guest arrival is the sanctioned RARE/FIRST-TIME moment (the craft standard's exception to the
+under-300ms rule): the entry sheet ENTERS on vaul's native 500ms iOS drawer curve after a 700ms
+arrival beat; everything repeated stays fast (exit 250ms, steps 220ms, height glide 300ms). The
+choreography attributes (all `@starting-style`, reduced-motion = fades): `data-arrive`/`--arrive-i`
+(the locked page settles), `[data-entry-step][data-dir]` (directional step handoffs) +
+`[data-entry-exit]` (the inverted-@starting-style exit clone), `data-unlock-success` (the gate
+button's green morph content), `data-reveal`/`--reveal-i` (the unlock reveal: 150ms + 50ms steps)
+held back by `[data-reveal-curtain]` until the success beat releases. Constants live in
+`use-arrival-beat.ts` (700/350/0) + `use-success-hold.ts` (900ms beat / 1.5s slow / 8s watchdog);
+the ratification record is touchpoint 11's `decisionNote`.
+
+**★ The vaul motion gotcha:** with no `snapPoints`, vaul's open/close runs on KEYFRAME ANIMATIONS
+from its injected stylesheet (`slideToBottom`/`fadeOut`, 0.5s) — `transition-duration` overrides do
+NOTHING there; the exits-faster rule must override `animation-duration` (`!important`, scoped to
+`data-state="closed"`). The drawer's TRANSITION only drives drag-release snap-back (under
+`data-state="open"`) — never touch it. Don't trust "vaul hardcodes inline transitions" notes from
+older write-ups.
+
 ## Where it lives
 
 `src/app/globals.css` (tokens + utilities + guards, the single source) ·

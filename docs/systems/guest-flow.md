@@ -65,8 +65,9 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
 - **`password`** → access `none`: a **ghost-grid backdrop** + the real "N photos & videos inside" count tease
   (name shown — it's link-shared, not the secret) with the entry modal's password step over it, until a
   signed unlock cookie is present; then the full experience. ★ **The page passes a REDACTED `shellEvent`
-  at access `none`** (`host_display_name` + `description` blanked) so they never reach the RSC flight
-  payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4 hardening).
+  at access `none`** (`host_display_name` + `description` + `event_date` blanked) so they never reach the
+  RSC flight payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4
+  hardening; the date joined in 4.5 when the welcome byline started rendering it).
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
   viewer then gets a teaser (see "Gallery access" below).
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
@@ -95,33 +96,72 @@ unauthenticated, so gating only the RSC would be a trivial bypass. The guest-fac
 entry modal (below). The host "Require guest accounts" relabel + live preview (P3) is the remaining phase
 (→ [ROADMAP.md](../ROADMAP.md)).
 
-## The entry modal (welcome + the gates, P2)
+## The ARRIVAL (the entry surface: welcome + the gates, Phase 4.5)
 
-One `Dialog` ([`entry-modal.tsx`](../../src/components/guest/entry-modal.tsx)) drives all guest entry, with
-ordered steps that adapt to the event: `welcome → password? → account?`. The CURRENT step is always the first
-un-satisfied one; advancement is SERVER-DRIVEN — each step's existing form (`<PasswordGate>` / `<EnterEventPrompt>`,
-reused as step bodies) calls `router.refresh()` on success, which re-runs the RSC, drops the satisfied gate from
-the access-derived `gateSteps` ([`gateStepsForAccess`](../../src/lib/guest/entry-steps.ts)), and re-derives the
-step. No client step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + unit-tested).
+The gated arrival is the PRIMARY first experience (most events gate; a guest arrives from a QR with
+zero context) and plays as a four-act narrative, ratified in the lab (`/design/c/arrival`, touchpoint
+11, "Calm + 700ms"): **the stage** (the page settles: name/lock-line/ghost-grid rise via
+`data-arrive` + `--arrive-i`) → **the invitation** (after the ARRIVAL BEAT the sheet rises) → **the
+threshold** (the warm gate) → **the reveal** (the success morph, then the gallery rises as the sheet
+exits).
 
-- **welcome** — the always-on friendly front door + mini-guide, shown on the FIRST visit per device
-  (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts), the
-  `useSyncExternalStore` pattern; server snapshot "seen" = no flash), even on a fully public event. Suppressed
-  for the owner + the demo. The button reads "Continue" when a gate follows, else "View event".
-- **Dismissibility fits what's behind each step** ("dismiss to what?"): welcome is freely dismissable (X /
-  backdrop / Escape) to the page behind it; the **password** step is FIRM (`showCloseButton={false}` + prevented
-  `onInteractOutside`/`onEscapeKeyDown`) since nothing is behind it but the locked event; the **account** step
-  closes back to the browsable teaser, and the gallery's "See all N photos" button re-opens it (the
-  `EntryModalHandle.openToGate` ref). Shell is Radix `Dialog` only (a swipe-away drawer would mis-signal a
-  must-complete gate). Step crossfade via `[data-entry-step]` (globals.css).
-- **The adaptive SHEET (Phase 4)**: on phones the dialog is a bottom-pinned sheet (the `max-sm:` utilities
-  on `DialogContent` neutralize the centered translate + pin it to the bottom with action-radius top
-  corners + a slide-up + safe-area padding), the centered float on sm+. A **drag-indicator bar shows on
-  dismissible steps ONLY** (never the firm password step — it would promise a swipe-away it blocks). The
-  step chrome is reskinned (font-heading headings, 15px copy, h-11 actions, the account step's lock mark +
-  "N photos are waiting" + the host-safety framing); the MACHINE above is untouched.
-- **Auto-open** when the welcome is due OR the first gate is `password` (it IS the page); an `account`-only gate
-  does NOT auto-open on a return visit — the guest browses the teaser, opening the account step on desire.
+One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders a REAL Vaul
+drawer on phones (drag physics, `repositionInputs` lifts a focused field above the iOS keyboard,
+`dismissible={false}` rubber-bands) and the centered Radix `Dialog` on sm+; the step machine is
+unchanged: steps adapt `welcome → password? → account?`, the CURRENT step is the first un-satisfied
+one, advancement is SERVER-DRIVEN — each gate form calls `router.refresh()` on success, which
+re-runs the RSC, drops the satisfied gate from `gateSteps`
+([`gateStepsForAccess`](../../src/lib/guest/entry-steps.ts)), and re-derives the step. No client
+step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + unit-tested).
+
+- **The ARRIVAL BEAT** ([`use-arrival-beat.ts`](../../src/lib/guest/use-arrival-beat.ts), ratified
+  700ms / password re-visit 350ms / reduced-motion 0): only the AUTO-open waits (the page settles
+  first); `proceeded`/`openToGate` opens stay instant, so the pinned "account-return never
+  auto-opens" semantic is untouched.
+- **welcome = THE INVITATION** — "You're invited to" eyebrow over the event name as a 28px
+  Instrument Serif hero, the host byline (avatar + name + date; self-hiding on locked pages via the
+  redacted shellEvent), the count as social proof, two warm `text-base` rows, shown on the FIRST
+  visit per device (`pr_welcome_<qrToken>` via
+  [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server snapshot "seen" = no
+  flash). Suppressed for the owner + the demo. Primary reads "Continue" when a gate follows, else
+  "View the gallery". Inside the drawer the welcome stands `min-height: 55svh` (the ratified "tall"
+  presence; `[data-entry-drawer] [data-welcome-step]`).
+- **THE HONEST-AFFORDANCE TABLE** (dismissal exists only when there is something to dismiss TO):
+  welcome-before-PASSWORD = held (the continuous invitation→gate flow; the old X "closed" it only
+  for the firm gate to instantly re-open); password = held (it IS the page); welcome-before-account
+  + account = free (real swipe-to-dismiss + the `Drawer.Handle`, which renders ONLY when dragging
+  dismisses, + "Just browsing"); ANY step while the success beat holds = held; a closed/exiting
+  shell = held (no affordance pop-in mid-exit). The account step closes to the browsable teaser and
+  the gallery's "See all" re-opens it (`EntryModalHandle.openToGate`, a no-op mid-hold).
+- **The CONTINUOUS step container**
+  ([`entry-step-transition.tsx`](../../src/components/guest/entry-step-transition.tsx)): a
+  ResizeObserver feeds the content's px height into a 300ms height glide (step swaps AND same-step
+  growth, e.g. the error line); steps slide directionally (`[data-entry-step][data-dir]`); the
+  outgoing step leaves an inert attribute-stripped clone that fades opposite (`[data-entry-exit]`;
+  `el.isConnected` discriminates real deletions from dev StrictMode cycles). Gate steps carry a
+  back chevron that re-shows the welcome as a transient VIEW over the machine (never touches
+  markSeen/steps).
+- **The SUCCESS HOLD + REVEAL**
+  ([`use-success-hold.ts`](../../src/lib/guest/use-success-hold.ts), min beat 900ms): on unlock the
+  gate blurs the field (the keyboard retracts during the beat, never mid-exit), fires `onUnlocked`
+  (idempotent) + `router.refresh()` in parallel; the sheet HOLDS while the gate stays PLANTED and
+  its own button morphs `--success` green ("You're in" + `data-unlock-success`) — the ratified
+  in-place morph; the ACCOUNT hold shows the centered SuccessStep instead (no single button to
+  morph in the OTP machinery — a recorded judgment call). Release = beat done AND the refresh
+  landed (`current` moved off the held step). Full unlock → the sheet exits (250ms via the
+  `animation-duration` override — vaul's close is a KEYFRAME, not a transition) while the REVEAL
+  CURTAIN lifts (`[data-reveal-curtain]` via `onHoldingChange`): the freshly mounted header
+  byline/stats/description/actions rise (`data-reveal`, 150ms + 50ms steps) and the masonry stagger
+  cascades — the reveal plays AS the sheet exits, never invisibly behind it. password→account =
+  the lighter path: no exit, the held view hands FORWARD (`handleUnlocked` sets `proceeded`, so a
+  returning guest is carried too). Never strands: slow >1.5s = "Opening the gallery"; the 8s
+  watchdog turns the button into Retry (the unlock cookie is set; the form never re-enables). The
+  display latch keeps the last open-state view mounted through the exit (no empty-strip deflate).
+- **Auto-open** when the welcome is due OR the first gate is `password` (it IS the page); an
+  `account`-only gate does NOT auto-open on a return visit — the guest browses the teaser, opening
+  the account step on desire.
+- **No autofocus anywhere in the gates** (the iOS keyboard ambush fix): the keyboard rises on an
+  intentional tap; gate inputs are h-11/16px (16px also stops the iOS focus auto-zoom).
 
 ## Invariants (don't break)
 

@@ -10,6 +10,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-12 — V1 program PHASE 4.5: the guest ARRIVAL experience (built; closing on the device pass)
+
+Opened from Will's iPhone pass of the live gated entry (sheet popped like a load artifact, dishonest
+drag bar, autofocus keyboard ambush, small type, disconnected steps, zero unlock feedback) + the
+strategic reframe: the gated arrival is the PRIMARY first experience. Lab-first: the interactive
+ARRIVAL FLOW PLAYER (touchpoint 11, real Vaul physics + knobs, `9c89e72`) → Will ratified **Calm +
+700ms beat** (`441f088`) → the production transplant in four slices: `ca36a6f` (S2 the Vaul shell
+swap + the honest-affordance table + no autofocus), `9f6ddf6` (S3 the continuous step container +
+back-to-welcome), `9eb9ef7` (S4 the arrival beat + the invitation welcome + warm gates + Act 1),
+`fd43dcb` (S5 the success hold + the reveal).
+
+**The adversarial implementation audit** (6 lenses, 45 agents, every finding refutation-verified;
+prompted by a mid-build model handoff): 12 unique confirmed findings, all fixed in `3c609bb` —
+headline catches: the hold wasn't HELD (X/handle popped in over "You're in"; a mid-beat dismiss
+corrupted the lighter path), the password→account hop dead-ended for returning guests, the
+exits-faster override was a NO-OP (vaul's close is a keyframe animation, not a transition), the
+ratified in-place button morph had been replaced by a step swap, the ratified 55svh welcome
+presence + h-11 password input + warm error copy never shipped, `event_date` leaked into locked
+pages via the new welcome byline (redaction extended), StrictMode dev ghost clones, hold
+idempotence. 454 pins green. Remaining to CLOSE the phase: Will's iPhone matrix (the consolidated
+live pass), the full red-team, the perf after-note, and reverting Test Wedding to `open`.
+
 ## 2026-06-11 — V1 program PHASE 4 COMPLETE: the guest redesign (the flagship surface)
 
 Nine slices, each shipped green + live-verified; the live guest page `/e/[token]` rebuilt to the

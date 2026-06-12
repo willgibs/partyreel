@@ -39,7 +39,16 @@ identities; the lightbox Share uses the join url never a media URL. Current trut
 [`systems/guest-flow.md`](systems/guest-flow.md) (rewritten) · [`systems/design-system.md`](systems/design-system.md)
 (reading-copy rule now real) · [`perf/v1-baseline.md`](perf/v1-baseline.md). Interim accepted: host +
 marketing surfaces still pre-V1 (functional `font-heading` misuse, square host grids) until Phases 5-6.
-**Next: Phase 5 (the host app redesign) re-enters plan mode.**
+**PHASE 4.5 BUILT (2026-06-12): the guest ARRIVAL experience** — the four-act choreography
+(stage → 700ms beat → invitation sheet → warm threshold → success morph + reveal) ratified in the
+lab (touchpoint 11, "Calm + 700ms") and transplanted: a REAL Vaul drawer (keyboard-aware, honest
+affordances per access — a firm-gated welcome has NO X, drag rubber-bands), the continuous
+height-gliding step container + back-to-welcome, the 28px invitation welcome (55svh presence), the
+planted-gate green success morph + the held reveal curtain. A 6-lens adversarial implementation
+audit confirmed + fixed 12 divergences (`3c609bb`; headline: vaul exits are KEYFRAMES not
+transitions). 454 pins green. **CLOSING ON: Will's iPhone matrix, the final red-team, the perf
+note, and reverting Test Wedding (qr `2eac1ae8…`, password `partyreel2026`) to `open`.**
+**Next after close: Phase 5 (the host app redesign) re-enters plan mode.**
 Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
 craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
 
