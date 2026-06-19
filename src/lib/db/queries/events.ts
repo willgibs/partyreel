@@ -165,3 +165,44 @@ export async function listRecentlyDeletedEvents(): Promise<DeletedHostEvent[]> {
     countdownDays: binCountdownDays(row.purge_at, now),
   }));
 }
+
+/** Per-event counts for the stat-forward dashboard card (Phase 5): `approved`
+ *  = what's in the album (the "N items" pill); `pending` = the amber
+ *  "N to review" chip. */
+export type EventCardStats = { approved: number; pending: number };
+
+/**
+ * Per-event approved + pending counts for the dashboard cards. ONE select over
+ * the host's media (RLS `media_host_all` scopes it to their own events),
+ * counted in JS - a host's event-count x media is bounded, so no GROUP BY RPC
+ * is needed at this scale (deferred). `removed_at IS NULL` excludes the
+ * recovery bin. Events with no media are present in the map with zeros.
+ */
+export async function getEventCardStats(
+  eventIds: string[],
+): Promise<Map<string, EventCardStats>> {
+  const stats = new Map<string, EventCardStats>();
+  if (eventIds.length === 0) return stats;
+  for (const id of eventIds) stats.set(id, { approved: 0, pending: 0 });
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return stats;
+
+  const { data, error } = await supabase
+    .from("media")
+    .select("event_id, status")
+    .in("event_id", eventIds)
+    .is("removed_at", null);
+  if (error) throw error;
+
+  for (const row of data ?? []) {
+    const s = stats.get(row.event_id);
+    if (!s) continue;
+    if (row.status === "approved") s.approved += 1;
+    else if (row.status === "pending") s.pending += 1;
+  }
+  return stats;
+}
