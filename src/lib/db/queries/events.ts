@@ -87,10 +87,16 @@ export async function countActiveEvents(): Promise<number> {
 
 /**
  * Cover image URL per event for the dashboard cards: the newest APPROVED,
- * non-removed media's `original_key`, presigned inline. One batched query (not
- * N+1); RLS scopes to the host's own media. Events with no approved media are
- * absent from the map (the card falls back to a placeholder). Keys never reach
- * the browser — we presign here.
+ * non-removed PHOTO's `original_key`, presigned inline. One batched query (not
+ * N+1); RLS scopes to the host's own media. Events with no approved photo are
+ * absent from the map (the card falls back to its no-cover surface). Keys never
+ * reach the browser — we presign here.
+ *
+ * PHOTO-only is load-bearing: the card renders the cover in an <img>, which
+ * cannot display a video file, so a newest-upload-is-a-video event would get a
+ * broken (0x0) cover if videos were eligible. (A video-poster cover for
+ * photo-less events is a deferred enhancement — it needs a <video> poster, not
+ * an <img>.)
  */
 export async function getEventCoverUrls(
   eventIds: string[],
@@ -109,6 +115,7 @@ export async function getEventCoverUrls(
     .select("event_id, original_key")
     .in("event_id", eventIds)
     .eq("status", "approved")
+    .eq("type", "photo")
     .is("removed_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
