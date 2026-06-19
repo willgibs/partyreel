@@ -1,99 +1,156 @@
 import Link from "next/link";
-import { Bookmark, CalendarCheck, Image as ImageIcon, Lock } from "lucide-react";
+import {
+  Bookmark,
+  Calendar,
+  Image as ImageIcon,
+  Images,
+  Lock,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 /**
- * Shared dashboard event card with cover art, used in the merged "Events" tab (hosted
- * + saved, Phase 4) and the "Trash" tab. Presentational + server-renderable. The cover
- * is a presigned R2 URL (or a placeholder); raw keys never reach here.
+ * The dashboard event card (Phase 5 S2a, the ratified STAT-FORWARD V3): a 16:10
+ * cover with the event identity + stats as an OVERLAY (white chrome on a dark
+ * gradient, legible over any photo OR the no-cover dark fallback, in both
+ * themes). Presentational + server-renderable - the only interactive piece, the
+ * QR chip, arrives as the client `qrSlot` (a sibling of the Link, so tapping it
+ * never navigates). Used for the merged Events feed (hosted + saved) and Trash.
  *
- * `href: null` renders a DISABLED card (a saved event the host has since made
- * private) — non-clickable, muted, lock glyph. `action` (e.g. an unsave button)
- * is rendered OUTSIDE the link so tapping it never navigates. `kind` adds a subtle
- * top-left provenance glyph (hosted vs saved) for the interleaved Events tab.
+ * `href: null` = a saved event the host has since made private: a non-clickable
+ * card with a lock fallback (the savedEventCardProps privacy contract). `variant`
+ * drives the chrome: hosted (QR slot + the amber review chip + Open/Closed + item
+ * count), saved (bookmark glyph + byline + unsave action), trash (dimmed +
+ * countdown + restore action). The amber chip and `action` never coexist by
+ * construction (hosted has the chip + no action; saved/trash have an action + no
+ * pending), so the top-right slot never collides.
  */
+const PILL =
+  "flex h-5 items-center gap-1 rounded-full border border-white/30 bg-black/25 px-2 text-[10px] font-medium backdrop-blur-sm";
+
 export function EventCard({
   href,
   name,
-  dateLabel,
   coverUrl,
-  badges,
+  dateLabel,
+  variant = "hosted",
+  itemsLabel,
+  statusLabel,
+  pendingCount = 0,
   byline,
+  qrSlot,
   action,
-  kind,
 }: {
   href: string | null;
   name: string;
-  dateLabel: string;
   coverUrl: string | null;
-  badges?: React.ReactNode;
+  dateLabel: string;
+  variant?: "hosted" | "saved" | "trash";
+  /** Hosted: the "N items" pill (approved count). */
+  itemsLabel?: string | null;
+  /** A status pill: Open/Closed (hosted), the countdown (trash), Password (saved). */
+  statusLabel?: string | null;
+  /** Hosted: the amber "N to review" chip (rendered only when > 0). */
+  pendingCount?: number;
+  /** Saved: "Hosted by X". */
   byline?: string | null;
+  /** Hosted: the client QR trigger (a sibling of the Link; tapping it never navigates). */
+  qrSlot?: React.ReactNode;
+  /** Top-right action: unsave (saved) / restore (trash). */
   action?: React.ReactNode;
-  /** Provenance marker for the merged Events tab: a top-left glyph (hosted vs saved). */
-  kind?: "hosted" | "saved";
 }) {
   const locked = href === null;
 
-  const body = (
+  const surface = (
     <>
-      <div className="aspect-video w-full overflow-hidden bg-muted">
-        {coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-          <img
-            src={coverUrl}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/30 text-muted-foreground/40">
-            {locked ? (
-              <Lock className="size-7" />
-            ) : (
-              <ImageIcon className="size-7" />
-            )}
-          </div>
-        )}
-      </div>
-      <div className="space-y-1 p-4">
-        <h3 className="truncate font-medium">{name}</h3>
-        <p className="truncate text-sm text-muted-foreground">{dateLabel}</p>
-        {byline && (
-          <p className="truncate text-xs text-muted-foreground">{byline}</p>
-        )}
-        {badges && <div className="flex flex-wrap gap-1.5 pt-1">{badges}</div>}
+      {coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
+        <img
+          src={coverUrl}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        // No-cover fallback = the always-dark gallery surface, so the white
+        // overlay chrome stays legible in both themes (never a light card).
+        <div className="absolute inset-0 flex items-center justify-center bg-gallery text-gallery-muted">
+          {locked ? (
+            <Lock className="size-7" aria-hidden />
+          ) : (
+            <ImageIcon className="size-7" aria-hidden />
+          )}
+        </div>
+      )}
+      {/* Legibility gradient: dark at the foot where the chrome sits. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-3 text-white">
+        <h3 className="truncate font-heading text-lg leading-snug">{name}</h3>
+        {byline && <p className="truncate text-xs text-white/75">{byline}</p>}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className={PILL}>
+            <Calendar className="size-2.5" aria-hidden />
+            {dateLabel}
+          </span>
+          {itemsLabel && (
+            <span className={PILL}>
+              <Images className="size-2.5" aria-hidden />
+              {itemsLabel}
+            </span>
+          )}
+          {statusLabel && <span className={PILL}>{statusLabel}</span>}
+        </div>
       </div>
     </>
   );
 
   return (
-    <div data-media-tile className="group relative h-full">
+    <div data-media-tile className="group relative">
       {href ? (
         <Link
           href={href}
-          className="block h-full overflow-hidden rounded-xl border border-border bg-card transition-[transform,background-color] duration-150 ease-emphasis hover:bg-muted/40 active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="relative block aspect-[16/10] overflow-hidden rounded-xl outline-none transition-transform duration-150 ease-emphasis active:scale-[0.99] focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:active:scale-100"
         >
-          {body}
+          {surface}
         </Link>
       ) : (
-        <div className="block h-full cursor-default overflow-hidden rounded-xl border border-dashed border-border bg-muted/20 opacity-75">
-          {body}
-        </div>
-      )}
-      {/* Provenance glyph (top-LEFT; the action slot owns top-right). Static, subtle. */}
-      {kind && (
         <div
-          className="pointer-events-none absolute top-2 left-2 z-10 flex items-center justify-center rounded-md bg-background/80 p-1 text-muted-foreground shadow-sm ring-1 ring-border/60 backdrop-blur-sm"
-          title={kind === "hosted" ? "You're hosting this event" : "A saved event"}
-        >
-          {kind === "hosted" ? (
-            <CalendarCheck className="size-3.5" aria-hidden />
-          ) : (
-            <Bookmark className="size-3.5" aria-hidden />
+          className={cn(
+            "relative block aspect-[16/10] cursor-default overflow-hidden rounded-xl",
+            variant === "trash" && "opacity-75 grayscale",
           )}
-          <span className="sr-only">{kind === "hosted" ? "Hosting" : "Saved"}</span>
+        >
+          {surface}
         </div>
       )}
-      {action && <div className="absolute top-2 right-2 z-10">{action}</div>}
+
+      {/* Top-LEFT: the hosted QR chip OR the saved provenance glyph. */}
+      {qrSlot ? (
+        <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>
+      ) : variant === "saved" ? (
+        <div
+          className="pointer-events-none absolute top-2.5 left-2.5 z-10 flex items-center justify-center rounded-[var(--radius-tile)] bg-black/35 p-1.5 text-white backdrop-blur-sm"
+          title="A saved event"
+        >
+          <Bookmark className="size-3.5" aria-hidden />
+          <span className="sr-only">Saved event</span>
+        </div>
+      ) : null}
+
+      {/* Top-RIGHT: the amber review chip (hosted) OR the action (saved/trash);
+          mutually exclusive by variant, so they never overlap. */}
+      {pendingCount > 0 && (
+        <div
+          className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm"
+          style={{
+            background: "var(--warning)",
+            color: "var(--warning-foreground)",
+          }}
+        >
+          {pendingCount} to review
+        </div>
+      )}
+      {action && <div className="absolute top-2.5 right-2.5 z-10">{action}</div>}
     </div>
   );
 }

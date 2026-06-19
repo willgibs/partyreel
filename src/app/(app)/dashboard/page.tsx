@@ -6,13 +6,13 @@ import { CalendarPlus, Trash2, Upload } from "lucide-react";
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { DashboardTabs } from "@/components/app/dashboard-tabs";
 import { EventCard } from "@/components/app/event-card";
+import { EventCardQr } from "@/components/app/event-card-qr";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
 import { UnsaveButton } from "@/components/app/unsave-button";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +27,7 @@ import {
   withinLimit,
 } from "@/lib/constants/tiers";
 import {
+  getEventCardStats,
   getEventCoverUrls,
   listEvents,
   listRecentlyDeletedEvents,
@@ -40,6 +41,7 @@ import {
   binCountdownLabel,
   overStandbyBudget,
 } from "@/lib/lifecycle/recently-deleted";
+import { getSiteUrl } from "@/lib/site-url";
 import { formatBytes, formatEventDate } from "@/lib/utils";
 import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 
@@ -47,6 +49,9 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 // The dashboard tab is deep-linkable via ?tab= (events | uploads | likes | deleted) — see DashboardTabs.
 const VALID_TABS = ["events", "uploads", "likes", "deleted"] as const;
+
+// The V3 card's "N items" pill (approved media count).
+const itemCountLabel = (n: number) => `${n} ${n === 1 ? "item" : "items"}`;
 
 export default async function DashboardPage({
   searchParams,
@@ -57,16 +62,25 @@ export default async function DashboardPage({
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here.
-  const [events, profile, savedCards, deletedEvents, storage, uploads, likes] =
-    await Promise.all([
-      listEvents(),
-      getProfile(),
-      getSavedEventCards(),
-      listRecentlyDeletedEvents(),
-      getHostStorageSummary(),
-      getMyUploadCards(),
-      getMyLikeCards(),
-    ]);
+  const [
+    events,
+    profile,
+    savedCards,
+    deletedEvents,
+    storage,
+    uploads,
+    likes,
+    siteUrl,
+  ] = await Promise.all([
+    listEvents(),
+    getProfile(),
+    getSavedEventCards(),
+    listRecentlyDeletedEvents(),
+    getHostStorageSummary(),
+    getMyUploadCards(),
+    getMyLikeCards(),
+    getSiteUrl(),
+  ]);
 
   // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
   // account must set a public display name (Phase 1) before reaching the dashboard. /welcome sets
@@ -78,9 +92,12 @@ export default async function DashboardPage({
 
   // Cover art for the owned AND recently-deleted cards: newest approved media per event, presigned
   // (one batched query — a deleted event's media stay non-removed, so it still resolves a cover).
-  const coverUrls = await getEventCoverUrls(
-    [...events, ...deletedEvents].map((e) => e.id),
-  );
+  // Per-event stats (approved/pending) drive the V3 card's item pill + amber review chip; fetched in
+  // parallel with the presign batch (only live events get stats; deleted cards show no stats).
+  const [coverUrls, eventStats] = await Promise.all([
+    getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
+    getEventCardStats(events.map((e) => e.id)),
+  ]);
 
   // The merged "Events" tab (Phase 4): hosted + saved interleaved by recency. Hosted sort by created_at,
   // saved by saved_at, so a just-created OR just-saved event lands at the top. ISO timestamps compare
@@ -291,54 +308,46 @@ export default async function DashboardPage({
                 item.kind === "hosted" ? (
                   <li key={`h-${item.event.id}`}>
                     <EventCard
-                      kind="hosted"
+                      variant="hosted"
                       href={`/dashboard/${item.event.id}`}
                       name={item.event.name}
+                      coverUrl={coverUrls.get(item.event.id) ?? null}
                       dateLabel={
                         item.event.event_date
                           ? formatEventDate(item.event.event_date)
                           : "No date set"
                       }
-                      coverUrl={coverUrls.get(item.event.id) ?? null}
-                      badges={
-                        <>
-                          <Badge
-                            variant={
-                              item.event.accepting_uploads
-                                ? "secondary"
-                                : "outline"
-                            }
-                          >
-                            {item.event.accepting_uploads ? "Open" : "Closed"}
-                          </Badge>
-                          <Badge variant="outline">
-                            {item.event.visibility === "open"
-                              ? "Public album"
-                              : item.event.visibility === "password"
-                                ? "Password"
-                                : "Private"}
-                          </Badge>
-                          {item.event.moderation_mode ===
-                            "hold_for_approval" && (
-                            <Badge variant="outline">Reviewing</Badge>
-                          )}
-                        </>
+                      itemsLabel={itemCountLabel(
+                        eventStats.get(item.event.id)?.approved ?? 0,
+                      )}
+                      statusLabel={
+                        item.event.accepting_uploads ? "Open" : "Closed"
+                      }
+                      pendingCount={eventStats.get(item.event.id)?.pending ?? 0}
+                      qrSlot={
+                        <EventCardQr
+                          eventId={item.event.id}
+                          eventName={item.event.name}
+                          qrToken={item.event.qr_token}
+                          qrStyle={item.event.qr_style}
+                          siteUrl={siteUrl}
+                        />
                       }
                     />
                   </li>
                 ) : (
                   <li key={`s-${item.card.eventId}`}>
                     <EventCard
-                      kind="saved"
+                      variant="saved"
                       href={item.card.href}
                       name={item.card.name}
+                      coverUrl={item.card.coverUrl}
                       dateLabel={item.card.dateLabel}
                       byline={item.card.byline}
-                      coverUrl={item.card.coverUrl}
-                      badges={
-                        item.card.accessible && item.card.passwordProtected ? (
-                          <Badge variant="outline">Password</Badge>
-                        ) : null
+                      statusLabel={
+                        item.card.accessible && item.card.passwordProtected
+                          ? "Password"
+                          : null
                       }
                       action={<UnsaveButton eventId={item.card.eventId} />}
                     />
@@ -382,19 +391,16 @@ export default async function DashboardPage({
               {deletedEvents.map((event) => (
                 <li key={event.id}>
                   <EventCard
+                    variant="trash"
                     href={null}
                     name={event.name}
+                    coverUrl={coverUrls.get(event.id) ?? null}
                     dateLabel={
                       event.event_date
                         ? formatEventDate(event.event_date)
                         : "No date set"
                     }
-                    coverUrl={coverUrls.get(event.id) ?? null}
-                    badges={
-                      <Badge variant="outline">
-                        {binCountdownLabel(event.countdownDays)}
-                      </Badge>
-                    }
+                    statusLabel={binCountdownLabel(event.countdownDays)}
                     action={<RestoreEventButton eventId={event.id} />}
                   />
                 </li>
