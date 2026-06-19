@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
+import { Geist_Mono, Inter, Urbanist } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
@@ -20,14 +20,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// THE IDENTITY FACE (V1 program, Phase 1 verdict): base Instrument Serif,
-// single weight - calibration + synthetic display weight live on the
-// font-heading utility in globals.css. next/font self-hosts it (build-time
-// download, served from our domain).
-const instrumentSerif = Instrument_Serif({
+// THE IDENTITY FACE: Urbanist (replaced Instrument Serif 2026-06-19, Will's
+// call - the serif read too thin). Loaded as the VARIABLE font (full weight
+// axis) so the font-heading utility's bold (700) applies everywhere through the
+// one swappable token. next/font self-hosts it (build-time download, our domain).
+const urbanist = Urbanist({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: "400",
 });
 
 // metadataBase makes the file-based opengraph-image + relative metadata URLs
@@ -74,7 +73,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} ${urbanist.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>

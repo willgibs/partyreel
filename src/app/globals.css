@@ -33,14 +33,12 @@
       (--shadow-float, blur = 2× offset, single top light source); dark mode
       uses NO shadows — depth = lighter surface steps (bg 0.14 → card 0.21 →
       popover 0.23) + borders. One depth technique per mode, never mixed.
-    • TYPE: Instrument Serif is the IDENTITY face (page titles, event names,
-      marquees) via the `font-heading` utility below — size-calibrated
-      (font-size-adjust 0.6; display serifs render ~18% small at equal CSS
-      size) and stroke-weighted (the face ships 400 only; 0.013em text-stroke
-      beats faux-bold). FUNCTIONAL headings (settings sections, labels,
-      controls) stay Inter — the system rule from the lab. Swapping the brand
-      face forever = repoint --font-display + retune the five knobs in the
-      font-heading utility.
+    • TYPE: Urbanist is the IDENTITY face (page titles, event names, marquees)
+      via the `font-heading` utility below — bold (700) at -3% tracking.
+      FUNCTIONAL headings (settings sections, labels, controls) stay Inter — the
+      system rule. Swapping the brand face forever = repoint --font-display +
+      retune the weight/tracking in the font-heading utility (ONE place,
+      everywhere, no scattered orphans).
     • MOTION: strong custom curves only (--ease-emphasis out, --ease-in-out-
       strong move, --ease-drawer sheets), UI under 300ms, exits faster than
       enters, entrances from scale(0.98)+opacity via @starting-style,
@@ -549,25 +547,18 @@
   }
 }
 
-/* THE IDENTITY TYPE UTILITY — the five-knob display layer (program Phase 1).
-   `font-heading` = Instrument Serif for IDENTITY moments only (page titles,
-   event names, marquees); functional headings stay Inter (the system rule).
-   Knobs: the face (--font-display, loaded in the root layout), the SIZE
-   CALIBRATION (font-size-adjust 0.6 — display serifs render ~18% small at
-   equal CSS size; measured in-browser, Inter parity is 0.55, IS deliberately
-   sits above it because hairline strokes read smaller than metrics), zero
-   tracking, the real weight (400 — the face ships ONE weight), and the
-   SYNTHETIC display weight (0.013em text-stroke; beats faux-bold, which
-   font-synthesis:none forbids). Swap the brand face forever by repointing
-   --font-display + retuning these five lines. Unsupported font-size-adjust
-   degrades to the uncalibrated (smaller) rendering, never breaks. */
+/* THE IDENTITY TYPE UTILITY (the swappable global heading face).
+   `font-heading` = Urbanist for IDENTITY moments only (page titles, event
+   names, marquees); functional headings stay Inter (the system rule). Urbanist
+   is a proper variable sans, so the Instrument-era knobs (font-size-adjust,
+   the synthetic text-stroke weight, font-synthesis) are gone — a real bold
+   weight does the work. Two knobs remain by intent: WEIGHT (700, Will's pick)
+   and TRACKING (-3%). Swap the brand face forever by repointing --font-display
+   (root layout) + retuning these two lines — applies everywhere, no orphans. */
 @utility font-heading {
   font-family: var(--font-display, var(--font-sans));
-  font-size-adjust: 0.6;
-  letter-spacing: 0em;
-  font-weight: 400;
-  -webkit-text-stroke: 0.013em;
-  font-synthesis: none;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 /* Help-center / blog article prose theme. Every color points at a design-system token
