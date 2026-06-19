@@ -22,6 +22,7 @@ import {
   withinLimit,
 } from "@/lib/constants/tiers";
 import { resolveInitialFilter } from "@/lib/dashboard/filters";
+import { resolveDashboardLayout } from "@/lib/dashboard/layout";
 import {
   getEventCardStats,
   getEventCoverUrls,
@@ -125,18 +126,17 @@ export default async function DashboardPage({
       })
     : null;
 
-  // Per-section content flags drive the teaser-vs-gallery decision (the per-section teaser model):
-  // each content section shows its INVITING teaser when empty vs real content when populated.
-  const hasUploads = uploads.items.length > 0;
-  const hasLikes = likes.items.length > 0;
-  // Chips appear when there is anything to navigate (live content OR trash to restore); otherwise
-  // it is a pure onboarding page (the teaser stack, no chip chrome).
-  const showChips =
-    used > 0 ||
-    savedCards.length > 0 ||
-    hasUploads ||
-    hasLikes ||
-    deletedEvents.length > 0;
+  // The single-feed layout gates (pure + unit-tested, the four canonical states): meter visibility
+  // (1+ events OR standby bytes to report), chip visibility (anything to navigate), and the
+  // teaser-vs-gallery emptiness per section.
+  const layout = resolveDashboardLayout({
+    events: used,
+    saved: savedCards.length,
+    uploads: uploads.items.length,
+    likes: likes.items.length,
+    deleted: deletedEvents.length,
+    standbyBytes,
+  });
 
   // The four section slots, rendered server-side (presigned URLs never cross as client data) and
   // handed to the client feed. Events owns its own card-grid-or-create-hero; uploads/likes show the
@@ -150,25 +150,25 @@ export default async function DashboardPage({
       siteUrl={siteUrl}
     />
   );
-  const uploadsSection = hasUploads ? (
-    <FeedSection heading="Your uploads">
-      <MyUploadsGallery items={uploads.items} truncated={uploads.truncated} />
-    </FeedSection>
-  ) : (
+  const uploadsSection = layout.uploadsEmpty ? (
     <EmptySectionTeaser
       heading="Your uploads"
       blurb="Photos and videos you add to any event, yours or a friend's, collect here."
     />
-  );
-  const likesSection = hasLikes ? (
-    <FeedSection heading="Your likes">
-      <MyLikesGallery items={likes.items} truncated={likes.truncated} />
-    </FeedSection>
   ) : (
+    <FeedSection heading="Your uploads">
+      <MyUploadsGallery items={uploads.items} truncated={uploads.truncated} />
+    </FeedSection>
+  );
+  const likesSection = layout.likesEmpty ? (
     <EmptySectionTeaser
       heading="Your likes"
       blurb="Tap the heart on any photo or video and it lands here, across every event."
     />
+  ) : (
+    <FeedSection heading="Your likes">
+      <MyLikesGallery items={likes.items} truncated={likes.truncated} />
+    </FeedSection>
   );
   const trashSection = (
     <TrashSection deletedEvents={deletedEvents} coverUrls={coverUrls} />
@@ -218,8 +218,9 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Ambient storage meter — hosting telemetry, shown once there's an event. */}
-      {used > 0 && (
+      {/* Ambient storage meter — hosting telemetry: shown with an event OR standby bytes to report
+          (so a host who deleted every event still sees their Trash-budget status). */}
+      {layout.showMeter && (
         <StorageMeter
           storageUsed={storageUsed}
           storageCap={storageCap}
@@ -250,7 +251,7 @@ export default async function DashboardPage({
       <DashboardFeed
         initialFilter={resolveInitialFilter(tab, filter)}
         trashCount={deletedEvents.length}
-        showChips={showChips}
+        showChips={layout.showChips}
         eventsSection={eventsSection}
         uploadsSection={uploadsSection}
         likesSection={likesSection}

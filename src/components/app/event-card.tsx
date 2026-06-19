@@ -105,7 +105,9 @@ export function EventCard({
   );
 
   return (
-    <div data-media-tile className="group relative">
+    // data-static: a host management card, so opt out of the [data-media-tile]
+    // arrival fade (emil: no entrance theater on host). It's not a lightbox tile.
+    <div data-media-tile data-static className="group relative">
       {href ? (
         <Link
           href={href}

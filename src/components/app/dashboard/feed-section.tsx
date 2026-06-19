@@ -13,9 +13,9 @@ export function FeedSection({
 }) {
   return (
     <section aria-label={heading}>
-      <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
         {heading}
-      </p>
+      </h2>
       <div className="mt-2.5">{children}</div>
     </section>
   );

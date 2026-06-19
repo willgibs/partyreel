@@ -34,7 +34,7 @@ export function EventsEmptyTeaser() {
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
         <div className="space-y-1.5">
-          <p className="font-heading text-2xl text-balance">Your events land here</p>
+          <h2 className="font-heading text-2xl text-balance">Your events land here</h2>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
             Create an event and your guests add photos and videos in seconds. No
             app, no account, just a QR code.

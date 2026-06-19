@@ -288,6 +288,14 @@
         transform: translateY(8px) scale(0.98);
       }
     }
+
+    /* HOST management surfaces opt OUT of the arrival fade-rise (emil contract: NO
+       entrance theater on host); they keep data-media-tile for the lightbox origin.
+       transition:none leaves @starting-style nothing to animate -> instant paint,
+       and no replay when a filter switch remounts a section. */
+    [data-media-tile][data-static] {
+      transition: none;
+    }
   }
 
   /* Contact form success message fades + rises in when it replaces the form

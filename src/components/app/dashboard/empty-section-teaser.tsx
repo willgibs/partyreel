@@ -25,9 +25,9 @@ export function EmptySectionTeaser({
 }) {
   return (
     <section aria-label={heading}>
-      <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+      <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
         {heading}
-      </p>
+      </h2>
       <div className="mt-2.5 flex items-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 p-4">
         <div
           aria-hidden

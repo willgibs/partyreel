@@ -42,7 +42,7 @@ export function FilterChips({
             className={cn(
               "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium outline-none transition-transform duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50",
               isActive
-                ? "bg-foreground text-background"
+                ? "border border-transparent bg-foreground text-background"
                 : "border border-border text-muted-foreground hover:text-foreground",
             )}
           >

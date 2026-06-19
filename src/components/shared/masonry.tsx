@@ -75,6 +75,9 @@ export function MasonryColumns({
           <div
             key={item.id}
             data-media-tile
+            // Host tiles (stagger off) opt out of the arrival fade-rise (emil: no
+            // entrance theater on host); guest convergence (stagger on) keeps it.
+            data-static={stagger ? undefined : ""}
             style={
               {
                 aspectRatio: tileAspect(item, clampAspect),

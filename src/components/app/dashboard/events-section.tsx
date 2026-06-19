@@ -42,60 +42,67 @@ export function EventsSection({
       sortDate: card.savedAt,
       card,
     })),
-  ].sort((a, b) => (a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0));
+  ].sort((a, b) =>
+    a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0,
+  );
 
   if (merged.length === 0) return <EventsEmptyTeaser />;
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {merged.map((item) =>
-        item.kind === "hosted" ? (
-          <li key={`h-${item.event.id}`}>
-            <EventCard
-              variant="hosted"
-              href={`/dashboard/${item.event.id}`}
-              name={item.event.name}
-              coverUrl={coverUrls.get(item.event.id) ?? null}
-              dateLabel={
-                item.event.event_date
-                  ? formatEventDate(item.event.event_date)
-                  : "No date set"
-              }
-              itemsLabel={itemCountLabel(
-                eventStats.get(item.event.id)?.approved ?? 0,
-              )}
-              statusLabel={item.event.accepting_uploads ? "Open" : "Closed"}
-              pendingCount={eventStats.get(item.event.id)?.pending ?? 0}
-              qrSlot={
-                <EventCardQr
-                  eventId={item.event.id}
-                  eventName={item.event.name}
-                  qrToken={item.event.qr_token}
-                  qrStyle={item.event.qr_style}
-                  siteUrl={siteUrl}
-                />
-              }
-            />
-          </li>
-        ) : (
-          <li key={`s-${item.card.eventId}`}>
-            <EventCard
-              variant="saved"
-              href={item.card.href}
-              name={item.card.name}
-              coverUrl={item.card.coverUrl}
-              dateLabel={item.card.dateLabel}
-              byline={item.card.byline}
-              statusLabel={
-                item.card.accessible && item.card.passwordProtected
-                  ? "Password"
-                  : null
-              }
-              action={<UnsaveButton eventId={item.card.eventId} />}
-            />
-          </li>
-        ),
-      )}
-    </ul>
+    <section aria-label="Your events">
+      {/* The cards lead the feed visually; a hidden h2 keeps the heading hierarchy
+          (page h1 -> section h2 -> card h3) without a redundant visible label. */}
+      <h2 className="sr-only">Your events</h2>
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {merged.map((item) =>
+          item.kind === "hosted" ? (
+            <li key={`h-${item.event.id}`}>
+              <EventCard
+                variant="hosted"
+                href={`/dashboard/${item.event.id}`}
+                name={item.event.name}
+                coverUrl={coverUrls.get(item.event.id) ?? null}
+                dateLabel={
+                  item.event.event_date
+                    ? formatEventDate(item.event.event_date)
+                    : "No date set"
+                }
+                itemsLabel={itemCountLabel(
+                  eventStats.get(item.event.id)?.approved ?? 0,
+                )}
+                statusLabel={item.event.accepting_uploads ? "Open" : "Closed"}
+                pendingCount={eventStats.get(item.event.id)?.pending ?? 0}
+                qrSlot={
+                  <EventCardQr
+                    eventId={item.event.id}
+                    eventName={item.event.name}
+                    qrToken={item.event.qr_token}
+                    qrStyle={item.event.qr_style}
+                    siteUrl={siteUrl}
+                  />
+                }
+              />
+            </li>
+          ) : (
+            <li key={`s-${item.card.eventId}`}>
+              <EventCard
+                variant="saved"
+                href={item.card.href}
+                name={item.card.name}
+                coverUrl={item.card.coverUrl}
+                dateLabel={item.card.dateLabel}
+                byline={item.card.byline}
+                statusLabel={
+                  item.card.accessible && item.card.passwordProtected
+                    ? "Password"
+                    : null
+                }
+                action={<UnsaveButton eventId={item.card.eventId} />}
+              />
+            </li>
+          ),
+        )}
+      </ul>
+    </section>
   );
 }
