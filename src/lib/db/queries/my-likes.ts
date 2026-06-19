@@ -42,6 +42,9 @@ export async function getMyLikeCards(): Promise<{
       // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
       eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
       eventQrToken: r.event_qr_token,
+      width: r.width,
+      height: r.height,
+      durationSeconds: r.duration_seconds,
     })),
   );
   // Every item here is liked by the viewer by definition; the Likes-tab gallery seeds the LikesProvider

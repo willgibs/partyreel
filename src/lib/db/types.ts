@@ -862,29 +862,35 @@ export type Database = {
       get_my_likes: {
         Args: { p_limit?: number }
         Returns: {
+          duration_seconds: number
           event_date: string
           event_id: string
           event_name: string
           event_qr_token: string
+          height: number
           id: string
           liked_at: string
           original_key: string
           type: Database["public"]["Enums"]["media_type"]
+          width: number
         }[]
       }
       get_my_uploads: {
         Args: { p_limit?: number }
         Returns: {
           created_at: string
+          duration_seconds: number
           event_date: string
           event_id: string
           event_name: string
           event_qr_token: string
+          height: number
           id: string
           is_host_upload: boolean
           original_key: string
           preview_key: string
           type: Database["public"]["Enums"]["media_type"]
+          width: number
         }[]
       }
       get_saved_events: {

@@ -41,6 +41,9 @@ export async function getMyUploadCards(): Promise<{
       // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
       eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
       eventQrToken: r.event_qr_token,
+      width: r.width,
+      height: r.height,
+      durationSeconds: r.duration_seconds,
     })),
   );
   return { items, truncated: rows.length >= MY_UPLOADS_LIMIT };

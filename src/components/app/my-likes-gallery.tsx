@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 
-import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import { type GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import { MasonryColumns } from "@/components/shared/masonry";
 import { EmptyState } from "@/components/shared/empty-state";
 
 // The personal cross-event "Likes" gallery (Phase 5): a flat, newest-LIKED-first grid of every photo/video
@@ -49,7 +50,7 @@ export function MyLikesGallery({
         mode="remove"
         onRemoved={(id) => setRemoved((prev) => new Set(prev).add(id))}
       >
-        <MediaGrid items={visible} />
+        <MasonryColumns items={visible} />
       </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">

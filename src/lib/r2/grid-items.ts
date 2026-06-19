@@ -103,7 +103,9 @@ export async function toModerationFeedItems(
   );
 }
 
-// One row of the personal "Uploads" feed (Phase 4) -- the user's own media across MANY events.
+// One row of the personal "Uploads"/"Likes" feed -- the user's own/liked media across MANY events.
+// width/height/durationSeconds (Phase 5 S2a) feed the masonry tile aspect ratio; null on
+// pre-measure-era rows (the masonry falls back to a 1:1 tile, like the guest gallery).
 export type MyUploadRow = {
   id: string;
   type: MediaKind;
@@ -111,6 +113,9 @@ export type MyUploadRow = {
   eventName: string;
   eventDateLabel: string | null;
   eventQrToken: string;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
 };
 
 // The personal cross-event Uploads variant: like the moderation feed, items span events, so each
@@ -141,6 +146,10 @@ export async function toMyUploadsItems(
         eventName: m.eventName,
         eventDateLabel: m.eventDateLabel,
         eventQrToken: m.eventQrToken,
+        // Masonry geometry (Phase 5 S2a): null on pre-measure rows -> 1:1 tile.
+        width: m.width,
+        height: m.height,
+        durationSeconds: m.durationSeconds,
       };
     }),
   );

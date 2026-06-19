@@ -4,8 +4,9 @@ import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 
 import { removeMyUploadAction } from "@/app/(app)/dashboard/actions";
-import { MediaGrid, type GridMedia } from "@/components/app/media-grid";
+import { type GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import { MasonryColumns } from "@/components/shared/masonry";
 
 // The personal cross-event "Uploads" gallery (Phase 4): a flat, newest-first grid of the viewer's OWN
 // uploads (host + guest), reusing the public MediaGrid. View + per-item download in the lightbox, plus the
@@ -44,7 +45,7 @@ export function MyUploadsGallery({
     <div className="space-y-4">
       {/* Likes toggle in place here (mode "keep"); delete-your-own is the separate Trash action. */}
       <LikesProvider mediaIds={optimisticItems.map((m) => m.id)}>
-        <MediaGrid items={optimisticItems} onDeleteItem={handleDelete} />
+        <MasonryColumns items={optimisticItems} onDeleteItem={handleDelete} />
       </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">
