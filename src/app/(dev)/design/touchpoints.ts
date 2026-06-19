@@ -173,12 +173,18 @@ export const TOUCHPOINTS: Touchpoint[] = [
     title: "Host event page",
     note: "How one event's management surface is composed: gallery, share, review queue, settings",
     variants: ["Gallery-first", "Command center", "Tabbed surfaces"],
+    decision: 1,
+    decisionNote:
+      "Gallery-first (Will, 2026-06-12): the host page mirrors the guest experience - the gallery IS the page under a minimal left-editorial header (the ratified header rule: max room for the gallery, cohesion with the guest surface). Management collapses into ONE compact command strip: Share/QR + the amber 'N to review' chip (opens the pending queue) + a settings entry point. Moderation is one tap away, not a wall in front of the gallery.",
   },
   {
     id: "host-dashboard",
     title: "Host dashboard",
     note: "How the home surface is composed: events, storage, the personal tabs",
     variants: ["Cards-first", "Ambient storage", "Single feed"],
+    decision: 3,
+    decisionNote:
+      "Single feed + ambient storage, a HYBRID (Will, 2026-06-12): tabs become FILTER chips over ONE continuous feed - events (V3 stat-forward cards) THEN your uploads (masonry) THEN likes, in one scroll. WHY: a free user with ONE event still gets a full, exciting page (content beneath the lone event) instead of a sparse list + forced navigation to find the rest. Storage = the AMBIENT slim meter from V2 (NOT V1's in-your-face card): polished + visible to incentivize the upgrade when it matters, never a hero block. Trash stays a filter (the recovery bin). The personal feeds (uploads/likes) keep their own empty-state ownership (client-only unlike).",
   },
 ];
 
