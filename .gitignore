@@ -42,6 +42,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Test-media fixtures live NEXT TO the repo at /Users/gibby/local/ai/partyreel-test-media/ (real
+# images/videos for live upload testing) — a normal folder the user can connect to the upload
+# sandbox + the native picker can navigate to (it hides dotfolders).
+# This stale in-repo path stays ignored in case fixtures are ever staged here by mistake.
+.test-media/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,0 +1,67 @@
+"use client";
+
+import { FILTER_CHIPS, type FilterValue } from "@/lib/dashboard/filters";
+import { cn } from "@/lib/utils";
+
+/**
+ * The dashboard filter bar (Phase 5 S2b) — the single-feed replacement for the
+ * radix tabs. A controlled segmented control: NOT radix Tabs (one-panel-per-value
+ * can't express "All shows three sections", and dropping radix sidesteps the
+ * TabsContent-strands-Suspense landmine if streaming is ever revisited).
+ *
+ * Emil management-tool contract: the active swap is INSTANT (no color/bg
+ * transition); the only motion is the press (active:scale, transform-only).
+ * Horizontal-scrolls on narrow viewports so five chips never wrap to two rows.
+ * Honest ARIA: aria-pressed buttons in a group (these are filters, not a
+ * tab/panel relationship — we deliberately broke that).
+ */
+export function FilterChips({
+  active,
+  onChange,
+  trashCount,
+}: {
+  active: FilterValue;
+  onChange: (value: FilterValue) => void;
+  /** The Trash chip's badge — the only count that earns its place. */
+  trashCount: number;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Filter your dashboard"
+      className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {FILTER_CHIPS.map((chip) => {
+        const isActive = active === chip.value;
+        return (
+          <button
+            key={chip.value}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => onChange(chip.value)}
+            className={cn(
+              "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium outline-none transition-transform duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50",
+              isActive
+                ? "bg-foreground text-background"
+                : "border border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {chip.label}
+            {chip.value === "trash" && trashCount > 0 && (
+              <span
+                className={cn(
+                  "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums",
+                  isActive
+                    ? "bg-background/20 text-background"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {trashCount}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

@@ -554,7 +554,10 @@
    the synthetic text-stroke weight, font-synthesis) are gone — a real bold
    weight does the work. Two knobs remain by intent: WEIGHT (700, Will's pick)
    and TRACKING (-3%). Swap the brand face forever by repointing --font-display
-   (root layout) + retuning these two lines — applies everywhere, no orphans. */
+   (root layout) + retuning these two lines. 700 is the DEFAULT weight; a surface
+   MAY override font-weight where the design calls for it (Will, 2026-06-19) —
+   headings not yet on the system get locked in progressively (marketing phases /
+   the S5 type pass), not swept wholesale. */
 @utility font-heading {
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;
