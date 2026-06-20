@@ -17,10 +17,11 @@ calibration + 0.013em stroke weight; swappable via the five-variable display lay
 `src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is
 **THE WORKBENCH** (2026-06-19), Partyreel's one internal UI tool, persistent beyond Phase 1. Two halves
 under a polished sidebar (driven by `catalog.ts`, the single source): **Reference** = the REAL shipped UI,
-synced by construction (`/design/foundations` renders the live tokens via `var(--token)`;
-`/design/components` imports the real `ui/*`+`shared/*` primitives; `/design/system` + `/design/demo` are
-the composed showcases) and **Sandbox** = the prototype explorations (`touchpoints.ts` = the read-only
-shipped record). ONE theme (next-themes) flips chrome + reference + sandbox together. The live-picking
+synced by construction (`/design/foundations` = the live tokens via `var(--token)`; `/design/components`
+= the real `ui/*` primitives; `/design/patterns` = the composed `shared/*` pieces; `/design/compositions`
+= the real product UI (event card, storage meter, share suite) from sample props; `/design/system` +
+`/design/demo` = the composed showcases) and **Sandbox** = the prototype explorations (`touchpoints.ts` =
+the read-only shipped record). ONE theme (next-themes) flips chrome + reference + sandbox together. The live-picking
 machinery is retired; the heading face is Urbanist (matches the app).
 **PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** — the full spec = `touchpoints.ts`
 decisions + `/design/demo`. **PHASE 2 COMPLETE (2026-06-11): the V1 system is LIVE on partyreel.com**

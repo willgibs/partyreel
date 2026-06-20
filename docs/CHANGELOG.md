@@ -10,6 +10,21 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-20 — Workbench round-out: complete the live reference (`761d274`, `3c5f576`)
+
+Fleshed out the live-reference coverage (Will's call: round out the tool while it's fresh, before S3).
+- **Components** gained the remaining `ui/*` primitives (no `select`/`combobox` exist): **Form** (a live
+  react-hook-form + zod demo with real validation), **Drawer** (vaul), **Label**.
+- NEW **`/design/patterns`**: the standalone `shared/*` patterns (Logo, the play badges over a sample
+  poster, EmptyState both variants, NotFoundScreen, AnonymousInfo; SetNameStep `inert` + RouteError as a
+  static mock, since those mount side effects).
+- NEW **`/design/compositions`**: the real PRODUCT components from sample props (the live app UI without
+  seeding an event) - EventCard in all four states, the StorageMeter, the FilterChips, the share suite,
+  the teasers. Data/provider-heavy UI deferred with an on-page note (S3 adds the moderation gallery here).
+- LESSON: the build does NOT catch RSC serialization errors. The server Patterns page passing `onSaved` to
+  the client `SetNameStep` threw "event handlers cannot be passed to Client Component props" only at
+  RUNTIME (200/500 check caught it) - wrapped it in a client demo. Verify pages render, not just compile.
+
 ## 2026-06-19 — The Workbench: the design lab becomes a live reference + sandbox (`da2a0f8`, `ed40bd1`, `9030adf`)
 
 The gated `/design` lab outgrew its "pick a variant + ratify" origins. In two steps it became **the
