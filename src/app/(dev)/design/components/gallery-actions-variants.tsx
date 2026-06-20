@@ -38,7 +38,7 @@ export function GalleryActionsVariants() {
 
       <Group
         eyebrow="A. Host tile: rest vs. hover (3c.1, shipped)"
-        blurb="At rest the gallery stays clean (media only; hidden media sits at 30% so active-vs-hidden is obvious without hovering). Hovering reveals the top-right action row, each icon monochrome until you hover it, then its color. Like is FAR-RIGHT and stays colored while liked, so it never shifts as the rest collapse on hover-off."
+        blurb="At rest the gallery stays clean; a HIDDEN tile keeps a persistent amber Show marker (off-hover, like the liked heart) PLUS the 30% dim, so hidden is unmistakable + 1-tap to show. Hovering reveals the rest of the row, each icon monochrome until you hover it, then its color. Like is FAR-RIGHT and stays colored while liked, so it never shifts as the rest collapse on hover-off. Moderation is optimistic (instant, reverts on failure)."
       >
         <Variant
           n={1}
@@ -126,7 +126,9 @@ function Legend() {
       <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
         One color per action, the same everywhere it appears, so the action is
         recognizable and its state is legible at a glance. Monochrome at rest,
-        color on direct icon-hover + active state.
+        color on direct icon-hover + active state; desktop hover shows a styled
+        tooltip label. (Download, Save, and Share share the blue, they aren&rsquo;t
+        state-based; the distinct hues are for the state actions.)
       </p>
       <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
         {items.map((it) => (
@@ -271,11 +273,21 @@ function HostTile({
         </>
       )}
 
-      {mode === "rest" && liked && (
-        // A liked tile keeps its pink heart visible at rest (far-right).
-        <span className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
-          <Heart className="size-3.5 fill-current text-like" />
-        </span>
+      {mode === "rest" && (dimmed || liked) && (
+        // Persistent state markers (off-hover, like the liked heart): a hidden tile keeps
+        // an active AMBER Show (1-tap to show again); a liked tile keeps its rose heart.
+        <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
+          {dimmed && (
+            <span className="flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+              <Eye className="size-3.5 text-warning" />
+            </span>
+          )}
+          {liked && (
+            <span className="flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+              <Heart className="size-3.5 fill-current text-like" />
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -315,7 +327,8 @@ function LightboxMock({
           <Heart className="size-5 fill-current text-like" />
           <span className="-ml-2 text-xs">8</span>
           <Download className="size-5 text-save" />
-          <Share2 className="size-5 text-white" />
+          {/* Share shares the blue --save (download/save/share are not state-based). */}
+          <Share2 className="size-5 text-save" />
           {/* curate group (host only) */}
           {isHost && (
             <>

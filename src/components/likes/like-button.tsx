@@ -3,7 +3,7 @@
 import { Heart } from "lucide-react";
 
 import { useLikes } from "@/components/likes/likes-provider";
-import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { cn } from "@/lib/utils";
 
 // The like affordance. Reads useLikes() and renders NOTHING when no LikesProvider wraps the surface, so
@@ -24,84 +24,83 @@ export function LikeButton({
   if (!likes) return null;
   const liked = likes.isLiked(item.id);
 
+  // Color follows the action system (Will, 2026-06-20): rose on direct hover (preview)
+  // AND when liked (filled, persistent) — universal across guest + host.
   if (variant === "tile") {
     return (
-      <button
-        type="button"
-        aria-pressed={liked}
-        aria-label={liked ? "Unlike" : "Like"}
-        onClick={(e) => {
-          e.stopPropagation();
-          likes.toggle(item.id);
-        }}
-        className={cn(
-          "absolute top-1.5 right-1.5 z-10 hidden size-7 items-center justify-center rounded-full",
-          "bg-black/35 text-white backdrop-blur-sm md:flex",
-          "transition-[opacity,transform] duration-150 ease-emphasis",
-          "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
-          "active:scale-90 motion-reduce:active:scale-100",
-          // A liked tile keeps its filled rose heart visible even without hover (at-a-glance
-          // feedback) — the --like state color, universal across guest + host (Will, 2026-06-20).
-          liked && "text-like opacity-100",
-        )}
-      >
-        <Heart className={cn("size-4", liked && "fill-current")} />
-      </button>
+      <ActionTooltip label={liked ? "Unlike" : "Like"}>
+        <button
+          type="button"
+          aria-pressed={liked}
+          aria-label={liked ? "Unlike" : "Like"}
+          onClick={(e) => {
+            e.stopPropagation();
+            likes.toggle(item.id);
+          }}
+          className={cn(
+            "absolute top-1.5 right-1.5 z-10 hidden size-7 items-center justify-center rounded-full",
+            "bg-black/35 text-white backdrop-blur-sm md:flex",
+            "transition-[color,opacity,transform] duration-150 ease-emphasis",
+            "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
+            "hover:text-like active:scale-90 motion-reduce:active:scale-100",
+            // A liked tile keeps its filled rose heart visible even without hover (at-a-glance).
+            liked && "text-like opacity-100",
+          )}
+        >
+          <Heart className={cn("size-4", liked && "fill-current")} />
+        </button>
+      </ActionTooltip>
     );
   }
 
   // "row": flow-positioned (the parent action row places it FAR-RIGHT, host + guest);
   // VISIBLE on mobile (no hover there), hover-revealed on desktop, and persists once
   // liked so the rose heart stays at-a-glance even off-hover (the icon never shifts as
-  // the rest of the row collapses). Rose = the --like state color on the liked heart.
+  // the rest of the row collapses).
   if (variant === "row") {
     return (
+      <ActionTooltip label={liked ? "Unlike" : "Like"}>
+        <button
+          type="button"
+          aria-pressed={liked}
+          aria-label={liked ? "Unlike" : "Like"}
+          onClick={(e) => {
+            e.stopPropagation();
+            likes.toggle(item.id);
+          }}
+          className={cn(
+            "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
+            "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis",
+            "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
+            "hover:text-like active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",
+            // Liked: rose, filled, and pinned visible (desktop too).
+            liked && "text-like opacity-100 md:opacity-100",
+          )}
+        >
+          <Heart className={cn("size-4", liked && "fill-current")} />
+        </button>
+      </ActionTooltip>
+    );
+  }
+
+  // "lightbox": the viewer control row, on every viewport. A BARE icon matching the
+  // pill's other actions (size-5, no Button container): white at rest, rose on hover
+  // (preview) + when liked (filled, persistent at rest AND hover).
+  return (
+    <ActionTooltip label={liked ? "Unlike" : "Like"}>
       <button
         type="button"
         aria-pressed={liked}
         aria-label={liked ? "Unlike" : "Like"}
-        title={liked ? "Unlike" : "Like"}
-        onClick={(e) => {
-          e.stopPropagation();
-          likes.toggle(item.id);
-        }}
+        onClick={() => likes.toggle(item.id)}
         className={cn(
-          "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
-          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis",
-          "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
-          "active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",
-          // Liked: rose, filled, and pinned visible (desktop too).
-          liked && "text-like opacity-100 md:opacity-100",
+          "text-white/80 outline-none transition-[color,transform] duration-150 ease-emphasis hover:text-like focus-visible:text-like active:scale-90 motion-reduce:active:scale-100",
+          liked && "text-like hover:text-like",
         )}
       >
-        <Heart className={cn("size-4", liked && "fill-current")} />
+        <Heart className={cn("size-5", liked && "fill-current")} />
       </button>
-    );
-  }
-
-  // "lightbox": the viewer control row, on every viewport. Liked = the filled rose
-  // --like heart (universal across guest + host, Will 2026-06-20); the heart stays
-  // rose at rest AND on hover (override both the base + hover white).
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-pressed={liked}
-      aria-label={liked ? "Unlike" : "Like"}
-      onClick={() => likes.toggle(item.id)}
-      className={cn(
-        "text-white hover:bg-white/15 hover:text-white",
-        liked && "text-like hover:text-like",
-      )}
-    >
-      <Heart
-        className={cn(
-          "transition-transform duration-150 ease-emphasis",
-          liked && "fill-current",
-        )}
-      />
-    </Button>
+    </ActionTooltip>
   );
 }
 
