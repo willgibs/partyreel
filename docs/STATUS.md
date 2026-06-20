@@ -68,8 +68,11 @@ new `--save` blue + host Like + hidden-30%) · **3c.2 ✅** (the LIGHTBOX host a
 "enjoy | curate" pill + the UNIVERSAL action-color system across guest + host, only the action SET differs;
 the guest pill stays behavior-identical, gains colors; +the guest-tile Download; "Hidden from everyone"
 toast; mobile tiles drop hide/delete to the lightbox) + a **polish pass** (OPTIMISTIC moderation = instant,
-reverts on fail; a persistent amber hidden-marker; styled hover tooltips; bare-icon Like + "Added to your
-likes" toast; Share = blue). **▶ NEXT = 3b (the gallery-first composition).** The
+reverts on fail; a persistent amber hidden-marker; **LIGHTBOX-ONLY** styled tooltips [tiles use native
+title]; bare-icon Like + "Added to your likes" toast; Share = blue). The polish first shipped with tooltips
+on the SSR'd tiles too, which regressed host-gallery hydration on prod (reverted + re-shipped scoped — see
+CHANGELOG + the hydration gotcha in [`systems/architecture.md`](systems/architecture.md)).
+**▶ NEXT = 3b (the gallery-first composition).** The
 full S3 plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
 (+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

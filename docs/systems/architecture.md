@@ -88,6 +88,24 @@ or explicit Suspense), a forced refactor that would fight the Phase 4-6 surface 
 Revisit post-launch when the surfaces are final. Streaming today = plain `<Suspense>`/`loading.tsx`
 (the guest gallery + the dashboard skeletons, Phase 3).
 
+**★ Host-page hydration is fragile + fails SILENTLY in prod (dev masks it).** The `(app)` pages have a
+"rendered-but-never-client-hydrated, zero console errors" failure mode (first seen in the S1 dashboard
+streaming deferral). A **hydration MISMATCH in prod React bails the whole subtree** (no event handlers
+attach → dead UI), while DEV recovers from the same mismatch by re-rendering — so a regression can pass
+every local check and break only in production.
+- **Confirmed gotcha (3c.2 polish):** wrapping SSR'd **gallery TILE** actions in radix `Tooltip`s (~50
+  instances + a nested `Tooltip`/`Dialog` on Remove) caused exactly this — the host gallery subtree never
+  hydrated on prod. Fix: tooltips are **LIGHTBOX-ONLY**. The lightbox (`MediaLightboxLazy`) is
+  `dynamic(..., { ssr:false })` = client-only = NO SSR = it **cannot** cause a hydration mismatch, so rich
+  client UI (radix tooltips, nested asChild) is safe there; SSR'd tiles must stay simple (native `title`).
+- **Verifying host-page hydration:** the **CDP / Chrome-MCP is UNRELIABLE on the heavy `(app)` host page** —
+  a programmatic `.click()` doesn't reliably fire React 19's delegated events there, and react-fiber
+  inspection FALSE-NEGATIVES (both wrongly read "not hydrated" on a working page). Use the two reliable
+  instruments instead: (1) the **gated, auth-free hydration probe** `/design/compositions` (it wraps the
+  real `HostMediaGrid` in `LikesProvider` = a faithful host-gallery render with no auth/heavy-layout noise;
+  light enough that the CDP + react-fiber checks ARE reliable on it), and (2) **a human's real browser** on
+  the actual host page (the ground truth). Don't trust a CDP "not hydrated" verdict on the host page.
+
 ## Where each concern lives
 
 The full index is [`README.md`](README.md). The data layer is `src/lib/db/*` (queries/mutations, never

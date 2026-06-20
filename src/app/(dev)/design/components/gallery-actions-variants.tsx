@@ -315,7 +315,8 @@ function LightboxMock({
           <Heart className="size-5 fill-current text-like" />
           <span className="-ml-2 text-xs">8</span>
           <Download className="size-5 text-save" />
-          <Share2 className="size-5 text-white" />
+          {/* Share shares the blue --save (download/save/share aren't state-based). */}
+          <Share2 className="size-5 text-save" />
           {/* curate group (host only) */}
           {isHost && (
             <>

@@ -35,13 +35,26 @@ The gallery-action model reaches the lightbox, and the per-action color system g
   live red-team on partyreel.com (Will's session): approved → `Like·Save·Share | Hide·Remove`, hidden →
   `… | Show·Remove`, Hide persisted + the pill swapped, Remove modal-confirm (Cancel = no delete), mobile
   flip confirmed.
-- **Polish** (`a4c3fd4`, Will's review pass): moderation went **OPTIMISTIC** (instant tile + lightbox via
-  `useOptimistic` lifted to HostMediaGrid; runs in the background, reverts + toasts on failure — kills the
-  revalidation lag); a hidden item keeps a **persistent amber Show marker** (off-hover + mobile, like the
-  liked heart) + active-amber Show in the lightbox, atop the 30% dim; the lightbox **Like** is now a bare
-  size-5 icon (matched the pill) with rose hover + a "Added to your likes" toast on a confirmed like;
-  **Share** hovers blue (`--save`, shared with Download/Save); **styled hover tooltips** on every action
-  (shared `ActionTooltip`, replacing native `title`).
+- **Polish — regressed, reverted, re-shipped scoped** (Will's review pass). The polish: OPTIMISTIC
+  moderation (instant tile + lightbox via `useOptimistic` lifted to HostMediaGrid; reverts + toasts on
+  failure, killing the revalidation lag), a **persistent amber hidden marker** (off-hover + mobile, like the
+  liked heart, atop the 30% dim), a bare-icon lightbox Like, Share = blue (`--save`), the "Added to your
+  likes" toast, and styled hover tooltips.
+  - **Regression** (`a4c3fd4`): the first cut wrapped ~50 actions in radix Tooltips INCLUDING the SSR'd
+    gallery TILES (+ a nested `Tooltip`/`Dialog` on the tile Remove). That caused a hydration mismatch that
+    PROD React bails on (dev recovers, so it was masked): the host gallery subtree silently never hydrated
+    (lightbox wouldn't open, tile actions dead, `readyState:complete`, zero console errors). Reverted (`f98f225`).
+  - **Root cause + fix** (`2f23c3a`): tooltips are now **LIGHTBOX-ONLY** (the lightbox is `MediaLightboxLazy`,
+    `ssr:false` => client-only => can't cause a hydration mismatch; the SSR'd tiles use native `title`). The
+    optimistic moderation + the persistent marker were re-confirmed to hydrate cleanly. The rest of the
+    polish (bare-icon Like, Share=blue, active-amber Show, the like toast) re-shipped unchanged.
+  - **Verified:** 486 green; typecheck/lint/build clean. Confirmed via a NEW gated host-gallery hydration
+    probe (`/design/compositions` now wraps the moderation grid in `LikesProvider`) which hydrates clean on a
+    fresh dev server AND on prod (objective react-fiber check), plus Will confirmed the real host event page
+    on his browser (lightbox opens; hide/unhide + tooltips/colors work). LESSON: CDP automated checks
+    (programmatic `.click()`, react-fiber inspection) FALSE-NEGATIVE on the heavy `(app)` host page — the
+    light gated probe + a human's real browser are the reliable instruments (see
+    [`systems/architecture.md`](systems/architecture.md)).
 
 ## 2026-06-20 — P5·S3 progress: 3a masonry foundation, the gallery-action model (3c.1), + the profiles roadmap (`0ef35d5`, `73d109c`, `59fe7e2`, `d76792f`)
 
