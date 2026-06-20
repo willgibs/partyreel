@@ -87,6 +87,8 @@
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-like: var(--like);
+  --color-save: var(--save);
+  --color-save-foreground: var(--save-foreground);
 
   /* Media-first gallery surface — always dark so photos/videos are the hero. */
   --color-gallery: var(--gallery);
@@ -197,6 +199,10 @@
   --warning: oklch(0.8 0.14 80);
   --warning-foreground: oklch(0.25 0.05 70);
   --like: oklch(0.63 0.21 15);
+  /* save/download = the one NON-state action hue (blue): feature recognizability
+     across the app, used as the ICON color on direct hover, never a brand wash. */
+  --save: oklch(0.55 0.17 252);
+  --save-foreground: oklch(0.99 0 0);
 
   /* Elevation: the floating layer's one shadow family (blur = 2x offset,
      single top light source). Dark mode zeroes it (see .dark). */
@@ -251,6 +257,8 @@
   --warning: oklch(0.84 0.14 82);
   --warning-foreground: oklch(0.25 0.05 70);
   --like: oklch(0.68 0.2 15);
+  --save: oklch(0.72 0.15 252);
+  --save-foreground: oklch(0.13 0 0);
 
   /* Dark mode has NO shadows; an invisible value keeps the utility valid. */
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);

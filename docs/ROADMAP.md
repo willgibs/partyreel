@@ -116,6 +116,28 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   clips (core-loop step 5). Scaffold exists; transcode/stitch runs in an **external worker, NOT Vercel**
   (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg on Cloudflare Containers),
   trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating. See [`systems/host-app.md`](systems/host-app.md).
+- **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
+  round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a
+  multi-event creator network (a VSCO-style link-in-bio + a social graph). Foundations are ~70% there
+  already: ONE unified account (`profiles` = `auth.users`; any signed-in guest can host), uploader→user
+  identity (`media.guest_id`→`guests.user_id`→profiles) + `claim_anonymous_uploads`, `saved_events` (the
+  exact follow template), avatars (public bucket), the Pro custom-slug pattern (`EventSlugControl` +
+  `check_slug_available` + reserved-slugs + `GATED_EVENT_SETTINGS`). The key new primitive: an
+  `events.display_in_profile` boolean that DECOUPLES discovery from access (today `visibility` only gates
+  who can OPEN) — an open-uploadable event can stay OFF a public, indexable profile (a tight-group event),
+  an additive column. Phasing (each shippable, Pro-gated where it monetizes): P1 public profile + Pro
+  `/u/[slug]` + the `display_in_profile` config + attribution-as-profile-link + the disable-downloads
+  public album; P2 `user_follows` (any→any, a `saved_events` clone) + the event guest list (signed-in
+  uploaders, derivable today); P3 a dashboard "Following" filter-chip → a profiles grid; P4 (v2) a social
+  feed (DEPENDS on the Notification overhaul above) + discovery. THE one-way-door risk (why a dedicated
+  research round, not an interleave): a public profile + guest lists open a CONSENT/privacy surface — a
+  guest may not want to be listed/followable → OPT-IN discoverability (a per-user `discoverable` flag; the
+  guest list host-visible by default, public only by opt-in) + a blocking model, confirmed before build.
+  Additive, not dilutive: it amplifies the North Star (a guest sees a host's profile + other events → wants
+  their own = the "second event" loop); the core frictionless-capture flow stays unchanged. NOT
+  launch-gating. Cheap profile-aware HOOKS are laid during 3c/3b NOW (attribution keeps the uploader user
+  id so the future profile-link is a one-line add). Supersedes the speculative-backlog "guest→full-user
+  conversion" line.
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
