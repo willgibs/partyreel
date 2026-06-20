@@ -6,6 +6,7 @@ import { ButtonVariants } from "../../components/button-variants";
 import { HostDashboardVariants } from "../../components/host-dashboard-variants";
 import { HostEventVariants } from "../../components/host-event-variants";
 import { HostEventPageVariants } from "../../components/host-event-page-variants";
+import { GalleryActionsVariants } from "../../components/gallery-actions-variants";
 import { EntryVariants } from "../../components/entry-variants";
 import { EventCardVariants } from "../../components/event-card-variants";
 import { FormVariants } from "../../components/form-variants";
@@ -38,6 +39,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "host-event": HostEventVariants,
   "host-dashboard": HostDashboardVariants,
   "host-event-page": HostEventPageVariants,
+  "gallery-actions": GalleryActionsVariants,
 };
 
 // One UX touchpoint, its 2-3 explorations side by side on the locked system.
