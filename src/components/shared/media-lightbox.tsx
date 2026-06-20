@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
+import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Badge } from "@/components/ui/badge";
@@ -726,41 +727,47 @@ export function MediaLightbox({
                     {/* Save hidden when an item carries no download url (the
                         recovery bin presigns INLINE only). Blue on hover. */}
                     {current.downloadUrl && (
-                      <a
-                        href={current.downloadUrl}
-                        download
-                        aria-label="Save"
-                        title="Save"
-                        className={cn(LIGHTBOX_ACTION, "hover:text-save")}
-                      >
-                        <Download className="size-5" />
-                      </a>
+                      <ActionTooltip label="Save">
+                        <a
+                          href={current.downloadUrl}
+                          download
+                          aria-label="Save"
+                          className={cn(LIGHTBOX_ACTION, "hover:text-save")}
+                        >
+                          <Download className="size-5" />
+                        </a>
+                      </ActionTooltip>
                     )}
                     {shareUrl && (
-                      <button
-                        type="button"
-                        onClick={onShare}
-                        aria-label="Share"
-                        title="Share"
-                        className={LIGHTBOX_ACTION}
-                      >
-                        <Share2 className="size-5" />
-                      </button>
+                      <ActionTooltip label="Share">
+                        <button
+                          type="button"
+                          onClick={onShare}
+                          aria-label="Share"
+                          className={cn(LIGHTBOX_ACTION, "hover:text-save")}
+                        >
+                          <Share2 className="size-5" />
+                        </button>
+                      </ActionTooltip>
                     )}
                     {/* Personal Uploads delete (unchanged) — never co-occurs with the
                         host curate group (the host grid sets onRemove, not this). */}
                     {onDeleteCurrent && (
                       <Dialog>
-                        <DialogTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="Delete"
-                            title="Delete"
-                            className={cn(LIGHTBOX_ACTION, "hover:text-destructive")}
-                          >
-                            <Trash2 className="size-5" />
-                          </button>
-                        </DialogTrigger>
+                        <ActionTooltip label="Delete">
+                          <DialogTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label="Delete"
+                              className={cn(
+                                LIGHTBOX_ACTION,
+                                "hover:text-destructive",
+                              )}
+                            >
+                              <Trash2 className="size-5" />
+                            </button>
+                          </DialogTrigger>
+                        </ActionTooltip>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Delete this upload?</DialogTitle>
@@ -796,52 +803,61 @@ export function MediaLightbox({
                           className="h-5 w-px shrink-0 bg-white/20"
                         />
                         {current.status === "pending" && (
-                          <button
-                            type="button"
-                            aria-label="Approve"
-                            title="Approve"
-                            onClick={() => onSetStatus(current, "approved")}
-                            className={cn(LIGHTBOX_ACTION, "hover:text-success")}
-                          >
-                            <Check className="size-5" />
-                          </button>
+                          <ActionTooltip label="Approve">
+                            <button
+                              type="button"
+                              aria-label="Approve"
+                              onClick={() => onSetStatus(current, "approved")}
+                              className={cn(LIGHTBOX_ACTION, "hover:text-success")}
+                            >
+                              <Check className="size-5" />
+                            </button>
+                          </ActionTooltip>
                         )}
                         {current.status === "hidden" ? (
-                          <button
-                            type="button"
-                            aria-label="Show"
-                            title="Show"
-                            onClick={() => onSetStatus(current, "approved")}
-                            className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
-                          >
-                            <Eye className="size-5" />
-                          </button>
+                          // Hidden = the amber Show is ACTIVE (not just on hover): the
+                          // viewer's hidden-state marker (mirrors the liked heart).
+                          <ActionTooltip label="Show">
+                            <button
+                              type="button"
+                              aria-label="Show"
+                              onClick={() => onSetStatus(current, "approved")}
+                              className={cn(
+                                LIGHTBOX_ACTION,
+                                "text-warning hover:text-warning",
+                              )}
+                            >
+                              <Eye className="size-5" />
+                            </button>
+                          </ActionTooltip>
                         ) : (
-                          <button
-                            type="button"
-                            aria-label="Hide"
-                            title="Hide"
-                            onClick={() => onSetStatus(current, "hidden")}
-                            className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
-                          >
-                            <EyeOff className="size-5" />
-                          </button>
+                          <ActionTooltip label="Hide">
+                            <button
+                              type="button"
+                              aria-label="Hide"
+                              onClick={() => onSetStatus(current, "hidden")}
+                              className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
+                            >
+                              <EyeOff className="size-5" />
+                            </button>
+                          </ActionTooltip>
                         )}
                         {onRemove && (
                           <Dialog>
-                            <DialogTrigger asChild>
-                              <button
-                                type="button"
-                                aria-label="Remove"
-                                title="Remove"
-                                className={cn(
-                                  LIGHTBOX_ACTION,
-                                  "hover:text-destructive",
-                                )}
-                              >
-                                <Trash2 className="size-5" />
-                              </button>
-                            </DialogTrigger>
+                            <ActionTooltip label="Remove">
+                              <DialogTrigger asChild>
+                                <button
+                                  type="button"
+                                  aria-label="Remove"
+                                  className={cn(
+                                    LIGHTBOX_ACTION,
+                                    "hover:text-destructive",
+                                  )}
+                                >
+                                  <Trash2 className="size-5" />
+                                </button>
+                              </DialogTrigger>
+                            </ActionTooltip>
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Remove this item?</DialogTitle>

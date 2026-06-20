@@ -3,7 +3,7 @@
 import { Heart } from "lucide-react";
 
 import { useLikes } from "@/components/likes/likes-provider";
-import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { cn } from "@/lib/utils";
 
 // The like affordance. Reads useLikes() and renders NOTHING when no LikesProvider wraps the surface, so
@@ -79,29 +79,25 @@ export function LikeButton({
     );
   }
 
-  // "lightbox": the viewer control row, on every viewport. Liked = the filled rose
-  // --like heart (universal across guest + host, Will 2026-06-20); the heart stays
-  // rose at rest AND on hover (override both the base + hover white).
+  // "lightbox": the viewer control row, on every viewport. A BARE icon matching the
+  // pill's other actions (size-5, no Button container): white at rest, rose on hover
+  // (preview) + when liked (filled, persistent at rest AND hover). The lightbox is
+  // client-only (ssr:false) so this ActionTooltip is hydration-safe.
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-pressed={liked}
-      aria-label={liked ? "Unlike" : "Like"}
-      onClick={() => likes.toggle(item.id)}
-      className={cn(
-        "text-white hover:bg-white/15 hover:text-white",
-        liked && "text-like hover:text-like",
-      )}
-    >
-      <Heart
+    <ActionTooltip label={liked ? "Unlike" : "Like"}>
+      <button
+        type="button"
+        aria-pressed={liked}
+        aria-label={liked ? "Unlike" : "Like"}
+        onClick={() => likes.toggle(item.id)}
         className={cn(
-          "transition-transform duration-150 ease-emphasis",
-          liked && "fill-current",
+          "text-white/80 outline-none transition-[color,transform] duration-150 ease-emphasis hover:text-like focus-visible:text-like active:scale-90 motion-reduce:active:scale-100",
+          liked && "text-like hover:text-like",
         )}
-      />
-    </Button>
+      >
+        <Heart className={cn("size-5", liked && "fill-current")} />
+      </button>
+    </ActionTooltip>
   );
 }
 

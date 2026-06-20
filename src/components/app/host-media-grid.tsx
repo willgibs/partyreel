@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { Check, Download, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,31 +27,52 @@ import { cn } from "@/lib/utils";
 
 // Host moderation grid — the only place media controls live. The grid is the shared
 // MasonryColumns (natural ratios, clamped for moderation ergonomics); the per-tile
-// controls ride in via `renderOverlay` as a HOVER-REVEALED action row (matching the
-// guest like-button elegance), painted over the open-lightbox button as SIBLINGS, so
-// tapping a control never opens the lightbox. Per-action COLOR on direct hover (the
-// emil "monochrome at rest, color on hover/state" rule): approve=green, hide=amber,
-// remove=red, save/download=blue, like=rose-when-liked.
-//   Desktop: the full suite (moderation + download + like) reveals on hover.
-//   Mobile (no hover): only Download + Like are visible top-right; Hide/Remove move to
-//   the lightbox (deletes are rare; an active tile is approved or moderation-off, so a
-//   direct hide is uncommon too).
-// HIDDEN media renders at 30% opacity (via MasonryColumns `dimItem`) — a clear
-// active-vs-hidden mark while both stay in the gallery. All writes go through the Server
-// Actions (which revalidate this path); we only toast on failure.
+// controls ride in via `renderOverlay` as a HOVER-REVEALED action row painted over the
+// open-lightbox button as SIBLINGS, so tapping a control never opens the lightbox.
+// Per-action COLOR on direct hover (approve=green, hide=amber, remove=red, save=blue,
+// like=rose-when-liked). Tile actions use NATIVE `title` tooltips — styled radix tooltips
+// are LIGHTBOX-ONLY (Will, 2026-06-20 redo: tiles already reveal on hover, so a styled
+// tooltip there is near-redundant + ~50 radix Tooltips on the grid was a hydration risk).
+//   Desktop: the full suite reveals on hover. Mobile: Download + Like only; hide/remove
+//   move to the lightbox. A HIDDEN item is the exception — its amber Show marker PERSISTS
+//   (off-hover + mobile, like the liked heart), 1-tap to show, atop the 30% dim.
+// Moderation is OPTIMISTIC (instant tile + lightbox via useOptimistic; the action runs in
+// the background and reverts + toasts on failure) — no revalidation lag.
 
-// One action-icon: a circular dark chip, white at rest, COLOR on direct hover.
+// One action-icon: a circular dark chip, white at rest, COLOR on direct hover/state.
 const ACTION_BASE =
-  "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white/70";
+  "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70";
 
-// The ONE home for the host moderation actions + their copy/toasts (3c.2), shared by
-// the tile overlay (per-tile instance -> per-tile pending) AND the lightbox curate
-// group (HostMediaGrid's grid-level instance). `setStatus` derives the intent from the
-// transition for the right error copy + the "Hidden from everyone" success toast (Will:
-// fires from BOTH the tile and the lightbox). All writes revalidate this path; we toast
-// failures (+ the one hide success).
-function useModeration(eventId: string) {
-  const [isPending, startTransition] = useTransition();
+// The optimistic overlay over the server-rendered items: a status flip or a removal,
+// applied instantly so the tile + lightbox reflect the change with no round-trip;
+// useOptimistic resyncs to the server items when the action's revalidation lands (and
+// reverts on failure).
+type OptimisticChange =
+  | { type: "status"; id: string; status: "approved" | "hidden" }
+  | { type: "remove"; id: string };
+
+function applyChange(items: GridMedia[], change: OptimisticChange): GridMedia[] {
+  if (change.type === "remove") return items.filter((it) => it.id !== change.id);
+  return items.map((it) =>
+    it.id === change.id ? { ...it, status: change.status } : it,
+  );
+}
+
+type Moderation = {
+  setStatus: (item: GridMedia, status: "approved" | "hidden") => void;
+  remove: (item: GridMedia) => void;
+};
+
+// The ONE home for the host moderation actions + their copy/toasts, shared by the tile
+// overlay AND the lightbox curate group (both read the same optimistic items). Each handler
+// applies the optimistic change FIRST (instant), then runs the server action; the intent
+// drives the error copy + the "Hidden from everyone" success toast (Will: fires from BOTH
+// the tile and the lightbox). On failure the optimistic state reverts (useOptimistic).
+function useModeration(
+  eventId: string,
+  applyOptimistic: (change: OptimisticChange) => void,
+): Moderation {
+  const [, startTransition] = useTransition();
 
   const setStatus = (item: GridMedia, status: "approved" | "hidden") => {
     const intent =
@@ -67,6 +88,7 @@ function useModeration(eventId: string) {
           ? "Couldn't unhide that item."
           : "Couldn't approve that item.";
     startTransition(async () => {
+      applyOptimistic({ type: "status", id: item.id, status });
       const result = await setMediaStatusAction(eventId, item.id, status);
       if (!result.ok) {
         toast.error(failTitle, { description: result.message });
@@ -78,6 +100,7 @@ function useModeration(eventId: string) {
 
   const remove = (item: GridMedia) => {
     startTransition(async () => {
+      applyOptimistic({ type: "remove", id: item.id });
       const result = await removeMediaAction(eventId, item.id);
       if (!result.ok) {
         toast.error("Couldn't remove that item.", {
@@ -87,41 +110,35 @@ function useModeration(eventId: string) {
     });
   };
 
-  return { setStatus, remove, isPending };
+  return { setStatus, remove };
 }
 
 function HostTileOverlay({
-  eventId,
   item,
+  setStatus,
+  remove,
 }: {
-  eventId: string;
   item: GridMedia;
+  setStatus: Moderation["setStatus"];
+  remove: Moderation["remove"];
 }) {
-  const { setStatus, remove, isPending } = useModeration(eventId);
-  // Defensive default — listEventMedia never returns 'removed', and 'approved'
-  // is the live state.
   const status = item.status ?? "approved";
 
   return (
     <>
-      {/* HOST-ONLY like COUNT (a read-only curation signal, distinct from the host's own
-          like toggle in the row): bottom-RIGHT, clear of the top action row, the
-          bottom-left corner play badge, and the dim. Hidden at 0. */}
+      {/* HOST-ONLY like COUNT (read-only curation signal, distinct from the host's own
+          like toggle in the row): bottom-RIGHT, hidden at 0. */}
       <LikeCountBadge
         count={item.likeCount}
         className="absolute right-1.5 bottom-1.5 z-10"
       />
 
       <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
-        {/* Moderation: DESKTOP-only hover-reveal (3c.2). On mobile (no hover) it's gone
-            — hide/remove move to the lightbox; the mobile tile keeps Like + Save only
-            (deletes are rare; an active tile is approved or moderation-off, so a direct
-            hide is uncommon too). */}
+        {/* Moderation: DESKTOP-only hover-reveal. Mobile: gone (hide/remove → lightbox). */}
         <div className="hidden items-center gap-1 transition-opacity duration-150 ease-emphasis md:flex md:opacity-0 md:group-hover:opacity-100">
           {status === "pending" && (
             <button
               type="button"
-              disabled={isPending}
               aria-label="Approve"
               title="Approve"
               className={cn(ACTION_BASE, "hover:text-success")}
@@ -133,7 +150,6 @@ function HostTileOverlay({
           {(status === "pending" || status === "approved") && (
             <button
               type="button"
-              disabled={isPending}
               aria-label="Hide"
               title="Hide"
               className={cn(ACTION_BASE, "hover:text-warning")}
@@ -142,24 +158,11 @@ function HostTileOverlay({
               <EyeOff className="size-4" />
             </button>
           )}
-          {status === "hidden" && (
-            <button
-              type="button"
-              disabled={isPending}
-              aria-label="Unhide"
-              title="Unhide"
-              className={cn(ACTION_BASE, "hover:text-warning")}
-              onClick={() => setStatus(item, "approved")}
-            >
-              <Eye className="size-4" />
-            </button>
-          )}
 
           <Dialog>
             <DialogTrigger asChild>
               <button
                 type="button"
-                disabled={isPending}
                 aria-label="Remove"
                 title="Remove"
                 className={cn(ACTION_BASE, "hover:text-destructive")}
@@ -180,11 +183,7 @@ function HostTileOverlay({
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button
-                    variant="destructive"
-                    disabled={isPending}
-                    onClick={() => remove(item)}
-                  >
+                  <Button variant="destructive" onClick={() => remove(item)}>
                     Remove
                   </Button>
                 </DialogClose>
@@ -192,6 +191,20 @@ function HostTileOverlay({
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* HIDDEN marker: a PERSISTENT amber Show (mobile + off-hover, like the liked
+            heart) — the unmistakable "hidden from guests" state + a 1-tap show. */}
+        {status === "hidden" && (
+          <button
+            type="button"
+            aria-label="Show"
+            title="Show"
+            className={cn(ACTION_BASE, "text-warning")}
+            onClick={() => setStatus(item, "approved")}
+          >
+            <Eye className="size-4" />
+          </button>
+        )}
 
         {/* Download (save the original): mobile-visible, desktop hover-reveal; blue on hover. */}
         {item.downloadUrl && (
@@ -224,17 +237,18 @@ export function HostMediaGrid({
 }: {
   eventId: string;
   items: GridMedia[];
-  // The event JOIN url, for the lightbox Share (3c.2) — never a presigned media URL.
+  // The event JOIN url, for the lightbox Share — never a presigned media URL.
   shareUrl?: string;
 }) {
-  // Grid-level moderation handlers for the lightbox curate group (one open item at a
-  // time, so a grid-level transition is fine). The per-tile overlay owns its OWN
-  // instance (per-tile pending); both share the copy/toasts via the hook.
-  const { setStatus, remove } = useModeration(eventId);
+  // ONE optimistic source over the server items, shared by the tiles AND the lightbox
+  // (both render from optimisticItems), so a hide/approve/remove updates instantly with no
+  // revalidation lag; it reverts on failure. ONE moderation hook drives both surfaces.
+  const [optimisticItems, applyOptimistic] = useOptimistic(items, applyChange);
+  const { setStatus, remove } = useModeration(eventId, applyOptimistic);
   // clampAspect: moderation ergonomics. dimItem: hidden media -> 30% (active-vs-hidden).
   return (
     <MasonryColumns
-      items={items}
+      items={optimisticItems}
       viewerIsHost
       clampAspect
       shareUrl={shareUrl}
@@ -242,7 +256,7 @@ export function HostMediaGrid({
       onRemove={remove}
       dimItem={(item) => item.status === "hidden"}
       renderOverlay={(item) => (
-        <HostTileOverlay eventId={eventId} item={item} />
+        <HostTileOverlay item={item} setStatus={setStatus} remove={remove} />
       )}
     />
   );

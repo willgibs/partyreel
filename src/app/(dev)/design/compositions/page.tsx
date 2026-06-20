@@ -6,6 +6,7 @@ import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 
 import { requireDesignKey } from "../gate";
 import {
@@ -168,7 +169,12 @@ export default async function CompositionsPage({
       >
         <div className="space-y-3">
           <Spec label="Moderation grid" hint="masonry · per-tile controls">
-            <HostMediaGrid eventId="demo" items={SAMPLE_MEDIA} />
+            {/* Wrapped in LikesProvider to FAITHFULLY mirror the real host gallery
+                (EventUploads wraps it the same way) — makes the host Like render +
+                this a reliable host-gallery HYDRATION probe (auth-free, gated). */}
+            <LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>
+              <HostMediaGrid eventId="demo" items={SAMPLE_MEDIA} />
+            </LikesProvider>
           </Spec>
           <Spec label="Recovery bin" hint="countdown · restore / purge">
             <RecentlyDeletedGrid eventId="demo" items={SAMPLE_BIN} />
