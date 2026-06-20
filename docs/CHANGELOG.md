@@ -10,6 +10,32 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-19 — Design lab repositioned to a reference + prototyping library (`da2a0f8`)
+
+The gated `/design` lab outgrew its "pick a variant + ratify" origins (13 touchpoints / 42 variants).
+Selection now happens in chat with more context, so the lab was repositioned to two standing purposes:
+a live design-system reference, and a fast UI-prototyping space.
+
+- **Persistent sidebar** (`lab-nav.tsx`) replaces the index hub + per-page pill rail: grouped Design
+  system → Prototypes (by surface: Guest / Host / Shared, Marketing auto-omitted while empty) → Demo →
+  Diagnostics, active route highlighted, each touchpoint tagged with its shipped V-number. Reads the
+  gate key client-side (`useSearchParams`, layout-safe via Suspense) and follows the same `design-mode`
+  store as the canvas, so chrome + content flip light/dark together. Desktop sticky rail, mobile drawer.
+- **Selection machinery retired**: `SelectButton` / `PicksBoard` / the localStorage picks store removed
+  (`selection.tsx` deleted); `decision`/`decisionNote` survive as a read-only "Shipped: V{n}" record per
+  touchpoint. The index reframed from a selection hub to a library landing.
+- **De-staled the reference**: the lab's heading face swapped Instrument Serif → Urbanist to match the
+  shipped app (`font-opt-urbanist`, real bold, the synthetic-weight knobs dropped); zero Instrument leak.
+- **DRY**: extracted the mode store (`use-design-mode.ts`) shared by ModeShell + the nav; split
+  `withDesignKey` into client-safe `links.ts` (`gate.ts` stays `server-only`, re-exports it);
+  `touchpoints.ts` gained a `surface` field. The `design.css` → `globals.css` token dedup stays a Phase 8
+  follow-up.
+
+Verified: 479 green, typecheck/lint/build clean; preview (desktop rail + mobile drawer + active highlight
++ dark cohesion + Urbanist everywhere + read-only shipped labels, no Select controls); live prod red-team
+(gate 404s without/with wrong key on all routes; keyed render shows the new lab, PicksBoard + Instrument
+gone). Lab stays gated + no-index + self-contained.
+
 ## 2026-06-12 — V1 program PHASE 4.5 COMPLETE: the guest ARRIVAL experience
 
 Opened from Will's iPhone pass of the live gated entry (sheet popped like a load artifact, dishonest

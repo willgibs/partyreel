@@ -14,9 +14,11 @@ plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 verdicts 
 **MONOCHROME, both modes** (zero accent; light = paper/hairline, dark = glass/media-as-light; theme
 follows system, light when unretrievable) and **base Instrument Serif** (0.60 `font-size-adjust`
 calibration + 0.013em stroke weight; swappable via the five-variable display layer in
-`src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is now the
-STANDING DESIGN LAB (Will's call - it persists beyond Phase 1): `/design/system` = the locked-system
-reference; `touchpoints.ts` = the decision record (picks land as `decision` config → Selected badges).
+`src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is the
+STANDING DESIGN LAB (persists beyond Phase 1), repositioned 2026-06-19 to a **reference + prototyping
+library** (persistent sidebar, the live-picking machinery retired): `/design/system` = the locked-system
+reference; `touchpoints.ts` = the read-only **shipped record** (`decision`/`decisionNote`, grouped by
+surface in the nav). Its heading face now matches the shipped app (Urbanist).
 **PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** — the full spec = `touchpoints.ts`
 decisions + `/design/demo`. **PHASE 2 COMPLETE (2026-06-11): the V1 system is LIVE on partyreel.com**
 — production tokens (mono both modes, brand→ink alias), Instrument Serif via the `font-heading`
