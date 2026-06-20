@@ -111,6 +111,20 @@ events. Mutations: `setMediaStatus` / `removeMedia` / `approveAllPending`. **Rem
 recovery window. → [lifecycle-recovery.md](lifecycle-recovery.md). (Operator/admin proactive moderation +
 the reports queue live in [admin-observability.md](admin-observability.md).)
 
+**The gallery-action model (P5 S3·3c, cross-surface).** The host gallery is the shared `MasonryColumns`;
+moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
+direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
+[design-system](design-system.md) action colors). **Desktop:** the full suite (approve/hide/unhide/remove
++ download + like). **Mobile:** the row is `hidden md:flex` — only Like + Download stay; **hide/remove move
+to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
+kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
+carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
+gated `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical** (it just gains the same
+action colors). Remove is modal-confirm; approve/hide/unhide are direct (revalidate the path). `setStatus`/
+`remove` come from the ONE `useModeration(eventId)` hook (shared by the tile overlay + the lightbox; hide
+toasts "Hidden from everyone" from both). The host can also **Like** (a normal like; the gallery wraps a
+`LikesProvider`); the read-only per-event like COUNT badge is distinct from the toggle.
+
 **Host upload (two-way media).** The host adds media from the event page via an "Add photos" toggle in the
 Uploads card header ([`event-uploads.tsx`](../../src/components/app/event-uploads.tsx)) → a dropzone
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`

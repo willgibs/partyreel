@@ -25,8 +25,14 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
 - **`--brand` is an ALIAS of `--primary`** (ink). Don't reintroduce a brand hue; photography
   supplies all color. ("Saturate your neutrals" was consciously DECLINED: zero-chroma is the
   identity; a 0.002-0.004 warm-tint variant may get a lab round later, never silently.)
-- **Feedback is ALWAYS colored** (the one exception): `--success` green, `--warning` amber,
-  `--like` rose, `--destructive` red, each with light/dark variants. State, not decoration.
+- **Feedback + actions are ALWAYS colored** (the one exception): `--success` green, `--warning` amber,
+  `--like` rose, `--destructive` red, and `--save` blue (the first non-state ACTION hue), each with
+  light/dark variants. State, not decoration. **The action-color system (P5 S3·3c) is UNIVERSAL** (guest +
+  host; only the action SET differs — guests have no hide/approve/delete): one color per action everywhere
+  it appears (like=rose, save/download=blue, hide/show=amber, approve=green, delete=red), for
+  recognizability + legible state. Emil rule: **monochrome at rest → color on direct icon-hover + active
+  state** (liked = filled rose); native `title` tooltips. Lives on the gallery tiles + the shared lightbox
+  pill; brand stays mono (color is punctuation). → [host-app.md](host-app.md) for the action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.

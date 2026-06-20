@@ -10,6 +10,30 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-20 — P5·S3·3c.2: the lightbox host actions + the UNIVERSAL action-color refresh (`4b8cbc9`, `6600e28`)
+
+The gallery-action model reaches the lightbox, and the per-action color system goes **universal**.
+- **Stage 1 — the lab** (`4b8cbc9`): the `gallery-actions` Workbench touchpoint recolored + restructured
+  (a color legend, host tile rest-vs-hover, the colored grouped lightbox pill, guest parity), plus a live
+  **interactive toast demo** (sonner) to feel + lock the Like/Hide copy. Ratified in chat → the touchpoint
+  `decision`/`decisionNote` recorded. Direction correction: the color system is **UNIVERSAL (guest + host)**;
+  only the action SET differs (guests have no hide/approve/delete) — the prior "viewer pill is unchanged"
+  was a translation artifact (the guest viewer keeps its behavior/gestures but DOES gain the action colors).
+- **Stage 2 — live** (`6600e28`): the shared `media-lightbox.tsx` gains the host's grouped **"enjoy | curate"
+  pill** (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`), gated
+  `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical**. Like LEFTMOST (ratified B2);
+  Remove modal-confirm; approve/hide/unhide direct. New `onSetStatus`/`onRemove` props thread
+  page → event-uploads / pending-grid → host-media-grid → masonry → lightbox (with the event JOIN url for
+  Share). A shared `useModeration(eventId)` hook is the ONE home for the moderation calls + copy/toasts
+  (tile overlay + lightbox); **Hide toasts "Hidden from everyone" from both**. The host tile moderation
+  flips to `hidden md:flex` (mobile tiles = Like + Save only; hide/delete → the lightbox). Universal color:
+  the lightbox + tile Like turn rose when liked (was white), Download is blue-on-hover everywhere, and the
+  GUEST tile gains a blue Download beside the far-right Like; the like toast is "Added to your likes".
+- **Verified:** 486 green incl. 5 new lightbox host-action pins (curate gated on host; status→buttons;
+  remove behind confirm; the guest pill carries none) + all gesture/guest pins; typecheck/lint/build clean;
+  the guest lightbox live-checked locally (clean enjoy pill, no curate, behavior unchanged). The host
+  lightbox live red-team (approve/hide/remove/Share/colors/mobile flip) runs on Will's signed-in session.
+
 ## 2026-06-20 — P5·S3 progress: 3a masonry foundation, the gallery-action model (3c.1), + the profiles roadmap (`0ef35d5`, `73d109c`, `59fe7e2`, `d76792f`)
 
 - **3a** (`0ef35d5`): `MasonryColumns` gained a `renderOverlay` slot + `viewerIsHost` pass-through; the

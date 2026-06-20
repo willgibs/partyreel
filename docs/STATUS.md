@@ -64,8 +64,11 @@ reference + sandbox). **S3 (the gallery-first host event page) is the ACTIVE sli
 the "Trash"→"Deleted" rename) · 3a ✅ (host grids → masonry + overlay) · forks RATIFIED (A1 Editorial / B1
 settings ROUTE / C1 Deleted BEHIND settings) · a cross-surface gallery-action redesign + re-order (3c →
 3b → S4) · **3c.1 ✅** (the host gallery TILE action model: hover-reveal row + per-action colors incl. the
-new `--save` blue + host Like + hidden-30%). **▶ NEXT = 3c.2 (the lightbox host actions).** The full S3
-plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
+new `--save` blue + host Like + hidden-30%) · **3c.2 ✅** (the LIGHTBOX host actions: the grouped
+"enjoy | curate" pill + the UNIVERSAL action-color system across guest + host, only the action SET differs;
+the guest pill stays behavior-identical, gains colors; +the guest-tile Download; "Hidden from everyone"
+toast; mobile tiles drop hide/delete to the lightbox). **▶ NEXT = 3b (the gallery-first composition).** The
+full S3 plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
 (+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
 state-feedback-colored, emil-design-eng the binding craft bar) are in the memory/plan; don't re-litigate.
