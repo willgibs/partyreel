@@ -81,6 +81,12 @@ export const ZONES: LabZone[] = [
             status: "reference",
             note: "The composed shared pieces (logo, empty states, dead ends).",
           },
+          {
+            href: "/design/compositions",
+            label: "Compositions",
+            status: "reference",
+            note: "The real product components (event card, meter, share) from sample props.",
+          },
         ],
       },
       {
