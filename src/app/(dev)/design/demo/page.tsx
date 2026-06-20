@@ -49,12 +49,15 @@ export default async function CohesiveDemoPage({
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             The live event page, the lightbox, and a brand-new event, composed
-            from the shipped selections, the way the pieces read together.
+            from the shipped pieces, the way they read together.
           </p>
         </header>
 
+        {/* inert (not just aria-hidden): the decorative mock buttons have no
+            handlers, so this also drops them from the tab order (WCAG 4.1.2). */}
         <div
           aria-hidden
+          inert
           className="mx-auto grid w-full max-w-6xl gap-8 px-4 pb-20 md:grid-cols-2 xl:grid-cols-3"
         >
           {/* ── The live event page ─────────────────────────────────── */}

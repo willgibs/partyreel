@@ -26,8 +26,19 @@ export type TouchpointId =
   | "host-event"
   | "host-dashboard";
 
-/** Which product surface a touchpoint prototypes - the sidebar's grouping. */
+/** Which product surface a touchpoint prototypes - the sidebar's grouping.
+ *  "marketing" is a RESERVED slot: no touchpoint uses it yet (the marketing
+ *  surface lands in Phase 6). Empty groups are dropped, so it stays inert. */
 export type Surface = "guest" | "host" | "marketing" | "shared";
+
+/** Surface display labels - the ONE home (the sidebar + the touchpoint header
+ *  both import this, never redefine it). */
+export const SURFACE_LABEL: Record<Surface, string> = {
+  guest: "Guest",
+  host: "Host",
+  marketing: "Marketing",
+  shared: "Shared",
+};
 
 export type Touchpoint = {
   id: TouchpointId;
@@ -139,7 +150,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     variants: ["Card sections", "Inline rows", "Focused column"],
     decision: 1,
     decisionNote:
-      "V1 refined for settings/management; V3 focused column for onboarding + creation. SYSTEM RULE: Instrument is for identity moments (page titles, event names); functional section headings use Inter",
+      "V1 refined for settings/management; V3 focused column for onboarding + creation. SYSTEM RULE: Urbanist is for identity moments (page titles, event names); functional section headings use Inter",
   },
   {
     id: "states",

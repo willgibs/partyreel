@@ -246,6 +246,8 @@ function EaseDemo({
       <p className="text-[13px] font-medium">{name}</p>
       <p className="text-[11px] text-muted-foreground">{hint}</p>
       <div className="relative mt-4 h-1 rounded-full bg-muted">
+        {/* 700ms is a deliberately SLOWED curve demo for legibility, NOT a UI
+            duration (real UI stays under 300ms). Do not "fix" it down or copy. */}
         <span
           className="absolute top-1/2 left-0 size-3 -translate-y-1/2 rounded-full bg-foreground transition-transform duration-700 group-hover:translate-x-[calc(100%-0.75rem)]"
           style={{ transitionTimingFunction: `var(${varName})` }}

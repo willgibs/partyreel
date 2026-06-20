@@ -166,8 +166,8 @@
    and TRACKING (-3%). The retired Instrument explorations live in git history;
    the vendored fork in fonts-local/ is kept unused. */
 .font-opt-urbanist {
-  --font-heading: var(--font-display-urbanist);
-  --display-font: var(--font-display-urbanist);
+  --font-heading: var(--font-display);
+  --display-font: var(--font-display);
   --display-adjust: none;
   --display-tracking: -0.03em;
   --display-weight: 700;

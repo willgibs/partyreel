@@ -63,7 +63,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -329,17 +328,17 @@ export default async function ComponentsPage({
               </DropdownMenuContent>
             </DropdownMenu>
           </Spec>
+          {/* No local TooltipProvider: the root one (providers.tsx, delay 200 /
+              skip 300) is in scope here, so this demos the REAL shipped timing. */}
           <Spec label="Tooltip">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Hover me
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Tooltips keep skip-delay</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Hover me
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Tooltips keep skip-delay</TooltipContent>
+            </Tooltip>
           </Spec>
           <Spec label="Tabs" hint="default / line">
             <Tabs defaultValue="all">

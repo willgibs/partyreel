@@ -1,4 +1,4 @@
-import { TOUCHPOINTS, type Surface } from "./touchpoints";
+import { SURFACE_LABEL, type Surface, TOUCHPOINTS } from "./touchpoints";
 
 /**
  * THE WORKBENCH CATALOG (2026-06-19) — the SINGLE source for the lab's contents
@@ -31,12 +31,6 @@ export type LabZone = {
   groups: LabGroup[];
 };
 
-const SURFACE_LABEL: Record<Surface, string> = {
-  guest: "Guest",
-  host: "Host",
-  marketing: "Marketing",
-  shared: "Shared",
-};
 const SURFACE_ORDER: Surface[] = ["guest", "host", "shared", "marketing"];
 
 // Sandbox = the touchpoint explorations, grouped by the surface they prototype.

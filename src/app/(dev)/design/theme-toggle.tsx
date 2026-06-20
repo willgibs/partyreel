@@ -23,6 +23,10 @@ function useHydrated() {
  * the lab's single theme source as of 2026-06-19) so the chrome, the live
  * Reference, and the mono Sandbox all flip together. Mounted-guarded so the
  * active state never mismatches between SSR and hydration.
+ *
+ * INTENTIONAL: there is one global ThemeProvider (providers.tsx, no storageKey),
+ * so toggling here persists the user's GLOBAL app theme (the lab shows the real
+ * app, so this is by design, not a leak). Don't scope a separate storageKey.
  */
 const OPTIONS = [
   { value: "light", icon: Sun, label: "Light" },

@@ -45,7 +45,7 @@ export default async function DesignIndexPage({
           href={link("/design/foundations")}
           icon={<Palette className="size-4" />}
           title="Reference"
-          count={`${COUNTS.reference} surfaces`}
+          count={`${COUNTS.reference} references`}
           blurb="The real shipped UI, rendered from production source. Browse it here to tune it everywhere."
         />
         <ZoneCard

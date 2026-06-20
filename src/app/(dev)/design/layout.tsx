@@ -1,20 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Urbanist } from "next/font/google";
 
 import { LabNav } from "./lab-nav";
 import "./design.css";
 
-// THE LAB HEADING FACE: Urbanist, matching the shipped app (it swapped off
-// Instrument Serif 2026-06-19 - the serif read too thin). Loaded as the VARIABLE
-// font (full weight axis) so font-opt-urbanist's bold (700) applies through the
-// one swappable token, exactly like globals.css. next/font self-hosts it. The
-// lab keeps its OWN copy here so the reference is honest; the full
-// design.css -> globals.css token dedup stays the Phase 8 follow-up.
-const urbanist = Urbanist({
-  variable: "--font-display-urbanist",
-  subsets: ["latin"],
-});
+// The lab's heading face is the SAME Urbanist the app loads (root layout's
+// --font-display): the live Reference inherits it natively, and the Sandbox's
+// .font-opt-urbanist now points at it too (design.css), so there is no second
+// font load. The design.css -> globals.css token dedup stays the Phase 8
+// follow-up.
 
 // Never indexed, never linked: the lab exists only behind the gate
 // (see gate.ts; production 404s without the key).
@@ -27,9 +21,7 @@ export default function DesignLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div
-      className={`${urbanist.variable} min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]`}
-    >
+    <div className="min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
       {/* useSearchParams (the key) needs a Suspense boundary; every lab route
           is already dynamic via requireDesignKey, so this never suspends long. */}
       <Suspense>

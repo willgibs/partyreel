@@ -54,6 +54,7 @@ export function LabNav() {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
+          aria-controls="lab-nav-panel"
           aria-label={open ? "Close navigation" : "Open navigation"}
           className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
@@ -62,6 +63,7 @@ export function LabNav() {
       </div>
 
       <div
+        id="lab-nav-panel"
         className={cn(
           "flex-col lg:flex lg:min-h-0 lg:flex-1",
           open ? "flex" : "hidden",
@@ -82,7 +84,7 @@ export function LabNav() {
         </div>
 
         {/* Search. */}
-        <div className="shrink-0 px-3 pt-3 pb-2">
+        <div role="search" className="shrink-0 px-3 pt-3 pb-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -102,7 +104,10 @@ export function LabNav() {
           className="min-h-0 flex-1 overflow-y-auto px-2 pb-4"
         >
           {zones.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[13px] text-muted-foreground">
+            <p
+              role="status"
+              className="px-3 py-6 text-center text-[13px] text-muted-foreground"
+            >
               Nothing matches &ldquo;{query}&rdquo;.
             </p>
           ) : (
@@ -155,18 +160,29 @@ export function LabNav() {
   );
 }
 
-/** A leading dot whose treatment records the entry's state (and marks it clickable). */
+/** A leading dot whose treatment records the entry's state (and marks it
+ *  clickable). The dot is decorative; the meaningful states get an sr-only label
+ *  so status reaches AT, not by color alone (WCAG 1.4.1). */
 function StatusDot({ status }: { status: Status }) {
+  const srLabel =
+    status === "shipped"
+      ? "Shipped"
+      : status === "exploring"
+        ? "Exploring"
+        : null;
   return (
-    <span
-      aria-hidden
-      className={cn(
-        "size-1.5 shrink-0 rounded-full",
-        status === "shipped" && "bg-foreground",
-        status === "exploring" && "border border-muted-foreground",
-        status === "reference" && "bg-muted-foreground/40",
-      )}
-    />
+    <>
+      <span
+        aria-hidden
+        className={cn(
+          "size-1.5 shrink-0 rounded-full",
+          status === "shipped" && "bg-foreground",
+          status === "exploring" && "border border-muted-foreground",
+          status === "reference" && "bg-muted-foreground/40",
+        )}
+      />
+      {srLabel && <span className="sr-only">{srLabel}: </span>}
+    </>
   );
 }
 

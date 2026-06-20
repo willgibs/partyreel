@@ -18,16 +18,9 @@ import { requireDesignKey } from "../../gate";
 import { ModeShell } from "../../mode-shell";
 import {
   getTouchpoint,
-  type Surface,
+  SURFACE_LABEL,
   type TouchpointId,
 } from "../../touchpoints";
-
-const SURFACE_LABEL: Record<Surface, string> = {
-  guest: "Guest",
-  host: "Host",
-  marketing: "Marketing",
-  shared: "Shared",
-};
 
 const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   entry: EntryVariants,
@@ -78,8 +71,8 @@ export default async function TouchpointPage({
         <p className="mt-2 max-w-xl text-sm text-muted-foreground">
           {touchpoint.note}.
         </p>
-        {/* The catalog record: the shipped direction (by name, never a variant
-            number) and the rationale. Unshipped touchpoints read as exploring. */}
+        {/* The catalog record: the shipped direction (named, not a variant
+            number) plus the rationale prose. Unshipped reads as exploring. */}
         <div className="mt-3.5">
           {touchpoint.decision !== undefined ? (
             <div className="flex flex-wrap items-center gap-2">
