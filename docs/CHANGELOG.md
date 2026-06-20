@@ -10,6 +10,26 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-20 — P5·S3 progress: 3a masonry foundation, the gallery-action model (3c.1), + the profiles roadmap (`0ef35d5`, `73d109c`, `59fe7e2`, `d76792f`)
+
+- **3a** (`0ef35d5`): `MasonryColumns` gained a `renderOverlay` slot + `viewerIsHost` pass-through; the
+  host moderation + recovery-bin grids adopted the shared masonry (controls ride any ratio); dims plumbed
+  into the event-page mappings; the dead square-grid `MediaGrid` retired. The lab `/design/compositions`
+  gained the moderation + bin grids.
+- **Gallery-action lab** (`73d109c`): a `gallery-actions` Workbench touchpoint staged the cross-surface
+  hover + lightbox action model (host hover arrangements, the lightbox pill layouts, guest parity).
+- **3c.1** (`59fe7e2` + `d76792f`): the host gallery TILE action model. A NEW `--save` blue action token
+  (the first non-state hue) + the per-action color system (like=rose, hide=amber, remove=red, save=blue,
+  approve=green; monochrome at rest → color on direct hover). The host tile is a hover-reveal top-right
+  action row, far-right persistent Like, and the host can now LIKE (a `LikesProvider` on the host gallery;
+  a host like is a normal like). Hidden media renders at 30% opacity (`MasonryColumns` `dimItem`); the
+  status dot is dropped. A new `LikeButton variant="row"` leaves the pinned GUEST tile untouched. NEXT:
+  3c.2 (the lightbox host actions). Ratified S0 forks: A1 Editorial / B1 settings ROUTE / C1 Deleted
+  BEHIND settings.
+- **Roadmap:** a NEW "User profiles + social discovery" Major Overhaul (`59fe7e2`) — a platform expansion
+  (profiles + Pro `/u/[slug]` + follow + guest lists + a Following tab); the dedicated round runs after the
+  S3 host/guest core; cheap profile-aware hooks laid in 3c/3b now.
+
 ## 2026-06-20 — P5·S3·S0: gallery-first event-page forks + "Trash" → "Deleted" rename (`bb11f15`)
 
 The S3·S0 lab round (the gallery-first host event page Will flagged "terribly designed"). The

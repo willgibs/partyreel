@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-11
+**Updated:** 2026-06-20
 
 ## Where we are
 
@@ -56,9 +56,21 @@ transitions). 454 pins green; final live red-team clean (locked page = name + co
 the new date redaction, generic 401s, unlock→full e2e); Test Wedding reverted to `open`. Per
 Will's call, on-device choreography FINE-TUNING is deferred to a post-roadmap lab round (the lab
 stays the direction-setter, not a per-phase finetune gate).
-**Next: Phase 5 (the host app redesign) re-enters plan mode.**
-Settled program decisions (hybrid doorbell gallery, monochrome identity, emil-design-eng as the binding
-craft bar, state-feedback-always-colored) are in the memory/plan; don't re-litigate.
+**PHASE 5 ACTIVE (the host app redesign) — IN PROGRESS 2026-06-20.** Shipped: S2a (shared `MasonryColumns`
++ dims migration + the stat-forward V3 event card + share suite) · S2b (the single-feed dashboard: filter
+chips + ambient storage meter + per-section teasers) · S1 (dashboard streaming INVESTIGATED → DEFERRED
+post-launch, stable on the blocking page). The gated `/design` lab became **THE WORKBENCH** (a live
+reference + sandbox). **S3 (the gallery-first host event page) is the ACTIVE slice:** S0 ✅ (lab forks +
+the "Trash"→"Deleted" rename) · 3a ✅ (host grids → masonry + overlay) · forks RATIFIED (A1 Editorial / B1
+settings ROUTE / C1 Deleted BEHIND settings) · a cross-surface gallery-action redesign + re-order (3c →
+3b → S4) · **3c.1 ✅** (the host gallery TILE action model: hover-reveal row + per-action colors incl. the
+new `--save` blue + host Like + hidden-30%). **▶ NEXT = 3c.2 (the lightbox host actions).** The full S3
+plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
+(+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
+`project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
+state-feedback-colored, emil-design-eng the binding craft bar) are in the memory/plan; don't re-litigate.
+A **NEW major program — user profiles + social** — is roadmapped to run after this slice (see
+[`ROADMAP.md`](ROADMAP.md) + the memory `profiles-social-program`).
 
 The **v1 foundation is built and verified in production** — the focused phased build is complete and the
 project was in **one-off-task mode** (a goal → its own small plan → build → verify on partyreel.com →
