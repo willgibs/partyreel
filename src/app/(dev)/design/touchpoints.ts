@@ -24,7 +24,8 @@ export type TouchpointId =
   | "qr-card"
   | "arrival"
   | "host-event"
-  | "host-dashboard";
+  | "host-dashboard"
+  | "host-event-page";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" is a RESERVED slot: no touchpoint uses it yet (the marketing
@@ -212,6 +213,29 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 3,
     decisionNote:
       "Single feed + ambient storage, a HYBRID (Will, 2026-06-12): tabs become FILTER chips over ONE continuous feed - events (V3 stat-forward cards) THEN your uploads (masonry) THEN likes, in one scroll. WHY: a free user with ONE event still gets a full, exciting page (content beneath the lone event) instead of a sparse list + forced navigation to find the rest. Storage = the AMBIENT slim meter from V2 (NOT V1's in-your-face card): polished + visible to incentivize the upgrade when it matters, never a hero block. Trash stays a filter (the recovery bin). The personal feeds (uploads/likes) keep their own empty-state ownership (client-only unlike).",
+  },
+  {
+    // Phase 5 S3·S0 (Will, 2026-06-20): the gallery-first DIRECTION is ratified
+    // (host-event decision 1); this touchpoint makes it concrete and resolves
+    // the two open BUILD forks. Three labeled groups in one variant file:
+    // A. whole-page composition (react to the architecture), B. settings entry,
+    // C. deleted placement. Ratification happens in chat; the picks land in
+    // decisionNote below. Label is "Deleted" (the 2026-06-20 rename).
+    id: "host-event-page",
+    title: "Gallery-first event page",
+    surface: "host",
+    note: "The ratified gallery-first event page made concrete: the whole-page composition plus the two open forks (settings entry, deleted placement)",
+    variants: [
+      "Composition: editorial",
+      "Composition: stat line",
+      "Composition: share-forward",
+      "Settings: route",
+      "Settings: drawer",
+      "Settings: dialog",
+      "Deleted: behind settings",
+      "Deleted: command strip",
+      "Deleted: gallery toggle",
+    ],
   },
 ];
 

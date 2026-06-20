@@ -21,7 +21,8 @@ export const FILTER_CHIPS: { value: FilterValue; label: string }[] = [
   { value: "events", label: "Events" },
   { value: "uploads", label: "Uploads" },
   { value: "likes", label: "Likes" },
-  { value: "trash", label: "Trash" },
+  // Label "Deleted" (the 2026-06-20 rename); the `trash` VALUE stays (URL + alias).
+  { value: "trash", label: "Deleted" },
 ];
 
 // Legacy ?tab= deep links (events|uploads|likes|deleted) -> the new filter values.

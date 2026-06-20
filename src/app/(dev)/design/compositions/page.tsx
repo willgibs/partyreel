@@ -84,7 +84,7 @@ export default async function CompositionsPage({
               statusLabel="Password"
             />
           </Spec>
-          <Spec label="Trash" hint="dimmed + countdown">
+          <Spec label="Deleted" hint="dimmed + countdown">
             <EventCard
               variant="trash"
               href={null}

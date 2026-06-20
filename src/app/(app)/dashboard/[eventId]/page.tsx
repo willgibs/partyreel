@@ -246,7 +246,7 @@ export default async function EventDetailPage({ params }: PageProps) {
       {deletedItems.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Trash</CardTitle>
+            <CardTitle>Deleted</CardTitle>
             <CardDescription>
               {deletedItems.length}{" "}
               {deletedItems.length === 1 ? "item" : "items"} you removed.

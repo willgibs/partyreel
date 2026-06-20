@@ -71,7 +71,8 @@ describe("DashboardFeed", () => {
     render(
       <DashboardFeed initialFilter="all" trashCount={1} showChips {...slots} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Trash/ }));
+    // The chip LABEL is "Deleted" (2026-06-20 rename); the filter VALUE stays "trash".
+    fireEvent.click(screen.getByRole("button", { name: /Deleted/ }));
     expect(screen.getByTestId("trash")).toBeInTheDocument();
     expect(screen.queryByTestId("events")).not.toBeInTheDocument();
   });

@@ -103,7 +103,7 @@ export function StorageMeter({
         )}
         {standbyBytes > 0 && (
           <p className="text-xs text-muted-foreground">
-            {`+ ${formatBytes(standbyBytes)} in Trash (frees automatically).` +
+            {`+ ${formatBytes(standbyBytes)} in Deleted (frees automatically).` +
               (overBudget
                 ? " Oldest items are removed early to stay within your plan's recovery limit."
                 : "")}

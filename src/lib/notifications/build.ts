@@ -113,7 +113,7 @@ export function buildNotifications(
       items.push({
         key: "recovery_clearing",
         kind: "recovery_clearing",
-        title: "Items in Trash are about to be cleared",
+        title: "Items in Deleted are about to be cleared",
         body: "Restore anything you want to keep, or it's gone for good.",
         date: signals.recoverySoonestPurgeAt,
         href: "/dashboard",

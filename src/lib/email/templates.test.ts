@@ -16,7 +16,7 @@ describe("system-removal email copy (recovery Phase 5)", () => {
       dashboardUrl: "https://partyreel.com/dashboard",
     });
     expect(html).toContain("July 2, 2026");
-    expect(html).toContain("Trash");
+    expect(html).toContain("Deleted");
     expect(html).not.toMatch(/reply to this email/i);
     expect(html).not.toContain("a short time");
   });
@@ -38,7 +38,7 @@ describe("system-removal email copy (recovery Phase 5)", () => {
       dashboardUrl: "https://partyreel.com/dashboard",
     });
     expect(html).toContain("July 2, 2026");
-    expect(html).toContain("Trash");
+    expect(html).toContain("Deleted");
     expect(html).not.toMatch(/reply to this email/i);
   });
 });

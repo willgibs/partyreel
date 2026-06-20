@@ -58,7 +58,7 @@ export function HostDashboardVariants() {
             <span className="flex h-6 items-center rounded-full bg-foreground px-2.5 text-background">
               All
             </span>
-            {["Events", "Uploads", "Likes", "Trash"].map((c) => (
+            {["Events", "Uploads", "Likes", "Deleted"].map((c) => (
               <span
                 key={c}
                 className="flex h-6 items-center rounded-full border border-border px-2.5 text-muted-foreground"
@@ -133,7 +133,7 @@ function StorageCard() {
         <div className="h-full w-1/4 rounded-full bg-foreground" />
       </div>
       <p className="mt-1.5 text-[9px] text-muted-foreground">
-        Plus 180 MB in Trash
+        Plus 180 MB in Deleted
       </p>
     </div>
   );
@@ -156,7 +156,7 @@ function TabsRow() {
       <span className="border-b-2 border-foreground pb-1.5 text-foreground">
         Events
       </span>
-      {["Uploads", "Likes", "Trash"].map((t) => (
+      {["Uploads", "Likes", "Deleted"].map((t) => (
         <span key={t} className="px-2.5 pb-1.5 text-muted-foreground">
           {t}
         </span>
