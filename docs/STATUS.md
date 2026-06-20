@@ -14,11 +14,14 @@ plan file + the agent memory `project_v1_rebuild_program.md`). Phase 1 verdicts 
 **MONOCHROME, both modes** (zero accent; light = paper/hairline, dark = glass/media-as-light; theme
 follows system, light when unretrievable) and **base Instrument Serif** (0.60 `font-size-adjust`
 calibration + 0.013em stroke weight; swappable via the five-variable display layer in
-`src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is the
-STANDING DESIGN LAB (persists beyond Phase 1), repositioned 2026-06-19 to a **reference + prototyping
-library** (persistent sidebar, the live-picking machinery retired): `/design/system` = the locked-system
-reference; `touchpoints.ts` = the read-only **shipped record** (`decision`/`decisionNote`, grouped by
-surface in the nav). Its heading face now matches the shipped app (Urbanist).
+`src/app/(dev)/design/design.css`). The gated **/design** route (`DESIGN_PREVIEW_KEY`) is
+**THE WORKBENCH** (2026-06-19), Partyreel's one internal UI tool, persistent beyond Phase 1. Two halves
+under a polished sidebar (driven by `catalog.ts`, the single source): **Reference** = the REAL shipped UI,
+synced by construction (`/design/foundations` renders the live tokens via `var(--token)`;
+`/design/components` imports the real `ui/*`+`shared/*` primitives; `/design/system` + `/design/demo` are
+the composed showcases) and **Sandbox** = the prototype explorations (`touchpoints.ts` = the read-only
+shipped record). ONE theme (next-themes) flips chrome + reference + sandbox together. The live-picking
+machinery is retired; the heading face is Urbanist (matches the app).
 **PHASE 1 COMPLETE (2026-06-11): all 10 touchpoints ratified** — the full spec = `touchpoints.ts`
 decisions + `/design/demo`. **PHASE 2 COMPLETE (2026-06-11): the V1 system is LIVE on partyreel.com**
 — production tokens (mono both modes, brand→ink alias), Instrument Serif via the `font-heading`

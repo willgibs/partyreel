@@ -10,31 +10,37 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-06-19 — Design lab repositioned to a reference + prototyping library (`da2a0f8`)
+## 2026-06-19 — The Workbench: the design lab becomes a live reference + sandbox (`da2a0f8`, `ed40bd1`, `9030adf`)
 
-The gated `/design` lab outgrew its "pick a variant + ratify" origins (13 touchpoints / 42 variants).
-Selection now happens in chat with more context, so the lab was repositioned to two standing purposes:
-a live design-system reference, and a fast UI-prototyping space.
+The gated `/design` lab outgrew its "pick a variant + ratify" origins. In two steps it became **the
+Workbench**, Partyreel's one internal UI tool: a live design-system reference + a prototyping sandbox.
 
-- **Persistent sidebar** (`lab-nav.tsx`) replaces the index hub + per-page pill rail: grouped Design
-  system → Prototypes (by surface: Guest / Host / Shared, Marketing auto-omitted while empty) → Demo →
-  Diagnostics, active route highlighted, each touchpoint tagged with its shipped V-number. Reads the
-  gate key client-side (`useSearchParams`, layout-safe via Suspense) and follows the same `design-mode`
-  store as the canvas, so chrome + content flip light/dark together. Desktop sticky rail, mobile drawer.
-- **Selection machinery retired**: `SelectButton` / `PicksBoard` / the localStorage picks store removed
-  (`selection.tsx` deleted); `decision`/`decisionNote` survive as a read-only "Shipped: V{n}" record per
-  touchpoint. The index reframed from a selection hub to a library landing.
-- **De-staled the reference**: the lab's heading face swapped Instrument Serif → Urbanist to match the
-  shipped app (`font-opt-urbanist`, real bold, the synthetic-weight knobs dropped); zero Instrument leak.
-- **DRY**: extracted the mode store (`use-design-mode.ts`) shared by ModeShell + the nav; split
-  `withDesignKey` into client-safe `links.ts` (`gate.ts` stays `server-only`, re-exports it);
-  `touchpoints.ts` gained a `surface` field. The `design.css` → `globals.css` token dedup stays a Phase 8
-  follow-up.
+- **Reference (live, synced by construction)**: NEW `/design/foundations` renders the design tokens from
+  the REAL CSS vars (every swatch fills with `var(--token)`; type/radius/motion/elevation specimens);
+  NEW `/design/components` imports the real `ui/*`+`shared/*` primitives from production (fully
+  interactive overlays via composition, the stateful three in a client island). Edit a token/component,
+  this updates. `reference/reference-ui.tsx` is the framing kit; `/design/system`+`/design/demo` are the
+  composed showcases.
+- **Shell + IA**: NEW `catalog.ts` is the SINGLE source for the tool's contents + nav (zones
+  Reference/Sandbox/Lab → groups → entries; sandbox derives from `touchpoints.ts` by surface; adding any
+  UI is one entry). The sidebar (`lab-nav.tsx`) has a three-tier hierarchy (zones bold, groups quiet,
+  items the only clickable rows + a status dot, sr-only status), a live search, real app-token chrome,
+  desktop rail + mobile drawer.
+- **Theme unified on next-themes** (the lab's single source): one toggle drives the REAL app theme;
+  `.dark .mono` follows the global class so chrome + reference + sandbox all flip together. The bespoke
+  mode store + the duplicate Urbanist load were retired; `.font-opt-urbanist` points at the root
+  `--font-display`.
+- **Selection machinery retired**: `SelectButton`/`PicksBoard`/the picks store removed (`selection.tsx`
+  deleted); `decision`/`decisionNote` survive as a read-only "Shipped" status + the variant NAME (never a
+  number). The "Touchpoint N of 13" count + the picking vocabulary are gone; the landing is "The
+  Workbench". The lab heading face swapped Instrument Serif → Urbanist (matches the app).
 
-Verified: 479 green, typecheck/lint/build clean; preview (desktop rail + mobile drawer + active highlight
-+ dark cohesion + Urbanist everywhere + read-only shipped labels, no Select controls); live prod red-team
-(gate 404s without/with wrong key on all routes; keyed render shows the new lab, PicksBoard + Instrument
-gone). Lab stays gated + no-index + self-contained.
+Verified: 479 green, typecheck/lint/build clean; preview across light+dark (one toggle flips chrome +
+live reference + sandbox), real primitives render + open (Dialog/Popover), live swatches show real
+tokens; live prod red-team (gate 404s without/with wrong key). A 4-lens, 23-agent adversarial review
+(refutation-verified) found + fixed 14 items (the Tooltip-timing lie, a stale "Instrument" rule, WCAG
+`aria-hidden`-focusable + use-of-color gaps, DRY/dead-config). Gated + no-index + self-contained;
+`design.css` → `globals.css` token dedup stays a Phase 8 follow-up.
 
 ## 2026-06-12 — V1 program PHASE 4.5 COMPLETE: the guest ARRIVAL experience
 
