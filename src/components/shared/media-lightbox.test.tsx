@@ -11,7 +11,13 @@
  * 600). Velocity needs CONTROLLED timestamps, so gestures are dispatched as
  * hand-built PointerEvents with a defineProperty'd timeStamp.
  */
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
@@ -335,4 +341,78 @@ describe("MediaLightbox: video behavior", () => {
   // (probed 2026-06-11), so the pin would test the harness, not the browser.
   // Covered by the live device pass instead (play a video, swipe past it,
   // confirm audio stops) - see the Phase 2 verification checklist.
+});
+
+// 3c.2: the host curate group is gated by viewerIsHost && onSetStatus, so the
+// GUEST pill is unaffected (the shared lightbox is behavior-pinned). The buttons
+// read current.status; approve/hide/unhide are reversible (direct), remove is
+// behind a modal confirm.
+describe("MediaLightbox: host curate actions (3c.2)", () => {
+  const hostItem = (status: GridMedia["status"]): GridMedia[] => [
+    {
+      id: "h1",
+      type: "photo",
+      url: "https://r2.test/h1.jpg",
+      downloadUrl: "https://r2.test/dh1.jpg",
+      status,
+    },
+  ];
+
+  it("the GUEST pill carries NO curate controls, even with a status", () => {
+    mount(hostItem("approved"), 0, { shareUrl: "https://pr.test/e/tok" });
+    expect(screen.queryByLabelText("Hide")).toBeNull();
+    expect(screen.queryByLabelText("Show")).toBeNull();
+    expect(screen.queryByLabelText("Approve")).toBeNull();
+    expect(screen.queryByLabelText("Remove")).toBeNull();
+    // The guest still gets Share (the join url).
+    expect(screen.getByLabelText("Share")).toBeInTheDocument();
+  });
+
+  it("an APPROVED host item shows Hide + Remove (not Approve/Show)", () => {
+    const onSetStatus = vi.fn();
+    const items = hostItem("approved");
+    mount(items, 0, { viewerIsHost: true, onSetStatus, onRemove: vi.fn() });
+    expect(screen.queryByLabelText("Approve")).toBeNull();
+    expect(screen.queryByLabelText("Show")).toBeNull();
+    expect(screen.getByLabelText("Remove")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Hide"));
+    expect(onSetStatus).toHaveBeenCalledWith(items[0], "hidden");
+  });
+
+  it("a PENDING host item shows Approve + Hide; Approve sets approved", () => {
+    const onSetStatus = vi.fn();
+    const items = hostItem("pending");
+    mount(items, 0, { viewerIsHost: true, onSetStatus, onRemove: vi.fn() });
+    expect(screen.getByLabelText("Hide")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Approve"));
+    expect(onSetStatus).toHaveBeenCalledWith(items[0], "approved");
+  });
+
+  it("a HIDDEN host item shows Show (not Hide/Approve); Show sets approved", () => {
+    const onSetStatus = vi.fn();
+    const items = hostItem("hidden");
+    mount(items, 0, { viewerIsHost: true, onSetStatus, onRemove: vi.fn() });
+    expect(screen.queryByLabelText("Hide")).toBeNull();
+    expect(screen.queryByLabelText("Approve")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Show"));
+    expect(onSetStatus).toHaveBeenCalledWith(items[0], "approved");
+  });
+
+  it("host Remove is behind a modal confirm (no accidental delete)", () => {
+    const onRemove = vi.fn();
+    const items = hostItem("approved");
+    mount(items, 0, {
+      viewerIsHost: true,
+      onSetStatus: vi.fn(),
+      onRemove,
+    });
+    // The pill button only OPENS the confirm.
+    fireEvent.click(screen.getByLabelText("Remove"));
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(screen.getByText("Remove this item?")).toBeInTheDocument();
+    // Confirming inside the dialog fires it with the current item.
+    const dialog = screen.getByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    expect(onRemove).toHaveBeenCalledWith(items[0]);
+  });
 });

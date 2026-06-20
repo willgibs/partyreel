@@ -10,9 +10,12 @@ import {
 } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   Download,
+  Eye,
+  EyeOff,
   Share2,
   Trash2,
   X,
@@ -187,6 +190,13 @@ function AttributionPill({
   );
 }
 
+// One pill action icon: white at rest, COLOR on direct hover (the emil "monochrome
+// at rest, color on hover/state" rule). Per-action hue appended via cn (twMerge wins).
+// Universal across guest + host (Will, 2026-06-20): the action set differs by role,
+// the color language does not.
+const LIGHTBOX_ACTION =
+  "text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100";
+
 export function MediaLightbox({
   items,
   index,
@@ -195,12 +205,15 @@ export function MediaLightbox({
   viewerIsHost = false,
   onDeleteCurrent,
   shareUrl,
+  onSetStatus,
+  onRemove,
 }: {
   items: GridMedia[];
   index: number | null;
   onClose: () => void;
   onIndexChange: (index: number) => void;
-  /** Host gallery? Drives the (i) explainer copy + lets the host-only email line render. */
+  /** Host gallery? Drives the (i) explainer copy, the host-only email line, AND (3c.2) the
+   *  host curate group (approve/hide/unhide + remove) when the moderation handlers are set. */
   viewerIsHost?: boolean;
   /**
    * Opt-in delete (the personal "Uploads" tab). When set, a Trash button shows in the pill behind a
@@ -209,11 +222,19 @@ export function MediaLightbox({
    */
   onDeleteCurrent?: (item: GridMedia) => void;
   /**
-   * Opt-in Share button (the guest event page passes the event JOIN url — never a
-   * presigned media URL). Native share with a clipboard fallback. Omitted on host/
-   * personal surfaces, so their pill carries no Share.
+   * Opt-in Share button. The guest event page passes the event JOIN url; the host gallery (3c.2) also
+   * passes it (the host can share the album). NEVER a presigned media URL. Native share with a
+   * clipboard fallback. Omitted on the personal Uploads + recovery bin, so their pill carries no Share.
    */
   shareUrl?: string;
+  /**
+   * Host moderation (3c.2), host-only — gated by `viewerIsHost && onSetStatus`. `onSetStatus` drives
+   * the curate group's approve/hide/unhide (the buttons read `current.status`); `onRemove` is the
+   * modal-confirm remove (the caller closes the viewer, like onDeleteCurrent). Omitted on every guest
+   * surface + the recovery bin, so their pill carries no curate group.
+   */
+  onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
+  onRemove?: (item: GridMedia) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const prevItem =
@@ -693,20 +714,24 @@ export function MediaLightbox({
                       : "bottom-[calc(1rem+env(safe-area-inset-bottom))]",
                   )}
                 >
-                  {/* Action pill: Like / Save / Share / Delete. Host-only count
-                      chip never co-occurs with the guest Like. */}
+                  {/* The grouped pill (3c.2): the "enjoy" group (like · count ·
+                      download · share) and, for the host, a divider + the "curate"
+                      group (approve-or-hide-or-unhide · remove). Per-action colors;
+                      Like LEFTMOST (the ratified B2 layout). The host-only count
+                      chip never co-occurs with a guest Like. */}
                   <div className="pointer-events-auto flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                    {/* enjoy group (guest + host) */}
                     <LikeButton item={current} variant="lightbox" />
                     <LikeCountBadge count={current.likeCount} />
                     {/* Save hidden when an item carries no download url (the
-                        recovery bin presigns INLINE only). */}
+                        recovery bin presigns INLINE only). Blue on hover. */}
                     {current.downloadUrl && (
                       <a
                         href={current.downloadUrl}
                         download
                         aria-label="Save"
                         title="Save"
-                        className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                        className={cn(LIGHTBOX_ACTION, "hover:text-save")}
                       >
                         <Download className="size-5" />
                       </a>
@@ -717,11 +742,13 @@ export function MediaLightbox({
                         onClick={onShare}
                         aria-label="Share"
                         title="Share"
-                        className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                        className={LIGHTBOX_ACTION}
                       >
                         <Share2 className="size-5" />
                       </button>
                     )}
+                    {/* Personal Uploads delete (unchanged) — never co-occurs with the
+                        host curate group (the host grid sets onRemove, not this). */}
                     {onDeleteCurrent && (
                       <Dialog>
                         <DialogTrigger asChild>
@@ -729,7 +756,7 @@ export function MediaLightbox({
                             type="button"
                             aria-label="Delete"
                             title="Delete"
-                            className="text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100"
+                            className={cn(LIGHTBOX_ACTION, "hover:text-destructive")}
                           >
                             <Trash2 className="size-5" />
                           </button>
@@ -757,6 +784,90 @@ export function MediaLightbox({
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
+                    )}
+
+                    {/* curate group (HOST only) — gated so the guest pill is purely
+                        the enjoy group. Reads current.status; approve/hide/unhide are
+                        reversible (no confirm), remove is behind a modal confirm. */}
+                    {viewerIsHost && onSetStatus && (
+                      <>
+                        <span
+                          aria-hidden
+                          className="h-5 w-px shrink-0 bg-white/20"
+                        />
+                        {current.status === "pending" && (
+                          <button
+                            type="button"
+                            aria-label="Approve"
+                            title="Approve"
+                            onClick={() => onSetStatus(current, "approved")}
+                            className={cn(LIGHTBOX_ACTION, "hover:text-success")}
+                          >
+                            <Check className="size-5" />
+                          </button>
+                        )}
+                        {current.status === "hidden" ? (
+                          <button
+                            type="button"
+                            aria-label="Show"
+                            title="Show"
+                            onClick={() => onSetStatus(current, "approved")}
+                            className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
+                          >
+                            <Eye className="size-5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            aria-label="Hide"
+                            title="Hide"
+                            onClick={() => onSetStatus(current, "hidden")}
+                            className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
+                          >
+                            <EyeOff className="size-5" />
+                          </button>
+                        )}
+                        {onRemove && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label="Remove"
+                                title="Remove"
+                                className={cn(
+                                  LIGHTBOX_ACTION,
+                                  "hover:text-destructive",
+                                )}
+                              >
+                                <Trash2 className="size-5" />
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Remove this item?</DialogTitle>
+                                <DialogDescription>
+                                  It disappears from the album right away and is
+                                  permanently deleted after a short grace period.
+                                  Guests won&rsquo;t see it.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => onRemove(current)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </DialogClose>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </>
                     )}
                   </div>
 

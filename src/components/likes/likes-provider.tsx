@@ -135,7 +135,7 @@ export function LikesProvider({
           }
           localStorage.removeItem(PENDING_PREFIX + id);
         }
-        if (active && any) toast.success("Saved to your likes.");
+        if (active && any) toast.success("Added to your likes");
       }
     })();
     return () => {
@@ -223,7 +223,7 @@ export function LikesProvider({
       setLiked((prev) => new Set(prev).add(id));
       if (typeof window !== "undefined")
         localStorage.removeItem(PENDING_PREFIX + id);
-      toast.success("Saved to your likes.");
+      toast.success("Added to your likes");
     }
   }
 

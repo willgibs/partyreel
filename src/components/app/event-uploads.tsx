@@ -26,6 +26,7 @@ export function EventUploads({
   items,
   pendingCount,
   videosAllowed,
+  shareUrl,
 }: {
   eventId: string;
   items: GridMedia[];
@@ -33,6 +34,8 @@ export function EventUploads({
   // Phase 2: a free host's event is photos-only. Drives the host picker (no video
   // selection) + the panel copy. The gate is authoritative at upload regardless.
   videosAllowed: boolean;
+  // The event JOIN url, threaded to the host lightbox Share (3c.2).
+  shareUrl?: string;
 }) {
   const [adding, setAdding] = useState(false);
 
@@ -73,7 +76,7 @@ export function EventUploads({
           // The host can LIKE here (a normal like → their Liked album + the count).
           // The host is always signed in, so the provider's create-account path never fires.
           <LikesProvider mediaIds={items.map((i) => i.id)}>
-            <HostMediaGrid eventId={eventId} items={items} />
+            <HostMediaGrid eventId={eventId} items={items} shareUrl={shareUrl} />
           </LikesProvider>
         ) : (
           <p className="text-sm text-muted-foreground">

@@ -254,14 +254,15 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "shared",
     note: "The universal action-color system (monochrome at rest, color on hover/state) across the tile reveal and the lightbox pill, plus the host lightbox moderation set and the Like/Hide feedback toasts",
     variants: [
-      "Host tile: rest",
-      "Host tile: on hover (colored)",
-      "Host lightbox: approved",
-      "Host lightbox: pending",
-      "Guest tile (colored)",
-      "Guest lightbox pill",
+      "Universal action colors + the grouped lightbox (the model)",
+      "Host tile: rest / on-hover",
+      "Host lightbox: grouped pill",
+      "Guest parity",
       "Feedback toasts",
     ],
+    decision: 1,
+    decisionNote:
+      "Ratified (Will, 2026-06-20). UNIVERSAL per-action colors (guest + host; only the action SET differs): like pink, save/download blue, hide/show amber, approve green, delete red. Emil: monochrome at rest, color on direct icon-hover + active state (liked = filled pink); native title tooltips. TILE (3c.1, shipped): the top-right hover-reveal row, Like FAR-RIGHT (stays colored when liked, never shifts on hover-off), hidden = 30% opacity; mobile keeps Like + Save only (hide/delete move to the lightbox). LIGHTBOX (3c.2): the grouped 'enjoy | curate' pill, Like LEFTMOST of enjoy [like, count, download, share] then a divider then [approve-or-hide-or-unhide, remove]; delete behind a modal confirm, everything else 1-way-safe or reversible; Share passes the event JOIN url. The guest lightbox keeps its exact behavior + gestures, it just gains the same colors. TOASTS: Like 'Added to your likes'; Hide 'Hidden from everyone', firing from BOTH the tile hover-row and the lightbox. Corrects the prior 'viewer pill is unchanged' reading: the color clarity is for everyone, not host-only.",
   },
 ];
 

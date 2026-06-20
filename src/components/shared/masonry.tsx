@@ -63,6 +63,9 @@ export function MasonryColumns<T extends GridMedia>({
   viewerIsHost = false,
   renderOverlay,
   dimItem,
+  shareUrl,
+  onSetStatus,
+  onRemove,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
@@ -76,6 +79,12 @@ export function MasonryColumns<T extends GridMedia>({
   /** Dims the MEDIA to 30% (the host's hidden-from-guests mark); the overlay chrome
    *  stays full-opacity so the host can still see + act on it. */
   dimItem?: (item: T) => boolean;
+  /** Host lightbox only (3c.2): the event JOIN url for the viewer Share + the host
+   *  moderation handlers (curate group). Omitted = no Share / no host moderation in
+   *  the viewer (guest galleries + the recovery bin). */
+  shareUrl?: string;
+  onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
+  onRemove?: (item: GridMedia) => void;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
@@ -133,11 +142,22 @@ export function MasonryColumns<T extends GridMedia>({
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
         viewerIsHost={viewerIsHost}
+        shareUrl={shareUrl}
+        onSetStatus={onSetStatus}
         onDeleteCurrent={
           onDeleteItem
             ? (item) => {
                 setOpenIndex(null);
                 onDeleteItem(item.id);
+              }
+            : undefined
+        }
+        // Remove shrinks the set -> close the viewer first, then run (mirrors onDeleteCurrent).
+        onRemove={
+          onRemove
+            ? (item) => {
+                setOpenIndex(null);
+                onRemove(item);
               }
             : undefined
         }

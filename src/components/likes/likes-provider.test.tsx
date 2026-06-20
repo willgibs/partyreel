@@ -112,7 +112,7 @@ describe("LikesProvider: redirect-queued replay", () => {
       expect(screen.getByTestId("liked-m3")).toHaveTextContent("liked"),
     );
     expect(localStorage.getItem(PENDING_PREFIX + "m3")).toBeNull();
-    expect(toast.success).toHaveBeenCalledWith("Saved to your likes.");
+    expect(toast.success).toHaveBeenCalledWith("Added to your likes");
   });
 
   it("a failed replay still clears the key and stays unliked, no toast", async () => {

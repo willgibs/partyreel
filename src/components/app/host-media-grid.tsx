@@ -4,7 +4,6 @@ import { useTransition } from "react";
 import { Check, Download, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
   approveAllPendingAction,
   removeMediaAction,
@@ -45,6 +44,52 @@ import { cn } from "@/lib/utils";
 const ACTION_BASE =
   "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white/70";
 
+// The ONE home for the host moderation actions + their copy/toasts (3c.2), shared by
+// the tile overlay (per-tile instance -> per-tile pending) AND the lightbox curate
+// group (HostMediaGrid's grid-level instance). `setStatus` derives the intent from the
+// transition for the right error copy + the "Hidden from everyone" success toast (Will:
+// fires from BOTH the tile and the lightbox). All writes revalidate this path; we toast
+// failures (+ the one hide success).
+function useModeration(eventId: string) {
+  const [isPending, startTransition] = useTransition();
+
+  const setStatus = (item: GridMedia, status: "approved" | "hidden") => {
+    const intent =
+      status === "hidden"
+        ? "hide"
+        : item.status === "hidden"
+          ? "unhide"
+          : "approve";
+    const failTitle =
+      intent === "hide"
+        ? "Couldn't hide that item."
+        : intent === "unhide"
+          ? "Couldn't unhide that item."
+          : "Couldn't approve that item.";
+    startTransition(async () => {
+      const result = await setMediaStatusAction(eventId, item.id, status);
+      if (!result.ok) {
+        toast.error(failTitle, { description: result.message });
+        return;
+      }
+      if (intent === "hide") toast.success("Hidden from everyone");
+    });
+  };
+
+  const remove = (item: GridMedia) => {
+    startTransition(async () => {
+      const result = await removeMediaAction(eventId, item.id);
+      if (!result.ok) {
+        toast.error("Couldn't remove that item.", {
+          description: result.message,
+        });
+      }
+    });
+  };
+
+  return { setStatus, remove, isPending };
+}
+
 function HostTileOverlay({
   eventId,
   item,
@@ -52,18 +97,10 @@ function HostTileOverlay({
   eventId: string;
   item: GridMedia;
 }) {
-  const [isPending, startTransition] = useTransition();
+  const { setStatus, remove, isPending } = useModeration(eventId);
   // Defensive default — listEventMedia never returns 'removed', and 'approved'
   // is the live state.
   const status = item.status ?? "approved";
-
-  function run(action: () => Promise<ActionResult>, failTitle: string) {
-    startTransition(async () => {
-      const result = await action();
-      if (result.ok) return;
-      toast.error(failTitle, { description: result.message });
-    });
-  }
 
   return (
     <>
@@ -76,10 +113,11 @@ function HostTileOverlay({
       />
 
       <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
-        {/* Moderation: desktop hover-reveal. MOBILE stays visible for now (no hover) so
-            mobile hosts keep tile moderation; it moves to the lightbox in 3c.2 (then this
-            becomes `hidden md:flex` per the spec — Like+Save only on mobile tiles). */}
-        <div className="flex items-center gap-1 opacity-100 transition-opacity duration-150 ease-emphasis md:opacity-0 md:group-hover:opacity-100">
+        {/* Moderation: DESKTOP-only hover-reveal (3c.2). On mobile (no hover) it's gone
+            — hide/remove move to the lightbox; the mobile tile keeps Like + Save only
+            (deletes are rare; an active tile is approved or moderation-off, so a direct
+            hide is uncommon too). */}
+        <div className="hidden items-center gap-1 transition-opacity duration-150 ease-emphasis md:flex md:opacity-0 md:group-hover:opacity-100">
           {status === "pending" && (
             <button
               type="button"
@@ -87,12 +125,7 @@ function HostTileOverlay({
               aria-label="Approve"
               title="Approve"
               className={cn(ACTION_BASE, "hover:text-success")}
-              onClick={() =>
-                run(
-                  () => setMediaStatusAction(eventId, item.id, "approved"),
-                  "Couldn't approve that item.",
-                )
-              }
+              onClick={() => setStatus(item, "approved")}
             >
               <Check className="size-4" />
             </button>
@@ -104,12 +137,7 @@ function HostTileOverlay({
               aria-label="Hide"
               title="Hide"
               className={cn(ACTION_BASE, "hover:text-warning")}
-              onClick={() =>
-                run(
-                  () => setMediaStatusAction(eventId, item.id, "hidden"),
-                  "Couldn't hide that item.",
-                )
-              }
+              onClick={() => setStatus(item, "hidden")}
             >
               <EyeOff className="size-4" />
             </button>
@@ -121,12 +149,7 @@ function HostTileOverlay({
               aria-label="Unhide"
               title="Unhide"
               className={cn(ACTION_BASE, "hover:text-warning")}
-              onClick={() =>
-                run(
-                  () => setMediaStatusAction(eventId, item.id, "approved"),
-                  "Couldn't unhide that item.",
-                )
-              }
+              onClick={() => setStatus(item, "approved")}
             >
               <Eye className="size-4" />
             </button>
@@ -160,12 +183,7 @@ function HostTileOverlay({
                   <Button
                     variant="destructive"
                     disabled={isPending}
-                    onClick={() =>
-                      run(
-                        () => removeMediaAction(eventId, item.id),
-                        "Couldn't remove that item.",
-                      )
-                    }
+                    onClick={() => remove(item)}
                   >
                     Remove
                   </Button>
@@ -202,16 +220,26 @@ function HostTileOverlay({
 export function HostMediaGrid({
   eventId,
   items,
+  shareUrl,
 }: {
   eventId: string;
   items: GridMedia[];
+  // The event JOIN url, for the lightbox Share (3c.2) — never a presigned media URL.
+  shareUrl?: string;
 }) {
+  // Grid-level moderation handlers for the lightbox curate group (one open item at a
+  // time, so a grid-level transition is fine). The per-tile overlay owns its OWN
+  // instance (per-tile pending); both share the copy/toasts via the hook.
+  const { setStatus, remove } = useModeration(eventId);
   // clampAspect: moderation ergonomics. dimItem: hidden media -> 30% (active-vs-hidden).
   return (
     <MasonryColumns
       items={items}
       viewerIsHost
       clampAspect
+      shareUrl={shareUrl}
+      onSetStatus={setStatus}
+      onRemove={remove}
       dimItem={(item) => item.status === "hidden"}
       renderOverlay={(item) => (
         <HostTileOverlay eventId={eventId} item={item} />

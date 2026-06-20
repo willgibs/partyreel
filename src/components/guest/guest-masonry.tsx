@@ -19,7 +19,7 @@
  */
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Check, Play, RefreshCw } from "lucide-react";
+import { Check, Download, Play, RefreshCw } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { LikeButton } from "@/components/likes/like-button";
@@ -165,8 +165,24 @@ export function GuestMasonry({
                 <Check className="size-3" strokeWidth={3} />
               </span>
             )}
-            {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}
-            <LikeButton item={item} variant="tile" />
+            {/* Desktop hover-reveal action row (3c): Download (blue) + Like FAR-RIGHT
+                (pink when liked, persists off-hover). Same color language as the host,
+                minus moderation. Desktop-only (the container is hidden md:flex); mobile
+                guests act in the lightbox. Like is a no-op without a LikesProvider. */}
+            <div className="absolute top-1.5 right-1.5 z-10 hidden items-center gap-1 md:flex">
+              {item.downloadUrl && (
+                <a
+                  href={item.downloadUrl}
+                  download
+                  aria-label="Save"
+                  title="Save"
+                  className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-[color,opacity,transform] duration-150 ease-emphasis group-hover:opacity-100 hover:text-save focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none active:scale-90 motion-reduce:active:scale-100"
+                >
+                  <Download className="size-4" />
+                </a>
+              )}
+              <LikeButton item={item} variant="row" />
+            </div>
           </div>
         ))}
       </div>

@@ -240,7 +240,11 @@ export default async function EventDetailPage({ params }: PageProps) {
             />
           </CardHeader>
           <CardContent>
-            <HostMediaGrid eventId={event.id} items={pendingItems} />
+            <HostMediaGrid
+              eventId={event.id}
+              items={pendingItems}
+              shareUrl={eventLink}
+            />
           </CardContent>
         </Card>
       )}
@@ -250,6 +254,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         items={visibleItems}
         pendingCount={pendingItems.length}
         videosAllowed={videosAllowedForTier(tier)}
+        shareUrl={eventLink}
       />
 
       {deletedItems.length > 0 && (

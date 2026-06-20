@@ -40,8 +40,9 @@ export function LikeButton({
           "transition-[opacity,transform] duration-150 ease-emphasis",
           "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
           "active:scale-90 motion-reduce:active:scale-100",
-          // A liked tile keeps its filled heart visible even without hover (at-a-glance feedback).
-          liked && "opacity-100",
+          // A liked tile keeps its filled rose heart visible even without hover (at-a-glance
+          // feedback) — the --like state color, universal across guest + host (Will, 2026-06-20).
+          liked && "text-like opacity-100",
         )}
       >
         <Heart className={cn("size-4", liked && "fill-current")} />
@@ -78,6 +79,9 @@ export function LikeButton({
     );
   }
 
+  // "lightbox": the viewer control row, on every viewport. Liked = the filled rose
+  // --like heart (universal across guest + host, Will 2026-06-20); the heart stays
+  // rose at rest AND on hover (override both the base + hover white).
   return (
     <Button
       type="button"
@@ -86,7 +90,10 @@ export function LikeButton({
       aria-pressed={liked}
       aria-label={liked ? "Unlike" : "Like"}
       onClick={() => likes.toggle(item.id)}
-      className="text-white hover:bg-white/15 hover:text-white"
+      className={cn(
+        "text-white hover:bg-white/15 hover:text-white",
+        liked && "text-like hover:text-like",
+      )}
     >
       <Heart
         className={cn(
