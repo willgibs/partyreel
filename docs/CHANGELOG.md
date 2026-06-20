@@ -10,6 +10,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-20 — P5·S3·S0: gallery-first event-page forks + "Trash" → "Deleted" rename (`bb11f15`)
+
+The S3·S0 lab round (the gallery-first host event page Will flagged "terribly designed"). The
+gallery-first DIRECTION is ratified; this stages it CONCRETE for review.
+- NEW `host-event-page` Workbench touchpoint (surface "host", auto-surfaced; "Exploring") with three
+  labeled groups: **A. whole-page composition** (3 takes - editorial / stat-line / share-forward),
+  **B. settings entry** (route / drawer / dialog), **C. deleted placement** (behind-settings /
+  command-strip / gallery-toggle). Hand-built PhoneShell mocks, no production imports, emil-annotated.
+  Verified behind the key (both modes flip) + live (gate 404s without the key; keyed renders). Awaiting
+  Will's ratification of the composition + both forks (recorded on the touchpoint when picked).
+- **Copy rename "Trash" → "Deleted"** (the canonical user-facing label, concise like Events/Uploads/
+  Likes): the dashboard filter chip, the event-page section heading, the over-cap reduced + inactivity
+  recovery emails, the "items about to be cleared" notification, the standby-bytes meter line, and the
+  no-longer-in-bin error. LABEL ONLY - the `trash` filter VALUE + the legacy `?tab=deleted` alias +
+  `RecentlyDeletedGrid` + all internal identifiers are unchanged, so the deep-link contract holds. Email
+  + feed pins updated; 479 green.
+- Process: planning moved to **Master > Phase > Slice** (per-slice plan files; the Phase 5 plan is now a
+  lean index + the deep S3 plan at `p5-s3-gallery-first-event-page.md`).
+
 ## 2026-06-20 — Workbench round-out: complete the live reference (`761d274`, `3c5f576`)
 
 Fleshed out the live-reference coverage (Will's call: round out the tool while it's fresh, before S3).
