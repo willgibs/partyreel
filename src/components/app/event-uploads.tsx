@@ -6,6 +6,7 @@ import { Upload } from "lucide-react";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { HostUpload } from "@/components/app/host-upload";
 import { type GridMedia } from "@/components/app/media-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,7 +70,11 @@ export function EventUploads({
         )}
 
         {items.length > 0 ? (
-          <HostMediaGrid eventId={eventId} items={items} />
+          // The host can LIKE here (a normal like → their Liked album + the count).
+          // The host is always signed in, so the provider's create-account path never fires.
+          <LikesProvider mediaIds={items.map((i) => i.id)}>
+            <HostMediaGrid eventId={eventId} items={items} />
+          </LikesProvider>
         ) : (
           <p className="text-sm text-muted-foreground">
             {pendingCount > 0

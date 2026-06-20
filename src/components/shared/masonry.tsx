@@ -62,6 +62,7 @@ export function MasonryColumns<T extends GridMedia>({
   clampAspect = false,
   viewerIsHost = false,
   renderOverlay,
+  dimItem,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
@@ -72,6 +73,9 @@ export function MasonryColumns<T extends GridMedia>({
   viewerIsHost?: boolean;
   /** Per-tile chrome on top of the lightbox button (moderation bar, bin controls). */
   renderOverlay?: (item: T) => ReactNode;
+  /** Dims the MEDIA to 30% (the host's hidden-from-guests mark); the overlay chrome
+   *  stays full-opacity so the host can still see + act on it. */
+  dimItem?: (item: T) => boolean;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
@@ -107,7 +111,9 @@ export function MasonryColumns<T extends GridMedia>({
               type="button"
               onClick={() => setOpenIndex(i)}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
-              className="size-full cursor-pointer outline-none transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]"
+              className={`size-full cursor-pointer outline-none transition-[transform,opacity] duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
+                dimItem?.(item) ? " opacity-30" : ""
+              }`}
             >
               <MediaTile item={item} playBadge="none" />
             </button>

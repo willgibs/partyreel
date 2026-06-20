@@ -22,12 +22,12 @@ export const SAMPLE = {
 // remove). The actions are wired to a sample id, so they error-toast if clicked —
 // this is a VISUAL reference (browse the layout, not run moderation).
 export const SAMPLE_MEDIA: GridMedia[] = [
-  { id: "sm-1", type: "photo", url: "/design/p01.jpg", status: "approved", width: 1200, height: 1600, likeCount: 12 },
-  { id: "sm-2", type: "photo", url: "/design/p03.jpg", status: "pending", width: 1920, height: 1080 },
-  { id: "sm-3", type: "photo", url: "/design/p06.jpg", status: "hidden", width: 1600, height: 1200 },
-  { id: "sm-4", type: "photo", url: "/design/p11.jpg", status: "approved", width: 1000, height: 1000, likeCount: 1 },
-  { id: "sm-5", type: "photo", url: "/design/p08.jpg", status: "approved", width: 1080, height: 1920 },
-  { id: "sm-6", type: "photo", url: "/design/p04.jpg", status: "pending", width: 1500, height: 1000 },
+  { id: "sm-1", type: "photo", url: "/design/p01.jpg", downloadUrl: "/design/p01.jpg", status: "approved", width: 1200, height: 1600, likeCount: 12 },
+  { id: "sm-2", type: "photo", url: "/design/p03.jpg", downloadUrl: "/design/p03.jpg", status: "pending", width: 1920, height: 1080 },
+  { id: "sm-3", type: "photo", url: "/design/p06.jpg", downloadUrl: "/design/p06.jpg", status: "hidden", width: 1600, height: 1200 },
+  { id: "sm-4", type: "photo", url: "/design/p11.jpg", downloadUrl: "/design/p11.jpg", status: "approved", width: 1000, height: 1000, likeCount: 1 },
+  { id: "sm-5", type: "photo", url: "/design/p08.jpg", downloadUrl: "/design/p08.jpg", status: "approved", width: 1080, height: 1920 },
+  { id: "sm-6", type: "photo", url: "/design/p04.jpg", downloadUrl: "/design/p04.jpg", status: "pending", width: 1500, height: 1000 },
 ];
 
 // Sample bin items (S3·3a): GridMedia + countdownDays for the countdown pill.

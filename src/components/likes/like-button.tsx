@@ -18,7 +18,7 @@ export function LikeButton({
   variant,
 }: {
   item: { id: string };
-  variant: "tile" | "lightbox";
+  variant: "tile" | "lightbox" | "row";
 }) {
   const likes = useLikes();
   if (!likes) return null;
@@ -42,6 +42,35 @@ export function LikeButton({
           "active:scale-90 motion-reduce:active:scale-100",
           // A liked tile keeps its filled heart visible even without hover (at-a-glance feedback).
           liked && "opacity-100",
+        )}
+      >
+        <Heart className={cn("size-4", liked && "fill-current")} />
+      </button>
+    );
+  }
+
+  // "row": flow-positioned (the parent action row places it FAR-RIGHT, host + guest);
+  // VISIBLE on mobile (no hover there), hover-revealed on desktop, and persists once
+  // liked so the rose heart stays at-a-glance even off-hover (the icon never shifts as
+  // the rest of the row collapses). Rose = the --like state color on the liked heart.
+  if (variant === "row") {
+    return (
+      <button
+        type="button"
+        aria-pressed={liked}
+        aria-label={liked ? "Unlike" : "Like"}
+        title={liked ? "Unlike" : "Like"}
+        onClick={(e) => {
+          e.stopPropagation();
+          likes.toggle(item.id);
+        }}
+        className={cn(
+          "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
+          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis",
+          "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
+          "active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",
+          // Liked: rose, filled, and pinned visible (desktop too).
+          liked && "text-like opacity-100 md:opacity-100",
         )}
       >
         <Heart className={cn("size-4", liked && "fill-current")} />
