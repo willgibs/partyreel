@@ -67,7 +67,9 @@ settings ROUTE / C1 Deleted BEHIND settings) · a cross-surface gallery-action r
 new `--save` blue + host Like + hidden-30%) · **3c.2 ✅** (the LIGHTBOX host actions: the grouped
 "enjoy | curate" pill + the UNIVERSAL action-color system across guest + host, only the action SET differs;
 the guest pill stays behavior-identical, gains colors; +the guest-tile Download; "Hidden from everyone"
-toast; mobile tiles drop hide/delete to the lightbox). **▶ NEXT = 3b (the gallery-first composition).** The
+toast; mobile tiles drop hide/delete to the lightbox) + a **polish pass** (OPTIMISTIC moderation = instant,
+reverts on fail; a persistent amber hidden-marker; styled hover tooltips; bare-icon Like + "Added to your
+likes" toast; Share = blue). **▶ NEXT = 3b (the gallery-first composition).** The
 full S3 plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
 (+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

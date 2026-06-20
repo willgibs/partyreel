@@ -31,8 +31,17 @@ The gallery-action model reaches the lightbox, and the per-action color system g
   GUEST tile gains a blue Download beside the far-right Like; the like toast is "Added to your likes".
 - **Verified:** 486 green incl. 5 new lightbox host-action pins (curate gated on host; status→buttons;
   remove behind confirm; the guest pill carries none) + all gesture/guest pins; typecheck/lint/build clean;
-  the guest lightbox live-checked locally (clean enjoy pill, no curate, behavior unchanged). The host
-  lightbox live red-team (approve/hide/remove/Share/colors/mobile flip) runs on Will's signed-in session.
+  the guest lightbox live-checked locally (clean enjoy pill, no curate, behavior unchanged). Host lightbox
+  live red-team on partyreel.com (Will's session): approved → `Like·Save·Share | Hide·Remove`, hidden →
+  `… | Show·Remove`, Hide persisted + the pill swapped, Remove modal-confirm (Cancel = no delete), mobile
+  flip confirmed.
+- **Polish** (`a4c3fd4`, Will's review pass): moderation went **OPTIMISTIC** (instant tile + lightbox via
+  `useOptimistic` lifted to HostMediaGrid; runs in the background, reverts + toasts on failure — kills the
+  revalidation lag); a hidden item keeps a **persistent amber Show marker** (off-hover + mobile, like the
+  liked heart) + active-amber Show in the lightbox, atop the 30% dim; the lightbox **Like** is now a bare
+  size-5 icon (matched the pill) with rose hover + a "Added to your likes" toast on a confirmed like;
+  **Share** hovers blue (`--save`, shared with Download/Save); **styled hover tooltips** on every action
+  (shared `ActionTooltip`, replacing native `title`).
 
 ## 2026-06-20 — P5·S3 progress: 3a masonry foundation, the gallery-action model (3c.1), + the profiles roadmap (`0ef35d5`, `73d109c`, `59fe7e2`, `d76792f`)
 
