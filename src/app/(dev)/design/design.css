@@ -2,13 +2,12 @@
   V1 identity exploration, round 2 (gated /design route).
 
   Round 1 settled the identity: MONOCHROME, both modes (Will, 2026-06-10).
-  `.mono` is now the ONE token sheet - light mode is round-1 A (paper,
+  `.mono` is the Sandbox mock token sheet - light mode is round-1 A (paper,
   hairline borders), dark mode is round-1 B (near-black glass, the media as
-  the light source), switched via data-mode on the root (the ModeShell client
-  component resolves system preference, light when unretrievable). TYPE is
-  the explored variable: each `.font-opt-*` class swaps only the display face
-  + its optical tuning (tracking/weight differ between a serif and a grotesk
-  at display sizes).
+  the light source). Light/dark now FOLLOWS the global next-themes class via
+  `.dark .mono` (the Workbench's single theme source, 2026-06-19); the explicit
+  `[data-mode]` is kept as an optional local override. TYPE: the `.font-opt-*`
+  class swaps the display face + its optical tuning.
 
   The screens consume the same hooks as round 1:
     [data-dir-display] - display/heading type
@@ -79,9 +78,11 @@
 }
 
 /* Dark mode = round-1 Night: near-black, inverted-ink CTAs, glass cards.
-   (Geometry differences between the modes - radius 0.5 vs 0.75 in round 1 -
-   were unified to the light value; revisit in Phase 2 if it reads wrong.) */
-.mono[data-mode="dark"] {
+   The mono mocks now FOLLOW the global theme: next-themes sets `.dark` on <html>
+   (the lab's single theme source, 2026-06-19), so `.dark .mono` flips the mock
+   palette with the rest of the Workbench. The explicit `[data-mode="dark"]` is
+   kept as an optional local override. */
+:is(.mono[data-mode="dark"], .dark .mono) {
   --background: oklch(0.14 0 0);
   --foreground: oklch(0.96 0 0);
   --card: oklch(0.21 0 0 / 0.62);
@@ -119,13 +120,13 @@
   border-radius: var(--radius);
 }
 
-.mono[data-mode="dark"] [data-dir-card] {
+:is(.mono[data-mode="dark"], .dark .mono) [data-dir-card] {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
 /* The faint neutral wash dark mode blurs its glass against. */
-.mono[data-mode="dark"][data-dir-root] {
+:is(.mono[data-mode="dark"], .dark .mono)[data-dir-root] {
   background-image:
     radial-gradient(36rem 24rem at 85% -5%, oklch(0.45 0 0 / 0.2), transparent 65%),
     radial-gradient(28rem 20rem at 0% 100%, oklch(0.4 0 0 / 0.14), transparent 60%);
@@ -195,7 +196,7 @@
   }
 
   /* Dark's signature garnish: entrances de-blur (the emil blur-mask trick). */
-  .mono[data-mode="dark"] [data-dir-enter] {
+  :is(.mono[data-mode="dark"], .dark .mono) [data-dir-enter] {
     @starting-style {
       filter: blur(6px);
     }

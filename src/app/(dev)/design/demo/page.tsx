@@ -22,16 +22,14 @@ import {
 } from "../screens/sample-photos";
 
 /**
- * THE COHESIVE DEMO (Will, round 6): one place where the current selections
- * meet, so each new decision is judged in company instead of alone.
- * Hand-composed from the ratified specs and REBUILT BY THE AGENT each round
- * as picks land (deliberately not generated from the localStorage picks -
- * a static composition stays honest about what actually works together).
+ * THE COHESIVE DEMO: a standing showcase where the shipped pieces are composed
+ * together on one screen set, so the system can be read as a whole rather than
+ * piece by piece. Hand-composed (deliberately static) from the shipped specs.
  *
- * Composed in: masonry gallery (3:V2) · upload combo with green check (2:V4)
- * · floating pill lightbox, rose liked heart, no counts (6:V2) · photographic
- * empty state (9:V3) · sharp-surface/round-action radius + state colors
- * (5:V4) · header shown as refined V1 pending decisions 1 and 4.
+ * Composed in: masonry gallery · upload combo with the green check · floating
+ * pill lightbox (rose liked heart, no counts) · the photographic empty state ·
+ * sharp surfaces with round actions + the state colors · the left-editorial
+ * header.
  */
 export default async function CohesiveDemoPage({
   searchParams,
@@ -47,7 +45,7 @@ export default async function CohesiveDemoPage({
             The cohesive demo
           </p>
           <h1 data-dir-display className="mt-1 text-3xl tracking-tight text-balance">
-            Everything we&rsquo;ve picked, together
+            The shipped pieces, composed together
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             The live event page, the lightbox, and a brand-new event, composed

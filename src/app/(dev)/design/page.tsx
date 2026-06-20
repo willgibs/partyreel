@@ -1,97 +1,162 @@
 import Link from "next/link";
-import { ArrowRight, Palette, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Boxes,
+  FlaskConical,
+  LayoutGrid,
+  Palette,
+} from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
+import { COUNTS, ZONES } from "./catalog";
 import { requireDesignKey, withDesignKey } from "./gate";
-import { ModeShell } from "./mode-shell";
-import { type Surface, TOUCHPOINTS } from "./touchpoints";
 
-const SURFACES: { key: Surface; label: string; blurb: string }[] = [
-  { key: "guest", label: "Guest", blurb: "The scan-to-upload event experience" },
-  { key: "host", label: "Host", blurb: "The dashboard and event management app" },
-  { key: "shared", label: "Shared", blurb: "Cross-surface system pieces" },
-];
-
-// THE DESIGN LAB LANDING (lab refresh, 2026-06-19). The lab is repositioned to
-// two standing purposes: a live design-system reference, and a fast UI
-// prototyping space (polished explorations before integrating into the
-// data-heavy app). The interactive picking hub is retired; the sidebar owns
-// navigation, so this page is a calm overview of what the library holds.
+// THE WORKBENCH LANDING (2026-06-19). The lab is Partyreel's one internal UI
+// tool, with two halves: a LIVE reference of the real shipped UI (synced by
+// construction) and a SANDBOX for prototyping new designs. This page is the calm
+// home; the sidebar owns browsing. Real app tokens (it IS the live tool).
 export default async function DesignIndexPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const key = await requireDesignKey(searchParams);
+  const link = (href: string) => withDesignKey(href, key);
+
+  const sandboxSurfaces = ZONES.find((z) => z.id === "sandbox")?.groups ?? [];
 
   return (
-    <ModeShell fontClass="font-opt-urbanist">
-      <main className="mx-auto w-full max-w-3xl px-6 pt-6 pb-20">
-        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-          Partyreel V1 · design lab
-        </p>
-        <h1 data-dir-display className="mt-2 text-4xl tracking-tight text-balance">
-          The design lab
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Two things live here. A live design-system reference, and a space to
-          prototype UI: polished explorations built before integrating into the
-          data-heavy app, to save time and try several directions per piece.
-          Browse the whole library from the sidebar.
-        </p>
+    <main className="mx-auto w-full max-w-3xl px-6 pt-8 pb-20">
+      <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+        Partyreel · design lab
+      </p>
+      <h1 className="font-heading mt-2 text-4xl text-balance">The Workbench</h1>
+      <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+        One place for Partyreel&rsquo;s UI: a live reference of the real shipped
+        components and tokens, synced by construction, plus a sandbox to
+        prototype new designs before they reach the app. Browse the whole library
+        from the sidebar.
+      </p>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          <LandingCard
-            href={withDesignKey("/design/system", key)}
-            icon={<Palette className="size-4" />}
-            title="System reference"
-            blurb="The locked monochrome system: type, color policy, components, and live motion, in both modes."
-          />
-          <LandingCard
-            href={withDesignKey("/design/demo", key)}
-            icon={<Sparkles className="size-4" />}
-            title="Cohesive demo"
-            blurb="Shipped pieces composed on one screen set, the way they read together."
-          />
-        </div>
+      {/* The two halves. */}
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <ZoneCard
+          href={link("/design/foundations")}
+          icon={<Palette className="size-4" />}
+          title="Reference"
+          count={`${COUNTS.reference} surfaces`}
+          blurb="The real shipped UI, rendered from production source. Browse it here to tune it everywhere."
+        />
+        <ZoneCard
+          href={link(`/design/c/${firstSandboxId(sandboxSurfaces)}`)}
+          icon={<FlaskConical className="size-4" />}
+          title="Sandbox"
+          count={`${COUNTS.sandbox} explorations`}
+          blurb="Polished prototypes of new designs, built before integrating into the data-heavy app."
+        />
+      </div>
 
-        <h2 className="mt-10 text-sm font-semibold">Prototype catalog</h2>
-        <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-          Explorations grouped by surface in the sidebar. Each records the
-          variant that shipped and why.
-        </p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          {SURFACES.map((s) => {
-            const count = TOUCHPOINTS.filter((t) => t.surface === s.key).length;
-            return (
-              <div
-                key={s.key}
-                data-dir-card
-                className="rounded-xl p-4"
-              >
-                <p className="flex items-baseline gap-2 text-sm font-medium">
-                  {s.label}
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {count}
-                  </span>
-                </p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  {s.blurb}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+      {/* Jump straight into the live reference (the stars of the tool). */}
+      <h2 className="mt-10 text-sm font-semibold">Jump in</h2>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <JumpCard
+          href={link("/design/foundations")}
+          icon={<Palette className="size-4" />}
+          title="Foundations"
+          blurb="Color, type, radius, motion."
+        />
+        <JumpCard
+          href={link("/design/components")}
+          icon={<Boxes className="size-4" />}
+          title="Components"
+          blurb="The live UI primitives."
+        />
+        <JumpCard
+          href={link("/design/system")}
+          icon={<LayoutGrid className="size-4" />}
+          title="Composed screens"
+          blurb="The system across surfaces."
+        />
+      </div>
 
-        <p className="mt-12 text-xs text-muted-foreground">
-          Internal lab. Not linked anywhere, not indexed, and absent from
-          production without the key.
-        </p>
-      </main>
-    </ModeShell>
+      {/* The sandbox library, grouped by surface (quiet size signal). */}
+      <h2 className="mt-10 text-sm font-semibold">Sandbox</h2>
+      <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+        Explorations grouped by surface. Each records the shipped direction and
+        why.
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {sandboxSurfaces.map((group) => (
+          <div
+            key={group.label}
+            className="rounded-xl border border-border bg-card p-4"
+          >
+            <p className="flex items-baseline gap-2 text-sm font-medium">
+              {group.label}
+              <span className="font-mono text-xs text-muted-foreground">
+                {group.entries.length}
+              </span>
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {group.entries.filter((e) => e.status === "shipped").length}{" "}
+              shipped
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-12 text-xs text-muted-foreground">
+        Internal lab. Not linked anywhere, not indexed, and absent from
+        production without the key.
+      </p>
+    </main>
   );
 }
 
-function LandingCard({
+function firstSandboxId(groups: { entries: { href: string }[] }[]): string {
+  const href = groups[0]?.entries[0]?.href ?? "/design/c/entry";
+  return href.replace("/design/c/", "");
+}
+
+function ZoneCard({
+  href,
+  icon,
+  title,
+  count,
+  blurb,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  count: string;
+  blurb: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30"
+    >
+      <span className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background">
+        {icon}
+      </span>
+      <span>
+        <span className="flex items-center gap-2 font-medium">
+          {title}
+          <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+        </span>
+        <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground">
+          {count}
+        </span>
+        <span className="mt-1.5 block text-sm leading-relaxed text-muted-foreground">
+          {blurb}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function JumpCard({
   href,
   icon,
   title,
@@ -105,20 +170,19 @@ function LandingCard({
   return (
     <Link
       href={href}
-      data-dir-card
-      className="group flex flex-col gap-3 rounded-xl p-5 transition-colors hover:border-foreground/30"
+      className={cn(
+        "group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-colors hover:border-foreground/30",
+      )}
     >
-      <span className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background">
+      <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-foreground">
         {icon}
       </span>
-      <span>
-        <span className="flex items-center gap-2 font-medium">
-          {title}
-          <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-        </span>
-        <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-          {blurb}
-        </span>
+      <span className="flex items-center gap-1.5 text-sm font-medium">
+        {title}
+        <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      </span>
+      <span className="text-xs leading-relaxed text-muted-foreground">
+        {blurb}
       </span>
     </Link>
   );

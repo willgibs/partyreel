@@ -2,77 +2,45 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { FlaskConical, Menu, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FlaskConical, Menu, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import { type LabZone, type Status, ZONES } from "./catalog";
 import { withDesignKey } from "./links";
-import { type Surface, TOUCHPOINTS } from "./touchpoints";
-import { useResolvedMode } from "./use-design-mode";
+import { ThemeToggle } from "./theme-toggle";
 
 /**
- * THE LAB SIDEBAR (lab refresh, 2026-06-19). One persistent rail replacing the
- * old index-hub + per-page pill nav, sized for the growing library: the design
- * reference, then the prototype catalog grouped by product surface, then the
- * demo + diagnostics. Adding an exploration to a surface is a single entry in
- * touchpoints.ts - it appears here automatically.
+ * THE WORKBENCH SIDEBAR. One persistent rail, driven entirely by catalog.ts, with
+ * a deliberate three-tier hierarchy so organizers and items never blur (Will's
+ * note): ZONES are bold dividers, GROUPS are quiet captions, and ITEMS are the
+ * only clickable rows (a leading status dot marks them as navigable + records
+ * their state). A live search filters the growing library; the theme toggle is
+ * the lab's single theme control.
  *
- * It reads the key from the URL (useSearchParams - layouts can't see
- * searchParams, so a CLIENT rail is the only place to thread it through every
- * /design link) and themes itself off the SAME design-mode store the canvas
- * uses, so chrome + content flip light/dark together. Desktop: a sticky left
- * rail. Mobile: a top bar + a collapsible panel (the lab is reviewed on phone).
+ * The rail reads the gate key from the URL (useSearchParams - layouts can't see
+ * searchParams) and themes in the REAL app tokens (no mono), so it matches the
+ * shipped chrome and follows next-themes. Desktop: sticky rail. Mobile: a top bar
+ * + a collapsible panel.
  */
-
-const SURFACES: { key: Surface; label: string }[] = [
-  { key: "guest", label: "Guest" },
-  { key: "host", label: "Host" },
-  { key: "marketing", label: "Marketing" },
-  { key: "shared", label: "Shared" },
-];
-
 export function LabNav() {
   const pathname = usePathname();
   const key = useSearchParams().get("key");
-  const mode = useResolvedMode();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   const to = (href: string) => withDesignKey(href, key);
   const active = (href: string) =>
     href === "/design" ? pathname === "/design" : pathname === href;
   const close = () => setOpen(false);
 
-  const item = (href: string, label: string, shipped?: number) => (
-    <li key={href}>
-      <Link
-        href={to(href)}
-        onClick={close}
-        aria-current={active(href) ? "page" : undefined}
-        className={cn(
-          "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
-          active(href)
-            ? "bg-muted font-medium text-foreground"
-            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-        )}
-      >
-        <span className="min-w-0 flex-1 truncate">{label}</span>
-        {shipped !== undefined && (
-          <span className="shrink-0 font-mono text-[10px] text-muted-foreground/80">
-            V{shipped}
-          </span>
-        )}
-      </Link>
-    </li>
-  );
+  // Filter the catalog by the search query; drop emptied groups + zones.
+  const zones = useMemo(() => filterZones(ZONES, query), [query]);
 
   return (
-    <div
-      data-dir-root
-      data-mode={mode}
-      className="mono bg-background text-foreground lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-border"
-    >
-      {/* Mobile bar: title + the collapse toggle. */}
+    <div className="bg-background text-foreground lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:border-r lg:border-border">
+      {/* Mobile bar: title + collapse toggle. */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 lg:hidden">
         <Link
           href={to("/design")}
@@ -93,15 +61,14 @@ export function LabNav() {
         </button>
       </div>
 
-      <nav
-        aria-label="Design lab"
+      <div
         className={cn(
-          "px-2 pb-12 lg:block lg:h-full lg:overflow-y-auto",
-          open ? "block" : "hidden",
+          "flex-col lg:flex lg:min-h-0 lg:flex-1",
+          open ? "flex" : "hidden",
         )}
       >
-        {/* Desktop header (the mobile bar already shows the title). */}
-        <div className="hidden px-3 pt-5 pb-3 lg:block">
+        {/* Desktop header. */}
+        <div className="hidden shrink-0 px-4 pt-5 lg:block">
           <Link
             href={to("/design")}
             className="flex items-center gap-2 text-sm font-semibold"
@@ -114,59 +81,109 @@ export function LabNav() {
           </p>
         </div>
 
-        <Group label="Design system">
-          {item("/design/system", "System reference")}
-        </Group>
+        {/* Search. */}
+        <div className="shrink-0 px-3 pt-3 pb-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search"
+              aria-label="Search the library"
+              className="h-8 w-full rounded-md border border-border bg-card pr-2 pl-8 text-[13px] outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+            />
+          </div>
+        </div>
 
-        <p className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase">
-          Prototypes
-        </p>
-        {SURFACES.map(({ key: surface, label }) => {
-          const touchpoints = TOUCHPOINTS.filter((t) => t.surface === surface);
-          if (touchpoints.length === 0) return null;
-          return (
-            <Group key={surface} label={label} sub>
-              {touchpoints.map((t) =>
-                item(`/design/c/${t.id}`, t.title, t.decision),
-              )}
-            </Group>
-          );
-        })}
+        {/* The catalog. */}
+        <nav
+          aria-label="Design lab"
+          className="min-h-0 flex-1 overflow-y-auto px-2 pb-4"
+        >
+          {zones.length === 0 ? (
+            <p className="px-3 py-6 text-center text-[13px] text-muted-foreground">
+              Nothing matches &ldquo;{query}&rdquo;.
+            </p>
+          ) : (
+            zones.map((zone) => (
+              <section key={zone.id} className="pt-3 first:pt-1">
+                <p className="px-3 pb-1 text-[11px] font-semibold tracking-wider text-foreground/80 uppercase">
+                  {zone.label}
+                </p>
+                {zone.groups.map((group) => (
+                  <div key={group.label} className="pt-1.5">
+                    <p className="px-3 pb-0.5 text-[11px] font-medium text-muted-foreground">
+                      {group.label}
+                    </p>
+                    <ul>
+                      {group.entries.map((entry) => (
+                        <li key={entry.href}>
+                          <Link
+                            href={to(entry.href)}
+                            onClick={close}
+                            aria-current={active(entry.href) ? "page" : undefined}
+                            className={cn(
+                              "flex items-center gap-2.5 rounded-md py-1.5 pr-2 pl-3 text-[13px] transition-colors",
+                              active(entry.href)
+                                ? "bg-muted font-medium text-foreground"
+                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                            )}
+                          >
+                            <StatusDot status={entry.status} />
+                            <span className="min-w-0 flex-1 truncate">
+                              {entry.label}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </section>
+            ))
+          )}
+        </nav>
 
-        <Group label="Demo">{item("/design/demo", "Cohesive demo")}</Group>
-
-        <Group label="Diagnostics">
-          {item("/design/stream-probe", "Stream probe")}
-          {item("/design/boom", "Error boundary")}
-        </Group>
-      </nav>
+        {/* Footer: the single theme control. */}
+        <div className="flex shrink-0 items-center justify-between border-t border-border px-4 py-3">
+          <span className="text-[11px] text-muted-foreground">Theme</span>
+          <ThemeToggle />
+        </div>
+      </div>
     </div>
   );
 }
 
-/** A labeled nav section. `sub` = a surface group under the Prototypes eyebrow. */
-function Group({
-  label,
-  sub = false,
-  children,
-}: {
-  label: string;
-  sub?: boolean;
-  children: React.ReactNode;
-}) {
+/** A leading dot whose treatment records the entry's state (and marks it clickable). */
+function StatusDot({ status }: { status: Status }) {
   return (
-    <div className={cn("pb-2", sub ? "pt-1" : "pt-3")}>
-      <p
-        className={cn(
-          "px-3 pb-1",
-          sub
-            ? "text-[11px] font-medium text-muted-foreground"
-            : "text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase",
-        )}
-      >
-        {label}
-      </p>
-      <ul className="space-y-0.5">{children}</ul>
-    </div>
+    <span
+      aria-hidden
+      className={cn(
+        "size-1.5 shrink-0 rounded-full",
+        status === "shipped" && "bg-foreground",
+        status === "exploring" && "border border-muted-foreground",
+        status === "reference" && "bg-muted-foreground/40",
+      )}
+    />
   );
+}
+
+function filterZones(zones: LabZone[], query: string): LabZone[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return zones;
+  return zones
+    .map((zone) => ({
+      ...zone,
+      groups: zone.groups
+        .map((group) => ({
+          ...group,
+          entries: group.entries.filter((e) =>
+            e.label.toLowerCase().includes(q),
+          ),
+        }))
+        .filter((group) => group.entries.length > 0),
+    }))
+    .filter((zone) => zone.groups.length > 0);
 }

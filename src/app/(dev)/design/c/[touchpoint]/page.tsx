@@ -16,7 +16,18 @@ import { StateVariants } from "../../components/state-variants";
 import { UploadVariants } from "../../components/upload-variants";
 import { requireDesignKey } from "../../gate";
 import { ModeShell } from "../../mode-shell";
-import { getTouchpoint, TOUCHPOINTS, type TouchpointId } from "../../touchpoints";
+import {
+  getTouchpoint,
+  type Surface,
+  type TouchpointId,
+} from "../../touchpoints";
+
+const SURFACE_LABEL: Record<Surface, string> = {
+  guest: "Guest",
+  host: "Host",
+  marketing: "Marketing",
+  shared: "Shared",
+};
 
 const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   entry: EntryVariants,
@@ -59,33 +70,38 @@ export default async function TouchpointPage({
     <ModeShell fontClass="font-opt-urbanist">
       <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-2">
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-          Touchpoint {TOUCHPOINTS.findIndex((t) => t.id === touchpoint.id) + 1}{" "}
-          of {TOUCHPOINTS.length}
+          {SURFACE_LABEL[touchpoint.surface]} · Sandbox
         </p>
         <h1 data-dir-display className="mt-1 text-3xl tracking-tight text-balance">
           {touchpoint.title}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          {touchpoint.note}. The explorations below stay as reference; the
-          shipped choice is recorded under each.
+          {touchpoint.note}.
         </p>
-        {touchpoint.decision !== undefined && (
-          <div className="mt-3 flex items-start gap-2 text-sm">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-              <Check className="size-3" />
-            </span>
-            <p className="font-medium">
-              Shipped: variant {touchpoint.decision}
-              {shippedName ? ` (${shippedName})` : ""}
-              {touchpoint.decisionNote && (
-                <span className="font-normal text-muted-foreground">
-                  {" "}
-                  · {touchpoint.decisionNote}
-                </span>
+        {/* The catalog record: the shipped direction (by name, never a variant
+            number) and the rationale. Unshipped touchpoints read as exploring. */}
+        <div className="mt-3.5">
+          {touchpoint.decision !== undefined ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-medium text-background">
+                <Check className="size-3" />
+                Shipped
+              </span>
+              {shippedName && (
+                <span className="text-sm font-medium">{shippedName}</span>
               )}
+            </div>
+          ) : (
+            <span className="inline-flex rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              Exploring
+            </span>
+          )}
+          {touchpoint.decisionNote && (
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {touchpoint.decisionNote}
             </p>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       <div className="mx-auto w-full max-w-5xl px-4 pb-20">
