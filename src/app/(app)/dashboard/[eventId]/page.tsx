@@ -117,6 +117,11 @@ export default async function EventDetailPage({ params }: PageProps) {
         isAnonymous: who?.isAnonymous ?? false,
         uploaderEmail: who?.email ?? null,
         likeCount: likeCounts.get(m.id) ?? 0,
+        // Natural geometry for the masonry layout (S3·3a). Null on pre-measure
+        // rows -> the grid falls back to 1:1 (no CLS). Rides OUTSIDE any ETag.
+        width: m.width,
+        height: m.height,
+        durationSeconds: m.duration_seconds,
       };
     }),
   );
@@ -131,6 +136,10 @@ export default async function EventDetailPage({ params }: PageProps) {
       url: await presignDownload({ key: m.original_key, stable: true }),
       status: m.status,
       countdownDays: m.countdownDays,
+      // Dims for the bin masonry (S3·3a); 1:1 fallback when null.
+      width: m.width,
+      height: m.height,
+      durationSeconds: m.duration_seconds,
     })),
   );
 

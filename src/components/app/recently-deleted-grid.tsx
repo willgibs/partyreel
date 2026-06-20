@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,11 +9,8 @@ import {
   purgeMediaNowAction,
   restoreMediaAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
-import { MediaTile, type GridMedia } from "@/components/app/media-grid";
-import {
-  MediaLightboxLazy,
-  preloadMediaLightbox,
-} from "@/components/shared/media-lightbox.lazy";
+import { type GridMedia } from "@/components/app/media-grid";
+import { MasonryColumns } from "@/components/shared/masonry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,28 +25,27 @@ import {
 } from "@/components/ui/dialog";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 
-// The host "Recently deleted" MEDIA grid (event-detail). Models the admin ModerationGrid: the
-// per-tile controls are SIBLINGS of the open-lightbox button (no nested interactive content), so
-// tapping a control never opens the lightbox. The bin's only verbs are Restore (capacity-gated in
-// the RPC -> safe + reversible, no confirm) and Delete permanently (irreversible -> skips the
-// 30-day window, so it's behind a confirm Dialog). Items carry NO downloadUrl, so the lightbox
-// hides Save (no original-file download from the bin). Writes go through the Phase-3 server
-// actions, which revalidate this path; we toast on every outcome.
+// The host "Recently deleted" MEDIA grid (event-detail). Reuses the shared
+// MasonryColumns (natural ratios, clamped for control legibility); the per-tile
+// controls ride in via `renderOverlay` as SIBLINGS of the open-lightbox button,
+// so tapping a control never opens the lightbox. The bin's only verbs are Restore
+// (capacity-gated in the RPC -> safe + reversible, no confirm) and Delete
+// permanently (irreversible -> skips the 30-day window, so it's behind a confirm
+// Dialog). Items carry NO downloadUrl, so the lightbox hides Save (no
+// original-file download from the bin), and the viewer is read-only (NOT the host
+// moderation viewer). Writes go through the Phase-3 server actions, which
+// revalidate this path; we toast on every outcome.
 
 /** A bin item = a GridMedia plus its server-computed countdown (a stable integer dodges the
  * locale-date hydration mismatch). It's assignable to GridMedia, so the lightbox accepts it. */
 export type BinMedia = GridMedia & { countdownDays: number };
 
-function BinTile({
+function BinTileOverlay({
   eventId,
   item,
-  index,
-  onOpen,
 }: {
   eventId: string;
   item: BinMedia;
-  index: number;
-  onOpen: (index: number) => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -91,19 +87,7 @@ function BinTile({
   }
 
   return (
-    <li
-      data-media-tile
-      className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
-    >
-      <button
-        type="button"
-        onClick={() => onOpen(index)}
-        aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        className="size-full cursor-pointer transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]"
-      >
-        <MediaTile item={item} />
-      </button>
-
+    <>
       <Badge variant="secondary" className="absolute top-1.5 left-1.5 z-10">
         {binCountdownLabel(item.countdownDays)}
       </Badge>
@@ -159,7 +143,7 @@ function BinTile({
           </DialogContent>
         </Dialog>
       </div>
-    </li>
+    </>
   );
 }
 
@@ -170,32 +154,13 @@ export function RecentlyDeletedGrid({
   eventId: string;
   items: BinMedia[];
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
+  // clampAspect keeps the countdown + restore/purge controls legible on extreme
+  // ratios (same moderation-ergonomics reason as the main host grid).
   return (
-    <>
-      <ul
-        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-        onPointerEnter={preloadMediaLightbox}
-        onTouchStart={preloadMediaLightbox}
-      >
-        {items.map((item, i) => (
-          <BinTile
-            key={item.id}
-            eventId={eventId}
-            item={item}
-            index={i}
-            onOpen={setOpenIndex}
-          />
-        ))}
-      </ul>
-
-      <MediaLightboxLazy
-        items={items}
-        index={openIndex}
-        onClose={() => setOpenIndex(null)}
-        onIndexChange={setOpenIndex}
-      />
-    </>
+    <MasonryColumns
+      items={items}
+      clampAspect
+      renderOverlay={(item) => <BinTileOverlay eventId={eventId} item={item} />}
+    />
   );
 }

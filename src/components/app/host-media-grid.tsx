@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,12 +10,9 @@ import {
   removeMediaAction,
   setMediaStatusAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
-import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { type GridMedia } from "@/components/app/media-grid";
 import { LikeCountBadge } from "@/components/likes/like-button";
-import {
-  MediaLightboxLazy,
-  preloadMediaLightbox,
-} from "@/components/shared/media-lightbox.lazy";
+import { MasonryColumns } from "@/components/shared/masonry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,26 +27,23 @@ import {
 } from "@/components/ui/dialog";
 
 // Host moderation grid — the only place media controls live (MediaGrid stays
-// presentational for the public album). Each tile carries status-aware controls:
+// presentational for the public album). The grid is the shared MasonryColumns
+// (natural ratios, clamped for moderation ergonomics); the per-tile controls
+// ride in via `renderOverlay`, painted over the open-lightbox button as SIBLINGS
+// (not children), so tapping a control never opens the lightbox — no
+// stopPropagation needed. Status-aware controls:
 //   pending  → Approve / Hide / Remove
 //   approved → Hide / Remove
 //   hidden   → Unhide / Remove
-// Remove is behind a confirm Dialog. The media itself is a button that opens the
-// shared lightbox (full-screen view + Save); the moderation controls are SIBLINGS
-// of that button (not children), so tapping a control never opens the lightbox —
-// no stopPropagation needed. All writes go through the Server Actions (which
-// revalidate this path); we only toast on failure.
+// Remove is behind a confirm Dialog. All writes go through the Server Actions
+// (which revalidate this path); we only toast on failure.
 
-function HostMediaTile({
+function HostTileOverlay({
   eventId,
   item,
-  index,
-  onOpen,
 }: {
   eventId: string;
   item: GridMedia;
-  index: number;
-  onOpen: (index: number) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   // Defensive default — listEventMedia never returns 'removed', and 'approved'
@@ -65,21 +59,13 @@ function HostMediaTile({
   }
 
   return (
-    <li className="relative aspect-square overflow-hidden rounded-lg bg-black/10">
-      <button
-        type="button"
-        onClick={() => onOpen(index)}
-        aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
-      >
-        <MediaTile item={item} />
-      </button>
-
-      {/* HOST-ONLY like count (curation signal): bottom-left, clear of the top-left status badge and
-          the top control bar. Hidden at 0. */}
+    <>
+      {/* HOST-ONLY like count (curation signal): bottom-RIGHT, clear of the top
+          control bar, the top-left status badge, AND the bottom-left corner play
+          badge MasonryColumns adds to video tiles. Hidden at 0. */}
       <LikeCountBadge
         count={item.likeCount}
-        className="absolute bottom-1.5 left-1.5 z-10"
+        className="absolute right-1.5 bottom-1.5 z-10"
       />
 
       {status !== "approved" && (
@@ -189,7 +175,7 @@ function HostMediaTile({
           </DialogContent>
         </Dialog>
       </div>
-    </li>
+    </>
   );
 }
 
@@ -200,34 +186,17 @@ export function HostMediaGrid({
   eventId: string;
   items: GridMedia[];
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
+  // clampAspect: moderation ergonomics — extreme panoramas/portraits get bounded
+  // into a browseable band so the control bar + badges stay legible on any tile.
   return (
-    <>
-      <ul
-        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-        onPointerEnter={preloadMediaLightbox}
-        onTouchStart={preloadMediaLightbox}
-      >
-        {items.map((item, i) => (
-          <HostMediaTile
-            key={item.id}
-            eventId={eventId}
-            item={item}
-            index={i}
-            onOpen={setOpenIndex}
-          />
-        ))}
-      </ul>
-
-      <MediaLightboxLazy
-        items={items}
-        index={openIndex}
-        onClose={() => setOpenIndex(null)}
-        onIndexChange={setOpenIndex}
-        viewerIsHost
-      />
-    </>
+    <MasonryColumns
+      items={items}
+      viewerIsHost
+      clampAspect
+      renderOverlay={(item) => (
+        <HostTileOverlay eventId={eventId} item={item} />
+      )}
+    />
   );
 }
 

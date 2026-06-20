@@ -20,9 +20,17 @@
  *   for the future guest convergence. The gentle [data-media-tile] mount fade
  *   (globals.css) still applies, synchronized (--tile-i defaults to 0).
  * - Videos wear the shared CORNER play badge (the ratified subtle marker).
+ * - `renderOverlay` injects per-tile chrome (the host moderation control bar +
+ *   status/like badges, the recovery-bin countdown + restore/purge) as a SIBLING
+ *   of the open-lightbox button, painted on top (it's the LAST child). Its
+ *   controls are real `<button>`s, so tapping one never opens the lightbox (no
+ *   stopPropagation needed — same contract as the old square grids). `viewerIsHost`
+ *   threads to the lightbox (host gets its own viewer affordances). The component
+ *   is generic in the item type so a caller (the bin) can render overlay chrome
+ *   off its own extra fields (e.g. BinMedia.countdownDays) without a cast.
  */
 import { useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Play } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
@@ -47,17 +55,23 @@ export function CornerPlayBadge() {
   );
 }
 
-export function MasonryColumns({
+export function MasonryColumns<T extends GridMedia>({
   items,
   onDeleteItem,
   stagger = false,
   clampAspect = false,
+  viewerIsHost = false,
+  renderOverlay,
 }: {
-  items: GridMedia[];
+  items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
   onDeleteItem?: (id: string) => void;
   stagger?: boolean;
   clampAspect?: boolean;
+  /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
+  viewerIsHost?: boolean;
+  /** Per-tile chrome on top of the lightbox button (moderation bar, bin controls). */
+  renderOverlay?: (item: T) => ReactNode;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
@@ -100,6 +114,9 @@ export function MasonryColumns({
             {item.type === "video" && <CornerPlayBadge />}
             {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}
             <LikeButton item={item} variant="tile" />
+            {/* Per-tile chrome LAST so it paints over the lightbox button; its own
+                buttons capture the tap (the lightbox never opens behind them). */}
+            {renderOverlay?.(item)}
           </div>
         ))}
       </div>
@@ -109,7 +126,7 @@ export function MasonryColumns({
         index={openIndex}
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
-        viewerIsHost={false}
+        viewerIsHost={viewerIsHost}
         onDeleteCurrent={
           onDeleteItem
             ? (item) => {

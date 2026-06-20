@@ -9,7 +9,7 @@ import { LikesProvider } from "@/components/likes/likes-provider";
 import { MasonryColumns } from "@/components/shared/masonry";
 
 // The personal cross-event "Uploads" gallery (Phase 4): a flat, newest-first grid of the viewer's OWN
-// uploads (host + guest), reusing the public MediaGrid. View + per-item download in the lightbox, plus the
+// uploads (host + guest), rendered in the shared MasonryColumns. View + per-item download in the lightbox, plus the
 // ONE write this surface owns: delete-your-own (the lightbox Trash button -> remove_my_upload). NO host
 // moderation (this is a personal feed, not an event album). The lightbox shows each item's event context.
 // A truncation footer keeps the v1 cap honest; the empty state lives in the dashboard tab.

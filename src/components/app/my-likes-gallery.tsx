@@ -9,7 +9,7 @@ import { MasonryColumns } from "@/components/shared/masonry";
 import { EmptyState } from "@/components/shared/empty-state";
 
 // The personal cross-event "Likes" gallery (Phase 5): a flat, newest-LIKED-first grid of every photo/video
-// the viewer has liked, across all events, reusing the public MediaGrid (view + per-item download in the
+// the viewer has liked, across all events, rendered in the shared MasonryColumns (view + per-item download in the
 // lightbox). The one write this surface owns is UNLIKE: the heart (on a tile or in the lightbox) drops the
 // item from this tab. The LikesProvider runs in mode="remove" and calls onRemoved AFTER the owner-RLS
 // delete confirms, so we drop the tile then (a failed unlike re-fills the heart + toasts inside the

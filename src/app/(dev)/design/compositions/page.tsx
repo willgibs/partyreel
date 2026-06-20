@@ -4,6 +4,8 @@ import { EmptySectionTeaser } from "@/components/app/dashboard/empty-section-tea
 import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
+import { HostMediaGrid } from "@/components/app/host-media-grid";
+import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
 
 import { requireDesignKey } from "../gate";
 import {
@@ -11,7 +13,7 @@ import {
   QrPresetPickerDemo,
 } from "../reference/composition-demos";
 import { RefHeader, RefSection, Spec } from "../reference/reference-ui";
-import { SAMPLE } from "../reference/sample-data";
+import { SAMPLE, SAMPLE_BIN, SAMPLE_MEDIA } from "../reference/sample-data";
 
 // THE LIVE COMPOSITIONS REFERENCE: the real PRODUCT components, imported from
 // production and rendered from sample props (no DB, no R2). This is the "browse
@@ -160,11 +162,24 @@ export default async function CompositionsPage({
         </div>
       </RefSection>
 
+      <RefSection
+        title="Moderation gallery"
+        blurb="The host's event grids on the shared masonry (S3·3a): the moderation grid (status-aware approve / hide / unhide / remove + the host like-count) and the recovery bin (countdown + restore / delete-forever), each control riding any tile ratio. Visual only here, the actions point at a sample id."
+      >
+        <div className="space-y-3">
+          <Spec label="Moderation grid" hint="masonry · per-tile controls">
+            <HostMediaGrid eventId="demo" items={SAMPLE_MEDIA} />
+          </Spec>
+          <Spec label="Recovery bin" hint="countdown · restore / purge">
+            <RecentlyDeletedGrid eventId="demo" items={SAMPLE_BIN} />
+          </Spec>
+        </div>
+      </RefSection>
+
       <p className="mt-10 rounded-xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-        Deferred (need a provider, real media, or auth): the media grids behind
-        LikesProvider, the moderation and bin masonry, the notification bell, and
-        the checkout / billing buttons. These get an in-lab harness later, or land
-        here naturally when S3 builds the moderation gallery.
+        Deferred (need a provider or auth): the personal media grids behind
+        LikesProvider (Uploads / Likes), the notification bell, and the checkout /
+        billing buttons. These get an in-lab harness later.
       </p>
     </main>
   );

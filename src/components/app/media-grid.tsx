@@ -2,11 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { LikeButton } from "@/components/likes/like-button";
-import {
-  MediaLightboxLazy,
-  preloadMediaLightbox,
-} from "@/components/shared/media-lightbox.lazy";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
@@ -59,16 +54,19 @@ export type GridMedia = {
   durationSeconds?: number | null;
 };
 
-// Presentational thumbnail shared by the public album (MediaGrid below) and the
-// host moderation grid (host-media-grid.tsx). Renders straight <img>/<video> from
-// presigned URLs (next/image is wrong here — presigned URLs are short-lived and
-// per-request, so optimization/caching would break them). Video renders WITHOUT
-// `controls` (a poster-frame thumbnail + a play badge): a controls-less <video>
-// is non-interactive, so the tile can be wrapped in a <button> that opens the
-// lightbox, where the video actually plays. No status/controls/host concerns live
-// here — keep it a clean primitive both surfaces reuse. It renders from only
-// `type` + `url`, so it also accepts thinner shapes (e.g. the operator report
-// thumbnail) that have no downloadUrl/lightbox.
+// Presentational thumbnail shared by every gallery surface (the shared
+// MasonryColumns, the host moderation + bin grids, the operator report). Renders
+// straight <img>/<video> from presigned URLs (next/image is wrong here — presigned
+// URLs are short-lived and per-request, so optimization/caching would break them).
+// Video renders WITHOUT `controls` (a poster-frame thumbnail + a play badge): a
+// controls-less <video> is non-interactive, so the tile can be wrapped in a
+// <button> that opens the lightbox, where the video actually plays. No
+// status/controls/host concerns live here — keep it a clean primitive every
+// surface reuses. It renders from only `type` + `url`, so it also accepts thinner
+// shapes (e.g. the operator report thumbnail) that have no downloadUrl/lightbox.
+//
+// (This file also homes the GridMedia type. The legacy square-grid MediaGrid was
+// retired in S3·3a once every surface had moved to MasonryColumns.)
 export function MediaTile({
   item,
   playBadge = "center",
@@ -113,68 +111,6 @@ export function MediaTile({
         className="size-full bg-black object-cover"
       />
       {playBadge === "center" && <PlayBadge />}
-    </>
-  );
-}
-
-// Public-album grid. Tiles are buttons that open the shared lightbox (full-screen
-// view + Save); the grid owns the open index so prev/next walks the whole set.
-// Host moderation controls live in HostMediaGrid, never here. The OPTIONAL
-// `onDeleteItem` is the one per-item action this grid exposes: the personal
-// "Uploads" tab passes it to surface a delete button in the lightbox; the public
-// album omits it (read-only). On delete we close the viewer and hand the id up —
-// the parent owns the list (optimistic removal), so the tile just disappears.
-export function MediaGrid({
-  items,
-  onDeleteItem,
-}: {
-  items: GridMedia[];
-  onDeleteItem?: (id: string) => void;
-}) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <>
-      <ul
-        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-        onPointerEnter={preloadMediaLightbox}
-        onTouchStart={preloadMediaLightbox}
-      >
-        {items.map((item, i) => (
-          <li
-            key={item.id}
-            data-media-tile
-            className="group relative aspect-square overflow-hidden rounded-lg bg-black/10"
-          >
-            <button
-              type="button"
-              onClick={() => setOpenIndex(i)}
-              aria-label={item.type === "photo" ? "View photo" : "Play video"}
-              className="size-full cursor-pointer transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]"
-            >
-              <MediaTile item={item} />
-            </button>
-            {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}
-            <LikeButton item={item} variant="tile" />
-          </li>
-        ))}
-      </ul>
-
-      <MediaLightboxLazy
-        items={items}
-        index={openIndex}
-        onClose={() => setOpenIndex(null)}
-        onIndexChange={setOpenIndex}
-        viewerIsHost={false}
-        onDeleteCurrent={
-          onDeleteItem
-            ? (item) => {
-                setOpenIndex(null);
-                onDeleteItem(item.id);
-              }
-            : undefined
-        }
-      />
     </>
   );
 }
