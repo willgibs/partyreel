@@ -242,21 +242,25 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "Ratified (Will, 2026-06-20): A = Editorial (1) refined - icon sub-stats (items/contributors/views) + date + subtle visibility & accepting-uploads status; Share = PRIMARY; the Review button leaves the strip for its own horizontal-scroll TEASER section (faded right edge, only when reviews exist) below the actions (mobile: Share full-width / Add+Settings 2-col / Review teaser / gallery). B = Settings as a dedicated ROUTE (1), smooth view-transition feel, polished + tooltips. C = Deleted BEHIND settings (1) - intentional + rare, the retrieval path is where a host looks. The refined composition + settings-page explorations live in the gallery-first refinement round; the cross-surface hover/lightbox action model is the new `gallery-actions` touchpoint.",
   },
   {
-    // Phase 5 S3·S0.5 (Will, 2026-06-20): the GALLERY ACTION MODEL across guest +
-    // host. Host moderation moves to a hover reveal (matching the guest like
-    // button); the action set unifies (host hover + Like/Download; guest hover +
-    // Download; the host lightbox gains the full set + Share). Builds first (3c).
+    // Phase 5 S3·3c (Will, 2026-06-20): the GALLERY ACTION MODEL across guest +
+    // host. 3c.1 SHIPPED the host tile reveal (top-right hover row, like
+    // far-right, hidden = 30% dim). This pass shapes 3c.2: the LIGHTBOX host
+    // actions (the grouped "enjoy | curate" pill + Share), the UNIVERSAL
+    // per-action COLOR layer (same colors guest + host; only the action SET
+    // differs), and the Like/Hide feedback toasts. `decision` stays unset until
+    // Will ratifies the colors + toast copy in chat.
     id: "gallery-actions",
     title: "Gallery actions",
     surface: "shared",
-    note: "How tile actions reveal on hover (host moderation + like + download) and the lightbox action set, unified across guest and host",
+    note: "The universal action-color system (monochrome at rest, color on hover/state) across the tile reveal and the lightbox pill, plus the host lightbox moderation set and the Like/Hide feedback toasts",
     variants: [
-      "Host tile: twin corner clusters",
-      "Host tile: single bottom rail",
-      "Host tile: top rail (evolved 3a)",
-      "Lightbox: one pill",
-      "Lightbox: grouped",
-      "Guest parity",
+      "Host tile: rest",
+      "Host tile: on hover (colored)",
+      "Host lightbox: approved",
+      "Host lightbox: pending",
+      "Guest tile (colored)",
+      "Guest lightbox pill",
+      "Feedback toasts",
     ],
   },
 ];

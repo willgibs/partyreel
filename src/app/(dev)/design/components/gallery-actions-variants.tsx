@@ -10,91 +10,133 @@ import {
 } from "lucide-react";
 
 import { PHOTOS } from "../screens/sample-photos";
+import { GalleryActionsToastDemo } from "./gallery-actions-toast-demo";
 import { Variant } from "./variant-frame";
 
 /**
- * Touchpoint: the GALLERY ACTION MODEL (Phase 5 S3·S0.5), cross-surface (guest +
- * host). Will's direction: the host moderation controls (today always-visible)
- * move to a HOVER reveal that matches the guest like-button's elegance, and the
- * action set unifies - host hover gains Like + Download (beside approve/hide/
- * remove); the guest hover gains Download; the host LIGHTBOX gains the full set
- * (like / download / approve-hide / remove) + Share. Likes are one unified concept
- * (a host like = a normal like).
+ * Touchpoint: the GALLERY ACTION MODEL (Phase 5 S3·3c), cross-surface (guest +
+ * host). 3c.1 SHIPPED the host tile reveal (top-right hover row, like far-right,
+ * hidden = 30% dim). This lab pass shapes 3c.2: the LIGHTBOX host actions + the
+ * UNIVERSAL per-action COLOR layer + the feedback toasts.
  *
- * Static mocks can't hover, so each tile is LABELED "rest" vs "on hover" and the
- * revealed state is drawn at full opacity. Resting keeps only a subtle STATUS dot
- * (pending stays glanceable without hovering); actions live in the reveal.
+ * Will's color direction (2026-06-20): per-action colors give recognizability +
+ * clearer state feedback than monochrome (which is hard to read). The system is
+ * UNIVERSAL - the SAME colors on guest and host; the only difference is the
+ * action SET (guests have no hide/approve/delete). Emil rule: icons MONOCHROME
+ * at rest (on the media-hover reveal), then take their color on direct
+ * icon-hover + on active state (liked = filled pink). Native `title` tooltips.
  *
- * Emil: hover-reveal on the guest pattern (opacity+transform, ~150ms, desktop via
- * the md: breakpoint, press feedback only); moderation is press-only (no entrance
- * theater). Remove always stays behind a confirm; like/hide/approve are reversible.
+ * Static mocks can't hover, so the revealed rows are drawn at full opacity with
+ * each icon in its hover/active COLOR (so the palette reads in a screenshot); a
+ * note marks the rest-monochrome behavior. The toast group is a live client
+ * island. NO production imports - hand-built from sample-photos + lucide.
  */
 export function GalleryActionsVariants() {
   return (
     <div className="space-y-12 py-4">
+      <Legend />
+
       <Group
-        eyebrow="A. Host tile: actions on hover"
-        blurb="The host gallery keeps its polish at rest (media + a quiet status dot for what needs review); hovering reveals the controls, the way the guest like button does. Three arrangements of the revealed set (approve/hide · remove · like · download)."
+        eyebrow="A. Host tile: rest vs. hover (3c.1, shipped)"
+        blurb="At rest the gallery stays clean (media only; hidden media sits at 30% so active-vs-hidden is obvious without hovering). Hovering reveals the top-right action row, each icon monochrome until you hover it, then its color. Like is FAR-RIGHT and stays colored while liked, so it never shifts as the rest collapse on hover-off."
       >
         <Variant
           n={1}
-          name="Twin corner clusters"
-          rationale="Moderation top-right, view-actions (like + download) bottom-right - the guest like position. Two small clusters, each a subtle corner reveal; the photo stays unobscured. Cleanest separation of 'curate' vs 'enjoy'."
+          name="At rest"
+          rationale="Pure media. Hidden = 30% opacity (the mark). No status dots in the main gallery - anything here is approved + visible (pending lives in its own review section, 3b)."
         >
-          <TileBoard arrangement="twin" />
+          <TileBoard mode="rest" />
         </Variant>
-
         <Variant
           n={2}
-          name="Single bottom rail"
-          rationale="One slim rail slides up from the bottom on hover with every action in a row (like · download · hide · remove). One predictable place; reads like the lightbox pill, so the gallery and the viewer feel consistent."
+          name="On hover (colors shown)"
+          rationale="The revealed row in its hover/active colors: hide/show amber, delete red, download blue, like pink (far-right). Approve (green) shows on review items, in the lightbox + the review section. Live: icons are white until directly hovered."
         >
-          <TileBoard arrangement="rail" />
-        </Variant>
-
-        <Variant
-          n={3}
-          name="Top rail (evolved 3a)"
-          rationale="The shipped 3a top bar, now hover-revealed, with like + download added at the left. Least change from what's live; familiar, but the top strip competes with the status dot more than the corner split."
-        >
-          <TileBoard arrangement="top" />
+          <TileBoard mode="hover" />
         </Variant>
       </Group>
 
       <Group
-        eyebrow="B. Host lightbox: the full action set"
-        blurb="The custom viewer (lightbox) carries the same actions as a clear, accessible alternative to the hover. Today the host viewer has like + download only; this adds approve/hide + remove + Share. Two pill layouts."
+        eyebrow="B. Host lightbox: the grouped pill (B2, colored)"
+        blurb="The full-screen viewer carries the full action set as a clear, accessible alternative to the hover (and on mobile it's the ONLY place hide/delete live). The ratified grouped pill splits 'enjoy' (like · download · share) from 'curate' (hide/approve · remove) with a divider, signalling 'these change what guests see' vs 'these are just for you'. Delete sits behind a modal confirm; everything else is 1-way-safe or reversible."
       >
         <Variant
           n={1}
-          name="One pill"
-          rationale="Every action in a single floating pill (like · count · download · hide · remove · share). Compact and familiar (it extends today's guest pill); fine until the action count climbs."
+          name="Approved item"
+          rationale="enjoy: like (pink when liked) · count · download (blue) · share | curate: hide (amber) · remove (red, modal-confirm)."
         >
-          <LightboxMock layout="one" />
+          <LightboxMock status="approved" />
         </Variant>
-
         <Variant
           n={2}
-          name="Grouped: enjoy | curate"
-          rationale="A divider splits the viewer actions (like · download · share) from the moderation actions (hide · remove). Signals 'these change what guests see' vs 'these are just for you'; scales as moderation grows. My pick."
+          name="Pending item"
+          rationale="Same pill, curate group leads with approve (green); hidden items swap hide for show (amber). The pill reads the item's status."
         >
-          <LightboxMock layout="grouped" />
+          <LightboxMock status="pending" />
         </Variant>
       </Group>
 
       <Group
-        eyebrow="C. Guest parity"
-        blurb="The same language on the guest surface: the guest tile hover gains Download beside Like (today it's like-only); the guest lightbox already carries like · download · share (shown for parity). One action vocabulary everywhere."
+        eyebrow="C. Guest parity: same colors, fewer actions"
+        blurb="The color language is NOT host-exclusive, a guest reads a pink heart as 'liked' and white as base just as clearly. The guest gets the same colored Like + Download; the only difference is no moderation. The guest viewer keeps its exact behavior + gestures; it just gains the same colors."
       >
         <Variant
           n={1}
-          name="Guest tile + viewer"
-          rationale="Guest hover = like + download (the host's minus moderation). The viewer pill is unchanged. The host experience is the guest experience plus the curate actions - one system, two roles."
+          name="Guest tile (on hover)"
+          rationale="download (blue) + like (pink, far-right). The host's row minus the curate actions, one vocabulary, two roles."
         >
-          <GuestParityMock />
+          <GuestTileMock />
         </Variant>
+        <Variant
+          n={2}
+          name="Guest lightbox pill"
+          rationale="enjoy group only: like (pink when liked) · download (blue) · share. No divider, no curate group."
+        >
+          <LightboxMock status="guest" />
+        </Variant>
+      </Group>
+
+      <Group
+        eyebrow="D. Feedback toasts (live)"
+        blurb="A subtle confirmation on Like and Hide so the impact is never a guess. Tap to feel each + lock the copy."
+      >
+        <div className="md:col-span-2 xl:col-span-3">
+          <GalleryActionsToastDemo />
+        </div>
       </Group>
     </div>
+  );
+}
+
+/* ── The color legend (the system key) ───────────────────────────────────── */
+
+function Legend() {
+  const items: { label: string; swatch: string }[] = [
+    { label: "Like", swatch: "bg-like" },
+    { label: "Save · Download", swatch: "bg-save" },
+    { label: "Hide · Show", swatch: "bg-warning" },
+    { label: "Approve", swatch: "bg-success" },
+    { label: "Delete", swatch: "bg-destructive" },
+  ];
+  return (
+    <section>
+      <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+        The action color system (universal: guest + host)
+      </p>
+      <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+        One color per action, the same everywhere it appears, so the action is
+        recognizable and its state is legible at a glance. Monochrome at rest,
+        color on direct icon-hover + active state.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+        {items.map((it) => (
+          <span key={it.label} className="flex items-center gap-2 text-sm">
+            <span className={`size-3 rounded-full ${it.swatch}`} />
+            {it.label}
+          </span>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -122,40 +164,17 @@ function Group({
   );
 }
 
-/* ── Action atoms (mirror the guest like-button tile style) ──────────────── */
-
-function ActionIcon({
-  children,
-  tone = "neutral",
-}: {
-  children: React.ReactNode;
-  tone?: "neutral" | "primary" | "danger";
-}) {
-  const toneClass =
-    tone === "primary"
-      ? "bg-white text-black"
-      : tone === "danger"
-        ? "bg-black/45 text-white"
-        : "bg-black/45 text-white";
-  return (
-    <span
-      className={`flex size-7 items-center justify-center rounded-full backdrop-blur-sm ${toneClass}`}
-    >
-      {children}
-    </span>
-  );
+function Photo({ src }: { src: string }) {
+  return <Image src={src} alt="" fill sizes="160px" className="object-cover" />;
 }
 
-/** A "resting" status dot (pending stays glanceable without hovering). */
-function StatusDot({ tone }: { tone: "pending" | "hidden" }) {
+/** A circular action chip (mirrors the shipped 3c.1 host-tile ACTION_BASE). The
+ *  icon child carries its action color; the chip stays the dark glass disc. */
+function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span
-      className="absolute top-2 left-2 z-10 size-2.5 rounded-full ring-2 ring-black/30"
-      style={{
-        background:
-          tone === "pending" ? "var(--warning)" : "rgba(255,255,255,0.85)",
-      }}
-    />
+    <span className="flex size-7 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
+      {children}
+    </span>
   );
 }
 
@@ -167,153 +186,109 @@ function HoverLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Photo({ src }: { src: string }) {
-  return <Image src={src} alt="" fill sizes="160px" className="object-cover" />;
-}
+/* ── A. Host tile (rest + hover) ──────────────────────────────────────────── */
 
-/* ── A. Host tile arrangements ───────────────────────────────────────────── */
-
-function TileBoard({ arrangement }: { arrangement: "twin" | "rail" | "top" }) {
+function TileBoard({ mode }: { mode: "rest" | "hover" }) {
   return (
     <div className="absolute inset-0 flex flex-col px-4 pt-12">
       <p data-dir-display className="text-lg leading-snug">
         Maya &amp; Jay&apos;s Wedding
       </p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Hover a tile to reveal its actions
+        {mode === "rest" ? "Resting gallery" : "Each tile's revealed actions"}
       </p>
       <div className="mt-3 columns-2 gap-[3px]">
-        {/* The first tile shows the REVEALED (hover) state. */}
-        <Tile src={PHOTOS[0]} ratio="aspect-[3/4]" revealed arrangement={arrangement} status="approved" />
-        <Tile src={PHOTOS[1]} ratio="aspect-square" status="pending" />
-        <Tile src={PHOTOS[2]} ratio="aspect-[4/5]" status="approved" />
-        <Tile src={PHOTOS[3]} ratio="aspect-[3/4]" status="hidden" />
-        <Tile src={PHOTOS[5]} ratio="aspect-square" status="approved" />
-        <Tile src={PHOTOS[6]} ratio="aspect-[4/5]" status="approved" />
+        <HostTile src={PHOTOS[0]} ratio="aspect-[3/4]" status="approved" mode={mode} />
+        <HostTile src={PHOTOS[1]} ratio="aspect-square" status="approved" mode={mode} liked />
+        <HostTile src={PHOTOS[2]} ratio="aspect-[4/5]" status="approved" mode={mode} />
+        <HostTile src={PHOTOS[3]} ratio="aspect-[3/4]" status="hidden" mode={mode} />
+        <HostTile src={PHOTOS[5]} ratio="aspect-square" status="approved" mode={mode} />
+        <HostTile src={PHOTOS[6]} ratio="aspect-[4/5]" status="approved" mode={mode} />
       </div>
     </div>
   );
 }
 
-function Tile({
+function HostTile({
   src,
   ratio,
   status,
-  revealed,
-  arrangement,
+  mode,
+  liked,
 }: {
   src: string;
   ratio: string;
   status: "approved" | "pending" | "hidden";
-  revealed?: boolean;
-  arrangement?: "twin" | "rail" | "top";
+  mode: "rest" | "hover";
+  liked?: boolean;
 }) {
+  const dimmed = status === "hidden";
   return (
     <div
       className={`relative mb-[3px] overflow-hidden ${ratio}`}
       style={{ borderRadius: "var(--radius-tile)" }}
     >
-      <Photo src={src} />
-      {status === "pending" && !revealed && <StatusDot tone="pending" />}
-      {status === "hidden" && !revealed && <StatusDot tone="hidden" />}
+      <div className={dimmed ? "absolute inset-0 opacity-30" : "absolute inset-0"}>
+        <Photo src={src} />
+      </div>
 
-      {revealed && (
+      {mode === "hover" && (
         <>
           <HoverLabel>on hover</HoverLabel>
-          {arrangement === "twin" && <TwinClusters status={status} />}
-          {arrangement === "rail" && <BottomRail status={status} />}
-          {arrangement === "top" && <TopRail status={status} />}
+          <div
+            data-dir-press
+            className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
+          >
+            {status === "pending" && (
+              <Chip>
+                <Check className="size-3.5 text-success" />
+              </Chip>
+            )}
+            <Chip>
+              {status === "hidden" ? (
+                <Eye className="size-3.5 text-warning" />
+              ) : (
+                <EyeOff className="size-3.5 text-warning" />
+              )}
+            </Chip>
+            <Chip>
+              <Trash2 className="size-3.5 text-destructive" />
+            </Chip>
+            <Chip>
+              <Download className="size-3.5 text-save" />
+            </Chip>
+            {/* Like FAR-RIGHT; pink + filled while liked (persists off-hover). */}
+            <Chip>
+              <Heart
+                className={
+                  liked
+                    ? "size-3.5 fill-current text-like"
+                    : "size-3.5 text-white"
+                }
+              />
+            </Chip>
+          </div>
         </>
       )}
-    </div>
-  );
-}
 
-/** Moderation top-right, view-actions bottom-right (the guest like position). */
-function TwinClusters({ status }: { status: "approved" | "pending" | "hidden" }) {
-  return (
-    <>
-      <div data-dir-press className="absolute top-1.5 right-1.5 z-10 flex gap-1">
-        {status === "pending" && (
-          <ActionIcon tone="primary">
-            <Check className="size-3.5" />
-          </ActionIcon>
-        )}
-        <ActionIcon>
-          {status === "hidden" ? (
-            <Eye className="size-3.5" />
-          ) : (
-            <EyeOff className="size-3.5" />
-          )}
-        </ActionIcon>
-        <ActionIcon tone="danger">
-          <Trash2 className="size-3.5" />
-        </ActionIcon>
-      </div>
-      <div
-        data-dir-press
-        className="absolute right-1.5 bottom-1.5 z-10 flex gap-1"
-      >
-        <ActionIcon>
-          <Heart className="size-3.5" />
-        </ActionIcon>
-        <ActionIcon>
-          <Download className="size-3.5" />
-        </ActionIcon>
-      </div>
-    </>
-  );
-}
-
-/** One slim rail up from the bottom on hover. */
-function BottomRail({ status }: { status: "approved" | "pending" | "hidden" }) {
-  return (
-    <div
-      data-dir-press
-      className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2.5 bg-gradient-to-t from-black/65 to-transparent px-2 pt-6 pb-2"
-    >
-      <Heart className="size-4 text-white" />
-      <Download className="size-4 text-white" />
-      {status === "pending" ? (
-        <Check className="size-4 text-white" />
-      ) : status === "hidden" ? (
-        <Eye className="size-4 text-white" />
-      ) : (
-        <EyeOff className="size-4 text-white" />
+      {mode === "rest" && liked && (
+        // A liked tile keeps its pink heart visible at rest (far-right).
+        <span className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+          <Heart className="size-3.5 fill-current text-like" />
+        </span>
       )}
-      <Trash2 className="size-4 text-white" />
     </div>
   );
 }
 
-/** The shipped 3a top bar, hover-revealed, with like+download added at the left. */
-function TopRail({ status }: { status: "approved" | "pending" | "hidden" }) {
-  return (
-    <div
-      data-dir-press
-      className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/65 to-transparent px-1.5 pt-1.5 pb-5"
-    >
-      <div className="flex gap-1.5">
-        <Heart className="size-4 text-white" />
-        <Download className="size-4 text-white" />
-      </div>
-      <div className="flex gap-1.5">
-        {status === "pending" ? (
-          <Check className="size-4 text-white" />
-        ) : status === "hidden" ? (
-          <Eye className="size-4 text-white" />
-        ) : (
-          <EyeOff className="size-4 text-white" />
-        )}
-        <Trash2 className="size-4 text-white" />
-      </div>
-    </div>
-  );
-}
+/* ── B/C. Lightbox pill ──────────────────────────────────────────────────── */
 
-/* ── B. Host lightbox pill ───────────────────────────────────────────────── */
-
-function LightboxMock({ layout }: { layout: "one" | "grouped" }) {
+function LightboxMock({
+  status,
+}: {
+  status: "approved" | "pending" | "hidden" | "guest";
+}) {
+  const isHost = status !== "guest";
   return (
     <div className="absolute inset-0 bg-black">
       <Image
@@ -325,39 +300,45 @@ function LightboxMock({ layout }: { layout: "one" | "grouped" }) {
       />
       {/* Top scrim: close + attribution (context, not the focus here). */}
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-3 text-white/90">
-        <span className="text-[11px]">Maya · host</span>
+        <span className="text-[11px]">
+          {isHost ? "Maya · host" : "Photo by Alex"}
+        </span>
         <span className="text-lg leading-none">×</span>
       </div>
       {/* The floating action pill. */}
       <div className="absolute inset-x-0 bottom-5 flex justify-center">
-        {layout === "one" ? (
-          <div className="flex items-center gap-3.5 rounded-full bg-black/55 px-4 py-2.5 text-white backdrop-blur-sm">
-            <Heart className="size-5" />
-            <span className="-ml-2 text-xs">8</span>
-            <Download className="size-5" />
-            <EyeOff className="size-5" />
-            <Trash2 className="size-5" />
-            <Share2 className="size-5" />
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 rounded-full bg-black/55 px-4 py-2.5 text-white backdrop-blur-sm">
-            <Heart className="size-5" />
-            <span className="-ml-1.5 text-xs">8</span>
-            <Download className="size-5" />
-            <Share2 className="size-5" />
-            <span className="mx-0.5 h-5 w-px bg-white/25" />
-            <EyeOff className="size-5" />
-            <Trash2 className="size-5" />
-          </div>
-        )}
+        <div
+          data-dir-press
+          className="flex items-center gap-3.5 rounded-full bg-black/55 px-4 py-2.5 text-white backdrop-blur-sm"
+        >
+          {/* enjoy group (guest + host) */}
+          <Heart className="size-5 fill-current text-like" />
+          <span className="-ml-2 text-xs">8</span>
+          <Download className="size-5 text-save" />
+          <Share2 className="size-5 text-white" />
+          {/* curate group (host only) */}
+          {isHost && (
+            <>
+              <span className="mx-0.5 h-5 w-px bg-white/25" />
+              {status === "pending" ? (
+                <Check className="size-5 text-success" />
+              ) : status === "hidden" ? (
+                <Eye className="size-5 text-warning" />
+              ) : (
+                <EyeOff className="size-5 text-warning" />
+              )}
+              <Trash2 className="size-5 text-destructive" />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── C. Guest parity ─────────────────────────────────────────────────────── */
+/* ── C. Guest tile ───────────────────────────────────────────────────────── */
 
-function GuestParityMock() {
+function GuestTileMock() {
   return (
     <div className="absolute inset-0 flex flex-col px-4 pt-12">
       <p data-dir-display className="text-lg leading-snug">
@@ -375,14 +356,14 @@ function GuestParityMock() {
           <HoverLabel>on hover</HoverLabel>
           <div
             data-dir-press
-            className="absolute right-1.5 bottom-1.5 z-10 flex gap-1"
+            className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
           >
-            <ActionIcon>
-              <Heart className="size-3.5" />
-            </ActionIcon>
-            <ActionIcon>
-              <Download className="size-3.5" />
-            </ActionIcon>
+            <Chip>
+              <Download className="size-3.5 text-save" />
+            </Chip>
+            <Chip>
+              <Heart className="size-3.5 fill-current text-like" />
+            </Chip>
           </div>
         </div>
         <div
@@ -404,9 +385,6 @@ function GuestParityMock() {
           <Photo src={PHOTOS[10]} />
         </div>
       </div>
-      <p className="mt-2 text-[10px] text-muted-foreground">
-        Viewer pill (unchanged): like · download · share
-      </p>
     </div>
   );
 }
