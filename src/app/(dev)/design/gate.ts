@@ -5,6 +5,10 @@ import { notFound } from "next/navigation";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { serverEnv } from "@/lib/env";
 
+// withDesignKey lives in the client-safe links.ts (this file is server-only);
+// re-exported here so server pages keep their single "./gate" import.
+export { withDesignKey } from "./links";
+
 /**
  * The /design playground gate (V1 identity exploration, program Phase 1).
  *
@@ -25,10 +29,4 @@ export async function requireDesignKey(
   const secret = serverEnv.DESIGN_PREVIEW_KEY;
   if (!secret || !key || !constantTimeEquals(key, secret)) notFound();
   return key;
-}
-
-/** Append the preview key to an internal /design link (no-op in open dev mode). */
-export function withDesignKey(href: string, key: string | null): string {
-  if (!key) return href;
-  return `${href}${href.includes("?") ? "&" : "?"}key=${encodeURIComponent(key)}`;
 }

@@ -1,10 +1,10 @@
-import { SelectButton } from "../selection";
 import { PhoneShell } from "../screens/phone-shell";
 
 /**
- * One labeled variant in a touchpoint comparison: a number, a name, the
- * one-line case for it, the Select control (writes the localStorage pick for
- * the page's SelectionScope), and the mock (phone-framed unless framed=false).
+ * One labeled exploration in a touchpoint comparison: a number, a name, the
+ * one-line case for it, and the mock (phone-framed unless framed=false). The
+ * interactive Select control is retired (lab refresh, 2026-06-19) - variants are
+ * pure reference explorations now; the shipped pick is recorded on the page.
  */
 export function Variant({
   n,
@@ -22,15 +22,12 @@ export function Variant({
   return (
     <div className="flex flex-col">
       <div className="mb-3">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-semibold">
-            <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground font-mono text-[11px] text-background">
-              {n}
-            </span>
-            {name}
-          </p>
-          <SelectButton n={n} />
-        </div>
+        <p className="text-sm font-semibold">
+          <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground font-mono text-[11px] text-background">
+            {n}
+          </span>
+          {name}
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">{rationale}</p>
       </div>
       {framed ? <PhoneShell className="max-w-[320px]">{children}</PhoneShell> : children}

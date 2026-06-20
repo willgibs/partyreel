@@ -132,54 +132,45 @@
 }
 
 /* ───────────────────────────── The type layer ──────────────────────────────
-   THE SWAPPABLE-FACE ARCHITECTURE (Will, 2026-06-10): one generic display
-   rule reads five variables; a face is a block of five variable values and
-   NOTHING else. Swapping the brand face anywhere, forever = changing one
-   block. Phase 2 lifts exactly this shape into the @theme type tokens.
+   THE SWAPPABLE-FACE ARCHITECTURE (Will, 2026-06-10): one generic display rule
+   reads a few variables; a face is a block of variable values and NOTHING else.
+   Swapping the brand face anywhere, forever = changing one block. The shipped
+   app already lifted this into globals.css's font-heading utility; the lab keeps
+   its own copy so the reference stays self-contained (the dedup is a Phase 8
+   follow-up).
 
-   The five knobs per face:
+   The knobs:
      --display-font      the loaded family
-     --display-adjust    SIZE CALIBRATION: font-size-adjust normalizes the
-                         RENDERED x-height per em. Inter = 0.55 (measured
-                         in-browser; serif natives run 0.48-0.52, why they
-                         read small at equal CSS size). Instrument runs 0.58,
-                         deliberately ABOVE Inter parity: its hairline strokes
-                         read smaller than its metrics (Will's call).
-     --display-tracking  per-face optical tracking
-     --display-weight    real weight where the face has one
-     --display-stroke    SYNTHETIC WEIGHT for single-weight faces: a hairline
-                         text-stroke thickens stems uniformly (far better than
-                         browser faux-bold). Instrument ships 400 ONLY, so its
-                         "semibold" is 0.013em of stroke: noticeably less thin,
-                         deliberately not overdone.
-   Unsupported font-size-adjust degrades to the uncalibrated (smaller)
-   rendering, never breaks. font-synthesis is off so no engine fakes a bold
-   behind our back. */
+     --display-tracking  optical tracking
+     --display-weight    the weight (a real variable-font weight)
+     --display-adjust    optional x-height calibration (font-size-adjust); `none`
+                         for a face that needs no normalizing
+     --display-stroke    optional synthetic stem weight for SINGLE-weight faces
+                         (a hairline text-stroke); 0 when the face has real bold
+   font-synthesis is off so no engine fakes a bold behind our back. */
 [data-dir-display] {
   font-family: var(--display-font, var(--font-sans));
   font-size-adjust: var(--display-adjust, none);
   letter-spacing: var(--display-tracking, -0.03em);
-  font-weight: var(--display-weight, 650);
+  font-weight: var(--display-weight, 700);
   -webkit-text-stroke: var(--display-stroke, 0) currentColor;
   text-transform: var(--display-transform, none);
   font-synthesis: none;
 }
 
-/* THE LOCKED FACE (round-4 verdict): base Instrument Serif. In Phase 2 this
-   block's values become the @theme token defaults - that is the whole swap,
-   forever. 0.60 calibration = +18% over native (Inter parity is 0.55; IS
-   hairlines read smaller than metrics); the 0.013em stroke is its synthetic
-   display weight (the face ships 400 only; font-synthesis stays off). The
-   retired explorations (weighted fork, caps-condensed, Noto, the round-3
-   slate) live in git history; the vendored fork font is retained unused in
-   fonts-local/ should real weights ever be needed. */
-.font-opt-instrument {
-  --font-heading: var(--font-display-instrument);
-  --display-font: var(--font-display-instrument);
-  --display-adjust: 0.6;
-  --display-tracking: 0em;
-  --display-weight: 400;
-  --display-stroke: 0.013em;
+/* THE SHIPPED FACE: Urbanist, mirroring globals.css's font-heading (Will,
+   2026-06-19 - Instrument Serif read too thin). A proper variable sans, so the
+   Instrument-era knobs are gone: real bold (700) does the work, no synthetic
+   stroke, no x-height adjust. Two live knobs, exactly like the app: WEIGHT (700)
+   and TRACKING (-3%). The retired Instrument explorations live in git history;
+   the vendored fork in fonts-local/ is kept unused. */
+.font-opt-urbanist {
+  --font-heading: var(--font-display-urbanist);
+  --display-font: var(--font-display-urbanist);
+  --display-adjust: none;
+  --display-tracking: -0.03em;
+  --display-weight: 700;
+  --display-stroke: 0;
 }
 
 /* ───────────────────────────── Shared motion system ────────────────────────

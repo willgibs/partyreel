@@ -1,16 +1,15 @@
 /**
- * THE SELECTION SYSTEM of the design lab. Each touchpoint page shows 2-3
- * labeled variants of ONE UX moment on the locked system (monochrome, base
- * Instrument Serif). The protocol between Will and the agent:
+ * THE PROTOTYPE CATALOG of the design lab. Each touchpoint page shows 2-3
+ * labeled variants of ONE UX moment on the locked system (monochrome). It seeds
+ * the lab's two standing purposes (lab refresh, 2026-06-19): a browsable design
+ * reference, and a space to spin up multiple polished explorations per component
+ * before integrating into the data-heavy app.
  *
- *   1. The agent stages variants; Will reviews live (both modes, on phone).
- *   2. Will picks a number per touchpoint (+ remix notes); mixing across
- *      touchpoints is the point.
- *   3. The pick is recorded HERE as `decision` (+ `decisionNote`), the page
- *      renders the Selected badge, and the variant becomes the Phase 2+ spec.
- *
- * Decisions are config, not memory: this file is the single source for what
- * has been chosen and what is still open.
+ * The interactive picking mechanism is RETIRED (decisions now happen in chat
+ * with more context). What survives is the DESIGN RECORD: `decision` +
+ * `decisionNote` are the SHIPPED variant and the why, rendered read-only on each
+ * touchpoint page. `surface` groups the catalog in the sidebar (adding an
+ * exploration to a surface = one new entry here, picked up automatically).
  */
 export type TouchpointId =
   | "entry"
@@ -27,16 +26,20 @@ export type TouchpointId =
   | "host-event"
   | "host-dashboard";
 
+/** Which product surface a touchpoint prototypes - the sidebar's grouping. */
+export type Surface = "guest" | "host" | "marketing" | "shared";
+
 export type Touchpoint = {
   id: TouchpointId;
   title: string;
   note: string;
-  /** Variant names by number (index 0 = V1) - the picks board's context. */
+  /** The product surface this explores (groups the catalog in the sidebar). */
+  surface: Surface;
+  /** Variant names by number (index 0 = V1) - context for the shipped record. */
   variants: string[];
-  /** Will's RATIFIED pick (variant number), committed by the agent once
-   *  passed. Unset = still open for review. */
+  /** The SHIPPED variant number (the design record). Unset = nothing shipped. */
   decision?: number;
-  /** Remix notes attached to the pick. */
+  /** Why that variant shipped (the rationale, kept as the record). */
   decisionNote?: string;
 };
 
@@ -44,6 +47,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "entry",
     title: "Guest entry",
+    surface: "guest",
     note: "How the welcome moment is staged on a guest's phone",
     variants: [
       "Centered card",
@@ -60,6 +64,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "upload",
     title: "Upload moment",
+    surface: "guest",
     note: "Where adding photos lives and how progress feels",
     variants: [
       "Dropzone card",
@@ -74,6 +79,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "gallery",
     title: "Gallery grid",
+    surface: "guest",
     note: "How the media field itself is laid out",
     variants: ["Uniform grid", "Masonry columns", "Edge-to-edge"],
     decision: 2,
@@ -83,6 +89,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "header",
     title: "Event header",
+    surface: "guest",
     note: "The event's identity block above the gallery",
     variants: ["Left editorial", "Centered formal", "Cover hero"],
     decision: 1,
@@ -92,6 +99,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "buttons",
     title: "Buttons & shape",
+    surface: "shared",
     note: "The pressable language: shape, weight, sizes",
     variants: [
       "Soft rectangle",
@@ -106,6 +114,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "lightbox",
     title: "Lightbox chrome",
+    surface: "guest",
     note: "Controls and attribution around a full-screen photo",
     variants: ["Pinned chrome", "Floating pill", "Immersive auto-hide"],
     decision: 2,
@@ -115,6 +124,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "event-card",
     title: "Host event card",
+    surface: "host",
     note: "The dashboard's atomic unit: one event at a glance",
     variants: ["Cover-led", "Compact row", "Stat-forward overlay"],
     decision: 3,
@@ -124,6 +134,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "forms",
     title: "Forms & inputs",
+    surface: "host",
     note: "The settings language: fields, toggles, sections",
     variants: ["Card sections", "Inline rows", "Focused column"],
     decision: 1,
@@ -133,6 +144,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "states",
     title: "Empty & loading",
+    surface: "shared",
     note: "What nothing looks like, and what almost-something looks like",
     variants: ["Typographic", "Iconographic", "Photographic promise"],
     decision: 3,
@@ -142,6 +154,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "qr-card",
     title: "QR table card",
+    surface: "shared",
     note: "The printed growth artifact guests actually scan",
     variants: ["Minimal ink", "Invitation frame", "Photo-backed"],
     decision: 1,
@@ -157,6 +170,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     // becomes the production constants.
     id: "arrival",
     title: "Guest arrival",
+    surface: "guest",
     note: "The gated first-open as one choreographed flow: stage, invitation, threshold, reveal",
     variants: ["Calm arrival", "Swift arrival", "Stately arrival"],
     decision: 1,
@@ -171,6 +185,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     // card-section forms). Direction-setting; finetuning stays post-roadmap.
     id: "host-event",
     title: "Host event page",
+    surface: "host",
     note: "How one event's management surface is composed: gallery, share, review queue, settings",
     variants: ["Gallery-first", "Command center", "Tabbed surfaces"],
     decision: 1,
@@ -180,6 +195,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
   {
     id: "host-dashboard",
     title: "Host dashboard",
+    surface: "host",
     note: "How the home surface is composed: events, storage, the personal tabs",
     variants: ["Cards-first", "Ambient storage", "Single feed"],
     decision: 3,

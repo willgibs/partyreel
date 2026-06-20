@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
+import { Suspense } from "react";
+import { Urbanist } from "next/font/google";
 
+import { LabNav } from "./lab-nav";
 import "./design.css";
 
-// THE LOCKED FACE (round-4 verdict, Will 2026-06-10): base Instrument Serif,
-// single weight, calibrated + stroke-weighted in design.css. next/font
-// SELF-HOSTS it (build-time download, served from our domain). The vendored
-// multi-weight fork in fonts-local/ is retained UNUSED as a future option;
-// see its README. Loaded only on /design until Phase 2 promotes it app-wide.
-const instrument = Instrument_Serif({
-  variable: "--font-display-instrument",
+// THE LAB HEADING FACE: Urbanist, matching the shipped app (it swapped off
+// Instrument Serif 2026-06-19 - the serif read too thin). Loaded as the VARIABLE
+// font (full weight axis) so font-opt-urbanist's bold (700) applies through the
+// one swappable token, exactly like globals.css. next/font self-hosts it. The
+// lab keeps its OWN copy here so the reference is honest; the full
+// design.css -> globals.css token dedup stays the Phase 8 follow-up.
+const urbanist = Urbanist({
+  variable: "--font-display-urbanist",
   subsets: ["latin"],
-  weight: "400",
 });
 
 // Never indexed, never linked: the lab exists only behind the gate
@@ -24,5 +26,16 @@ export const metadata: Metadata = {
 export default function DesignLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <div className={`${instrument.variable} min-h-dvh`}>{children}</div>;
+  return (
+    <div
+      className={`${urbanist.variable} min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]`}
+    >
+      {/* useSearchParams (the key) needs a Suspense boundary; every lab route
+          is already dynamic via requireDesignKey, so this never suspends long. */}
+      <Suspense>
+        <LabNav />
+      </Suspense>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
 }

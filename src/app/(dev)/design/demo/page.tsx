@@ -1,7 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Bookmark,
   Check,
   ChevronLeft,
@@ -14,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 
-import { requireDesignKey, withDesignKey } from "../gate";
+import { requireDesignKey } from "../gate";
 import { ModeShell } from "../mode-shell";
 import { PhoneShell } from "../screens/phone-shell";
 import {
@@ -40,23 +38,10 @@ export default async function CohesiveDemoPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const key = await requireDesignKey(searchParams);
+  await requireDesignKey(searchParams);
 
   return (
-    <div>
-      <nav className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-12 w-full max-w-6xl items-center gap-3 px-4">
-          <Link
-            href={withDesignKey("/design", key)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Lab index
-          </Link>
-        </div>
-      </nav>
-
-      <ModeShell fontClass="font-opt-instrument">
+    <ModeShell fontClass="font-opt-urbanist">
         <header className="mx-auto w-full max-w-6xl px-4 pt-4 pb-4">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
             The cohesive demo
@@ -66,8 +51,7 @@ export default async function CohesiveDemoPage({
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             The live event page, the lightbox, and a brand-new event, composed
-            from the current selections. Rebuilt each round as decisions land;
-            the header shows refined V1 while decisions 1 and 4 stay open.
+            from the shipped selections, the way the pieces read together.
           </p>
         </header>
 
@@ -300,6 +284,5 @@ export default async function CohesiveDemoPage({
           </div>
         </div>
       </ModeShell>
-    </div>
   );
 }
