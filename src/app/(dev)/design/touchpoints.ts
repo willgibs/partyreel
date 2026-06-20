@@ -26,6 +26,7 @@ export type TouchpointId =
   | "host-event"
   | "host-dashboard"
   | "host-event-page"
+  | "host-event-build"
   | "gallery-actions";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
@@ -240,6 +241,28 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "Ratified (Will, 2026-06-20): A = Editorial (1) refined - icon sub-stats (items/contributors/views) + date + subtle visibility & accepting-uploads status; Share = PRIMARY; the Review button leaves the strip for its own horizontal-scroll TEASER section (faded right edge, only when reviews exist) below the actions (mobile: Share full-width / Add+Settings 2-col / Review teaser / gallery). B = Settings as a dedicated ROUTE (1), smooth view-transition feel, polished + tooltips. C = Deleted BEHIND settings (1) - intentional + rare, the retrieval path is where a host looks. The refined composition + settings-page explorations live in the gallery-first refinement round; the cross-surface hover/lightbox action model is the new `gallery-actions` touchpoint.",
+  },
+  {
+    // Phase 5 S3·3b (Will, 2026-06-20): the gallery-first BUILD round. The
+    // composition direction + the two forks are ratified (host-event-page
+    // decision 1); this touchpoint is the EXECUTION CRAFT plus the one open
+    // interaction - the review surface (in-page expansion vs focused mode),
+    // built INTERACTIVE so Will can feel it. `decision` stays unset until he
+    // picks the review form in chat; then it records the picked form + the
+    // header/strip/settings craft calls.
+    id: "host-event-build",
+    title: "Gallery-first page: build",
+    surface: "host",
+    note: "The execution craft of the ratified gallery-first page (header config status, the responsive command strip, the settings crossfade) plus the one open fork: the review surface, interactive so it can be felt",
+    variants: [
+      "Header: status row",
+      "Header: inline meta",
+      "Strip: mobile (stacked)",
+      "Strip: desktop (one row)",
+      "Review: in-page expansion",
+      "Review: focused mode",
+      "Settings: route + crossfade",
+    ],
   },
   {
     // Phase 5 S3·3c (Will, 2026-06-20): the GALLERY ACTION MODEL across guest +
