@@ -1,10 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
+import { SetNameStep } from "@/components/shared/set-name-step";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   InputOTP,
@@ -81,6 +94,76 @@ export function PasswordStrengthDemo() {
         />
         <PasswordStrengthMeter value={pw} />
       </div>
+    </Spec>
+  );
+}
+
+// SetNameStep takes an onSaved CALLBACK (a function prop), so it can only be
+// rendered from a client component (functions can't cross the RSC boundary).
+// `inert` makes it a visual-only preview - its real submit hits a server action.
+export function SetNameStepDemo() {
+  return (
+    <Spec label="Set name step" hint="inert preview · submit disabled">
+      <div inert>
+        <SetNameStep onSaved={() => {}} />
+      </div>
+    </Spec>
+  );
+}
+
+const formSchema = z.object({
+  name: z.string().min(1, "Required").max(40),
+  email: z.email("Enter a valid email"),
+});
+
+// The app's form-building pattern, live: react-hook-form + zod via the Form
+// primitives. Submit a blank field to see FormMessage surface the zod error.
+export function FormDemo() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "", email: "" },
+  });
+  return (
+    <Spec label="Form" hint="react-hook-form + zod">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(() => toast.success("Looks good"))}
+          className="space-y-3"
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Maya & Jay's Wedding" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="you@example.com" {...field} />
+                </FormControl>
+                <FormDescription>
+                  We only email you about this event.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" size="sm">
+            Submit
+          </Button>
+        </form>
+      </Form>
     </Spec>
   );
 }

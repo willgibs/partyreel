@@ -75,6 +75,12 @@ export const ZONES: LabZone[] = [
             status: "reference",
             note: "The real UI primitives, rendered from production source.",
           },
+          {
+            href: "/design/patterns",
+            label: "Patterns",
+            status: "reference",
+            note: "The composed shared pieces (logo, empty states, dead ends).",
+          },
         ],
       },
       {

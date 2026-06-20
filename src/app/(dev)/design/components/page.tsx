@@ -32,6 +32,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -68,6 +76,7 @@ import {
 
 import { requireDesignKey } from "../gate";
 import {
+  FormDemo,
   OtpDemo,
   PasswordStrengthDemo,
   ToastDemo,
@@ -173,6 +182,19 @@ export default async function ComponentsPage({
               <Switch size="sm" defaultChecked aria-label="Small on" />
             </Row>
           </Spec>
+          <Spec label="Label" hint="dims with its field">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="ref-l1">Enabled</Label>
+                <Input id="ref-l1" placeholder="Active field" />
+              </div>
+              <div className="group space-y-1.5" data-disabled="true">
+                <Label htmlFor="ref-l2">Disabled</Label>
+                <Input id="ref-l2" placeholder="Disabled field" disabled />
+              </div>
+            </div>
+          </Spec>
+          <FormDemo />
           <OtpDemo />
           <PasswordStrengthDemo />
         </div>
@@ -290,6 +312,23 @@ export default async function ComponentsPage({
                 </SheetHeader>
               </SheetContent>
             </Sheet>
+          </Spec>
+          <Spec label="Drawer" hint="vaul · bottom">
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Open drawer
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Add to your event</DrawerTitle>
+                  <DrawerDescription>
+                    The mobile sheet pattern, with drag-to-dismiss.
+                  </DrawerDescription>
+                </DrawerHeader>
+              </DrawerContent>
+            </Drawer>
           </Spec>
           <Spec label="Popover">
             <Popover>
