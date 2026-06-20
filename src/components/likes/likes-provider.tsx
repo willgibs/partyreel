@@ -199,9 +199,6 @@ export function LikesProvider({
           );
           return;
         }
-        // Confirm a like (the heart flipped optimistically; this names the impact —
-        // it builds the viewer's OWN likes collection, not a social ping). Unlike stays quiet.
-        if (!wasLiked) toast.success("Added to your likes");
         // On the Likes tab, a confirmed unlike drops the tile.
         if (wasLiked && mode === "remove") onRemoved?.(id);
       })();

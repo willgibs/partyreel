@@ -21,7 +21,6 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { setReducedMotion } from "../../../vitest.setup";
 import { MediaLightbox } from "./media-lightbox";
@@ -97,17 +96,13 @@ function mount(
   const onClose = vi.fn();
   const onIndexChange = vi.fn();
   const utils = render(
-    // The pill actions carry styled tooltips (3c.2 polish), which need a provider —
-    // the app supplies one at the root (providers.tsx); the test supplies its own.
-    <TooltipProvider>
-      <MediaLightbox
-        items={items}
-        index={index}
-        onClose={onClose}
-        onIndexChange={onIndexChange}
-        {...extra}
-      />
-    </TooltipProvider>,
+    <MediaLightbox
+      items={items}
+      index={index}
+      onClose={onClose}
+      onIndexChange={onIndexChange}
+      {...extra}
+    />,
   );
   return { ...utils, onClose, onIndexChange };
 }
