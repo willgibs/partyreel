@@ -44,10 +44,16 @@ export function EventUploads({
           // The host can LIKE here (a normal like → their Liked album + the count).
           // The host is always signed in, so the provider's create-account path never fires.
           <LikesProvider mediaIds={items.map((i) => i.id)}>
-            <HostMediaGrid eventId={eventId} items={items} shareUrl={shareUrl} />
+            <HostMediaGrid
+              eventId={eventId}
+              items={items}
+              shareUrl={shareUrl}
+            />
           </LikesProvider>
         ) : (
-          <p className="text-sm text-muted-foreground">
+          // Rare state (S4·A5): the reassuring empty/all-caught-up copy fades + rises
+          // in ([data-arrive]) rather than snapping, so the empty album feels composed.
+          <p data-arrive className="text-sm text-muted-foreground">
             {pendingCount > 0
               ? "Everything uploaded so far is awaiting your review above."
               : "No uploads yet. Add photos with the button above, or share the QR code with guests."}

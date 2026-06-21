@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -76,8 +77,15 @@ export default async function EventSettingsPage({ params }: PageProps) {
   );
 
   return (
+    // The route crossfades in (data-route-fade); WITHIN it the sections settle in a
+    // light top-down stagger (S4·A5, --arrive-i per section via [data-arrive]) so the
+    // settings page reads as composed rather than snapping in all at once.
     <div data-route-fade className="space-y-8">
-      <div className="space-y-4">
+      <div
+        data-arrive
+        style={{ "--arrive-i": 0 } as CSSProperties}
+        className="space-y-4"
+      >
         <Link
           href={`/dashboard/${event.id}`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -90,9 +98,11 @@ export default async function EventSettingsPage({ params }: PageProps) {
         </div>
       </div>
 
-      <EventSettingsForm event={event} tier={tier} />
+      <div data-arrive style={{ "--arrive-i": 1 } as CSSProperties}>
+        <EventSettingsForm event={event} tier={tier} />
+      </div>
 
-      <Card>
+      <Card data-arrive style={{ "--arrive-i": 2 } as CSSProperties}>
         <CardHeader>
           <CardTitle>Event link</CardTitle>
           <CardDescription>
@@ -112,13 +122,13 @@ export default async function EventSettingsPage({ params }: PageProps) {
       </Card>
 
       {deletedItems.length > 0 && (
-        <Card>
+        <Card data-arrive style={{ "--arrive-i": 3 } as CSSProperties}>
           <CardHeader>
             <CardTitle>Deleted</CardTitle>
             <CardDescription>
               {deletedItems.length}{" "}
-              {deletedItems.length === 1 ? "item" : "items"} you removed. Restore
-              anything within 30 days, or delete it permanently now.
+              {deletedItems.length === 1 ? "item" : "items"} you removed.
+              Restore anything within 30 days, or delete it permanently now.
             </CardDescription>
           </CardHeader>
           <CardContent>
