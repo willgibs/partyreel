@@ -262,17 +262,37 @@ export default async function EventDetailPage({
       <HostReview eventId={event.id} items={pendingItems} />
 
       {/* The ReelProvider wraps BOTH tabs (it's the shared client source of truth for reel
-          membership), so adding from Uploads reflects instantly in the Reel tab. Reviews stays a
-          later round - HostReview's pending teaser/takeover lives ABOVE the tabs for now. Tab
-          content is client-island (the grids) fed by props the RSC resolved up front, so the
-          host page hydrates cleanly (architecture.md). */}
+          membership), so adding from the Gallery reflects instantly in the Reel tab. Reviews stays a
+          later round - HostReview's pending teaser/takeover lives ABOVE the tabs for now. Tab content
+          is bare (no card wrapper - the tab label carries the name + a subtle count) + client-island,
+          fed by props the RSC resolved up front, so the host page hydrates cleanly (architecture.md).
+          The "line" tabs (underline, no grey box) read cleaner than the segmented default; the count
+          pattern scales to future surfaces (Reviews / Guests). */}
       <ReelProvider eventId={event.id} initialReelIds={reelIds}>
         <Tabs defaultValue={initialTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="uploads">Uploads</TabsTrigger>
-            <TabsTrigger value="reel">Reel</TabsTrigger>
+          <TabsList variant="line">
+            <TabsTrigger value="gallery">
+              <span>
+                Gallery{" "}
+                {visibleItems.length > 0 && (
+                  <span className="text-muted-foreground tabular-nums">
+                    ({visibleItems.length})
+                  </span>
+                )}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="reel">
+              <span>
+                Reel{" "}
+                {reelIds.length > 0 && (
+                  <span className="text-muted-foreground tabular-nums">
+                    ({reelIds.length})
+                  </span>
+                )}
+              </span>
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="uploads">
+          <TabsContent value="gallery">
             <EventUploads
               eventId={event.id}
               items={visibleItems}

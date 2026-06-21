@@ -45,7 +45,7 @@ export function LikeButton({
           liked && "text-like opacity-100",
         )}
       >
-        <Heart className={cn("size-4", liked && "fill-current")} />
+        <Heart className={cn("size-4", liked && "fill-like/25")} />
       </button>
     );
   }
@@ -77,7 +77,7 @@ export function LikeButton({
           liked && "text-like opacity-100 md:opacity-100",
         )}
       >
-        <Heart className={cn("size-4", liked && "fill-current")} />
+        <Heart className={cn("size-4", liked && "fill-like/25")} />
       </button>
     );
   }
@@ -98,7 +98,7 @@ export function LikeButton({
           liked && "text-like hover:text-like",
         )}
       >
-        <Heart className={cn("size-5", liked && "fill-current")} />
+        <Heart className={cn("size-5", liked && "fill-like/25")} />
       </button>
     </ActionTooltip>
   );

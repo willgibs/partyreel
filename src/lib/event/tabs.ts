@@ -7,7 +7,7 @@
 // (A future round adds "reviews" here, conditional on moderation being on - keep the resolver pure so it
 // can gate that without a Supabase call.)
 
-export const EVENT_TABS = ["uploads", "reel"] as const;
+export const EVENT_TABS = ["gallery", "reel"] as const;
 export type EventTab = (typeof EVENT_TABS)[number];
 
 export function resolveInitialEventTab(
@@ -16,5 +16,5 @@ export function resolveInitialEventTab(
   if (eventTab && (EVENT_TABS as readonly string[]).includes(eventTab)) {
     return eventTab as EventTab;
   }
-  return "uploads";
+  return "gallery";
 }

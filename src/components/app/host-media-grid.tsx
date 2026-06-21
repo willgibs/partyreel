@@ -214,7 +214,7 @@ function HostTileOverlay({
             className={cn(ACTION_BASE, "ml-1 text-warning")}
             onClick={() => setStatus(item, "approved")}
           >
-            <Eye className="size-4" />
+            <Eye className="size-4 fill-warning/25" />
           </button>
         )}
 

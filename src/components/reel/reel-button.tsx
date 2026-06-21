@@ -47,7 +47,7 @@ export function ReelButton({
           inReel && "text-reel opacity-100 md:opacity-100",
         )}
       >
-        <Clapperboard className={cn("size-4", inReel && "fill-current")} />
+        <Clapperboard className={cn("size-4", inReel && "fill-reel/25")} />
       </button>
     );
   }
@@ -66,7 +66,7 @@ export function ReelButton({
           inReel && "text-reel hover:text-reel",
         )}
       >
-        <Clapperboard className={cn("size-5", inReel && "fill-current")} />
+        <Clapperboard className={cn("size-5", inReel && "fill-reel/25")} />
       </button>
     </ActionTooltip>
   );

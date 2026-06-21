@@ -833,7 +833,7 @@ export function MediaLightbox({
                                 "text-warning hover:text-warning",
                               )}
                             >
-                              <Eye className="size-5" />
+                              <Eye className="size-5 fill-warning/25" />
                             </button>
                           </ActionTooltip>
                         ) : (

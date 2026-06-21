@@ -319,33 +319,41 @@
      The row uses per-chip margin (not gap) so a collapsed chip leaves NO residual gap; --reveal-max
      defaults to one chip, the wider moderation sub-group sets it via [--reveal-max:...]. */
   @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    /* !important so this BEATS the chips' own Tailwind transition + ml-1 (the `utilities` layer
+       outranks this `@layer base`, which silently killed the slide + the margin-collapse). Expand on
+       TILE hover OR keyboard focus (:focus-visible / :has(:focus-visible)) - NOT plain :focus, so a
+       MOUSE click no longer keeps a chip expanded after the cursor leaves (the reported bug). */
     [data-reveal-chip] {
-      max-width: 0;
-      margin-left: 0;
-      opacity: 0;
+      max-width: 0 !important;
+      margin-left: 0 !important;
+      opacity: 0 !important;
       overflow: hidden;
       transition:
         max-width 220ms var(--ease-emphasis),
         margin-left 220ms var(--ease-emphasis),
-        opacity 150ms var(--ease-emphasis);
+        opacity 150ms var(--ease-emphasis),
+        color 150ms var(--ease-emphasis),
+        transform 150ms var(--ease-emphasis) !important;
     }
     .group:hover [data-reveal-chip],
-    .group:focus-within [data-reveal-chip] {
-      max-width: var(--reveal-max, 2rem);
-      margin-left: 0.25rem;
-      opacity: 1;
+    [data-reveal-chip]:focus-visible,
+    [data-reveal-chip]:has(:focus-visible) {
+      max-width: var(--reveal-max, 2rem) !important;
+      margin-left: 0.25rem !important;
+      opacity: 1 !important;
     }
   }
   /* Reduced motion: NO slide. Chips reveal by opacity only (natural width, like the pre-iter
      behavior); the small at-rest gaps are an accepted trade for zero motion. */
   @media (min-width: 768px) and (prefers-reduced-motion: reduce) {
     [data-reveal-chip] {
-      opacity: 0;
-      transition: opacity 150ms linear;
+      opacity: 0 !important;
+      transition: opacity 150ms linear !important;
     }
     .group:hover [data-reveal-chip],
-    .group:focus-within [data-reveal-chip] {
-      opacity: 1;
+    [data-reveal-chip]:focus-visible,
+    [data-reveal-chip]:has(:focus-visible) {
+      opacity: 1 !important;
     }
   }
 
