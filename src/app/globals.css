@@ -745,3 +745,26 @@
     }
   }
 }
+
+/* STATE-COLORED TOASTS (global policy, S4): map sonner's data-type to the design
+   system's STATE colors - success = green, warning = amber, error/destructive = red.
+   Plain/info toasts keep the neutral --normal-* treatment (the "current default" for
+   non-state notifiers). The `cn-toast` class is the hook set in ui/sonner.tsx; the
+   class+attr specificity overrides sonner's [data-sonner-toast] background, and this
+   block is UNLAYERED so it also beats sonner's injected (unlayered) base styles. The
+   state tokens already brighten under .dark, so the toasts adapt to theme for free. */
+.cn-toast[data-type="success"] {
+  background: var(--success);
+  color: var(--success-foreground);
+  border-color: color-mix(in oklch, var(--success), black 12%);
+}
+.cn-toast[data-type="warning"] {
+  background: var(--warning);
+  color: var(--warning-foreground);
+  border-color: color-mix(in oklch, var(--warning), black 12%);
+}
+.cn-toast[data-type="error"] {
+  background: var(--destructive);
+  color: oklch(0.99 0 0);
+  border-color: color-mix(in oklch, var(--destructive), black 12%);
+}

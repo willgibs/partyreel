@@ -64,14 +64,8 @@ function prefersReducedMotion(): boolean {
  * + scale OUT ([data-exiting]) BEFORE the list reflows (the "system responding" beat),
  * and when the LAST pending clears, an "all caught up" success beat
  * ([data-unlock-success]) plays before the takeover closes. All timings are tunable via
- * the S4·0 motion tuner (run() reads the same CSS vars the styles use), reduced-motion
- * degrades to instant.
- *
- * MODAL: the takeover is modal for real hosts (focus-trap + scroll-lock). But a modal
- * radix Dialog sets `body { pointer-events: none }`, which would make the body-portaled
- * dev motion tuner unclickable - so when the design gate is open (`devUnlocked`, dev
- * only) it renders NON-modal so the tuner stays interactive (and the tuner's flip-corner
- * clears the Approve button). Real hosts never hit this path.
+ * the S4·0 motion tuner (the lab playground tunes these `--tune-*` vars against dummy
+ * animations; this surface just reads them), reduced-motion degrades to instant.
  *
  * LIFECYCLE: this stays mounted whenever the parent renders the event page (the parent
  * does NOT gate on pendingItems.length) so HostReview owns its OWN close lifecycle - the
@@ -85,13 +79,9 @@ function prefersReducedMotion(): boolean {
 export function HostReview({
   eventId,
   items,
-  devUnlocked = false,
 }: {
   eventId: string;
   items: GridMedia[];
-  // The design gate is open (dev `?key=`). Renders the takeover non-modal so the
-  // body-portaled motion tuner stays clickable. Never set for real hosts.
-  devUnlocked?: boolean;
 }) {
   const [pending, setPending] = useState<GridMedia[]>(items);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -184,7 +174,7 @@ export function HostReview({
         }
       } else {
         setCaughtUp(true);
-        await wait(readMs("--tune-review-beat-ms", 1100));
+        await wait(readMs("--tune-review-beat-ms", 1800));
         if (pendingRef.current.length === 0) {
           setOpen(false);
           await wait(CLOSE_EXIT_MS);
@@ -203,16 +193,18 @@ export function HostReview({
       setPending(snapshot);
       toast.error(result.message || "Couldn't update those. Please try again.");
     } else if (!isLast) {
-      toast.success(
-        kind === "approve"
-          ? `Approved ${ids.length} ${ids.length === 1 ? "photo" : "photos"}`
-          : "Hidden from everyone",
-      );
+      // State-colored toasts (global policy): approve = success/green, hide = warning/amber.
+      if (kind === "approve") {
+        toast.success(
+          `Approved ${ids.length} ${ids.length === 1 ? "photo" : "photos"}`,
+        );
+      } else {
+        toast.warning("Hidden from everyone");
+      }
     }
     setBusy(false);
   }
 
-  const allIds = pending.map((p) => p.id);
   const allSelected = pending.length > 0 && selected.size === pending.length;
 
   return (
@@ -256,19 +248,16 @@ export function HostReview({
         </section>
       )}
 
-      {/* Focused review takeover: a full-screen radix Dialog (S4·A2). Non-modal in dev
-          (devUnlocked) removes radix's body{pointer-events:none} so the motion tuner is
-          clickable; modal for real hosts. CAVEAT (verified live): a non-modal radix
-          Dialog DOES dismiss on an outside pointerdown - so onInteractOutside below keeps
-          the takeover open when the interaction targets the tuner (else tuning closes it).
-          No-op in prod (modal; the tuner isn't mounted). */}
+      {/* Focused review takeover: a full-screen radix Dialog (S4·A2), modal (focus-trap +
+          scroll-lock). The motion tuner now lives in the /design lab against dummy
+          animations (not on this prod surface), so the takeover no longer needs the
+          dev-only non-modal escape hatch. */}
       <Dialog
         open={open}
         onOpenChange={(o) => {
           setOpen(o);
           if (!o) setPreview(null); // never let a preview leak across opens
         }}
-        modal={!devUnlocked}
       >
         <DialogContent
           fullScreen
@@ -280,12 +269,6 @@ export function HostReview({
               e.preventDefault();
               setPreview(null);
             }
-          }}
-          // Don't let interacting with the dev motion tuner dismiss the (non-modal,
-          // dev-only) takeover. The only "outside" of a full-screen takeover is the tuner.
-          onInteractOutside={(e) => {
-            const target = e.detail.originalEvent.target as Element | null;
-            if (target?.closest("[data-motion-tuner]")) e.preventDefault();
           }}
         >
           {caughtUp ? (
@@ -408,10 +391,10 @@ export function HostReview({
                 </div>
               </div>
 
-              {/* Sticky bulk bar. The left (Select all + count) stays MOUNTED - only the
-                  right ACTION cluster re-keys on the 0<->some-selected swap, so
-                  [data-settings-reveal] gently crossfades Approve-all<->Hide/Approve
-                  without flickering or stealing focus from the always-present Select all. */}
+              {/* Sticky bulk bar. Left (Select all + count) is always mounted; the right
+                  Hide/Approve cluster mounts only once something is selected (fading in via
+                  [data-settings-reveal]) - so a fresh takeover offers NO one-click
+                  approve-all, only the intentional Select all -> Approve path. */}
               <div className="border-t border-border bg-background px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-1 sm:gap-3">
@@ -439,36 +422,29 @@ export function HostReview({
                         : "Tap to select"}
                     </span>
                   </div>
-                  <div
-                    key={selected.size > 0 ? "has-selection" : "no-selection"}
-                    data-settings-reveal
-                    className="flex items-center gap-2"
-                  >
-                    {selected.size > 0 ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          disabled={busy}
-                          onClick={() => run("hide", [...selected])}
-                        >
-                          <EyeOff className="text-warning" /> Hide
-                        </Button>
-                        <Button
-                          disabled={busy}
-                          onClick={() => run("approve", [...selected])}
-                        >
-                          <Check /> Approve
-                        </Button>
-                      </>
-                    ) : (
+                  {/* Actions appear ONLY once something is selected - "Select all" is
+                      the intentional path to act on everything, so there's no
+                      accidental approve-everything from a fresh, 0-selected takeover. */}
+                  {selected.size > 0 && (
+                    <div
+                      data-settings-reveal
+                      className="flex items-center gap-2"
+                    >
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => run("hide", [...selected])}
+                      >
+                        <EyeOff className="text-warning" /> Hide
+                      </Button>
                       <Button
                         disabled={busy}
-                        onClick={() => run("approve", allIds)}
+                        onClick={() => run("approve", [...selected])}
                       >
-                        <Check /> Approve all {pending.length}
+                        <Check /> Approve
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>

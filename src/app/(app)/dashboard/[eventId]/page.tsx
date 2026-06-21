@@ -11,12 +11,9 @@ import {
   Users,
 } from "lucide-react";
 
-import { isDesignGateOpen } from "@/app/(dev)/design/gate";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostReview } from "@/components/app/host-review";
-import { MotionTuner } from "@/components/dev/motion-tuner";
-import { EVENT_PAGE_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -38,11 +35,9 @@ import { formatEventDate } from "@/lib/utils";
 // be statically cached.
 export const dynamic = "force-dynamic";
 
-// Next 16: params + searchParams are Promises — await them. searchParams carries
-// the optional `?key=` that opens the dev-only motion tuner (isDesignGateOpen).
+// Next 16: params is a Promise — await it.
 type PageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({
@@ -58,14 +53,8 @@ export async function generateMetadata({
 // experience. Settings + the Deleted bin live on the /settings route; the QR
 // designer rides with the Share dialog. (B enriches the header into the editorial
 // status row; C adds the floating + command Add; D adds the review teaser.)
-export default async function EventDetailPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function EventDetailPage({ params }: PageProps) {
   const { eventId } = await params;
-  // Non-throwing gate: opens the dev motion tuner only for a designer arriving
-  // with a valid `?key=` (never 404s the host's real page on a bad key).
-  const tunerOpen = await isDesignGateOpen(searchParams);
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
@@ -251,13 +240,8 @@ export default async function EventDetailPage({
       {/* Always mounted (NOT gated on pendingItems.length): HostReview owns its own
           close lifecycle - the A3 success beat + the radix close-exit need the Dialog
           to survive the revalidation that empties pendingItems. It renders nothing
-          when there is nothing to review. devUnlocked = the design gate is open, so the
-          takeover renders non-modal and the dev motion tuner stays clickable over it. */}
-      <HostReview
-        eventId={event.id}
-        items={pendingItems}
-        devUnlocked={tunerOpen}
-      />
+          when there is nothing to review. */}
+      <HostReview eventId={event.id} items={pendingItems} />
 
       <EventUploads
         eventId={event.id}
@@ -265,8 +249,6 @@ export default async function EventDetailPage({
         pendingCount={pendingItems.length}
         shareUrl={eventLink}
       />
-
-      {tunerOpen && <MotionTuner controls={EVENT_PAGE_TUNER_CONTROLS} />}
     </div>
   );
 }

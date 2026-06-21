@@ -51,8 +51,12 @@ type OptimisticChange =
   | { type: "status"; id: string; status: "approved" | "hidden" }
   | { type: "remove"; id: string };
 
-function applyChange(items: GridMedia[], change: OptimisticChange): GridMedia[] {
-  if (change.type === "remove") return items.filter((it) => it.id !== change.id);
+function applyChange(
+  items: GridMedia[],
+  change: OptimisticChange,
+): GridMedia[] {
+  if (change.type === "remove")
+    return items.filter((it) => it.id !== change.id);
   return items.map((it) =>
     it.id === change.id ? { ...it, status: change.status } : it,
   );
@@ -66,8 +70,9 @@ type Moderation = {
 // The ONE home for the host moderation actions + their copy/toasts, shared by the tile
 // overlay AND the lightbox curate group (both read the same optimistic items). Each handler
 // applies the optimistic change FIRST (instant), then runs the server action; the intent
-// drives the error copy + the "Hidden from everyone" success toast (Will: fires from BOTH
-// the tile and the lightbox). On failure the optimistic state reverts (useOptimistic).
+// drives the error copy + the "Hidden from everyone" WARNING toast (amber, fires from BOTH
+// the tile and the lightbox - state-colored toast policy: hide = warning, not success).
+// On failure the optimistic state reverts (useOptimistic).
 function useModeration(
   eventId: string,
   applyOptimistic: (change: OptimisticChange) => void,
@@ -94,7 +99,7 @@ function useModeration(
         toast.error(failTitle, { description: result.message });
         return;
       }
-      if (intent === "hide") toast.success("Hidden from everyone");
+      if (intent === "hide") toast.warning("Hidden from everyone");
     });
   };
 

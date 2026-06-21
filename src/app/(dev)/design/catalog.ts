@@ -45,7 +45,9 @@ function sandboxGroups(): LabGroup[] {
         entries: items.map((t) => ({
           href: `/design/c/${t.id}`,
           label: t.title,
-          status: (t.decision !== undefined ? "shipped" : "exploring") as Status,
+          status: (t.decision !== undefined
+            ? "shipped"
+            : "exploring") as Status,
           note: t.note,
         })),
       },
@@ -123,6 +125,12 @@ export const ZONES: LabZone[] = [
       {
         label: "Diagnostics",
         entries: [
+          {
+            href: "/design/motion",
+            label: "Motion tuner",
+            status: "reference",
+            note: "Live-tune the --tune-* motion vars against replayable dummy animations, then bake.",
+          },
           {
             href: "/design/stream-probe",
             label: "Stream probe",

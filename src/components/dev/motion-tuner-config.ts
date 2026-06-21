@@ -104,10 +104,10 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     kind: "range",
     cssVar: "--tune-review-beat-ms",
     label: "All-caught-up beat",
-    min: 400,
-    max: 2000,
+    min: 600,
+    max: 2600,
     step: 50,
     unit: "ms",
-    default: 1100,
+    default: 1800,
   },
 ];
