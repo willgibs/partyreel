@@ -5,6 +5,7 @@ import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-tease
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
+import { HostReview } from "@/components/app/host-review";
 import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 
@@ -15,6 +16,14 @@ import {
 } from "../reference/composition-demos";
 import { RefHeader, RefSection, Spec } from "../reference/reference-ui";
 import { SAMPLE, SAMPLE_BIN, SAMPLE_MEDIA } from "../reference/sample-data";
+
+// A pending set for the review-surface probe (the real grid items are approved/
+// hidden/pending; here we force pending + unique ids to fill the queue).
+const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
+  ...m,
+  id: `pending-${i}`,
+  status: "pending" as const,
+}));
 
 // THE LIVE COMPOSITIONS REFERENCE: the real PRODUCT components, imported from
 // production and rendered from sample props (no DB, no R2). This is the "browse
@@ -180,6 +189,15 @@ export default async function CompositionsPage({
             <RecentlyDeletedGrid eventId="demo" items={SAMPLE_BIN} />
           </Spec>
         </div>
+      </RefSection>
+
+      <RefSection
+        title="Review surface"
+        blurb="The pending review (S3·3b·D): the teaser opens a focused, full-screen review mode with tap-to-select + a bulk bar (Approve / Hide selected, or Approve all). A reliable auth-free HYDRATION probe for the review island; the bulk actions themselves need auth, so they no-op here."
+      >
+        <Spec label="Review teaser + focused mode" hint="tap Review all">
+          <HostReview eventId="demo" items={SAMPLE_PENDING} />
+        </Spec>
       </RefSection>
 
       <p className="mt-10 rounded-xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">

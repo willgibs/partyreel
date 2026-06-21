@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
   approveAllPending,
+  approveBulk,
+  hideBulk,
   purgeMediaNow,
   removeMedia,
   restoreEvent,
@@ -58,6 +60,31 @@ export async function approveAllPendingAction(
   eventId: string,
 ): Promise<ActionResult> {
   const result = await approveAllPending(eventId);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true };
+}
+
+// Bulk approve / hide SELECTED pending items from the review surface (S3·3b·D).
+// Mirror purgeMediaNowAction's array shape: the wrapper is scoped to pending +
+// RLS-gated to the host's event; revalidate on success.
+export async function approveBulkAction(
+  eventId: string,
+  mediaIds: string[],
+): Promise<ActionResult> {
+  const result = await approveBulk(eventId, mediaIds);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true };
+}
+
+export async function hideBulkAction(
+  eventId: string,
+  mediaIds: string[],
+): Promise<ActionResult> {
+  const result = await hideBulk(eventId, mediaIds);
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);

@@ -5,17 +5,7 @@ import { ArrowLeft, Eye, Globe, Images, Lock, Shield, Users } from "lucide-react
 
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
-import {
-  ApproveAllPendingButton,
-  HostMediaGrid,
-} from "@/components/app/host-media-grid";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { HostReview } from "@/components/app/host-review";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -232,29 +222,7 @@ export default async function EventDetailPage({ params }: PageProps) {
       />
 
       {pendingItems.length > 0 && (
-        <Card>
-          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
-            <div className="space-y-1.5">
-              <CardTitle>Pending review</CardTitle>
-              <CardDescription>
-                {pendingItems.length}{" "}
-                {pendingItems.length === 1 ? "item is" : "items are"} waiting
-                for your approval before guests can see them.
-              </CardDescription>
-            </div>
-            <ApproveAllPendingButton
-              eventId={event.id}
-              count={pendingItems.length}
-            />
-          </CardHeader>
-          <CardContent>
-            <HostMediaGrid
-              eventId={event.id}
-              items={pendingItems}
-              shareUrl={eventLink}
-            />
-          </CardContent>
-        </Card>
+        <HostReview eventId={event.id} items={pendingItems} />
       )}
 
       <EventUploads

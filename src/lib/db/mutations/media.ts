@@ -147,6 +147,53 @@ export async function approveAllPending(
 }
 
 /**
+ * Bulk approve / hide SELECTED pending items (the review surface, S3·3b·D). Scoped
+ * to `status='pending'` so it only ever acts on the review queue — a crafted call
+ * can't flip already-approved/hidden/removed media (a general bulk-hide of the live
+ * gallery would drop that predicate). RLS scopes to the host's own event; returns
+ * the affected count (0 is success — the selection may have been cleared elsewhere).
+ */
+async function bulkSetFromPending(
+  eventId: string,
+  mediaIds: string[],
+  status: SettableMediaStatus,
+): Promise<MutationResult<{ count: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data, error } = await supabase
+    .from("media")
+    .update({ status })
+    .eq("event_id", eventId)
+    .in("id", mediaIds)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message:
+        status === "approved"
+          ? "Couldn't approve those items. Please try again."
+          : "Couldn't hide those items. Please try again.",
+    };
+  }
+  return { ok: true, data: { count: data?.length ?? 0 } };
+}
+
+export function approveBulk(eventId: string, mediaIds: string[]) {
+  return bulkSetFromPending(eventId, mediaIds, "approved");
+}
+
+export function hideBulk(eventId: string, mediaIds: string[]) {
+  return bulkSetFromPending(eventId, mediaIds, "hidden");
+}
+
+/**
  * Recovery (Phase 3) — host-facing restore + permanent-delete-now. These call the
  * authenticated, ownership-gated SECURITY DEFINER RPCs (restore_media / restore_event /
  * purge_media_now), which own the capacity + slot gates. The RPCs RETURN a jsonb
