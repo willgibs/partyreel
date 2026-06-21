@@ -59,6 +59,12 @@ increments were ADVERSARIALLY REVIEWED (3 independent lenses each) before ship.
   MCP-injected `--tune-*` can't widen a JS-read motion to ease capture; capture a transient via trigger +
   short `wait` + `screenshot` in ONE `browser_batch` instead. (The "magic"/creative-delight principle was
   encoded into CLAUDE.md + design-system.md earlier, `681c13d`.)
+- **Follow-up fix** (`d5afd0c`): the review teaser + takeover had shipped (since 3b) rendering tiles with
+  `next/image`, whose `/_next/image` optimizer 400s on presigned R2 URLs (no remotePatterns; presigns are
+  short-lived + per-request) AND can't render video — so EVERY review thumbnail was broken. It went unnoticed
+  because the black tiles read as "loading" (the testing-verification trap); Will caught it on a real reload.
+  Fixed to the shared `MediaTile` (plain `<img>` / `<video>` poster) like every other gallery surface;
+  live-verified the teaser + takeover thumbnails now load (R2 200s, video posters + play badges).
 
 ## 2026-06-21 — P5·S3·3b: the gallery-first host event page (`dd476f4` · `f4ed111` · `42677d1` · `9f2eea2` · `026834c` · `47d08f0`)
 

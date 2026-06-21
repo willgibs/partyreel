@@ -156,7 +156,11 @@ does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) 
 teaser opens a **full-screen radix `Dialog`** with tap-to-select + a sticky bulk bar (Approve / Hide the
 selection, or Approve all), optimistic with revert-on-failure — the grid cascades in, acted tiles fade+scale
 out before the list reflows, and clearing the LAST pending plays an "all caught up" beat before it closes
-(see "The event page" → Motion). Mutations: `setMediaStatus` / `removeMedia` /
+(see "The event page" → Motion). **Tiles render via the shared `MediaTile`** (like every gallery: a plain
+`<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the short-lived, per-request
+presigned R2 URLs (it can't fetch them, and can't render video at all). Bug fixed `d5afd0c` after the teaser/
+takeover shipped with `<Image>` and rendered broken (the black tiles read as "loading" — the
+[testing-verification](testing-verification.md) trap). Mutations: `setMediaStatus` / `removeMedia` /
 `approveAllPending` + the bulk pair `approveBulk`/`hideBulk` (scoped to `status='pending'` — the review queue,
 so a crafted call can't flip approved/hidden/removed media). **Remove is soft**
 (`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after the 30-day
