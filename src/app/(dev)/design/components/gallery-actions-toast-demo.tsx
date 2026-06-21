@@ -29,7 +29,7 @@ export function GalleryActionsToastDemo() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => toast.success("Hidden from everyone")}
+          onClick={() => toast.warning("Hidden from everyone")}
         >
           <EyeOff className="size-4 text-warning" /> Hide &middot; &ldquo;from
           everyone&rdquo;
@@ -37,7 +37,7 @@ export function GalleryActionsToastDemo() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => toast.success("Hidden from public view")}
+          onClick={() => toast.warning("Hidden from public view")}
         >
           <EyeOff className="size-4 text-warning" /> Hide &middot; &ldquo;from
           public view&rdquo;

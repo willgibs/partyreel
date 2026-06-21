@@ -182,9 +182,12 @@ plain/info toasts keep the neutral `--normal-*` default. Use the right TYPE for 
 sonner's OWN `[data-sonner-toast][data-type="…"]` with **`!important`** — NOT the `classNames.toast` hook (it
 didn't win): sonner injects a neutral `--normal-bg` rule at runtime (unlayered, non-important) that beat the
 earlier class rule on layer/order, so a more-specific `!important` is required (verified live via the toast's
-computed `backgroundColor` matching the token — confirm the RENDERED color, not just that the rule loaded). (OPEN: a successful DESTRUCTIVE confirmation
-[e.g. "Permanently deleted"] still uses `toast.success` — `toast.error` is red but carries an error icon that
-reads as failure, so red-for-deletions needs a dedicated destructive-confirmation variant, deferred.)
+computed `backgroundColor` matching the token — confirm the RENDERED color, not just that the rule loaded).
+**Red is for FAILURE, full stop** (ratified 2026-06-21): a successful destructive confirmation ("Permanently
+deleted.", "Event deleted", "Removed from saved.") stays `toast.success` (GREEN) — the action succeeded, so it
+reads as a positive completion; `toast.error` (red) is reserved strictly for things that went wrong. So delete
+that worked = green, delete that failed = red. (No separate destructive-confirmation variant; the green-on-
+success convention carries it.)
 
 ## The arrival choreography (Phase 4.5, ratified "Calm + 700ms")
 

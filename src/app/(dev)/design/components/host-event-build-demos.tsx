@@ -73,11 +73,11 @@ export function HostReviewDemo({ mode }: { mode: "inline" | "focused" }) {
     const n = selected.size;
     setPending(remaining);
     setSelected(new Set());
-    toast.success(
-      kind === "approve"
-        ? `Approved ${n} ${n === 1 ? "photo" : "photos"}`
-        : "Hidden from everyone",
-    );
+    // Match the ratified toast policy: approve = green (success), hide = amber
+    // (warning, the canonical soft-caution visibility reduction).
+    if (kind === "approve")
+      toast.success(`Approved ${n} ${n === 1 ? "photo" : "photos"}`);
+    else toast.warning("Hidden from everyone");
     if (remaining.length === 0) setOpen(false);
   }
 
