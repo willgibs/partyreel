@@ -257,10 +257,11 @@ export function HostReview({
       )}
 
       {/* Focused review takeover: a full-screen radix Dialog (S4·A2). Non-modal in dev
-          (devUnlocked) so the motion tuner stays clickable; modal for real hosts. A
-          non-modal radix Dialog does NOT self-close on outside interaction - that's what
-          keeps the tuner clickable WITHOUT bouncing the host out, so do NOT add an
-          onInteractOutside/onPointerDownOutside close handler here. */}
+          (devUnlocked) removes radix's body{pointer-events:none} so the motion tuner is
+          clickable; modal for real hosts. CAVEAT (verified live): a non-modal radix
+          Dialog DOES dismiss on an outside pointerdown - so onInteractOutside below keeps
+          the takeover open when the interaction targets the tuner (else tuning closes it).
+          No-op in prod (modal; the tuner isn't mounted). */}
       <Dialog
         open={open}
         onOpenChange={(o) => {
@@ -279,6 +280,12 @@ export function HostReview({
               e.preventDefault();
               setPreview(null);
             }
+          }}
+          // Don't let interacting with the dev motion tuner dismiss the (non-modal,
+          // dev-only) takeover. The only "outside" of a full-screen takeover is the tuner.
+          onInteractOutside={(e) => {
+            const target = e.detail.originalEvent.target as Element | null;
+            if (target?.closest("[data-motion-tuner]")) e.preventDefault();
           }}
         >
           {caughtUp ? (
