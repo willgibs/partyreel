@@ -44,6 +44,22 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+// Warm the browser cache for just-approved photos so the album reveal paints from cache
+// instead of a cold full-res R2 fetch (the "black squares then 1-2s load" gap). The
+// gallery re-presigns the SAME key in the SAME 30-min bucket (stable presigning), so the
+// <img src> it mounts is byte-identical → a cache HIT. Fire-and-forget; videos use poster
+// fragments (the gallery loads those itself), so we only warm photos. If the URLs ever
+// diverge, this is a harmless no-op and the MediaTile shimmer covers the cold load.
+function preloadPhotos(media: GridMedia[]) {
+  if (typeof window === "undefined") return;
+  for (const m of media) {
+    if (m.type !== "photo") continue;
+    const img = new Image();
+    img.src = m.url;
+    void img.decode?.().catch(() => {});
+  }
+}
+
 /**
  * The pending REVIEW surface (Phase 5 S3·3b·D), ratified form = FOCUSED review mode:
  * a teaser (a faded-edge horizontal strip, shown only when reviews exist) opens a
@@ -145,6 +161,13 @@ export function HostReview({
       kind === "approve"
         ? approveBulkAction(eventId, ids)
         : hideBulkAction(eventId, ids);
+
+    // Approved photos are about to appear in the album when the takeover closes; warm
+    // them during the exit + beat so the reveal paints instantly (vs. a cold reveal).
+    // Hidden items never reach the album, so skip them.
+    if (kind === "approve") {
+      preloadPhotos(snapshot.filter((p) => idSet.has(p.id)));
+    }
 
     // 1) Removal EXIT: the acted tiles fade + scale out, THEN commit the removal
     //    (skipped under reduced motion → instant commit). The JS wait reads the same
@@ -308,8 +331,10 @@ export function HostReview({
                   <ChevronLeft />
                 </Button>
                 <DialogTitle className="text-lg">
-                  Review {pending.length}{" "}
-                  {pending.length === 1 ? "photo" : "photos"}
+                  <span className="font-semibold">Review</span>{" "}
+                  <span className="text-muted-foreground">
+                    {pending.length} {pending.length === 1 ? "photo" : "photos"}
+                  </span>
                 </DialogTitle>
               </div>
 
@@ -397,8 +422,19 @@ export function HostReview({
                   approve-all, only the intentional Select all -> Approve path. */}
               <div className="border-t border-border bg-background px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1 sm:gap-3">
-                    {/* Select all → then deselect the few rejects → Approve. */}
+                  {/* Count stays LEFT; every clickable control groups on the RIGHT. */}
+                  <span
+                    className={`text-sm ${selected.size > 0 ? "font-medium" : "text-muted-foreground"}`}
+                  >
+                    {selected.size > 0
+                      ? `${selected.size} selected`
+                      : "Tap to select"}
+                  </span>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    {/* Select all → then deselect the few rejects → Approve. Grouped with
+                        the action buttons (keep clickable controls together); Hide/Approve
+                        still appear ONLY once something is selected, so a fresh 0-selected
+                        takeover can't approve-everything by accident. */}
                     <Button
                       type="button"
                       variant="ghost"
@@ -414,37 +450,31 @@ export function HostReview({
                     >
                       {allSelected ? "Deselect all" : "Select all"}
                     </Button>
-                    <span
-                      className={`text-sm ${selected.size > 0 ? "font-medium" : "text-muted-foreground"}`}
-                    >
-                      {selected.size > 0
-                        ? `${selected.size} selected`
-                        : "Tap to select"}
-                    </span>
+                    {selected.size > 0 && (
+                      <div
+                        data-settings-reveal
+                        className="flex items-center gap-2"
+                      >
+                        {/* The count in each label tells the host exactly how many they're
+                            actioning; "(All)" when the whole queue is selected. */}
+                        <Button
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => run("hide", [...selected])}
+                        >
+                          <EyeOff className="text-warning" /> Hide (
+                          {allSelected ? "All" : selected.size})
+                        </Button>
+                        <Button
+                          disabled={busy}
+                          onClick={() => run("approve", [...selected])}
+                        >
+                          <Check /> Approve (
+                          {allSelected ? "All" : selected.size})
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  {/* Actions appear ONLY once something is selected - "Select all" is
-                      the intentional path to act on everything, so there's no
-                      accidental approve-everything from a fresh, 0-selected takeover. */}
-                  {selected.size > 0 && (
-                    <div
-                      data-settings-reveal
-                      className="flex items-center gap-2"
-                    >
-                      <Button
-                        variant="outline"
-                        disabled={busy}
-                        onClick={() => run("hide", [...selected])}
-                      >
-                        <EyeOff className="text-warning" /> Hide
-                      </Button>
-                      <Button
-                        disabled={busy}
-                        onClick={() => run("approve", [...selected])}
-                      >
-                        <Check /> Approve
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
             </>

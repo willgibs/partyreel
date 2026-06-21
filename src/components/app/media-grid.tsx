@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { PlayBadge } from "@/components/shared/play-badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -86,18 +87,28 @@ export function MediaTile({
 
   if (item.type === "photo") {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-      <img
-        ref={imgRef}
-        src={item.url}
-        alt=""
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        className={cn(
-          "size-full object-cover transition-opacity duration-300 ease-out",
-          loaded ? "opacity-100" : "opacity-0",
+      // A shimmer skeleton fills the tile until the photo decodes, then the photo fades
+      // in over it (the parent clips with overflow-hidden, so no extra rounding here).
+      // A cold presigned R2 fetch (full-res, no thumbnail variant) thus reads as
+      // shimmer -> photo, never a black square that pops. Reduced motion: Skeleton drops
+      // to a static muted block (motion-reduce:animate-none) + the opacity-only swap.
+      <span className="relative block size-full">
+        {!loaded && (
+          <Skeleton className="absolute inset-0 size-full rounded-none" />
         )}
-      />
+        {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
+        <img
+          ref={imgRef}
+          src={item.url}
+          alt=""
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          className={cn(
+            "relative size-full object-cover transition-opacity duration-300 ease-out",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+        />
+      </span>
     );
   }
   return (
