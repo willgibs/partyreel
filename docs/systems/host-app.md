@@ -187,11 +187,16 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
 [design-system](design-system.md) action colors). **Desktop:** the full suite (approve/hide/unhide/remove
-+ download + add-to-reel (approved-only) + like). Like + Reel get a colored STROKE on hover + a FILL when
-active (liked rose / in-reel violet). **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]`
-hook: width + margin → 0) so the persistent chips (liked / in-reel / hidden marker) pack neatly to the right
-edge, then SLIDE back to their interleaved slots on tile hover (the row uses per-chip margin, not gap, so a
-collapsed chip leaves no gap; reduced-motion = opacity-only, no slide). **Mobile:** the row is `hidden
++ download + add-to-reel (approved-only) + like). Like/Reel get a full-brightness colored STROKE on hover +
+a SUBTLE fill (`/25`) when active (liked rose / in-reel violet / hidden amber) so the outline stays legible.
+**At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]` hook: width + margin → 0) so the
+persistent chips (liked / in-reel / hidden marker) pack neatly to the right edge, then SLIDE back to their
+interleaved slots on tile hover (the row uses per-chip margin, not gap, so a collapsed chip leaves no gap).
+The hook is **`!important`** (it lives in `@layer base` but the chips' own Tailwind transition + `ml-1` are
+in the higher `utilities` layer, which silently killed the slide + the margin-collapse) and keys the expand
+on `:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a MOUSE click doesn't leave
+a chip stuck-expanded (keyboard focus still reveals). Reduced-motion = opacity-only, no slide. **Mobile:** the
+row is `hidden
 md:flex` — only Like + Download stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
 kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
 carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
@@ -209,14 +214,17 @@ invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 ## Reel curation (R1 SHIPPED) + the highlight reel (generation tabled)
 
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
-curated set in a new **Reel tab**. The event page now has **Uploads | Reel** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
-`?eventTab=`, `resolveInitialEventTab` resolving the SSR default so the host page hydrates cleanly; HostReview's
-pending teaser stays ABOVE the tabs - the Reviews tab is a later round). The layer MIRRORS likes: a
+curated set in a new **Reel tab**. The event page has **Gallery | Reel** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
+the `line` underline variant - no grey box; each label carries a subtle muted **`(N)` count** that scales to
+future surfaces (Reviews / Guests); `?eventTab=`, `resolveInitialEventTab` resolving the SSR default so the
+host page hydrates cleanly). Tab content is **bare** (no card wrapper/heading - the label carries the name +
+count). HostReview's pending teaser stays ABOVE the tabs (the Reviews tab is a later round). The layer
+MIRRORS likes: a
 `reel_items(event_id, media_id, position, added_at)` join table (host-scoped SELECT+DELETE RLS, grant-locked,
 insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel is a host-RLS delete from the
 browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx);
 optimistic, insertion-ordered Set, client-direct, NO signed-out branch - shared across BOTH tabs so an add in
-Uploads reflects instantly in the Reel tab), and a `ReelButton` (a `Clapperboard` in the `--reel` VIOLET,
+the Gallery reflects instantly in the Reel tab), and a `ReelButton` (a `Clapperboard` in the `--reel` VIOLET,
 distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group. Curation is
 FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no Reel tab on
 `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key` remain DEAD

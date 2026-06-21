@@ -150,7 +150,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   an additive column. Phasing (each shippable, Pro-gated where it monetizes): P1 public profile + Pro
   `/u/[slug]` + the `display_in_profile` config + attribution-as-profile-link + the disable-downloads
   public album; P2 `user_follows` (any→any, a `saved_events` clone) + the event guest list (signed-in
-  uploaders, derivable today); P3 a dashboard "Following" filter-chip → a profiles grid; P4 (v2) a social
+  uploaders, derivable today) — surface it as a **"Guests (N)" event-page tab** (the same tab pattern as
+  Gallery/Reel; "must upload to become a guest," sortable by upload count to encourage contributions — a
+  motivation behind the require-account-to-upload default, Will 2026-06-21); P3 a dashboard "Following"
+  filter-chip → a profiles grid; P4 (v2) a social
   feed (DEPENDS on the Notification overhaul above) + discovery. THE one-way-door risk (why a dedicated
   research round, not an interleave): a public profile + guest lists open a CONSENT/privacy surface — a
   guest may not want to be listed/followable → OPT-IN discoverability (a per-user `discoverable` flag; the

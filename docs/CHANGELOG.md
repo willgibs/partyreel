@@ -46,6 +46,17 @@ Built to MIRROR the proven likes system end-to-end; green-gated (489 tests) → 
   (the `[data-reveal-chip]` hook — width+margin → 0, row switched gap→margin) so the persistent chips don't
   float with awkward gaps, then **slide back** to their interleaved slots on tile hover (reduced-motion =
   opacity-only). Verified live (at-rest collapse + hover-expand via computed widths; the feel handed to Will).
+- **Tabs redesign + animation fix (Will's 2nd review, `ddd13d7`):** the stack/slide had shipped BROKEN - no
+  transition (my `[data-reveal-chip]` rules sat in `@layer base`, but the chips' own Tailwind
+  transition/`ml-1` are in the higher `utilities` layer, which silently won) and a stuck-expanded tile after a
+  mouse click (tile-wide `:focus-within` held it). Fixed: `!important` to beat the layer + fold color/transform
+  into the transition; expand on `:hover`/`:focus-visible`/`:has(:focus-visible)` (a mouse click gives `:focus`
+  but not `:focus-visible`, so nothing sticks). Active fills softened to a `/25` fill + full stroke (was a
+  solid fill that hid the outline), extended to the hidden marker. And the layout: the **Uploads tab →
+  Gallery**, **per-tab Card wrappers + headings removed** (bare grid), the **item count moved into a subtle
+  muted `(N)` tab label** (scales to future Reviews / Guests), and the tabs switched to the **`line` underline
+  variant** (no more double grey box). Verified live (transition now includes max-width; active fill computes
+  `oklab(… / 0.25)`; counts + line tabs render).
 
 ## 2026-06-21 — P5·S5: review-takeover polish + smoother album reveal + require-accounts free/default-on (`24e3fa7` · `4b75705` · `cddba33`)
 

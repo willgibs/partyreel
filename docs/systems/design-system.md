@@ -31,8 +31,9 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   action-color system (P5 S3·3c) is UNIVERSAL** (guest + host; only the action SET differs — guests have no
   hide/approve/delete/reel): one color per action everywhere it appears (like=rose, save/download=blue,
   hide/show=amber, approve=green, delete=red, add-to-reel=violet), for recognizability + legible state.
-  Emil rule: **monochrome at rest → color on direct icon-hover + active state** (liked = filled rose;
-  in-reel = violet `Clapperboard`); native `title` tooltips. Lives on the gallery tiles + the shared lightbox
+  Emil rule: **monochrome at rest → full-brightness colored STROKE on direct icon-hover + a SUBTLE `/25`
+  FILL on the active state** (so the outline stays legible: liked rose, in-reel violet, hidden amber); native
+  `title` tooltips. Lives on the gallery tiles + the shared lightbox
   pill; brand stays mono (color is punctuation). (`--reel` hue + the icon are PROVISIONAL pending Will's
   ratification.) → [host-app.md](host-app.md) for the action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
@@ -98,8 +99,12 @@ reads as shimmer→photo, never a black square that pops; reduced motion drops t
 host-review takeover pairs this with a preload of the just-approved photos during the all-caught-up beat so
 the album reveal paints from cache (see [host-app.md](host-app.md)). The host tile action row uses the
 **`[data-reveal-chip]`** hook (globals.css): hover-reveal chips collapse their width + margin at rest so the
-persistent chips (liked / in-reel / hidden) pack to the right edge, then slide back on tile hover (the row
-is margin-spaced, not gap, so no residual gap; reduced-motion = opacity-only, no slide).
+persistent chips (liked / in-reel / hidden) pack to the right edge, then slide back on tile hover (the row is
+margin-spaced, not gap, so no residual gap; reduced-motion = opacity-only). **GOTCHA:** the hook is
+`!important` because it lives in `@layer base` but the chips carry their own Tailwind `transition`/`ml-1` in
+the higher `utilities` layer (which silently overrode it = no slide, residual gaps); and it expands on
+`:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a mouse click doesn't leave a
+chip stuck-expanded after the cursor leaves.
 
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on
