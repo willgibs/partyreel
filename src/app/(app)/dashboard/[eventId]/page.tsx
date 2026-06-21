@@ -251,8 +251,13 @@ export default async function EventDetailPage({
       {/* Always mounted (NOT gated on pendingItems.length): HostReview owns its own
           close lifecycle - the A3 success beat + the radix close-exit need the Dialog
           to survive the revalidation that empties pendingItems. It renders nothing
-          when there is nothing to review. */}
-      <HostReview eventId={event.id} items={pendingItems} />
+          when there is nothing to review. devUnlocked = the design gate is open, so the
+          takeover renders non-modal and the dev motion tuner stays clickable over it. */}
+      <HostReview
+        eventId={event.id}
+        items={pendingItems}
+        devUnlocked={tunerOpen}
+      />
 
       <EventUploads
         eventId={event.id}

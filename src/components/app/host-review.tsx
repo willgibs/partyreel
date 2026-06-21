@@ -1,7 +1,14 @@
 "use client";
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, EyeOff } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  EyeOff,
+  Play,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -40,8 +47,11 @@ function prefersReducedMotion(): boolean {
 /**
  * The pending REVIEW surface (Phase 5 S3·3b·D), ratified form = FOCUSED review mode:
  * a teaser (a faded-edge horizontal strip, shown only when reviews exist) opens a
- * full-screen takeover with tap-to-select + a sticky bulk bar (Hide / Approve the
- * selection, or Approve all).
+ * full-screen takeover. It's a functional triage tool (denser than the experiential
+ * album): a dense grid with tap-to-select, **Select all** (so the host can select
+ * everything then deselect the few rejects), per-video **preview** (▶ opens an
+ * in-takeover <video controls> - you can't judge a video from a poster), and a sticky
+ * bulk bar (Hide / Approve the selection, or Approve all).
  *
  * Optimistic: approve/hide remove the items from the local list (the 3c.2 lesson:
  * lead with immediate feedback), then the bulk action runs + revalidates; a failure
@@ -49,30 +59,39 @@ function prefersReducedMotion(): boolean {
  * revalidate (or a new pending upload), without clobbering an in-flight optimistic
  * state.
  *
- * Motion (S4·A2/A3): the takeover is a full-screen radix Dialog (radix owns the
- * focus-trap, scroll-lock, Escape). The pending grid CASCADES in via
- * [data-review-tile] (--tile-i). On approve/hide the acted tiles fade + scale OUT
- * ([data-exiting]) BEFORE the list reflows (the "system responding" beat), and when
- * the LAST pending clears, an "all caught up" success beat ([data-unlock-success])
- * plays before the takeover closes. All timings are tunable via the S4·0 motion tuner
- * (run() reads the same CSS vars the styles use, so JS + CSS stay in lockstep), and
- * all of it degrades to instant under prefers-reduced-motion.
+ * Motion (S4·A2/A3): the takeover is a full-screen radix Dialog. The pending grid
+ * CASCADES in via [data-review-tile] (--tile-i). On approve/hide the acted tiles fade
+ * + scale OUT ([data-exiting]) BEFORE the list reflows (the "system responding" beat),
+ * and when the LAST pending clears, an "all caught up" success beat
+ * ([data-unlock-success]) plays before the takeover closes. All timings are tunable via
+ * the S4·0 motion tuner (run() reads the same CSS vars the styles use), reduced-motion
+ * degrades to instant.
  *
- * LIFECYCLE: this stays mounted whenever the parent renders the event page (the
- * parent does NOT gate on pendingItems.length) so HostReview owns its OWN close
- * lifecycle - the success beat + the radix close-exit need the Dialog to survive the
- * revalidation that empties pendingItems. It renders nothing when there's nothing to
- * review.
+ * MODAL: the takeover is modal for real hosts (focus-trap + scroll-lock). But a modal
+ * radix Dialog sets `body { pointer-events: none }`, which would make the body-portaled
+ * dev motion tuner unclickable - so when the design gate is open (`devUnlocked`, dev
+ * only) it renders NON-modal so the tuner stays interactive (and the tuner's flip-corner
+ * clears the Approve button). Real hosts never hit this path.
+ *
+ * LIFECYCLE: this stays mounted whenever the parent renders the event page (the parent
+ * does NOT gate on pendingItems.length) so HostReview owns its OWN close lifecycle - the
+ * beat + the radix close-exit need the Dialog to survive the revalidation that empties
+ * pendingItems. It renders nothing when there's nothing to review.
  *
  * Hydration-safe: one client island, native `title`, NO radix Tooltip on tiles (the
- * regression cause, architecture.md).
+ * regression cause, architecture.md). Tiles render via the shared MediaTile (plain
+ * <img>/<video> poster) - NEVER next/image (its optimizer 400s on presigned R2 URLs).
  */
 export function HostReview({
   eventId,
   items,
+  devUnlocked = false,
 }: {
   eventId: string;
   items: GridMedia[];
+  // The design gate is open (dev `?key=`). Renders the takeover non-modal so the
+  // body-portaled motion tuner stays clickable. Never set for real hosts.
+  devUnlocked?: boolean;
 }) {
   const [pending, setPending] = useState<GridMedia[]>(items);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -80,6 +99,8 @@ export function HostReview({
   const [caughtUp, setCaughtUp] = useState(false);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The video being previewed in the in-takeover player overlay (null = none).
+  const [preview, setPreview] = useState<GridMedia | null>(null);
   // Which action drove the all-caught-up beat, so it reads right for HIDE (neutral)
   // vs APPROVE (success-green) - hiding the last junk shouldn't look like an approval.
   const [beatKind, setBeatKind] = useState<"approve" | "hide">("approve");
@@ -105,6 +126,8 @@ export function HostReview({
     setPending(items);
     setSelected(new Set());
     setExiting(new Set());
+    // Drop a preview whose item was reconciled away (its presigned URL is stale).
+    if (preview && !items.some((i) => i.id === preview.id)) setPreview(null);
   }
 
   function toggle(id: string) {
@@ -190,6 +213,7 @@ export function HostReview({
   }
 
   const allIds = pending.map((p) => p.id);
+  const allSelected = pending.length > 0 && selected.size === pending.length;
 
   return (
     <>
@@ -232,13 +256,30 @@ export function HostReview({
         </section>
       )}
 
-      {/* Focused review takeover: a full-screen radix Dialog (S4·A2). radix owns the
-          focus-trap / scroll-lock / Escape; the grid cascades in on open. */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Focused review takeover: a full-screen radix Dialog (S4·A2). Non-modal in dev
+          (devUnlocked) so the motion tuner stays clickable; modal for real hosts. A
+          non-modal radix Dialog does NOT self-close on outside interaction - that's what
+          keeps the tuner clickable WITHOUT bouncing the host out, so do NOT add an
+          onInteractOutside/onPointerDownOutside close handler here. */}
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) setPreview(null); // never let a preview leak across opens
+        }}
+        modal={!devUnlocked}
+      >
         <DialogContent
           fullScreen
           showCloseButton={false}
           aria-describedby={undefined}
+          // Escape closes the video preview first (if open), not the whole takeover.
+          onEscapeKeyDown={(e) => {
+            if (preview) {
+              e.preventDefault();
+              setPreview(null);
+            }
+          }}
         >
           {caughtUp ? (
             // The all-caught-up success beat (S4·A3): when the LAST pending item
@@ -283,15 +324,16 @@ export function HostReview({
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {/* Denser than the album by design (a functional triage tool): more
+                    columns = less cursor travel to select each tile (Will, S4 notes). */}
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                   {pending.map((it, i) => {
                     const isSelected = selected.has(it.id);
                     return (
-                      <button
+                      // A DIV, not a button: it holds sibling buttons (select layer +,
+                      // for video, a centered preview ▶) - buttons can't nest.
+                      <div
                         key={it.id}
-                        type="button"
-                        onClick={() => toggle(it.id)}
-                        aria-pressed={isSelected}
                         data-review-tile
                         // --tile-i drives the OPEN cascade only ([data-review-tile]
                         // @starting-style fires on mount). The removal EXIT uses a
@@ -300,14 +342,40 @@ export function HostReview({
                         // never makes them ripple.
                         data-exiting={exiting.has(it.id) ? "" : undefined}
                         style={{ "--tile-i": i } as CSSProperties}
-                        className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)]"
                       >
-                        <MediaTile item={it} />
+                        <MediaTile item={it} playBadge="none" />
+
+                        {/* Select layer: a tap anywhere toggles selection. The video
+                            ▶ below sits above this and captures the center. */}
+                        <button
+                          type="button"
+                          onClick={() => toggle(it.id)}
+                          aria-pressed={isSelected}
+                          aria-label={isSelected ? "Deselect" : "Select"}
+                          className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                        />
+
+                        {/* Video preview: a centered ▶ (above the select layer) opens
+                            the in-takeover player - a poster frame isn't enough to
+                            judge what you're approving. */}
+                        {it.type === "video" && (
+                          <button
+                            type="button"
+                            onClick={() => setPreview(it)}
+                            aria-label="Preview video"
+                            className="absolute top-1/2 left-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition-colors outline-none hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-white"
+                          >
+                            <Play className="size-5 translate-x-px fill-current" />
+                          </button>
+                        )}
+
+                        {/* Selection overlay + checkmark (visual only, never block clicks). */}
                         <span
-                          className={`absolute inset-0 transition-colors ${isSelected ? "bg-black/40" : "bg-black/0"}`}
+                          className={`pointer-events-none absolute inset-0 transition-colors ${isSelected ? "bg-black/40" : "bg-black/0"}`}
                         />
                         <span
-                          className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border-2 transition-colors"
+                          className="pointer-events-none absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border-2 transition-colors"
                           style={
                             isSelected
                               ? {
@@ -327,27 +395,50 @@ export function HostReview({
                             />
                           )}
                         </span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Sticky bulk bar. The row re-keys on the 0<->some-selected SWAP only
-                  (not per count change), so [data-settings-reveal] gives a gentle
-                  crossfade when the action set appears/clears - never on every tap. */}
+              {/* Sticky bulk bar. The left (Select all + count) stays MOUNTED - only the
+                  right ACTION cluster re-keys on the 0<->some-selected swap, so
+                  [data-settings-reveal] gently crossfades Approve-all<->Hide/Approve
+                  without flickering or stealing focus from the always-present Select all. */}
               <div className="border-t border-border bg-background px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-                <div
-                  key={selected.size > 0 ? "has-selection" : "no-selection"}
-                  data-settings-reveal
-                  className="flex items-center justify-between gap-3"
-                >
-                  {selected.size > 0 ? (
-                    <>
-                      <span className="text-sm font-medium">
-                        {selected.size} selected
-                      </span>
-                      <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1 sm:gap-3">
+                    {/* Select all → then deselect the few rejects → Approve. */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() =>
+                        setSelected(
+                          allSelected
+                            ? new Set()
+                            : new Set(pending.map((p) => p.id)),
+                        )
+                      }
+                    >
+                      {allSelected ? "Deselect all" : "Select all"}
+                    </Button>
+                    <span
+                      className={`text-sm ${selected.size > 0 ? "font-medium" : "text-muted-foreground"}`}
+                    >
+                      {selected.size > 0
+                        ? `${selected.size} selected`
+                        : "Tap to select"}
+                    </span>
+                  </div>
+                  <div
+                    key={selected.size > 0 ? "has-selection" : "no-selection"}
+                    data-settings-reveal
+                    className="flex items-center gap-2"
+                  >
+                    {selected.size > 0 ? (
+                      <>
                         <Button
                           variant="outline"
                           disabled={busy}
@@ -361,24 +452,45 @@ export function HostReview({
                         >
                           <Check /> Approve
                         </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-sm text-muted-foreground">
-                        Tap photos to select
-                      </span>
+                      </>
+                    ) : (
                       <Button
                         disabled={busy}
                         onClick={() => run("approve", allIds)}
                       >
                         <Check /> Approve all {pending.length}
                       </Button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </>
+          )}
+
+          {/* In-takeover video preview overlay (rendered INSIDE the Dialog, so no
+              nested-Dialog focus conflict). Backdrop or ✕ closes; Escape too (above). */}
+          {preview && (
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center bg-black/95"
+              onClick={() => setPreview(null)}
+            >
+              <video
+                src={preview.url}
+                controls
+                autoPlay
+                playsInline
+                onClick={(e) => e.stopPropagation()}
+                className="max-h-[85vh] max-w-[92vw] rounded-md"
+              />
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                aria-label="Close preview"
+                className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
           )}
         </DialogContent>
       </Dialog>
