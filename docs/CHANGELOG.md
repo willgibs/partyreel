@@ -57,6 +57,15 @@ Built to MIRROR the proven likes system end-to-end; green-gated (489 tests) → 
   muted `(N)` tab label** (scales to future Reviews / Guests), and the tabs switched to the **`line` underline
   variant** (no more double grey box). Verified live (transition now includes max-width; active fill computes
   `oklab(… / 0.25)`; counts + line tabs render).
+- **Tile-action reorder (Will's 3rd review, `fa2f590`):** the old order put Hide far-LEFT inside a moderation
+  sub-group, so hiding reshuffled the row (the reel chip dropped from the MIDDLE and the hide affordance jumped
+  to a separate marker). New FIXED order, left → right: `reel, like, download, hide/show, delete` (beneficial
+  curation first, danger last). reel rides the far LEFT so hiding (which drops the item from the approved-only
+  reel) collapses the LEADING chip without shuffling the rest; hide/show is now ONE slot (EyeOff approved /
+  persistent amber Eye hidden) so toggling swaps the glyph in place. Dropped the dead per-tile Approve (pending
+  lives in the review takeover, never the album/reel grid). Verified live: order confirmed; added a tile to the
+  reel then hid it - the violet reel chip dropped from the far left while like/download/show/delete held their
+  exact positions (no shuffle); amber "Hidden from everyone" toast; clean reset (reel back to 0; no console errors).
 
 ## 2026-06-21 — P5·S5: review-takeover polish + smoother album reveal + require-accounts free/default-on (`24e3fa7` · `4b75705` · `cddba33`)
 

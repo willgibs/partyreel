@@ -186,8 +186,12 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 **The gallery-action model (P5 S3·3c, cross-surface).** The host gallery is the shared `MasonryColumns`;
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
-[design-system](design-system.md) action colors). **Desktop:** the full suite (approve/hide/unhide/remove
-+ download + add-to-reel (approved-only) + like). Like/Reel get a full-brightness colored STROKE on hover +
+[design-system](design-system.md) action colors). **Desktop:** a FIXED left→right order
+`reel, like, download, hide/show, delete` (beneficial curation first, danger last). reel (approved-only) rides
+the FAR LEFT so hiding an item, which drops it from the reel, collapses the LEADING chip without shuffling the
+rest; and hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in
+place. (No per-tile Approve: pending media lives in the review takeover above the tabs, never this album/reel
+grid; the bulk path is `ApproveAllPendingButton`.) Like/Reel get a full-brightness colored STROKE on hover +
 a SUBTLE fill (`/25`) when active (liked rose / in-reel violet / hidden amber) so the outline stays legible.
 **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]` hook: width + margin → 0) so the
 persistent chips (liked / in-reel / hidden marker) pack neatly to the right edge, then SLIDE back to their
@@ -197,7 +201,7 @@ in the higher `utilities` layer, which silently killed the slide + the margin-co
 on `:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a MOUSE click doesn't leave
 a chip stuck-expanded (keyboard focus still reveals). Reduced-motion = opacity-only, no slide. **Mobile:** the
 row is `hidden
-md:flex` — only Like + Download stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
+md:flex` — only reel + Like + Download (and the persistent hidden marker) stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
 kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
 carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
 gated `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical** (it just gains the same
