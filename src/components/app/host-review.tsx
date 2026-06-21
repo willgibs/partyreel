@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, EyeOff } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +8,7 @@ import {
   approveBulkAction,
   hideBulkAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
-import { type GridMedia } from "@/components/app/media-grid";
+import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
@@ -220,13 +219,7 @@ export function HostReview({
                   aria-label="Open review"
                   className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-[var(--radius-tile)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Image
-                    src={it.url}
-                    alt=""
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
+                  <MediaTile item={it} />
                 </button>
               ))}
             </div>
@@ -309,13 +302,7 @@ export function HostReview({
                         style={{ "--tile-i": i } as CSSProperties}
                         className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Image
-                          src={it.url}
-                          alt=""
-                          fill
-                          sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 45vw"
-                          className="object-cover"
-                        />
+                        <MediaTile item={it} />
                         <span
                           className={`absolute inset-0 transition-colors ${isSelected ? "bg-black/40" : "bg-black/0"}`}
                         />
