@@ -386,6 +386,33 @@
     }
   }
 
+  /* ROUTE CROSSFADE (Phase 5 S3·3b): the host event page <-> its /settings route
+     feel like a soft view transition WITHOUT the experimental View Transitions API
+     (the project defers experimental — see architecture.md). Each route root mounts
+     with data-route-fade; @starting-style fires once on the mount -> opacity + a
+     small rise, so the arriving route eases in instead of snapping. Whole-page (no
+     stagger), shorter than [data-arrive] since it's a navigation beat, not a first
+     paint. Reduced motion = fade only, no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-route-fade] {
+      transition:
+        opacity 220ms var(--ease-emphasis),
+        transform 220ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-route-fade] {
+      transition: opacity 180ms ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
   /* THE REVEAL (Phase 4.5 S5): when the password/account gate clears, the
      locked branch unmounts and the header's byline/stats/description/actions
      MOUNT fresh, so @starting-style fires once for exactly them - they rise in

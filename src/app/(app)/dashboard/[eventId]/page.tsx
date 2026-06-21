@@ -3,20 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Eye } from "lucide-react";
 
-import { CopyShareLink } from "@/components/app/copy-share-link";
-import { EventQr } from "@/components/app/event-qr";
-import { EventSlugControl } from "@/components/app/event-slug-control";
-import { QrDesignerDialog } from "@/components/app/qr-designer-dialog";
-import { EventSettingsForm } from "@/components/app/event-settings-form";
 import { EventUploads } from "@/components/app/event-uploads";
+import { HostCommandStrip } from "@/components/app/host-command-strip";
 import {
   ApproveAllPendingButton,
   HostMediaGrid,
 } from "@/components/app/host-media-grid";
-import {
-  RecentlyDeletedGrid,
-  type BinMedia,
-} from "@/components/app/recently-deleted-grid";
 import {
   Card,
   CardContent,
@@ -24,10 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import {
   DEFAULT_TIER,
-  isSettingLocked,
   toBillingTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
@@ -36,7 +26,7 @@ import { getEvent } from "@/lib/db/queries/events";
 import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
-import { listEventMedia, listRecentlyDeletedMedia } from "@/lib/db/queries/media";
+import { listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
@@ -58,6 +48,11 @@ export async function generateMetadata({
   return { title: event ? event.name : "Event" };
 }
 
+// The host event page, gallery-first (Phase 5 S3·3b): the gallery IS the page
+// under a minimal header + a Share-primary command strip, mirroring the guest
+// experience. Settings + the Deleted bin live on the /settings route; the QR
+// designer rides with the Share dialog. (B enriches the header into the editorial
+// status row; C adds the floating + command Add; D adds the review teaser.)
 export default async function EventDetailPage({ params }: PageProps) {
   const { eventId } = await params;
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
@@ -65,28 +60,26 @@ export default async function EventDetailPage({ params }: PageProps) {
   // event resolves to null, which we treat as a 404 (no leaking existence).
   if (!event) notFound();
 
-  // Tier gates the settings form (e.g. requiring an account is paid-only). The (app)
-  // layout already gated on getUser(), so profile is the signed-in host's.
+  // Tier gates uploads (videos are paid-only). The (app) layout already gated on
+  // getUser(), so profile is the signed-in host's.
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
-  // Build the guest-facing absolute URLs server-side. The tokens are the
-  // capability (ADR-0004); they come straight from the row the DB generated.
+  // The guest-facing absolute URL — the qr_token IS the capability (ADR-0004),
+  // straight from the row. One link per event (ADR-0010): the command strip's
+  // Share encodes it.
   const siteUrl = await getSiteUrl();
-  // One link per event (ADR-00010): the QR encodes it, and the host shares it.
   const eventLink = `${siteUrl}/e/${event.qr_token}`;
 
   // Live gallery — presign each object key server-side (never expose raw keys).
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
-  // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a curation signal shown as a
-  // subtle per-tile badge; it never reaches a guest surface.
-  const [media, linkStats, deletedMedia, uploaderIdentities, likeCounts] =
-    await Promise.all([
-      listEventMedia(event.id),
-      getLinkStats(event.id),
-      listRecentlyDeletedMedia(event.id),
-      getUploaderIdentities(event.id),
-      getEventLikeCounts(event.id),
-    ]);
+  // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a
+  // curation signal shown as a subtle per-tile badge; never on a guest surface.
+  const [media, linkStats, uploaderIdentities, likeCounts] = await Promise.all([
+    listEventMedia(event.id),
+    getLinkStats(event.id),
+    getUploaderIdentities(event.id),
+    getEventLikeCounts(event.id),
+  ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
@@ -103,8 +96,8 @@ export default async function EventDetailPage({ params }: PageProps) {
           }),
         }),
       ]);
-      // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that includes email
-      // (for identifying a guest); guest surfaces never carry it.
+      // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that
+      // includes email (for identifying a guest); guest surfaces never carry it.
       const who = uploaderIdentities.get(m.id);
       return {
         id: m.id,
@@ -117,30 +110,13 @@ export default async function EventDetailPage({ params }: PageProps) {
         isAnonymous: who?.isAnonymous ?? false,
         uploaderEmail: who?.email ?? null,
         likeCount: likeCounts.get(m.id) ?? 0,
-        // Natural geometry for the masonry layout (S3·3a). Null on pre-measure
-        // rows -> the grid falls back to 1:1 (no CLS). Rides OUTSIDE any ETag.
+        // Natural geometry for the masonry (S3·3a). Null on pre-measure rows ->
+        // the grid falls back to 1:1 (no CLS). Rides OUTSIDE any ETag.
         width: m.width,
         height: m.height,
         durationSeconds: m.duration_seconds,
       };
     }),
-  );
-
-  // The event's "Recently deleted" bin: presign INLINE only (no download url -> the lightbox hides
-  // Save; no original-file download from the bin). countdownDays is computed in the query (keeps
-  // the page render-pure — no Date.now() in RSC render; react-hooks/purity).
-  const deletedItems: BinMedia[] = await Promise.all(
-    deletedMedia.map(async (m) => ({
-      id: m.id,
-      type: m.type,
-      url: await presignDownload({ key: m.original_key, stable: true }),
-      status: m.status,
-      countdownDays: m.countdownDays,
-      // Dims for the bin masonry (S3·3a); 1:1 fallback when null.
-      width: m.width,
-      height: m.height,
-      durationSeconds: m.duration_seconds,
-    })),
   );
 
   // Partition for the host view: hold_for_approval uploads arrive as 'pending'
@@ -152,8 +128,9 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // One "views" metric now (the album/join split is gone); sum keeps historical counts.
   const views = linkStats.qrScans + linkStats.albumViews;
-  // Config-aware: what a guest experiences with the link (visibility + accounts + uploads). Shares the
-  // single-source helper with the settings form's live preview, so the two never drift.
+  // Config-aware: what a guest experiences with the link (visibility + accounts +
+  // uploads). Shares the single-source helper with the settings form's live
+  // preview, so the two never drift. (B folds this into the editorial header.)
   const accessLine = guestExperienceSummary({
     visibility: event.visibility,
     accountRequired: !event.allow_anonymous_uploads,
@@ -161,7 +138,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="space-y-8">
+    <div data-route-fade className="space-y-8">
       <div className="space-y-4">
         <Link
           href="/dashboard"
@@ -169,59 +146,29 @@ export default async function EventDetailPage({ params }: PageProps) {
         >
           <ArrowLeft className="size-4" /> Back to events
         </Link>
-        <div>
+        <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             {event.name}
           </h1>
-          {event.event_date && (
-            <p className="text-sm text-muted-foreground">
-              {formatEventDate(event.event_date)}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Share with guests</CardTitle>
-          <CardDescription>
-            Print or display the QR, or send guests the link. One link does it
-            all.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col items-center gap-3">
-            <EventQr
-              joinUrl={eventLink}
-              eventName={event.name}
-              style={resolveQrPreset(event.qr_style)}
-            />
-            <QrDesignerDialog
-              eventId={event.id}
-              joinUrl={eventLink}
-              current={event.qr_style}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground">
-              Permanent link
-            </p>
-            <CopyShareLink url={eventLink} />
-          </div>
-          <EventSlugControl
-            eventId={event.id}
-            siteUrl={siteUrl}
-            slug={event.custom_slug}
-            locked={isSettingLocked("custom_slug", tier)}
-            eventName={event.name}
-          />
-          <p className="text-sm text-muted-foreground">{accessLine}</p>
+          <p className="text-sm text-muted-foreground">
+            {event.event_date && (
+              <>{formatEventDate(event.event_date)} · </>
+            )}
+            {accessLine}
+          </p>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Eye className="size-3.5" />
             {views} {views === 1 ? "view" : "views"}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <HostCommandStrip
+        eventId={event.id}
+        eventName={event.name}
+        joinUrl={eventLink}
+        qrStyle={event.qr_style}
+      />
 
       {pendingItems.length > 0 && (
         <Card>
@@ -256,24 +203,6 @@ export default async function EventDetailPage({ params }: PageProps) {
         videosAllowed={videosAllowedForTier(tier)}
         shareUrl={eventLink}
       />
-
-      {deletedItems.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Deleted</CardTitle>
-            <CardDescription>
-              {deletedItems.length}{" "}
-              {deletedItems.length === 1 ? "item" : "items"} you removed.
-              Restore anything within 30 days, or delete it permanently now.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RecentlyDeletedGrid eventId={event.id} items={deletedItems} />
-          </CardContent>
-        </Card>
-      )}
-
-      <EventSettingsForm event={event} tier={tier} />
     </div>
   );
 }
