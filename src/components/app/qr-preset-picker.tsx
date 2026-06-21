@@ -25,8 +25,14 @@ export function QrPresetPicker({
   onChange,
   joinUrl,
 }: QrPresetPickerProps) {
+  // 2-up. A viewport `sm:grid-cols-4` forced 4 columns into the ~460px QR designer
+  // dialog on desktop, overflowing the fixed 96px previews into a clipped band
+  // (P5 S3·3b). A 2x2 grid fits any container the picker lands in. If a WIDER
+  // consumer (the create wizard) later wants 4-across, gate it on a CONTAINER query
+  // (@container + @2xl:grid-cols-4), never a viewport breakpoint: the dialog is
+  // narrow even when the viewport is wide.
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3">
       {QR_STYLE_KEYS.map((key) => {
         const preset = QR_PRESETS[key];
         const selected = key === value;
