@@ -38,6 +38,14 @@ Built to MIRROR the proven likes system end-to-end; green-gated (489 tests) → 
   correct; no console errors. The `--reel` hue + the `Clapperboard` icon are PROVISIONAL pending Will's
   ratification. DEFERRED: Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder,
   guest-facing surfacing, multiple reels, the generation worker.
+- **Follow-up polish (Will's review, `847ac9c` · `f96c320`):** Like + Reel gained a colored STROKE on hover
+  + a FILL on active (they only had an active color before); fixed a DUPLICATE host heart (the masonry tile
+  LikeButton + the overlay row LikeButton stacked → a darker "double-wrapped" chip; suppress the tile one for
+  the host via `!viewerIsHost`); `cursor-pointer` on every action chip (only the Download `<a>` had it). And
+  the signature emil bit: at rest the hover-reveal chips now **collapse + stack neatly off the right edge**
+  (the `[data-reveal-chip]` hook — width+margin → 0, row switched gap→margin) so the persistent chips don't
+  float with awkward gaps, then **slide back** to their interleaved slots on tile hover (reduced-motion =
+  opacity-only). Verified live (at-rest collapse + hover-expand via computed widths; the feel handed to Will).
 
 ## 2026-06-21 — P5·S5: review-takeover polish + smoother album reveal + require-accounts free/default-on (`24e3fa7` · `4b75705` · `cddba33`)
 

@@ -96,7 +96,10 @@ stutters at the loop point). **`MediaTile` (every gallery tile) renders the shim
 until it decodes, then fades the photo in over it (S5 P1)** — a cold presigned-R2 load (no thumbnail variant)
 reads as shimmer→photo, never a black square that pops; reduced motion drops to a static muted block. The
 host-review takeover pairs this with a preload of the just-approved photos during the all-caught-up beat so
-the album reveal paints from cache (see [host-app.md](host-app.md)).
+the album reveal paints from cache (see [host-app.md](host-app.md)). The host tile action row uses the
+**`[data-reveal-chip]`** hook (globals.css): hover-reveal chips collapse their width + margin at rest so the
+persistent chips (liked / in-reel / hidden) pack to the right edge, then slide back on tile hover (the row
+is margin-spaced, not gap, so no residual gap; reduced-motion = opacity-only, no slide).
 
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on

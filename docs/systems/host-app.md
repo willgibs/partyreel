@@ -187,8 +187,12 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
 [design-system](design-system.md) action colors). **Desktop:** the full suite (approve/hide/unhide/remove
-+ download + add-to-reel (approved-only) + like). **Mobile:** the row is `hidden md:flex` — only Like +
-Download stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
++ download + add-to-reel (approved-only) + like). Like + Reel get a colored STROKE on hover + a FILL when
+active (liked rose / in-reel violet). **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]`
+hook: width + margin → 0) so the persistent chips (liked / in-reel / hidden marker) pack neatly to the right
+edge, then SLIDE back to their interleaved slots on tile hover (the row uses per-chip margin, not gap, so a
+collapsed chip leaves no gap; reduced-motion = opacity-only, no slide). **Mobile:** the row is `hidden
+md:flex` — only Like + Download stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
 kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
 carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
 gated `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical** (it just gains the same
