@@ -89,6 +89,7 @@
   --color-like: var(--like);
   --color-save: var(--save);
   --color-save-foreground: var(--save-foreground);
+  --color-reel: var(--reel);
 
   /* Media-first gallery surface — always dark so photos/videos are the hero. */
   --color-gallery: var(--gallery);
@@ -203,6 +204,9 @@
      across the app, used as the ICON color on direct hover, never a brand wash. */
   --save: oklch(0.55 0.17 252);
   --save-foreground: oklch(0.99 0 0);
+  /* reel/curation = a NON-state action hue (violet): the host's "add to the highlight reel"
+     signal, distinct from like-rose + save-blue. Used as the ICON color when in-reel / on hover. */
+  --reel: oklch(0.62 0.2 300);
 
   /* Elevation: the floating layer's one shadow family (blur = 2x offset,
      single top light source). Dark mode zeroes it (see .dark). */
@@ -259,6 +263,7 @@
   --like: oklch(0.68 0.2 15);
   --save: oklch(0.72 0.15 252);
   --save-foreground: oklch(0.13 0 0);
+  --reel: oklch(0.72 0.18 300);
 
   /* Dark mode has NO shadows; an invisible value keeps the utility valid. */
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);

@@ -14,6 +14,14 @@ import {
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostReview } from "@/components/app/host-review";
+import { ReelPanel } from "@/components/app/reel-panel";
+import { ReelProvider } from "@/components/reel/reel-provider";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -24,7 +32,9 @@ import { getEvent } from "@/lib/db/queries/events";
 import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
+import { listReelItems } from "@/lib/db/queries/reel";
 import { listEventMedia } from "@/lib/db/queries/media";
+import { resolveInitialEventTab } from "@/lib/event/tabs";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
@@ -38,6 +48,7 @@ export const dynamic = "force-dynamic";
 // Next 16: params is a Promise — await it.
 type PageProps = {
   params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ eventTab?: string }>;
 };
 
 export async function generateMetadata({
@@ -53,8 +64,13 @@ export async function generateMetadata({
 // experience. Settings + the Deleted bin live on the /settings route; the QR
 // designer rides with the Share dialog. (B enriches the header into the editorial
 // status row; C adds the floating + command Add; D adds the review teaser.)
-export default async function EventDetailPage({ params }: PageProps) {
+export default async function EventDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { eventId } = await params;
+  const { eventTab } = await searchParams;
+  const initialTab = resolveInitialEventTab(eventTab);
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
@@ -74,12 +90,14 @@ export default async function EventDetailPage({ params }: PageProps) {
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
   // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a
   // curation signal shown as a subtle per-tile badge; never on a guest surface.
-  const [media, linkStats, uploaderIdentities, likeCounts] = await Promise.all([
-    listEventMedia(event.id),
-    getLinkStats(event.id),
-    getUploaderIdentities(event.id),
-    getEventLikeCounts(event.id),
-  ]);
+  const [media, linkStats, uploaderIdentities, likeCounts, reelIds] =
+    await Promise.all([
+      listEventMedia(event.id),
+      getLinkStats(event.id),
+      getUploaderIdentities(event.id),
+      getEventLikeCounts(event.id),
+      listReelItems(event.id),
+    ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
@@ -243,12 +261,34 @@ export default async function EventDetailPage({ params }: PageProps) {
           when there is nothing to review. */}
       <HostReview eventId={event.id} items={pendingItems} />
 
-      <EventUploads
-        eventId={event.id}
-        items={visibleItems}
-        pendingCount={pendingItems.length}
-        shareUrl={eventLink}
-      />
+      {/* The ReelProvider wraps BOTH tabs (it's the shared client source of truth for reel
+          membership), so adding from Uploads reflects instantly in the Reel tab. Reviews stays a
+          later round - HostReview's pending teaser/takeover lives ABOVE the tabs for now. Tab
+          content is client-island (the grids) fed by props the RSC resolved up front, so the
+          host page hydrates cleanly (architecture.md). */}
+      <ReelProvider eventId={event.id} initialReelIds={reelIds}>
+        <Tabs defaultValue={initialTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="uploads">Uploads</TabsTrigger>
+            <TabsTrigger value="reel">Reel</TabsTrigger>
+          </TabsList>
+          <TabsContent value="uploads">
+            <EventUploads
+              eventId={event.id}
+              items={visibleItems}
+              pendingCount={pendingItems.length}
+              shareUrl={eventLink}
+            />
+          </TabsContent>
+          <TabsContent value="reel">
+            <ReelPanel
+              eventId={event.id}
+              items={visibleItems}
+              shareUrl={eventLink}
+            />
+          </TabsContent>
+        </Tabs>
+      </ReelProvider>
     </div>
   );
 }

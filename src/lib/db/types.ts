@@ -560,6 +560,42 @@ export type Database = {
         }
         Relationships: []
       }
+      reel_items: {
+        Row: {
+          added_at: string
+          event_id: string
+          media_id: string
+          position: number
+        }
+        Insert: {
+          added_at?: string
+          event_id: string
+          media_id: string
+          position?: number
+        }
+        Update: {
+          added_at?: string
+          event_id?: string
+          media_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_items_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -760,6 +796,7 @@ export type Database = {
         }
         Returns: Json
       }
+      add_to_reel: { Args: { p_media_id: string }; Returns: Json }
       capture_guest_email: {
         Args: {
           p_email: string

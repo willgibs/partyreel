@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
+import { ReelButton } from "@/components/reel/reel-button";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
@@ -802,6 +803,11 @@ export function MediaLightbox({
                           aria-hidden
                           className="h-5 w-px shrink-0 bg-white/20"
                         />
+                        {/* Add to reel (host curation, approved-only): violet clapperboard
+                            when in-reel. No-op without a ReelProvider. */}
+                        {current.status === "approved" && (
+                          <ReelButton item={current} variant="lightbox" />
+                        )}
                         {current.status === "pending" && (
                           <ActionTooltip label="Approve">
                             <button

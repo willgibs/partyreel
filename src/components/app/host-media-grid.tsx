@@ -11,6 +11,7 @@ import {
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
+import { ReelButton } from "@/components/reel/reel-button";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
 import {
@@ -225,6 +226,13 @@ function HostTileOverlay({
           >
             <Download className="size-4" />
           </a>
+        )}
+
+        {/* Add to reel (host curation): grouped with the editorial actions, BEFORE Like.
+            APPROVED-only (you curate visible media into the reel). Violet clapperboard when
+            in-reel. No-op without a ReelProvider (guest galleries + the pending-review grid). */}
+        {item.status === "approved" && (
+          <ReelButton item={item} variant="row" />
         )}
 
         {/* Like: FAR-RIGHT, persists when liked (a host like = a normal like). No-op
