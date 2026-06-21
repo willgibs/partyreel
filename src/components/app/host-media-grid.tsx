@@ -140,72 +140,52 @@ function HostTileOverlay({
       />
 
       {/* Per-chip margin (NOT gap) so a collapsed hover-reveal chip leaves no residual gap and the
-          persistent chips (hidden marker / in-reel / liked) pack neatly to the right edge at rest. */}
+          persistent chips (in-reel / liked / hidden marker) pack neatly to the right edge at rest.
+          Order, left -> right: reel, like, download, hide/show, delete - beneficial curation first,
+          danger last. reel rides the FAR LEFT so hiding an item (which drops it from the reel, since
+          the reel is approved-only) collapses the LEADING chip without shuffling the rest; and
+          hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling the state
+          swaps the glyph in place and never makes the control jump position.
+          (No per-tile Approve: pending media lives in the review takeover above the tabs, never the
+          album/reel grid this overlay paints - the bulk Approve is ApproveAllPendingButton.) */}
       <div className="absolute top-1.5 right-1.5 z-10 flex items-center">
-        {/* Moderation: DESKTOP-only hover-reveal. Mobile: gone (hide/remove → lightbox).
-            data-reveal-chip collapses the whole sub-group at rest (4rem holds its ≤2 chips). */}
-        <div
-          data-reveal-chip
-          className="ml-1 hidden items-center gap-1 transition-opacity duration-150 ease-emphasis [--reveal-max:4rem] md:flex md:opacity-0 md:group-hover:opacity-100"
-        >
-          {status === "pending" && (
-            <button
-              type="button"
-              aria-label="Approve"
-              title="Approve"
-              className={cn(ACTION_BASE, "hover:text-success")}
-              onClick={() => setStatus(item, "approved")}
-            >
-              <Check className="size-4" />
-            </button>
-          )}
-          {(status === "pending" || status === "approved") && (
-            <button
-              type="button"
-              aria-label="Hide"
-              title="Hide"
-              className={cn(ACTION_BASE, "hover:text-warning")}
-              onClick={() => setStatus(item, "hidden")}
-            >
-              <EyeOff className="size-4" />
-            </button>
-          )}
+        {/* 1. Add to reel (host curation): APPROVED-only, far left. Violet clapperboard when in-reel,
+            hover-reveal otherwise. No-op without a ReelProvider (guest galleries + the review grid). */}
+        {item.status === "approved" && <ReelButton item={item} variant="row" />}
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <button
-                type="button"
-                aria-label="Remove"
-                title="Remove"
-                className={cn(ACTION_BASE, "hover:text-destructive")}
-              >
-                <Trash2 className="size-4" />
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Remove this item?</DialogTitle>
-                <DialogDescription>
-                  It disappears from the album right away and is permanently
-                  deleted after a short grace period. Guests won&rsquo;t see it.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button variant="destructive" onClick={() => remove(item)}>
-                    Remove
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* 2. Like: a host like is a normal like; persists when liked. No-op without a LikesProvider. */}
+        <LikeButton item={item} variant="row" />
 
-        {/* HIDDEN marker: a PERSISTENT amber Show (mobile + off-hover, like the liked
-            heart) — the unmistakable "hidden from guests" state + a 1-tap show. */}
+        {/* 3. Download (save the original): mobile-visible, desktop hover-reveal; blue on hover. */}
+        {item.downloadUrl && (
+          <a
+            href={item.downloadUrl}
+            download
+            aria-label="Save"
+            title="Save"
+            data-reveal-chip
+            className={cn(ACTION_BASE, "ml-1 hover:text-save")}
+          >
+            <Download className="size-4" />
+          </a>
+        )}
+
+        {/* 4. Hide / Show - ONE slot so the control never jumps. Approved => Hide (DESKTOP
+            hover-reveal; on mobile it moves to the lightbox). Hidden => a PERSISTENT amber Show
+            (off-hover + mobile, like the liked heart): the unmistakable "hidden from guests" state
+            + a 1-tap show atop the 30% dim. The subtle /25 fill keeps the outline crisp. */}
+        {status === "approved" && (
+          <button
+            type="button"
+            aria-label="Hide"
+            title="Hide"
+            data-reveal-chip
+            className={cn(ACTION_BASE, "ml-1 hidden hover:text-warning md:flex")}
+            onClick={() => setStatus(item, "hidden")}
+          >
+            <EyeOff className="size-4" />
+          </button>
+        )}
         {status === "hidden" && (
           <button
             type="button"
@@ -218,33 +198,43 @@ function HostTileOverlay({
           </button>
         )}
 
-        {/* Download (save the original): mobile-visible, desktop hover-reveal; blue on hover. */}
-        {item.downloadUrl && (
-          <a
-            href={item.downloadUrl}
-            download
-            aria-label="Save"
-            title="Save"
-            data-reveal-chip
-            className={cn(
-              ACTION_BASE,
-              "ml-1 opacity-100 hover:text-save focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
-            )}
-          >
-            <Download className="size-4" />
-          </a>
-        )}
-
-        {/* Add to reel (host curation): grouped with the editorial actions, BEFORE Like.
-            APPROVED-only (you curate visible media into the reel). Violet clapperboard when
-            in-reel. No-op without a ReelProvider (guest galleries + the pending-review grid). */}
-        {item.status === "approved" && (
-          <ReelButton item={item} variant="row" />
-        )}
-
-        {/* Like: FAR-RIGHT, persists when liked (a host like = a normal like). No-op
-            without a LikesProvider (e.g. the pending-review grid). */}
-        <LikeButton item={item} variant="row" />
+        {/* 5. Delete (danger, far right): DESKTOP hover-reveal; on mobile it moves to the lightbox.
+            The confirm Dialog mirrors the lightbox remove. */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              aria-label="Remove"
+              title="Remove"
+              data-reveal-chip
+              className={cn(
+                ACTION_BASE,
+                "ml-1 hidden hover:text-destructive md:flex",
+              )}
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remove this item?</DialogTitle>
+              <DialogDescription>
+                It disappears from the album right away and is permanently
+                deleted after a short grace period. Guests won&rsquo;t see it.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button variant="destructive" onClick={() => remove(item)}>
+                  Remove
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
