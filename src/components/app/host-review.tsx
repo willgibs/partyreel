@@ -334,7 +334,10 @@ export function HostReview({
                           }
                         >
                           {isSelected && (
-                            <Check className="size-3.5 text-white" />
+                            <Check
+                              data-check-pop
+                              className="size-3.5 text-white"
+                            />
                           )}
                         </span>
                       </button>
@@ -343,9 +346,15 @@ export function HostReview({
                 </div>
               </div>
 
-              {/* Sticky bulk bar. */}
+              {/* Sticky bulk bar. The row re-keys on the 0<->some-selected SWAP only
+                  (not per count change), so [data-settings-reveal] gives a gentle
+                  crossfade when the action set appears/clears - never on every tap. */}
               <div className="border-t border-border bg-background px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-                <div className="flex items-center justify-between gap-3">
+                <div
+                  key={selected.size > 0 ? "has-selection" : "no-selection"}
+                  data-settings-reveal
+                  className="flex items-center justify-between gap-3"
+                >
                   {selected.size > 0 ? (
                     <>
                       <span className="text-sm font-medium">

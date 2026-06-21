@@ -81,7 +81,10 @@ export function HostCommandStrip({
       </div>
 
       {adding && (
-        <div className="mt-3 rounded-xl border border-border bg-muted/30 p-4">
+        <div
+          data-settings-reveal
+          className="mt-3 rounded-xl border border-border bg-muted/30 p-4"
+        >
           <p className="mb-3 text-sm text-muted-foreground">
             {videosAllowed
               ? "Add your own photos and videos, for example a batch from your photographer. These post to the album right away."

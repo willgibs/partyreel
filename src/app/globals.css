@@ -357,6 +357,47 @@
     }
   }
 
+  /* CHECKMARK MICRO-POP (S4·A4): a selection check scales + fades IN when it mounts
+     (the review select tiles + the QR preset picker). Small + fast tactile
+     confirmation - an occasional micro-feedback. @starting-style on mount; reduced
+     motion = fade only, no scale. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-check-pop] {
+      transition:
+        opacity 130ms var(--ease-emphasis),
+        transform 130ms var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-check-pop] {
+      transition: opacity 120ms ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
+  /* QR PRESET STAGGER (S4·A4): the preset swatches cascade in when the QR designer
+     opens (each carries --arrive-i). A keyframe (NOT a transition) so it doesn't
+     clobber the swatch's transition-colors hover; `both` holds the pre-entrance state
+     through the stagger delay. The global reduced-motion clamp makes it instant. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-preset-arrive] {
+      animation: preset-arrive 240ms var(--ease-emphasis) both;
+      animation-delay: calc(var(--arrive-i, 0) * 45ms);
+    }
+  }
+  @keyframes preset-arrive {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
   /* Contact form success message fades + rises in when it replaces the form
      (the shared FormCard shell stays put, so only the inner content settles).
      Mirrors the [data-media-tile] entrance above: strong --ease-emphasis curve,

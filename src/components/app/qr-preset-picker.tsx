@@ -1,5 +1,6 @@
 "use client";
 
+import { type CSSProperties } from "react";
 import { Check } from "lucide-react";
 
 import {
@@ -33,7 +34,7 @@ export function QrPresetPicker({
   // narrow even when the viewport is wide.
   return (
     <div className="grid grid-cols-2 gap-3">
-      {QR_STYLE_KEYS.map((key) => {
+      {QR_STYLE_KEYS.map((key, i) => {
         const preset = QR_PRESETS[key];
         const selected = key === value;
         return (
@@ -42,6 +43,10 @@ export function QrPresetPicker({
             type="button"
             onClick={() => onChange(key)}
             aria-pressed={selected}
+            // Cascade in when the designer opens (S4·A4): each swatch carries its
+            // index for the stagger (a keyframe, so transition-colors stays intact).
+            data-preset-arrive
+            style={{ "--arrive-i": i } as CSSProperties}
             className={cn(
               "relative flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center transition-colors",
               selected
@@ -54,7 +59,10 @@ export function QrPresetPicker({
             </div>
             <span className="text-xs font-medium">{preset.label}</span>
             {selected && (
-              <span className="absolute top-1.5 right-1.5 rounded-full bg-brand p-0.5 text-brand-foreground">
+              <span
+                data-check-pop
+                className="absolute top-1.5 right-1.5 rounded-full bg-brand p-0.5 text-brand-foreground"
+              >
                 <Check className="size-3" />
               </span>
             )}
