@@ -67,4 +67,25 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     options: EASING_OPTIONS,
     default: "cubic-bezier(0.23, 1, 0.32, 1)",
   },
+  // A2 — the focused-review takeover open cascade ([data-review-tile] in globals.css).
+  {
+    kind: "range",
+    cssVar: "--tune-review-tile-ms",
+    label: "Review tile enter",
+    min: 120,
+    max: 400,
+    step: 10,
+    unit: "ms",
+    default: 240,
+  },
+  {
+    kind: "range",
+    cssVar: "--tune-review-stagger-ms",
+    label: "Review tile stagger",
+    min: 10,
+    max: 90,
+    step: 5,
+    unit: "ms",
+    default: 40,
+  },
 ];

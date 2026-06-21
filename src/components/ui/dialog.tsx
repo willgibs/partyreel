@@ -51,20 +51,37 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  fullScreen = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  // fullScreen = an edge-to-edge takeover (e.g. the host review surface): a flex
+  // column that fills the viewport, entering on a fade + slight RISE (never the
+  // centered zoom - a whole-screen zoom reads wrong). Still gets radix's focus
+  // trap, scroll-lock, and Escape for free. Pair with showCloseButton={false} +
+  // your own header close.
+  fullScreen?: boolean
 }) {
   return (
     <DialogPortal>
-      <DialogOverlay />
+      {/* fullScreen content is opaque + edge-to-edge, so an overlay behind it is
+          never seen - it would only burn a full-viewport backdrop-blur every frame
+          (costly on phones, the host's device) and peek at the edges during the
+          slide-out. Omit it there; radix's focus-trap / scroll-lock / dismiss live
+          on Content, not the Overlay. */}
+      {!fullScreen && <DialogOverlay />}
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          // Floating layer: rounded-float + the single shadow family (resolves
-          // to none in dark; the lighter popover surface carries depth there).
-          // Enter 200ms / exit 150ms on the emphasis curve - exits faster.
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-float bg-popover p-4 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:duration-150",
+          fullScreen
+            ? // Takeover: fill the screen, fade + a small rise in (8px), exit
+              // faster (200ms / 150ms, emphasis). bg-background so it's opaque
+              // over the page; the children own the header / scroll / footer rows.
+              "fixed inset-0 z-50 flex flex-col bg-background duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-2 data-closed:duration-150"
+            : // Floating layer: rounded-float + the single shadow family (resolves
+              // to none in dark; the lighter popover surface carries depth there).
+              // Enter 200ms / exit 150ms on the emphasis curve - exits faster.
+              "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-float bg-popover p-4 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:duration-150",
           className
         )}
         {...props}

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import {
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * The pending REVIEW surface (Phase 5 S3·3b·D), ratified form = FOCUSED review mode:
@@ -25,8 +26,10 @@ import { Button } from "@/components/ui/button";
  * optimistic state (the parent RSC only re-renders on revalidate/nav).
  *
  * Hydration-safe: one client island, native `title`, NO radix Tooltip on tiles (the
- * regression cause, architecture.md). The takeover is a custom fixed overlay (not a
- * radix Dialog) since it's full-screen, with its own Escape + body-scroll-lock.
+ * regression cause, architecture.md). The takeover is a full-screen radix Dialog
+ * (S4·A2): radix owns the focus-trap, body-scroll-lock, and Escape; the shell fades
+ * + rises in (DialogContent fullScreen), and the pending grid CASCADES in via
+ * [data-review-tile] (--tile-i), both tunable through the S4·0 motion tuner.
  */
 export function HostReview({
   eventId,
@@ -52,21 +55,14 @@ export function HostReview({
     setSelected(new Set());
   }
 
-  // Body scroll lock + Escape, while the takeover is open.
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
+  // Empty -> unmount the whole surface (teaser + Dialog). NOTE: run() also sets
+  // open=false when it clears the LAST pending item, so on the approve-all /
+  // last-item path THIS unmount is what closes the takeover - an INSTANT close (no
+  // radix exit animation) BY DESIGN, so the host never sees an empty-grid "Review 0
+  // photos" flash mid-slide-out. The Dialog's fade+slide EXIT thus plays only on the
+  // items-remaining close (Escape / the back chevron). A3 (task #19) replaces this
+  // instant close with an "all caught up" success beat that keeps the Dialog mounted
+  // through the close, restoring both the exit animation and focus return there.
   if (pending.length === 0) return null;
 
   function toggle(id: string) {
@@ -153,9 +149,14 @@ export function HostReview({
         </div>
       </section>
 
-      {/* Focused review takeover. */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      {/* Focused review takeover: a full-screen radix Dialog (S4·A2). radix owns
+          the focus-trap / scroll-lock / Escape; the grid cascades in on open. */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          fullScreen
+          showCloseButton={false}
+          aria-describedby={undefined}
+        >
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <Button
               variant="ghost"
@@ -165,15 +166,15 @@ export function HostReview({
             >
               <ChevronLeft />
             </Button>
-            <h2 className="text-lg font-semibold">
+            <DialogTitle className="text-lg">
               Review {pending.length}{" "}
               {pending.length === 1 ? "photo" : "photos"}
-            </h2>
+            </DialogTitle>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {pending.map((it) => {
+              {pending.map((it, i) => {
                 const isSelected = selected.has(it.id);
                 return (
                   <button
@@ -181,6 +182,14 @@ export function HostReview({
                     type="button"
                     onClick={() => toggle(it.id)}
                     aria-pressed={isSelected}
+                    data-review-tile
+                    // --tile-i drives the OPEN cascade only ([data-review-tile]
+                    // @starting-style fires on mount). It re-indexes after an
+                    // optimistic removal (survivors keep their key, so no re-anim
+                    // today). A3 WARNING: a future removal-EXIT transition on these
+                    // tiles must NOT key off this shifting index, or survivors will
+                    // ripple on removal - pin/zero it post-open instead.
+                    style={{ "--tile-i": i } as CSSProperties}
                     className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Image
@@ -251,8 +260,8 @@ export function HostReview({
               )}
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
