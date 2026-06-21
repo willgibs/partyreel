@@ -10,7 +10,6 @@
  */
 import "server-only";
 
-import { isSettingLocked, toBillingTier } from "@/lib/constants/tiers";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -58,31 +57,6 @@ export async function createEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
-
-  // Tier gate (defense-in-depth). Turning OFF anonymous uploads (require an account to upload) is
-  // paid-only. The create wizard doesn't expose it and the enforce_event_pro_gates DB trigger is
-  // the hard backstop, but if it ever reaches createEvent on Free, return a friendly message
-  // instead of a raw trigger error.
-  if (values.allow_anonymous_uploads === false) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("tier")
-      .eq("id", user.id)
-      .single();
-    if (
-      isSettingLocked(
-        "allow_anonymous_uploads",
-        toBillingTier(profile?.tier ?? "free"),
-      )
-    ) {
-      return {
-        ok: false,
-        code: "limit_reached",
-        message:
-          "Requiring an account to upload is available on paid plans. Upgrade to enable it.",
-      };
-    }
-  }
 
   // NEVER set qr_token: the DB default generates the unguessable capability token.
   // Empty strings normalize to null for the nullable columns.
@@ -132,29 +106,6 @@ export async function updateEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
-
-  // Tier gate (defense-in-depth — the settings UI also disables this toggle on Free). Turning OFF
-  // anonymous uploads (require an account) is paid-only; never trust the client to honor the lock.
-  if (values.allow_anonymous_uploads === false) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("tier")
-      .eq("id", user.id)
-      .single();
-    if (
-      isSettingLocked(
-        "allow_anonymous_uploads",
-        toBillingTier(profile?.tier ?? "free"),
-      )
-    ) {
-      return {
-        ok: false,
-        code: "limit_reached",
-        message:
-          "Requiring an account to upload is available on paid plans. Upgrade to enable it.",
-      };
-    }
-  }
 
   // Only patch keys that were provided (updateEventSchema is partial). Nullable
   // text columns take null when cleared.

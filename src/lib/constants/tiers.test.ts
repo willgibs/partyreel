@@ -116,10 +116,9 @@ describe("toBillingTier (DB tier_type → billing Tier)", () => {
 });
 
 describe("isSettingLocked (tier-gated event settings)", () => {
-  it("locks allow_anonymous_uploads on Free, unlocks on paid tiers", () => {
-    expect(isSettingLocked("allow_anonymous_uploads", "free")).toBe(true);
-    expect(isSettingLocked("allow_anonymous_uploads", "pro")).toBe(false);
-    expect(isSettingLocked("allow_anonymous_uploads", "event_pass")).toBe(false);
+  it("does NOT gate allow_anonymous_uploads (free + default-on, opt-in anon)", () => {
+    // Require-accounts is no longer a Pro feature, so it isn't in GATED_EVENT_SETTINGS.
+    expect([...GATED_EVENT_SETTINGS]).not.toContain("allow_anonymous_uploads");
   });
   it("locks password on Free, unlocks on paid tiers", () => {
     expect(isSettingLocked("password", "free")).toBe(true);
@@ -132,11 +131,7 @@ describe("isSettingLocked (tier-gated event settings)", () => {
     expect(isSettingLocked("custom_slug", "event_pass")).toBe(false);
   });
   it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
-    expect([...GATED_EVENT_SETTINGS]).toEqual([
-      "allow_anonymous_uploads",
-      "password",
-      "custom_slug",
-    ]);
+    expect([...GATED_EVENT_SETTINGS]).toEqual(["password", "custom_slug"]);
   });
 });
 

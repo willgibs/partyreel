@@ -190,17 +190,17 @@ export function plansForTier(tier: Tier): Plan[] {
 
 /**
  * Host event-settings gated to paid tiers (locked + an upgrade hint on Free):
- * `allow_anonymous_uploads` (turning it OFF to require an account to upload),
- * `password` (password-protected albums), and `custom_slug` (a custom /e/[slug] link).
+ * `password` (password-protected albums) and `custom_slug` (a custom /e/[slug] link).
  * Add more here as they become tier-gated. ("Locked" = `tier === "free"`, so paid tiers —
  * pro + event_pass — all have them.) Note: locked only blocks CREATE/CHANGE; a downgraded host
  * keeps the existing artifact and can still REMOVE it (see EventPasswordControl / clear_event_slug).
+ *
+ * NOTE: "Require accounts to upload" (`allow_anonymous_uploads`) was previously gated here but is now
+ * FREE for any tier and DEFAULT-ON (safety + guest-email capture grows the platform; anon uploads
+ * capture no emails, so free events seeded no new account-holders). It's an opt-in-anon toggle now,
+ * not a Pro feature.
  */
-export const GATED_EVENT_SETTINGS = [
-  "allow_anonymous_uploads",
-  "password",
-  "custom_slug",
-] as const;
+export const GATED_EVENT_SETTINGS = ["password", "custom_slug"] as const;
 export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];
 
 export function isSettingLocked(

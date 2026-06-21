@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import type { HostEvent } from "@/lib/db/queries/events";
@@ -10,6 +11,7 @@ import type {
   UpdateEventInput,
   UpdateEventValues,
 } from "@/lib/validation/event";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,6 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   FormControl,
   FormDescription,
@@ -32,11 +43,9 @@ import { Switch } from "@/components/ui/switch";
 // change) + the read-only video status. Consumes the shared form via useFormContext.
 export function UploadsSection({
   event,
-  anonLocked,
   videosAllowed,
 }: {
   event: HostEvent;
-  anonLocked: boolean;
   videosAllowed: boolean;
 }) {
   const { control } = useFormContext<
@@ -44,6 +53,9 @@ export function UploadsSection({
     unknown,
     UpdateEventValues
   >();
+  // Opt-in-anon confirmation: turning OFF "Require accounts to upload" opens uploads to
+  // anyone with the link, so we confirm the consequences before applying it.
+  const [confirmAnonOpen, setConfirmAnonOpen] = useState(false);
 
   // Live "what your guests will experience" summary — recomputed as the host flips the
   // access toggles (visibility/password + accounts + uploads). Shares one source with
@@ -153,35 +165,61 @@ export function UploadsSection({
           control={control}
           name="allow_anonymous_uploads"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <FormLabel>Require guest accounts</FormLabel>
-                <FormDescription>
-                  When on, guests create a free account to see the full gallery
-                  and add photos (a few previews show first). Off lets anyone
-                  with the link view and add anonymously.
-                  {anonLocked && (
-                    <>
-                      {" "}
-                      <Link
-                        href="/pricing"
-                        className="font-medium text-foreground underline underline-offset-4"
-                      >
-                        Upgrade to require an account
-                      </Link>
-                      .
-                    </>
-                  )}
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={!field.value}
-                  onCheckedChange={(checked) => field.onChange(!checked)}
-                  disabled={anonLocked}
-                />
-              </FormControl>
-            </FormItem>
+            <>
+              <FormItem className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <FormLabel>Require accounts to upload</FormLabel>
+                  <FormDescription>
+                    On (recommended): guests verify a free account to see the
+                    full gallery and add photos (a few previews show first), so
+                    every upload is tied to an email. Off lets anyone with the
+                    link view and add anonymously.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  {/* checked = "require accounts" = !allow_anonymous_uploads. Turning it
+                      OFF (allowing anonymous) is the consequential direction → confirm
+                      first; turning it back ON is instant. */}
+                  <Switch
+                    checked={!field.value}
+                    onCheckedChange={(checked) => {
+                      if (checked) field.onChange(false);
+                      else setConfirmAnonOpen(true);
+                    }}
+                  />
+                </FormControl>
+              </FormItem>
+
+              {/* Spell out the consequences before opening uploads to anyone with the
+                  link. Cancel leaves the switch on (the field never changes). */}
+              <Dialog open={confirmAnonOpen} onOpenChange={setConfirmAnonOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Allow anonymous uploads?</DialogTitle>
+                    <DialogDescription>
+                      Anyone with the link will be able to add photos without
+                      creating an account. Their uploads won&rsquo;t be tied to a
+                      verified email, so abuse is harder to trace and you
+                      won&rsquo;t capture contributors. You can turn this back on
+                      anytime.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Keep accounts required</Button>
+                    </DialogClose>
+                    <Button
+                      onClick={() => {
+                        field.onChange(true);
+                        setConfirmAnonOpen(false);
+                      }}
+                    >
+                      Allow anyone to upload
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
         />
         {/* Live "what your guests will experience" line — re-keyed so it crossfades on each change. */}
