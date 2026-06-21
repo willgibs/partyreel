@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -29,6 +29,9 @@ type EventSettingsFormProps = {
   // never the bcrypt hash.
   event: HostEvent;
   tier: Tier;
+  // Reports the form's dirty state UP to the navigation guard (S4·C). Optional so the
+  // form still works standalone (e.g. tests / other mounts).
+  onDirtyChange?: (dirty: boolean) => void;
 };
 
 /**
@@ -45,7 +48,11 @@ type EventSettingsFormProps = {
  * (isSettingLocked) flow down as props; the bare open->password save is blocked
  * here (passwordSelectedWithoutHash) AND server-side (defense-in-depth).
  */
-export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
+export function EventSettingsForm({
+  event,
+  tier,
+  onDirtyChange,
+}: EventSettingsFormProps) {
   const [isSaving, startSaving] = useTransition();
 
   // Tier-gated settings: locked controls are disabled with an upgrade hint. The
@@ -80,6 +87,14 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
   const passwordSelectedWithoutHash =
     visibility === "password" && !event.has_password;
 
+  // Read isDirty in render so RHF's formState proxy subscribes (re-render on change),
+  // then report it UP to the navigation guard. form.reset() on a successful save flips
+  // it false, which clears the guard.
+  const isDirty = form.formState.isDirty;
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   function onSubmit(values: UpdateEventValues) {
     startSaving(async () => {
       const result = await updateEventAction(event.id, values);
@@ -108,11 +123,7 @@ export function EventSettingsForm({ event, tier }: EventSettingsFormProps) {
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={
-                isSaving ||
-                !form.formState.isDirty ||
-                passwordSelectedWithoutHash
-              }
+              disabled={isSaving || !isDirty || passwordSelectedWithoutHash}
             >
               {isSaving ? "Saving…" : "Save changes"}
             </Button>

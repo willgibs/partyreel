@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 
-import { EventSettingsForm } from "@/components/app/event-settings-form";
+import { SettingsWithGuard } from "@/components/app/event-settings/settings-with-guard";
 import { EventSlugControl } from "@/components/app/event-slug-control";
 import {
   RecentlyDeletedGrid,
@@ -81,26 +79,14 @@ export default async function EventSettingsPage({ params }: PageProps) {
     // light top-down stagger (S4·A5, --arrive-i per section via [data-arrive]) so the
     // settings page reads as composed rather than snapping in all at once.
     <div data-route-fade className="space-y-8">
-      <div
-        data-arrive
-        style={{ "--arrive-i": 0 } as CSSProperties}
-        className="space-y-4"
-      >
-        <Link
-          href={`/dashboard/${event.id}`}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Back to event
-        </Link>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-          <p className="text-sm text-muted-foreground">{event.name}</p>
-        </div>
-      </div>
-
-      <div data-arrive style={{ "--arrive-i": 1 } as CSSProperties}>
-        <EventSettingsForm event={event} tier={tier} />
-      </div>
+      {/* The header + form move into a client wrapper (S4·C) so it can guard leaving
+          with unsaved changes; it returns a fragment, so the header (--arrive-i 0) +
+          form (1) stay direct space-y-8 children, in sequence with the cards (2/3). */}
+      <SettingsWithGuard
+        event={event}
+        tier={tier}
+        backHref={`/dashboard/${event.id}`}
+      />
 
       <Card data-arrive style={{ "--arrive-i": 2 } as CSSProperties}>
         <CardHeader>
