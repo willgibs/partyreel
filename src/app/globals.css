@@ -338,6 +338,25 @@
     }
   }
 
+  /* THE REMOVAL EXIT (S4·A3, the signature delight): on approve/hide the acted
+     tiles fade + scale OUT (the "system responding" beat) BEFORE run() commits the
+     list removal. transition-delay:0 so the selected set leaves TOGETHER (not the
+     --tile-i open cascade, which is mount-only - the A2 tripwire). Tunable via
+     --tune-review-exit-ms; run() reads the same var so the JS commit waits exactly
+     as long as the visual. Reduced motion never sets [data-exiting] (run() commits
+     instantly), and the global clamp covers it anyway. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-review-tile][data-exiting] {
+      transition:
+        opacity var(--tune-review-exit-ms, 150ms) var(--ease-emphasis),
+        transform var(--tune-review-exit-ms, 150ms) var(--ease-emphasis);
+      transition-delay: 0s;
+      opacity: 0;
+      transform: scale(0.9);
+      pointer-events: none;
+    }
+  }
+
   /* Contact form success message fades + rises in when it replaces the form
      (the shared FormCard shell stays put, so only the inner content settles).
      Mirrors the [data-media-tile] entrance above: strong --ease-emphasis curve,

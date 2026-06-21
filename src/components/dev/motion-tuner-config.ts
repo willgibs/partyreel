@@ -88,4 +88,26 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     unit: "ms",
     default: 40,
   },
+  // A3 — the removal exit ([data-exiting], read by both the CSS and run()) + the
+  // all-caught-up beat hold (run() reads --tune-review-beat-ms).
+  {
+    kind: "range",
+    cssVar: "--tune-review-exit-ms",
+    label: "Removal exit",
+    min: 80,
+    max: 400,
+    step: 10,
+    unit: "ms",
+    default: 150,
+  },
+  {
+    kind: "range",
+    cssVar: "--tune-review-beat-ms",
+    label: "All-caught-up beat",
+    min: 400,
+    max: 2000,
+    step: 50,
+    unit: "ms",
+    default: 1100,
+  },
 ];

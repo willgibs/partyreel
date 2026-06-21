@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye, Globe, Images, Lock, Shield, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  Globe,
+  Images,
+  Lock,
+  Shield,
+  Users,
+} from "lucide-react";
 
 import { isDesignGateOpen } from "@/app/(dev)/design/gate";
 import { EventUploads } from "@/components/app/event-uploads";
@@ -186,7 +194,9 @@ export default async function EventDetailPage({
               Native title only; NO radix Tooltip on these SSR'd elements (the
               host-hydration regression cause, see architecture.md). */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            {event.event_date && <span>{formatEventDate(event.event_date)}</span>}
+            {event.event_date && (
+              <span>{formatEventDate(event.event_date)}</span>
+            )}
             <span
               className="flex items-center gap-1.5"
               title="Photos and videos in the album"
@@ -196,7 +206,11 @@ export default async function EventDetailPage({
             </span>
             <span
               className="flex items-center gap-1.5"
-              title={contributorCount === 1 ? "1 contributor" : `${contributorCount} contributors`}
+              title={
+                contributorCount === 1
+                  ? "1 contributor"
+                  : `${contributorCount} contributors`
+              }
             >
               <Users className="size-3.5" />
               {contributorCount}
@@ -234,9 +248,11 @@ export default async function EventDetailPage({
         videosAllowed={videosAllowedForTier(tier)}
       />
 
-      {pendingItems.length > 0 && (
-        <HostReview eventId={event.id} items={pendingItems} />
-      )}
+      {/* Always mounted (NOT gated on pendingItems.length): HostReview owns its own
+          close lifecycle - the A3 success beat + the radix close-exit need the Dialog
+          to survive the revalidation that empties pendingItems. It renders nothing
+          when there is nothing to review. */}
+      <HostReview eventId={event.id} items={pendingItems} />
 
       <EventUploads
         eventId={event.id}
