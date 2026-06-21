@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-20
+**Updated:** 2026-06-21
 
 ## Where we are
 
@@ -76,12 +76,20 @@ gallery-first event page, built A→D + each live-verified: a dedicated `/settin
 status-row header, the Share-primary command bar [the QR designer rides in the share flow], the command +
 floating Add, the FOCUSED review mode with bulk approve/hide, and a `[data-route-fade]` route crossfade; the
 `host-event-build` lab round ratified the focused-review + status-row picks).
-**▶ NEXT = S4 (settings-form decomposition + the dirty/navigation guard + event-page polish).** The
-full S3 plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
-(+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
+**S4 ✅ (2026-06-21): the event-page polish pass + settings hardening + the motion tuner.** An emil-driven
+creative polish built increment-by-increment (each green-gated → shipped → live-verified; the two riskiest
+adversarially reviewed pre-ship): the focused-review takeover is now a full-screen radix Dialog with an
+OPEN CASCADE + a bulk-action REMOVAL EXIT + an ALL-CAUGHT-UP success beat; checkmark pops + a QR-preset
+stagger + panel entrances + rare-state fades. The 510-line `EventSettingsForm` is decomposed into section
+components under one form, and leaving settings with unsaved edits now warns (a `beforeunload` + a back-link
+confirm Dialog). A dev-only, design-key-gated **motion tuner** (`?key=`) writes `--tune-*` CSS vars live so
+timings can be finetuned on prod without a rebuild ("build-direct + tune-live").
+**▶ NEXT = the next P5 host-app slice / the roadmapped user-profiles + social program.** The S3+S4 specs
+live in the slice plans (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + the S4 plan
+`please-continue-on-the-concurrent-scott.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
 state-feedback-colored, emil-design-eng the binding craft bar) are in the memory/plan; don't re-litigate.
-A **NEW major program — user profiles + social** — is roadmapped to run after this slice (see
+A **NEW major program — user profiles + social** — is roadmapped to run next (see
 [`ROADMAP.md`](ROADMAP.md) + the memory `profiles-social-program`).
 
 The **v1 foundation is built and verified in production** — the focused phased build is complete and the

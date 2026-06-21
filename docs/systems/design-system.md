@@ -149,6 +149,34 @@ The `[data-media-tile]` `@starting-style` entrance (Phase 2) gains a per-index d
 SEED render ONLY (a render-once ids `Set`); doorbell/poll-arrived tiles carry `--tile-i: 0` and land
 immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-motion drops the move.
 
+## Host-review motion (S4·A) + the live motion tuner (S4·0)
+
+The focused-review takeover ([host-app.md](host-app.md)) is the densest motion cluster — all CSS-first,
+reduced-motion-safe, and var-tunable:
+- `[data-review-tile]` — the OPEN cascade (opacity+transform, `min(--tile-i * --tune-review-stagger-ms, 480ms)`
+  delay, `--tune-review-tile-ms` duration). A SEPARATE hook from `[data-media-tile]` so the takeover tunes
+  independently of the gallery.
+- `[data-review-tile][data-exiting]` — the bulk-action REMOVAL EXIT (opacity→0 / `scale(0.9)`,
+  `--tune-review-exit-ms`, `transition-delay:0` so the acted set leaves TOGETHER, never on the cascade index).
+  `run()` reads the SAME var via `readMs()` so the JS commit waits exactly as long as the visual.
+- `[data-unlock-success]` (reused from the gate morph) — the ALL-CAUGHT-UP beat; `run()` holds it
+  `--tune-review-beat-ms` then closes (the beat RIDES OUT the radix close-exit — caughtUp resets only AFTER
+  the slide, else the takeover flips to an empty "Review 0 photos" grid mid-close).
+- `[data-check-pop]` — the selection-checkmark scale-in (review tiles + QR presets); `[data-preset-arrive]` —
+  the QR-preset cascade (a KEYFRAME, NOT a transition, so the swatch's `transition-colors` hover survives).
+
+**The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`,
+S4·0): a dev-only, design-key-gated panel that writes `--tune-*` CSS vars to `<html>` so any var-backed timing
+can be finetuned LIVE on the real (prod) host page — "build-direct + tune-live", no rebuild loop. The CSS
+reads `var(--tune-x, <baked default>)`, so it's a NO-OP without the panel; the NON-throwing `isDesignGateOpen`
+([`app/(dev)/design/gate.ts`](../../src/app/(dev)/design/gate.ts)) opens it via `?key=` (never 404s the host's
+real page). Contract: each polish increment APPENDS its knobs to `EVENT_PAGE_TUNER_CONTROLS` in the SAME
+commit it wires the `var()`, the config `default` MIRRORS the CSS default, and any JS-read var (`run()`'s
+`readMs`) falls back to a constant that ALSO mirrors it — so tuned-vs-untuned stays consistent. Bake a tuned
+value: Copy CSS → set it as the globals.css default → Reset. (CAVEAT, [testing-verification.md](testing-verification.md):
+the Chrome-MCP `javascript_tool` runs in an ISOLATED world, so a `--tune-*` injected from it does NOT reach
+the app's main-world `getComputedStyle`/`readMs` — only real slider drags or CSS-read vars reflect.)
+
 ## The arrival choreography (Phase 4.5, ratified "Calm + 700ms")
 
 The guest arrival is the sanctioned RARE/FIRST-TIME moment (the craft standard's exception to the

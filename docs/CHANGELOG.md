@@ -10,6 +10,56 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-21 — P5·S4: the event-page polish pass + settings hardening + the motion tuner (`e3c3c62` · `3074d62` · `b058b49` · `a56721b` · `d2f5d7a` · `8824bd1` · `7260223`)
+
+The S3 gallery-first follow-up: an emil-driven creative polish of the host event page + a settings refactor
++ a navigation guard, built increment-by-increment — each green-gated (typecheck/lint/486 tests/build) →
+shipped to `main` → live-verified on partyreel.com (signed-in host) before the next. The two riskiest
+increments were ADVERSARIALLY REVIEWED (3 independent lenses each) before ship.
+- **S4·0 — the motion tuner** (`e3c3c62`): a dev-only, design-key-gated panel (`src/components/dev/
+  motion-tuner.tsx`) that writes `--tune-*` CSS vars to `<html>` so motion timings can be finetuned LIVE on
+  the real host page ("build-direct + tune-live"), no rebuild loop. Config-driven (each polish increment
+  appends knobs); the CSS reads `var(--tune-x, <baked default>)` so it's a pure no-op without the panel; the
+  non-throwing `isDesignGateOpen` opens it via `?key=` (never 404s the host's real page). Verified live:
+  range + select both drive real computed CSS; inert (unmounted) without the key.
+- **A2 — review takeover → full-screen Dialog + open cascade** (`3074d62`): the focused-review takeover
+  re-homed from a hand-rolled `fixed inset-0` overlay (its own Escape + scroll-lock) into a full-screen radix
+  `Dialog` (radix owns focus-trap / scroll-lock / Escape; a `fullScreen` variant on `ui/dialog.tsx`). The
+  pending grid CASCADES in (`[data-review-tile]` + `--tile-i`). The optimistic logic preserved byte-for-byte.
+  Adversarial review (optimistic / a11y / hydration lenses) → shipped + an overlay nit fixed.
+- **A3 — bulk-approve removal exit + all-caught-up beat** (`b058b49`): the signature delights. On approve/hide
+  the acted tiles fade + scale OUT (`[data-exiting]`) before the list reflows; when the LAST pending clears an
+  "all caught up" success beat (`[data-unlock-success]`) plays before the takeover closes. `run()` rewritten
+  (fire the action up front → exit → commit → beat → reconcile); the parent now ALWAYS renders `HostReview`
+  so it owns its close lifecycle (the beat + the radix close-exit survive the revalidation that empties
+  pendingItems). Adversarial review caught + fixed TWO majors pre-ship: (1) the beat must ride OUT the
+  close-slide (reset caughtUp only AFTER the exit — no empty-"Review 0 photos" flash); (2) a guest upload
+  landing DURING the beat cancels the close (a `pendingRef` re-check) so the host isn't bounced under a false
+  "all caught up". Live-verified incl. capturing the beat + the optimistic subset/all approve persisting to
+  the DB.
+- **A4 — micro-feedback** (`a56721b`): selection-checkmark scale-in (`[data-check-pop]`, review tiles + QR
+  presets); QR preset swatches cascade in (`[data-preset-arrive]` keyframe + `--arrive-i`); the Add panel +
+  the bulk-bar action set reveal (`[data-settings-reveal]`, re-keyed on the 0↔some SWAP only); the bulk-bar
+  seam fixed (`bg-background/95`+blur → opaque).
+- **A5 — rare-state fades** (`d2f5d7a`): the Uploads empty/all-caught-up copy fades in; the settings route's
+  sections settle in a light top-down stagger (`--arrive-i`) atop the route crossfade.
+- **B — EventSettingsForm decomposition** (`8824bd1`): the 510-line form split into an orchestrator (the one
+  `useForm`/`<Form>` + the single Save) + section components (`event-settings/{details,visibility,uploads,
+  danger-zone}-section.tsx`) reading the form via `useFormContext`. Behavior-preserving: isDirty/reset, the
+  password-panel resetField, the useWatch preview crossfade, the Pro-gates, the `passwordSelectedWithoutHash`
+  block all preserved. Live-verified a save round-trip (persist + dirty-clear) through the new structure.
+- **C — unsaved-changes guard** (`7260223`): leaving settings with unsaved edits now warns. A `beforeunload`
+  hook (`use-unsaved-changes-guard.ts`, registered only while dirty) for hard nav + a `SettingsWithGuard`
+  client wrapper that owns `dirty` (the form reports via `onDirtyChange`) and intercepts the back-link
+  (Next 16 `Link.onNavigate` → preventDefault → a confirm Dialog → Discard `router.push` / Keep editing).
+  Scope: the back-link + beforeunload ONLY (not every app-shell link, not popstate). Live-verified: dirty →
+  back → "Discard changes?" → Discard navigates cleanly; Save clears the guard.
+- **TEST-TOOLING note:** the Chrome-MCP `javascript_tool` runs in an isolated world — `style.setProperty` on
+  `<html>` from it does NOT reach the app's main-world `getComputedStyle` (run()'s `readMs`), so an
+  MCP-injected `--tune-*` can't widen a JS-read motion to ease capture; capture a transient via trigger +
+  short `wait` + `screenshot` in ONE `browser_batch` instead. (The "magic"/creative-delight principle was
+  encoded into CLAUDE.md + design-system.md earlier, `681c13d`.)
+
 ## 2026-06-21 — P5·S3·3b: the gallery-first host event page (`dd476f4` · `f4ed111` · `42677d1` · `9f2eea2` · `026834c` · `47d08f0`)
 
 The host event page rebuilt **gallery-first** (the gallery IS the page, mirroring the guest experience),

@@ -39,8 +39,8 @@ per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads
 Share. It creates **once at commit** via the non-redirecting `createEventInWizard`
 ([`dashboard/actions.ts`](../../src/app/(app)/dashboard/actions.ts)), which RETURNS the event (id +
 qr_token) so the Share step can render the real QR + link. Settings are edited later on the event's
-dedicated `/settings` route ([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx);
-see "The event page" below). `enforce_event_limit`
+dedicated `/settings` route ([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx) —
+since S4·B an ORCHESTRATOR (the one form + Save) over `event-settings/*-section.tsx`; see "The event page" below). `enforce_event_limit`
 guards `MAX_EVENTS`. **Events have no end date** — deletion is the only lifecycle exit (anti-abuse).
 
 **Invariants / gotchas:**
@@ -123,21 +123,40 @@ Accepting-uploads dot) → a **command bar** → the **review teaser** (only whe
   + `useInViewSentinel` reused from guest), with a live "N uploading" chip (`HostUpload` reports its in-flight
   count up).
 - **Settings = a dedicated ROUTE** ([`/settings`](../../src/app/(app)/dashboard/[eventId]/settings/page.tsx)):
-  the settings form + the link/slug (URL) config + the **Deleted** recovery bin (intentionally behind settings
-  — the retrieval path is where a host looks). A lean CSS route crossfade (`[data-route-fade]` in globals.css,
-  `@starting-style`) gives the "view-transition feel" without the experimental View Transitions API.
+  the settings form (decomposed S4·B — an orchestrator over `event-settings/{details,visibility,uploads,
+  danger-zone}-section.tsx`, sections reading the one form via `useFormContext`) + the link/slug (URL) config
+  + the **Deleted** recovery bin (intentionally behind settings — the retrieval path is where a host looks). A
+  lean CSS route crossfade (`[data-route-fade]` in globals.css, `@starting-style`) gives the "view-transition
+  feel" without the experimental View Transitions API; the sections settle in a light `--arrive-i` stagger
+  atop it. **Leaving with unsaved edits warns** (S4·C): a client wrapper
+  ([`settings-with-guard.tsx`](../../src/components/app/event-settings/settings-with-guard.tsx)) owns the
+  form's `dirty` (the form reports via `onDirtyChange`) and guards a HARD nav
+  ([`use-unsaved-changes-guard.ts`](../../src/lib/use-unsaved-changes-guard.ts) → `beforeunload`) + the
+  back-link (Next 16 `Link.onNavigate` → preventDefault → a confirm Dialog → Discard `router.push` / Keep
+  editing). Scope: the back-link + beforeunload ONLY (not every app-shell link, not popstate).
 - **Hydration:** the SSR'd surfaces (header, command-bar row, teaser) are native-`title` ONLY — NO radix
   Tooltip on SSR'd elements (the silent prod-hydration regression cause, see [architecture.md](architecture.md)).
   Rich client UI (the share dialog, QR designer, the focused review takeover) is safe inside client islands.
+- **Motion (S4·A):** the focused-review takeover is a full-screen radix `Dialog` with an OPEN CASCADE
+  (`[data-review-tile]`), a bulk-action REMOVAL EXIT (`[data-exiting]`), and an ALL-CAUGHT-UP success beat
+  (`[data-unlock-success]`); plus checkmark pops (`[data-check-pop]`), a QR-preset stagger
+  (`[data-preset-arrive]`), and panel + rare-state fades. All the felt timings are var-tunable LIVE via the
+  dev-only, design-key-gated **motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx);
+  opened with `?key=` on the event page, `isDesignGateOpen`; the `--tune-*` hooks live in
+  [design-system.md](design-system.md)). The takeover's optimistic logic (the `itemsKey` resync +
+  revert-on-failure) is unchanged; the parent ALWAYS renders `HostReview` so the beat + the close-exit survive
+  the revalidation that empties the queue.
 
 ## Moderation & curation (host side)
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
 does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) get the **review surface**
-([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D): a faded-edge teaser opens a
-**focused, full-screen review mode** with tap-to-select + a sticky bulk bar (Approve / Hide the selection, or
-Approve all), optimistic with revert-on-failure. Mutations: `setMediaStatus` / `removeMedia` /
+([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D, polished S4·A2/A3): a faded-edge
+teaser opens a **full-screen radix `Dialog`** with tap-to-select + a sticky bulk bar (Approve / Hide the
+selection, or Approve all), optimistic with revert-on-failure — the grid cascades in, acted tiles fade+scale
+out before the list reflows, and clearing the LAST pending plays an "all caught up" beat before it closes
+(see "The event page" → Motion). Mutations: `setMediaStatus` / `removeMedia` /
 `approveAllPending` + the bulk pair `approveBulk`/`hideBulk` (scoped to `status='pending'` — the review queue,
 so a crafted call can't flip approved/hidden/removed media). **Remove is soft**
 (`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after the 30-day
