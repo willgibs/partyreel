@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye } from "lucide-react";
+import { ArrowLeft, Eye, Globe, Images, Lock, Shield, Users } from "lucide-react";
 
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
@@ -137,6 +137,35 @@ export default async function EventDetailPage({ params }: PageProps) {
     acceptingUploads: event.accepting_uploads,
   });
 
+  // Header sub-stats (S3·3b·B). contributorCount is computed HERE, not via
+  // getGalleryStats (which zeroes counts for password/private events as a GUEST
+  // privacy guard) so the host always sees real numbers on their OWN event:
+  // distinct guest_id across the visible album + 1 if the host uploaded (a null
+  // guest_id). itemCount mirrors the gallery's "N items" (approved + hidden;
+  // pending lives in the review queue, not the album count).
+  const visibleMedia = media.filter((m) => m.status !== "pending");
+  const itemCount = visibleMedia.length;
+  const guestContributors = new Set<string>();
+  let hostContributed = false;
+  for (const m of visibleMedia) {
+    if (m.guest_id) guestContributors.add(m.guest_id);
+    else hostContributed = true;
+  }
+  const contributorCount = guestContributors.size + (hostContributed ? 1 : 0);
+  // Visibility chip glyph + label (Open / Password / Private).
+  const VisibilityIcon =
+    event.visibility === "open"
+      ? Globe
+      : event.visibility === "password"
+        ? Lock
+        : Shield;
+  const visibilityLabel =
+    event.visibility === "open"
+      ? "Open"
+      : event.visibility === "password"
+        ? "Password"
+        : "Private";
+
   return (
     <div data-route-fade className="space-y-8">
       <div className="space-y-4">
@@ -146,20 +175,51 @@ export default async function EventDetailPage({ params }: PageProps) {
         >
           <ArrowLeft className="size-4" /> Back to events
         </Link>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
             {event.name}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {event.event_date && (
-              <>{formatEventDate(event.event_date)} · </>
-            )}
-            {accessLine}
-          </p>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Eye className="size-3.5" />
-            {views} {views === 1 ? "view" : "views"}
-          </p>
+          {/* Stat line: date + the icon sub-stats (items / contributors / views).
+              Native title only; NO radix Tooltip on these SSR'd elements (the
+              host-hydration regression cause, see architecture.md). */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            {event.event_date && <span>{formatEventDate(event.event_date)}</span>}
+            <span
+              className="flex items-center gap-1.5"
+              title="Photos and videos in the album"
+            >
+              <Images className="size-3.5" />
+              {itemCount}
+            </span>
+            <span
+              className="flex items-center gap-1.5"
+              title={contributorCount === 1 ? "1 contributor" : `${contributorCount} contributors`}
+            >
+              <Users className="size-3.5" />
+              {contributorCount}
+            </span>
+            <span className="flex items-center gap-1.5" title="Views">
+              <Eye className="size-3.5" />
+              {views}
+            </span>
+          </div>
+          {/* Config status: how the link behaves for guests, at a glance. The
+              visibility chip's title carries the full plain-language summary. */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground"
+              title={accessLine}
+            >
+              <VisibilityIcon className="size-3" />
+              {visibilityLabel}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+              <span
+                className={`size-1.5 rounded-full ${event.accepting_uploads ? "bg-success" : "bg-muted-foreground/40"}`}
+              />
+              {event.accepting_uploads ? "Accepting uploads" : "Uploads paused"}
+            </span>
+          </div>
         </div>
       </div>
 
