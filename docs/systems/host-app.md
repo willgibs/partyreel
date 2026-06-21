@@ -153,16 +153,14 @@ Accepting-uploads dot) → a **command bar** → the **review teaser** (only whe
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
 does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) get the **review surface**
 ([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D, polished S4·A2/A3): a faded-edge
-teaser opens a **full-screen radix `Dialog`** - a FUNCTIONAL triage tool (denser than the experiential album:
-a 6-col-on-desktop grid, less cursor travel). Tap-to-select + a sticky bulk bar (Hide / Approve the selection,
-or Approve all) + **Select all** (select everything, then deselect the few rejects, then Approve) + per-**video
-preview** (a ▶ on video tiles opens an in-takeover `<video controls>` overlay - a poster frame can't tell you
-what you're approving; the overlay lives INSIDE the Dialog, not a nested one). Optimistic with
-revert-on-failure - the grid cascades in, acted tiles fade+scale out before the list reflows, and clearing the
-LAST pending plays an "all caught up" beat before it closes (see "The event page" → Motion). The takeover is
-modal for hosts, but renders **non-modal when the design gate is open** (`devUnlocked`) so the body-portaled
-motion tuner stays clickable over it - with an `onInteractOutside` guard so tuner interaction doesn't dismiss
-it (a non-modal radix Dialog DOES dismiss on outside pointerdown - verified live). **Tiles render via the shared `MediaTile`** (like every gallery: a plain
+teaser opens a **full-screen radix `Dialog`** (modal) - a FUNCTIONAL triage tool (denser than the experiential
+album: a 6-col-on-desktop grid, less cursor travel). Tap-to-select + **Select all** + a sticky bulk bar whose
+Hide / Approve actions appear ONLY once something is selected (no one-click approve-all from a fresh,
+0-selected takeover - "Select all → Approve" is the intentional whole-queue path). Per-**video preview**: a ▶
+on video tiles opens an in-takeover `<video controls>` overlay (a poster frame can't tell you what you're
+approving; the overlay lives INSIDE the Dialog, not a nested one). Optimistic with revert-on-failure - the
+grid cascades in, acted tiles fade+scale out before the list reflows, and clearing the LAST pending plays an
+"all caught up" beat (~1.8s hold) before it closes (see "The event page" → Motion). **Tiles render via the shared `MediaTile`** (like every gallery: a plain
 `<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the short-lived, per-request
 presigned R2 URLs (it can't fetch them, and can't render video at all). Bug fixed `d5afd0c` after the teaser/
 takeover shipped with `<Image>` and rendered broken (the black tiles read as "loading" — the

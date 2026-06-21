@@ -76,6 +76,18 @@ increments were ADVERSARIALLY REVIEWED (3 independent lenses each) before ship.
   (3 lenses, optimistic logic CLEAN); live-verified all four — and live testing caught that the review's claim
   "non-modal radix doesn't self-close" was WRONG (dragging a slider closed the takeover until the guard, the
   reinforcing-case for verify-don't-trust).
+- **Review round 2 on Will's notes** (`8aa86c2`): (1) NO one-click approve-all — the Hide/Approve actions
+  appear only once something is selected, so a fresh 0-selected takeover can't auto-approve everything
+  ("Select all → Approve" is the intentional whole-queue path; removed the standalone "Approve all"). (2) The
+  motion tuner MOVED to the lab at `/design/motion` (a `MotionPlayground` driving replayable dummy animations
+  on the same hooks) — tuning real prod animations was finicky (refresh + re-enter per tweak); the tuner was
+  removed from the prod event page and the takeover reverted to plain modal (dropped the non-modal hack +
+  onInteractOutside + devUnlocked). (3) GLOBAL state-colored toasts — sonner data-type → success=green /
+  warning=amber / error=red (unlayered CSS via the cn-toast hook); HIDE now toasts warning (amber) from the
+  review surface + the tile/lightbox moderation. (4) the "all caught up" beat hold 1100ms → 1800ms (it cleared
+  too fast to read). Live-verified all four (the colored toast confirmed via the warning icon + the shipped CSS
+  rule, since sonner toasts are transient to the Chrome MCP). OPEN: red-for-deletions deferred (a successful
+  delete in toast.error reads as failure via the error icon; needs a destructive-confirmation variant).
 
 ## 2026-06-21 — P5·S3·3b: the gallery-first host event page (`dd476f4` · `f4ed111` · `42677d1` · `9f2eea2` · `026834c` · `47d08f0`)
 
