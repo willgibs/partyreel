@@ -28,6 +28,7 @@ Read the ONE doc whose question matches your task. Don't read everything; load d
 | How do we work here? (this file) | `CLAUDE.md` — workflows, universal rules, the map |
 | What exists + its invariants + the gotchas? | the [`docs/SYSTEMS.md`](docs/SYSTEMS.md) index → the **`docs/systems/<x>.md`** deep doc (folder view: [`docs/systems/README.md`](docs/systems/README.md)) |
 | The whole-picture architecture / data flow? | [`docs/systems/architecture.md`](docs/systems/architecture.md) |
+| How do I verify live? (test-tool blind-spots) | [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md) |
 | Where are we right now? (live state, blockers) | [`docs/STATUS.md`](docs/STATUS.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 | Why was a decision made? | [`docs/adr/`](docs/adr) — rationale at decision time (a later ADR or change may have superseded it; the system docs are current truth) |
@@ -51,11 +52,11 @@ A goal becomes its own small plan. Defaults, not rails — use judgment:
 3. **Plan — ask a LOT of clarifying questions here; be cautious now so you can be bold later.** For anything non-trivial, converge on the EXACT path BEFORE building: surface every open product/UX/strategy/scope decision and resolve it with the human (AskUserQuestion) up front. A confident agent executing the *wrong* strategy is the expensive failure, so over-ask now rather than run toward a goal on a bad plan. Write a short plan, name the trade-offs + your recommendation, and get explicit alignment before the first line of code. Reuse the DRY single-sources (below). (This caution is the front-loaded counterpart to step 7's high agency: direction questions belong HERE.)
 4. **Build** — leave WHY-comments for the next agent; reuse `src/components/ui` + `src/components/shared`; use the MCPs directly.
 5. **Test (internal)** — Vitest for pure logic + a **rolled-back Supabase-MCP RPC contract check** for any new SQL (run RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists); run `pnpm typecheck && lint && test && build`. After any DDL run **`get_advisors`**.
-6. **Verify antagonistically — the bar is "force a break", not "prove a success"** (the most important step). Test EVERYTHING you can locally first: server routes, API handlers, RPCs, and DB logic all run against the REAL Supabase/R2 via `pnpm dev` + `.env.local`, so red-team that surface on localhost (fast, full control, no deploy). Deploy to partyreel.com for the allow-list-gated flows (auth/upload/email/checkout) AND a final live pass. Either way, **red-team your own change**: force the error cases, the cross-tenant/escalation/abuse paths, malformed inputs, and the catastrophic-fault paths — never just the happy path. Drive via curl + the Supabase/R2 MCPs (local) and the Chrome MCP (live); seed/inspect freely. Test data is disposable — break things on purpose to harden the foundation.
+6. **Verify antagonistically — the bar is "force a break", not "prove a success"** (the most important step). **Red-team your own change**: force the error cases, the cross-tenant/escalation/abuse paths, malformed inputs, and the catastrophic-fault paths — never just the happy path; drive via curl + the Supabase/R2 MCPs (local) and the Chrome MCP (live), seed/inspect freely, break things on purpose (test data is disposable). Local FIRST, then live for the allow-list-gated flows + a final pass — the full policy + the test-tool blind-spots live in "Local dev vs live testing" below.
 7. **Commit + ship as you go (high agency)** — the moment `typecheck`/`lint`/`test`/`build` are green, **commit + push straight to `main` on your own initiative** to deploy + test live. Do NOT pause to ask permission to commit, and do NOT create a feature branch (a branch push builds the branch AND queues the `main` deploy behind it — wasted Vercel minutes; a bad `main` build is fixed forward on disposable data). Guardrails still hold: tests green first, never `git add -A` (stage explicitly), never commit secrets, never `--no-verify` or force-push. `Co-Authored-By` trailer on every commit. After pushing, confirm the deploy succeeded + the intended commit is live (Vercel MCP `list_deployments`/`get_deployment`, or poll the URL) before the live red-team.
 8. **Record (subtractively)** — update the owning `docs/systems/` doc **in place** (refine the line; don't append a dated block); move any shipping narrative to [`CHANGELOG.md`](docs/CHANGELOG.md); prune what your change made stale; log any new deferred task as a **one-liner under its ROADMAP bucket**. See "Keeping the docs healthy".
 
-**Two-phase posture — clarify hard, then execute boldly.** FRONT of a task (planning, step 3): ask lots of clarifying questions and settle the exact strategy with the human before building — high caution, low presumption on direction; nail the foundation before moving. ONCE the path is aligned (execution, steps 4-8): high agency — carry it all the way through (build → test → commit + deploy → red-team → `pnpm build` → report) without pausing for permission, and don't re-litigate a settled plan mid-flow. The bright line: direction/strategy questions belong UP FRONT; during execution, only stop if you hit a genuinely NEW decision that could branch from the agreed goal — then ask (AskUserQuestion). Bold execution is earned by a well-clarified plan, never a substitute for one: start from the right foundation, then grow from it. **High agency INCLUDES the human as a targeted instrument, not just solo work:** for the few critical-verification steps you genuinely can't drive yourself (file uploads, password/OTP entry, a logged-out flow), never skip or silently downgrade the test to stay autonomous — set it up and hand off the SMALLEST precise action (stage the data, pull the field up in Chrome, give the exact tap/email), verify the result, then resume solo. The aim is the verified outcome with minimal, well-targeted human friction — NOT autonomy as the goal itself. (Don't overcorrect into routine hand-offs either: solo by default; reach for the human only where a real boundary or a real-device need blocks the next goal.) **A second, distinct trigger to reach for the human: a test result that smells NON-human — a timing/race artifact, or a limitation of the test TOOLING itself rather than a real product bug** (e.g. the Chrome MCP can't see ephemeral `sonner` toasts and reads the DOM in an isolated world, so a *working* feature reads as broken). Before you build instrumentation or "fix" code to chase it, STOP and hand the human the 10-second look ("does X actually show on your screen?"). Chasing a tool-blindness ghost is how you burn a loop and ship a change for a bug that never existed — a quick human eyeball confirms reality far cheaper than more tooling.
+**Two-phase posture — clarify hard, then execute boldly.** FRONT of a task (planning, step 3): ask lots of clarifying questions and settle the exact strategy with the human before building — high caution, low presumption on direction; nail the foundation before moving. ONCE the path is aligned (execution, steps 4-8): high agency — carry it all the way through (build → test → commit + deploy → red-team → `pnpm build` → report) without pausing for permission, and don't re-litigate a settled plan mid-flow. The bright line: direction/strategy questions belong UP FRONT; during execution, only stop if you hit a genuinely NEW decision that could branch from the agreed goal — then ask (AskUserQuestion). Bold execution is earned by a well-clarified plan, never a substitute for one: start from the right foundation, then grow from it. **High agency INCLUDES the human as a targeted instrument, not just solo work:** for the few critical-verification steps you genuinely can't drive yourself (file uploads, password/OTP entry, a logged-out flow), never skip or silently downgrade the test to stay autonomous — set it up and hand off the SMALLEST precise action (stage the data, pull the field up in Chrome, give the exact tap/email), verify the result, then resume solo. The aim is the verified outcome with minimal, well-targeted human friction — NOT autonomy as the goal itself. (Don't overcorrect into routine hand-offs either: solo by default; reach for the human only where a real boundary or a real-device need blocks the next goal.) **A second, distinct trigger to reach for the human: a test result that smells NON-human — a timing/race artifact, or a limitation of the test TOOLING itself rather than a real product bug.** Before you build instrumentation or "fix" working code to chase it, STOP and hand the human the 10-second look ("does X actually show on your screen?"); a quick human eyeball confirms reality far cheaper than more tooling. The specific test-tool blind-spots (and why a *working* feature can read as broken) live in [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md).
 
 ---
 
@@ -116,29 +117,35 @@ Reach for the right one; prefer Context7 over web search/memory for any library/
 Test everything you can on localhost; it makes your review MORE comprehensive, not less. `pnpm dev` +
 `.env.local` runs server routes, API handlers, RPCs, and DB logic against the **real** Supabase/R2 (the
 service-role admin client, presign, queries all work locally), so red-team that surface locally first
-(fast, full control, no deploy). What localhost genuinely CANNOT do is the flows gated by external
-allow-lists: **sign-in** (Supabase redirect), **upload** (R2 CORS + `NEXT_PUBLIC_SITE_URL`), **email**
-round-trips, and **checkout** (Stripe redirect) — not in any allow-list by design; don't "fix" that by
-adding localhost. For those, and for a final adversarial pass, deploy (push to `main` → partyreel.com)
-and drive the **Chrome MCP**. The live pass runs in the test browser profile, and you have a **standing
-Google sign-in privilege across the Partyreel accounts** (Will, 2026-06-20): **if the session is logged out,
-SELF-SERVE — click "Continue with Google" and pick the right account** (`willg97@gmail.com` host,
-`partyr33l@gmail.com` admin). The account CHOOSER is not credential entry, so it's allowed; the safety rule
-still bars typing a PASSWORD/OTP, so STOP and ask Will ONLY if Google itself demands one. **Either way, NEVER
-skip, shorten, or silently downgrade the live red-team to avoid signing in** (that silent pivot is a real
-failure mode; sign in via the chooser and continue, or surface a true password-wall loudly). **Live/DB testing is authorized + expected** — disposable test data only
-(host `willg97@gmail.com`, operator/admin `partyr33l@gmail.com`); seed/mutate/inspect prod via the
-Supabase/R2 MCPs. `pnpm dev` + the **Preview MCP** covers pure UI/render. Chrome gotcha: Vercel injects a
-dev **Toolbar** for logged-in team members (a floating circle, right-middle edge) that overlaps UI and is
-invisible to real guests — navigate by keyboard or dismiss it.
+(fast, full control, no deploy); `pnpm dev` + the **Preview MCP** covers pure UI/render. What localhost
+genuinely CANNOT do is the flows gated by external allow-lists: **sign-in** (Supabase redirect), **upload**
+(R2 CORS + `NEXT_PUBLIC_SITE_URL`), **email** round-trips, and **checkout** (Stripe redirect) — not in any
+allow-list by design; don't "fix" that by adding localhost. For those, and for a final adversarial pass,
+deploy (push to `main` → partyreel.com) and drive the **Chrome MCP**.
+
+**NEVER skip, shorten, or silently downgrade the live red-team.** That silent pivot — quietly settling for
+the local pass when a live flow won't cooperate — is a real failure mode; sign in and continue, or surface a
+true blocker loudly.
+
+The live pass runs in the test browser profile, and you have a **standing Google sign-in privilege across
+the Partyreel accounts** (host/guest/admin switching is routine, so this keeps live testing automated): if
+the session is logged out, **SELF-SERVE — click "Continue with Google" and pick the right account**
+(`willg97@gmail.com` host, `partyr33l@gmail.com` admin). The account CHOOSER is not credential entry, so
+it's allowed; the safety rule still bars typing a **PASSWORD/OTP**, so STOP and ask Will ONLY if Google
+itself demands one.
+
+**Live/DB testing is authorized + expected** — disposable test data only (host `willg97@gmail.com`,
+operator/admin `partyr33l@gmail.com`); seed/mutate/inspect prod via the Supabase/R2 MCPs. Heads-up: the test
+tooling has blind spots that make a *working* feature read as broken (Chrome-MCP toast/DOM gaps, the Vercel
+dev Toolbar overlay) — see [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md).
 
 ---
 
 ## Secrets & env vars
 
 When you introduce a new secret/env var, put it in **all three**: (1) `.env.local` (gitignored), (2) the
-Vercel project env as **NON-sensitive** — regardless of how secret it is, so values stay swappable
-pre-launch (flipping the critical ones to Vercel "Sensitive" is a launch task), and (3) `src/lib/env.ts`
+Vercel project env as **NON-sensitive** — regardless of how secret it is, so values stay swappable (the
+critical ones get flipped to "Sensitive" later, a [`docs/ROADMAP.md`](docs/ROADMAP.md) launch-checkpoint task), and (3) `src/lib/env.ts`
 (zod-validated, `.optional()` + a lazy `assert*Env()`). Keep `.env.local` and Vercel in sync. Manage
 Vercel env vars **autonomously via the Vercel CLI** (`npx vercel`, verified): one-time
 `npx vercel link --yes --project partyreel --token "$VERCEL_TOKEN"` (writes gitignored `.vercel/`), then
@@ -177,7 +184,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git** — commit + push **straight to `main` on your own initiative once tests pass** (high agency, ship-as-you-go; pre-launch — NO feature branches: a branch push wastes Vercel builds, and a bad `main` build is fixed forward). Never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push. (Revisit branches/PR previews at launch — see [`docs/ROADMAP.md`](docs/ROADMAP.md).)
+**Git** — commit + push **straight to `main` on your own initiative once tests pass** (high agency, ship-as-you-go). **NO feature branches**: there are no live users yet, so we optimize for speed — a branch push wastes Vercel builds (it builds the branch AND queues the `main` deploy behind it) and a bad `main` build is fixed forward on disposable data. Never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push. (When real users arrive this gets revisited → branches/PR previews; tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 

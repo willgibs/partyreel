@@ -161,9 +161,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - Flip the backup prune to live `[human]` — set `PRUNE_MODE=live` in `workers/backup/wrangler.jsonc` +
   redeploy once the primary is populated (it ships in dry-run, deleting nothing). Also set the shared
   `PRUNE_API_SECRET` (Vercel + `wrangler secret put`). See [`systems/durability-backups.md`](systems/durability-backups.md).
-- Revisit the git workflow for production `[eng]` — pre-launch we commit straight to `main` (fewer Vercel
-  builds, fix-forward on a bad build). At launch, reconsider feature branches + PR preview deploys so a bad
-  build can't reach real users. The current rule lives in [`../CLAUDE.md`](../CLAUDE.md) (working loop + Git).
+- Revisit the git workflow for production `[eng]` — while there are no live users we commit straight to `main`
+  (fewer Vercel builds, fix-forward on a bad build). Once real users arrive, reconsider feature branches + PR
+  preview deploys so a bad build can't reach them. The current rule lives in [`../CLAUDE.md`](../CLAUDE.md) (working loop + Git).
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.

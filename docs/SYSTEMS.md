@@ -34,6 +34,7 @@ media/DB write·read·delete·backup·restore pathways, the 3 staggered daily jo
 | **Notifications · analytics · growth** | The derive-on-read host bell, `link_stats` (aggregate, no PII), saved events, guest email capture | [notifications-analytics-growth.md](systems/notifications-analytics-growth.md) | 0009 |
 | **Database & security** | The cross-cutting security model: RLS shapes, the capability-RPC inventory, the advisor 0028/0029 split, the column-grant lockdown lessons, the migrations workflow | [database-security.md](systems/database-security.md) | 0001, 0004, 0014 |
 | **Design system** | The V1 visual system: mono tokens, the five-knob Instrument display layer, rounding/elevation/motion contracts, the error taxonomy + render boundaries, the craft guidance stack, the `/design` lab | [design-system.md](systems/design-system.md) | — |
+| **Testing & verification** | Cross-cutting: the live-testing tool blind-spots (Chrome-MCP `sonner`/isolated-world DOM, the Vercel dev Toolbar overlay) + the "hand the human the look" pattern. The local-first-then-live POLICY itself stays in [`../CLAUDE.md`](../CLAUDE.md). | [testing-verification.md](systems/testing-verification.md) | — |
 
 ## Highlight reel — SCAFFOLD ONLY (tabled)
 
