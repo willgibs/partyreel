@@ -6,9 +6,9 @@ import { ImageUp, QrCode, Settings } from "lucide-react";
 
 import { EventShareDialog } from "@/components/app/event-share-dialog";
 import { HostUpload } from "@/components/app/host-upload";
-import { FloatingAddButton } from "@/components/guest/floating-add-button";
+import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { Button } from "@/components/ui/button";
-import { useInViewSentinel } from "@/lib/guest/use-in-view-sentinel";
+import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 
 /**
  * The gallery-first event page's command bar (Phase 5 S3·3b). Share is the host's

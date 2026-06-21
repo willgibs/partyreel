@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ImageUp, Lock } from "lucide-react";
 
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
-import { FloatingAddButton } from "@/components/guest/floating-add-button";
+import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GhostGrid } from "@/components/guest/ghost-grid";
 import { GuestShare } from "@/components/guest/guest-share";
@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
-import { useInViewSentinel } from "@/lib/guest/use-in-view-sentinel";
+import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { formatEventDate } from "@/lib/utils";
