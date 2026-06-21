@@ -311,6 +311,44 @@
     }
   }
 
+  /* HOST gallery action row (Reel iter): at REST the hover-reveal chips collapse their WIDTH +
+     margin so the PERSISTENT chips (liked heart, in-reel clapperboard, hidden marker) pack neatly
+     to the right edge - no awkward gap where an inactive chip to their RIGHT used to sit; on tile
+     hover (or focus-within) the row expands + the persistent chips SLIDE back to their interleaved
+     positions. Desktop only (mobile has no hover + keeps the chips visible via their own utilities).
+     The row uses per-chip margin (not gap) so a collapsed chip leaves NO residual gap; --reveal-max
+     defaults to one chip, the wider moderation sub-group sets it via [--reveal-max:...]. */
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    [data-reveal-chip] {
+      max-width: 0;
+      margin-left: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition:
+        max-width 220ms var(--ease-emphasis),
+        margin-left 220ms var(--ease-emphasis),
+        opacity 150ms var(--ease-emphasis);
+    }
+    .group:hover [data-reveal-chip],
+    .group:focus-within [data-reveal-chip] {
+      max-width: var(--reveal-max, 2rem);
+      margin-left: 0.25rem;
+      opacity: 1;
+    }
+  }
+  /* Reduced motion: NO slide. Chips reveal by opacity only (natural width, like the pre-iter
+     behavior); the small at-rest gaps are an accepted trade for zero motion. */
+  @media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+    [data-reveal-chip] {
+      opacity: 0;
+      transition: opacity 150ms linear;
+    }
+    .group:hover [data-reveal-chip],
+    .group:focus-within [data-reveal-chip] {
+      opacity: 1;
+    }
+  }
+
   /* THE FOCUSED-REVIEW OPEN STAGGER (S4·A2, delight): the pending grid CASCADES in
      when the review takeover opens (each tile carries --tile-i for the step). The
      takeover is an OCCASIONAL surface, so a real entrance is sanctioned (unlike the

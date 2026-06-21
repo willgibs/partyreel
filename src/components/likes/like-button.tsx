@@ -61,12 +61,15 @@ export function LikeButton({
         aria-pressed={liked}
         aria-label={liked ? "Unlike" : "Like"}
         title={liked ? "Unlike" : "Like"}
+        // Not liked = a hover-reveal chip that collapses at rest (data-reveal-chip); liked = a
+        // persistent chip (no collapse) that the rest pack neatly around.
+        data-reveal-chip={liked ? undefined : ""}
         onClick={(e) => {
           e.stopPropagation();
           likes.toggle(item.id);
         }}
         className={cn(
-          "flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
+          "ml-1 flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
           "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis hover:text-like",
           "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
           "active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",

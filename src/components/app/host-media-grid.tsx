@@ -139,9 +139,15 @@ function HostTileOverlay({
         className="absolute right-1.5 bottom-1.5 z-10"
       />
 
-      <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
-        {/* Moderation: DESKTOP-only hover-reveal. Mobile: gone (hide/remove → lightbox). */}
-        <div className="hidden items-center gap-1 transition-opacity duration-150 ease-emphasis md:flex md:opacity-0 md:group-hover:opacity-100">
+      {/* Per-chip margin (NOT gap) so a collapsed hover-reveal chip leaves no residual gap and the
+          persistent chips (hidden marker / in-reel / liked) pack neatly to the right edge at rest. */}
+      <div className="absolute top-1.5 right-1.5 z-10 flex items-center">
+        {/* Moderation: DESKTOP-only hover-reveal. Mobile: gone (hide/remove → lightbox).
+            data-reveal-chip collapses the whole sub-group at rest (4rem holds its ≤2 chips). */}
+        <div
+          data-reveal-chip
+          className="ml-1 hidden items-center gap-1 transition-opacity duration-150 ease-emphasis [--reveal-max:4rem] md:flex md:opacity-0 md:group-hover:opacity-100"
+        >
           {status === "pending" && (
             <button
               type="button"
@@ -205,7 +211,7 @@ function HostTileOverlay({
             type="button"
             aria-label="Show"
             title="Show"
-            className={cn(ACTION_BASE, "text-warning")}
+            className={cn(ACTION_BASE, "ml-1 text-warning")}
             onClick={() => setStatus(item, "approved")}
           >
             <Eye className="size-4" />
@@ -219,9 +225,10 @@ function HostTileOverlay({
             download
             aria-label="Save"
             title="Save"
+            data-reveal-chip
             className={cn(
               ACTION_BASE,
-              "opacity-100 hover:text-save focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
+              "ml-1 opacity-100 hover:text-save focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
             )}
           >
             <Download className="size-4" />
