@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -37,9 +37,13 @@ type Item = {
 export function HostUpload({
   eventId,
   videosAllowed,
+  onUploadingCountChange,
 }: {
   eventId: string;
   videosAllowed: boolean;
+  // Reports the in-flight count (queued + uploading) so a parent can mirror it
+  // (e.g. the command bar's floating Add pill's "N uploading" chip, S3·3b·C).
+  onUploadingCountChange?: (count: number) => void;
 }) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
@@ -94,6 +98,15 @@ export function HostUpload({
     }
     if (anySucceeded) router.refresh();
   }, [patch, eventId, router]);
+
+  // Mirror the in-flight count up (queued + uploading) for the floating Add pill.
+  useEffect(() => {
+    if (!onUploadingCountChange) return;
+    onUploadingCountChange(
+      items.filter((it) => it.status === "queued" || it.status === "uploading")
+        .length,
+    );
+  }, [items, onUploadingCountChange]);
 
   const addFiles = useCallback(
     (files: File[]) => {

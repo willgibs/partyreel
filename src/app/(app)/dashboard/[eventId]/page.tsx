@@ -228,6 +228,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         eventName={event.name}
         joinUrl={eventLink}
         qrStyle={event.qr_style}
+        videosAllowed={videosAllowedForTier(tier)}
       />
 
       {pendingItems.length > 0 && (
@@ -260,7 +261,6 @@ export default async function EventDetailPage({ params }: PageProps) {
         eventId={event.id}
         items={visibleItems}
         pendingCount={pendingItems.length}
-        videosAllowed={videosAllowedForTier(tier)}
         shareUrl={eventLink}
       />
     </div>
