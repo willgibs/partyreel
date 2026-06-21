@@ -71,8 +71,12 @@ toast; mobile tiles drop hide/delete to the lightbox) + a **polish pass** (OPTIM
 reverts on fail; a persistent amber hidden-marker; **LIGHTBOX-ONLY** styled tooltips [tiles use native
 title]; bare-icon Like + "Added to your likes" toast; Share = blue). The polish first shipped with tooltips
 on the SSR'd tiles too, which regressed host-gallery hydration on prod (reverted + re-shipped scoped — see
-CHANGELOG + the hydration gotcha in [`systems/architecture.md`](systems/architecture.md)).
-**▶ NEXT = 3b (the gallery-first composition).** The
+CHANGELOG + the hydration gotcha in [`systems/architecture.md`](systems/architecture.md)). · **3b ✅** (the
+gallery-first event page, built A→D + each live-verified: a dedicated `/settings` route, the editorial
+status-row header, the Share-primary command bar [the QR designer rides in the share flow], the command +
+floating Add, the FOCUSED review mode with bulk approve/hide, and a `[data-route-fade]` route crossfade; the
+`host-event-build` lab round ratified the focused-review + status-row picks).
+**▶ NEXT = S4 (settings-form decomposition + the dirty/navigation guard + event-page polish).** The
 full S3 plan + the next-task spec live in the slice plan **`~/.claude/plans/p5-s3-gallery-first-event-page.md`**
 (+ the phase index `after-deeply-...meadow.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

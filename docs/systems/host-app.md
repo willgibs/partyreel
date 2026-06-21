@@ -38,8 +38,9 @@ per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads
 ([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)): Details → QR design →
 Share. It creates **once at commit** via the non-redirecting `createEventInWizard`
 ([`dashboard/actions.ts`](../../src/app/(app)/dashboard/actions.ts)), which RETURNS the event (id +
-qr_token) so the Share step can render the real QR + link. Settings are edited later on the event page
-([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx)). `enforce_event_limit`
+qr_token) so the Share step can render the real QR + link. Settings are edited later on the event's
+dedicated `/settings` route ([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx);
+see "The event page" below). `enforce_event_limit`
 guards `MAX_EVENTS`. **Events have no end date** — deletion is the only lifecycle exit (anti-abuse).
 
 **Invariants / gotchas:**
@@ -101,12 +102,44 @@ the `/dashboard` guard bounces the host straight back. The `/welcome` route itse
 story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
 marketing page — edit it once).
 
+## The event page (gallery-first, P5 S3·3b)
+
+[`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) mirrors the guest experience: the
+gallery IS the page under a minimal editorial header. Composition (top → bottom): an **editorial status-row
+header** (event name + a stat line of date / items / contributors / views — `contributorCount` computed
+LOCALLY from the media rows, distinct `guest_id` + host, so it stays host-accurate even for password/private
+events where `getGalleryStats` would zero it — + config-status chips: visibility Open/Password/Private + an
+Accepting-uploads dot) → a **command bar** → the **review teaser** (only when pending exists) → the
+**Uploads** gallery ([`event-uploads.tsx`](../../src/components/app/event-uploads.tsx), now gallery-only).
+
+- **Command bar** ([`host-command-strip.tsx`](../../src/components/app/host-command-strip.tsx)): Share PRIMARY
+  + Add + Settings, responsive (Share full-width with Add+Settings beneath on a phone, one row when wide —
+  viewport breakpoints are correct here, it's page-width). **Share** opens
+  [`EventShareDialog`](../../src/components/app/event-share-dialog.tsx) (QR + copy link), which surfaces the
+  **QR designer** ("Customize" — a fun, core, growth-loop feature, kept in the share flow NOT tucked into
+  settings) + a quiet link to Settings.
+- **Add** (the ratified upload combo, host edition): the command Add toggles the inline upload panel; a
+  **floating Add** appears once the bar scrolls out of view (never both, via a sentinel — `FloatingAddButton`
+  + `useInViewSentinel` reused from guest), with a live "N uploading" chip (`HostUpload` reports its in-flight
+  count up).
+- **Settings = a dedicated ROUTE** ([`/settings`](../../src/app/(app)/dashboard/[eventId]/settings/page.tsx)):
+  the settings form + the link/slug (URL) config + the **Deleted** recovery bin (intentionally behind settings
+  — the retrieval path is where a host looks). A lean CSS route crossfade (`[data-route-fade]` in globals.css,
+  `@starting-style`) gives the "view-transition feel" without the experimental View Transitions API.
+- **Hydration:** the SSR'd surfaces (header, command-bar row, teaser) are native-`title` ONLY — NO radix
+  Tooltip on SSR'd elements (the silent prod-hydration regression cause, see [architecture.md](architecture.md)).
+  Rich client UI (the share dialog, QR designer, the focused review takeover) is safe inside client islands.
+
 ## Moderation & curation (host side)
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
-does per-item Approve/Hide/Unhide/Remove + a **Pending review** queue (Approve all) for `hold_for_approval`
-events. Mutations: `setMediaStatus` / `removeMedia` / `approveAllPending`. **Remove is soft**
+does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) get the **review surface**
+([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D): a faded-edge teaser opens a
+**focused, full-screen review mode** with tap-to-select + a sticky bulk bar (Approve / Hide the selection, or
+Approve all), optimistic with revert-on-failure. Mutations: `setMediaStatus` / `removeMedia` /
+`approveAllPending` + the bulk pair `approveBulk`/`hideBulk` (scoped to `status='pending'` — the review queue,
+so a crafted call can't flip approved/hidden/removed media). **Remove is soft**
 (`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after the 30-day
 recovery window. → [lifecycle-recovery.md](lifecycle-recovery.md). (Operator/admin proactive moderation +
 the reports queue live in [admin-observability.md](admin-observability.md).)
@@ -125,8 +158,8 @@ action colors). Remove is modal-confirm; approve/hide/unhide are direct (revalid
 toasts "Hidden from everyone" from both). The host can also **Like** (a normal like; the gallery wraps a
 `LikesProvider`); the read-only per-event like COUNT badge is distinct from the toggle.
 
-**Host upload (two-way media).** The host adds media from the event page via an "Add photos" toggle in the
-Uploads card header ([`event-uploads.tsx`](../../src/components/app/event-uploads.tsx)) → a dropzone
+**Host upload (two-way media).** The host adds media from the event page via the command bar's **Add**
+(+ the floating Add on scroll; see "The event page" above) → a dropzone
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
 invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 

@@ -111,7 +111,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   generic sets (hosts rarely have a cover BEFORE the event), toggles for link/date/cover, mobile/story
   vs printable formats, multiple file types, drag-and-drop element placement as the stretch goal. Doubles
   as a growth lever (every output carries the QR) and keeps hosts on-site. Slots into the V1 program
-  around Phases 5-6; needs its own planning round.
+  around Phases 5-6; needs its own planning round. **Foundation shipped:** the QR DESIGNER ("Customize",
+  preset styles) now lives prominently in the event-page Share dialog (3b, 2026-06-21) — deliberately a fun,
+  core, growth-loop feature, NOT tucked into settings; the share studio is its evolution into a full
+  share-OUTPUT configurator (cards, covers, formats) on top of that QR styling.
 - **Highlight reel (Tabled — needs a product + architecture decision first)** — stitch a reel from the best
   clips (core-loop step 5). Scaffold exists; transcode/stitch runs in an **external worker, NOT Vercel**
   (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg on Cloudflare Containers),

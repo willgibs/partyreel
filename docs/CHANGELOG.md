@@ -10,6 +10,38 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-21 — P5·S3·3b: the gallery-first host event page (`dd476f4` · `f4ed111` · `42677d1` · `9f2eea2` · `026834c` · `47d08f0`)
+
+The host event page rebuilt **gallery-first** (the gallery IS the page, mirroring the guest experience),
+lab-first then built A→D — each increment deployed + live-verified on partyreel.com before the next.
+- **Stage 1 — the lab** (`dd476f4`, ratified `31c43b8`): a new `host-event-build` Workbench touchpoint staged
+  interactive takes of the whole page (header config-status treatments, the responsive command strip, the
+  review surface in BOTH forms, the settings crossfade). Will felt them live + picked **review = FOCUSED
+  review mode** (a full takeover, not in-page expansion) + **header = STATUS ROW**; recorded on the touchpoint.
+- **A** (`f4ed111`, picker fix `42677d1`): a dedicated `/settings` route (settings form + link/slug config +
+  the Deleted bin behind it), the gallery-first restructure, the Share-primary command strip, and a
+  `[data-route-fade]` CSS route crossfade. `EventShareDialog` gained opt-in props to surface the QR designer
+  ("Customize") in the share flow (Will: a fun, core feature, NOT tucked into settings) + a quiet Settings
+  link. Live red-team caught the QR picker overflowing the dialog (`sm:grid-cols-4` is a VIEWPORT breakpoint,
+  the dialog ~460px) → fixed to a 2×2 that fits any container.
+- **B** (`9f2eea2`): the editorial status-row header (name + date / items / contributors / views stat line +
+  Open / Accepting config chips). `contributorCount` computed LOCALLY (host-accurate, vs `getGalleryStats`'s
+  guest-privacy zero for password/private events).
+- **C** (`026834c`): the ratified upload combo — the command Add (inline panel) + a floating Add on scroll
+  (never both, via a sentinel; `FloatingAddButton` + `useInViewSentinel` reused from guest), with a live
+  "N uploading" chip. `EventUploads` is gallery-only now; the uploader moved to the command bar.
+- **D** (`47d08f0`): the FOCUSED review mode replaces the Pending-review card — a faded-edge teaser opens a
+  full-screen takeover with tap-to-select + a bulk bar (Approve / Hide the selection, or Approve all),
+  optimistic with revert-on-failure. New `approveBulk`/`hideBulk` mutations (scoped to `status='pending'`) +
+  actions. The gated `/design/compositions` probe gains the review surface for auth-free hydration checks.
+- **Hydration discipline:** every SSR'd surface stays native-`title` only (no radix Tooltip — the 3c.2
+  regression cause); rich client UI lives in client islands. No hydration errors across A–D.
+- **Verified:** typecheck/lint/test (486)/build green at each increment; live red-team in Chrome (signed in)
+  per increment — gallery-first order, command strip + the nested QR designer (picker 2×2), command + floating
+  Add, the focused review with a **seeded-pending bulk approve that persisted to the DB** (8 approved + 1
+  pending mid-test, then restored). A standing Google sign-in privilege was recorded so the live red-team
+  self-serves when the test session is logged out (`de92bb5`).
+
 ## 2026-06-20 — P5·S3·3c.2: the lightbox host actions + the UNIVERSAL action-color refresh (`4b8cbc9`, `6600e28`)
 
 The gallery-action model reaches the lightbox, and the per-action color system goes **universal**.
