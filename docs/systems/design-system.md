@@ -119,6 +119,16 @@ purpose to verify the chain against the real prod build (dev shows the overlay i
 
 ## The craft guidance stack
 
+**★ Proactively propose creative DELIGHT — make it feel like magic (Will, 2026-06-21).** In all design/UI
+work, don't stop at "correct": surface a creative delight opportunity (a considered entrance, a satisfying
+micro-interaction, a rare-moment beat) and RECOMMEND it by default, rather than waiting to be asked. Beauty
+is leverage, the unseen details compound, and "feels like magic" is Partyreel's differentiator. The
+discipline that keeps delight from becoming noise is **animate by FREQUENCY** (emil): HIGH-frequency actions
+(a workspace opened many times a day, moderation/select switches) stay INSTANT/minimal — never add theater
+there; OCCASIONAL surfaces (modals, takeovers, route nav) get standard entrances (≤300ms, custom easing,
+`@starting-style`, reduced-motion fallback); RARE/first-time moments (empty states, a first action,
+celebrations) can carry real delight. Everything CSS-first + `prefers-reduced-motion`-safe + exits ≤ enters.
+
 **emil-design-eng (the installed skill) is PRIMARY; Hobday's Safe Rules
 (anthonyhobday.com/sideprojects/saferules) are a SECONDARY advisory; neither is a bible.**
 Synthesis (Phase 2): *adopted* — no pure white surfaces, the elevation contract (no dark shadows,
