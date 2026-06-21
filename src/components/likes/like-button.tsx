@@ -35,9 +35,9 @@ export function LikeButton({
           likes.toggle(item.id);
         }}
         className={cn(
-          "absolute top-1.5 right-1.5 z-10 hidden size-7 items-center justify-center rounded-full",
+          "absolute top-1.5 right-1.5 z-10 hidden size-7 cursor-pointer items-center justify-center rounded-full",
           "bg-black/35 text-white backdrop-blur-sm md:flex",
-          "transition-[opacity,transform] duration-150 ease-emphasis",
+          "transition-[color,opacity,transform] duration-150 ease-emphasis hover:text-like",
           "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
           "active:scale-90 motion-reduce:active:scale-100",
           // A liked tile keeps its filled rose heart visible even without hover (at-a-glance
@@ -66,8 +66,8 @@ export function LikeButton({
           likes.toggle(item.id);
         }}
         className={cn(
-          "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
-          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis",
+          "flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
+          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis hover:text-like",
           "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
           "active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",
           // Liked: rose, filled, and pinned visible (desktop too).

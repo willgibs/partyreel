@@ -127,8 +127,11 @@ export function MasonryColumns<T extends GridMedia>({
               <MediaTile item={item} playBadge="none" />
             </button>
             {item.type === "video" && <CornerPlayBadge />}
-            {/* Desktop hover-reveal like button (no-op without a LikesProvider). */}
-            <LikeButton item={item} variant="tile" />
+            {/* Guest desktop hover-reveal like (no-op without a LikesProvider). The HOST gets its
+                Like inside the moderation action row (renderOverlay) instead, so suppress this one
+                for the host - else two hearts stack at top-right (the translucent layers read as a
+                darker "double-wrapped" chip). */}
+            {!viewerIsHost && <LikeButton item={item} variant="tile" />}
             {/* Per-tile chrome LAST so it paints over the lightbox button; its own
                 buttons capture the tap (the lightbox never opens behind them). */}
             {renderOverlay?.(item)}

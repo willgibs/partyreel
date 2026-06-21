@@ -36,15 +36,15 @@ export function ReelButton({
           reel.toggle(item.id);
         }}
         className={cn(
-          "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
-          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis",
+          "flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm",
+          "outline-none transition-[color,opacity,transform] duration-150 ease-emphasis hover:text-reel",
           "opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100",
           "active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70",
           // In-reel: violet + pinned visible (desktop too) so it reads at-a-glance.
           inReel && "text-reel opacity-100 md:opacity-100",
         )}
       >
-        <Clapperboard className="size-4" />
+        <Clapperboard className={cn("size-4", inReel && "fill-current")} />
       </button>
     );
   }
@@ -63,7 +63,7 @@ export function ReelButton({
           inReel && "text-reel hover:text-reel",
         )}
       >
-        <Clapperboard className="size-5" />
+        <Clapperboard className={cn("size-5", inReel && "fill-current")} />
       </button>
     </ActionTooltip>
   );

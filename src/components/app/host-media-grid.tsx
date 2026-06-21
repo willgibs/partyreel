@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 
 // One action-icon: a circular dark chip, white at rest, COLOR on direct hover/state.
 const ACTION_BASE =
-  "flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70";
+  "flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70";
 
 // The optimistic overlay over the server-rendered items: a status flip or a removal,
 // applied instantly so the tile + lightbox reflect the change with no round-trip;
