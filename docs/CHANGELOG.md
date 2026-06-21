@@ -10,6 +10,35 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-21 — Reel Curation R1: Add to Reel + Uploads/Reel tabs (`ec49410`)
+
+The curation foundation for the highlight reel (its own round, post-S5). The host marks approved media as
+"in the reel" and views the curated set in a new Reel tab; the highlight VIDEO generation stays deferred
+(external worker, ADR-0003). Decisions ratified with Will: ONE reel per event, curation FREE for any tier
+(generation is the future paid moment), add-order (reorder later), host-only + host-private + approved-only.
+Built to MIRROR the proven likes system end-to-end; green-gated (489 tests) → shipped → live-verified.
+- **Data** (`…180000_reel_items`): a `reel_items(event_id, media_id, position, added_at)` join table -
+  host-scoped SELECT+DELETE RLS, grant-locked (select,delete to authenticated; INSERT/UPDATE revoked), and
+  an access-checked SECURITY DEFINER `add_to_reel(media_id)` (host owns event + media approved + not removed;
+  appends position; idempotent). Un-reel = a host-RLS browser delete. Advisors clean (`add_to_reel` in 0029,
+  NOT 0028; `reel_items` policied); types regenerated; the RPC's unauthorized guard contract-checked.
+- **State**: a `ReelProvider` cloned from `LikesProvider` but HOST-ONLY (the signed-out account branch
+  dropped) - an optimistic, insertion-ordered Set seeded server-side (`listReelItems`), client-direct RPC/
+  delete, shared across both tabs so an add in Uploads reflects instantly in the Reel tab.
+- **Action**: a `ReelButton` (a `Clapperboard` in a NEW `--reel` violet token) distinct from Like, in the
+  host tile overlay (before Like, approved-only) + the lightbox curate group; reads `useReel()` so it's
+  host-only + opt-in.
+- **Tabs**: `resolveInitialEventTab` (pure, unit-tested, mirrors `resolveInitialFilter`) + a Tabs
+  (Uploads | Reel) below the command strip (`?eventTab=`); HostReview stays above (Reviews is a later round).
+  The Reel tab renders the curated set in add-order with an empty onboarding teaser + a "generation coming
+  soon" note. Client-island tab content (host-page hydration).
+- **Live-verified** (partyreel.com, host): the tabs hydrate; Add-to-Reel writes land (`reel_count`, positions
+  0/1), the chip flips to the violet `lab(64.9 38 -56)`; the Reel tab shows the added media in add-order
+  (cross-tab via the shared provider); un-reel drops the tile + the row; pluralization + the generation note
+  correct; no console errors. The `--reel` hue + the `Clapperboard` icon are PROVISIONAL pending Will's
+  ratification. DEFERRED: Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder,
+  guest-facing surfacing, multiple reels, the generation worker.
+
 ## 2026-06-21 — P5·S5: review-takeover polish + smoother album reveal + require-accounts free/default-on (`24e3fa7` · `4b75705` · `cddba33`)
 
 Will's S4-review follow-ups, two independent parts, each green-gated → shipped → live-verified on partyreel.com.

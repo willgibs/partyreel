@@ -121,19 +121,19 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   core, growth-loop feature, NOT tucked into settings; the share studio is its evolution into a full
   share-OUTPUT configurator (cards, covers, formats) on top of that QR styling.
 - **Highlight reel** — stitch a reel from the best clips (core-loop step 5). TWO halves:
-  - **Curation foundation (PLANNED — its own round, like User Profiles; Will settled a v1, 2026-06-21).** The
-    host-curation layer that feeds the reel; generation stays deferred. Full plan in
-    `~/.claude/plans/please-continue-on-the-concurrent-scott.md` (Part 3). Shape: **R0** a `reel_items` join
-    table (mirrors `media_likes`: host-only access-checked `add_to_reel` RPC, grant-locked; `reel_eligible` is
-    dead scaffold, NOT reused) → **R1** an `Add to Reel` per-item action distinct from Like (a NEW `--reel`
-    hue + `Clapperboard`, needs a `/design` lab ratification) → **R2** event-page tabs (Uploads / Reel /
-    Reviews; `?eventTab=`; the Reviews tab = the pending queue with a count tag, moderation-gated visibility,
-    an empty-state teaser, the takeover sibling-mounted) → **R3** moderation-disable auto-approve confirm
-    (reuses `approveAllPending` + the S5 confirm-toggle pattern) → **R4** a shared `useItemSelection` hook +
-    host album bulk-mode (Add to Reel / Like / Download / Hide / Approve). Open decisions: the `--reel` hue +
-    icon, host-only vs guest-nomination curation (v1 host-only), reel ordering UI, one-reel-vs-many (schema
-    shape — decide before R0), guest-facing reel surfacing on `/e/[qr]` (recommend host-private), tier-gating,
-    approved-only eligibility. Bulk "Download all" zip stays its own deferred worker initiative.
+  - **Curation foundation — R1 SHIPPED 2026-06-21 (`ec49410`); follow-ons deferred.** The host-curation layer
+    that feeds the reel; generation stays deferred. **SHIPPED + live-verified:** the `reel_items` table +
+    access-checked `add_to_reel` RPC (grant-locked, mirrors `media_likes`) + the host-only `ReelProvider` +
+    the `Add to Reel` action (a `--reel` violet `Clapperboard`, distinct from Like, in the tile overlay +
+    lightbox) + the event-page **Uploads / Reel** tabs (`?eventTab=`, `resolveInitialEventTab`). Curation FREE
+    for any tier; one reel/event; add-order; host-only + host-private + approved-only. (`reel_eligible` stays
+    dead scaffold, NOT reused.) **DEFERRED follow-ons (each its own slice):** the **Reviews tab** (the pending
+    queue as a tab — count tag, moderation-gated visibility, empty teaser, the takeover sibling-mounted) + the
+    moderation-disable auto-approve confirm; **album bulk-select** (a shared `useItemSelection` hook + bulk
+    Add-to-Reel/Like/Download/Hide/Approve); **drag-to-reorder** (a `reorder_reel` RPC + sortable UI;
+    `position` is reserved for it); guest-facing reel surfacing on `/e/[qr]`; multiple named reels. The
+    `--reel` hue + the icon await Will's ratification. Bulk "Download all" zip stays its own deferred worker
+    initiative. Full plan in `~/.claude/plans/please-continue-on-the-concurrent-scott.md` (Part 3).
   - **Generation (Tabled — needs a product + architecture decision first).** Transcode/stitch runs in an
     **external worker, NOT Vercel** (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg
     on Cloudflare Containers), trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating.

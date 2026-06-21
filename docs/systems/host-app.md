@@ -187,8 +187,8 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
 [design-system](design-system.md) action colors). **Desktop:** the full suite (approve/hide/unhide/remove
-+ download + like). **Mobile:** the row is `hidden md:flex` — only Like + Download stay; **hide/remove move
-to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
++ download + add-to-reel (approved-only) + like). **Mobile:** the row is `hidden md:flex` — only Like +
+Download stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
 kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
 carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
 gated `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical** (it just gains the same
@@ -202,16 +202,27 @@ toasts "Hidden from everyone" from both). The host can also **Like** (a normal l
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
 invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 
-## Highlight reel — SCAFFOLD ONLY (tabled)
+## Reel curation (R1 SHIPPED) + the highlight reel (generation tabled)
 
-A DB scaffold exists (`highlight_reels` table + status enum; `media.highlight_score`/`clip_*`/
-`reel_eligible`/`preview_key`) but **no processing ships**. Those `media` columns are DEAD scaffold today
-(read/written by zero app code — `reel_eligible` is reserved for a future auto-scoring worker, NOT the host
-curation signal). Hard constraint: transcode/stitch runs in an **external worker, NOT Vercel functions**
-(ADR-0003). Tabled pending a product + architecture decision (the worker platform). **The CURATION half is
-PLANNED** (S5 "Reel Curation Foundation," roadmapped): an `Add to Reel` host action (distinct from Like) + a
-`reel_items` join table (mirrors `media_likes`) + event-page tabs (Uploads / Reel / Reviews) + host album
-bulk-selection; generation stays deferred. See [`../ROADMAP.md`](../ROADMAP.md).
+**Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
+curated set in a new **Reel tab**. The event page now has **Uploads | Reel** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
+`?eventTab=`, `resolveInitialEventTab` resolving the SSR default so the host page hydrates cleanly; HostReview's
+pending teaser stays ABOVE the tabs - the Reviews tab is a later round). The layer MIRRORS likes: a
+`reel_items(event_id, media_id, position, added_at)` join table (host-scoped SELECT+DELETE RLS, grant-locked,
+insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel is a host-RLS delete from the
+browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx);
+optimistic, insertion-ordered Set, client-direct, NO signed-out branch - shared across BOTH tabs so an add in
+Uploads reflects instantly in the Reel tab), and a `ReelButton` (a `Clapperboard` in the `--reel` VIOLET,
+distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group. Curation is
+FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no Reel tab on
+`/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key` remain DEAD
+scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this host signal).
+DEFERRED: the Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder, guest-facing
+surfacing, multiple reels.
+
+**GENERATION (the highlight VIDEO) is tabled** — transcode/stitch runs in an **external worker, NOT Vercel
+functions** (ADR-0003); pending a product + architecture decision (the worker platform consumes the ordered
+`reel_items` set → writes `highlight_reels.output_key`). See [`../ROADMAP.md`](../ROADMAP.md).
 
 ## See also
 

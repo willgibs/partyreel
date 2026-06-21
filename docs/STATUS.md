@@ -93,11 +93,20 @@ beat + `MediaTile` shows a shimmer skeleton until a photo decodes). P2 (`4b75705
 accounts to upload" is now FREE for any tier + DEFAULT-ON** (the `enforce_event_pro_gates` Pro-gate trigger
 dropped + the column default flipped) — anon uploads capture no emails, so free events seeded no new users;
 allowing anon is an opt-in toggle with a consequence-confirm. All live-verified (the confirm via Will's
-eyeball — the MCP renders the animated settings route as dimmed/empty, a capture blind-spot). The
-**Reel Curation Foundation** is PLANNED (Part 3 of the S5 plan → ROADMAP "Highlight reel"; its own round).
-**▶ NEXT = the Reel Curation Foundation round / the next P5 host-app slice / the roadmapped user-profiles +
-social program.** The S3+S4+S5 specs live in the slice plans (`~/.claude/plans/p5-s3-gallery-first-event-page.md`
-+ `please-continue-on-the-concurrent-scott.md`); the program arc + invariants are in the memory
+eyeball — the MCP renders the animated settings route as dimmed/empty, a capture blind-spot).
+
+**Reel Curation R1 ✅ (2026-06-21, `ec49410`): Add to Reel + Uploads/Reel tabs.** The host marks approved
+media as "in the reel" (a violet `Clapperboard` chip distinct from Like, in the tile overlay + lightbox) and
+views the curated set in a new **Reel tab** (event page now has Uploads | Reel, `?eventTab=`). Built to mirror
+likes: a grant-locked `reel_items` table + an access-checked `add_to_reel` RPC + a host-only `ReelProvider`.
+Curation is FREE; one reel/event; add-order; host-only + host-private + approved-only. Live-verified
+end-to-end. The `--reel` hue + the icon are PROVISIONAL pending Will's ratification. DEFERRED (later rounds):
+the Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder, guest-facing surfacing, and the
+generation worker.
+**▶ NEXT = the Reel follow-on rounds (Reviews tab / album bulk-select / reorder) / the roadmapped user-profiles
++ social program / the next host-app slice.** The S3+S4+S5+Reel specs live in the slice plans
+(`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
+program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
 state-feedback-colored, emil-design-eng the binding craft bar) are in the memory/plan; don't re-litigate.
 A **NEW major program — user profiles + social** — is roadmapped to run next (see
