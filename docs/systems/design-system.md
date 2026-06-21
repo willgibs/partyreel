@@ -175,11 +175,14 @@ each polish increment APPENDS its knobs to `EVENT_PAGE_TUNER_CONTROLS`, the conf
 default, and any JS-read var (`run()`'s `readMs`) falls back to a constant that ALSO mirrors it — so
 tuned-vs-untuned stays consistent. Bake a tuned value: Copy CSS → set it as the globals.css default → Reset.
 
-**State-colored toasts (global policy, S4):** sonner's `data-type` is mapped (unlayered CSS via the `cn-toast`
-hook in [`ui/sonner.tsx`](../../src/components/ui/sonner.tsx)) to the design state colors — `success` =
-`--success` green, `warning` = `--warning` amber, `error`/destructive = `--destructive` red; plain/info toasts
-keep the neutral `--normal-*` default. Use the right TYPE for the state: approve/positive = `toast.success`,
-HIDE/soft-caution = `toast.warning`, failures = `toast.error`. (OPEN: a successful DESTRUCTIVE confirmation
+**State-colored toasts (global policy, S4):** sonner's `data-type` is mapped to the design state colors —
+`success` = `--success` green, `warning` = `--warning` amber, `error`/destructive = `--destructive` red;
+plain/info toasts keep the neutral `--normal-*` default. Use the right TYPE for the state: approve/positive =
+`toast.success`, HIDE/soft-caution = `toast.warning`, failures = `toast.error`. The CSS (globals.css) targets
+sonner's OWN `[data-sonner-toast][data-type="…"]` with **`!important`** — NOT the `classNames.toast` hook (it
+didn't win): sonner injects a neutral `--normal-bg` rule at runtime (unlayered, non-important) that beat the
+earlier class rule on layer/order, so a more-specific `!important` is required (verified live via the toast's
+computed `backgroundColor` matching the token — confirm the RENDERED color, not just that the rule loaded). (OPEN: a successful DESTRUCTIVE confirmation
 [e.g. "Permanently deleted"] still uses `toast.success` — `toast.error` is red but carries an error icon that
 reads as failure, so red-for-deletions needs a dedicated destructive-confirmation variant, deferred.)
 
