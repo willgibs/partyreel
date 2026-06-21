@@ -23,6 +23,17 @@ site, these are the ways the *test tooling* misreports, so a working change look
 - **Isolated-world DOM + timing artifacts.** Because the MCP executes in an isolated world, buffered or
   just-painted state can be missing and timing/race effects can read as failures. The perf-baseline doc hit
   the same isolated-world caveat measuring LCP ([`../perf/v1-baseline.md`](../perf/v1-baseline.md)).
+  - **`javascript_tool` writes don't cross into the app's world.** A `document.documentElement.style.set
+    Property('--x', …)` (or any DOM mutation) from `javascript_tool` does NOT reach the app's MAIN-world
+    `getComputedStyle` readers (e.g. a hook's runtime `readMs`) — so you can't inject a CSS var to widen/slow
+    a JS-read animation for easier capture (burned a loop on the S4 motion tuner). Reading inline style back
+    in the SAME call + CSS-read vars DO reflect; only the cross-world *app* read is blind. Drive the real
+    control instead (a slider, a click).
+  - **Capturing a transient animation: use ONE `browser_batch`.** A sub-second beat/exit is gone before a
+    SEPARATE screenshot tool call lands (each round-trip is ~1.5-2s, so it overshoots even a 1s window). Put
+    the trigger + a short `wait` + the `screenshot` in a SINGLE `browser_batch` (in-browser-sequential →
+    minimal latency) to land mid-animation; or assert the MECHANISM deterministically (computed
+    `transition-delay`/`-duration`/the data-attr per element) instead of chasing the frame.
 
 ## Vercel preview chrome
 
