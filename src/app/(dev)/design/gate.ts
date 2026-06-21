@@ -30,3 +30,24 @@ export async function requireDesignKey(
   if (!secret || !key || !constantTimeEquals(key, secret)) notFound();
   return key;
 }
+
+/**
+ * The NON-throwing sibling of requireDesignKey, for REAL pages that must keep
+ * working for everyone but want to conditionally mount a dev-only affordance
+ * (the motion tuner, S4·0) when a designer arrives with `?key=`. Returns a
+ * boolean instead of 404ing: opt-in everywhere (no `?key=` -> closed), dev
+ * accepts any key, prod requires the timing-safe match. A missing/wrong key just
+ * renders the page normally (the gate is closed), never a 404 — so it is SAFE to
+ * call on the host event page, where requireDesignKey's notFound() would wrongly
+ * nuke the host's own page on a bad key.
+ */
+export async function isDesignGateOpen(
+  searchParams: Promise<Record<string, string | string[] | undefined>>,
+): Promise<boolean> {
+  const params = await searchParams;
+  const key = typeof params.key === "string" ? params.key : undefined;
+  if (!key) return false;
+  if (process.env.NODE_ENV === "development") return true;
+  const secret = serverEnv.DESIGN_PREVIEW_KEY;
+  return Boolean(secret && constantTimeEquals(key, secret));
+}

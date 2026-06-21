@@ -395,9 +395,13 @@
      paint. Reduced motion = fade only, no movement. */
   @media (prefers-reduced-motion: no-preference) {
     [data-route-fade] {
+      /* Duration + easing are var()-tunable (S4·0 motion tuner) — the fallbacks
+         ARE the baked defaults, so this is identical without the dev panel. */
       transition:
-        opacity 220ms var(--ease-emphasis),
-        transform 220ms var(--ease-emphasis);
+        opacity var(--tune-route-fade-ms, 220ms)
+          var(--tune-route-fade-ease, var(--ease-emphasis)),
+        transform var(--tune-route-fade-ms, 220ms)
+          var(--tune-route-fade-ease, var(--ease-emphasis));
       @starting-style {
         opacity: 0;
         transform: translateY(6px);

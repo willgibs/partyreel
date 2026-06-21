@@ -3,9 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Eye, Globe, Images, Lock, Shield, Users } from "lucide-react";
 
+import { isDesignGateOpen } from "@/app/(dev)/design/gate";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostReview } from "@/components/app/host-review";
+import { MotionTuner } from "@/components/dev/motion-tuner";
+import { EVENT_PAGE_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -27,8 +30,12 @@ import { formatEventDate } from "@/lib/utils";
 // be statically cached.
 export const dynamic = "force-dynamic";
 
-// Next 16: params is a Promise — await it in both the page and generateMetadata.
-type PageProps = { params: Promise<{ eventId: string }> };
+// Next 16: params + searchParams are Promises — await them. searchParams carries
+// the optional `?key=` that opens the dev-only motion tuner (isDesignGateOpen).
+type PageProps = {
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({
   params,
@@ -43,8 +50,14 @@ export async function generateMetadata({
 // experience. Settings + the Deleted bin live on the /settings route; the QR
 // designer rides with the Share dialog. (B enriches the header into the editorial
 // status row; C adds the floating + command Add; D adds the review teaser.)
-export default async function EventDetailPage({ params }: PageProps) {
+export default async function EventDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { eventId } = await params;
+  // Non-throwing gate: opens the dev motion tuner only for a designer arriving
+  // with a valid `?key=` (never 404s the host's real page on a bad key).
+  const tunerOpen = await isDesignGateOpen(searchParams);
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
@@ -231,6 +244,8 @@ export default async function EventDetailPage({ params }: PageProps) {
         pendingCount={pendingItems.length}
         shareUrl={eventLink}
       />
+
+      {tunerOpen && <MotionTuner controls={EVENT_PAGE_TUNER_CONTROLS} />}
     </div>
   );
 }
