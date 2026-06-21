@@ -84,9 +84,20 @@ stagger + panel entrances + rare-state fades. The 510-line `EventSettingsForm` i
 components under one form, and leaving settings with unsaved edits now warns (a `beforeunload` + a back-link
 confirm Dialog). A dev-only, design-key-gated **motion tuner** (`?key=`) writes `--tune-*` CSS vars live so
 timings can be finetuned on prod without a rebuild ("build-direct + tune-live").
-**▶ NEXT = the next P5 host-app slice / the roadmapped user-profiles + social program.** The S3+S4 specs
-live in the slice plans (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + the S4 plan
-`please-continue-on-the-concurrent-scott.md`); the program arc + invariants are in the memory
+
+**S5 ✅ (2026-06-21): review-takeover polish + smoother album reveal + require-accounts free/default-on.**
+P1 (`24e3fa7`): the review bulk bar groups Select-all beside Hide/Approve (count left), the action buttons
+carry their count (`Approve (All)`), the heading is a bold "Review" + a muted count, and the "black squares
+then 1-2s load" album reveal is gone (the takeover preloads the just-approved photos during the all-caught-up
+beat + `MediaTile` shows a shimmer skeleton until a photo decodes). P2 (`4b75705`/`cddba33`): **"Require
+accounts to upload" is now FREE for any tier + DEFAULT-ON** (the `enforce_event_pro_gates` Pro-gate trigger
+dropped + the column default flipped) — anon uploads capture no emails, so free events seeded no new users;
+allowing anon is an opt-in toggle with a consequence-confirm. All live-verified (the confirm via Will's
+eyeball — the MCP renders the animated settings route as dimmed/empty, a capture blind-spot). The
+**Reel Curation Foundation** is PLANNED (Part 3 of the S5 plan → ROADMAP "Highlight reel"; its own round).
+**▶ NEXT = the Reel Curation Foundation round / the next P5 host-app slice / the roadmapped user-profiles +
+social program.** The S3+S4+S5 specs live in the slice plans (`~/.claude/plans/p5-s3-gallery-first-event-page.md`
++ `please-continue-on-the-concurrent-scott.md`); the program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
 state-feedback-colored, emil-design-eng the binding craft bar) are in the memory/plan; don't re-litigate.
 A **NEW major program — user profiles + social** — is roadmapped to run next (see

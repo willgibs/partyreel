@@ -49,6 +49,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
+- **Resized `preview`/thumbnail media variant (its own round)** — galleries serve full-res R2 originals today
+  (the `preview_key` schema slot is reserved but never instantiated), so a cold tile is a slow full-res fetch.
+  Generate a small variant on upload (an external worker / CF Images, NOT Vercel) + presign it for tile
+  display. The S5 P1 shimmer-skeleton + preload-on-beat are the interim UX cover; this is the real fix. See
+  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
@@ -115,10 +120,24 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   preset styles) now lives prominently in the event-page Share dialog (3b, 2026-06-21) — deliberately a fun,
   core, growth-loop feature, NOT tucked into settings; the share studio is its evolution into a full
   share-OUTPUT configurator (cards, covers, formats) on top of that QR styling.
-- **Highlight reel (Tabled — needs a product + architecture decision first)** — stitch a reel from the best
-  clips (core-loop step 5). Scaffold exists; transcode/stitch runs in an **external worker, NOT Vercel**
-  (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg on Cloudflare Containers),
-  trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating. See [`systems/host-app.md`](systems/host-app.md).
+- **Highlight reel** — stitch a reel from the best clips (core-loop step 5). TWO halves:
+  - **Curation foundation (PLANNED — its own round, like User Profiles; Will settled a v1, 2026-06-21).** The
+    host-curation layer that feeds the reel; generation stays deferred. Full plan in
+    `~/.claude/plans/please-continue-on-the-concurrent-scott.md` (Part 3). Shape: **R0** a `reel_items` join
+    table (mirrors `media_likes`: host-only access-checked `add_to_reel` RPC, grant-locked; `reel_eligible` is
+    dead scaffold, NOT reused) → **R1** an `Add to Reel` per-item action distinct from Like (a NEW `--reel`
+    hue + `Clapperboard`, needs a `/design` lab ratification) → **R2** event-page tabs (Uploads / Reel /
+    Reviews; `?eventTab=`; the Reviews tab = the pending queue with a count tag, moderation-gated visibility,
+    an empty-state teaser, the takeover sibling-mounted) → **R3** moderation-disable auto-approve confirm
+    (reuses `approveAllPending` + the S5 confirm-toggle pattern) → **R4** a shared `useItemSelection` hook +
+    host album bulk-mode (Add to Reel / Like / Download / Hide / Approve). Open decisions: the `--reel` hue +
+    icon, host-only vs guest-nomination curation (v1 host-only), reel ordering UI, one-reel-vs-many (schema
+    shape — decide before R0), guest-facing reel surfacing on `/e/[qr]` (recommend host-private), tier-gating,
+    approved-only eligibility. Bulk "Download all" zip stays its own deferred worker initiative.
+  - **Generation (Tabled — needs a product + architecture decision first).** Transcode/stitch runs in an
+    **external worker, NOT Vercel** (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg
+    on Cloudflare Containers), trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating.
+  See [`systems/host-app.md`](systems/host-app.md).
 - **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
   round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a
   multi-event creator network (a VSCO-style link-in-bio + a social graph). Foundations are ~70% there

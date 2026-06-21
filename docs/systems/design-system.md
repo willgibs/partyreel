@@ -90,7 +90,11 @@ Three curves in `@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entra
 primitives. Current timings: dialog 200/150 · dropdown/popover 175/120 · tooltip 150/100 (+
 `skipDelayDuration` 300) · sheet 300/200 on the drawer curve. Skeletons shimmer via a
 background-position sweep (`--animate-shimmer`, linear on purpose: ambient loop, a strong curve
-stutters at the loop point).
+stutters at the loop point). **`MediaTile` (every gallery tile) renders the shimmer skeleton under the photo
+until it decodes, then fades the photo in over it (S5 P1)** — a cold presigned-R2 load (no thumbnail variant)
+reads as shimmer→photo, never a black square that pops; reduced motion drops to a static muted block. The
+host-review takeover pairs this with a preload of the just-approved photos during the all-caught-up beat so
+the album reveal paints from cache (see [host-app.md](host-app.md)).
 
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on

@@ -10,6 +10,35 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-21 — P5·S5: review-takeover polish + smoother album reveal + require-accounts free/default-on (`24e3fa7` · `4b75705` · `cddba33`)
+
+Will's S4-review follow-ups, two independent parts, each green-gated → shipped → live-verified on partyreel.com.
+- **P1 — takeover polish + the reveal gap** (`24e3fa7`): the bulk bar's **Select all/Deselect all** moved RIGHT
+  beside Hide/Approve (count stays left, all clickable controls grouped); the action buttons carry their count
+  (`Hide (3)` / `Approve (All)`); the heading split into a bold **Review** + a muted count. Killed the
+  "black squares then 1-2s load" album reveal: the takeover **preloads the just-approved photos during the
+  ~1.8s all-caught-up beat** (it holds their stable presigned URLs, which recur byte-identical in the album →
+  the reveal paints from cache), and **`MediaTile` now shows a shimmer skeleton** under a photo until it
+  decodes, then fades it in (a shared primitive → smooths every gallery surface; reduced-motion = static muted
+  block). The real fix (a resized thumbnail variant on upload) stays deferred → ROADMAP. Live-verified: bar
+  layout, button counts, bold/muted heading, the skeleton mechanism (loaded photos → skeleton gone).
+- **P2 — "Require accounts to upload" is FREE + DEFAULT-ON** (`4b75705`, fix `cddba33`): a monetization reframe
+  (Will) — requiring accounts was Pro-gated to push upgrades, but anonymous uploads capture no emails, so FREE
+  events seeded no new account-holders (the growth loop stalled). Un-gated for any tier + default-on (safety +
+  email capture); allowing anonymous uploads is now an opt-in toggle with a consequence-confirm Dialog. Dropped
+  the `enforce_event_pro_gates` trigger (it gated ONLY this setting) + ALTERed the column default to `false`
+  (migration `…170000_ungate_require_accounts_default_on`, user-authorized + applied, `get_advisors` clean);
+  removed the server tier-gate + the UI Pro-lock + the `GATED_EVENT_SETTINGS` entry; relabeled the toggle +
+  rewrote its copy. ENFORCEMENT unchanged (the gallery teaser-gate + `create_guest` email check). The
+  confirm-Dialog open is deferred a tick (`setTimeout 0`) so radix's dismissable-layer doesn't catch the
+  switch's own click and auto-close it — caught + fixed during the live red-team (Will confirmed it stays open).
+  Password + custom_slug stay Pro-gated. Supersedes the config/permissions-rework Pro-gate for require-accounts.
+- **Test-tooling note:** the Chrome MCP rendered the (S4-animated) settings route as dimmed/empty in every
+  screenshot while the DOM was fully visible (`opacity:1`, real heights) — a capture blind-spot; the confirm
+  modal was verified by handing Will the 10-second look. → [testing-verification.md](systems/testing-verification.md).
+
+---
+
 ## 2026-06-21 — P5·S4: the event-page polish pass + settings hardening + the motion tuner (`e3c3c62` · `3074d62` · `b058b49` · `a56721b` · `d2f5d7a` · `8824bd1` · `7260223`)
 
 The S3 gallery-first follow-up: an emil-driven creative polish of the host event page + a settings refactor

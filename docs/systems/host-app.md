@@ -54,10 +54,16 @@ guards `MAX_EVENTS`. **Events have no end date** — deletion is the only lifecy
   because the real `qr_token` doesn't exist pre-insert.
 - **Settings are NOT auto-save** — toggles (e.g. moderation mode) persist only on **Save changes**. When
   verifying a settings change, click Save and confirm the DB; don't assume the toggle wrote on change.
-- **The "Require guest accounts" toggle (gated-gallery P3, [ADR-0017](../adr/0017-gated-gallery-view-access.md))
-  is `allow_anonymous_uploads` shown INVERTED** (switch ON = accounts required = `allow_anonymous_uploads:false`);
-  the column/schema/server Pro-gate are unchanged. A live "what your guests will experience" line under the
-  access controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
+- **The "Require accounts to upload" toggle is `allow_anonymous_uploads` shown INVERTED** (switch ON =
+  accounts required = `allow_anonymous_uploads:false`). **FREE for any tier + DEFAULT-ON** (S5 P2, 2026-06-21):
+  requiring accounts captures guest emails (the growth loop) and is safer, so it's no longer Pro-gated and new
+  events default to it ON (the `enforce_event_pro_gates` trigger is DROPPED + the column default flipped to
+  `false`). Turning it OFF (allowing anonymous uploads) first opens a **consequence-confirm Dialog** (the
+  delete-confirm pattern; the open is deferred a tick so radix's dismissable-layer doesn't catch the switch's
+  own click and auto-close it); turning it back ON is instant. ENFORCEMENT is unchanged (gated-gallery P3,
+  [ADR-0017](../adr/0017-gated-gallery-view-access.md)): `resolveGalleryAccess` teaser-gates an unverified
+  guest + `create_guest` checks the email. A live "what your guests will experience" line under the access
+  controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
 
@@ -154,13 +160,19 @@ the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/
 does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) get the **review surface**
 ([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D, polished S4·A2/A3): a faded-edge
 teaser opens a **full-screen radix `Dialog`** (modal) - a FUNCTIONAL triage tool (denser than the experiential
-album: a 6-col-on-desktop grid, less cursor travel). Tap-to-select + **Select all** + a sticky bulk bar whose
-Hide / Approve actions appear ONLY once something is selected (no one-click approve-all from a fresh,
-0-selected takeover - "Select all → Approve" is the intentional whole-queue path). Per-**video preview**: a ▶
-on video tiles opens an in-takeover `<video controls>` overlay (a poster frame can't tell you what you're
-approving; the overlay lives INSIDE the Dialog, not a nested one). Optimistic with revert-on-failure - the
-grid cascades in, acted tiles fade+scale out before the list reflows, and clearing the LAST pending plays an
-"all caught up" beat (~1.8s hold) before it closes (see "The event page" → Motion). **Tiles render via the shared `MediaTile`** (like every gallery: a plain
+album: a 6-col-on-desktop grid, less cursor travel). The heading reads a bold **Review** + a muted count.
+Tap-to-select + a sticky bulk bar (S5 P1): the **count sits LEFT**; the **Select all/Deselect all** toggle
+groups RIGHT beside the Hide / Approve actions (keep clickable controls together). Hide / Approve appear ONLY
+once something is selected (no one-click approve-all from a fresh, 0-selected takeover - "Select all →
+Approve" is the intentional whole-queue path) and carry the count they'll act on (`Hide (3)` / `Approve
+(All)` when the whole queue is selected). Per-**video preview**: a ▶ on video tiles opens an in-takeover
+`<video controls>` overlay (a poster frame can't tell you what you're approving; the overlay lives INSIDE the
+Dialog, not a nested one). Optimistic with revert-on-failure - the grid cascades in, acted tiles fade+scale
+out before the list reflows, and clearing the LAST pending plays an "all caught up" beat (~1.8s hold) before
+it closes (see "The event page" → Motion). The just-approved photos are **preloaded during that beat** (the
+takeover holds their stable presigned URLs, which recur byte-identical in the album → the reveal paints from
+cache, not a cold full-res fetch) so the album doesn't flash black squares on return. **Tiles render via the
+shared `MediaTile`** (like every gallery: a plain
 `<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the short-lived, per-request
 presigned R2 URLs (it can't fetch them, and can't render video at all). Bug fixed `d5afd0c` after the teaser/
 takeover shipped with `<Image>` and rendered broken (the black tiles read as "loading" — the
@@ -193,9 +205,13 @@ invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 ## Highlight reel — SCAFFOLD ONLY (tabled)
 
 A DB scaffold exists (`highlight_reels` table + status enum; `media.highlight_score`/`clip_*`/
-`reel_eligible`/`preview_key`) but **no processing ships**. Hard constraint: transcode/stitch runs in an
-**external worker, NOT Vercel functions** (ADR-0003). Tabled pending a product + architecture decision (the
-worker platform) — see [`../ROADMAP.md`](../ROADMAP.md).
+`reel_eligible`/`preview_key`) but **no processing ships**. Those `media` columns are DEAD scaffold today
+(read/written by zero app code — `reel_eligible` is reserved for a future auto-scoring worker, NOT the host
+curation signal). Hard constraint: transcode/stitch runs in an **external worker, NOT Vercel functions**
+(ADR-0003). Tabled pending a product + architecture decision (the worker platform). **The CURATION half is
+PLANNED** (S5 "Reel Curation Foundation," roadmapped): an `Add to Reel` host action (distinct from Like) + a
+`reel_items` join table (mirrors `media_likes`) + event-page tabs (Uploads / Reel / Reviews) + host album
+bulk-selection; generation stays deferred. See [`../ROADMAP.md`](../ROADMAP.md).
 
 ## See also
 

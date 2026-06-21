@@ -34,6 +34,13 @@ site, these are the ways the *test tooling* misreports, so a working change look
     the trigger + a short `wait` + the `screenshot` in a SINGLE `browser_batch` (in-browser-sequential →
     minimal latency) to land mid-animation; or assert the MECHANISM deterministically (computed
     `transition-delay`/`-duration`/the data-attr per element) instead of chasing the frame.
+  - **An animated route can SCREENSHOT as dimmed/empty while the DOM is fully visible.** On the S4-animated
+    settings route the MCP screenshot showed only a faded header (form area black) AND `getBoundingClientRect`
+    on a control returned `0,0,0,0` — yet the computed styles up the whole tree were `display:block/flex`,
+    `opacity:1`, `visible`, with real heights. So the page IS rendered for a real user; the CAPTURE is the
+    liar, and "clicks" land on nothing because the tool's view is off. Verify visibility via computed style on
+    the element + ancestors (not the screenshot), and for the interaction itself hand the human the 10-second
+    look (the S5 anon-confirm modal was verified this way). Don't "fix" working UI chasing the dimmed frame.
 
 ## Vercel preview chrome
 

@@ -65,9 +65,9 @@ The expected, accepted set:
   → [host-app.md](host-app.md).)
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
-  (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `enforce_event_pro_gates`, `handle_new_user`,
+  (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `handle_new_user`,
   `notify_gallery_change` [the gallery doorbell, Phase 3], …). If an unexpected one shows up, an over-broad
-  grant slipped in.
+  grant slipped in. (`enforce_event_pro_gates` was DROPPED in S5 — see below.)
 - **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING by
   design, and `realtime.messages` has NO day-partitions until the Realtime service first activates (the first
   client channel subscription creates them). So on a project that has never had a realtime connection, a
@@ -89,10 +89,11 @@ The expected, accepted set:
   - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. `removed_by_uploader` is likewise ungranted (set only by the owner-context `remove_my_upload` RPC — a guest's private self-deletion marker).
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes` (+ `insert(host_id)`, `update(deleted_at)`). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
-- **Value-gates a bare grant can't express are triggers/CHECK:** `enforce_event_pro_gates` (the
-  `allow_anonymous_uploads` Pro gate — raises 42501 when a Free host tries to turn anonymous uploads OFF),
-  the `events_password_requires_hash` CHECK (no
-  `visibility='password'` without a hash), `enforce_event_limit` (MAX_EVENTS, raises 23514).
+- **Value-gates a bare grant can't express are triggers/CHECK:** the `events_password_requires_hash` CHECK
+  (no `visibility='password'` without a hash) + `enforce_event_limit` (MAX_EVENTS, raises 23514). (The
+  `enforce_event_pro_gates` trigger that gated `allow_anonymous_uploads` was DROPPED in S5 — require-accounts
+  is now FREE for any tier + default-on; password + custom_slug stay Pro-gated via their own
+  `set_event_password`/`set_event_slug` RPCs, not a table trigger.)
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side (ADR-0003). → [uploads-and-r2.md](uploads-and-r2.md).
 - **The Stripe webhook is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
 - **The service-role / secret key is server-only** (behind `import "server-only"`); never `NEXT_PUBLIC_`.
@@ -103,7 +104,8 @@ The expected, accepted set:
 - **A column-level `revoke update(col)` is a SILENT NO-OP while a TABLE-level grant stands** (the root
   cause of the `events` Pro-bypass CVE: the earlier `set_event_password`/`set_event_slug` column-revokes
   did nothing because the table grant was never revoked, so a free host could PATCH
-  `event_password_hash`/`custom_slug`/`allow_anonymous_uploads` to steal Pro features). You MUST
+  `event_password_hash`/`custom_slug` (and, before S5 un-gated it, `allow_anonymous_uploads`) to steal Pro
+  features). You MUST
   `revoke insert,update,delete … from authenticated` at the TABLE level FIRST, then `grant (cols)`. Verify
   with `has_column_privilege`, then re-run `get_advisors`. (ADR-0014; fixed in `…163011_lock_down_events_write_grant`.)
 - **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
