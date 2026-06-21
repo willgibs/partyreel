@@ -263,6 +263,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "Review: focused mode",
       "Settings: route + crossfade",
     ],
+    decision: 6,
+    decisionNote:
+      "Ratified (Will, 2026-06-20, felt live). A = Header STATUS ROW (1): counts on one line (date + items / contributors / views icons), then a SEPARATE row of small bordered chips for the config status (visibility Open/Password/Private + an Accepting-uploads dot) - state reads as state, worth the extra line. B = the command strip ships RESPONSIVE both ways (phone: Share full-width, then Add + Settings; one row when wide); review has LEFT the strip for its own teaser. C = the review surface is FOCUSED REVIEW MODE (6): the pending teaser (faded right edge, only when reviews exist) opens a full TAKEOVER (its own header 'Review N' + back, the page hidden behind) with tap-to-select + a sticky bulk bar (Hide / Approve selected, Approve all); moderation is INSTANT (no theater), toasts fire (Approved N, Hidden from everyone). D = Settings is a dedicated ROUTE with a lean crossfade (the ONE place motion is spent) + Deleted BEHIND it. Next: the incremental A->D build, hydration-safe (native title on SSR'd surfaces, NO radix Tooltip - the regression cause), each increment verified on Will's real browser + the gated probe.",
   },
   {
     // Phase 5 S3·3c (Will, 2026-06-20): the GALLERY ACTION MODEL across guest +
