@@ -65,6 +65,17 @@ increments were ADVERSARIALLY REVIEWED (3 independent lenses each) before ship.
   because the black tiles read as "loading" (the testing-verification trap); Will caught it on a real reload.
   Fixed to the shared `MediaTile` (plain `<img>` / `<video>` poster) like every other gallery surface;
   live-verified the teaser + takeover thumbnails now load (R2 200s, video posters + play badges).
+- **Review-surface iteration on Will's live notes** (`7b40c90` · `9c532ec`): (1) **Select all / Deselect
+  all** in the bulk bar (select everything → deselect the few rejects → Approve; hoisted out of the re-keyed
+  crossfade so it never loses focus / re-fades). (2) per-**video preview** — a ▶ on video tiles opens an
+  in-takeover `<video controls autoPlay>` overlay (a poster can't tell you what you're approving); tiles became
+  a `<div>` with sibling select + ▶ buttons; preview resets on close + drops in the resync. (3) the **motion
+  tuner now works over the takeover** — it's `modal={!devUnlocked}` (a modal radix Dialog's
+  `body{pointer-events:none}` made the body-portaled tuner inert), + an `onInteractOutside` guard so tuning
+  doesn't dismiss the (non-modal) takeover. (4) **6-col** desktop grid (denser triage). Adversarially reviewed
+  (3 lenses, optimistic logic CLEAN); live-verified all four — and live testing caught that the review's claim
+  "non-modal radix doesn't self-close" was WRONG (dragging a slider closed the takeover until the guard, the
+  reinforcing-case for verify-don't-trust).
 
 ## 2026-06-21 — P5·S3·3b: the gallery-first host event page (`dd476f4` · `f4ed111` · `42677d1` · `9f2eea2` · `026834c` · `47d08f0`)
 
