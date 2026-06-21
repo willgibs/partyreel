@@ -179,12 +179,15 @@ export function UploadsSection({
                 <FormControl>
                   {/* checked = "require accounts" = !allow_anonymous_uploads. Turning it
                       OFF (allowing anonymous) is the consequential direction → confirm
-                      first; turning it back ON is instant. */}
+                      first; turning it back ON is instant. The OFF-open is DEFERRED a tick:
+                      opening the Dialog synchronously inside this click lets radix's
+                      dismissable-layer catch the same in-flight pointer event and close the
+                      confirm instantly. */}
                   <Switch
                     checked={!field.value}
                     onCheckedChange={(checked) => {
                       if (checked) field.onChange(false);
-                      else setConfirmAnonOpen(true);
+                      else setTimeout(() => setConfirmAnonOpen(true), 0);
                     }}
                   />
                 </FormControl>
