@@ -10,6 +10,30 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Reel COMPOSER: the live in-app reel ($0) (Reel V1 slice 2, `4806e71`)
+
+The reel comes ALIVE in the app. The host's curated set now **plays as a live in-browser `@remotion/player` reel**
+(the "wow in between") in the Reel section — player hero on top, the editable curated grid below — with auto-magic
+controls (**theme · shuffle · cover · length**), all client-side + **$0** (shuffle just re-seeds; nothing encodes).
+The downloadable `.mp4` export (the Lambda trigger) is the next slice. Durable facts in
+[`systems/host-app.md`](systems/host-app.md) "Reel composer"; the slice plan in [`specs/reel-v1.md`](specs/reel-v1.md).
+- **WYSIWYG single-source:** the proven spike composition MOVED `workers/reel-render/src` → `src/lib/reel/composition`
+  (the app's `tsconfig` excludes `workers/`, so the canonical source lives in the app; the worker's site entry imports
+  back into it — verified by `remotion compositions` still bundling `Reel` from the app path). ONE `<Reel>` drives BOTH
+  the in-app Player AND the Lambda render; `remotion`/`@remotion/player`/`@remotion/media` added to the app exact-pinned
+  `4.0.482` (lockstep). + a `posterMode` flag (the Player shows video by its poster still — R2-CORS blocks in-browser
+  `<Video>`; the export keeps real `<Video>`, byte-identical). 3 starter theme kits (classic/warm/punchy).
+- **Data:** `buildReelProps` (pure, 10 vitest cases) turns `reel_items` order + the already-presigned `GridMedia` into
+  the Player inputProps (no 2nd presign). Migration: `highlight_reels` + `theme/seed/length_seconds/cover_media_id`,
+  a one-per-event unique index, the **host table-write lockdown** (status/output_key render-only), and
+  `upsert_reel_config` (SECURITY DEFINER, host-owns, lazy row-create, anon-grant revoked). Rolled-back contract-tested
+  (host-owns / upsert / cover-soft-null / cross-tenant / unauthorized); advisors clean.
+- **UI:** the empty state offers a one-tap **"Fill from gallery"** auto-fill. emil craft on the controls (the Button's
+  press-scale + custom easing). A live-test polish: the 9:16 player is a centered phone-frame (no wide black side-bars).
+- **Live-verified on partyreel.com** (host `willg97`, demo event): auto-fill seeded 9 → the player autoplays the reel
+  (Ken-Burns + grade) → theme switch (Punchy) + Shuffle re-render live → the config persisted (lazy `highlight_reels`
+  row, `theme=punchy`, the shuffled seed). The export path stayed green (the worker still bundles + renders).
+
 ## 2026-06-22 — Highlight-reel render-pipeline spike (Reel V1 slice 1, `workers/reel-render`)
 
 De-risked the reel's one real unknown before building any UI: that a **Remotion** composition renders *our* kind

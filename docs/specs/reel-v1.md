@@ -7,6 +7,11 @@
 > the open spike items. · NOT HERE: the build plan (a plan file), implementation detail.
 > GROWS BY: refine in place during planning; supersede when the feature ships.
 
+> **STATUS (2026-06-22):** Slice 1 (render-pipeline spike) ✅ + Slice 2 (the live $0 composer: `@remotion/player` +
+> theme/shuffle/cover/length + auto-fill) ✅ SHIPPED — current truth now lives in [`../systems/host-app.md`](../systems/host-app.md)
+> "Reel composer". NEXT: the `.mp4` export (Lambda trigger + lifecycle + watermark, gated on the speed re-measure),
+> then Pro video trim, then the themes palette + reveal. This spec stays the plan for the remaining slices.
+
 ## What it is + why
 
 The reel is **core-loop step 5** and the product's North Star: a host curates their event's best moments and gets

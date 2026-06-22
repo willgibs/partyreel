@@ -280,7 +280,7 @@ toggling select reflows the tile heights.
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
 invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 
-## Reel curation (R1 SHIPPED) + the highlight reel (generation tabled)
+## Reel curation (R1 SHIPPED) + the live composer (SHIPPED) + the .mp4 export (next)
 
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
 curated set in the **Reel section** of the stacked feed (the event page is a pill-filtered feed — `Review ·
@@ -317,9 +317,24 @@ in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_me
 is optimistic (★ rebuild a NEW `Set` from the reordered array — mutating the old Set keeps the old order) + reverts
 on the `stale`/error path. (The Review uniform grid keeps its `[data-exiting]` beat + `[data-check-pop]` — tile-local.)
 
-**GENERATION (the highlight VIDEO) is tabled** — transcode/stitch runs in an **external worker, NOT Vercel
-functions** (ADR-0003); pending a product + architecture decision (the worker platform consumes the ordered
-`reel_items` set → writes `highlight_reels.output_key`). See [`../ROADMAP.md`](../ROADMAP.md).
+**The COMPOSER (the live in-app reel) SHIPPED** (2026-06-22, Reel V1 slice 2, commit `4806e71`): the curated set now
+**plays as a live in-browser `@remotion/player` reel** in the Reel section (player hero on top, the editable curated
+grid below), with auto-magic controls — **theme · shuffle · cover · length** ([`reel-composer.tsx`](../../src/components/reel/reel-composer.tsx)
++ [`reel-player.tsx`](../../src/components/reel/reel-player.tsx)) — all client-side + **$0** (shuffle re-seeds; nothing
+encodes). ★ **WYSIWYG single-source**: ONE Remotion composition ([`src/lib/reel/composition/`](../../src/lib/reel/composition))
+drives BOTH the in-app Player AND the Lambda render (`workers/reel-render` bundles its Root *from the app* — the app's
+`tsconfig` excludes `workers/`, so the canonical composition lives in the app and the worker imports back into it;
+`remotion`/`@remotion/player`/`@remotion/media` are exact-pinned `4.0.482` in BOTH, lockstep). The Player shows video
+clips by their POSTER still (the `posterMode` flag — the in-browser player can't decode R2 video over CORS; the export
+keeps real `<Video>`, byte-identical). [`build-reel-props.ts`](../../src/lib/reel/build-reel-props.ts) (pure, tested)
+turns the `reel_items` order + the already-presigned `GridMedia` into the Player's inputProps (NO 2nd presign/RPC).
+Config persists (debounced) via **`upsert_reel_config`** (SECURITY DEFINER, host-owns, lazy-creates the one-per-event
+`highlight_reels` row on the first edit; `status`/`output_key` stay render-only — host table writes are revoked). The
+empty state offers a one-tap **"Fill from gallery"** auto-fill (random batch → `addMany`). `media.clip_*` stays
+scaffold (Pro video trim is a later slice). **NEXT: the `.mp4` EXPORT** (the Lambda render trigger + `highlight_reels`
+lifecycle + "Stitching" modal + watermark + kill-switch/admin) — the render pipeline itself is already proven (the
+slice-1 spike, [`durability-backups.md`](durability-backups.md)-style worker at `workers/reel-render`; see
+[`../specs/reel-v1.md`](../specs/reel-v1.md) for the full slice plan + the lazy-vs-eager gate).
 
 ## See also
 

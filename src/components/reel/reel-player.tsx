@@ -23,7 +23,9 @@ export function ReelPlayer({ reelProps }: { reelProps: ReelProps }) {
   );
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-black shadow-sm">
+    // A centered phone-frame: the 9:16 reel IS the hero (no wide black side-bars in the wide column).
+    // The wrapper is the frame, so the Player fills it exactly.
+    <div className="mx-auto w-full max-w-[360px] overflow-hidden rounded-xl border bg-black shadow-sm">
       <Player
         component={Reel}
         inputProps={reelProps}
@@ -35,12 +37,7 @@ export function ReelPlayer({ reelProps }: { reelProps: ReelProps }) {
         autoPlay
         loop
         controls
-        // 9:16, capped so a tall reel never dominates the dashboard; the frame fills the column width.
-        style={{
-          width: "100%",
-          aspectRatio: `${REEL_WIDTH} / ${REEL_HEIGHT}`,
-          maxHeight: "70vh",
-        }}
+        style={{ width: "100%", aspectRatio: `${REEL_WIDTH} / ${REEL_HEIGHT}` }}
       />
     </div>
   );
