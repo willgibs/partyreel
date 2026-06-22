@@ -25,6 +25,9 @@ export type SelectableMediaGridProps = {
   onToggle: (id: string) => void;
   /** Review = true (browse peek + preview modal). Gallery = false (tap always toggles). */
   enablePreview?: boolean;
+  /** Must MATCH the surface's normal grid so toggling select never reflows tile heights — the
+   *  gallery clamps extreme ratios (MasonryColumns clampAspect), the review queue does not. */
+  clampAspect?: boolean;
 };
 
 export function SelectableMediaGrid({
@@ -34,6 +37,7 @@ export function SelectableMediaGrid({
   exiting,
   onToggle,
   enablePreview = false,
+  clampAspect = false,
 }: SelectableMediaGridProps) {
   // A lightweight peek overlay (browse mode only): inspect a photo/video before approving, without
   // pulling the full gallery lightbox graph onto this surface.
@@ -50,7 +54,7 @@ export function SelectableMediaGrid({
               data-exiting={exiting.has(it.id) ? "" : undefined}
               style={
                 {
-                  aspectRatio: tileAspect(it, false),
+                  aspectRatio: tileAspect(it, clampAspect),
                   borderRadius: "var(--radius-tile)",
                 } as CSSProperties
               }

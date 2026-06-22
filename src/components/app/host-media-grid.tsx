@@ -423,6 +423,8 @@ export function HostMediaGrid({
         selected={selection.selected}
         exiting={exiting}
         onToggle={handleToggle}
+        // Match the normal grid's clamp so entering/leaving select never reflows tile heights.
+        clampAspect
       />
     );
   }
