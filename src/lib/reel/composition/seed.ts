@@ -13,5 +13,7 @@ export function mulberry32(a: number): () => number {
 
 /** A stable 0..1 value for (seed, index, salt) — picks pan direction / zoom amount per clip. */
 export function seeded(seed: number, index: number, salt = 0): number {
-  return mulberry32((seed * 2654435761 + index * 40503 + salt * 97 + 1) >>> 0)();
+  return mulberry32(
+    (seed * 2654435761 + index * 40503 + salt * 97 + 1) >>> 0,
+  )();
 }

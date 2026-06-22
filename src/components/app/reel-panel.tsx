@@ -1,14 +1,24 @@
 "use client";
 
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { type GridMedia } from "@/components/app/media-grid";
 import { ReelSortableGrid } from "@/components/app/reel-sortable-grid";
+import { type ReelConfig } from "@/lib/db/queries/reel";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import { ReelComposer } from "@/components/reel/reel-composer";
 import { useReel } from "@/components/reel/reel-provider";
 import { useReelReorder } from "@/components/reel/reel-reorder-provider";
+import { Button } from "@/components/ui/button";
+
+// Auto-fill: a one-tap "zero to reel" — seed an empty reel with a random batch of the gallery's approved
+// media, then refine. Shown only when there's enough to make a reel worth watching.
+const AUTOFILL_MIN = 4;
+const AUTOFILL_MAX = 12;
 
 // The REEL feed section's body: the host's curated highlight set (added via the clapperboard), in add-order.
 // Bare (the section header — added by EventFeed — carries the name + count; the empty state is the shared
@@ -19,11 +29,15 @@ export function ReelPanel({
   eventId,
   items,
   shareUrl,
+  reelConfig,
 }: {
   eventId: string;
   /** All visible (approved + hidden) gallery items; filtered here to the in-reel, approved set. */
   items: GridMedia[];
   shareUrl?: string;
+  /** The composer config (theme/seed/length/cover); null until first composed. Consumed by the
+   *  reel composer (mounts the live @remotion/player). Accepted now; wired in the composer step. */
+  reelConfig: ReelConfig | null;
 }) {
   const reel = useReel();
   const reorder = useReelReorder();
@@ -38,10 +52,9 @@ export function ReelPanel({
 
   if (membership.length === 0) {
     return (
-      <FeedSectionEmpty
-        icon={Clapperboard}
-        title="Build your highlight reel"
-        desc="Add favorite moments from the gallery with the clapperboard, and they'll collect here. Reel video generation is coming soon."
+      <ReelEmptyState
+        reel={reel}
+        approved={items.filter((m) => m.status === "approved")}
       />
     );
   }
@@ -49,14 +62,20 @@ export function ReelPanel({
   // Reorder mode: the sortable uniform grid over the full membership; Done (the header) exits.
   if (reorder?.reorderMode && reel) {
     return (
-      <ReelSortableGrid items={membership} onReorder={(ids) => reel.reorder(ids)} />
+      <ReelSortableGrid
+        items={membership}
+        onReorder={(ids) => reel.reorder(ids)}
+      />
     );
   }
 
   return (
     <div className="space-y-4">
+      {/* The live composer (player hero + theme/shuffle/cover/length) sits on top... */}
+      <ReelComposer eventId={eventId} items={items} reelConfig={reelConfig} />
+      {/* ...over the editable curated filmstrip (add/remove via the clapperboard, reorder via the
+          header). A uniform grid (a legible sequence), not the gallery's natural-ratio masonry. */}
       <LikesProvider mediaIds={reelItems.map((i) => i.id)}>
-        {/* The reel is a UNIFORM grid (a legible sequence), not the gallery's natural-ratio masonry. */}
         <HostMediaGrid
           eventId={eventId}
           items={reelItems}
@@ -64,9 +83,56 @@ export function ReelPanel({
           layout="uniform"
         />
       </LikesProvider>
-      <p className="text-xs text-muted-foreground">
-        Reel video generation is coming soon. For now, this is your curated set.
-      </p>
     </div>
+  );
+}
+
+// The empty reel: the teaser + a one-tap "Fill from gallery" auto-fill (zero-to-reel, then refine). A
+// sub-component so its `filling` state never sits in ReelPanel's conditional branches.
+function ReelEmptyState({
+  reel,
+  approved,
+}: {
+  reel: ReturnType<typeof useReel>;
+  approved: GridMedia[];
+}) {
+  const [filling, setFilling] = useState(false);
+  const canFill = !!reel && approved.length >= AUTOFILL_MIN;
+
+  async function fillFromGallery() {
+    if (!reel) return;
+    setFilling(true);
+    // A random batch (up to AUTOFILL_MAX) of approved media — add_to_reel is idempotent + approved-only.
+    const pick = [...approved]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.min(AUTOFILL_MAX, approved.length))
+      .map((m) => m.id);
+    try {
+      const added = await reel.addMany(pick);
+      if (added > 0) toast.success(`Added ${added} to your reel.`);
+    } finally {
+      setFilling(false);
+    }
+  }
+
+  return (
+    <FeedSectionEmpty
+      icon={Clapperboard}
+      title="Build your highlight reel"
+      desc="Add favorite moments from the gallery with the clapperboard and they collect here, ready to watch as a reel."
+      action={
+        canFill ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={fillFromGallery}
+            disabled={filling}
+          >
+            <Sparkles />
+            {filling ? "Filling…" : "Fill from gallery"}
+          </Button>
+        ) : undefined
+      }
+    />
   );
 }

@@ -29,7 +29,7 @@ import { getEvent } from "@/lib/db/queries/events";
 import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
-import { listReelItems } from "@/lib/db/queries/reel";
+import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
@@ -88,14 +88,22 @@ export default async function EventDetailPage({
   // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
   // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a
   // curation signal shown as a subtle per-tile badge; never on a guest surface.
-  const [media, linkStats, uploaderIdentities, likeCounts, reelIds] =
-    await Promise.all([
-      listEventMedia(event.id),
-      getLinkStats(event.id),
-      getUploaderIdentities(event.id),
-      getEventLikeCounts(event.id),
-      listReelItems(event.id),
-    ]);
+  const [
+    media,
+    linkStats,
+    uploaderIdentities,
+    likeCounts,
+    reelIds,
+    reelConfig,
+  ] = await Promise.all([
+    listEventMedia(event.id),
+    getLinkStats(event.id),
+    getUploaderIdentities(event.id),
+    getEventLikeCounts(event.id),
+    listReelItems(event.id),
+    // The composer config (theme/seed/length/cover); null until the host first composes.
+    getReelConfig(event.id),
+  ]);
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
@@ -204,9 +212,7 @@ export default async function EventDetailPage({
           <ArrowLeft className="size-4" /> Back to events
         </Link>
         <div className="space-y-2">
-          <PageHeading className="text-3xl">
-            {event.name}
-          </PageHeading>
+          <PageHeading className="text-3xl">{event.name}</PageHeading>
           {/* Stat line: date + the icon sub-stats (items / contributors / views).
               Native title only; NO radix Tooltip on these SSR'd elements (the
               host-hydration regression cause, see architecture.md). */}
@@ -278,29 +284,30 @@ export default async function EventDetailPage({
               long-press drive one selection. Both inside ReelProvider (the shared reel membership). */}
           <ReelReorderProvider>
             <HostSelectionProvider>
-            <EventFeed
-              eventId={event.id}
-              moderationOn={isModerationOn}
-              initialSection={initialSection}
-              pendingItems={pendingItems}
-              galleryCount={visibleItems.length}
-              reelCount={reelIds.length}
-              gallerySection={
-                <EventUploads
-                  eventId={event.id}
-                  items={visibleItems}
-                  pendingCount={pendingItems.length}
-                  shareUrl={eventLink}
-                />
-              }
-              reelSection={
-                <ReelPanel
-                  eventId={event.id}
-                  items={visibleItems}
-                  shareUrl={eventLink}
-                />
-              }
-            />
+              <EventFeed
+                eventId={event.id}
+                moderationOn={isModerationOn}
+                initialSection={initialSection}
+                pendingItems={pendingItems}
+                galleryCount={visibleItems.length}
+                reelCount={reelIds.length}
+                gallerySection={
+                  <EventUploads
+                    eventId={event.id}
+                    items={visibleItems}
+                    pendingCount={pendingItems.length}
+                    shareUrl={eventLink}
+                  />
+                }
+                reelSection={
+                  <ReelPanel
+                    eventId={event.id}
+                    items={visibleItems}
+                    shareUrl={eventLink}
+                    reelConfig={reelConfig}
+                  />
+                }
+              />
             </HostSelectionProvider>
           </ReelReorderProvider>
         </ReelProvider>

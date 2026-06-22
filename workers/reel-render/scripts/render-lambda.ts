@@ -23,11 +23,15 @@ import {
   type AwsRegion,
 } from "@remotion/lambda/client";
 
-import type { ReelProps } from "../src/reel-types";
+import type { ReelProps } from "../../../src/lib/reel/composition/reel-types";
 
 // The Lambda box — must match what we deploy (functions deploy --memory-size-mb / --disk-size-mb /
 // --timeout). speculateFunctionName derives the deployed function's name from these deterministically.
-const BOX = { memorySizeInMb: 2048, diskSizeInMb: 2048, timeoutInSeconds: 120 } as const;
+const BOX = {
+  memorySizeInMb: 2048,
+  diskSizeInMb: 2048,
+  timeoutInSeconds: 120,
+} as const;
 
 const region = (process.env.REMOTION_AWS_REGION ?? "us-east-1") as AwsRegion;
 const serveUrl = process.env.REMOTION_SERVE_URL;
@@ -46,7 +50,8 @@ const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
 
 function requireEnv() {
   const missing: string[] = [];
-  if (!serveUrl) missing.push("REMOTION_SERVE_URL (from `lambda sites create`)");
+  if (!serveUrl)
+    missing.push("REMOTION_SERVE_URL (from `lambda sites create`)");
   if (!R2_ACCOUNT_ID) missing.push("R2_ACCOUNT_ID");
   if (!R2_ACCESS_KEY_ID) missing.push("R2_ACCESS_KEY_ID");
   if (!R2_SECRET_ACCESS_KEY) missing.push("R2_SECRET_ACCESS_KEY");
@@ -56,19 +61,25 @@ function requireEnv() {
   if (!process.env.REMOTION_AWS_SECRET_ACCESS_KEY)
     missing.push("REMOTION_AWS_SECRET_ACCESS_KEY");
   if (missing.length) {
-    throw new Error(`Missing env in workers/reel-render/.env:\n  - ${missing.join("\n  - ")}`);
+    throw new Error(
+      `Missing env in workers/reel-render/.env:\n  - ${missing.join("\n  - ")}`,
+    );
   }
 }
 
 async function main() {
   requireEnv();
   const cold = process.argv.includes("--cold");
-  const inputProps = JSON.parse(readFileSync("out/props.json", "utf8")) as ReelProps;
+  const inputProps = JSON.parse(
+    readFileSync("out/props.json", "utf8"),
+  ) as ReelProps;
 
   // A clearly-namespaced spike key so the output is trivial to find + clean up in R2.
   const outKey = `_spike/reel-render/output-${Date.now()}.mp4`;
 
-  console.log(`[render-lambda] ${cold ? "COLD" : "warm"} | fn=${functionName} | region=${region}`);
+  console.log(
+    `[render-lambda] ${cold ? "COLD" : "warm"} | fn=${functionName} | region=${region}`,
+  );
   console.log(`[render-lambda] serveUrl=${serveUrl}`);
   console.log(`[render-lambda] -> R2 ${R2_BUCKET}/${outKey}`);
 
@@ -95,13 +106,23 @@ async function main() {
     },
   });
 
-  console.log(`[render-lambda] started renderId=${renderId} (Remotion bucket=${bucketName})`);
+  console.log(
+    `[render-lambda] started renderId=${renderId} (Remotion bucket=${bucketName})`,
+  );
 
   // Poll until done. Log overall progress + the lambda fan-out so we see the framesPerLambda effect.
   for (;;) {
-    const p = await getRenderProgress({ renderId, bucketName, functionName, region });
+    const p = await getRenderProgress({
+      renderId,
+      bucketName,
+      functionName,
+      region,
+    });
     if (p.fatalErrorEncountered) {
-      console.error("[render-lambda] FATAL:", JSON.stringify(p.errors, null, 2));
+      console.error(
+        "[render-lambda] FATAL:",
+        JSON.stringify(p.errors, null, 2),
+      );
       process.exit(1);
     }
     if (p.done) {
@@ -115,17 +136,25 @@ async function main() {
       });
       console.log("─".repeat(60));
       console.log(`[render-lambda] DONE (${cold ? "COLD" : "warm"})`);
-      console.log(`  wall-clock:        ${wall}s   (client-measured, incl. cold start)`);
-      console.log(`  timeToFinish:      ${p.timeToFinish != null ? (p.timeToFinish / 1000).toFixed(2) + "s" : "n/a"}   (render only)`);
+      console.log(
+        `  wall-clock:        ${wall}s   (client-measured, incl. cold start)`,
+      );
+      console.log(
+        `  timeToFinish:      ${p.timeToFinish != null ? (p.timeToFinish / 1000).toFixed(2) + "s" : "n/a"}   (render only)`,
+      );
       console.log(`  lambdasInvoked:    ${p.lambdasInvoked}`);
-      console.log(`  cost (Remotion):   ${p.costs.displayCost} (${p.costs.currency}, accrued ${p.costs.accruedSoFar})`);
+      console.log(
+        `  cost (Remotion):   ${p.costs.displayCost} (${p.costs.currency}, accrued ${p.costs.accruedSoFar})`,
+      );
       console.log(`  cost (estimate):   $${est.toFixed(5)}`);
       console.log(`  output:            R2 ${p.outBucket}/${p.outKey}`);
       console.log(`  outputFile (URL):  ${p.outputFile}`);
       console.log("─".repeat(60));
       return;
     }
-    process.stdout.write(`\r[render-lambda] ${(p.overallProgress * 100).toFixed(1)}% | ${p.lambdasInvoked} lambdas   `);
+    process.stdout.write(
+      `\r[render-lambda] ${(p.overallProgress * 100).toFixed(1)}% | ${p.lambdasInvoked} lambdas   `,
+    );
     await new Promise((r) => setTimeout(r, 1000));
   }
 }

@@ -34,7 +34,8 @@ const ClipLayer: React.FC<{
   clip: PlacedClip;
   theme: ReelTheme;
   seed: number;
-}> = ({ clip, theme, seed }) => {
+  posterMode: boolean;
+}> = ({ clip, theme, seed, posterMode }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const crossFrames = Math.max(1, Math.round(theme.crossfadeSec * fps));
@@ -48,7 +49,9 @@ const ClipLayer: React.FC<{
     easing: EASE,
   });
 
-  if (clip.type === "video") {
+  // EXPORT path: a real video clip decodes the mp4. The in-browser @remotion/player can't (R2 CORS on
+  // <Video> fetch), so posterMode renders the clip as its poster still through the photo path below.
+  if (clip.type === "video" && !posterMode) {
     const start = clip.trimStartSec ?? 0;
     return (
       <AbsoluteFill style={{ opacity }}>
@@ -57,10 +60,8 @@ const ClipLayer: React.FC<{
           muted
           trimBefore={Math.round(start * fps)}
           trimAfter={Math.round((start + clip.activeSec) * fps)}
-          // @remotion/media's <Video> reads objectFit from a DEDICATED prop, not from
-          // `style` (it warns + ignores objectFit-in-style; the style default is
-          // "contain" = letterbox). Pass it as a prop so a landscape clip cover-fills
-          // the 9:16 frame. style carries only sizing + the theme color grade.
+          // @remotion/media's <Video> reads objectFit from a DEDICATED prop, not from `style` (style's
+          // default is "contain" = letterbox). Pass it as a prop so a landscape clip cover-fills 9:16.
           objectFit="cover"
           style={{
             width: "100%",
@@ -72,14 +73,30 @@ const ClipLayer: React.FC<{
     );
   }
 
-  // Photo: a slow seeded Ken-Burns (push-in + pan). Individual scale/translate props (NOT a transform
-  // string) so the animation stays editable in Studio.
-  const pan = PANS[Math.floor(seeded(seed, clip.index, 1) * PANS.length) % PANS.length];
+  // A posterless clip (a NULL-preview video in posterMode) → a solid theme-background hold, so the
+  // timeline LENGTH still reflects the curation even without an image to show.
+  if (!clip.url) {
+    return (
+      <AbsoluteFill style={{ opacity, backgroundColor: theme.background }} />
+    );
+  }
+
+  // Still path (a photo, OR a video shown by its poster in posterMode): a slow seeded Ken-Burns
+  // (push-in + pan). Individual scale/translate props (NOT a transform string) so the animation stays
+  // editable in Studio.
+  const pan =
+    PANS[Math.floor(seeded(seed, clip.index, 1) * PANS.length) % PANS.length];
   const panAmt = 40 + seeded(seed, clip.index, 2) * 30; // 40-70px (under the BASE_ZOOM margin)
-  const zoomDelta = theme.kenBurnsZoom * (0.7 + seeded(seed, clip.index, 3) * 0.6);
-  const scale = interpolate(frame, [0, totalFrames], [BASE_ZOOM, BASE_ZOOM + zoomDelta], {
-    extrapolateRight: "clamp",
-  });
+  const zoomDelta =
+    theme.kenBurnsZoom * (0.7 + seeded(seed, clip.index, 3) * 0.6);
+  const scale = interpolate(
+    frame,
+    [0, totalFrames],
+    [BASE_ZOOM, BASE_ZOOM + zoomDelta],
+    {
+      extrapolateRight: "clamp",
+    },
+  );
   const tx = interpolate(frame, [0, totalFrames], [0, pan[0] * panAmt], {
     extrapolateRight: "clamp",
   });
@@ -105,7 +122,7 @@ const ClipLayer: React.FC<{
 };
 
 export const Reel: React.FC<ReelProps> = (props) => {
-  const { theme, seed } = props;
+  const { theme, seed, posterMode = false } = props;
   const { fps } = useVideoConfig();
   const { placed } = layoutReel(props);
   const crossFrames = Math.max(1, Math.round(theme.crossfadeSec * fps));
@@ -118,7 +135,12 @@ export const Reel: React.FC<ReelProps> = (props) => {
           from={Math.round(clip.fromSec * fps)}
           durationInFrames={Math.round(clip.activeSec * fps) + crossFrames}
         >
-          <ClipLayer clip={clip} theme={theme} seed={seed} />
+          <ClipLayer
+            clip={clip}
+            theme={theme}
+            seed={seed}
+            posterMode={posterMode}
+          />
         </Sequence>
       ))}
     </AbsoluteFill>

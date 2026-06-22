@@ -1,20 +1,20 @@
 import { type CalculateMetadataFunction, Composition } from "remotion";
 
+import { FPS, REEL_HEIGHT, REEL_WIDTH } from "./constants";
 import { layoutReel } from "./layout";
 import { Reel } from "./Reel";
 import { type ReelProps, THEME_CLASSIC } from "./reel-types";
 
-const FPS = 24;
-
-// Duration is derived from the clip list (the timeline layout), so what the composition reports always
-// matches what it renders.
+// Duration is derived from the clip list (the timeline layout), so what the <Composition> reports
+// always matches what it renders. (The <Player> can't call this — it derives duration the same way,
+// via layoutReel, in reel-player.tsx.)
 const calculateMetadata: CalculateMetadataFunction<ReelProps> = ({ props }) => {
   const { totalSec } = layoutReel(props);
   return { durationInFrames: Math.max(1, Math.round(totalSec * FPS)) };
 };
 
-// Studio default props — public placeholder images so Studio renders out-of-the-box. The real spike
-// render passes presigned-R2 inputProps via `--props=out/props.json` (scripts/build-props.ts).
+// Studio default props — public placeholder images so Studio renders out-of-the-box. The real Lambda
+// render passes presigned-R2 inputProps via `--props` (workers/reel-render/scripts/build-props.ts).
 const SAMPLE: ReelProps = {
   clips: [
     { url: "https://picsum.photos/seed/pr1/1080/1920", type: "photo" },
@@ -33,8 +33,8 @@ export const RemotionRoot: React.FC = () => {
       id="Reel"
       component={Reel}
       fps={FPS}
-      width={1080}
-      height={1920}
+      width={REEL_WIDTH}
+      height={REEL_HEIGHT}
       durationInFrames={120}
       defaultProps={SAMPLE}
       calculateMetadata={calculateMetadata}

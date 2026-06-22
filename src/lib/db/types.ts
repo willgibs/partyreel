@@ -266,30 +266,49 @@ export type Database = {
       }
       highlight_reels: {
         Row: {
+          cover_media_id: string | null
           created_at: string
           event_id: string
           id: string
+          length_seconds: number | null
           output_key: string | null
+          seed: number
           status: Database["public"]["Enums"]["reel_status"]
+          theme: string
           updated_at: string
         }
         Insert: {
+          cover_media_id?: string | null
           created_at?: string
           event_id: string
           id?: string
+          length_seconds?: number | null
           output_key?: string | null
+          seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
+          theme?: string
           updated_at?: string
         }
         Update: {
+          cover_media_id?: string | null
           created_at?: string
           event_id?: string
           id?: string
+          length_seconds?: number | null
           output_key?: string | null
+          seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
+          theme?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "highlight_reels_cover_media_id_fkey"
+            columns: ["cover_media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "highlight_reels_event_id_fkey"
             columns: ["event_id"]
@@ -1053,6 +1072,16 @@ export type Database = {
           max_events: number
           monthly_ingress_bytes: number
         }[]
+      }
+      upsert_reel_config: {
+        Args: {
+          p_cover_media_id?: string
+          p_event_id: string
+          p_length_seconds?: number
+          p_seed: number
+          p_theme: string
+        }
+        Returns: Json
       }
       verify_current_password: {
         Args: { p_password: string }

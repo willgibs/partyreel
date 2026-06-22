@@ -20,3 +20,35 @@ export async function listReelItems(eventId: string): Promise<string[]> {
   if (error || !data) return [];
   return data.map((r) => r.media_id);
 }
+
+/**
+ * The reel COMPOSER config (theme / seed / length / cover). HOST-ONLY: the highlight_reels_host_all RLS
+ * policy scopes the read to the host's OWN event. Returns null when the host hasn't composed yet (the
+ * reel row is created lazily on the first edit, via upsert_reel_config) — the composer then uses
+ * defaults. The status/output_key (the render lifecycle) are NOT read here; they belong to the export
+ * slice. Writes go through upsert_reel_config (host table writes are revoked; this only SELECTs).
+ */
+export type ReelConfig = {
+  theme: string;
+  seed: number;
+  lengthSeconds: number | null;
+  coverMediaId: string | null;
+};
+
+export async function getReelConfig(
+  eventId: string,
+): Promise<ReelConfig | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("highlight_reels")
+    .select("theme, seed, length_seconds, cover_media_id")
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    theme: data.theme,
+    seed: data.seed,
+    lengthSeconds: data.length_seconds,
+    coverMediaId: data.cover_media_id,
+  };
+}
