@@ -14,17 +14,21 @@ import type { ExportSummary } from "@/lib/export/build-manifest";
 
 export type ExportScope = "host" | "guest";
 
-/** POST the (possibly large) token to the Worker via a hidden form+iframe → native download, no nav. */
+/**
+ * POST the (possibly large) token to the Worker to start the zip download.
+ *
+ * Submits a TOP-LEVEL form (no target → the current frame). The Worker responds with
+ * `Content-Disposition: attachment`, so the browser hands it to the download manager and does NOT
+ * navigate the page away (standard attachment behavior). We deliberately do NOT use a hidden iframe:
+ * Chrome BLOCKS downloads initiated through a cross-origin iframe, so the file silently never saves
+ * (verified live, 2026-06-22). A same-frame navigation needs no user gesture (so it survives the awaited
+ * mint) and is never download-blocked. The happy path is always a 200 attachment (the token is freshly
+ * minted + valid; the mint refuses to issue one when downloads are paused), so the page never unloads.
+ */
 function postToWorker(workerUrl: string, token: string) {
-  const iframe = document.createElement("iframe");
-  iframe.name = `pr-export-${Date.now()}`;
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-
   const form = document.createElement("form");
   form.method = "POST";
   form.action = workerUrl;
-  form.target = iframe.name;
   form.style.display = "none";
   const input = document.createElement("input");
   input.type = "hidden";
@@ -34,9 +38,6 @@ function postToWorker(workerUrl: string, token: string) {
   document.body.appendChild(form);
   form.submit();
   form.remove();
-  // The download is handed to the browser's download manager once it starts, independent of the iframe;
-  // clean up well after that.
-  window.setTimeout(() => iframe.remove(), 60_000);
 }
 
 type MintBody = Record<string, unknown>;
