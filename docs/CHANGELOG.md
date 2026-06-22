@@ -10,6 +10,34 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Client-side thumbnail/preview variant (`729e781`)
+
+Galleries served full-res R2 originals on every tile (slow cold loads, high bandwidth). Now the BROWSER
+generates a small ~640px WebP preview at upload + uploads it as the reserved `preview` R2 variant; tiles serve
+it, the lightbox + Save keep full-res. **Generation is $0 + predictable** (no Cloudflare transform fee) — the
+fit for a storage-billed model (Will's steer, after confirming the CF Images/transform fee is one-time-per-upload
+but still an external variable cost he'd rather not carry).
+- **preview-size.ts** (pure, tested): `PREVIEW_MAX_EDGE=640` / WebP / `q0.75`; `previewTargetSize` (never
+  upscales) + `shouldSkipPreview` + `MAX_PREVIEW_BYTES` (2 MB).
+- **preview.ts** (browser, best-effort, never throws → null): photos = `createImageBitmap`-resize (avoids the
+  full-res-canvas OOM) → canvas → WebP; videos = `<video>` seek ~0.1s (+ a `seeked` timeout) → `drawImage`.
+- **Pipeline (additive, contract-preserving):** presign issues a 2nd **size-BOUND** PUT for the preview (reuses
+  `presignUpload`; bound + capped so the preview key can't be abused to evade the storage cap; skipped over the
+  cap); uploader generates → PUTs best-effort → sends `preview_key` only on success (a preview failure NEVER
+  fails the upload); complete records it (`create_media` already forwarded `p_preview_key`).
+- **Serve:** `GridMedia.previewUrl`; `MediaTile` photo `<img previewUrl??url onError→url>`, video → `<img>`
+  poster (no `<video>` fetch) else the `<video>` poster fallback; the lightbox unchanged. `toGridItems` + the
+  host inline build + `toMyUploadsItems` presign `previewUrl`.
+- **Migration:** re-created `get_event_media_by_qr_token` (+ `get_my_likes`) with `preview_key` in the
+  `RETURNS TABLE` (the gap — their fixed return list excluded it, so the highest-traffic guest gallery couldn't
+  serve previews without it); grants re-applied + verified (anon+authenticated vs authenticated-only). The
+  direct-table selects/maps thread `preview_key`.
+- **Live-verified** (partyreel.com, demo event, real uploads via Will): both a photo + a video got `preview_key`
+  set; the `preview.webp` objects exist in R2 (200, image/webp); the **photo tile** fetched a **16 KB** 640×360
+  WebP (vs the 253 KB original, ~94% cut) and the **video tile** an **8.5 KB** 320×176 poster `<img>` (vs the
+  788 KB video, ~99% cut, no `<video>` fetch); old preview-less media fell back to the original; the **lightbox**
+  served the full-res `original.jpg`. 524 unit tests. Demo restored pristine (R2 + rows + storage counter).
+
 ## 2026-06-22 — Reel drag-to-reorder + uniform Reel/Review grids (`ae5fc24`)
 
 The Reel section becomes orderable by drag; per Will the **Reel + Review render as uniform grids** while the

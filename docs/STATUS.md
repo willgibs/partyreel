@@ -134,8 +134,14 @@ dnd-kit on a uniform grid); a `reorder_reel` SECURITY DEFINER RPC (set-equality 
 Reorder/Done header button → a numbered sortable grid. Live-verified (desktop drag + persist across reload +
 mobile touch press-and-hold + the rolled-back RPC contract). Current truth:
 [`systems/host-app.md`](systems/host-app.md).
-**▶ NEXT (Will's queue): the thumbnail/preview variant (slice 2), then the "Download all" zip (slice 3).** Then
-the remaining Reel follow-ons (the generation worker) / a future Guests section / the roadmapped user-profiles +
+**Thumbnail/preview variant ✅ (2026-06-22, `729e781`): tiles serve a small CLIENT-generated WebP preview**, the
+lightbox + Save keep full-res. The browser makes a ~640px preview at upload (photos downscale, videos a poster
+frame), uploads it as the `preview` R2 variant (size-bound), records `preview_key`. $0 generation (no CF
+transform fee — Will's storage-billed-model call). A migration added `preview_key` to the guest-gallery RPCs
+(the gap). Live-verified: photo tile 253KB→16KB (~94%), video 788KB→8.5KB poster img (~99%), old media fall back,
+lightbox full-res. Current truth: [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+**▶ NEXT (Will's queue): the "Download all" zip export (slice 3).** Then the remaining Reel follow-ons (the
+generation worker) / a future Guests section / the roadmapped user-profiles +
 social program. The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory

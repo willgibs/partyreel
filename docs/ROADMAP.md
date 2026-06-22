@@ -49,11 +49,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md).
 - **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
   like the reel). Per-item Save already ships.
-- **Resized `preview`/thumbnail media variant (its own round)** — galleries serve full-res R2 originals today
-  (the `preview_key` schema slot is reserved but never instantiated), so a cold tile is a slow full-res fetch.
-  Generate a small variant on upload (an external worker / CF Images, NOT Vercel) + presign it for tile
-  display. The S5 P1 shimmer-skeleton + preload-on-beat are the interim UX cover; this is the real fix. See
-  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **Thumbnail/preview variant — SHIPPED 2026-06-22 (`729e781`).** CLIENT-side: the browser makes a ~640px WebP
+  preview at upload (photos downscale, videos a poster frame), uploads it as the `preview` R2 variant (size-bound),
+  records `preview_key`; tiles serve it, the lightbox keeps full-res. $0 generation (no CF transform fee — the
+  storage-billed-model fit). A migration added `preview_key` to `get_event_media_by_qr_token` + `get_my_likes`.
+  → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md). **Deferred follow-on:** a server-side BACKFILL of
+  previews for existing (pre-feature) media (a one-off worker/script); counting the small preview bytes toward the
+  storage meter; the operator moderation feed's preview; an AVIF upgrade (a future worker) if quality ever demands it.
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).

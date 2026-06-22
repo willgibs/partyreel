@@ -13,6 +13,20 @@ grid + lightbox, presigned server-side. Two upload identities share one pipeline
 caption — display name, a **Host** badge, or **Anonymous** + an info popover — with the uploader's **email shown
 on the HOST gallery only**.
 
+**Tile previews (client-generated, 2026-06-22).** Galleries served full-res ORIGINALS on every tile (slow cold
+loads, high bandwidth). Now the BROWSER generates a small ~640px **WebP** preview at upload — photos via
+`createImageBitmap`-resize, videos via a canvas frame-grab (~0.1s in) of the local file — and uploads it as the
+reserved `preview` R2 variant (a 2nd presigned PUT); `media.preview_key` is recorded at `create_media`.
+**Generation is $0 + predictable** (the client does it, no Cloudflare transform fee — the fit for a
+storage-billed model, Will's call). TILES serve `previewUrl ?? url` (an `onError`→original fallback self-heals
+any gap); the **lightbox + Save keep the full-res original**. Live-measured: a 1920×1080 photo tile drops from
+253 KB → a 16 KB 640×360 WebP (~94%); a video tile drops from an 788 KB `<video>` fetch → an 8.5 KB poster
+`<img>` (~99%, no video fetch). Best-effort: an undecodable codec / huge image / old browser → null → the tile
+falls back to the original (graceful); pre-feature rows (preview_key null) serve the original. The generator +
+the pure sizing math: [`upload/preview.ts`](../../src/lib/upload/preview.ts) +
+[`media/preview-size.ts`](../../src/lib/media/preview-size.ts). (A server-side BACKFILL of previews for existing
+media is a deferred follow-on.)
+
 ## Where it lives
 
 - R2 client + presign: [`r2/client.ts`](../../src/lib/r2/client.ts), [`r2/presign.ts`](../../src/lib/r2/presign.ts)
@@ -82,6 +96,12 @@ on the HOST gallery only**.
   into a multi-TB **orphan** the backup Worker would replicate into the 35-day-locked bucket (`create_media`'s
   ceiling guards the DB/accounting, NOT the R2 object's existence). Don't drop either guard. *(Verified against
   the real bucket: correct size → 200, oversized → 403; ADR-0003 + ADR-0014 posture.)*
+- ★ **The preview PUT is size-bound + capped too** (same class of guard). The preview is NOT counted toward
+  `file_size_bytes` (it's a small derivative), so an unbounded preview PUT to its server-built key would be a
+  cap-EVASION / cost-abuse vector. The client declares the generated preview's size at presign; the engine binds
+  Content-Length (reusing `presignUpload`) and SKIPS the preview presign over `MAX_PREVIEW_BYTES` (2 MB) — so the
+  original still uploads + a preview can never store an arbitrary-large object. The preview's bytes go uncounted
+  (accepted under-count; the purge + backup still handle the object since it's under `events/`).
 
 ## Gotchas (why it's like this — don't revert)
 
@@ -107,8 +127,9 @@ on the HOST gallery only**.
 - **`videoPosterSrc()` appends `#t=0.1` — load-bearing, don't drop it.** iOS Safari paints a `<video>`
   BLACK instead of its first frame unless the src tells it to seek+render one (`preload="metadata"` paints
   on desktop but NOT iOS). The fragment is client-only (never sent to R2, so it doesn't touch the
-  signature). Single-sourced because BOTH the grid `MediaTile` and the lightbox use it (same value → a
-  video reused across lightbox slots doesn't reload).
+  signature). This is now the FALLBACK path: a video TILE with a `previewUrl` renders a tiny poster `<img>`
+  (the client-generated preview frame) — no `<video>` fetch — and only falls back to `<video src=videoPosterSrc>`
+  when there's no preview. The lightbox still plays the full `<video>`.
 - **Grid video tiles are controls-less thumbnails on purpose.** A `<video controls>` is interactive content
   → an illegal `<button>` descendant, so the open-the-lightbox tile would be invalid HTML. Playback (with
   controls) happens in the lightbox. On the host grid the moderation buttons are SIBLINGS of the tile
