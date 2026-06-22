@@ -37,6 +37,7 @@ import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
 import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -178,7 +179,7 @@ export default async function DashboardPage({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <PageHeading>Dashboard</PageHeading>
           <p className="text-sm text-muted-foreground">
             {used} of {formatLimit(maxEvents)} event
             {maxEvents === 1 ? "" : "s"} used

@@ -26,6 +26,7 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getPlatformMetrics } from "@/lib/db/queries/metrics";
 import { formatBytes } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -114,7 +115,7 @@ export default async function AdminMetricsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Metrics</h1>
+        <PageHeading>Metrics</PageHeading>
         <p className="text-sm text-muted-foreground">
           Platform-wide totals across every host and event. New and active count
           the last 30 days.

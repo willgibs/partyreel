@@ -49,7 +49,7 @@ export function ReviewsPanel({ items }: { items: GridMedia[] }) {
       </div>
       {/* A preview grid; tapping any tile opens the takeover (the dense triage tool). MediaTile is the
           shared plain <img>/<video> poster (never next/image - its optimizer 400s on presigned R2). */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+      <div className="grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
         {items.map((it) => (
           <button
             key={it.id}

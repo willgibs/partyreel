@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Security" };
 
@@ -21,7 +22,7 @@ export default async function SecurityPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Security</h1>
+        <PageHeading>Security</PageHeading>
         <p className="text-sm text-muted-foreground">
           Account protections for the operations portal.
         </p>

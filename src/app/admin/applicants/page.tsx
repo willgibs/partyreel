@@ -15,6 +15,7 @@ import {
   type TriageStatus,
 } from "@/lib/constants/triage";
 import { listJobApplications } from "@/lib/db/queries/applications";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function AdminApplicantsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Applicants</h1>
+        <PageHeading>Applicants</PageHeading>
         <p className="text-sm text-muted-foreground">
           Job applications. Reply from your inbox; set a status to track each
           one. (Job postings live in the codebase, not here.)

@@ -5,6 +5,7 @@ import { AnnouncementList } from "@/components/admin/announcement-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { listAnnouncements } from "@/lib/db/queries/announcements";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function AdminAnnouncementsPage() {
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Announcements</h1>
+        <PageHeading>Announcements</PageHeading>
         <p className="text-sm text-muted-foreground">
           Publish a message to every host&rsquo;s notification bell. Schedule it
           for later, or publish now.

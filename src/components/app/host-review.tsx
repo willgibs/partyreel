@@ -362,7 +362,7 @@ export function HostReview({
               <div className="min-h-0 flex-1 overflow-y-auto p-4">
                 {/* Denser than the album by design (a functional triage tool): more
                     columns = less cursor travel to select each tile (Will, S4 notes). */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-[var(--gap-gallery)] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                   {pending.map((it, i) => {
                     const isSelected = selected.has(it.id);
                     return (

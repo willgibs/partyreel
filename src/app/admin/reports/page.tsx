@@ -11,6 +11,7 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { listReports, type ReportFilter } from "@/lib/db/queries/reports";
 import { cn } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,9 @@ export default async function AdminReportsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <PageHeading>
           Review reports
-        </h1>
+        </PageHeading>
         <p className="text-sm text-muted-foreground">
           Guest-submitted reports. Actioning an item removes it; the purge cron
           reclaims its storage afterward. Resolved reports are read-only.

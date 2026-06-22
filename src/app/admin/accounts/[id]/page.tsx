@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
 import { formatBytes } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -62,9 +63,9 @@ export default async function AdminAccountDetailPage({
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <PageHeading>
           {profile.display_name?.trim() || profile.email || "Account"}
-        </h1>
+        </PageHeading>
         <p className="text-sm text-muted-foreground">
           {profile.email ?? profile.id}
         </p>

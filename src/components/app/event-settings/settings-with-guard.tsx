@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PageHeading } from "@/components/shared/page-heading";
 
 /**
  * The settings-page client wrapper (S4·C): owns the form's `dirty` state (the form
@@ -73,7 +74,7 @@ export function SettingsWithGuard({
           <ArrowLeft className="size-4" /> Back to event
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+          <PageHeading>Settings</PageHeading>
           <p className="text-sm text-muted-foreground">{event.name}</p>
         </div>
       </div>

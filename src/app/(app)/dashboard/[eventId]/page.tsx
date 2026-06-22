@@ -41,6 +41,7 @@ import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 // Presigned gallery URLs are per-request + short-lived, so this page must never
 // be statically cached.
@@ -203,9 +204,9 @@ export default async function EventDetailPage({
           <ArrowLeft className="size-4" /> Back to events
         </Link>
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <PageHeading className="text-3xl">
             {event.name}
-          </h1>
+          </PageHeading>
           {/* Stat line: date + the icon sub-stats (items / contributors / views).
               Native title only; NO radix Tooltip on these SSR'd elements (the
               host-hydration regression cause, see architecture.md). */}

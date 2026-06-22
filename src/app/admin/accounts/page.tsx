@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { accountTierLabel, searchAccounts } from "@/lib/db/queries/accounts";
 import { formatBytes } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export default async function AdminAccountsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
+        <PageHeading>Accounts</PageHeading>
         <p className="text-sm text-muted-foreground">
           Host accounts: tier, storage, and billing. Read-only; make billing
           changes in Stripe.

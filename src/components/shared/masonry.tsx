@@ -94,7 +94,7 @@ export function MasonryColumns<T extends GridMedia>({
   return (
     <>
       <div
-        className="columns-2 gap-[3px] sm:columns-3"
+        className="columns-2 gap-[var(--gap-gallery)] sm:columns-3"
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
@@ -114,7 +114,7 @@ export function MasonryColumns<T extends GridMedia>({
                   : {}),
               } as CSSProperties
             }
-            className="group relative mb-[3px] w-full overflow-hidden bg-black/10 break-inside-avoid"
+            className="group relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10 break-inside-avoid"
           >
             <button
               type="button"

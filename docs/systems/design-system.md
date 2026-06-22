@@ -43,19 +43,26 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   keep their chosen rendering, scanners locate corners by shape, and the share studio (ROADMAP)
   redesigns presets wholesale. No longer tied to any UI token.
 
-## Type: the five-knob display layer
+## Type: the heading face + the tiered scale
 
-`font-heading` is a Tailwind `@utility` in globals.css, NOT a theme font token. Five knobs: face
-(`--font-display` = Instrument Serif, loaded in the root layout via next/font), size calibration
-(`font-size-adjust: 0.6`; display serifs render ~18% small at equal CSS size), zero tracking, real
-weight 400 (the face ships one weight), synthetic display weight (`-webkit-text-stroke: 0.013em`;
-`font-synthesis: none` forbids faux-bold). Swap the brand face forever by repointing
-`--font-display` + retuning those five lines.
+`font-heading` is a Tailwind `@utility` in globals.css (NOT a theme font token): the brand face
+**Urbanist** (`--font-display`, loaded in the root layout via next/font as a variable font) at **weight
+700** + **-0.03em** tracking. Urbanist is a real variable sans, so the old Instrument-era knobs
+(font-size-adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real bold weight does
+the work. Swap the brand face forever by repointing `--font-display` + retuning the two lines in the utility.
 
-**The system rule: Instrument is for IDENTITY moments only** (page titles, event names, marquees);
-functional headings stay Inter. Pre-V1 surfaces still misuse `font-heading` on functional headings;
-each surface's owning phase (4-6) corrects its own. `--tracking-tight` is `0em` (IS wants zero), so
-legacy `tracking-tight` usages are no-ops cleaned per-surface.
+**The tiered app heading scale** (one face, weight per tier — this SUPERSEDES the old "functional headings
+stay Inter" rule; app page + card titles now use the heading face):
+- **Page titles** → `PageHeading` ([`src/components/shared/page-heading.tsx`](../../src/components/shared/page-heading.tsx)):
+  Urbanist **700**, `text-2xl` default (the event-name hero bumps to `text-3xl`). The ONE source for every app
+  + admin page `<h1>` — new pages use it so headings can't drift back to Inter.
+- **Card / section titles** → `CardTitle` (`ui/card.tsx`): Urbanist **600** (`font-semibold`) — clearly a
+  heading above the labels below it.
+- **Per-setting labels** (`FormLabel`) + small uppercase eyebrow labels → **Inter 500**, unchanged.
+
+`PageHeading` deliberately adds no `font-semibold` (would drop 700→600) and no `tracking-tight` (our
+`--tracking-tight` is `0em`, which would CANCEL the utility's -0.03em). `--tracking-tight` stays `0em` so the
+90+ legacy `tracking-tight` usages are no-ops (re-tuning them is its own deferred pass).
 
 ## Rounding: sharp surfaces, round actions
 
@@ -63,7 +70,7 @@ legacy `tracking-tight` usages are no-ops cleaned per-surface.
 | --- | --- | --- |
 | Surfaces (cards, inputs, sections) | `--radius` | `0.125rem` (sharp) |
 | Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height; in-between sizes interpolate: h-6 `0.6rem`, h-7 `0.7rem`, h-9 `0.9rem`) |
-| Media tiles | `--radius-tile` | `3px` + half gaps so corners don't open holes |
+| Media tiles | `--radius-tile` · `--gap-gallery` | radius `3px`; `--gap-gallery` (`3px`) is the ONE gap for EVERY media-tile grid — masonry galleries + the dense triage grids (Reviews / review takeover / admin moderation). Use `gap-[var(--gap-gallery)]`; one knob retunes them all |
 | Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements) |
 
 Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the

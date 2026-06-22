@@ -22,6 +22,7 @@ import { requireAdmin } from "@/lib/auth/admin-context";
 import { countApplicationsByStatus } from "@/lib/db/queries/applications";
 import { countOpenReports } from "@/lib/db/queries/reports";
 import { countContactByStatus } from "@/lib/db/queries/support";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +100,7 @@ export default async function AdminHomePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Operations</h1>
+        <PageHeading>Operations</PageHeading>
         <p className="text-sm text-muted-foreground">
           Internal tools for running Partyreel. Content and announcements land
           in an upcoming round.

@@ -14,6 +14,7 @@ import {
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -38,7 +39,7 @@ export default async function AccountPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+        <PageHeading>Account</PageHeading>
         <p className="text-sm text-muted-foreground">Manage how you sign in.</p>
       </div>
 

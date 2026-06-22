@@ -33,11 +33,11 @@
       (--shadow-float, blur = 2× offset, single top light source); dark mode
       uses NO shadows — depth = lighter surface steps (bg 0.14 → card 0.21 →
       popover 0.23) + borders. One depth technique per mode, never mixed.
-    • TYPE: Urbanist is the IDENTITY face (page titles, event names, marquees)
-      via the `font-heading` utility below — bold (700) at -3% tracking.
-      FUNCTIONAL headings (settings sections, labels, controls) stay Inter — the
-      system rule. Swapping the brand face forever = repoint --font-display +
-      retune the weight/tracking in the font-heading utility (ONE place,
+    • TYPE: Urbanist is the heading face via the `font-heading` utility below
+      (bold 700 at -3% tracking). TIERED app heading scale: PAGE titles 700
+      (PageHeading), CARD/section titles 600 (CardTitle), per-setting LABELS stay
+      Inter 500 (FormLabel). Swap the brand face forever = repoint --font-display
+      + retune the weight/tracking in the font-heading utility (ONE place,
       everywhere, no scattered orphans).
     • MOTION: strong custom curves only (--ease-emphasis out, --ease-in-out-
       strong move, --ease-drawer sheets), UI under 300ms, exits faster than
@@ -63,9 +63,9 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
-  /* Headings: Instrument Serif wants ZERO tracking (Inter wanted -0.03em).
-     The 90+ existing `tracking-tight` usages become no-ops by design; they
-     get pruned per-surface in later phases. */
+  /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
+     -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy
+     `tracking-tight` usages are no-ops; re-tuning them is its own deferred pass. */
   --tracking-tight: 0em;
 
   /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
@@ -187,6 +187,7 @@
   --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
   --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
   --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
+  --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
   --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
 
   /* Brand = ink. The alias keeps every legacy brand-tinted class coherent
@@ -737,17 +738,16 @@
   }
 }
 
-/* THE IDENTITY TYPE UTILITY (the swappable global heading face).
-   `font-heading` = Urbanist for IDENTITY moments only (page titles, event
-   names, marquees); functional headings stay Inter (the system rule). Urbanist
-   is a proper variable sans, so the Instrument-era knobs (font-size-adjust,
-   the synthetic text-stroke weight, font-synthesis) are gone — a real bold
-   weight does the work. Two knobs remain by intent: WEIGHT (700, Will's pick)
-   and TRACKING (-3%). Swap the brand face forever by repointing --font-display
-   (root layout) + retuning these two lines. 700 is the DEFAULT weight; a surface
-   MAY override font-weight where the design calls for it (Will, 2026-06-19) —
-   headings not yet on the system get locked in progressively (marketing phases /
-   the S5 type pass), not swept wholesale. */
+/* THE HEADING TYPE UTILITY (the swappable global heading face).
+   `font-heading` = Urbanist for ALL app + marketing headings: PAGE titles (via
+   PageHeading), CARD/section titles (CardTitle), event names, marquees. The
+   tiered scale overrides weight per tier — PAGE 700 (the default here), CARD 600
+   (CardTitle adds font-semibold); per-setting LABELS stay Inter 500 (FormLabel).
+   Urbanist is a proper variable sans, so the Instrument-era knobs (font-size-
+   adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real
+   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING
+   (-3%). Swap the brand face forever by repointing --font-display (root layout)
+   + retuning these two lines. */
 @utility font-heading {
   font-family: var(--font-display, var(--font-sans));
   font-weight: 700;

@@ -14,6 +14,7 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAlbumForModeration } from "@/lib/db/queries/moderation";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function AdminAlbumDetailPage({
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
+        <PageHeading className="text-3xl">{event.name}</PageHeading>
         <p className="text-sm text-muted-foreground">
           {hostLabel ?? event.host_id}
         </p>

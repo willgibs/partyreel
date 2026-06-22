@@ -10,6 +10,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — App typography on the Urbanist heading face + global media-grid gap
+
+App headings had drifted off the design system: page titles (Dashboard, Settings, event name, all 13 /admin
+pages) rendered as **unstyled Inter** (`text-2xl font-semibold tracking-tight`); `CardTitle` used the Urbanist
+`font-heading` face but at `font-medium` (500), too thin to outrank the Inter-500 `FormLabel`s; event names felt
+undersized; and media grids split between a tight `gap-[3px]` (galleries) and `gap-2` (review/Reviews/admin
+moderation). Will's design-system pass, with a tiered scale:
+- **`PageHeading`** ([new, `components/shared/page-heading.tsx`](../../src/components/shared/page-heading.tsx)) =
+  Urbanist **700** + -0.03em (the `font-heading` utility) — the one source for every app + admin page `<h1>`;
+  swept ~17 pages onto it. **`CardTitle`** → `font-semibold` (Urbanist **600**), one edit lifting all ~14
+  card/section titles clear of the Inter-500 labels. **Event names** bumped + onto Urbanist: dashboard card
+  `text-lg`→`text-xl`, event-page hero → `PageHeading text-3xl`.
+- **`--gap-gallery` token** (`3px`, beside `--radius-tile`): the masonry + the three `gap-2` grids (review
+  takeover, Reviews tab, admin moderation) now all read `gap-[var(--gap-gallery)]` — one knob for every
+  media-tile grid, so switching event-page sections no longer jumps the spacing.
+- **Docs corrected:** `design-system.md` no longer says "Instrument Serif" (swapped to Urbanist 2026-06-19) or
+  "functional headings stay Inter" — replaced with the Urbanist utility + the tiered scale + the gap token; the
+  stale globals.css comments fixed too. Verified computed styles live (not just "looks bold").
+
 ## 2026-06-22 — HOTFIX: PGRST201 embed ambiguity took /dashboard + admin + purge cron down (`184bcb1`)
 
 **Incident:** `/dashboard` rendered the "Something went wrong" boundary (Will hit it navigating back from an

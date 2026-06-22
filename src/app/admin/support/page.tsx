@@ -15,6 +15,7 @@ import {
   type TriageStatus,
 } from "@/lib/constants/triage";
 import { listContactSubmissions } from "@/lib/db/queries/support";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function AdminSupportPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Support</h1>
+        <PageHeading>Support</PageHeading>
         <p className="text-sm text-muted-foreground">
           Contact form submissions. Reply from your inbox (the email link opens
           a reply), then set a status to track it.

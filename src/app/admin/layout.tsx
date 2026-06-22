@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/admin-context";
 import { countApplicationsByStatus } from "@/lib/db/queries/applications";
 import { countOpenReports } from "@/lib/db/queries/reports";
 import { countContactByStatus } from "@/lib/db/queries/support";
+import { PageHeading } from "@/components/shared/page-heading";
 
 // The operations portal segment. Canonical path is /admin on every host; in prod
 // requireAdmin() host-guards it to admin.<domain> (the apex 404s), redirects anon
@@ -39,11 +40,11 @@ export default async function AdminLayout({
             <div className="flex justify-center">
               <Logo />
             </div>
-            <h1 className="text-lg font-semibold tracking-tight">
+            <PageHeading className="text-lg">
               {ctx.mfaEnrolled
                 ? "Verify it's you"
                 : "Secure the operations portal"}
-            </h1>
+            </PageHeading>
             <p className="text-sm text-muted-foreground">
               {ctx.mfaEnrolled
                 ? "This portal requires two-factor authentication."

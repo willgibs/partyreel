@@ -17,6 +17,7 @@ import {
 } from "@/lib/moderation/operator-actions";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
 import { cn } from "@/lib/utils";
+import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function AdminAlbumsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Albums</h1>
+        <PageHeading>Albums</PageHeading>
         <p className="text-sm text-muted-foreground">
           Recent uploads across every event. Remove unsafe media (it leaves the
           guest album right away); restore within the grace period.
