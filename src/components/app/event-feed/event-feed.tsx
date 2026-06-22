@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { updateEventAction } from "@/app/(app)/dashboard/actions";
+import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
 import {
   EVENT_SECTIONS,
@@ -19,6 +20,7 @@ import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { EventFeedActionBar } from "./event-feed-action-bar";
 import { EventFilterPills, type FeedPill } from "./event-filter-pills";
 import { FeedSectionHeader } from "./feed-section-header";
+import { GallerySelectButton } from "./gallery-actions";
 import { ReviewSection } from "./review-section";
 import { useReviewTriage } from "./use-review-triage";
 
@@ -68,6 +70,9 @@ export function EventFeed({
   const [enabling, setEnabling] = useState(false);
 
   const triage = useReviewTriage({ eventId, items: pendingItems, moderationOn });
+  // The Gallery album bulk-select state (shared with the floating bar + the gallery grid). Null is fine
+  // (a safe no-op) — though the provider always wraps this page.
+  const selection = useHostSelection();
 
   // The live urgency order, recomputed from the optimistic review state: a clear flips the order →
   // the FLIP relocates the sections; the scroll-spy + pills follow the same order.
@@ -158,6 +163,14 @@ export function EventFeed({
         <FeedSectionHeader
           label={SECTION_LABEL.gallery}
           count={galleryCount || undefined}
+          // The header "Select" affordance (browse face); the bulk cluster lives in the floating bar
+          // once selecting. Hidden when already selecting (the cluster is in the bar) or the album is
+          // empty. ≤ h-7 (size="sm"), per the header's no-bounce rule.
+          action={
+            selection && !selection.selectMode && galleryCount > 0 ? (
+              <GallerySelectButton />
+            ) : undefined
+          }
         />
         {gallerySection}
       </section>
@@ -174,8 +187,9 @@ export function EventFeed({
   // The section the floating bar reflects: the scroll-spy in "All", else the pinned filter.
   const barActive: EventSection | null =
     filter === "all" ? activeSection : (filter as EventSection);
-  // Reveal the bar once scrolled past the top, or whenever select mode needs its bulk controls.
-  const showBar = !inView || triage.selectMode;
+  // Reveal the bar once scrolled past the top, or whenever EITHER select mode (review triage or the
+  // gallery album bulk-select) needs its bulk controls in reach.
+  const showBar = !inView || triage.selectMode || (selection?.selectMode ?? false);
 
   return (
     <div className="space-y-6">

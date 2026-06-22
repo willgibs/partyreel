@@ -9,9 +9,11 @@ import {
   hideBulk,
   purgeMediaNow,
   removeMedia,
+  removeMediaBulk,
   restoreEvent,
   restoreMedia,
   setMediaStatus,
+  setMediaStatusBulk,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { captureError } from "@/lib/observability/sentry";
@@ -85,6 +87,36 @@ export async function hideBulkAction(
   mediaIds: string[],
 ): Promise<ActionResult> {
   const result = await hideBulk(eventId, mediaIds);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true };
+}
+
+// GALLERY album bulk-select: set status (hide/show) or remove a SELECTED set of LIVE album items
+// (approved/hidden, not the pending review queue). Same allowlist guard as the single-item action —
+// the client passes a raw status we never trust. RLS scopes the write to the host's own event.
+export async function setMediaStatusBulkAction(
+  eventId: string,
+  mediaIds: string[],
+  status: string,
+): Promise<ActionResult> {
+  if (!isSettableStatus(status)) {
+    return { ok: false, code: "validation", message: "Unsupported status." };
+  }
+
+  const result = await setMediaStatusBulk(eventId, mediaIds, status);
+  if (!result.ok) return result;
+
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true };
+}
+
+export async function removeMediaBulkAction(
+  eventId: string,
+  mediaIds: string[],
+): Promise<ActionResult> {
+  const result = await removeMediaBulk(eventId, mediaIds);
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);

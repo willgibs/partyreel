@@ -35,7 +35,7 @@ export function ReviewActions({ triage }: { triage: ReviewTriage }) {
           variant="outline"
           size="sm"
           disabled={busy || empty}
-          onClick={enterSelect}
+          onClick={() => enterSelect()}
         >
           <ListChecks /> Select
         </Button>

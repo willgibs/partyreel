@@ -42,7 +42,8 @@ export function EventUploads({
   // in, so the provider's create-account path never fires.
   return (
     <LikesProvider mediaIds={items.map((i) => i.id)}>
-      <HostMediaGrid eventId={eventId} items={items} shareUrl={shareUrl} />
+      {/* selectable: the album opts into bulk-select (long-press + the floating bulk bar). */}
+      <HostMediaGrid eventId={eventId} items={items} shareUrl={shareUrl} selectable />
     </LikesProvider>
   );
 }

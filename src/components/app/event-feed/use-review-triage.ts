@@ -10,6 +10,8 @@ import {
 import { type GridMedia } from "@/components/app/media-grid";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
+import { useSelection } from "./use-selection";
+
 // The pending-review state machine, lifted out of the retired HostReview takeover so the inline
 // ReviewSection AND the contextual floating action bar can both read + drive it (one source for
 // the grid's selection/checkmarks and the bar's Approve/Hide). Same optimistic contract as the
@@ -65,12 +67,16 @@ export function useReviewTriage({
   moderationOn: boolean;
 }) {
   const [pending, setPending] = useState<GridMedia[]>(items);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exiting, setExiting] = useState<Set<string>>(new Set());
   const [caughtUp, setCaughtUp] = useState(false);
   const [beatKind, setBeatKind] = useState<"approve" | "hide">("approve");
   const [busy, setBusy] = useState(false);
-  const [selectMode, setSelectMode] = useState(false);
+
+  // The multi-select sub-state is the shared primitive (same machine the Gallery album bulk-select
+  // uses). Its universe is the pending ids, so a revalidate that churns the queue prunes the
+  // selection automatically (Review's whole list turns over on an approve → prune collapses to
+  // empty, the old reset semantics, for free).
+  const sel = useSelection(pending.map((p) => p.id));
 
   // Latest pending, readable inside run()'s async waits (closures capture a stale `pending`):
   // a guest upload arriving DURING the beat repopulates this, so the urgency order knows to keep
@@ -89,30 +95,8 @@ export function useReviewTriage({
   if (itemsKey !== syncedKey) {
     setSyncedKey(itemsKey);
     setPending(items);
-    setSelected(new Set());
     setExiting(new Set());
-  }
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  const allSelected = pending.length > 0 && selected.size === pending.length;
-  function selectAll() {
-    setSelected(allSelected ? new Set() : new Set(pending.map((p) => p.id)));
-  }
-
-  function enterSelect() {
-    setSelectMode(true);
-  }
-  function exitSelect() {
-    setSelectMode(false);
-    setSelected(new Set());
+    // `selected` is owned by useSelection — it prunes to the surviving pending ids on its own.
   }
 
   async function run(kind: "approve" | "hide", ids: string[]) {
@@ -124,7 +108,7 @@ export function useReviewTriage({
     const reduced = prefersReducedMotion();
 
     setBusy(true);
-    setSelected(new Set());
+    sel.clear();
 
     // Fire the action NOW so the server roundtrip overlaps the exit + beat motion.
     const action =
@@ -150,7 +134,7 @@ export function useReviewTriage({
     //    now-empty section to the bottom. Reduced motion confirms with a toast instead of the beat.
     if (isLast) {
       setBeatKind(kind);
-      setSelectMode(false);
+      sel.exitSelect();
       if (reduced) {
         if (pendingRef.current.length === 0) toast.success("All caught up");
       } else {
@@ -200,18 +184,18 @@ export function useReviewTriage({
 
   return {
     pending,
-    selected,
+    selected: sel.selected,
     exiting,
     beatKind,
     busy,
-    selectMode,
-    allSelected,
+    selectMode: sel.selectMode,
+    allSelected: sel.allSelected,
     reviewUrgent,
     visualState,
-    toggle,
-    selectAll,
-    enterSelect,
-    exitSelect,
+    toggle: sel.toggle,
+    selectAll: sel.selectAll,
+    enterSelect: sel.enterSelect,
+    exitSelect: sel.exitSelect,
     run,
     approveAll,
   };

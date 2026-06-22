@@ -39,6 +39,9 @@ import { createClient } from "@/lib/supabase/client";
 type LikesContextValue = {
   isLiked: (id: string) => boolean;
   toggle: (id: string) => void;
+  /** Album bulk-select (host only): like a SET of ids at once (idempotent; skips already-liked).
+   *  Resolves to the count newly liked so the caller fires ONE summary toast. */
+  likeMany: (ids: string[]) => Promise<number>;
 };
 
 const LikesContext = createContext<LikesContextValue | null>(null);
@@ -209,6 +212,41 @@ export function LikesProvider({
     [signedIn, liked, mode, onRemoved],
   );
 
+  // Album bulk "Like" (host only — the host is always signed in, so the create-account path never
+  // fires here). Optimistically heart every not-already-liked id, fire like_media for each in parallel
+  // (idempotent), revert only the failures. Returns the count newly liked; the caller owns the toast.
+  const likeMany = useCallback(
+    async (ids: string[]): Promise<number> => {
+      if (!signedIn) return 0;
+      const toLike = ids.filter((id) => !liked.has(id));
+      if (toLike.length === 0) return 0;
+      setLiked((prev) => {
+        const next = new Set(prev);
+        for (const id of toLike) next.add(id);
+        return next;
+      });
+      const supabase = createClient();
+      const failed: string[] = [];
+      await Promise.all(
+        toLike.map(async (id) => {
+          const { data, error } = await supabase.rpc("like_media", {
+            p_media_id: id,
+          });
+          if (error || !likeOk(data)) failed.push(id);
+        }),
+      );
+      if (failed.length > 0) {
+        setLiked((prev) => {
+          const next = new Set(prev);
+          for (const id of failed) next.delete(id);
+          return next;
+        });
+      }
+      return toLike.length - failed.length;
+    },
+    [signedIn, liked],
+  );
+
   const isLiked = useCallback((id: string) => liked.has(id), [liked]);
 
   async function onVerified() {
@@ -249,7 +287,7 @@ export function LikesProvider({
       : "/auth/callback";
 
   return (
-    <LikesContext.Provider value={{ isLiked, toggle }}>
+    <LikesContext.Provider value={{ isLiked, toggle, likeMany }}>
       {children}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

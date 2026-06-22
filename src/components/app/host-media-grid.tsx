@@ -1,19 +1,34 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { Check, Download, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   approveAllPendingAction,
   removeMediaAction,
+  removeMediaBulkAction,
   setMediaStatusAction,
+  setMediaStatusBulkAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
+import { SelectableMediaGrid } from "@/components/app/event-feed/selectable-media-grid";
+import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
+import { useLikes } from "@/components/likes/likes-provider";
 import { ReelButton } from "@/components/reel/reel-button";
+import { useReel } from "@/components/reel/reel-provider";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
+import { readCssMs } from "@/lib/shared/read-css-ms";
 import {
   Dialog,
   DialogClose,
@@ -240,21 +255,178 @@ function HostTileOverlay({
   );
 }
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function HostMediaGrid({
   eventId,
   items,
   shareUrl,
+  selectable = false,
 }: {
   eventId: string;
   items: GridMedia[];
   // The event JOIN url, for the lightbox Share — never a presigned media URL.
   shareUrl?: string;
+  // The GALLERY album opts into bulk-select (long-press + the floating bulk bar); the Reel grid
+  // does NOT (default false), so only one grid ever registers handlers / responds to select mode.
+  selectable?: boolean;
 }) {
   // ONE optimistic source over the server items, shared by the tiles AND the lightbox
   // (both render from optimisticItems), so a hide/approve/remove updates instantly with no
   // revalidation lag; it reverts on failure. ONE moderation hook drives both surfaces.
   const [optimisticItems, applyOptimistic] = useOptimistic(items, applyChange);
   const { setStatus, remove } = useModeration(eventId, applyOptimistic);
+  const [, startBulk] = useTransition();
+  const [exiting, setExiting] = useState<Set<string>>(new Set());
+
+  const selection = useHostSelection();
+  const reel = useReel();
+  const likes = useLikes();
+
+  // The optimistic bulk status flip (Hide / Show) — same contract as useModeration.setStatus, batched.
+  // applyOptimistic is dispatched BEFORE the await (the supported useOptimistic + async-transition
+  // pattern); the Promise resolves when the server roundtrip lands so the bar can then exit select mode.
+  const setStatusBulk = (ids: string[], status: "approved" | "hidden") =>
+    new Promise<void>((resolve) => {
+      startBulk(async () => {
+        for (const id of ids) applyOptimistic({ type: "status", id, status });
+        const res = await setMediaStatusBulkAction(eventId, ids, status);
+        if (!res.ok) {
+          toast.error(res.message || "Couldn't update those items.");
+        } else if (status === "hidden") {
+          toast.warning("Hidden from everyone");
+        }
+        resolve();
+      });
+    });
+
+  // Bulk delete: the selected tiles fade + scale out ([data-exiting], OUTSIDE the transition so the
+  // beat plays before removal), THEN the optimistic removal + the server action inside the transition.
+  const removeBulk = async (ids: string[]) => {
+    if (!prefersReducedMotion()) {
+      setExiting(new Set(ids));
+      await wait(readCssMs("--tune-review-exit-ms", 150));
+    }
+    await new Promise<void>((resolve) => {
+      startBulk(async () => {
+        for (const id of ids) applyOptimistic({ type: "remove", id });
+        setExiting(new Set());
+        const res = await removeMediaBulkAction(eventId, ids);
+        if (!res.ok) {
+          toast.error("Couldn't remove those items. Please try again.");
+        }
+        resolve();
+      });
+    });
+  };
+
+  // The five bulk handlers (closures over the freshest items + providers). Add-to-reel pre-filters to
+  // the optimistic-approved subset so the count is honest (the RPC refuses non-approved anyway); reel +
+  // like fire ONE summary toast each (the providers' bulk methods stay silent).
+  const handlers = {
+    hide: (ids: string[]) => setStatusBulk(ids, "hidden"),
+    show: (ids: string[]) => setStatusBulk(ids, "approved"),
+    delete: (ids: string[]) => removeBulk(ids),
+    reel: async (ids: string[]) => {
+      if (!reel) return;
+      const approved = ids.filter(
+        (id) => optimisticItems.find((m) => m.id === id)?.status === "approved",
+      );
+      if (approved.length === 0) {
+        toast.info("Only approved photos can be added to a reel.");
+        return;
+      }
+      const added = await reel.addMany(approved);
+      if (added > 0) toast.success(`Added ${added} to your reel`);
+      else toast.info("Already in your reel");
+    },
+    like: async (ids: string[]) => {
+      if (!likes) return;
+      const added = await likes.likeMany(ids);
+      if (added > 0) {
+        toast.success(`Liked ${added} ${added === 1 ? "photo" : "photos"}`);
+      }
+    },
+  };
+  // Keep a stable handlers facade (so registering never churns on the per-render handler identity): a ref
+  // updated AFTER each commit, read only at click time inside the wrappers (never during render).
+  const handlersRef = useRef(handlers);
+  useEffect(() => {
+    handlersRef.current = handlers;
+  });
+  const stableHandlers = useMemo(
+    () => ({
+      hide: (ids: string[]) => handlersRef.current.hide(ids),
+      show: (ids: string[]) => handlersRef.current.show(ids),
+      delete: (ids: string[]) => handlersRef.current.delete(ids),
+      reel: (ids: string[]) => handlersRef.current.reel(ids),
+      like: (ids: string[]) => handlersRef.current.like(ids),
+    }),
+    [],
+  );
+
+  // Register the album fingerprint (ids + status map) + the stable handlers into the provider whenever
+  // the album changes (an add/remove OR a status flip — both move the smart Hide/Show label). The
+  // provider's key-guard makes an unchanged re-register a no-op, so this never loops.
+  const register = selection?.register;
+  const registryKey = optimisticItems
+    .map((m) => `${m.id}:${m.status ?? ""}`)
+    .join("|");
+  useEffect(() => {
+    if (!selectable || !register) return;
+    register({
+      key: registryKey,
+      ids: optimisticItems.map((m) => m.id),
+      statusMap: Object.fromEntries(optimisticItems.map((m) => [m.id, m.status])),
+      handlers: stableHandlers,
+    });
+  }, [selectable, register, registryKey, optimisticItems, stableHandlers]);
+
+  // Long-press a tile → enter select mode seeded with it. The browser may synthesize a click on the
+  // freshly-swapped selectable tile (same id, same spot) right after, which would toggle the seed back
+  // off — so arm a one-shot suppression of a toggle of THAT id (auto-clears in 500ms if no stray click).
+  const suppressToggleId = useRef<string | null>(null);
+  const enterSelectAt = useCallback(
+    (id: string) => {
+      selection?.enterSelect(id);
+      suppressToggleId.current = id;
+      setTimeout(() => {
+        if (suppressToggleId.current === id) suppressToggleId.current = null;
+      }, 500);
+    },
+    [selection],
+  );
+  const handleToggle = useCallback(
+    (id: string) => {
+      if (suppressToggleId.current === id) {
+        suppressToggleId.current = null;
+        return;
+      }
+      selection?.toggle(id);
+    },
+    [selection],
+  );
+
+  // In select mode the album swaps to the overlay-less SelectableMediaGrid (no per-tile chrome, so no
+  // double affordance) reading the SAME optimistic items, so a flip survives the swap.
+  if (selectable && selection?.selectMode) {
+    return (
+      <SelectableMediaGrid
+        items={optimisticItems}
+        selectMode
+        selected={selection.selected}
+        exiting={exiting}
+        onToggle={handleToggle}
+      />
+    );
+  }
+
   // clampAspect: moderation ergonomics. dimItem: hidden media -> 30% (active-vs-hidden).
   return (
     <MasonryColumns
@@ -265,6 +437,7 @@ export function HostMediaGrid({
       onSetStatus={setStatus}
       onRemove={remove}
       dimItem={(item) => item.status === "hidden"}
+      onTileLongPress={selectable ? enterSelectAt : undefined}
       renderOverlay={(item) => (
         <HostTileOverlay item={item} setStatus={setStatus} remove={remove} />
       )}

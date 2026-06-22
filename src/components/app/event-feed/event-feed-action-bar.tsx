@@ -3,7 +3,9 @@
 import { Clapperboard, ImageUp } from "lucide-react";
 
 import { useHostAdd } from "@/components/app/host-add-provider";
+import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type EventSection } from "@/lib/event/sections";
+import { GalleryBulkBar } from "./gallery-actions";
 import { ReviewActions } from "./review-actions";
 import { type ReviewTriage } from "./use-review-triage";
 
@@ -13,7 +15,8 @@ import { type ReviewTriage } from "./use-review-triage";
 // looking at, so the relevant control is always in reach across the whole scroll, never lost above
 // or below a section:
 //   Review (pending / selecting) → the Select / Approve all / bulk cluster (shared ReviewActions)
-//   Gallery                      → Add photos (opens the command strip's panel) + the uploading chip
+//   Gallery (browse)             → Add photos (opens the command strip's panel) + the uploading chip
+//   Gallery (album select mode)  → the bulk cluster (Add to reel / Like / Hide-Show / Delete), GalleryBulkBar
 //   Reel                         → a disabled Create reel (the future generation flow's holding slot)
 // A section with nothing to act on (review caught-up / moderation-off) yields no bar. The content
 // crossfades on section change via [data-section-swap]; the bar itself fades + rises on appearance.
@@ -28,6 +31,7 @@ export function EventFeedActionBar({
   triage: ReviewTriage;
 }) {
   const add = useHostAdd();
+  const selection = useHostSelection();
 
   let content: React.ReactNode = null;
   if (active === "review") {
@@ -40,7 +44,11 @@ export function EventFeedActionBar({
       );
     }
   } else if (active === "gallery") {
-    content = (
+    content = selection?.selectMode ? (
+      <div className="pointer-events-auto flex items-center rounded-full border border-border bg-background/95 px-2 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.18)] backdrop-blur">
+        <GalleryBulkBar />
+      </div>
+    ) : (
       <button
         type="button"
         onClick={() => add?.openAdd()}

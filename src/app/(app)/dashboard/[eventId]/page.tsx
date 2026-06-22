@@ -15,6 +15,7 @@ import { EventFeed } from "@/components/app/event-feed/event-feed";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
+import { HostSelectionProvider } from "@/components/app/host-selection-provider";
 import { ReelPanel } from "@/components/app/reel-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
 import {
@@ -265,29 +266,34 @@ export default async function EventDetailPage({
           videosAllowed={videosAllowedForTier(tier)}
         />
         <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-          <EventFeed
-            eventId={event.id}
-            moderationOn={isModerationOn}
-            initialSection={initialSection}
-            pendingItems={pendingItems}
-            galleryCount={visibleItems.length}
-            reelCount={reelIds.length}
-            gallerySection={
-              <EventUploads
-                eventId={event.id}
-                items={visibleItems}
-                pendingCount={pendingItems.length}
-                shareUrl={eventLink}
-              />
-            }
-            reelSection={
-              <ReelPanel
-                eventId={event.id}
-                items={visibleItems}
-                shareUrl={eventLink}
-              />
-            }
-          />
+          {/* HostSelectionProvider shares the Gallery album bulk-select state so the floating bar's
+              bulk cluster and the gallery grid's tiles + long-press drive one selection. Inside
+              ReelProvider so a bulk Add-to-reel reflects instantly in the Reel section. */}
+          <HostSelectionProvider>
+            <EventFeed
+              eventId={event.id}
+              moderationOn={isModerationOn}
+              initialSection={initialSection}
+              pendingItems={pendingItems}
+              galleryCount={visibleItems.length}
+              reelCount={reelIds.length}
+              gallerySection={
+                <EventUploads
+                  eventId={event.id}
+                  items={visibleItems}
+                  pendingCount={pendingItems.length}
+                  shareUrl={eventLink}
+                />
+              }
+              reelSection={
+                <ReelPanel
+                  eventId={event.id}
+                  items={visibleItems}
+                  shareUrl={eventLink}
+                />
+              }
+            />
+          </HostSelectionProvider>
         </ReelProvider>
       </HostAddProvider>
     </div>

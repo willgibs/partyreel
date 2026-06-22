@@ -42,6 +42,7 @@ import {
 // The tile aspect-ratio math lives in a pure module (node-unit tested + reusable
 // by host grids without pulling this client component's lightbox graph in).
 import { tileAspect } from "@/lib/media/tile-aspect";
+import { useLongPress } from "@/lib/shared/use-long-press";
 
 /** The subtle corner play marker for video tiles (shared with the guest masonry). */
 export function CornerPlayBadge() {
@@ -66,6 +67,7 @@ export function MasonryColumns<T extends GridMedia>({
   shareUrl,
   onSetStatus,
   onRemove,
+  onTileLongPress,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
@@ -74,6 +76,9 @@ export function MasonryColumns<T extends GridMedia>({
   clampAspect?: boolean;
   /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
   viewerIsHost?: boolean;
+  /** Tap-and-hold a tile to enter the gallery album bulk-select, seeded with that id. Omitted
+   *  everywhere except the host gallery, so the guest / recovery grids get no long-press. */
+  onTileLongPress?: (id: string) => void;
   /** Per-tile chrome on top of the lightbox button (moderation bar, bin controls). */
   renderOverlay?: (item: T) => ReactNode;
   /** Dims the MEDIA to 30% (the host's hidden-from-guests mark); the overlay chrome
@@ -90,6 +95,9 @@ export function MasonryColumns<T extends GridMedia>({
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
   // once via the useState initializer (no ref-in-render). Unused when stagger=false.
   const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
+  // One long-press machine for the grid (a single press at a time). bind() is a no-op without
+  // onTileLongPress, so non-host grids are unaffected.
+  const longPress = useLongPress(onTileLongPress);
 
   return (
     <>
@@ -118,7 +126,13 @@ export function MasonryColumns<T extends GridMedia>({
           >
             <button
               type="button"
-              onClick={() => setOpenIndex(i)}
+              {...longPress.bind(item.id)}
+              onClick={() => {
+                // Suppress the click the browser synthesizes after a long-press (else the hold that
+                // entered select mode would also open the lightbox).
+                if (longPress.consumeClick()) return;
+                setOpenIndex(i);
+              }}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
               className={`size-full cursor-pointer outline-none transition-[transform,opacity] duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
                 dimItem?.(item) ? " opacity-30" : ""

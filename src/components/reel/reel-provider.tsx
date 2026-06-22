@@ -28,6 +28,9 @@ import { createClient } from "@/lib/supabase/client";
 type ReelContextValue = {
   inReel: (id: string) => boolean;
   toggle: (id: string) => void;
+  /** Album bulk-select: add a SET of approved ids at once (idempotent; skips already-in). Resolves
+   *  to the count newly added so the caller can fire ONE summary toast (not N). */
+  addMany: (ids: string[]) => Promise<number>;
   /** In-reel media ids in add-order (for the Reel panel). */
   orderedIds: string[];
 };
@@ -116,11 +119,45 @@ export function ReelProvider({
     [eventId, reel],
   );
 
+  // Album bulk "Add to reel": optimistically add every not-already-in id (the Set keeps add-order),
+  // fire add_to_reel for each in parallel (the RPC re-checks approved + host-owned, idempotent), then
+  // revert only the failures. Returns the count newly added; the caller owns the single summary toast.
+  const addMany = useCallback(
+    async (ids: string[]): Promise<number> => {
+      const toAdd = ids.filter((id) => !reel.has(id));
+      if (toAdd.length === 0) return 0;
+      setReel((prev) => {
+        const next = new Set(prev);
+        for (const id of toAdd) next.add(id);
+        return next;
+      });
+      const supabase = createClient();
+      const failed: string[] = [];
+      await Promise.all(
+        toAdd.map(async (id) => {
+          const { data, error } = await supabase.rpc("add_to_reel", {
+            p_media_id: id,
+          });
+          if (error || !reelOk(data)) failed.push(id);
+        }),
+      );
+      if (failed.length > 0) {
+        setReel((prev) => {
+          const next = new Set(prev);
+          for (const id of failed) next.delete(id);
+          return next;
+        });
+      }
+      return toAdd.length - failed.length;
+    },
+    [reel],
+  );
+
   const inReel = useCallback((id: string) => reel.has(id), [reel]);
   const orderedIds = [...reel];
 
   return (
-    <ReelContext.Provider value={{ inReel, toggle, orderedIds }}>
+    <ReelContext.Provider value={{ inReel, toggle, addMany, orderedIds }}>
       {children}
     </ReelContext.Provider>
   );

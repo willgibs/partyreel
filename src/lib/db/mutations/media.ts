@@ -194,6 +194,83 @@ export function hideBulk(eventId: string, mediaIds: string[]) {
 }
 
 /**
+ * The GALLERY album bulk-select counterparts of setMediaStatus / removeMedia: the same
+ * RLS-scoped, column-locked writes, batched with `.in('id', …)`. These act on the LIVE
+ * album (approved <-> hidden, or remove), so they deliberately DROP the `status='pending'`
+ * predicate the review-queue bulk uses — `.neq('status','removed')` is kept so a crafted call
+ * still can't resurrect already-removed media. RLS (`media_host_all`) scopes rows to the host's
+ * own events, so a cross-tenant id in the array simply matches nothing (the count reflects only
+ * owned rows — the partial-no-op is the security property, not a bug). 0 matched is success.
+ */
+export async function setMediaStatusBulk(
+  eventId: string,
+  mediaIds: string[],
+  status: SettableMediaStatus,
+): Promise<MutationResult<{ count: number }>> {
+  if (mediaIds.length === 0) return { ok: true, data: { count: 0 } };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data, error } = await supabase
+    .from("media")
+    .update({ status })
+    .eq("event_id", eventId)
+    .in("id", mediaIds)
+    .neq("status", "removed")
+    .select("id");
+
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message:
+        status === "hidden"
+          ? "Couldn't hide those items. Please try again."
+          : "Couldn't show those items. Please try again.",
+    };
+  }
+  return { ok: true, data: { count: data?.length ?? 0 } };
+}
+
+/**
+ * Soft-remove SELECTED album items to the Deleted bin. Mirrors removeMedia (status='removed' +
+ * removed_at; the trigger stamps purge_at = removed_at + 30 days), batched with `.in()`.
+ * `.neq('status','removed')` so a repeat remove never re-stamps removed_at (which would extend how
+ * long the bytes linger). No R2 call here — the daily purge cron reclaims bytes after the grace.
+ */
+export async function removeMediaBulk(
+  eventId: string,
+  mediaIds: string[],
+): Promise<MutationResult<{ count: number }>> {
+  if (mediaIds.length === 0) return { ok: true, data: { count: 0 } };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { data, error } = await supabase
+    .from("media")
+    .update({ status: "removed", removed_at: new Date().toISOString() })
+    .eq("event_id", eventId)
+    .in("id", mediaIds)
+    .neq("status", "removed")
+    .select("id");
+
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't remove those items. Please try again.",
+    };
+  }
+  return { ok: true, data: { count: data?.length ?? 0 } };
+}
+
+/**
  * Recovery (Phase 3) — host-facing restore + permanent-delete-now. These call the
  * authenticated, ownership-gated SECURITY DEFINER RPCs (restore_media / restore_event /
  * purge_media_now), which own the capacity + slot gates. The RPCs RETURN a jsonb
