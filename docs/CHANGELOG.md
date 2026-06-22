@@ -10,6 +10,34 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — "Download all" zip export (`bc4d5fb` + download fix `34d0a9f`)
+
+Per-item Save streamed ONE original; "Download all" now zips a whole album. Heavy/streaming work runs OFF
+Vercel on a new **streaming export Worker** (`workers/export`, `partyreel-export`, deployed via `wrangler`,
+ADR-0018). A Next mint route authorizes (host: own-event; guest: access-resolved, never beyond `gallery.rows`)
++ **HMAC-signs** the authorized `[{key,name}]` list into an opaque token; the browser top-level form-POSTs it;
+the Worker verifies the signature + expiry + per-key layout and **streams a STORE-method zip** (`client-zip`)
+straight from R2 to the browser, so bytes never touch Vercel. The app is the single authz oracle.
+- **UI** = the design-lab **Concept B** config modal (Everything/Photos/Videos chips with live counts from a
+  `step:"summary"` call, host-only "Include hidden", the total size/count as the result) on the host Gallery
+  header + bulk "Download selected" (direct) + the guest album (hidden in demo). emil craft: center scale-in,
+  press feedback, the size animates as the consequence of the config.
+- **Security/cost** = signed sealed manifest (keys = equivalent exposure to the presigned gallery URLs already
+  shipped), per-export cap (2000 items / ~20 GB), the `"export"` abuse-limiter kind, the `export_enabled`
+  kill-switch + per-attempt `export_log` (HMAC-of-IP, never raw) surfaced at `/admin/exports`. Marginal cost
+  ~$0 (R2 egress free; store-zip CPU is just CRC32) — no per-image fee, no temp storage.
+- **Download fix** (`34d0a9f`): switched from a hidden-iframe form-POST to a TOP-LEVEL form POST (the durable,
+  restriction-proof pattern — cross-origin iframe downloads are increasingly browser-restricted). Honest note:
+  the iframe ALSO downloaded fine; the "no file saved" reading during the red-team was a false alarm (the test
+  browser saves to a non-default dir, so files were landing all along).
+- **Verified live (partyreel.com + the Worker):** the full guest chain via curl (summary → mint → Worker → a
+  9-file 10.6 MB `unzip`-clean zip); every attack fails closed (no-token 400, garbage/forged/expired/bad-key-
+  layout 403, GET 405, bad-qr 403, host-unauth 401); the kill-switch (DB flag off → mint 503 paused → on);
+  `export_log` rows correct (minted + rejected_mode, HMAC-of-IP, no raw IP). In the browser (host dashboard):
+  the Concept B modal renders + recomputes live (Photos → 1.4 MB / 6 items), and clicking Download saves a
+  valid 9-file `partyreel-demo.zip` to disk. (Admin `/admin/exports` page needs an admin+MFA login → Will's
+  visual check; its data + toggle are verified.)
+
 ## 2026-06-22 — Client-side thumbnail/preview variant (`729e781`)
 
 Galleries served full-res R2 originals on every tile (slow cold loads, high bandwidth). Now the BROWSER

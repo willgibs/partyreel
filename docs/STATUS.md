@@ -140,7 +140,13 @@ frame), uploads it as the `preview` R2 variant (size-bound), records `preview_ke
 transform fee — Will's storage-billed-model call). A migration added `preview_key` to the guest-gallery RPCs
 (the gap). Live-verified: photo tile 253KB→16KB (~94%), video 788KB→8.5KB poster img (~99%), old media fall back,
 lightbox full-res. Current truth: [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-**▶ NEXT (Will's queue): the "Download all" zip export (slice 3).** Then the remaining Reel follow-ons (the
+**"Download all" zip export ✅ (2026-06-22, `bc4d5fb` + download fix `34d0a9f`): slice 3 done.** Host + guest
+galleries zip a whole album via a new streaming export Worker (`workers/export`, off Vercel, ADR-0018); a Next
+mint route authorizes + HMAC-signs the key list, the browser top-level form-POSTs it, the Worker streams a
+store-zip (`client-zip`) straight from R2. Concept B config modal + bulk "Download selected" + the guest album;
+`export_log` + the `export_enabled` kill-switch at `/admin/exports`. Live-verified end-to-end (the full chain +
+every fail-closed gate + a real 9-file zip downloaded). Current truth: [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+**▶ NEXT (Will's queue is now clear):** the remaining Reel follow-ons (the
 generation worker) / a future Guests section / the roadmapped user-profiles +
 social program. The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the

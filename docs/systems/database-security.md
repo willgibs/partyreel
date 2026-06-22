@@ -74,7 +74,12 @@ The expected, accepted set:
   DB-trigger broadcast silently no-ops — verify with a real subscription, not just SQL. The doorbell trigger
   additionally wraps `realtime.send` in its own exception guard so a Realtime outage can never fail a media write.
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
-  `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications` (operator/service-role-only).
+  `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications`,
+  `export_log` (per-attempt "Download all" log — HMAC-of-IP, never a raw IP), `ops_flags` (the `export_enabled`
+  kill-switch + future ops toggles) — all operator/service-role-only. The "Download all" export adds NO new
+  SECURITY DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing), so the 0028/0029
+  advisor split is unchanged. The abuse limiter gains an `"export"` kind (`action_attempts` is kind-generic — no
+  schema change); scope = (IP, event), breadth-guarded like `join`.
 - **Leaked Password Protection (HaveIBeenPwned) is ENABLED** (2026-06-08) — that WARN is cleared. Supabase
   now rejects pwned ACCOUNT passwords at set/change; the account-security form surfaces the rejection via the
   `updateUser` error. It's an Auth feature → applies to `auth.users` passwords ONLY, not event passwords

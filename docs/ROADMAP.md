@@ -47,8 +47,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   (P1 server-enforced `none|teaser|full` access + the capped teaser; P2 the unified entry modal + first-visit
   welcome; P3 the host "Require guest accounts" relabel + live preview). → [ADR-0017](adr/0017-gated-gallery-view-access.md),
   [`CHANGELOG.md`](CHANGELOG.md), [`systems/guest-flow.md`](systems/guest-flow.md).
-- **"Download all" zip export** — heavier; stream-zip or an external worker (ADR-0003 keeps it off Vercel,
-  like the reel). Per-item Save already ships.
+- **"Download all" zip export — SHIPPED 2026-06-22 (`bc4d5fb` + download fix `34d0a9f`).** A streaming export
+  Worker (`workers/export`, off Vercel) zips an album; a Next mint route HMAC-signs the authorized key list, the
+  browser top-level form-POSTs it, the Worker streams a `client-zip` store-zip from R2. Concept B config modal +
+  bulk "Download selected" + the guest album; `export_log` + the `export_enabled` kill-switch at `/admin/exports`.
+  → [ADR-0018](adr/0018-download-all-zip-export.md), [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+  Deferred: an async build-to-R2 job for >cap (2000-item / ~20 GB) albums; a custom `export.partyreel.com`
+  subdomain (v1 uses `*.workers.dev`).
 - **Thumbnail/preview variant — SHIPPED 2026-06-22 (`729e781`).** CLIENT-side: the browser makes a ~640px WebP
   preview at upload (photos downscale, videos a poster frame), uploads it as the `preview` R2 variant (size-bound),
   records `preview_key`; tiles serve it, the lightbox keeps full-res. $0 generation (no CF transform fee — the

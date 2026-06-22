@@ -27,6 +27,29 @@ the pure sizing math: [`upload/preview.ts`](../../src/lib/upload/preview.ts) +
 [`media/preview-size.ts`](../../src/lib/media/preview-size.ts). (A server-side BACKFILL of previews for existing
 media is a deferred follow-on.)
 
+**Download all (zip export, 2026-06-22).** Per-item Save streams ONE original (`presignDownload` attachment
+URL); **"Download all"** zips a whole album. Heavy/streaming work runs OFF Vercel on a separate **streaming
+export Worker** ([`workers/export/`](../../workers/export), `partyreel-export`, deployed via `wrangler`,
+ADR-0018). The flow: the browser hits a Next **mint route** (host [`/api/export/host`](../../src/app/api/export/host),
+guest [`/api/export/guest`](../../src/app/api/export/guest)) which AUTHORIZES (host: `getUser` + own-event;
+guest: qr-resolve + `resolveGalleryAccess` + `loadGalleryRowsForAccess` — a guest can NEVER exceed `gallery.rows`),
+builds the manifest, and **HMAC-signs** `{v,jti,scope,eventId,zipName,items:[{key,name}],exp}` into an opaque
+token (the app is the SINGLE authz oracle); the browser **top-level form-POSTs** the token to the Worker, which
+verifies the signature + expiry + per-key layout and **streams a STORE-method zip** of the R2 objects straight to
+the browser (`client-zip`, bytes never touch Vercel). The shared service (kill-switch → abuse-limiter →
+manifest+cap → sign → log) is [`export/export-service.ts`](../../src/lib/export/export-service.ts); the pure
+token + manifest cores are [`export/export-token.ts`](../../src/lib/export/export-token.ts) (signs node-side,
+the Worker re-verifies in Web Crypto — ONE shared FORMAT) + [`export/build-manifest.ts`](../../src/lib/export/build-manifest.ts).
+UI = the **Concept B config modal** ([`app/export/export-dialog.tsx`](../../src/components/app/export/export-dialog.tsx)):
+type chips (Everything/Photos/Videos, live counts from a `step:"summary"` call) + a host-only "Include hidden"
+toggle + the total size/count as the result; the host Gallery header button + bulk "Download selected" (direct,
+no modal) + the guest album (hidden in demo). **Download via a TOP-LEVEL form POST** — a same-frame
+submit needs no gesture (survives the awaited mint) and an attachment response downloads without navigating;
+cross-origin **iframe** downloads are a tightening browser restriction, so top-level is the durable choice. Cost: ~$0 marginal (R2 egress is free; store-zip CPU is just CRC32). Caps: ≤2000
+items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled` kill-switch surface at
+[`/admin/exports`](../../src/app/admin/exports). Deferred: an async build-to-R2 job for >cap albums; a custom
+`export.partyreel.com` subdomain (v1 uses `*.workers.dev`). Why these calls: [ADR-0018](../adr/0018-download-all-zip-export.md).
+
 ## Where it lives
 
 - R2 client + presign: [`r2/client.ts`](../../src/lib/r2/client.ts), [`r2/presign.ts`](../../src/lib/r2/presign.ts)
@@ -52,6 +75,12 @@ media is a deferred follow-on.)
   [`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts); the caption + tap-to-open explainer live in
   `media-lightbox.tsx` + [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) / [`ui/popover.tsx`](../../src/components/ui/popover.tsx).
 - Env: R2 vars stay `.optional()` in [`env.ts`](../../src/lib/env.ts); `assertR2Env()` asserts them lazily at request time.
+- Export ("Download all"): the Worker [`workers/export/`](../../workers/export) (separate `wrangler` deploy, native
+  R2 `PRIMARY` binding, `EXPORT_MODE` kill-switch var, `client-zip`); the mint routes + service + token/manifest
+  cores under [`src/lib/export/`](../../src/lib/export) + [`src/app/api/export/`](../../src/app/api/export); the UI
+  [`src/components/app/export/`](../../src/components/app/export) (modal + `useExportDownload`); the admin readout
+  [`src/app/admin/exports/`](../../src/app/admin/exports). Env: `EXPORT_SIGNING_SECRET` (must equal the Worker's
+  secret) + `EXPORT_WORKER_URL`, both `.optional()` + `assertExportEnv()`. → [ADR-0018](../adr/0018-download-all-zip-export.md).
 
 ## Invariants (don't break)
 
