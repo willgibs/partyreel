@@ -10,7 +10,9 @@ import {
 // selects by accident). The Gallery album bulk-select renders the same grid with previews OFF. Kept as a
 // thin named wrapper so the Review surface (review-section.tsx) is untouched.
 export function ReviewGrid(
-  props: Omit<SelectableMediaGridProps, "enablePreview">,
+  props: Omit<SelectableMediaGridProps, "enablePreview" | "layout">,
 ) {
-  return <SelectableMediaGrid {...props} enablePreview />;
+  // Review = a UNIFORM grid (standardized selection hit-targets, Will 2026-06-22). The Gallery album
+  // select keeps the masonry "wow" (it calls SelectableMediaGrid directly without layout).
+  return <SelectableMediaGrid {...props} enablePreview layout="uniform" />;
 }

@@ -5,7 +5,7 @@ import { Check, Play, X } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { CornerPlayBadge } from "@/components/shared/masonry";
-import { tileAspect } from "@/lib/media/tile-aspect";
+import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 
 // The shared selectable masonry — one natural-ratio grid that BOTH the Review triage and the Gallery
 // album bulk-select render. Media-forward (columns, matching the album look). Reuses the shared CSS
@@ -28,6 +28,9 @@ export type SelectableMediaGridProps = {
   /** Must MATCH the surface's normal grid so toggling select never reflows tile heights — the
    *  gallery clamps extreme ratios (MasonryColumns clampAspect), the review queue does not. */
   clampAspect?: boolean;
+  /** "masonry" (Gallery album select — the "wow") vs "uniform" (Review — a fixed-aspect grid for
+   *  standardized selection hit-targets). Mirrors MasonryColumns. */
+  layout?: "masonry" | "uniform";
 };
 
 export function SelectableMediaGrid({
@@ -38,14 +41,22 @@ export function SelectableMediaGrid({
   onToggle,
   enablePreview = false,
   clampAspect = false,
+  layout = "masonry",
 }: SelectableMediaGridProps) {
+  const uniform = layout === "uniform";
   // A lightweight peek overlay (browse mode only): inspect a photo/video before approving, without
   // pulling the full gallery lightbox graph onto this surface.
   const [preview, setPreview] = useState<GridMedia | null>(null);
 
   return (
     <>
-      <div className="columns-2 gap-[var(--gap-gallery)] sm:columns-3">
+      <div
+        className={
+          uniform
+            ? "grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-4"
+            : "columns-2 gap-[var(--gap-gallery)] sm:columns-3"
+        }
+      >
         {items.map((it) => {
           const isSelected = selected.has(it.id);
           return (
@@ -54,11 +65,17 @@ export function SelectableMediaGrid({
               data-exiting={exiting.has(it.id) ? "" : undefined}
               style={
                 {
-                  aspectRatio: tileAspect(it, clampAspect),
+                  aspectRatio: uniform
+                    ? UNIFORM_TILE_ASPECT
+                    : tileAspect(it, clampAspect),
                   borderRadius: "var(--radius-tile)",
                 } as CSSProperties
               }
-              className="relative mb-[var(--gap-gallery)] w-full overflow-hidden break-inside-avoid bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
+              className={
+                uniform
+                  ? "relative w-full overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
+                  : "relative mb-[var(--gap-gallery)] w-full overflow-hidden break-inside-avoid bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
+              }
             >
               <MediaTile item={it} playBadge="none" />
 

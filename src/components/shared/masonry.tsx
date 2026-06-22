@@ -41,7 +41,7 @@ import {
 } from "@/components/shared/media-lightbox.lazy";
 // The tile aspect-ratio math lives in a pure module (node-unit tested + reusable
 // by host grids without pulling this client component's lightbox graph in).
-import { tileAspect } from "@/lib/media/tile-aspect";
+import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { useLongPress } from "@/lib/shared/use-long-press";
 
 /** The subtle corner play marker for video tiles (shared with the guest masonry). */
@@ -68,12 +68,17 @@ export function MasonryColumns<T extends GridMedia>({
   onSetStatus,
   onRemove,
   onTileLongPress,
+  layout = "masonry",
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
   onDeleteItem?: (id: string) => void;
   stagger?: boolean;
   clampAspect?: boolean;
+  /** "masonry" = natural-ratio CSS columns (the Gallery "wow"). "uniform" = a fixed-aspect CSS grid
+   *  (the Reel + Review, where uniformity makes drag-order / selection legible). Only the container
+   *  class + the per-tile aspect change; the overlay / lightbox / dimItem paths are identical. */
+  layout?: "masonry" | "uniform";
   /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
   viewerIsHost?: boolean;
   /** Tap-and-hold a tile to enter the gallery album bulk-select, seeded with that id. Omitted
@@ -95,6 +100,7 @@ export function MasonryColumns<T extends GridMedia>({
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
   // once via the useState initializer (no ref-in-render). Unused when stagger=false.
   const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
+  const uniform = layout === "uniform";
   // One long-press machine for the grid (a single press at a time). bind() is a no-op without
   // onTileLongPress, so non-host grids are unaffected.
   const longPress = useLongPress(onTileLongPress);
@@ -102,7 +108,11 @@ export function MasonryColumns<T extends GridMedia>({
   return (
     <>
       <div
-        className="columns-2 gap-[var(--gap-gallery)] sm:columns-3"
+        className={
+          uniform
+            ? "grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-4"
+            : "columns-2 gap-[var(--gap-gallery)] sm:columns-3"
+        }
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
@@ -115,14 +125,22 @@ export function MasonryColumns<T extends GridMedia>({
             data-static={stagger ? undefined : ""}
             style={
               {
-                aspectRatio: tileAspect(item, clampAspect),
+                // Uniform = the one fixed aspect (object-cover crops); masonry = natural ratio.
+                aspectRatio: uniform
+                  ? UNIFORM_TILE_ASPECT
+                  : tileAspect(item, clampAspect),
                 borderRadius: "var(--radius-tile)",
                 ...(stagger
                   ? { "--tile-i": seededIds.has(item.id) ? i : 0 }
                   : {}),
               } as CSSProperties
             }
-            className="group relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10 break-inside-avoid"
+            // Uniform: the CSS-grid gap spaces tiles (no per-tile margin / column break).
+            className={
+              uniform
+                ? "group relative w-full overflow-hidden bg-black/10"
+                : "group relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10 break-inside-avoid"
+            }
           >
             <button
               type="button"

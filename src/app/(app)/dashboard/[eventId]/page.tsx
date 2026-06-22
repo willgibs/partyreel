@@ -18,6 +18,7 @@ import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
 import { ReelPanel } from "@/components/app/reel-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
+import { ReelReorderProvider } from "@/components/reel/reel-reorder-provider";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -266,10 +267,12 @@ export default async function EventDetailPage({
           videosAllowed={videosAllowedForTier(tier)}
         />
         <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-          {/* HostSelectionProvider shares the Gallery album bulk-select state so the floating bar's
-              bulk cluster and the gallery grid's tiles + long-press drive one selection. Inside
-              ReelProvider so a bulk Add-to-reel reflects instantly in the Reel section. */}
-          <HostSelectionProvider>
+          {/* ReelReorderProvider shares the Reel drag-reorder MODE between the header Reorder/Done button
+              and the Reel section body (the sortable grid). HostSelectionProvider shares the Gallery
+              album bulk-select state so the floating bar's bulk cluster and the gallery grid's tiles +
+              long-press drive one selection. Both inside ReelProvider (the shared reel membership). */}
+          <ReelReorderProvider>
+            <HostSelectionProvider>
             <EventFeed
               eventId={event.id}
               moderationOn={isModerationOn}
@@ -293,7 +296,8 @@ export default async function EventDetailPage({
                 />
               }
             />
-          </HostSelectionProvider>
+            </HostSelectionProvider>
+          </ReelReorderProvider>
         </ReelProvider>
       </HostAddProvider>
     </div>

@@ -268,6 +268,7 @@ export function HostMediaGrid({
   items,
   shareUrl,
   selectable = false,
+  layout = "masonry",
 }: {
   eventId: string;
   items: GridMedia[];
@@ -276,6 +277,8 @@ export function HostMediaGrid({
   // The GALLERY album opts into bulk-select (long-press + the floating bulk bar); the Reel grid
   // does NOT (default false), so only one grid ever registers handlers / responds to select mode.
   selectable?: boolean;
+  // The Gallery keeps the natural-ratio masonry; the Reel passes "uniform" (a fixed-aspect grid).
+  layout?: "masonry" | "uniform";
 }) {
   // ONE optimistic source over the server items, shared by the tiles AND the lightbox
   // (both render from optimisticItems), so a hide/approve/remove updates instantly with no
@@ -435,6 +438,7 @@ export function HostMediaGrid({
       items={optimisticItems}
       viewerIsHost
       clampAspect
+      layout={layout}
       shareUrl={shareUrl}
       onSetStatus={setStatus}
       onRemove={remove}

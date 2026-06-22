@@ -31,6 +31,8 @@ type ReelContextValue = {
   /** Album bulk-select: add a SET of approved ids at once (idempotent; skips already-in). Resolves
    *  to the count newly added so the caller can fire ONE summary toast (not N). */
   addMany: (ids: string[]) => Promise<number>;
+  /** Drag-reorder: persist a new order for the FULL reel membership (re-stamps `position`). */
+  reorder: (orderedIds: string[]) => Promise<void>;
   /** In-reel media ids in add-order (for the Reel panel). */
   orderedIds: string[];
 };
@@ -153,11 +155,32 @@ export function ReelProvider({
     [reel],
   );
 
+  // Drag-reorder: persist the new order of the FULL reel membership. ★ A JS Set keeps INSERTION order,
+  // so we must build a NEW Set from the reordered array (mutating/re-adding into the old Set keeps the
+  // old order). orderedIds = [...reel], so the next render shows the new order. Optimistic + revert; the
+  // RPC's set-equality guard rejects a stale list (reason 'stale') if the reel changed underneath.
+  const reorder = useCallback(
+    async (orderedIds: string[]): Promise<void> => {
+      const snapshot = reel;
+      setReel(new Set(orderedIds));
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("reorder_reel", {
+        p_event_id: eventId,
+        p_media_ids: orderedIds,
+      });
+      if (error || !reelOk(data)) {
+        setReel(snapshot);
+        toast.error("Couldn't save the new order.");
+      }
+    },
+    [eventId, reel],
+  );
+
   const inReel = useCallback((id: string) => reel.has(id), [reel]);
   const orderedIds = [...reel];
 
   return (
-    <ReelContext.Provider value={{ inReel, toggle, addMany, orderedIds }}>
+    <ReelContext.Provider value={{ inReel, toggle, addMany, reorder, orderedIds }}>
       {children}
     </ReelContext.Provider>
   );

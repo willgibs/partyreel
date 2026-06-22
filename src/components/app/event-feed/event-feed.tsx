@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { updateEventAction } from "@/app/(app)/dashboard/actions";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
+import { ReelReorderButton } from "@/components/reel/reel-reorder-button";
 import {
   EVENT_SECTIONS,
   SECTION_LABEL,
@@ -179,6 +180,9 @@ export function EventFeed({
         <FeedSectionHeader
           label={SECTION_LABEL.reel}
           count={reelCount || undefined}
+          // Reorder/Done lives in the header (reorder is meaningless with <= 1 item). The button reads
+          // the ReelReorderProvider directly. size="sm" (h-7) respects the no-bounce row.
+          action={reelCount > 1 ? <ReelReorderButton /> : undefined}
         />
         {reelSection}
       </section>

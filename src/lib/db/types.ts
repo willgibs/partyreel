@@ -972,6 +972,10 @@ export type Database = {
         Returns: undefined
       }
       remove_my_upload: { Args: { p_media_id: string }; Returns: Json }
+      reorder_reel: {
+        Args: { p_event_id: string; p_media_ids: string[] }
+        Returns: Json
+      }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       save_event: { Args: { p_qr_token: string }; Returns: string }

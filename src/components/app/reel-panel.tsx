@@ -5,8 +5,10 @@ import { Clapperboard } from "lucide-react";
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { type GridMedia } from "@/components/app/media-grid";
+import { ReelSortableGrid } from "@/components/app/reel-sortable-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { useReel } from "@/components/reel/reel-provider";
+import { useReelReorder } from "@/components/reel/reel-reorder-provider";
 
 // The REEL feed section's body: the host's curated highlight set (added via the clapperboard), in add-order.
 // Bare (the section header — added by EventFeed — carries the name + count; the empty state is the shared
@@ -24,13 +26,17 @@ export function ReelPanel({
   shareUrl?: string;
 }) {
   const reel = useReel();
+  const reorder = useReelReorder();
   const byId = new Map(items.map((i) => [i.id, i]));
-  // The provider's Set is insertion-ordered, so this preserves add-order; approved-only.
-  const reelItems = (reel?.orderedIds ?? [])
+  // The provider's Set is insertion-ordered, so this preserves add-order. The FULL membership (approved +
+  // any hidden in-reel item) — reorder commits the complete set the RPC's set-equality guard requires.
+  const membership = (reel?.orderedIds ?? [])
     .map((id) => byId.get(id))
-    .filter((m): m is GridMedia => !!m && m.status === "approved");
+    .filter((m): m is GridMedia => !!m);
+  // Browse shows the approved subset (a hidden in-reel item drops out, as before).
+  const reelItems = membership.filter((m) => m.status === "approved");
 
-  if (reelItems.length === 0) {
+  if (membership.length === 0) {
     return (
       <FeedSectionEmpty
         icon={Clapperboard}
@@ -40,10 +46,23 @@ export function ReelPanel({
     );
   }
 
+  // Reorder mode: the sortable uniform grid over the full membership; Done (the header) exits.
+  if (reorder?.reorderMode && reel) {
+    return (
+      <ReelSortableGrid items={membership} onReorder={(ids) => reel.reorder(ids)} />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <LikesProvider mediaIds={reelItems.map((i) => i.id)}>
-        <HostMediaGrid eventId={eventId} items={reelItems} shareUrl={shareUrl} />
+        {/* The reel is a UNIFORM grid (a legible sequence), not the gallery's natural-ratio masonry. */}
+        <HostMediaGrid
+          eventId={eventId}
+          items={reelItems}
+          shareUrl={shareUrl}
+          layout="uniform"
+        />
       </LikesProvider>
       <p className="text-xs text-muted-foreground">
         Reel video generation is coming soon. For now, this is your curated set.
