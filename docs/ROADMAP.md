@@ -162,9 +162,14 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
     "Download all" zip stays its own deferred worker initiative.
-  - **Generation (Tabled — needs a product + architecture decision first).** Transcode/stitch runs in an
-    **external worker, NOT Vercel** (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg
-    on Cloudflare Containers), trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating.
+  - **Generation (SPEC'D 2026-06-22, ready to plan → [`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star.
+    Decisions settled in a deep discovery round: **Remotion** (one composition powers the in-browser `@remotion/player`
+    preview AND the server `renderMediaOnLambda` encode = WYSIWYG), rendered on **Remotion Lambda (AWS)** (the
+    render-infra cost workflow found cost is a rounding error, ~1-2¢/render; AWS okayed). **Lazy + cached** encode on
+    first export, **client live-player** is the $0 universal viewing surface, **shuffle/themes/seed** customization
+    (no timeline, no music), **1 reel all tiers**, **free** with watermark+length levers, **Pro video clips** with
+    preview+trim. NEXT = the V1 plan (slice 1 = the render-pipeline spike: minimal composition + Lambda + S3→R2 +
+    `remotion benchmark`). See the spec for the full data-flow + cost model + deferred list.
   See [`systems/host-app.md`](systems/host-app.md).
 - **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
   round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a
