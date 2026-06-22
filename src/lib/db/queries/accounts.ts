@@ -94,7 +94,7 @@ export async function getAccountDetail(
   // RPC would be the move only for very large accounts.)
   const { data: media, error: mErr } = await admin
     .from("media")
-    .select("file_size_bytes, events!inner(host_id, deleted_at)")
+    .select("file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)")
     .eq("events.host_id", id)
     .is("events.deleted_at", null)
     .neq("status", "removed");

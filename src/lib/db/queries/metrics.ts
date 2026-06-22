@@ -96,14 +96,20 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
     headCount(
       admin
         .from("media")
-        .select("*, events!inner(deleted_at)", { count: "exact", head: true })
+        .select("*, events!media_event_id_fkey!inner(deleted_at)", {
+          count: "exact",
+          head: true,
+        })
         .is("events.deleted_at", null)
         .neq("status", "removed"),
     ),
     headCount(
       admin
         .from("media")
-        .select("*, events!inner(deleted_at)", { count: "exact", head: true })
+        .select("*, events!media_event_id_fkey!inner(deleted_at)", {
+          count: "exact",
+          head: true,
+        })
         .is("events.deleted_at", null)
         .neq("status", "removed")
         .eq("type", "photo"),
@@ -111,7 +117,10 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
     headCount(
       admin
         .from("media")
-        .select("*, events!inner(deleted_at)", { count: "exact", head: true })
+        .select("*, events!media_event_id_fkey!inner(deleted_at)", {
+          count: "exact",
+          head: true,
+        })
         .is("events.deleted_at", null)
         .neq("status", "removed")
         .eq("type", "video"),

@@ -65,7 +65,7 @@ export async function listRecentMedia(
   let query = admin
     .from("media")
     .select(
-      "id, type, status, created_at, original_key, events!inner(id, name, host_id, deleted_at)",
+      "id, type, status, created_at, original_key, events!media_event_id_fkey!inner(id, name, host_id, deleted_at)",
     )
     .is("events.deleted_at", null)
     .order("created_at", { ascending: false })

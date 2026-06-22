@@ -37,12 +37,16 @@ export async function getHostStorageSummary(): Promise<HostStorageSummary> {
   } = await supabase.auth.getUser();
   if (!user) return { activeBytes: 0, standbyBytes: 0 };
 
-  // media_host_all scopes to the host's own media; the events!inner embed reads each row's
-  // event deleted_at (events_host_all scopes events to the host too). Deleted events' media stay
-  // readable here (the policy gates on ownership, not deleted_at).
+  // media_host_all scopes to the host's own media; the events embed reads each row's event
+  // deleted_at (events_host_all scopes events to the host too). Deleted events' media stay readable
+  // here (the policy gates on ownership, not deleted_at).
+  // The embed is PINNED to the direct FK (`media_event_id_fkey`): once `reel_items` (a junction with
+  // FKs to BOTH events and media) existed, PostgREST also inferred an events<->media many-to-many, so
+  // a bare `events!inner(...)` became ambiguous (PGRST201). ANY new junction over two already-related
+  // tables breaks their embeds the same way — always hint the FK. See database-security.md.
   const { data, error } = await supabase
     .from("media")
-    .select("file_size_bytes, status, events!inner(deleted_at)");
+    .select("file_size_bytes, status, events!media_event_id_fkey!inner(deleted_at)");
   if (error) throw error;
 
   let activeBytes = 0;

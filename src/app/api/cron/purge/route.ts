@@ -457,7 +457,7 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
     // ACTIVE bytes = non-removed media in non-deleted events.
     const { data: media, error: mErr } = await admin
       .from("media")
-      .select("id, file_size_bytes, events!inner(host_id, deleted_at)")
+      .select("id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)")
       .eq("events.host_id", p.id)
       .is("events.deleted_at", null)
       .neq("status", "removed");
@@ -737,7 +737,7 @@ async function sweepStandbyBudget(
   // soft-deleted event. Union, then load just those profiles' cap inputs (no full-profiles scan).
   const { data: removedHosts, error: rhErr } = await admin
     .from("media")
-    .select("events!inner(host_id)")
+    .select("events!media_event_id_fkey!inner(host_id)")
     .eq("status", "removed");
   if (rhErr) throw new Error(`standby removed hosts: ${rhErr.message}`);
   const { data: deletedHosts, error: dhErr } = await admin
@@ -776,7 +776,7 @@ async function sweepStandbyBudget(
     events: { deleted_at: string | null };
   };
   const BIN_SELECT =
-    "id, original_key, preview_key, file_size_bytes, removed_at, events!inner(host_id, deleted_at)";
+    "id, original_key, preview_key, file_size_bytes, removed_at, events!media_event_id_fkey!inner(host_id, deleted_at)";
 
   let overBudget = 0;
   let mediaRows = 0;
