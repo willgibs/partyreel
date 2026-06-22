@@ -183,6 +183,45 @@ export type Database = {
           },
         ]
       }
+      export_log: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string | null
+          id: string
+          item_count: number
+          jti: string | null
+          outcome: string
+          requester_hash: string | null
+          scope: string
+          total_bytes: number
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          item_count?: number
+          jti?: string | null
+          outcome: string
+          requester_hash?: string | null
+          scope: string
+          total_bytes?: number
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          item_count?: number
+          jti?: string | null
+          outcome?: string
+          requester_hash?: string | null
+          scope?: string
+          total_bytes?: number
+        }
+        Relationships: []
+      }
       guests: {
         Row: {
           created_at: string
@@ -496,6 +535,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ops_flags: {
+        Row: {
+          enabled: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

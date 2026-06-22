@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { updateEventAction } from "@/app/(app)/dashboard/actions";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
+import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
 import { ReelReorderButton } from "@/components/reel/reel-reorder-button";
 import {
   EVENT_SECTIONS,
@@ -164,12 +165,15 @@ export function EventFeed({
         <FeedSectionHeader
           label={SECTION_LABEL.gallery}
           count={galleryCount || undefined}
-          // The header "Select" affordance (browse face); the bulk cluster lives in the floating bar
-          // once selecting. Hidden when already selecting (the cluster is in the bar) or the album is
-          // empty. ≤ h-7 (size="sm"), per the header's no-bounce rule.
+          // The header "Download all" + "Select" affordances (browse face); the bulk cluster (incl. its
+          // own Download) lives in the floating bar once selecting. Hidden when already selecting or the
+          // album is empty. Both ≤ h-7 (size="sm"), per the header's no-bounce rule.
           action={
             selection && !selection.selectMode && galleryCount > 0 ? (
-              <GallerySelectButton />
+              <div className="flex items-center gap-1.5">
+                <GalleryDownloadAllButton eventId={eventId} />
+                <GallerySelectButton />
+              </div>
             ) : undefined
           }
         />

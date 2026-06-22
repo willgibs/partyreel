@@ -17,6 +17,9 @@
 import { use, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { Ref } from "react";
 
+import { Download } from "lucide-react";
+
+import { ExportDialog } from "@/components/app/export/export-dialog";
 import type { GridMedia } from "@/components/app/media-grid";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import {
@@ -304,6 +307,21 @@ export function LiveGallery({
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
+          {/* A subtle gallery-level "Download all" (the album doubles as the shareable copy). Hidden in
+              demo mode (simulated tiles aren't real downloads) + on a locked gallery. The modal's summary
+              re-derives the real downloadable set server-side (a teaser downloads exactly its visible set). */}
+          {!isDemo && access !== "none" && items.length > 0 && (
+            <div className="mb-3 flex justify-end">
+              <ExportDialog scope="guest" albumKey={qrToken}>
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
+                >
+                  <Download className="size-4" /> Download all
+                </button>
+              </ExportDialog>
+            </div>
+          )}
           <GuestMasonry
             items={items}
             pending={pendingTiles}

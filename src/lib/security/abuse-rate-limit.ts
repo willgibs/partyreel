@@ -13,7 +13,7 @@
  * limiter error.
  */
 
-export type AbuseKind = "join" | "report" | "capture";
+export type AbuseKind = "join" | "report" | "capture" | "export";
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -36,6 +36,11 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
   report: { breadthWindowMin: 60, breadthMax: 30, scopeWindowMin: 60, scopeMax: 15 },
   // Capture is already gated by a verified session → a light per-IP cap; no breadth (scope is a constant).
   capture: { breadthWindowMin: 60, breadthMax: Infinity, scopeWindowMin: 60, scopeMax: 40 },
+  // "Download all" zip-export mints, scope = (IP, event). BREADTH is the scraper guard (one IP exporting
+  // many DISTINCT events → a harvester; a venue is ONE event → never trips). The per-(IP,event) backstop
+  // sits well above a big venue's end-of-night download burst (~100/15min from one NAT) — a runaway-bot
+  // ceiling only. The token (signed, 2-min TTL) is the real gate, so the routes fail OPEN on a limiter error.
+  export: { breadthWindowMin: 60, breadthMax: 15, scopeWindowMin: 15, scopeMax: 100 },
 };
 
 /**

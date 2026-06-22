@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
+  Download,
   Flag,
   Images,
   LifeBuoy,
@@ -86,6 +87,13 @@ export default async function AdminHomePage() {
       icon: Megaphone,
       title: "Announcements",
       description: "Publish messages to every host's notification bell.",
+      count: 0,
+    },
+    {
+      href: "/admin/exports",
+      icon: Download,
+      title: "Exports",
+      description: "Recent album downloads and the download kill-switch.",
       count: 0,
     },
     {

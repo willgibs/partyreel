@@ -89,6 +89,14 @@ const serverSchema = z.object({
   // secret (it gates mockups, no data), but kept server-side so the URL can't be derived from the
   // bundle.
   DESIGN_PREVIEW_KEY: z.string().min(1).optional(),
+  // "Download all" zip export (the streaming export Worker, workers/export). EXPORT_SIGNING_SECRET is
+  // the HMAC secret the mint routes sign the manifest token with + the Worker verifies; it must match
+  // the Worker's `wrangler secret put EXPORT_SIGNING_SECRET`. EXPORT_WORKER_URL is the deployed Worker
+  // origin (the *.workers.dev URL for v1) the mint route returns so the browser form-POSTs the token
+  // there. Both `.optional()` so the app builds before they're set; assertExportEnv() asserts at
+  // request time so the mint route fails closed (never mints an unsigned/destinationless token).
+  EXPORT_SIGNING_SECRET: z.string().min(1).optional(),
+  EXPORT_WORKER_URL: z.url().optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -137,6 +145,8 @@ function parseServer() {
     UNLOCK_COOKIE_SECRET: process.env.UNLOCK_COOKIE_SECRET,
     PRUNE_API_SECRET: process.env.PRUNE_API_SECRET,
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
+    EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
+    EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
   });
   if (!parsed.success) {
     throw new Error(
@@ -299,4 +309,26 @@ export function assertPruneApiEnv(): { PRUNE_API_SECRET: string } {
     );
   }
   return { PRUNE_API_SECRET };
+}
+
+/**
+ * Assert the two export vars are present and return them. Call at REQUEST time (the export mint
+ * routes) — they stay `.optional()` so the app builds/deploys before the Worker is deployed. A
+ * missing secret means we can't sign the manifest token; a missing URL means there's nowhere to send
+ * the browser. Either way the mint route must fail closed (500) rather than hand back a token nothing
+ * can verify or a download that goes nowhere. EXPORT_SIGNING_SECRET must equal the Worker's secret.
+ */
+export function assertExportEnv(): {
+  EXPORT_SIGNING_SECRET: string;
+  EXPORT_WORKER_URL: string;
+} {
+  const { EXPORT_SIGNING_SECRET, EXPORT_WORKER_URL } = serverEnv;
+  if (!EXPORT_SIGNING_SECRET || !EXPORT_WORKER_URL) {
+    throw new Error(
+      "Export is not configured. Set EXPORT_SIGNING_SECRET (matching the export Worker's " +
+        "`wrangler secret put EXPORT_SIGNING_SECRET`) and EXPORT_WORKER_URL (the deployed " +
+        "Worker origin) in Vercel + .env.local.",
+    );
+  }
+  return { EXPORT_SIGNING_SECRET, EXPORT_WORKER_URL };
 }

@@ -20,6 +20,7 @@ import {
   setMediaStatusBulkAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { SelectableMediaGrid } from "@/components/app/event-feed/selectable-media-grid";
+import { useExportDownload } from "@/components/app/export/use-export-download";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
@@ -291,6 +292,7 @@ export function HostMediaGrid({
   const selection = useHostSelection();
   const reel = useReel();
   const likes = useLikes();
+  const { startDownload } = useExportDownload();
 
   // The optimistic bulk status flip (Hide / Show) — same contract as useModeration.setStatus, batched.
   // applyOptimistic is dispatched BEFORE the await (the supported useOptimistic + async-transition
@@ -356,6 +358,17 @@ export function HostMediaGrid({
         toast.success(`Liked ${added} ${added === 1 ? "photo" : "photos"}`);
       }
     },
+    // Download the selected items directly (no config modal — the selection IS the config). The mint
+    // re-checks each id belongs to this event (RLS-scoped listEventMedia); include_hidden:true so an
+    // explicitly-selected hidden/pending item still downloads.
+    download: async (ids: string[]) => {
+      await startDownload("host", {
+        event_id: eventId,
+        ids,
+        types: "all",
+        include_hidden: true,
+      });
+    },
   };
   // Keep a stable handlers facade (so registering never churns on the per-render handler identity): a ref
   // updated AFTER each commit, read only at click time inside the wrappers (never during render).
@@ -370,6 +383,7 @@ export function HostMediaGrid({
       delete: (ids: string[]) => handlersRef.current.delete(ids),
       reel: (ids: string[]) => handlersRef.current.reel(ids),
       like: (ids: string[]) => handlersRef.current.like(ids),
+      download: (ids: string[]) => handlersRef.current.download(ids),
     }),
     [],
   );

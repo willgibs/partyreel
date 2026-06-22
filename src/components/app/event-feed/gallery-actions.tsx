@@ -2,6 +2,7 @@
 
 import {
   Clapperboard,
+  Download,
   Eye,
   EyeOff,
   Heart,
@@ -108,6 +109,17 @@ export function GalleryBulkBar() {
         ) : (
           <EyeOff className="text-warning" />
         )}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Download"
+        title="Download"
+        disabled={busy || none}
+        onClick={() => run("download")}
+      >
+        <Download className="text-save" />
       </Button>
 
       <Dialog>

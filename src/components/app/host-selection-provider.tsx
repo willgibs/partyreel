@@ -12,7 +12,7 @@ import { useSelection } from "@/components/app/event-feed/use-selection";
 // REGISTERED here, so the bar can call selection.run(kind) and it delegates to the grid's handler —
 // exactly how the review bar calls triage.run without owning review's optimistic state.
 
-export type BulkKind = "reel" | "like" | "hide" | "show" | "delete";
+export type BulkKind = "reel" | "like" | "hide" | "show" | "delete" | "download";
 
 type MediaStatus = "pending" | "approved" | "hidden" | "removed" | undefined;
 

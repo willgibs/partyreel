@@ -1,0 +1,28 @@
+{
+  // Partyreel "Download all" zip-export Worker (ADR-0003 — heavy/streaming work off Vercel). Deployed
+  // SEPARATELY via `wrangler deploy` from this directory; NOT part of the Next app or the Vercel build.
+  // Public-facing: the browser form-POSTs a signed manifest token; this Worker verifies it and streams a
+  // store-only zip of the named R2 objects. The app is the single authz oracle (it signed the token).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "partyreel-export",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-22",
+  "observability": { "enabled": true },
+  // v1 ships on the *.workers.dev URL (EXPORT_WORKER_URL in the app points here); a custom
+  // export.partyreel.com subdomain is a deferred polish.
+  "workers_dev": true,
+
+  // Native R2 binding (no S3 creds in the Worker) — the live bucket, read-only use here (.get only).
+  "r2_buckets": [{ "binding": "PRIMARY", "bucket_name": "partyreel" }],
+
+  // EXPORT_MODE is the kill-switch's redeploy layer ("on" default; flip to "off" + redeploy to hard-halt).
+  // The app ALSO checks the `export_enabled` DB flag at mint, so an operator can pause without a redeploy.
+  // EXPORT_SIGNING_SECRET is a SECRET — set it with `wrangler secret put EXPORT_SIGNING_SECRET` (must equal
+  // the app's EXPORT_SIGNING_SECRET). For local `wrangler dev`, put it in `.dev.vars` (gitignored).
+  "vars": { "EXPORT_MODE": "on" },
+
+  // Store-only zip CPU is CRC32 over the bytes (I/O wait is NOT billed). Raise the CPU ceiling to the
+  // 5-min max for headroom on large albums; the app caps each export (<=2000 items / ~20 GB) so the
+  // worst case stays well under this.
+  "limits": { "cpu_ms": 300000 }
+}
