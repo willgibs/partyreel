@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Consistent feed section headers + harmonized empty states (`47f0b2d`)
+
+Follow-up to the feed redesign (Will): on a long "All" scroll the sections were hard to tell apart
+(Gallery had no header, Reel was a centered card-less empty state, Review a left-aligned bordered card), and
+toggling pills bounced the layout.
+- **`FeedSectionHeader`** (new) — the one subtle header every section leads with: an 11px uppercase eyebrow +
+  the pill-identical count badge (amber on a live Review queue), locked to `min-h-7` on the ROW. That fixed
+  height (== the tallest right-slot control, a `size="sm"` h-7 button) is the **no-bounce guarantee**: a
+  label-only Gallery/Reel header and the Review-pending header (which carries the Select/Approve-all cluster)
+  resolve to the exact same 28px band, so a pill toggle never shifts the header's top. (A design panel ranked
+  this over a hairline-underline variant — rejected as un-subtle for the monochrome system.)
+- **`FeedSectionEmpty`** (new) — the Reel empty-state treatment Will preferred (centered, card-less, the
+  size-12 icon circle) extracted + applied to ALL empty/teaser states: Reel, Gallery (was a lone left-aligned
+  `<p>`), and Review caught-up + moderation-off (dropped their bordered cards). Always renders UNDER the
+  header. Review-pending now reads "Review" + an amber count badge (matching Gallery/Reel) instead of the
+  "· N waiting" prose.
+- **Live-verified:** the header sits at an identical Y across All→Gallery→Reel→Review toggles (measured by
+  matched-crop screenshots — the JS geometry API was zeroed in the headless context, a known tooling
+  blind-spot), incl. the critical Gallery↔Review-pending case; the Reel + Review-moderation-off empties now
+  render identically centered. (`pnpm` gate green; demo data restored.)
+
 ## 2026-06-22 — Host event page → stacked, pill-filtered media-forward feed (`4d3ddcc`, beat hotfix `c316b21`)
 
 The host event page moved from **tabs** (Gallery | Reel | Reviews) to a **dashboard-style stacked,

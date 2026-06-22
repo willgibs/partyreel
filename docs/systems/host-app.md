@@ -131,6 +131,17 @@ AND a queue waits; otherwise the album leads and Review sinks LAST (the caught-u
 discovery teaser). The Review pill count is **LIVE + AMBER** (a needs-action signal, driving the order);
 Gallery/Reel counts are the server snapshot.
 
+**Section headers + empty states (consistent, no-bounce).** Every section leads with ONE shared
+[`FeedSectionHeader`](../../src/components/app/event-feed/feed-section-header.tsx) — a subtle 11px uppercase
+eyebrow + the pill-identical count badge (amber on a live Review queue), locked to **`min-h-7`** on the row.
+That fixed band height (== the tallest right-slot control, a `size="sm"` h-7 button) is the **no-bounce
+guarantee**: a label-only Gallery/Reel header and the Review-pending header (which carries the Select/Approve
+all cluster in its action slot) resolve to the same 28px band, so toggling pills never shifts the header's top
+(★ keep anything in the action slot ≤ h-7). The empty/teaser bodies share ONE
+[`FeedSectionEmpty`](../../src/components/app/event-feed/feed-section-empty.tsx) — centered, card-less, the
+size-12 icon circle (the ratified "Reel" treatment, Will 2026-06-22) — used by Reel-empty, Gallery-empty, and
+Review caught-up + moderation-off; it renders UNDER the header, never replacing it.
+
 - **Command bar** ([`host-command-strip.tsx`](../../src/components/app/host-command-strip.tsx)): Share PRIMARY
   + Add + Settings, responsive (Share full-width with Add+Settings beneath on a phone, one row when wide —
   viewport breakpoints are correct here, it's page-width). **Share** opens
