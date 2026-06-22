@@ -170,21 +170,44 @@ The `[data-media-tile]` `@starting-style` entrance (Phase 2) gains a per-index d
 SEED render ONLY (a render-once ids `Set`); doorbell/poll-arrived tiles carry `--tile-i: 0` and land
 immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-motion drops the move.
 
-## Host-review motion (S4·A) + the live motion tuner (S4·0)
+## Event-feed + review motion + the live motion tuner
 
-The focused-review takeover ([host-app.md](host-app.md)) is the densest motion cluster — all CSS-first,
-reduced-motion-safe, and var-tunable:
-- `[data-review-tile]` — the OPEN cascade (opacity+transform, `min(--tile-i * --tune-review-stagger-ms, 480ms)`
-  delay, `--tune-review-tile-ms` duration). A SEPARATE hook from `[data-media-tile]` so the takeover tunes
-  independently of the gallery.
+The host event feed ([host-app.md](host-app.md)) is the densest motion cluster — all CSS-first,
+reduced-motion-safe, and var-tunable. The motion-defining picks were ratified in the
+[`/design/event-feed`](../../src/app/(dev)/design/event-feed) lab (Will 2026-06-22):
+- **A=Condense** — the sticky pill bar gains `data-stuck` once the feed scrolls past its top sentinel:
+  a hairline + backdrop, and the pills shrink (`h-8`→`h-7`, smaller text) on a `transition-[transform,height,padding,font-size]`.
+- **B=Fade** (`[data-section-swap]`) — the feed container is re-keyed on a pill change (and the floating
+  bar's content on the active section), so `@starting-style` fires a crossfade + rise (opacity+translateY,
+  `--tune-section-swap-ms`; the lab's blur variant was REJECTED). Hardware-accelerated, reduced-motion = fade.
+- **C=FLIP** (`useFlip`, [`use-flip.ts`](../../src/lib/shared/use-flip.ts)) — when the urgency order flips
+  (the review queue clears), the sections slide to their new positions via a hand-rolled First-Last-Invert-Play
+  (translateY, `--tune-reorder-ms`, `--ease-in-out-strong`); reduced motion = instant. Chosen over framer-motion's
+  `layout` (cleaner, off the main thread, no dependency — `motion` was dropped).
 - `[data-review-tile][data-exiting]` — the bulk-action REMOVAL EXIT (opacity→0 / `scale(0.9)`,
-  `--tune-review-exit-ms`, `transition-delay:0` so the acted set leaves TOGETHER, never on the cascade index).
-  `run()` reads the SAME var via `readMs()` so the JS commit waits exactly as long as the visual.
-- `[data-unlock-success]` (reused from the gate morph) — the ALL-CAUGHT-UP beat; `run()` holds it
-  `--tune-review-beat-ms` then closes (the beat RIDES OUT the radix close-exit — caughtUp resets only AFTER
-  the slide, else the takeover flips to an empty "Review 0 photos" grid mid-close).
+  `--tune-review-exit-ms`, `transition-delay:0` so the acted set leaves TOGETHER). The inline review opts OUT
+  of the `[data-review-tile]` open cascade (no entrance theater on an always-present surface; the cascade hook
+  is kept for the tuner's lab replay).
+- `[data-unlock-success]` — the ALL-CAUGHT-UP beat; `useReviewTriage.run()` holds it `--tune-review-beat-ms`
+  IN PLACE (no Dialog now), then `caughtUp` clears → the urgency order recomputes → the FLIP relocates the
+  now-empty Review section to the bottom.
 - `[data-check-pop]` — the selection-checkmark scale-in (review tiles + QR presets); `[data-preset-arrive]` —
   the QR-preset cascade (a KEYFRAME, NOT a transition, so the swatch's `transition-colors` hover survives).
+
+★ **JS-timed motion reads vars with `readCssMs` ([`read-css-ms.ts`](../../src/lib/shared/read-css-ms.ts)), never
+`parseInt`** — the build minifier (Lightning CSS, via Tailwind v4) canonicalizes `<time>` to its shortest form,
+so `2500ms` ships as `2.5s`; `parseInt("2.5s")` is `2`, which once collapsed the all-caught-up beat to ~2ms.
+`parseCssMs` handles `s`/`ms`/bare (unit-tested).
+
+**The baked motion values** (globals.css `:root`, ratified): `--tune-route-fade-ms` 310 / `--tune-route-fade-ease`
+ease-out, `--tune-section-swap-ms` 180, `--tune-reorder-ms` 500, `--tune-review-beat-ms` 2500. The tuner overrides
+these live with an inline style on `<html>` (which outranks `:root`), so the playground tunes against them.
+
+**The contextual floating action bar** ([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx)):
+one fixed-bottom surface that follows a scroll-spy (`useActiveSection`) and MORPHS its action to the section in
+view (the floating Add generalized). The morph crossfades via the same `[data-section-swap]` language; each
+section self-surfaces its control (primary Add pill / a neutral card holding the review cluster / a disabled
+placeholder). Reuse this when a long scroll needs a section-aware action always in reach.
 
 **The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`,
 S4·0): a panel that writes `--tune-*` CSS vars to `<html>` so any var-backed timing can be finetuned LIVE, no
@@ -193,7 +216,7 @@ rebuild. It lives in the **lab at [`/design/motion`](../../src/app/(dev)/design/
 slider, hit Replay, feel it, and Copy CSS - far better than tuning real prod animations (which meant a refresh
 + re-entering the takeover per tweak; it shipped on the prod event page first, S4·0, then moved here). Contract:
 each polish increment APPENDS its knobs to `EVENT_PAGE_TUNER_CONTROLS`, the config `default` MIRRORS the CSS
-default, and any JS-read var (`run()`'s `readMs`) falls back to a constant that ALSO mirrors it — so
+default, and any JS-read var (`run()`'s `readCssMs`) falls back to a constant that ALSO mirrors it — so
 tuned-vs-untuned stays consistent. Bake a tuned value: Copy CSS → set it as the globals.css default → Reset.
 
 **State-colored toasts (global policy, S4):** sonner's `data-type` is mapped to the design state colors —

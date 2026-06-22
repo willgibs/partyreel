@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-21
+**Updated:** 2026-06-22
 
 ## Where we are
 
@@ -110,8 +110,17 @@ with an AMBER count and Reviews-as-landing-tab when a queue waits; the full-scre
 confirm and `approveAllPending` auto-approves the queue on save (the server enforces "live mode holds no
 pending media"). Live-verified end-to-end. DEFERRED (later rounds): album bulk-select, drag-reorder,
 guest-facing surfacing, and the generation worker.
-**▶ NEXT = the Reel follow-on rounds (album bulk-select / drag-reorder) / the roadmapped user-profiles
-+ social program / the next host-app slice.** The S3+S4+S5+Reel specs live in the slice plans
+**Event-page feed redesign ✅ (2026-06-22, `4d3ddcc` + beat hotfix `c316b21`): the host event page is now a
+stacked, pill-filtered media-forward feed** (the Gallery|Reel|Reviews TABS retired). `EventFeed` mirrors
+`DashboardFeed` (`?section=`, urgency-ordered `Review · Gallery · Reel`); the review pop-up is inlined into the
+`ReviewSection` (driven by `useReviewTriage`); a **contextual floating action bar** morphs by the scrolled
+section (Review Select/Approve all → bulk bar, Gallery Add, Reel disabled Create reel). A=Condense / B=Fade /
+C=FLIP ratified in the `/design/event-feed` lab; `motion` dropped. The live red-team caught + the hotfix fixed
+a `parseInt("2.5s")`-vs-minified-time beat bug (`read-css-ms.ts`). Live-verified end-to-end incl. the beat +
+the FLIP + mobile 375px. Current truth: [`systems/host-app.md`](systems/host-app.md). Known live-tune item
+handed to Will: the scroll-spy hand-off on a short feed.
+**▶ NEXT = the Reel follow-on rounds (album bulk-select folds into the feed's Select mode / drag-reorder / the
+generation worker) / a future Guests section / the roadmapped user-profiles + social program.** The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

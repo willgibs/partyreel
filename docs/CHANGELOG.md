@@ -10,6 +10,41 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Host event page → stacked, pill-filtered media-forward feed (`4d3ddcc`, beat hotfix `c316b21`)
+
+The host event page moved from **tabs** (Gallery | Reel | Reviews) to a **dashboard-style stacked,
+pill-filtered feed** — a media-forward landing that stacks the sections for a full scroll-through, with the
+review pop-up retired and a contextual floating action bar. Built on the proven `DashboardFeed` hydration-safe
+shape; the two motion-defining picks were prototyped + ratified in the gated `/design/event-feed` lab (Will,
+2026-06-22): **A=Condense** (sticky pills shrink on scroll), **B=Fade** (filter swap), **C=FLIP** (urgency
+reorder — framer-`motion` was trialed and rejected, the package dropped).
+
+- **Feed shell:** `lib/event/sections.ts` (replaces `tabs.ts`) — `resolveInitialEventSection` (`?section=`,
+  legacy `?eventTab=` still resolves) + `orderedSections` (Review leads while a queue waits, sinks last when
+  caught up / moderation off); pure + unit-tested. `EventFeed` (the `DashboardFeed` analog) takes the Gallery +
+  Reel sections as opaque RSC slots + the Review queue as data; `EventFilterPills` (`All · Review · Gallery ·
+  Reel`, amber live Review count, sticky-condense).
+- **Inline review:** retired `HostReview`/`ReviewTakeoverProvider`/`ReviewsPanel`; the triage machine moved to a
+  `useReviewTriage` hook shared by the inline `ReviewSection` (pending grid / caught-up line / moderation-off
+  "turn on review" teaser / the inline all-caught-up beat) and the floating bar. `use-flip.ts` (FLIP) ported to
+  `src/lib/shared/`.
+- **Contextual floating action bar** (the headline): generalizes the floating Add via a scroll-spy
+  (`use-active-section.ts`) so the action MORPHS by the section in view — Review Select/Approve all + bulk bar,
+  Gallery Add photos (shared `HostAddProvider` opens the command strip's panel), Reel a disabled Create reel.
+- **Beat hotfix (`c316b21`):** the live red-team caught the all-caught-up beat collapsing to ~2ms. Root cause:
+  baking `--tune-review-beat-ms: 2500ms` into globals.css, then the build minifier (Lightning CSS, via Tailwind
+  v4) CANONICALIZED it to `2.5s`, and the JS `parseInt("2.5s")` returned `2`. New `read-css-ms.ts`
+  (`parseCssMs`, unit-tested) parses `s`/`ms`/bare; replaces the four `parseInt`-based `readMs` copies.
+- **Live-verified (partyreel.com, demo event):** feed renders + clean hydration (zero console errors); pills +
+  urgency reorder both directions; A=Condense on scroll; the floating bar morphs to Gallery's Add; the
+  moderation-off Review teaser sorts last; seeded a pending queue → the amber Review section led the stack →
+  Select mode + the forced floating bulk bar (Select all · N · Hide · Approve · Cancel) → per-tile checkmarks →
+  Approve a subset (toast) → **Approve all → the "All caught up" beat (post-fix) → the FLIP relocated Review to
+  the bottom**; mobile 375px = clean 2-col masonry. DB left clean. Known live-tune item (handed to Will): the
+  scroll-spy active-section hand-off on a short feed (the bar holds Gallery's action when the bottom sections
+  can't reach the center band — no functional loss; Reel's is a disabled placeholder, the teaser has its own
+  inline button).
+
 ## 2026-06-22 — App typography on the Urbanist heading face + global media-grid gap
 
 App headings had drifted off the design system: page titles (Dashboard, Settings, event name, all 13 /admin

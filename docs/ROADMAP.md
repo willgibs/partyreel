@@ -131,11 +131,17 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     queue as a tab — AMBER count, moderation-gated visibility + Reviews-as-landing when a queue waits, the
     takeover sibling-mounted via `ReviewTakeoverProvider`) + the **moderation-disable auto-approve confirm**
     (count-named confirm; `updateEventAction` → `approveAllPending` enforces "live holds no pending").
-    **DEFERRED follow-ons (each its own slice):** **album bulk-select** (a shared `useItemSelection` hook + bulk
-    Add-to-Reel/Like/Download/Hide/Approve); **drag-to-reorder** (a `reorder_reel` RPC + sortable UI;
-    `position` is reserved for it); guest-facing reel surfacing on `/e/[qr]`; multiple named reels. The
-    `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk "Download all" zip stays its own deferred worker
-    initiative. Full plan in `~/.claude/plans/please-continue-on-the-concurrent-scott.md` (Part 3).
+    **Event-feed redesign SHIPPED (2026-06-22, `4d3ddcc` + beat hotfix `c316b21`):** the Gallery/Reel/Reviews
+    TABS became a stacked, pill-filtered media-forward feed (`EventFeed`, `?section=`, urgency-ordered); the
+    review pop-up inlined into `ReviewSection` (`useReviewTriage`); a contextual floating action bar morphs by
+    the scrolled section. A=Condense / B=Fade / C=FLIP ratified, `motion` dropped. → [`systems/host-app.md`](systems/host-app.md).
+    **DEFERRED follow-ons (each its own slice):** **album bulk-select** (now folds into the feed's **Select
+    mode** — a shared selection hook + bulk Add-to-Reel/Like/Download/Hide/Approve); **drag-to-reorder** (a
+    `reorder_reel` RPC + sortable UI; `position` is reserved for it); the Reel **Create reel** generation flow
+    (the floating placeholder ships disabled); guest-facing reel surfacing on `/e/[qr]`; multiple named reels;
+    concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
+    feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
+    "Download all" zip stays its own deferred worker initiative.
   - **Generation (Tabled — needs a product + architecture decision first).** Transcode/stitch runs in an
     **external worker, NOT Vercel** (ADR-0003). Open: worker platform (managed video API vs self-hosted ffmpeg
     on Cloudflare Containers), trigger (on-demand vs auto), clip-selection, output/`preview_key`, tier-gating.
@@ -152,8 +158,8 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   an additive column. Phasing (each shippable, Pro-gated where it monetizes): P1 public profile + Pro
   `/u/[slug]` + the `display_in_profile` config + attribution-as-profile-link + the disable-downloads
   public album; P2 `user_follows` (any→any, a `saved_events` clone) + the event guest list (signed-in
-  uploaders, derivable today) — surface it as a **"Guests (N)" event-page tab** (the same tab pattern as
-  Gallery/Reel; "must upload to become a guest," sortable by upload count to encourage contributions — a
+  uploaders, derivable today) — surface it as a **"Guests (N)" feed section + pill** (alongside Review/Gallery/
+  Reel in the stacked feed; "must upload to become a guest," sortable by upload count to encourage contributions — a
   motivation behind the require-account-to-upload default, Will 2026-06-21); P3 a dashboard "Following"
   filter-chip → a profiles grid; P4 (v2) a social
   feed (DEPENDS on the Notification overhaul above) + discovery. THE one-way-door risk (why a dedicated

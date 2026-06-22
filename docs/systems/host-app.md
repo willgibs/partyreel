@@ -108,16 +108,28 @@ the `/dashboard` guard bounces the host straight back. The `/welcome` route itse
 story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
 marketing page — edit it once).
 
-## The event page (gallery-first, P5 S3·3b)
+## The event page (media-forward stacked feed)
 
 [`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) mirrors the guest experience: the
 gallery IS the page under a minimal editorial header. Composition (top → bottom): an **editorial status-row
 header** (event name + a stat line of date / items / contributors / views — `contributorCount` computed
 LOCALLY from the media rows, distinct `guest_id` + host, so it stays host-accurate even for password/private
 events where `getGalleryStats` would zero it — + config-status chips: visibility Open/Password/Private + an
-Accepting-uploads dot) → a **command bar** → the **Gallery | Reel | Reviews** tabs (the album lives in
-[`event-uploads.tsx`](../../src/components/app/event-uploads.tsx); **Reviews** appears only while moderation
-holds uploads — see Moderation + Reel/tabs below).
+Accepting-uploads dot) → a **command bar** → a **stacked, pill-filtered feed** (the tabs are RETIRED).
+
+**The feed** ([`event-feed/`](../../src/components/app/event-feed/), the DashboardFeed analog): the RSC page
+resolves every section + presigns server-side and hands the **Gallery + Reel** sections to the client
+[`EventFeed`](../../src/components/app/event-feed/event-feed.tsx) as opaque pre-rendered SLOTS; the **Review**
+queue crosses as DATA (its inline triage is interactive). `EventFeed` owns the active filter (URL-synced via
+`replaceState` on `?section=`; legacy `?eventTab=` still resolves) and the urgency order, and decides what
+shows. **"All" stacks** the three sections; the [`EventFilterPills`](../../src/components/app/event-feed/event-filter-pills.tsx)
+(`All · Review · Gallery · Reel`, aria-pressed buttons in a group — NOT radix Tabs) narrow to one. The
+section model is pure + node-safe in [`lib/event/sections.ts`](../../src/lib/event/sections.ts)
+(`resolveInitialEventSection`, `orderedSections`; mirrors `lib/dashboard/filters.ts`, replaces the retired
+`tabs.ts`), unit-tested. **Urgency order:** Review leads the stack (and the pills) ONLY while moderation is on
+AND a queue waits; otherwise the album leads and Review sinks LAST (the caught-up line, or the moderation-off
+discovery teaser). The Review pill count is **LIVE + AMBER** (a needs-action signal, driving the order);
+Gallery/Reel counts are the server snapshot.
 
 - **Command bar** ([`host-command-strip.tsx`](../../src/components/app/host-command-strip.tsx)): Share PRIMARY
   + Add + Settings, responsive (Share full-width with Add+Settings beneath on a phone, one row when wide —
@@ -125,10 +137,11 @@ holds uploads — see Moderation + Reel/tabs below).
   [`EventShareDialog`](../../src/components/app/event-share-dialog.tsx) (QR + copy link), which surfaces the
   **QR designer** ("Customize" — a fun, core, growth-loop feature, kept in the share flow NOT tucked into
   settings) + a quiet link to Settings.
-- **Add** (the ratified upload combo, host edition): the command Add toggles the inline upload panel; a
-  **floating Add** appears once the bar scrolls out of view (never both, via a sentinel — `FloatingAddButton`
-  + `useInViewSentinel` reused from guest), with a live "N uploading" chip (`HostUpload` reports its in-flight
-  count up).
+- **Add** (the ratified upload combo, host edition): the command Add toggles the inline upload panel (the
+  command strip stays the panel HOST). The floating Add is now part of the feed's **contextual action bar**
+  (below) — the strip + the bar share one [`HostAddProvider`](../../src/components/app/host-add-provider.tsx),
+  so the floating Gallery action opens the SAME panel + scrolls to it, with the live "N uploading" chip
+  (`HostUpload` reports its in-flight count to the provider).
 - **Settings = a dedicated ROUTE** ([`/settings`](../../src/app/(app)/dashboard/[eventId]/settings/page.tsx)):
   the settings form (decomposed S4·B — an orchestrator over `event-settings/{details,visibility,uploads,
   danger-zone}-section.tsx`, sections reading the one form via `useFormContext`) + the link/slug (URL) config
@@ -141,50 +154,62 @@ holds uploads — see Moderation + Reel/tabs below).
   ([`use-unsaved-changes-guard.ts`](../../src/lib/use-unsaved-changes-guard.ts) → `beforeunload`) + the
   back-link (Next 16 `Link.onNavigate` → preventDefault → a confirm Dialog → Discard `router.push` / Keep
   editing). Scope: the back-link + beforeunload ONLY (not every app-shell link, not popstate).
-- **Hydration:** the SSR'd surfaces (header, command-bar row, tab labels) are native-`title` ONLY — NO radix
-  Tooltip on SSR'd elements (the silent prod-hydration regression cause, see [architecture.md](architecture.md)).
-  Rich client UI (the share dialog, QR designer, the focused review takeover) is safe inside client islands.
-- **Motion (S4·A):** the focused-review takeover is a full-screen radix `Dialog` with an OPEN CASCADE
-  (`[data-review-tile]`), a bulk-action REMOVAL EXIT (`[data-exiting]`), and an ALL-CAUGHT-UP success beat
-  (`[data-unlock-success]`); plus checkmark pops (`[data-check-pop]`), a QR-preset stagger
-  (`[data-preset-arrive]`), and panel + rare-state fades. All the felt timings are var-tunable LIVE via the
-  dev-only, design-key-gated **motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx);
-  opened with `?key=` on the event page, `isDesignGateOpen`; the `--tune-*` hooks live in
-  [design-system.md](design-system.md)). The takeover's optimistic logic (the `itemsKey` resync +
-  revert-on-failure) is unchanged; `ReviewTakeoverProvider` ALWAYS mounts `HostReview` as a sibling of the
-  tabs (OUTSIDE any `TabsContent`), its `open` CONTROLLED by the provider (the Reviews tab's "Review all"
-  drives it), so the beat + close-exit survive BOTH a tab switch AND the revalidation that empties the queue.
+- **The contextual floating action bar** ([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx),
+  the headline of the redesign): one fixed-bottom surface that generalizes the old floating Add — it appears
+  once the feed scrolls past its top sentinel (or whenever review select mode needs its bulk controls) and
+  **MORPHS its action to the section the host is looking at** via a scroll-spy
+  ([`use-active-section.ts`](../../src/lib/shared/use-active-section.ts), one `IntersectionObserver` with a
+  center band): **Review** → `Select` / `Approve all` (then the select-mode bulk bar); **Gallery** → `Add
+  photos` (opens the shared panel); **Reel** → a DISABLED `Create reel` placeholder. A section with nothing to
+  act on yields no bar. Content crossfades on section change (`[data-section-swap]`). In "All" the active
+  section is the scroll-spy's; when filtered, it's the pinned pill.
+- **Hydration:** the SSR'd surfaces (header, command-bar row, pills, gallery/reel tiles) are native-`title`
+  ONLY — NO radix Tooltip on SSR'd elements (the silent prod-hydration regression cause, see
+  [architecture.md](architecture.md)). The feed/sections/bar are client islands fed by RSC-resolved props;
+  the section model is pure so the server-resolved initial filter matches the client's first render. Rich
+  client UI (the share dialog, QR designer, the review peek overlay) is safe inside client islands.
+- **Motion (ratified in the [`/design/event-feed`](../../src/app/(dev)/design/event-feed) lab, Will
+  2026-06-22):** **A=Condense** (the sticky pill bar shrinks on scroll, `data-stuck`), **B=Fade** (the filter
+  swap re-keys the feed → `[data-section-swap]`), **C=FLIP** (the urgency reorder slides the sections via a
+  hand-rolled CSS FLIP, [`use-flip.ts`](../../src/lib/shared/use-flip.ts) — `motion`/framer was trialed +
+  REJECTED, the package dropped). The inline Review keeps the takeover's choreography: the bulk REMOVAL EXIT
+  (`[data-exiting]`), the checkmark pop (`[data-check-pop]`), and the ALL-CAUGHT-UP beat
+  (`[data-unlock-success]`) that plays in place THEN the FLIP relocates the section. All timings are
+  var-tunable LIVE via the dev-only, design-key-gated **motion tuner**
+  ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx); the ratified `--tune-*` values are baked
+  in globals.css; hooks in [design-system.md](design-system.md)).
 
 ## Moderation & curation (host side)
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
-does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) surface in the **Reviews tab**
-(R2, visible only while moderation is on — see Reel/tabs below): its panel
-([`reviews-panel.tsx`](../../src/components/app/reviews-panel.tsx)) shows the pending grid + a **Review all**
-that opens the **review surface** ([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D,
-polished S4·A2/A3) — a **full-screen radix `Dialog`** (modal), a FUNCTIONAL triage tool (denser than the
-experiential album: a 6-col-on-desktop grid, less cursor travel). The heading reads a bold **Review** + a muted
-count. **Turning moderation OFF** (R3, the `/settings` uploads section) while a queue exists pops a consequence
-confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred open); on save
-`updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is the INVARIANT
-(live mode never holds pending media; idempotent, `getUser` + RLS-scoped).
-Tap-to-select + a sticky bulk bar (S5 P1): the **count sits LEFT**; the **Select all/Deselect all** toggle
-groups RIGHT beside the Hide / Approve actions (keep clickable controls together). Hide / Approve appear ONLY
-once something is selected (no one-click approve-all from a fresh, 0-selected takeover - "Select all →
-Approve" is the intentional whole-queue path) and carry the count they'll act on (`Hide (3)` / `Approve
-(All)` when the whole queue is selected). Per-**video preview**: a ▶ on video tiles opens an in-takeover
-`<video controls>` overlay (a poster frame can't tell you what you're approving; the overlay lives INSIDE the
-Dialog, not a nested one). Optimistic with revert-on-failure - the grid cascades in, acted tiles fade+scale
-out before the list reflows, and clearing the LAST pending plays an "all caught up" beat (~1.8s hold) before
-it closes (see "The event page" → Motion). The just-approved photos are **preloaded during that beat** (the
-takeover holds their stable presigned URLs, which recur byte-identical in the album → the reveal paints from
-cache, not a cold full-res fetch) so the album doesn't flash black squares on return. **Tiles render via the
-shared `MediaTile`** (like every gallery: a plain
-`<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the short-lived, per-request
-presigned R2 URLs (it can't fetch them, and can't render video at all). Bug fixed `d5afd0c` after the teaser/
-takeover shipped with `<Image>` and rendered broken (the black tiles read as "loading" — the
-[testing-verification](testing-verification.md) trap). Mutations: `setMediaStatus` / `removeMedia` /
+does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) surface in the inline
+**Review section** ([`review-section.tsx`](../../src/components/app/event-feed/review-section.tsx)) —
+urgency-ordered to the TOP of the feed while a queue waits (the pop-up takeover is RETIRED). The triage state
+machine ([`use-review-triage.ts`](../../src/components/app/event-feed/use-review-triage.ts), lifted out of
+the old takeover) is OWNED by `EventFeed` and shared by the Review grid AND the floating action bar, so both
+read + drive it. Four states: **pending** (the dense triage grid + an amber `Review · N waiting` eyebrow),
+**caught-up** (a slim line, sorts last), **moderation-off** (a one-tap "Turn on review" discovery teaser →
+`updateEventAction { moderation_mode: hold_for_approval }`, no confirm turning ON, sorts last), and the inline
+**beat** (the all-caught-up pop that rides out THEN the FLIP relocates the section to the bottom). The grid
+([`review-grid.tsx`](../../src/components/app/event-feed/review-grid.tsx)) is a media-forward natural-ratio
+masonry (matches the album) with two modes: **browse** (a tap peeks the media full-bleed — a self-contained
+overlay, so scrolling "All" never selects by accident) and **select** (a tap toggles selection + a
+`[data-check-pop]` checkmark; a video ▶ peeks before you select). The bulk controls live in the floating bar
+(DRY [`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), rendered inline in browse
++ in the bar on scroll): **Approve all** is the FAST primary path (`approveAllPending`, no confirm — most
+moderation is a quick scroll-then-approve); **Select** opens deliberate triage where the bar becomes `Select
+all · N · Hide · Approve · Cancel`. **Turning moderation OFF** (the `/settings` uploads section) while a queue
+exists pops a consequence confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred
+open); on save `updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is
+the INVARIANT (live mode never holds pending media; idempotent, `getUser` + RLS-scoped). Optimistic with
+revert-on-failure: acted tiles fade+scale out (`[data-exiting]`) before the list reflows, and clearing the
+LAST pending plays the "all caught up" beat (~2.5s hold) before the FLIP sinks the section. The just-approved
+photos are **preloaded during that beat** (the triage holds their stable presigned URLs, which recur
+byte-identical in the album → the reveal paints from cache, not a cold full-res fetch). **Tiles render via the
+shared `MediaTile`** (a plain `<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the
+short-lived presigned R2 URLs (the [testing-verification](testing-verification.md) trap). Mutations:
+`setMediaStatus` / `removeMedia` /
 `approveAllPending` + the bulk pair `approveBulk`/`hideBulk` (scoped to `status='pending'` — the review queue,
 so a crafted call can't flip approved/hidden/removed media). **Remove is soft**
 (`status='removed'` + `removed_at`) — frees the slot immediately; the cron reclaims after the 30-day
@@ -198,8 +223,8 @@ direct hover (the emil "monochrome at rest → color on hover/state" rule; the p
 `reel, like, download, hide/show, delete` (beneficial curation first, danger last). reel (approved-only) rides
 the FAR LEFT so hiding an item, which drops it from the reel, collapses the LEADING chip without shuffling the
 rest; and hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in
-place. (No per-tile Approve: pending media lives in the **Reviews tab**, never this album/reel grid; the bulk
-path is `ApproveAllPendingButton`.) Like/Reel get a full-brightness colored STROKE on hover +
+place. (No per-tile Approve: pending media lives in the **Review section**, never this album/reel grid; the
+bulk path is the Review section's Approve all.) Like/Reel get a full-brightness colored STROKE on hover +
 a SUBTLE fill (`/25`) when active (liked rose / in-reel violet / hidden amber) so the outline stays legible.
 **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]` hook: width + margin → 0) so the
 persistent chips (liked / in-reel / hidden marker) pack neatly to the right edge, then SLIDE back to their
@@ -219,33 +244,27 @@ toasts "Hidden from everyone" from both). The host can also **Like** (a normal l
 `LikesProvider`); the read-only per-event like COUNT badge is distinct from the toggle.
 
 **Host upload (two-way media).** The host adds media from the event page via the command bar's **Add**
-(+ the floating Add on scroll; see "The event page" above) → a dropzone
+(+ the feed's floating Gallery action on scroll; see "The event page" above) → a dropzone
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
 invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 
 ## Reel curation (R1 SHIPPED) + the highlight reel (generation tabled)
 
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
-curated set in a new **Reel tab**. The event page has **Gallery | Reel | Reviews** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
-the `line` underline variant - no grey box; each label carries a **`(N)` count** — muted for Gallery/Reel,
-**AMBER** for Reviews as a needs-action signal; `?eventTab=`, `resolveInitialEventTab` resolving the SSR
-default so the host page hydrates cleanly). **Reviews** (R2, SHIPPED 2026-06-21) is the pending-approval queue:
-rendered ONLY while `moderation_mode = 'hold_for_approval'` (trigger + content gated together), and
-`resolveInitialEventTab(eventTab, { moderationOn, hasPending })` makes it the LANDING tab when a queue waits
-(else Gallery; an explicit `?eventTab=reviews` with moderation off falls back to Gallery — never a dead tab).
-Tab content is **bare** (no card wrapper/heading - the label carries the name + count). The reel layer
-MIRRORS likes: a
+curated set in the **Reel section** of the stacked feed (the event page is a pill-filtered feed — `Review ·
+Gallery · Reel` — not tabs; see "The event page"). The reel layer MIRRORS likes: a
 `reel_items(event_id, media_id, position, added_at)` join table (host-scoped SELECT+DELETE RLS, grant-locked,
 insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel is a host-RLS delete from the
 browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx);
-optimistic, insertion-ordered Set, client-direct, NO signed-out branch - shared across BOTH tabs so an add in
-the Gallery reflects instantly in the Reel tab), and a `ReelButton` (a `Clapperboard` in the `--reel` VIOLET,
-distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group. Curation is
-FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no Reel tab on
-`/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key` remain DEAD
-scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this host signal).
-DEFERRED: album bulk-select, drag-reorder, guest-facing surfacing, multiple reels. (The Reviews tab + the
-moderation-disable auto-approve confirm SHIPPED 2026-06-21 as R2+R3.)
+optimistic, insertion-ordered Set, client-direct, NO signed-out branch — wraps the whole feed so an add in
+the Gallery reflects instantly in the Reel section), and a `ReelButton` (a `Clapperboard` in the `--reel`
+VIOLET, distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group.
+Curation is FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no
+Reel on `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key`
+remain DEAD scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this
+host signal). DEFERRED: album bulk-select, drag-reorder, guest-facing surfacing, multiple reels. (The Review
+queue + the moderation-disable auto-approve confirm shipped 2026-06-21 as the Reviews TAB; the
+2026-06-22 feed redesign inlined that queue as the urgency-ordered Review section — see "The event page".)
 
 **GENERATION (the highlight VIDEO) is tabled** — transcode/stitch runs in an **external worker, NOT Vercel
 functions** (ADR-0003); pending a product + architecture decision (the worker platform consumes the ordered
