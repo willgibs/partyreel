@@ -67,14 +67,22 @@ pnpm dev            # next dev (Turbopack) on :3000
 pnpm build          # production build
 pnpm lint           # eslint  (NOTE: `next lint` was removed in 16 — use this)
 pnpm typecheck      # next typegen && tsc --noEmit  (run before every commit)
-pnpm format         # prettier --write .
+pnpm format         # prettier on your CHANGED files only (scripts/format-changed.mjs) — NOT the whole repo
 pnpm test           # vitest run — unit tests for the pure data-integrity layer
 pnpm db:types       # supabase gen types → src/lib/db/types.ts  (needs CLI + link)
 pnpm db:push        # supabase db push                          (needs CLI + link)
 ```
 
 Node is pinned in `.nvmrc` (22.21.1); package manager is **pnpm** (9.14.4). Run
-`pnpm typecheck && pnpm lint && pnpm test` before committing — all must be clean.
+`pnpm typecheck && pnpm lint && pnpm test` before committing — all must be clean. Formatting is NOT in the
+gate (editors format per-file on save).
+
+**Prettier is scoped on purpose — NEVER reformat the whole repo.** `pnpm format` formats only your CHANGED
+files ([`scripts/format-changed.mjs`](scripts/format-changed.mjs)). `prettier --write .` is a footgun here: the
+repo isn't kept repo-wide prettier-clean, so it rewrites ~90 drifted files, AND `prettier-plugin-tailwindcss`
+can MANGLE a dynamic className — `${cond ? " x" : ""}` loses its leading space, yielding a broken concatenated
+class (it bit `masonry.tsx`, 2026-06-22). `pnpm format:all` is wired to refuse. After any format, eyeball
+dynamic classNames in the diff, and prefer `cn()` over `${… ? " x" : ""}` for conditional classes.
 
 ---
 
