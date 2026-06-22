@@ -54,7 +54,10 @@ export function EventFeedLab() {
   const { sentinelRef, inView } = useInViewSentinel<HTMLDivElement>();
 
   // Urgency order: Reviews floats to the top while there's a queue; else it sinks last.
-  const reviewsFirst = reviewsState === "pending" && !cleared;
+  // C1 is the pragmatic variant - clearing collapses Reviews IN PLACE (it re-sorts to the
+  // bottom on the next load), so it stays first here; C2/C3 relocate it live.
+  const reviewsFirst =
+    reviewsState === "pending" && (!cleared || reorderVariant === "C1");
   const order: SectionKey[] = reviewsFirst
     ? ["reviews", "gallery", "reel"]
     : ["gallery", "reel", "reviews"];
