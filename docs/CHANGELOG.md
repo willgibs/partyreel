@@ -10,6 +10,34 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-21 — Reviews tab + moderation-disable auto-approve confirm (Reel R2+R3, `a7405d6`)
+
+Completed the event-page tab system (**Gallery | Reel | Reviews**) and the moderation lifecycle. The
+pending-approval queue, which lived in a teaser ABOVE the tabs, is now a proper **Reviews tab**; turning
+moderation off auto-approves anything still under review.
+
+- **R2 — Reviews tab.** `tabs.ts` gains `"reviews"` + `resolveInitialEventTab(eventTab, { moderationOn,
+  hasPending })` — gates the tab to moderation-on (never a dead tab) and, with no explicit `?eventTab`,
+  **surfaces Reviews first when a queue is waiting** (Will's call). A new `ReviewTakeoverProvider` (mirrors
+  `ReelProvider`) owns the takeover open-state and mounts the full-screen `HostReview` as a **sibling of the
+  tabs** — always mounted, so it survives tab switches (the S4 close/beat-lifecycle invariant); `HostReview`
+  took surgical controlled-`open`/`showTeaser` props (the beat/exit/resync choreography byte-for-byte). New
+  `ReviewsPanel` is the tab content (pending grid + "Review all" + an all-caught-up empty state). The count is
+  **amber** (a needs-action signal, distinct from the muted Gallery/Reel counts). The standalone above-tabs
+  teaser is removed; `event-uploads.tsx`'s stale "review above" empty copy now points to the Reviews tab.
+- **R3 — moderation-disable confirm.** The `/settings` moderation Switch got the Part-2 confirm pattern
+  (deferred open, apply-on-confirm); it fires only when turning OFF with a queue and names the count.
+  `pendingCount` threads via the existing `getEventCardStats` through the settings form. `updateEventAction`
+  calls `approveAllPending(id)` when moderation resolves to `live` — the modal is consent, the server is the
+  invariant (live mode never holds pending media; idempotent, `getUser` + RLS-scoped).
+- **Verified:** gate green (typecheck/lint/491 tests/build) + a 5-dimension adversarial review workflow
+  (hydration, controlled-open, takeover-survival, authz, copy) returned zero actionable findings. Live on
+  the demo (seeded 3 pending via Supabase MCP): landed on Reviews with the amber `(3)`; "Review all" opened
+  the takeover; approving 1 dropped the header to 2 **with the takeover staying open** (survival under
+  revalidate) + a green toast; counts updated (Gallery 6→7, Reviews 3→2). Settings: toggling moderation off
+  popped the confirm naming "2 photos," and on save the DB showed `moderation=live` + **0 pending** (both
+  auto-approved); the Reviews tab then disappeared. No console errors. Demo restored to its original state.
+
 ## 2026-06-21 — Reel Curation R1: Add to Reel + Uploads/Reel tabs (`ec49410`)
 
 The curation foundation for the highlight reel (its own round, post-S5). The host marks approved media as

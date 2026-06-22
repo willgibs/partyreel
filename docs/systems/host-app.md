@@ -115,8 +115,9 @@ gallery IS the page under a minimal editorial header. Composition (top → botto
 header** (event name + a stat line of date / items / contributors / views — `contributorCount` computed
 LOCALLY from the media rows, distinct `guest_id` + host, so it stays host-accurate even for password/private
 events where `getGalleryStats` would zero it — + config-status chips: visibility Open/Password/Private + an
-Accepting-uploads dot) → a **command bar** → the **review teaser** (only when pending exists) → the
-**Uploads** gallery ([`event-uploads.tsx`](../../src/components/app/event-uploads.tsx), now gallery-only).
+Accepting-uploads dot) → a **command bar** → the **Gallery | Reel | Reviews** tabs (the album lives in
+[`event-uploads.tsx`](../../src/components/app/event-uploads.tsx); **Reviews** appears only while moderation
+holds uploads — see Moderation + Reel/tabs below).
 
 - **Command bar** ([`host-command-strip.tsx`](../../src/components/app/host-command-strip.tsx)): Share PRIMARY
   + Add + Settings, responsive (Share full-width with Add+Settings beneath on a phone, one row when wide —
@@ -140,7 +141,7 @@ Accepting-uploads dot) → a **command bar** → the **review teaser** (only whe
   ([`use-unsaved-changes-guard.ts`](../../src/lib/use-unsaved-changes-guard.ts) → `beforeunload`) + the
   back-link (Next 16 `Link.onNavigate` → preventDefault → a confirm Dialog → Discard `router.push` / Keep
   editing). Scope: the back-link + beforeunload ONLY (not every app-shell link, not popstate).
-- **Hydration:** the SSR'd surfaces (header, command-bar row, teaser) are native-`title` ONLY — NO radix
+- **Hydration:** the SSR'd surfaces (header, command-bar row, tab labels) are native-`title` ONLY — NO radix
   Tooltip on SSR'd elements (the silent prod-hydration regression cause, see [architecture.md](architecture.md)).
   Rich client UI (the share dialog, QR designer, the focused review takeover) is safe inside client islands.
 - **Motion (S4·A):** the focused-review takeover is a full-screen radix `Dialog` with an OPEN CASCADE
@@ -150,17 +151,24 @@ Accepting-uploads dot) → a **command bar** → the **review teaser** (only whe
   dev-only, design-key-gated **motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx);
   opened with `?key=` on the event page, `isDesignGateOpen`; the `--tune-*` hooks live in
   [design-system.md](design-system.md)). The takeover's optimistic logic (the `itemsKey` resync +
-  revert-on-failure) is unchanged; the parent ALWAYS renders `HostReview` so the beat + the close-exit survive
-  the revalidation that empties the queue.
+  revert-on-failure) is unchanged; `ReviewTakeoverProvider` ALWAYS mounts `HostReview` as a sibling of the
+  tabs (OUTSIDE any `TabsContent`), its `open` CONTROLLED by the provider (the Reviews tab's "Review all"
+  drives it), so the beat + close-exit survive BOTH a tab switch AND the revalidation that empties the queue.
 
 ## Moderation & curation (host side)
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
-does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) get the **review surface**
-([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D, polished S4·A2/A3): a faded-edge
-teaser opens a **full-screen radix `Dialog`** (modal) - a FUNCTIONAL triage tool (denser than the experiential
-album: a 6-col-on-desktop grid, less cursor travel). The heading reads a bold **Review** + a muted count.
+does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) surface in the **Reviews tab**
+(R2, visible only while moderation is on — see Reel/tabs below): its panel
+([`reviews-panel.tsx`](../../src/components/app/reviews-panel.tsx)) shows the pending grid + a **Review all**
+that opens the **review surface** ([`host-review.tsx`](../../src/components/app/host-review.tsx), P5 S3·3b·D,
+polished S4·A2/A3) — a **full-screen radix `Dialog`** (modal), a FUNCTIONAL triage tool (denser than the
+experiential album: a 6-col-on-desktop grid, less cursor travel). The heading reads a bold **Review** + a muted
+count. **Turning moderation OFF** (R3, the `/settings` uploads section) while a queue exists pops a consequence
+confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred open); on save
+`updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is the INVARIANT
+(live mode never holds pending media; idempotent, `getUser` + RLS-scoped).
 Tap-to-select + a sticky bulk bar (S5 P1): the **count sits LEFT**; the **Select all/Deselect all** toggle
 groups RIGHT beside the Hide / Approve actions (keep clickable controls together). Hide / Approve appear ONLY
 once something is selected (no one-click approve-all from a fresh, 0-selected takeover - "Select all →
@@ -190,8 +198,8 @@ direct hover (the emil "monochrome at rest → color on hover/state" rule; the p
 `reel, like, download, hide/show, delete` (beneficial curation first, danger last). reel (approved-only) rides
 the FAR LEFT so hiding an item, which drops it from the reel, collapses the LEADING chip without shuffling the
 rest; and hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in
-place. (No per-tile Approve: pending media lives in the review takeover above the tabs, never this album/reel
-grid; the bulk path is `ApproveAllPendingButton`.) Like/Reel get a full-brightness colored STROKE on hover +
+place. (No per-tile Approve: pending media lives in the **Reviews tab**, never this album/reel grid; the bulk
+path is `ApproveAllPendingButton`.) Like/Reel get a full-brightness colored STROKE on hover +
 a SUBTLE fill (`/25`) when active (liked rose / in-reel violet / hidden amber) so the outline stays legible.
 **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]` hook: width + margin → 0) so the
 persistent chips (liked / in-reel / hidden marker) pack neatly to the right edge, then SLIDE back to their
@@ -218,11 +226,14 @@ invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 ## Reel curation (R1 SHIPPED) + the highlight reel (generation tabled)
 
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
-curated set in a new **Reel tab**. The event page has **Gallery | Reel** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
-the `line` underline variant - no grey box; each label carries a subtle muted **`(N)` count** that scales to
-future surfaces (Reviews / Guests); `?eventTab=`, `resolveInitialEventTab` resolving the SSR default so the
-host page hydrates cleanly). Tab content is **bare** (no card wrapper/heading - the label carries the name +
-count). HostReview's pending teaser stays ABOVE the tabs (the Reviews tab is a later round). The layer
+curated set in a new **Reel tab**. The event page has **Gallery | Reel | Reviews** tabs ([`ui/tabs.tsx`](../../src/components/ui/tabs.tsx),
+the `line` underline variant - no grey box; each label carries a **`(N)` count** — muted for Gallery/Reel,
+**AMBER** for Reviews as a needs-action signal; `?eventTab=`, `resolveInitialEventTab` resolving the SSR
+default so the host page hydrates cleanly). **Reviews** (R2, SHIPPED 2026-06-21) is the pending-approval queue:
+rendered ONLY while `moderation_mode = 'hold_for_approval'` (trigger + content gated together), and
+`resolveInitialEventTab(eventTab, { moderationOn, hasPending })` makes it the LANDING tab when a queue waits
+(else Gallery; an explicit `?eventTab=reviews` with moderation off falls back to Gallery — never a dead tab).
+Tab content is **bare** (no card wrapper/heading - the label carries the name + count). The reel layer
 MIRRORS likes: a
 `reel_items(event_id, media_id, position, added_at)` join table (host-scoped SELECT+DELETE RLS, grant-locked,
 insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel is a host-RLS delete from the
@@ -233,8 +244,8 @@ distinct from Like) in the tile overlay (before Like, approved-only) + the light
 FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no Reel tab on
 `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key` remain DEAD
 scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this host signal).
-DEFERRED: the Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder, guest-facing
-surfacing, multiple reels.
+DEFERRED: album bulk-select, drag-reorder, guest-facing surfacing, multiple reels. (The Reviews tab + the
+moderation-disable auto-approve confirm SHIPPED 2026-06-21 as R2+R3.)
 
 **GENERATION (the highlight VIDEO) is tabled** — transcode/stitch runs in an **external worker, NOT Vercel
 functions** (ADR-0003); pending a product + architecture decision (the worker platform consumes the ordered

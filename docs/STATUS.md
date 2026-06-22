@@ -97,14 +97,20 @@ eyeball — the MCP renders the animated settings route as dimmed/empty, a captu
 
 **Reel Curation R1 ✅ (2026-06-21, `ec49410`): Add to Reel + Uploads/Reel tabs.** The host marks approved
 media as "in the reel" (a violet `Clapperboard` chip distinct from Like, in the tile overlay + lightbox) and
-views the curated set in a new **Reel tab** (event page now has Uploads | Reel, `?eventTab=`). Built to mirror
+views the curated set in a new **Reel tab** (event page now has Gallery | Reel | Reviews, `?eventTab=`). Built to mirror
 likes: a grant-locked `reel_items` table + an access-checked `add_to_reel` RPC + a host-only `ReelProvider`.
 Curation is FREE; one reel/event; add-order; host-only + host-private + approved-only. Live-verified
 end-to-end. The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21); the tile-action
-order is `reel, like, download, hide/show, delete` and the chip stack/slide feel is signed off. DEFERRED (later rounds):
-the Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder, guest-facing surfacing, and the
-generation worker.
-**▶ NEXT = the Reel follow-on rounds (Reviews tab / album bulk-select / reorder) / the roadmapped user-profiles
+order is `reel, like, download, hide/show, delete` and the chip stack/slide feel is signed off.
+
+**Reel R2+R3 ✅ (2026-06-21, `a7405d6`): the Reviews tab + the moderation-disable auto-approve confirm.** The
+pending queue is now the third tab (**Gallery | Reel | Reviews**), visible only while moderation holds uploads,
+with an AMBER count and Reviews-as-landing-tab when a queue waits; the full-screen takeover is mounted by
+`ReviewTakeoverProvider` (a tab sibling, so it survives switches). Turning moderation OFF pops a count-named
+confirm and `approveAllPending` auto-approves the queue on save (the server enforces "live mode holds no
+pending media"). Live-verified end-to-end. DEFERRED (later rounds): album bulk-select, drag-reorder,
+guest-facing surfacing, and the generation worker.
+**▶ NEXT = the Reel follow-on rounds (album bulk-select / drag-reorder) / the roadmapped user-profiles
 + social program / the next host-app slice.** The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory

@@ -125,11 +125,13 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     that feeds the reel; generation stays deferred. **SHIPPED + live-verified:** the `reel_items` table +
     access-checked `add_to_reel` RPC (grant-locked, mirrors `media_likes`) + the host-only `ReelProvider` +
     the `Add to Reel` action (a `--reel` violet `Clapperboard`, distinct from Like, in the tile overlay +
-    lightbox) + the event-page **Uploads / Reel** tabs (`?eventTab=`, `resolveInitialEventTab`). Curation FREE
+    lightbox) + the event-page **Gallery / Reel / Reviews** tabs (`?eventTab=`, `resolveInitialEventTab`). Curation FREE
     for any tier; one reel/event; add-order; host-only + host-private + approved-only. (`reel_eligible` stays
-    dead scaffold, NOT reused.) **DEFERRED follow-ons (each its own slice):** the **Reviews tab** (the pending
-    queue as a tab — count tag, moderation-gated visibility, empty teaser, the takeover sibling-mounted) + the
-    moderation-disable auto-approve confirm; **album bulk-select** (a shared `useItemSelection` hook + bulk
+    dead scaffold, NOT reused.) **R2 + R3 SHIPPED (2026-06-21, `a7405d6`):** the **Reviews tab** (the pending
+    queue as a tab — AMBER count, moderation-gated visibility + Reviews-as-landing when a queue waits, the
+    takeover sibling-mounted via `ReviewTakeoverProvider`) + the **moderation-disable auto-approve confirm**
+    (count-named confirm; `updateEventAction` → `approveAllPending` enforces "live holds no pending").
+    **DEFERRED follow-ons (each its own slice):** **album bulk-select** (a shared `useItemSelection` hook + bulk
     Add-to-Reel/Like/Download/Hide/Approve); **drag-to-reorder** (a `reorder_reel` RPC + sortable UI;
     `position` is reserved for it); guest-facing reel surfacing on `/e/[qr]`; multiple named reels. The
     `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk "Download all" zip stays its own deferred worker
