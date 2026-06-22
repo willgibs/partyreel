@@ -95,15 +95,35 @@ function preloadPhotos(media: GridMedia[]) {
 export function HostReview({
   eventId,
   items,
+  open: controlledOpen,
+  onOpenChange,
+  showTeaser = true,
 }: {
   eventId: string;
   items: GridMedia[];
+  // Optional CONTROLLED open-state: the Reviews tab (ReviewTakeoverProvider) owns the open boolean
+  // so its "Review all" trigger can open this takeover from inside a TabsContent while the Dialog
+  // stays mounted HERE (a sibling of the tabs → it survives tab switches, preserving the close/beat
+  // lifecycle). Omit both props for the legacy self-contained behavior.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  // The above-tabs teaser strip. The Reviews tab renders its own pending grid + "Review all", so it
+  // mounts this teaser-LESS (showTeaser={false}); a standalone mount keeps the teaser.
+  showTeaser?: boolean;
 }) {
   const [pending, setPending] = useState<GridMedia[]>(items);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exiting, setExiting] = useState<Set<string>>(new Set());
   const [caughtUp, setCaughtUp] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  // Controlled when the parent passes `open`; else fall back to local state. setOpen routes to the
+  // controller (so the trigger + the beat-driven close agree) and never touches internal state
+  // while controlled. All call sites pass a boolean (no functional updater), so a plain fn is safe.
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (next: boolean) => {
+    onOpenChange?.(next);
+    if (controlledOpen === undefined) setInternalOpen(next);
+  };
   const [busy, setBusy] = useState(false);
   // The video being previewed in the in-takeover player overlay (null = none).
   const [preview, setPreview] = useState<GridMedia | null>(null);
@@ -232,8 +252,9 @@ export function HostReview({
 
   return (
     <>
-      {/* Teaser: only when reviews exist; the faded right edge hints "more". */}
-      {pending.length > 0 && (
+      {/* Teaser: only when reviews exist (and not suppressed - the Reviews tab provides its own
+          grid + trigger, so it mounts this teaser-less); the faded right edge hints "more". */}
+      {showTeaser && pending.length > 0 && (
         <section>
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-warning">

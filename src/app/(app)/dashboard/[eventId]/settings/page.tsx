@@ -20,7 +20,7 @@ import {
   isSettingLocked,
   toBillingTier,
 } from "@/lib/constants/tiers";
-import { getEvent } from "@/lib/db/queries/events";
+import { getEvent, getEventCardStats } from "@/lib/db/queries/events";
 import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { presignDownload } from "@/lib/r2/presign";
@@ -57,10 +57,16 @@ export default async function EventSettingsPage({ params }: PageProps) {
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const siteUrl = await getSiteUrl();
 
-  // The event's "Recently deleted" bin: presign INLINE only (no download url ->
-  // the lightbox hides Save). countdownDays is computed in the query (render-pure
-  // — no Date.now() in RSC render; react-hooks/purity).
-  const deletedMedia = await listRecentlyDeletedMedia(event.id);
+  // The event's "Recently deleted" bin + the pending (under-review) count, in parallel. pendingCount
+  // feeds the moderation-disable confirm in the uploads section (names the count + gates the confirm);
+  // reuses the same RLS-scoped stats query the dashboard cards use.
+  const [deletedMedia, cardStats] = await Promise.all([
+    listRecentlyDeletedMedia(event.id),
+    getEventCardStats([event.id]),
+  ]);
+  const pendingCount = cardStats.get(event.id)?.pending ?? 0;
+  // The bin presigns INLINE only (no download url -> the lightbox hides Save). countdownDays is
+  // computed in the query (render-pure — no Date.now() in RSC render; react-hooks/purity).
   const deletedItems: BinMedia[] = await Promise.all(
     deletedMedia.map(async (m) => ({
       id: m.id,
@@ -85,6 +91,7 @@ export default async function EventSettingsPage({ params }: PageProps) {
       <SettingsWithGuard
         event={event}
         tier={tier}
+        pendingCount={pendingCount}
         backHref={`/dashboard/${event.id}`}
       />
 

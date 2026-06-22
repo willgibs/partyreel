@@ -38,10 +38,13 @@ import {
 export function SettingsWithGuard({
   event,
   tier,
+  pendingCount,
   backHref,
 }: {
   event: HostEvent;
   tier: Tier;
+  // Under-review count, passed through to the uploads section's moderation-disable confirm.
+  pendingCount: number;
   backHref: string;
 }) {
   const router = useRouter();
@@ -76,7 +79,12 @@ export function SettingsWithGuard({
       </div>
 
       <div data-arrive style={{ "--arrive-i": 1 } as CSSProperties}>
-        <EventSettingsForm event={event} tier={tier} onDirtyChange={setDirty} />
+        <EventSettingsForm
+          event={event}
+          tier={tier}
+          pendingCount={pendingCount}
+          onDirtyChange={setDirty}
+        />
       </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

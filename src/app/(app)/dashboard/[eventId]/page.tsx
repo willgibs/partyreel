@@ -13,9 +13,10 @@ import {
 
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
-import { HostReview } from "@/components/app/host-review";
 import { ReelPanel } from "@/components/app/reel-panel";
+import { ReviewsPanel } from "@/components/app/reviews-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
+import { ReviewTakeoverProvider } from "@/components/review/review-takeover-provider";
 import {
   Tabs,
   TabsContent,
@@ -70,7 +71,6 @@ export default async function EventDetailPage({
 }: PageProps) {
   const { eventId } = await params;
   const { eventTab } = await searchParams;
-  const initialTab = resolveInitialEventTab(eventTab);
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
@@ -143,6 +143,15 @@ export default async function EventDetailPage({
   // never reaches here — listEventMedia filters it out.
   const pendingItems = galleryItems.filter((m) => m.status === "pending");
   const visibleItems = galleryItems.filter((m) => m.status !== "pending");
+
+  // The Reviews tab + its takeover exist ONLY while moderation holds uploads for approval; the
+  // resolver gates the tab AND, with no explicit ?eventTab, makes Reviews the landing tab when a
+  // queue is waiting (Will, 2026-06-21) - surfacing the host's review work first.
+  const isModerationOn = event.moderation_mode === "hold_for_approval";
+  const initialTab = resolveInitialEventTab(eventTab, {
+    moderationOn: isModerationOn,
+    hasPending: pendingItems.length > 0,
+  });
 
   // One "views" metric now (the album/join split is gone); sum keeps historical counts.
   const views = linkStats.qrScans + linkStats.albumViews;
@@ -255,60 +264,79 @@ export default async function EventDetailPage({
         videosAllowed={videosAllowedForTier(tier)}
       />
 
-      {/* Always mounted (NOT gated on pendingItems.length): HostReview owns its own
-          close lifecycle - the A3 success beat + the radix close-exit need the Dialog
-          to survive the revalidation that empties pendingItems. It renders nothing
-          when there is nothing to review. */}
-      <HostReview eventId={event.id} items={pendingItems} />
-
-      {/* The ReelProvider wraps BOTH tabs (it's the shared client source of truth for reel
-          membership), so adding from the Gallery reflects instantly in the Reel tab. Reviews stays a
-          later round - HostReview's pending teaser/takeover lives ABOVE the tabs for now. Tab content
-          is bare (no card wrapper - the tab label carries the name + a subtle count) + client-island,
-          fed by props the RSC resolved up front, so the host page hydrates cleanly (architecture.md).
-          The "line" tabs (underline, no grey box) read cleaner than the segmented default; the count
-          pattern scales to future surfaces (Reviews / Guests). */}
-      <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-        <Tabs defaultValue={initialTab} className="space-y-4">
-          <TabsList variant="line">
-            <TabsTrigger value="gallery">
-              <span>
-                Gallery{" "}
-                {visibleItems.length > 0 && (
-                  <span className="text-muted-foreground tabular-nums">
-                    ({visibleItems.length})
+      {/* ReviewTakeoverProvider OWNS the full-screen review takeover: it mounts the takeover Dialog as
+          a sibling of the tabs (always mounted, OUTSIDE any TabsContent) so it survives tab switches -
+          the S4 invariant that its close-exit + all-caught-up beat must outlive the revalidate that
+          empties pendingItems. The Reviews tab's "Review all" opens it via useReviewTakeover(). The
+          ReelProvider wraps BOTH gallery + reel tabs (the shared reel-membership source), so adding
+          from the Gallery reflects instantly in the Reel tab. Tab content is bare (no card wrapper -
+          the tab label carries the name + a count) + client-island, fed by props the RSC resolved up
+          front, so the host page hydrates cleanly (architecture.md). The "line" tabs (underline, no
+          grey box) read cleaner than the segmented default. */}
+      <ReviewTakeoverProvider eventId={event.id} pendingItems={pendingItems}>
+        <ReelProvider eventId={event.id} initialReelIds={reelIds}>
+          <Tabs defaultValue={initialTab} className="space-y-4">
+            <TabsList variant="line">
+              <TabsTrigger value="gallery">
+                <span>
+                  Gallery{" "}
+                  {visibleItems.length > 0 && (
+                    <span className="text-muted-foreground tabular-nums">
+                      ({visibleItems.length})
+                    </span>
+                  )}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="reel">
+                <span>
+                  Reel{" "}
+                  {reelIds.length > 0 && (
+                    <span className="text-muted-foreground tabular-nums">
+                      ({reelIds.length})
+                    </span>
+                  )}
+                </span>
+              </TabsTrigger>
+              {/* Reviews: visible ONLY while moderation holds uploads (the trigger + the panel are
+                  gated together, so the resolver never lands on a hidden tab). The count is AMBER
+                  (text-warning) - a needs-action signal, distinct from the neutral Gallery/Reel
+                  counts (Will, 2026-06-21). */}
+              {isModerationOn && (
+                <TabsTrigger value="reviews">
+                  <span>
+                    Reviews{" "}
+                    {pendingItems.length > 0 && (
+                      <span className="text-warning tabular-nums">
+                        ({pendingItems.length})
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="reel">
-              <span>
-                Reel{" "}
-                {reelIds.length > 0 && (
-                  <span className="text-muted-foreground tabular-nums">
-                    ({reelIds.length})
-                  </span>
-                )}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="gallery">
-            <EventUploads
-              eventId={event.id}
-              items={visibleItems}
-              pendingCount={pendingItems.length}
-              shareUrl={eventLink}
-            />
-          </TabsContent>
-          <TabsContent value="reel">
-            <ReelPanel
-              eventId={event.id}
-              items={visibleItems}
-              shareUrl={eventLink}
-            />
-          </TabsContent>
-        </Tabs>
-      </ReelProvider>
+                </TabsTrigger>
+              )}
+            </TabsList>
+            <TabsContent value="gallery">
+              <EventUploads
+                eventId={event.id}
+                items={visibleItems}
+                pendingCount={pendingItems.length}
+                shareUrl={eventLink}
+              />
+            </TabsContent>
+            <TabsContent value="reel">
+              <ReelPanel
+                eventId={event.id}
+                items={visibleItems}
+                shareUrl={eventLink}
+              />
+            </TabsContent>
+            {isModerationOn && (
+              <TabsContent value="reviews">
+                <ReviewsPanel items={pendingItems} />
+              </TabsContent>
+            )}
+          </Tabs>
+        </ReelProvider>
+      </ReviewTakeoverProvider>
     </div>
   );
 }

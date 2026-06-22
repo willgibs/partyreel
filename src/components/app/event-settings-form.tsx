@@ -29,6 +29,9 @@ type EventSettingsFormProps = {
   // never the bcrypt hash.
   event: HostEvent;
   tier: Tier;
+  // Under-review count, threaded to UploadsSection's moderation-disable confirm. Optional (default 0)
+  // so the form still works standalone (e.g. tests / other mounts).
+  pendingCount?: number;
   // Reports the form's dirty state UP to the navigation guard (S4·C). Optional so the
   // form still works standalone (e.g. tests / other mounts).
   onDirtyChange?: (dirty: boolean) => void;
@@ -51,6 +54,7 @@ type EventSettingsFormProps = {
 export function EventSettingsForm({
   event,
   tier,
+  pendingCount = 0,
   onDirtyChange,
 }: EventSettingsFormProps) {
   const [isSaving, startSaving] = useTransition();
@@ -114,7 +118,11 @@ export function EventSettingsForm({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <DetailsSection />
           <VisibilitySection event={event} passwordLocked={passwordLocked} />
-          <UploadsSection event={event} videosAllowed={videosAllowed} />
+          <UploadsSection
+            event={event}
+            videosAllowed={videosAllowed}
+            pendingCount={pendingCount}
+          />
 
           <div className="flex justify-end">
             <Button

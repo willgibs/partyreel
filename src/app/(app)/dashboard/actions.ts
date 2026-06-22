@@ -12,6 +12,7 @@ import {
   softDeleteEvent,
   updateEvent,
 } from "@/lib/db/mutations/events";
+import { approveAllPending } from "@/lib/db/mutations/media";
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { captureError } from "@/lib/observability/sentry";
 import {
@@ -103,6 +104,15 @@ export async function updateEventAction(
 
   const result = await updateEvent(id, parsed.data);
   if (!result.ok) return result;
+
+  // Invariant: live mode never holds pending media. When moderation is (or becomes) live, auto-approve
+  // any under-review uploads. The settings confirm is the host's CONSENT; this is the server enforcing
+  // it - idempotent (a no-op when nothing's pending), so it's safe to run on every live-mode save.
+  // approveAllPending re-checks auth (getUser) + is RLS-scoped to the host's own event.
+  if (parsed.data.moderation_mode === "live") {
+    const approved = await approveAllPending(id);
+    if (!approved.ok) return approved;
+  }
 
   revalidatePath(`/dashboard/${id}`);
   revalidatePath("/dashboard");

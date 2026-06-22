@@ -44,9 +44,13 @@ import { Switch } from "@/components/ui/switch";
 export function UploadsSection({
   event,
   videosAllowed,
+  pendingCount = 0,
 }: {
   event: HostEvent;
   videosAllowed: boolean;
+  // Under-review (pending) count: drives the moderation-disable confirm copy AND whether to confirm
+  // at all (0 pending → turning moderation off is harmless, apply instantly).
+  pendingCount?: number;
 }) {
   const { control } = useFormContext<
     UpdateEventInput,
@@ -56,6 +60,9 @@ export function UploadsSection({
   // Opt-in-anon confirmation: turning OFF "Require accounts to upload" opens uploads to
   // anyone with the link, so we confirm the consequences before applying it.
   const [confirmAnonOpen, setConfirmAnonOpen] = useState(false);
+  // Moderation-disable confirmation: turning OFF "Review uploads" auto-approves everything currently
+  // under review, so confirm first (only when there's a queue to approve).
+  const [confirmModerationOpen, setConfirmModerationOpen] = useState(false);
 
   // Live "what your guests will experience" summary — recomputed as the host flips the
   // access toggles (visibility/password + accounts + uploads). Shares one source with
@@ -140,25 +147,69 @@ export function UploadsSection({
           control={control}
           name="moderation_mode"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <FormLabel>Review uploads before they appear</FormLabel>
-                <FormDescription>
-                  Hold new photos for your approval instead of showing them
-                  live.
-                </FormDescription>
-              </div>
-              <FormControl>
-                {/* moderation_mode is an enum, surfaced as a yes/no switch:
-                    on = hold_for_approval, off = live. */}
-                <Switch
-                  checked={field.value === "hold_for_approval"}
-                  onCheckedChange={(checked) =>
-                    field.onChange(checked ? "hold_for_approval" : "live")
-                  }
-                />
-              </FormControl>
-            </FormItem>
+            <>
+              <FormItem className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <FormLabel>Review uploads before they appear</FormLabel>
+                  <FormDescription>
+                    Hold new photos for your approval instead of showing them
+                    live.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  {/* moderation_mode is an enum, surfaced as a yes/no switch: on = hold_for_approval,
+                      off = live. Turning it OFF while items are under review is consequential (those
+                      uploads auto-approve into the gallery), so confirm first - but only when there's
+                      a queue. The OFF-open is DEFERRED a tick (same radix dismissable-layer race as the
+                      anon confirm below). Turning ON, or OFF with nothing pending, is instant. */}
+                  <Switch
+                    checked={field.value === "hold_for_approval"}
+                    onCheckedChange={(checked) => {
+                      if (checked) field.onChange("hold_for_approval");
+                      else if (pendingCount > 0)
+                        setTimeout(() => setConfirmModerationOpen(true), 0);
+                      else field.onChange("live");
+                    }}
+                  />
+                </FormControl>
+              </FormItem>
+
+              {/* Turning moderation off auto-approves everything currently under review (the server
+                  enforces this invariant: live mode never holds pending media). Name the count before
+                  applying. Cancel leaves moderation ON (the field never changes). */}
+              <Dialog
+                open={confirmModerationOpen}
+                onOpenChange={setConfirmModerationOpen}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Stop reviewing uploads?</DialogTitle>
+                    <DialogDescription>
+                      {pendingCount === 1
+                        ? "1 photo is under review. Turning this off approves it and shows it to everyone right away."
+                        : `${pendingCount} photos are under review. Turning this off approves them and shows them to everyone right away.`}{" "}
+                      New uploads will then appear live without your review. You
+                      can turn this back on anytime.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Keep reviewing</Button>
+                    </DialogClose>
+                    <Button
+                      onClick={() => {
+                        field.onChange("live");
+                        setConfirmModerationOpen(false);
+                      }}
+                    >
+                      {pendingCount === 1
+                        ? "Approve it and stop"
+                        : "Approve all and stop"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
         />
         <FormField
