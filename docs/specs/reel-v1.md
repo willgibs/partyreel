@@ -149,10 +149,27 @@ music · an auto-scoring "best clips" worker.
 
 ## Open items before/while building
 
-1. **Render-pipeline spike (v1 slice 1):** a minimal Remotion composition + the Lambda + the S3→R2 wiring +
-   `npx remotion benchmark` on a real reel (~20 stills + Ken-Burns + crossfades + grade + one ~3s clip) to confirm
-   **render-time** (the ~40s estimate is interpolated) and **cold-start** (heavy Chromium image) are invisible
-   behind the "Stitching your reel…" UI. Confirms box sizing + lazy-vs-eager. AWS account/IAM setup happens here.
+1. **Render-pipeline spike (v1 slice 1): ✅ DONE 2026-06-22** (`workers/reel-render/`, separate pkg, not in the
+   Vercel build; see its `SPIKE-NOTES.md`). PROVEN: one Remotion composition (Ken-Burns stills + crossfades + CSS
+   grade + trimmed `@remotion/media` video) renders on **Remotion Lambda (AWS, us-east-1)** reading R2 presigned
+   URLs and writing the `.mp4` **directly back to R2** via `outName.s3OutputProvider` (**no S3→R2 copy step**;
+   output verified in R2: h264 1080×1920, 502 frames, 21.0s, plays, WYSIWYG == local render). **Cost ≈ $0.01/render**
+   (Remotion-accrued; `estimatePrice` ~$0.002) → the cost model holds (rounding error). AWS = a **sub-account of an
+   org** under `partyr33l@gmail.com`; least-priv IAM (`remotion-lambda-role`/`-policy`, `remotion-user`/`-policy`).
+   - **Measured (new account, 2048MB, ORIGINAL media, video via OffthreadVideo fallback):** with-video reel cold
+     **88.6s** / warm **76.7s**; photos-only warm **62.2s**. Bottleneck = **per-Lambda CPU** (software-rendering
+     large *original* JPEGs + the CSS filter), throttled by the **new-account 10-concurrency cap** (only 7 renderers;
+     ~0.95 fps/Lambda vs ~6.5 fps/core locally) — NOT the architecture, NOT cost, NOT mainly the video.
+   - **Levers for production speed (all fixable):** (a) **preview-sized media** (we already generate previews) not
+     originals; (b) **concurrency quota 10→2000 REQUESTED** (pending AWS; sub-account so requested via console);
+     (c) **memory 2048→3008MB** (more vCPU); (d) **video CORS** → `@remotion/media` fast path (or proxy/predownload)
+     instead of the OffthreadVideo fallback (R2 presigned URLs hit CORS in headless Chrome).
+   - **Lazy-vs-eager verdict:** lazy-on-download stays the **target** but is **GATED on a re-measure** next slice with
+     previews + the raised quota + 3008MB. If that lands in the comfortable few-to-low-tens of seconds → lazy stands;
+     else eager-on-finalize for video reels. The encode is **cached** either way, so first-view cost is paid once.
+   - **Box sizing:** `framesPerLambda` ≈ frames ÷ available concurrency (200 = too-big chunks hit the 120s timeout; 80
+     was fine). Bump function `--timeout` if chunks stay large. Confirmed: amd64 deploys cleanly from arm64 Mac;
+     re-deploy the "site" (`npm run deploy-site`) on every composition change.
 2. **The reveal moment** — a design-lab concept.
 3. **Exact free/Pro length caps** — pre-launch.
 4. **Build gotchas to validate early** (from research): amd64 image (M-series build arm64), S3-SDK-against-R2 inside

@@ -97,6 +97,17 @@ const serverSchema = z.object({
   // request time so the mint route fails closed (never mints an unsigned/destinationless token).
   EXPORT_SIGNING_SECRET: z.string().min(1).optional(),
   EXPORT_WORKER_URL: z.url().optional(),
+  // Highlight-reel render (Remotion Lambda on AWS). STAGED for the next reel slice — the render
+  // pipeline is proven (workers/reel-render spike) but not yet app-wired, so these are unused today.
+  // REMOTION_AWS_* = the least-priv `remotion-user` IAM creds; REMOTION_SERVE_URL = the deployed
+  // Remotion site; REMOTION_LAMBDA_FUNCTION_NAME = the render fn name. All `.optional()` so the app
+  // builds before they're set; assertReelRenderEnv() asserts at request time so the render trigger
+  // fails closed. Region defaults us-east-1 (closest to R2's zero-egress endpoints).
+  REMOTION_AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
+  REMOTION_AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  REMOTION_AWS_REGION: z.string().min(1).optional(),
+  REMOTION_SERVE_URL: z.url().optional(),
+  REMOTION_LAMBDA_FUNCTION_NAME: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -147,6 +158,11 @@ function parseServer() {
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
+    REMOTION_AWS_ACCESS_KEY_ID: process.env.REMOTION_AWS_ACCESS_KEY_ID,
+    REMOTION_AWS_SECRET_ACCESS_KEY: process.env.REMOTION_AWS_SECRET_ACCESS_KEY,
+    REMOTION_AWS_REGION: process.env.REMOTION_AWS_REGION,
+    REMOTION_SERVE_URL: process.env.REMOTION_SERVE_URL,
+    REMOTION_LAMBDA_FUNCTION_NAME: process.env.REMOTION_LAMBDA_FUNCTION_NAME,
   });
   if (!parsed.success) {
     throw new Error(
@@ -331,4 +347,41 @@ export function assertExportEnv(): {
     );
   }
   return { EXPORT_SIGNING_SECRET, EXPORT_WORKER_URL };
+}
+
+/**
+ * Reel render (Remotion Lambda) config, asserted at request time so the render trigger fails closed.
+ * STAGED for the next reel slice — no app code calls this yet (the spike uses its own .env). Region
+ * defaults us-east-1 when unset. The function name can fall back to speculateFunctionName at the call
+ * site, so it is NOT required here.
+ */
+export function assertReelRenderEnv(): {
+  REMOTION_AWS_ACCESS_KEY_ID: string;
+  REMOTION_AWS_SECRET_ACCESS_KEY: string;
+  REMOTION_AWS_REGION: string;
+  REMOTION_SERVE_URL: string;
+} {
+  const {
+    REMOTION_AWS_ACCESS_KEY_ID,
+    REMOTION_AWS_SECRET_ACCESS_KEY,
+    REMOTION_AWS_REGION,
+    REMOTION_SERVE_URL,
+  } = serverEnv;
+  if (
+    !REMOTION_AWS_ACCESS_KEY_ID ||
+    !REMOTION_AWS_SECRET_ACCESS_KEY ||
+    !REMOTION_SERVE_URL
+  ) {
+    throw new Error(
+      "Reel render is not configured. Set REMOTION_AWS_ACCESS_KEY_ID / " +
+        "REMOTION_AWS_SECRET_ACCESS_KEY (the remotion-user IAM creds) and REMOTION_SERVE_URL " +
+        "(the deployed Remotion site) in Vercel + .env.local.",
+    );
+  }
+  return {
+    REMOTION_AWS_ACCESS_KEY_ID,
+    REMOTION_AWS_SECRET_ACCESS_KEY,
+    REMOTION_AWS_REGION: REMOTION_AWS_REGION ?? "us-east-1",
+    REMOTION_SERVE_URL,
+  };
 }

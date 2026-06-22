@@ -10,6 +10,32 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Highlight-reel render-pipeline spike (Reel V1 slice 1, `workers/reel-render`)
+
+De-risked the reel's one real unknown before building any UI: that a **Remotion** composition renders *our* kind
+of reel (Ken-Burns stills + crossfades + a CSS grade + a trimmed `@remotion/media` video, vertical 1080×1920) on
+**Remotion Lambda (AWS)**, reading R2 and writing the mp4 back to R2, fast + cheap. Standalone package, NOT in the
+Vercel build, NOT app-wired (hardcoded demo-event inputProps). Outcome: **the pipeline is proven; numbers + levers
+captured**; full state in [`workers/reel-render/SPIKE-NOTES.md`](../../workers/reel-render/SPIKE-NOTES.md), verdict in
+[`specs/reel-v1.md`](specs/reel-v1.md) open-item #1.
+- **Proven:** one composition drives both the (future) `@remotion/player` preview and the Lambda encode (WYSIWYG by
+  construction — a Lambda output frame == the local render frame). **Direct-to-R2** via `outName.s3OutputProvider`
+  works with **no S3→R2 copy step** (output verified in R2: h264 1080×1920, 502 frames, 21.0s, plays). **Cost ≈
+  $0.01/render** (Remotion-accrued; `estimatePrice` ~$0.002) — the cost model holds.
+- **AWS:** new account `Partyreel` (562923010969) under `partyr33l@gmail.com` — Will did the signup (password/payment/
+  OTP), the agent drove IAM via Chrome. A **sub-account of an org** (free-tier auto-enrolls; so the concurrency
+  quota-increase must go via the console, not the CLI). Least-priv IAM: `remotion-lambda-role`/`-policy` +
+  `remotion-user`/inline `remotion-user-policy`; `policies validate` all ✅.
+- **Measured (2048MB, ORIGINAL demo media, 7 renderers under a new-account 10-concurrency cap):** with-video reel
+  cold **88.6s** / warm **76.7s**; photos-only **62.2s**. **★ Bottleneck = per-Lambda CPU** (software-rendering big
+  original JPEGs + the CSS filter), NOT the architecture/cost/video. Levers (all fixable, next slice): preview-sized
+  media not originals; concurrency **10→2000 requested** (pending AWS); memory 3008MB; video CORS → `@remotion/media`
+  fast path vs the OffthreadVideo fallback. **`framesPerLambda` landmine:** default → "Rate Exceeded" (>10 cap), 200
+  → 120s timeout, **80** was the sweet spot here.
+- **Lazy-vs-eager:** lazy-on-download stays the target but is **GATED** on a next-slice re-measure with previews +
+  the raised quota + 3008MB (encode is cached either way, so first-view cost is paid once). Env contract forward-staged
+  (`REMOTION_AWS_*` in `.env.example` + `src/lib/env.ts` `assertReelRenderEnv()`); the Lambda fn + site stay deployed.
+
 ## 2026-06-22 — "Download all" zip export (`bc4d5fb` + download fix `34d0a9f`)
 
 Per-item Save streamed ONE original; "Download all" now zips a whole album. Heavy/streaming work runs OFF

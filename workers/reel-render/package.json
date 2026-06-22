@@ -1,0 +1,37 @@
+{
+  "name": "partyreel-reel-render",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Highlight-reel render-pipeline SPIKE (Reel V1 slice 1). A Remotion project: one <Reel> composition previews in @remotion/player AND renders on Remotion Lambda (AWS), reading media from + writing the .mp4 back to Cloudflare R2. Deployed SEPARATELY (wrangler/Vercel never see it).",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render",
+    "benchmark": "remotion benchmark",
+    "typecheck": "tsc --noEmit",
+    "build-props": "tsx scripts/build-props.ts",
+    "deploy-fn": "remotion lambda functions deploy --region=us-east-1 --memory=2048 --disk=2048 --timeout=120",
+    "deploy-site": "remotion lambda sites create src/index.ts --site-name=partyreel-reel --region=us-east-1",
+    "render-lambda": "tsx scripts/render-lambda.ts",
+    "verify-r2": "tsx scripts/verify-r2.ts",
+    "cleanup-r2": "tsx scripts/cleanup-r2-spike.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1056.0",
+    "@aws-sdk/s3-request-presigner": "^3.1056.0",
+    "@remotion/cli": "4.0.482",
+    "@remotion/lambda": "4.0.482",
+    "@remotion/media": "4.0.482",
+    "@remotion/player": "4.0.482",
+    "dotenv": "^16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.482"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
