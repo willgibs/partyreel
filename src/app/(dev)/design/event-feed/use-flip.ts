@@ -5,19 +5,13 @@
    technique. The lint guards against mutating React-owned values, not the live DOM. */
 import { useCallback, useLayoutEffect, useRef } from "react";
 
+import { readCssMs } from "@/lib/shared/read-css-ms";
+
 // A hand-rolled FLIP (First-Last-Invert-Play) for the C2 reorder variant: when the
 // section order changes, each tracked node is snapped back to its previous box with
 // no transition, then transitioned to its new place. This is the pure-CSS answer to
 // what motion's `layout` prop does for free (C3) - the lab compares the two.
 // Reduced motion: skip the invert (instant reflow).
-function readMs(varName: string, fallback: number): number {
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim();
-  const n = parseInt(raw, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 export function useFlip(orderKey: string) {
   const nodes = useRef(new Map<string, HTMLElement>());
   const prev = useRef(new Map<string, DOMRect>());
@@ -34,7 +28,7 @@ export function useFlip(orderKey: string) {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const dur = readMs("--tune-reorder-ms", 360);
+    const dur = readCssMs("--tune-reorder-ms", 360);
     for (const [key, el] of nodes.current) {
       const now = el.getBoundingClientRect();
       const was = prev.current.get(key);

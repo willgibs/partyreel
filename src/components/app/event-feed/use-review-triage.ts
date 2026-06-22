@@ -8,6 +8,7 @@ import {
   hideBulkAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
+import { readCssMs } from "@/lib/shared/read-css-ms";
 
 // The pending-review state machine, lifted out of the retired HostReview takeover so the inline
 // ReviewSection AND the contextual floating action bar can both read + drive it (one source for
@@ -20,17 +21,6 @@ import { type GridMedia } from "@/components/app/media-grid";
 // of closing a modal.
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-// Read a tuner CSS var (ms) so the JS timing matches the CSS exactly even when tuned live; falls
-// back to the baked default. SSR-safe.
-function readMs(varName: string, fallback: number): number {
-  if (typeof window === "undefined") return fallback;
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim();
-  const n = parseInt(raw, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
 
 function prefersReducedMotion(): boolean {
   return (
@@ -150,7 +140,7 @@ export function useReviewTriage({
     //    reduced motion → instant). The JS wait reads the same --tune-review-exit-ms the CSS uses.
     if (!reduced) {
       setExiting(idSet);
-      await wait(readMs("--tune-review-exit-ms", 150));
+      await wait(readCssMs("--tune-review-exit-ms", 150));
     }
     setExiting(new Set());
     setPending(remaining);
@@ -165,7 +155,7 @@ export function useReviewTriage({
         if (pendingRef.current.length === 0) toast.success("All caught up");
       } else {
         setCaughtUp(true);
-        await wait(readMs("--tune-review-beat-ms", 2500));
+        await wait(readCssMs("--tune-review-beat-ms", 2500));
         setCaughtUp(false);
       }
     }

@@ -5,6 +5,8 @@
    technique. The lint guards against mutating React-owned values, not the live DOM. */
 import { useCallback, useLayoutEffect, useRef } from "react";
 
+import { readCssMs } from "@/lib/shared/read-css-ms";
+
 // A hand-rolled FLIP (First-Last-Invert-Play) for the event feed's section reorder: when the
 // urgency order changes (the review queue clears, or moderation toggles), each tracked section
 // is snapped back to its previous box with NO transition, then transitioned to its new place, so
@@ -14,14 +16,6 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 //
 // Usage: const register = useFlip(orderKey); then on each tracked wrapper, ref={register(key)}.
 // orderKey must change whenever the order changes (e.g. order.join()) so the layout effect fires.
-function readMs(varName: string, fallback: number): number {
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim();
-  const n = parseInt(raw, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 export function useFlip(orderKey: string) {
   const nodes = useRef(new Map<string, HTMLElement>());
   const prev = useRef(new Map<string, DOMRect>());
@@ -38,7 +32,7 @@ export function useFlip(orderKey: string) {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const dur = readMs("--tune-reorder-ms", 500);
+    const dur = readCssMs("--tune-reorder-ms", 500);
     for (const [key, el] of nodes.current) {
       const now = el.getBoundingClientRect();
       const was = prev.current.get(key);

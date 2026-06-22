@@ -6,17 +6,11 @@ import { Check, RotateCcw } from "lucide-react";
 import { MotionTuner } from "@/components/dev/motion-tuner";
 import { EVENT_PAGE_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
 import { Button } from "@/components/ui/button";
+import { readCssMs as readMs } from "@/lib/shared/read-css-ms";
 
-// Read a --tune-* var (ms) the same way the review triage's run() does (use-review-triage.ts),
-// so the JS-timed replays (the exit reset + the beat hold) match what the tuner is showing.
-function readMs(varName: string, fallback: number): number {
-  if (typeof window === "undefined") return fallback;
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim();
-  const n = parseInt(raw, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
+// readMs (read-css-ms.ts) reads a --tune-* var as ms the same way the review triage's run() does
+// (use-review-triage.ts), so the JS-timed replays (the exit reset + the beat hold) match the tuner
+// (and survive the build minifier rewriting `2500ms` → `2.5s`).
 
 const CASCADE = Array.from({ length: 12 }, (_, i) => i);
 const EXIT = Array.from({ length: 6 }, (_, i) => i);
