@@ -123,6 +123,17 @@ export const ZONES: LabZone[] = [
     blurb: "Diagnostics and runtime probes (gated, permanent).",
     groups: [
       {
+        label: "Prototypes",
+        entries: [
+          {
+            href: "/design/event-feed",
+            label: "Event feed",
+            status: "exploring",
+            note: "Feel + ratify the stacked-feed pill behavior, the swap transition, and the urgency-reorder (+ the motion trial).",
+          },
+        ],
+      },
+      {
         label: "Diagnostics",
         entries: [
           {

@@ -110,4 +110,26 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     unit: "ms",
     default: 1800,
   },
+  // Event-feed prototype (the /design/event-feed lab): the filter-swap entrance + the
+  // urgency-reorder duration. Baked as lab defaults; promoted to globals.css on ratification.
+  {
+    kind: "range",
+    cssVar: "--tune-section-swap-ms",
+    label: "Section swap",
+    min: 80,
+    max: 400,
+    step: 10,
+    unit: "ms",
+    default: 180,
+  },
+  {
+    kind: "range",
+    cssVar: "--tune-reorder-ms",
+    label: "Section reorder",
+    min: 160,
+    max: 700,
+    step: 20,
+    unit: "ms",
+    default: 360,
+  },
 ];

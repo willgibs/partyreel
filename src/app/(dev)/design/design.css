@@ -128,8 +128,16 @@
 /* The faint neutral wash dark mode blurs its glass against. */
 :is(.mono[data-mode="dark"], .dark .mono)[data-dir-root] {
   background-image:
-    radial-gradient(36rem 24rem at 85% -5%, oklch(0.45 0 0 / 0.2), transparent 65%),
-    radial-gradient(28rem 20rem at 0% 100%, oklch(0.4 0 0 / 0.14), transparent 60%);
+    radial-gradient(
+      36rem 24rem at 85% -5%,
+      oklch(0.45 0 0 / 0.2),
+      transparent 65%
+    ),
+    radial-gradient(
+      28rem 20rem at 0% 100%,
+      oklch(0.4 0 0 / 0.14),
+      transparent 60%
+    );
 }
 
 /* ───────────────────────────── The type layer ──────────────────────────────
@@ -220,6 +228,38 @@
   [data-dir-enter],
   [data-dir-stagger] > * {
     transition: opacity 180ms ease-out;
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
+/* Event-feed prototype (lab-local): the B filter-swap entrance. The feed container
+   is re-keyed on a pill change, so @starting-style fires the swap; B2 = crossfade +
+   rise, B3 adds the emil blur-mask. Tunable via --tune-section-swap-ms. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-section-swap] {
+    transition:
+      opacity var(--tune-section-swap-ms, 180ms) var(--ease-emphasis),
+      transform var(--tune-section-swap-ms, 180ms) var(--ease-emphasis),
+      filter var(--tune-section-swap-ms, 180ms) var(--ease-emphasis);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  [data-section-swap][data-blur] {
+    @starting-style {
+      opacity: 0;
+      transform: translateY(8px);
+      filter: blur(6px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-section-swap] {
+    transition: opacity 160ms ease-out;
     @starting-style {
       opacity: 0;
     }
