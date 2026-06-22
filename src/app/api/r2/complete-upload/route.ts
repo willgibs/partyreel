@@ -23,6 +23,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
       durationSeconds: parsed.duration_seconds ?? null,
       width: parsed.width ?? null,
       height: parsed.height ?? null,
+      previewKey: parsed.preview_key ?? null,
     });
   },
   errorStatus(code) {

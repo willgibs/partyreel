@@ -100,7 +100,7 @@ export default async function EventDetailPage({
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
     media.map(async (m) => {
-      const [url, downloadUrl] = await Promise.all([
+      const [url, downloadUrl, previewUrl] = await Promise.all([
         presignDownload({ key: m.original_key, stable: true }),
         presignDownload({
           key: m.original_key,
@@ -111,6 +111,10 @@ export default async function EventDetailPage({
             type: m.type,
           }),
         }),
+        // The tile-only small preview (this page builds its OWN items, not via toGridItems).
+        m.preview_key
+          ? presignDownload({ key: m.preview_key, stable: true })
+          : Promise.resolve(null),
       ]);
       // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that
       // includes email (for identifying a guest); guest surfaces never carry it.
@@ -120,6 +124,7 @@ export default async function EventDetailPage({
         type: m.type,
         url,
         downloadUrl,
+        previewUrl,
         status: m.status,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,

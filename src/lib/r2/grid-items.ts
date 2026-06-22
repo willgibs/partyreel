@@ -21,6 +21,8 @@ type MediaRow = {
   id: string;
   type: MediaKind;
   original_key: string;
+  /** The small WebP preview variant (client-generated at upload); null on pre-feature rows or skips. */
+  preview_key?: string | null;
   /** Write-once at create_media; null on pre-measure-era rows (grid: 1:1 fallback). */
   width?: number | null;
   height?: number | null;
@@ -37,7 +39,7 @@ export async function toGridItems(
 ): Promise<GridMedia[]> {
   return Promise.all(
     media.map(async (m) => {
-      const [url, downloadUrl] = await Promise.all([
+      const [url, downloadUrl, previewUrl] = await Promise.all([
         presignDownload({ key: m.original_key, stable: true }),
         presignDownload({
           key: m.original_key,
@@ -48,6 +50,10 @@ export async function toGridItems(
             type: m.type,
           }),
         }),
+        // The tile-only small preview (stable-presigned like the original). Null on pre-feature rows.
+        m.preview_key
+          ? presignDownload({ key: m.preview_key, stable: true })
+          : Promise.resolve(null),
       ]);
       const who = identities?.get(m.id);
       return {
@@ -55,6 +61,7 @@ export async function toGridItems(
         type: m.type,
         url,
         downloadUrl,
+        previewUrl,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
         isAnonymous: who?.isAnonymous ?? false,
@@ -110,6 +117,7 @@ export type MyUploadRow = {
   id: string;
   type: MediaKind;
   originalKey: string;
+  previewKey: string | null;
   eventName: string;
   eventDateLabel: string | null;
   eventQrToken: string;
@@ -126,7 +134,7 @@ export async function toMyUploadsItems(
 ): Promise<GridMedia[]> {
   return Promise.all(
     rows.map(async (m) => {
-      const [url, downloadUrl] = await Promise.all([
+      const [url, downloadUrl, previewUrl] = await Promise.all([
         presignDownload({ key: m.originalKey, stable: true }),
         presignDownload({
           key: m.originalKey,
@@ -137,12 +145,16 @@ export async function toMyUploadsItems(
             type: m.type,
           }),
         }),
+        m.previewKey
+          ? presignDownload({ key: m.previewKey, stable: true })
+          : Promise.resolve(null),
       ]);
       return {
         id: m.id,
         type: m.type,
         url,
         downloadUrl,
+        previewUrl,
         eventName: m.eventName,
         eventDateLabel: m.eventDateLabel,
         eventQrToken: m.eventQrToken,

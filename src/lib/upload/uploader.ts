@@ -12,8 +12,12 @@
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
  */
 import { classifyMime, validateUpload } from "@/lib/media/validators";
+import { generatePreview } from "@/lib/upload/preview";
 
 type Measured = { width?: number; height?: number; duration?: number };
+
+/** The optional preview PUT the presign route issues when the client declared a (capped) preview size. */
+type PreviewPut = { key: string; url: string; headers: Record<string, string> };
 
 type PresignResponse =
   | {
@@ -24,6 +28,7 @@ type PresignResponse =
       content_type: string;
       url: string;
       headers: Record<string, string>;
+      preview?: PreviewPut;
     }
   | {
       ok: true;
@@ -34,6 +39,7 @@ type PresignResponse =
       upload_id: string;
       part_size_bytes: number;
       parts: { partNumber: number; url: string }[];
+      preview?: PreviewPut;
     }
   | { ok: false; code: string; message: string };
 
@@ -137,12 +143,17 @@ export async function uploadFile(args: {
   });
   if (!localCheck.ok) return { ok: false, message: localCheck.reason };
 
-  // 1. Presign (server validates identity + caps and builds the key).
+  // 0. Generate a small WebP preview in the browser (best-effort; null on skip/failure). Its size is sent
+  //    to presign so the preview PUT can bind content-length (like the original) — no unbounded preview PUT.
+  const preview = await generatePreview(file, kind, measured);
+
+  // 1. Presign (server validates identity + caps and builds the key; issues an optional preview PUT).
   const presign = await postJson<PresignResponse>(endpoints.presign, {
     ...identity,
     content_type: file.type,
     size_bytes: file.size,
     duration_seconds: measured.duration,
+    preview_size_bytes: preview?.blob.size,
   });
   if (!presign.ok) {
     return {
@@ -192,6 +203,23 @@ export async function uploadFile(args: {
     };
   }
 
+  // 2b. Upload the preview (best-effort). A failure here NEVER fails the upload — the original is what
+  //     matters; a missing preview just falls back to the original tile. preview_key is recorded only on
+  //     a confirmed PUT.
+  let previewKey: string | undefined;
+  if (presign.preview && preview) {
+    try {
+      await putWithProgress({
+        url: presign.preview.url,
+        body: preview.blob,
+        headers: presign.preview.headers,
+      });
+      previewKey = presign.preview.key;
+    } catch {
+      // swallow — no preview this time
+    }
+  }
+
   // 3. Complete (assembles multipart in R2, then records the media row).
   const complete = await postJson<CompleteResponse>(endpoints.complete, {
     ...identity,
@@ -202,6 +230,7 @@ export async function uploadFile(args: {
     duration_seconds: measured.duration,
     width: measured.width,
     height: measured.height,
+    preview_key: previewKey,
     upload_id: presign.strategy === "multipart" ? presign.upload_id : null,
     parts,
   });

@@ -885,6 +885,7 @@ export type Database = {
           height: number
           id: string
           original_key: string
+          preview_key: string
           type: Database["public"]["Enums"]["media_type"]
           width: number
         }[]
@@ -908,6 +909,7 @@ export type Database = {
           id: string
           liked_at: string
           original_key: string
+          preview_key: string
           type: Database["public"]["Enums"]["media_type"]
           width: number
         }[]

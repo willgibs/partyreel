@@ -87,6 +87,9 @@ export type GuestMediaRow = {
   id: string;
   type: Database["public"]["Enums"]["media_type"];
   original_key: string;
+  /** The small WebP preview variant (client-generated at upload); null on pre-feature rows. Flows
+   *  through toGridItems → previewUrl so guest tiles serve the small preview. */
+  preview_key: string | null;
   width: number | null;
   height: number | null;
   duration_seconds: number | null;
@@ -110,6 +113,7 @@ export async function getEventMediaByQrToken(
     id: m.id,
     type: m.type,
     original_key: m.original_key,
+    preview_key: m.preview_key ?? null,
     width: m.width ?? null,
     height: m.height ?? null,
     duration_seconds: m.duration_seconds ?? null,

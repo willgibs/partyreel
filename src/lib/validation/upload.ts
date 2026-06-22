@@ -28,6 +28,10 @@ export const presignUploadSchema = z.object({
   content_type: z.string().trim().min(1),
   size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
+  // The client-generated WebP preview's size (so the preview PUT can bind content-length, like the
+  // original). Optional + un-capped here; the engine skips the preview presign when it exceeds
+  // MAX_PREVIEW_BYTES (the original still uploads), so an over-size never rejects the whole request.
+  preview_size_bytes: z.number().int().positive().optional(),
 });
 
 // ─── POST /api/r2/complete-upload ────────────────────────────────────────────
@@ -47,6 +51,9 @@ export const completeUploadSchema = z.object({
   duration_seconds: z.number().positive().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  // The preview R2 key the presign route issued, set ONLY when the client uploaded a preview. The
+  // server records it as media.preview_key; tiles then serve it.
+  preview_key: z.string().trim().min(1).optional(),
   // null for single-PUT uploads; the R2 uploadId for multipart.
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
@@ -63,6 +70,7 @@ export const hostPresignUploadSchema = z.object({
   content_type: z.string().trim().min(1),
   size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
+  preview_size_bytes: z.number().int().positive().optional(),
 });
 
 export const hostCompleteUploadSchema = z.object({
@@ -74,6 +82,7 @@ export const hostCompleteUploadSchema = z.object({
   duration_seconds: z.number().positive().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  preview_key: z.string().trim().min(1).optional(),
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
 });

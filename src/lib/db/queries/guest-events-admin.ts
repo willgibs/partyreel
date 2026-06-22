@@ -32,7 +32,7 @@ export async function getApprovedMediaForUnlock(
 
   const { data, error } = await createAdminClient()
     .from("media")
-    .select("id, type, original_key, width, height, duration_seconds")
+    .select("id, type, original_key, preview_key, width, height, duration_seconds")
     .eq("event_id", eventId)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -41,6 +41,7 @@ export async function getApprovedMediaForUnlock(
     id: m.id,
     type: m.type,
     original_key: m.original_key,
+    preview_key: m.preview_key,
     width: m.width,
     height: m.height,
     duration_seconds: m.duration_seconds,
@@ -68,7 +69,7 @@ export async function getApprovedPhotoTeaser(
 
   const { data, count, error } = await createAdminClient()
     .from("media")
-    .select("id, type, original_key, width, height, duration_seconds", {
+    .select("id, type, original_key, preview_key, width, height, duration_seconds", {
       count: "exact",
     })
     .eq("event_id", event.id)
@@ -82,6 +83,7 @@ export async function getApprovedPhotoTeaser(
       id: m.id,
       type: m.type,
       original_key: m.original_key,
+      preview_key: m.preview_key,
       width: m.width,
       height: m.height,
       duration_seconds: m.duration_seconds,

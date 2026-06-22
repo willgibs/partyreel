@@ -13,6 +13,12 @@ export type GridMedia = {
   /** Short-lived presigned URL for INLINE render — built server-side; never a raw R2 key. */
   url: string;
   /**
+   * Short-lived presigned URL for the small WebP PREVIEW variant (client-generated at upload). TILE-ONLY:
+   * MediaTile serves `previewUrl ?? url` and falls back to `url` on error. The lightbox + Save always use
+   * the full-res `url`/`downloadUrl`. Null/absent on pre-feature rows or when generation was skipped.
+   */
+  previewUrl?: string | null;
+  /**
    * Presigned `attachment` URL that saves the original (see lib/r2/presign.ts). OPTIONAL: the
    * recovery "Recently deleted" bin omits it (no original-file download from the bin), which
    * hides the lightbox Save button. Album/host grids always set it.
@@ -72,7 +78,7 @@ export function MediaTile({
   item,
   playBadge = "center",
 }: {
-  item: Pick<GridMedia, "type" | "url">;
+  item: Pick<GridMedia, "type" | "url" | "previewUrl">;
   /** "none" lets a caller (the guest masonry) supply its own corner badge. */
   playBadge?: "center" | "none";
 }) {
@@ -81,17 +87,26 @@ export function MediaTile({
   // so it can never get stuck invisible at opacity-0.
   const imgRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(false);
+  // The small preview self-heals: if it 404s / fails (missing, expired, an old preview-less row whose key
+  // somehow errored), flip to the full-res original (photo) or the <video> poster (video). Guarded so a
+  // failing ORIGINAL can't loop.
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const previewOk = !!item.previewUrl && !previewFailed;
   useEffect(() => {
     if (imgRef.current?.complete) setLoaded(true);
   }, []);
 
+  const onTileImgError = () => {
+    if (previewOk) {
+      setPreviewFailed(true);
+      setLoaded(false);
+    }
+  };
+
   if (item.type === "photo") {
+    // Serve the tiny preview when present; else the full-res original (the slow cold fetch). A shimmer
+    // skeleton fills the tile until it decodes, then it fades in (the parent clips with overflow-hidden).
     return (
-      // A shimmer skeleton fills the tile until the photo decodes, then the photo fades
-      // in over it (the parent clips with overflow-hidden, so no extra rounding here).
-      // A cold presigned R2 fetch (full-res, no thumbnail variant) thus reads as
-      // shimmer -> photo, never a black square that pops. Reduced motion: Skeleton drops
-      // to a static muted block (motion-reduce:animate-none) + the opacity-only swap.
       <span className="relative block size-full">
         {!loaded && (
           <Skeleton className="absolute inset-0 size-full rounded-none" />
@@ -99,16 +114,45 @@ export function MediaTile({
         {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
         <img
           ref={imgRef}
-          src={item.url}
+          src={previewOk ? (item.previewUrl ?? undefined) : item.url}
           alt=""
           loading="lazy"
           onLoad={() => setLoaded(true)}
+          onError={onTileImgError}
           className={cn(
             "relative size-full object-cover transition-opacity duration-300 ease-out",
             loaded ? "opacity-100" : "opacity-0",
           )}
         />
       </span>
+    );
+  }
+
+  // Video: a preview poster IMAGE (no <video> fetch — the big bandwidth win) when present; else the
+  // <video> poster frame (today's behavior) as the fallback.
+  if (previewOk) {
+    return (
+      <>
+        <span className="relative block size-full">
+          {!loaded && (
+            <Skeleton className="absolute inset-0 size-full rounded-none" />
+          )}
+          {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
+          <img
+            ref={imgRef}
+            src={item.previewUrl ?? undefined}
+            alt=""
+            loading="lazy"
+            onLoad={() => setLoaded(true)}
+            onError={onTileImgError}
+            className={cn(
+              "relative size-full bg-black object-cover transition-opacity duration-300 ease-out",
+              loaded ? "opacity-100" : "opacity-0",
+            )}
+          />
+        </span>
+        {playBadge === "center" && <PlayBadge />}
+      </>
     );
   }
   return (

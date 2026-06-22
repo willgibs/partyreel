@@ -30,6 +30,7 @@ import type { z } from "zod";
 
 import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
+import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { mediaObjectKey } from "@/lib/r2/keys";
@@ -61,7 +62,12 @@ function refuse(r: PipelineRefusal) {
 // ─── Presign ─────────────────────────────────────────────────────────────────
 
 /** The fields the engine itself needs; each schema carries its own identity field. */
-type PresignCommon = { content_type: string; size_bytes: number };
+type PresignCommon = {
+  content_type: string;
+  size_bytes: number;
+  /** The client-generated WebP preview's byte size, so the preview PUT binds content-length. */
+  preview_size_bytes?: number;
+};
 
 export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   schema: Schema;
@@ -132,6 +138,29 @@ export async function runPresignPipeline<Schema extends z.ZodType<PresignCommon>
     ext,
   });
 
+  // The OPTIONAL preview PUT (a small client-generated WebP, served on tiles). Server-built key, same
+  // event/media/kind. Bind its content-length (skip if the declared size exceeds the cap — the original
+  // still uploads; a missing preview falls back to the original tile). webp is always single-PUT (tiny).
+  const previewKey = mediaObjectKey({
+    eventId: resolved.eventId,
+    mediaId,
+    kind,
+    variant: "preview",
+    ext: "webp",
+  });
+  const previewSize = parsed.data.preview_size_bytes;
+  const preview =
+    previewSize && previewSize <= MAX_PREVIEW_BYTES
+      ? await presignUpload({
+          key: previewKey,
+          contentType: "image/webp",
+          contentLength: previewSize,
+        })
+      : null;
+  const previewField = preview
+    ? { preview: { key: previewKey, url: preview.url, headers: preview.headers } }
+    : {};
+
   if (uploadStrategyFor(size_bytes) === "single") {
     const { url, headers } = await presignUpload({
       key,
@@ -146,6 +175,7 @@ export async function runPresignPipeline<Schema extends z.ZodType<PresignCommon>
       content_type,
       url,
       headers,
+      ...previewField,
     });
   }
 
@@ -178,6 +208,7 @@ export async function runPresignPipeline<Schema extends z.ZodType<PresignCommon>
     upload_id: uploadId,
     part_size_bytes: plan[0],
     parts,
+    ...previewField,
   });
 }
 
@@ -190,6 +221,8 @@ type CompleteCommon = {
   duration_seconds?: number;
   width?: number;
   height?: number;
+  /** The preview R2 key (set only when the client uploaded one); recorded as media.preview_key. */
+  preview_key?: string;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
 };

@@ -38,6 +38,7 @@ export async function getMyLikeCards(): Promise<{
       id: r.id,
       type: r.type,
       originalKey: r.original_key,
+      previewKey: r.preview_key ?? null,
       eventName: r.event_name,
       // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
       eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
