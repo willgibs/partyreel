@@ -127,8 +127,16 @@ state, the gallery grid registers its optimistic bulk handlers. Hide/Show + Dele
 mutations; reel + like loop the existing idempotent RPCs + one summary toast. Live-verified end-to-end (incl.
 the live-caught clamp-reflow fix + the cross-tenant no-op + mobile). Current truth:
 [`systems/host-app.md`](systems/host-app.md).
-**▶ NEXT = the remaining Reel follow-on rounds (drag-reorder / the generation worker) / a future Guests
-section / the roadmapped user-profiles + social program.** The S3+S4+S5+Reel specs live in the slice plans
+**Reel drag-reorder + uniform Reel/Review grids ✅ (2026-06-22, `ae5fc24`): the Reel is orderable by drag**,
+and the Reel + Review render as UNIFORM grids (Gallery keeps the masonry "wow"). A `layout` prop on the shared
+grids; our own dependency-free `useSortableGrid` (pointer drag + 2-axis FLIP + geometric drop-index, beats
+dnd-kit on a uniform grid); a `reorder_reel` SECURITY DEFINER RPC (set-equality guard, grant-locked). A
+Reorder/Done header button → a numbered sortable grid. Live-verified (desktop drag + persist across reload +
+mobile touch press-and-hold + the rolled-back RPC contract). Current truth:
+[`systems/host-app.md`](systems/host-app.md).
+**▶ NEXT (Will's queue): the thumbnail/preview variant (slice 2), then the "Download all" zip (slice 3).** Then
+the remaining Reel follow-ons (the generation worker) / a future Guests section / the roadmapped user-profiles +
+social program. The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

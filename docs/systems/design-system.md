@@ -222,6 +222,19 @@ a scroll-following bar share it; the grid REGISTERS its optimistic bulk handlers
 `run(kind)` — the registration seam to use whenever a control surface and its target grid live in different
 subtrees. Long-press entry rides `use-long-press.ts` (opt-in `onTileLongPress`, a capture-phase click-suppress).
 
+**Grid layout + the sortable primitive.** The shared grids take a `layout: "masonry" | "uniform"` prop
+(default masonry): **masonry** = natural-ratio CSS columns (the Gallery "wow"); **uniform** = a fixed
+`UNIFORM_TILE_ASPECT` (`4/5`) `object-cover` CSS grid (`grid-cols-3 sm:grid-cols-4`) for the Reel + Review,
+where uniformity makes a drag-order / selection hit-targets legible. Drag-reorder rides our own
+dependency-free [`useSortableGrid`](../../src/lib/shared/use-sortable-grid.ts) (the project dropped
+framer-motion + ships no drag lib): a hand-rolled pointer machine (modeled on the lightbox swipe) + a 2-axis
+FLIP for the sibling slide (mirrors `use-flip` but X AND Y; `--tune-reorder-ms` / `--ease-in-out-strong`,
+reduced-motion = instant). The dragged tile is finger-followed via an imperative transform (excluded from the
+slide). ★ Why hand-rolled beats dnd-kit HERE: on a uniform grid the drop-index is two integer divisions
+(`pointToIndex`, unit-tested), so a drag lib's collision/sensor machinery buys nothing. Touch grabs behind a
+450ms press (a scroll never reorders); `touch-none` in the focused reorder mode + edge autoscroll reach
+off-screen tiles; keyboard reorder (space / arrows / enter / escape) is free since the order math is index-based.
+
 **The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`,
 S4·0): a panel that writes `--tune-*` CSS vars to `<html>` so any var-backed timing can be finetuned LIVE, no
 rebuild. It lives in the **lab at [`/design/motion`](../../src/app/(dev)/design/motion/page.tsx)** (the

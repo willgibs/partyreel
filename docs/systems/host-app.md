@@ -291,13 +291,31 @@ browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components
 optimistic, insertion-ordered Set, client-direct, NO signed-out branch — wraps the whole feed so an add in
 the Gallery reflects instantly in the Reel section), and a `ReelButton` (a `Clapperboard` in the `--reel`
 VIOLET, distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group.
-Curation is FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no
+Curation is FREE for any tier; ONE reel per event; host-only + host-private (no
 Reel on `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key`
 remain DEAD scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this
 host signal). The album **bulk-select** (Select mode → Add to reel / Like / Hide-Show / Delete) SHIPPED
-2026-06-22 (see "the gallery-action model"). DEFERRED: drag-reorder, guest-facing surfacing, multiple reels. (The Review
+2026-06-22 (see "the gallery-action model"). DEFERRED: guest-facing surfacing, multiple reels. (The Review
 queue + the moderation-disable auto-approve confirm shipped 2026-06-21 as the Reviews TAB; the
 2026-06-22 feed redesign inlined that queue as the urgency-ordered Review section — see "The event page".)
+
+**Reel DRAG-REORDER + uniform Reel/Review grids SHIPPED** (2026-06-22). The **Reel + Review sections render as
+UNIFORM grids** (a fixed `4/5` `object-cover` tile, `grid-cols-3 sm:grid-cols-4`) while the **Gallery keeps the
+natural-ratio masonry "wow"** (incl. its album select) — uniformity gives the reel a legible sequence to drag
+and standardizes Review's selection hit-targets. It's a `layout: "masonry" | "uniform"` prop on the SHARED grids
+(`MasonryColumns` + `SelectableMediaGrid`, default masonry; Gallery passes nothing). A `Reorder` button in the
+Reel section header (shown when `> 1` item; toggles to `Done`) enters a mode (`ReelReorderProvider`) where the
+section swaps to [`reel-sortable-grid.tsx`](../../src/components/app/reel-sortable-grid.tsx): numbered drag tiles,
+no per-tile actions/lightbox. Drag is powered by our own dependency-free
+[`useSortableGrid`](../../src/lib/shared/use-sortable-grid.ts) (pointer drag + a 2-axis FLIP for the sibling
+slide; on a uniform grid the drop-index is a geometric computation, so hand-rolling beats dnd-kit — see
+[design-system.md](design-system.md)). Reorder operates on the **FULL membership** (`reel.orderedIds`, hidden
+in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_media_ids)`** SECURITY DEFINER RPC
+(the SECOND reel write path after `add_to_reel`, since `reel_items` UPDATE is grant-revoked): host-owns + a
+**set-equality membership guard** (rejects cross-event / partial / dup / stale lists with `reason:'stale'`), one
+`UPDATE … FROM unnest(…) WITH ORDINALITY` (positions become 1-based — only relative order matters). `ReelProvider.reorder`
+is optimistic (★ rebuild a NEW `Set` from the reordered array — mutating the old Set keeps the old order) + reverts
+on the `stale`/error path. (The Review uniform grid keeps its `[data-exiting]` beat + `[data-check-pop]` — tile-local.)
 
 **GENERATION (the highlight VIDEO) is tabled** — transcode/stitch runs in an **external worker, NOT Vercel
 functions** (ADR-0003); pending a product + architecture decision (the worker platform consumes the ordered

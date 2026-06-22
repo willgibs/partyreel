@@ -10,6 +10,32 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Reel drag-to-reorder + uniform Reel/Review grids (`ae5fc24`)
+
+The Reel section becomes orderable by drag; per Will the **Reel + Review render as uniform grids** while the
+**Gallery keeps the masonry "wow."** Next Reel-curation follow-on after album bulk-select.
+- **Uniform layout** — a `layout: "masonry" | "uniform"` prop on the shared grids (`MasonryColumns` +
+  `SelectableMediaGrid`), default masonry. Reel display + Review pass uniform (`4/5` portrait, `object-cover`,
+  `grid-cols-3 sm:grid-cols-4`); Gallery (incl. its album select) keeps masonry. Uniformity gives the reel a
+  legible drag-order and standardizes Review's selection hit-targets.
+- **The sortable primitive** — our own dependency-free `useSortableGrid` (the project dropped framer-motion +
+  ships no drag lib): a hand-rolled pointer machine + a 2-axis FLIP for the sibling slide (mirrors `use-flip` but
+  X AND Y) + a geometric `pointToIndex` drop-index + edge autoscroll + touch press-to-grab (450ms, so a scroll
+  never reorders) + keyboard reorder + reduced-motion. ★ On a uniform grid the drop-index is two integer
+  divisions, so hand-rolling beats adding dnd-kit. Pure `pointToIndex`/`moveItem` helpers unit-tested.
+- **`reorder_reel(p_event_id, p_media_ids)` RPC** — the SECOND reel write path (since `reel_items` UPDATE is
+  grant-revoked): SECURITY DEFINER, host-owns + a **set-equality membership guard** (rejects cross-event /
+  partial / dup / stale lists with `reason:'stale'`), one `UPDATE … FROM unnest(…) WITH ORDINALITY`, grant-locked
+  (authenticated only — advisors confirm no anon). `ReelProvider.reorder` = optimistic new-`Set` rebuild + revert.
+- **Reorder mode** — a thin `ReelReorderProvider` + a `Reorder`/`Done` header button (shown when `> 1` item) +
+  `reel-sortable-grid` (numbered drag tiles, no overlay/lightbox); reel-panel swaps to it. Operates on the FULL
+  membership (a hidden in-reel item shows dimmed) so the set-equality guard holds.
+- **Live-verified** (partyreel.com, demo event, 6-item reel): the uniform Reel grid (desktop 4-col / mobile
+  3-col); Reorder/Done + numbered badges; a **desktop drag** (tile 4 → position 1, siblings FLIP-slide, persisted
+  to the DB, survives a RELOAD); a **mobile touch press-and-hold + drag** (dispatched pointer events, persisted);
+  + the **rolled-back RPC contract check** (happy re-stamps the exact order; cross-event / partial / dup → stale;
+  foreign event → not_found; unauthorized without a claim). 515 unit tests (the sortable helpers added).
+
 ## 2026-06-22 — Gallery album bulk-select (`6e5e1c7` + clamp hotfix `5a73410`)
 
 The host event page's **Gallery** section gains a multi-select mode mirroring Review's, so curating a reel

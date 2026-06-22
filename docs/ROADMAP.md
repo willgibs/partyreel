@@ -139,8 +139,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     shared `useSelection` + `SelectableMediaGrid` + a `HostSelectionProvider`; Select button / long-press →
     bulk Add to reel / Like / Hide-Show / Delete; new plain-RLS bulk status+remove mutations; reel/like loop the
     idempotent RPCs). Download stays out (the zip worker below). → [`systems/host-app.md`](systems/host-app.md).
-    **DEFERRED follow-ons (each its own slice):** **drag-to-reorder** (a
-    `reorder_reel` RPC + sortable UI; `position` is reserved for it); the Reel **Create reel** generation flow
+    **Drag-to-reorder + uniform Reel/Review grids SHIPPED (2026-06-22, `ae5fc24`):** the `reorder_reel` SECURITY
+    DEFINER RPC (set-equality guard) + our own dependency-free `useSortableGrid` (pointer drag + 2-axis FLIP +
+    geometric drop-index; beats dnd-kit on a uniform grid) + a Reorder/Done header button → a numbered sortable
+    grid. Reel + Review became UNIFORM grids (a `layout` prop on the shared grids; Gallery keeps the masonry).
+    → [`systems/host-app.md`](systems/host-app.md). **DEFERRED follow-ons (each its own slice):** the Reel
+    **Create reel** generation flow
     (the floating placeholder ships disabled); guest-facing reel surfacing on `/e/[qr]`; multiple named reels;
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
