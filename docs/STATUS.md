@@ -100,7 +100,8 @@ media as "in the reel" (a violet `Clapperboard` chip distinct from Like, in the 
 views the curated set in a new **Reel tab** (event page now has Uploads | Reel, `?eventTab=`). Built to mirror
 likes: a grant-locked `reel_items` table + an access-checked `add_to_reel` RPC + a host-only `ReelProvider`.
 Curation is FREE; one reel/event; add-order; host-only + host-private + approved-only. Live-verified
-end-to-end. The `--reel` hue + the icon are PROVISIONAL pending Will's ratification. DEFERRED (later rounds):
+end-to-end. The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21); the tile-action
+order is `reel, like, download, hide/show, delete` and the chip stack/slide feel is signed off. DEFERRED (later rounds):
 the Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder, guest-facing surfacing, and the
 generation worker.
 **▶ NEXT = the Reel follow-on rounds (Reviews tab / album bulk-select / reorder) / the roadmapped user-profiles

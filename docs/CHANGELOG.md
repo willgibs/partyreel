@@ -35,8 +35,8 @@ Built to MIRROR the proven likes system end-to-end; green-gated (489 tests) → 
 - **Live-verified** (partyreel.com, host): the tabs hydrate; Add-to-Reel writes land (`reel_count`, positions
   0/1), the chip flips to the violet `lab(64.9 38 -56)`; the Reel tab shows the added media in add-order
   (cross-tab via the shared provider); un-reel drops the tile + the row; pluralization + the generation note
-  correct; no console errors. The `--reel` hue + the `Clapperboard` icon are PROVISIONAL pending Will's
-  ratification. DEFERRED: Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder,
+  correct; no console errors. The `--reel` violet (`lab(64.9 38 -56)`) + the `Clapperboard` icon are RATIFIED
+  (Will, 2026-06-21). DEFERRED: Reviews tab + moderation-disable confirm, album bulk-select, drag-reorder,
   guest-facing surfacing, multiple reels, the generation worker.
 - **Follow-up polish (Will's review, `847ac9c` · `f96c320`):** Like + Reel gained a colored STROKE on hover
   + a FILL on active (they only had an active color before); fixed a DUPLICATE host heart (the masonry tile

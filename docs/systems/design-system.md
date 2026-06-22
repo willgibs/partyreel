@@ -34,8 +34,8 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   Emil rule: **monochrome at rest → full-brightness colored STROKE on direct icon-hover + a SUBTLE `/25`
   FILL on the active state** (so the outline stays legible: liked rose, in-reel violet, hidden amber); native
   `title` tooltips. Lives on the gallery tiles + the shared lightbox
-  pill; brand stays mono (color is punctuation). (`--reel` hue + the icon are PROVISIONAL pending Will's
-  ratification.) → [host-app.md](host-app.md) for the action model.
+  pill; brand stays mono (color is punctuation). (`--reel` violet + the `Clapperboard` icon are RATIFIED,
+  Will 2026-06-21.) → [host-app.md](host-app.md) for the action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
