@@ -209,6 +209,19 @@ view (the floating Add generalized). The morph crossfades via the same `[data-se
 section self-surfaces its control (primary Add pill / a neutral card holding the review cluster / a disabled
 placeholder). Reuse this when a long scroll needs a section-aware action always in reach.
 
+**Multi-select primitives** (Review triage + the Gallery album bulk-select share these). `useSelection(ids)`
+([`event-feed/use-selection.ts`](../../src/components/app/event-feed/use-selection.ts)) is the pure state machine
+(`selected` Set / `selectMode` / toggle / selectAll / enterSelect(seed) / exitSelect) — ★ it PRUNES the
+selection to the surviving ids when the universe changes, never resets, so a background poll/revalidate can't
+wipe an in-progress multi-select. `SelectableMediaGrid`
+([`event-feed/selectable-media-grid.tsx`](../../src/components/app/event-feed/selectable-media-grid.tsx)) is the
+shared selectable masonry (the `[data-check-pop]` checkmark + `[data-exiting]` removal beat; `enablePreview` for
+Review's peek; `clampAspect` MUST match the surface's normal grid or toggling select reflows tile heights). The
+selection STATE is lifted to a thin provider (`HostSelectionProvider`, mirrors `HostAddProvider`) so a grid and
+a scroll-following bar share it; the grid REGISTERS its optimistic bulk handlers and the bar calls
+`run(kind)` — the registration seam to use whenever a control surface and its target grid live in different
+subtrees. Long-press entry rides `use-long-press.ts` (opt-in `onTileLongPress`, a capture-phase click-suppress).
+
 **The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`,
 S4·0): a panel that writes `--tune-*` CSS vars to `<html>` so any var-backed timing can be finetuned LIVE, no
 rebuild. It lives in the **lab at [`/design/motion`](../../src/app/(dev)/design/motion/page.tsx)** (the

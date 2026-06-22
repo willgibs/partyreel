@@ -119,8 +119,16 @@ C=FLIP ratified in the `/design/event-feed` lab; `motion` dropped. The live red-
 a `parseInt("2.5s")`-vs-minified-time beat bug (`read-css-ms.ts`). Live-verified end-to-end incl. the beat +
 the FLIP + mobile 375px. Current truth: [`systems/host-app.md`](systems/host-app.md). Known live-tune item
 handed to Will: the scroll-spy hand-off on a short feed.
-**▶ NEXT = the Reel follow-on rounds (album bulk-select folds into the feed's Select mode / drag-reorder / the
-generation worker) / a future Guests section / the roadmapped user-profiles + social program.** The S3+S4+S5+Reel specs live in the slice plans
+**Album bulk-select ✅ (2026-06-22, `6e5e1c7` + clamp hotfix `5a73410`): the Gallery section gains a Select
+mode** (Select button / long-press → multi-select → a floating bulk cluster: Add to reel · Like · Hide/Show ·
+Delete, smart Hide/Show label, count-named delete confirm). Shared `useSelection` (prune-not-reset) +
+`SelectableMediaGrid` extracted from Review; a `HostSelectionProvider` (mirrors `HostAddProvider`) holds the
+state, the gallery grid registers its optimistic bulk handlers. Hide/Show + Delete = new plain RLS bulk
+mutations; reel + like loop the existing idempotent RPCs + one summary toast. Live-verified end-to-end (incl.
+the live-caught clamp-reflow fix + the cross-tenant no-op + mobile). Current truth:
+[`systems/host-app.md`](systems/host-app.md).
+**▶ NEXT = the remaining Reel follow-on rounds (drag-reorder / the generation worker) / a future Guests
+section / the roadmapped user-profiles + social program.** The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +

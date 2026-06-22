@@ -10,6 +10,34 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Gallery album bulk-select (`6e5e1c7` + clamp hotfix `5a73410`)
+
+The host event page's **Gallery** section gains a multi-select mode mirroring Review's, so curating a reel
+or hiding/deleting a burst is one action, not N taps. Next slice in the Reel-curation thread (the roadmap's
+"album bulk-select folds into the feed's Select mode").
+- **Enter:** a `Select` button in the section header / floating bar, OR **long-press a tile** (`use-long-press.ts`,
+  ~450ms, seeds that tile; threaded through `MasonryColumns` as opt-in `onTileLongPress`, no-op on guest/bin).
+- **Bulk cluster** (`gallery-actions.tsx`, in the floating bar): `All/Clear · N · Add to reel · Like ·
+  Hide|Show · Delete · Cancel`, each in its state color, the Hide|Show label SMART ("Show" iff all selected
+  are hidden), Delete behind a count-named confirm ("Remove 8 items?").
+- **Architecture:** a thin `HostSelectionProvider` (mirrors `HostAddProvider`) holds the selection state +
+  `run(kind)`; the gallery grid registers its optimistic bulk handlers, the bar delegates to them (the seam
+  the review bar uses for `triage.run`). Shared `useSelection(ids)` extracted from `useReviewTriage` (which now
+  composes it, unchanged) — ★ PRUNES the selection on an album change, never resets, so a poll/revalidate can't
+  wipe an in-progress multi-select. Shared `SelectableMediaGrid` extracted from the review grid (preview optional).
+- **Mutations:** Hide/Show + Delete = new plain RLS bulk writes `setMediaStatusBulk`/`removeMediaBulk`
+  (`.in('id', …)`, no `pending` predicate — they act on the live album, unlike the review queue's bulk); Add to
+  reel + Like = a client loop over the existing idempotent RPCs (`ReelProvider.addMany`/`LikesProvider.likeMany`),
+  one summary toast each. No new SQL.
+- **★ Clamp hotfix (`5a73410`, caught live by Will):** the select grid hardcoded the unclamped
+  `tileAspect(it, false)` (inherited from the review grid), so entering Select reflowed the album's tile heights
+  (the normal grid clamps extreme ratios). Threaded a `clampAspect` prop; the gallery passes it true.
+- **Live-verified** (partyreel.com, demo event): Select + long-press entry (seeded), checkmarks + count, Add to
+  reel (one "Added 2 to your reel" toast + reflects in the Reel section), Hide → smart-Show → Show, Delete (count
+  confirm + exit beat + count 9→8), the no-reflow fix (tile height 269px identical normal vs select, measured),
+  mobile 390px bar fit, and the cross-tenant no-op (a foreign media id touches 0 rows under the bulk predicate).
+  506 unit tests (a `useSelection` prune-not-reset pin added).
+
 ## 2026-06-22 — Consistent feed section headers + harmonized empty states (`47f0b2d`)
 
 Follow-up to the feed redesign (Will): on a long "All" scroll the sections were hard to tell apart

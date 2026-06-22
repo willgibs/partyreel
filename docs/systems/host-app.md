@@ -254,6 +254,27 @@ action colors). Remove is modal-confirm; approve/hide/unhide are direct (revalid
 toasts "Hidden from everyone" from both). The host can also **Like** (a normal like; the gallery wraps a
 `LikesProvider`); the read-only per-event like COUNT badge is distinct from the toggle.
 
+**Album bulk-select (the Gallery Select mode).** The Gallery section gains a multi-select mode (shipped
+2026-06-22) that mirrors Review's: enter via the **Select** button in the section header / floating bar, OR
+**long-press a tile** ([`use-long-press.ts`](../../src/lib/shared/use-long-press.ts), ~450ms, seeds that tile;
+threaded through `MasonryColumns` as an opt-in `onTileLongPress`, no-op on the guest / recovery grids). In
+select mode the album swaps to the shared `SelectableMediaGrid` (extracted from the review grid; previews OFF
+for the album, ON for Review) and the floating bar morphs to a bulk cluster
+([`gallery-actions.tsx`](../../src/components/app/event-feed/gallery-actions.tsx)): `All/Clear · N · Add to
+reel · Like · Hide|Show · Delete · Cancel`, each in its state color, the Hide|Show label SMART (shows "Show"
+iff every selected item is hidden), Delete behind a count-named confirm. The selection STATE lives in a thin
+`HostSelectionProvider` (mirrors `HostAddProvider`); the gallery grid (`host-media-grid.tsx`, which owns the
+`useOptimistic` items + the reel/likes Sets) REGISTERS its optimistic bulk handlers into it, so the bar calls
+`selection.run(kind)` and it delegates to the grid's handler (the same seam the review bar uses for
+`triage.run`). The multi-select primitive is the shared `useSelection(ids)` — ★ it PRUNES the selection to the
+surviving ids when the album changes (a revalidate / poll), never resets, so an in-progress selection isn't
+wiped. Add-to-reel + Like loop the existing idempotent `add_to_reel`/`like_media` RPCs (one SUMMARY toast, not
+N — `ReelProvider.addMany` / `LikesProvider.likeMany`); Hide/Show + Delete are the new GENERAL bulk mutations
+`setMediaStatusBulk` / `removeMediaBulk` (plain RLS, `.in('id', …)`, NO `pending` predicate — they act on the
+live album, unlike the review queue's `approveBulk`/`hideBulk`). ★ The select grid MUST pass the same
+`clampAspect` as the normal `MasonryColumns` (the album clamps extreme ratios; the review queue does not) or
+toggling select reflows the tile heights.
+
 **Host upload (two-way media).** The host adds media from the event page via the command bar's **Add**
 (+ the feed's floating Gallery action on scroll; see "The event page" above) → a dropzone
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
@@ -273,7 +294,8 @@ VIOLET, distinct from Like) in the tile overlay (before Like, approved-only) + t
 Curation is FREE for any tier; ONE reel per event; add-order (reorder deferred); host-only + host-private (no
 Reel on `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key`
 remain DEAD scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this
-host signal). DEFERRED: album bulk-select, drag-reorder, guest-facing surfacing, multiple reels. (The Review
+host signal). The album **bulk-select** (Select mode → Add to reel / Like / Hide-Show / Delete) SHIPPED
+2026-06-22 (see "the gallery-action model"). DEFERRED: drag-reorder, guest-facing surfacing, multiple reels. (The Review
 queue + the moderation-disable auto-approve confirm shipped 2026-06-21 as the Reviews TAB; the
 2026-06-22 feed redesign inlined that queue as the urgency-ordered Review section — see "The event page".)
 

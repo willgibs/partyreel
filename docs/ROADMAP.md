@@ -135,8 +135,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     TABS became a stacked, pill-filtered media-forward feed (`EventFeed`, `?section=`, urgency-ordered); the
     review pop-up inlined into `ReviewSection` (`useReviewTriage`); a contextual floating action bar morphs by
     the scrolled section. A=Condense / B=Fade / C=FLIP ratified, `motion` dropped. → [`systems/host-app.md`](systems/host-app.md).
-    **DEFERRED follow-ons (each its own slice):** **album bulk-select** (now folds into the feed's **Select
-    mode** — a shared selection hook + bulk Add-to-Reel/Like/Download/Hide/Approve); **drag-to-reorder** (a
+    **Album bulk-select SHIPPED (2026-06-22, `6e5e1c7` + clamp hotfix `5a73410`):** the Gallery Select mode (a
+    shared `useSelection` + `SelectableMediaGrid` + a `HostSelectionProvider`; Select button / long-press →
+    bulk Add to reel / Like / Hide-Show / Delete; new plain-RLS bulk status+remove mutations; reel/like loop the
+    idempotent RPCs). Download stays out (the zip worker below). → [`systems/host-app.md`](systems/host-app.md).
+    **DEFERRED follow-ons (each its own slice):** **drag-to-reorder** (a
     `reorder_reel` RPC + sortable UI; `position` is reserved for it); the Reel **Create reel** generation flow
     (the floating placeholder ships disabled); guest-facing reel surfacing on `/e/[qr]`; multiple named reels;
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
