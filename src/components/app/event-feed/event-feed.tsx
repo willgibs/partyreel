@@ -18,6 +18,7 @@ import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 
 import { EventFeedActionBar } from "./event-feed-action-bar";
 import { EventFilterPills, type FeedPill } from "./event-filter-pills";
+import { FeedSectionHeader } from "./feed-section-header";
 import { ReviewSection } from "./review-section";
 import { useReviewTriage } from "./use-review-triage";
 
@@ -143,6 +144,8 @@ export function EventFeed({
     ...order.map(pillFor),
   ];
 
+  // Gallery + Reel are opaque RSC slots, so the feed wraps them in a <section> led by the shared header
+  // (the counts live here, not in the slots). Review owns its own header (4 states + the action slot).
   const nodeFor = (k: EventSection): React.ReactNode =>
     k === "review" ? (
       <ReviewSection
@@ -151,9 +154,21 @@ export function EventFeed({
         enabling={enabling}
       />
     ) : k === "gallery" ? (
-      gallerySection
+      <section aria-label="Gallery" className="space-y-2.5">
+        <FeedSectionHeader
+          label={SECTION_LABEL.gallery}
+          count={galleryCount || undefined}
+        />
+        {gallerySection}
+      </section>
     ) : (
-      reelSection
+      <section aria-label="Reel" className="space-y-2.5">
+        <FeedSectionHeader
+          label={SECTION_LABEL.reel}
+          count={reelCount || undefined}
+        />
+        {reelSection}
+      </section>
     );
 
   // The section the floating bar reflects: the scroll-spy in "All", else the pinned filter.

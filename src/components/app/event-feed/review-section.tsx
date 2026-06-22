@@ -3,40 +3,21 @@
 import { Check, Eye, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { FeedSectionEmpty } from "./feed-section-empty";
+import { FeedSectionHeader } from "./feed-section-header";
 import { ReviewActions } from "./review-actions";
 import { ReviewGrid } from "./review-grid";
 import { type ReviewTriage } from "./use-review-triage";
 
-// The eyebrow that labels every stacked section (Review / Gallery / Reel). Amber tone is the
-// load-bearing "needs action" signal on a live review queue, distinct from the neutral labels.
-function Eyebrow({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone?: "amber";
-}) {
-  return (
-    <h2
-      className={`text-[11px] font-semibold tracking-wide uppercase ${
-        tone === "amber" ? "text-warning" : "text-muted-foreground"
-      }`}
-    >
-      {children}
-    </h2>
-  );
-}
-
-// The inline Review section — the always-present replacement for the gated Reviews tab + its
-// pop-up takeover. Four states (driven by useReviewTriage.visualState), each always visible so the
-// urgency reorder has a stable element to relocate:
-//   pending        → the amber eyebrow + the triage grid; browse-mode actions inline (Select /
-//                    Approve all). In select mode the inline actions defer to the floating bar (it
-//                    is forced visible then), so the bulk controls aren't duplicated.
-//   beat           → the all-caught-up success pop ([data-unlock-success]); rides out before the
-//                    section relocates to the bottom.
-//   caught-up      → a slim reassuring line (sorted last).
-//   moderation-off → a one-tap "turn on review" discovery teaser (sorted last).
+// The inline Review section — the always-present replacement for the gated Reviews tab + its pop-up takeover.
+// Every state leads with the shared `FeedSectionHeader` (so it reads + toggles consistently with Gallery /
+// Reel — same band, same top, no bounce), then a body:
+//   pending        → the amber header (label + count + the Select/Approve-all action slot) + the triage grid;
+//   beat           → the all-caught-up success pop ([data-unlock-success]), un-carded;
+//   caught-up      → the shared centered empty body (sorted last);
+//   moderation-off → the shared centered teaser body + a one-tap "Turn on review" (sorted last).
+// caught-up + moderation-off dropped their bordered cards for the centered, card-less `FeedSectionEmpty` —
+// Will's preferred "Reel" treatment (2026-06-22).
 export function ReviewSection({
   triage,
   onEnableModeration,
@@ -51,46 +32,32 @@ export function ReviewSection({
 
   if (visualState === "moderation-off") {
     return (
-      <section
-        aria-label="Review"
-        className="rounded-xl border border-dashed border-border bg-muted/20 p-5"
-      >
-        <Eyebrow>Review</Eyebrow>
-        <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <ShieldCheck className="size-5" />
-          </span>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              Review uploads before they appear
-            </p>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              Turn on review and new uploads wait here for your approval instead
-              of showing live.
-            </p>
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="sm:ml-auto"
-            disabled={enabling}
-            onClick={onEnableModeration}
-          >
-            <Eye /> Turn on review
-          </Button>
-        </div>
+      <section aria-label="Review" className="space-y-2.5">
+        <FeedSectionHeader label="Review" />
+        <FeedSectionEmpty
+          icon={ShieldCheck}
+          title="Review uploads before they appear"
+          desc="Turn on review and new uploads wait here for your approval instead of showing live."
+          action={
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={enabling}
+              onClick={onEnableModeration}
+            >
+              <Eye /> Turn on review
+            </Button>
+          }
+        />
       </section>
     );
   }
 
   if (visualState === "beat") {
     return (
-      <section
-        aria-label="Review"
-        className="rounded-xl border border-border bg-card p-5"
-      >
-        <Eyebrow>Review</Eyebrow>
+      <section aria-label="Review" className="space-y-2.5">
+        <FeedSectionHeader label="Review" amber />
         <div
           data-unlock-success
           className="flex flex-col items-center gap-3 py-6 text-center"
@@ -112,19 +79,13 @@ export function ReviewSection({
 
   if (visualState === "caught-up") {
     return (
-      <section
-        aria-label="Review"
-        className="rounded-xl border border-border bg-card p-5"
-      >
-        <Eyebrow>Review</Eyebrow>
-        <div className="mt-2 flex items-center gap-3">
-          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Check className="size-4" />
-          </span>
-          <p className="text-sm text-muted-foreground">
-            You&rsquo;re all caught up. New uploads land here for review.
-          </p>
-        </div>
+      <section aria-label="Review" className="space-y-2.5">
+        <FeedSectionHeader label="Review" />
+        <FeedSectionEmpty
+          icon={Check}
+          title="You're all caught up"
+          desc="New uploads land here for review."
+        />
       </section>
     );
   }
@@ -132,12 +93,12 @@ export function ReviewSection({
   // visualState === "pending"
   return (
     <section aria-label="Review" className="space-y-2.5">
-      <div className="flex min-h-7 items-center justify-between gap-3">
-        <Eyebrow tone="amber">Review · {pending.length} waiting</Eyebrow>
-        {/* Browse-mode entry points inline; in select mode the forced-visible floating bar owns
-            the bulk controls, so they're never doubled. */}
-        {!selectMode && <ReviewActions triage={triage} />}
-      </div>
+      <FeedSectionHeader
+        label="Review"
+        count={pending.length}
+        amber
+        action={!selectMode ? <ReviewActions triage={triage} /> : undefined}
+      />
       <ReviewGrid
         items={pending}
         selectMode={selectMode}
