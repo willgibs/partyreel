@@ -10,6 +10,29 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — HOTFIX: PGRST201 embed ambiguity took /dashboard + admin + purge cron down (`184bcb1`)
+
+**Incident:** `/dashboard` rendered the "Something went wrong" boundary (Will hit it navigating back from an
+event page). Vercel runtime logs showed **`PGRST201`** — "more than one relationship found between events and
+media" — on `GET /dashboard`.
+
+**Root cause:** the R1 `reel_items` table (`ec49410`, ~2h earlier) is a junction with a composite PK
+`(event_id, media_id)` and FKs to BOTH `events` and `media`, so PostgREST inferred an `events`↔`media`
+many-to-many that collided with the direct `media_event_id_fkey`. Every query embedding `events` from `media`
+via a bare `events!inner(...)` became ambiguous and threw. **Latent since R1** — `/dashboard`
+(`getHostStorageSummary`) was just the first page to hit such an embed; the admin metrics/accounts/moderation
+views and the **purge cron** (a durability job) were silently failing too. typecheck/lint/build can't catch it
+(it's a live-PostgREST schema-relationship resolution, not a type error) — and the R1/R2 red-teams only loaded
+the event page, never `/dashboard`.
+
+**Fix:** pinned all 9 `events`↔`media` embeds to the direct FK — `events!inner(...)` →
+`events!media_event_id_fkey!inner(...)` — across `storage`/`accounts`/`metrics`/`moderation` queries + the
+purge cron. The embedded resource keeps its name `events`, so the `.eq("events.col", …)` filters are unchanged.
+**Verified against LIVE PostgREST before shipping:** the bare form returns PGRST201 (HTTP 300) with both
+relationships named; the hinted form resolves (HTTP 200). Recorded the gotcha as a ★ landmine in
+database-security.md (any new junction over two already-related tables breaks their embeds → always hint the
+FK; grep when adding such a table).
+
 ## 2026-06-21 — Reviews tab + moderation-disable auto-approve confirm (Reel R2+R3, `a7405d6`)
 
 Completed the event-page tab system (**Gallery | Reel | Reviews**) and the moderation lifecycle. The

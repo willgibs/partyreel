@@ -114,6 +114,16 @@ The expected, accepted set:
   created via the MCP must explicitly `revoke execute … from anon`; always re-run `get_advisors` to confirm anon vs authenticated placement.
 - **Postgres integer literals are int4**, so `2 * 1024 * 1024 * 1024` (2 GB) overflows int4 even when
   assigned to a `bigint` constant, during DECLARE init before the body runs. Force `2::bigint * 1024 * 1024 * 1024`.
+- ★ **A NEW junction table silently breaks PostgREST embeds between the two tables it links (PGRST201).** A
+  table with FKs to two tables that ALREADY have a relationship (esp. with a composite PK of exactly those two
+  FKs, like `reel_items(event_id, media_id)`) makes PostgREST infer an extra many-to-many between them — so any
+  existing query embedding one from the other via a bare `tableB!inner(...)` becomes AMBIGUOUS and throws (a
+  runtime PostgREST resolution error — typecheck/lint/build do NOT catch it). This took `/dashboard` + the
+  admin views + the purge cron DOWN ~2h after `reel_items` shipped (latent until a page hit such an embed).
+  **Always PIN cross-table embeds to the FK constraint:** `events!media_event_id_fkey!inner(...)`, never
+  `events!inner(...)`. The embedded resource keeps its table name (`events`), so `.eq("events.col", …)` filters
+  are unchanged. When adding ANY table with two FKs, grep the codebase for embeds between those tables. (Fixed
+  `184bcb1`; verify a hinted embed against live PostgREST — a green build proves nothing here.)
 - **Upload size-spoof (closed, ADR-0014):** `create_media`/`_as_host` once trusted the CLIENT
   `file_size_bytes` (PUT-big-claim-tiny beat the cap). The real size is now re-derived from an R2 HEAD at
   complete (`headObjectSize`, [`../../src/lib/r2/presign.ts`](../../src/lib/r2/presign.ts)); the client value is advisory. → [uploads-and-r2.md](uploads-and-r2.md).
