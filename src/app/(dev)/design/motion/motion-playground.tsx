@@ -7,8 +7,8 @@ import { MotionTuner } from "@/components/dev/motion-tuner";
 import { EVENT_PAGE_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
 import { Button } from "@/components/ui/button";
 
-// Read a --tune-* var (ms) the same way host-review's run() does, so the JS-timed
-// replays (the exit reset + the beat hold) match what the tuner is showing.
+// Read a --tune-* var (ms) the same way the review triage's run() does (use-review-triage.ts),
+// so the JS-timed replays (the exit reset + the beat hold) match what the tuner is showing.
 function readMs(varName: string, fallback: number): number {
   if (typeof window === "undefined") return fallback;
   const raw = getComputedStyle(document.documentElement)

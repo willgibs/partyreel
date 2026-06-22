@@ -190,6 +190,16 @@
   --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
   --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
 
+  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
+     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
+     (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
+     on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
+  --tune-route-fade-ms: 310ms; /* the page route fade-in */
+  --tune-route-fade-ease: ease-out;
+  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
+  --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
+  --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
+
   /* Brand = ink. The alias keeps every legacy brand-tinted class coherent
      under the mono identity with zero sweeps. */
   --brand: var(--primary);
@@ -427,6 +437,31 @@
   @media (prefers-reduced-motion: reduce) {
     [data-check-pop] {
       transition: opacity 120ms ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
+  /* THE EVENT-FEED SECTION SWAP (ratified B=Fade, the lab's blur variant rejected): the feed
+     container is re-keyed on a pill change, and the floating action bar's content is re-keyed on
+     the active section, so @starting-style fires a crossfade + rise as one view replaces another.
+     translateY + opacity only (hardware-accelerated). Tunable via --tune-section-swap-ms; reduced
+     motion keeps the fade. (Promoted here from the lab's design.css on ship.) */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-section-swap] {
+      transition:
+        opacity var(--tune-section-swap-ms, 180ms) var(--ease-emphasis),
+        transform var(--tune-section-swap-ms, 180ms) var(--ease-emphasis);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-section-swap] {
+      transition: opacity 160ms ease-out;
       @starting-style {
         opacity: 0;
       }

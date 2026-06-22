@@ -5,28 +5,25 @@ import { useState } from "react";
 import { ImageUp, QrCode, Settings } from "lucide-react";
 
 import { EventShareDialog } from "@/components/app/event-share-dialog";
+import { useHostAdd } from "@/components/app/host-add-provider";
 import { HostUpload } from "@/components/app/host-upload";
-import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { Button } from "@/components/ui/button";
-import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 
 /**
- * The gallery-first event page's command bar (Phase 5 S3·3b). Share is the host's
- * primary job-to-be-done, so it LEADS; then Add (the upload panel) and a quiet
- * Settings route link. Responsive: Share full-width with Add + Settings beneath
- * on a phone, one row when there's width. The command bar is full page-width, so
- * VIEWPORT breakpoints are correct here (unlike the narrow share dialog).
+ * The gallery-first event page's command bar. Share is the host's primary job-to-be-done, so it
+ * LEADS; then Add (the upload panel) and a quiet Settings route link. Responsive: Share full-width
+ * with Add + Settings beneath on a phone, one row when there's width.
  *
- * The Add pattern mirrors the guest (the ratified upload combo): the command Add
- * toggles the inline upload panel below the bar, and a floating Add appears once
- * the bar scrolls out of view (never both, via the sentinel). The floating Add
- * carries a live "N uploading" chip (HostUpload reports its in-flight count) and
- * scrolls back up to the panel on tap.
+ * The Add state is SHARED via HostAddProvider so the feed's contextual floating action bar (the
+ * Gallery action) opens the SAME panel this strip hosts — the floating Add is now part of the feed
+ * (it morphs across sections), so this strip no longer owns its own floating button or sentinel. It
+ * stays the panel HOST: the inline Add button toggles the upload panel below the bar; HostUpload
+ * reports its in-flight count to the provider for the floating "N uploading" chip. (A local
+ * fallback keeps the strip functional if it's ever rendered without the provider.)
  *
- * NO radix Tooltip here: this renders on the SSR'd host page, and wrapping SSR'd
- * elements in radix Tooltips regressed host-gallery hydration on prod (see
- * architecture.md). Native `title`. The Share DIALOG + the upload panel are client
- * UI inside this client island, so they are safe to be rich.
+ * NO radix Tooltip here: this renders on the SSR'd host page, and wrapping SSR'd elements in radix
+ * Tooltips regressed host-gallery hydration on prod (see architecture.md). Native `title`. The
+ * Share DIALOG + the upload panel are client UI inside this client island, so they stay rich.
  */
 export function HostCommandStrip({
   eventId,
@@ -42,24 +39,19 @@ export function HostCommandStrip({
   videosAllowed: boolean;
 }) {
   const [shareOpen, setShareOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [uploadingCount, setUploadingCount] = useState(0);
-  // The sentinel rides the command row: the floating Add shows only once the row
-  // (with its command Add) has scrolled out of view, so the two never coexist.
-  const { sentinelRef, inView } = useInViewSentinel<HTMLDivElement>();
 
-  function openAddFromFloating() {
-    setAdding(true);
-    // The panel lives at the top, below the bar; bring it back into view.
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  // Shared with the feed's floating Add; fall back to local state if no provider wraps the strip.
+  // The fallback count is write-only here (the floating "N uploading" chip lives in the feed bar).
+  const add = useHostAdd();
+  const [localAdding, setLocalAdding] = useState(false);
+  const [, setLocalCount] = useState(0);
+  const adding = add ? add.adding : localAdding;
+  const toggleAdd = add ? add.toggleAdd : () => setLocalAdding((v) => !v);
+  const setUploadingCount = add ? add.setUploadingCount : setLocalCount;
 
   return (
     <div>
-      <div
-        ref={sentinelRef}
-        className="flex flex-col gap-2 sm:flex-row sm:items-center"
-      >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Button className="sm:flex-1" onClick={() => setShareOpen(true)}>
           <QrCode /> Share
         </Button>
@@ -68,7 +60,7 @@ export function HostCommandStrip({
             variant="outline"
             className="flex-1 sm:flex-none"
             aria-expanded={adding}
-            onClick={() => setAdding((v) => !v)}
+            onClick={toggleAdd}
           >
             <ImageUp /> Add photos
           </Button>
@@ -108,12 +100,6 @@ export function HostCommandStrip({
         showQrDesigner
         manageHref={`/dashboard/${eventId}/settings`}
         manageLabel="Edit link and settings"
-      />
-
-      <FloatingAddButton
-        show={!inView}
-        uploadingCount={uploadingCount}
-        onClick={openAddFromFloating}
       />
     </div>
   );

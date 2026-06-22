@@ -25,7 +25,7 @@ export function EventUploads({
     return (
       <p data-arrive className="text-sm text-muted-foreground">
         {pendingCount > 0
-          ? "Everything uploaded so far is waiting in the Reviews tab."
+          ? "Everything uploaded so far is waiting in Review."
           : "No uploads yet. Add photos with the button above, or share the QR code with guests."}
       </p>
     );

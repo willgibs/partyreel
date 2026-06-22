@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { RotateCcw } from "lucide-react";
 
 import { MotionTuner } from "@/components/dev/motion-tuner";
@@ -22,25 +21,14 @@ import {
 import { GALLERY_TILES, REEL_TILES, REVIEW_TILES } from "./sample-feed";
 import { useFlip } from "./use-flip";
 
-// C3 (the motion reorder) is dynamic-imported so `motion` ships ONLY when C3 is
-// selected, inside this gated dev route - never the production app bundle.
-const MotionReorder = dynamic(
-  () => import("./reorder-motion").then((m) => m.MotionReorder),
-  { ssr: false },
-);
-
-function readMs(varName: string, fallback: number): number {
-  if (typeof window === "undefined") return fallback;
-  const n = parseInt(
-    getComputedStyle(document.documentElement).getPropertyValue(varName).trim(),
-    10,
-  );
-  return Number.isFinite(n) ? n : fallback;
-}
+// RATIFIED (Will, 2026-06-22): A=Condense · B=Fade · C=FLIP. The framer-motion C3 variant was
+// trialed (a dynamic-imported `motion` chunk so it never touched the app bundle) and REJECTED — the
+// hand-rolled CSS FLIP (C2) read cleaner, and `motion` was dropped from the project. C3 + its module
+// are removed; this lab stays as the reference for the comparison's outcome.
 
 type PillVariant = "A1" | "A2" | "A3";
 type SwapVariant = "B1" | "B2" | "B3";
-type ReorderVariant = "C1" | "C2" | "C3";
+type ReorderVariant = "C1" | "C2";
 
 export function EventFeedLab() {
   const [reviewsState, setReviewsState] = useState<ReviewsState>("pending");
@@ -116,15 +104,6 @@ export function EventFeedLab() {
   let feed: React.ReactNode;
   if (filter !== "all") {
     feed = nodeFor(filter as SectionKey);
-  } else if (reorderVariant === "C3") {
-    feed = (
-      <div className="space-y-8">
-        <MotionReorder
-          items={order.map((k) => ({ key: k, node: nodeFor(k) }))}
-          durationMs={readMs("--tune-reorder-ms", 360)}
-        />
-      </div>
-    );
   } else {
     feed = (
       <div className="space-y-8">
@@ -337,7 +316,6 @@ function LabControls({
             options={[
               { v: "C1", label: "Collapse" },
               { v: "C2", label: "FLIP" },
-              { v: "C3", label: "motion" },
             ]}
           />
           <Button

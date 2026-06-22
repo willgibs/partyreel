@@ -9,9 +9,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// The event-feed prototype (gated): feel + ratify the pill behavior (A), the
-// filter-swap transition (B), and the urgency-reorder magic (C) - plus the `motion`
-// trial (C3) - before any of it touches the hydration-sensitive real host page.
+// The event-feed prototype (gated): where the pill behavior (A=Condense), the filter-swap
+// transition (B=Fade), and the urgency-reorder magic (C=FLIP) were felt + ratified before they
+// touched the hydration-sensitive real host page. The framer-motion reorder was trialed here and
+// REJECTED in favor of the CSS FLIP; this lab stays as the reference for that comparison's outcome.
 export default async function EventFeedLabPage({
   searchParams,
 }: {

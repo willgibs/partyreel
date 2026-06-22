@@ -11,18 +11,12 @@ import {
   Users,
 } from "lucide-react";
 
+import { EventFeed } from "@/components/app/event-feed/event-feed";
 import { EventUploads } from "@/components/app/event-uploads";
+import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { ReelPanel } from "@/components/app/reel-panel";
-import { ReviewsPanel } from "@/components/app/reviews-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
-import { ReviewTakeoverProvider } from "@/components/review/review-takeover-provider";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -35,7 +29,7 @@ import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { listReelItems } from "@/lib/db/queries/reel";
 import { listEventMedia } from "@/lib/db/queries/media";
-import { resolveInitialEventTab } from "@/lib/event/tabs";
+import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import { presignDownload } from "@/lib/r2/presign";
@@ -50,7 +44,8 @@ export const dynamic = "force-dynamic";
 // Next 16: params is a Promise — await it.
 type PageProps = {
   params: Promise<{ eventId: string }>;
-  searchParams: Promise<{ eventTab?: string }>;
+  // `?section=` is the new feed filter; `?eventTab=` is the legacy tab alias (still honored).
+  searchParams: Promise<{ section?: string; eventTab?: string }>;
 };
 
 export async function generateMetadata({
@@ -61,17 +56,17 @@ export async function generateMetadata({
   return { title: event ? event.name : "Event" };
 }
 
-// The host event page, gallery-first (Phase 5 S3·3b): the gallery IS the page
-// under a minimal header + a Share-primary command strip, mirroring the guest
-// experience. Settings + the Deleted bin live on the /settings route; the QR
-// designer rides with the Share dialog. (B enriches the header into the editorial
-// status row; C adds the floating + command Add; D adds the review teaser.)
+// The host event page, media-forward feed: a minimal header + a Share-primary command strip, then
+// a dashboard-style STACKED, PILL-FILTERED feed (the tabs are retired) — "All" stacks Review +
+// Gallery + Reel in urgency order, pills narrow to one, the review pop-up is inlined, and a
+// contextual floating action bar follows the scroll. Settings + the Deleted bin live on the
+// /settings route; the QR designer rides with the Share dialog.
 export default async function EventDetailPage({
   params,
   searchParams,
 }: PageProps) {
   const { eventId } = await params;
-  const { eventTab } = await searchParams;
+  const { section, eventTab } = await searchParams;
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
@@ -145,14 +140,12 @@ export default async function EventDetailPage({
   const pendingItems = galleryItems.filter((m) => m.status === "pending");
   const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
-  // The Reviews tab + its takeover exist ONLY while moderation holds uploads for approval; the
-  // resolver gates the tab AND, with no explicit ?eventTab, makes Reviews the landing tab when a
-  // queue is waiting (Will, 2026-06-21) - surfacing the host's review work first.
+  // The Review section is always present under moderation (urgency-ordered: top while a queue
+  // waits, bottom when caught up); a moderation-off teaser offers to turn it on. The initial filter
+  // is "all" by default (the review-first behavior is now SPATIAL — the top of the stack — not a
+  // landing tab); a legacy ?eventTab= deep link still resolves (reviews -> the review section).
   const isModerationOn = event.moderation_mode === "hold_for_approval";
-  const initialTab = resolveInitialEventTab(eventTab, {
-    moderationOn: isModerationOn,
-    hasPending: pendingItems.length > 0,
-  });
+  const initialSection = resolveInitialEventSection(section, eventTab);
 
   // One "views" metric now (the album/join split is gone); sum keeps historical counts.
   const views = linkStats.qrScans + linkStats.albumViews;
@@ -257,87 +250,46 @@ export default async function EventDetailPage({
         </div>
       </div>
 
-      <HostCommandStrip
-        eventId={event.id}
-        eventName={event.name}
-        joinUrl={eventLink}
-        qrStyle={event.qr_style}
-        videosAllowed={videosAllowedForTier(tier)}
-      />
-
-      {/* ReviewTakeoverProvider OWNS the full-screen review takeover: it mounts the takeover Dialog as
-          a sibling of the tabs (always mounted, OUTSIDE any TabsContent) so it survives tab switches -
-          the S4 invariant that its close-exit + all-caught-up beat must outlive the revalidate that
-          empties pendingItems. The Reviews tab's "Review all" opens it via useReviewTakeover(). The
-          ReelProvider wraps BOTH gallery + reel tabs (the shared reel-membership source), so adding
-          from the Gallery reflects instantly in the Reel tab. Tab content is bare (no card wrapper -
-          the tab label carries the name + a count) + client-island, fed by props the RSC resolved up
-          front, so the host page hydrates cleanly (architecture.md). The "line" tabs (underline, no
-          grey box) read cleaner than the segmented default. */}
-      <ReviewTakeoverProvider eventId={event.id} pendingItems={pendingItems}>
+      {/* HostAddProvider shares the "add photos" state so the feed's contextual floating bar (the
+          Gallery action) opens the SAME upload panel the command strip hosts. ReelProvider wraps the
+          feed (the shared reel-membership source), so adding from the Gallery reflects instantly in
+          the Reel section. The Gallery + Reel sections are pre-rendered SLOTS (client islands fed by
+          RSC-resolved props — presigned, hydration-safe); the Review queue crosses as DATA because
+          its inline triage is interactive (driven by the feed + the floating bar). */}
+      <HostAddProvider>
+        <HostCommandStrip
+          eventId={event.id}
+          eventName={event.name}
+          joinUrl={eventLink}
+          qrStyle={event.qr_style}
+          videosAllowed={videosAllowedForTier(tier)}
+        />
         <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-          <Tabs defaultValue={initialTab} className="space-y-4">
-            <TabsList variant="line">
-              <TabsTrigger value="gallery">
-                <span>
-                  Gallery{" "}
-                  {visibleItems.length > 0 && (
-                    <span className="text-muted-foreground tabular-nums">
-                      ({visibleItems.length})
-                    </span>
-                  )}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="reel">
-                <span>
-                  Reel{" "}
-                  {reelIds.length > 0 && (
-                    <span className="text-muted-foreground tabular-nums">
-                      ({reelIds.length})
-                    </span>
-                  )}
-                </span>
-              </TabsTrigger>
-              {/* Reviews: visible ONLY while moderation holds uploads (the trigger + the panel are
-                  gated together, so the resolver never lands on a hidden tab). The count is AMBER
-                  (text-warning) - a needs-action signal, distinct from the neutral Gallery/Reel
-                  counts (Will, 2026-06-21). */}
-              {isModerationOn && (
-                <TabsTrigger value="reviews">
-                  <span>
-                    Reviews{" "}
-                    {pendingItems.length > 0 && (
-                      <span className="text-warning tabular-nums">
-                        ({pendingItems.length})
-                      </span>
-                    )}
-                  </span>
-                </TabsTrigger>
-              )}
-            </TabsList>
-            <TabsContent value="gallery">
+          <EventFeed
+            eventId={event.id}
+            moderationOn={isModerationOn}
+            initialSection={initialSection}
+            pendingItems={pendingItems}
+            galleryCount={visibleItems.length}
+            reelCount={reelIds.length}
+            gallerySection={
               <EventUploads
                 eventId={event.id}
                 items={visibleItems}
                 pendingCount={pendingItems.length}
                 shareUrl={eventLink}
               />
-            </TabsContent>
-            <TabsContent value="reel">
+            }
+            reelSection={
               <ReelPanel
                 eventId={event.id}
                 items={visibleItems}
                 shareUrl={eventLink}
               />
-            </TabsContent>
-            {isModerationOn && (
-              <TabsContent value="reviews">
-                <ReviewsPanel items={pendingItems} />
-              </TabsContent>
-            )}
-          </Tabs>
+            }
+          />
         </ReelProvider>
-      </ReviewTakeoverProvider>
+      </HostAddProvider>
     </div>
   );
 }
