@@ -10,6 +10,43 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-06-22 — Reel .mp4 EXPORT: Download video (Reel V1 slice 3, `f460456`)
+
+The curated reel becomes a downloadable video. A **Download video** button under the composer renders the reel to a
+real `.mp4` on **Remotion Lambda** (AWS) from the **full-res originals** (the player stays on fast previews; a tip
+makes the gap explicit), writes it **directly to R2** (`s3OutputProvider`, no copy), and downloads it. Durable facts
+in [`systems/host-app.md`](systems/host-app.md) "Reel curation … the .mp4 export"; the slice plan in
+[`specs/reel-v1.md`](specs/reel-v1.md). Live-verified on partyreel.com: trigger → render → ready → download.
+- **Async architecture (NOT the sync zip-export):** a Remotion render is a ~60-90s job → ONE file, so the template is
+  the backup-prune **trigger → webhook** pattern. `POST /api/reel/render` (getUser + own-event) → the server-only
+  `render-service` → `renderMediaOnLambda` (funnelled through `lambda-client.ts`, a server-only `@remotion/lambda/client`
+  boundary so the AWS SDK never reaches a client bundle). Completion has TWO idempotent paths: the signed webhook
+  (`/api/internal/reel-complete`, `validateWebhookSignature`) AND the `GET` poll's R2-HEAD finalize
+  (`LastModified >= render_started_at` disambiguates the stable-key overwrite; drives local dev where Lambda can't reach
+  localhost). ★ The bundling trap: importing the `composition` BARREL (re-exports Reel/Root → `remotion`) into a server
+  route breaks the build (`React.createContext` undefined) — server code imports the pure `layout`/`themes`/`reel-types`
+  submodules directly.
+- **Lazy + cached:** a stored `rendered_hash` (sha256 of ordered-approved-ids + theme/seed/length/cover + watermark +
+  version) is the cache key — an unchanged reel re-serves the existing mp4 for **$0**; only config/membership churn
+  re-encodes.
+- **Free-tier watermark:** a small `partyreel.com` wordmark stamped over the reel, server-derived from `profiles.tier`
+  (the render route never trusts the client), mirrored in the live player for WYSIWYG. Pro has none.
+- **Ops (P8):** the `reel_render_enabled` kill-switch + the deny-all `reel_render_log` at `/admin/reels`, the
+  `reel_render` abuse-limiter kind, `highlight_reels` render columns (all service-role-write). Rolled-back grant
+  contract-checked (no host/anon writes); advisors clean.
+- **★ Cleanup landmine fixed:** event-purge deletes R2 by ENUMERATED media keys + the orphan sweep ignores non-media
+  keys, so the reel mp4 (no media row) would leak forever on deletion — `sweepExpiredEvents` now also deletes
+  `reelOutputKey` per purged event.
+- **Live red-team (partyreel.com, demo event):** Download → POST 200 → minted → completed (~72s) → ready, mp4 at
+  `events/<id>/reel/reel.mp4`, **cost $0.00622** (the webhook authenticated + delivered cost). Cache (unchanged →
+  `cached`, $0, no modal), kill-switch (off → 503 "Reel videos are paused" + `rejected_mode`), the free-tier watermark +
+  hint (a Free host), the WYSIWYG tip. All four `reel_render_log` outcomes captured. The `REMOTION_*` +
+  `REEL_RENDER_WEBHOOK_SECRET` moved to Vercel (the production trigger runs server-side; the spike kept them local).
+- **Deferred:** guest-facing reel surfacing + download (its own next slice), Pro video trim + real-video-in-player + R2
+  CORS, the theme palette + the reveal, eager pre-encode (gated on the AWS-quota re-measure).
+
+---
+
 ## 2026-06-22 — Reel COMPOSER: the live in-app reel ($0) (Reel V1 slice 2, `4806e71`)
 
 The reel comes ALIVE in the app. The host's curated set now **plays as a live in-browser `@remotion/player` reel**

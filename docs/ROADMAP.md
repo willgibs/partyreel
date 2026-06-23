@@ -162,14 +162,17 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
     "Download all" zip stays its own deferred worker initiative.
-  - **Generation (SPEC'D 2026-06-22, ready to plan → [`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star.
-    Decisions settled in a deep discovery round: **Remotion** (one composition powers the in-browser `@remotion/player`
-    preview AND the server `renderMediaOnLambda` encode = WYSIWYG), rendered on **Remotion Lambda (AWS)** (the
-    render-infra cost workflow found cost is a rounding error, ~1-2¢/render; AWS okayed). **Lazy + cached** encode on
-    first export, **client live-player** is the $0 universal viewing surface, **shuffle/themes/seed** customization
-    (no timeline, no music), **1 reel all tiers**, **free** with watermark+length levers, **Pro video clips** with
-    preview+trim. NEXT = the V1 plan (slice 1 = the render-pipeline spike: minimal composition + Lambda + S3→R2 +
-    `remotion benchmark`). See the spec for the full data-flow + cost model + deferred list.
+  - **Generation — SLICES 1-3 SHIPPED 2026-06-22 ([`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star is live.
+    S1 spike (`d8b6dba`): Remotion Lambda→R2 proven (direct-to-R2, no copy). S2 composer (`4806e71`): the live in-app
+    `@remotion/player` reel ($0, theme/shuffle/cover/length + auto-fill). **S3 the `.mp4` EXPORT (`f460456`): a Download
+    video button → `renderMediaOnLambda` from full-res originals → direct-to-R2, async trigger+webhook (+ a poll
+    R2-HEAD fallback), lazy+cached (`rendered_hash`), a free-tier `partyreel.com` watermark, the `reel_render_enabled`
+    kill-switch + `reel_render_log` at `/admin/reels`.** Settled (do-not-relitigate): **Remotion** (one composition =
+    WYSIWYG), **Lazy+cached**, **shuffle/themes/seed** (no timeline, no music), **1 reel all tiers**, **free** with the
+    watermark lever, **Pro video** preview+trim. Live: ~$0.006/render, ~72s on the 10-cap. **DEFERRED:** guest-facing
+    reel surfacing + download (its own next slice), Pro video preview+trim + real-video-in-player + R2 CORS, the themes
+    palette + the reveal moment, eager pre-encode (gated on the AWS-quota speed re-measure; case `178216366300642`).
+    → [`systems/host-app.md`](systems/host-app.md).
   See [`systems/host-app.md`](systems/host-app.md).
 - **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
   round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a

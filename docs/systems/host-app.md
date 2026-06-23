@@ -280,7 +280,7 @@ toggling select reflows the tile heights.
 ([`host-upload.tsx`](../../src/components/app/host-upload.tsx)). The pipeline + the `create_media_as_host`
 invariants live in [uploads-and-r2.md](uploads-and-r2.md).
 
-## Reel curation (R1 SHIPPED) + the live composer (SHIPPED) + the .mp4 export (next)
+## Reel curation (R1 SHIPPED) + the live composer (SHIPPED) + the .mp4 export (SHIPPED)
 
 **Reel CURATION (R1) SHIPPED** (2026-06-21): the host marks approved media as "in the reel" and views the
 curated set in the **Reel section** of the stacked feed (the event page is a pill-filtered feed — `Review ·
@@ -331,10 +331,34 @@ turns the `reel_items` order + the already-presigned `GridMedia` into the Player
 Config persists (debounced) via **`upsert_reel_config`** (SECURITY DEFINER, host-owns, lazy-creates the one-per-event
 `highlight_reels` row on the first edit; `status`/`output_key` stay render-only — host table writes are revoked). The
 empty state offers a one-tap **"Fill from gallery"** auto-fill (random batch → `addMany`). `media.clip_*` stays
-scaffold (Pro video trim is a later slice). **NEXT: the `.mp4` EXPORT** (the Lambda render trigger + `highlight_reels`
-lifecycle + "Stitching" modal + watermark + kill-switch/admin) — the render pipeline itself is already proven (the
-slice-1 spike, [`durability-backups.md`](durability-backups.md)-style worker at `workers/reel-render`; see
-[`../specs/reel-v1.md`](../specs/reel-v1.md) for the full slice plan + the lazy-vs-eager gate).
+scaffold (Pro video trim is a later slice).
+
+**The .mp4 EXPORT (Download video) SHIPPED** (2026-06-22, Reel V1 slice 3, commit `f460456`): a **Download video**
+button under the composer renders the curated reel to a real `.mp4` on **Remotion Lambda** (AWS) and downloads it.
+NOT the sync zip-export shape (a Remotion render is a ~60-90s async job → ONE file): the template is the async
+**trigger → webhook** pattern. `POST /api/reel/render` (getUser + own-event) calls the server-only
+[`render-service.ts`](../../src/lib/reel/render-service.ts) → `renderMediaOnLambda` (via the
+[`lambda-client.ts`](../../src/lib/reel/lambda-client.ts) server-only boundary — `@remotion/lambda/client`, the AWS
+SDK never leaks toward a client bundle) writing the mp4 **directly to R2** (`s3OutputProvider`, no copy step) at the
+stable [`reelOutputKey`](../../src/lib/r2/keys.ts) `events/<id>/reel/reel.mp4`. The export renders from **full-res
+ORIGINALS** (the shareable "wow"; the live player stays on the fast previews) via the same `buildReelProps`
+(`posterMode:false`) + a server presign. Completion has TWO idempotent paths: the **signed webhook**
+(`/api/internal/reel-complete`, `validateWebhookSignature` over the parsed body) AND the **`GET /api/reel/render`
+poll's R2-HEAD finalize** (`LastModified >= render_started_at` disambiguates the stable-key overwrite; the poll is the
+local-dev path since Lambda can't reach localhost). The host sees a **"Stitching your reel…" modal**
+([`reel-stitching-dialog.tsx`](../../src/components/reel/reel-stitching-dialog.tsx)) that polls + auto-downloads;
+**lazy + cached** — an unchanged reel (a stored `rendered_hash` over media+config+watermark+version) re-serves the
+existing mp4 for **$0**. **Free tier** stamps a small `partyreel.com` wordmark (server-derived from `profiles.tier`,
+mirrored in the live player for WYSIWYG; the render route NEVER trusts the client flag); Pro has none. Ops: the
+**`reel_render_enabled` kill-switch** + the deny-all **`reel_render_log`** at [`/admin/reels`](../../src/app/admin/reels),
+the **`reel_render`** abuse-limiter kind, the **`highlight_reels` render columns** (status/render_id/rendered_hash/
+render_error/render_started_at/rendered_at/render_cost_usd, all service-role-write). ★ **Cleanup landmine fixed:**
+event-purge deletes R2 by ENUMERATED media keys + the orphan sweep IGNORES non-media keys, so the reel mp4 (no media
+row) would leak forever on deletion — `sweepExpiredEvents` now also deletes `reelOutputKey` per purged event. Live:
+~$0.006/render, ~72s on the new account's 10-concurrency cap (the cap is the slow lever, not the architecture).
+**DEFERRED:** guest-facing reel surfacing + download (its own next slice), Pro video preview+trim + real-video-in-player
++ R2 CORS, the full theme palette + the reveal moment, eager pre-encode (the lazy-vs-eager re-measure stays gated on the
+AWS quota; v1 ships lazy). See [`../specs/reel-v1.md`](../specs/reel-v1.md).
 
 ## See also
 

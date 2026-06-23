@@ -7,10 +7,13 @@
 > the open spike items. · NOT HERE: the build plan (a plan file), implementation detail.
 > GROWS BY: refine in place during planning; supersede when the feature ships.
 
-> **STATUS (2026-06-22):** Slice 1 (render-pipeline spike) ✅ + Slice 2 (the live $0 composer: `@remotion/player` +
-> theme/shuffle/cover/length + auto-fill) ✅ SHIPPED — current truth now lives in [`../systems/host-app.md`](../systems/host-app.md)
-> "Reel composer". NEXT: the `.mp4` export (Lambda trigger + lifecycle + watermark, gated on the speed re-measure),
-> then Pro video trim, then the themes palette + reveal. This spec stays the plan for the remaining slices.
+> **STATUS (2026-06-22):** Slice 1 (render-pipeline spike) ✅ + Slice 2 (the live $0 composer) ✅ + Slice 3 (the
+> `.mp4` EXPORT: Download video → Remotion Lambda → R2, async trigger+webhook, lazy+cached, free-tier watermark,
+> `/admin/reels` kill-switch, `f460456`) ✅ SHIPPED + live-verified (~$0.006/render, ~72s on the 10-cap) — current
+> truth now lives in [`../systems/host-app.md`](../systems/host-app.md) "Reel curation … the .mp4 export". NEXT:
+> **guest-facing reel surfacing + download** (its own slice), then Pro video preview+trim + real-video-in-player + R2
+> CORS, then the themes palette + the reveal. (Eager pre-encode stays gated on the AWS-quota speed re-measure; v1
+> ships lazy.) This spec stays the plan for the remaining slices.
 
 ## What it is + why
 

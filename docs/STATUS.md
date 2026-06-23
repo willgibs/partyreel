@@ -146,8 +146,17 @@ mint route authorizes + HMAC-signs the key list, the browser top-level form-POST
 store-zip (`client-zip`) straight from R2. Concept B config modal + bulk "Download selected" + the guest album;
 `export_log` + the `export_enabled` kill-switch at `/admin/exports`. Live-verified end-to-end (the full chain +
 every fail-closed gate + a real 9-file zip downloaded). Current truth: [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-**▶ NEXT (Will's queue is now clear):** the remaining Reel follow-ons (the
-generation worker) / a future Guests section / the roadmapped user-profiles +
+**Highlight Reel GENERATION ✅ (2026-06-22): the North Star ships.** S1 spike (`d8b6dba`) proved Remotion
+Lambda→R2; S2 composer (`4806e71`) made the reel a live in-app `@remotion/player` ($0, theme/shuffle/cover/length);
+**S3 the `.mp4` EXPORT (`f460456`): a Download video button renders the reel on Lambda from full-res originals →
+direct-to-R2, async trigger+webhook (+ a poll R2-HEAD fallback, both idempotent), lazy+cached, a free-tier
+`partyreel.com` watermark, the `reel_render_enabled` kill-switch + `reel_render_log` at `/admin/reels`.** Live-verified
+end-to-end (trigger → 72s render → ready → download, cost $0.00622, cache, kill-switch, watermark). ★ The reel mp4 is a
+non-media R2 key → the event-purge now deletes it explicitly (a leak fix). Current truth:
+[`systems/host-app.md`](systems/host-app.md) "Reel curation … the .mp4 export"; the slice plan in
+[`specs/reel-v1.md`](specs/reel-v1.md).
+**▶ NEXT (Will's queue is now clear):** **guest-facing reel surfacing + download** (its own slice — a new `/e/` surface
++ a capability-token reel RPC) / a future Guests section / the roadmapped user-profiles +
 social program. The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
@@ -169,8 +178,8 @@ media durability (all 3 pillars + the deletion-aware backup prune, shipping in d
 data-layer security hardening. Canonical domain
 **partyreel.com**.
 
-**Only scaffolded:** the highlight reel (DB scaffold only; the build is tabled pending a worker-platform
-decision — see [ROADMAP.md](ROADMAP.md)).
+The **highlight reel is now fully built** (curation R1-R3 + bulk-select + drag-reorder + the live composer + the
+`.mp4` export on Remotion Lambda); the remaining reel work is guest surfacing + Pro video trim (see the NEXT above).
 ## Infrastructure
 
 All backing services run under the dedicated owner account **partyr33l@gmail.com ("P3")** (the migration
