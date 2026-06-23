@@ -29,6 +29,21 @@ export function mediaObjectKey(params: {
   return `events/${eventId}/${kind}/${mediaId}/${variant}.${ext}`;
 }
 
+/**
+ * The R2 key for an event's rendered highlight-reel .mp4 (Slice 3). A DERIVED artifact, NOT media:
+ * one STABLE key per event (a re-render overwrites in place — no accumulation; highlight_reels.
+ * rendered_hash tracks whether the bytes are current).
+ *
+ * ★ DELIBERATELY non-media-shaped (4 segments, no <kind>/<mediaId>/<variant>): parseMediaIdFromKey
+ * returns null for it, so the purge cron's ORPHAN SWEEP leaves it alone ("not ours → never delete")
+ * instead of nuking it as an orphan (it has no media row). The flip side: event-deletion purges R2
+ * by ENUMERATED media keys, so this key is NOT swept by that path automatically — sweepExpiredEvents
+ * appends reelOutputKey(eventId) to its delete batch explicitly (see cron/purge), or it would leak.
+ */
+export function reelOutputKey(eventId: string): string {
+  return `events/${eventId}/reel/reel.mp4`;
+}
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

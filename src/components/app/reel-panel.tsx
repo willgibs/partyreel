@@ -30,6 +30,7 @@ export function ReelPanel({
   items,
   shareUrl,
   reelConfig,
+  watermark,
 }: {
   eventId: string;
   /** All visible (approved + hidden) gallery items; filtered here to the in-reel, approved set. */
@@ -38,6 +39,8 @@ export function ReelPanel({
   /** The composer config (theme/seed/length/cover); null until first composed. Consumed by the
    *  reel composer (mounts the live @remotion/player). Accepted now; wired in the composer step. */
   reelConfig: ReelConfig | null;
+  /** Free tier → the live player + the .mp4 export carry the partyreel.com wordmark. */
+  watermark: boolean;
 }) {
   const reel = useReel();
   const reorder = useReelReorder();
@@ -71,8 +74,13 @@ export function ReelPanel({
 
   return (
     <div className="space-y-4">
-      {/* The live composer (player hero + theme/shuffle/cover/length) sits on top... */}
-      <ReelComposer eventId={eventId} items={items} reelConfig={reelConfig} />
+      {/* The live composer (player hero + theme/shuffle/cover/length + Download) sits on top... */}
+      <ReelComposer
+        eventId={eventId}
+        items={items}
+        reelConfig={reelConfig}
+        watermark={watermark}
+      />
       {/* ...over the editable curated filmstrip (add/remove via the clapperboard, reorder via the
           header). A uniform grid (a legible sequence), not the gallery's natural-ratio masonry. */}
       <LikesProvider mediaIds={reelItems.map((i) => i.id)}>

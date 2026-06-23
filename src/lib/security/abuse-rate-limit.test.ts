@@ -52,6 +52,21 @@ describe("abuseRateDecision", () => {
     ).toBe(false);
   });
 
+  it("reel_render: tight per-(IP,event) cap + cross-event breadth guard", () => {
+    // Normal: a host rendering their own reel a few times is fine.
+    expect(abuseRateDecision("reel_render", 1, 3).allowed).toBe(true);
+    // A shuffle→render abuse loop on one event trips the backstop.
+    expect(
+      abuseRateDecision("reel_render", 1, ABUSE_LIMITS.reel_render.scopeMax)
+        .allowed,
+    ).toBe(false);
+    // One IP forcing renders across many DISTINCT events trips breadth.
+    expect(
+      abuseRateDecision("reel_render", ABUSE_LIMITS.reel_render.breadthMax, 0)
+        .allowed,
+    ).toBe(false);
+  });
+
   it("backstop takes precedence over breadth when both trip", () => {
     const r = abuseRateDecision(
       "join",

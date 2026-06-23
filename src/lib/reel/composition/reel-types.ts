@@ -37,6 +37,13 @@ export type ReelProps = {
    * real <Video>. Additive + defaulted false, so the export path is byte-identical.
    */
   posterMode?: boolean;
+  /**
+   * Free-tier export lever: stamp a small "partyreel.com" wordmark over the reel (the corner-logo
+   * upgrade nudge + free marketing; the spec's free-vs-Pro differentiator). The render service derives
+   * this from the host's tier server-side (Free → true); the composer mirrors it in the live player so
+   * a Free host sees exactly what they'll download. Additive + defaulted false (no mark for Pro).
+   */
+  watermark?: boolean;
 };
 
 /** The base "vibe" kit. The palette of kits lives in themes.ts; a per-reel seed samples within a kit. */

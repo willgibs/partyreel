@@ -272,6 +272,12 @@ export type Database = {
           id: string
           length_seconds: number | null
           output_key: string | null
+          render_cost_usd: number | null
+          render_error: string | null
+          render_id: string | null
+          render_started_at: string | null
+          rendered_at: string | null
+          rendered_hash: string | null
           seed: number
           status: Database["public"]["Enums"]["reel_status"]
           theme: string
@@ -284,6 +290,12 @@ export type Database = {
           id?: string
           length_seconds?: number | null
           output_key?: string | null
+          render_cost_usd?: number | null
+          render_error?: string | null
+          render_id?: string | null
+          render_started_at?: string | null
+          rendered_at?: string | null
+          rendered_hash?: string | null
           seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
           theme?: string
@@ -296,6 +308,12 @@ export type Database = {
           id?: string
           length_seconds?: number | null
           output_key?: string | null
+          render_cost_usd?: number | null
+          render_error?: string | null
+          render_id?: string | null
+          render_started_at?: string | null
+          rendered_at?: string | null
+          rendered_hash?: string | null
           seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
           theme?: string
@@ -671,6 +689,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reel_render_log: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          duration_sec: number | null
+          error: string | null
+          event_id: string | null
+          id: string
+          outcome: string
+          render_id: string | null
+          requester_hash: string | null
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          duration_sec?: number | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          outcome: string
+          render_id?: string | null
+          requester_hash?: string | null
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          duration_sec?: number | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          outcome?: string
+          render_id?: string | null
+          requester_hash?: string | null
+        }
+        Relationships: []
       }
       reports: {
         Row: {

@@ -26,6 +26,7 @@ export type SentryArea =
   | "account"
   | "security"
   | "export"
+  | "reel"
   | "other"
   | "render:app"
   | "render:guest"

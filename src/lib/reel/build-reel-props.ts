@@ -1,10 +1,14 @@
 import { type GridMedia } from "@/components/app/media-grid";
-import {
-  layoutReel,
-  type ReelClip,
-  type ReelProps,
-  type ReelTheme,
-} from "@/lib/reel/composition";
+// Import the PURE composition submodules directly (not the ./composition barrel) — the barrel re-exports
+// Reel/Root, which pull in the `remotion` runtime, and this builder runs on the SERVER too (the render
+// service). The barrel would drag `remotion`'s React.createContext into the server bundle and break the
+// build. layout.ts + reel-types.ts have no remotion import.
+import { layoutReel } from "@/lib/reel/composition/layout";
+import type {
+  ReelClip,
+  ReelProps,
+  ReelTheme,
+} from "@/lib/reel/composition/reel-types";
 
 // How long a video clip plays when no custom trim is set (the trim UI is a later, Pro slice). The
 // stills-only v1 reel rarely has video; this keeps a Pro video clip from dominating the montage.
@@ -26,6 +30,8 @@ export type BuildReelPropsArgs = {
    * R2 video over CORS). The export passes false → a real <Video> from the original mp4 url.
    */
   posterMode?: boolean;
+  /** Stamp the free-tier "partyreel.com" wordmark (default false). Set from the host's tier. */
+  watermark?: boolean;
 };
 
 /**
@@ -44,6 +50,7 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
     coverMediaId,
     lengthSeconds,
     posterMode = true,
+    watermark = false,
   } = args;
 
   // Resolve to approved-only media in reel order (a hidden/removed item drops out, as in ReelPanel).
@@ -80,7 +87,7 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
       ? capToLength(clips, theme, seed, lengthSeconds)
       : clips;
 
-  return { clips: capped, theme, seed, posterMode };
+  return { clips: capped, theme, seed, posterMode, watermark };
 }
 
 /** Keep the clips whose playback FINISHES within lengthSeconds (always at least the first clip). */

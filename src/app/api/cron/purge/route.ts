@@ -45,7 +45,7 @@ import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { captureError } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
-import { parseMediaIdFromKey } from "@/lib/r2/keys";
+import { parseMediaIdFromKey, reelOutputKey } from "@/lib/r2/keys";
 import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
 import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -202,7 +202,14 @@ async function sweepExpiredEvents(
 
   const rows = (media ?? []) as MediaRow[];
   const mediaIds = rows.map((r) => r.id);
-  const r2 = await deleteR2Objects(keysOf(rows));
+  // Also delete each event's rendered highlight-reel .mp4. It's a DERIVED artifact with no media
+  // row, so the media-key enumeration above never includes it AND the orphan sweep ignores it
+  // (non-media-shaped key) — without this it would leak forever. Deterministic key + R2's
+  // delete-absent-is-success means appending it is safe whether or not a reel was ever rendered.
+  const r2 = await deleteR2Objects([
+    ...keysOf(rows),
+    ...eventIds.map(reelOutputKey),
+  ]);
   const freed = mediaIds.length ? await purgeRows(admin, mediaIds) : 0;
   mediaIds.forEach((id) => handled.add(id));
 
@@ -457,7 +464,9 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
     // ACTIVE bytes = non-removed media in non-deleted events.
     const { data: media, error: mErr } = await admin
       .from("media")
-      .select("id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)")
+      .select(
+        "id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)",
+      )
       .eq("events.host_id", p.id)
       .is("events.deleted_at", null)
       .neq("status", "removed");

@@ -250,6 +250,31 @@ export async function headObjectSize(params: { key: string }): Promise<number> {
 }
 
 /**
+ * Non-throwing HEAD: returns the object's size + LastModified, or null when it's absent. Used by the
+ * reel-render completion check — a present object whose LastModified is AT/AFTER the render's start is
+ * THIS render's output (the .mp4 lands ~60-90s after start; a stale prior render at the same stable key
+ * is minutes/hours older, so the timestamp disambiguates the overwrite). A NotFound/403 → null (still
+ * rendering / not there). Server-side HEAD, R2 is strongly read-after-write consistent.
+ */
+export async function headObject(params: {
+  key: string;
+}): Promise<{ size: number; lastModified: Date | null } | null> {
+  const { key } = params;
+  const { R2_BUCKET } = assertR2Env();
+  try {
+    const out = await getR2Client().send(
+      new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+    );
+    return {
+      size: out.ContentLength ?? 0,
+      lastModified: out.LastModified ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Short-lived presigned GET URL for media.
  *
  * Two modes from the SAME key:

@@ -121,8 +121,59 @@ const ClipLayer: React.FC<{
   );
 };
 
+// The free-tier wordmark: a small, tasteful "partyreel.com" pill stamped over the WHOLE reel (rendered
+// outside the per-clip Sequences so it persists every frame). Bottom-center with safe-area padding so it
+// clears the social app's UI chrome; a semi-opaque dark pill + text-shadow keeps it legible over any
+// media. Inline styles + a web-safe font stack (no external asset/font) so it renders identically in the
+// browser player AND Lambda's headless Chromium (WYSIWYG).
+const FONT_STACK =
+  'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+const Watermark: React.FC = () => {
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: "flex-end",
+        alignItems: "center",
+        paddingBottom: 104,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "12px 22px",
+          borderRadius: 999,
+          backgroundColor: "rgba(10,10,10,0.34)",
+          border: "1px solid rgba(255,255,255,0.16)",
+          color: "rgba(255,255,255,0.96)",
+          fontFamily: FONT_STACK,
+          fontSize: 34,
+          fontWeight: 600,
+          letterSpacing: 0.3,
+          textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+        }}
+      >
+        <span
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: 4,
+            // The reel's violet brand mark (mirrors the Clapperboard hue).
+            backgroundColor: "#8b5cf6",
+            boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
+          }}
+        />
+        partyreel.com
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 export const Reel: React.FC<ReelProps> = (props) => {
-  const { theme, seed, posterMode = false } = props;
+  const { theme, seed, posterMode = false, watermark = false } = props;
   const { fps } = useVideoConfig();
   const { placed } = layoutReel(props);
   const crossFrames = Math.max(1, Math.round(theme.crossfadeSec * fps));
@@ -143,6 +194,7 @@ export const Reel: React.FC<ReelProps> = (props) => {
           />
         </Sequence>
       ))}
+      {watermark && <Watermark />}
     </AbsoluteFill>
   );
 };

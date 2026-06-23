@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Film,
   Flag,
   Images,
   LayoutDashboard,
@@ -23,6 +24,7 @@ export const NAV: NavItem[] = [
   { href: "/admin/accounts", label: "Accounts", icon: Wallet },
   { href: "/admin/reports", label: "Reports", icon: Flag },
   { href: "/admin/albums", label: "Albums", icon: Images },
+  { href: "/admin/reels", label: "Reels", icon: Film },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { href: "/admin/security", label: "Security", icon: ShieldCheck },
 ];

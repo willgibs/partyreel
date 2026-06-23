@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, Clapperboard, Clock, Shuffle } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Clapperboard, Clock, Download, Shuffle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { type GridMedia } from "@/components/app/media-grid";
 import { ReelPlayer } from "@/components/reel/reel-player";
 import { useReel } from "@/components/reel/reel-provider";
+import { ReelStitchingDialog } from "@/components/reel/reel-stitching-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -22,28 +23,15 @@ import {
   type ThemeId,
 } from "@/lib/reel/composition";
 import { type ReelConfig } from "@/lib/db/queries/reel";
+import { defaultReelSeed, SEED_MAX } from "@/lib/reel/seed-default";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-// Seeds stay < 1e6 so seeded()'s `seed * 2654435761` multiply is exact in V8 (both the browser Player
-// and the Lambda's headless Chrome) → the preview and the export render the identical take.
-const SEED_MAX = 1_000_000;
 
 const LENGTHS: { label: string; value: number | null }[] = [
   { label: "Auto", value: null },
   { label: "15s", value: 15 },
   { label: "30s", value: 30 },
 ];
-
-// A stable default seed per event, so an un-shuffled reel looks the same on every reload (until the host
-// shuffles + we persist a chosen seed).
-function seedFromEventId(eventId: string): number {
-  let h = 0;
-  for (let i = 0; i < eventId.length; i++) {
-    h = (h * 31 + eventId.charCodeAt(i)) % SEED_MAX;
-  }
-  return h;
-}
 
 function rpcOk(data: unknown): boolean {
   return (
@@ -61,11 +49,14 @@ export function ReelComposer({
   eventId,
   items,
   reelConfig,
+  watermark,
 }: {
   eventId: string;
   /** All visible gallery items (already presigned); the reel is a subset by id. */
   items: GridMedia[];
   reelConfig: ReelConfig | null;
+  /** Free tier → stamp the partyreel.com wordmark in the live player (mirrors the export). */
+  watermark: boolean;
 }) {
   const reel = useReel();
   const orderedIds = useMemo(() => reel?.orderedIds ?? [], [reel?.orderedIds]);
@@ -76,7 +67,7 @@ export function ReelComposer({
       : DEFAULT_THEME_ID,
   );
   const [seed, setSeed] = useState<number>(
-    () => reelConfig?.seed ?? seedFromEventId(eventId),
+    () => reelConfig?.seed ?? defaultReelSeed(eventId),
   );
   const [coverMediaId, setCoverMediaId] = useState<string | null>(
     () => reelConfig?.coverMediaId ?? null,
@@ -106,13 +97,36 @@ export function ReelComposer({
         coverMediaId,
         lengthSeconds,
         posterMode: true,
+        watermark,
       }),
-    [orderedIds, byId, themeId, seed, coverMediaId, lengthSeconds],
+    [orderedIds, byId, themeId, seed, coverMediaId, lengthSeconds, watermark],
   );
 
-  // Debounced persist. Skips the first run (the config is already server truth / defaults) so just
-  // viewing the reel never writes; a real edit (theme/shuffle/cover/length) lazily upserts the row.
+  // The single config-persist (upsert_reel_config lazily creates the reel row). Shared by the debounced
+  // auto-save AND the Download handler (which flushes the latest config FIRST, so the rendered .mp4
+  // matches exactly what the player shows — no debounce race).
   const supabase = useMemo(() => createClient(), []);
+  const persistConfig = useCallback(async (): Promise<boolean> => {
+    const args: {
+      p_event_id: string;
+      p_theme: string;
+      p_seed: number;
+      p_length_seconds?: number;
+      p_cover_media_id?: string;
+    } = { p_event_id: eventId, p_theme: themeId, p_seed: seed };
+    // Omit (→ SQL default null) to CLEAR length/cover; pass to set.
+    if (lengthSeconds != null) args.p_length_seconds = lengthSeconds;
+    if (coverMediaId != null) args.p_cover_media_id = coverMediaId;
+    const { data, error } = await supabase.rpc("upsert_reel_config", args);
+    if (error || !rpcOk(data)) {
+      toast.error("Couldn't save your reel settings.");
+      return false;
+    }
+    return true;
+  }, [eventId, themeId, seed, lengthSeconds, coverMediaId, supabase]);
+
+  // Debounced auto-save. Skips the first run (the config is already server truth / defaults) so just
+  // viewing the reel never writes; a real edit (theme/shuffle/cover/length) lazily upserts the row.
   const firstRun = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -121,25 +135,59 @@ export function ReelComposer({
       return;
     }
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      const args: {
-        p_event_id: string;
-        p_theme: string;
-        p_seed: number;
-        p_length_seconds?: number;
-        p_cover_media_id?: string;
-      } = { p_event_id: eventId, p_theme: themeId, p_seed: seed };
-      // Omit (→ SQL default null) to CLEAR length/cover; pass to set.
-      if (lengthSeconds != null) args.p_length_seconds = lengthSeconds;
-      if (coverMediaId != null) args.p_cover_media_id = coverMediaId;
-      const { data, error } = await supabase.rpc("upsert_reel_config", args);
-      if (error || !rpcOk(data))
-        toast.error("Couldn't save your reel settings.");
+    timer.current = setTimeout(() => {
+      void persistConfig();
     }, 600);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [themeId, seed, coverMediaId, lengthSeconds, eventId, supabase]);
+  }, [persistConfig]);
+
+  // Download → render the .mp4. Cached unchanged reels come back ready instantly; otherwise a render
+  // kicks off and the Stitching modal polls until it lands. A presigned attachment URL → an <a> click.
+  const [downloading, setDownloading] = useState(false);
+  const [stitchOpen, setStitchOpen] = useState(false);
+
+  const downloadReel = useCallback((url: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.rel = "noopener";
+    // The presigned URL carries Content-Disposition: attachment, so the file saves (the download attr
+    // is just a hint cross-origin).
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, []);
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      await persistConfig();
+      const res = await fetch("/api/reel/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.ok) {
+        toast.error(
+          data?.message ?? "Couldn't start your reel video. Please try again.",
+        );
+        return;
+      }
+      if (data.status === "ready" && data.downloadUrl) {
+        downloadReel(data.downloadUrl);
+        toast.success("Your reel is ready.");
+      } else {
+        setStitchOpen(true); // processing → the modal polls until it's ready
+      }
+    } catch {
+      toast.error("Couldn't start your reel video. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }, [eventId, persistConfig, downloadReel]);
 
   return (
     <div className="space-y-3">
@@ -266,6 +314,34 @@ export function ReelComposer({
           })}
         </div>
       </div>
+
+      {/* Download → the .mp4. The tip makes the preview-vs-export quality gap explicit (the player runs
+          on fast previews; the download renders from full-res originals). */}
+      <div className="flex flex-col gap-1.5 border-t pt-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <Button type="button" onClick={handleDownload} disabled={downloading}>
+            <Download />
+            {downloading ? "Preparing…" : "Download video"}
+          </Button>
+          {watermark && (
+            <span className="text-xs text-muted-foreground">
+              Free reels include a small partyreel.com mark.
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          This preview is optimized for speed. Your download renders in full
+          quality.
+        </p>
+      </div>
+
+      <ReelStitchingDialog
+        eventId={eventId}
+        open={stitchOpen}
+        onOpenChange={setStitchOpen}
+        onReady={downloadReel}
+        onRetry={handleDownload}
+      />
     </div>
   );
 }

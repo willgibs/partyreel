@@ -13,7 +13,12 @@
  * limiter error.
  */
 
-export type AbuseKind = "join" | "report" | "capture" | "export";
+export type AbuseKind =
+  | "join"
+  | "report"
+  | "capture"
+  | "export"
+  | "reel_render";
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -31,16 +36,47 @@ type Limit = {
 export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
   // Join is venue-heavy → breadth is the primary guard; the per-(IP,event) backstop is a high runaway-bot cap
   // (400/15min to ONE event from ONE IP ≈ a very large venue; a scraper hits MANY events → breadth catches it).
-  join: { breadthWindowMin: 60, breadthMax: 25, scopeWindowMin: 15, scopeMax: 400 },
+  join: {
+    breadthWindowMin: 60,
+    breadthMax: 25,
+    scopeWindowMin: 15,
+    scopeMax: 400,
+  },
   // Reports are rare even at a big venue → a tighter per-(IP,event) cap + a cross-event report-bomb guard.
-  report: { breadthWindowMin: 60, breadthMax: 30, scopeWindowMin: 60, scopeMax: 15 },
+  report: {
+    breadthWindowMin: 60,
+    breadthMax: 30,
+    scopeWindowMin: 60,
+    scopeMax: 15,
+  },
   // Capture is already gated by a verified session → a light per-IP cap; no breadth (scope is a constant).
-  capture: { breadthWindowMin: 60, breadthMax: Infinity, scopeWindowMin: 60, scopeMax: 40 },
+  capture: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 40,
+  },
   // "Download all" zip-export mints, scope = (IP, event). BREADTH is the scraper guard (one IP exporting
   // many DISTINCT events → a harvester; a venue is ONE event → never trips). The per-(IP,event) backstop
   // sits well above a big venue's end-of-night download burst (~100/15min from one NAT) — a runaway-bot
   // ceiling only. The token (signed, 2-min TTL) is the real gate, so the routes fail OPEN on a limiter error.
-  export: { breadthWindowMin: 60, breadthMax: 15, scopeWindowMin: 15, scopeMax: 100 },
+  export: {
+    breadthWindowMin: 60,
+    breadthMax: 15,
+    scopeWindowMin: 15,
+    scopeMax: 100,
+  },
+  // Reel .mp4 renders, scope = (IP, event). Each render costs Lambda compute, so this is TIGHTER than
+  // export — but the cache (an unchanged reel re-serves the existing mp4 for $0) means the natural rate is
+  // near zero; only config churn forces re-encodes. A host shuffle→render→shuffle→render loop is the abuse
+  // shape, bounded per-(IP,event); breadth catches one IP rendering many events. getUser + host-owns is
+  // the real gate, so the route fails OPEN on a limiter error.
+  reel_render: {
+    breadthWindowMin: 60,
+    breadthMax: 10,
+    scopeWindowMin: 60,
+    scopeMax: 20,
+  },
 };
 
 /**
