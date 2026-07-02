@@ -1,17 +1,17 @@
 import { type CalculateMetadataFunction, Composition } from "remotion";
 
 import { FPS, REEL_HEIGHT, REEL_WIDTH, reelDimensions } from "./constants";
-import { planReel } from "./layout";
-import { Reel } from "./Reel";
 import { type ReelProps, THEME_CLASSIC } from "./reel-types";
+import { StyleDispatch, styleDuration } from "./style-render";
 
-// Duration is derived from the seeded plan (the timeline), and the DIMENSIONS from the orientation, so what
-// the <Composition> reports always matches what it renders, in either orientation. (The <Player> can't call
-// this — it derives both the same way, via planReel + reelDimensions, in reel-player.tsx.)
+// Duration is derived from the styleId's own timeline (planReel for a mood, the treatment's duration fn), and
+// the DIMENSIONS from the orientation, so what the <Composition> reports always matches what it renders, in
+// either orientation + any style. (The <Player> can't call this — it derives both the same way, via
+// styleDuration + reelDimensions, in reel-player.tsx.)
 const calculateMetadata: CalculateMetadataFunction<ReelProps> = ({ props }) => {
-  const { totalFrames } = planReel(props);
+  const durationInFrames = styleDuration(props.styleId, props);
   const { width, height } = reelDimensions(props.orientation);
-  return { durationInFrames: Math.max(1, totalFrames), width, height };
+  return { durationInFrames, width, height };
 };
 
 // Studio default props — public placeholder images so Studio renders out-of-the-box. The real Lambda
@@ -26,13 +26,14 @@ const SAMPLE: ReelProps = {
   ],
   theme: THEME_CLASSIC,
   seed: 42,
+  styleId: "classic",
 };
 
 export const RemotionRoot: React.FC = () => {
   return (
     <Composition
       id="Reel"
-      component={Reel}
+      component={StyleDispatch}
       fps={FPS}
       width={REEL_WIDTH}
       height={REEL_HEIGHT}

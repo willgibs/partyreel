@@ -30,6 +30,17 @@ export {
 export { Reel } from "./Reel";
 export { RemotionRoot } from "./Root";
 export {
+  DEFAULT_STYLE_ID,
+  isTreatment,
+  resolveStyleEntry,
+  STYLE_CATALOG,
+  STYLE_IDS,
+  type StyleEntry,
+  type StyleKind,
+  styleThemeId,
+} from "./style-registry";
+export { StyleDispatch, styleComponent, styleDuration } from "./style-render";
+export {
   PolaroidStack,
   polaroidStackDuration,
 } from "./treatments/polaroid-stack";

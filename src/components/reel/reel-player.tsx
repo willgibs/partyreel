@@ -5,20 +5,19 @@ import { useMemo } from "react";
 
 import {
   FPS,
-  planReel,
-  Reel,
   reelDimensions,
   type ReelProps,
+  StyleDispatch,
+  styleDuration,
 } from "@/lib/reel/composition";
 
-// The live, in-app reel — the SAME <Reel> composition the Lambda render will encode, so the preview IS
-// the export (WYSIWYG). $0 + universal: nothing encodes; a shuffle (new seed in reelProps) just
-// re-renders here. The <Player> (unlike <Composition>) needs duration/fps/dimensions passed explicitly, so
-// we derive duration via the shared planReel + dimensions via reelDimensions(orientation) — neither can
-// drift from what the encoder produces.
+// The live, in-app reel — the SAME StyleDispatch composition the Lambda render will encode, so the preview
+// IS the export (WYSIWYG). $0 + universal: nothing encodes. The <Player> (unlike <Composition>) needs
+// duration/fps/dimensions passed explicitly, so we derive duration via the shared styleDuration (per-style)
+// + dimensions via reelDimensions(orientation) — neither can drift from what the encoder produces.
 export function ReelPlayer({ reelProps }: { reelProps: ReelProps }) {
   const durationInFrames = useMemo(
-    () => Math.max(1, planReel(reelProps).totalFrames),
+    () => styleDuration(reelProps.styleId, reelProps),
     [reelProps],
   );
   const { width, height } = reelDimensions(reelProps.orientation);
@@ -31,7 +30,7 @@ export function ReelPlayer({ reelProps }: { reelProps: ReelProps }) {
       className={`mx-auto w-full overflow-hidden rounded-xl border bg-black shadow-sm ${landscape ? "max-w-[640px]" : "max-w-[360px]"}`}
     >
       <Player
-        component={Reel}
+        component={StyleDispatch}
         inputProps={reelProps}
         durationInFrames={durationInFrames}
         fps={FPS}

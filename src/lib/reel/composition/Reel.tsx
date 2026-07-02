@@ -193,54 +193,11 @@ function timingFor(gap: PlannedGap) {
     : linearTiming({ durationInFrames: gap.durationInFrames });
 }
 
-// --- The free-tier wordmark (unchanged this round; the brand-violet hex tidy is a later hygiene item).
-const FONT_STACK =
-  'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-
-const Watermark: React.FC = () => {
-  return (
-    <AbsoluteFill
-      style={{
-        justifyContent: "flex-end",
-        alignItems: "center",
-        paddingBottom: 104,
-        pointerEvents: "none",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "12px 22px",
-          borderRadius: 999,
-          backgroundColor: "rgba(10,10,10,0.34)",
-          border: "1px solid rgba(255,255,255,0.16)",
-          color: "rgba(255,255,255,0.96)",
-          fontFamily: FONT_STACK,
-          fontSize: 34,
-          fontWeight: 600,
-          letterSpacing: 0.3,
-          textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-        }}
-      >
-        <span
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: 4,
-            backgroundColor: "#8b5cf6",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
-          }}
-        />
-        partyreel.com
-      </div>
-    </AbsoluteFill>
-  );
-};
+// NOTE: the free-tier wordmark used to live + render here. It was hoisted to ./style-render (StyleDispatch)
+// so ALL 14 styles (moods + treatments) stamp it uniformly — a treatment reel must not export unmarked.
 
 export const Reel: React.FC<ReelProps> = (props) => {
-  const { theme, seed, posterMode = false, watermark = false } = props;
+  const { theme, seed, posterMode = false } = props;
   const { width, height } = useVideoConfig();
   const frame = useCurrentFrame();
   const plan = planReel(props);
@@ -329,7 +286,6 @@ export const Reel: React.FC<ReelProps> = (props) => {
           }}
         />
       ) : null}
-      {watermark && <Watermark />}
     </AbsoluteFill>
   );
 };

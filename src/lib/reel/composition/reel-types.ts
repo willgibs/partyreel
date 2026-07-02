@@ -129,6 +129,13 @@ export type ReelProps = {
   /** Output orientation — portrait 9:16 (default) or landscape 16:9; every style adapts to both. */
   orientation?: Orientation;
   /**
+   * The catalog style — a media-first mood id (=== its themeId) or a stylized treatment id. Drives which
+   * composition the StyleDispatch renders + the per-style duration. Resolved via the pure style-registry;
+   * unknown/missing falls back to the default mood (Cinematic). Folded into the render hash so each style
+   * exports distinctly. `theme` is already resolved from this upstream (in build-reel-props).
+   */
+  styleId?: string;
+  /**
    * Player-only: render video clips as their POSTER still (an <Img>) instead of decoding the mp4. The
    * in-browser @remotion/player hits R2 CORS on <Video> fetches (headless-Chrome/browser), so the live
    * preview shows clips by their poster (the spec's v1 behavior). The Lambda export leaves this false →
