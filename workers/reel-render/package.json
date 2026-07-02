@@ -22,6 +22,7 @@
     "@remotion/lambda": "4.0.482",
     "@remotion/media": "4.0.482",
     "@remotion/player": "4.0.482",
+    "@remotion/transitions": "4.0.482",
     "dotenv": "^16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

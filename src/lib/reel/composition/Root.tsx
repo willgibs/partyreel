@@ -1,16 +1,17 @@
 import { type CalculateMetadataFunction, Composition } from "remotion";
 
-import { FPS, REEL_HEIGHT, REEL_WIDTH } from "./constants";
-import { layoutReel } from "./layout";
+import { FPS, REEL_HEIGHT, REEL_WIDTH, reelDimensions } from "./constants";
+import { planReel } from "./layout";
 import { Reel } from "./Reel";
 import { type ReelProps, THEME_CLASSIC } from "./reel-types";
 
-// Duration is derived from the clip list (the timeline layout), so what the <Composition> reports
-// always matches what it renders. (The <Player> can't call this — it derives duration the same way,
-// via layoutReel, in reel-player.tsx.)
+// Duration is derived from the seeded plan (the timeline), and the DIMENSIONS from the orientation, so what
+// the <Composition> reports always matches what it renders, in either orientation. (The <Player> can't call
+// this — it derives both the same way, via planReel + reelDimensions, in reel-player.tsx.)
 const calculateMetadata: CalculateMetadataFunction<ReelProps> = ({ props }) => {
-  const { totalSec } = layoutReel(props);
-  return { durationInFrames: Math.max(1, Math.round(totalSec * FPS)) };
+  const { totalFrames } = planReel(props);
+  const { width, height } = reelDimensions(props.orientation);
+  return { durationInFrames: Math.max(1, totalFrames), width, height };
 };
 
 // Studio default props — public placeholder images so Studio renders out-of-the-box. The real Lambda

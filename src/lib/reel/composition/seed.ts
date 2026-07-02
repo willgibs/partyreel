@@ -11,9 +11,29 @@ export function mulberry32(a: number): () => number {
   };
 }
 
-/** A stable 0..1 value for (seed, index, salt) — picks pan direction / zoom amount per clip. */
+/** A stable 0..1 value for (seed, index, salt). Different SALTS give independent streams per shot, so a
+ *  clip's pan / zoom / hold / transition all vary independently yet deterministically. */
 export function seeded(seed: number, index: number, salt = 0): number {
-  return mulberry32(
-    (seed * 2654435761 + index * 40503 + salt * 97 + 1) >>> 0,
-  )();
+  return mulberry32((seed * 2654435761 + index * 40503 + salt * 97 + 1) >>> 0)();
+}
+
+/** Stable seeded value in [min, max). */
+export function seededRange(
+  seed: number,
+  index: number,
+  salt: number,
+  min: number,
+  max: number,
+): number {
+  return min + seeded(seed, index, salt) * (max - min);
+}
+
+/** Stable seeded pick from a non-empty array. */
+export function seededPick<T>(
+  seed: number,
+  index: number,
+  salt: number,
+  arr: readonly T[],
+): T {
+  return arr[Math.floor(seeded(seed, index, salt) * arr.length) % arr.length];
 }

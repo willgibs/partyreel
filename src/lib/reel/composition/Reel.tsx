@@ -1,131 +1,199 @@
 import {
   AbsoluteFill,
   Easing,
-  Img,
   interpolate,
-  Sequence,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { Video } from "@remotion/media";
+import {
+  linearTiming,
+  springTiming,
+  type TransitionPresentation,
+  TransitionSeries,
+} from "@remotion/transitions";
+import { clockWipe } from "@remotion/transitions/clock-wipe";
+import { fade } from "@remotion/transitions/fade";
+import { flip } from "@remotion/transitions/flip";
+import { slide } from "@remotion/transitions/slide";
+import { wipe } from "@remotion/transitions/wipe";
 
-import { layoutReel, type PlacedClip } from "./layout";
-import type { ReelProps, ReelTheme } from "./reel-types";
-import { seeded } from "./seed";
+import { ClipMedia } from "./clip-media";
+import { Overlay } from "./effects";
+import {
+  type ClipMotion,
+  planReel,
+  type PlannedClip,
+  type PlannedGap,
+} from "./layout";
+import type { MotionStyle, ReelProps, ReelTheme } from "./reel-types";
 
 const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 
-// Ken-Burns pan directions (unit-ish); the seed picks one per photo.
-const PANS = [
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
-  [0.8, 0.8],
-  [-0.8, -0.8],
-  [0.8, -0.8],
-  [-0.8, 0.8],
-];
+type Move = { scale: number; tx: number; ty: number; rotate: number };
 
-// A base zoom so there's always margin for the pan (no edge reveal under objectFit:cover).
-const BASE_ZOOM = 1.1;
+// The Ken-Burns CHARACTER per theme. Base zoom is sized to the pan so the cover-fill never reveals an
+// edge (pan ≤ overscan margin at every frame); each style spends that motion budget differently.
+function computeMotion(
+  style: MotionStyle,
+  frame: number,
+  dur: number,
+  m: ClipMotion,
+  width: number,
+): Move {
+  const baseZoom = 1 + 2 * m.panFrac + 0.015;
+  const panPx = m.panFrac * width;
+  const p = dur > 0 ? frame / dur : 0;
 
-const ClipLayer: React.FC<{
-  clip: PlacedClip;
-  theme: ReelTheme;
-  seed: number;
-  posterMode: boolean;
-}> = ({ clip, theme, seed, posterMode }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const crossFrames = Math.max(1, Math.round(theme.crossfadeSec * fps));
-  const totalFrames = Math.round(clip.activeSec * fps) + crossFrames;
-
-  // Fade IN over the crossfade overlap with the previous clip; hold at 1 after. (CSS opacity, not a
-  // CSS transition — transitions are forbidden in Remotion.)
-  const opacity = interpolate(frame, [0, crossFrames], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE,
-  });
-
-  // EXPORT path: a real video clip decodes the mp4. The in-browser @remotion/player can't (R2 CORS on
-  // <Video> fetch), so posterMode renders the clip as its poster still through the photo path below.
-  if (clip.type === "video" && !posterMode) {
-    const start = clip.trimStartSec ?? 0;
-    return (
-      <AbsoluteFill style={{ opacity }}>
-        <Video
-          src={clip.url}
-          muted
-          trimBefore={Math.round(start * fps)}
-          trimAfter={Math.round((start + clip.activeSec) * fps)}
-          // @remotion/media's <Video> reads objectFit from a DEDICATED prop, not from `style` (style's
-          // default is "contain" = letterbox). Pass it as a prop so a landscape clip cover-fills 9:16.
-          objectFit="cover"
-          style={{
-            width: "100%",
-            height: "100%",
-            filter: theme.grade,
-          }}
-        />
-      </AbsoluteFill>
+  if (style === "punch") {
+    const snap = interpolate(
+      frame,
+      [0, Math.min(10, dur)],
+      [1 + Math.max(m.punch, 0.12), 1],
+      { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE },
     );
+    const drift = interpolate(
+      frame,
+      [0, dur],
+      [baseZoom, baseZoom + m.zoomDelta * 0.5],
+      { extrapolateRight: "clamp" },
+    );
+    return {
+      scale: drift * snap,
+      tx: interpolate(frame, [0, dur], [0, m.panX * panPx * 0.4], {
+        extrapolateRight: "clamp",
+      }),
+      ty: interpolate(frame, [0, dur], [0, m.panY * panPx * 0.4], {
+        extrapolateRight: "clamp",
+      }),
+      rotate: 0,
+    };
   }
+
+  if (style === "float") {
+    const ph = m.panX * Math.PI;
+    return {
+      scale: interpolate(frame, [0, dur], [baseZoom, baseZoom + m.zoomDelta], {
+        extrapolateRight: "clamp",
+      }),
+      tx: Math.sin(p * Math.PI * 1.2 + ph) * m.panX * panPx,
+      ty: Math.sin(p * Math.PI * 1.2 + ph + 1.2) * m.panY * panPx,
+      rotate: Math.sin(p * Math.PI * 2 + ph) * 0.5,
+    };
+  }
+
+  if (style === "freezeGo") {
+    const go = interpolate(p, [0.45, 1], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE,
+    });
+    return {
+      scale: baseZoom + go * m.zoomDelta,
+      tx: go * m.panX * panPx,
+      ty: go * m.panY * panPx,
+      rotate: 0,
+    };
+  }
+
+  // drift (default) — gentle linear push + pan, with an optional small entry punch.
+  const punch = m.punch
+    ? interpolate(frame, [0, Math.min(7, dur)], [1 + m.punch, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE,
+      })
+    : 1;
+  return {
+    scale:
+      interpolate(frame, [0, dur], [baseZoom, baseZoom + m.zoomDelta], {
+        extrapolateRight: "clamp",
+      }) * punch,
+    tx: interpolate(frame, [0, dur], [0, m.panX * panPx], {
+      extrapolateRight: "clamp",
+    }),
+    ty: interpolate(frame, [0, dur], [0, m.panY * panPx], {
+      extrapolateRight: "clamp",
+    }),
+    rotate: 0,
+  };
+}
+
+// --- One clip: a cinematic Ken-Burns still (or a real video). The TransitionSeries owns the inter-clip
+// blend now, so a clip just renders at full opacity + moves with its theme's motion character. --------
+const ClipLayer: React.FC<{
+  clip: PlannedClip;
+  theme: ReelTheme;
+  posterMode: boolean;
+}> = ({ clip, theme, posterMode }) => {
+  const frame = useCurrentFrame();
+  const { width } = useVideoConfig();
+  const dur = clip.durationInFrames;
+  const sig = theme.signature ?? {};
+  const mv = computeMotion(
+    theme.motionStyle ?? "drift",
+    frame,
+    dur,
+    clip.motion,
+    width,
+  );
 
   // A posterless clip (a NULL-preview video in posterMode) → a solid theme-background hold, so the
   // timeline LENGTH still reflects the curation even without an image to show.
   if (!clip.url) {
-    return (
-      <AbsoluteFill style={{ opacity, backgroundColor: theme.background }} />
-    );
+    return <AbsoluteFill style={{ backgroundColor: theme.background }} />;
   }
 
-  // Still path (a photo, OR a video shown by its poster in posterMode): a slow seeded Ken-Burns
-  // (push-in + pan). Individual scale/translate props (NOT a transform string) so the animation stays
-  // editable in Studio.
-  const pan =
-    PANS[Math.floor(seeded(seed, clip.index, 1) * PANS.length) % PANS.length];
-  const panAmt = 40 + seeded(seed, clip.index, 2) * 30; // 40-70px (under the BASE_ZOOM margin)
-  const zoomDelta =
-    theme.kenBurnsZoom * (0.7 + seeded(seed, clip.index, 3) * 0.6);
-  const scale = interpolate(
-    frame,
-    [0, totalFrames],
-    [BASE_ZOOM, BASE_ZOOM + zoomDelta],
-    {
-      extrapolateRight: "clamp",
-    },
-  );
-  const tx = interpolate(frame, [0, totalFrames], [0, pan[0] * panAmt], {
-    extrapolateRight: "clamp",
-  });
-  const ty = interpolate(frame, [0, totalFrames], [0, pan[1] * panAmt], {
-    extrapolateRight: "clamp",
-  });
-
+  // The shared media primitive owns cover-vs-fit framing, the style's negative-space backdrop, the
+  // photo/poster/(export)video paths, the grade, and the highlight-bloom halation. The mood passes its
+  // seeded Ken-Burns motion + its signature backdrop/inset.
   return (
-    <AbsoluteFill style={{ opacity }}>
-      <Img
-        src={clip.url}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          scale,
-          translate: `${tx}px ${ty}px`,
-          filter: theme.grade,
-        }}
-      />
-    </AbsoluteFill>
+    <ClipMedia
+      url={clip.url}
+      type={clip.type}
+      mediaWidth={clip.width}
+      mediaHeight={clip.height}
+      trimStartSec={clip.trimStartSec}
+      durationInFrames={dur}
+      posterMode={posterMode}
+      grade={theme.grade}
+      motion={mv}
+      halation={sig.halation}
+      backdrop={theme.backdrop ?? "theme"}
+      background={theme.background}
+      paper={sig.paper}
+      inset={sig.inset}
+    />
   );
 };
 
-// The free-tier wordmark: a small, tasteful "partyreel.com" pill stamped over the WHOLE reel (rendered
-// outside the per-clip Sequences so it persists every frame). Bottom-center with safe-area padding so it
-// clears the social app's UI chrome; a semi-opaque dark pill + text-shadow keeps it legible over any
-// media. Inline styles + a web-safe font stack (no external asset/font) so it renders identically in the
-// browser player AND Lambda's headless Chromium (WYSIWYG).
+// --- Transition mapping: the seeded plan's gap → a @remotion/transitions presentation + timing. A "cut"
+// is a 2-frame fade (reads as a hard cut). All durations come from the plan so the timeline never drifts.
+// The presentations have distinct generic props, so we widen to one TransitionPresentation for the union.
+function presentationFor(
+  gap: PlannedGap,
+  width: number,
+  height: number,
+): TransitionPresentation<Record<string, unknown>> {
+  const pres =
+    gap.kind === "slide"
+      ? slide({ direction: gap.dir })
+      : gap.kind === "wipe"
+        ? wipe({ direction: gap.dir })
+        : gap.kind === "flip"
+          ? flip({ direction: gap.dir })
+          : gap.kind === "clockWipe"
+            ? clockWipe({ width, height })
+            : fade(); // "fade" + "cut" (a 2-frame fade)
+  return pres as unknown as TransitionPresentation<Record<string, unknown>>;
+}
+
+function timingFor(gap: PlannedGap) {
+  return gap.timing === "spring"
+    ? springTiming({ durationInFrames: gap.durationInFrames, config: { damping: 200 } })
+    : linearTiming({ durationInFrames: gap.durationInFrames });
+}
+
+// --- The free-tier wordmark (unchanged this round; the brand-violet hex tidy is a later hygiene item).
 const FONT_STACK =
   'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
@@ -161,7 +229,6 @@ const Watermark: React.FC = () => {
             width: 16,
             height: 16,
             borderRadius: 4,
-            // The reel's violet brand mark (mirrors the Clapperboard hue).
             backgroundColor: "#8b5cf6",
             boxShadow: "0 1px 6px rgba(0,0,0,0.4)",
           }}
@@ -174,26 +241,94 @@ const Watermark: React.FC = () => {
 
 export const Reel: React.FC<ReelProps> = (props) => {
   const { theme, seed, posterMode = false, watermark = false } = props;
-  const { fps } = useVideoConfig();
-  const { placed } = layoutReel(props);
-  const crossFrames = Math.max(1, Math.round(theme.crossfadeSec * fps));
+  const { width, height } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const plan = planReel(props);
+  const sig = theme.signature ?? {};
+
+  // Flat, alternating children (Sequence, Transition, Sequence, …) — the shape TransitionSeries requires.
+  const children: React.ReactNode[] = [];
+  plan.clips.forEach((clip, i) => {
+    children.push(
+      <TransitionSeries.Sequence
+        key={`s${clip.index}`}
+        durationInFrames={clip.durationInFrames}
+      >
+        <ClipLayer clip={clip} theme={theme} posterMode={posterMode} />
+      </TransitionSeries.Sequence>,
+    );
+    const gap = plan.gaps[i];
+    if (gap) {
+      children.push(
+        <TransitionSeries.Transition
+          key={`t${i}`}
+          presentation={presentationFor(gap, width, height)}
+          timing={timingFor(gap)}
+        />,
+      );
+    }
+  });
+
+  // Output-timeline start frame of each clip (TransitionSeries overlaps each gap), for cut-timed signatures.
+  const starts: number[] = [];
+  let acc = 0;
+  plan.clips.forEach((clip, i) => {
+    if (i > 0) acc += plan.clips[i - 1].durationInFrames - plan.gaps[i - 1].durationInFrames;
+    starts.push(acc);
+  });
+
+  // Composition-level signatures: gate weave (Film), scale-pulse + cut-flash (Pulse), whip-blur (Kinetic).
+  const weaveX = sig.weave ? Math.sin(frame * 0.55 + seed) * sig.weave : 0;
+  const weaveY = sig.weave ? Math.cos(frame * 0.43 + seed * 1.3) * sig.weave : 0;
+  const pulseScale = sig.pulse ? 1 + Math.sin(frame * 0.6) * sig.pulse : 1;
+
+  let whip = 0;
+  if (sig.whipBlur) {
+    for (let i = 1; i < starts.length; i++) {
+      const g = plan.gaps[i - 1]?.durationInFrames ?? 0;
+      if (g <= 0) continue;
+      const d = frame - starts[i];
+      if (d >= 0 && d <= g) whip = Math.max(whip, 9 * (1 - Math.abs(d - g / 2) / (g / 2)));
+    }
+  }
+
+  let flash = 0;
+  if (sig.flashOnCut) {
+    const FL = 3;
+    for (let i = 1; i < starts.length; i++) {
+      const d = frame - starts[i];
+      if (d >= -1 && d <= FL) flash = Math.max(flash, 1 - Math.abs(d) / FL);
+    }
+  }
+
+  const contentTransform =
+    weaveX !== 0 || weaveY !== 0 || pulseScale !== 1
+      ? `translate(${weaveX}px, ${weaveY}px) scale(${pulseScale})`
+      : undefined;
 
   return (
     <AbsoluteFill style={{ backgroundColor: theme.background }}>
-      {placed.map((clip) => (
-        <Sequence
-          key={clip.index}
-          from={Math.round(clip.fromSec * fps)}
-          durationInFrames={Math.round(clip.activeSec * fps) + crossFrames}
-        >
-          <ClipLayer
-            clip={clip}
-            theme={theme}
-            seed={seed}
-            posterMode={posterMode}
-          />
-        </Sequence>
+      <AbsoluteFill
+        style={{
+          transform: contentTransform,
+          filter: whip > 0.05 ? `blur(${whip}px)` : undefined,
+        }}
+      >
+        <TransitionSeries>{children}</TransitionSeries>
+      </AbsoluteFill>
+      {theme.overlays?.map((kind) => (
+        <Overlay key={kind} kind={kind} seed={seed} />
       ))}
+      {flash > 0 ? (
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#fff",
+            opacity: flash * 0.5,
+            mixBlendMode: "screen",
+            pointerEvents: "none",
+          }}
+        />
+      ) : null}
       {watermark && <Watermark />}
     </AbsoluteFill>
   );

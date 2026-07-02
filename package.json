@@ -23,6 +23,7 @@
     "@remotion/lambda": "4.0.482",
     "@remotion/media": "4.0.482",
     "@remotion/player": "4.0.482",
+    "@remotion/transitions": "4.0.482",
     "@sentry/nextjs": "^10.55.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",

@@ -3,7 +3,7 @@ import { type GridMedia } from "@/components/app/media-grid";
 // Reel/Root, which pull in the `remotion` runtime, and this builder runs on the SERVER too (the render
 // service). The barrel would drag `remotion`'s React.createContext into the server bundle and break the
 // build. layout.ts + reel-types.ts have no remotion import.
-import { layoutReel } from "@/lib/reel/composition/layout";
+import { planReel } from "@/lib/reel/composition/layout";
 import type {
   ReelClip,
   ReelProps,
@@ -90,7 +90,9 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
   return { clips: capped, theme, seed, posterMode, watermark };
 }
 
-/** Keep the clips whose playback FINISHES within lengthSeconds (always at least the first clip). */
+/** Keep the clips whose cumulative timeline FINISHES within lengthSeconds (always at least the first).
+ *  Uses the TransitionSeries plan (clips OVERLAP by their transition frames), and since the plan seeds by
+ *  index, a prefix of the full plan == planning that prefix → the cap is deterministic + consistent. */
 function capToLength(
   clips: ReelClip[],
   theme: ReelTheme,
@@ -98,10 +100,16 @@ function capToLength(
   lengthSeconds: number,
 ): ReelClip[] {
   if (clips.length <= 1) return clips;
-  const { placed } = layoutReel({ clips, theme, seed });
-  // fromSec + activeSec is monotonically increasing, so the survivors are a contiguous prefix.
-  const keptCount = placed.filter(
-    (p, i) => i === 0 || p.fromSec + p.activeSec <= lengthSeconds,
-  ).length;
-  return clips.slice(0, Math.max(1, keptCount));
+  const plan = planReel({ clips, theme, seed });
+  const lengthFrames = lengthSeconds * plan.fps;
+  // Timeline at the END of clip k = Σ seq[0..k] − Σ gap[0..k-1] (monotonic → the survivors are a prefix).
+  let cum = 0;
+  let kept = 1;
+  for (let k = 0; k < plan.clips.length; k++) {
+    cum += plan.clips[k].durationInFrames;
+    if (k > 0) cum -= plan.gaps[k - 1].durationInFrames;
+    if (k === 0 || cum <= lengthFrames) kept = k + 1;
+    else break;
+  }
+  return clips.slice(0, Math.max(1, kept));
 }

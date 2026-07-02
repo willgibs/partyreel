@@ -30,6 +30,9 @@ importers:
       '@remotion/player':
         specifier: 4.0.482
         version: 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@remotion/transitions':
+        specifier: 4.0.482
+        version: 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@sentry/nextjs':
         specifier: ^10.55.0
         version: 10.55.0(@opentelemetry/core@2.7.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.1(@opentelemetry/api@1.9.1))(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.15))
@@ -2033,6 +2036,9 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
+  '@remotion/paths@4.0.482':
+    resolution: {integrity: sha512-ZUXYXl8UkKbfZG4ClAQjma+MWhdsnGY3s6HFbgJggyI206lmdf8DlE/aTfwanP3yul39P/vsd0cwYe/7mrYWjA==}
+
   '@remotion/player@4.0.482':
     resolution: {integrity: sha512-fJDTDX6uWdJg514BCaVbO2mKItRZ3ySvAiQxCNxL6mLhO/uW6S/9Pkk7bgCuez749x8+t4dDb8XXZTYMP09WfQ==}
     peerDependencies:
@@ -2051,6 +2057,12 @@ packages:
   '@remotion/serverless@4.0.482':
     resolution: {integrity: sha512-2oK2wfHX8LfrFWhSvySxLJ2R1ogbag+42P/3gSKVlJSJGF46xubDPBArlcG5nhQi5EM01mcPRQQKfHL+kvzNhg==}
 
+  '@remotion/shapes@4.0.482':
+    resolution: {integrity: sha512-WjgZTvvWXFXUvTi09arDaxyDw/Kjo901afPIaqwr9rvEnz9CNXayZ2fnsB+X595TijJv3UfAc3Pfc9Ge0UM1uw==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
   '@remotion/streaming@4.0.482':
     resolution: {integrity: sha512-S2L8m5fnEiUuPqmXC6Y6bH1YbWqg071e1pgHEY3k7JvsvVC4pwrvnNY/gnEAkn9i5IglDGjKeHpjay1HjhUdmw==}
 
@@ -2068,6 +2080,12 @@ packages:
 
   '@remotion/timeline-utils@4.0.482':
     resolution: {integrity: sha512-0gXcu+w8hDIuCu5ft4QauKdYb/mE7cD2+sbqkiG656mhoSsqWp0Ks6wBnO5odd3DRp6x6zNOHI/VlRq2nqBtdw==}
+
+  '@remotion/transitions@4.0.482':
+    resolution: {integrity: sha512-0YK19vN3fynZ1ekPW5Iz/tOR0d108uqHYD02ddsJ2MzSeM4wTePsfEKTkwsB1TGClGLluUEZbhXqOl42XeUzbg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@remotion/web-renderer@4.0.482':
     resolution: {integrity: sha512-ZIIyIz9CBLFf1KsQgV0V4EAB3GSDFmLDTunZQj8h1J8SNxor1p11x9hQ7uo69jT/k3imeSCJlImPRjD378MXHw==}
@@ -9130,6 +9148,8 @@ snapshots:
       remotion: 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       zod: 4.4.3
 
+  '@remotion/paths@4.0.482': {}
+
   '@remotion/player@4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       react: 19.2.4
@@ -9185,6 +9205,13 @@ snapshots:
       - utf-8-validate
       - webpack-cli
       - webpack-hot-middleware
+
+  '@remotion/shapes@4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@remotion/paths': 4.0.482
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      remotion: 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   '@remotion/streaming@4.0.482': {}
 
@@ -9254,6 +9281,14 @@ snapshots:
   '@remotion/timeline-utils@4.0.482':
     dependencies:
       mediabunny: 1.47.0
+
+  '@remotion/transitions@4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@remotion/paths': 4.0.482
+      '@remotion/shapes': 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      remotion: 4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   '@remotion/web-renderer@4.0.482(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
