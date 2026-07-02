@@ -8,7 +8,6 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import { fitClip } from "../framing";
 import type { ReelProps } from "../reel-types";
 import { seeded, seededRange } from "../seed";
 
@@ -19,9 +18,10 @@ import { seeded, seededRange } from "../seed";
 // SPRINGS forward into focus to become the new top. SIGNATURES: the anticipation → whip → settle deal, the
 // warm dealer's-lamp key everything's highlights + contact-shadow agree with, and the visible deck THICKNESS
 // (edge slivers beneath the stack) that thins as the reel deals through it. Snappy + social (the "punchy"
-// vibe). Portrait = tall cards; LANDSCAPE = wide cards, both from one core. Mismatched-orientation media is
-// fit onto the card stock (never zoom-cropped). Deterministic (seeded) + inline (WYSIWYG in Lambda). NO text.
-// Honors theme.grade on the photo only.
+// vibe). Portrait = tall cards; LANDSCAPE = wide cards, both from one core. Every card fills edge-to-edge
+// (objectFit COVER) so a small uniform card never reads as awkwardly gapped — Will's call for THIS style; the
+// media-first reels + framed gallery keep the designed negative space instead. Deterministic (seeded) +
+// inline (WYSIWYG in Lambda). NO text. Honors theme.grade on the photo only.
 
 const HOLD = 26; // frames a card rests as the top (~1.1s at 24fps)
 const FLICK = 12; // frames of the throw + promotion (~0.5s)
@@ -186,7 +186,6 @@ export const CardDeck: React.FC<ReelProps> = ({ clips, theme, seed }) => {
       "inset 0 0 0 1px rgba(20,16,24,0.16)",
     ].join(", ");
 
-    const fit = fitClip(clip.width, clip.height, cardW - pad * 2, cardH - pad * 2);
     const glossAngle = 122 + seededRange(seed, i, 25, -10, 10) + lift * throwDir * 12;
     const glossA = clamp(0.16 - depth * 0.03 + lift * 0.08, 0, 0.24);
 
@@ -237,7 +236,7 @@ export const CardDeck: React.FC<ReelProps> = ({ clips, theme, seed }) => {
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: fit === "cover" ? "cover" : "contain",
+                  objectFit: "cover",
                   filter: theme.grade,
                 }}
               />
