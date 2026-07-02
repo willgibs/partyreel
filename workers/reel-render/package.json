@@ -9,7 +9,7 @@
     "benchmark": "remotion benchmark",
     "typecheck": "tsc --noEmit",
     "build-props": "tsx scripts/build-props.ts",
-    "deploy-fn": "remotion lambda functions deploy --region=us-east-1 --memory=2048 --disk=2048 --timeout=120",
+    "deploy-fn": "remotion lambda functions deploy --region=us-east-1 --memory=2048 --disk=2048 --timeout=240",
     "deploy-site": "remotion lambda sites create src/index.ts --site-name=partyreel-reel --region=us-east-1",
     "render-lambda": "tsx scripts/render-lambda.ts",
     "verify-r2": "tsx scripts/verify-r2.ts",

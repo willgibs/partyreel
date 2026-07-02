@@ -30,7 +30,10 @@ import type { ReelProps } from "../../../src/lib/reel/composition/reel-types";
 const BOX = {
   memorySizeInMb: 2048,
   diskSizeInMb: 2048,
-  timeoutInSeconds: 120,
+  // 240s (was 120): the heavy-compositing treatments (esp. Layered parallax's full-frame blur at landscape
+  // 30s) sit right at the 120s ceiling and time out on variance; 240s gives headroom. Successful renders
+  // still bill by actual duration, so normal cost is unchanged.
+  timeoutInSeconds: 240,
 } as const;
 
 const region = (process.env.REMOTION_AWS_REGION ?? "us-east-1") as AwsRegion;
