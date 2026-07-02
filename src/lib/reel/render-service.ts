@@ -317,6 +317,10 @@ export async function requestReelRender(input: {
       ...(cfg.REMOTION_FRAMES_PER_LAMBDA
         ? { framesPerLambda: cfg.REMOTION_FRAMES_PER_LAMBDA }
         : {}),
+      // The output key is STABLE per event, so a re-render (a config change, or the RENDER_VERSION bump)
+      // must OVERWRITE the previous mp4 in place — without this, renderMediaOnLambda refuses ("output file
+      // already exists") the moment a reel is rendered a second time.
+      overwrite: true,
       // Direct-to-R2 — no S3→R2 copy (spike-proven). Stable key → a re-render overwrites in place.
       outName: {
         bucketName: r2.R2_BUCKET,
