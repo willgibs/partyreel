@@ -20,7 +20,7 @@ function byIdOf(items: GridMedia[]): Map<string, GridMedia> {
   return new Map(items.map((m) => [m.id, m]));
 }
 
-const base = { theme: THEME_CLASSIC, seed: 1 };
+const base = { styleId: "classic", seed: 1 };
 
 describe("buildReelProps", () => {
   it("orders clips by orderedIds and prefers the preview url for photos", () => {
@@ -157,15 +157,42 @@ describe("buildReelProps", () => {
     expect(props.clips[0].url).toBe("https://r2/a/preview");
   });
 
-  it("threads theme + seed through unchanged", () => {
+  it("resolves the styleId to its theme + threads styleId/orientation/seed through", () => {
     const items = [media("a")];
     const props = buildReelProps({
       orderedIds: ["a"],
       byId: byIdOf(items),
-      theme: THEME_CLASSIC,
+      styleId: "classic",
+      orientation: "landscape",
       seed: 42,
     });
-    expect(props.theme).toBe(THEME_CLASSIC);
+    expect(props.theme).toBe(THEME_CLASSIC); // the Cinematic mood resolves to THEME_CLASSIC
+    expect(props.styleId).toBe("classic");
+    expect(props.orientation).toBe("landscape");
     expect(props.seed).toBe(42);
+  });
+
+  it("populates clip width/height from the media rows (drives fitClip)", () => {
+    const items = [media("a", { width: 1920, height: 1080 })];
+    const props = buildReelProps({
+      orderedIds: ["a"],
+      byId: byIdOf(items),
+      ...base,
+    });
+    expect(props.clips[0].width).toBe(1920);
+    expect(props.clips[0].height).toBe(1080);
+  });
+
+  it("a treatment shows video by its poster even when exporting (no <Video> path yet)", () => {
+    const items = [media("v", { type: "video" })];
+    const exported = buildReelProps({
+      orderedIds: ["v"],
+      byId: byIdOf(items),
+      styleId: "polaroid",
+      seed: 1,
+      posterMode: false,
+    });
+    // A mood in export uses the original mp4; a treatment must stay on the poster (its <Img> can't play mp4).
+    expect(exported.clips[0].url).toBe("https://r2/v/preview");
   });
 });

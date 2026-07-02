@@ -29,6 +29,11 @@ export async function listReelItems(eventId: string): Promise<string[]> {
  * slice. Writes go through upsert_reel_config (host table writes are revoked; this only SELECTs).
  */
 export type ReelConfig = {
+  /** The catalog style id (mood or treatment) — the composer's primary control. */
+  styleId: string;
+  /** Portrait / landscape output. */
+  orientation: string;
+  /** Legacy theme column — kept for the composer's init fallback (pre-style_id rows). */
   theme: string;
   seed: number;
   lengthSeconds: number | null;
@@ -41,11 +46,13 @@ export async function getReelConfig(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("highlight_reels")
-    .select("theme, seed, length_seconds, cover_media_id")
+    .select("style_id, theme, orientation, seed, length_seconds, cover_media_id")
     .eq("event_id", eventId)
     .maybeSingle();
   if (error || !data) return null;
   return {
+    styleId: data.style_id,
+    orientation: data.orientation,
     theme: data.theme,
     seed: data.seed,
     lengthSeconds: data.length_seconds,

@@ -1,14 +1,17 @@
 import { type GridMedia } from "@/components/app/media-grid";
 // Import the PURE composition submodules directly (not the ./composition barrel) — the barrel re-exports
-// Reel/Root, which pull in the `remotion` runtime, and this builder runs on the SERVER too (the render
-// service). The barrel would drag `remotion`'s React.createContext into the server bundle and break the
-// build. layout.ts + reel-types.ts have no remotion import.
+// Reel/Root/style-render, which pull in the `remotion` runtime, and this builder runs on the SERVER too (the
+// render service). The barrel would drag `remotion`'s React.createContext into the server bundle and break
+// the build. constants/layout/reel-types/themes/style-registry have no remotion import.
+import type { Orientation } from "@/lib/reel/composition/constants";
 import { planReel } from "@/lib/reel/composition/layout";
 import type {
   ReelClip,
   ReelProps,
   ReelTheme,
 } from "@/lib/reel/composition/reel-types";
+import { isTreatment, styleThemeId } from "@/lib/reel/composition/style-registry";
+import { resolveTheme } from "@/lib/reel/composition/themes";
 
 // How long a video clip plays when no custom trim is set (the trim UI is a later, Pro slice). The
 // stills-only v1 reel rarely has video; this keeps a Pro video clip from dominating the montage.
@@ -19,8 +22,11 @@ export type BuildReelPropsArgs = {
   orderedIds: string[];
   /** The page's already-presigned gallery media, indexed by id (no second presign / RPC). */
   byId: Map<string, GridMedia>;
-  theme: ReelTheme;
+  /** The catalog style id (mood or treatment). The theme is resolved from it via the pure registry. */
+  styleId: string;
   seed: number;
+  /** Output orientation (portrait default). Threaded into ReelProps → drives dims + the render hash. */
+  orientation?: Orientation;
   /** Pin this media as the opening shot (hoisted to index 0). */
   coverMediaId?: string | null;
   /** Cap the reel to ~this many seconds (null/0 = auto). */
@@ -45,13 +51,20 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
   const {
     orderedIds,
     byId,
-    theme,
+    styleId,
     seed,
+    orientation,
     coverMediaId,
     lengthSeconds,
     posterMode = true,
     watermark = false,
   } = args;
+
+  // Resolve the styleId to its ReelTheme kit via the pure registry (mood: its own kit; treatment: its
+  // designed native grade). The treatments render clips as plain <Img> (no <Video> path yet — Phase 3), so a
+  // treatment must show video clips by their POSTER even in the export, or an mp4 url would break its <Img>.
+  const theme = resolveTheme(styleThemeId(styleId));
+  const treatment = isTreatment(styleId);
 
   // Resolve to approved-only media in reel order (a hidden/removed item drops out, as in ReelPanel).
   const ordered = orderedIds
@@ -68,18 +81,24 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
   }
 
   const clips: ReelClip[] = ordered.map((m) => {
+    // The natural media geometry drives the cover-vs-fit framing (fitClip); unknown → cover (the safe default).
+    const width = m.width ?? undefined;
+    const height = m.height ?? undefined;
     if (m.type === "video") {
       // Poster = the small WebP (new uploads); "" on pre-preview rows → the composition placeholder.
       const poster = m.previewUrl ?? "";
+      const usePoster = posterMode || treatment;
       return {
-        url: posterMode ? poster : (m.url ?? ""),
+        url: usePoster ? poster : (m.url ?? ""),
         type: "video",
+        width,
+        height,
         trimStartSec: 0,
         trimDurationSec: DEFAULT_VIDEO_CLIP_SEC,
       };
     }
     // Photo: the small preview (preferred), original fallback (pre-preview backfill gap).
-    return { url: m.previewUrl ?? m.url, type: "photo" };
+    return { url: m.previewUrl ?? m.url, type: "photo", width, height };
   });
 
   const capped =
@@ -87,7 +106,7 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
       ? capToLength(clips, theme, seed, lengthSeconds)
       : clips;
 
-  return { clips: capped, theme, seed, posterMode, watermark };
+  return { clips: capped, theme, seed, styleId, orientation, posterMode, watermark };
 }
 
 /** Keep the clips whose cumulative timeline FINISHES within lengthSeconds (always at least the first).

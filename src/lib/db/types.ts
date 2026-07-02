@@ -271,6 +271,7 @@ export type Database = {
           event_id: string
           id: string
           length_seconds: number | null
+          orientation: string
           output_key: string | null
           render_cost_usd: number | null
           render_error: string | null
@@ -280,6 +281,7 @@ export type Database = {
           rendered_hash: string | null
           seed: number
           status: Database["public"]["Enums"]["reel_status"]
+          style_id: string
           theme: string
           updated_at: string
         }
@@ -289,6 +291,7 @@ export type Database = {
           event_id: string
           id?: string
           length_seconds?: number | null
+          orientation?: string
           output_key?: string | null
           render_cost_usd?: number | null
           render_error?: string | null
@@ -298,6 +301,7 @@ export type Database = {
           rendered_hash?: string | null
           seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
+          style_id?: string
           theme?: string
           updated_at?: string
         }
@@ -307,6 +311,7 @@ export type Database = {
           event_id?: string
           id?: string
           length_seconds?: number | null
+          orientation?: string
           output_key?: string | null
           render_cost_usd?: number | null
           render_error?: string | null
@@ -316,6 +321,7 @@ export type Database = {
           rendered_hash?: string | null
           seed?: number
           status?: Database["public"]["Enums"]["reel_status"]
+          style_id?: string
           theme?: string
           updated_at?: string
         }
@@ -1127,16 +1133,28 @@ export type Database = {
           monthly_ingress_bytes: number
         }[]
       }
-      upsert_reel_config: {
-        Args: {
-          p_cover_media_id?: string
-          p_event_id: string
-          p_length_seconds?: number
-          p_seed: number
-          p_theme: string
-        }
-        Returns: Json
-      }
+      upsert_reel_config:
+        | {
+            Args: {
+              p_cover_media_id?: string
+              p_event_id: string
+              p_length_seconds?: number
+              p_orientation: string
+              p_seed: number
+              p_style_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_cover_media_id?: string
+              p_event_id: string
+              p_length_seconds?: number
+              p_seed: number
+              p_theme: string
+            }
+            Returns: Json
+          }
       verify_current_password: {
         Args: { p_password: string }
         Returns: boolean

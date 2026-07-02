@@ -19,9 +19,10 @@ import type { Database } from "@/lib/db/types";
 import { assertR2Env, assertReelRenderEnv } from "@/lib/env";
 import { captureWarning } from "@/lib/observability/sentry";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
-// The PURE themes submodule, NOT the ./composition barrel (which re-exports Reel/Root → the `remotion`
-// runtime). This service is server-only; the barrel would break the server build (React.createContext).
-import { resolveTheme } from "@/lib/reel/composition/themes";
+// A PURE composition submodule (the Orientation union), NOT the ./composition barrel (which re-exports
+// Reel/Root/style-render → the `remotion` runtime). This service is server-only; the barrel would break the
+// server build (React.createContext). buildReelProps resolves styleId → theme internally (also pure).
+import type { Orientation } from "@/lib/reel/composition/constants";
 import { type AwsRegion, renderMediaOnLambda } from "@/lib/reel/lambda-client";
 import { renderHash } from "@/lib/reel/render-hash";
 import { defaultReelSeed } from "@/lib/reel/seed-default";
@@ -158,7 +159,7 @@ export async function requestReelRender(input: {
         .order("added_at", { ascending: true }),
       admin
         .from("media")
-        .select("id, type, original_key, status")
+        .select("id, type, original_key, status, width, height")
         .eq("event_id", eventId)
         .eq("status", "approved"),
       admin
@@ -169,7 +170,10 @@ export async function requestReelRender(input: {
     ]);
 
   const row = (reelRow ?? null) as ReelRow | null;
-  const themeId = row?.theme ?? "classic";
+  // The style id (mood or treatment). Fall back to the legacy `theme` column (pre-migration rows), then the
+  // default mood. Orientation narrows to the union (default portrait).
+  const styleId = row?.style_id ?? row?.theme ?? "classic";
+  const orientation: Orientation = row?.orientation === "landscape" ? "landscape" : "portrait";
   const seed = row?.seed ?? defaultReelSeed(eventId);
   const lengthSeconds = row?.length_seconds ?? null;
   const coverMediaId = row?.cover_media_id ?? null;
@@ -191,7 +195,8 @@ export async function requestReelRender(input: {
 
   const hash = renderHash({
     orderedApprovedIds,
-    theme: themeId,
+    styleId,
+    orientation,
     seed,
     lengthSeconds,
     coverMediaId,
@@ -279,6 +284,8 @@ export async function requestReelRender(input: {
         url,
         previewUrl: null,
         status: "approved",
+        width: m.width,
+        height: m.height,
       });
     }),
   );
@@ -286,8 +293,9 @@ export async function requestReelRender(input: {
   const props = buildReelProps({
     orderedIds: orderedApprovedIds,
     byId,
-    theme: resolveTheme(themeId),
+    styleId,
     seed,
+    orientation,
     coverMediaId,
     lengthSeconds,
     posterMode: false,
@@ -346,7 +354,9 @@ export async function requestReelRender(input: {
   await admin.from("highlight_reels").upsert(
     {
       event_id: eventId,
-      theme: themeId,
+      style_id: styleId,
+      theme: styleId, // keep the legacy column in sync with the style id during the transition
+      orientation,
       seed,
       length_seconds: lengthSeconds,
       cover_media_id: coverMediaId,

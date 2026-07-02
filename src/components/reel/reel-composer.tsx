@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Clapperboard, Clock, Download, Shuffle } from "lucide-react";
+import { Check, Clapperboard, Clock, Download, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -16,14 +16,14 @@ import {
 } from "@/components/ui/popover";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
 import {
-  DEFAULT_THEME_ID,
-  THEME_IDS,
-  THEME_LABELS,
-  THEMES,
-  type ThemeId,
+  DEFAULT_STYLE_ID,
+  type Orientation,
+  resolveStyleEntry,
+  STYLE_CATALOG,
+  STYLE_IDS,
 } from "@/lib/reel/composition";
 import { type ReelConfig } from "@/lib/db/queries/reel";
-import { defaultReelSeed, SEED_MAX } from "@/lib/reel/seed-default";
+import { defaultReelSeed } from "@/lib/reel/seed-default";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -40,10 +40,11 @@ function rpcOk(data: unknown): boolean {
 }
 
 /**
- * The live reel COMPOSER: the @remotion/player hero + the auto-magic controls (theme · shuffle · cover ·
- * length). All client-side + $0 — a shuffle re-seeds and the player re-renders instantly; nothing
- * encodes. Config persists (debounced) via upsert_reel_config, which lazily creates the reel row on the
- * first edit. Reads the shared ReelProvider so adds/removes/reorders in the grid below reflect live.
+ * The live reel COMPOSER: the @remotion/player hero + the controls (style · orientation · cover · length).
+ * All client-side + $0 — picking a style/orientation re-renders the player instantly; nothing encodes. The
+ * seed is deterministic per reel (no shuffle — one stable, reproducible take). Config persists (debounced)
+ * via upsert_reel_config, which lazily creates the reel row on the first edit. Reads the shared ReelProvider
+ * so adds/removes/reorders in the grid below reflect live. The player == the export (WYSIWYG).
  */
 export function ReelComposer({
   eventId,
@@ -61,13 +62,20 @@ export function ReelComposer({
   const reel = useReel();
   const orderedIds = useMemo(() => reel?.orderedIds ?? [], [reel?.orderedIds]);
 
-  const [themeId, setThemeId] = useState<ThemeId>(() =>
-    reelConfig && reelConfig.theme in THEMES
-      ? (reelConfig.theme as ThemeId)
-      : DEFAULT_THEME_ID,
+  // The chosen catalog style — from the stored style_id, else the legacy theme (if it's a valid style id),
+  // else the default mood.
+  const [styleId, setStyleId] = useState<string>(() => {
+    if (reelConfig?.styleId && STYLE_IDS.includes(reelConfig.styleId)) return reelConfig.styleId;
+    if (reelConfig?.theme && STYLE_IDS.includes(reelConfig.theme)) return reelConfig.theme;
+    return DEFAULT_STYLE_ID;
+  });
+  const [orientation, setOrientation] = useState<Orientation>(() =>
+    reelConfig?.orientation === "landscape" ? "landscape" : "portrait",
   );
-  const [seed, setSeed] = useState<number>(
+  // The seed is deterministic per reel (no shuffle) — one stable, reproducible take.
+  const seed = useMemo(
     () => reelConfig?.seed ?? defaultReelSeed(eventId),
+    [reelConfig?.seed, eventId],
   );
   const [coverMediaId, setCoverMediaId] = useState<string | null>(
     () => reelConfig?.coverMediaId ?? null,
@@ -75,6 +83,7 @@ export function ReelComposer({
   const [lengthSeconds, setLengthSeconds] = useState<number | null>(
     () => reelConfig?.lengthSeconds ?? null,
   );
+  const [styleOpen, setStyleOpen] = useState(false);
 
   const byId = useMemo(() => new Map(items.map((m) => [m.id, m])), [items]);
 
@@ -92,14 +101,15 @@ export function ReelComposer({
       buildReelProps({
         orderedIds,
         byId,
-        theme: THEMES[themeId],
+        styleId,
         seed,
+        orientation,
         coverMediaId,
         lengthSeconds,
         posterMode: true,
         watermark,
       }),
-    [orderedIds, byId, themeId, seed, coverMediaId, lengthSeconds, watermark],
+    [orderedIds, byId, styleId, seed, orientation, coverMediaId, lengthSeconds, watermark],
   );
 
   // The single config-persist (upsert_reel_config lazily creates the reel row). Shared by the debounced
@@ -109,11 +119,17 @@ export function ReelComposer({
   const persistConfig = useCallback(async (): Promise<boolean> => {
     const args: {
       p_event_id: string;
-      p_theme: string;
+      p_style_id: string;
+      p_orientation: string;
       p_seed: number;
       p_length_seconds?: number;
       p_cover_media_id?: string;
-    } = { p_event_id: eventId, p_theme: themeId, p_seed: seed };
+    } = {
+      p_event_id: eventId,
+      p_style_id: styleId,
+      p_orientation: orientation,
+      p_seed: seed,
+    };
     // Omit (→ SQL default null) to CLEAR length/cover; pass to set.
     if (lengthSeconds != null) args.p_length_seconds = lengthSeconds;
     if (coverMediaId != null) args.p_cover_media_id = coverMediaId;
@@ -123,10 +139,10 @@ export function ReelComposer({
       return false;
     }
     return true;
-  }, [eventId, themeId, seed, lengthSeconds, coverMediaId, supabase]);
+  }, [eventId, styleId, orientation, seed, lengthSeconds, coverMediaId, supabase]);
 
   // Debounced auto-save. Skips the first run (the config is already server truth / defaults) so just
-  // viewing the reel never writes; a real edit (theme/shuffle/cover/length) lazily upserts the row.
+  // viewing the reel never writes; a real edit (style/orientation/cover/length) lazily upserts the row.
   const firstRun = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -195,45 +211,75 @@ export function ReelComposer({
 
       {/* Auto-magic controls — no timeline, no sliders; just a vibe + a re-roll. */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-        {/* Theme kit */}
+        {/* Style — the catalog picker (media-first moods + stylized treatments); scales as it grows. */}
+        <Popover open={styleOpen} onOpenChange={setStyleOpen}>
+          <PopoverTrigger asChild>
+            <Button type="button" size="sm" variant="outline">
+              <Wand2 />
+              {resolveStyleEntry(styleId).label}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-72 p-2">
+            {(["mood", "treatment"] as const).map((kind) => (
+              <div key={kind} className="mb-1.5 last:mb-0">
+                <p className="mb-1 px-1 text-xs font-medium text-muted-foreground">
+                  {kind === "mood" ? "Media-first" : "Stylized"}
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {STYLE_CATALOG.filter((s) => s.kind === kind).map((s) => {
+                    const active = s.id === styleId;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          setStyleId(s.id);
+                          setStyleOpen(false);
+                        }}
+                        className={cn(
+                          "rounded-md border px-2 py-1.5 text-left text-xs transition-transform ease-emphasis active:scale-[0.98]",
+                          active
+                            ? "border-primary bg-primary/5 font-medium text-foreground"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </PopoverContent>
+        </Popover>
+
+        <div className="h-5 w-px bg-border" aria-hidden />
+
+        {/* Orientation — portrait 9:16 / landscape 16:9; every style adapts to both. */}
         <div
           className="flex items-center gap-1"
           role="group"
-          aria-label="Theme"
+          aria-label="Orientation"
         >
-          {THEME_IDS.map((id) => {
-            const active = id === themeId;
+          {(["portrait", "landscape"] as const).map((o) => {
+            const active = o === orientation;
             return (
               <Button
-                key={id}
+                key={o}
                 type="button"
                 size="sm"
                 variant={active ? "default" : "outline"}
                 aria-pressed={active}
-                onClick={() => setThemeId(id)}
+                onClick={() => setOrientation(o)}
+                className="capitalize"
               >
-                {THEME_LABELS[id]}
+                {o}
               </Button>
             );
           })}
         </div>
 
         <div className="h-5 w-px bg-border" aria-hidden />
-
-        {/* Shuffle — a new seed = a new auto-magic take, instantly + free. */}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            setSeed(
-              (s) => (s + 1 + Math.floor(Math.random() * SEED_MAX)) % SEED_MAX,
-            )
-          }
-        >
-          <Shuffle />
-          Shuffle
-        </Button>
 
         {/* Cover — pin the opening shot. */}
         <Popover>

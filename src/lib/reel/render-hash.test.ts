@@ -4,7 +4,8 @@ import { renderHash, type RenderHashInput } from "./render-hash";
 
 const BASE: RenderHashInput = {
   orderedApprovedIds: ["a", "b", "c"],
-  theme: "classic",
+  styleId: "classic",
+  orientation: "portrait",
   seed: 42,
   lengthSeconds: null,
   coverMediaId: null,
@@ -28,8 +29,17 @@ describe("renderHash (the reel-render cache key)", () => {
     );
   });
 
-  it("changes for theme, seed, length, cover, and watermark each", () => {
-    expect(renderHash(BASE)).not.toBe(renderHash({ ...BASE, theme: "punchy" }));
+  it("changes for style, orientation, seed, length, cover, and watermark each", () => {
+    expect(renderHash(BASE)).not.toBe(
+      renderHash({ ...BASE, styleId: "punchy" }),
+    );
+    // A treatment styleId differs from a mood (a genuinely different composition).
+    expect(renderHash(BASE)).not.toBe(
+      renderHash({ ...BASE, styleId: "parallax" }),
+    );
+    expect(renderHash(BASE)).not.toBe(
+      renderHash({ ...BASE, orientation: "landscape" }),
+    );
     expect(renderHash(BASE)).not.toBe(renderHash({ ...BASE, seed: 43 }));
     expect(renderHash(BASE)).not.toBe(
       renderHash({ ...BASE, lengthSeconds: 15 }),
