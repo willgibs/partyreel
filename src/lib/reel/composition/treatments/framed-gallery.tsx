@@ -243,42 +243,38 @@ export const FramedGallery: React.FC<ReelProps> = ({ clips, theme, seed }) => {
   const spotA = 0.05 + 0.16 * p;
 
   return (
-    <AbsoluteFill style={{ background: "#eceae5", overflow: "hidden" }}>
-      {/* WALL plane (slowest parallax) — plaster tone + the ceiling wall-wash pool + the floor sliver. */}
+    <AbsoluteFill
+      style={{
+        overflow: "hidden",
+        // The wall plaster is on the FIXED root (full frame, always covers) so a parallaxing wall layer can
+        // never slide an edge into view (that edge revealing the root was the tracking-seam artifact).
+        background: "linear-gradient(180deg, #efedE8 0%, #eceae5 46%, #e4e1da 100%)",
+      }}
+    >
+      {/* The room wall-wash pool (fixed light on the gate). */}
       <AbsoluteFill
         style={{
-          transform: landscape
-            ? `translateX(${-camMain * 0.42}px)`
-            : `translateY(${-camMain * 0.42}px)`,
+          background:
+            "radial-gradient(80% 60% at 50% 28%, rgba(255,255,255,0.45) 0%, transparent 60%)",
+          pointerEvents: "none",
         }}
-      >
-        <AbsoluteFill
-          style={{
-            background:
-              "linear-gradient(180deg, #efedE8 0%, #eceae5 46%, #e4e1da 100%)",
-          }}
-        />
-        <AbsoluteFill
-          style={{
-            background:
-              "radial-gradient(80% 60% at 50% 28%, rgba(255,255,255,0.45) 0%, transparent 60%)",
-            pointerEvents: "none",
-          }}
-        />
-        {landscape ? (
+      />
+      {/* Floor plane (parallax) — a WIDE band so its leading/trailing edge never enters view. Landscape. */}
+      {landscape ? (
+        <AbsoluteFill style={{ transform: `translateX(${(-camMain * 0.42).toFixed(1)}px)` }}>
           <div
             style={{
               position: "absolute",
-              left: 0,
-              right: 0,
+              left: -main * 4,
+              width: main * 9,
               bottom: 0,
               height: "9%",
               background: "linear-gradient(180deg, #e4e1da 0%, #d6d2c9 100%)",
               boxShadow: "inset 0 1px 0 rgba(0,0,0,0.06)",
             }}
           />
-        ) : null}
-      </AbsoluteFill>
+        </AbsoluteFill>
+      ) : null}
 
       {/* FRAMES plane (full rate). */}
       <div
