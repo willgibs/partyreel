@@ -7,13 +7,13 @@
 > the open spike items. · NOT HERE: the build plan (a plan file), implementation detail.
 > GROWS BY: refine in place during planning; supersede when the feature ships.
 
-> **STATUS (2026-06-22):** Slice 1 (render-pipeline spike) ✅ + Slice 2 (the live $0 composer) ✅ + Slice 3 (the
-> `.mp4` EXPORT: Download video → Remotion Lambda → R2, async trigger+webhook, lazy+cached, free-tier watermark,
-> `/admin/reels` kill-switch, `f460456`) ✅ SHIPPED + live-verified (~$0.006/render, ~72s on the 10-cap) — current
-> truth now lives in [`../systems/host-app.md`](../systems/host-app.md) "Reel curation … the .mp4 export". NEXT:
-> **guest-facing reel surfacing + download** (its own slice), then Pro video preview+trim + real-video-in-player + R2
-> CORS, then the themes palette + the reveal. (Eager pre-encode stays gated on the AWS-quota speed re-measure; v1
-> ships lazy.) This spec stays the plan for the remaining slices.
+> **STATUS (2026-07-02):** Slices 1-3 (spike / composer / `.mp4` export) ✅ 2026-06-22, **AND Phase 2 — the STYLE
+> CATALOG (8 media-first moods + 6 stylized treatments) + a portrait/landscape ORIENTATION, wired into the composer,
+> DB, and export — ✅ SHIPPED + live-verified 2026-07-02** (`923457b`/`0cfcc4f` + render fixes `b6d1767`/`fafba3c`;
+> shuffle REMOVED). **Current truth lives in [`../systems/host-app.md`](../systems/host-app.md) "Reel composer" + the
+> `project_reel_generation_spec` memory + [`../systems/design-system.md`](../systems/design-system.md)** — read those
+> for how it works now. **The NEXT slices, fully specified for a fresh agent, are in ["Next slices — roadmap"](#next-slices--roadmap-for-the-next-agent-2026-07-02) below.** The older sections (Customization, Open items) are HISTORICAL
+> (they predate the catalog + describe the removed shuffle); the roadmap section supersedes them.
 
 ## What it is + why
 
@@ -154,6 +154,114 @@ watermark+length levers · a lab'd reveal.
 keeps the one-tap add) · real video playing *in the live player* (true WYSIWYG for video; v1 shows clips by their
 poster in the editor) if the spike says it's too heavy · auto-generated reels · finer trim niceties · beat-sync ·
 music · an auto-scoring "best clips" worker.
+
+## Next slices — roadmap for the next agent (2026-07-02)
+
+Everything below is written so a fresh agent can start cold. **Current shipped state** (read these for how it works
+now, then start a slice): the reel is host-side complete — curate → live `@remotion/player` composer with a **14-style
+picker + portrait/landscape orientation** (shuffle removed; deterministic seed) → lazy `.mp4` export on Remotion Lambda.
+Truth: [`../systems/host-app.md`](../systems/host-app.md) "Reel curation … composer … export", the
+`project_reel_generation_spec` memory, [`../systems/design-system.md`](../systems/design-system.md) (the treatment craft +
+the lab).
+
+### The style catalog (the 14 styles + the dispatcher — you WILL touch these)
+- **8 media-first "moods"** (styleId === its themeId, all render via the shared `<Reel>`): `classic`(Cinematic),
+  `warm`(Film), `punchy`(Pulse), `kinetic`(Kinetic), `editorial`(Editorial), `golden`(Sunset), `mono`(Noir),
+  `dreamy`(Float). **6 stylized "treatments"** (own component; styleId → native themeId): `polaroid`→warm,
+  `filmstrip`→classic, `scattered`→warm, `framed`→editorial, `carddeck`→punchy, `parallax`→classic.
+- **The dispatcher (respects a LOAD-BEARING import boundary):** `src/lib/reel/composition/style-registry.ts` is **PURE**
+  (`STYLE_CATALOG`/`resolveStyleEntry`/`styleThemeId`/`isTreatment`, no `remotion`) so SERVER code
+  (`build-reel-props.ts`, `render-service.ts`) resolves `styleId`→theme + validates without dragging `remotion` into the
+  Next server build (which breaks it — `React.createContext` undefined). `src/lib/reel/composition/style-render.tsx` is
+  the **REMOTION** half (`styleComponent` + `styleDuration` + `StyleDispatch`) — client/worker only. `Root.tsx` +
+  `reel-player.tsx` both render `StyleDispatch` + `styleDuration` (WYSIWYG). The `<Watermark/>` is hoisted into
+  `StyleDispatch` (so ALL 14 styles stamp the free-tier mark). NEVER import the `composition/index.ts` barrel or any
+  treatment `.tsx` from server code.
+
+### Slice A — treatment render OPTIMIZATION (blur-downscale) · RECOMMENDED FIRST · small-medium
+- **Why:** a treatment renders ≈ **$0.024 / ~3 min** vs a mood's ≈ **$0.006 / ~72s** (measured live: Layered parallax
+  landscape 30s). The bottleneck is heavy full-frame CSS blur re-rasterized every frame — parallax's `blur(px(46))`
+  wash sits right at the Lambda ceiling (it TIMED OUT at 120s; the stopgap was bumping the function to 240s). Slow UX +
+  ~4× cost + free-tier abuse surface. This makes treatments render fast+cheap like a mood.
+- **The technique (downscale-blur-upscale):** a gaussian blur costs ~ pixels × radius. Instead of `<Img cover
+  filter:blur(46px)>` on a full 1920×1080 frame, render the `<Img>` into a container sized ~⅓–¼ with a proportionally
+  smaller blur (`blur(~12–15px)` at ⅓) then `transform: scale(3–4)` it back to full-frame — ~10–16× cheaper for the
+  blur pass, visually near-identical (a heavy blur has no fine detail to lose). Watch the container-edge artifact
+  (oversize the downscaled element a hair + `overflow:hidden` a parent, or feather).
+- **Where:** primarily `src/lib/reel/composition/treatments/layered-parallax.tsx` (the `Slide` bg wash `<Img>` with
+  `blur(px(46))`, and the fg emerge/melt `blur`). Then audit the other heavy per-frame passes: `framed-gallery.tsx`
+  (large layered box-shadows/gradients), the moods' halation in `clip-media.tsx` (a screen-blended blurred copy of the
+  clip). **Measure first:** trigger a render per style and read `reel_render_log.duration_sec` / `render_cost_usd` to
+  see which actually need it (moods are fine; likely just parallax + maybe framed).
+- **Constraints:** it's the SAME composition code for the player + Lambda, so the optimization applies to both (stays
+  WYSIWYG). Keep it deterministic. Confirm the visual is unchanged (compare the live player to the downloaded mp4).
+- **Ship:** `pnpm typecheck && lint && test && build` → commit → deploy → **`deploy-site`** (it's a composition change!)
+  → re-verify a treatment render is faster + looks identical. Then optionally drop the function back toward 120s (the
+  240s can revert once treatments are cheap) — or keep 240 as headroom (a successful render bills by actual duration, so
+  the higher ceiling costs nothing on success).
+
+### Slice B — GUEST reel surfacing + download · the next FEATURE · medium-large · needs a planning round with Will first
+- **Why:** the reel is host-only today. Guests reach the album via `/e/[qr_token]` but can't see/share the reel — the
+  growth loop wants them to. This is the headline "NEXT" slice.
+- **Product decisions to SETTLE WITH WILL up front (some are one-way doors — plan before building):** (1) is the reel
+  guest-visible **always**, or **host-toggled** (a "publish/share reel" switch on `highlight_reels`)? (2) WHERE on
+  `/e/[qr]` — a hero at the top, a tab, or a section in the stacked feed? (3) can guests **download the mp4**, or only
+  watch the live player? (4) if download: serve the **last host-rendered mp4** (cheap, recommended) vs let a guest
+  **trigger a render** (needs anon rate-limiting + cost control — riskier). (5) confirm no host-only metadata leaks (the
+  reel is the host-approved album subset, so it should be safe, but verify).
+- **Architecture (follow ADR-0004):** anon guests use **capability tokens validated INSIDE security-definer RPCs** —
+  NEVER direct table access. So add a new **anon-safe RPC** (mirror `get_event_media_by_qr_token`) that takes the
+  `qr_token`, resolves guest access (visibility/password, reuse the existing resolution), and returns the reel config
+  (`style_id`/`orientation`/`seed`/`length`/`cover`) + the ordered approved reel media → the guest builds the same
+  `ReelProps` via `build-reel-props.ts` and plays the same `StyleDispatch` composition ($0, client-side, WYSIWYG). For
+  **download**: the mp4 lives at the stable `reelOutputKey` `events/<id>/reel/reel.mp4`; add an anon-safe route that,
+  after resolving qr_token access, presigns + serves it (only if `status='ready'`; else prompt "not ready yet" or,
+  per decision (4), trigger a tightly-limited render). Reuse the existing `/e/` access resolution — the reel inherits
+  the album's visibility/password gate.
+- **Where:** `src/app/e/[qr_token]/` (the guest surface + a new guest reel component reusing `ReelPlayer` +
+  `build-reel-props` + `StyleDispatch`), a migration for the anon capability-token RPC, an anon-safe download route.
+- **Ship:** planning round (the decisions above) → build → the rolled-back anon-RPC contract test + `get_advisors` (the
+  3-anon-read-RPC set is expected; the new one must be in it by design) → deploy → live-verify LOGGED-OUT at `/e/[qr]`.
+
+### Smaller follow-ups (each a quick optional slice)
+- **Lab → StyleDispatch DRY:** `src/app/(dev)/design/reel/reel-lab.tsx` still has its own `TREATMENTS` array + a
+  `THEME_IDS` loop + a dev-only Shuffle button (parallel to the production catalog). Refactor it to render through
+  `STYLE_CATALOG` + `StyleDispatch` so the lab shares the exact production dispatch; drop the lab shuffle. Low-risk.
+- **Style-popover mini-previews:** Will's stated preference was a popover *with mini previews*, but 14 live
+  `@remotion/player` instances jank hard, so the shipped popover is **labels grouped by family** and the main player is
+  the live preview. Lighter path if wanted: render ONE still frame per style once → tiny webp thumbnails in the popover.
+- **Drop the legacy `theme` column:** `highlight_reels.theme` is now vestigial (kept synced = `style_id`; only a
+  pre-migration fallback reads it, and backfill left none). A future migration can drop it + remove the `?? theme`
+  fallback in `render-service.ts`/`getReelConfig`. Low priority.
+- **AWS concurrency 10→2000** (support case `178216366300642`, still pending): the wall-clock speed lever for ALL
+  renders — helps both slices. Independent of Slice A's per-frame optimization.
+
+### ★ Gotchas the next agent MUST know (so nothing lives only in chat)
+- **deploy-site coupling:** ANY composition change (a treatment edit, a new style, `StyleDispatch`) MUST be followed by
+  `npm run deploy-site` in `workers/reel-render/` — it rebundles the app's `Root.tsx` into the Lambda serve bundle. Skip
+  it and Lambda renders the OLD composition (e.g. a treatment silently renders as its base mood). The serve URL is
+  stable (`--site-name=partyreel-reel`), so no env change on redeploy. The AWS creds are in `workers/reel-render/.env`.
+- **RENDER_VERSION:** bump `src/lib/reel/render-hash.ts` `RENDER_VERSION` when a composition change alters output for the
+  same inputs (it's folded into `rendered_hash` → invalidates cached mp4s + forces a one-time re-render of every reel).
+  Currently **2**. Style + orientation are already in the hash.
+- **Two render fixes (DONE — don't regress):** `renderMediaOnLambda` has **`overwrite: true`** (the output key is stable
+  per event → without it the 2nd render errors "output file already exists"). The Lambda function is **240sec**
+  (`REMOTION_LAMBDA_FUNCTION_NAME` on Vercel + `workers/reel-render/.env`; the box in `scripts/render-lambda.ts` + the
+  `deploy-fn` npm script). Both were caught by the live red-team when the RENDER_VERSION bump forced re-renders.
+- **DB:** `highlight_reels.style_id` + `orientation` (+ legacy `theme` synced). RPC = `upsert_reel_config(p_event_id,
+  p_style_id, p_orientation, p_seed, p_length_seconds?, p_cover_media_id?)`, authenticated-only (old p_theme overload
+  dropped). `getReelConfig`/`ReelConfig` carry `styleId`+`orientation`. Migrations apply via the Supabase MCP
+  `apply_migration` (no repo migration files; recorded in Supabase's history). After DDL: `get_advisors` + regenerate
+  `src/lib/db/types.ts` (via the MCP `generate_typescript_types`, then hand-merge — `types.ts` is `.prettierignore`d).
+- **Verifying a render:** the demo event is **`2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f`** (host `willg97@gmail.com`, 9
+  items). Trigger via the composer's **Download** (host-authed). Verify in the DB: `highlight_reels`
+  (status/style_id/orientation/render_cost_usd/render_error/rendered_at) + `reel_render_log` (outcome/duration_sec).
+- **★ The composer's `@remotion/player` renders BLACK in screenshots after scroll/HMR** (a paint blind-spot) — do NOT
+  trust a black player screenshot as "broken"; verify treatments via DOM inspection (the composition renders to DOM) or
+  a live human look. A render takes ~1–3 min; if the Chrome MCP won't hold a stable session (2 flapping extensions
+  happened this session), hand the human the Download click + verify the OUTCOME via the DB.
+- **Cost frugality** ([[feedback-cost-frugality]]): treatments cost ~4× moods — Slice A directly addresses this, which
+  is why it's recommended first.
 
 ## Open items before/while building
 

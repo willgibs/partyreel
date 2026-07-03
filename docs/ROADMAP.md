@@ -162,17 +162,22 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
     "Download all" zip stays its own deferred worker initiative.
-  - **Generation — SLICES 1-3 SHIPPED 2026-06-22 ([`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star is live.
-    S1 spike (`d8b6dba`): Remotion Lambda→R2 proven (direct-to-R2, no copy). S2 composer (`4806e71`): the live in-app
-    `@remotion/player` reel ($0, theme/shuffle/cover/length + auto-fill). **S3 the `.mp4` EXPORT (`f460456`): a Download
-    video button → `renderMediaOnLambda` from full-res originals → direct-to-R2, async trigger+webhook (+ a poll
-    R2-HEAD fallback), lazy+cached (`rendered_hash`), a free-tier `partyreel.com` watermark, the `reel_render_enabled`
-    kill-switch + `reel_render_log` at `/admin/reels`.** Settled (do-not-relitigate): **Remotion** (one composition =
-    WYSIWYG), **Lazy+cached**, **shuffle/themes/seed** (no timeline, no music), **1 reel all tiers**, **free** with the
-    watermark lever, **Pro video** preview+trim. Live: ~$0.006/render, ~72s on the 10-cap. **DEFERRED:** guest-facing
-    reel surfacing + download (its own next slice), Pro video preview+trim + real-video-in-player + R2 CORS, the themes
-    palette + the reveal moment, eager pre-encode (gated on the AWS-quota speed re-measure; case `178216366300642`).
-    → [`systems/host-app.md`](systems/host-app.md).
+  - **Generation — SLICES 1-3 (2026-06-22) + PHASE 2 the STYLE CATALOG (2026-07-02) SHIPPED ([`specs/reel-v1.md`](specs/reel-v1.md)).**
+    The North Star is live. S1 spike (`d8b6dba`): Remotion Lambda→R2 proven. S2 composer (`4806e71`): the live in-app
+    `@remotion/player` reel. S3 the `.mp4` EXPORT (`f460456`): Download video → direct-to-R2, async trigger+webhook,
+    lazy+cached, free-tier watermark, `/admin/reels` kill-switch. **PHASE 2 (`0cfcc4f` + fixes `b6d1767`/`fafba3c`): the
+    host composer now offers a 14-style catalog (8 media-first moods + 6 stylized treatments, a grouped popover) + a
+    portrait/landscape orientation; SHUFFLE REMOVED (deterministic seed); a styleId dispatcher (pure `style-registry` +
+    remotion `StyleDispatch` w/ hoisted watermark); `highlight_reels.style_id/orientation` + new `upsert_reel_config`;
+    `fitClip` now live in prod; `RENDER_VERSION` 2 + `deploy-site`. Live-verified (parallax landscape mp4 downloaded,
+    $0.024/~3min). Two render fixes the red-team caught: `overwrite:true` (stable key) + a 240s Lambda function.**
+    Settled (do-not-relitigate): **Remotion** one-composition WYSIWYG, **Lazy+cached**, the **14-style catalog +
+    orientation** (shuffle gone), **1 reel all tiers**, **free** w/ the watermark lever, **Pro video** preview+trim.
+    **NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
+    (A) treatment render OPTIMIZATION (blur-downscale — treatments cost ~4× moods; recommended first); (B) guest-facing
+    reel surfacing + download (the next feature; needs a planning round); plus follow-ups (lab→StyleDispatch DRY,
+    style-popover thumbnails, drop the legacy `theme` column, AWS concurrency 10→2000 case `178216366300642`) and Pro
+    video real-video-in-player + R2 CORS + the reveal moment. → [`systems/host-app.md`](systems/host-app.md).
   See [`systems/host-app.md`](systems/host-app.md).
 - **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
   round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a

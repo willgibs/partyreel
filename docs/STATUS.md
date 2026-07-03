@@ -108,8 +108,8 @@ pending queue is now the third tab (**Gallery | Reel | Reviews**), visible only 
 with an AMBER count and Reviews-as-landing-tab when a queue waits; the full-screen takeover is mounted by
 `ReviewTakeoverProvider` (a tab sibling, so it survives switches). Turning moderation OFF pops a count-named
 confirm and `approveAllPending` auto-approves the queue on save (the server enforces "live mode holds no
-pending media"). Live-verified end-to-end. DEFERRED (later rounds): album bulk-select, drag-reorder,
-guest-facing surfacing, and the generation worker.
+pending media"). Live-verified end-to-end. (Album bulk-select, drag-reorder, and reel generation all
+shipped since; guest-facing reel surfacing is the remaining deferred slice — see the reel roadmap below.)
 **Event-page feed redesign ✅ (2026-06-22, `4d3ddcc` + beat hotfix `c316b21`): the host event page is now a
 stacked, pill-filtered media-forward feed** (the Gallery|Reel|Reviews TABS retired). `EventFeed` mirrors
 `DashboardFeed` (`?section=`, urgency-ordered `Review · Gallery · Reel`); the review pop-up is inlined into the
@@ -146,17 +146,22 @@ mint route authorizes + HMAC-signs the key list, the browser top-level form-POST
 store-zip (`client-zip`) straight from R2. Concept B config modal + bulk "Download selected" + the guest album;
 `export_log` + the `export_enabled` kill-switch at `/admin/exports`. Live-verified end-to-end (the full chain +
 every fail-closed gate + a real 9-file zip downloaded). Current truth: [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-**Highlight Reel GENERATION ✅ (2026-06-22): the North Star ships.** S1 spike (`d8b6dba`) proved Remotion
-Lambda→R2; S2 composer (`4806e71`) made the reel a live in-app `@remotion/player` ($0, theme/shuffle/cover/length);
-**S3 the `.mp4` EXPORT (`f460456`): a Download video button renders the reel on Lambda from full-res originals →
-direct-to-R2, async trigger+webhook (+ a poll R2-HEAD fallback, both idempotent), lazy+cached, a free-tier
-`partyreel.com` watermark, the `reel_render_enabled` kill-switch + `reel_render_log` at `/admin/reels`.** Live-verified
-end-to-end (trigger → 72s render → ready → download, cost $0.00622, cache, kill-switch, watermark). ★ The reel mp4 is a
-non-media R2 key → the event-purge now deletes it explicitly (a leak fix). Current truth:
-[`systems/host-app.md`](systems/host-app.md) "Reel curation … the .mp4 export"; the slice plan in
-[`specs/reel-v1.md`](specs/reel-v1.md).
-**▶ NEXT (Will's queue is now clear):** **guest-facing reel surfacing + download** (its own slice — a new `/e/` surface
-+ a capability-token reel RPC) / a future Guests section / the roadmapped user-profiles +
+**Highlight Reel GENERATION ✅ (2026-06-22) + PHASE 2 the STYLE CATALOG ✅ (2026-07-02): the North Star ships.** S1-3
+(spike `d8b6dba` / composer `4806e71` / `.mp4` export `f460456`) proved + shipped Remotion Lambda→R2, the live in-app
+`@remotion/player`, and the Download-video export. **Phase 2 (`0cfcc4f` + fixes `b6d1767`/`fafba3c`): the host composer
+now offers a 14-style CATALOG (8 media-first moods + 6 stylized treatments, a grouped popover) + a portrait/landscape
+ORIENTATION; SHUFFLE REMOVED (deterministic seed); a styleId dispatcher (pure `style-registry` + remotion `StyleDispatch`
+with the watermark hoisted so all styles stamp it); `highlight_reels.style_id/orientation` + a new authenticated-only
+`upsert_reel_config`; `fitClip` now runs in prod; `RENDER_VERSION` 2 + `deploy-site` pushed the treatments into the
+Lambda bundle.** Live-verified end-to-end (Layered parallax + Landscape → player swaps, config persists, the mp4 renders
++ downloads: `status ready`, $0.024/~3min). ★ Two render fixes the live red-team caught (from the version bump forcing
+re-renders): `overwrite:true` (stable output key) + a 240s Lambda function (heavy treatments hit the 120s ceiling).
+Current truth: [`systems/host-app.md`](systems/host-app.md) "Reel composer" + the `project_reel_generation_spec` memory.
+**▶ NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
+(A) **treatment render OPTIMIZATION** (blur-downscale — treatments cost ~4× moods; recommended first, self-contained);
+(B) **guest-facing reel surfacing + download** (the next feature — a new `/e/` surface + an anon capability-token reel
+RPC; needs a planning round with Will); plus follow-ups (lab→StyleDispatch DRY, style-popover thumbnails, drop the
+legacy `theme` column, AWS concurrency 10→2000). Beyond the reel: the roadmapped user-profiles +
 social program. The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
