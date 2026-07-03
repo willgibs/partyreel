@@ -64,18 +64,18 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Strip EXIF/GPS from served + downloaded originals** (own round; near-term, flagged after Download-all
-  2026-06-22) — phone photos embed GPS + device EXIF; tiles already serve the canvas-regenerated (EXIF-free)
-  preview, but the lightbox, per-item Save, and the new "Download all" zip serve ORIGINALS with EXIF intact, so
-  a guest's location leaks on download. Strip EXIF on the publicly-served/downloaded variant (or at upload),
-  retaining only what's needed. A focused privacy fix that can ship independently of, and is the natural first
-  slice of, the broader forensic/abuse round below (which also wants the EXIF strip).
+- **HEIC/HEIF/AVIF + WebM metadata strip** — the client-side strip consciously fails open on item-based
+  ISOBMFF (Exif is an iloc-referenced item; blanking `meta` would destroy the image) and EBML, so those
+  formats still upload with metadata intact; close the residual leak window (iloc-aware blanking) if real
+  devices turn out to upload unconverted HEIC. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
   round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
   only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,
   full UA + UA client hints, and a durable FIRST-PARTY device id (localStorage/cookie UUID) that survives
   session-token rotation. Extract + retain key EXIF (GPS, device make/model/serial, capture time) into a
-  locked record AND strip EXIF from the publicly-served variant (also fixes a latent GPS-privacy leak). On a
+  locked record. NOTE: the EXIF/GPS strip itself SHIPPED 2026-07-02 as a CLIENT-side pre-upload step
+  (→ [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)), so the server never sees the EXIF — this
+  round's forensic capture must extract it client-side BEFORE the strip and post it with the upload. On a
   report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
   remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
   (18 U.S.C. §2258A(h): 90d, +90 on LE request) preservation hold (a legal mandate + safe harbor, not

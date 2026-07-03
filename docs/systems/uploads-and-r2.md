@@ -27,6 +27,25 @@ the pure sizing math: [`upload/preview.ts`](../../src/lib/upload/preview.ts) +
 [`media/preview-size.ts`](../../src/lib/media/preview-size.ts). (A server-side BACKFILL of previews for existing
 media is a deferred follow-on.)
 
+**Metadata strip (client-side, 2026-07-02).** Phone originals carry GPS + device EXIF, and originals are served
+byte-for-byte (lightbox, per-item Save, zip export) — a location leak. `uploadFile()` step 0 now strips
+identifying metadata BEFORE any size is read (the presigned PUT binds Content-Length to the declared size, so
+the stripped bytes must be what measure → validate → preview → presign → PUT all see), covering guest AND host
+uploads at the one shared seam. The stripper ([`media/strip-metadata.ts`](../../src/lib/media/strip-metadata.ts))
+is pure + dependency-free + runtime-agnostic and **lossless — byte-level excision, never a pixel re-encode**:
+JPEG drops Exif/XMP/IPTC/COM but keeps JFIF + ICC + Adobe APP14 (color-load-bearing) and **rebuilds a minimal
+one-tag Exif so Orientation survives** (sideways photos would otherwise render wrong everywhere); PNG drops
+eXIf/tEXt/zTXt/iTXt; WebP drops EXIF/XMP chunks + clears the VP8X flag bits; MP4/MOV **never restructures**
+(chunk-offset tables) — udta/meta/xml/XMP-uuid boxes are blanked in place (rename to `free` + zero payload) via
+lazy File slices, so multi-GB videos never fully load. **Fail-open contract:** unparseable or exotic input
+(HEIC/HEIF/AVIF — item-based, blanking meta would destroy the image — and WebM) uploads UNTOUCHED with
+`stripped:false`; a corrupted upload is worse than the leak, so that leak window is a conscious trade-off.
+Because the strip is client-side pre-upload, replicated backups get clean bytes too — but it also means **the
+server never sees the EXIF**, so any future forensic EXIF capture must extract client-side before the strip.
+Pre-strip objects are swept by the one-off [`scripts/backfill-strip-exif.mjs`](../../scripts/backfill-strip-exif.mjs)
+(dry-run by default; `--live` PUTs stripped bytes under the same key and decrements `media.file_size_bytes` +
+`profiles.storage_used_bytes` + the upload-month `storage_ledger` row to keep the cap meters honest).
+
 **Download all (zip export, 2026-06-22).** Per-item Save streams ONE original (`presignDownload` attachment
 URL); **"Download all"** zips a whole album. Heavy/streaming work runs OFF Vercel on a separate **streaming
 export Worker** ([`workers/export/`](../../workers/export), `partyreel-export`, deployed via `wrangler`,
@@ -64,7 +83,9 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   the strategies own the per-identity gates + status mapping. Part-size math single-sourced in
   [`upload/part-plan.ts`](../../src/lib/upload/part-plan.ts). Response JSON shapes/key order are the
   `uploadFile()` contract — byte-for-byte frozen (curl-fixture verified at the refactor).
-- Shared uploader: [`upload/uploader.ts`](../../src/lib/upload/uploader.ts) (`uploadFile`).
+- Shared uploader: [`upload/uploader.ts`](../../src/lib/upload/uploader.ts) (`uploadFile`). Metadata strip:
+  [`media/strip-metadata.ts`](../../src/lib/media/strip-metadata.ts) (pure; browser seam + the Node backfill
+  [`scripts/backfill-strip-exif.mjs`](../../scripts/backfill-strip-exif.mjs) share it — never fork the logic).
 - Media constants: [`media/limits.ts`](../../src/lib/media/limits.ts) (10 GB per upload, size-only — single source; `MIN_UPLOAD_CAP_BYTES` + `UPLOAD_CAP_PRESETS` feed the host cap),
   [`media/poster.ts`](../../src/lib/media/poster.ts) (`videoPosterSrc`), [`media/download-filename.ts`](../../src/lib/media/download-filename.ts).
 - Render: [`media-grid.tsx`](../../src/components/app/media-grid.tsx) + the shared
