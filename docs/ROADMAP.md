@@ -221,8 +221,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   disclosure line.
 - Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
   event with catchy approved media.
-- Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks (needs a
-  paid Supabase branch or a local Postgres test DB).
+- Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks. BLOCKED
+  on a direct pg connection; the exact gaps + the two unblock paths + the intended test list are in
+  [`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md) (2026-07-03).
 - Confirm the Sentry email-alert rule fires `[human]`.
 - Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — the deletion-aware prune has shipped (in
   dry-run), so the "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing
