@@ -451,3 +451,294 @@
     transform: scaleX(1);
   }
 }
+
+/* ─────────────── Reel reveal-moment round (lab-local, 2026-07-03) ───────────────
+   The reveal choreographies for the moment a host's reel first exists (and later
+   a guest first meets it). Same convention as the marketing round: the ACT STATE
+   lives outside the media queries (a reduced-motion jump to "settled" still
+   arrives everywhere), TRANSITIONS live inside no-preference, and the reduce
+   block collapses everything to a plain fade. `data-act` on [data-rvl-stage] is
+   the whole state machine (see reel-reveal-shared.tsx).
+
+     [data-rvl-chrome]  the composer mock (leaves as every run starts)
+     [data-rvl-veil]    the cinema dark (rises for every direction)
+     [data-rvl-screen]  the CanvasReelPlayer box; --rvl-screen-from is its
+                        per-direction hidden pose, --rvl-screen-ease its move
+     [data-rvl-cue]     direction 1's held-beat clapperboard breath
+     [data-rvl-scrim] / [data-rvl-title]  direction 1's title beat
+     [data-rvl-grid] / [data-rvl-tile] / [data-rvl-frame] / [data-rvl-flash]
+                        direction 2's flight (per-tile --dx/--dy/--s/--r/--i
+                        written by the FLIP measure), target frame + ignite
+     [data-rvl-print] / [data-rvl-mat] / [data-rvl-develop] / [data-rvl-caption]
+                        direction 3's print, its white mat, the develop, the label
+     [data-rvl-end]     the post-reveal furniture (Save video / Share)          */
+
+/* Hidden/rest states. */
+[data-rvl-veil],
+[data-rvl-cue],
+[data-rvl-scrim],
+[data-rvl-caption],
+[data-rvl-flash] {
+  opacity: 0;
+}
+[data-rvl-screen] {
+  opacity: 0;
+  transform: var(--rvl-screen-from, scale(0.94));
+  filter: var(--rvl-screen-blur, none);
+}
+[data-rvl-title] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+[data-rvl-end] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+[data-rvl-print] {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+/* Every run starts the same way: the chrome bows out, the lights go down. */
+[data-rvl-stage]:not([data-act="idle"]) [data-rvl-chrome] {
+  opacity: 0;
+  pointer-events: none;
+}
+[data-rvl-stage]:not([data-act="idle"]) [data-rvl-veil] {
+  opacity: 1;
+}
+[data-rvl-stage][data-act="settled"] [data-rvl-end] {
+  opacity: 1;
+  transform: none;
+}
+
+/* 1 · Lights down: hush (cue) > bloom (screen) > the title beat. */
+[data-rvl-stage][data-act="held"] [data-rvl-cue] {
+  opacity: 1;
+}
+[data-rvl-stage][data-act="ignite"] [data-rvl-screen] {
+  opacity: 1; /* born at the stack's footprint; the open act moves it */
+}
+[data-rvl-stage]:is(
+    [data-act="bloom"],
+    [data-act="title"],
+    [data-act="open"],
+    [data-act="settled"]
+  )
+  [data-rvl-screen] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+[data-rvl-stage][data-act="title"] [data-rvl-scrim] {
+  opacity: 1;
+}
+[data-rvl-stage][data-act="title"] [data-rvl-title] {
+  opacity: 1;
+  transform: none;
+}
+[data-rvl-stage][data-act="settled"] [data-rvl-title] {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* 2 · Assembly: the tiles fly to the frame, square up, then vanish under the
+   ignite flash exactly as the screen takes their footprint. */
+[data-rvl-stage]:is(
+    [data-act="gather"],
+    [data-act="condense"],
+    [data-act="ignite"]
+  )
+  [data-rvl-tile] {
+  transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--r, 0deg))
+    scale(var(--s, 1));
+}
+[data-rvl-stage][data-act="condense"] [data-rvl-tile] {
+  transform: translate(var(--dx, 0px), var(--dy, 0px))
+    rotate(calc(var(--r, 0deg) * 0.25)) scale(var(--s, 1));
+}
+[data-rvl-stage]:is([data-act="gather"], [data-act="condense"])
+  [data-rvl-frame] {
+  border-style: solid;
+  border-color: oklch(1 0 0 / 0.45);
+}
+[data-rvl-stage]:is(
+    [data-act="ignite"],
+    [data-act="open"],
+    [data-act="settled"]
+  )
+  :is([data-rvl-frame], [data-rvl-grid]) {
+  opacity: 0;
+}
+
+/* 3 · First frame held: the print appears tilted, develops, then takes breath
+   (the mat falls away as the same canvas starts ticking). */
+[data-rvl-stage]:is([data-act="print"], [data-act="held"]) [data-rvl-print] {
+  opacity: 1;
+  transform: rotate(-1.4deg);
+}
+[data-rvl-stage]:is([data-act="breath"], [data-act="settled"])
+  [data-rvl-print] {
+  opacity: 1;
+  transform: scale(var(--rvl-breath, 1.3));
+}
+[data-rvl-stage]:is([data-act="breath"], [data-act="settled"]) [data-rvl-mat] {
+  opacity: 0;
+}
+[data-rvl-stage]:is([data-act="print"], [data-act="held"]) [data-rvl-caption] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-rvl-chrome] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform 420ms var(--dir-ease),
+      filter 420ms var(--dir-ease);
+  }
+  /* The dimming garnish rides only where motion is welcome. */
+  [data-rvl-stage]:not([data-act="idle"]) [data-rvl-chrome] {
+    transform: scale(0.985);
+    filter: blur(6px);
+  }
+  [data-rvl-veil] {
+    transition: opacity 520ms var(--dir-ease);
+  }
+  [data-rvl-cue] {
+    transition: opacity 300ms var(--dir-ease);
+  }
+  /* One quiet breath while the beat holds (never a spinner). */
+  [data-rvl-stage][data-act="held"] [data-rvl-cue] svg {
+    animation: rvl-breathe 1100ms ease-in-out infinite alternate;
+  }
+  [data-rvl-screen] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform 660ms var(--rvl-screen-ease, var(--dir-ease)),
+      filter 660ms var(--dir-ease);
+  }
+  /* The ignite handoff is a snap: the flash covers it. */
+  [data-rvl-stage][data-act="ignite"] [data-rvl-screen] {
+    transition-duration: 180ms;
+  }
+  [data-rvl-scrim] {
+    transition: opacity 500ms var(--dir-ease);
+  }
+  [data-rvl-title] {
+    transition:
+      opacity 520ms var(--dir-ease),
+      transform 520ms var(--dir-ease);
+  }
+  [data-rvl-stage][data-act="settled"] [data-rvl-title] {
+    transition-duration: 260ms; /* exits faster than enters */
+  }
+  [data-rvl-end] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform 420ms var(--dir-ease);
+    transition-delay: 160ms;
+  }
+  [data-rvl-tile] {
+    transition: transform 640ms var(--ease-in-out-strong);
+    transition-delay: calc(var(--i, 0) * 42ms);
+  }
+  /* Squaring the deck is one collective settle: no stagger, short. */
+  [data-rvl-stage][data-act="condense"] [data-rvl-tile] {
+    transition-duration: 320ms;
+    transition-delay: 0ms;
+  }
+  [data-rvl-grid] {
+    transition: opacity 160ms linear;
+  }
+  [data-rvl-frame] {
+    transition:
+      opacity 200ms linear,
+      border-color 500ms var(--dir-ease);
+  }
+  [data-rvl-stage][data-act="ignite"] [data-rvl-flash] {
+    animation: rvl-flash 360ms var(--dir-ease) both;
+  }
+  [data-rvl-print] {
+    transition:
+      opacity 460ms var(--dir-ease),
+      transform 740ms var(--ease-in-out-strong);
+  }
+  [data-rvl-mat] {
+    transition: opacity 420ms var(--dir-ease);
+    transition-delay: 140ms;
+  }
+  [data-rvl-caption] {
+    transition: opacity 420ms var(--dir-ease);
+  }
+  /* The label surfaces as the develop finishes. */
+  [data-rvl-stage][data-act="print"] [data-rvl-caption] {
+    transition-delay: 900ms;
+  }
+  [data-rvl-stage][data-act="print"] [data-rvl-develop] {
+    animation: rvl-develop 1200ms 180ms var(--dir-ease) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The honest fallback: the run jumps to "settled", these arrive as fades
+     (the player itself starts paused on frame 0 with play one tap away). */
+  [data-rvl-chrome],
+  [data-rvl-screen],
+  [data-rvl-title],
+  [data-rvl-end],
+  [data-rvl-print],
+  [data-rvl-tile] {
+    transition: opacity 200ms ease-out;
+    transform: none !important;
+    filter: none !important;
+  }
+  /* Positioned by their own utility transforms: fade only, keep transforms. */
+  [data-rvl-veil],
+  [data-rvl-scrim],
+  [data-rvl-frame],
+  [data-rvl-grid],
+  [data-rvl-cue],
+  [data-rvl-mat],
+  [data-rvl-caption] {
+    transition: opacity 200ms ease-out;
+  }
+  [data-rvl-flash],
+  [data-rvl-develop],
+  [data-rvl-cue] svg {
+    animation: none !important;
+  }
+}
+
+@keyframes rvl-breathe {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes rvl-flash {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes rvl-develop {
+  from {
+    opacity: 0.85;
+    filter: brightness(1.45) contrast(0.72) saturate(0.6) blur(1.5px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
