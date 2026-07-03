@@ -62,6 +62,8 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
 
 export async function POST(request: Request) {
   // Auth gate: a signed-in host only (RLS/RPC re-check ownership at the DB).
+  // Duplicated verbatim in the host complete route ON PURPOSE: the 401 must fire
+  // BEFORE the engine parses the body, so don't extract a helper that moves it.
   const supabase = await createClient();
   const {
     data: { user },
