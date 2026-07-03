@@ -10,6 +10,31 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-03 — EXIF/GPS metadata strip + the elevation-program bootstrap (milestone-0, `f99d9cc`)
+
+**The live location leak is closed.** Guests' phone photos/videos carried GPS + device EXIF into the R2
+originals served by the lightbox, per-item Save, and the Download-all zip. Now a **client-side, lossless,
+byte-level strip runs at the upload seam** (`src/lib/upload/uploader.ts` step 0 → `src/lib/media/strip-metadata.ts`,
+dependency-free, browser+Node): JPEG (Exif/XMP/IPTC/COM dropped; ICC + JFIF kept; a minimal orientation-only
+Exif is REBUILT so rotated photos stay upright; MPF gain-map indexes are offset-rewritten so iPhone HDR photos
+survive intact; motion-photo trailers get their embedded MP4 metadata blanked in place), PNG (eXIf/tEXt/iTXt),
+WebP (EXIF/XMP + VP8X flags), MP4/MOV (udta/©xyz/loci/meta/keys/ilst/XMP blanked by rename-to-`free`, zero
+offset movement, big files never fully in memory). Fail-open by design: unparseable/exotic input uploads
+unmodified (a corrupted keepsake is worse than the leak); HEIC/WebM are conscious ROADMAP gaps. Built by an
+isolated-worktree agent + 3 adversarial review lenses, which caught two REAL bugs pre-merge (a stale MPF index
+that corrupted iPhone HDR gain maps — reproduced on a prod object — and trailer-carried GPS invisible to the
+reporter); both fixed with fail-open guarantees. 43 new unit tests (627 total).
+**Backfill:** `scripts/backfill-strip-exif.mjs` (dry-run default) ran LIVE: 14/16 pre-existing originals
+stripped (2 carried real GPS), ledger (`file_size_bytes`, `storage_used_bytes`, `storage_ledger`) corrected,
+re-run reports 0 remaining, 0 errors. **Live-verified on partyreel.com**: a real GPS-tagged 4032×3024 iPhone
+JPEG uploaded through the production browser pipeline landed in R2 at the exact predicted stripped size,
+`hasGpsMetadata=false`, orientation 6 preserved.
+**Rode along in the milestone:** the elevation-program bootstrap — CLAUDE.md's git section now carries the
+program branch protocol (`launch-prep` integration, `lp/*` tracks, frozen main), STATUS points at the program
+plan, and ROADMAP's launch checkpoint gained the program-teardown + AWS-quota lines. The `launch-prep` preview
+alias is fully wired for live red-teams (branch env, R2 CORS, Supabase redirect, a temporary Stripe TEST
+webhook endpoint) and smoke-verified end-to-end (OAuth, upload, a real Lambda reel render + webhook, $0.0135).
+
 ## 2026-07-02 — Reel STYLE CATALOG + orientation, wired end-to-end (Reel V1 Phase 2, `923457b`/`0cfcc4f` + fixes `b6d1767`/`fafba3c`)
 
 The host composer graduates from 8 themes + shuffle to a **14-style catalog** (8 media-first "moods" + 6 stylized
