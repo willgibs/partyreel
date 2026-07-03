@@ -265,3 +265,189 @@
     }
   }
 }
+
+/* ─────────────── Marketing-identity round (lab-local, 2026-07-03) ───────────────
+   Three site identities on the mono system; these hooks carry the MOTION HALF of
+   what makes each direction distinct. STATE lives outside the media queries
+   (data-inview / data-on flips still land under reduced motion); TRANSITIONS live
+   inside them, so reduce = instant-or-fade, never a stuck-invisible element.
+   Marketing is the one surface allowed past the 300ms UI ceiling (cinematic
+   reveals are explanatory, not workflow), per the craft standard.
+
+     [data-mkt-reveal]  scroll-triggered rise+fade (a useInView hook flips
+                        data-inview on the wrapper); children stagger via --i
+     [data-mkt-plate]   the editorial image reveal (clip-path, slow + confident)
+     [data-mkt-rule]    a hairline that draws in from the left (magazine furniture)
+     [data-mkt-shot]    montage shot: perpetual Ken Burns drift (negative delays
+                        keep every shot mid-drift, so crossfades never snap)
+     [data-mkt-cut]     the film-cut entrance: a hard scale settle, no fade-in tail
+     [data-mkt-marquee] the film-strip conveyor (linear on purpose: constant motion)
+     [data-mkt-fly]     direction C's tile: flies in from the phone, springy curve
+     [data-mkt-toast]   direction C's live toast pop
+     [data-mkt-scan],
+     [data-mkt-pulse]   the QR scan beam + idle pulse                              */
+
+.mono {
+  /* Direction-C's playful curve: a restrained overshoot (kept subtle so the
+     energy reads crafted, not cartoonish). A/B reuse --dir-ease. */
+  --mkt-ease-pop: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+/* Final states first (outside media queries: reduced motion still ARRIVES). */
+[data-inview="true"] [data-mkt-reveal],
+[data-inview="true"][data-mkt-reveal] {
+  opacity: 1;
+  transform: none;
+}
+[data-inview="true"] [data-mkt-plate] {
+  clip-path: inset(0 0 0 0);
+}
+[data-inview="true"] [data-mkt-rule] {
+  transform: scaleX(1);
+}
+[data-mkt-fly][data-on="true"],
+[data-mkt-toast][data-on="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity var(--mkt-reveal-ms, 700ms) var(--dir-ease),
+      transform var(--mkt-reveal-ms, 700ms) var(--dir-ease);
+    transition-delay: calc(var(--i, 0) * var(--mkt-stagger-ms, 90ms));
+  }
+
+  /* The emil image-reveal, slowed to editorial pace: the photo is unveiled
+     top-down as if a mat were lifted. Strong in-out curve, no bounce. */
+  [data-mkt-plate] {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 1000ms cubic-bezier(0.77, 0, 0.175, 1);
+    transition-delay: calc(var(--i, 0) * 140ms);
+  }
+
+  [data-mkt-rule] {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 900ms cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  [data-mkt-shot] {
+    animation: mkt-kenburns 14s linear infinite alternate;
+    animation-delay: calc(var(--shot-i, 0) * -3.5s);
+  }
+
+  /* A film cut settles hard: near-instant presence, then a short scale landing.
+     Deliberately NOT a soft fade (that would read editorial, not cinema). */
+  [data-inview="true"] [data-mkt-cut] {
+    animation: mkt-cut 480ms var(--dir-ease) both;
+    animation-delay: calc(var(--i, 0) * 120ms);
+  }
+
+  [data-mkt-marquee] {
+    animation: mkt-marquee 32s linear infinite;
+  }
+
+  [data-mkt-fly] {
+    opacity: 0;
+    transform: translate(var(--fly-x, -56px), var(--fly-y, -20px)) scale(0.55);
+    transition:
+      opacity 380ms var(--mkt-ease-pop),
+      transform 460ms var(--mkt-ease-pop);
+    transition-delay: calc(var(--i, 0) * 65ms);
+  }
+
+  [data-mkt-toast] {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+    transition:
+      opacity 300ms var(--dir-ease),
+      transform 300ms var(--dir-ease);
+  }
+
+  [data-mkt-scan][data-on="true"] {
+    animation: mkt-scan 950ms cubic-bezier(0.77, 0, 0.175, 1) both;
+  }
+
+  [data-mkt-pulse] {
+    animation: mkt-pulse 2.2s ease-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reveals keep a gentle fade (comprehension aid), movement is dropped. */
+  [data-mkt-reveal] {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    transition-delay: 0ms;
+  }
+  [data-mkt-fly],
+  [data-mkt-toast] {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    transition-delay: 0ms;
+    transform: none;
+  }
+}
+
+@keyframes mkt-kenburns {
+  from {
+    transform: scale(1.06) translate(0.6%, 0.6%);
+  }
+  to {
+    transform: scale(1.14) translate(-0.6%, -0.6%);
+  }
+}
+
+@keyframes mkt-cut {
+  from {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mkt-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mkt-scan {
+  from {
+    transform: translateY(-130%);
+  }
+  to {
+    transform: translateY(240%);
+  }
+}
+
+@keyframes mkt-pulse {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.13 0 0 / 0.18);
+  }
+  70% {
+    box-shadow: 0 0 0 14px oklch(0.13 0 0 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.13 0 0 / 0);
+  }
+}
+
+@keyframes mkt-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
