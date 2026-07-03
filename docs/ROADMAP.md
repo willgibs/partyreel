@@ -224,9 +224,18 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - Flip the backup prune to live `[human]` — set `PRUNE_MODE=live` in `workers/backup/wrangler.jsonc` +
   redeploy once the primary is populated (it ships in dry-run, deleting nothing). Also set the shared
   `PRUNE_API_SECRET` (Vercel + `wrangler secret put`). See [`systems/durability-backups.md`](systems/durability-backups.md).
-- Revisit the git workflow for production `[eng]` — while there are no live users we commit straight to `main`
-  (fewer Vercel builds, fix-forward on a bad build). Once real users arrive, reconsider feature branches + PR
-  preview deploys so a bad build can't reach them. The current rule lives in [`../CLAUDE.md`](../CLAUDE.md) (working loop + Git).
+- Revisit the git workflow for production `[eng]` — the elevation program runs on the `launch-prep`
+  integration branch (see [`../CLAUDE.md`](../CLAUDE.md) Git); when the program ends, decide the standing
+  post-program workflow (straight-to-main speed vs branches/PR previews once real users arrive).
+- **Elevation-program teardown** `[eng]` — when the program's final milestone merges: re-enable Vercel SSO
+  deployment protection (`ssoProtection: all_except_custom_domains`), delete the temporary Stripe TEST
+  webhook endpoint `we_1TowqZPtjqmVkBwk3IWfebCS` (the launch-prep preview endpoint — it must NOT survive
+  into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
+  auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
+  `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
+- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` still pending; nudge via
+  the AWS console (account `562923010969` under partyr33l@gmail.com). The wall-clock speed lever for all
+  reel renders; non-blocking.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.

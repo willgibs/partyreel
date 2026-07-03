@@ -4,7 +4,27 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-06-22
+**Updated:** 2026-07-02
+
+## THE ELEVATION PROGRAM (the active thread, 2026-07-02)
+
+A standing-orchestrator program is taking all four surfaces (App / Marketing / Admin / `/design` lab) to
+magic-grade before a later, separate launch round. **The program plan (rounds, gates, versioning
+protocol, Round 0 runbook) lives at `~/.claude/plans/you-are-the-standing-humble-unicorn.md`** — read it
+before picking up any program work. Headlines a fresh agent must know:
+
+- **Branch protocol supersedes straight-to-main** (see CLAUDE.md Git): work rides the `launch-prep`
+  integration branch; tracks commit to `lp/<track>`; the orchestrator alone integrates, applies
+  migrations, deploys workers; `main` is frozen except milestone merges + hotfixes.
+- **Live red-team target between milestones** = `https://partyreel-git-launch-prep-willgibs.vercel.app`
+  (branch-scoped env + R2 CORS + Stripe TEST preview webhook wired; Supabase redirect allow-list is
+  Will's dashboard step).
+- **Rounds**: R0 bootstrap + EXIF hotfix → R1 Decision Studio (reveal + marketing-identity labs, four
+  one-way-door options-docs → T1 Ruling Day) ∥ R2 Reel Engine + Foundation → R3 Reel Experience →
+  parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish · R7 Admin)
+  → R8 Hardening + Certification.
+- **Gates**: lab-validate before shipping creative magic; options-doc + Will's ruling for one-way-doors;
+  NO launch switches (those accrete in ROADMAP's Launch checkpoint).
 
 ## Where we are
 
