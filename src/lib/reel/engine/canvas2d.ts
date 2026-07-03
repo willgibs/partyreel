@@ -88,6 +88,21 @@ export function buildWash(src: CanvasImage): HTMLCanvasElement {
 
 let ctxFilterSupport: boolean | null = null;
 
+/**
+ * The probe core, split out pure so vitest can pin it (detectCtxFilter needs a real DOM).
+ * ORDER MATTERS: the `"filter" in ctx` existence check MUST run BEFORE the assignment probe.
+ * On a browser with no filter IDL attribute (the Safari case this exists for), assigning
+ * `ctx.filter = "blur(2px)"` just creates a JS expando on the extensible context object, and the
+ * readback returns "blur(2px)" verbatim, so an assign-then-readback probe alone returns true
+ * exactly where it must return false. The readback check is still kept for an attribute that
+ * exists but rejects/normalizes the value.
+ */
+export function probeCtxFilter(ctx: { filter?: string }): boolean {
+  if (!("filter" in ctx)) return false;
+  ctx.filter = "blur(2px)";
+  return ctx.filter !== "none";
+}
+
 /** Whether ctx.filter (CSS filter strings on canvas) works here. Safari: no; the grade is skipped
  *  and reported there rather than crashing (a WebGL grade path is a later slice). */
 export function detectCtxFilter(): boolean {
@@ -95,12 +110,7 @@ export function detectCtxFilter(): boolean {
   if (typeof document === "undefined") return false;
   const c = document.createElement("canvas");
   const ctx = c.getContext("2d");
-  if (!ctx) {
-    ctxFilterSupport = false;
-    return false;
-  }
-  ctx.filter = "blur(2px)";
-  ctxFilterSupport = ctx.filter !== "none";
+  ctxFilterSupport = ctx !== null && probeCtxFilter(ctx);
   return ctxFilterSupport;
 }
 
