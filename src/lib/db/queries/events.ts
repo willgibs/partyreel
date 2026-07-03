@@ -15,13 +15,15 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { Tables } from "@/lib/db/types";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
   binCountdownDays,
 } from "@/lib/lifecycle/recently-deleted";
 import { presignDownload } from "@/lib/r2/presign";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /** A host event row with the bcrypt password hash dropped + `has_password` derived. */
 export type HostEvent = Omit<Tables<"events">, "event_password_hash"> & {
@@ -35,11 +37,16 @@ function toHostEvent(row: Tables<"events">): HostEvent {
   return { ...rest, has_password: event_password_hash != null };
 }
 
-export async function listEvents(): Promise<HostEvent[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// cache() = request-scoped dedupe (the guest-events convention; see
+// lib/supabase/request-auth for why it can't leak across users). getEvent is
+// the real win: generateMetadata + the page render each call it, so one event
+// page paid the read twice. The array-arg reads below (getEventCoverUrls,
+// getEventCardStats) stay UNcached: cache() keys arguments by reference, so a
+// fresh array per call would never hit.
+export const listEvents = cache(async function listEvents(): Promise<
+  HostEvent[]
+> {
+  const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -49,13 +56,12 @@ export async function listEvents(): Promise<HostEvent[]> {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(toHostEvent);
-}
+});
 
-export async function getEvent(id: string): Promise<HostEvent | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const getEvent = cache(async function getEvent(
+  id: string,
+): Promise<HostEvent | null> {
+  const { supabase, user } = await getRequestAuth();
   if (!user) return null;
 
   const { data, error } = await supabase
@@ -66,15 +72,12 @@ export async function getEvent(id: string): Promise<HostEvent | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? toHostEvent(data) : null;
-}
+});
 
 /** Counts the host's existing (non-deleted) events — the number compared to
  * `MAX_EVENTS[tier]` for the dashboard's "X of N used" + cap gate. */
 export async function countActiveEvents(): Promise<number> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return 0;
 
   const { count, error } = await supabase
@@ -104,10 +107,7 @@ export async function getEventCoverUrls(
   const urls = new Map<string, string>();
   if (eventIds.length === 0) return urls;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return urls;
 
   const { data, error } = await supabase
@@ -146,32 +146,31 @@ export async function getEventCoverUrls(
 /** A soft-deleted event card for the dashboard bin, with the days-until-purge countdown. */
 export type DeletedHostEvent = HostEvent & { countdownDays: number };
 
-export async function listRecentlyDeletedEvents(): Promise<DeletedHostEvent[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+export const listRecentlyDeletedEvents = cache(
+  async function listRecentlyDeletedEvents(): Promise<DeletedHostEvent[]> {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return [];
 
-  // One `now` for BOTH the window filter and the per-card countdown — computed HERE (a query, not
-  // a component) so the page stays render-pure (no Date.now() in RSC render; react-hooks/purity).
-  const now = Date.now();
-  const windowStart = new Date(
-    now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
-  ).toISOString();
+    // One `now` for BOTH the window filter and the per-card countdown — computed HERE (a query, not
+    // a component) so the page stays render-pure (no Date.now() in RSC render; react-hooks/purity).
+    const now = Date.now();
+    const windowStart = new Date(
+      now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+    ).toISOString();
 
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .not("deleted_at", "is", null)
-    .gte("deleted_at", windowStart)
-    .order("deleted_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
-    ...toHostEvent(row),
-    countdownDays: binCountdownDays(row.purge_at, now),
-  }));
-}
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .not("deleted_at", "is", null)
+      .gte("deleted_at", windowStart)
+      .order("deleted_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      ...toHostEvent(row),
+      countdownDays: binCountdownDays(row.purge_at, now),
+    }));
+  },
+);
 
 /** Per-event counts for the stat-forward dashboard card (Phase 5): `approved`
  *  = what's in the album (the "N items" pill); `pending` = the amber
@@ -192,10 +191,7 @@ export async function getEventCardStats(
   if (eventIds.length === 0) return stats;
   for (const id of eventIds) stats.set(id, { approved: 0, pending: 0 });
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return stats;
 
   const { data, error } = await supabase

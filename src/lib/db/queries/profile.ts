@@ -9,26 +9,31 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { Tables } from "@/lib/db/types";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth, getRequestClient } from "@/lib/supabase/request-auth";
 
 export type ProfileRow = Tables<"profiles">;
 
-export async function getProfile(): Promise<ProfileRow | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+// cache() dedupes within a request (the guest-events convention): several pages
+// pair getProfile() with other reads, and the request-cached getRequestAuth
+// already collapses the getUser() network hop; caching the row read too keeps
+// any same-request repeat free. Per-request scoped, so it can't leak across users.
+export const getProfile = cache(
+  async function getProfile(): Promise<ProfileRow | null> {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return null;
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+);
 
 /**
  * The bits the (app) header account menu needs — the host's editable display name + the avatar
@@ -43,7 +48,7 @@ export async function getProfile(): Promise<ProfileRow | null> {
 export async function getProfileMenu(
   userId: string,
 ): Promise<{ displayName: string | null; avatarMarker: string | null }> {
-  const supabase = await createClient();
+  const supabase = await getRequestClient();
   const { data } = await supabase
     .from("profiles")
     .select("display_name, avatar_updated_at")

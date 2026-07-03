@@ -11,34 +11,36 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import { presignDownload } from "@/lib/r2/presign";
 import {
   savedEventCardProps,
   type SavedEventCardData,
   type SavedEventRow,
 } from "@/lib/saved-events/card";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
-/** The signed-in visitor's saved events, render-ready (covers presigned). */
-export async function getSavedEventCards(): Promise<SavedEventCardData[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+/** The signed-in visitor's saved events, render-ready (covers presigned).
+ *  cache() = request-scoped dedupe (see lib/supabase/request-auth). */
+export const getSavedEventCards = cache(
+  async function getSavedEventCards(): Promise<SavedEventCardData[]> {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return [];
 
-  const { data, error } = await supabase.rpc("get_saved_events");
-  if (error) throw error;
+    const { data, error } = await supabase.rpc("get_saved_events");
+    if (error) throw error;
 
-  const rows = (data ?? []) as SavedEventRow[];
-  return Promise.all(
-    rows.map(async (r) => {
-      // cover_key is non-null only for OPEN events (password media is gated, private
-      // is blanked) — so a presign happens only where a public thumbnail is allowed.
-      const coverUrl = r.cover_key
-        ? await presignDownload({ key: r.cover_key })
-        : null;
-      return savedEventCardProps(r, coverUrl);
-    }),
-  );
-}
+    const rows = (data ?? []) as SavedEventRow[];
+    return Promise.all(
+      rows.map(async (r) => {
+        // cover_key is non-null only for OPEN events (password media is gated, private
+        // is blanked) — so a presign happens only where a public thumbnail is allowed.
+        const coverUrl = r.cover_key
+          ? await presignDownload({ key: r.cover_key })
+          : null;
+        return savedEventCardProps(r, coverUrl);
+      }),
+    );
+  },
+);

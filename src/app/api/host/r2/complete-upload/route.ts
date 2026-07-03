@@ -47,6 +47,8 @@ function hostCompleteStrategy(
 
 export async function POST(request: Request) {
   // Auth gate: a signed-in host only (the RPC re-checks event ownership).
+  // Duplicated verbatim in the host presign route ON PURPOSE: the 401 must fire
+  // BEFORE the engine parses the body, so don't extract a helper that moves it.
   const supabase = await createClient();
   const {
     data: { user },

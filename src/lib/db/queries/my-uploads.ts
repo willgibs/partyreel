@@ -6,9 +6,11 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { GridMedia } from "@/components/app/media-grid";
 import { toMyUploadsItems } from "@/lib/r2/grid-items";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate } from "@/lib/utils";
 
 // v1 cap on the flat cross-event feed (two presigns/item). `truncated` lets the UI say so rather than
@@ -16,36 +18,36 @@ import { formatEventDate } from "@/lib/utils";
 // is the load-more upgrade path with no RPC change.
 const MY_UPLOADS_LIMIT = 200;
 
-export async function getMyUploadCards(): Promise<{
-  items: GridMedia[];
-  truncated: boolean;
-}> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { items: [], truncated: false };
+// cache() = request-scoped dedupe (see lib/supabase/request-auth).
+export const getMyUploadCards = cache(
+  async function getMyUploadCards(): Promise<{
+    items: GridMedia[];
+    truncated: boolean;
+  }> {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return { items: [], truncated: false };
 
-  const { data, error } = await supabase.rpc("get_my_uploads", {
-    p_limit: MY_UPLOADS_LIMIT,
-  });
-  if (error) throw error;
+    const { data, error } = await supabase.rpc("get_my_uploads", {
+      p_limit: MY_UPLOADS_LIMIT,
+    });
+    if (error) throw error;
 
-  const rows = data ?? [];
-  const items = await toMyUploadsItems(
-    rows.map((r) => ({
-      id: r.id,
-      type: r.type,
-      originalKey: r.original_key,
-      previewKey: r.preview_key ?? null,
-      eventName: r.event_name,
-      // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
-      eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
-      eventQrToken: r.event_qr_token,
-      width: r.width,
-      height: r.height,
-      durationSeconds: r.duration_seconds,
-    })),
-  );
-  return { items, truncated: rows.length >= MY_UPLOADS_LIMIT };
-}
+    const rows = data ?? [];
+    const items = await toMyUploadsItems(
+      rows.map((r) => ({
+        id: r.id,
+        type: r.type,
+        originalKey: r.original_key,
+        previewKey: r.preview_key ?? null,
+        eventName: r.event_name,
+        // event_date is nullable in reality (the generated TABLE type widens it to string); guard it.
+        eventDateLabel: r.event_date ? formatEventDate(r.event_date) : null,
+        eventQrToken: r.event_qr_token,
+        width: r.width,
+        height: r.height,
+        durationSeconds: r.duration_seconds,
+      })),
+    );
+    return { items, truncated: rows.length >= MY_UPLOADS_LIMIT };
+  },
+);

@@ -8,23 +8,23 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import type { GridMedia } from "@/components/app/media-grid";
 import { toMyUploadsItems } from "@/lib/r2/grid-items";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate } from "@/lib/utils";
 
 // Same v1 cap as Uploads (two presigns/item). `truncated` lets the UI say so (no silent caps); a future
 // cursor (liked_at <) is the load-more path with no RPC change.
 const MY_LIKES_LIMIT = 200;
 
-export async function getMyLikeCards(): Promise<{
+// cache() = request-scoped dedupe (see lib/supabase/request-auth).
+export const getMyLikeCards = cache(async function getMyLikeCards(): Promise<{
   items: GridMedia[];
   truncated: boolean;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return { items: [], truncated: false };
 
   const { data, error } = await supabase.rpc("get_my_likes", {
@@ -51,4 +51,4 @@ export async function getMyLikeCards(): Promise<{
   // Every item here is liked by the viewer by definition; the Likes-tab gallery seeds the LikesProvider
   // with these ids (its initialLikedIds), so the hearts paint filled instantly. No count (host-only).
   return { items, truncated: rows.length >= MY_LIKES_LIMIT };
-}
+});
