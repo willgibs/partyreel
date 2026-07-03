@@ -1133,28 +1133,17 @@ export type Database = {
           monthly_ingress_bytes: number
         }[]
       }
-      upsert_reel_config:
-        | {
-            Args: {
-              p_cover_media_id?: string
-              p_event_id: string
-              p_length_seconds?: number
-              p_orientation: string
-              p_seed: number
-              p_style_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_cover_media_id?: string
-              p_event_id: string
-              p_length_seconds?: number
-              p_seed: number
-              p_theme: string
-            }
-            Returns: Json
-          }
+      upsert_reel_config: {
+        Args: {
+          p_cover_media_id?: string
+          p_event_id: string
+          p_length_seconds?: number
+          p_orientation: string
+          p_seed: number
+          p_style_id: string
+        }
+        Returns: Json
+      }
       verify_current_password: {
         Args: { p_password: string }
         Returns: boolean

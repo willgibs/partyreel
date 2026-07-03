@@ -10,6 +10,36 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-02 — Reel STYLE CATALOG + orientation, wired end-to-end (Reel V1 Phase 2, `923457b`/`0cfcc4f` + fixes `b6d1767`/`fafba3c`)
+
+The host composer graduates from 8 themes + shuffle to a **14-style catalog** (8 media-first "moods" + 6 stylized
+"treatments") + a **portrait/landscape orientation**, persisted and matched by the .mp4 export (WYSIWYG). Built over a
+long deep-polish run of all 14 styles in the `/design/reel` lab, then integrated. Durable facts in
+[`systems/host-app.md`](systems/host-app.md); design/dispatch details in [`systems/design-system.md`](systems/design-system.md).
+Live-verified on partyreel.com: pick a treatment (Layered parallax) + Landscape → the player swaps, config persists, the
+.mp4 renders + downloads (`status ready`, $0.024/~3min).
+- **The styleId dispatcher** (respects the pure/remotion import boundary): `composition/style-registry.ts` is PURE
+  (catalog → `{kind, themeId}`, server-safe) so `build-reel-props`/`render-service` resolve `styleId`→theme without
+  pulling remotion; `composition/style-render.tsx` is the REMOTION half — `styleComponent` + `styleDuration` +
+  `StyleDispatch`. **Watermark HOISTED** out of `Reel.tsx` into `StyleDispatch` so all 14 styles stamp it (a treatment
+  reel was exporting unmarked). `Root.tsx` + `reel-player.tsx` dispatch via `StyleDispatch` + `styleDuration`.
+- **Composer:** Shuffle removed (seed is now the deterministic `defaultReelSeed`); a scalable **Style popover** (grouped
+  Media-first / Stylized) + an **Orientation** toggle.
+- **DB:** `highlight_reels.style_id`+`orientation` (backfilled from `theme`, kept synced); a new authenticated-only
+  `upsert_reel_config(p_style_id, p_orientation, ...)` (the old `p_theme` overload kept during the deploy window, then
+  dropped). `build-reel-props` now populates `ReelClip.width/height` → **fitClip runs in prod** (designed
+  mismatched-orientation framing); treatment video clips guard to their poster (no `<Video>` path yet).
+- **Render:** `RENDER_VERSION` 1→2 folds `style` + `orientation` into the cache hash; `deploy-site` pushed the treatments
+  into the Lambda bundle (a composition change MUST be paired with `deploy-site` or a treatment silently renders as its
+  base mood).
+- **Two render fixes the live red-team caught** (both from the version bump forcing a re-render of every existing reel):
+  (1) `renderMediaOnLambda` needs `overwrite: true` — the stable output key errored "already exists" on the 2nd render;
+  (2) heavy treatments (parallax's full-frame blur at landscape 30s) hit the **120s Lambda ceiling** → deployed a **240s**
+  render function (repointed `REMOTION_LAMBDA_FUNCTION_NAME`). Follow-up: a blur-downscale pass to make the treatments
+  render fast+cheap rather than "within 240s."
+
+---
+
 ## 2026-06-22 — Reel .mp4 EXPORT: Download video (Reel V1 slice 3, `f460456`)
 
 The curated reel becomes a downloadable video. A **Download video** button under the composer renders the reel to a

@@ -317,21 +317,30 @@ in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_me
 is optimistic (★ rebuild a NEW `Set` from the reordered array — mutating the old Set keeps the old order) + reverts
 on the `stale`/error path. (The Review uniform grid keeps its `[data-exiting]` beat + `[data-check-pop]` — tile-local.)
 
-**The COMPOSER (the live in-app reel) SHIPPED** (2026-06-22, Reel V1 slice 2, commit `4806e71`): the curated set now
-**plays as a live in-browser `@remotion/player` reel** in the Reel section (player hero on top, the editable curated
-grid below), with auto-magic controls — **theme · shuffle · cover · length** ([`reel-composer.tsx`](../../src/components/reel/reel-composer.tsx)
-+ [`reel-player.tsx`](../../src/components/reel/reel-player.tsx)) — all client-side + **$0** (shuffle re-seeds; nothing
-encodes). ★ **WYSIWYG single-source**: ONE Remotion composition ([`src/lib/reel/composition/`](../../src/lib/reel/composition))
-drives BOTH the in-app Player AND the Lambda render (`workers/reel-render` bundles its Root *from the app* — the app's
-`tsconfig` excludes `workers/`, so the canonical composition lives in the app and the worker imports back into it;
-`remotion`/`@remotion/player`/`@remotion/media` are exact-pinned `4.0.482` in BOTH, lockstep). The Player shows video
-clips by their POSTER still (the `posterMode` flag — the in-browser player can't decode R2 video over CORS; the export
-keeps real `<Video>`, byte-identical). [`build-reel-props.ts`](../../src/lib/reel/build-reel-props.ts) (pure, tested)
-turns the `reel_items` order + the already-presigned `GridMedia` into the Player's inputProps (NO 2nd presign/RPC).
-Config persists (debounced) via **`upsert_reel_config`** (SECURITY DEFINER, host-owns, lazy-creates the one-per-event
-`highlight_reels` row on the first edit; `status`/`output_key` stay render-only — host table writes are revoked). The
-empty state offers a one-tap **"Fill from gallery"** auto-fill (random batch → `addMany`). `media.clip_*` stays
-scaffold (Pro video trim is a later slice).
+**The COMPOSER (the live in-app reel) SHIPPED** (slice 2, `4806e71`; the **STYLE CATALOG + orientation Phase 2** shipped
+2026-07-02, `0cfcc4f`): the curated set **plays as a live in-browser `@remotion/player` reel** in the Reel section (player
+hero on top, the editable curated grid below), with controls — **style · orientation · cover · length**
+([`reel-composer.tsx`](../../src/components/reel/reel-composer.tsx) + [`reel-player.tsx`](../../src/components/reel/reel-player.tsx))
+— all client-side + **$0** (nothing encodes until Download). **Style** = a scalable **popover** picker over the flat
+**14-style catalog** (8 media-first "moods" + 6 stylized "treatments", grouped); **orientation** = a portrait 9:16 /
+landscape 16:9 toggle (every style adapts from one core). **Shuffle was REMOVED** — the seed is now the deterministic
+`defaultReelSeed(eventId)` (one stable take; the design effort went into pixel-perfect per-style looks). ★ **The styleId
+dispatcher** respects the pure/remotion import boundary: [`composition/style-registry.ts`](../../src/lib/reel/composition/style-registry.ts)
+is PURE (catalog → `{kind, themeId}`, server-safe) so `build-reel-props`/`render-service` resolve `styleId`→theme without
+pulling `remotion`; [`composition/style-render.tsx`](../../src/lib/reel/composition/style-render.tsx) is the REMOTION half
+(`styleComponent` + `styleDuration` + `StyleDispatch`, which renders the style's component then stamps the **hoisted
+`<Watermark/>`** — moved out of `Reel.tsx` so a treatment reel never exports unmarked). `Root.tsx` + `reel-player.tsx`
+both render `StyleDispatch` + `styleDuration` → WYSIWYG. ★ **WYSIWYG single-source**: ONE Remotion composition
+([`src/lib/reel/composition/`](../../src/lib/reel/composition)) drives BOTH the Player AND the Lambda render
+(`workers/reel-render` bundles its Root *from the app*; `remotion`/`@remotion/player`/`@remotion/media` exact-pinned
+`4.0.482` in BOTH). The Player shows video by its POSTER still (`posterMode` — no R2-video CORS; the export keeps real
+`<Video>` for MOODS, but **treatments always use the poster** since they have no `<Video>` path yet).
+[`build-reel-props.ts`](../../src/lib/reel/build-reel-props.ts) (pure, tested) turns the `reel_items` order + the
+already-presigned `GridMedia` into inputProps (NO 2nd presign/RPC), resolving `styleId`→theme and now populating
+`ReelClip.width/height` → **`fitClip` runs in prod** (designed mismatched-orientation framing). Config persists (debounced)
+via **`upsert_reel_config(p_style_id, p_orientation, …)`** (SECURITY DEFINER, host-owns, authenticated-only, lazy-creates
+the one-per-event `highlight_reels` row; `style_id`+`orientation` columns, `theme` kept synced = style_id as a legacy
+column). The empty state offers a one-tap **"Fill from gallery"** auto-fill. `media.clip_*` stays scaffold (Pro video trim later).
 
 **The .mp4 EXPORT (Download video) SHIPPED** (2026-06-22, Reel V1 slice 3, commit `f460456`): a **Download video**
 button under the composer renders the curated reel to a real `.mp4` on **Remotion Lambda** (AWS) and downloads it.
@@ -347,18 +356,27 @@ ORIGINALS** (the shareable "wow"; the live player stays on the fast previews) vi
 poll's R2-HEAD finalize** (`LastModified >= render_started_at` disambiguates the stable-key overwrite; the poll is the
 local-dev path since Lambda can't reach localhost). The host sees a **"Stitching your reel…" modal**
 ([`reel-stitching-dialog.tsx`](../../src/components/reel/reel-stitching-dialog.tsx)) that polls + auto-downloads;
-**lazy + cached** — an unchanged reel (a stored `rendered_hash` over media+config+watermark+version) re-serves the
-existing mp4 for **$0**. **Free tier** stamps a small `partyreel.com` wordmark (server-derived from `profiles.tier`,
-mirrored in the live player for WYSIWYG; the render route NEVER trusts the client flag); Pro has none. Ops: the
+**lazy + cached** — an unchanged reel (a stored `rendered_hash` over media+**style**+**orientation**+config+watermark+
+`RENDER_VERSION`, bumped to **2** in Phase 2) re-serves the existing mp4 for **$0**. ★ **A composition change (e.g. the
+Phase 2 `StyleDispatch`) MUST be paired with `deploy-site`** (`remotion lambda sites create --site-name=partyreel-reel`) —
+else the Lambda bundle stays stale and a treatment silently renders as its base mood. ★ **Two render landmines** (both
+surfaced when the `RENDER_VERSION` bump forced a re-render of every existing reel): (1) `renderMediaOnLambda` uses a
+STABLE output key, so it needs **`overwrite: true`** (else the 2nd render errors "output file already exists"); (2) the
+heavy-compositing treatments (esp. Layered parallax's full-frame blur at landscape 30s) sit at the **120s** Lambda ceiling
+and time out on variance → the render function is now **240sec** (`REMOTION_LAMBDA_FUNCTION_NAME` on Vercel/.env; box in
+`render-lambda.ts`; a blur-downscale optimization is the follow-up). **Free tier** stamps a small `partyreel.com` wordmark
+(server-derived from `profiles.tier`, mirrored in the live player for WYSIWYG; the render route NEVER trusts the client
+flag; the mark is stamped by `StyleDispatch`, so ALL 14 styles carry it); Pro has none. Ops: the
 **`reel_render_enabled` kill-switch** + the deny-all **`reel_render_log`** at [`/admin/reels`](../../src/app/admin/reels),
 the **`reel_render`** abuse-limiter kind, the **`highlight_reels` render columns** (status/render_id/rendered_hash/
 render_error/render_started_at/rendered_at/render_cost_usd, all service-role-write). ★ **Cleanup landmine fixed:**
 event-purge deletes R2 by ENUMERATED media keys + the orphan sweep IGNORES non-media keys, so the reel mp4 (no media
 row) would leak forever on deletion — `sweepExpiredEvents` now also deletes `reelOutputKey` per purged event. Live:
-~$0.006/render, ~72s on the new account's 10-concurrency cap (the cap is the slow lever, not the architecture).
-**DEFERRED:** guest-facing reel surfacing + download (its own next slice), Pro video preview+trim + real-video-in-player
-+ R2 CORS, the full theme palette + the reveal moment, eager pre-encode (the lazy-vs-eager re-measure stays gated on the
-AWS quota; v1 ships lazy). See [`../specs/reel-v1.md`](../specs/reel-v1.md).
+a **mood** ~$0.006/render (~72s); a **treatment** ~$0.024 (~3min, ~4×, the heavy compositing) on the account's
+10-concurrency cap (the cap + the heavy blur are the slow levers, not the architecture).
+**DEFERRED:** guest-facing reel surfacing + download (its own next slice), the treatment blur-downscale render
+optimization, Pro video preview+trim + real-video-in-player + R2 CORS, the full theme palette + the reveal moment, eager
+pre-encode (the lazy-vs-eager re-measure stays gated on the AWS quota; v1 ships lazy). See [`../specs/reel-v1.md`](../specs/reel-v1.md).
 
 ## See also
 
