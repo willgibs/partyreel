@@ -64,18 +64,22 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - **Unified per-upload size limit + per-event `max_upload_bytes`** (own round) — replace the per-type limits
   with a single per-upload ceiling = min(remaining storage, ~5 GB), enforced at presign; video stays
   Pro-only; keep a generous duration cap. See [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Strip EXIF/GPS from served + downloaded originals** (own round; near-term, flagged after Download-all
-  2026-06-22) — phone photos embed GPS + device EXIF; tiles already serve the canvas-regenerated (EXIF-free)
-  preview, but the lightbox, per-item Save, and the new "Download all" zip serve ORIGINALS with EXIF intact, so
-  a guest's location leaks on download. Strip EXIF on the publicly-served/downloaded variant (or at upload),
-  retaining only what's needed. A focused privacy fix that can ship independently of, and is the natural first
-  slice of, the broader forensic/abuse round below (which also wants the EXIF strip).
+- **HEIC/HEIF/AVIF + WebM metadata strip** — the client-side strip consciously fails open on item-based
+  ISOBMFF (Exif is an iloc-referenced item; blanking `meta` would destroy the image) and EBML, so those
+  formats still upload with metadata intact; close the residual leak window (iloc-aware blanking) if real
+  devices turn out to upload unconverted HEIC. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **JPEG MPF secondary-image Exif scrub** — the Exif inside a post-EOI MPF secondary image (gain map /
+  dual-shot preview) is consciously kept (excising shifts the trailer the MPF index points into; needs
+  in-place TIFF surgery or coordinated MPF size+offset rewrites); the backfill report flags it as
+  clean-but-GPS. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
   round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
   only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,
   full UA + UA client hints, and a durable FIRST-PARTY device id (localStorage/cookie UUID) that survives
   session-token rotation. Extract + retain key EXIF (GPS, device make/model/serial, capture time) into a
-  locked record AND strip EXIF from the publicly-served variant (also fixes a latent GPS-privacy leak). On a
+  locked record. NOTE: the EXIF/GPS strip itself SHIPPED 2026-07-02 as a CLIENT-side pre-upload step
+  (→ [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)), so the server never sees the EXIF — this
+  round's forensic capture must extract it client-side BEFORE the strip and post it with the upload. On a
   report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
   remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
   (18 U.S.C. §2258A(h): 90d, +90 on LE request) preservation hold (a legal mandate + safe harbor, not
@@ -224,9 +228,18 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 - Flip the backup prune to live `[human]` — set `PRUNE_MODE=live` in `workers/backup/wrangler.jsonc` +
   redeploy once the primary is populated (it ships in dry-run, deleting nothing). Also set the shared
   `PRUNE_API_SECRET` (Vercel + `wrangler secret put`). See [`systems/durability-backups.md`](systems/durability-backups.md).
-- Revisit the git workflow for production `[eng]` — while there are no live users we commit straight to `main`
-  (fewer Vercel builds, fix-forward on a bad build). Once real users arrive, reconsider feature branches + PR
-  preview deploys so a bad build can't reach them. The current rule lives in [`../CLAUDE.md`](../CLAUDE.md) (working loop + Git).
+- Revisit the git workflow for production `[eng]` — the elevation program runs on the `launch-prep`
+  integration branch (see [`../CLAUDE.md`](../CLAUDE.md) Git); when the program ends, decide the standing
+  post-program workflow (straight-to-main speed vs branches/PR previews once real users arrive).
+- **Elevation-program teardown** `[eng]` — when the program's final milestone merges: re-enable Vercel SSO
+  deployment protection (`ssoProtection: all_except_custom_domains`), delete the temporary Stripe TEST
+  webhook endpoint `we_1TowqZPtjqmVkBwk3IWfebCS` (the launch-prep preview endpoint — it must NOT survive
+  into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
+  auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
+  `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
+- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` still pending; nudge via
+  the AWS console (account `562923010969` under partyr33l@gmail.com). The wall-clock speed lever for all
+  reel renders; non-blocking.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.

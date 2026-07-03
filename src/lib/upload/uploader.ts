@@ -11,6 +11,7 @@
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
  */
+import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { generatePreview } from "@/lib/upload/preview";
 
@@ -130,10 +131,26 @@ export async function uploadFile(args: {
   identity: Record<string, string>;
   onProgress?: (fraction: number) => void;
 }): Promise<UploadOutcome> {
-  const { file, endpoints, identity, onProgress } = args;
+  const { file: pickedFile, endpoints, identity, onProgress } = args;
 
-  const kind = classifyMime(file.type);
+  const kind = classifyMime(pickedFile.type);
   if (!kind) return { ok: false, message: "That file type isn't supported." };
+
+  // 0. Strip identifying metadata (EXIF GPS/device tags, XMP, MP4/MOV udta location)
+  //    BEFORE anything reads a size: presign binds the R2 PUT's Content-Length to the
+  //    size_bytes declared below, so the stripped bytes MUST be what every downstream
+  //    step (measure -> validate -> preview -> presign -> PUT) sees. Lossless byte-level
+  //    excision, never a pixel re-encode; JPEG orientation survives via a rebuilt minimal
+  //    Exif. Best-effort like generatePreview: unparseable/exotic input (HEIC, WebM)
+  //    comes back stripped:false with the ORIGINAL - a failed strip never blocks a guest.
+  const cleaned = await stripFileMetadata(pickedFile);
+  const file =
+    cleaned.blob === pickedFile
+      ? pickedFile
+      : new File([cleaned.blob], pickedFile.name, {
+          type: pickedFile.type,
+          lastModified: pickedFile.lastModified,
+        });
 
   const measured = await measureFile(file, kind);
 
@@ -143,7 +160,8 @@ export async function uploadFile(args: {
   });
   if (!localCheck.ok) return { ok: false, message: localCheck.reason };
 
-  // 0. Generate a small WebP preview in the browser (best-effort; null on skip/failure). Its size is sent
+  // 0b. Generate a small WebP preview in the browser from the STRIPPED file (best-effort; null on
+  //    skip/failure) - previews were already metadata-clean by canvas regeneration. Its size is sent
   //    to presign so the preview PUT can bind content-length (like the original) — no unbounded preview PUT.
   const preview = await generatePreview(file, kind, measured);
 
