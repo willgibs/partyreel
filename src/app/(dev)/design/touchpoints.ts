@@ -28,7 +28,8 @@ export type TouchpointId =
   | "host-event-page"
   | "host-event-build"
   | "gallery-actions"
-  | "marketing-identity";
+  | "marketing-identity"
+  | "reel-reveal";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" was reserved from the lab refresh until the marketing-identity
@@ -309,6 +310,21 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "The reel is the hero",
       "Live event energy",
     ],
+  },
+  {
+    // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
+    // tapped Create reel watches their reel exist for the first time (the North
+    // Star wow; a RARE moment, so animate-by-frequency allows real delight).
+    // Built on the NEW canvas engine: each stage choreographs around the real
+    // CanvasReelPlayer held at frame 0 and released at its ignite beat, which
+    // client-side encode makes honest (the reel is watchable instantly, no
+    // progress theater). Each direction carries its guest (/e/) adaptation
+    // sketch on the page. `decision` stays unset until Will rules at T1.
+    id: "reel-reveal",
+    title: "Reel reveal moment",
+    surface: "host",
+    note: "Three choreographies for the moment a reel first exists, each around the real playing canvas engine: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
+    variants: ["Lights down", "Assembly", "First frame held"],
   },
 ];
 
