@@ -82,9 +82,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   round's forensic capture must extract it client-side BEFORE the strip and post it with the upload. On a
   report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
   remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
-  (18 U.S.C. §2258A(h): 90d, +90 on LE request) preservation hold (a legal mandate + safe harbor, not
-  "storage"); NO PhotoDNA (enterprise-grade, too costly now). Store as deny-all service-role PII, defined
-  retention, admin/legal-only access. Confirm the policy with counsel. (The abuse-focused rate limiter that
+  preservation hold for **1 YEAR from the report** (18 U.S.C. §2258A as amended by the REPORT Act,
+  PL 118-59, 2024, which replaced the old 90d+90 window and requires secure limited-access storage; a
+  legal mandate + safe harbor, not "storage"); NO PhotoDNA (enterprise-grade, too costly now). Store as
+  deny-all service-role PII, defined retention, admin/legal-only access. Confirm the policy with counsel.
+  Full options-doc for the T1 ruling: [`decisions/t1-forensic-csam-policy.md`](decisions/t1-forensic-csam-policy.md). (The abuse-focused rate limiter that
   was the last deferred security piece SHIPPED 2026-06-08, commit `7bb2b53`.)
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
@@ -237,9 +239,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
   auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
-- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` still pending; nudge via
-  the AWS console (account `562923010969` under partyr33l@gmail.com). The wall-clock speed lever for all
-  reel renders; non-blocking.
+- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` **DENIED 2026-06-23**
+  (new-account limits; AWS says re-request later with usage history). Superseded by the R2 render
+  re-architecture (client-rendered reels, Plan A in the program plan): if the spike lands, the whole AWS
+  sub-account tears down instead; re-request only if Plan B (tuned Lambda) activates.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.
