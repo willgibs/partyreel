@@ -181,12 +181,19 @@ export function drawWatermark(
   const textW = metrics.width;
   const ascent = metrics.actualBoundingBoxAscent || 25;
   const descent = metrics.actualBoundingBoxDescent || 8;
+  // The DOM pill (style-render.tsx) sizes its height from the text's LINE BOX
+  // (line-height normal, ~1.2em), not the ink extents: using ink metrics here
+  // rendered the canvas pill ~10% shorter than the signed-off Remotion pill
+  // (a parity-review catch). fontBoundingBox* is the canvas line-box analog;
+  // ink metrics stay in use below only to baseline-center the glyphs.
+  const lineAscent = metrics.fontBoundingBoxAscent || ascent + 4;
+  const lineDescent = metrics.fontBoundingBoxDescent || descent + 4;
 
   const logo = 16;
   const gap = 10;
   const padX = 22;
   const padY = 12;
-  const contentH = Math.max(logo, ascent + descent);
+  const contentH = Math.max(logo, lineAscent + lineDescent);
   const pillW = padX * 2 + logo + gap + textW;
   const pillH = padY * 2 + contentH;
   const x = (w - pillW) / 2;
