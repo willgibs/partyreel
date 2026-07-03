@@ -68,6 +68,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   ISOBMFF (Exif is an iloc-referenced item; blanking `meta` would destroy the image) and EBML, so those
   formats still upload with metadata intact; close the residual leak window (iloc-aware blanking) if real
   devices turn out to upload unconverted HEIC. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
+- **JPEG MPF secondary-image Exif scrub** — the Exif inside a post-EOI MPF secondary image (gain map /
+  dual-shot preview) is consciously kept (excising shifts the trailer the MPF index points into; needs
+  in-place TIFF surgery or coordinated MPF size+offset rewrites); the backfill report flags it as
+  clean-but-GPS. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
 - **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
   round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
   only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,

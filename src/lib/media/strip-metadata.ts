@@ -12,7 +12,14 @@
  *   JPEG  - drop APP1 (Exif/XMP), APP13 (IPTC/Photoshop), COM, vendor APPn; keep APP0
  *           (JFIF), APP2 (ICC color profile / MPF), APP14 (Adobe color transform, load-
  *           bearing for decode). Orientation is LOAD-BEARING: a minimal one-tag Exif is
- *           rebuilt so sideways photos keep rendering upright everywhere.
+ *           rebuilt so sideways photos keep rendering upright everywhere. A kept MPF
+ *           index (iPhone HDR gain maps) has its individual-image offsets/sizes REWRITTEN
+ *           to match the shrunk output (they are relative to the MPF header, so dropping
+ *           any segment between the MPF and SOS goes stale); an MPF we cannot fix fails
+ *           open. Bytes after the EOI are kept verbatim (motion-photo appendages, MPF
+ *           secondary images) - an embedded ISOBMFF trailer gets its metadata boxes
+ *           blanked in place, but an MPF secondary image's OWN Exif survives (a known,
+ *           reported gap - see hasGpsMetadata + the ROADMAP one-liner).
  *   PNG   - drop eXIf + tEXt/zTXt/iTXt (XMP lives in iTXt); keep IHDR/PLTE/IDAT/IEND and
  *           the color chunks (gAMA/iCCP/sRGB).
  *   WebP  - drop EXIF + "XMP " RIFF chunks, clear the matching VP8X flag bits, keep ICCP;
@@ -27,9 +34,11 @@
  * FAIL-OPEN CONTRACT: unknown/unparseable/truncated input returns the ORIGINAL bytes with
  * stripped:false. A corrupted upload is worse than the leak, so the caller uploads the
  * original untouched rather than blocking the guest. Consequence (conscious trade-off):
- * exotic containers keep their metadata - notably HEIC/HEIF/AVIF (item-based ISOBMFF where
- * Exif is an iloc-referenced item; blanking meta there would DESTROY the image) and WebM
- * (EBML). That leak window is documented in docs/systems/uploads-and-r2.md.
+ * some metadata survives - notably HEIC/HEIF/AVIF (item-based ISOBMFF where Exif is an
+ * iloc-referenced item; blanking meta there would DESTROY the image), WebM (EBML), and
+ * the Exif INSIDE a JPEG's post-EOI MPF secondary images (excising it would shift the
+ * trailer the MPF index points into). That leak window is documented in
+ * docs/systems/uploads-and-r2.md.
  */
 
 export type StripBytesResult = {
@@ -202,7 +211,11 @@ function* iterateJpegSegments(bytes: Uint8Array): Generator<JpegSegment> {
  *  - APP0 (JFIF/JFXX): density/aspect info, no identity.
  *  - APP2: ICC_PROFILE (color fidelity - stripping it shifts colors) and MPF (multi-
  *    picture offsets, e.g. iPhone gain maps whose payload trails the EOI; dropping the
- *    index while keeping the trailing bytes would just dangle them).
+ *    index while keeping the trailing bytes would just dangle them). NOTE: MPF offsets
+ *    are relative to the MPF HEADER, so keeping the index is not enough - any byte
+ *    dropped between the MPF segment and SOS (iPhone HDR JPEGs carry a droppable APP10
+ *    right there) makes the kept offsets stale. fixupMpfIndexes rewrites them after
+ *    assembly; when it can't, the whole strip fails open.
  *  - APP14 (Adobe): the color-transform hint - decoders NEED it to pick YCbCr vs YCCK;
  *    dropping it visibly corrupts Adobe-saved JPEGs. It carries no identity.
  * Dropped by NOT being here: APP1 (Exif incl. GPS + maker notes + thumbnail, and XMP),
@@ -210,6 +223,9 @@ function* iterateJpegSegments(bytes: Uint8Array): Generator<JpegSegment> {
  * fingerprints), and vendor APP3-APP12/APP15 blobs.
  */
 const JPEG_KEEP_APP = new Set([0xe0, 0xe2, 0xee]);
+
+// "MPF\0" - the APP2 payload prefix of a Multi-Picture Format index segment.
+const MPF_FOURCC = [0x4d, 0x50, 0x46, 0x00];
 
 /**
  * Build the minimal replacement APP1 Exif: one IFD0 with ONLY the Orientation tag.
@@ -229,7 +245,7 @@ function minimalOrientationExif(orientation: number): Uint8Array {
   ]);
 }
 
-function stripJpeg(bytes: Uint8Array): StripBytesResult {
+async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
   const failOpen: StripBytesResult = {
     data: bytes,
     stripped: false,
@@ -244,6 +260,8 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
   let orientation: number | null = null;
   let sawExif = false;
   let exifInsertIndex = -1;
+  let sosPos = -1;
+  const mpfOldStarts: number[] = []; // kept APP2 MPF segments (their offsets need fixing)
 
   for (;;) {
     if (pos + 2 > bytes.length) return failOpen; // ran out before SOS
@@ -251,7 +269,11 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
     const marker = bytes[pos + 1];
     if (marker === 0xda || marker === 0xd9) {
       // SOS (or a stray EOI): everything from here - entropy-coded scan data through EOI,
-      // plus any trailing bytes - is kept VERBATIM. We never touch pixels.
+      // plus any trailing bytes - is kept VERBATIM. We never touch pixels. Trailing
+      // bytes are motion-photo appendages / MPF secondary images; an embedded ISOBMFF
+      // trailer gets its metadata blanked in place below (same-length, offsets stable),
+      // anything else stays untouched - a consequence we surface via hasGpsMetadata.
+      sosPos = pos;
       parts.push(bytes.subarray(pos));
       break;
     }
@@ -287,9 +309,21 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
     }
 
     if (drop) removedAny = true;
-    else parts.push(bytes.subarray(pos, end));
+    else {
+      if (
+        marker === 0xe2 &&
+        hasPrefix(bytes.subarray(pos + 4, end), MPF_FOURCC)
+      ) {
+        mpfOldStarts.push(pos);
+      }
+      parts.push(bytes.subarray(pos, end));
+    }
     pos = end;
   }
+
+  // Metadata inside a trailing appendage (motion-photo MP4 after the EOI): planned on
+  // the ORIGINAL coordinates, applied after assembly at the shifted position.
+  const trailerPatches = await planJpegTrailerPatches(bytes, sosPos);
 
   // Rebuild orientation ONLY when it does something (a value of 1 = "upright" = the
   // decoder default, so emitting no Exif at all is byte-cheaper and equally correct).
@@ -297,11 +331,207 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
     parts.splice(exifInsertIndex, 0, minimalOrientationExif(orientation));
   }
 
-  if (!removedAny) return { data: bytes, stripped: true, changed: false };
-  const data = concatParts(parts);
+  if (!removedAny && trailerPatches.length === 0) {
+    return { data: bytes, stripped: true, changed: false };
+  }
+  const data = removedAny ? concatParts(parts) : bytes.slice();
+  // Everything from SOS to EOF was kept as ONE verbatim block, so the whole tail shifted
+  // by exactly the size delta - which is what the MPF offsets must be corrected by.
+  const sosDelta = data.length - bytes.length;
+  if (removedAny && mpfOldStarts.length > 0) {
+    // An MPF index we cannot keep valid means fail open: a structurally corrupt
+    // multi-picture file (broken HDR gain map) is worse than the metadata leak.
+    if (!fixupMpfIndexes(bytes, data, mpfOldStarts, sosPos, sosDelta)) {
+      return failOpen;
+    }
+  }
+  for (const p of trailerPatches) data.set(p.bytes, p.offset + sosDelta);
   // memcmp (not just removedAny) so a re-run over an already-stripped file - which drops
   // our minimal Exif and re-inserts an identical one - correctly reports changed:false.
   return { data, stripped: true, changed: !bytesEqual(bytes, data) };
+}
+
+/** First EOI marker at/after `from`. Inside entropy-coded data 0xFF is always followed
+ *  by 0x00 or an RSTn, so the first FF D9 really is the primary image's end. */
+function findEoi(bytes: Uint8Array, from: number): number {
+  for (let i = from; i + 2 <= bytes.length; i++) {
+    if (bytes[i] === 0xff && bytes[i + 1] === 0xd9) return i;
+  }
+  return -1;
+}
+
+/**
+ * Samsung/Pixel "motion photo" JPEGs append a complete MP4 (video+audio of the capture
+ * moment) after the EOI, and its moov can carry its OWN udta GPS. We can never REMOVE
+ * trailing bytes (MPF offsets point into them and unknown trailers are opaque), but an
+ * embedded ISOBMFF can be scrubbed with the exact same rename-to-'free' machinery -
+ * in place, so not a single byte moves and the MPF/trailer geometry stays intact.
+ * Returns [] when there is no appendage we understand (the trailer stays verbatim,
+ * fail-open). NOTE the remaining gap: an MPF secondary image (gain map) is a full JPEG
+ * whose own Exif we deliberately do NOT excise (that would shift/resize the trailer);
+ * hasGpsMetadata scans for it so the backfill report is not blind to the vector.
+ */
+async function planJpegTrailerPatches(
+  bytes: Uint8Array,
+  sosPos: number,
+): Promise<IsobmffPatch[]> {
+  if (sosPos < 0) return [];
+  const eoi = findEoi(bytes, sosPos);
+  if (eoi < 0) return [];
+  // The appendage rarely starts AT eoi+2 (vendors pad / prepend index blobs), so scan
+  // for an 'ftyp' box start. planIsobmffPatches demands a perfect box chain to EOF plus
+  // a moov, so a false positive on random bytes cannot survive; cap the attempts anyway.
+  let attempts = 0;
+  for (let i = eoi + 6; i + 4 <= bytes.length && attempts < 4; i++) {
+    if (
+      bytes[i] !== 0x66 ||
+      bytes[i + 1] !== 0x74 ||
+      bytes[i + 2] !== 0x79 ||
+      bytes[i + 3] !== 0x70
+    ) {
+      continue;
+    }
+    attempts++;
+    const start = i - 4; // the size field precedes the 'ftyp' fourcc
+    const plan = await planIsobmffPatches(memoryReader(bytes.subarray(start)));
+    if (plan.ok) {
+      return plan.patches.map((p) => ({
+        offset: start + p.offset,
+        bytes: p.bytes,
+      }));
+    }
+  }
+  return [];
+}
+
+/** The pre-SOS starts of APP2 MPF segments in an assembled (valid) JPEG. */
+function collectMpfStarts(b: Uint8Array): number[] {
+  const out: number[] = [];
+  for (const seg of iterateJpegSegments(b)) {
+    if (
+      seg.marker === 0xe2 &&
+      hasPrefix(b.subarray(seg.start + 4, seg.end), MPF_FOURCC)
+    ) {
+      out.push(seg.start);
+    }
+  }
+  return out;
+}
+
+/**
+ * Rewrite the MP Entry table(s) of kept MPF segments so the index stays valid after
+ * segments were dropped/rebuilt (CIPA DC-007: individual-image offsets are relative to
+ * the MPF header = the endianness bytes right after "MPF\0"):
+ *  - a non-zero offset targets a trailing image in the verbatim tail -> shift it by
+ *    (tail delta - MPF header delta);
+ *  - the offset-0 entry is the FIRST individual image (this file from its SOI), whose
+ *    SIZE spans the region we shrank -> grow/shrink it by the tail delta.
+ * Returns false whenever the index is present but not provably fixable - the caller
+ * fails the whole strip open (never ship a silently corrupt multi-picture index).
+ */
+function fixupMpfIndexes(
+  original: Uint8Array,
+  out: Uint8Array,
+  oldStarts: number[],
+  oldSos: number,
+  sosDelta: number,
+): boolean {
+  if (oldSos < 0) return false;
+  const newStarts = collectMpfStarts(out);
+  if (newStarts.length !== oldStarts.length) return false;
+  for (let s = 0; s < oldStarts.length; s++) {
+    const oldHdr = oldStarts[s] + 8; // FF E2 + len(2) + "MPF\0"
+    const newHdr = newStarts[s] + 8;
+    const offsetAdjust = sosDelta - (newHdr - oldHdr);
+    if (offsetAdjust === 0 && sosDelta === 0) continue; // nothing moved at all
+    const segEnd = newStarts[s] + 2 + u16be(out, newStarts[s] + 2);
+    if (
+      !rewriteMpfEntries(
+        out,
+        newHdr,
+        segEnd,
+        offsetAdjust,
+        sosDelta,
+        oldHdr,
+        oldSos,
+        original.length,
+      )
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function rewriteMpfEntries(
+  out: Uint8Array,
+  hdr: number,
+  segEnd: number,
+  offsetAdjust: number,
+  sosDelta: number,
+  oldHdr: number,
+  oldSos: number,
+  oldLen: number,
+): boolean {
+  if (hdr + 8 > segEnd || segEnd > out.length) return false;
+  let le: boolean;
+  if (out[hdr] === 0x49 && out[hdr + 1] === 0x49) le = true;
+  else if (out[hdr] === 0x4d && out[hdr + 1] === 0x4d) le = false;
+  else return false;
+  const r16 = (o: number) => (le ? out[o] | (out[o + 1] << 8) : u16be(out, o));
+  const r32 = (o: number) => (le ? u32le(out, o) : u32be(out, o));
+  const w32 = (o: number, v: number) => {
+    if (le) {
+      out[o] = v & 0xff;
+      out[o + 1] = (v >>> 8) & 0xff;
+      out[o + 2] = (v >>> 16) & 0xff;
+      out[o + 3] = (v >>> 24) & 0xff;
+    } else {
+      out[o] = (v >>> 24) & 0xff;
+      out[o + 1] = (v >>> 16) & 0xff;
+      out[o + 2] = (v >>> 8) & 0xff;
+      out[o + 3] = v & 0xff;
+    }
+  };
+  if (r16(hdr + 2) !== 42) return false;
+  const ifd = hdr + r32(hdr + 4);
+  if (ifd < hdr || ifd + 2 > segEnd) return false;
+  const count = r16(ifd);
+  for (let i = 0; i < count; i++) {
+    const e = ifd + 2 + i * 12;
+    if (e + 12 > segEnd) return false;
+    if (r16(e) !== 0xb002) continue; // MP Entry tag
+    const type = r16(e + 2);
+    const byteCount = r32(e + 4);
+    if (type !== 7 || byteCount < 16 || byteCount % 16 !== 0) return false;
+    const base = hdr + r32(e + 8);
+    if (base < hdr || base + byteCount > segEnd) return false;
+    for (let j = 0; j < byteCount / 16; j++) {
+      const entry = base + j * 16;
+      const size = r32(entry + 4);
+      const off = r32(entry + 8);
+      if (off === 0) {
+        // First individual image = this file from its SOI; its size must track the
+        // shrunk pre-SOS region. Size 0 = writer left it blank - nothing to track.
+        if (size === 0) continue;
+        if (size <= oldSos || size > oldLen) return false; // span never reached the tail
+        const newSize = size + sosDelta;
+        if (newSize <= 0) return false;
+        w32(entry + 4, newSize);
+      } else {
+        const target = oldHdr + off;
+        // Only targets inside the verbatim tail moved uniformly; anything else
+        // (pre-SOS or past EOF) is a geometry we cannot reason about.
+        if (target < oldSos || target >= oldLen) return false;
+        const newOff = off + offsetAdjust;
+        if (newOff <= 0) return false;
+        w32(entry + 8, newOff);
+      }
+    }
+    return true; // one MP Entry tag per MP Index IFD
+  }
+  // No MP Entry tag (an attribute-only MPF, e.g. in a secondary image): no offsets to fix.
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -654,7 +884,8 @@ export async function stripMetadataBytes(
   try {
     switch (mime) {
       case "image/jpeg":
-        return stripJpeg(bytes);
+        // await (not return) so a rejection still lands in this catch -> fail open.
+        return await stripJpeg(bytes);
       case "image/png":
         return stripPng(bytes);
       case "image/webp":
@@ -744,15 +975,47 @@ const MP4_GPS_NEEDLES: readonly (readonly number[])[] = [
   asciiBytes("com.apple.quicktime.location"), // mdta key form
 ];
 
+/** GPS presence in the first Exif APP1 of a JPEG's pre-SOS segments. */
+function jpegExifHasGps(b: Uint8Array): boolean {
+  for (const seg of iterateJpegSegments(b)) {
+    if (seg.marker !== 0xe1) continue;
+    const payload = b.subarray(seg.start + 4, seg.end);
+    if (!hasPrefix(payload, EXIF_HEADER)) continue;
+    return findIfd0Tag(payload.subarray(6), TAG_GPS_IFD) !== null;
+  }
+  return false;
+}
+
+/** Position of the SOS marker (= where the verbatim tail begins), or -1. */
+function jpegSosPos(b: Uint8Array): number {
+  if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return -1;
+  let end = 2;
+  for (const seg of iterateJpegSegments(b)) end = seg.end;
+  if (end + 2 <= b.length && b[end] === 0xff && b[end + 1] === 0xda) return end;
+  return -1;
+}
+
 /** Does this file carry GPS metadata? (Best-effort; false on anything unparseable.) */
 export function hasGpsMetadata(bytes: Uint8Array, mime: string): boolean {
   try {
     if (mime === "image/jpeg") {
-      for (const seg of iterateJpegSegments(bytes)) {
-        if (seg.marker !== 0xe1) continue;
-        const payload = bytes.subarray(seg.start + 4, seg.end);
-        if (!hasPrefix(payload, EXIF_HEADER)) continue;
-        return findIfd0Tag(payload.subarray(6), TAG_GPS_IFD) !== null;
+      if (jpegExifHasGps(bytes)) return true;
+      // Trailing appendages after the EOI carry their OWN metadata: a motion-photo MP4
+      // (udta GPS - the strip blanks it in place) and MPF secondary images, full JPEGs
+      // whose Exif the strip deliberately leaves (excising would shift the trailer).
+      // Scanning them here keeps the backfill report honest about that residual vector.
+      const sos = jpegSosPos(bytes);
+      if (sos < 0) return false;
+      const eoi = findEoi(bytes, sos);
+      if (eoi < 0) return false;
+      const trailer = bytes.subarray(eoi + 2);
+      if (trailer.length < 4) return false;
+      if (MP4_GPS_NEEDLES.some((n) => findBytes(trailer, n))) return true;
+      let candidates = 0;
+      for (let i = 0; i + 2 <= trailer.length && candidates < 8; i++) {
+        if (trailer[i] !== 0xff || trailer[i + 1] !== 0xd8) continue;
+        candidates++;
+        if (jpegExifHasGps(trailer.subarray(i))) return true;
       }
       return false;
     }

@@ -34,12 +34,19 @@ the stripped bytes must be what measure → validate → preview → presign →
 uploads at the one shared seam. The stripper ([`media/strip-metadata.ts`](../../src/lib/media/strip-metadata.ts))
 is pure + dependency-free + runtime-agnostic and **lossless — byte-level excision, never a pixel re-encode**:
 JPEG drops Exif/XMP/IPTC/COM but keeps JFIF + ICC + Adobe APP14 (color-load-bearing) and **rebuilds a minimal
-one-tag Exif so Orientation survives** (sideways photos would otherwise render wrong everywhere); PNG drops
-eXIf/tEXt/zTXt/iTXt; WebP drops EXIF/XMP chunks + clears the VP8X flag bits; MP4/MOV **never restructures**
-(chunk-offset tables) — udta/meta/xml/XMP-uuid boxes are blanked in place (rename to `free` + zero payload) via
-lazy File slices, so multi-GB videos never fully load. **Fail-open contract:** unparseable or exotic input
-(HEIC/HEIF/AVIF — item-based, blanking meta would destroy the image — and WebM) uploads UNTOUCHED with
-`stripped:false`; a corrupted upload is worse than the leak, so that leak window is a conscious trade-off.
+one-tag Exif so Orientation survives** (sideways photos would otherwise render wrong everywhere); a kept MPF
+index (iPhone HDR gain maps) has its **individual-image offsets/sizes rewritten** to match the shrunk file
+(they are MPF-header-relative, so dropping any segment between the MPF and SOS goes stale; an unfixable index
+fails the whole strip open rather than shipping a corrupt HDR); an embedded **motion-photo MP4 after the EOI**
+gets its metadata boxes blanked in place (same machinery, zero bytes move). PNG drops eXIf/tEXt/zTXt/iTXt;
+WebP drops EXIF/XMP chunks + clears the VP8X flag bits; MP4/MOV **never restructures** (chunk-offset tables) —
+udta/meta/xml/XMP-uuid boxes are blanked in place (rename to `free` + zero payload) via lazy File slices, so
+multi-GB videos never fully load. **Fail-open contract:** unparseable or exotic input (HEIC/HEIF/AVIF —
+item-based, blanking meta would destroy the image — and WebM) uploads UNTOUCHED with `stripped:false`, and the
+Exif INSIDE a JPEG's post-EOI MPF secondary images survives (excising it would shift the trailer the MPF index
+points into); a corrupted upload is worse than the leak, so that leak window is a conscious trade-off —
+`hasGpsMetadata` scans trailers too, so the backfill report flags the residual case as clean-but-GPS instead of
+"clean".
 Because the strip is client-side pre-upload, replicated backups get clean bytes too — but it also means **the
 server never sees the EXIF**, so any future forensic EXIF capture must extract client-side before the strip.
 Pre-strip objects are swept by the one-off [`scripts/backfill-strip-exif.mjs`](../../scripts/backfill-strip-exif.mjs)

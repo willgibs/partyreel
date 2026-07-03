@@ -186,6 +186,96 @@ const FULL_JPEG = buildJpeg([
 ]);
 
 // ---------------------------------------------------------------------------
+// MPF (Multi-Picture Format) fixture builders - the iPhone-HDR-gain-map shape:
+// APP2 MPF index whose individual-image offsets are relative to the MPF HEADER
+// and point at a full JPEG appended after the primary's EOI.
+// ---------------------------------------------------------------------------
+
+const le32 = (v: number) => [
+  v & 0xff,
+  (v >>> 8) & 0xff,
+  (v >>> 16) & 0xff,
+  (v >>> 24) & 0xff,
+];
+
+/** A little-endian APP2 MPF segment: version + count + a 2-entry MP Entry table. */
+function mpfApp2(
+  primarySize: number,
+  secondaryOffset: number,
+  secondarySize: number,
+): number[] {
+  return jpegSeg(0xe2, [
+    ...ascii("MPF"),
+    0,
+    // MP header: "II", 42, first IFD at 8 (all offsets relative to the "II")
+    0x49,
+    0x49,
+    0x2a,
+    0x00,
+    ...le32(8),
+    3,
+    0, // 3 IFD entries
+    // 0xB000 MPFVersion: UNDEFINED x4 = "0100" inline
+    ...[0x00, 0xb0, 7, 0, ...le32(4), ...ascii("0100")],
+    // 0xB001 NumberOfImages: LONG x1 = 2
+    ...[0x01, 0xb0, 4, 0, ...le32(1), ...le32(2)],
+    // 0xB002 MPEntry: UNDEFINED x32 at offset 50 (= 8 + 2 + 3*12 + 4)
+    ...[0x02, 0xb0, 7, 0, ...le32(32), ...le32(50)],
+    ...le32(0), // next IFD
+    // entry 1: the primary (this file) - offset MUST be 0 per CIPA DC-007
+    ...le32(0x00030000),
+    ...le32(primarySize),
+    ...le32(0),
+    ...le32(0),
+    // entry 2: the trailing secondary image
+    ...le32(0x00020002),
+    ...le32(secondarySize),
+    ...le32(secondaryOffset),
+    ...le32(0),
+  ]);
+}
+
+const MPF_APP10 = jpegSeg(0xea, Array(100).fill(0xaa)); // droppable vendor APPn after MPF
+
+/** Primary JPEG (Exif GPS + MPF + optional post-MPF APP10) + a trailing secondary JPEG. */
+function buildMpfJpeg(withApp10: boolean): {
+  jpeg: Uint8Array;
+  secondary: Uint8Array;
+} {
+  const secondary = buildJpeg([JFIF_APP0, DQT, SOF0, DHT]);
+  const pre = [JFIF_APP0, jpegSeg(0xe1, exifPayloadWithGps(6))];
+  const post = [...(withApp10 ? [MPF_APP10] : []), DQT, SOF0, DHT];
+  const sum = (segs: number[][]) => segs.reduce((n, s) => n + s.length, 0);
+  const mpfLen = mpfApp2(0, 0, 0).length; // placeholder: same length regardless of values
+  const primaryLen = 2 + sum(pre) + mpfLen + sum(post) + SOS_AND_SCAN.length;
+  const mpfHeaderAbs = 2 + sum(pre) + 4 + 4; // seg start + FFE2+len + "MPF\0"
+  const mpf = mpfApp2(primaryLen, primaryLen - mpfHeaderAbs, secondary.length);
+  return {
+    jpeg: bytes([0xff, 0xd8], ...pre, mpf, ...post, SOS_AND_SCAN, secondary),
+    secondary,
+  };
+}
+
+/** Parse the (little-endian, fixture-shaped) MP Entry table out of a stripped JPEG. */
+function readMpfEntries(b: Uint8Array): {
+  headerAbs: number;
+  primarySize: number;
+  secondaryOffset: number;
+} {
+  const idx = indexOfBytes(b, [0x4d, 0x50, 0x46, 0x00]); // "MPF\0"
+  expect(idx).toBeGreaterThan(-1);
+  const headerAbs = idx + 4;
+  const entries = headerAbs + 50;
+  const r32 = (o: number) =>
+    (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
+  return {
+    headerAbs,
+    primarySize: r32(entries + 4),
+    secondaryOffset: r32(entries + 16 + 8),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // PNG fixture builders
 // ---------------------------------------------------------------------------
 
@@ -464,6 +554,160 @@ describe("stripJpeg (via stripMetadataBytes)", () => {
     const res = await stripMetadataBytes(junk, "image/jpeg");
     expect(res.stripped).toBe(false);
     expect(res.data).toBe(junk);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// JPEG trailing appendages: MPF (iPhone HDR gain maps) + motion-photo MP4s
+// ---------------------------------------------------------------------------
+
+describe("JPEG MPF index fix-up", () => {
+  it("rewrites offsets AND the primary size when post-MPF segments are dropped", async () => {
+    const { jpeg, secondary } = buildMpfJpeg(true);
+    // Sanity: the fixture's index resolves before the strip.
+    const before = readMpfEntries(jpeg);
+    expect(jpeg[before.headerAbs + before.secondaryOffset]).toBe(0xff);
+    expect(jpeg[before.headerAbs + before.secondaryOffset + 1]).toBe(0xd8);
+    expect(before.primarySize).toBe(jpeg.length - secondary.length);
+
+    const res = await stripMetadataBytes(jpeg, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(res.changed).toBe(true);
+    const out = res.data;
+    expect(out.length).toBeLessThan(jpeg.length);
+    expect(indexOfBytes(out, [0x25, 0x88])).toBe(-1); // GPS IFD tag gone
+    // The trailing secondary image is byte-identical at the tail.
+    expect(Array.from(out.subarray(out.length - secondary.length))).toEqual(
+      Array.from(secondary),
+    );
+    // The rewritten index resolves to the secondary's SOI at its NEW position.
+    const after = readMpfEntries(out);
+    expect(after.headerAbs + after.secondaryOffset).toBe(
+      out.length - secondary.length,
+    );
+    expect(out[after.headerAbs + after.secondaryOffset]).toBe(0xff);
+    expect(out[after.headerAbs + after.secondaryOffset + 1]).toBe(0xd8);
+    // The primary entry's size spans the shrunk pre-SOS region.
+    expect(after.primarySize).toBe(out.length - secondary.length);
+  });
+
+  it("keeps the index valid when only pre-MPF segments change (offsets unmoved, size fixed)", async () => {
+    const { jpeg, secondary } = buildMpfJpeg(false); // only the Exif before the MPF drops
+    const res = await stripMetadataBytes(jpeg, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    const after = readMpfEntries(res.data);
+    expect(after.headerAbs + after.secondaryOffset).toBe(
+      res.data.length - secondary.length,
+    );
+    expect(after.primarySize).toBe(res.data.length - secondary.length);
+  });
+
+  it("is idempotent on MPF files", async () => {
+    const { jpeg } = buildMpfJpeg(true);
+    const once = await stripMetadataBytes(jpeg, "image/jpeg");
+    const twice = await stripMetadataBytes(once.data, "image/jpeg");
+    expect(twice.stripped).toBe(true);
+    expect(twice.changed).toBe(false);
+    expect(Array.from(twice.data)).toEqual(Array.from(once.data));
+  });
+
+  it("fails open (original back) when an MPF index is present but unparseable", async () => {
+    // Same shape but the MP header is garbage: offsets exist somewhere we can't fix,
+    // and bytes WOULD shift (Exif + APP10 dropped) -> never ship a stale index.
+    const corruptMpf = jpegSeg(0xe2, [
+      ...ascii("MPF"),
+      0,
+      ...Array(90).fill(9),
+    ]);
+    const jpeg = bytes(
+      [0xff, 0xd8],
+      JFIF_APP0,
+      jpegSeg(0xe1, exifPayloadWithGps(6)),
+      corruptMpf,
+      MPF_APP10,
+      DQT,
+      SOF0,
+      DHT,
+      SOS_AND_SCAN,
+    );
+    const res = await stripMetadataBytes(jpeg, "image/jpeg");
+    expect(res.stripped).toBe(false);
+    expect(res.data).toBe(jpeg);
+  });
+
+  it("fails open when an MPF offset points outside the verbatim tail", async () => {
+    const { jpeg } = buildMpfJpeg(true);
+    // Point the secondary entry at the pre-SOS region (a geometry we can't reason about).
+    const { headerAbs } = readMpfEntries(jpeg);
+    const broken = jpeg.slice();
+    broken.set(le32(4), headerAbs + 50 + 16 + 8);
+    const res = await stripMetadataBytes(broken, "image/jpeg");
+    expect(res.stripped).toBe(false);
+  });
+});
+
+describe("JPEG motion-photo trailer (embedded ISOBMFF)", () => {
+  const CLEAN_PRIMARY = buildJpeg([JFIF_APP0, DQT, SOF0, DHT]);
+
+  it("blanks the trailer MP4's metadata in place (nothing moves)", async () => {
+    const input = bytes(CLEAN_PRIMARY, MP4_MOOV_FIRST);
+    expect(hasGpsMetadata(input, "image/jpeg")).toBe(true); // trailer udta GPS seen
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(res.changed).toBe(true);
+    const out = res.data;
+    expect(out.length).toBe(input.length); // in-place blanking only
+    expect(indexOfBytes(out, GPS_STRING)).toBe(-1);
+    expect(indexOfBytes(out, "udta")).toBe(-1); // renamed to 'free'
+    // The primary image and the trailer's mdat are byte-identical at the same offsets.
+    expect(Array.from(out.subarray(0, CLEAN_PRIMARY.length))).toEqual(
+      Array.from(CLEAN_PRIMARY),
+    );
+    expect(indexOfBytes(out, "mdat")).toBe(indexOfBytes(input, "mdat"));
+    expect(hasGpsMetadata(out, "image/jpeg")).toBe(false);
+  });
+
+  it("applies trailer patches at the SHIFTED offset when pre-SOS segments also drop", async () => {
+    const input = bytes(FULL_JPEG, MP4_MOOV_FIRST);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    const out = res.data;
+    expect(indexOfBytes(out, GPS_STRING)).toBe(-1);
+    expect(indexOfBytes(out, "http://ns.adobe.com/xap")).toBe(-1);
+    // The whole tail (scan + trailer) shifted uniformly and stayed the same length.
+    const sosIn = indexOfBytes(input, [0xff, 0xda]);
+    const sosOut = indexOfBytes(out, [0xff, 0xda]);
+    expect(out.length - sosOut).toBe(input.length - sosIn);
+    expect(hasGpsMetadata(out, "image/jpeg")).toBe(false);
+  });
+
+  it("is idempotent (second pass changed:false)", async () => {
+    const input = bytes(FULL_JPEG, MP4_MOOV_FIRST);
+    const once = await stripMetadataBytes(input, "image/jpeg");
+    const twice = await stripMetadataBytes(once.data, "image/jpeg");
+    expect(twice.stripped).toBe(true);
+    expect(twice.changed).toBe(false);
+  });
+
+  it("keeps a trailer we do not understand verbatim (fail-open on the appendage only)", async () => {
+    const junkTrailer = [...ascii("SEFT"), 1, 2, 3, 4, 5];
+    const input = bytes(FULL_JPEG, junkTrailer);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true); // primary still stripped
+    expect(
+      Array.from(res.data.subarray(res.data.length - junkTrailer.length)),
+    ).toEqual(junkTrailer);
+  });
+
+  it("hasGpsMetadata sees GPS inside a trailing MPF-style embedded JPEG (the residual gap)", async () => {
+    // Clean primary + a trailing full JPEG that carries its own Exif GPS: the strip
+    // deliberately leaves it (excising would shift the trailer) but the report must see it.
+    const input = bytes(CLEAN_PRIMARY, FULL_JPEG);
+    expect(hasGpsMetadata(input, "image/jpeg")).toBe(true);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(res.changed).toBe(false); // nothing we CAN strip
+    expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(true); // honest: GPS remains
   });
 });
 

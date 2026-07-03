@@ -46,8 +46,9 @@ const args = process.argv.slice(2);
 const LIVE = args.includes("--live");
 const prefixArg = args.find((a) => a.startsWith("--prefix"));
 const PREFIX = prefixArg
-  ? (prefixArg.includes("=") ? prefixArg.split("=")[1] : args[args.indexOf(prefixArg) + 1]) ??
-    "events/"
+  ? ((prefixArg.includes("=")
+      ? prefixArg.split("=")[1]
+      : args[args.indexOf(prefixArg) + 1]) ?? "events/")
   : "events/";
 
 // --- env -------------------------------------------------------------------
@@ -72,7 +73,9 @@ const R2_ACCESS_KEY_ID = requireEnv("R2_ACCESS_KEY_ID");
 const R2_SECRET_ACCESS_KEY = requireEnv("R2_SECRET_ACCESS_KEY");
 const R2_BUCKET = requireEnv("R2_BUCKET");
 const SUPABASE_URL = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-const SUPABASE_SECRET_KEY = LIVE ? requireEnv("SUPABASE_SECRET_KEY") : process.env.SUPABASE_SECRET_KEY;
+const SUPABASE_SECRET_KEY = LIVE
+  ? requireEnv("SUPABASE_SECRET_KEY")
+  : process.env.SUPABASE_SECRET_KEY;
 
 // --- shared stripper (the ONE implementation; see module docblock) ----------
 
@@ -81,7 +84,9 @@ try {
   ({ stripMetadataBytes, hasGpsMetadata } = await import(
     new URL("../src/lib/media/strip-metadata.ts", import.meta.url)
   ));
-  ({ MIME_TO_EXT } = await import(new URL("../src/lib/media/limits.ts", import.meta.url)));
+  ({ MIME_TO_EXT } = await import(
+    new URL("../src/lib/media/limits.ts", import.meta.url)
+  ));
 } catch (e) {
   console.error(
     "Couldn't import the TypeScript stripper. This script relies on Node's native type\n" +
@@ -104,7 +109,10 @@ const EXT_TO_MIME = Object.fromEntries(
 const s3 = new S3Client({
   region: "auto",
   endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY,
+  },
   requestChecksumCalculation: "WHEN_REQUIRED",
   responseChecksumValidation: "WHEN_REQUIRED",
 });
@@ -135,7 +143,11 @@ async function listOriginals() {
   let token;
   do {
     const page = await s3.send(
-      new ListObjectsV2Command({ Bucket: R2_BUCKET, Prefix: PREFIX, ContinuationToken: token }),
+      new ListObjectsV2Command({
+        Bucket: R2_BUCKET,
+        Prefix: PREFIX,
+        ContinuationToken: token,
+      }),
     );
     for (const obj of page.Contents ?? []) {
       const info = classifyKey(obj.Key ?? "");
@@ -171,7 +183,9 @@ const dbFixes = [];
 
 for (const obj of objects) {
   try {
-    const got = await s3.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: obj.key }));
+    const got = await s3.send(
+      new GetObjectCommand({ Bucket: R2_BUCKET, Key: obj.key }),
+    );
     const bytes = await got.Body.transformToByteArray();
     const gps = hasGpsMetadata(bytes, obj.mime);
     if (gps) stats.gps++;
@@ -185,7 +199,15 @@ for (const obj of objects) {
     }
     if (!res.changed) {
       stats.clean++;
-      console.log(`  clean: ${obj.key}${tag}`);
+      // "clean" = nothing we CAN strip. A [GPS] tag here means the GPS lives in a
+      // trailing appendage the stripper deliberately leaves (an MPF secondary image's
+      // own Exif - see strip-metadata.ts); hasGpsMetadata scans trailers since the
+      // motion-photo fix, so this line is no longer blind to that vector.
+      console.log(
+        gps
+          ? `  clean-but-GPS (trailing appendage retains its own Exif; not stripped): ${obj.key}`
+          : `  clean: ${obj.key}`,
+      );
       continue;
     }
 
@@ -202,12 +224,19 @@ for (const obj of objects) {
       new PutObjectCommand({
         Bucket: R2_BUCKET,
         Key: obj.key,
-        Body: Buffer.from(res.data.buffer, res.data.byteOffset, res.data.byteLength),
+        Body: Buffer.from(
+          res.data.buffer,
+          res.data.byteOffset,
+          res.data.byteLength,
+        ),
         ContentType: got.ContentType ?? obj.mime,
       }),
     );
-    console.log(`  PUT: ${obj.key}${tag}  ${fmt(bytes.length)} -> ${fmt(res.data.length)} bytes`);
-    if (delta !== 0) dbFixes.push({ mediaId: obj.mediaId, newSize: res.data.length, delta });
+    console.log(
+      `  PUT: ${obj.key}${tag}  ${fmt(bytes.length)} -> ${fmt(res.data.length)} bytes`,
+    );
+    if (delta !== 0)
+      dbFixes.push({ mediaId: obj.mediaId, newSize: res.data.length, delta });
   } catch (e) {
     stats.errors++;
     console.error(`  ERROR: ${obj.key}: ${e?.message ?? e}`);
@@ -218,10 +247,14 @@ for (const obj of objects) {
 
 if (LIVE && dbFixes.length > 0) {
   if (!supabase) {
-    console.error("SUPABASE_SECRET_KEY missing - objects were replaced but the DB was NOT updated!");
+    console.error(
+      "SUPABASE_SECRET_KEY missing - objects were replaced but the DB was NOT updated!",
+    );
     process.exit(1);
   }
-  console.log(`\nUpdating the DB ledger for ${fmt(dbFixes.length)} shrunk object(s)...`);
+  console.log(
+    `\nUpdating the DB ledger for ${fmt(dbFixes.length)} shrunk object(s)...`,
+  );
 
   const ids = dbFixes.map((f) => f.mediaId);
   const { data: rows, error } = await supabase
@@ -252,7 +285,9 @@ if (LIVE && dbFixes.length > 0) {
     const row = rowById.get(fix.mediaId);
     if (!row) {
       // Orphan object (media row already purged): the PUT was still correct; nothing to ledger.
-      console.log(`  no media row for ${fix.mediaId} (orphan object) - skipping DB update`);
+      console.log(
+        `  no media row for ${fix.mediaId} (orphan object) - skipping DB update`,
+      );
       continue;
     }
     const { error: updErr } = await supabase
@@ -260,7 +295,9 @@ if (LIVE && dbFixes.length > 0) {
       .update({ file_size_bytes: fix.newSize })
       .eq("id", fix.mediaId);
     if (updErr) {
-      console.error(`  media ${fix.mediaId} size update failed: ${updErr.message}`);
+      console.error(
+        `  media ${fix.mediaId} size update failed: ${updErr.message}`,
+      );
       stats.errors++;
       continue;
     }
@@ -292,7 +329,9 @@ if (LIVE && dbFixes.length > 0) {
       console.error(`  profiles update failed for ${hostId}: ${uErr.message}`);
       stats.errors++;
     } else {
-      console.log(`  host ${hostId}: storage_used_bytes -${fmt(delta)} -> ${fmt(next)}`);
+      console.log(
+        `  host ${hostId}: storage_used_bytes -${fmt(delta)} -> ${fmt(next)}`,
+      );
     }
   }
 
@@ -311,10 +350,14 @@ if (LIVE && dbFixes.length > 0) {
       .update({ cumulative_bytes: next })
       .eq("id", led.id);
     if (lErr) {
-      console.error(`  storage_ledger update failed for ${lk}: ${lErr.message}`);
+      console.error(
+        `  storage_ledger update failed for ${lk}: ${lErr.message}`,
+      );
       stats.errors++;
     } else {
-      console.log(`  ledger ${hostId} ${period}: cumulative_bytes -${fmt(delta)} -> ${fmt(next)}`);
+      console.log(
+        `  ledger ${hostId} ${period}: cumulative_bytes -${fmt(delta)} -> ${fmt(next)}`,
+      );
     }
   }
 }
@@ -326,8 +369,8 @@ Summary ${LIVE ? "(LIVE)" : "(dry-run)"}:
   originals scanned:   ${fmt(stats.total)}
   with GPS metadata:   ${fmt(stats.gps)}
   ${LIVE ? "stripped + replaced" : "would strip"}: ${fmt(stats.changed)}  (${fmt(stats.bytesSaved)} bytes of metadata removed)
-  already clean:       ${fmt(stats.clean)}
-  fail-open (kept):    ${fmt(stats.failedOpen)}  (HEIC/HEIF/AVIF/WebM or unparseable - see strip-metadata.ts)
+  already clean:       ${fmt(stats.clean)}  (clean-but-GPS lines above = Exif inside a JPEG trailing appendage, a conscious keep)
+  fail-open (kept):    ${fmt(stats.failedOpen)}  (HEIC/HEIF/AVIF/WebM, unfixable MPF index, or unparseable - see strip-metadata.ts)
   errors:              ${fmt(stats.errors)}
 `);
 process.exit(stats.errors > 0 ? 1 : 0);
