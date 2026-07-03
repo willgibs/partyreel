@@ -13,15 +13,12 @@ import {
   RECENTLY_DELETED_WINDOW_DAYS,
   binCountdownDays,
 } from "@/lib/lifecycle/recently-deleted";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export type MediaRow = Tables<"media">;
 
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -47,10 +44,7 @@ export type RemovedMediaRow = MediaRow & { countdownDays: number };
 export async function listRecentlyDeletedMedia(
   eventId: string,
 ): Promise<RemovedMediaRow[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   // One `now` for the window filter + the per-tile countdown — computed HERE (a query, not a

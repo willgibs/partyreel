@@ -17,7 +17,9 @@
  */
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export type HostStorageSummary = {
   activeBytes: number;
@@ -30,34 +32,37 @@ type SummaryRow = {
   events: { deleted_at: string | null } | null;
 };
 
-export async function getHostStorageSummary(): Promise<HostStorageSummary> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { activeBytes: 0, standbyBytes: 0 };
+// cache() = request-scoped dedupe (see lib/supabase/request-auth); the getUser()
+// re-check now rides the shared per-request validation.
+export const getHostStorageSummary = cache(
+  async function getHostStorageSummary(): Promise<HostStorageSummary> {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return { activeBytes: 0, standbyBytes: 0 };
 
-  // media_host_all scopes to the host's own media; the events embed reads each row's event
-  // deleted_at (events_host_all scopes events to the host too). Deleted events' media stay readable
-  // here (the policy gates on ownership, not deleted_at).
-  // The embed is PINNED to the direct FK (`media_event_id_fkey`): once `reel_items` (a junction with
-  // FKs to BOTH events and media) existed, PostgREST also inferred an events<->media many-to-many, so
-  // a bare `events!inner(...)` became ambiguous (PGRST201). ANY new junction over two already-related
-  // tables breaks their embeds the same way — always hint the FK. See database-security.md.
-  const { data, error } = await supabase
-    .from("media")
-    .select("file_size_bytes, status, events!media_event_id_fkey!inner(deleted_at)");
-  if (error) throw error;
+    // media_host_all scopes to the host's own media; the events embed reads each row's event
+    // deleted_at (events_host_all scopes events to the host too). Deleted events' media stay readable
+    // here (the policy gates on ownership, not deleted_at).
+    // The embed is PINNED to the direct FK (`media_event_id_fkey`): once `reel_items` (a junction with
+    // FKs to BOTH events and media) existed, PostgREST also inferred an events<->media many-to-many, so
+    // a bare `events!inner(...)` became ambiguous (PGRST201). ANY new junction over two already-related
+    // tables breaks their embeds the same way — always hint the FK. See database-security.md.
+    const { data, error } = await supabase
+      .from("media")
+      .select(
+        "file_size_bytes, status, events!media_event_id_fkey!inner(deleted_at)",
+      );
+    if (error) throw error;
 
-  let activeBytes = 0;
-  let standbyBytes = 0;
-  for (const row of (data ?? []) as unknown as SummaryRow[]) {
-    const inLiveEvent = row.events != null && row.events.deleted_at == null;
-    if (row.status !== "removed" && inLiveEvent) {
-      activeBytes += row.file_size_bytes;
-    } else {
-      standbyBytes += row.file_size_bytes;
+    let activeBytes = 0;
+    let standbyBytes = 0;
+    for (const row of (data ?? []) as unknown as SummaryRow[]) {
+      const inLiveEvent = row.events != null && row.events.deleted_at == null;
+      if (row.status !== "removed" && inLiveEvent) {
+        activeBytes += row.file_size_bytes;
+      } else {
+        standbyBytes += row.file_size_bytes;
+      }
     }
-  }
-  return { activeBytes, standbyBytes };
-}
+    return { activeBytes, standbyBytes };
+  },
+);
