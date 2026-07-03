@@ -8,6 +8,7 @@ import { HostEventVariants } from "../../components/host-event-variants";
 import { HostEventPageVariants } from "../../components/host-event-page-variants";
 import { HostEventBuildVariants } from "../../components/host-event-build-variants";
 import { GalleryActionsVariants } from "../../components/gallery-actions-variants";
+import { MarketingIdentityVariants } from "../../components/marketing-identity-variants";
 import { EntryVariants } from "../../components/entry-variants";
 import { EventCardVariants } from "../../components/event-card-variants";
 import { FormVariants } from "../../components/form-variants";
@@ -42,6 +43,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "host-event-page": HostEventPageVariants,
   "host-event-build": HostEventBuildVariants,
   "gallery-actions": GalleryActionsVariants,
+  "marketing-identity": MarketingIdentityVariants,
 };
 
 // One UX touchpoint, its 2-3 explorations side by side on the locked system.
@@ -71,7 +73,10 @@ export default async function TouchpointPage({
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
           {SURFACE_LABEL[touchpoint.surface]} · Sandbox
         </p>
-        <h1 data-dir-display className="mt-1 text-3xl tracking-tight text-balance">
+        <h1
+          data-dir-display
+          className="mt-1 text-3xl tracking-tight text-balance"
+        >
           {touchpoint.title}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground">
