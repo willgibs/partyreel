@@ -471,7 +471,14 @@
                         written by the FLIP measure), target frame + ignite
      [data-rvl-print] / [data-rvl-mat] / [data-rvl-develop] / [data-rvl-caption]
                         direction 3's print, its white mat, the develop, the label
-     [data-rvl-end]     the post-reveal furniture (Save video / Share)          */
+     [data-rvl-end]     the post-reveal furniture (Save video / Share)
+     [data-rvl-composite]  the RULED COMPOSITE's stage marker (T1 2026-07-05).
+                        Its acts reuse the shared rules above by NAME (gather/
+                        condense/ignite tile flight, the ignite screen birth,
+                        open/title/settled); the composite-scoped rules below
+                        add only its held-beat stack pose and the T2 tunable
+                        --tune-rvl-* durations (fallbacks mirror TUNE_MS in
+                        reel-reveal-variants.tsx, the motion-tuner contract). */
 
 /* Hidden/rest states. */
 [data-rvl-veil],
@@ -589,6 +596,22 @@
   opacity: 1;
 }
 
+/* 4 · Composite (ruled): gather > condense > held (the breath) > ignite (the
+   camera flash) > open (the full-bleed expansion) > title > settled. Only the
+   held beat needs a rule of its own: the stack keeps the CONDENSED pose (the
+   25% residual tilt) through the hold, perfectly still before the flash. */
+[data-rvl-composite][data-act="held"] [data-rvl-tile] {
+  transform: translate(var(--dx, 0px), var(--dy, 0px))
+    rotate(calc(var(--r, 0deg) * 0.25)) scale(var(--s, 1));
+}
+/* The composite's title act sits between the shared hide list's open and
+   settled, so without this the grid would repaint behind the full-bleed
+   screen for the whole title beat (invisible today, but latent + wasted
+   paint). Keep it down from ignite through settled. */
+[data-rvl-composite][data-act="title"] [data-rvl-grid] {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   [data-rvl-chrome] {
     transition:
@@ -676,6 +699,33 @@
   }
   [data-rvl-stage][data-act="print"] [data-rvl-develop] {
     animation: rvl-develop 1200ms 180ms var(--dir-ease) both;
+  }
+
+  /* ── Composite (ruled) T2 knobs ──
+     Durations read the --tune-rvl-* vars; the var() fallbacks MUST mirror
+     TUNE_MS in reel-reveal-variants.tsx (script holds + tuner defaults read
+     the same source). The shared ignite snap (180ms, above) still outranks
+     the screen rule here on specificity, exactly as designed: the flash
+     covers that swap. */
+  [data-rvl-composite] [data-rvl-tile] {
+    transition-duration: var(--tune-rvl-fly-ms, 640ms);
+    transition-delay: calc(var(--i, 0) * var(--tune-rvl-stagger-ms, 42ms));
+  }
+  /* Squaring + holding are one collective settle: short, no stagger. */
+  [data-rvl-composite][data-act="condense"] [data-rvl-tile],
+  [data-rvl-composite][data-act="held"] [data-rvl-tile] {
+    transition-duration: 320ms;
+    transition-delay: 0ms;
+  }
+  [data-rvl-composite] [data-rvl-screen] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform var(--tune-rvl-expand-ms, 720ms)
+        var(--tune-rvl-expand-ease, var(--ease-in-out-strong)),
+      filter 660ms var(--dir-ease);
+  }
+  [data-rvl-composite][data-act="ignite"] [data-rvl-flash] {
+    animation-duration: var(--tune-rvl-flash-ms, 360ms);
   }
 }
 
