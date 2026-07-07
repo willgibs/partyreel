@@ -322,15 +322,22 @@ export const TOUCHPOINTS: Touchpoint[] = [
     // CanvasReelPlayer held at frame 0 and released at its ignite beat, which
     // client-side encode makes honest (the reel is watchable instantly, no
     // progress theater). Each direction carries its guest (/e/) adaptation
-    // sketch on the page. `decision` stays unset until Will rules at T1.
+    // sketch on the page. T1 ruled a COMPOSITE of the three; it is built as V1
+    // with every beat a --tune-rvl-* var + the MotionTuner on the page, so the
+    // T2 device session tunes it live (Copy CSS -> bake -> reset).
     id: "reel-reveal",
     title: "Reel reveal moment",
     surface: "host",
-    note: "Three choreographies for the moment a reel first exists, each around the real playing canvas engine: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
-    variants: ["Lights down", "Assembly", "First frame held"],
+    note: "The ruled composite reveal on the real playing canvas engine, above its three source choreographies: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
+    variants: [
+      "Composite (ruled)",
+      "Lights down",
+      "Assembly",
+      "First frame held",
+    ],
     decision: 1,
     decisionNote:
-      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single variant (decision index marks Assembly as the base). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue. Built as the primary variant on this touchpoint; the three originals stay for reference.",
+      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference.",
   },
 ];
 

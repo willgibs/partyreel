@@ -79,10 +79,21 @@ export type ActScript<A extends string> = { act: A; holdMs: number }[];
 /**
  * Advance through a script of acts ("idle" is implicit rest). run() plays the
  * script; reset() returns to idle (and stops timers); replay() resets, lets the
- * pre-state re-enter, then runs. Reduced motion jumps straight to the FINAL act
- * (the honest fallback: arrival without theater).
+ * pre-state re-enter, then runs.
+ *
+ * The script may be a FACTORY, resolved fresh on every run: the composite
+ * builds its beats from the --tune-rvl-* vars via readCssMs (never a static
+ * snapshot), so a motion-tuner drag retimes the very next replay.
+ *
+ * Reduced motion jumps straight to the FINAL act (the honest fallback: arrival
+ * without theater) UNLESS the direction hands in a dedicated `reducedScript`;
+ * that one PLAYS (the reduce CSS renders every act as a plain fade), keeping
+ * the narrative order without the movement.
  */
-export function useRevealActs<A extends string>(script: ActScript<A>) {
+export function useRevealActs<A extends string>(
+  script: ActScript<A> | (() => ActScript<A>),
+  reducedScript?: ActScript<A>,
+) {
   const [act, setAct] = useState<A | "idle">("idle");
   const timers = useRef<number[]>([]);
   const reduced = usePrefersReducedMotion();
@@ -92,18 +103,26 @@ export function useRevealActs<A extends string>(script: ActScript<A>) {
     timers.current = [];
   };
 
-  const run = () => {
-    clear();
-    if (reduced) {
-      setAct(script[script.length - 1].act);
-      return;
-    }
+  const play = (steps: ActScript<A>) => {
     let at = 0;
-    script.forEach((step, i) => {
+    steps.forEach((step, i) => {
       if (i === 0) setAct(step.act);
       else timers.current.push(window.setTimeout(() => setAct(step.act), at));
       at += step.holdMs;
     });
+  };
+
+  const run = () => {
+    clear();
+    if (reduced) {
+      if (reducedScript) play(reducedScript);
+      else {
+        const steps = typeof script === "function" ? script() : script;
+        setAct(steps[steps.length - 1].act);
+      }
+      return;
+    }
+    play(typeof script === "function" ? script() : script);
   };
 
   const reset = () => {
