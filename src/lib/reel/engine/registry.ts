@@ -2,9 +2,10 @@
 // for draw functions instead of React components. Grows one entry per ported style; until all 14 land,
 // engineSupports() lets callers decide whether to render a style on canvas or keep the Remotion path.
 //
-// THE WATERMARK RULE (carried over from style-render.tsx, do not weaken): the free-tier wordmark is
-// stamped HERE, in the dispatch layer, after the style draws, so every style (mood or treatment) marks
-// uniformly and a treatment reel can never export unmarked. props.watermark stays server-tier-derived.
+// THE WATERMARK RULE (carried over from style-render.tsx, do not weaken): the free-tier watermark
+// (the bottom-right lockup, T1 redesign; see drawWatermark) is stamped HERE, in the dispatch layer,
+// after the style draws, so every style (mood or treatment) marks uniformly and a treatment reel can
+// never export unmarked. props.watermark stays server-tier-derived.
 
 import type { ReelProps } from "../composition/reel-types";
 import type { ReelAssets } from "./assets";

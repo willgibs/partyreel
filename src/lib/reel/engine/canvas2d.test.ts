@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { probeCtxFilter } from "./canvas2d";
+import { probeCtxFilter, WATERMARK_MARGIN, watermarkLayout } from "./canvas2d";
 
 // Pins for the ctx.filter support probe (detectCtxFilter's pure core). The regression these guard:
 // a naive assign-then-readback probe returns TRUE on browsers with NO filter IDL attribute, because
@@ -43,5 +43,42 @@ describe("probeCtxFilter", () => {
       }
     }
     expect(probeCtxFilter(new RejectingCtx())).toBe(false);
+  });
+});
+
+// Pins for the bottom-right watermark lockup (the T1 redesign of the old centered
+// pill). Two invariants: the safe margin holds on BOTH edges in BOTH orientations,
+// and the lockup height comes from the text LINE BOX, not ink extents (the
+// ink-metrics version undersized the old pill ~10%; a parity-review catch kept as
+// the rule so mark/text optical centering stays stable across fonts).
+
+describe("watermarkLayout", () => {
+  const text = { textW: 200, lineAscent: 30, lineDescent: 8 };
+  const lockup = { ...text, markSize: 30, gap: 12 };
+
+  it.each([
+    ["portrait", 1080, 1920],
+    ["landscape", 1920, 1080],
+  ])("respects the safe margin bottom-right in %s", (_o, w, h) => {
+    const l = watermarkLayout({ w, h, ...lockup });
+    expect(l.x + l.lockupW).toBe(w - WATERMARK_MARGIN);
+    expect(l.centerY + l.lockupH / 2).toBe(h - WATERMARK_MARGIN);
+  });
+
+  it("sizes the lockup from the line box when it exceeds the mark", () => {
+    const l = watermarkLayout({ w: 1080, h: 1920, ...lockup });
+    expect(l.lockupH).toBe(38); // 30 + 8 line box, not the 30px mark
+    expect(l.lockupW).toBe(30 + 12 + 200);
+  });
+
+  it("lets a taller mark govern the lockup height (the badge variant)", () => {
+    const l = watermarkLayout({
+      w: 1080,
+      h: 1920,
+      ...text,
+      markSize: 44,
+      gap: 11,
+    });
+    expect(l.lockupH).toBe(44);
   });
 });

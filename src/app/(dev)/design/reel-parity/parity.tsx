@@ -15,6 +15,12 @@ import {
   styleDuration,
 } from "@/lib/reel/composition";
 import {
+  DEFAULT_WATERMARK_VARIANT,
+  setWatermarkVariantOverride,
+  WATERMARK_VARIANTS,
+  type WatermarkVariant,
+} from "@/lib/reel/engine/canvas2d";
+import {
   DEFAULT_BITRATE,
   ENCODE_BITRATES,
   encodeReel,
@@ -54,6 +60,11 @@ export function ReelParity() {
   const [seed, setSeed] = useState(73);
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [watermark, setWatermark] = useState(true);
+  // Dev-only: which T1 watermark candidate the canvas side stamps (the module-level
+  // override feeds player + encode without prop-threading; reset on unmount).
+  const [wmVariant, setWmVariant] = useState<WatermarkVariant>(
+    DEFAULT_WATERMARK_VARIANT,
+  );
   // null = both players free-run; a number = both frame-locked there (the exact-comparison mode).
   const [lockedFrame, setLockedFrame] = useState<number | null>(null);
   const [reports, setReports] = useState<string[]>([]);
@@ -109,6 +120,13 @@ export function ReelParity() {
     };
   }, [orientation]);
 
+  // Feed the dev-only watermark override + clear it when leaving the harness so any
+  // other canvas surface (reveal lab, composer) stamps the shipped default again.
+  useEffect(() => {
+    setWatermarkVariantOverride(wmVariant);
+    return () => setWatermarkVariantOverride(null);
+  }, [wmVariant]);
+
   // Frame-lock drives the Remotion side imperatively; the canvas side takes the frame as a prop.
   useEffect(() => {
     if (lockedFrame === null) return;
@@ -154,7 +172,8 @@ export function ReelParity() {
   };
 
   // Re-key both players on the shared inputs so free-run playback restarts (roughly) in sync.
-  const restartKey = `${seed}-${orientation}-${watermark}`;
+  // wmVariant is in the key so a variant flip re-renders the canvas side immediately.
+  const restartKey = `${seed}-${orientation}-${watermark}-${wmVariant}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
@@ -164,7 +183,10 @@ export function ReelParity() {
           The Remotion composition and the canvas engine, same props, side by
           side. Free-run playback drifts slightly; use Pause to frame-lock both
           on one timeline and scrub for the exact comparison. Encode renders the
-          canvas side to an mp4 via WebCodecs.
+          canvas side to an mp4 via WebCodecs. Note: the watermark is a
+          DELIBERATE delta since the T1 redesign; the canvas side stamps the new
+          bottom-right lockup while the teardown-bound Remotion side keeps the
+          old centered pill.
         </p>
       </header>
 
@@ -204,6 +226,21 @@ export function ReelParity() {
         >
           Watermark
         </button>
+        {watermark ? (
+          <select
+            value={wmVariant}
+            onChange={(e) => setWmVariant(e.target.value as WatermarkVariant)}
+            aria-label="Watermark variant (canvas side)"
+            className="rounded-md border bg-transparent px-2 py-1.5 text-sm"
+          >
+            {WATERMARK_VARIANTS.map((v) => (
+              <option key={v} value={v}>
+                {v}
+                {v === DEFAULT_WATERMARK_VARIANT ? " (default)" : ""}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <span className="text-xs text-muted-foreground">
           seed {seed} · {durationInFrames} frames
         </span>
