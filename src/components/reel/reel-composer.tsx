@@ -1,6 +1,14 @@
 "use client";
 
-import { Check, Clapperboard, Clock, Download, Wand2 } from "lucide-react";
+import {
+  Check,
+  Clapperboard,
+  Clock,
+  Download,
+  Lock,
+  Wand2,
+} from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +22,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  clampReelSeconds,
+  MAX_REEL_SECONDS,
+  type Tier,
+} from "@/lib/constants/tiers";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
 import {
   DEFAULT_STYLE_ID,
@@ -27,10 +40,13 @@ import { defaultReelSeed } from "@/lib/reel/seed-default";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
+// Every tier sees every option; a value past the tier cap renders LOCKED (the house upgrade-hint
+// pattern, like the password/slug settings) — the visible-but-locked 60s IS the upgrade nudge.
 const LENGTHS: { label: string; value: number | null }[] = [
   { label: "Auto", value: null },
   { label: "15s", value: 15 },
   { label: "30s", value: 30 },
+  { label: "60s", value: 60 },
 ];
 
 function rpcOk(data: unknown): boolean {
@@ -51,6 +67,7 @@ export function ReelComposer({
   items,
   reelConfig,
   watermark,
+  tier,
 }: {
   eventId: string;
   /** All visible gallery items (already presigned); the reel is a subset by id. */
@@ -58,6 +75,9 @@ export function ReelComposer({
   reelConfig: ReelConfig | null;
   /** Free tier → stamp the partyreel.com wordmark in the live player (mirrors the export). */
   watermark: boolean;
+  /** The host's billing tier — drives the length cap (30s Free / 60s paid, ADR-0021). UX only;
+   *  the reel-config RPC and the render path re-enforce server-side. */
+  tier: Tier;
 }) {
   const reel = useReel();
   const orderedIds = useMemo(() => reel?.orderedIds ?? [], [reel?.orderedIds]);
@@ -65,8 +85,10 @@ export function ReelComposer({
   // The chosen catalog style — from the stored style_id, else the legacy theme (if it's a valid style id),
   // else the default mood.
   const [styleId, setStyleId] = useState<string>(() => {
-    if (reelConfig?.styleId && STYLE_IDS.includes(reelConfig.styleId)) return reelConfig.styleId;
-    if (reelConfig?.theme && STYLE_IDS.includes(reelConfig.theme)) return reelConfig.theme;
+    if (reelConfig?.styleId && STYLE_IDS.includes(reelConfig.styleId))
+      return reelConfig.styleId;
+    if (reelConfig?.theme && STYLE_IDS.includes(reelConfig.theme))
+      return reelConfig.theme;
     return DEFAULT_STYLE_ID;
   });
   const [orientation, setOrientation] = useState<Orientation>(() =>
@@ -80,9 +102,14 @@ export function ReelComposer({
   const [coverMediaId, setCoverMediaId] = useState<string | null>(
     () => reelConfig?.coverMediaId ?? null,
   );
-  const [lengthSeconds, setLengthSeconds] = useState<number | null>(
-    () => reelConfig?.lengthSeconds ?? null,
-  );
+  // The tier length cap (ADR-0021). A stored value past the cap (a downgraded host) initializes
+  // clamped, so the UI never shows a locked option as active; the next save persists the clamp
+  // (matching what the server would store anyway).
+  const maxSeconds = MAX_REEL_SECONDS[tier];
+  const [lengthSeconds, setLengthSeconds] = useState<number | null>(() => {
+    const stored = reelConfig?.lengthSeconds ?? null;
+    return stored != null && stored > maxSeconds ? maxSeconds : stored;
+  });
   const [styleOpen, setStyleOpen] = useState(false);
 
   const byId = useMemo(() => new Map(items.map((m) => [m.id, m])), [items]);
@@ -105,11 +132,23 @@ export function ReelComposer({
         seed,
         orientation,
         coverMediaId,
-        lengthSeconds,
+        // The tier clamp, applied to the PREVIEW too: Auto fills up to the cap (30/60), so the
+        // player shows exactly what the export renders (the render path applies the same clamp).
+        lengthSeconds: clampReelSeconds(tier, lengthSeconds),
         posterMode: true,
         watermark,
       }),
-    [orderedIds, byId, styleId, seed, orientation, coverMediaId, lengthSeconds, watermark],
+    [
+      orderedIds,
+      byId,
+      styleId,
+      seed,
+      orientation,
+      coverMediaId,
+      lengthSeconds,
+      tier,
+      watermark,
+    ],
   );
 
   // The single config-persist (upsert_reel_config lazily creates the reel row). Shared by the debounced
@@ -139,7 +178,15 @@ export function ReelComposer({
       return false;
     }
     return true;
-  }, [eventId, styleId, orientation, seed, lengthSeconds, coverMediaId, supabase]);
+  }, [
+    eventId,
+    styleId,
+    orientation,
+    seed,
+    lengthSeconds,
+    coverMediaId,
+    supabase,
+  ]);
 
   // Debounced auto-save. Skips the first run (the config is already server truth / defaults) so just
   // viewing the reel never writes; a real edit (style/orientation/cover/length) lazily upserts the row.
@@ -336,7 +383,8 @@ export function ReelComposer({
 
         <div className="h-5 w-px bg-border" aria-hidden />
 
-        {/* Length — auto, or a tier-capped duration. */}
+        {/* Length — auto, or a tier-capped duration. Options past the cap render locked (UX only;
+            the config RPC + render path clamp server-side). */}
         <div
           className="flex items-center gap-1"
           role="group"
@@ -345,6 +393,7 @@ export function ReelComposer({
           <Clock className="size-3.5 text-muted-foreground" aria-hidden />
           {LENGTHS.map((l) => {
             const active = l.value === lengthSeconds;
+            const locked = l.value != null && l.value > maxSeconds;
             return (
               <Button
                 key={l.label}
@@ -352,14 +401,35 @@ export function ReelComposer({
                 size="sm"
                 variant={active ? "default" : "outline"}
                 aria-pressed={active}
+                disabled={locked}
+                aria-label={locked ? `${l.label} (paid plans)` : undefined}
                 onClick={() => setLengthSeconds(l.value)}
               >
+                {locked && <Lock aria-hidden />}
                 {l.label}
               </Button>
             );
           })}
         </div>
       </div>
+
+      {/* The length caption: what Auto does + (on Free) the house upgrade hint for the locked 60s. */}
+      <p className="text-xs text-muted-foreground">
+        Auto fills your reel up to {maxSeconds} seconds.
+        {tier === "free" && (
+          <>
+            {" "}
+            60-second reels are a paid feature.{" "}
+            <Link
+              href="/pricing"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              Upgrade to enable
+            </Link>
+            .
+          </>
+        )}
+      </p>
 
       {/* Download → the .mp4. The tip makes the preview-vs-export quality gap explicit (the player runs
           on fast previews; the download renders from full-res originals). */}

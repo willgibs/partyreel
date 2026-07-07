@@ -307,8 +307,10 @@ export default async function EventDetailPage({
                     reelConfig={reelConfig}
                     // Free reels carry the partyreel.com wordmark (the upgrade nudge); the composer
                     // mirrors it in the live player so the host sees what they'll download. The render
-                    // route re-derives this server-side — the client flag is cosmetic only.
+                    // route re-derives this server-side — the client flag is cosmetic only. The tier
+                    // likewise drives the composer's length cap (30s/60s), UX only.
                     watermark={tier === "free"}
+                    tier={tier}
                   />
                 }
               />
