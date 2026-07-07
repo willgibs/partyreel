@@ -26,6 +26,16 @@ before picking up any program work. Headlines a fresh agent must know:
   R5 Notifications · R6 Polish · R7 Admin) → R8 Hardening + Certification.
 - **Gates**: lab-validate before shipping creative magic; options-doc + Will's ruling for one-way-doors;
   NO launch switches (those accrete in ROADMAP's Launch checkpoint).
+- **T1 RULING DAY COMPLETE (2026-07-05)** — all seven decisions ruled, recorded as
+  [ADR-0019](adr/0019-social-privacy-host-controlled-guest-list.md) (host-controlled guest lists, open
+  follows, notification tiers) · [ADR-0020](adr/0020-forensic-capture-csam-policy.md) (A3-lite capture,
+  1-year REPORT-Act preservation, reactive CSAM posture) ·
+  [ADR-0021](adr/0021-pricing-numbers-reel-caps-ingress.md) (reel 30s/60s, ingress 3x cap, renewal $15)
+  · [ADR-0022](adr/0022-reel-guest-surfacing.md) (publish switch, adaptive placement, guest downloads,
+  hybrid source, NO end-card) + two lab decisions on their touchpoints (marketing = B+C hybrid with an
+  IA gate before the build; reveal = the Assembly x First-frame-held x Lights-down COMPOSITE). Cinematic
+  canvas parity PASSED (unlocks the 13 style ports; watermark redesign to bottom-right required). The
+  post-T1 fan-out is the program plan's active section.
 
 ## Where we are
 

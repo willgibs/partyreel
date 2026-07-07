@@ -310,6 +310,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "The reel is the hero",
       "Live event energy",
     ],
+    decision: 1,
+    decisionNote:
+      "T1 ruling (Will, 2026-07-05): B+C HYBRID. B's cinema hero leads (the desired visual language, the most design magic) with B's how-it-works reel animation kept, and C's animated product-demo as a close follow-up section visualizing the how. A rejected as too templated. BINDING CAVEAT: these wow sections are the FLOOR, not the site: the build is gated on a full-site IA/content-architecture round (core loop + supporting features) done collaboratively with Will (T2.5) before any production pages.",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
@@ -325,6 +328,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "host",
     note: "Three choreographies for the moment a reel first exists, each around the real playing canvas engine: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
     variants: ["Lights down", "Assembly", "First frame held"],
+    decision: 1,
+    decisionNote:
+      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single variant (decision index marks Assembly as the base). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue. Built as the primary variant on this touchpoint; the three originals stay for reference.",
   },
 ];
 
