@@ -23,6 +23,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   mono: moodStyle("mono"),
   warm: moodStyle("warm"),
   dreamy: moodStyle("dreamy"),
+  golden: moodStyle("golden"),
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */

@@ -32,6 +32,12 @@ import type { DrawEnv, ReelStyle } from "../contract";
 import { computeMotion, dampForFit, type Move } from "../motion";
 import { drawBloom, drawLightsweep, drawSoftedge } from "../overlays";
 import { frameStateAt, planFor } from "../timeline";
+import {
+  clockWipePath,
+  flipScale,
+  slideOffsets,
+  wipeEnterPolygon,
+} from "../transitions";
 
 function paintClipLayer(
   ctx: CanvasRenderingContext2D,
@@ -163,7 +169,9 @@ function paintClipLayer(
 }
 
 /** Draw one clip layer, at full alpha directly or composited through the scratch layer when fading
- *  (a layer is multiple draws; per-draw globalAlpha would double-blend backdrop + media + shadow). */
+ *  (a layer is multiple draws; per-draw globalAlpha would double-blend backdrop + media + shadow).
+ *  `prepare` applies a transition's whole-layer transform/clip (slide translate, wipe/clockWipe
+ *  clip, flip scale) inside the save/restore that wraps the layer's paint. */
 function drawClipLayer(
   ctx: CanvasRenderingContext2D,
   clip: PlannedClip,
@@ -172,22 +180,27 @@ function drawClipLayer(
   props: ReelProps,
   assets: ReelAssets,
   env: DrawEnv,
+  prepare?: (ctx: CanvasRenderingContext2D) => void,
 ): void {
   if (alpha <= 0) return;
   if (alpha >= 1) {
+    ctx.save();
+    prepare?.(ctx);
     paintClipLayer(ctx, clip, localFrame, props, assets, env);
+    ctx.restore();
     return;
   }
   const scratch = env.scratch();
   scratch.clearRect(0, 0, env.width, env.height);
+  scratch.save();
+  prepare?.(scratch);
   paintClipLayer(scratch, clip, localFrame, props, assets, env);
+  scratch.restore();
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.drawImage(scratch.canvas, 0, 0);
   ctx.restore();
 }
-
-const PORTED_TRANSITIONS = new Set(["fade", "cut"]);
 
 function draw(
   ctx: CanvasRenderingContext2D,
@@ -214,23 +227,80 @@ function draw(
 
   const state = frameStateAt(plan, frame);
 
-  // TransitionSeries fade semantics: the exiting clip stays fully opaque below; the entering clip
-  // fades in on top with the timing curve's progress. Outside a gap window there is one layer.
-  if (state.under) {
-    const under = plan.clips[state.under.clipIndex];
-    drawClipLayer(ctx, under, state.under.localFrame, 1, props, assets, env);
-  }
-  let topAlpha = 1;
-  if (state.transition) {
-    if (!PORTED_TRANSITIONS.has(state.transition.gap.kind)) {
-      env.report(
-        `transition "${state.transition.gap.kind}" is not ported yet; rendered as a fade`,
-      );
-    }
-    topAlpha = state.transition.progress;
-  }
+  // TransitionSeries semantics: inside a gap window the exiting clip renders below (under) and the
+  // entering clip on top; the KIND decides how the two composite for the timing curve's progress
+  // (transitions.ts carries the per-kind geometry ported from @remotion/transitions). Outside a gap
+  // window there is exactly one full-alpha layer.
   const top = plan.clips[state.top.clipIndex];
-  drawClipLayer(ctx, top, state.top.localFrame, topAlpha, props, assets, env);
+  const tr = state.transition;
+  if (!tr || !state.under) {
+    drawClipLayer(ctx, top, state.top.localFrame, 1, props, assets, env);
+  } else {
+    const under = plan.clips[state.under.clipIndex];
+    const uf = state.under.localFrame;
+    const tf = state.top.localFrame;
+    const p = tr.progress;
+    const kind = tr.gap.kind;
+    const dir = tr.gap.dir ?? "from-left";
+    if (kind === "slide") {
+      // Both layers move: the entering slide pushes the exiting one out (each fully opaque).
+      const { enter, exit } = slideOffsets(dir, p);
+      drawClipLayer(ctx, under, uf, 1, props, assets, env, (c) =>
+        c.translate(exit.x * W, exit.y * H),
+      );
+      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) =>
+        c.translate(enter.x * W, enter.y * H),
+      );
+    } else if (kind === "wipe") {
+      // The under layer draws whole; the top clips to the wipe polygon (the in/out polygons tile
+      // the frame, so this equals the DOM's clip-both rendering; see transitions.ts).
+      drawClipLayer(ctx, under, uf, 1, props, assets, env);
+      const poly = wipeEnterPolygon(dir, p);
+      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+        c.beginPath();
+        poly.forEach(([x, y], i) =>
+          i === 0 ? c.moveTo(x * W, y * H) : c.lineTo(x * W, y * H),
+        );
+        c.closePath();
+        c.clip();
+      });
+    } else if (kind === "flip") {
+      // Backface culling means at most one layer is visible per frame (both at 90deg = neither).
+      const exit = flipScale(dir, p, "exit");
+      if (exit.visible) {
+        drawClipLayer(ctx, under, uf, 1, props, assets, env, (c) => {
+          c.translate(W / 2, H / 2);
+          c.scale(
+            exit.axis === "x" ? exit.scale : 1,
+            exit.axis === "y" ? exit.scale : 1,
+          );
+          c.translate(-W / 2, -H / 2);
+        });
+      }
+      const enter = flipScale(dir, p, "enter");
+      if (enter.visible) {
+        drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+          c.translate(W / 2, H / 2);
+          c.scale(
+            enter.axis === "x" ? enter.scale : 1,
+            enter.axis === "y" ? enter.scale : 1,
+          );
+          c.translate(-W / 2, -H / 2);
+        });
+      }
+    } else if (kind === "clockWipe") {
+      drawClipLayer(ctx, under, uf, 1, props, assets, env);
+      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+        c.beginPath();
+        clockWipePath(c, W, H, p);
+        c.clip();
+      });
+    } else {
+      // fade + cut (a 2-frame fade): under opaque below, top fades in with the eased progress.
+      drawClipLayer(ctx, under, uf, 1, props, assets, env);
+      drawClipLayer(ctx, top, tf, p, props, assets, env);
+    }
+  }
 
   // Overlays persist across the whole reel (they sit OUTSIDE the TransitionSeries in Reel.tsx),
   // drawn in the theme's declared order like the Overlay map. t = whole-reel progress (the DOM

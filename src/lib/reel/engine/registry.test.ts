@@ -44,6 +44,7 @@ describe("the engine style registry", () => {
       "classic",
       "dreamy",
       "editorial",
+      "golden",
       "mono",
       "warm",
     ]);
@@ -125,6 +126,19 @@ describe("mood asset needs (per theme)", () => {
     };
     expect(ENGINE_STYLES.dreamy.assetNeeds(float)).toEqual({
       washes: true,
+      grain: false,
+      haloFilter: null,
+    });
+  });
+
+  it("Sunset needs nothing derived (theme backdrop; bloom/lightsweep are procedural)", () => {
+    const sunset: ReelProps = {
+      ...props,
+      theme: resolveTheme("golden"),
+      styleId: "golden",
+    };
+    expect(ENGINE_STYLES.golden.assetNeeds(sunset)).toEqual({
+      washes: false,
       grain: false,
       haloFilter: null,
     });
