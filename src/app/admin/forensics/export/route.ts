@@ -82,6 +82,14 @@ export async function GET(request: Request): Promise<Response> {
           { status: 404 },
         );
       }
+      // Presign FIRST, audit after: an "ok" audit row must never describe a download that was
+      // never served (chain-of-custody fidelity; a presign failure lands in the catch's error row).
+      const ext = parseExtFromKey(key) ?? "bin";
+      const signed = await presignDownload({
+        key,
+        expiresInSeconds: EXPORT_TTL_SECONDS,
+        downloadFilename: `evidence-${mediaId}.${ext}`,
+      });
       await writeForensicAudit(admin, {
         admin_user_id: auth.ctx.userId,
         action,
@@ -89,12 +97,6 @@ export async function GET(request: Request): Promise<Response> {
         event_id: forensics.event_id,
         detail: { key },
         outcome: "ok",
-      });
-      const ext = parseExtFromKey(key) ?? "bin";
-      const signed = await presignDownload({
-        key,
-        expiresInSeconds: EXPORT_TTL_SECONDS,
-        downloadFilename: `evidence-${mediaId}.${ext}`,
       });
       return NextResponse.redirect(signed, 302);
     }
@@ -152,6 +154,16 @@ export async function GET(request: Request): Promise<Response> {
     });
   } catch (e) {
     captureError("security", e, { action, media_id: mediaId });
+    // The header contract: EVERY export attempt writes an audit row, failures included.
+    // Best-effort (the .catch keeps a broken audit table from masking the real 500).
+    await writeForensicAudit(admin, {
+      admin_user_id: auth.ctx.userId,
+      action,
+      media_id: mediaId,
+      event_id: null,
+      outcome: "error",
+      error: e instanceof Error ? e.message : String(e),
+    }).catch(() => {});
     return NextResponse.json(
       { ok: false, message: "Export failed. Check the audit log." },
       { status: 500 },

@@ -82,6 +82,13 @@
 --     if not has_column_privilege('authenticated', 'public.media', 'id', 'select') then
 --       raise exception 'MEDIA SELECT RE-GRANT MISSING';
 --     end if;
+--     -- The forensic tables must be fully invisible to client roles (SELECT included).
+--     if has_table_privilege('anon', 'public.upload_forensics', 'select')
+--        or has_table_privilege('authenticated', 'public.upload_forensics', 'select')
+--        or has_table_privilege('anon', 'public.forensic_audit_log', 'select')
+--        or has_table_privilege('authenticated', 'public.forensic_audit_log', 'select') then
+--       raise exception 'FORENSIC TABLE READABLE BY CLIENT ROLE';
+--     end if;
 --     raise exception 'ROLLBACK_OK';
 --   end $$;
 
@@ -160,9 +167,11 @@ alter table public.upload_forensics enable row level security;
 -- Deny-all: NO RLS policy. Reads/writes happen ONLY via the service-role admin client
 -- (the upload-complete seam writes; /admin/forensics reads). Accepted rls_enabled_no_policy INFO.
 
--- Least-privilege (mirrors export_log): RLS already denies; revoke the default writes too so the
--- grant surface reads "service-role-only".
-revoke insert, update, delete on public.upload_forensics from authenticated, anon;
+-- Least-privilege (goes PAST the export_log precedent): RLS already denies rows, but the default
+-- SELECT grant keeps the table visible on the PostgREST surface (name + columns enumerable via
+-- OpenAPI, empty-set 200s instead of permission errors). For the most sensitive table in the
+-- system, reads from client roles must ERROR outright; every real read is service-role.
+revoke select, insert, update, delete on public.upload_forensics from public, anon, authenticated;
 
 -- --- forensic_audit_log (deny-all; every preserve/export/hold action) ------------------------
 
@@ -184,7 +193,8 @@ create index forensic_audit_log_media_idx on public.forensic_audit_log (media_id
 alter table public.forensic_audit_log enable row level security;
 -- Deny-all: NO RLS policy. Service-role only. Accepted rls_enabled_no_policy INFO.
 
-revoke insert, update, delete on public.forensic_audit_log from authenticated, anon;
+-- Same full lockout as upload_forensics (see the WHY above).
+revoke select, insert, update, delete on public.forensic_audit_log from public, anon, authenticated;
 
 -- --- purge_media_rows: the hard-delete choke point learns the hold --------------------------
 -- Same signature/return/grants as 20260529102500; the ONLY change is the `legal_hold_at is null`
