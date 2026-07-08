@@ -1094,6 +1094,13 @@ export type Database = {
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       mark_password_set: { Args: never; Returns: undefined }
+      monthly_ingress_cap: {
+        Args: {
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -1129,7 +1136,9 @@ export type Database = {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
           default_storage_cap_bytes: number
+          ingress_cap_multiplier: number
           max_events: number
+          max_reel_seconds: number
           monthly_ingress_bytes: number
         }[]
       }

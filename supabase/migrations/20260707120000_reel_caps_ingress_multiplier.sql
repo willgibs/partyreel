@@ -382,7 +382,10 @@ $$;
 -- see the header note) with one change: p_length_seconds is clamped server-side. Auto (null) stays
 -- null (the render/mint path clamps Auto to the cap at render time, so a later upgrade lengthens an
 -- Auto reel with no re-save); junk (<= 0) is treated as Auto; an explicit length clamps to the tier
--- cap. Drop-by-type-signature first so this can never leave two overloads behind.
+-- cap. Drop-by-type-signature first so this can never leave two overloads behind. The legacy 5-arg
+-- (p_theme) overload from 20260622200000 was already dropped live post-Phase-2; the drop below is a
+-- harmless belt-and-braces so repo state alone can never resurrect an unclamped overload.
+drop function if exists public.upsert_reel_config(uuid, text, bigint, int, uuid);
 drop function if exists public.upsert_reel_config(uuid, text, text, bigint, int, uuid);
 
 create function public.upsert_reel_config(
@@ -402,6 +405,10 @@ declare
   v_uid         uuid := (select auth.uid());
   v_owns        boolean;
   v_cover       uuid := p_cover_media_id;
+  -- Orientation whitelist: present in the LIVE Phase-2 function (verified via pg_get_functiondef at
+  -- integration, 2026-07-07) and restored here after the reconstruction initially missed it — the
+  -- DB-level default-to-portrait guard must not regress even though the app validates too.
+  v_orient      text := case when p_orientation in ('portrait','landscape') then p_orientation else 'portrait' end;
   v_max_seconds int;
   v_length      int;
 begin
@@ -440,7 +447,7 @@ begin
   insert into public.highlight_reels
     (event_id, style_id, theme, orientation, seed, length_seconds, cover_media_id, status)
   values
-    (p_event_id, p_style_id, p_style_id, p_orientation, p_seed, v_length, v_cover, 'pending')
+    (p_event_id, p_style_id, p_style_id, v_orient, p_seed, v_length, v_cover, 'pending')
   on conflict (event_id) do update
     set style_id       = excluded.style_id,
         theme          = excluded.theme, -- legacy column, kept synced with style_id
