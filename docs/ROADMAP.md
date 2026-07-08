@@ -175,31 +175,24 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     style-popover thumbnails, drop the legacy `theme` column, AWS concurrency 10→2000 case `178216366300642`) and Pro
     video real-video-in-player + R2 CORS + the reveal moment. → [`systems/host-app.md`](systems/host-app.md).
   See [`systems/host-app.md`](systems/host-app.md).
-- **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
-  round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a
-  multi-event creator network (a VSCO-style link-in-bio + a social graph). Foundations are ~70% there
-  already: ONE unified account (`profiles` = `auth.users`; any signed-in guest can host), uploader→user
-  identity (`media.guest_id`→`guests.user_id`→profiles) + `claim_anonymous_uploads`, `saved_events` (the
-  exact follow template), avatars (public bucket), the Pro custom-slug pattern (`EventSlugControl` +
-  `check_slug_available` + reserved-slugs + `GATED_EVENT_SETTINGS`). The key new primitive: an
-  `events.display_in_profile` boolean that DECOUPLES discovery from access (today `visibility` only gates
-  who can OPEN) — an open-uploadable event can stay OFF a public, indexable profile (a tight-group event),
-  an additive column. Phasing (each shippable, Pro-gated where it monetizes): P1 public profile + Pro
-  `/u/[slug]` + the `display_in_profile` config + attribution-as-profile-link + the disable-downloads
-  public album; P2 `user_follows` (any→any, a `saved_events` clone) + the event guest list (signed-in
-  uploaders, derivable today) — surface it as a **"Guests (N)" feed section + pill** (alongside Review/Gallery/
-  Reel in the stacked feed; "must upload to become a guest," sortable by upload count to encourage contributions — a
-  motivation behind the require-account-to-upload default, Will 2026-06-21); P3 a dashboard "Following"
-  filter-chip → a profiles grid; P4 (v2) a social
-  feed (DEPENDS on the Notification overhaul above) + discovery. THE one-way-door risk (why a dedicated
-  research round, not an interleave): a public profile + guest lists open a CONSENT/privacy surface — a
-  guest may not want to be listed/followable → OPT-IN discoverability (a per-user `discoverable` flag; the
-  guest list host-visible by default, public only by opt-in) + a blocking model, confirmed before build.
+- **User profiles + social discovery (Will, 2026-06-20 — the platform-expansion program; P1-P3 BUILT
+  2026-07-08 on the elevation-program track, pending integration).** Turns the single-event tool into a
+  multi-event creator network (a VSCO-style link-in-bio + a social graph). The consent/privacy one-way-door
+  is RULED — [ADR-0019](adr/0019-social-privacy-host-controlled-guest-list.md), do not re-litigate: the
+  guest list is HOST-controlled (`events.show_guest_list`, no per-guest opt-in), the guest's control lives
+  on their OWN profile (`profile_hidden_events`), there is NO per-user `discoverable` flag (creating a
+  profile IS the consent act), follows are open any-to-any with an owner-private graph, and blocking
+  shipped IN the slice. What's built (track `worktree-wf_421d3486-dcf-1`, migration `20260708120000`
+  UNAPPLIED until the orchestrator integrates): P1 `/u/[slug]` public profile + the app-side Pro slug gate
+  + `display_in_profile` (discovery decoupled from access; the attended arm additionally stays
+  open-visibility-only per the consent scope); P2 `user_follows`/`user_blocks` + the "Guests" feed section
+  + pill + the guest-album guest list (approved signed-in uploaders, deduped); P3 the dashboard "Following"
+  chip (chip-only, never stacked into All). Still ahead: P4 (v2) a social feed (DEPENDS on the Notification
+  overhaul above) + discovery; the notification-prefs UI (R5 owns sends; storage + defaults shipped);
+  guest-list sort-by-upload-count (deferred, the contribution-encouragement idea, Will 2026-06-21).
   Additive, not dilutive: it amplifies the North Star (a guest sees a host's profile + other events → wants
   their own = the "second event" loop); the core frictionless-capture flow stays unchanged. NOT
-  launch-gating. Cheap profile-aware HOOKS are laid during 3c/3b NOW (attribution keeps the uploader user
-  id so the future profile-link is a one-line add). Supersedes the speculative-backlog "guest→full-user
-  conversion" line.
+  launch-gating. Current truth: [`systems/profiles-social.md`](systems/profiles-social.md).
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 

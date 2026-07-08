@@ -27,6 +27,7 @@ A new gotcha lands in the system doc below that owns it (not in CLAUDE.md). If a
 | [admin-observability.md](admin-observability.md) | The `admin.partyreel.com` portal (the `requireAdmin` seam + MFA + every surface), the reports/safety queue, Sentry. |
 | [marketing-content.md](marketing-content.md) | The `(marketing)` site + nav, the frame library, the MDX help/blog pipeline, SEO/OG, the 404 boundaries, the demo env wiring. |
 | [notifications-analytics-growth.md](notifications-analytics-growth.md) | The derive-on-read bell, `link_stats`, saved events, guest email capture. |
+| [profiles-social.md](profiles-social.md) | Public creator profiles (`/u/[slug]`), follows/blocks, the host-controlled guest list, `notification_prefs` storage (ADR-0019; migration pending integration). |
 | [database-security.md](database-security.md) | The cross-cutting security model: RLS shapes, the capability-RPC inventory, the advisor 0028/0029 split, the column-grant lockdown lessons, the migrations workflow. |
 
 ## Where does a finding go? (quick router)
@@ -38,5 +39,6 @@ A new gotcha lands in the system doc below that owns it (not in CLAUDE.md). If a
 - About **auth / accounts** → `auth-accounts.md`; about **the admin portal / Sentry** → `admin-observability.md`.
 - About **RLS / grants / advisors / a capability RPC's anon-vs-authenticated placement** → `database-security.md`.
 - About **the bell / analytics / saved events / email capture** → `notifications-analytics-growth.md`.
+- About **`/u/[slug]` / follows / blocks / the guest list / notification prefs** → `profiles-social.md`.
 - About **the marketing site / SEO / 404 / MDX** → `marketing-content.md`.
 - A cross-cutting picture (how it all fits) → `architecture.md`.

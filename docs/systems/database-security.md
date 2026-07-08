@@ -26,11 +26,15 @@ service-role admin client (`server-only`).
 
 The expected, accepted set:
 
-- **3 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
-  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`. The
-  opaque token IS the authorization (ADR-0004); these only READ visibility-gated event/media state, so anon
-  EXECUTE is safe. (Was 8 — the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below.
-  `get_public_album` was DROPPED in the one-link consolidation, ADR-0010.)
+- **4 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
+  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
+  `get_public_profile`. The opaque token IS the authorization for the first three (ADR-0004); these only
+  READ visibility-gated event/media state, so anon EXECUTE is safe. `get_public_profile(p_slug)` (the 4th,
+  profiles+social — lands when migration `20260708120000` is applied at integration) reads the
+  public-by-existence `/u/[slug]` payload: profile card + host-displayed events + the OPEN-only attended
+  arm; never follow data, never a capability link. → [profiles-social.md](profiles-social.md). (Was 8 —
+  the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
+  DROPPED in the one-link consolidation, ADR-0010.)
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `create_media`,
   `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
@@ -44,7 +48,9 @@ The expected, accepted set:
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
   `save_event`/`get_saved_events`/`get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`,
-  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`.
+  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`,
+  `follow_user`/`block_user` (profiles+social, with migration `20260708120000` — block-silent follow +
+  atomic two-way severance; → [profiles-social.md](profiles-social.md)).
   (`create_media_as_host` MOVED to service-role-only above when its size authority was hardened.) SECURITY
   DEFINER but `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via
   `auth.uid()` + ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
