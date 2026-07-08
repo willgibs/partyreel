@@ -54,16 +54,25 @@ export function dropInterval(n: number): number {
 }
 
 export function scatteredDuration(n: number): number {
-  return Math.max(1, (n - 1) * dropInterval(n) + SETTLE + HERO_BEAT + LIFT + OUTRO);
+  return Math.max(
+    1,
+    (n - 1) * dropInterval(n) + SETTLE + HERO_BEAT + LIFT + OUTRO,
+  );
 }
 
 type Spot = { cx: number; cy: number; rot: number };
 
 // Seeded golden-angle (phyllotaxis) placement; the hero is reserved a near-center, near-level slot;
 // small counts get bespoke layouts (verbatim place()).
-export function place(i: number, n: number, seed: number, landscape: boolean): Spot {
+export function place(
+  i: number,
+  n: number,
+  seed: number,
+  landscape: boolean,
+): Spot {
   const isHero = i === n - 1;
-  if (n === 1) return { cx: 0.5, cy: 0.46, rot: seededRange(seed, 0, 1, -3, 3) };
+  if (n === 1)
+    return { cx: 0.5, cy: 0.46, rot: seededRange(seed, 0, 1, -3, 3) };
   if (n === 2) {
     return i === 0
       ? { cx: 0.4, cy: 0.56, rot: 5 }
@@ -77,12 +86,16 @@ export function place(i: number, n: number, seed: number, landscape: boolean): S
   const rNorm = 0.1 + 0.4 * Math.sqrt(i / n);
   const r = rNorm * seededRange(seed, i, 22, 0.86, 1.14);
   const cx = clamp(
-    0.5 + r * Math.cos(angle) * aspectX + seededRange(seed, i, 11, -0.045, 0.045),
+    0.5 +
+      r * Math.cos(angle) * aspectX +
+      seededRange(seed, i, 11, -0.045, 0.045),
     0.1,
     0.9,
   );
   const cy = clamp(
-    0.5 + r * Math.sin(angle) * aspectY + seededRange(seed, i, 12, -0.045, 0.045),
+    0.5 +
+      r * Math.sin(angle) * aspectY +
+      seededRange(seed, i, 12, -0.045, 0.045),
     0.1,
     0.9,
   );
@@ -101,13 +114,26 @@ export type ScatteredTimeline = {
 };
 
 /** The reel-level lift timeline (pure; pinned against the Remotion component's math). */
-export function scatteredTimeline(frame: number, n: number, base: number): ScatteredTimeline {
+export function scatteredTimeline(
+  frame: number,
+  n: number,
+  base: number,
+): ScatteredTimeline {
   const di = dropInterval(n);
   const buildEnd = (n - 1) * di + SETTLE;
-  const lift = interp(frame, [buildEnd + HERO_BEAT, buildEnd + HERO_BEAT + LIFT], [0, 1], EASE);
+  const lift = interp(
+    frame,
+    [buildEnd + HERO_BEAT, buildEnd + HERO_BEAT + LIFT],
+    [0, 1],
+    EASE,
+  );
   // A whisper of life on the held hero — eased in from zero amplitude AND phase after the lift.
   const liftEnd = buildEnd + HERO_BEAT + LIFT;
-  const floatAmp = interp(frame, [liftEnd + 4, liftEnd + 20], [0, base * 0.003]);
+  const floatAmp = interp(
+    frame,
+    [liftEnd + 4, liftEnd + 20],
+    [0, base * 0.003],
+  );
   const heroFloat = Math.sin((frame - liftEnd) * 0.08) * floatAmp;
   // The hero winds up (a brief press) over the beat just before it releases into the lift.
   const antP = interp(frame, [buildEnd, buildEnd + HERO_BEAT], [0, 1]);
@@ -116,7 +142,16 @@ export function scatteredTimeline(frame: number, n: number, base: number): Scatt
   const boardDim = lerp(1, 0.92, lift);
   const boardScale = lerp(1, 0.985, lift);
   const boardBlur = lift * base * 0.0026;
-  return { di, buildEnd, lift, heroFloat, heroPress, boardDim, boardScale, boardBlur };
+  return {
+    di,
+    buildEnd,
+    lift,
+    heroFloat,
+    heroPress,
+    boardDim,
+    boardScale,
+    boardBlur,
+  };
 }
 
 export type ScatteredPrintState = {
@@ -159,7 +194,9 @@ export function scatteredPrintState(
 
   const spot = place(i, n, seed, landscape);
   const sizeMax = lerp(0.4, 0.32, clamp01((n - 6) / 8));
-  const sizeFrac = isHero ? sizeMax + 0.04 : seededRange(seed, i, 5, 0.21, sizeMax);
+  const sizeFrac = isHero
+    ? sizeMax + 0.04
+    : seededRange(seed, i, 5, 0.21, sizeMax);
   const printShort = base * sizeFrac;
 
   const aspect =
@@ -197,7 +234,23 @@ export function scatteredPrintState(
   const sc = scEntry * lerp(1, heroScale, lift) * (1 - 0.02 * anticip);
   const rot = lerp(rotEntry, 0, lift);
 
-  return { p, cx: spot.cx, cy: spot.cy, tx, ty, rot, sc, op, squash, mountW, mountH, photoW, photoH, side, bottom };
+  return {
+    p,
+    cx: spot.cx,
+    cy: spot.cy,
+    tx,
+    ty,
+    rot,
+    sc,
+    op,
+    squash,
+    mountW,
+    mountH,
+    photoW,
+    photoH,
+    side,
+    bottom,
+  };
 }
 
 /** The 4-layer warm grounded shadow + the hero's detach layer (groundShadow, structured instead of a
@@ -327,8 +380,30 @@ function drawPrint(
   roundRectPath(c, left, top, st.mountW, st.mountH, 3);
   c.fillStyle = mount;
   c.fill();
-  insetShadowRoundRect(c, left, top, st.mountW, st.mountH, 3, 0, 1, 0, "rgba(255,255,255,0.55)");
-  insetShadowRoundRect(c, left, top, st.mountW, st.mountH, 3, 0, -1, 0, "rgba(74,52,28,0.12)");
+  insetShadowRoundRect(
+    c,
+    left,
+    top,
+    st.mountW,
+    st.mountH,
+    3,
+    0,
+    1,
+    0,
+    "rgba(255,255,255,0.55)",
+  );
+  insetShadowRoundRect(
+    c,
+    left,
+    top,
+    st.mountW,
+    st.mountH,
+    3,
+    0,
+    -1,
+    0,
+    "rgba(74,52,28,0.12)",
+  );
 
   // The recessed glossy photo (its recess shading shows only until the image covers it).
   const bx = left + st.side;
@@ -336,7 +411,16 @@ function drawPrint(
   roundRectPath(c, bx, by, st.photoW, st.photoH, 1);
   c.fillStyle = "#181410";
   c.fill();
-  innerBorderRoundRect(c, bx, by, st.photoW, st.photoH, 1, 1, "rgba(46,30,12,0.07)");
+  innerBorderRoundRect(
+    c,
+    bx,
+    by,
+    st.photoW,
+    st.photoH,
+    1,
+    1,
+    "rgba(46,30,12,0.07)",
+  );
   const recessA = `rgba(40,26,10,${(0.16 + 0.04 * lift).toFixed(3)})`;
   if (lift > 0.5) {
     insetShadowRoundRect(c, bx, by, st.photoW, st.photoH, 1, 0, 2, 5, recessA);
@@ -414,7 +498,17 @@ function draw(
   const paintBoard = (c: CanvasRenderingContext2D): void => {
     for (let i = 0; i < n; i++) {
       if (i === heroIndex) continue;
-      const st = scatteredPrintState(frame, i, props.clips[i], n, props.seed, W, H, 0, 0);
+      const st = scatteredPrintState(
+        frame,
+        i,
+        props.clips[i],
+        n,
+        props.seed,
+        W,
+        H,
+        0,
+        0,
+      );
       if (!st) continue;
       withLayerAlpha(c, env, st.op, (cc) =>
         drawPrint(cc, st, i, props, assets.clips[i] ?? null, env, 0),
@@ -456,7 +550,15 @@ function draw(
   if (heroSt) {
     withLayerAlpha(ctx, env, heroSt.op, (c) => {
       c.translate(0, tl.heroFloat);
-      drawPrint(c, heroSt, heroIndex, props, assets.clips[heroIndex] ?? null, env, tl.lift);
+      drawPrint(
+        c,
+        heroSt,
+        heroIndex,
+        props,
+        assets.clips[heroIndex] ?? null,
+        env,
+        tl.lift,
+      );
     });
   }
 

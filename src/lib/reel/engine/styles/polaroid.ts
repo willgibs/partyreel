@@ -205,7 +205,18 @@ function drawPrint(
   c.fillStyle = "#141210";
   c.fillRect(px, py, photo, photo);
   innerBorderRoundRect(c, px, py, photo, photo, 0, 1, "rgba(30,20,10,0.14)");
-  insetShadowRoundRect(c, px, py, photo, photo, 0, 0, 2, 5, "rgba(20,12,6,0.28)");
+  insetShadowRoundRect(
+    c,
+    px,
+    py,
+    photo,
+    photo,
+    0,
+    0,
+    2,
+    5,
+    "rgba(20,12,6,0.28)",
+  );
 
   if (asset) {
     c.save();

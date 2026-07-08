@@ -45,7 +45,8 @@ export function filmStripDuration(n: number): number {
 export function stripPosition(frame: number, n: number): number {
   const idx = Math.floor(frame / CYCLE);
   const local = frame - idx * CYCLE;
-  const adv = local <= HOLD ? 0 : interp(local, [HOLD, CYCLE], [0, 1], EASE_PULL);
+  const adv =
+    local <= HOLD ? 0 : interp(local, [HOLD, CYCLE], [0, 1], EASE_PULL);
   return Math.min(idx + adv, n - 1);
 }
 
@@ -92,7 +93,10 @@ export function perfGlow(
   distGate: number,
   main: number,
 ): number {
-  const gateBoost = Math.max(0, 0.12 * (1 - Math.min(1, distGate / (main * 0.3))));
+  const gateBoost = Math.max(
+    0,
+    0.12 * (1 - Math.min(1, distGate / (main * 0.3))),
+  );
   const variance = (seeded(seed, i * PERFS + k, e + 1) - 0.5) * 0.1;
   return Math.min(0.72, 0.45 + variance + gateBoost);
 }
@@ -178,9 +182,38 @@ function drawCells(
     );
     c.fill();
     // The base's inset stack (white ring under the black ring, like the CSS layer order).
-    innerBorderRoundRect(c, left, top, cellW, cellH, px(1.5), 1, "rgba(255,244,224,0.07)");
-    innerBorderRoundRect(c, left, top, cellW, cellH, px(1.5), 1, "rgba(0,0,0,0.6)");
-    insetShadowRoundRect(c, left, top, cellW, cellH, px(1.5), 0, 0, px(20), "rgba(0,0,0,0.45)");
+    innerBorderRoundRect(
+      c,
+      left,
+      top,
+      cellW,
+      cellH,
+      px(1.5),
+      1,
+      "rgba(255,244,224,0.07)",
+    );
+    innerBorderRoundRect(
+      c,
+      left,
+      top,
+      cellW,
+      cellH,
+      px(1.5),
+      1,
+      "rgba(0,0,0,0.6)",
+    );
+    insetShadowRoundRect(
+      c,
+      left,
+      top,
+      cellW,
+      cellH,
+      px(1.5),
+      0,
+      0,
+      px(20),
+      "rgba(0,0,0,0.45)",
+    );
 
     // Two edges of 4 backlit KS perforations, evenly pitched along the cell's main axis. Each hole's
     // bloom varies a touch (seeded) + brightens as it passes the gate.
@@ -234,10 +267,32 @@ function drawCells(
         g.addColorStop(0.5, "#f6ead2");
         g.addColorStop(1, "#e8d9bb");
         c.fillStyle = g;
-        c.fillRect(-rw, (-rh * (rw / rh)) * 1.5, rw * 2, rh * (rw / rh) * 3);
+        c.fillRect(-rw, -rh * (rw / rh) * 1.5, rw * 2, rh * (rw / rh) * 3);
         c.restore();
-        insetShadowRoundRect(c, rx, ry, rw, rh, perfRadius, 0, 1, px(2), "rgba(60,32,10,0.45)");
-        insetShadowRoundRect(c, rx, ry, rw, rh, perfRadius, 0, -1, px(1), "rgba(255,240,210,0.28)");
+        insetShadowRoundRect(
+          c,
+          rx,
+          ry,
+          rw,
+          rh,
+          perfRadius,
+          0,
+          1,
+          px(2),
+          "rgba(60,32,10,0.45)",
+        );
+        insetShadowRoundRect(
+          c,
+          rx,
+          ry,
+          rw,
+          rh,
+          perfRadius,
+          0,
+          -1,
+          px(1),
+          "rgba(255,240,210,0.28)",
+        );
       }
     }
 
@@ -248,8 +303,30 @@ function drawCells(
     c.fillStyle = "#000";
     c.fill();
     innerBorderRoundRect(c, bx, by, pw, ph, 2, 1, "rgba(0,0,0,0.85)");
-    insetShadowRoundRect(c, bx, by, pw, ph, 2, 0, 1, 0, "rgba(255,240,210,0.08)");
-    insetShadowRoundRect(c, bx, by, pw, ph, 2, 0, 0, px(18), "rgba(0,0,0,0.45)");
+    insetShadowRoundRect(
+      c,
+      bx,
+      by,
+      pw,
+      ph,
+      2,
+      0,
+      1,
+      0,
+      "rgba(255,240,210,0.08)",
+    );
+    insetShadowRoundRect(
+      c,
+      bx,
+      by,
+      pw,
+      ph,
+      2,
+      0,
+      0,
+      px(18),
+      "rgba(0,0,0,0.45)",
+    );
 
     const asset = assets.clips[i];
     if (props.clips[i].url && asset) {

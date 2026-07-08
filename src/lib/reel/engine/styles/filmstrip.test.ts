@@ -32,9 +32,27 @@ const PINS: Pin[] = [
   { frame: 0, pos: 0, blurAmt: 0, flick: 0.932929, offset: 460.8 },
   { frame: 15, pos: 0, blurAmt: 0, flick: 0.961416, offset: 460.8 },
   // The pull: eased advance + the sine-capped motion blur (peak 17.28px at mid-pull, main 1920).
-  { frame: 31, pos: 0.00904, blurAmt: 4.472393, flick: 0.947135, offset: 451.774628 },
-  { frame: 36, pos: 0.796097, blurAmt: 17.28, flick: 0.99267, offset: -334.023206 },
-  { frame: 41, pos: 0.996917, blurAmt: 4.472393, flick: 0.991399, offset: -534.521759 },
+  {
+    frame: 31,
+    pos: 0.00904,
+    blurAmt: 4.472393,
+    flick: 0.947135,
+    offset: 451.774628,
+  },
+  {
+    frame: 36,
+    pos: 0.796097,
+    blurAmt: 17.28,
+    flick: 0.99267,
+    offset: -334.023206,
+  },
+  {
+    frame: 41,
+    pos: 0.996917,
+    blurAmt: 4.472393,
+    flick: 0.991399,
+    offset: -534.521759,
+  },
   { frame: 42, pos: 1, blurAmt: 0, flick: 0.997817, offset: -537.6 },
   { frame: 100, pos: 2, blurAmt: 0, flick: 0.951568, offset: -1536 },
   { frame: 175, pos: 4, blurAmt: 0, flick: 0.96739, offset: -3532.8 },
@@ -105,7 +123,10 @@ describe("the EASE_PULL bezier (remotion Easing parity)", () => {
 });
 
 const clips = (n: number): ReelClip[] =>
-  Array.from({ length: n }, (_, i) => ({ url: `u${i}`, type: "photo" as const }));
+  Array.from({ length: n }, (_, i) => ({
+    url: `u${i}`,
+    type: "photo" as const,
+  }));
 
 const props = (n: number): ReelProps => ({
   clips: clips(n),
