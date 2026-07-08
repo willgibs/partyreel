@@ -31,11 +31,16 @@ describe("the engine style registry", () => {
     expect(CINEMATIC.id).toBe("classic");
   });
 
-  it("reports support only for ported styles", () => {
-    expect(engineSupports("classic")).toBe(true);
-    expect(engineSupports("warm")).toBe(false);
-    expect(engineSupports("polaroid")).toBe(false);
+  it("reports support for every registered style and nothing else", () => {
+    for (const id of Object.keys(ENGINE_STYLES)) {
+      expect(engineSupports(id)).toBe(true);
+    }
+    expect(engineSupports("polaroid")).toBe(false); // a treatment (not yet ported)
     expect(engineSupports(undefined)).toBe(false);
+  });
+
+  it("pins the ported style set (grows one entry per port)", () => {
+    expect(Object.keys(ENGINE_STYLES).sort()).toEqual(["classic", "editorial"]);
   });
 
   it("falls back to Cinematic for unknown ids (mirroring resolveStyleEntry)", () => {

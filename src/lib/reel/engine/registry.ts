@@ -12,10 +12,14 @@ import type { ReelAssets } from "./assets";
 import { detectCtxFilter, drawWatermark } from "./canvas2d";
 import type { DrawEnv, ReelStyle } from "./contract";
 import { CINEMATIC } from "./styles/cinematic";
+import { moodStyle } from "./styles/mood";
 
-/** The styles ported to canvas so far (keyed by catalog styleId). */
+/** The styles ported to canvas so far (keyed by catalog styleId). All 8 moods render through the one
+ *  generic mood draw (styles/mood.ts) parameterized by props.theme, mirroring the Remotion <Reel>;
+ *  the 6 treatments are the remaining ports. */
 export const ENGINE_STYLES: Record<string, ReelStyle> = {
   classic: CINEMATIC,
+  editorial: moodStyle("editorial"),
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */

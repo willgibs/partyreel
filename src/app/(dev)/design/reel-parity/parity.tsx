@@ -13,6 +13,8 @@ import {
   resolveTheme,
   StyleDispatch,
   styleDuration,
+  THEME_LABELS,
+  type ThemeId,
 } from "@/lib/reel/composition";
 import {
   DEFAULT_WATERMARK_VARIANT,
@@ -26,6 +28,7 @@ import {
   encodeReel,
 } from "@/lib/reel/engine/encode";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
+import { ENGINE_STYLES } from "@/lib/reel/engine/registry";
 import {
   type EngineSupport,
   probeEngineSupport,
@@ -53,10 +56,13 @@ const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h }) => ({
   height: h,
 }));
 
-// The single style this harness grades today; later slices append their ids here as they port.
-const STYLE_ID = "classic";
+// The styles this harness can grade = whatever the engine has ported (the registry is the single
+// source, so a landing port appears in the picker automatically). Mood styleIds double as theme ids,
+// so THEME_LABELS names them.
+const PORTED_STYLE_IDS = Object.keys(ENGINE_STYLES);
 
 export function ReelParity() {
+  const [styleId, setStyleId] = useState("classic");
   const [seed, setSeed] = useState(73);
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [watermark, setWatermark] = useState(true);
@@ -86,19 +92,19 @@ export function ReelParity() {
   const reelProps: ReelProps = useMemo(
     () => ({
       clips: CLIPS,
-      theme: resolveTheme(STYLE_ID),
+      theme: resolveTheme(styleId),
       seed,
-      styleId: STYLE_ID,
+      styleId,
       orientation,
       posterMode: true,
       watermark,
     }),
-    [seed, orientation, watermark],
+    [styleId, seed, orientation, watermark],
   );
 
   const durationInFrames = useMemo(
-    () => Math.max(1, styleDuration(STYLE_ID, reelProps)),
-    [reelProps],
+    () => Math.max(1, styleDuration(styleId, reelProps)),
+    [styleId, reelProps],
   );
   const { width, height } = reelDimensions(orientation);
   const landscape = width > height;
@@ -173,7 +179,7 @@ export function ReelParity() {
 
   // Re-key both players on the shared inputs so free-run playback restarts (roughly) in sync.
   // wmVariant is in the key so a variant flip re-renders the canvas side immediately.
-  const restartKey = `${seed}-${orientation}-${watermark}-${wmVariant}`;
+  const restartKey = `${styleId}-${seed}-${orientation}-${watermark}-${wmVariant}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
@@ -192,6 +198,22 @@ export function ReelParity() {
 
       {/* Shared inputs */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <select
+          value={styleId}
+          onChange={(e) => {
+            setStyleId(e.target.value);
+            setLockedFrame(null);
+          }}
+          aria-label="Style (ported moods)"
+          className="rounded-md border bg-transparent px-2 py-1.5 text-sm"
+        >
+          {PORTED_STYLE_IDS.map((id) => (
+            <option key={id} value={id}>
+              {THEME_LABELS[id as ThemeId] ?? id} ({id})
+            </option>
+          ))}
+        </select>
+        <div className="h-5 w-px bg-border" aria-hidden />
         <button
           type="button"
           onClick={() => setSeed((s) => (s * 16807 + 1) % 1_000_000)}
