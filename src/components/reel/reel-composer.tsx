@@ -416,8 +416,12 @@ export function ReelComposer({
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     try {
-      // Flush the latest config FIRST so the export matches exactly what the player shows.
-      await persistConfig();
+      // Flush the latest config FIRST so the export matches exactly what the player shows. A
+      // failed flush must STOP the export: the server derives the artifact hash from the DB
+      // config, so encoding un-flushed client state would cache pixels under a hash describing a
+      // different reel (persistConfig already surfaced its save-failure toast).
+      const saved = await persistConfig();
+      if (!saved) return;
       // Per-browser path decision: probe WebCodecs at the CURRENT orientation's dimensions. A probe
       // failure reads as "can't encode" and falls back to Lambda (never a broken download).
       const support = await probeEngineSupport(orientation).catch(() => null);

@@ -554,14 +554,31 @@ export async function beginClientReelUpload(input: {
     ctx.row.rendered_hash === ctx.hash &&
     ctx.row.output_key
   ) {
-    const downloadUrl = await reelDownloadUrl(eventId, ctx.eventName);
-    await recordRender(admin, {
-      eventId,
-      requesterHash: ipHash,
-      renderId: ctx.row.render_id,
-      outcome: "cached",
-    });
-    return { ok: true, mode: "cached", downloadUrl, filename };
+    // Guard the hit against a POST-finalize overwrite (a still-valid mint presign from a
+    // superseded attempt can rewrite the stable key): a legit artifact always lands BEFORE
+    // rendered_at stamps, so an object newer than that (+30s R2/app clock skew) is foreign.
+    // Stale or missing → fall through to a fresh encode, which overwrites + re-finalizes
+    // (self-healing); never serve bytes the row did not bless.
+    const renderedAtMs = ctx.row.rendered_at
+      ? new Date(ctx.row.rendered_at).getTime()
+      : null;
+    const meta = await headObject({ key: reelOutputKey(eventId) });
+    const fresh =
+      meta != null &&
+      meta.size > 0 &&
+      (renderedAtMs == null ||
+        meta.lastModified == null ||
+        meta.lastModified.getTime() <= renderedAtMs + 30_000);
+    if (fresh) {
+      const downloadUrl = await reelDownloadUrl(eventId, ctx.eventName);
+      await recordRender(admin, {
+        eventId,
+        requesterHash: ipHash,
+        renderId: ctx.row.render_id,
+        outcome: "cached",
+      });
+      return { ok: true, mode: "cached", downloadUrl, filename };
+    }
   }
 
   // Kill-switch: /admin/reels halts client-encoded uploads exactly like Lambda renders.
@@ -615,11 +632,24 @@ export async function mintClientReelUpload(input: {
 
   const ctx = await resolveReelRenderContext(admin, eventId);
   if (!ctx || ctx.orderedApprovedIds.length === 0) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_empty",
+    });
     return { ok: false, reason: "empty" };
   }
   // The config moved while the client encoded (another tab, a moderation change): the artifact no
-  // longer matches the current reel — refuse, the client re-runs from begin.
-  if (hash !== ctx.hash) return { ok: false, reason: "config_changed" };
+  // longer matches the current reel — refuse, the client re-runs from begin. Logged: hash-probe
+  // traffic is exactly what /admin/reels observability exists to surface.
+  if (hash !== ctx.hash) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_hash",
+    });
+    return { ok: false, reason: "config_changed" };
+  }
 
   if (!(await isRenderEnabled(admin))) {
     await recordRender(admin, {
@@ -654,6 +684,12 @@ export async function mintClientReelUpload(input: {
       expiresInSeconds: CLIENT_UPLOAD_PRESIGN_TTL_SEC,
     });
   } catch {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "failed",
+      error: "presign failed",
+    });
     return { ok: false, reason: "error" };
   }
 
@@ -699,7 +735,12 @@ export type ClientEncodeFinalize =
   | { ok: true; status: "ready"; downloadUrl: string }
   | {
       ok: false;
-      reason: "empty" | "config_changed" | "upload_incomplete" | "error";
+      reason:
+        | "empty"
+        | "paused"
+        | "config_changed"
+        | "upload_incomplete"
+        | "error";
     };
 
 /** Phase 3: confirm the upload landed, stamp 'ready' + the hash, log 'client_encoded' (cost 0). */
@@ -714,7 +755,14 @@ export async function finalizeClientReelUpload(input: {
   if (!ctx || ctx.orderedApprovedIds.length === 0) {
     return { ok: false, reason: "empty" };
   }
-  if (hash !== ctx.hash) return { ok: false, reason: "config_changed" };
+  if (hash !== ctx.hash) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: null,
+      outcome: "rejected_hash",
+    });
+    return { ok: false, reason: "config_changed" };
+  }
 
   // Idempotent retry: already finalized for this exact config → same success, no duplicate log.
   if (
@@ -726,9 +774,27 @@ export async function finalizeClientReelUpload(input: {
     return { ok: true, status: "ready", downloadUrl };
   }
 
+  // Kill-switch: the operator halt covers finalize too. A mint from before the flip must not
+  // bless itself after it (the presign stays valid up to 15 min); already-finalized artifacts
+  // still serve above, mirroring begin's cache-before-switch order.
+  if (!(await isRenderEnabled(admin))) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: null,
+      outcome: "rejected_mode",
+    });
+    return { ok: false, reason: "paused" };
+  }
+
   // No mint stamp for this config → nothing to finalize (the PUT never happened or was superseded).
   const row = ctx.row;
   if (!row || row.rendered_hash !== ctx.hash || !row.render_started_at) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: null,
+      outcome: "failed",
+      error: "upload incomplete: no mint stamp for this config",
+    });
     return { ok: false, reason: "upload_incomplete" };
   }
 
@@ -743,7 +809,17 @@ export async function finalizeClientReelUpload(input: {
     meta.size <= clientEncodeSizeCapBytes(ctx.lengthSeconds) &&
     meta.lastModified != null &&
     meta.lastModified.getTime() >= startedMs;
-  if (!landed) return { ok: false, reason: "upload_incomplete" };
+  if (!landed) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: null,
+      renderId: row.render_id,
+      outcome: "failed",
+      error:
+        "upload incomplete: object missing, oversized, or older than the mint stamp",
+    });
+    return { ok: false, reason: "upload_incomplete" };
+  }
 
   await admin
     .from("highlight_reels")
@@ -839,6 +915,10 @@ async function finalizeIfLanded(
     meta.lastModified.getTime() >= startedMs;
   if (!landed) return false;
 
+  // A client-minted upload (render_id "client:<uuid>") can land here via the poll route before
+  // the client calls finalize: log it in the client vocabulary with its true cost (0), so
+  // /admin/reels never shows a device encode as a Lambda completion with a stale cost.
+  const isClientEncode = row.render_id?.startsWith("client:") ?? false;
   await admin
     .from("highlight_reels")
     .update({
@@ -846,7 +926,11 @@ async function finalizeIfLanded(
       output_key: reelOutputKey(eventId),
       rendered_at: new Date().toISOString(),
       render_error: null,
-      ...(costUsd != null ? { render_cost_usd: costUsd } : {}),
+      ...(costUsd != null
+        ? { render_cost_usd: costUsd }
+        : isClientEncode
+          ? { render_cost_usd: 0 }
+          : {}),
     })
     .eq("event_id", eventId)
     .eq("status", "processing"); // idempotent — only the first finalizer flips it
@@ -854,7 +938,8 @@ async function finalizeIfLanded(
     eventId,
     requesterHash: null,
     renderId: row.render_id,
-    outcome: "completed",
+    outcome: isClientEncode ? "client_encoded" : "completed",
+    ...(isClientEncode ? { costUsd: 0 } : {}),
   });
   return true;
 }
