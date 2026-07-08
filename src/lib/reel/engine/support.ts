@@ -5,7 +5,7 @@
 
 import { canEncodeVideo, getEncodableVideoCodecs } from "mediabunny";
 
-import { type Orientation, reelDimensions } from "../composition/constants";
+import { type Orientation, reelDimensions } from "./constants";
 import { detectCtxFilter } from "./canvas2d";
 import { DEFAULT_BITRATE } from "./encode";
 

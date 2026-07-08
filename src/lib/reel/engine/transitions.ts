@@ -12,7 +12,7 @@
 // pixels the DOM discards are exactly the ones the top paints over). And clockWipe only clips the
 // ENTERING layer in the DOM too (exiting has clipPath undefined), so that one is verbatim.
 
-import type { SlideDir } from "../composition/reel-types";
+import type { SlideDir } from "./reel-types";
 
 /**
  * slide.js: the entering slide pushes the exiting one out in `dir`. Returns each layer's offset as

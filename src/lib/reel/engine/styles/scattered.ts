@@ -13,9 +13,9 @@
 //   cached full-size layer; stripe phase vs the CSS gradient origin differs (a conscious delta on a
 //   barely-visible texture).
 
-import { FPS } from "../../composition/constants";
-import type { ReelClip, ReelProps } from "../../composition/reel-types";
-import { seeded, seededPick, seededRange } from "../../composition/seed";
+import { FPS } from "../constants";
+import type { ReelClip, ReelProps } from "../reel-types";
+import { seeded, seededPick, seededRange } from "../seed";
 import type { ReelAssets } from "../assets";
 import { drawCover } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

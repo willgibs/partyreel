@@ -24,8 +24,8 @@ import {
   planReel,
   type PlannedClip,
   type PlannedGap,
-} from "./layout";
-import type { MotionStyle, ReelProps, ReelTheme } from "./reel-types";
+} from "../engine/layout";
+import type { MotionStyle, ReelProps, ReelTheme } from "../engine/reel-types";
 
 const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 

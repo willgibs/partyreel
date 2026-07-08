@@ -7,7 +7,7 @@
 // after the style draws, so every style (mood or treatment) marks uniformly and a treatment reel can
 // never export unmarked. props.watermark stays server-tier-derived.
 
-import type { ReelProps } from "../composition/reel-types";
+import type { ReelProps } from "./reel-types";
 import type { ReelAssets } from "./assets";
 import { detectCtxFilter, drawWatermark } from "./canvas2d";
 import type { DrawEnv, ReelStyle } from "./contract";

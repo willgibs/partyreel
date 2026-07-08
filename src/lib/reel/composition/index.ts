@@ -10,9 +10,9 @@ export {
   REEL_LANDSCAPE_WIDTH,
   REEL_WIDTH,
   reelDimensions,
-} from "./constants";
+} from "../engine/constants";
 export { ClipMedia } from "./clip-media";
-export { fitClip, type FitMode } from "./framing";
+export { fitClip, type FitMode } from "../engine/framing";
 export {
   isParticle,
   MOTION_STYLES,
@@ -26,7 +26,7 @@ export {
   type PlannedClip,
   type PlannedGap,
   type ReelPlan,
-} from "./layout";
+} from "../engine/layout";
 export { Reel } from "./Reel";
 export { RemotionRoot } from "./Root";
 export {
@@ -38,7 +38,7 @@ export {
   type StyleEntry,
   type StyleKind,
   styleThemeId,
-} from "./style-registry";
+} from "../engine/style-registry";
 export { StyleDispatch, styleComponent, styleDuration } from "./style-render";
 export {
   PolaroidStack,
@@ -72,9 +72,9 @@ export type {
   SlideDir,
   TransitionKind,
   TransitionSpec,
-} from "./reel-types";
-export { THEME_CLASSIC } from "./reel-types";
-export { mulberry32, seeded, seededPick, seededRange } from "./seed";
+} from "../engine/reel-types";
+export { THEME_CLASSIC } from "../engine/reel-types";
+export { mulberry32, seeded, seededPick, seededRange } from "../engine/seed";
 export {
   DEFAULT_THEME_ID,
   resolveTheme,
@@ -84,4 +84,4 @@ export {
   THEME_WARM,
   THEMES,
   type ThemeId,
-} from "./themes";
+} from "../engine/themes";

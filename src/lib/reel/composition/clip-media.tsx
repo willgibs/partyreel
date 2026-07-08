@@ -1,8 +1,8 @@
 import { AbsoluteFill, Img, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 
-import { fitClip, type FitMode } from "./framing";
-import type { ClipBackdrop } from "./reel-types";
+import { fitClip, type FitMode } from "../engine/framing";
+import type { ClipBackdrop } from "../engine/reel-types";
 
 // The shared media primitive every style renders clips through. It owns: the COVER-vs-FIT decision (media
 // that matches the reel orientation fills; mismatched media is contained, leaving designed negative space,

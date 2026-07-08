@@ -16,8 +16,8 @@ import {
   Output,
 } from "mediabunny";
 
-import { FPS, reelDimensions } from "../composition/constants";
-import type { ReelProps } from "../composition/reel-types";
+import { FPS, reelDimensions } from "./constants";
+import type { ReelProps } from "./reel-types";
 import { loadReelAssets, type ReelAssets } from "./assets";
 import {
   drawReelFrame,

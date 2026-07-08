@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { planReel } from "../composition/layout";
-import type { ReelClip, ReelProps } from "../composition/reel-types";
-import { THEME_CLASSIC } from "../composition/reel-types";
-import { resolveTheme } from "../composition/themes";
+import { planReel } from "./layout";
+import type { ReelClip, ReelProps } from "./reel-types";
+import { THEME_CLASSIC } from "./reel-types";
+import { resolveTheme } from "./themes";
 import { CINEMATIC } from "./styles/cinematic";
 import {
   ENGINE_STYLES,

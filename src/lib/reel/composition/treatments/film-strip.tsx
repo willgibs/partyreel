@@ -7,8 +7,8 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { ReelProps } from "../reel-types";
-import { seeded } from "../seed";
+import type { ReelProps } from "../../engine/reel-types";
+import { seeded } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: a 35mm film strip threaded through a projector gate. The strip advances
 // INTERMITTENTLY (the authentic "hold, then pull" of a real movement, not a smooth scroll) so each frame

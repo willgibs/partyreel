@@ -14,7 +14,7 @@
 // fixtures are fine; a tainting source (e.g. picsum in the old lab) would throw at encode time, which
 // is why the parity harness feeds local /design fixtures.
 
-import type { ReelClip } from "../composition/reel-types";
+import type { ReelClip } from "./reel-types";
 import {
   buildHalo,
   buildWash,

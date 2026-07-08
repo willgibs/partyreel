@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { ClipMotion } from "../composition/layout";
+import type { ClipMotion } from "./layout";
 import { computeMotion, dampForFit } from "./motion";
 
 // Behavior pins for the computeMotion port (source of truth: Reel.tsx computeMotion). Endpoint values

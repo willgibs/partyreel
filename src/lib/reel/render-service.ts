@@ -29,10 +29,9 @@ import {
   clientEncodeSizeCapBytes,
   withinClientEncodeSizeCap,
 } from "@/lib/reel/client-encode-budget";
-// A PURE composition submodule (the Orientation union), NOT the ./composition barrel (which re-exports
-// Reel/Root/style-render → the `remotion` runtime). This service is server-only; the barrel would break the
-// server build (React.createContext). buildReelProps resolves styleId → theme internally (also pure).
-import type { Orientation } from "@/lib/reel/composition/constants";
+// The reel's pure Orientation union (engine/constants — no DOM, no React). This service is server-only;
+// buildReelProps resolves styleId → theme internally (also pure).
+import type { Orientation } from "@/lib/reel/engine/constants";
 import { type AwsRegion, renderMediaOnLambda } from "@/lib/reel/lambda-client";
 import { renderHash } from "@/lib/reel/render-hash";
 import { defaultReelSeed } from "@/lib/reel/seed-default";

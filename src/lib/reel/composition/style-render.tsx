@@ -1,10 +1,10 @@
 import { createElement } from "react";
 import { AbsoluteFill } from "remotion";
 
-import { planReel } from "./layout";
+import { planReel } from "../engine/layout";
 import { Reel } from "./Reel";
-import type { ReelProps } from "./reel-types";
-import { resolveStyleEntry } from "./style-registry";
+import type { ReelProps } from "../engine/reel-types";
+import { resolveStyleEntry } from "../engine/style-registry";
 import { CardDeck, cardDeckDuration } from "./treatments/card-deck";
 import { FilmStrip, filmStripDuration } from "./treatments/film-strip";
 import { FramedGallery, framedGalleryDuration } from "./treatments/framed-gallery";

@@ -1,17 +1,16 @@
 import { type GridMedia } from "@/components/app/media-grid";
-// Import the PURE composition submodules directly (not the ./composition barrel) — the barrel re-exports
-// Reel/Root/style-render, which pull in the `remotion` runtime, and this builder runs on the SERVER too (the
-// render service). The barrel would drag `remotion`'s React.createContext into the server bundle and break
-// the build. constants/layout/reel-types/themes/style-registry have no remotion import.
-import type { Orientation } from "@/lib/reel/composition/constants";
-import { planReel } from "@/lib/reel/composition/layout";
+// The reel's pure data + geometry modules live under engine/ (constants/layout/reel-types/themes/
+// style-registry — no DOM, no React). This builder runs on the SERVER too (the render service), so it
+// imports them directly; nothing here reaches for a browser runtime.
+import type { Orientation } from "@/lib/reel/engine/constants";
+import { planReel } from "@/lib/reel/engine/layout";
 import type {
   ReelClip,
   ReelProps,
   ReelTheme,
-} from "@/lib/reel/composition/reel-types";
-import { isTreatment, styleThemeId } from "@/lib/reel/composition/style-registry";
-import { resolveTheme } from "@/lib/reel/composition/themes";
+} from "@/lib/reel/engine/reel-types";
+import { isTreatment, styleThemeId } from "@/lib/reel/engine/style-registry";
+import { resolveTheme } from "@/lib/reel/engine/themes";
 
 // How long a video clip plays when no custom trim is set (the trim UI is a later, Pro slice). The
 // stills-only v1 reel rarely has video; this keeps a Pro video clip from dominating the montage.

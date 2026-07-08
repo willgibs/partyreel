@@ -16,9 +16,9 @@
 // NOT yet ported (report + graceful skip; no MOOD needs them — they belong to the treatment/lab
 // slices): lightleak/flares/colorwash overlays and the confetti/bokeh/sparkle particle fields.
 
-import { fitClip } from "../../composition/framing";
-import type { PlannedClip } from "../../composition/layout";
-import type { ReelProps, ReelTheme } from "../../composition/reel-types";
+import { fitClip } from "../framing";
+import type { PlannedClip } from "../layout";
+import type { ReelProps, ReelTheme } from "../reel-types";
 import type { ReelAssets } from "../assets";
 import {
   containRect,

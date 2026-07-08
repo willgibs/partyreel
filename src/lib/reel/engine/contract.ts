@@ -14,7 +14,7 @@
 // - Missing capability (ctx.filter, an unported overlay) => env.report(...) + a graceful skip, never
 //   a throw: a reel with a weaker look still beats a crashed reel.
 
-import type { ReelProps } from "../composition/reel-types";
+import type { ReelProps } from "./reel-types";
 import type { ReelAssets } from "./assets";
 
 export type DrawEnv = {

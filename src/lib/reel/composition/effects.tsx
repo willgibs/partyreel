@@ -5,8 +5,8 @@ import type {
   MotionStyle,
   OverlayKind,
   ParticleKind,
-} from "./reel-types";
-import { seeded } from "./seed";
+} from "../engine/reel-types";
+import { seeded } from "../engine/seed";
 
 // The reel "design magic" palette — overlays + particle fields composed OVER the clips (outside the
 // TransitionSeries, so they persist across the whole reel). Everything is procedural + seeded + inline

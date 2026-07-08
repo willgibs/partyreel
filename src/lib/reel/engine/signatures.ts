@@ -4,8 +4,8 @@
 // scale-pulse (Pulse), the boundary whip-blur (Kinetic), and the cut strobe flash (Pulse). Pure
 // math over the plan's clip starts + gaps; the draw applies the transform/blur/flash on canvas.
 
-import type { PlannedGap } from "../composition/layout";
-import type { ReelSignature } from "../composition/reel-types";
+import type { PlannedGap } from "./layout";
+import type { ReelSignature } from "./reel-types";
 
 export type SignatureFrameState = {
   /** Gate-weave translate offsets in px (0 when the theme has no weave). */

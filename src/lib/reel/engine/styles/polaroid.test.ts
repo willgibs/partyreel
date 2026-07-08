@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { ReelClip, ReelProps } from "../../composition/reel-types";
-import { resolveTheme } from "../../composition/themes";
+import type { ReelClip, ReelProps } from "../reel-types";
+import { resolveTheme } from "../themes";
 import { POLAROID, polaroidDuration, polaroidPrintState } from "./polaroid";
 
 // PARITY PINS: sampled on 2026-07-08 from the REAL Remotion PolaroidStack math

@@ -7,8 +7,8 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { ReelProps } from "../reel-types";
-import { seeded, seededRange } from "../seed";
+import type { ReelProps } from "../../engine/reel-types";
+import { seeded, seededRange } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: each photo lands as a physical instant PRINT tossed onto a GROWING heap on a
 // warm, dimly-lit table. This is the deliberate ADDITIVE twin of the Card deck: where the deck DEALS DOWN

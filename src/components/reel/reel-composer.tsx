@@ -30,15 +30,15 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
+import type { Orientation } from "@/lib/reel/engine/constants";
+import { encodeReel } from "@/lib/reel/engine/encode";
+import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
 import {
   DEFAULT_STYLE_ID,
-  type Orientation,
   resolveStyleEntry,
   STYLE_CATALOG,
   STYLE_IDS,
-} from "@/lib/reel/composition";
-import { encodeReel } from "@/lib/reel/engine/encode";
-import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
+} from "@/lib/reel/engine/style-registry";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
 import { probeEngineSupport } from "@/lib/reel/engine/support";
 import type {

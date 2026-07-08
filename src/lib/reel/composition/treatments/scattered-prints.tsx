@@ -8,8 +8,8 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { ReelProps } from "../reel-types";
-import { seeded, seededPick, seededRange } from "../seed";
+import type { ReelProps } from "../../engine/reel-types";
+import { seeded, seededPick, seededRange } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: the guest's photos as physical lab PRINTS laid out into a premium editorial
 // flat-lay on a warm, softly-lit lightbox — placed by a seeded GOLDEN-ANGLE field (organized randomness,

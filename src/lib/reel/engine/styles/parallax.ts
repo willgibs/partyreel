@@ -21,8 +21,8 @@
 //   downsample chain around the clipped cover draw (clip-before-blur edge softness differs there,
 //   a Safari-only conscious delta on a ~1s window).
 
-import type { ReelClip, ReelProps } from "../../composition/reel-types";
-import { seeded } from "../../composition/seed";
+import type { ReelClip, ReelProps } from "../reel-types";
+import { seeded } from "../seed";
 import type { ReelAssets } from "../assets";
 import { drawCover } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

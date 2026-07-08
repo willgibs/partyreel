@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { type GridMedia } from "@/components/app/media-grid";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
-import { THEME_CLASSIC } from "@/lib/reel/composition";
+import { THEME_CLASSIC } from "@/lib/reel/engine/reel-types";
 
 // Minimal GridMedia factory — only the fields buildReelProps reads.
 function media(id: string, over: Partial<GridMedia> = {}): GridMedia {

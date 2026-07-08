@@ -1,7 +1,7 @@
 import { type CalculateMetadataFunction, Composition } from "remotion";
 
-import { FPS, REEL_HEIGHT, REEL_WIDTH, reelDimensions } from "./constants";
-import { type ReelProps, THEME_CLASSIC } from "./reel-types";
+import { FPS, REEL_HEIGHT, REEL_WIDTH, reelDimensions } from "../engine/constants";
+import { type ReelProps, THEME_CLASSIC } from "../engine/reel-types";
 import { StyleDispatch, styleDuration } from "./style-render";
 
 // Duration is derived from the styleId's own timeline (planReel for a mood, the treatment's duration fn), and

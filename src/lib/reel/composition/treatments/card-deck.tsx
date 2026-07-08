@@ -8,8 +8,8 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { ReelProps } from "../reel-types";
-import { seeded, seededRange } from "../seed";
+import type { ReelProps } from "../../engine/reel-types";
+import { seeded, seededRange } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: the guest's photos as a premium DECK dealt on a table under a dealer's lamp. A
 // hand-set stack (each card its own seeded tilt + jitter, deeper cards sinking + dimming so their edges peek)

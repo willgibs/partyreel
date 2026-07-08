@@ -7,9 +7,9 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import { fitClip } from "../framing";
-import type { ReelProps } from "../reel-types";
-import { seeded, seededPick, seededRange } from "../seed";
+import { fitClip } from "../../engine/framing";
+import type { ReelProps } from "../../engine/reel-types";
+import { seeded, seededPick, seededRange } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: the guest's photos hung as matted, FRAMED pieces in a bright white-cube
 // gallery, a camera dollying along the wall and SETTLING in front of each work (a visitor's tour, not a

@@ -21,9 +21,9 @@
 //   table contact-shadow's extra blur(base*0.012) is dropped: the gradient already falls to zero
 //   well inside its box, so the blur only softened an invisible edge.
 
-import { FPS } from "../../composition/constants";
-import type { ReelProps } from "../../composition/reel-types";
-import { seeded, seededRange } from "../../composition/seed";
+import { FPS } from "../constants";
+import type { ReelProps } from "../reel-types";
+import { seeded, seededRange } from "../seed";
 import type { ReelAssets } from "../assets";
 import { drawCover } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

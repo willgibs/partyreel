@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { ReelClip, ReelProps } from "../../composition/reel-types";
-import { resolveTheme } from "../../composition/themes";
+import type { ReelClip, ReelProps } from "../reel-types";
+import { resolveTheme } from "../themes";
 import {
   PARALLAX,
   parallaxDuration,

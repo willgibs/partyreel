@@ -7,8 +7,8 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { ReelClip, ReelProps, ReelTheme } from "../reel-types";
-import { seeded } from "../seed";
+import type { ReelClip, ReelProps, ReelTheme } from "../../engine/reel-types";
+import { seeded } from "../../engine/seed";
 
 // A COMPOSITIONAL treatment: each photo becomes an immersive full-frame MOMENT — a huge, soft, color-bleeding
 // BLURRED copy of ITSELF washes the entire frame (the far plane) while the crisp photo floats in front (the
