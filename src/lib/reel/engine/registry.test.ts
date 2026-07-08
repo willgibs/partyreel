@@ -44,6 +44,7 @@ describe("the engine style registry", () => {
       "classic",
       "editorial",
       "mono",
+      "warm",
     ]);
   });
 
@@ -98,6 +99,20 @@ describe("mood asset needs (per theme)", () => {
       grain: true,
       haloFilter:
         "grayscale(1) contrast(1.2) brightness(1.04) brightness(0.5) contrast(2.4) saturate(1.15)",
+    });
+  });
+
+  it("Film needs grain + halos but NO washes (theme backdrop, not blur)", () => {
+    const film: ReelProps = {
+      ...props,
+      theme: resolveTheme("warm"),
+      styleId: "warm",
+    };
+    expect(ENGINE_STYLES.warm.assetNeeds(film)).toEqual({
+      washes: false,
+      grain: true,
+      haloFilter:
+        "sepia(0.2) saturate(1.14) contrast(1.05) brightness(1.09) brightness(0.5) contrast(2.4) saturate(1.15)",
     });
   });
 });

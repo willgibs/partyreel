@@ -21,6 +21,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   classic: CINEMATIC,
   editorial: moodStyle("editorial"),
   mono: moodStyle("mono"),
+  warm: moodStyle("warm"),
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
