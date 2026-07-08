@@ -23,8 +23,9 @@
 --       + get_public_profile  (READ-only, BY DESIGN: /u/[slug] is logged-out-visible.
 --         It joins the accepted anon-read set alongside get_event_by_qr_token,
 --         get_event_media_by_qr_token, get_upload_context. FLAGGING LOUDLY per the
---         house contract: any anon-read growth is deliberate and recorded — update
---         docs/systems/database-security.md "3 anon capability RPCs" → 4 at integration.)
+--         house contract: any anon-read growth is deliberate and recorded — the
+--         docs/systems/database-security.md "4 anon capability RPCs" edit + CLAUDE.md's
+--         workflow count already ride THIS branch; verify against advisors at integration.)
 --   * lint 0029 (authenticated-only SECURITY DEFINER) grows by 2:
 --       + follow_user, block_user  (auth.uid()-authorized internally; must appear in
 --         0029 and NEVER 0028 — if either shows in the anon list, the MCP anon-EXECUTE
@@ -110,11 +111,20 @@
 --       join public.events e on e.id = g.event_id and e.deleted_at is null
 --       where g.user_id is not null and g.user_id <> e.host_id limit 1;
 --     if v_att_event is not null then
---       update public.events set show_guest_list = true where id = v_att_event;
+--       update public.events set show_guest_list = true, visibility = 'open'
+--         where id = v_att_event;
 --       update public.profiles set slug = v_slug || '-a' where id = v_att_user;
 --       v_profile := public.get_public_profile(v_slug || '-a');
 --       if jsonb_array_length(v_profile->'attended_events') < 1
 --         then raise exception 'attended_events empty'; end if;
+--       -- gated events stay OFF the public reverse surface ('private' here: the
+--       -- 'password' value would trip the event_password_hash CHECK):
+--       update public.events set visibility = 'private' where id = v_att_event;
+--       v_profile := public.get_public_profile(v_slug || '-a');
+--       if v_profile->'attended_events' @> jsonb_build_array(
+--            jsonb_build_object('id', v_att_event))
+--         then raise exception 'gated event leaked to the attended arm'; end if;
+--       update public.events set visibility = 'open' where id = v_att_event;
 --       insert into public.profile_hidden_events (user_id, event_id)
 --         values (v_att_user, v_att_event);
 --       v_profile := public.get_public_profile(v_slug || '-a');
@@ -474,9 +484,14 @@ grant execute on function public.block_user(uuid) to authenticated;
 --     discovery decoupled from access: a password event still hits its lock);
 --   * attended_events: events where this user is a signed-in uploader (guests →
 --     approved media), gated on the HOST key (show_guest_list — the profile entry
---     is the guest-list membership rendered on the reverse surface) and on the
---     guest's own profile_hidden_events. NO qr_token here: attendance is not a
---     capability grant, so an attended entry never hands out the album link.
+--     is the guest-list membership rendered on the reverse surface), on the
+--     guest's own profile_hidden_events, AND on visibility = 'open'. The open-only
+--     gate is load-bearing consent scope: the album-side list renders only to
+--     viewers who can OPEN the album, and ADR-0019 preserves "locked pages leak
+--     name + count only" TO CAPABILITY HOLDERS — so a password/private event's
+--     name/date + this guest's attendance must never reach anonymous profile
+--     viewers through the reverse surface. NO qr_token here either: attendance is
+--     not a capability grant, so an attended entry never hands out the album link.
 -- No block filtering: the viewer may be anonymous (no identity to filter by), and
 -- profiles are public by existence; blocks shape the follow graph, not this read.
 -- No raw R2 keys in the payload (covers can come later via a server presign).
@@ -515,6 +530,9 @@ as $$
       from public.events e
       where e.deleted_at is null
         and e.show_guest_list
+        -- open-only: gated (password/private) events never leak name/date or
+        -- attendance to anonymous profile viewers (see the header rationale).
+        and e.visibility = 'open'
         and e.host_id <> p.id
         and exists (
           select 1
