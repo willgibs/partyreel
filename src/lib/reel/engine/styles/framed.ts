@@ -159,7 +159,9 @@ export function framedPieceState(
     landscape ? 0.64 : 0.76,
   );
   const frameCrossDim = cross * sizeFrac;
-  const frameMainDim = landscape ? frameCrossDim * aspect : frameCrossDim / aspect;
+  const frameMainDim = landscape
+    ? frameCrossDim * aspect
+    : frameCrossDim / aspect;
   const frameW = landscape ? frameMainDim : frameCrossDim;
   const frameH = landscape ? frameCrossDim : frameMainDim;
   const frameLong = Math.max(frameW, frameH);
@@ -167,7 +169,8 @@ export function framedPieceState(
 
   const moldFace = frameLong * seededRange(seed, i, 30, 0.03, 0.04);
   // The over-matting trick: smaller works get a proportionally wider mat.
-  const matFrac = seededRange(seed, i, 32, 0.13, 0.17) + (0.64 - sizeFrac) * 0.1;
+  const matFrac =
+    seededRange(seed, i, 32, 0.13, 0.17) + (0.64 - sizeFrac) * 0.1;
   const matSide = frameShort * matFrac;
   const matBottom = matSide * 1.18;
   const hasGroove = seeded(seed, i, 33) > 0.45;
@@ -348,7 +351,18 @@ function drawPiece(
     const gy = my + g;
     const gw = mw - 2 * g;
     const gh = mh - 2 * g;
-    insetShadowRoundRect(ctx, gx, gy, gw, gh, 0, 0, 1, 0, "rgba(255,253,247,0.65)");
+    insetShadowRoundRect(
+      ctx,
+      gx,
+      gy,
+      gw,
+      gh,
+      0,
+      0,
+      1,
+      0,
+      "rgba(255,253,247,0.65)",
+    );
     innerBorderRoundRect(ctx, gx, gy, gw, gh, 0, 1, "rgba(60,42,20,0.14)");
   }
 
@@ -362,7 +376,18 @@ function drawPiece(
   ctx.fillStyle = "#0c0c0c";
   ctx.fill();
   innerBorderRoundRect(ctx, wx, wy, ww, wh, wr, 1, "rgba(0,0,0,0.16)");
-  insetShadowRoundRect(ctx, wx, wy, ww, wh, wr, 0, -1, 2, "rgba(255,255,255,0.30)");
+  insetShadowRoundRect(
+    ctx,
+    wx,
+    wy,
+    ww,
+    wh,
+    wr,
+    0,
+    -1,
+    2,
+    "rgba(255,255,255,0.30)",
+  );
   insetShadowRoundRect(ctx, wx, wy, ww, wh, wr, 0, 3, 6, "rgba(40,28,12,0.40)");
   innerBorderRoundRect(ctx, wx, wy, ww, wh, wr, 1.5, "#fffdf7");
 
@@ -472,7 +497,15 @@ function draw(
   const scaledPlane = cam.soloPush !== 1;
 
   for (let i = 0; i < n; i++) {
-    const st = framedPieceState(cam.travel, i, props.clips[i], n, props.seed, W, H);
+    const st = framedPieceState(
+      cam.travel,
+      i,
+      props.clips[i],
+      n,
+      props.seed,
+      W,
+      H,
+    );
     // Cull pieces fully out of view along the main axis (skip when the solo push scales the CTM).
     if (!scaledPlane) {
       const margin = Math.max(st.frameW, st.frameH) * 0.25;
@@ -481,7 +514,16 @@ function draw(
       const extent = landscape ? st.frameW : st.frameH;
       if (devMain + extent + margin < 0 || devMain - margin > main) continue;
     }
-    drawPiece(ctx, st, props, props.clips[i], assets.clips[i] ?? null, env, px, scaledPlane);
+    drawPiece(
+      ctx,
+      st,
+      props,
+      props.clips[i],
+      assets.clips[i] ?? null,
+      env,
+      px,
+      scaledPlane,
+    );
   }
   ctx.restore();
 

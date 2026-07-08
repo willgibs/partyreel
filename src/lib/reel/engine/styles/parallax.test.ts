@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import type { ReelClip, ReelProps } from "../../composition/reel-types";
 import { resolveTheme } from "../../composition/themes";
-import { PARALLAX, parallaxDuration, parallaxTimeline, slideLayout } from "./parallax";
+import {
+  PARALLAX,
+  parallaxDuration,
+  parallaxTimeline,
+  slideLayout,
+} from "./parallax";
 
 // PARITY PINS: sampled on 2026-07-08 from the REAL Remotion LayeredParallax math
 // (composition/treatments/layered-parallax.tsx run against remotion's interpolate/Easing at fps 24,
@@ -106,7 +111,15 @@ describe("parallaxTimeline (Remotion LayeredParallax parity)", () => {
 
 describe("slideLayout (Remotion LayeredParallax parity)", () => {
   it("matches the landscape fixture float + opposed drift (i0, u 0.3)", () => {
-    const lay = slideLayout({ width: 900, height: 600 }, 0, 0.3, 1, SEED, 1080, 1920);
+    const lay = slideLayout(
+      { width: 900, height: 600 },
+      0,
+      0.3,
+      1,
+      SEED,
+      1080,
+      1920,
+    );
     expect(lay.cardW).toBeCloseTo(928.8, 3);
     expect(lay.cardH).toBeCloseTo(619.2, 3);
     expect(lay.bgScale).toBeCloseTo(1.208, 5);
@@ -119,7 +132,15 @@ describe("slideLayout (Remotion LayeredParallax parity)", () => {
   });
 
   it("matches the portrait fixture (i1, u 0.55, mid-melt fgScale 0.97)", () => {
-    const lay = slideLayout({ width: 700, height: 1050 }, 1, 0.55, 0.97, SEED, 1080, 1920);
+    const lay = slideLayout(
+      { width: 700, height: 1050 },
+      1,
+      0.55,
+      0.97,
+      SEED,
+      1080,
+      1920,
+    );
     expect(lay.cardW).toBeCloseTo(928.8, 3);
     expect(lay.cardH).toBeCloseTo(1393.2, 3);
     expect(lay.bgScale).toBeCloseTo(1.248, 5);
@@ -132,13 +153,29 @@ describe("slideLayout (Remotion LayeredParallax parity)", () => {
   });
 
   it("matches a late-drift slide (i4, u 0.9, fgScale 1.02) + the landscape frame (i2)", () => {
-    const l4 = slideLayout({ width: 800, height: 534 }, 4, 0.9, 1.02, SEED, 1080, 1920);
+    const l4 = slideLayout(
+      { width: 800, height: 534 },
+      4,
+      0.9,
+      1.02,
+      SEED,
+      1080,
+      1920,
+    );
     expect(l4.cardH).toBeCloseTo(619.974, 3);
     expect(l4.bgScale).toBeCloseTo(1.304, 5);
     expect(l4.bgX).toBeCloseTo(30.24, 4);
     expect(l4.bgY).toBeCloseTo(34.56, 4);
     expect(l4.fgSc).toBeCloseTo(1.0659, 5);
-    const l2 = slideLayout({ width: 900, height: 601 }, 2, 0.1, 1, SEED, 1920, 1080);
+    const l2 = slideLayout(
+      { width: 900, height: 601 },
+      2,
+      0.1,
+      1,
+      SEED,
+      1920,
+      1080,
+    );
     expect(l2.cardW).toBeCloseTo(1293.843594, 3);
     expect(l2.cardH).toBeCloseTo(864, 3);
     expect(l2.bgX).toBeCloseTo(53.76, 4);

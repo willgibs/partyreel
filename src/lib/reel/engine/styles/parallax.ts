@@ -254,7 +254,9 @@ function drawSlide(
         c.fillRect(0, 0, W, H);
       }
     } else {
-      env.report('the parallax far plane needs washes: declare them in assetNeeds');
+      env.report(
+        "the parallax far plane needs washes: declare them in assetNeeds",
+      );
     }
     // A soft vignette so the float reads against its own wash (kept light, colour stays vivid).
     fillEllipticalGradient(c, W, H, {
@@ -304,7 +306,10 @@ function drawSlide(
     innerBorderRoundRect(c, x, y, w, h, r, 1, "rgba(255,255,255,0.07)");
 
     const blur = phase.fgBlur > 0.2 ? phase.fgBlur * s : 0;
-    const paintPhoto = (pc: CanvasRenderingContext2D, filter: string | null) => {
+    const paintPhoto = (
+      pc: CanvasRenderingContext2D,
+      filter: string | null,
+    ) => {
       pc.save();
       roundRectPath(pc, x, y, w, h, r);
       pc.clip();

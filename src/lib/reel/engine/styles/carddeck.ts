@@ -386,8 +386,28 @@ function drawCard(
     [1, "#ebe6db"],
   ]);
   c.fill();
-  innerBorderRoundRect(c, cx, cy, cardW, cardH, radius, 1, "rgba(20,16,24,0.16)");
-  insetShadowRoundRect(c, cx, cy, cardW, cardH, radius, 0, 1, 0, "rgba(255,255,255,0.75)");
+  innerBorderRoundRect(
+    c,
+    cx,
+    cy,
+    cardW,
+    cardH,
+    radius,
+    1,
+    "rgba(20,16,24,0.16)",
+  );
+  insetShadowRoundRect(
+    c,
+    cx,
+    cy,
+    cardW,
+    cardH,
+    radius,
+    0,
+    1,
+    0,
+    "rgba(255,255,255,0.75)",
+  );
 
   // The recessed photo well (fits onto the card stock, cover per Will's call for THIS style).
   const wx = cx + pad;

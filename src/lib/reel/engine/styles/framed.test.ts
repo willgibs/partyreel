@@ -43,13 +43,31 @@ describe("framedCamera (Remotion FramedGallery parity)", () => {
   const PINS: CPin[] = [
     // The intro drift from -0.1 up to the first piece.
     { frame: 0, travel: -0.1, camMain: -119.04, p: 0.9, spotA: 0.194 },
-    { frame: 8, travel: -0.020876, camMain: -24.850227, p: 0.979124, spotA: 0.20666 },
+    {
+      frame: 8,
+      travel: -0.020876,
+      camMain: -24.850227,
+      p: 0.979124,
+      spotA: 0.20666,
+    },
     { frame: 16, travel: 0, camMain: 0, p: 1, spotA: 0.21 },
     // Holding on piece 0 (travel pinned at the index through the hold).
     { frame: 43, travel: 0, camMain: 0, p: 1, spotA: 0.21 },
     // Mid-travel between pieces 0 and 1: the room dims between pieces.
-    { frame: 50, travel: 0.600945, camMain: 715.365417, p: 0.600945, spotA: 0.146151 },
-    { frame: 52, travel: 0.791245, camMain: 941.897735, p: 0.791245, spotA: 0.176599 },
+    {
+      frame: 50,
+      travel: 0.600945,
+      camMain: 715.365417,
+      p: 0.600945,
+      spotA: 0.146151,
+    },
+    {
+      frame: 52,
+      travel: 0.791245,
+      camMain: 941.897735,
+      p: 0.791245,
+      spotA: 0.176599,
+    },
     // Arrived at piece 1.
     { frame: 61, travel: 1, camMain: 1190.4, p: 1, spotA: 0.21 },
     // The final piece stays held through the outro.
