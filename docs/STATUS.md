@@ -37,6 +37,15 @@ before picking up any program work. Headlines a fresh agent must know:
   IA gate before the build; reveal = the Assembly x First-frame-held x Lights-down COMPOSITE). Cinematic
   canvas parity PASSED (unlocks the 13 style ports; watermark redesign to bottom-right required). The
   post-T1 fan-out is the program plan's active section.
+- **T2 DEVICE SESSION + T2.5 MARKETING-IA WALK COMPLETE (2026-07-08)** — the composite reveal is ratified
+  as-built (tuner stays in the lab; R3 wires it to production), the scrim watermark stands (re-grade when the
+  real logo lands), export quality passed (the render-source variant slice dropped), and videos-in-reels is
+  the diagnosed R3 headline (poster backfill + code fix + RENDER_VERSION bump; motion video = the Pro slice).
+  The marketing IA is ratified in [`decisions/t2p5-marketing-ia.md`](decisions/t2p5-marketing-ia.md): the
+  MADE-FROM home arc, the `/reel` flagship route, product-dark/resources-light, the secondary-route plan,
+  interim license-free media. The leading-copy VOICE is spun into its own exploration round (the remaining
+  gate before Track B copy). **R3 Reel Experience is the open critical path** (guest surfacing per ADR-0022 +
+  reveal wiring + videos + the reel UI redesign + the Lambda/Remotion teardown decision).
 
 ## Where we are
 

@@ -8,6 +8,11 @@
 > **LIFECYCLE:** after ratification the ratified decisions graduate to `docs/systems/marketing-content.md` +
 > an ADR, and this doc prunes to a one-line pointer (the T1 options-doc lifecycle). Until then this file is the
 > working proposal, not current truth.
+> **STATUS (2026-07-08): the T2.5 walk is COMPLETE.** Ratified: the site map (Shape 1 + `/reel`), the hero
+> substrate (pre-rendered engine mp4s), the MADE-FROM home arc (Call 2), the theme split, the secondary-route
+> plan, and interim license-free media sourcing. OPEN: the leading-copy VOICE, spun into a dedicated
+> exploration round (cluster 4). Track B's structural build is unblocked; its production copy waits on the
+> voice round.
 
 ---
 
@@ -130,11 +135,26 @@ ruling told us to make.
 
 ---
 
-## Call 2: the home-page narrative arc (11 sections, in order)
+## Call 2 (RATIFIED 2026-07-08): the "made-from" home arc
 
-The arc is fixed. Each section below states its JOB, its CONTENT (with proposed headline-grade copy in quotes),
-the MOTION mechanic it inherits, the SOURCE it builds from, and the ASSETS it needs. Proposed copy is a
-starting point for the Call 6 voice pass, not final; all of it is em-dash-free by construction.
+**Will's T2.5 rulings on this call:** the home is designed BLANK-SLATE from the final product vision, not
+lifted from the current page. Of the blank-slate spines offered, Will chose the **made-from decomposition**:
+open on the reel (the ending, the artifact no competitor has), then decompose it backwards into everything
+that made it. His reasoning, recorded: it keeps the feature-focused storytelling but "doesn't lock us too
+tightly to showing how one event type (like a wedding) works vs any event." The premiere-rewind alternative
+(one night narrated start to finish) was declined for exactly that event-type lock-in; the sectioned arc was
+retired as section-inventory thinking.
+
+**The through-line: "What is a Partyreel made of?"** Every section is one ingredient of the reel the visitor
+just watched: the photos (no-app upload), the people (no-account guests), the pour-in (the live album), the
+editor (host control), the quiet parts (privacy), the styles (the 14-style catalog), the deal (pricing). The
+made-from grammar can echo in section eyebrows as a motif ("Made by everyone" / "Made live" / "Made safe" /
+"Made yours" / "Made in 14 styles" / "Made free"); the copy pass decides how literal to run it, and it must
+not become a tic.
+
+Each section below states its JOB, its CONTENT (with proposed headline-grade copy in quotes), the MOTION
+mechanic it inherits, the SOURCE it builds from, and the ASSETS it needs. Proposed copy is a starting point
+for the Call 5 voice pass, not final; all of it is em-dash-free by construction.
 
 ### 1. Cinema hero (Direction B)
 
@@ -161,7 +181,22 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `trust-strip.tsx` (keep the four-claim pattern, re-skin).
 - **Assets:** none (type + hairlines only).
 
-### 3. How-it-works film strip (Direction B, ruled)
+### 3. The decomposition (the page's signature move, NEW)
+
+- **Job:** answer "what is this?" in one gesture: the reel the visitor just watched comes apart into what
+  made it. This is the made-from spine's anchor beat and the one genuinely new mechanic.
+- **Content:** the hero's reel frame decomposes into its source tiles with three counters landing as facts:
+  "Built from 214 photos." / "Shot by 23 guests." / "Edited by no one." One closing line: "Partyreel turns
+  everyone's camera roll into the film of the night." Event-type-agnostic by construction: numbers and
+  tiles, no single narrated event.
+- **Motion:** the reverse of the demo's tiles-fly vocabulary: tiles burst OUT of the reel card toward the
+  edges (the same pop ease family), counters count up in Geist Mono tabular. Reduced motion: the three facts
+  fade in over the still tile field.
+- **Source:** new composition built from the C demo's fly/counter mechanics + `ReelFrame`; prototyped in the
+  lab (Marketing sandbox) before Track B builds it, per the lab-first gate.
+- **Assets:** the same curated media set as the hero; one reel cover.
+
+### 4. How-it-works film strip (Direction B, ruled)
 
 - **Job:** tell the three-beat core loop as a single cinematic gesture.
 - **Content:** section heading "From two hundred phones to one cut." Three scene cards: Scene 01 Scan, Scene
@@ -173,7 +208,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `FilmStripSection` in `marketing-cinema-direction.tsx`.
 - **Assets:** film-strip frames from the curated media set; the three scene stills.
 
-### 4. Live product demo (Direction C, re-skinned dark)
+### 5. Live product demo (Direction C, re-skinned dark)
 
 - **Job:** act out the how live, so "the album builds itself" is shown, not asserted. Placed AFTER how-it-works
   per the ruling ("visualizing the how": the three-beat story, then the story acted out live).
@@ -189,7 +224,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Assets:** art-directed demo fixtures (display names, event name, ~9 stills, reel duration + cover,
   counters) that are NOT real PII.
 
-### 5. The album (product depth 1, the core-loop artifact)
+### 6. The album (product depth 1, the core-loop artifact)
 
 - **Job:** show the thing guests actually fill and hosts actually curate, in real product chrome.
 - **Content:** heading "You're always the editor." Show a live-feeling gallery with the curation story: approve
@@ -201,7 +236,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
   capability inventory.
 - **Assets:** curated event media for the frames; a poster of the review/triage state.
 
-### 6. The reel (product depth 2, the North Star)
+### 7. The reel (product depth 2, the North Star)
 
 - **Job:** make the reel concrete and route the interested visitor to `/reel`.
 - **Content:** heading "Every event ends with a reel." A 14-style catalog teaser shown as a named cover
@@ -213,7 +248,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `reel-teaser.tsx` (re-skin), the style registry (`STYLE_CATALOG`), `ReelFrame`.
 - **Assets:** 14 style cover frames, 1 to 3 inline sample reels across orientations.
 
-### 7. Trust and privacy (product depth 3, the unused ammunition)
+### 8. Trust and privacy (product depth 3, the unused ammunition)
 
 - **Job:** convert the shipped-but-invisible safety features into named, specific, believable claims. This is
   the section the audit flagged as the biggest missed opportunity.
@@ -227,7 +262,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** capability inventory section 4; the trust/privacy system docs.
 - **Assets:** small diagrammatic icons (mono, hairline); no photography required.
 
-### 8. Events directory teaser
+### 9. Events directory teaser
 
 - **Job:** internal SEO linking to the four high-intent event landing pages.
 - **Content:** the four type cards (Weddings, Parties, Conferences, Trips) with the per-type one-liners; each
@@ -236,7 +271,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `events.tsx` + `event-frame-cards.tsx`; `EVENT_TYPES` in `events.ts`.
 - **Assets:** one representative still per event type from the curated set.
 
-### 9. Pricing teaser
+### 10. Pricing teaser
 
 - **Job:** set expectations and pull qualified visitors to `/pricing`.
 - **Content:** the three cards driven live from `tiers.ts` (Free $0 / Pro from $9 / Event Pass $24). Add the
@@ -246,7 +281,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `pricing-teaser.tsx` reading `PLANS` from `tiers.ts`.
 - **Assets:** none.
 
-### 10. FAQ
+### 11. FAQ
 
 - **Job:** clear the last objections and emit `FaqPage` JSON-LD.
 - **Content:** the 8 items, restyled. FIX the account-gate understatement (see the help corrections batch):
@@ -256,7 +291,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 - **Source:** `faq.tsx` / `faq-data.ts` / `faq-jsonld.tsx` (dual-purpose, keep the pattern).
 - **Assets:** none.
 
-### 11. Cinema close (Direction B)
+### 12. Cinema close (Direction B)
 
 - **Job:** the emotional out and the final CTA.
 - **Content:** "Roll credits on the group chat." + "Free to host. Guests join with one scan. The reel builds
@@ -267,7 +302,7 @@ starting point for the Call 6 voice pass, not final; all of it is em-dash-free b
 
 **Cross-cutting: the live demo is a first-class recurring CTA.** Per audit risk #5, the demo is the
 differentiated no-signup live trial and today it is reachable from only 2 of 15 routes. It becomes a recurring
-call to action: in the hero (text link), at section 5 (the album), on `/pricing`, and near the final close.
+call to action: in the hero (text link), at the album section, on `/pricing`, and near the final close.
 The message is consistent: "Try the live demo, no signup." (`isDemoToken()` gates it; `QrFrame` renders the
 real scannable QR when `NEXT_PUBLIC_DEMO_QR_TOKEN` is set.)
 
@@ -302,7 +337,7 @@ events, features, MDX spec tags, FAQ JSON-LD); this table governs *presentation 
 
 | Route | Keep / rebuild | Theme | Strategy |
 |---|---|---|---|
-| `/` (home) | rebuild presentation | dark | The 11-section cinema arc above. B1. |
+| `/` (home) | rebuild presentation | dark | The 12-section made-from arc above. B1. |
 | `/reel` (NEW) | new | dark | Flagship product page. Full section sketch below. B2. |
 | `/features` | keep spine, re-skin | dark | Keep the 5-group structure + Spotlight layouts; re-skin; ADD the named missing features. B2. |
 | `/events` + `[slug]` x4 | keep all, re-skin | dark | Keep the SEO equity + per-type layouts; re-skin; add a per-type reel angle + the demo CTA. B2. |
@@ -373,7 +408,8 @@ language (IP / device / timestamp capture), which is BLOCKED on counsel sign-off
 
 ---
 
-## Call 5: voice and copy rules (binding for all site copy)
+## Call 5: voice and copy rules (the MECHANICS below are binding; the LEADING-COPY VOICE is under the
+dedicated exploration per cluster 4, and every proposed copy line in this doc is a placeholder until it rules)
 
 - **The thesis:** "Every event ends with a reel." Site-wide hook. The hero owns the kinetic-word variant;
   other surfaces echo the plain form.
@@ -451,53 +487,40 @@ production must).
 
 These drive the collaborative walk. Each has the question, the options, and a recommendation with rationale.
 
-### Cluster 1: site map + hero substrate
+### Cluster 1: site map + hero substrate. RATIFIED (Will, 2026-07-08)
 
-**Question A:** which site-map shape?
-**Options:** Shape 1 (keep the spine, add `/reel`) / Shape 2 (one-page cinema) / Shape 3 (product-led split).
-**Recommendation:** Shape 1. It preserves the SEO equity and the single-source content architecture (both real
-assets), rebuilds only the presentation, and adds the one route the North Star feature has earned. Shape 2
-burns the `/events/[slug]` equity; Shape 3 hides the wow from where visitors land, against the ruling.
+**Site map: Shape 1** (keep the spine, add `/reel`) as recommended. **Hero substrate: pre-rendered mp4 loops
+from the real engine** as recommended (LCP-safe poster-first, battery-safe, honest because the loops come out
+of the real 14-style engine). The alternatives and their honest cases are preserved in Call 1 for the record.
 
-**Question B:** what substrate powers the cinema hero?
-**Options:** (a) pre-rendered mp4 loops FROM THE REAL ENGINE, (b) the live `CanvasReelPlayer` engine on the
-landing page, (c) a stills montage (the lab's current fake).
-**Recommendation:** (a) pre-rendered engine mp4s. It is LCP-safe (poster-first) and battery-safe, ships no
-engine JS or rAF loop on the landing page, and stays honest because the loops are rendered through the real
-14-style engine. (b) is the strongest honesty story but the heaviest (engine payload + a rAF loop on the most
-performance-critical page); (c) is the cheapest but the weakest (it is the lab's placeholder, not the
-product). Option (a) is the honesty of (b) at the performance cost of (c).
+### Cluster 2: home arc + theme posture. RATIFIED (Will, 2026-07-08)
 
-### Cluster 2: home arc + theme posture
+**Home arc: the blank-slate MADE-FROM DECOMPOSITION spine** (see Call 2, which records Will's reasoning: the
+feature-focused storytelling without locking the page to one narrated event type). The original sectioned arc
+was retired; the premiere-rewind narrative alternative was declined for event-type lock-in. **Theme posture:
+product-dark / resources-light** as recommended (Call 3).
 
-**Question:** ratify the 11-section order, the demo-as-recurring-CTA, and the theme split?
-**Options:** the 11-section arc as specced (with the demo recurring in hero / album / pricing / close) under a
-product-dark / resources-light theme split, versus a whole-site-dark alternative.
-**Recommendation:** ratify the arc and the split. The arc moves the visitor from wow (hero, film strip, demo)
-through proof (album, reel, trust/privacy) to conversion (events, pricing, FAQ, close), which is the funnel the
-ruling's wow floor needs beneath it. The theme split keeps cinema where media carries the color and paper where
-people read; whole-site dark hurts help/blog reading comfort for a marginal consistency gain.
+### Cluster 3: secondary routes. RATIFIED (Will, 2026-07-08)
 
-### Cluster 3: secondary routes
+**Adopt all as drafted:** the `/reel` eight-section sketch; all four `/events/[slug]` pages kept (each a
+separately-ranking, statically-generated, high-intent landing page); the full nine-item help corrections
+checklist; the careers Reels Engineer JD rewrite in B3.
 
-**Question:** the `/reel` scope, the careers JD rewrite timing, the help corrections batch scope, and keeping
-all four `/events/[slug]` pages.
-**Options:** the `/reel` eight-section sketch as drafted; the careers JD rewrite in B3 (or sooner as a
-standalone hotfix); the nine-item help corrections checklist; keep all four event pages (or prune).
-**Recommendation:** adopt the `/reel` sketch; rewrite the careers JD (it is the highest-embarrassment
-staleness, reading the shipped reel as an unbuilt roadmap item, so B3 is fine but pulling it earlier as a cheap
-standalone fix is also reasonable); adopt the full help checklist; keep all four event pages (each is a
-separately-ranking, statically-generated, high-intent landing page, so pruning any of them loses SEO for no
-gain).
+### Cluster 4: voice. OPEN, spun into a DEDICATED VOICE EXPLORATION (Will, 2026-07-08)
 
-### Cluster 4: voice
+Will declined to ratify the leading copy by checklist. His words, recorded: "I'd like to have a dedicated
+exploration of some of our voice roles in leading copy. This stage defines a lot of the high level concepts
+and lower-level copy." So the thesis line, the hero language, and the section-header voice get their own
+exploration round (candidate voice DIRECTIONS presented for his reaction, the lab-round pattern applied to
+copy) BEFORE Track B writes production copy. The mechanical rules in Call 5 (typography, palette, no
+em-dashes, 15-16px reading copy, specifics-over-adjectives, the persona split) stand as BINDING CONSTRAINTS
+on that exploration; what the exploration decides is the voice itself: the site-wide thesis, the hero's
+language, and how loud/warm/dry the leading copy runs. "Every event ends with a reel." enters the
+exploration as one candidate, not the winner.
 
-**Question:** ratify the thesis line, the specifics-first claims discipline, and the per-persona language split.
-**Options:** "Every event ends with a reel." as the site-wide thesis; a specifics-over-adjectives rule
-(especially in trust/privacy); the host-control vs guest-frictionless language split.
-**Recommendation:** ratify all three. The thesis is already the reel teaser's line and it carries the whole
-value prop in five words. Specifics-first is what turns the shipped-but-invisible feature set (EXIF strip, 14
-styles, zip, recovery, bulk moderation) into believable, differentiated claims, which is the single biggest
-copy opportunity the audit surfaced. The persona split matches the two-sided product (a host who curates and
-pays, a guest who wants zero friction) and keeps the marketing voice loud without leaking that volume onto the
-guest product surfaces.
+### Cluster 5 (asked in the same walk): site media sourcing. RATIFIED (Will, 2026-07-08)
+
+**Curate a beautiful, LICENSE-FREE media set now** (public-domain / CC0-class); Will returns with final media
+later. The curated set powers Track B's hero loops, film strip, demo fixtures, and style covers in the
+meantime, and the swap to Will's final media is a contained asset replacement (the components read from one
+fixture source). The pre-launch demo-event media swap still waits for the FINAL media, not this interim set.
