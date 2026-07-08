@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-08 — The Lambda/Remotion teardown (R3 slice B; "maxing out the services we want to own")
+
+**The reel now has exactly one render path: the canvas engine + on-device WebCodecs encode.** Will's
+ruling ("Teardown is a go") deleted the entire Remotion/AWS-Lambda surface, ~11,900 lines net: the
+Lambda trigger + webhook finalize in the render service, `lambda-client.ts`, the
+`/api/internal/reel-complete` webhook route, `workers/reel-render/` (plus 695MB of orphaned local
+node_modules), the old `@remotion/player` component, the Remotion composition (its seven PURE modules,
+including the 14-style catalog `style-registry.ts` and the shared `reel-types.ts` contract, were
+relocated into `src/lib/reel/engine/` first), the design lab's DOM sides (the old reel lab deleted; the
+parity page reworked to a canvas-only style browser; the served-its-purpose reel-spike retired), all
+five `@remotion/*` dependencies, and the seven reel env vars (code + the preview-scoped Vercel copies;
+the production-scoped copies wait for milestone-2, when `main` stops carrying Lambda code). The
+no-WebCodecs export fallback became an honest modern-browser notice; playback never needed anything.
+Two feared subtleties resolved cleanly: the engine's spring was ALREADY a self-contained port (the
+sampled-pin suites show zero diff, byte-identical pins = the parity proof), and the composition
+relocation triggered no import-graph breakage (`pnpm build` verified at the relocation commit). The
+client-encode contract survived byte-for-byte (begin/mint/finalize, cache HEAD guard, refusal logging,
+kill-switch, limiter, `rendered_hash`). Kept-and-flagged: the now caller-less `GET /api/reel/render`
+poll surface, pruned in the videos slice. The AWS sub-account closure is a `[human]` launch-checklist
+line. 874 tests + a production build at the merge.
+
 ## 2026-07-08 — Profiles + the social layer (ADR-0019 ruled model, P1-P3)
 
 **Public profiles, follows, blocks, and host-controlled guest lists land in one slice.** The data layer:

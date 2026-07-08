@@ -44,8 +44,12 @@ before picking up any program work. Headlines a fresh agent must know:
   The marketing IA is ratified in [`decisions/t2p5-marketing-ia.md`](decisions/t2p5-marketing-ia.md): the
   MADE-FROM home arc, the `/reel` flagship route, product-dark/resources-light, the secondary-route plan,
   interim license-free media. The leading-copy VOICE is spun into its own exploration round (the remaining
-  gate before Track B copy). **R3 Reel Experience is the open critical path** (guest surfacing per ADR-0022 +
-  reveal wiring + videos + the reel UI redesign + the Lambda/Remotion teardown decision).
+  gate before Track B copy; round-2 boards in flight on Will's golden-set rulings). **R3 Reel Experience
+  is the open critical path.** Slice B SHIPPED 2026-07-08: the LAMBDA/REMOTION TEARDOWN (Will: "teardown
+  is a go") — the canvas engine + on-device encode is the reel's ONLY render path; ~11.9k lines + 5 deps
+  + 7 env vars deleted (the production-scoped env copies + the AWS sub-account close wait for M2 / the
+  launch checklist). Remaining R3: slice A de-black videos (poster fix + RENDER_VERSION 3, now unpaired)
+  → slice C reel-UI lab round → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
 
 ## Where we are
 
