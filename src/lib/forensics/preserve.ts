@@ -19,12 +19,7 @@ import {
 import { copyObject, putJsonObject } from "@/lib/r2/objects";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-// SEAM: upload_forensics / forensic_audit_log / media.legal_hold_* aren't in the generated
-// Database types until the orchestrator regenerates post-apply; these local shapes + the untyped
-// client cast are superseded by src/lib/db/types.ts then.
-type UntypedAdmin = SupabaseClient;
+import type { Json } from "@/lib/db/types";
 
 export type PreserveOutcome =
   | { ok: true; preservedOriginalKey: string; alreadyHeld: boolean }
@@ -38,19 +33,21 @@ export type ReleaseOutcome =
   | { ok: true }
   | { ok: false; code: "not_found" | "unknown"; message: string };
 
+// Narrows the generated TablesInsert<"forensic_audit_log"> (action/outcome stay literal unions
+// so callers cannot typo an action; detail is Json to satisfy the generated column type).
 type AuditRow = {
   admin_user_id: string;
   action: "preserve" | "export_evidence" | "export_record" | "hold_released";
   media_id: string | null;
   event_id: string | null;
-  detail?: Record<string, unknown>;
+  detail?: Json;
   outcome: "ok" | "error";
   error?: string;
 };
 
 /** Append one audit row. Best-effort-but-loud: an audit write failure throws to the caller. */
 export async function writeForensicAudit(
-  admin: UntypedAdmin,
+  admin: ReturnType<typeof createAdminClient>,
   row: AuditRow,
 ): Promise<void> {
   const { error } = await admin.from("forensic_audit_log").insert(row);
@@ -63,13 +60,13 @@ export async function preserveMedia(args: {
   reason: string;
 }): Promise<PreserveOutcome> {
   const { mediaId, adminUserId, reason } = args;
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
 
   const fail = async (
     code: "not_found" | "copy_failed" | "unknown",
     message: string,
     eventId: string | null,
-    detail?: Record<string, unknown>,
+    detail?: Json,
   ): Promise<PreserveOutcome> => {
     await writeForensicAudit(admin, {
       admin_user_id: adminUserId,
@@ -213,7 +210,7 @@ export async function releaseHold(args: {
   adminUserId: string;
 }): Promise<ReleaseOutcome> {
   const { mediaId, adminUserId } = args;
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
 
   const { data: media, error: mErr } = await admin
     .from("media")

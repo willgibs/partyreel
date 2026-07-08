@@ -8,12 +8,6 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-// SEAM: the new tables/columns aren't in the generated Database types until the orchestrator
-// regenerates post-apply; these local row shapes are superseded by src/lib/db/types.ts then.
-type UntypedAdmin = SupabaseClient;
-
 export type ForensicsHealth = {
   /** Uploads recorded in the last 24h (media rows). */
   uploads24h: number;
@@ -24,7 +18,7 @@ export type ForensicsHealth = {
 };
 
 export async function getForensicsHealth(): Promise<ForensicsHealth> {
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
   const since = new Date(Date.now() - 86_400_000).toISOString();
 
   const [uploads, captured, holds, auditErrors] = await Promise.all([
@@ -71,7 +65,7 @@ export type HeldMediaRow = {
 
 /** Every media row under an active legal hold, with its preservation state. */
 export async function listHeldMedia(): Promise<HeldMediaRow[]> {
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
   const { data, error } = await admin
     .from("media")
     .select("id, event_id, status, legal_hold_at, legal_hold_reason")
@@ -137,7 +131,7 @@ export type ForensicAuditRow = {
 export async function listForensicAudit(
   limit = 50,
 ): Promise<ForensicAuditRow[]> {
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
   const { data, error } = await admin
     .from("forensic_audit_log")
     .select("id, created_at, action, media_id, outcome, error")

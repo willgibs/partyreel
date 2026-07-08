@@ -19,13 +19,8 @@ import { presignDownload } from "@/lib/r2/presign";
 import { parseExtFromKey } from "@/lib/r2/keys";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// SEAM: untyped until the orchestrator regenerates src/lib/db/types.ts post-apply.
-type UntypedAdmin = SupabaseClient;
 
 const EXPORT_TTL_SECONDS = 5 * 60;
 
@@ -52,7 +47,7 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const admin = createAdminClient() as UntypedAdmin;
+  const admin = createAdminClient();
   const action = what === "evidence" ? "export_evidence" : "export_record";
 
   try {
@@ -94,7 +89,7 @@ export async function GET(request: Request): Promise<Response> {
         admin_user_id: auth.ctx.userId,
         action,
         media_id: mediaId,
-        event_id: forensics.event_id,
+        event_id: forensics?.event_id ?? null,
         detail: { key },
         outcome: "ok",
       });

@@ -16,17 +16,10 @@ import { captureWarning } from "@/lib/observability/sentry";
 import { parseEventIdFromKey } from "@/lib/r2/keys";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 /** Who made the upload, as the complete route already knows it (no new auth surface). */
 export type ForensicIdentity =
   | { kind: "guest"; sessionToken: string }
   | { kind: "host"; hostUserId: string };
-
-// SEAM: upload_forensics is not in the generated Database types yet — the orchestrator regenerates
-// src/lib/db/types.ts after applying the migration, at which point this cast (and the local row
-// shape below) can tighten to the generated types.
-type UntypedAdmin = SupabaseClient;
 
 export async function captureUploadForensics(args: {
   headers: Headers;
@@ -39,7 +32,7 @@ export async function captureUploadForensics(args: {
 }): Promise<void> {
   const { headers, mediaId, key, deviceUuid, identity } = args;
   try {
-    const admin = createAdminClient() as UntypedAdmin;
+    const admin = createAdminClient();
     const facts = extractForensicRequestFacts(headers);
     const eventId = parseEventIdFromKey(key);
     if (!eventId) throw new Error(`unparseable event id in key ${key}`);
