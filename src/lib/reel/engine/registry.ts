@@ -11,6 +11,7 @@ import type { ReelProps } from "../composition/reel-types";
 import type { ReelAssets } from "./assets";
 import { detectCtxFilter, drawWatermark } from "./canvas2d";
 import type { DrawEnv, ReelStyle } from "./contract";
+import { CARDDECK } from "./styles/carddeck";
 import { CINEMATIC } from "./styles/cinematic";
 import { FILMSTRIP } from "./styles/filmstrip";
 import { FRAMED } from "./styles/framed";
@@ -34,6 +35,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   filmstrip: FILMSTRIP,
   scattered: SCATTERED,
   framed: FRAMED,
+  carddeck: CARDDECK,
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */

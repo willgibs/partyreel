@@ -35,12 +35,13 @@ describe("the engine style registry", () => {
     for (const id of Object.keys(ENGINE_STYLES)) {
       expect(engineSupports(id)).toBe(true);
     }
-    expect(engineSupports("carddeck")).toBe(false); // a treatment (not yet ported)
+    expect(engineSupports("parallax")).toBe(false); // a treatment (not yet ported)
     expect(engineSupports(undefined)).toBe(false);
   });
 
   it("pins the ported style set (grows one entry per port)", () => {
     expect(Object.keys(ENGINE_STYLES).sort()).toEqual([
+      "carddeck",
       "classic",
       "dreamy",
       "editorial",

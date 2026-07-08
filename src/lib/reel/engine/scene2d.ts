@@ -205,13 +205,16 @@ export function innerBorderRoundRect(
 /**
  * CSS element opacity for a multi-draw element: at partial alpha the element paints onto the shared
  * scratch layer (slot 0) and composites as ONE image, so its own overlapping draws (shadow + card +
- * photo) don't double-blend (the mood renderer's drawClipLayer rule).
+ * photo) don't double-blend (the mood renderer's drawClipLayer rule). NESTED alpha layers (a fading
+ * element inside a fading group, e.g. the card deck's intro drop) must pass a distinct slot for the
+ * inner layer or the outer composite gets clobbered mid-paint — slot 3 is reserved for that.
  */
 export function withLayerAlpha(
   ctx: CanvasRenderingContext2D,
   env: DrawEnv,
   alpha: number,
   paint: (c: CanvasRenderingContext2D) => void,
+  slot = 0,
 ): void {
   if (alpha <= 0) return;
   if (alpha >= 1) {
@@ -220,7 +223,7 @@ export function withLayerAlpha(
     ctx.restore();
     return;
   }
-  const scratch = env.scratch();
+  const scratch = env.scratch(slot);
   scratch.clearRect(0, 0, env.width, env.height);
   scratch.save();
   paint(scratch);
