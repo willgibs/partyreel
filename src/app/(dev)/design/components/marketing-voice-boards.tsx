@@ -8,7 +8,7 @@ import {
 } from "./marketing-lab-shared";
 
 /**
- * Touchpoint: the MARKETING VOICE (T2.5 cluster-4, 2026-07-07). Four voice
+ * Touchpoint: the MARKETING VOICE (T2.5 cluster-4, 2026-07-08). Four voice
  * directions were drafted for the marketing rebuild's leading copy; the owner
  * RULED a blend of D2 "Warm host" x D4 "The big night", disciplined by the
  * concise clarity of the current site H1 ("Every photo from your party, in one
