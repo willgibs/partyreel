@@ -30,13 +30,13 @@ export function ExportKillSwitch({ enabled }: { enabled: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <p className="text-sm font-medium">
-          {on ? "Downloads enabled" : "Downloads paused"}
-        </p>
+        {/* Stable feature-name label; the switch carries the state (see the reels twin for the
+            double-negative WHY). */}
+        <p className="text-sm font-medium">Album downloads</p>
         <p className="text-xs text-muted-foreground">
           {on
-            ? "Hosts and guests can download albums."
-            : "New downloads are blocked across the platform."}
+            ? "On. Hosts and guests can download albums."
+            : "Paused. New downloads are blocked across the platform."}
         </p>
       </div>
       <Switch

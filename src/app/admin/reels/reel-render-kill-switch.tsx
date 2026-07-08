@@ -31,13 +31,15 @@ export function ReelRenderKillSwitch({ enabled }: { enabled: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <p className="text-sm font-medium">
-          {on ? "Reel videos enabled" : "Reel videos paused"}
-        </p>
+        {/* A STABLE feature-name label: a state-describing label ("Reel videos paused") next to
+            an OFF switch reads as "pausing is off" (the double-negative trap; it confused the
+            operator in the M1 drill). The switch position carries the state; the caption spells
+            it out. */}
+        <p className="text-sm font-medium">Reel video renders</p>
         <p className="text-xs text-muted-foreground">
           {on
-            ? "Hosts can render their highlight reel to video."
-            : "New renders are blocked across the platform."}
+            ? "On. Hosts can render their highlight reel to video."
+            : "Paused. New renders are blocked across the platform."}
         </p>
       </div>
       <Switch
