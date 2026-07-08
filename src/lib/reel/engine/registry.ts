@@ -25,6 +25,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   dreamy: moodStyle("dreamy"),
   golden: moodStyle("golden"),
   punchy: moodStyle("punchy"),
+  kinetic: moodStyle("kinetic"),
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */

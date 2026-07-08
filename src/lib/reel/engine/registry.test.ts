@@ -45,6 +45,7 @@ describe("the engine style registry", () => {
       "dreamy",
       "editorial",
       "golden",
+      "kinetic",
       "mono",
       "punchy",
       "warm",

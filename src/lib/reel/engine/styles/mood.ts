@@ -319,32 +319,49 @@ function draw(
     content.clearRect(0, 0, W, H);
     paintClipStack(content);
     let src: HTMLCanvasElement = content.canvas;
+    const srcX = 0; // stages stack vertically, so only y moves
+    let srcY = 0;
     let sw = W;
     let sh = H;
-    if (hasBlur) {
-      // CSS blur(whip px), approximated by the calibrated downsample (~2.9px of blur per unit of
-      // upscale, the buildWash constant): one pass down to 1/k inside the reusable aux scratch
-      // (slot 2, a corner region; +2px cleared so smoothing can't bleed stale pixels), drawn back
-      // up by the transform below. Whip peaks at 9px for 2-5 frame windows mid-slide, where the
-      // single-pass approximation is indistinguishable from the gaussian (conscious delta).
-      const k = Math.max(1.15, ss.whip / 2.9);
+    // The whip blur. Where ctx.filter works (the player/export browsers), a REAL blur() on the
+    // compositing draw = exact CSS parity with Reel.tsx's `filter: blur(whip px)`. The Safari
+    // fallback is a two-stage downsample chain in the aux scratch (slot 2; regions cleared +2px so
+    // edge smoothing can't bleed stale pixels), calibrated in the harness against the real filter
+    // (k ~ 1.8 * whip; downsample blurs saturate below the gaussian, a Safari-only conscious
+    // delta on a 2-5 frame window mid-slide).
+    if (hasBlur && !env.filterOk) {
+      const k = Math.max(1.15, ss.whip * 1.8);
       const aux = env.scratch(2);
-      sw = Math.max(2, Math.round(W / k));
-      sh = Math.max(2, Math.round(H / k));
-      aux.clearRect(0, 0, Math.min(W, sw + 2), Math.min(H, sh + 2));
       aux.imageSmoothingEnabled = true;
       aux.imageSmoothingQuality = "high";
-      aux.drawImage(content.canvas, 0, 0, W, H, 0, 0, sw, sh);
+      sw = Math.max(2, Math.round(W / k));
+      sh = Math.max(2, Math.round(H / k));
+      if (k <= 2) {
+        aux.clearRect(0, 0, Math.min(W, sw + 2), Math.min(H, sh + 2));
+        aux.drawImage(content.canvas, 0, 0, W, H, 0, 0, sw, sh);
+      } else {
+        // Stage 1: half size at y=0; stage 2: the remaining 2/k factor stacked below it.
+        const hw = Math.round(W / 2);
+        const hh = Math.round(H / 2);
+        aux.clearRect(0, 0, Math.min(W, hw + 2), Math.min(H, hh + 2));
+        aux.drawImage(content.canvas, 0, 0, W, H, 0, 0, hw, hh);
+        srcY = hh + 2;
+        aux.clearRect(0, srcY, Math.min(W, sw + 2), sh + 2);
+        aux.drawImage(aux.canvas, 0, 0, hw, hh, srcX, srcY, sw, sh);
+      }
       src = aux.canvas;
     }
     ctx.save();
     // CSS order: the blur filters the element, THEN translate(weave) scale(pulse) maps it (about
     // the element center, the transform-origin default).
+    if (hasBlur && env.filterOk) {
+      ctx.filter = `blur(${ss.whip}px)`;
+    }
     ctx.translate(ss.weaveX + W / 2, ss.weaveY + H / 2);
     ctx.scale(ss.pulseScale, ss.pulseScale);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(src, 0, 0, sw, sh, -W / 2, -H / 2, W, H);
+    ctx.drawImage(src, srcX, srcY, sw, sh, -W / 2, -H / 2, W, H);
     ctx.restore();
   } else {
     paintClipStack(ctx);
