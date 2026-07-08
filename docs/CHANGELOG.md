@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-08 — Profiles + the social layer (ADR-0019 ruled model, P1-P3)
+
+**Public profiles, follows, blocks, and host-controlled guest lists land in one slice.** The data layer:
+`profiles.slug` (service-role write; app-side Pro gate so grandfathering never breaks), the two host
+toggles (`events.display_in_profile` + `show_guest_list`, column-granted), `user_follows` (owner-
+perspective RLS; writes only via the block-aware `follow_user` RPC + a SECURITY DEFINER trigger
+backstop), `user_blocks` (blocker-only RLS; `block_user` severs follows both ways atomically),
+R5-shaped `notification_prefs`, and `profile_hidden_events` (the guest-side hide). The anon
+`get_public_profile` RPC deliberately grows the accepted anon-read set 3 to 4; its attended arm is
+gated open-events-only (the parity-review catch: gated-event attendance must never leak to anonymous
+profile viewers). Surfaces: `/u/[slug]` (logged-out-visible, counts nowhere), the account Public
+profile + Connections cards (slug claim with live availability, per-event hides, owner-private
+follower count, blocks), the event-settings social card (loud guest-list consent copy), the album
+"Guests" feed section on both host and guest surfaces, follow/block affordances, and the dashboard
+Following chip. Verified live on the alias: migration applied + ROLLBACK_OK contract check (slug
+CHECK, follow/block/severance both directions, trigger backstop, prefs defaults, gated-event leak
+negative), advisors exactly the expected delta, third-party graph reads = 0 rows, anon REST probes
+42501 on all four tables, slug write locked from hosts, the anon RPC payload leak-probed clean, and
+the full UI pass (claim @willg, flip both toggles, /u/willg anonymous 200, Guests pill + honest
+empty state). 874 tests at the merge.
+
 ## 2026-07-08 — Milestone 1 (R1 Decision Studio + R2 Reel Engine) merged to main
 
 The `launch-prep` integration branch merged to `main` (`--no-ff`, tag `milestone-1`) carrying: the seven
