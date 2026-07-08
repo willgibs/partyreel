@@ -10,6 +10,7 @@ describe("resolveInitialFilter", () => {
   it("honors a valid new ?filter=", () => {
     expect(resolveInitialFilter(undefined, "uploads")).toBe("uploads");
     expect(resolveInitialFilter(undefined, "trash")).toBe("trash");
+    expect(resolveInitialFilter(undefined, "following")).toBe("following");
     expect(resolveInitialFilter(undefined, "all")).toBe("all");
   });
 

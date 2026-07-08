@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 
+import { ProfileSocialCard } from "@/components/app/event-settings/profile-social-card";
 import { SettingsWithGuard } from "@/components/app/event-settings/settings-with-guard";
 import { EventSlugControl } from "@/components/app/event-slug-control";
 import {
@@ -23,6 +24,10 @@ import {
 import { getEvent, getEventCardStats } from "@/lib/db/queries/events";
 import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
+import {
+  getEventSocialSettings,
+  getMyProfileSlug,
+} from "@/lib/db/queries/social";
 import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -60,10 +65,15 @@ export default async function EventSettingsPage({ params }: PageProps) {
   // The event's "Recently deleted" bin + the pending (under-review) count, in parallel. pendingCount
   // feeds the moderation-disable confirm in the uploads section (names the count + gates the confirm);
   // reuses the same RLS-scoped stats query the dashboard cards use.
-  const [deletedMedia, cardStats] = await Promise.all([
-    listRecentlyDeletedMedia(event.id),
-    getEventCardStats([event.id]),
-  ]);
+  // socialSettings is null pre-apply (the graceful runtime seam) -> the
+  // Profile & guests card simply doesn't render until the migration lands.
+  const [deletedMedia, cardStats, socialSettings, myProfileSlug] =
+    await Promise.all([
+      listRecentlyDeletedMedia(event.id),
+      getEventCardStats([event.id]),
+      getEventSocialSettings(event.id),
+      getMyProfileSlug(),
+    ]);
   const pendingCount = cardStats.get(event.id)?.pending ?? 0;
   // The bin presigns INLINE only (no download url -> the lightbox hides Save). countdownDays is
   // computed in the query (render-pure — no Date.now() in RSC render; react-hooks/purity).
@@ -95,7 +105,18 @@ export default async function EventSettingsPage({ params }: PageProps) {
         backHref={`/dashboard/${event.id}`}
       />
 
-      <Card data-arrive style={{ "--arrive-i": 2 } as CSSProperties}>
+      {socialSettings && (
+        <div data-arrive style={{ "--arrive-i": 2 } as CSSProperties}>
+          <ProfileSocialCard
+            eventId={event.id}
+            displayInProfile={socialSettings.displayInProfile}
+            showGuestList={socialSettings.showGuestList}
+            hostHasSlug={Boolean(myProfileSlug)}
+          />
+        </div>
+      )}
+
+      <Card data-arrive style={{ "--arrive-i": 3 } as CSSProperties}>
         <CardHeader>
           <CardTitle>Event link</CardTitle>
           <CardDescription>
@@ -115,7 +136,7 @@ export default async function EventSettingsPage({ params }: PageProps) {
       </Card>
 
       {deletedItems.length > 0 && (
-        <Card data-arrive style={{ "--arrive-i": 3 } as CSSProperties}>
+        <Card data-arrive style={{ "--arrive-i": 4 } as CSSProperties}>
           <CardHeader>
             <CardTitle>Deleted</CardTitle>
             <CardDescription>

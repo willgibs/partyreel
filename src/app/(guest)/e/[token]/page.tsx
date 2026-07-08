@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
+import { GuestList } from "@/components/social/guest-list";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import {
@@ -14,6 +15,8 @@ import {
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
+import { getEventGuestList } from "@/lib/db/queries/social";
+import { withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryAccess } from "@/lib/events/gallery-access";
 import {
@@ -63,7 +66,12 @@ export async function generateMetadata({
     title,
     description,
     robots: { index: false, follow: false },
-    openGraph: { title, description, url: `/e/${event.qr_token}`, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url: `/e/${event.qr_token}`,
+      type: "website",
+    },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -188,6 +196,33 @@ export default async function GuestEventPage({
     ? await getHostAvatarUrl(event.id)
     : null;
 
+  // The named Guests section (ADR-0019): ONLY at full access (a teaser viewer
+  // hasn't finished the gate; a locked page reveals name + count only), never in
+  // the demo. getEventGuestList re-checks the host key server-side and returns
+  // null when it's off (or pre-apply), so the section can't render unauthorized.
+  // Composed HERE as a slot: EventExperience is a client island and must never
+  // receive storage markers, only hydrated public avatar URLs.
+  let guestListSlot: React.ReactNode = null;
+  if (access === "full" && !isDemo) {
+    const guestList = await getEventGuestList(event.id);
+    if (guestList && guestList.length > 0) {
+      const items = await withAvatarUrls(guestList);
+      guestListSlot = (
+        <section aria-label="Guests" className="mt-10 space-y-3">
+          <h2 className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              Guests
+            </span>
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
+              {items.length}
+            </span>
+          </h2>
+          <GuestList items={items} />
+        </section>
+      );
+    }
+  }
+
   // Display-name nudge: a SIGNED-IN uploader without a public name sets one before uploading (so their
   // upload is attributed). Only meaningful in the `full` state; an account-required event viewed by an
   // un-signed-in guest is `teaser`, where the account step (EnterEventPrompt) comes first.
@@ -211,6 +246,7 @@ export default async function GuestEventPage({
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
         isOwner={isOwner}
+        guestListSlot={guestListSlot}
       />
     </div>
   );

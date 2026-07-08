@@ -55,8 +55,10 @@ export function EventFeed({
   pendingItems,
   gallerySection,
   reelSection,
+  guestsSection,
   galleryCount,
   reelCount,
+  guestsCount,
 }: {
   eventId: string;
   moderationOn: boolean;
@@ -65,13 +67,21 @@ export function EventFeed({
   pendingItems: GridMedia[];
   gallerySection: React.ReactNode;
   reelSection: React.ReactNode;
+  /** The ADR-0019 named guest list (or its turn-it-on teaser when the host key is off). */
+  guestsSection: React.ReactNode;
   galleryCount: number;
   reelCount: number;
+  /** Named signed-in uploaders; 0 also while show_guest_list is off (no pill badge on a teaser). */
+  guestsCount: number;
 }) {
   const [filter, setFilter] = useState<EventFilter>(initialSection);
   const [enabling, setEnabling] = useState(false);
 
-  const triage = useReviewTriage({ eventId, items: pendingItems, moderationOn });
+  const triage = useReviewTriage({
+    eventId,
+    items: pendingItems,
+    moderationOn,
+  });
   // The Gallery album bulk-select state (shared with the floating bar + the gallery grid). Null is fine
   // (a safe no-op) — though the provider always wraps this page.
   const selection = useHostSelection();
@@ -83,7 +93,8 @@ export function EventFeed({
     hasPending: triage.reviewUrgent,
   });
   const flipRegister = useFlip(order.join());
-  const { activeSection, registerSection } = useActiveSection<EventSection>(order);
+  const { activeSection, registerSection } =
+    useActiveSection<EventSection>(order);
 
   // Top sentinel: once it scrolls out of view the pills condense AND the floating bar appears
   // (one sentinel for both, like the command strip's floating-Add gate).
@@ -141,11 +152,17 @@ export function EventFeed({
             label: SECTION_LABEL.gallery,
             count: galleryCount || undefined,
           }
-        : {
-            value: "reel",
-            label: SECTION_LABEL.reel,
-            count: reelCount || undefined,
-          };
+        : k === "reel"
+          ? {
+              value: "reel",
+              label: SECTION_LABEL.reel,
+              count: reelCount || undefined,
+            }
+          : {
+              value: "guests",
+              label: SECTION_LABEL.guests,
+              count: guestsCount || undefined,
+            };
   const pills: FeedPill[] = [
     { value: "all", label: "All" },
     ...order.map(pillFor),
@@ -179,7 +196,7 @@ export function EventFeed({
         />
         {gallerySection}
       </section>
-    ) : (
+    ) : k === "reel" ? (
       <section aria-label="Reel" className="space-y-2.5">
         <FeedSectionHeader
           label={SECTION_LABEL.reel}
@@ -190,6 +207,14 @@ export function EventFeed({
         />
         {reelSection}
       </section>
+    ) : (
+      <section aria-label="Guests" className="space-y-2.5">
+        <FeedSectionHeader
+          label={SECTION_LABEL.guests}
+          count={guestsCount || undefined}
+        />
+        {guestsSection}
+      </section>
     );
 
   // The section the floating bar reflects: the scroll-spy in "All", else the pinned filter.
@@ -197,7 +222,8 @@ export function EventFeed({
     filter === "all" ? activeSection : (filter as EventSection);
   // Reveal the bar once scrolled past the top, or whenever EITHER select mode (review triage or the
   // gallery album bulk-select) needs its bulk controls in reach.
-  const showBar = !inView || triage.selectMode || (selection?.selectMode ?? false);
+  const showBar =
+    !inView || triage.selectMode || (selection?.selectMode ?? false);
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/mutations/events";
 import { approveAllPending } from "@/lib/db/mutations/media";
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
+import { setEventSocialSettings } from "@/lib/db/mutations/social";
 import { captureError } from "@/lib/observability/sentry";
 import {
   createEventSchema,
@@ -172,6 +173,21 @@ export async function clearEventSlugAction(
   const result = await clearEventSlug(eventId);
   if (!result.ok) return result;
 
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true };
+}
+
+// The ADR-0019 event keys (profile display + the named guest list), persisted
+// per-toggle from the settings card (instant switches, not the RHF save flow —
+// each key is its own deliberate act, like the password/slug commits).
+export async function updateEventSocialSettingsAction(
+  eventId: string,
+  patch: { displayInProfile?: boolean; showGuestList?: boolean },
+): Promise<ActionResult> {
+  const result = await setEventSocialSettings(eventId, patch);
+  if (!result.ok) return result;
+
+  // The event page (its Guests section) + settings both re-derive.
   revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }

@@ -5,6 +5,7 @@ import { DashboardFeed } from "./dashboard-feed";
 
 const slots = {
   eventsSection: <div data-testid="events" />,
+  followingSection: <div data-testid="following" />,
   uploadsSection: <div data-testid="uploads" />,
   likesSection: <div data-testid="likes" />,
   trashSection: <div data-testid="trash" />,
@@ -21,6 +22,21 @@ describe("DashboardFeed", () => {
     expect(screen.getByTestId("uploads")).toBeInTheDocument();
     expect(screen.getByTestId("likes")).toBeInTheDocument();
     expect(screen.queryByTestId("trash")).not.toBeInTheDocument();
+    // Following is chip-only, like Trash: a lens on other hosts' events.
+    expect(screen.queryByTestId("following")).not.toBeInTheDocument();
+  });
+
+  it("Following is reachable only via its own filter", () => {
+    render(
+      <DashboardFeed
+        initialFilter="following"
+        trashCount={0}
+        showChips
+        {...slots}
+      />,
+    );
+    expect(screen.getByTestId("following")).toBeInTheDocument();
+    expect(screen.queryByTestId("events")).not.toBeInTheDocument();
   });
 
   it("a specific filter narrows to that one section", () => {
