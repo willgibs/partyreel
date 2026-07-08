@@ -11,14 +11,24 @@
  */
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { type GridMedia } from "@/components/app/media-grid";
-import { clampReelSeconds, toBillingTier } from "@/lib/constants/tiers";
+import {
+  clampReelSeconds,
+  type Tier,
+  toBillingTier,
+} from "@/lib/constants/tiers";
 import type { Database } from "@/lib/db/types";
 import { assertR2Env, assertReelRenderEnv } from "@/lib/env";
 import { captureWarning } from "@/lib/observability/sentry";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
+import {
+  clientEncodeSizeCapBytes,
+  withinClientEncodeSizeCap,
+} from "@/lib/reel/client-encode-budget";
 // A PURE composition submodule (the Orientation union), NOT the ./composition barrel (which re-exports
 // Reel/Root/style-render → the `remotion` runtime). This service is server-only; the barrel would break the
 // server build (React.createContext). buildReelProps resolves styleId → theme internally (also pure).
@@ -26,7 +36,7 @@ import type { Orientation } from "@/lib/reel/composition/constants";
 import { type AwsRegion, renderMediaOnLambda } from "@/lib/reel/lambda-client";
 import { renderHash } from "@/lib/reel/render-hash";
 import { defaultReelSeed } from "@/lib/reel/seed-default";
-import { headObject, presignDownload } from "@/lib/r2/presign";
+import { headObject, presignDownload, presignUpload } from "@/lib/r2/presign";
 import { reelOutputKey } from "@/lib/r2/keys";
 import {
   abuseHashes,
@@ -77,6 +87,8 @@ type LogFields = {
   renderId?: string | null;
   outcome: string;
   error?: string;
+  /** Explicit render cost (the client-encode path logs 0; Lambda costs land via the webhook). */
+  costUsd?: number | null;
 };
 
 /** Best-effort reel_render_log write (the /admin/reels readout reads it). Never throws into the flow. */
@@ -89,6 +101,7 @@ async function recordRender(admin: Admin, f: LogFields): Promise<void> {
       render_id: f.renderId ?? null,
       outcome: f.outcome,
       error: f.error ?? null,
+      ...(f.costUsd != null ? { cost_usd: f.costUsd } : {}),
     })
     .then(
       () => {},
@@ -96,41 +109,61 @@ async function recordRender(admin: Admin, f: LogFields): Promise<void> {
     );
 }
 
-/** A friendly attachment URL for the finished mp4 ("<event>-reel.mp4", signed disposition). */
+/** The reel mp4's attachment filename ("<event>-reel.mp4") — also the client-encode local-save name. */
+function reelFilename(eventName: string): string {
+  return `${slugify(eventName) || "partyreel"}-reel.mp4`;
+}
+
+/** A friendly attachment URL for the finished mp4 (signed disposition). */
 async function reelDownloadUrl(
   eventId: string,
   eventName: string,
 ): Promise<string> {
-  const name = `${slugify(eventName) || "partyreel"}-reel.mp4`;
   return presignDownload({
     key: reelOutputKey(eventId),
-    downloadFilename: name,
+    downloadFilename: reelFilename(eventName),
   });
 }
 
 /**
- * Authorize-and-trigger (or serve-from-cache) a reel render. Order: tier → hash → cache hit? →
- * stale-processing guard → configured? → kill-switch → limiter (fail OPEN) → presign → Lambda → stamp.
- * The caller (route) already verified the user OWNS this event.
+ * The SERVER-side render identity for an event's reel, shared by the Lambda trigger AND the
+ * client-encode begin/mint/finalize phases: the event + host tier (→ watermark + length clamp), the
+ * stored config, the ordered approved media, and the resulting render hash (the cache key). Every
+ * export path resolves this fresh from the DB — the client is never trusted for style/length/
+ * watermark/membership. Returns null when the event is gone (deleted or never existed).
  */
-export async function requestReelRender(input: {
-  eventId: string;
-  ip: string;
-}): Promise<RenderOutcome> {
-  const { eventId, ip } = input;
-  const admin = createAdminClient();
+type ReelRenderContext = {
+  eventName: string;
+  tier: Tier;
+  watermark: boolean;
+  styleId: string;
+  orientation: Orientation;
+  seed: number;
+  /** The host's raw stored setting (null = Auto) — persisted as-is so upgrades lengthen Auto reels. */
+  storedLengthSeconds: number | null;
+  /** The tier-clamped effective length (always a positive number; feeds the hash + size budget). */
+  lengthSeconds: number;
+  coverMediaId: string | null;
+  orderedApprovedIds: string[];
+  approved: Map<
+    string,
+    {
+      id: string;
+      type: Database["public"]["Tables"]["media"]["Row"]["type"];
+      original_key: string;
+      status: string;
+      width: number | null;
+      height: number | null;
+    }
+  >;
+  row: ReelRow | null;
+  hash: string;
+};
 
-  // HMAC-of-IP for the log + the limiter scope (never a raw IP). Fail open if the hashing secret is unset.
-  let ipHash: string | null = null;
-  let scopeHash: string | null = null;
-  try {
-    const h = abuseHashes(ip, "reel_render", eventId);
-    ipHash = h.ipHash;
-    scopeHash = h.scopeHash;
-  } catch {
-    /* limiter secret unset → no hash, fail open */
-  }
-
+async function resolveReelRenderContext(
+  admin: Admin,
+  eventId: string,
+): Promise<ReelRenderContext | null> {
   // The event (host + name) — authoritative source for the tier read + the download filename.
   const { data: ev } = await admin
     .from("events")
@@ -138,7 +171,7 @@ export async function requestReelRender(input: {
     .eq("id", eventId)
     .is("deleted_at", null)
     .maybeSingle();
-  if (!ev) return { ok: false, reason: "empty" };
+  if (!ev) return null;
 
   // Tier → watermark + the length cap (server-derived; never trust the client). max → pro via
   // toBillingTier.
@@ -175,7 +208,8 @@ export async function requestReelRender(input: {
   // The style id (mood or treatment). Fall back to the legacy `theme` column (pre-migration rows), then the
   // default mood. Orientation narrows to the union (default portrait).
   const styleId = row?.style_id ?? row?.theme ?? "classic";
-  const orientation: Orientation = row?.orientation === "landscape" ? "landscape" : "portrait";
+  const orientation: Orientation =
+    row?.orientation === "landscape" ? "landscape" : "portrait";
   const seed = row?.seed ?? defaultReelSeed(eventId);
   // The MINT-time tier clamp (ADR-0021): re-derive the length cap here, never trust the stored
   // config (upsert_reel_config clamps too, but a downgrade after save would leave a stale 60).
@@ -191,14 +225,6 @@ export async function requestReelRender(input: {
     .map((r) => r.media_id)
     .filter((id) => approved.has(id))
     .slice(0, MAX_RENDER_CLIPS);
-  if (orderedApprovedIds.length === 0) {
-    await recordRender(admin, {
-      eventId,
-      requesterHash: ipHash,
-      outcome: "rejected_empty",
-    });
-    return { ok: false, reason: "empty" };
-  }
 
   const hash = renderHash({
     orderedApprovedIds,
@@ -210,9 +236,75 @@ export async function requestReelRender(input: {
     watermark,
   });
 
+  return {
+    eventName: ev.name,
+    tier,
+    watermark,
+    styleId,
+    orientation,
+    seed,
+    storedLengthSeconds,
+    lengthSeconds,
+    coverMediaId,
+    orderedApprovedIds,
+    approved,
+    row,
+    hash,
+  };
+}
+
+/**
+ * Authorize-and-trigger (or serve-from-cache) a reel render. Order: tier → hash → cache hit? →
+ * stale-processing guard → configured? → kill-switch → limiter (fail OPEN) → presign → Lambda → stamp.
+ * The caller (route) already verified the user OWNS this event.
+ */
+export async function requestReelRender(input: {
+  eventId: string;
+  ip: string;
+}): Promise<RenderOutcome> {
+  const { eventId, ip } = input;
+  const admin = createAdminClient();
+
+  // HMAC-of-IP for the log + the limiter scope (never a raw IP). Fail open if the hashing secret is unset.
+  let ipHash: string | null = null;
+  let scopeHash: string | null = null;
+  try {
+    const h = abuseHashes(ip, "reel_render", eventId);
+    ipHash = h.ipHash;
+    scopeHash = h.scopeHash;
+  } catch {
+    /* limiter secret unset → no hash, fail open */
+  }
+
+  const ctx = await resolveReelRenderContext(admin, eventId);
+  if (!ctx) return { ok: false, reason: "empty" };
+  const {
+    eventName,
+    tier,
+    watermark,
+    styleId,
+    orientation,
+    seed,
+    storedLengthSeconds,
+    lengthSeconds,
+    coverMediaId,
+    orderedApprovedIds,
+    approved,
+    row,
+    hash,
+  } = ctx;
+  if (orderedApprovedIds.length === 0) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_empty",
+    });
+    return { ok: false, reason: "empty" };
+  }
+
   // CACHE: an unchanged reel that already rendered → serve the existing mp4 for $0.
   if (row?.status === "ready" && row.rendered_hash === hash && row.output_key) {
-    const downloadUrl = await reelDownloadUrl(eventId, ev.name);
+    const downloadUrl = await reelDownloadUrl(eventId, eventName);
     await recordRender(admin, {
       eventId,
       requesterHash: ipHash,
@@ -396,6 +488,331 @@ export async function requestReelRender(input: {
   }
 
   return { ok: true, status: "processing" };
+}
+
+// ---------------------------------------------------------------------------------------------
+// The CLIENT-ENCODE export path (Plan A Phase C): the host's browser encodes the mp4 (WebCodecs,
+// engine/encode.ts) and uploads it to the SAME reel output key, so caching/guest-serving are
+// identical to a Lambda render. Three server phases (all host-authed by the route):
+//   begin    → cache check + kill-switch + limiter preflight BEFORE the client spends an encode.
+//   mint     → the abuse choke point: recompute the hash + size cap server-side, presign a
+//              content-length-bound PUT, stamp 'processing' (render_id "client:<uuid>" so a stale
+//              Lambda webhook can't clobber it), record the limiter event.
+//   finalize → verify the object LANDED (present + size within cap + LastModified >= the mint
+//              stamp, the same disambiguation finalizeIfLanded uses), then stamp 'ready' +
+//              rendered_hash and log outcome 'client_encoded' at cost 0. Idempotent (retry-safe).
+// Trust model: the server derives tier/length/watermark/membership; the client's hash is an opaque
+// echo compared against a fresh recompute at every phase, so a mid-encode config change 409s.
+// ACCEPTED CAVEAT (pre-launch ruling): the server cannot see the ENCODED PIXELS, so a tampered
+// self-encode can at worst upload a reel without the free-tier watermark — it defrauds a watermark,
+// nothing else (the key, size, and config are all server-bound). No detection is built for this.
+// ---------------------------------------------------------------------------------------------
+
+// 15 min — the blob is fully encoded when the mint happens, so the PUT starts immediately; a short
+// TTL keeps a leaked URL near-worthless (it is also content-length-bound and video/mp4-bound).
+const CLIENT_UPLOAD_PRESIGN_TTL_SEC = 15 * 60;
+
+export type ClientEncodeBegin =
+  | { ok: true; mode: "cached"; downloadUrl: string; filename: string }
+  | {
+      ok: true;
+      mode: "encode";
+      hash: string;
+      filename: string;
+      maxBytes: number;
+    }
+  | {
+      ok: false;
+      reason: "empty" | "paused" | "rate_limited" | "error";
+      retryAfterSec?: number;
+    };
+
+/** Phase 1: is an encode even needed (cache), allowed (kill-switch), and within rate (limiter)? */
+export async function beginClientReelUpload(input: {
+  eventId: string;
+  ip: string;
+}): Promise<ClientEncodeBegin> {
+  const { eventId, ip } = input;
+  const admin = createAdminClient();
+  const { ipHash, scopeHash } = clientEncodeHashes(ip, eventId);
+
+  const ctx = await resolveReelRenderContext(admin, eventId);
+  if (!ctx) return { ok: false, reason: "empty" };
+  if (ctx.orderedApprovedIds.length === 0) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_empty",
+    });
+    return { ok: false, reason: "empty" };
+  }
+  const filename = reelFilename(ctx.eventName);
+
+  // CACHE: an unchanged reel that already has its mp4 → no encode at all, serve it.
+  if (
+    ctx.row?.status === "ready" &&
+    ctx.row.rendered_hash === ctx.hash &&
+    ctx.row.output_key
+  ) {
+    const downloadUrl = await reelDownloadUrl(eventId, ctx.eventName);
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      renderId: ctx.row.render_id,
+      outcome: "cached",
+    });
+    return { ok: true, mode: "cached", downloadUrl, filename };
+  }
+
+  // Kill-switch: /admin/reels halts client-encoded uploads exactly like Lambda renders.
+  if (!(await isRenderEnabled(admin))) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_mode",
+    });
+    return { ok: false, reason: "paused" };
+  }
+
+  // Limiter PREFLIGHT (check only; the recorded event lands at mint, where the write happens) —
+  // refuse here so a rate-limited host doesn't burn an encode that mint will reject anyway.
+  const gate = await checkClientEncodeRate(admin, eventId, ipHash, scopeHash);
+  if (gate) return gate;
+
+  return {
+    ok: true,
+    mode: "encode",
+    hash: ctx.hash,
+    filename,
+    maxBytes: clientEncodeSizeCapBytes(ctx.lengthSeconds),
+  };
+}
+
+export type ClientEncodeMint =
+  | { ok: true; uploadUrl: string; headers: Record<string, string> }
+  | {
+      ok: false;
+      reason:
+        | "empty"
+        | "paused"
+        | "rate_limited"
+        | "config_changed"
+        | "too_large"
+        | "error";
+      retryAfterSec?: number;
+    };
+
+/** Phase 2: presign the bounded PUT + stamp 'processing'. The size/hash are re-verified server-side. */
+export async function mintClientReelUpload(input: {
+  eventId: string;
+  ip: string;
+  hash: string;
+  sizeBytes: number;
+}): Promise<ClientEncodeMint> {
+  const { eventId, ip, hash, sizeBytes } = input;
+  const admin = createAdminClient();
+  const { ipHash, scopeHash } = clientEncodeHashes(ip, eventId);
+
+  const ctx = await resolveReelRenderContext(admin, eventId);
+  if (!ctx || ctx.orderedApprovedIds.length === 0) {
+    return { ok: false, reason: "empty" };
+  }
+  // The config moved while the client encoded (another tab, a moderation change): the artifact no
+  // longer matches the current reel — refuse, the client re-runs from begin.
+  if (hash !== ctx.hash) return { ok: false, reason: "config_changed" };
+
+  if (!(await isRenderEnabled(admin))) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_mode",
+    });
+    return { ok: false, reason: "paused" };
+  }
+
+  const gate = await checkClientEncodeRate(admin, eventId, ipHash, scopeHash);
+  if (gate) return gate;
+
+  // The size budget: server-computed length × bitrate budget (+ headroom). Reject at mint AND bind
+  // the accepted size into the presign signature, so R2 rejects any body that differs from it.
+  if (!withinClientEncodeSizeCap(sizeBytes, ctx.lengthSeconds)) {
+    await recordRender(admin, {
+      eventId,
+      requesterHash: ipHash,
+      outcome: "rejected_size",
+      error: `declared ${sizeBytes} bytes for a ${ctx.lengthSeconds}s reel`,
+    });
+    return { ok: false, reason: "too_large" };
+  }
+
+  let upload: Awaited<ReturnType<typeof presignUpload>>;
+  try {
+    upload = await presignUpload({
+      key: reelOutputKey(eventId),
+      contentType: "video/mp4",
+      contentLength: sizeBytes,
+      expiresInSeconds: CLIENT_UPLOAD_PRESIGN_TTL_SEC,
+    });
+  } catch {
+    return { ok: false, reason: "error" };
+  }
+
+  // Stamp the in-flight upload like a Lambda render (the same 'processing' + started-at fields), so
+  // finalize can require LastModified >= this stamp and a stale Lambda webhook (render_id mismatch)
+  // is ignored. A re-mint (a failed PUT retried) just re-stamps.
+  const renderId = `client:${randomUUID()}`;
+  await admin.from("highlight_reels").upsert(
+    {
+      event_id: eventId,
+      style_id: ctx.styleId,
+      theme: ctx.styleId, // keep the legacy column in sync during the transition
+      orientation: ctx.orientation,
+      seed: ctx.seed,
+      length_seconds:
+        ctx.storedLengthSeconds == null
+          ? null
+          : clampReelSeconds(ctx.tier, ctx.storedLengthSeconds),
+      cover_media_id: ctx.coverMediaId,
+      status: "processing",
+      render_id: renderId,
+      rendered_hash: ctx.hash,
+      render_error: null,
+      render_started_at: new Date().toISOString(),
+    },
+    { onConflict: "event_id" },
+  );
+
+  await recordRender(admin, {
+    eventId,
+    requesterHash: ipHash,
+    renderId,
+    outcome: "client_minted",
+  });
+  if (ipHash && scopeHash) {
+    await recordAbuseEvent("reel_render", ipHash, scopeHash).catch(() => {});
+  }
+
+  return { ok: true, uploadUrl: upload.url, headers: upload.headers };
+}
+
+export type ClientEncodeFinalize =
+  | { ok: true; status: "ready"; downloadUrl: string }
+  | {
+      ok: false;
+      reason: "empty" | "config_changed" | "upload_incomplete" | "error";
+    };
+
+/** Phase 3: confirm the upload landed, stamp 'ready' + the hash, log 'client_encoded' (cost 0). */
+export async function finalizeClientReelUpload(input: {
+  eventId: string;
+  hash: string;
+}): Promise<ClientEncodeFinalize> {
+  const { eventId, hash } = input;
+  const admin = createAdminClient();
+
+  const ctx = await resolveReelRenderContext(admin, eventId);
+  if (!ctx || ctx.orderedApprovedIds.length === 0) {
+    return { ok: false, reason: "empty" };
+  }
+  if (hash !== ctx.hash) return { ok: false, reason: "config_changed" };
+
+  // Idempotent retry: already finalized for this exact config → same success, no duplicate log.
+  if (
+    ctx.row?.status === "ready" &&
+    ctx.row.rendered_hash === ctx.hash &&
+    ctx.row.output_key
+  ) {
+    const downloadUrl = await reelDownloadUrl(eventId, ctx.eventName);
+    return { ok: true, status: "ready", downloadUrl };
+  }
+
+  // No mint stamp for this config → nothing to finalize (the PUT never happened or was superseded).
+  const row = ctx.row;
+  if (!row || row.rendered_hash !== ctx.hash || !row.render_started_at) {
+    return { ok: false, reason: "upload_incomplete" };
+  }
+
+  // The landed check (same disambiguation as finalizeIfLanded): the object exists, its size is
+  // within the mint budget, and it was written AT/AFTER the mint stamp — so finalize can't bless a
+  // stale artifact from an older render at the same stable key.
+  const meta = await headObject({ key: reelOutputKey(eventId) });
+  const startedMs = new Date(row.render_started_at).getTime();
+  const landed =
+    meta &&
+    meta.size > 0 &&
+    meta.size <= clientEncodeSizeCapBytes(ctx.lengthSeconds) &&
+    meta.lastModified != null &&
+    meta.lastModified.getTime() >= startedMs;
+  if (!landed) return { ok: false, reason: "upload_incomplete" };
+
+  await admin
+    .from("highlight_reels")
+    .update({
+      status: "ready",
+      output_key: reelOutputKey(eventId),
+      rendered_at: new Date().toISOString(),
+      render_error: null,
+      render_cost_usd: 0,
+    })
+    .eq("event_id", eventId)
+    .eq("rendered_hash", ctx.hash); // don't clobber a newer mint for a changed config
+
+  await recordRender(admin, {
+    eventId,
+    requesterHash: null,
+    renderId: row.render_id,
+    outcome: "client_encoded",
+    costUsd: 0,
+  });
+
+  const downloadUrl = await reelDownloadUrl(eventId, ctx.eventName);
+  return { ok: true, status: "ready", downloadUrl };
+}
+
+/** HMAC hashes for the client-encode limiter scope (fail open when the secret is unset). */
+function clientEncodeHashes(
+  ip: string,
+  eventId: string,
+): { ipHash: string | null; scopeHash: string | null } {
+  try {
+    return abuseHashes(ip, "reel_render", eventId);
+  } catch {
+    return { ipHash: null, scopeHash: null };
+  }
+}
+
+/** Shared limiter check for begin/mint (the SAME reel_render kind as Lambda; fail OPEN on errors). */
+async function checkClientEncodeRate(
+  admin: Admin,
+  eventId: string,
+  ipHash: string | null,
+  scopeHash: string | null,
+): Promise<{
+  ok: false;
+  reason: "rate_limited";
+  retryAfterSec?: number;
+} | null> {
+  if (!ipHash || !scopeHash) return null;
+  try {
+    const gate = await checkAbuseRate("reel_render", ipHash, scopeHash);
+    if (!gate.allowed) {
+      await recordRender(admin, {
+        eventId,
+        requesterHash: ipHash,
+        outcome: "rate_limited",
+      });
+      return {
+        ok: false,
+        reason: "rate_limited",
+        retryAfterSec: gate.retryAfterSec,
+      };
+    }
+  } catch {
+    captureWarning("security", "abuse_limiter_unavailable_fail_open", {
+      kind: "reel_render",
+    });
+  }
+  return null;
 }
 
 /**

@@ -31,7 +31,11 @@ const OUTCOME_LABEL: Record<string, string> = {
   failed: "Failed",
   rejected_empty: "Empty",
   rejected_mode: "Paused",
+  rejected_size: "Over size cap",
   rate_limited: "Rate limited",
+  // The client-encode path (Plan A Phase C): the host's device rendered the mp4 (cost 0).
+  client_minted: "Upload started",
+  client_encoded: "Encoded on device",
 };
 
 // Backend-job observability for the reel .mp4 export (P8): the recent-renders log + the platform
@@ -121,7 +125,8 @@ export default async function ReelsPage() {
                             r.outcome === "failed"
                               ? "text-destructive"
                               : r.outcome === "completed" ||
-                                  r.outcome === "cached"
+                                  r.outcome === "cached" ||
+                                  r.outcome === "client_encoded"
                                 ? "text-foreground"
                                 : "text-muted-foreground"
                           }

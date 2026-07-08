@@ -11,13 +11,13 @@ import { NextResponse } from "next/server";
 
 import { z } from "zod";
 
+import { resolveOwnEvent } from "@/lib/reel/own-event";
 import {
   getReelRenderState,
   type RenderOutcome,
   requestReelRender,
 } from "@/lib/reel/render-service";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
-import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,24 +26,6 @@ const bodySchema = z.object({ event_id: z.uuid() });
 
 function bad() {
   return NextResponse.json({ ok: false, code: "bad_request" }, { status: 400 });
-}
-
-/** getUser + own-event (explicit host_id, not the open-event policy). Returns the event id + name. */
-async function resolveOwnEvent(
-  eventId: string,
-): Promise<{ id: string; name: string } | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: ev } = await supabase
-    .from("events")
-    .select("id, name")
-    .eq("id", eventId)
-    .eq("host_id", user.id)
-    .maybeSingle();
-  return ev ?? null;
 }
 
 /** Map the render outcome to its HTTP response. User-facing copy = no em-dashes. */
