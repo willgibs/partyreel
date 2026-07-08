@@ -506,17 +506,27 @@ product-dark / resources-light** as recommended (Call 3).
 separately-ranking, statically-generated, high-intent landing page); the full nine-item help corrections
 checklist; the careers Reels Engineer JD rewrite in B3.
 
-### Cluster 4: voice. OPEN, spun into a DEDICATED VOICE EXPLORATION (Will, 2026-07-08)
+### Cluster 4: voice. DIRECTION RULED (Will, 2026-07-08); the blend execution is the remaining eyeball
 
-Will declined to ratify the leading copy by checklist. His words, recorded: "I'd like to have a dedicated
-exploration of some of our voice roles in leading copy. This stage defines a lot of the high level concepts
-and lower-level copy." So the thesis line, the hero language, and the section-header voice get their own
-exploration round (candidate voice DIRECTIONS presented for his reaction, the lab-round pattern applied to
-copy) BEFORE Track B writes production copy. The mechanical rules in Call 5 (typography, palette, no
-em-dashes, 15-16px reading copy, specifics-over-adjectives, the persona split) stand as BINDING CONSTRAINTS
-on that exploration; what the exploration decides is the voice itself: the site-wide thesis, the hero's
-language, and how loud/warm/dry the leading copy runs. "Every event ends with a reel." enters the
-exploration as one candidate, not the winner.
+Will declined to ratify the leading copy by checklist ("this stage defines a lot of the high level concepts
+and lower-level copy"), so four voice directions were drafted and presented. **His ruling on the draft: a
+MIX of D2 (Warm host) and D4 (The big night)**, his words recorded: D2 "appeals to the ease for the host"
+(though "and none of them are yours to chase" could be written better) and D4 "appeals to the importance of
+the events"; BOTH thesis lines are "very strong" and set the tone ("Every event ends with a reel." + "The
+whole night, in one place, forever."); and the blend should carry the virtue of the CURRENT site H1, "Every
+photo from your party, in one place," which he called "beautiful in its concise clarity."
+
+**The ruled voice, operationally: warm-host ease x big-night stakes, disciplined by concise clarity.** Every
+line passes the clarity test (could it be shorter and plainer without losing the warmth or the stakes?).
+Deadpan cinema (D1) is NOT the spine; Documentary-specific (D3) survives only as the factual register the
+trust and pricing sections already require (facts in a warm frame). One open micro-choice flagged from
+Will's own phrasing: he quoted D4's line as "The whole EVENT, in one place, forever" (the draft says
+NIGHT); "event" avoids the same event-type lock-in he ruled against in the arc (conferences and trips are
+not "nights"), so both forms go to the boards.
+
+**Remaining step:** the lab type-boards present TWO blend executions (night-leaning vs warm-leaning) with
+the pure D2 and D4 sources below as reference; Will confirms the execution, then Track B writes production
+copy in the confirmed voice. The Call 5 mechanics stay binding throughout.
 
 ### Cluster 5 (asked in the same walk): site media sourcing. RATIFIED (Will, 2026-07-08)
 
