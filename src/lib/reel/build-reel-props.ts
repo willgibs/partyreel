@@ -45,10 +45,10 @@ export type BuildReelPropsArgs = {
 
 /**
  * Turn the host's curated reel (ordered media + the chosen theme/seed/cover/length) into the ReelProps
- * the @remotion/player renders. Pure + client-safe: reuses the already-presigned GridMedia the page
- * holds (no extra presign/RPC). Approved-only (mirrors ReelPanel). Photos use the small preview (original
- * fallback for pre-preview rows); videos use the poster in posterMode (a missing poster → an empty url,
- * which the composition renders as a theme-color hold, so the reel LENGTH still reflects the curation).
+ * the canvas engine renders (player + export). Pure + client-safe: reuses the already-presigned GridMedia
+ * the page holds (no extra presign/RPC). Approved-only (mirrors ReelPanel). Photos use the small preview
+ * (original fallback for pre-preview rows); videos use the poster in posterMode (a missing poster → an
+ * empty url, which the engine draws as a theme-color hold, so the reel LENGTH still reflects the curation).
  */
 export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
   const {
