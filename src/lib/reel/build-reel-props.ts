@@ -29,7 +29,11 @@ export type BuildReelPropsArgs = {
   orientation?: Orientation;
   /** Pin this media as the opening shot (hoisted to index 0). */
   coverMediaId?: string | null;
-  /** Cap the reel to ~this many seconds (null/0 = auto). */
+  /**
+   * Cap the reel to ~this many seconds (null/0 = uncapped). Tier enforcement (ADR-0021) happens in
+   * the CALLERS: the composer and the render service both pass clampReelSeconds(tier, stored), so
+   * Auto arrives here as the tier cap (30/60) — never null — and capToLength always runs.
+   */
   lengthSeconds?: number | null;
   /**
    * Player shows video clips by their poster still (default true — the in-browser player can't decode

@@ -14,7 +14,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { type GridMedia } from "@/components/app/media-grid";
-import { toBillingTier } from "@/lib/constants/tiers";
+import { clampReelSeconds, toBillingTier } from "@/lib/constants/tiers";
 import type { Database } from "@/lib/db/types";
 import { assertR2Env, assertReelRenderEnv } from "@/lib/env";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -140,13 +140,15 @@ export async function requestReelRender(input: {
     .maybeSingle();
   if (!ev) return { ok: false, reason: "empty" };
 
-  // Tier → watermark (server-derived; never trust the client). max → pro via toBillingTier.
+  // Tier → watermark + the length cap (server-derived; never trust the client). max → pro via
+  // toBillingTier.
   const { data: prof } = await admin
     .from("profiles")
     .select("tier")
     .eq("id", ev.host_id)
     .maybeSingle();
-  const watermark = toBillingTier(prof?.tier ?? "free") === "free";
+  const tier = toBillingTier(prof?.tier ?? "free");
+  const watermark = tier === "free";
 
   // The curated reel: ordered ids + the approved media for the event.
   const [{ data: reelRows }, { data: mediaRows }, { data: reelRow }] =
@@ -175,7 +177,12 @@ export async function requestReelRender(input: {
   const styleId = row?.style_id ?? row?.theme ?? "classic";
   const orientation: Orientation = row?.orientation === "landscape" ? "landscape" : "portrait";
   const seed = row?.seed ?? defaultReelSeed(eventId);
-  const lengthSeconds = row?.length_seconds ?? null;
+  // The MINT-time tier clamp (ADR-0021): re-derive the length cap here, never trust the stored
+  // config (upsert_reel_config clamps too, but a downgrade after save would leave a stale 60).
+  // Auto (null) fills UP TO the tier cap, so lengthSeconds is always a number from here on — it
+  // feeds the hash (a tier change re-renders) and buildReelProps' capToLength.
+  const storedLengthSeconds = row?.length_seconds ?? null;
+  const lengthSeconds = clampReelSeconds(tier, storedLengthSeconds);
   const coverMediaId = row?.cover_media_id ?? null;
 
   // Resolve the ordered, approved, present ids (the render identity).
@@ -362,7 +369,12 @@ export async function requestReelRender(input: {
       theme: styleId, // keep the legacy column in sync with the style id during the transition
       orientation,
       seed,
-      length_seconds: lengthSeconds,
+      // Persist the HOST'S setting, not the render's resolved length: Auto stays null (so a later
+      // upgrade lengthens an Auto reel with no re-save); an explicit over-cap value clamps down.
+      length_seconds:
+        storedLengthSeconds == null
+          ? null
+          : clampReelSeconds(tier, storedLengthSeconds),
       cover_media_id: coverMediaId,
       status: "processing",
       render_id: renderId,

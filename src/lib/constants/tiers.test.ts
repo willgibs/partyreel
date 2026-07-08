@@ -5,14 +5,18 @@ import {
   DEFAULT_STORAGE_CAP_BYTES,
   GATED_EVENT_SETTINGS,
   GIGABYTE,
+  INGRESS_CAP_MULTIPLIER,
   MAX_EVENTS,
+  MAX_REEL_SECONDS,
   MONTHLY_INGRESS_BYTES,
   PLAN_IDS,
   PLANS,
   TERABYTE,
+  clampReelSeconds,
   effectiveStorageCap,
   friendlyCapacity,
   isSettingLocked,
+  monthlyIngressCap,
   planById,
   plansForTier,
   toBillingTier,
@@ -73,22 +77,68 @@ describe("tier limits ↔ tier_limits() parity", () => {
       expect(MAX_EVENTS[t]).toBeDefined();
       expect(MONTHLY_INGRESS_BYTES[t]).toBeDefined();
       expect(DEFAULT_STORAGE_CAP_BYTES[t]).toBeDefined();
+      expect(MAX_REEL_SECONDS[t]).toBeGreaterThan(0);
     }
   });
-  it("free: 1 event, 20 GB ingress, 2 GB cap", () => {
+  it("free: 1 event, 20 GB static ingress, 2 GB cap", () => {
     expect(MAX_EVENTS.free).toBe(1);
     expect(MONTHLY_INGRESS_BYTES.free).toBe(20 * GIGABYTE);
     expect(DEFAULT_STORAGE_CAP_BYTES.free).toBe(2 * GIGABYTE);
   });
-  it("pro: unlimited events + unmetered + profile-governed cap", () => {
+  it("pro: unlimited events + derived ingress + profile-governed cap", () => {
     expect(MAX_EVENTS.pro).toBeNull();
-    expect(MONTHLY_INGRESS_BYTES.pro).toBeNull();
+    expect(MONTHLY_INGRESS_BYTES.pro).toBeNull(); // null = derived, not unmetered (ADR-0021)
     expect(DEFAULT_STORAGE_CAP_BYTES.pro).toBeNull();
   });
-  it("event_pass: 1 event, unmetered, 75 GB cap", () => {
+  it("event_pass: 1 event, derived ingress, 75 GB cap", () => {
     expect(MAX_EVENTS.event_pass).toBe(1);
-    expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull();
+    expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull(); // null = derived (ADR-0021)
     expect(DEFAULT_STORAGE_CAP_BYTES.event_pass).toBe(75 * GIGABYTE);
+  });
+  it("reel length caps: Free 30s, Pro + Event Pass 60s (ADR-0021)", () => {
+    expect(MAX_REEL_SECONDS.free).toBe(30);
+    expect(MAX_REEL_SECONDS.pro).toBe(60);
+    expect(MAX_REEL_SECONDS.event_pass).toBe(60);
+  });
+  it("paid ingress multiplier is 3x the effective storage cap (ADR-0021)", () => {
+    expect(INGRESS_CAP_MULTIPLIER).toBe(3);
+  });
+});
+
+describe("monthlyIngressCap (ADR-0021 ingress derivation)", () => {
+  it("free: the static 20 GB, regardless of any cap on the profile", () => {
+    expect(monthlyIngressCap("free", null)).toBe(20 * GIGABYTE);
+    expect(monthlyIngressCap("free", 100 * GIGABYTE)).toBe(20 * GIGABYTE);
+  });
+  it("pro: 3x the purchased cap (each Pro size scales its own bound)", () => {
+    expect(monthlyIngressCap("pro", 100 * GIGABYTE)).toBe(300 * GIGABYTE);
+    expect(monthlyIngressCap("pro", 500 * GIGABYTE)).toBe(1500 * GIGABYTE);
+    expect(monthlyIngressCap("pro", 2 * TERABYTE)).toBe(6 * TERABYTE);
+  });
+  it("event_pass: 3x the 75 GB default = 225 GB", () => {
+    expect(monthlyIngressCap("event_pass", null)).toBe(225 * GIGABYTE);
+  });
+  it("pro with no cap on record fails OPEN (unmetered), never blocks", () => {
+    expect(monthlyIngressCap("pro", null)).toBeNull();
+  });
+});
+
+describe("clampReelSeconds (ADR-0021 length clamp)", () => {
+  it("Auto (null/0/negative) fills up to the tier cap", () => {
+    expect(clampReelSeconds("free", null)).toBe(30);
+    expect(clampReelSeconds("free", 0)).toBe(30);
+    expect(clampReelSeconds("free", -5)).toBe(30);
+    expect(clampReelSeconds("pro", null)).toBe(60);
+    expect(clampReelSeconds("event_pass", undefined)).toBe(60);
+  });
+  it("an explicit length under the cap passes through", () => {
+    expect(clampReelSeconds("free", 15)).toBe(15);
+    expect(clampReelSeconds("free", 30)).toBe(30);
+    expect(clampReelSeconds("pro", 60)).toBe(60);
+  });
+  it("an explicit length over the cap clamps down (downgraded host's stored 60)", () => {
+    expect(clampReelSeconds("free", 60)).toBe(30);
+    expect(clampReelSeconds("pro", 600)).toBe(60);
   });
 });
 

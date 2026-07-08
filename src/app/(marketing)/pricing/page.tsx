@@ -89,6 +89,7 @@ export default function PricingPage() {
               <Feature>{formatBytes(free.storageBytes)} of storage</Feature>
               <Feature>{photosCapacityLine(free.storageBytes)}</Feature>
               <Feature>Photos only</Feature>
+              <Feature>30-second reels</Feature>
               <Feature>No watermark</Feature>
             </ul>
           </CardContent>
@@ -119,6 +120,7 @@ export default function PricingPage() {
             <ul className="space-y-2.5 text-sm">
               <Feature>Unlimited events</Feature>
               <Feature>Photos and video</Feature>
+              <Feature>60-second reels</Feature>
               <Feature>No watermark</Feature>
               <Feature>Password-protected albums</Feature>
               <Feature>Pick the storage you need:</Feature>
@@ -157,6 +159,7 @@ export default function PricingPage() {
               </Feature>
               <Feature>{capacityLine(eventPass.storageBytes)}</Feature>
               <Feature>Photos and video</Feature>
+              <Feature>60-second reels</Feature>
               <Feature>No subscription, pay once</Feature>
             </ul>
           </CardContent>

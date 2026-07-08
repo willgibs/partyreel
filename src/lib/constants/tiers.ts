@@ -17,10 +17,12 @@
  *     fill → end → create-new → repeat for unlimited free storage. `MAX_EVENTS`
  *     counts events that EXIST (deleted_at IS NULL); deleting one (destroying its
  *     media) is the only way to free a slot.
- *   • The MONTHLY INGRESS meter (`MONTHLY_INGRESS_BYTES`) counts bytes UPLOADED per
- *     month and NEVER refunds on delete — storage caps alone don't stop
- *     delete→re-upload egress burn. It reads `storage_ledger.cumulative_bytes`,
- *     which never decrements.
+ *   • The MONTHLY INGRESS meter counts bytes UPLOADED per month and NEVER refunds on
+ *     delete — storage caps alone don't stop delete→re-upload egress burn. It reads
+ *     `storage_ledger.cumulative_bytes`, which never decrements. Free is a flat
+ *     20 GB (`MONTHLY_INGRESS_BYTES`); paid tiers derive INGRESS_CAP_MULTIPLIER x the
+ *     effective storage cap (`monthlyIngressCap`), so the abuse bound scales with
+ *     what the host pays for (ADR-0021).
  *
  * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
  * enforcement) — a Vitest parity test guards the pairing. Universal per-file limits
@@ -142,14 +144,43 @@ export const MAX_EVENTS: Record<Tier, number | null> = {
 };
 
 /**
- * Monthly uploaded-bytes (ingress) cap — anti-abuse, unmarketed, never refunds.
- * null = unmetered. MUST mirror tier_limits().monthly_ingress_bytes.
+ * Monthly uploaded-bytes (ingress) STATIC cap — anti-abuse, unmarketed, never refunds.
+ * Free is a flat 20 GB; null = DERIVED for paid tiers (INGRESS_CAP_MULTIPLIER x the
+ * effective storage cap — use monthlyIngressCap, never this record directly, for a
+ * paid tier's bound). MUST mirror tier_limits().monthly_ingress_bytes.
  */
 export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
   free: 20 * GIGABYTE, // generous; only catches extreme churn
-  pro: null, // revisit — likely a high multiple of the storage cap
-  event_pass: null,
+  pro: null, // derived: 3x the purchased storage cap (300 GB / 1.5 TB / 6 TB)
+  event_pass: null, // derived: 3x 75 GB = 225 GB
 };
+
+/**
+ * Paid-tier monthly ingress = this multiple of the EFFECTIVE storage cap (ADR-0021).
+ * Why a multiplier, not static bytes: the abuse bound scales with what the host pays
+ * for, stays unmarketed, and 3x leaves a full extra refill cycle of legitimate
+ * headroom (too-low blocks a paying customer; too-high is only mild abuse headroom).
+ * MUST mirror tier_limits().ingress_cap_multiplier.
+ */
+export const INGRESS_CAP_MULTIPLIER = 3;
+
+/**
+ * The monthly ingress cap for a host: Free = the static meter; paid = the multiplier
+ * times the effective storage cap (the host's actual storage_cap_bytes — Pro has
+ * three cap sizes — falling back to the tier default). A paid profile with no cap on
+ * record yet (the Stripe webhook writes it) returns null = unmetered: fail OPEN,
+ * never block a paying host on missing data. Mirrors the SQL monthly_ingress_cap()
+ * fn the upload RPCs enforce with.
+ */
+export function monthlyIngressCap(
+  tier: Tier,
+  storageCapBytes: number | null,
+): number | null {
+  const staticBytes = MONTHLY_INGRESS_BYTES[tier];
+  if (staticBytes !== null) return staticBytes;
+  const cap = effectiveStorageCap(tier, storageCapBytes);
+  return cap === null ? null : INGRESS_CAP_MULTIPLIER * cap;
+}
 
 /**
  * Per-tier default storage cap, used when `profiles.storage_cap_bytes` is null.
@@ -220,6 +251,34 @@ export function isSettingLocked(
  */
 export function videosAllowedForTier(tier: Tier): boolean {
   return tier !== "free";
+}
+
+/**
+ * Max highlight-reel length in seconds (ADR-0021): Free 30, paid 60. Length carries
+ * no render cost (client-side encode) — this is a product lever, marketed on
+ * /pricing, so a number can only safely move UP later (grandfathering makes marketed
+ * numbers sticky). MUST mirror tier_limits().max_reel_seconds.
+ */
+export const MAX_REEL_SECONDS: Record<Tier, number> = {
+  free: 30,
+  pro: 60,
+  event_pass: 60,
+};
+
+/**
+ * Clamp a requested reel length to the tier cap. Auto (null/0/negative) fills UP TO
+ * the cap; an explicit request clamps DOWN to it (a downgraded host's stored 60
+ * renders as 30). Always returns a positive number of seconds. The composer preview
+ * and the render/mint path both pass their length through this, and the reel-config
+ * RPC applies the same clamp in SQL — the server never trusts the stored or client
+ * value.
+ */
+export function clampReelSeconds(
+  tier: Tier,
+  requested: number | null | undefined,
+): number {
+  const cap = MAX_REEL_SECONDS[tier];
+  return requested && requested > 0 ? Math.min(requested, cap) : cap;
 }
 
 /**
