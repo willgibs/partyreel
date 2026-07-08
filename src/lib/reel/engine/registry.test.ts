@@ -46,6 +46,7 @@ describe("the engine style registry", () => {
       "editorial",
       "golden",
       "mono",
+      "punchy",
       "warm",
     ]);
   });

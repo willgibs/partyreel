@@ -24,10 +24,13 @@ export type DrawEnv = {
   /** Whether ctx.filter accepts CSS filter strings here (Safari: false; grades are skipped there). */
   filterOk: boolean;
   /**
-   * A reusable same-size scratch context for compositing a multi-draw layer at partial alpha
-   * (fading a clip layer as ONE image; per-draw globalAlpha would double-blend overlaps).
+   * Reusable same-size scratch contexts, one per SLOT (created lazily, reused across frames).
+   * Slots keep concurrent uses from clobbering each other within one frame: 0 = the partial-alpha
+   * layer composite (fading a clip layer as ONE image; per-draw globalAlpha would double-blend
+   * overlaps), 1 = the composition-signature content layer (weave/pulse/whip wrap the whole clip
+   * stack), 2 = the whip-blur downsample. Default slot 0.
    */
-  scratch: () => CanvasRenderingContext2D;
+  scratch: (slot?: number) => CanvasRenderingContext2D;
   /** Deduplicated capability/feature-gap reporting (console in dev, surfaced by the harness). */
   report: (message: string) => void;
 };

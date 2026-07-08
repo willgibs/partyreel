@@ -31,7 +31,8 @@ import {
 import type { DrawEnv, ReelStyle } from "../contract";
 import { computeMotion, dampForFit, type Move } from "../motion";
 import { drawBloom, drawLightsweep, drawSoftedge } from "../overlays";
-import { frameStateAt, planFor } from "../timeline";
+import { signatureFrameState } from "../signatures";
+import { clipStartFrames, frameStateAt, planFor } from "../timeline";
 import {
   clockWipePath,
   flipScale,
@@ -219,23 +220,20 @@ function draw(
   if (plan.clips.length === 0) return;
 
   const sig = theme.signature ?? {};
-  if (sig.weave || sig.pulse || sig.flashOnCut || sig.whipBlur) {
-    env.report(
-      "composition signatures (weave/pulse/flash/whipBlur) are not ported yet; skipped",
-    );
-  }
-
   const state = frameStateAt(plan, frame);
 
   // TransitionSeries semantics: inside a gap window the exiting clip renders below (under) and the
   // entering clip on top; the KIND decides how the two composite for the timing curve's progress
   // (transitions.ts carries the per-kind geometry ported from @remotion/transitions). Outside a gap
-  // window there is exactly one full-alpha layer.
-  const top = plan.clips[state.top.clipIndex];
-  const tr = state.transition;
-  if (!tr || !state.under) {
-    drawClipLayer(ctx, top, state.top.localFrame, 1, props, assets, env);
-  } else {
+  // window there is exactly one full-alpha layer. A closure because the composition signatures
+  // (below) may need the whole stack on a scratch layer instead of the output canvas.
+  const paintClipStack = (out: CanvasRenderingContext2D): void => {
+    const top = plan.clips[state.top.clipIndex];
+    const tr = state.transition;
+    if (!tr || !state.under) {
+      drawClipLayer(out, top, state.top.localFrame, 1, props, assets, env);
+      return;
+    }
     const under = plan.clips[state.under.clipIndex];
     const uf = state.under.localFrame;
     const tf = state.top.localFrame;
@@ -245,18 +243,18 @@ function draw(
     if (kind === "slide") {
       // Both layers move: the entering slide pushes the exiting one out (each fully opaque).
       const { enter, exit } = slideOffsets(dir, p);
-      drawClipLayer(ctx, under, uf, 1, props, assets, env, (c) =>
+      drawClipLayer(out, under, uf, 1, props, assets, env, (c) =>
         c.translate(exit.x * W, exit.y * H),
       );
-      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) =>
+      drawClipLayer(out, top, tf, 1, props, assets, env, (c) =>
         c.translate(enter.x * W, enter.y * H),
       );
     } else if (kind === "wipe") {
       // The under layer draws whole; the top clips to the wipe polygon (the in/out polygons tile
       // the frame, so this equals the DOM's clip-both rendering; see transitions.ts).
-      drawClipLayer(ctx, under, uf, 1, props, assets, env);
+      drawClipLayer(out, under, uf, 1, props, assets, env);
       const poly = wipeEnterPolygon(dir, p);
-      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+      drawClipLayer(out, top, tf, 1, props, assets, env, (c) => {
         c.beginPath();
         poly.forEach(([x, y], i) =>
           i === 0 ? c.moveTo(x * W, y * H) : c.lineTo(x * W, y * H),
@@ -268,7 +266,7 @@ function draw(
       // Backface culling means at most one layer is visible per frame (both at 90deg = neither).
       const exit = flipScale(dir, p, "exit");
       if (exit.visible) {
-        drawClipLayer(ctx, under, uf, 1, props, assets, env, (c) => {
+        drawClipLayer(out, under, uf, 1, props, assets, env, (c) => {
           c.translate(W / 2, H / 2);
           c.scale(
             exit.axis === "x" ? exit.scale : 1,
@@ -279,7 +277,7 @@ function draw(
       }
       const enter = flipScale(dir, p, "enter");
       if (enter.visible) {
-        drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+        drawClipLayer(out, top, tf, 1, props, assets, env, (c) => {
           c.translate(W / 2, H / 2);
           c.scale(
             enter.axis === "x" ? enter.scale : 1,
@@ -289,17 +287,67 @@ function draw(
         });
       }
     } else if (kind === "clockWipe") {
-      drawClipLayer(ctx, under, uf, 1, props, assets, env);
-      drawClipLayer(ctx, top, tf, 1, props, assets, env, (c) => {
+      drawClipLayer(out, under, uf, 1, props, assets, env);
+      drawClipLayer(out, top, tf, 1, props, assets, env, (c) => {
         c.beginPath();
         clockWipePath(c, W, H, p);
         c.clip();
       });
     } else {
       // fade + cut (a 2-frame fade): under opaque below, top fades in with the eased progress.
-      drawClipLayer(ctx, under, uf, 1, props, assets, env);
-      drawClipLayer(ctx, top, tf, p, props, assets, env);
+      drawClipLayer(out, under, uf, 1, props, assets, env);
+      drawClipLayer(out, top, tf, p, props, assets, env);
     }
+  };
+
+  // Composition signatures (Reel.tsx): weave/pulse transform + whip blur wrap the WHOLE clip stack
+  // (they sit on the AbsoluteFill around the TransitionSeries, INSIDE the overlays; the flash lands
+  // after the overlays, below). When active, the stack renders to the content scratch (slot 1; the
+  // fade composite holds slot 0) and comes back blurred and/or transformed.
+  const ss = signatureFrameState(
+    sig,
+    frame,
+    props.seed,
+    clipStartFrames(plan),
+    plan.gaps,
+  );
+  const hasTransform =
+    ss.weaveX !== 0 || ss.weaveY !== 0 || ss.pulseScale !== 1;
+  const hasBlur = ss.whip > 0.05; // Reel.tsx's own threshold
+  if (hasTransform || hasBlur) {
+    const content = env.scratch(1);
+    content.clearRect(0, 0, W, H);
+    paintClipStack(content);
+    let src: HTMLCanvasElement = content.canvas;
+    let sw = W;
+    let sh = H;
+    if (hasBlur) {
+      // CSS blur(whip px), approximated by the calibrated downsample (~2.9px of blur per unit of
+      // upscale, the buildWash constant): one pass down to 1/k inside the reusable aux scratch
+      // (slot 2, a corner region; +2px cleared so smoothing can't bleed stale pixels), drawn back
+      // up by the transform below. Whip peaks at 9px for 2-5 frame windows mid-slide, where the
+      // single-pass approximation is indistinguishable from the gaussian (conscious delta).
+      const k = Math.max(1.15, ss.whip / 2.9);
+      const aux = env.scratch(2);
+      sw = Math.max(2, Math.round(W / k));
+      sh = Math.max(2, Math.round(H / k));
+      aux.clearRect(0, 0, Math.min(W, sw + 2), Math.min(H, sh + 2));
+      aux.imageSmoothingEnabled = true;
+      aux.imageSmoothingQuality = "high";
+      aux.drawImage(content.canvas, 0, 0, W, H, 0, 0, sw, sh);
+      src = aux.canvas;
+    }
+    ctx.save();
+    // CSS order: the blur filters the element, THEN translate(weave) scale(pulse) maps it (about
+    // the element center, the transform-origin default).
+    ctx.translate(ss.weaveX + W / 2, ss.weaveY + H / 2);
+    ctx.scale(ss.pulseScale, ss.pulseScale);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(src, 0, 0, sw, sh, -W / 2, -H / 2, W, H);
+    ctx.restore();
+  } else {
+    paintClipStack(ctx);
   }
 
   // Overlays persist across the whole reel (they sit OUTSIDE the TransitionSeries in Reel.tsx),
@@ -328,6 +376,17 @@ function draw(
     } else {
       env.report(`overlay "${kind}" is not ported yet; skipped`);
     }
+  }
+
+  // The cut-strobe flash (Pulse) renders LAST, over the overlays, exactly where Reel.tsx puts it
+  // (the screen-blended white AbsoluteFill after the Overlay map).
+  if (ss.flash > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = ss.flash * 0.5;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
   }
 }
 

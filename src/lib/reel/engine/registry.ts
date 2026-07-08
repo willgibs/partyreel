@@ -24,6 +24,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   warm: moodStyle("warm"),
   dreamy: moodStyle("dreamy"),
   golden: moodStyle("golden"),
+  punchy: moodStyle("punchy"),
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
@@ -68,22 +69,24 @@ export function makeDrawEnv(
 ): DrawEnv {
   const width = canvas.width;
   const height = canvas.height;
-  let scratchCtx: CanvasRenderingContext2D | null = null;
+  const scratchCtxs: (CanvasRenderingContext2D | null)[] = [];
   const reported = new Set<string>();
   return {
     width,
     height,
     filterOk: detectCtxFilter(),
-    scratch: () => {
-      if (!scratchCtx) {
+    scratch: (slot = 0) => {
+      let ctx = scratchCtxs[slot];
+      if (!ctx) {
         const c = document.createElement("canvas");
         c.width = width;
         c.height = height;
-        scratchCtx = c.getContext("2d");
-        if (!scratchCtx)
+        ctx = c.getContext("2d");
+        if (!ctx)
           throw new Error("2d context unavailable for the scratch layer");
+        scratchCtxs[slot] = ctx;
       }
-      return scratchCtx;
+      return ctx;
     },
     report: (message) => {
       if (reported.has(message)) return;
