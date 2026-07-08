@@ -1,8 +1,9 @@
 /**
  * The CLIENT-ENCODE reel export endpoint (Plan A Phase C): the host's browser encodes the mp4 via
  * WebCodecs and this route brokers the three phases (begin → mint → finalize; the contract lives in
- * src/lib/reel/upload-contract.ts, the logic in render-service.ts). Authz mirrors /api/reel/render:
- * getUser() + an own-event RLS read per request; the render service then re-derives the ENTIRE reel
+ * src/lib/reel/upload-contract.ts, the logic in render-service.ts). Authz is the shared reel gate
+ * (resolveOwnEvent): getUser() + an own-event RLS read per request; the render service then re-derives
+ * the ENTIRE reel
  * config (tier, length clamp, watermark, membership, hash) server-side, so nothing about the export
  * identity is client-trusted. The only client inputs that matter are the byte count (bounded by the
  * server budget AND the content-length-signed presign) and the opaque hash echo (compared against a

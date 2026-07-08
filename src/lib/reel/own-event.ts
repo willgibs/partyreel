@@ -1,7 +1,8 @@
 /**
- * The reel routes' shared authz gate: getUser() (never getSession) + an OWN-event read (explicit
- * host_id match, NOT the open-event policy), via the cookie-scoped RLS client. Both /api/reel/render
- * and /api/reel/upload resolve through this before touching the admin-client render service.
+ * The reel export route's authz gate: getUser() (never getSession) + an OWN-event read (explicit
+ * host_id match, NOT the open-event policy), via the cookie-scoped RLS client. /api/reel/upload
+ * resolves through this before touching the admin-client render service. (Kept as its own helper —
+ * the caller-less GET poll route that also used it was pruned 2026-07-08.)
  */
 import { createClient } from "@/lib/supabase/server";
 
