@@ -76,7 +76,9 @@ The expected, accepted set:
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
   `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications`,
   `export_log` (per-attempt "Download all" log — HMAC-of-IP, never a raw IP), `ops_flags` (the `export_enabled`
-  kill-switch + future ops toggles) — all operator/service-role-only. The "Download all" export adds NO new
+  kill-switch + future ops toggles), `upload_forensics` + `forensic_audit_log` (ADR-0020 — raw IP BY RULING,
+  deny-all is the containment; → [trust-safety-forensics.md](trust-safety-forensics.md)) — all
+  operator/service-role-only. The "Download all" export adds NO new
   SECURITY DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing), so the 0028/0029
   advisor split is unchanged. The abuse limiter gains an `"export"` kind (`action_attempts` is kind-generic — no
   schema change); scope = (IP, event), breadth-guarded like `join`.

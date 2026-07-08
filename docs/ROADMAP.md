@@ -72,22 +72,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   dual-shot preview) is consciously kept (excising shifts the trailer the MPF index points into; needs
   in-place TIFF surgery or coordinated MPF size+offset rewrites); the backfill report flags it as
   clean-but-GPS. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
-  round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
-  only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,
-  full UA + UA client hints, and a durable FIRST-PARTY device id (localStorage/cookie UUID) that survives
-  session-token rotation. Extract + retain key EXIF (GPS, device make/model/serial, capture time) into a
-  locked record. NOTE: the EXIF/GPS strip itself SHIPPED 2026-07-02 as a CLIENT-side pre-upload step
-  (→ [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)), so the server never sees the EXIF — this
-  round's forensic capture must extract it client-side BEFORE the strip and post it with the upload. On a
-  report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
-  remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
-  preservation hold for **1 YEAR from the report** (18 U.S.C. §2258A as amended by the REPORT Act,
-  PL 118-59, 2024, which replaced the old 90d+90 window and requires secure limited-access storage; a
-  legal mandate + safe harbor, not "storage"); NO PhotoDNA (enterprise-grade, too costly now). Store as
-  deny-all service-role PII, defined retention, admin/legal-only access. Confirm the policy with counsel.
-  Full options-doc for the T1 ruling: [`decisions/t1-forensic-csam-policy.md`](decisions/t1-forensic-csam-policy.md). (The abuse-focused rate limiter that
-  was the last deferred security piece SHIPPED 2026-06-08, commit `7bb2b53`.)
+- **Forensic capture follow-ons (ADR-0020)** — the A3-lite capture + legal hold + preservation +
+  `/admin/forensics` SHIPPED 2026-07-07 (→ [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)).
+  Remaining, all gated: the pre-strip client-side EXIF capture (COUNSEL-GATED, ADR-0020 decision 1 — the
+  server never sees EXIF post-strip, so extraction must run client-side before the strip); proactive
+  hashing (PhotoDNA/Safer) at real scale; any media-serving re-architecture to widen the Cloudflare CSAM
+  scanner past proxied traffic. The counsel sign-offs + NCMEC registration live in the Launch checkpoint.
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
@@ -214,6 +204,15 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
 - Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+- Counsel sign-off gate (ADR-0020 D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
+  ToS forensic-capture disclosure language (IP/UA/geo/device UUID per upload), (2) the CSAM incident
+  runbook ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)) + NCMEC registration,
+  (3) the retention schedule (media-lifetime rows, 1-year preservation), (4) the pre-strip EXIF capture
+  go/no-go. The 8-item checklist is in the T1 options-doc (git history: `decisions/t1-forensic-csam-policy.md`).
+- NCMEC CyberTipline ESP registration `[human]` — register before launch (prep note in
+  [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
+- Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
+  (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
 - Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
   (code unchanged); checklist in [`PRICING.md`](PRICING.md).
 - Tune `MONTHLY_INGRESS_BYTES.pro` `[eng]` — currently `null`/unmetered; set before Pro launch.

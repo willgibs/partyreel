@@ -86,7 +86,9 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   strategy adapters over the ONE pipeline engine
   [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts) (Phase 3): the engine owns the
   shared spine (parse → zod → server-side classify/ext → `validateUpload` → key build →
-  single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC),
+  single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC →
+  forensic capture, ADR-0020: one deny-all `upload_forensics` row per success, best-effort-but-loud —
+  → [trust-safety-forensics.md](trust-safety-forensics.md)),
   the strategies own the per-identity gates + status mapping. Part-size math single-sourced in
   [`upload/part-plan.ts`](../../src/lib/upload/part-plan.ts). Response JSON shapes/key order are the
   `uploadFile()` contract — byte-for-byte frozen (curl-fixture verified at the refactor).
