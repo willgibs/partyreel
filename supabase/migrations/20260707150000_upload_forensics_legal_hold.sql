@@ -32,6 +32,12 @@
 -- legal_hold_at is null at apply time, so day-0 behavior is bit-identical) — a conscious delta,
 -- because a TS-only exclusion would leave purge_media_now/restore_media holes at the DB boundary.
 --
+-- APPLY ORDER (orchestrator): apply this BEFORE the merge deploys — the purge sweeps,
+-- purgeMediaNow, and the /admin/forensics reads reference legal_hold_at + the new tables, so
+-- code-before-migration would error those paths (each sweep is try/caught + Sentry'd, and the
+-- capture seam is best-effort, so nothing user-facing breaks — but don't leave that window open).
+-- Then regenerate src/lib/db/types.ts and drop the UntypedAdmin seams at leisure.
+--
 -- CONTRACT CHECK (rolled back — the orchestrator runs this AFTER apply; it must print ROLLBACK_OK):
 --
 --   do $$
@@ -45,7 +51,8 @@
 --     select id into v_host from public.profiles limit 1;
 --     if v_host is null then raise exception 'no profile to test with'; end if;
 --     insert into public.events (id, host_id, name, qr_token)
---       values (v_event, v_host, 'forensics-contract-check', encode(gen_random_bytes(16), 'hex'));
+--       values (v_event, v_host, 'forensics-contract-check',
+--               md5(random()::text) || md5(random()::text)); -- unique token without pgcrypto
 --     insert into public.media (id, event_id, type, original_key, file_size_bytes, status, legal_hold_at)
 --       values (v_media, v_event, 'photo',
 --               'events/' || v_event || '/photo/' || v_media || '/original.jpg', 123, 'approved', now());

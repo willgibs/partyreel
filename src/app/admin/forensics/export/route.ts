@@ -11,6 +11,8 @@
 import { NextResponse } from "next/server";
 
 import { requireAdminAction } from "@/lib/auth/admin-context";
+import { isAdminHost } from "@/lib/auth/admin-host";
+import { env } from "@/lib/env";
 import { writeForensicAudit } from "@/lib/forensics/preserve";
 import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
@@ -28,6 +30,12 @@ type UntypedAdmin = SupabaseClient;
 const EXPORT_TTL_SECONDS = 5 * 60;
 
 export async function GET(request: Request): Promise<Response> {
+  // Host isolation first (mirrors the pages' assertAdminHost, which is page-flavored —
+  // redirect/notFound): in prod the portal exists ONLY on the admin host; a plain 404 on the
+  // apex keeps this route's existence from leaking. Dev (no NEXT_PUBLIC_ADMIN_HOST) skips it.
+  if (env.NEXT_PUBLIC_ADMIN_HOST && !isAdminHost(request.headers.get("host"))) {
+    return new Response("Not found", { status: 404 });
+  }
   const auth = await requireAdminAction();
   if (!auth.ok) return NextResponse.json(auth.result, { status: 403 });
 
