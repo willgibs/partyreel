@@ -37,6 +37,11 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
             ? 400
             : 422;
   },
+  // Forensic capture (ADR-0020): the guest's linkage IS the capability token; the
+  // seam resolves it to the guests row server-side.
+  forensicIdentity(parsed) {
+    return { kind: "guest", sessionToken: parsed.session_token };
+  },
 };
 
 export async function POST(request: Request) {

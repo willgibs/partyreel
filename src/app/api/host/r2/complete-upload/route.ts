@@ -42,6 +42,10 @@ function hostCompleteStrategy(
             ? 400
             : 422;
     },
+    // Forensic capture (ADR-0020): the getUser()-verified host id is the linkage.
+    forensicIdentity() {
+      return { kind: "host", hostUserId: hostId };
+    },
   };
 }
 

@@ -28,6 +28,10 @@ import "server-only";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 
+import {
+  captureUploadForensics,
+  type ForensicIdentity,
+} from "@/lib/forensics/capture";
 import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
 import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
@@ -225,6 +229,8 @@ type CompleteCommon = {
   preview_key?: string;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
+  /** Capture-only device UUID (ADR-0020) — forwarded to the forensic record, nothing else. */
+  device_uuid?: string;
 };
 
 /** The shape both create-record mutations resolve to (guest + host results both fit). */
@@ -244,6 +250,11 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
   errorStatus(code: string): number;
   /** Sentry label for unexpected create failures (bad_key/unknown). */
   captureLabel: string;
+  /**
+   * The uploader identity the route ALREADY holds (guest capability token / getUser()-verified
+   * host id), handed to the forensic-capture seam (ADR-0020). No new auth is derived here.
+   */
+  forensicIdentity(parsed: z.output<Schema>): ForensicIdentity;
 };
 
 export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommon>>(
@@ -350,6 +361,19 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
       message: result.message,
     });
   }
+
+  // Forensic capture (ADR-0020), at the ONE seam where the row + the request context coexist.
+  // AFTER createRecord so a rejected upload records nothing; AWAITED (serverless would kill a
+  // floating promise at response time); best-effort-but-loud inside (a capture failure never
+  // fails the upload — captureUploadForensics Sentry-warns and the /admin coverage signal shows
+  // the gap). The idempotent-retry case upserts-ignore, so a retry never duplicates the record.
+  await captureUploadForensics({
+    headers: request.headers,
+    mediaId: media_id,
+    key,
+    deviceUuid: parsed.data.device_uuid ?? null,
+    identity: strategy.forensicIdentity(parsed.data),
+  });
 
   // {media_id, status} on a fresh insert; {idempotent:true} on a retry.
   const status = "idempotent" in result.data ? "recorded" : result.data.status;

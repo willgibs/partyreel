@@ -57,6 +57,9 @@ export const completeUploadSchema = z.object({
   // null for single-PUT uploads; the R2 uploadId for multipart.
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
+  // The localStorage device UUID, CAPTURE-ONLY (ADR-0020): recorded into the deny-all
+  // upload_forensics row at the complete seam; never product logic, never rendered.
+  device_uuid: z.uuid().optional(),
 });
 
 // ─── Host upload variants (authenticated) ────────────────────────────────────
@@ -85,6 +88,8 @@ export const hostCompleteUploadSchema = z.object({
   preview_key: z.string().trim().min(1).optional(),
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
+  // Capture-only device UUID (see completeUploadSchema).
+  device_uuid: z.uuid().optional(),
 });
 
 export type JoinInput = z.input<typeof joinSchema>;

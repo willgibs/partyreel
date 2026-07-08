@@ -403,12 +403,17 @@ export async function purgeMediaNow(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // LEGAL HOLD (ADR-0020): held items are excluded HERE, before the R2-first delete — the
+  // purge_media_now RPC also refuses them, but that would only save the ROW after this wrapper
+  // had already destroyed the OBJECT. (`.filter` because legal_hold_at isn't in the generated
+  // types until the orchestrator regenerates post-apply.)
   const { data: rows, error: readErr } = await supabase
     .from("media")
     .select("id, original_key, preview_key")
     .eq("event_id", eventId)
     .in("id", mediaIds)
-    .eq("status", "removed");
+    .eq("status", "removed")
+    .filter("legal_hold_at", "is", null);
   if (readErr) {
     return {
       ok: false,

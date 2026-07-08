@@ -43,6 +43,7 @@ import {
 } from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
+import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
 import { captureError } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey, reelOutputKey } from "@/lib/r2/keys";
@@ -183,10 +184,37 @@ async function sweepExpiredEvents(
     );
   if (error) throw new Error(`select events: ${error.message}`);
 
-  const eventIds = (events ?? []).map((e) => e.id);
+  const expiredIds = (events ?? []).map((e) => e.id);
+  if (expiredIds.length === 0) {
+    return {
+      events: 0,
+      media_rows: 0,
+      r2_deleted: 0,
+      r2_errored: 0,
+      freed_bytes: 0,
+    };
+  }
+
+  // LEGAL HOLD (ADR-0020): an event containing ANY held media is skipped WHOLE this run.
+  // Deleting the event row would FK-CASCADE the held media rows (and their upload_forensics
+  // rows) away, and the R2 enumeration below would delete the held objects — the cascade is
+  // all-or-nothing, so the safe unit is the event. It stays soft-deleted in the bin and
+  // re-enters this sweep once the hold releases. (`.filter` — legal_hold_at isn't in the
+  // generated types until the orchestrator regenerates post-apply.)
+  const { data: heldMedia, error: holdErr } = await admin
+    .from("media")
+    .select("event_id")
+    .in("event_id", expiredIds)
+    .filter("legal_hold_at", "not.is", null);
+  if (holdErr) throw new Error(`select held media: ${holdErr.message}`);
+  const { purgeable: eventIds, blocked: holdBlocked } = partitionEventsByHold(
+    expiredIds,
+    heldMedia ?? [],
+  );
   if (eventIds.length === 0) {
     return {
       events: 0,
+      hold_blocked_events: holdBlocked.length,
       media_rows: 0,
       r2_deleted: 0,
       r2_errored: 0,
@@ -223,6 +251,7 @@ async function sweepExpiredEvents(
 
   return {
     events: eventIds.length,
+    hold_blocked_events: holdBlocked.length,
     media_rows: mediaIds.length,
     r2_deleted: r2.deleted,
     r2_errored: r2.errored.length,
@@ -241,12 +270,15 @@ async function sweepRemovedMedia(
   handled: Set<string>,
 ) {
   // purge_at is trigger-derived (= removed_at + RECENTLY_DELETED_WINDOW_DAYS); reclaim once it passes.
+  // LEGAL HOLD (ADR-0020): held rows are excluded HERE, before the R2-first delete — the SQL guard
+  // in purge_media_rows protects only the row; this filter is what protects the OBJECT.
   const { data: media, error } = await admin
     .from("media")
     .select("id, original_key, preview_key")
     .eq("status", "removed")
     .not("purge_at", "is", null)
-    .lte("purge_at", now.toISOString());
+    .lte("purge_at", now.toISOString())
+    .filter("legal_hold_at", "is", null);
   if (error) throw new Error(`select removed media: ${error.message}`);
 
   const rows = ((media ?? []) as MediaRow[]).filter((r) => !handled.has(r.id));
@@ -800,18 +832,23 @@ async function sweepStandbyBudget(
 
     // The bin via two DISJOINT queries (status='removed' vs in-a-deleted-event-and-not-removed),
     // unioned in JS. Avoids a version-sensitive cross-table PostgREST .or; the sets can't overlap.
+    // LEGAL HOLD (ADR-0020): held rows are excluded from the bin entirely — they can't be evicted
+    // (the delete is R2-first, so they must never reach the key list) and they don't count against
+    // the host's standby budget (the hold is our doing, not the host's hoarding).
     const { data: removedRows, error: rErr } = await admin
       .from("media")
       .select(BIN_SELECT)
       .eq("events.host_id", p.id)
-      .eq("status", "removed");
+      .eq("status", "removed")
+      .filter("legal_hold_at", "is", null);
     if (rErr) throw new Error(`standby removed bin: ${rErr.message}`);
     const { data: deletedRows, error: dErr } = await admin
       .from("media")
       .select(BIN_SELECT)
       .eq("events.host_id", p.id)
       .not("events.deleted_at", "is", null)
-      .neq("status", "removed");
+      .neq("status", "removed")
+      .filter("legal_hold_at", "is", null);
     if (dErr) throw new Error(`standby deleted-event bin: ${dErr.message}`);
 
     const binRows = [
