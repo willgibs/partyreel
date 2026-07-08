@@ -1,14 +1,14 @@
 import { requireDesignKey } from "../gate";
 import { ModeShell } from "../mode-shell";
-import { ReelParity } from "./parity";
+import { ReelCanvasStyles } from "./parity";
 
 /**
- * THE DOM-vs-CANVAS PARITY HARNESS (the client-rendered-reels port, slice 1). Every style ported from
- * the Remotion composition to the canvas engine gets graded HERE: both players on the same ReelProps,
- * frame-locked scrubbing for exact comparison, plus the WebCodecs mp4 export. Will signs off styling
- * parity per style before the composer swaps engines. Permanent while the port runs (13 styles left).
+ * THE REEL CANVAS STYLE BROWSER. Every reel style on the canvas engine, on shared props: play,
+ * frame-lock + scrub for a still look, and export the mp4 via the on-device WebCodecs encoder. (Was
+ * the DOM-vs-canvas parity harness; the Remotion side was torn down 2026-07-08, so it's canvas-only.)
+ * Route + file name kept so lab links stay valid.
  */
-export default async function ReelParityPage({
+export default async function ReelCanvasStylesPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -17,7 +17,7 @@ export default async function ReelParityPage({
 
   return (
     <ModeShell fontClass="font-opt-urbanist">
-      <ReelParity />
+      <ReelCanvasStyles />
     </ModeShell>
   );
 }

@@ -1,5 +1,5 @@
-// Deterministic seeded PRNG (mulberry32). Same seed → same reel, so the @remotion/player preview and
-// the Lambda render match, AND a "shuffle" (a new seed) yields a genuinely different-but-stable take.
+// Deterministic seeded PRNG (mulberry32). Same seed → same reel, so the live player and the on-device
+// export match, AND a "shuffle" (a new seed) yields a genuinely different-but-stable take.
 
 export function mulberry32(a: number): () => number {
   return function () {

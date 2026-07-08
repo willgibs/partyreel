@@ -162,9 +162,9 @@ export const ZONES: LabZone[] = [
           },
           {
             href: "/design/reel-parity",
-            label: "Reel canvas parity",
-            status: "exploring",
-            note: "The Remotion player and the canvas engine side by side on the same props, frame-locked scrubbing plus the WebCodecs export. Grades each ported style.",
+            label: "Reel canvas styles",
+            status: "reference",
+            note: "Every reel style on the canvas engine, on shared props: play, frame-lock + scrub for a still, and export the mp4 via the on-device WebCodecs encoder.",
           },
         ],
       },

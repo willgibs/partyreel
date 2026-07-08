@@ -3,7 +3,7 @@
 // tint. The photos fill the frame; the EDIT + GRADE + ENERGY + SIGNATURE differentiate the moods, each
 // tuned to an event vibe. The per-reel seed samples WITHIN a kit (transition per gap, pan/zoom, jitter), so
 // same-kit reels still feel unique. `theme` is a TEXT id on highlight_reels, validated here (no DB enum →
-// kits add freely; the catalog is built to grow). Tuned in the /design/reel lab + curated with Will.
+// kits add freely; the catalog is built to grow). Tuned in the reel canvas style lab + curated with Will.
 //
 // NOTE (transitional): the first three keep their legacy ids (classic/warm/punchy) so existing configs +
 // the render-hash tests keep resolving; their LABELS are the polished mood names. Phase 2 formalizes the
