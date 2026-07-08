@@ -10,6 +10,18 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-08 — Milestone 1 (R1 Decision Studio + R2 Reel Engine) merged to main
+
+The `launch-prep` integration branch merged to `main` (`--no-ff`, tag `milestone-1`) carrying: the seven
+T1 rulings recorded (ADR-0019..0022 + the two lab decisions), the ADR-0021 pricing slice (30s/60s reel
+caps + the 3x ingress multiplier, TS + SQL + the composer paid-lock, migration applied + parity-verified),
+the ADR-0020 forensic capture track (upload_forensics + legal hold + /admin/forensics + the CSAM runbook
+draft; the media SELECT column-scoping shipped with a same-day main hotfix `a65d29e` when it briefly broke
+prod's star-selects), the FULL 14-style canvas reel engine (8 moods + 6 treatments, parity-verified per
+style against the Remotion originals, frame-normalized washes, the redesigned bottom-right watermark with
+3 variants for T2), the composer swap + client-encoded export (above), the request-scoped auth cache, and
+the T1-ruled composite reveal + marketing-identity directions in the lab. 853 tests at the merge.
+
 ## 2026-07-08 — Reel Plan A Phase C: the composer on the canvas engine + client-encoded export
 
 **The reel export goes $0 by default.** The composer's live player is now `CanvasReelPlayer` (the same
@@ -27,7 +39,13 @@ logging `client_encoded` at cost 0 (mint logs `client_minted`; `/admin/reels` la
 unchanged (`rendered_hash` match → the stored mp4, $0). No WebCodecs → the untouched Lambda render. No DDL
 (`reel_render_log.outcome` is text). Verified: Vitest (budget math, contract zod, gate logic, hash
 invalidation; 853 green), typecheck/lint/build green, curl red-team of the route's parse/authz surface
-(400/403/405); the real browser encode e2e runs on the preview alias at integration.
+(400/403/405); live e2e on the preview alias (2026-07-08): a real 25s encode ran `client_minted` →
+`client_encoded` in 7 seconds at $0.00 (the Lambda rows directly above it in the same log: ~2 minutes,
+~$0.014), a second click served `cached` with no re-encode, a style switch invalidated the hash and
+re-encoded in 6s, and the Free-account composer shows the locked 60s chip + upgrade copy. The operator
+kill-switch drill (flip at /admin/reels, watch a refusal) is an M1-pass item with Will. Known quality
+delta, flagged for Will's judgment: the encode sources the 640px preview WebPs (literal WYSIWYG), so
+full-size playback reads softer than originals; the ~2400px render-source variant is the queued fix.
 
 **The live location leak is closed.** Guests' phone photos/videos carried GPS + device EXIF into the R2
 originals served by the lightbox, per-item Save, and the Download-all zip. Now a **client-side, lossless,
