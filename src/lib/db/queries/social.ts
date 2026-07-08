@@ -21,6 +21,7 @@ import {
   type NotificationPrefs,
   type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
+import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -34,6 +35,28 @@ import { createClient } from "@/lib/supabase/server";
 // truth in the meantime. AFTER the regen lands: swap the casts for the typed
 // client + Tables<"user_follows"> etc. and delete this seam.
 const social = (client: unknown) => client as SupabaseClient;
+
+/**
+ * The pre-apply RUNTIME seam (the typing seam's sibling): until the orchestrator
+ * applies migration 20260708120000, the social tables/columns/RPC don't exist in
+ * the live DB, so these reads fail with undefined-column/table (42703/42P01) or
+ * PostgREST schema-cache misses (PGRST202 missing fn, PGRST204/205 missing
+ * column/table). The UI surfaces treat that as "feature not provisioned yet" and
+ * render their graceful empty/hidden state, so this branch builds AND runs green
+ * pre-apply. Real errors (RLS, network, bugs) still throw. Delete the call sites'
+ * catch branches only if you want post-apply failures to surface louder.
+ */
+const MISSING_SCHEMA_CODES = new Set([
+  "42703",
+  "42P01",
+  "PGRST202",
+  "PGRST204",
+  "PGRST205",
+]);
+export function isSocialSchemaMissing(error: unknown): boolean {
+  const code = (error as { code?: string | null } | null)?.code ?? "";
+  return MISSING_SCHEMA_CODES.has(code);
+}
 
 /** The public-by-existence card fields (ADR-0019 point 3). */
 export type SocialProfileCard = {
@@ -96,7 +119,10 @@ export async function getMyFollowing(): Promise<FollowEntry[]> {
     .select("followee_id, created_at")
     .eq("follower_id", user.id)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return []; // pre-apply
+    throw error;
+  }
 
   const rows = (data ?? []) as { followee_id: string; created_at: string }[];
   const cards = await getProfileCards(rows.map((r) => r.followee_id));
@@ -116,7 +142,10 @@ export async function getMyFollowers(): Promise<FollowEntry[]> {
     .select("follower_id, created_at")
     .eq("followee_id", user.id)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return []; // pre-apply
+    throw error;
+  }
 
   const rows = (data ?? []) as { follower_id: string; created_at: string }[];
   const cards = await getProfileCards(rows.map((r) => r.follower_id));
@@ -144,6 +173,12 @@ export async function getMyFollowCounts(): Promise<{
       .select("followee_id", { count: "exact", head: true })
       .eq("followee_id", user.id),
   ]);
+  if (
+    isSocialSchemaMissing(following.error) ||
+    isSocialSchemaMissing(followers.error)
+  ) {
+    return { following: 0, followers: 0 }; // pre-apply
+  }
   if (following.error) throw following.error;
   if (followers.error) throw followers.error;
   return {
@@ -166,7 +201,10 @@ export async function isFollowing(profileId: string): Promise<boolean> {
     .select("followee_id", { count: "exact", head: true })
     .eq("follower_id", user.id)
     .eq("followee_id", profileId);
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return false; // pre-apply
+    throw error;
+  }
   return (count ?? 0) > 0;
 }
 
@@ -180,7 +218,10 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
     .select("blocked_id, created_at")
     .eq("blocker_id", user.id)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return []; // pre-apply
+    throw error;
+  }
 
   const rows = (data ?? []) as { blocked_id: string; created_at: string }[];
   const cards = await getProfileCards(rows.map((r) => r.blocked_id));
@@ -206,7 +247,10 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
     )
     .eq("user_id", user.id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return resolveNotificationPrefs(null);
+    throw error;
+  }
   return resolveNotificationPrefs(data as NotificationPrefsRow | null);
 }
 
@@ -219,7 +263,10 @@ export async function getMyHiddenEventIds(): Promise<string[]> {
     .from("profile_hidden_events")
     .select("event_id")
     .eq("user_id", user.id);
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return []; // pre-apply
+    throw error;
+  }
   return ((data ?? []) as { event_id: string }[]).map((r) => r.event_id);
 }
 
@@ -271,8 +318,190 @@ export async function getPublicProfile(
   const { data, error } = await social(supabase).rpc("get_public_profile", {
     p_slug: slug,
   });
-  if (error) throw error;
+  if (error) {
+    if (isSocialSchemaMissing(error)) return null; // pre-apply: /u/* 404s
+    throw error;
+  }
   return (data as PublicProfile | null) ?? null;
+}
+
+/**
+ * Cover URLs for a public profile's HOSTED events, keyed by event id — the /u/
+ * page's grid art. OPEN events only (the saved-events masking rule: password
+ * media is entry-gated, private is locked), so a presign happens only where a
+ * public thumbnail is already allowed on the album itself. Admin read because
+ * the viewer may be anonymous; the id list came from the display_in_profile-
+ * gated RPC, so nothing new leaks. Same newest-approved-photo rule as
+ * getEventCoverUrls (photo-only is load-bearing there; same reason here).
+ */
+export async function getPublicProfileCoverUrls(
+  events: PublicProfileHostedEvent[],
+): Promise<Map<string, string>> {
+  const openIds = events
+    .filter((e) => e.visibility === "open")
+    .map((e) => e.id);
+  return adminCoverUrls(openIds);
+}
+
+async function adminCoverUrls(
+  eventIds: string[],
+): Promise<Map<string, string>> {
+  const urls = new Map<string, string>();
+  if (eventIds.length === 0) return urls;
+
+  const { data, error } = await createAdminClient()
+    .from("media")
+    .select("event_id, original_key")
+    .in("event_id", eventIds)
+    .eq("status", "approved")
+    .eq("type", "photo")
+    .is("removed_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  const coverKey = new Map<string, string>();
+  for (const row of data ?? []) {
+    if (!coverKey.has(row.event_id))
+      coverKey.set(row.event_id, row.original_key);
+  }
+  const entries = await Promise.all(
+    [...coverKey].map(
+      async ([id, key]) => [id, await presignDownload({ key })] as const,
+    ),
+  );
+  for (const [id, url] of entries) urls.set(id, url);
+  return urls;
+}
+
+/**
+ * Whether a block exists between the two users in EITHER direction — the
+ * server-side gate that hides the follow affordance on /u/[slug]. Admin read on
+ * purpose: "they blocked me" is invisible to my RLS BY DESIGN, but the page must
+ * not offer a follow button that can only silently no-op. The result is used
+ * solely to render-or-not (never which direction), so the block stays private.
+ */
+export async function isBlockedEitherWay(
+  viewerId: string,
+  profileId: string,
+): Promise<boolean> {
+  const { data, error } = await social(createAdminClient())
+    .from("user_blocks")
+    .select("blocker_id")
+    .or(
+      `and(blocker_id.eq.${viewerId},blocked_id.eq.${profileId}),and(blocker_id.eq.${profileId},blocked_id.eq.${viewerId})`,
+    )
+    .limit(1);
+  if (error) {
+    if (isSocialSchemaMissing(error)) return false;
+    throw error;
+  }
+  return (data ?? []).length > 0;
+}
+
+/** Whether *I* blocked this profile (drives the Unblock affordance on /u/). */
+export async function hasBlocked(
+  viewerId: string,
+  profileId: string,
+): Promise<boolean> {
+  const { data, error } = await social(createAdminClient())
+    .from("user_blocks")
+    .select("blocker_id")
+    .eq("blocker_id", viewerId)
+    .eq("blocked_id", profileId)
+    .limit(1);
+  if (error) {
+    if (isSocialSchemaMissing(error)) return false;
+    throw error;
+  }
+  return (data ?? []).length > 0;
+}
+
+/** My own handle (profiles.slug), for the /account claim control. */
+export async function getMyProfileSlug(): Promise<string | null> {
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return null;
+
+  const { data, error } = await social(supabase)
+    .from("profiles")
+    .select("slug")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error) {
+    if (isSocialSchemaMissing(error)) return null;
+    throw error;
+  }
+  return (data as { slug: string | null } | null)?.slug ?? null;
+}
+
+// ── The account surface (settings reads) ─────────────────────────────────────
+
+export type AttendedEventSetting = {
+  id: string;
+  name: string;
+  event_date: string | null;
+  /** In my profile_hidden_events set (the per-event hide toggle is OFF). */
+  hiddenFromProfile: boolean;
+};
+
+/**
+ * Events I ATTENDED (signed-in guest rows with >= 1 approved upload, host
+ * differs), for the /account per-event hide-from-my-profile toggles. Mirrors the
+ * RPC's attended arm MINUS the show_guest_list filter, deliberately: the hide
+ * toggle is MY key and must stay settable even while the host's key is off (so
+ * flipping show_guest_list on later never surprises a guest who already hid the
+ * event). Admin read: events RLS is host-only and guests has no authenticated
+ * read; scoped hard to the caller's own guest rows.
+ */
+export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
+  const { user } = await getRequestAuth();
+  if (!user) return [];
+
+  const admin = createAdminClient();
+  try {
+    const { data: guests, error: guestsError } = await admin
+      .from("guests")
+      .select("id, event_id")
+      .eq("user_id", user.id);
+    if (guestsError) throw guestsError;
+    if (!guests || guests.length === 0) return [];
+
+    const { data: approved, error: mediaError } = await admin
+      .from("media")
+      .select("guest_id")
+      .in(
+        "guest_id",
+        guests.map((g) => g.id),
+      )
+      .eq("status", "approved");
+    if (mediaError) throw mediaError;
+
+    const approvedGuestIds = new Set((approved ?? []).map((m) => m.guest_id));
+    const eventIds = [
+      ...new Set(
+        guests.filter((g) => approvedGuestIds.has(g.id)).map((g) => g.event_id),
+      ),
+    ];
+    if (eventIds.length === 0) return [];
+
+    const eventsRes = await admin
+      .from("events")
+      .select("id, name, event_date, host_id")
+      .in("id", eventIds)
+      .neq("host_id", user.id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (eventsRes.error) throw eventsRes.error;
+    const hidden = new Set(await getMyHiddenEventIds());
+    return (eventsRes.data ?? []).map((e) => ({
+      id: e.id,
+      name: e.name,
+      event_date: e.event_date,
+      hiddenFromProfile: hidden.has(e.id),
+    }));
+  } catch (error) {
+    if (isSocialSchemaMissing(error)) return [];
+    throw error;
+  }
 }
 
 // ── The event guest list (the ADR-0019 host key) ─────────────────────────────
@@ -310,6 +539,7 @@ export async function getEventGuestList(
     .eq("id", eventId)
     .is("deleted_at", null)
     .maybeSingle();
+  if (eventError && isSocialSchemaMissing(eventError)) return null; // pre-apply
   if (eventError) throw eventError;
   if (!event || !(event as { show_guest_list: boolean }).show_guest_list) {
     return null;
@@ -358,4 +588,101 @@ export async function getEventGuestList(
         sensitivity: "base",
       }),
     );
+}
+
+/** The host's own view of the two social keys, for the event settings card.
+ *  null = the social schema isn't provisioned yet (pre-apply) OR the event
+ *  isn't the caller's — either way the card hides. RLS scopes the row. */
+export async function getEventSocialSettings(eventId: string): Promise<{
+  displayInProfile: boolean;
+  showGuestList: boolean;
+} | null> {
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return null;
+
+  const { data, error } = await social(supabase)
+    .from("events")
+    .select("display_in_profile, show_guest_list")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) {
+    if (isSocialSchemaMissing(error)) return null;
+    throw error;
+  }
+  if (!data) return null;
+  const row = data as {
+    display_in_profile: boolean;
+    show_guest_list: boolean;
+  };
+  return {
+    displayInProfile: row.display_in_profile,
+    showGuestList: row.show_guest_list,
+  };
+}
+
+// ── The dashboard Following section ──────────────────────────────────────────
+
+export type FollowedEventCard = {
+  eventId: string;
+  name: string;
+  event_date: string | null;
+  hostName: string | null;
+  /** /e/<custom_slug ?? qr_token> — present because the host PUBLISHED the
+   *  event to their profile (display_in_profile); private/password still gate
+   *  at the /e/ page, mirroring the public-profile hosted arm. */
+  href: string;
+  coverUrl: string | null;
+};
+
+/**
+ * Events by hosts I follow, for the dashboard "Following" chip: the union of my
+ * followees' PUBLISHED events (display_in_profile on, not deleted), newest
+ * first. The exact set each host's /u/ page shows, so following someone is
+ * "their profile, delivered". Covers follow the same open-only masking as the
+ * profile grid. Owner-private input (my follow rows) + published-only output,
+ * so nothing leaks that /u/ doesn't already show.
+ */
+export async function getFollowedHostEventCards(): Promise<
+  FollowedEventCard[]
+> {
+  const following = await getMyFollowing();
+  if (following.length === 0) return [];
+  const hostNames = new Map(following.map((f) => [f.id, f.displayName]));
+
+  try {
+    const { data, error } = await social(createAdminClient())
+      .from("events")
+      .select(
+        "id, name, event_date, visibility, qr_token, custom_slug, host_id, created_at",
+      )
+      .in("host_id", [...hostNames.keys()])
+      .eq("display_in_profile", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    const rows = (data ?? []) as {
+      id: string;
+      name: string;
+      event_date: string | null;
+      visibility: Database["public"]["Enums"]["event_visibility"];
+      qr_token: string;
+      custom_slug: string | null;
+      host_id: string;
+    }[];
+    const covers = await adminCoverUrls(
+      rows.filter((r) => r.visibility === "open").map((r) => r.id),
+    );
+    return rows.map((r) => ({
+      eventId: r.id,
+      name: r.name,
+      event_date: r.event_date,
+      hostName: hostNames.get(r.host_id) ?? null,
+      href: `/e/${r.custom_slug ?? r.qr_token}`,
+      coverUrl: covers.get(r.id) ?? null,
+    }));
+  } catch (error) {
+    if (isSocialSchemaMissing(error)) return [];
+    throw error;
+  }
 }

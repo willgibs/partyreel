@@ -281,6 +281,51 @@ export async function unhideEventFromProfile(
 }
 
 /**
+ * The two ADR-0019 event keys, host-set from the event settings card:
+ * display_in_profile (publish this event on MY public profile) and
+ * show_guest_list (name every signed-in uploader on the album). Plain RLS
+ * update: the migration added both columns to the events column-scoped
+ * authenticated grant, and events RLS row-locks to the host. `.select("id")`
+ * verifies a row actually changed (a foreign/deleted event updates 0 rows and
+ * must not report success).
+ */
+export async function setEventSocialSettings(
+  eventId: string,
+  patch: { displayInProfile?: boolean; showGuestList?: boolean },
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const update: Record<string, boolean> = {};
+  if (patch.displayInProfile !== undefined)
+    update.display_in_profile = patch.displayInProfile;
+  if (patch.showGuestList !== undefined)
+    update.show_guest_list = patch.showGuestList;
+  if (Object.keys(update).length === 0)
+    return { ok: true, data: { id: eventId } };
+
+  const { data, error } = await social(supabase)
+    .from("events")
+    .update(update)
+    .eq("id", eventId)
+    .select("id");
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save this setting. Please try again.",
+    };
+  }
+  if ((data ?? []).length === 0) {
+    return { ok: false, code: "unknown", message: "Event not found." };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+/**
  * Claim/change my public profile handle (/u/[slug]).
  *
  * Order of checks: getUser() -> app-side Pro gate (tier read via own-row RLS;
