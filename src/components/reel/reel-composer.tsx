@@ -161,7 +161,6 @@ export function ReelComposer({
         // The tier clamp, applied to the PREVIEW too: Auto fills up to the cap (30/60), so the
         // player shows exactly what the export renders (the render path applies the same clamp).
         lengthSeconds: clampReelSeconds(tier, lengthSeconds),
-        posterMode: true,
         watermark,
       }),
     [

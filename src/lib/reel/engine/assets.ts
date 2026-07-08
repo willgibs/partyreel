@@ -4,11 +4,10 @@
 // flat-out during encode; any per-frame decode or blur would dominate the frame budget and wreck the
 // spike's proven encode ratios. The frame loop only ever does scaled draws of what this module built.
 //
-// v1 scope note: the engine renders STILLS (photos + video posters). A video clip's url is already its
-// poster in posterMode (build-reel-props), so everything here is an image; real video decode is the
-// later Pro-trim slice. An EMPTY url (a posterless video) loads as null and draws as the theme-color
-// hold, exactly like the Remotion ClipLayer. A FAILED load also becomes null + a failure count:
-// graceful hold, never a crash.
+// v1 scope note: the engine renders STILLS (photos + video posters). A video clip's url is ALWAYS its
+// poster still (build-reel-props resolves it there), so everything here is an image; real video decode is
+// the later Pro-trim slice. An EMPTY url (a posterless video) loads as null and draws as the theme-color
+// hold. A FAILED load also becomes null + a failure count: graceful hold, never a crash.
 //
 // CORS: canvas readback (the encode) requires CORS-clean pixels. R2 presigned GETs and same-origin
 // fixtures are fine; a tainting source (e.g. picsum in the old lab) would throw at encode time, which
@@ -135,8 +134,8 @@ export async function loadReelAssets(
   }
 
   if (opts.haloFilter) {
-    // Halation is photo-only (clip-media renders no halation Img for videos, even in posterMode),
-    // so halos are keyed per (image, photo) and shared across same-url clips like the washes.
+    // Halation is photo-only (a video renders as its poster still, no halation pass), so halos are
+    // keyed per (image, photo) and shared across same-url clips like the washes.
     const filterOk = detectCtxFilter();
     const haloByImage = new Map<CanvasImage, HTMLCanvasElement>();
     results.forEach((asset, i) => {

@@ -96,7 +96,6 @@ export function ReelCanvasStyles() {
       seed,
       styleId,
       orientation,
-      posterMode: true,
       watermark,
     }),
     [styleId, seed, orientation, watermark],

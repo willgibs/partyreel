@@ -63,7 +63,6 @@ export function useFixtureReelProps(): ReelProps {
       seed: 73,
       styleId: "classic",
       orientation: "portrait" as const,
-      posterMode: true,
       watermark: false,
     }),
     [],

@@ -9,7 +9,7 @@ import type {
   ReelProps,
   ReelTheme,
 } from "@/lib/reel/engine/reel-types";
-import { isTreatment, styleThemeId } from "@/lib/reel/engine/style-registry";
+import { styleThemeId } from "@/lib/reel/engine/style-registry";
 import { resolveTheme } from "@/lib/reel/engine/themes";
 
 // How long a video clip plays when no custom trim is set (the trim UI is a later, Pro slice). The
@@ -34,11 +34,6 @@ export type BuildReelPropsArgs = {
    * Auto arrives here as the tier cap (30/60) — never null — and capToLength always runs.
    */
   lengthSeconds?: number | null;
-  /**
-   * Player shows video clips by their poster still (default true — the in-browser player can't decode
-   * R2 video over CORS). The export passes false → a real <Video> from the original mp4 url.
-   */
-  posterMode?: boolean;
   /** Stamp the free-tier "partyreel.com" wordmark (default false). Set from the host's tier. */
   watermark?: boolean;
 };
@@ -47,7 +42,7 @@ export type BuildReelPropsArgs = {
  * Turn the host's curated reel (ordered media + the chosen theme/seed/cover/length) into the ReelProps
  * the canvas engine renders (player + export). Pure + client-safe: reuses the already-presigned GridMedia
  * the page holds (no extra presign/RPC). Approved-only (mirrors ReelPanel). Photos use the small preview
- * (original fallback for pre-preview rows); videos use the poster in posterMode (a missing poster → an
+ * (original fallback for pre-preview rows); videos ALWAYS use their poster still (a missing poster → an
  * empty url, which the engine draws as a theme-color hold, so the reel LENGTH still reflects the curation).
  */
 export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
@@ -59,15 +54,12 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
     orientation,
     coverMediaId,
     lengthSeconds,
-    posterMode = true,
     watermark = false,
   } = args;
 
   // Resolve the styleId to its ReelTheme kit via the pure registry (mood: its own kit; treatment: its
-  // designed native grade). The treatments render clips as plain <Img> (no <Video> path yet — Phase 3), so a
-  // treatment must show video clips by their POSTER even in the export, or an mp4 url would break its <Img>.
+  // designed native grade).
   const theme = resolveTheme(styleThemeId(styleId));
-  const treatment = isTreatment(styleId);
 
   // Resolve to approved-only media in reel order (a hidden/removed item drops out, as in ReelPanel).
   const ordered = orderedIds
@@ -88,11 +80,12 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
     const width = m.width ?? undefined;
     const height = m.height ?? undefined;
     if (m.type === "video") {
-      // Poster = the small WebP (new uploads); "" on pre-preview rows → the composition placeholder.
-      const poster = m.previewUrl ?? "";
-      const usePoster = posterMode || treatment;
+      // A video ALWAYS resolves to its poster still (the client-generated ~640px WebP): the poster is
+      // the ONLY valid video source until the Pro motion-video slice, and it's what makes a video item
+      // render at all. A missing poster ("" on the 3 legacy pre-preview rows) → an empty url, which the
+      // engine draws as a theme-color hold (never the raw mp4 url the image-only asset loader can't decode).
       return {
-        url: usePoster ? poster : (m.url ?? ""),
+        url: m.previewUrl ?? "",
         type: "video",
         width,
         height,
@@ -109,7 +102,7 @@ export function buildReelProps(args: BuildReelPropsArgs): ReelProps {
       ? capToLength(clips, theme, seed, lengthSeconds)
       : clips;
 
-  return { clips: capped, theme, seed, styleId, orientation, posterMode, watermark };
+  return { clips: capped, theme, seed, styleId, orientation, watermark };
 }
 
 /** Keep the clips whose cumulative timeline FINISHES within lengthSeconds (always at least the first).

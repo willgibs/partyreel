@@ -5,7 +5,8 @@
 import type { Orientation } from "./constants";
 
 export type ReelClip = {
-  /** A presigned R2 GET URL (photo preview or original; video original, or its poster in posterMode). */
+  /** A presigned R2 GET URL: a photo's preview (or original), or a video's poster still. Empty ("") =
+   *  nothing to draw → the engine's theme-color hold (a posterless video). */
   url: string;
   type: "photo" | "video";
   /** Source pixel dimensions — drive the cover-vs-fit framing (mismatched-orientation media is fit, not
@@ -134,12 +135,6 @@ export type ReelProps = {
    * exports distinctly. `theme` is already resolved from this upstream (in build-reel-props).
    */
   styleId?: string;
-  /**
-   * Render video clips as their POSTER still instead of decoding the mp4 (the reel's v1 behavior: real
-   * video in the reel is a later Pro slice). Additive + defaulted false. buildReelProps sets it true for
-   * the current stills-first reel; the field stays so the video path can be turned on later.
-   */
-  posterMode?: boolean;
   /**
    * Free-tier export lever: stamp a small "partyreel.com" wordmark over the reel (the corner-logo
    * upgrade nudge + free marketing; the spec's free-vs-Pro differentiator). The render service derives
