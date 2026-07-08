@@ -50,6 +50,7 @@ describe("the engine style registry", () => {
       "mono",
       "polaroid",
       "punchy",
+      "scattered",
       "warm",
     ]);
   });

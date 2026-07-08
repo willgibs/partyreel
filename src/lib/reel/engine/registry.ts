@@ -15,6 +15,7 @@ import { CINEMATIC } from "./styles/cinematic";
 import { FILMSTRIP } from "./styles/filmstrip";
 import { moodStyle } from "./styles/mood";
 import { POLAROID } from "./styles/polaroid";
+import { SCATTERED } from "./styles/scattered";
 
 /** The styles ported to canvas so far (keyed by catalog styleId). All 8 moods render through the one
  *  generic mood draw (styles/mood.ts) parameterized by props.theme, mirroring the Remotion <Reel>;
@@ -30,6 +31,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   kinetic: moodStyle("kinetic"),
   polaroid: POLAROID,
   filmstrip: FILMSTRIP,
+  scattered: SCATTERED,
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
