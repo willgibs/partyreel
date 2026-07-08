@@ -15,14 +15,13 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
-// The render is async (~a minute on Lambda); poll the status route until the .mp4 lands. The webhook
-// flips the DB faster in prod, but polling is the reliable signal (it also drives the local-dev path,
-// where Lambda can't reach localhost). 3s keeps it responsive without hammering.
+// The dormant poll interval (see the JSDoc): if a reel is ever left in 'processing', poll the render
+// status route until the .mp4 lands. 3s keeps it responsive without hammering.
 const POLL_MS = 3000;
 
 /**
  * The composer's export-progress state when the CLIENT encodes (WebCodecs): the parent drives the
- * stages; this dialog only renders them. `null`/absent = the Lambda poll mode below.
+ * stages; this dialog only renders them. `null`/absent = the dormant poll mode below.
  */
 export type ReelEncodeState =
   | { stage: "encoding"; progress: number } // 0..1 from encodeReel's onProgress
@@ -30,13 +29,14 @@ export type ReelEncodeState =
   | { stage: "error" };
 
 /**
- * The reel export progress modal, in two modes:
- *  - LAMBDA (no `encode` prop): "Stitching your reel". Opened once a server render is in flight;
- *    polls /api/reel/render until the reel is ready (then auto-downloads + closes) or fails. The
- *    host can close and come back, the render keeps going.
- *  - CLIENT ENCODE (`encode` set): the on-device WebCodecs export surface. The composer drives the
- *    stages (encoding with real progress, then the R2 upload); closing the dialog cancels via
- *    onOpenChange (the composer aborts). No polling, the work is local.
+ * The reel export progress modal. The composer always opens it in CLIENT-ENCODE mode (`encode` set):
+ * the on-device WebCodecs export surface, where the composer drives the stages (encoding with real
+ * progress, then the R2 upload) and closing the dialog cancels via onOpenChange (the composer aborts).
+ * No polling; the work is local, and the composer's finalize call flips the reel to ready synchronously.
+ *
+ * The `encode`-absent branch is a DORMANT resilience path: it polls the render status route
+ * (/api/reel/render GET) until a 'processing' reel lands, then auto-downloads + closes. Nothing enters
+ * it today (the client encode finalizes synchronously); it's kept as a safety net wired to that route.
  */
 export function ReelStitchingDialog({
   eventId,
@@ -53,7 +53,7 @@ export function ReelStitchingDialog({
   onReady: (downloadUrl: string) => void;
   /** Re-kick the export (the composer's Download handler) after a failure. */
   onRetry: () => void;
-  /** Client-encode mode: the parent-driven stage. Omit/null for the Lambda poll mode. */
+  /** Client-encode mode: the parent-driven stage. Omit/null for the dormant poll mode. */
   encode?: ReelEncodeState | null;
 }) {
   const clientMode = encode != null;

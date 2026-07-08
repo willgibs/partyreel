@@ -1,6 +1,6 @@
-// The reel render config — the inputProps the composition is parameterized by, shared by the
-// @remotion/player preview AND renderMediaOnLambda. The real composer sources these from reel_items +
-// media + the theme/seed the host picks (see src/lib/reel/build-reel-props.ts).
+// The reel render config — the props the canvas engine is parameterized by, driving BOTH the live
+// player AND the on-device WebCodecs export from one draw function. The real composer sources these from
+// reel_items + media + the theme/seed the host picks (see src/lib/reel/build-reel-props.ts).
 
 import type { Orientation } from "./constants";
 
@@ -20,9 +20,8 @@ export type ReelClip = {
 
 // --- The motion vocabulary (a theme = a distinct EDIT character, not a tint) -------------------------
 
-/** The transition presentations a theme can sample. CSS-based (reliable in the browser AND Lambda's
- *  headless Chrome). The richer shader presentations (dreamyZoom/crossZoom) are a later, export-verified
- *  add. "cut" is a near-instant fade (Punchy's hard cut). */
+/** The transition presentations a theme can sample. The richer shader presentations (dreamyZoom/
+ *  crossZoom) are a later add. "cut" is a near-instant fade (Punchy's hard cut). */
 export type TransitionKind = "fade" | "cut" | "slide" | "wipe" | "flip" | "clockWipe";
 export type SlideDir = "from-left" | "from-right" | "from-top" | "from-bottom";
 
@@ -47,8 +46,8 @@ export type KenBurnsKit = {
   punch?: number;
 };
 
-/** Light/texture overlays layered over the whole reel (procedural/inline → WYSIWYG in Lambda). The
- *  components live in effects.tsx; these string unions stay HERE (pure, no remotion) so the server-side
+/** Light/texture overlays layered over the whole reel (procedural/inline). The overlay drawing lives in
+ *  the engine; these string unions stay HERE (pure, no DOM) so the server-side
  *  build-reel-props can import ReelTheme without dragging the runtime in. */
 export type OverlayKind =
   | "grain"
@@ -75,7 +74,7 @@ export type MotionStyle = "drift" | "punch" | "float" | "freezeGo";
 /** The per-mood SIGNATURE — one deliberate craft touch beyond grade + motion that makes a look read as its
  *  own film. Composition-level (weave / flashOnCut / pulse) + clip-level (halation / inset); the
  *  overlay-based signatures (letterbox / bloom / lightsweep / softedge / grain / vignette) ride in
- *  `overlays`. All CSS/SVG/inline → renders identically in the player and Lambda (WYSIWYG). */
+ *  `overlays`. The engine draws them the same way for the live player and the export (one draw fn). */
 export type ReelSignature = {
   /** A faint gate weave (max px of seeded horizontal/vertical wander) — Film. */
   weave?: number;
@@ -136,10 +135,9 @@ export type ReelProps = {
    */
   styleId?: string;
   /**
-   * Player-only: render video clips as their POSTER still (an <Img>) instead of decoding the mp4. The
-   * in-browser @remotion/player hits R2 CORS on <Video> fetches (headless-Chrome/browser), so the live
-   * preview shows clips by their poster (the spec's v1 behavior). The Lambda export leaves this false →
-   * real <Video>. Additive + defaulted false, so the export path is byte-identical.
+   * Render video clips as their POSTER still instead of decoding the mp4 (the reel's v1 behavior: real
+   * video in the reel is a later Pro slice). Additive + defaulted false. buildReelProps sets it true for
+   * the current stills-first reel; the field stays so the video path can be turned on later.
    */
   posterMode?: boolean;
   /**

@@ -62,6 +62,11 @@ const LENGTHS: { label: string; value: number | null }[] = [
   { label: "60s", value: 60 },
 ];
 
+// The honest notice when this browser can't encode the mp4 (no WebCodecs). The reel still plays; the
+// download just needs a modern browser. No em-dashes (user-facing copy).
+const NO_EXPORT_NOTICE =
+  "Video export needs a modern browser. Your reel still plays here, and any modern phone or desktop browser can download it.";
+
 function rpcOk(data: unknown): boolean {
   return (
     !!data && typeof data === "object" && (data as { ok?: boolean }).ok === true
@@ -77,13 +82,11 @@ function rpcOk(data: unknown): boolean {
  * reel row on the first edit. Reads the shared ReelProvider so adds/removes/reorders in the grid
  * below reflect live.
  *
- * Download video runs one of TWO paths, decided per browser by the WebCodecs probe:
- *  - CLIENT ENCODE (the default; Plan A Phase C): encodeReel() renders the mp4 on-device from the
- *    SAME props the player shows, saves it locally, and uploads it to the reel output key via the
- *    host-authed /api/reel/upload begin→mint→finalize handshake (cached exactly like Lambda output).
- *  - LAMBDA FALLBACK (no WebCodecs): the untouched server render via /api/reel/render + the poll.
- * Do NOT import @remotion/player here — the Remotion twin lives on only for the parity harness
- * until the R8 teardown.
+ * Download video is a CLIENT ENCODE: encodeReel() renders the mp4 on-device (WebCodecs) from the SAME
+ * props the player shows, saves it locally, and uploads it to the reel output key via the host-authed
+ * /api/reel/upload begin→mint→finalize handshake (cached, guest-servable). A browser without WebCodecs
+ * can't encode — we probe support and, in that rare case, show an honest inline notice instead of the
+ * Download button (the reel still PLAYS; any modern phone/desktop browser can download it).
  */
 export function ReelComposer({
   eventId,
@@ -229,12 +232,29 @@ export function ReelComposer({
     };
   }, [persistConfig]);
 
-  // Download → the .mp4, via one of two paths (see the component JSDoc). `encodeState` doubles as
-  // the mode flag for the shared progress dialog: set = on-device encode, null = the Lambda poll.
+  // Download → the on-device .mp4 encode. `encodeState` drives the shared progress dialog's stages.
   const [downloading, setDownloading] = useState(false);
   const [stitchOpen, setStitchOpen] = useState(false);
   const [encodeState, setEncodeState] = useState<ReelEncodeState | null>(null);
   const encodeAbortRef = useRef<AbortController | null>(null);
+
+  // Proactively probe whether THIS browser can encode at the current orientation/style, so a browser
+  // without WebCodecs sees an honest notice instead of a Download button it can't fulfill. null =
+  // probing (assume yes so the button shows); false = show the notice. Re-probes on orientation/style.
+  const [exportSupported, setExportSupported] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    probeEngineSupport(orientation)
+      .then((support) => {
+        if (alive) setExportSupported(shouldClientEncode(support, styleId));
+      })
+      .catch(() => {
+        if (alive) setExportSupported(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [orientation, styleId]);
 
   const downloadReel = useCallback((url: string) => {
     const a = document.createElement("a");
@@ -386,33 +406,6 @@ export function ReelComposer({
     closeEncode,
   ]);
 
-  /** The untouched Lambda fallback (no WebCodecs): trigger the server render + poll via the dialog. */
-  const runLambdaRender = useCallback(async () => {
-    try {
-      const res = await fetch("/api/reel/render", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.ok) {
-        toast.error(
-          data?.message ?? "Couldn't start your reel video. Please try again.",
-        );
-        return;
-      }
-      if (data.status === "ready" && data.downloadUrl) {
-        downloadReel(data.downloadUrl);
-        toast.success("Your reel is ready.");
-      } else {
-        setEncodeState(null);
-        setStitchOpen(true); // processing → the modal polls until it's ready
-      }
-    } catch {
-      toast.error("Couldn't start your reel video. Please try again.");
-    }
-  }, [eventId, downloadReel]);
-
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     try {
@@ -422,18 +415,19 @@ export function ReelComposer({
       // different reel (persistConfig already surfaced its save-failure toast).
       const saved = await persistConfig();
       if (!saved) return;
-      // Per-browser path decision: probe WebCodecs at the CURRENT orientation's dimensions. A probe
-      // failure reads as "can't encode" and falls back to Lambda (never a broken download).
+      // Encode on-device (WebCodecs). Re-probe at the CURRENT orientation as a guard: if this browser
+      // can't encode, say so honestly (the inline notice already covers the proactive case). The reel
+      // still plays here regardless.
       const support = await probeEngineSupport(orientation).catch(() => null);
-      if (shouldClientEncode(support, styleId)) {
-        await runClientEncode();
-      } else {
-        await runLambdaRender();
+      if (!shouldClientEncode(support, styleId)) {
+        toast.info(NO_EXPORT_NOTICE);
+        return;
       }
+      await runClientEncode();
     } finally {
       setDownloading(false);
     }
-  }, [persistConfig, orientation, styleId, runClientEncode, runLambdaRender]);
+  }, [persistConfig, orientation, styleId, runClientEncode]);
 
   return (
     <div className="space-y-3">
@@ -614,21 +608,25 @@ export function ReelComposer({
         )}
       </p>
 
-      {/* Download → the .mp4 (client encode when the browser can, Lambda otherwise). The old
-          "preview is optimized for speed" tip is gone on purpose: with the canvas engine the
-          preview and the encoded export are the same pixels. */}
+      {/* Download → the on-device .mp4 encode. The preview and the encoded export are the same pixels
+          (one canvas draw fn), so there's no "optimized for speed" caveat. A browser that can't encode
+          (no WebCodecs) gets an honest notice instead — the reel still plays above. */}
       <div className="flex flex-col gap-1.5 border-t pt-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <Button type="button" onClick={handleDownload} disabled={downloading}>
-            <Download />
-            {downloading ? "Preparing…" : "Download video"}
-          </Button>
-          {watermark && (
-            <span className="text-xs text-muted-foreground">
-              Free reels include a small partyreel.com mark.
-            </span>
-          )}
-        </div>
+        {exportSupported === false ? (
+          <p className="text-sm text-muted-foreground">{NO_EXPORT_NOTICE}</p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <Button type="button" onClick={handleDownload} disabled={downloading}>
+              <Download />
+              {downloading ? "Preparing…" : "Download video"}
+            </Button>
+            {watermark && (
+              <span className="text-xs text-muted-foreground">
+                Free reels include a small partyreel.com mark.
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <ReelStitchingDialog
