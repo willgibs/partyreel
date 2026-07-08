@@ -32,10 +32,12 @@ import { resolveTheme } from "@/lib/reel/engine/themes";
 // LOCAL fixtures on purpose: the canvas reads back pixels for the encode, and a cross-origin host
 // without CORS (picsum) TAINTS the canvas and kills the export. Mixed aspects so cover-vs-fit framing
 // shows (landscape media in a portrait reel is FIT with the theme backdrop; p12 is portrait and covers).
-const FIXTURES: { src: string; w: number; h: number }[] = [
+// One fixture is a VIDEO whose url is a still standing in for the client-generated poster WebP, so the
+// browser visually proves a video slot draws its poster (not a black hold) across every style.
+const FIXTURES: { src: string; w: number; h: number; type?: "video" }[] = [
   { src: "/design/p01.jpg", w: 900, h: 600 },
   { src: "/design/p12.jpg", w: 700, h: 1050 },
-  { src: "/design/p02.jpg", w: 900, h: 601 },
+  { src: "/design/p02.jpg", w: 900, h: 601, type: "video" }, // a video item: url = its poster still
   { src: "/design/p03.jpg", w: 900, h: 600 },
   { src: "/design/p04.jpg", w: 800, h: 534 },
   { src: "/design/p05.jpg", w: 900, h: 600 },
@@ -43,9 +45,9 @@ const FIXTURES: { src: string; w: number; h: number }[] = [
   { src: "/design/p07.jpg", w: 900, h: 600 },
 ];
 
-const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h }) => ({
+const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h, type }) => ({
   url: src,
-  type: "photo",
+  type: type ?? "photo",
   width: w,
   height: h,
 }));
