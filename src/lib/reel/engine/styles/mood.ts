@@ -24,6 +24,7 @@ import {
   containRect,
   coverRect,
   drawCover,
+  drawGrain,
   drawLetterbox,
   drawVignette,
 } from "../canvas2d";
@@ -111,23 +112,23 @@ function paintClipLayer(
   ctx.rotate((mv.rotate * Math.PI) / 180);
   ctx.scale(mv.scale, mv.scale);
 
+  const rect =
+    fit === "cover"
+      ? coverRect(asset.width, asset.height, bw, bh)
+      : containRect(asset.width, asset.height, bw, bh);
+
+  ctx.save();
   if (env.filterOk) {
     ctx.filter = theme.grade;
   } else {
     env.report("grade skipped: ctx.filter is unsupported in this browser");
   }
-
   // A framed (contained, no inset card) photo floats on a soft drop-shadow (clip-media isFramed).
   if (fit === "fit" && inset <= 0) {
     ctx.shadowColor = "rgba(0,0,0,0.42)";
     ctx.shadowBlur = 40;
     ctx.shadowOffsetY = 14;
   }
-
-  const rect =
-    fit === "cover"
-      ? coverRect(asset.width, asset.height, bw, bh)
-      : containRect(asset.width, asset.height, bw, bh);
   ctx.drawImage(
     asset.image,
     -bw / 2 + rect.x,
@@ -135,11 +136,26 @@ function paintClipLayer(
     rect.w,
     rect.h,
   );
+  ctx.restore(); // drop the grade filter + shadow before the halo (its chain is baked in)
 
-  if (sig.halation) {
-    env.report(
-      "halation is not ported yet (needs a bright-pass wash); skipped",
-    );
+  // Halation (Film/Noir): the pre-built bright-pass halo rides the SAME motion transform + fit rect
+  // as the media, screen-blended at the signature opacity (clip-media's halation Img; photos only).
+  if (sig.halation && clip.type === "photo") {
+    if (asset.halo) {
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = sig.halation;
+      ctx.drawImage(
+        asset.halo,
+        -bw / 2 + rect.x,
+        -bh / 2 + rect.y,
+        rect.w,
+        rect.h,
+      );
+      ctx.restore();
+    } else {
+      env.report("halation needs halos: declare haloFilter in assetNeeds");
+    }
   }
 
   ctx.restore();
@@ -215,16 +231,33 @@ function draw(
   const top = plan.clips[state.top.clipIndex];
   drawClipLayer(ctx, top, state.top.localFrame, topAlpha, props, assets, env);
 
-  // Overlays persist across the whole reel (they sit OUTSIDE the TransitionSeries in Reel.tsx).
+  // Overlays persist across the whole reel (they sit OUTSIDE the TransitionSeries in Reel.tsx),
+  // drawn in the theme's declared order like the Overlay map.
   for (const kind of theme.overlays ?? []) {
     if (kind === "vignette") {
       drawVignette(ctx, W, H);
     } else if (kind === "letterbox") {
       drawLetterbox(ctx, W, H, frame);
+    } else if (kind === "grain") {
+      if (assets.grain) {
+        drawGrain(ctx, W, H, assets.grain);
+      } else {
+        env.report(
+          'the "grain" overlay needs its tile: declare grain in assetNeeds',
+        );
+      }
     } else {
       env.report(`overlay "${kind}" is not ported yet; skipped`);
     }
   }
+}
+
+/** The halation pre-blur color chain (clip-media's filter string, minus the trailing blur the
+ *  downsample chain replaces). Exported for the assetNeeds pins. */
+export function halationFilterFor(theme: ReelTheme): string | null {
+  return theme.signature?.halation
+    ? `${theme.grade} brightness(0.5) contrast(2.4) saturate(1.15)`
+    : null;
 }
 
 /** Bind the generic mood renderer to a catalog styleId (a mood's styleId === its themeId). */
@@ -233,8 +266,13 @@ export function moodStyle(id: string): ReelStyle {
     id,
     // The mood duration IS the plan's total (identical to styleDuration for a mood styleId).
     duration: (props) => Math.max(1, planFor(props).totalFrames),
-    // Washes only matter for the blur backdrop (Noir/Float; free for any theme that opts in).
-    assetNeeds: (props) => ({ washes: props.theme.backdrop === "blur" }),
+    // Derived assets by theme: washes for the blur backdrop (Noir/Float), the grain tile for the
+    // grain overlay (Film/Noir), halos for the halation signature (Film/Noir).
+    assetNeeds: (props) => ({
+      washes: props.theme.backdrop === "blur",
+      grain: (props.theme.overlays ?? []).includes("grain"),
+      haloFilter: halationFilterFor(props.theme),
+    }),
     draw,
   };
 }

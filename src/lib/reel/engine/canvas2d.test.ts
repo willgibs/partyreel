@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { probeCtxFilter, WATERMARK_MARGIN, watermarkLayout } from "./canvas2d";
+import {
+  applyBrightPass,
+  HALO_BLUR_FACTORS,
+  probeCtxFilter,
+  WATERMARK_MARGIN,
+  watermarkLayout,
+} from "./canvas2d";
 
 // Pins for the ctx.filter support probe (detectCtxFilter's pure core). The regression these guard:
 // a naive assign-then-readback probe returns TRUE on browsers with NO filter IDL attribute, because
@@ -80,5 +86,47 @@ describe("watermarkLayout", () => {
       gap: 11,
     });
     expect(l.lockupH).toBe(44);
+  });
+});
+
+// Pins for the halation bright-pass (the Safari path of buildHalo; ctx.filter browsers get the same
+// chain natively). Expected values are CSS-filter-spec math for
+// brightness(0.5) -> contrast(2.4) -> saturate(1.15), each stage clamped, mirroring clip-media.tsx's
+// halation Img filter (minus the theme grade, consistently absent where the media grade is skipped).
+// The design invariant they encode: pure white peaks at ~mid-gray while mids/shadows crush to BLACK,
+// so the screen blend blooms only from genuine highlights (the old halation wash-out bug stays dead).
+
+describe("applyBrightPass", () => {
+  it("crushes mids/shadows to black and peaks white at mid-gray (spec-math pins)", () => {
+    const data = new Uint8ClampedArray(
+      [
+        [255, 255, 255], // pure white -> the bloom peak (~127.5 pre-round)
+        [200, 180, 160], // a bright warm highlight survives, dimmed
+        [128, 128, 128], // mid-gray -> black (below the contrast knee)
+        [240, 200, 120], // a golden highlight keeps its hue ordering
+        [0, 0, 0], // black stays black
+      ].flatMap((p) => [...p, 255]),
+    );
+    applyBrightPass(data);
+    expect(Array.from(data)).toEqual([
+      128, 127, 128, 255, 65, 37, 9, 255, 0, 0, 0, 255, 116, 61, 0, 255, 0, 0,
+      0, 255,
+    ]);
+  });
+
+  it("keeps alpha untouched", () => {
+    const data = new Uint8ClampedArray([255, 255, 255, 77]);
+    applyBrightPass(data);
+    expect(data[3]).toBe(77);
+  });
+});
+
+describe("halo blur chain", () => {
+  it("downsamples to the blur(18px) class (0.5 color pass x 0.5 x 0.64 = 1/6.25 => ~18px)", () => {
+    const total = 0.5 * HALO_BLUR_FACTORS.reduce((a, f) => a * f, 1);
+    // Radius calibration from the spike: ~2.9px per unit of upscale; 1/total = 6.25 => ~18.1px.
+    expect(1 / total).toBeCloseTo(6.25, 10);
+    expect(2.9 / total).toBeGreaterThan(17);
+    expect(2.9 / total).toBeLessThan(19);
   });
 });

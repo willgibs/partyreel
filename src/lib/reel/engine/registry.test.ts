@@ -40,7 +40,11 @@ describe("the engine style registry", () => {
   });
 
   it("pins the ported style set (grows one entry per port)", () => {
-    expect(Object.keys(ENGINE_STYLES).sort()).toEqual(["classic", "editorial"]);
+    expect(Object.keys(ENGINE_STYLES).sort()).toEqual([
+      "classic",
+      "editorial",
+      "mono",
+    ]);
   });
 
   it("falls back to Cinematic for unknown ids (mirroring resolveStyleEntry)", () => {
@@ -73,15 +77,28 @@ describe("Cinematic duration parity", () => {
   });
 });
 
-describe("Cinematic asset needs", () => {
-  it("skips washes for the theme backdrop, builds them for a blur backdrop", () => {
-    expect(CINEMATIC.assetNeeds(props)).toEqual({ washes: false });
+describe("mood asset needs (per theme)", () => {
+  it("Cinematic needs nothing derived (theme backdrop, no grain, no halation)", () => {
+    expect(CINEMATIC.assetNeeds(props)).toEqual({
+      washes: false,
+      grain: false,
+      haloFilter: null,
+    });
+  });
+
+  it("Noir needs the full derived set: blur-backdrop washes, the grain tile, halation halos", () => {
     const noir: ReelProps = {
       ...props,
       theme: resolveTheme("mono"),
       styleId: "mono",
     };
-    expect(CINEMATIC.assetNeeds(noir)).toEqual({ washes: true });
+    // The halo chain = the theme grade + clip-media's bright-pass, blur handled by the downsample.
+    expect(ENGINE_STYLES.mono.assetNeeds(noir)).toEqual({
+      washes: true,
+      grain: true,
+      haloFilter:
+        "grayscale(1) contrast(1.2) brightness(1.04) brightness(0.5) contrast(2.4) saturate(1.15)",
+    });
   });
 });
 

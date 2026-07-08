@@ -37,8 +37,14 @@ export type ReelStyle = {
   id: string;
   /** Total output frames for these props; must equal the Remotion styleDuration for the same id. */
   duration: (props: ReelProps) => number;
-  /** Which derived per-clip assets draw() consumes (built once by loadReelAssets). */
-  assetNeeds: (props: ReelProps) => { washes: boolean };
+  /** Which derived assets draw() consumes (built once by loadReelAssets): per-clip washes/halos +
+   *  the shared grain tile. haloFilter carries the theme's full pre-blur color chain because the
+   *  bright-pass must be baked BEFORE the blur (see buildHalo). */
+  assetNeeds: (props: ReelProps) => {
+    washes: boolean;
+    grain?: boolean;
+    haloFilter?: string | null;
+  };
   /** Render output frame `frame` into ctx. Deterministic per (frame, props, assets). */
   draw: (
     ctx: CanvasRenderingContext2D,

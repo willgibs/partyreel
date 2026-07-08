@@ -60,17 +60,20 @@ export function drawCover(
 }
 
 /**
- * The 46px-class blur, built by repeated downsampling (chain to ~1/16 size). Called ONCE per clip at
- * asset load (assets.ts); drawing the tiny result scaled up IS the blur. This is the production
- * replacement for the composition's `blur(46px)` backdrop washes.
+ * A blur built by repeated downsampling: drawing the tiny result scaled up IS the blur (no ctx.filter
+ * dependency, near-zero per-frame cost). Calibration from the proven spike: a chain to ~1/16 size
+ * reads as the composition's blur(46px), so effective radius ~ 2.9px per unit of upscale.
  */
-export function buildWash(src: CanvasImage): HTMLCanvasElement {
+export function buildDownsampleBlur(
+  src: CanvasImage,
+  factors: readonly number[],
+): HTMLCanvasElement {
   const { w: sw, h: sh } = sourceSize(src);
   let from: CanvasImage = src;
   let w = Math.max(2, sw);
   let h = Math.max(2, sh);
   let out: HTMLCanvasElement | null = null;
-  for (const factor of [0.5, 0.5, 0.25]) {
+  for (const factor of factors) {
     const c = document.createElement("canvas");
     c.width = Math.max(2, Math.round(w * factor));
     c.height = Math.max(2, Math.round(h * factor));
@@ -84,6 +87,116 @@ export function buildWash(src: CanvasImage): HTMLCanvasElement {
     h = c.height;
   }
   return out!;
+}
+
+/** The ~1/16 chain = the 46px-class backdrop wash (clip-media's blur(46px) negative space). */
+export const WASH_FACTORS = [0.5, 0.5, 0.25] as const;
+
+/** Built ONCE per clip at asset load (assets.ts); per-frame work is just a scaled draw. */
+export function buildWash(src: CanvasImage): HTMLCanvasElement {
+  return buildDownsampleBlur(src, WASH_FACTORS);
+}
+
+// ---------------------------------------------------------------------------
+// Halation (clip-media.tsx's highlight-only bloom): a bright-pass of the clip
+// (`${grade} brightness(0.5) contrast(2.4) saturate(1.15)`), blurred ~18px, screen-blended over the
+// media at the signature's opacity. The bright-pass MUST run BEFORE the blur (contrast clipping does
+// not commute with the convolution: blur-then-crush re-sharpens the bloom edges), so assets.ts bakes
+// color + blur into one halo canvas per clip at load.
+
+/** The remaining chain AFTER the half-size color pass: 0.5 * (0.5 * 0.64) ~ 1/6 = the 18px class. */
+export const HALO_BLUR_FACTORS = [0.5, 0.64] as const;
+
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+/**
+ * The manual bright-pass for browsers without ctx.filter (Safari): CSS-spec math for
+ * brightness(0.5) contrast(2.4) saturate(1.15), each filter's output clamped like CSS does. The
+ * theme GRADE part of the chain is intentionally absent here, consistent with the per-frame media
+ * grade being skipped on the same browsers (the halo must bloom from the same pixels the media
+ * shows). Exported pure for the vitest pins.
+ */
+export function applyBrightPass(data: Uint8ClampedArray): void {
+  const s = 1.15; // saturate()
+  const rr = 0.213 + 0.787 * s;
+  const rg = 0.715 - 0.715 * s;
+  const rb = 0.072 - 0.072 * s;
+  const gr = 0.213 - 0.213 * s;
+  const gg = 0.715 + 0.285 * s;
+  const gb = 0.072 - 0.072 * s;
+  const br = 0.213 - 0.213 * s;
+  const bg = 0.715 - 0.715 * s;
+  const bb = 0.072 + 0.928 * s;
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i] / 255;
+    let g = data[i + 1] / 255;
+    let b = data[i + 2] / 255;
+    // brightness(0.5) -> contrast(2.4) (clamped per filter, like the CSS pipeline)
+    r = clamp01(clamp01(r * 0.5) * 2.4 - 0.7);
+    g = clamp01(clamp01(g * 0.5) * 2.4 - 0.7);
+    b = clamp01(clamp01(b * 0.5) * 2.4 - 0.7);
+    // saturate(1.15)
+    data[i] = clamp01(rr * r + rg * g + rb * b) * 255;
+    data[i + 1] = clamp01(gr * r + gg * g + gb * b) * 255;
+    data[i + 2] = clamp01(br * r + bg * g + bb * b) * 255;
+  }
+}
+
+/**
+ * Build a clip's halation halo: half-size color pass (ctx.filter with the full grade + bright-pass
+ * chain where supported; the manual bright-pass otherwise), then the downsample chain for the blur.
+ * Conscious delta vs the CSS blur(18px): the radius tracks SOURCE pixels, not composition pixels
+ * (identical to the accepted wash behavior; guest media is near composition scale).
+ */
+export function buildHalo(
+  src: CanvasImage,
+  colorFilter: string,
+  filterOk: boolean,
+): HTMLCanvasElement {
+  const { w: sw, h: sh } = sourceSize(src);
+  const first = document.createElement("canvas");
+  first.width = Math.max(2, Math.round(sw * 0.5));
+  first.height = Math.max(2, Math.round(sh * 0.5));
+  const cx = first.getContext("2d", { willReadFrequently: !filterOk })!;
+  cx.imageSmoothingEnabled = true;
+  cx.imageSmoothingQuality = "high";
+  if (filterOk) {
+    cx.filter = colorFilter;
+    cx.drawImage(src, 0, 0, first.width, first.height);
+  } else {
+    cx.drawImage(src, 0, 0, first.width, first.height);
+    const px = cx.getImageData(0, 0, first.width, first.height);
+    applyBrightPass(px.data);
+    cx.putImageData(px, 0, 0);
+  }
+  return buildDownsampleBlur(first, HALO_BLUR_FACTORS);
+}
+
+// ---------------------------------------------------------------------------
+// Grain (effects.tsx): the EXACT same feTurbulence SVG the Remotion side tiles as a background-image,
+// decoded once as an image asset (assets.ts) so the canvas tile is pixel-identical, then pattern-tiled
+// at 180px / 0.07 alpha / overlay blend. Static across frames, like the DOM one.
+const GRAIN_SVG =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'>" +
+  "<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter>" +
+  "<rect width='100%' height='100%' filter='url(#n)'/></svg>";
+
+export const GRAIN_TILE_URI = `data:image/svg+xml,${encodeURIComponent(GRAIN_SVG)}`;
+
+export function drawGrain(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  tile: CanvasImage,
+): void {
+  const pattern = ctx.createPattern(tile, "repeat");
+  if (!pattern) return;
+  ctx.save();
+  ctx.globalAlpha = 0.07;
+  ctx.globalCompositeOperation = "overlay";
+  ctx.fillStyle = pattern;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
 }
 
 let ctxFilterSupport: boolean | null = null;
