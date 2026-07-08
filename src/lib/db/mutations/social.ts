@@ -18,19 +18,11 @@ import "server-only";
 
 import type { TablesUpdate } from "@/lib/db/types";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import type { MutationResult } from "@/lib/db/mutations/events";
 import type { NotificationPrefs } from "@/lib/social/notification-prefs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { profileSlugSchema } from "@/lib/validation/profile";
-
-// The same pre-regen typing seam as queries/social.ts (single WHY lives there):
-// types.ts regenerates only when the orchestrator applies the migration; until
-// then the social tables/RPCs are invisible to the generated types. Delete
-// after the regen and go typed.
-const social = (client: unknown) => client as SupabaseClient;
 
 const UNAUTHORIZED = {
   ok: false as const,
