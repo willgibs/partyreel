@@ -528,6 +528,21 @@ not "nights"), so both forms go to the boards.
 the pure D2 and D4 sources below as reference; Will confirms the execution, then Track B writes production
 copy in the confirmed voice. The Call 5 mechanics stay binding throughout.
 
+**Round 2 (Will, on the deployed boards, 2026-07-08): four further rulings.** (1) "Night" is OUT as
+identity language: event/party everywhere ("more the big event" than the big night; his own forms: "The
+whole event, in one place, forever" and "The whole event, cut down to the highlights"). (2) REBALANCE: the
+groupings over-emphasized the reel; "a ton of our value lives in the easy media collection itself," so
+collection value co-leads the copy (the made-from ARC stands: it already decomposes the reel INTO the
+collection; this ruling governs the copy inside sections). (3) A GOLDEN SET of eight ratified lines now
+anchors all groupings verbatim: "The whole event, in one place, forever" / "Every photo comes to you
+first" / "The whole event, cut down to the highlights" / "Start free, upgrade when you host again" /
+"Every event ends with a reel" / "Watch your album fill up" / "From the first scan to the final cut" /
+"Every moment, and you decide what stays"; the QR/scan/share and privacy registers are also endorsed.
+(4) The hard-cut kinetic word read "almost glitchy" on text-only boards: round 2 ships a word-animation
+toggle (Roll vertical-swap default / Type / Cut) and the production hero's word-with-image-cut pairing is
+decided at the Track B hero prototype. Round-2 boards: three fresh groupings (Collection-led / Arc-led /
+Reel-led tempered) built on the golden set, on branch lp/voice-r2.
+
 ### Cluster 5 (asked in the same walk): site media sourcing. RATIFIED (Will, 2026-07-08)
 
 **Curate a beautiful, LICENSE-FREE media set now** (public-domain / CC0-class); Will returns with final media
