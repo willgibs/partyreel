@@ -193,7 +193,8 @@ export async function setNotificationPrefs(
     patch.notify_new_follower = prefs.notifyNewFollower;
   if (prefs.marketingOptIn !== undefined)
     patch.marketing_opt_in = prefs.marketingOptIn;
-  if (Object.keys(patch).length === 0) return { ok: true, data: { id: user.id } };
+  if (Object.keys(patch).length === 0)
+    return { ok: true, data: { id: user.id } };
 
   const db = social(supabase);
   const failed = {
@@ -208,7 +209,8 @@ export async function setNotificationPrefs(
     .eq("user_id", user.id)
     .select("user_id");
   if (updated.error) return failed;
-  if ((updated.data ?? []).length > 0) return { ok: true, data: { id: user.id } };
+  if ((updated.data ?? []).length > 0)
+    return { ok: true, data: { id: user.id } };
 
   const inserted = await db
     .from("notification_prefs")
@@ -347,7 +349,9 @@ export async function setProfileSlug(
  * Release my handle (slug = null: the /u/ page 404s, the profile row stays).
  * No tier check: a downgraded host can always remove (mirrors clearEventSlug).
  */
-export async function clearProfileSlug(): Promise<MutationResult<{ id: string }>> {
+export async function clearProfileSlug(): Promise<
+  MutationResult<{ id: string }>
+> {
   const supabase = await createClient();
   const {
     data: { user },

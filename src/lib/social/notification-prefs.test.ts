@@ -67,9 +67,7 @@ describe("notification_prefs defaults parity (TS <-> migration SQL)", () => {
     const sqlBooleans = [...block.matchAll(/^\s+(\w+)\s+boolean/gm)].map(
       (m) => m[1],
     );
-    expect(sqlBooleans.sort()).toEqual(
-      Object.values(COLUMN_FOR_FIELD).sort(),
-    );
+    expect(sqlBooleans.sort()).toEqual(Object.values(COLUMN_FOR_FIELD).sort());
   });
 
   it("tier 1 (transactional) has NO column: it can never be toggled off", () => {
