@@ -39,7 +39,7 @@ export function ReelPanel({
   items: GridMedia[];
   shareUrl?: string;
   /** The composer config (theme/seed/length/cover); null until first composed. Consumed by the
-   *  reel composer (mounts the live @remotion/player). Accepted now; wired in the composer step. */
+   *  reel composer (mounts the live CanvasReelPlayer). */
   reelConfig: ReelConfig | null;
   /** Free tier → the live player + the .mp4 export carry the partyreel.com wordmark. */
   watermark: boolean;
