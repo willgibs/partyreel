@@ -57,6 +57,9 @@ importers:
       lucide-react:
         specifier: ^1.17.0
         version: 1.17.0(react@19.2.4)
+      mediabunny:
+        specifier: ^1.50.4
+        version: 1.50.4
       next:
         specifier: 16.2.6
         version: 16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -5030,6 +5033,9 @@ packages:
 
   mediabunny@1.47.0:
     resolution: {integrity: sha512-XQMZAcaKPkJ7hQ/Q2fvBdl3ZazQl2WVxDysUbJWh4PuAnLoerdsQBdPTDWdUdK6hh26LQ8Ue94MLLnmpWvlUYg==}
+
+  mediabunny@1.50.4:
+    resolution: {integrity: sha512-RcJ3xt839gopNTHVl+dLypKdABDL3KYtRszIXjaCmwG/rGglKpEKWcdaXN2tWiaubQguibK5Uem1aLy2+aEUaw==}
 
   memfs@3.4.3:
     resolution: {integrity: sha512-eivjfi7Ahr6eQTn44nvTnR60e4a1Fs1Via2kCR5lHo/kyNoiMWaXCNJ/GpSd0ilXas2JSOl9B5FTIhflXu0hlg==}
@@ -12473,6 +12479,11 @@ snapshots:
   media-typer@1.1.0: {}
 
   mediabunny@1.47.0:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.11
+      '@types/dom-webcodecs': 0.1.13
+
+  mediabunny@1.50.4:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.11
       '@types/dom-webcodecs': 0.1.13

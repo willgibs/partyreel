@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-07-02
+**Updated:** 2026-07-08
 
 ## THE ELEVATION PROGRAM (the active thread, 2026-07-02)
 
@@ -19,13 +19,24 @@ before picking up any program work. Headlines a fresh agent must know:
 - **Live red-team target between milestones** = `https://partyreel-git-launch-prep-willgibs.vercel.app`
   (branch-scoped env + R2 CORS + Stripe TEST preview webhook wired; Supabase redirect allow-list is
   Will's dashboard step).
-- **Rounds**: R0 bootstrap + EXIF strip ✅ COMPLETE 2026-07-03 (milestone-0 `f99d9cc` merged + tagged; the
-  location leak closed + backfilled + live-verified → [`CHANGELOG.md`](CHANGELOG.md)) → R1 Decision Studio
-  (reveal + marketing-identity labs, four one-way-door options-docs → T1 Ruling Day) ∥ R2 Reel Engine +
-  Foundation → R3 Reel Experience → parallel tracks (Marketing build · R4 Growth · R4b Social ·
-  R5 Notifications · R6 Polish · R7 Admin) → R8 Hardening + Certification.
+- **Rounds**: R0 bootstrap + EXIF strip ✅ (milestone-0 `f99d9cc`) → R1 Decision Studio ✅ + R2 Reel
+  Engine + Foundation ✅ **(milestone-1 merged 2026-07-08: the full 14-style canvas engine, the composer
+  swap + $0 client-encoded export, the ADR-0021 pricing slice, the ADR-0020 forensic capture track →
+  [`CHANGELOG.md`](CHANGELOG.md))** → R3 Reel Experience (NEXT: guest surfacing + the ruled composite
+  reveal) → parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish ·
+  R7 Admin) → R8 Hardening + Certification.
 - **Gates**: lab-validate before shipping creative magic; options-doc + Will's ruling for one-way-doors;
   NO launch switches (those accrete in ROADMAP's Launch checkpoint).
+- **T1 RULING DAY COMPLETE (2026-07-05)** — all seven decisions ruled, recorded as
+  [ADR-0019](adr/0019-social-privacy-host-controlled-guest-list.md) (host-controlled guest lists, open
+  follows, notification tiers) · [ADR-0020](adr/0020-forensic-capture-csam-policy.md) (A3-lite capture,
+  1-year REPORT-Act preservation, reactive CSAM posture) ·
+  [ADR-0021](adr/0021-pricing-numbers-reel-caps-ingress.md) (reel 30s/60s, ingress 3x cap, renewal $15)
+  · [ADR-0022](adr/0022-reel-guest-surfacing.md) (publish switch, adaptive placement, guest downloads,
+  hybrid source, NO end-card) + two lab decisions on their touchpoints (marketing = B+C hybrid with an
+  IA gate before the build; reveal = the Assembly x First-frame-held x Lights-down COMPOSITE). Cinematic
+  canvas parity PASSED (unlocks the 13 style ports; watermark redesign to bottom-right required). The
+  post-T1 fan-out is the program plan's active section.
 
 ## Where we are
 

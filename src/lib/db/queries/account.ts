@@ -7,16 +7,13 @@
  */
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 // True when the signed-in account has a password credential. Drives the /account
 // Security copy (Set vs Change) and whether the current-password field is shown. Fails
 // closed (false) on any error so the UI degrades to "Set a password" rather than leaking.
 export async function hasPassword(): Promise<boolean> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return false;
 
   const { data, error } = await supabase.rpc("has_password");
@@ -32,10 +29,7 @@ export async function hasPassword(): Promise<boolean> {
 export async function verifyCurrentPassword(
   password: string,
 ): Promise<boolean> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return false;
 
   const { data, error } = await supabase.rpc("verify_current_password", {

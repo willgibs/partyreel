@@ -44,6 +44,45 @@ export function reelOutputKey(eventId: string): string {
   return `events/${eventId}/reel/reel.mp4`;
 }
 
+/**
+ * The SEGREGATED evidence-preservation prefix (ADR-0020). The /admin preserve action copies a
+ * reported upload's ORIGINAL object + a JSON forensics snapshot here, server-side; these keys are
+ * NEVER presigned to a host/guest surface (admin export only).
+ *
+ * ★ DELIBERATELY outside `events/` — that placement is load-bearing for every delete path:
+ *   - the orphan sweep lists ONLY the `events/` prefix, so preservation objects are never even
+ *     scanned (and parseMediaIdFromKey returns null for them — "not ours → never delete");
+ *   - event-deletion purges R2 by ENUMERATED media keys (original_key/preview_key), which never
+ *     include these;
+ *   - the backup Worker replicates them like any object (extra durability, fine), and its prune's
+ *     dual-gate (primary object absent AND media row gone) can only reclaim the backup copy after
+ *     an explicit hold-release deletes the primary — a held item deletes neither, so preserved
+ *     evidence is never prunable while the hold stands.
+ * Deleting from this prefix is a MANUAL, audited admin act on the ADR's 1-year clock — no sweep
+ * touches it.
+ */
+export const PRESERVATION_PREFIX = "preservation/";
+
+/** The preserved copy of the original object: preservation/<eventId>/<mediaId>/original.<ext>. */
+export function preservedOriginalKey(params: {
+  eventId: string;
+  mediaId: string;
+  /** File extension WITHOUT the leading dot (round-tripped from the original key). */
+  ext: string;
+}): string {
+  const { eventId, mediaId, ext } = params;
+  return `${PRESERVATION_PREFIX}${eventId}/${mediaId}/original.${ext}`;
+}
+
+/** The JSON evidence snapshot (media row + forensic row + event context) beside the copy. */
+export function preservedForensicsKey(params: {
+  eventId: string;
+  mediaId: string;
+}): string {
+  const { eventId, mediaId } = params;
+  return `${PRESERVATION_PREFIX}${eventId}/${mediaId}/forensics.json`;
+}
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -80,4 +119,15 @@ export function parseMediaIdFromKey(key: string): string | null {
   if (segments[0] !== "events") return null;
   const mediaId = segments[3];
   return UUID_RE.test(mediaId) ? mediaId : null;
+}
+
+/**
+ * Pull the eventId out of a media object key (events/<eventId>/…). Used by the forensic-capture
+ * seam, which has the create_media-validated key in hand (the RPC already proved it belongs to the
+ * session's event) but not the event id itself. Returns null for anything non-media-shaped.
+ */
+export function parseEventIdFromKey(key: string): string | null {
+  const segments = key.split("/");
+  if (segments.length !== 5 || segments[0] !== "events") return null;
+  return UUID_RE.test(segments[1]) ? segments[1] : null;
 }

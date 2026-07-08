@@ -40,6 +40,11 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
 
 ## Invariants (don't break)
 
+- ★ **Legal-hold media is excluded from EVERY hard-delete path (ADR-0020).** `media.legal_hold_at`
+  set → the removed-media sweep, standby eviction, and `purgeMediaNow` filter it BEFORE their
+  R2-first delete; an expired event containing ANY held media is skipped WHOLE (the FK cascade is
+  all-or-nothing); `purge_media_rows`/`purge_media_now`/`restore_media` guard it at the SQL boundary.
+  Full model + the runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
 - **`media.removed_at` is the purge grace clock — NEVER use `updated_at`.** The `set_updated_at` trigger
   bumps `updated_at` on every touch, so the 30-day grace must read the stable `removed_at` stamp.
 - **The three counters are deliberately different — do NOT reconcile:** per-event slot counts non-removed;

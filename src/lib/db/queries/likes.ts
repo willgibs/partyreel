@@ -6,15 +6,12 @@
  */
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export async function getEventLikeCounts(
   eventId: string,
 ): Promise<Map<string, number>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return new Map();
 
   const { data, error } = await supabase.rpc("get_event_like_counts", {

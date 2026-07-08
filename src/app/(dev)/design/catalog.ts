@@ -154,6 +154,18 @@ export const ZONES: LabZone[] = [
             status: "reference",
             note: "Throws on render to exercise the boundary chain + Sentry.",
           },
+          {
+            href: "/design/reel-spike",
+            label: "Reel engine spike",
+            status: "exploring",
+            note: "Plan-A gate: one canvas draw fn as live player + WebCodecs h264 encode, verdict on real devices (temporary; dies with the verdict).",
+          },
+          {
+            href: "/design/reel-parity",
+            label: "Reel canvas parity",
+            status: "exploring",
+            note: "The Remotion player and the canvas engine side by side on the same props, frame-locked scrubbing plus the WebCodecs export. Grades each ported style.",
+          },
         ],
       },
     ],

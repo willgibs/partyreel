@@ -10,7 +10,7 @@ import { getNotificationData } from "@/lib/db/queries/notifications";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import { buildNotifications } from "@/lib/notifications/build";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 // Auth GATE for the host app. Every route in the (app) group renders inside
 // this layout, so this one getUser() check protects all of them at once.
@@ -29,10 +29,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getRequestAuth is the request-cached getUser() (see lib/supabase/request-auth):
+  // the gate still runs FIRST and still network-validates the JWT; the child
+  // page's query modules then reuse this one validation instead of ~8 more.
+  const { user } = await getRequestAuth();
 
   if (!user) {
     redirect("/login");

@@ -222,6 +222,42 @@ export type Database = {
         }
         Relationships: []
       }
+      forensic_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          detail: Json | null
+          error: string | null
+          event_id: string | null
+          id: string
+          media_id: string | null
+          outcome: string
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          detail?: Json | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          media_id?: string | null
+          outcome?: string
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          detail?: Json | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          media_id?: string | null
+          outcome?: string
+        }
+        Relationships: []
+      }
       guests: {
         Row: {
           created_at: string
@@ -439,6 +475,8 @@ export type Database = {
           height: number | null
           highlight_score: number | null
           id: string
+          legal_hold_at: string | null
+          legal_hold_reason: string | null
           original_key: string
           preview_key: string | null
           purge_at: string | null
@@ -461,6 +499,8 @@ export type Database = {
           height?: number | null
           highlight_score?: number | null
           id?: string
+          legal_hold_at?: string | null
+          legal_hold_reason?: string | null
           original_key: string
           preview_key?: string | null
           purge_at?: string | null
@@ -483,6 +523,8 @@ export type Database = {
           height?: number | null
           highlight_score?: number | null
           id?: string
+          legal_hold_at?: string | null
+          legal_hold_reason?: string | null
           original_key?: string
           preview_key?: string | null
           purge_at?: string | null
@@ -917,6 +959,77 @@ export type Database = {
         }
         Relationships: []
       }
+      upload_forensics: {
+        Row: {
+          client_hints: Json | null
+          created_at: string
+          device_uuid: string | null
+          event_id: string
+          geo: Json | null
+          guest_email: string | null
+          guest_id: string | null
+          guest_user_id: string | null
+          host_user_id: string | null
+          id: string
+          ip: string | null
+          media_id: string
+          preserved_at: string | null
+          preserved_by: string | null
+          preserved_forensics_key: string | null
+          preserved_original_key: string | null
+          uploader_kind: string
+          user_agent: string | null
+        }
+        Insert: {
+          client_hints?: Json | null
+          created_at?: string
+          device_uuid?: string | null
+          event_id: string
+          geo?: Json | null
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_user_id?: string | null
+          host_user_id?: string | null
+          id?: string
+          ip?: string | null
+          media_id: string
+          preserved_at?: string | null
+          preserved_by?: string | null
+          preserved_forensics_key?: string | null
+          preserved_original_key?: string | null
+          uploader_kind: string
+          user_agent?: string | null
+        }
+        Update: {
+          client_hints?: Json | null
+          created_at?: string
+          device_uuid?: string | null
+          event_id?: string
+          geo?: Json | null
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_user_id?: string | null
+          host_user_id?: string | null
+          id?: string
+          ip?: string | null
+          media_id?: string
+          preserved_at?: string | null
+          preserved_by?: string | null
+          preserved_forensics_key?: string | null
+          preserved_original_key?: string | null
+          uploader_kind?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_forensics_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1094,6 +1207,13 @@ export type Database = {
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       mark_password_set: { Args: never; Returns: undefined }
+      monthly_ingress_cap: {
+        Args: {
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -1129,7 +1249,9 @@ export type Database = {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
           default_storage_cap_bytes: number
+          ingress_cap_multiplier: number
           max_events: number
+          max_reel_seconds: number
           monthly_ingress_bytes: number
         }[]
       }

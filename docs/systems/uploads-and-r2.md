@@ -86,10 +86,20 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   strategy adapters over the ONE pipeline engine
   [`upload/server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts) (Phase 3): the engine owns the
   shared spine (parse → zod → server-side classify/ext → `validateUpload` → key build →
-  single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC),
+  single/multipart presign; complete: multipart sum/abort guard → assemble → R2-HEAD → create RPC →
+  forensic capture, ADR-0020: one deny-all `upload_forensics` row per success, best-effort-but-loud —
+  → [trust-safety-forensics.md](trust-safety-forensics.md)),
   the strategies own the per-identity gates + status mapping. Part-size math single-sourced in
   [`upload/part-plan.ts`](../../src/lib/upload/part-plan.ts). Response JSON shapes/key order are the
   `uploadFile()` contract — byte-for-byte frozen (curl-fixture verified at the refactor).
+  The remaining guest/host asymmetries are DELIBERATE, not drift — don't "finish" the consolidation:
+  auth placement (host `getUser()` gates in the route BEFORE the engine, the 401-before-body-parse
+  ordering, duplicated verbatim in both host routes on purpose; guest capability tokens validate
+  inside the RPCs), the per-event `max_upload_bytes` cap binds GUESTS ONLY (host exempt by design),
+  refusal framing (guest video refusals are EVENT-framed so a guest never learns the host's plan;
+  host refusals are tier-framed; host `not_owner` → 404, an existence non-leak), per-pair
+  `errorStatus` maps, and NO request rate limiter on any of the four (abuse control = capability
+  session + caps + per-part Content-Length binding + the multipart abort backstop).
 - Shared uploader: [`upload/uploader.ts`](../../src/lib/upload/uploader.ts) (`uploadFile`). Metadata strip:
   [`media/strip-metadata.ts`](../../src/lib/media/strip-metadata.ts) (pure; browser seam + the Node backfill
   [`scripts/backfill-strip-exif.mjs`](../../scripts/backfill-strip-exif.mjs) share it — never fork the logic).

@@ -13,25 +13,28 @@ import {
   RECENTLY_DELETED_WINDOW_DAYS,
   binCountdownDays,
 } from "@/lib/lifecycle/recently-deleted";
-import { createClient } from "@/lib/supabase/server";
-
-export type MediaRow = Tables<"media">;
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /**
- * HOTFIX (2026-07-08): SELECT on media is COLUMN-scoped at the shared DB (migration
- * 20260707150000 on launch-prep withholds legal_hold_at/legal_hold_reason from authenticated),
- * so a `select("*")` from the RLS client ERRORS at runtime. Enumerate the granted columns.
- * launch-prep carries the fuller version (single-sourced MEDIA_HOST_COLUMNS + a grant-parity
- * test); this back-merges away at the next milestone.
+ * Every media column EXCEPT legal_hold_at / legal_hold_reason. SELECT on media is COLUMN-scoped at
+ * the DB (migration 20260707150000): a legal hold must be invisible to the owning host (ADR-0020
+ * discretion — the host may BE the investigated uploader), so the authenticated grant excludes the
+ * hold columns and a `select("*")` from the RLS client ERRORS at runtime. Single source for the
+ * host-side media reads; a Vitest parity test pins this list to the migration's grant. Adding a
+ * media column? Grant it in a migration AND add it here.
  */
-const MEDIA_HOST_COLUMNS =
+export const MEDIA_HOST_COLUMNS =
   "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, highlight_score, clip_start_seconds, clip_end_seconds";
 
+// The Omit is a no-op until the orchestrator regenerates types.ts post-apply; then it strips the
+// two hold columns the grant withholds, keeping this type equal to what the queries can return.
+export type MediaRow = Omit<
+  Tables<"media">,
+  "legal_hold_at" | "legal_hold_reason"
+>;
+
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -57,10 +60,7 @@ export type RemovedMediaRow = MediaRow & { countdownDays: number };
 export async function listRecentlyDeletedMedia(
   eventId: string,
 ): Promise<RemovedMediaRow[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   // One `now` for the window filter + the per-tile countdown — computed HERE (a query, not a

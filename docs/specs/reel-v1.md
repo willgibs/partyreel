@@ -15,6 +15,21 @@
 > for how it works now. **The NEXT slices, fully specified for a fresh agent, are in ["Next slices — roadmap"](#next-slices--roadmap-for-the-next-agent-2026-07-02) below.** The older sections (Customization, Open items) are HISTORICAL
 > (they predate the catalog + describe the removed shuffle); the roadmap section supersedes them.
 
+> **★ ARCHITECTURE SUPERSEDED (2026-07-03, Will's ruling after AWS denied the Lambda concurrency case):** the
+> RENDER architecture below (Remotion Lambda, the cost model, Slice A blur-downscale, the framesPerLambda
+> gotchas) is being REPLACED by **client-rendered reels**: the 14 styles rebuilt on a canvas engine (one draw
+> fn = live player AND export), mp4 encoded on-device via WebCodecs + mediabunny, host uploads the artifact →
+> **$0 renders at any scale; AWS tears down at the end**. The styling DIRECTIONS (the 14 looks) are sacred and
+> port with per-style parity gating. Spike PASSED on iPhone 13 Pro (30s → 8.2s, 3.6× realtime) + desktop
+> (2.9s, 10.4×) at `/design/reel-spike`. The Remotion path keeps working UNTOUCHED until the port completes.
+> Design + phasing: the elevation-program plan (`~/.claude/plans/you-are-the-standing-humble-unicorn.md`,
+> "R2 revised design") + the `project_elevation_program` memory. Do NOT build new work against the Lambda
+> pipeline. Guest-surfacing product recommendations: [`../decisions/t1-reel-guest-surfacing.md`](../decisions/t1-reel-guest-surfacing.md).
+> **Progress (2026-07-08, Phase C):** all 14 styles ported to the canvas engine, the composer plays
+> `CanvasReelPlayer`, and Download video is a CLIENT WebCodecs encode uploaded via the host-authed
+> `/api/reel/upload` begin→mint→finalize handshake ($0; Lambda remains ONLY the no-WebCodecs fallback until the
+> R8 teardown). Current truth: [`../systems/host-app.md`](../systems/host-app.md) "The .mp4 EXPORT".
+
 ## What it is + why
 
 The reel is **core-loop step 5** and the product's North Star: a host curates their event's best moments and gets

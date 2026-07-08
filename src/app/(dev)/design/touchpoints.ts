@@ -27,11 +27,13 @@ export type TouchpointId =
   | "host-dashboard"
   | "host-event-page"
   | "host-event-build"
-  | "gallery-actions";
+  | "gallery-actions"
+  | "marketing-identity"
+  | "reel-reveal";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
- *  "marketing" is a RESERVED slot: no touchpoint uses it yet (the marketing
- *  surface lands in Phase 6). Empty groups are dropped, so it stays inert. */
+ *  "marketing" was reserved from the lab refresh until the marketing-identity
+ *  round (2026-07-03) claimed it. Empty groups are dropped automatically. */
 export type Surface = "guest" | "host" | "marketing" | "shared";
 
 /** Surface display labels - the ONE home (the sidebar + the touchpoint header
@@ -289,6 +291,53 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "Ratified (Will, 2026-06-20). UNIVERSAL per-action colors (guest + host; only the action SET differs): like pink, save/download blue, hide/show amber, approve green, delete red. Emil: monochrome at rest, color on direct icon-hover + active state (liked = filled pink); native title tooltips. TILE (3c.1, shipped): the top-right hover-reveal row, Like FAR-RIGHT (stays colored when liked, never shifts on hover-off), hidden = 30% opacity; mobile keeps Like + Save only (hide/delete move to the lightbox). LIGHTBOX (3c.2): the grouped 'enjoy | curate' pill, Like LEFTMOST of enjoy [like, count, download, share] then a divider then [approve-or-hide-or-unhide, remove]; delete behind a modal confirm, everything else 1-way-safe or reversible; Share passes the event JOIN url. The guest lightbox keeps its exact behavior + gestures, it just gains the same colors. TOASTS: Like 'Added to your likes'; Hide 'Hidden from everyone', firing from BOTH the tile hover-row and the lightbox. Corrects the prior 'viewer pill is unchanged' reading: the color clarity is for everyone, not host-only. POLISH (Will, 2026-06-20): OPTIMISTIC moderation (instant tile + lightbox via useOptimistic; reverts + toasts on failure); a PERSISTENT amber hidden marker (off-hover + mobile, like the liked heart, atop the 30% dim); the lightbox Like is a bare icon; Share hovers blue (shared with download/save). STYLED tooltips are LIGHTBOX-ONLY: wrapping the SSR'd tiles in radix Tooltips regressed host-gallery hydration on prod (the lightbox is ssr:false so its tooltips are safe; tiles use native title). See the hydration gotcha in docs/systems/architecture.md.",
+  },
+  {
+    // Marketing-identity lab round (2026-07-03): the marketing site is
+    // content-complete but pre-V1 identity (it still wears the retired accent).
+    // This round prototypes 3 genuinely distinct site identities ON the locked
+    // mono system - directions differ in COMPOSITION, TYPE SCALE, MOTION
+    // LANGUAGE, and MEDIA TREATMENT, never in palette - so Will can pick one
+    // direction for the full marketing rebuild. Each variant is a desktop hero
+    // plus one signature scroll section inside a scrollable browser mock (feel
+    // the motion, don't imagine it). `decision` stays unset until Will rules.
+    id: "marketing-identity",
+    title: "Marketing identity",
+    surface: "marketing",
+    note: "Three site identities for the marketing rebuild, same mono system: they differ in composition, type scale, motion language, and media treatment",
+    variants: [
+      "Editorial gallery",
+      "The reel is the hero",
+      "Live event energy",
+    ],
+    decision: 1,
+    decisionNote:
+      "T1 ruling (Will, 2026-07-05): B+C HYBRID. B's cinema hero leads (the desired visual language, the most design magic) with B's how-it-works reel animation kept, and C's animated product-demo as a close follow-up section visualizing the how. A rejected as too templated. BINDING CAVEAT: these wow sections are the FLOOR, not the site: the build is gated on a full-site IA/content-architecture round (core loop + supporting features) done collaboratively with Will (T2.5) before any production pages.",
+  },
+  {
+    // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
+    // tapped Create reel watches their reel exist for the first time (the North
+    // Star wow; a RARE moment, so animate-by-frequency allows real delight).
+    // Built on the NEW canvas engine: each stage choreographs around the real
+    // CanvasReelPlayer held at frame 0 and released at its ignite beat, which
+    // client-side encode makes honest (the reel is watchable instantly, no
+    // progress theater). Each direction carries its guest (/e/) adaptation
+    // sketch on the page. T1 ruled a COMPOSITE of the three; it is built as V1
+    // with every beat a --tune-rvl-* var + the MotionTuner on the page, so the
+    // T2 device session tunes it live (Copy CSS -> bake -> reset).
+    id: "reel-reveal",
+    title: "Reel reveal moment",
+    surface: "host",
+    note: "The ruled composite reveal on the real playing canvas engine, above its three source choreographies: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
+    variants: [
+      "Composite (ruled)",
+      "Lights down",
+      "Assembly",
+      "First frame held",
+    ],
+    decision: 1,
+    decisionNote:
+      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference.",
   },
 ];
 

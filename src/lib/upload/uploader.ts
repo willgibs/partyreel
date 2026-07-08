@@ -13,6 +13,7 @@
  */
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
+import { getDeviceId } from "@/lib/upload/device-id";
 import { generatePreview } from "@/lib/upload/preview";
 
 type Measured = { width?: number; height?: number; duration?: number };
@@ -251,6 +252,9 @@ export async function uploadFile(args: {
     preview_key: previewKey,
     upload_id: presign.strategy === "multipart" ? presign.upload_id : null,
     parts,
+    // CAPTURE-ONLY (ADR-0020): the durable device UUID for the deny-all forensic
+    // record. Never read back, never product logic; omitted when storage is blocked.
+    device_uuid: getDeviceId() ?? undefined,
   });
   if (!complete.ok) {
     return {

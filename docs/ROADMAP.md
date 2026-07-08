@@ -72,20 +72,12 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   dual-shot preview) is consciously kept (excising shifts the trailer the MPF index points into; needs
   in-place TIFF surgery or coordinated MPF size+offset rewrites); the backfill report flags it as
   clean-but-GPS. → [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md).
-- **Forensic / device-ID capture for abuse + law-enforcement response** (Will, 2026-06-08; its own planning
-  round) — when media is reported, hand LE something useful instead of "we deleted it." Capture per-upload
-  only what's actually helpful (IP is shared/weak, email is disposable): IP + precise timestamp + Vercel geo,
-  full UA + UA client hints, and a durable FIRST-PARTY device id (localStorage/cookie UUID) that survives
-  session-token rotation. Extract + retain key EXIF (GPS, device make/model/serial, capture time) into a
-  locked record. NOTE: the EXIF/GPS strip itself SHIPPED 2026-07-02 as a CLIENT-side pre-upload step
-  (→ [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)), so the server never sees the EXIF — this
-  round's forensic capture must extract it client-side BEFORE the strip and post it with the upload. On a
-  report, LEGAL-HOLD the media (exclude from the 30-day auto-purge) + an admin preserve/export action. CSAM:
-  remove-from-live + a NCMEC CyberTipline report + a SEGREGATED, encrypted, deny-all, time-bounded
-  (18 U.S.C. §2258A(h): 90d, +90 on LE request) preservation hold (a legal mandate + safe harbor, not
-  "storage"); NO PhotoDNA (enterprise-grade, too costly now). Store as deny-all service-role PII, defined
-  retention, admin/legal-only access. Confirm the policy with counsel. (The abuse-focused rate limiter that
-  was the last deferred security piece SHIPPED 2026-06-08, commit `7bb2b53`.)
+- **Forensic capture follow-ons (ADR-0020)** — the A3-lite capture + legal hold + preservation +
+  `/admin/forensics` SHIPPED 2026-07-07 (→ [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)).
+  Remaining, all gated: the pre-strip client-side EXIF capture (COUNSEL-GATED, ADR-0020 decision 1 — the
+  server never sees EXIF post-strip, so extraction must run client-side before the strip); proactive
+  hashing (PhotoDNA/Safer) at real scale; any media-serving re-architecture to widen the Cloudflare CSAM
+  scanner past proxied traffic. The counsel sign-offs + NCMEC registration live in the Launch checkpoint.
 - **Bulk Restore-all / Empty-bin** for the recovery bins (per-item already ships).
 - **Immediate hard-purge for egregious content** in `/admin/albums` (today only soft-remove → 30-day window).
 - **File-picker upload e2e reconfirm** on a real device (the optimistic-tile path is client-only; couldn't
@@ -212,6 +204,15 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
 - Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+- Counsel sign-off gate (ADR-0020 D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
+  ToS forensic-capture disclosure language (IP/UA/geo/device UUID per upload), (2) the CSAM incident
+  runbook ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)) + NCMEC registration,
+  (3) the retention schedule (media-lifetime rows, 1-year preservation), (4) the pre-strip EXIF capture
+  go/no-go. The 8-item checklist is in the T1 options-doc (git history: `decisions/t1-forensic-csam-policy.md`).
+- NCMEC CyberTipline ESP registration `[human]` — register before launch (prep note in
+  [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
+- Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
+  (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
 - Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
   (code unchanged); checklist in [`PRICING.md`](PRICING.md).
 - Tune `MONTHLY_INGRESS_BYTES.pro` `[eng]` — currently `null`/unmetered; set before Pro launch.
@@ -219,8 +220,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   disclosure line.
 - Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
   event with catchy approved media.
-- Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks (needs a
-  paid Supabase branch or a local Postgres test DB).
+- Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks. BLOCKED
+  on a direct pg connection; the exact gaps + the two unblock paths + the intended test list are in
+  [`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md) (2026-07-03).
 - Confirm the Sentry email-alert rule fires `[human]`.
 - Pre-launch test-data hard reset ("Recovery Phase 6") `[eng]` — the deletion-aware prune has shipped (in
   dry-run), so the "reset ≥35 d before launch so test objects age out of the Bucket Lock" timing
@@ -237,9 +239,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
   auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
-- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` still pending; nudge via
-  the AWS console (account `562923010969` under partyr33l@gmail.com). The wall-clock speed lever for all
-  reel renders; non-blocking.
+- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` **DENIED 2026-06-23**
+  (new-account limits; AWS says re-request later with usage history). Superseded by the R2 render
+  re-architecture (client-rendered reels, Plan A in the program plan): if the spike lands, the whole AWS
+  sub-account tears down instead; re-request only if Plan B (tuned Lambda) activates.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.

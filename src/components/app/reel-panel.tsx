@@ -8,6 +8,7 @@ import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { type GridMedia } from "@/components/app/media-grid";
 import { ReelSortableGrid } from "@/components/app/reel-sortable-grid";
+import { type Tier } from "@/lib/constants/tiers";
 import { type ReelConfig } from "@/lib/db/queries/reel";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { ReelComposer } from "@/components/reel/reel-composer";
@@ -31,16 +32,19 @@ export function ReelPanel({
   shareUrl,
   reelConfig,
   watermark,
+  tier,
 }: {
   eventId: string;
   /** All visible (approved + hidden) gallery items; filtered here to the in-reel, approved set. */
   items: GridMedia[];
   shareUrl?: string;
   /** The composer config (theme/seed/length/cover); null until first composed. Consumed by the
-   *  reel composer (mounts the live @remotion/player). Accepted now; wired in the composer step. */
+   *  reel composer (mounts the live CanvasReelPlayer). */
   reelConfig: ReelConfig | null;
   /** Free tier → the live player + the .mp4 export carry the partyreel.com wordmark. */
   watermark: boolean;
+  /** The host's billing tier — the composer derives its length cap from it (ADR-0021). */
+  tier: Tier;
 }) {
   const reel = useReel();
   const reorder = useReelReorder();
@@ -80,6 +84,7 @@ export function ReelPanel({
         items={items}
         reelConfig={reelConfig}
         watermark={watermark}
+        tier={tier}
       />
       {/* ...over the editable curated filmstrip (add/remove via the clapperboard, reorder via the
           header). A uniform grid (a legible sequence), not the gallery's natural-ratio masonry. */}
