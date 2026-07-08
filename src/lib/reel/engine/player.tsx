@@ -1,17 +1,16 @@
 "use client";
 
-// The live canvas reel player: the drop-in twin of components/reel/reel-player.tsx with the same
-// one-prop seam ({ reelProps }), driving the SAME drawReelFrame the encoder steps (player == export by
-// construction, the Plan-A claim). rAF accumulates play time and renders the FLOORED frame index, so
-// live playback samples exactly the discrete frames the mp4 will contain.
+// The live canvas reel player: a one-prop seam ({ reelProps }) driving the SAME drawReelFrame the
+// encoder steps, so the preview pixels ARE the export pixels (one draw fn = player + export). rAF
+// accumulates play time and renders the FLOORED frame index, so live playback samples exactly the
+// discrete frames the mp4 will contain.
 //
-// Behavior parity with the Remotion player usage in the composer: plays on mount (silent, so autoplay
-// is never blocked), loops, shows controls. Additions the DOM player got for free from the browser:
-// visibility-aware (rAF pauses while the tab is hidden; time freezes so it resumes where it was) and
-// reduced-motion respectful (prefers-reduced-motion starts paused on frame 0; play is one tap away).
+// It plays on mount (silent, so autoplay is never blocked), loops, shows controls, is visibility-aware
+// (rAF pauses while the tab is hidden; time freezes so it resumes where it was), and reduced-motion
+// respectful (prefers-reduced-motion starts paused on frame 0; play is one tap away).
 //
-// The optional `frame` prop makes the player CONTROLLED (draw exactly that frame, no rAF): the parity
-// harness scrub-locks both players onto one timeline with it. Leave it undefined for normal playback.
+// The optional `frame` prop makes the player CONTROLLED (draw exactly that frame, no rAF): the canvas
+// style lab scrub-locks the player onto one frame with it. Leave it undefined for normal playback.
 
 import { Pause, Play } from "lucide-react";
 import {
