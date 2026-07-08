@@ -25,6 +25,10 @@
 > Design + phasing: the elevation-program plan (`~/.claude/plans/you-are-the-standing-humble-unicorn.md`,
 > "R2 revised design") + the `project_elevation_program` memory. Do NOT build new work against the Lambda
 > pipeline. Guest-surfacing product recommendations: [`../decisions/t1-reel-guest-surfacing.md`](../decisions/t1-reel-guest-surfacing.md).
+> **Progress (2026-07-08, Phase C):** all 14 styles ported to the canvas engine, the composer plays
+> `CanvasReelPlayer`, and Download video is a CLIENT WebCodecs encode uploaded via the host-authed
+> `/api/reel/upload` begin→mint→finalize handshake ($0; Lambda remains ONLY the no-WebCodecs fallback until the
+> R8 teardown). Current truth: [`../systems/host-app.md`](../systems/host-app.md) "The .mp4 EXPORT".
 
 ## What it is + why
 

@@ -10,7 +10,24 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-07-03 — EXIF/GPS metadata strip + the elevation-program bootstrap (milestone-0, `f99d9cc`)
+## 2026-07-08 — Reel Plan A Phase C: the composer on the canvas engine + client-encoded export
+
+**The reel export goes $0 by default.** The composer's live player is now `CanvasReelPlayer` (the same
+`drawReelFrame` the encoder steps: the preview pixels ARE the export pixels; `@remotion/player` no longer
+imported by the composer, kept only for the parity harness + the Lambda fallback until R8). **Download video**
+probes WebCodecs per browser: supported → `encodeReel` renders the mp4 on the host's device (real progress in
+the dual-mode stitching dialog; the local file saves the instant the encode lands), then uploads it to the reel
+output key via the NEW host-authed `POST /api/reel/upload` (begin → mint → finalize). The mint is the new abuse
+surface, built tight: getUser + own-event, the whole config re-derived server-side (tier → watermark + length
+clamp, membership, hash re-compared each phase so a mid-encode config change 409s), a content-length-bound
+`video/mp4` presign capped at server-length × a bitrate budget (`client-encode-budget.ts`, parity-tested
+against the encoder), the existing `reel_render_enabled` kill-switch + `reel_render` limiter, and an idempotent
+finalize that verifies the object landed AFTER the mint stamp before stamping `ready` + `rendered_hash` and
+logging `client_encoded` at cost 0 (mint logs `client_minted`; `/admin/reels` labels both). Cache semantics
+unchanged (`rendered_hash` match → the stored mp4, $0). No WebCodecs → the untouched Lambda render. No DDL
+(`reel_render_log.outcome` is text). Verified: Vitest (budget math, contract zod, gate logic, hash
+invalidation; 853 green), typecheck/lint/build green, curl red-team of the route's parse/authz surface
+(400/403/405); the real browser encode e2e runs on the preview alias at integration.
 
 **The live location leak is closed.** Guests' phone photos/videos carried GPS + device EXIF into the R2
 originals served by the lightbox, per-item Save, and the Download-all zip. Now a **client-side, lossless,
