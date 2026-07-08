@@ -628,14 +628,16 @@ export function ReelComposer({
         )}
       </div>
 
-      <ReelStitchingDialog
-        eventId={eventId}
-        open={stitchOpen}
-        onOpenChange={handleStitchOpenChange}
-        onReady={downloadReel}
-        onRetry={handleDownload}
-        encode={encodeState}
-      />
+      {/* The progress modal exists only during an on-device encode (encodeState non-null); the client
+          finalize flips the reel to ready synchronously, so there's no idle/poll state to render. */}
+      {encodeState && (
+        <ReelStitchingDialog
+          open={stitchOpen}
+          onOpenChange={handleStitchOpenChange}
+          onRetry={handleDownload}
+          encode={encodeState}
+        />
+      )}
     </div>
   );
 }

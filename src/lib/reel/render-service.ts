@@ -4,10 +4,11 @@
  * reports render state. The /api/reel/upload route does the AUTHZ (getUser + own-event); this module
  * derives the host's tier (→ watermark), computes the config hash (the cache key), serves the cached
  * mp4 when nothing changed, runs the kill-switch + abuse limiter, presigns the bounded PUT, and stamps
- * highlight_reels through 'processing' → 'ready'. The GET poll route (/api/reel/render) reports state
- * and finalizes from R2 as a resilience net (idempotent).
+ * highlight_reels through 'processing' → 'ready'. The client's /api/reel/upload finalize call flips the
+ * reel to 'ready' synchronously (the encode is on-device), so there is no async poll/resilience net.
  *
- * (The Lambda/Remotion render path was torn down 2026-07-08; client-encode is the only path now.)
+ * (The Lambda/Remotion render path was torn down 2026-07-08; client-encode is the only path now. The
+ * caller-less GET poll route + its R2-HEAD finalize fallback were pruned 2026-07-08 with it.)
  */
 import "server-only";
 
@@ -240,8 +241,9 @@ async function resolveReelRenderContext(
 //              content-length-bound PUT, stamp 'processing' (render_id "client:<uuid>"), record the
 //              limiter event.
 //   finalize → verify the object LANDED (present + size within cap + LastModified >= the mint
-//              stamp, the same disambiguation finalizeIfLanded uses), then stamp 'ready' +
-//              rendered_hash and log outcome 'client_encoded' at cost 0. Idempotent (retry-safe).
+//              stamp, so a stale artifact from an older render at the same stable key can't bless
+//              itself), then stamp 'ready' + rendered_hash and log 'client_encoded' at cost 0.
+//              Idempotent (retry-safe).
 // Trust model: the server derives tier/length/watermark/membership; the client's hash is an opaque
 // echo compared against a fresh recompute at every phase, so a mid-encode config change 409s.
 // ACCEPTED CAVEAT (pre-launch ruling): the server cannot see the ENCODED PIXELS, so a tampered
@@ -538,9 +540,9 @@ export async function finalizeClientReelUpload(input: {
     return { ok: false, reason: "upload_incomplete" };
   }
 
-  // The landed check (same disambiguation as finalizeIfLanded): the object exists, its size is
-  // within the mint budget, and it was written AT/AFTER the mint stamp — so finalize can't bless a
-  // stale artifact from an older render at the same stable key.
+  // The landed check: the object exists, its size is within the mint budget, and it was written
+  // AT/AFTER the mint stamp — so finalize can't bless a stale artifact from an older render at the
+  // same stable key.
   const meta = await headObject({ key: reelOutputKey(eventId) });
   const startedMs = new Date(row.render_started_at).getTime();
   const landed =
@@ -629,92 +631,4 @@ async function checkClientEncodeRate(
     });
   }
   return null;
-}
-
-/**
- * Flip a 'processing' reel to 'ready' IFF its client-encoded mp4 has landed in R2. Completion is detected
- * by the OBJECT (HEAD reelOutputKey with LastModified >= render_started_at), so it needs no persisted
- * bucketName. This is the poll route's resilience net: a client-minted upload (render_id "client:<uuid>")
- * can land here before the client calls /api/reel/upload finalize. Logged in the client vocabulary at its
- * true cost (0). Idempotent: the status='processing' guard means only the first finalizer flips it; a
- * second call is a no-op. Returns true if the reel is now ready.
- */
-async function finalizeIfLanded(
-  admin: Admin,
-  eventId: string,
-  row: Pick<ReelRow, "status" | "render_started_at" | "render_id">,
-): Promise<boolean> {
-  if (row.status !== "processing" || !row.render_started_at) return false;
-  const meta = await headObject({ key: reelOutputKey(eventId) });
-  const startedMs = new Date(row.render_started_at).getTime();
-  const landed =
-    meta &&
-    meta.size > 0 &&
-    meta.lastModified != null &&
-    meta.lastModified.getTime() >= startedMs;
-  if (!landed) return false;
-
-  await admin
-    .from("highlight_reels")
-    .update({
-      status: "ready",
-      output_key: reelOutputKey(eventId),
-      rendered_at: new Date().toISOString(),
-      render_error: null,
-      render_cost_usd: 0, // a device encode is always $0
-    })
-    .eq("event_id", eventId)
-    .eq("status", "processing"); // idempotent — only the first finalizer flips it
-  await recordRender(admin, {
-    eventId,
-    requesterHash: null,
-    renderId: row.render_id,
-    outcome: "client_encoded",
-    costUsd: 0,
-  });
-  return true;
-}
-
-export type ReelRenderState =
-  | { status: "ready"; downloadUrl: string }
-  | { status: "processing" }
-  | { status: "error" }
-  | { status: "idle" };
-
-/**
- * The poll endpoint's read: reflect the reel's render state, finalizing from R2 if a client-encoded mp4
- * has landed (the resilience net if the client's finalize call never arrived). 'error' = a recorded
- * render_error with no current 'ready'; 'idle' = never rendered / config changed since.
- */
-export async function getReelRenderState(
-  eventId: string,
-  eventName: string,
-): Promise<ReelRenderState> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("highlight_reels")
-    .select("status, render_started_at, render_id, render_error")
-    .eq("event_id", eventId)
-    .maybeSingle();
-  const row = (data ?? null) as Pick<
-    ReelRow,
-    "status" | "render_started_at" | "render_id" | "render_error"
-  > | null;
-  if (!row) return { status: "idle" };
-
-  let status: ReelRow["status"] = row.status;
-  if (
-    status === "processing" &&
-    (await finalizeIfLanded(admin, eventId, row))
-  ) {
-    status = "ready";
-  }
-
-  if (status === "ready") {
-    const downloadUrl = await reelDownloadUrl(eventId, eventName);
-    return { status: "ready", downloadUrl };
-  }
-  if (row.render_error) return { status: "error" };
-  if (status === "processing") return { status: "processing" };
-  return { status: "idle" };
 }
