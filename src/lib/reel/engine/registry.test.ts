@@ -35,11 +35,11 @@ describe("the engine style registry", () => {
     for (const id of Object.keys(ENGINE_STYLES)) {
       expect(engineSupports(id)).toBe(true);
     }
-    expect(engineSupports("parallax")).toBe(false); // a treatment (not yet ported)
+    expect(engineSupports("nope")).toBe(false); // not a catalog style
     expect(engineSupports(undefined)).toBe(false);
   });
 
-  it("pins the ported style set (grows one entry per port)", () => {
+  it("pins the ported style set (ALL 14 catalog styles: 8 moods + 6 treatments)", () => {
     expect(Object.keys(ENGINE_STYLES).sort()).toEqual([
       "carddeck",
       "classic",
@@ -50,6 +50,7 @@ describe("the engine style registry", () => {
       "golden",
       "kinetic",
       "mono",
+      "parallax",
       "polaroid",
       "punchy",
       "scattered",

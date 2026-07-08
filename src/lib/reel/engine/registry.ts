@@ -1,6 +1,6 @@
 // The canvas engine's style registry + frame dispatch: the twin of style-render.tsx's StyleDispatch
-// for draw functions instead of React components. Grows one entry per ported style; until all 14 land,
-// engineSupports() lets callers decide whether to render a style on canvas or keep the Remotion path.
+// for draw functions instead of React components. ALL 14 catalog styles are ported (8 moods + 6
+// treatments); engineSupports() remains the seam callers use to gate canvas vs the Remotion path.
 //
 // THE WATERMARK RULE (carried over from style-render.tsx, do not weaken): the free-tier watermark
 // (the bottom-right lockup, T1 redesign; see drawWatermark) is stamped HERE, in the dispatch layer,
@@ -16,12 +16,13 @@ import { CINEMATIC } from "./styles/cinematic";
 import { FILMSTRIP } from "./styles/filmstrip";
 import { FRAMED } from "./styles/framed";
 import { moodStyle } from "./styles/mood";
+import { PARALLAX } from "./styles/parallax";
 import { POLAROID } from "./styles/polaroid";
 import { SCATTERED } from "./styles/scattered";
 
-/** The styles ported to canvas so far (keyed by catalog styleId). All 8 moods render through the one
- *  generic mood draw (styles/mood.ts) parameterized by props.theme, mirroring the Remotion <Reel>;
- *  the 6 treatments land one bespoke port at a time (styles/<treatment>.ts). */
+/** The full ported catalog (keyed by catalog styleId). All 8 moods render through the one generic
+ *  mood draw (styles/mood.ts) parameterized by props.theme, mirroring the Remotion <Reel>; each of
+ *  the 6 treatments is its own bespoke port (styles/<treatment>.ts). */
 export const ENGINE_STYLES: Record<string, ReelStyle> = {
   classic: CINEMATIC,
   editorial: moodStyle("editorial"),
@@ -36,6 +37,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   scattered: SCATTERED,
   framed: FRAMED,
   carddeck: CARDDECK,
+  parallax: PARALLAX,
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
