@@ -19,6 +19,7 @@ import "server-only";
 
 import { type MutationResult } from "@/lib/db/mutations/events";
 import { deleteR2Objects } from "@/lib/r2/delete";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatBytes } from "@/lib/utils";
 
@@ -403,17 +404,12 @@ export async function purgeMediaNow(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // LEGAL HOLD (ADR-0020): held items are excluded HERE, before the R2-first delete — the
-  // purge_media_now RPC also refuses them, but that would only save the ROW after this wrapper
-  // had already destroyed the OBJECT. (`.filter` because legal_hold_at isn't in the generated
-  // types until the orchestrator regenerates post-apply.)
   const { data: rows, error: readErr } = await supabase
     .from("media")
     .select("id, original_key, preview_key")
     .eq("event_id", eventId)
     .in("id", mediaIds)
-    .eq("status", "removed")
-    .filter("legal_hold_at", "is", null);
+    .eq("status", "removed");
   if (readErr) {
     return {
       ok: false,
@@ -421,7 +417,35 @@ export async function purgeMediaNow(
       message: "Couldn't delete those items. Please try again.",
     };
   }
-  const owned = rows ?? [];
+
+  // LEGAL HOLD (ADR-0020): held items are excluded HERE, before the R2-first delete — the
+  // purge_media_now RPC also refuses them, but that would only save the ROW after this wrapper
+  // had already destroyed the OBJECT. The lookup runs on the ADMIN client because SELECT on media
+  // is COLUMN-scoped and legal_hold_at is deliberately NOT granted to hosts (a hold must stay
+  // invisible to the investigated party; referencing it through the RLS client would error). The
+  // RLS read above already proved every id is the caller's own removed media, so this is a pure
+  // held-id subtraction, never an authz widening. (`.filter` because legal_hold_at isn't in the
+  // generated types until the orchestrator regenerates post-apply.)
+  let owned = rows ?? [];
+  if (owned.length > 0) {
+    const { data: held, error: holdErr } = await createAdminClient()
+      .from("media")
+      .select("id")
+      .in(
+        "id",
+        owned.map((r) => r.id),
+      )
+      .filter("legal_hold_at", "not.is", null);
+    if (holdErr) {
+      return {
+        ok: false,
+        code: "unknown",
+        message: "Couldn't delete those items. Please try again.",
+      };
+    }
+    const heldIds = new Set((held ?? []).map((r) => r.id));
+    owned = owned.filter((r) => !heldIds.has(r.id));
+  }
   if (owned.length > 0) {
     const keys: string[] = [];
     for (const row of owned) {

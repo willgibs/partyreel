@@ -54,7 +54,14 @@ event rows) lands beside it. The sole egress is the audit-logged `/admin/forensi
   (ADR-0020 decision 1). Do not build it without that sign-off.
 - **A held-removed item stays off live:** `restore_media` refuses with reason `legal_hold`, which
   the wrapper deliberately maps to the vague default copy (an uploader/host must not learn a hold
-  exists).
+  exists). The same discretion holds on the READ path: SELECT on `media` is COLUMN-scoped and the
+  hold columns are not granted to `authenticated`, so the owning host can't see a hold via
+  PostgREST or the gallery queries (which enumerate `MEDIA_HOST_COLUMNS`, parity-tested against
+  the grant). → [database-security.md](database-security.md).
+- **`restore_media`'s replacement keeps the `removed_by_uploader = false` guard** from the applied
+  `20260609150000` body (a guest's self-deletion stays PRIVATE to the host); dropping it in a later
+  CREATE OR REPLACE would revert that privacy boundary — `forensics/migration-guards.test.ts` pins
+  it, plus the grant parity above.
 - **Preservation objects are deleted only BY HAND** (audited, on the REPORT Act 1-year clock).
   Releasing a hold does not touch them; no sweep lists the `preservation/` prefix.
 
