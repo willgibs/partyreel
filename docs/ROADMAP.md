@@ -158,22 +158,19 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
     "Download all" zip stays its own deferred worker initiative.
-  - **Generation — SLICES 1-3 (2026-06-22) + PHASE 2 the STYLE CATALOG (2026-07-02) SHIPPED ([`specs/reel-v1.md`](specs/reel-v1.md)).**
-    The North Star is live. S1 spike (`d8b6dba`): Remotion Lambda→R2 proven. S2 composer (`4806e71`): the live in-app
-    `@remotion/player` reel. S3 the `.mp4` EXPORT (`f460456`): Download video → direct-to-R2, async trigger+webhook,
-    lazy+cached, free-tier watermark, `/admin/reels` kill-switch. **PHASE 2 (`0cfcc4f` + fixes `b6d1767`/`fafba3c`): the
-    host composer now offers a 14-style catalog (8 media-first moods + 6 stylized treatments, a grouped popover) + a
-    portrait/landscape orientation; SHUFFLE REMOVED (deterministic seed); a styleId dispatcher (pure `style-registry` +
-    remotion `StyleDispatch` w/ hoisted watermark); `highlight_reels.style_id/orientation` + new `upsert_reel_config`;
-    `fitClip` now live in prod; `RENDER_VERSION` 2 + `deploy-site`. Live-verified (parallax landscape mp4 downloaded,
-    $0.024/~3min). Two render fixes the red-team caught: `overwrite:true` (stable key) + a 240s Lambda function.**
-    Settled (do-not-relitigate): **Remotion** one-composition WYSIWYG, **Lazy+cached**, the **14-style catalog +
-    orientation** (shuffle gone), **1 reel all tiers**, **free** w/ the watermark lever, **Pro video** preview+trim.
-    **NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
-    (A) treatment render OPTIMIZATION (blur-downscale — treatments cost ~4× moods; recommended first); (B) guest-facing
-    reel surfacing + download (the next feature; needs a planning round); plus follow-ups (lab→StyleDispatch DRY,
-    style-popover thumbnails, drop the legacy `theme` column, AWS concurrency 10→2000 case `178216366300642`) and Pro
-    video real-video-in-player + R2 CORS + the reveal moment. → [`systems/host-app.md`](systems/host-app.md).
+  - **Generation SHIPPED + LIVE ([`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star runs on a **canvas engine**
+    (`src/lib/reel/engine/`): ONE draw fn powers the live `CanvasReelPlayer` AND the on-device WebCodecs `.mp4` export
+    (mediabunny), uploaded via the host-authed `/api/reel/upload` begin→mint→finalize handshake ($0 at any scale,
+    lazy+cached, free-tier watermark, `/admin/reels` kill-switch + `reel_render_log` + limiter). The **14-style catalog**
+    (8 media-first moods + 6 stylized treatments) + portrait/landscape orientation are live; shuffle removed (deterministic
+    seed). **The Remotion/AWS-Lambda render path was TORN DOWN 2026-07-08** (the original S1-S3 shipped on Lambda; the
+    canvas-engine spike + AWS's concurrency denial retired it — `@remotion/*` deps, `workers/reel-render/`, the Lambda
+    trigger/webhook all gone). Settled (do-not-relitigate): **one-source WYSIWYG** (player == export), **Lazy+cached**, the
+    **14-style catalog + orientation** (shuffle gone), **1 reel all tiers**, **free** w/ the watermark lever, **Pro video**
+    preview+trim. **NEXT:** guest-facing reel surfacing + download (the next feature; needs a planning round —
+    [`specs/reel-v1.md`](specs/reel-v1.md) + [`decisions/t1-reel-guest-surfacing.md`](decisions/t1-reel-guest-surfacing.md));
+    plus Pro video real-video-in-player + R2 CORS, the reveal moment, and dropping the legacy `highlight_reels.theme`
+    column. → [`systems/host-app.md`](systems/host-app.md).
   See [`systems/host-app.md`](systems/host-app.md).
 - **User profiles + social discovery (Will, 2026-06-20 — the platform-expansion program; P1-P3 BUILT
   2026-07-08 on the elevation-program track, pending integration).** Turns the single-event tool into a
@@ -232,10 +229,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
   auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
-- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` **DENIED 2026-06-23**
-  (new-account limits; AWS says re-request later with usage history). Superseded by the R2 render
-  re-architecture (client-rendered reels, Plan A in the program plan): if the spike lands, the whole AWS
-  sub-account tears down instead; re-request only if Plan B (tuned Lambda) activates.
+- Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
+  (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`
+  (the `remotion-lambda-role`/`remotion-user` IAM + the deployed Remotion site/function) has no remaining use.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.
