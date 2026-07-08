@@ -13,6 +13,7 @@ import { detectCtxFilter, drawWatermark } from "./canvas2d";
 import type { DrawEnv, ReelStyle } from "./contract";
 import { CINEMATIC } from "./styles/cinematic";
 import { FILMSTRIP } from "./styles/filmstrip";
+import { FRAMED } from "./styles/framed";
 import { moodStyle } from "./styles/mood";
 import { POLAROID } from "./styles/polaroid";
 import { SCATTERED } from "./styles/scattered";
@@ -32,6 +33,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   polaroid: POLAROID,
   filmstrip: FILMSTRIP,
   scattered: SCATTERED,
+  framed: FRAMED,
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
