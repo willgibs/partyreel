@@ -183,13 +183,27 @@ const GRAIN_SVG =
 
 export const GRAIN_TILE_URI = `data:image/svg+xml,${encodeURIComponent(GRAIN_SVG)}`;
 
+// Pattern cache keyed per context: createPattern allocated per frame is pure GC churn in the
+// 30fps draw / flat-out encode loops (the contract's build-once rule). Keyed on ctx (not tile)
+// because a pattern's cross-context portability is not guaranteed everywhere; each ctx draws
+// every frame, so the per-ctx cache still hits 100% after the first frame.
+const grainPatternCache = new WeakMap<
+  CanvasRenderingContext2D,
+  { tile: CanvasImage; pattern: CanvasPattern }
+>();
+
 export function drawGrain(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   tile: CanvasImage,
 ): void {
-  const pattern = ctx.createPattern(tile, "repeat");
+  const cached = grainPatternCache.get(ctx);
+  let pattern = cached && cached.tile === tile ? cached.pattern : null;
+  if (!pattern) {
+    pattern = ctx.createPattern(tile, "repeat");
+    if (pattern) grainPatternCache.set(ctx, { tile, pattern });
+  }
   if (!pattern) return;
   ctx.save();
   ctx.globalAlpha = 0.07;

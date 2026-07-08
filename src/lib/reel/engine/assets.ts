@@ -92,6 +92,11 @@ export async function loadReelAssets(
         return null;
       })
     : Promise.resolve(null);
+  // Pre-attach a handler: if the signal fires while both decodes are in flight, the clip map's
+  // rethrow makes Promise.all throw FIRST and this function exits before grainPromise is awaited;
+  // its own AbortError would then land as an unhandled rejection (dev console + Sentry noise).
+  // The real rejection still propagates through the `await grainPromise` below when reached.
+  grainPromise.catch(() => {});
 
   const results = await Promise.all(
     clips.map(async (clip): Promise<ClipAsset | null> => {

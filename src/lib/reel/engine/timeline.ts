@@ -85,7 +85,17 @@ export function gapProgress(
   return Math.min(1, Math.max(0, p));
 }
 
-/** Resolve an output frame to its on-screen layers + transition state. */
+/**
+ * Resolve an output frame to its on-screen layers + transition state.
+ *
+ * KNOWN LIMIT (latent, unreachable with current themes): this models at most TWO layers
+ * (top + under). Remotion's TransitionSeries can have THREE sequences on screen when a clip is
+ * shorter than the sum of its two adjacent gaps (clip i-1 still exiting while clip i+1 already
+ * enters). planReel clamps holds to max(adjacent gap)+2 and every real theme keeps clips far
+ * longer than their gap sum, so no pixel diverges today. If a future theme or the Pro TRIM slice
+ * introduces holds shorter than two adjacent transition durations, this needs a third layer (or
+ * a planReel guard) BEFORE shipping that theme.
+ */
 export function frameStateAt(plan: ReelPlan, frame: number): FrameState {
   const starts = clipStartFrames(plan);
   const n = plan.clips.length;
