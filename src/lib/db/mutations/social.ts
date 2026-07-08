@@ -16,6 +16,8 @@
  */
 import "server-only";
 
+import type { TablesUpdate } from "@/lib/db/types";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { MutationResult } from "@/lib/db/mutations/events";
@@ -56,7 +58,7 @@ export async function followUser(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase).rpc("follow_user", {
+  const { error } = await supabase.rpc("follow_user", {
     p_followee: profileId,
   });
   if (error) {
@@ -86,7 +88,7 @@ export async function unfollowUser(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase)
+  const { error } = await supabase
     .from("user_follows")
     .delete()
     .eq("follower_id", user.id)
@@ -115,7 +117,7 @@ export async function blockUser(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase).rpc("block_user", {
+  const { error } = await supabase.rpc("block_user", {
     p_blocked: profileId,
   });
   if (error) {
@@ -147,7 +149,7 @@ export async function unblockUser(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase)
+  const { error } = await supabase
     .from("user_blocks")
     .delete()
     .eq("blocker_id", user.id)
@@ -182,7 +184,7 @@ export async function setNotificationPrefs(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const patch: Record<string, boolean> = {};
+  const patch: TablesUpdate<"notification_prefs"> = {};
   if (prefs.notifyReelReady !== undefined)
     patch.notify_reel_ready = prefs.notifyReelReady;
   if (prefs.notifyAlbumShared !== undefined)
@@ -196,7 +198,7 @@ export async function setNotificationPrefs(
   if (Object.keys(patch).length === 0)
     return { ok: true, data: { id: user.id } };
 
-  const db = social(supabase);
+  const db = supabase;
   const failed = {
     ok: false as const,
     code: "unknown" as const,
@@ -242,7 +244,7 @@ export async function hideEventFromProfile(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase)
+  const { error } = await supabase
     .from("profile_hidden_events")
     .insert({ user_id: user.id, event_id: eventId });
   if (error && error.code !== UNIQUE_VIOLATION) {
@@ -265,7 +267,7 @@ export async function unhideEventFromProfile(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(supabase)
+  const { error } = await supabase
     .from("profile_hidden_events")
     .delete()
     .eq("user_id", user.id)
@@ -299,7 +301,7 @@ export async function setEventSocialSettings(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const update: Record<string, boolean> = {};
+  const update: TablesUpdate<"events"> = {};
   if (patch.displayInProfile !== undefined)
     update.display_in_profile = patch.displayInProfile;
   if (patch.showGuestList !== undefined)
@@ -307,7 +309,7 @@ export async function setEventSocialSettings(
   if (Object.keys(update).length === 0)
     return { ok: true, data: { id: eventId } };
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("events")
     .update(update)
     .eq("id", eventId)
@@ -369,7 +371,7 @@ export async function setProfileSlug(
   }
   const slug = parsed.data;
 
-  const { error } = await social(createAdminClient())
+  const { error } = await createAdminClient()
     .from("profiles")
     .update({ slug })
     .eq("id", user.id);
@@ -403,7 +405,7 @@ export async function clearProfileSlug(): Promise<
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await social(createAdminClient())
+  const { error } = await createAdminClient()
     .from("profiles")
     .update({ slug: null })
     .eq("id", user.id);

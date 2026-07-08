@@ -13,7 +13,7 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { cache } from "react";
 
 import type { Database } from "@/lib/db/types";
 import {
@@ -21,20 +21,11 @@ import {
   type NotificationPrefs,
   type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
+import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { createClient } from "@/lib/supabase/server";
-
-// ── The pre-regen typing seam ────────────────────────────────────────────────
-// WHY: src/lib/db/types.ts is GENERATED from the live schema and regenerates
-// only when the orchestrator applies migration 20260708120000 at integration
-// (subagents never apply DDL), so the social tables/columns/RPCs are invisible
-// to the generated types until then. This cast drops to the untyped client for
-// exactly those calls; the exported row types below are the local source of
-// truth in the meantime. AFTER the regen lands: swap the casts for the typed
-// client + Tables<"user_follows"> etc. and delete this seam.
-const social = (client: unknown) => client as SupabaseClient;
 
 /**
  * The pre-apply RUNTIME seam (the typing seam's sibling): until the orchestrator
@@ -55,7 +46,14 @@ const MISSING_SCHEMA_CODES = new Set([
 ]);
 export function isSocialSchemaMissing(error: unknown): boolean {
   const code = (error as { code?: string | null } | null)?.code ?? "";
-  return MISSING_SCHEMA_CODES.has(code);
+  const missing = MISSING_SCHEMA_CODES.has(code);
+  // The migration is APPLIED (2026-07-08), so this should never fire again: if it
+  // does, a refactor broke a real column/table/RPC. Surface it loudly instead of
+  // silently downgrading the product; the graceful return still protects the render.
+  if (missing) {
+    captureError("other", error, { seam: "social_schema_missing", code });
+  }
+  return missing;
 }
 
 /** The public-by-existence card fields (ADR-0019 point 3). */
@@ -84,7 +82,7 @@ async function getProfileCards(
   ids: string[],
 ): Promise<Map<string, SocialProfileCard>> {
   if (ids.length === 0) return new Map();
-  const { data, error } = await social(createAdminClient())
+  const { data, error } = await createAdminClient()
     .from("profiles")
     .select("id, display_name, slug, avatar_updated_at")
     .in("id", ids);
@@ -114,7 +112,7 @@ export async function getMyFollowing(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("user_follows")
     .select("followee_id, created_at")
     .eq("follower_id", user.id)
@@ -137,7 +135,7 @@ export async function getMyFollowers(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("user_follows")
     .select("follower_id, created_at")
     .eq("followee_id", user.id)
@@ -164,11 +162,11 @@ export async function getMyFollowCounts(): Promise<{
   if (!user) return { following: 0, followers: 0 };
 
   const [following, followers] = await Promise.all([
-    social(supabase)
+    supabase
       .from("user_follows")
       .select("follower_id", { count: "exact", head: true })
       .eq("follower_id", user.id),
-    social(supabase)
+    supabase
       .from("user_follows")
       .select("followee_id", { count: "exact", head: true })
       .eq("followee_id", user.id),
@@ -196,7 +194,7 @@ export async function isFollowing(profileId: string): Promise<boolean> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return false;
 
-  const { count, error } = await social(supabase)
+  const { count, error } = await supabase
     .from("user_follows")
     .select("followee_id", { count: "exact", head: true })
     .eq("follower_id", user.id)
@@ -213,7 +211,7 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("user_blocks")
     .select("blocked_id, created_at")
     .eq("blocker_id", user.id)
@@ -240,7 +238,7 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return resolveNotificationPrefs(null);
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("notification_prefs")
     .select(
       "notify_reel_ready, notify_album_shared, notify_new_uploads_digest, notify_new_follower, marketing_opt_in",
@@ -259,7 +257,7 @@ export async function getMyHiddenEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("profile_hidden_events")
     .select("event_id")
     .eq("user_id", user.id);
@@ -311,18 +309,27 @@ export type PublicProfile = {
  * attended events (show_guest_list on, approved upload) minus the owner's
  * profile_hidden_events.
  */
+const getPublicProfileCached = cache(
+  async (slug: string): Promise<PublicProfile | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_profile", {
+      p_slug: slug,
+    });
+    if (error) {
+      if (isSocialSchemaMissing(error)) return null;
+      throw error;
+    }
+    return (data as PublicProfile | null) ?? null;
+  },
+);
+
 export async function getPublicProfile(
   slug: string,
 ): Promise<PublicProfile | null> {
-  const supabase = await createClient();
-  const { data, error } = await social(supabase).rpc("get_public_profile", {
-    p_slug: slug,
-  });
-  if (error) {
-    if (isSocialSchemaMissing(error)) return null; // pre-apply: /u/* 404s
-    throw error;
-  }
-  return (data as PublicProfile | null) ?? null;
+  // Normalize BEFORE the cache boundary: generateMetadata passes the raw slug and
+  // the page lowercases, so without this they would miss each other's per-request
+  // cache() entry and issue the RPC twice (the RPC lower(trim())s regardless).
+  return getPublicProfileCached(slug.trim().toLowerCase());
 }
 
 /**
@@ -384,7 +391,7 @@ export async function isBlockedEitherWay(
   viewerId: string,
   profileId: string,
 ): Promise<boolean> {
-  const { data, error } = await social(createAdminClient())
+  const { data, error } = await createAdminClient()
     .from("user_blocks")
     .select("blocker_id")
     .or(
@@ -403,7 +410,7 @@ export async function hasBlocked(
   viewerId: string,
   profileId: string,
 ): Promise<boolean> {
-  const { data, error } = await social(createAdminClient())
+  const { data, error } = await createAdminClient()
     .from("user_blocks")
     .select("blocker_id")
     .eq("blocker_id", viewerId)
@@ -421,7 +428,7 @@ export async function getMyProfileSlug(): Promise<string | null> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return null;
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("profiles")
     .select("slug")
     .eq("id", user.id)
@@ -533,7 +540,7 @@ export async function getEventGuestList(
 ): Promise<GuestListEntry[] | null> {
   const admin = createAdminClient();
 
-  const { data: event, error: eventError } = await social(admin)
+  const { data: event, error: eventError } = await admin
     .from("events")
     .select("show_guest_list")
     .eq("id", eventId)
@@ -600,7 +607,7 @@ export async function getEventSocialSettings(eventId: string): Promise<{
   const { supabase, user } = await getRequestAuth();
   if (!user) return null;
 
-  const { data, error } = await social(supabase)
+  const { data, error } = await supabase
     .from("events")
     .select("display_in_profile, show_guest_list")
     .eq("id", eventId)
@@ -650,7 +657,7 @@ export async function getFollowedHostEventCards(): Promise<
   const hostNames = new Map(following.map((f) => [f.id, f.displayName]));
 
   try {
-    const { data, error } = await social(createAdminClient())
+    const { data, error } = await createAdminClient()
       .from("events")
       .select(
         "id, name, event_date, visibility, qr_token, custom_slug, host_id, created_at",
