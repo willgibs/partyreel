@@ -117,6 +117,21 @@ export function measureSpringFrames(fps: number, config: SpringConfig): number {
 }
 
 /**
+ * The raw spring value at a frame for a custom config: Remotion's spring({ frame, fps, config })
+ * WITHOUT durationInFrames stretching. The treatments' physical entries use UNDERDAMPED configs
+ * (Polaroid's toss, Scattered's landing), so the value overshoots past 1 and settles back — that
+ * overshoot IS the bounce; never clamp it. spring.test.ts pins arrays sampled from the real
+ * remotion spring() for the exact treatment configs.
+ */
+export function springValue(
+  frame: number,
+  fps: number,
+  config: { damping: number; stiffness: number; mass: number },
+): number {
+  return springCalculation(frame, fps, config);
+}
+
+/**
  * springTiming({ durationInFrames, config: { damping } }).getProgress({ frame, fps }): the natural
  * spring curve stretched to fit durationInFrames. This is the transition-progress curve the themes'
  * "spring"-timed gaps use.

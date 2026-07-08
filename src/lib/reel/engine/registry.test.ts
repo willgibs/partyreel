@@ -35,7 +35,7 @@ describe("the engine style registry", () => {
     for (const id of Object.keys(ENGINE_STYLES)) {
       expect(engineSupports(id)).toBe(true);
     }
-    expect(engineSupports("polaroid")).toBe(false); // a treatment (not yet ported)
+    expect(engineSupports("framed")).toBe(false); // a treatment (not yet ported)
     expect(engineSupports(undefined)).toBe(false);
   });
 
@@ -47,6 +47,7 @@ describe("the engine style registry", () => {
       "golden",
       "kinetic",
       "mono",
+      "polaroid",
       "punchy",
       "warm",
     ]);

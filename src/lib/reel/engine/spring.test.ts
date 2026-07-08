@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { measureSpringFrames, springTimingProgress } from "./spring";
+import { measureSpringFrames, springTimingProgress, springValue } from "./spring";
 
 // PARITY PINS: sampled from the REAL @remotion/transitions springTiming
 // ({ durationInFrames, config: { damping: 200 } }) at fps 24 on 2026-07-03: exactly the timing the
@@ -55,5 +55,53 @@ describe("springTimingProgress (the remotion springTiming port, damping 200)", (
       expect(v).toBeGreaterThan(prev);
       prev = v;
     }
+  });
+});
+
+// PARITY PINS: sampled from the REAL remotion spring({ frame, fps: 24, config }) on 2026-07-08 for
+// the UNDERDAMPED treatment-entry configs (Polaroid's toss d14/s110/m0.8, Scattered's landing
+// d17/s140/m0.8). These curves OVERSHOOT past 1 and settle — the bounce is the point; if these fail,
+// fix the port, do not re-record the pins from the port itself.
+const RAW_REF: { config: { damping: number; stiffness: number; mass: number }; values: number[] }[] =
+  [
+    {
+      config: { damping: 14, stiffness: 110, mass: 0.8 },
+      values: [
+        0, 0.093171, 0.288792, 0.501321, 0.686689, 0.828156, 0.924942,
+        0.984095, 1.015268, 1.027766, 1.02918, 1.025013, 1.018847, 1.012742,
+        1.00768, 1.003962, 1.001511, 1.000077, 0.999373, 0.999138, 0.999167,
+        0.99932, 0.999507, 0.999679, 0.999815, 0.999912, 0.999973, 1.000007,
+        1.000022, 1.000026, 1.000023,
+      ],
+    },
+    {
+      config: { damping: 17, stiffness: 140, mass: 0.8 },
+      values: [
+        0, 0.112758, 0.333699, 0.555835, 0.734795, 0.86076, 0.940099,
+        0.984606, 1.005993, 1.013638, 1.014111, 1.011532, 1.008201, 1.005214,
+        1.002957, 1.001445, 1.000537, 1.000057, 0.999847, 0.999791, 0.999809,
+        0.999854, 0.999901, 0.99994, 0.999968, 0.999986, 0.999996, 1.000001,
+        1.000003, 1.000003, 1.000003,
+      ],
+    },
+  ];
+
+describe("springValue (the raw remotion spring port, treatment configs)", () => {
+  for (const { config, values } of RAW_REF) {
+    it(`matches remotion frame-for-frame at damping ${config.damping} / stiffness ${config.stiffness} / mass ${config.mass}`, () => {
+      values.forEach((expected, frame) => {
+        expect(springValue(frame, FPS, config)).toBeCloseTo(expected, 5);
+      });
+    });
+  }
+
+  it("overshoots 1 and settles back (underdamped; the treatments' bounce)", () => {
+    const peak = Math.max(
+      ...RAW_REF[0].values.map((_, f) =>
+        springValue(f, FPS, RAW_REF[0].config),
+      ),
+    );
+    expect(peak).toBeGreaterThan(1.02);
+    expect(springValue(60, FPS, RAW_REF[0].config)).toBeCloseTo(1, 3);
   });
 });

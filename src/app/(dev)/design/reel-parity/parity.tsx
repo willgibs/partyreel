@@ -10,11 +10,11 @@ import {
   reelDimensions,
   type ReelClip,
   type ReelProps,
+  resolveStyleEntry,
   resolveTheme,
   StyleDispatch,
   styleDuration,
-  THEME_LABELS,
-  type ThemeId,
+  styleThemeId,
 } from "@/lib/reel/composition";
 import {
   DEFAULT_WATERMARK_VARIANT,
@@ -57,8 +57,7 @@ const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h }) => ({
 }));
 
 // The styles this harness can grade = whatever the engine has ported (the registry is the single
-// source, so a landing port appears in the picker automatically). Mood styleIds double as theme ids,
-// so THEME_LABELS names them.
+// source, so a landing port appears in the picker automatically); the catalog names them.
 const PORTED_STYLE_IDS = Object.keys(ENGINE_STYLES);
 
 export function ReelParity() {
@@ -92,7 +91,9 @@ export function ReelParity() {
   const reelProps: ReelProps = useMemo(
     () => ({
       clips: CLIPS,
-      theme: resolveTheme(styleId),
+      // A treatment renders with its NATIVE theme (polaroid -> warm, ...), exactly like
+      // build-reel-props resolves it; a mood's styleId IS its themeId (a pass-through).
+      theme: resolveTheme(styleThemeId(styleId)),
       seed,
       styleId,
       orientation,
@@ -209,7 +210,7 @@ export function ReelParity() {
         >
           {PORTED_STYLE_IDS.map((id) => (
             <option key={id} value={id}>
-              {THEME_LABELS[id as ThemeId] ?? id} ({id})
+              {resolveStyleEntry(id).label} ({id})
             </option>
           ))}
         </select>
