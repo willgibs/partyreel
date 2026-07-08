@@ -13,9 +13,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { type GridMedia } from "@/components/app/media-grid";
-import { ReelPlayer } from "@/components/reel/reel-player";
 import { useReel } from "@/components/reel/reel-provider";
-import { ReelStitchingDialog } from "@/components/reel/reel-stitching-dialog";
+import {
+  type ReelEncodeState,
+  ReelStitchingDialog,
+} from "@/components/reel/reel-stitching-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -35,6 +37,17 @@ import {
   STYLE_CATALOG,
   STYLE_IDS,
 } from "@/lib/reel/composition";
+import { encodeReel } from "@/lib/reel/engine/encode";
+import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
+import { CanvasReelPlayer } from "@/lib/reel/engine/player";
+import { probeEngineSupport } from "@/lib/reel/engine/support";
+import type {
+  ReelUploadBeginResponse,
+  ReelUploadBody,
+  ReelUploadErrorResponse,
+  ReelUploadFinalizeResponse,
+  ReelUploadMintResponse,
+} from "@/lib/reel/upload-contract";
 import { type ReelConfig } from "@/lib/db/queries/reel";
 import { defaultReelSeed } from "@/lib/reel/seed-default";
 import { createClient } from "@/lib/supabase/client";
@@ -56,11 +69,21 @@ function rpcOk(data: unknown): boolean {
 }
 
 /**
- * The live reel COMPOSER: the @remotion/player hero + the controls (style · orientation · cover · length).
- * All client-side + $0 — picking a style/orientation re-renders the player instantly; nothing encodes. The
- * seed is deterministic per reel (no shuffle — one stable, reproducible take). Config persists (debounced)
- * via upsert_reel_config, which lazily creates the reel row on the first edit. Reads the shared ReelProvider
- * so adds/removes/reorders in the grid below reflect live. The player == the export (WYSIWYG).
+ * The live reel COMPOSER: the CANVAS-ENGINE player hero (CanvasReelPlayer — the same drawReelFrame
+ * the encoder steps, so the preview pixels ARE the export pixels) + the controls (style ·
+ * orientation · cover · length). All client-side + $0 — picking a style/orientation re-renders the
+ * player instantly; nothing encodes. The seed is deterministic per reel (no shuffle — one stable,
+ * reproducible take). Config persists (debounced) via upsert_reel_config, which lazily creates the
+ * reel row on the first edit. Reads the shared ReelProvider so adds/removes/reorders in the grid
+ * below reflect live.
+ *
+ * Download video runs one of TWO paths, decided per browser by the WebCodecs probe:
+ *  - CLIENT ENCODE (the default; Plan A Phase C): encodeReel() renders the mp4 on-device from the
+ *    SAME props the player shows, saves it locally, and uploads it to the reel output key via the
+ *    host-authed /api/reel/upload begin→mint→finalize handshake (cached exactly like Lambda output).
+ *  - LAMBDA FALLBACK (no WebCodecs): the untouched server render via /api/reel/render + the poll.
+ * Do NOT import @remotion/player here — the Remotion twin lives on only for the parity harness
+ * until the R8 teardown.
  */
 export function ReelComposer({
   eventId,
@@ -206,10 +229,12 @@ export function ReelComposer({
     };
   }, [persistConfig]);
 
-  // Download → render the .mp4. Cached unchanged reels come back ready instantly; otherwise a render
-  // kicks off and the Stitching modal polls until it lands. A presigned attachment URL → an <a> click.
+  // Download → the .mp4, via one of two paths (see the component JSDoc). `encodeState` doubles as
+  // the mode flag for the shared progress dialog: set = on-device encode, null = the Lambda poll.
   const [downloading, setDownloading] = useState(false);
   const [stitchOpen, setStitchOpen] = useState(false);
+  const [encodeState, setEncodeState] = useState<ReelEncodeState | null>(null);
+  const encodeAbortRef = useRef<AbortController | null>(null);
 
   const downloadReel = useCallback((url: string) => {
     const a = document.createElement("a");
@@ -223,10 +248,147 @@ export function ReelComposer({
     a.remove();
   }, []);
 
-  const handleDownload = useCallback(async () => {
-    setDownloading(true);
+  // Save the just-encoded blob straight from memory (no round-trip through R2 for the host's copy).
+  const saveBlobLocally = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Revoke on a delay: the browser needs the URL alive until the save stream opens.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }, []);
+
+  const closeEncode = useCallback(() => {
+    encodeAbortRef.current = null;
+    setEncodeState(null);
+    setStitchOpen(false);
+  }, []);
+
+  // Closing the dialog mid-encode is the cancel gesture (the pipeline is local, so it just stops).
+  const handleStitchOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open && encodeState) {
+        encodeAbortRef.current?.abort();
+        closeEncode();
+        return;
+      }
+      setStitchOpen(open);
+    },
+    [encodeState, closeEncode],
+  );
+
+  const postUpload = useCallback(async (body: ReelUploadBody) => {
+    const res = await fetch("/api/reel/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = (await res.json().catch(() => null)) as
+      | ReelUploadBeginResponse
+      | ReelUploadMintResponse
+      | ReelUploadFinalizeResponse
+      | ReelUploadErrorResponse
+      | null;
+    return { ok: res.ok && data?.ok === true, data };
+  }, []);
+
+  /** The on-device export pipeline: begin (cache?) → encode → local save → mint → PUT → finalize. */
+  const runClientEncode = useCallback(async () => {
+    const begin = await postUpload({ phase: "begin", event_id: eventId });
+    if (!begin.ok || begin.data?.ok !== true || !("mode" in begin.data)) {
+      const message =
+        begin.data && "message" in begin.data ? begin.data.message : null;
+      toast.error(
+        message ?? "Couldn't start your reel video. Please try again.",
+      );
+      return;
+    }
+    if (begin.data.mode === "cached") {
+      // Nothing changed since the last export: the stored mp4 IS this config's output.
+      downloadReel(begin.data.downloadUrl);
+      toast.success("Your reel is ready.");
+      return;
+    }
+    const { hash, filename } = begin.data;
+
+    const controller = new AbortController();
+    encodeAbortRef.current = controller;
+    setEncodeState({ stage: "encoding", progress: 0 });
+    setStitchOpen(true);
+
+    // Encode the EXACT props the player is showing (the literal-WYSIWYG claim of the canvas engine).
+    let blob: Blob;
     try {
-      await persistConfig();
+      const encoded = await encodeReel(reelProps, {
+        signal: controller.signal,
+        onProgress: (progress) =>
+          setEncodeState((s) =>
+            s?.stage === "encoding" ? { stage: "encoding", progress } : s,
+          ),
+      });
+      blob = encoded.blob;
+    } catch {
+      if (controller.signal.aborted) return; // host cancelled — already cleaned up
+      setEncodeState({ stage: "error" });
+      return;
+    }
+    if (controller.signal.aborted) return;
+
+    // The host's artifact FIRST: save the local copy the moment the encode lands, so a flaky
+    // network can never take the video away. The upload below only feeds the cached online copy.
+    saveBlobLocally(blob, filename);
+
+    setEncodeState({ stage: "uploading" });
+    try {
+      const mint = await postUpload({
+        phase: "mint",
+        event_id: eventId,
+        hash,
+        size_bytes: blob.size,
+      });
+      if (!mint.ok || mint.data?.ok !== true || !("uploadUrl" in mint.data)) {
+        throw new Error("mint refused");
+      }
+      const put = await fetch(mint.data.uploadUrl, {
+        method: "PUT",
+        headers: mint.data.headers,
+        body: blob,
+        signal: controller.signal,
+      });
+      if (!put.ok) throw new Error("upload failed");
+      const fin = await postUpload({
+        phase: "finalize",
+        event_id: eventId,
+        hash,
+      });
+      if (!fin.ok) throw new Error("finalize refused");
+      toast.success("Your reel is ready.");
+    } catch {
+      if (!controller.signal.aborted) {
+        // The video is already on the device; only the stored copy (the instant re-download +
+        // future guest surface) is missing. Say so honestly, don't fail the download.
+        toast.warning(
+          "Your video downloaded, but we couldn't store an online copy. The next download will re-create it.",
+        );
+      }
+    } finally {
+      closeEncode();
+    }
+  }, [
+    eventId,
+    reelProps,
+    postUpload,
+    downloadReel,
+    saveBlobLocally,
+    closeEncode,
+  ]);
+
+  /** The untouched Lambda fallback (no WebCodecs): trigger the server render + poll via the dialog. */
+  const runLambdaRender = useCallback(async () => {
+    try {
       const res = await fetch("/api/reel/render", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -243,18 +405,35 @@ export function ReelComposer({
         downloadReel(data.downloadUrl);
         toast.success("Your reel is ready.");
       } else {
+        setEncodeState(null);
         setStitchOpen(true); // processing → the modal polls until it's ready
       }
     } catch {
       toast.error("Couldn't start your reel video. Please try again.");
+    }
+  }, [eventId, downloadReel]);
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      // Flush the latest config FIRST so the export matches exactly what the player shows.
+      await persistConfig();
+      // Per-browser path decision: probe WebCodecs at the CURRENT orientation's dimensions. A probe
+      // failure reads as "can't encode" and falls back to Lambda (never a broken download).
+      const support = await probeEngineSupport(orientation).catch(() => null);
+      if (shouldClientEncode(support, styleId)) {
+        await runClientEncode();
+      } else {
+        await runLambdaRender();
+      }
     } finally {
       setDownloading(false);
     }
-  }, [eventId, persistConfig, downloadReel]);
+  }, [persistConfig, orientation, styleId, runClientEncode, runLambdaRender]);
 
   return (
     <div className="space-y-3">
-      <ReelPlayer reelProps={reelProps} />
+      <CanvasReelPlayer reelProps={reelProps} />
 
       {/* Auto-magic controls — no timeline, no sliders; just a vibe + a re-roll. */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
@@ -431,8 +610,9 @@ export function ReelComposer({
         )}
       </p>
 
-      {/* Download → the .mp4. The tip makes the preview-vs-export quality gap explicit (the player runs
-          on fast previews; the download renders from full-res originals). */}
+      {/* Download → the .mp4 (client encode when the browser can, Lambda otherwise). The old
+          "preview is optimized for speed" tip is gone on purpose: with the canvas engine the
+          preview and the encoded export are the same pixels. */}
       <div className="flex flex-col gap-1.5 border-t pt-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <Button type="button" onClick={handleDownload} disabled={downloading}>
@@ -445,18 +625,15 @@ export function ReelComposer({
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          This preview is optimized for speed. Your download renders in full
-          quality.
-        </p>
       </div>
 
       <ReelStitchingDialog
         eventId={eventId}
         open={stitchOpen}
-        onOpenChange={setStitchOpen}
+        onOpenChange={handleStitchOpenChange}
         onReady={downloadReel}
         onRetry={handleDownload}
+        encode={encodeState}
       />
     </div>
   );
