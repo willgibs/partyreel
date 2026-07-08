@@ -44,6 +44,7 @@ describe("the engine style registry", () => {
       "classic",
       "dreamy",
       "editorial",
+      "filmstrip",
       "golden",
       "kinetic",
       "mono",

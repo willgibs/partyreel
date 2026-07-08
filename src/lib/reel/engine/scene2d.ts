@@ -100,12 +100,21 @@ export function fillEllipticalGradient(
   ctx.restore();
 }
 
+// Far enough that the helper shape never shows, small enough to stay in float precision.
+const SHADOW_OFF = 100000;
+
 /**
  * The OUTER layers of a CSS box-shadow stack on a rounded rect. Layers are painted last-to-first so
- * the first listed ends up on top, matching CSS. Each pass fills the shape body too (shadows cannot
- * be emitted body-free under a rotated CTM, where the offset-out-of-view trick breaks), so pass the
- * element's own base color as bodyFill and paint the real fill after — the anti-aliased edge then
- * blends toward the element color and the overdraw is invisible.
+ * the first listed ends up on top, matching CSS.
+ *
+ * Two body strategies:
+ * - bodyFill OMITTED (default, use whenever the CTM is unrotated): the shape draws out of view and
+ *   only its shadow lands in frame (shadowOffset is CTM-independent) — body-free, exact, and safe
+ *   for spread halos whose inflated shape must never itself show.
+ * - bodyFill GIVEN (required under a ROTATED CTM, where the offset trick breaks: the path moves
+ *   along the rotated axis but the shadow offset stays device-space): each pass fills the shape
+ *   body too; pass the element's own base color so the anti-aliased edge blends toward it and the
+ *   later real fill hides the overdraw.
  */
 export function shadowsRoundRect(
   ctx: CanvasRenderingContext2D,
@@ -115,18 +124,26 @@ export function shadowsRoundRect(
   h: number,
   r: number,
   layers: readonly ShadowSpec[],
-  bodyFill: string,
+  bodyFill?: string,
 ): void {
   ctx.save();
-  ctx.fillStyle = bodyFill;
+  ctx.fillStyle = bodyFill ?? "#000";
+  const off = bodyFill === undefined ? SHADOW_OFF : 0;
   for (let i = layers.length - 1; i >= 0; i--) {
     const l = layers[i];
     const s = l.spread ?? 0;
     ctx.shadowColor = l.color;
     ctx.shadowBlur = l.blur;
-    ctx.shadowOffsetX = l.dx;
+    ctx.shadowOffsetX = l.dx + off;
     ctx.shadowOffsetY = l.dy;
-    roundRectPath(ctx, x - s, y - s, w + 2 * s, h + 2 * s, Math.max(0, r + s));
+    roundRectPath(
+      ctx,
+      x - s - off,
+      y - s,
+      w + 2 * s,
+      h + 2 * s,
+      Math.max(0, r + s),
+    );
     ctx.fill();
   }
   ctx.restore();

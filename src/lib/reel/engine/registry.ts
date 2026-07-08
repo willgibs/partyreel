@@ -12,6 +12,7 @@ import type { ReelAssets } from "./assets";
 import { detectCtxFilter, drawWatermark } from "./canvas2d";
 import type { DrawEnv, ReelStyle } from "./contract";
 import { CINEMATIC } from "./styles/cinematic";
+import { FILMSTRIP } from "./styles/filmstrip";
 import { moodStyle } from "./styles/mood";
 import { POLAROID } from "./styles/polaroid";
 
@@ -28,6 +29,7 @@ export const ENGINE_STYLES: Record<string, ReelStyle> = {
   punchy: moodStyle("punchy"),
   kinetic: moodStyle("kinetic"),
   polaroid: POLAROID,
+  filmstrip: FILMSTRIP,
 };
 
 /** Whether the canvas engine can render this styleId natively (vs the Remotion fallback). */
