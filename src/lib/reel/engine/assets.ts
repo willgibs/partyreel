@@ -77,6 +77,8 @@ export async function loadReelAssets(
     grain?: boolean;
     /** Build per-clip halation halos with this color chain (styles with signature.halation). */
     haloFilter?: string | null;
+    /** The render frame; washes normalize their blur to it (frame-space, like the DOM blur). */
+    frame?: { width: number; height: number };
     signal?: AbortSignal;
   } = { washes: false },
 ): Promise<ReelAssets> {
@@ -125,7 +127,7 @@ export async function loadReelAssets(
       if (!asset) continue;
       let wash = washByImage.get(asset.image);
       if (!wash) {
-        wash = buildWash(asset.image);
+        wash = buildWash(asset.image, opts.frame);
         washByImage.set(asset.image, wash);
       }
       asset.wash = wash;

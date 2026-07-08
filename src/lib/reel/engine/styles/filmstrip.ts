@@ -104,6 +104,12 @@ export function perfGlow(
 // The static celluloid grain tooth: the source tiles a repeating-radial-gradient (0.5px rings on a
 // 0.6px period) at backgroundSize px(3). The tile is rebuilt only when the size changes (2 sizes max).
 const toothTileCache = new Map<number, HTMLCanvasElement>();
+// Pattern cached per (ctx, tile), the canvas2d grainPatternCache shape: createPattern per frame
+// is pure GC churn in the player/encode loops (the contract's build-once rule).
+const toothPatterns = new WeakMap<
+  CanvasRenderingContext2D,
+  { tile: HTMLCanvasElement; pattern: CanvasPattern }
+>();
 
 function toothTile(size: number): HTMLCanvasElement {
   const s = Math.max(2, Math.round(size));
@@ -380,7 +386,13 @@ function draw(
 
   // Static celluloid grain tooth (never animated -> byte-stable WYSIWYG).
   const tile = toothTile(px(3));
-  const pattern = ctx.createPattern(tile, "repeat");
+  const cachedTooth = toothPatterns.get(ctx);
+  let pattern =
+    cachedTooth && cachedTooth.tile === tile ? cachedTooth.pattern : null;
+  if (!pattern) {
+    pattern = ctx.createPattern(tile, "repeat");
+    if (pattern) toothPatterns.set(ctx, { tile, pattern });
+  }
   if (pattern) {
     ctx.save();
     ctx.globalAlpha = 0.05;

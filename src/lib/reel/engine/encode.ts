@@ -61,6 +61,7 @@ export async function encodeReel(
     options.assets ??
     (await loadReelAssets(props.clips, {
       ...resolveEngineStyle(props.styleId).assetNeeds(props),
+      frame: { width, height },
       signal,
     }));
 

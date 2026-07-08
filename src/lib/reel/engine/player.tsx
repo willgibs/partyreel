@@ -115,6 +115,7 @@ export function CanvasReelPlayer({
     const controller = new AbortController();
     loadReelAssets(reelProps.clips, {
       ...resolveEngineStyle(reelProps.styleId).assetNeeds(reelProps),
+      frame: reelDimensions(reelProps.orientation),
       signal: controller.signal,
     })
       .then((result) => {

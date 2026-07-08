@@ -92,10 +92,42 @@ export function buildDownsampleBlur(
 /** The ~1/16 chain = the 46px-class backdrop wash (clip-media's blur(46px) negative space). */
 export const WASH_FACTORS = [0.5, 0.5, 0.25] as const;
 
-/** Built ONCE per clip at asset load (assets.ts); per-frame work is just a scaled draw. */
-export function buildWash(src: CanvasImage): HTMLCanvasElement {
-  return buildDownsampleBlur(src, WASH_FACTORS);
+/**
+ * Built ONCE per clip at asset load (assets.ts); per-frame work is just a scaled draw.
+ *
+ * With a frame given, the wash is normalized to FRAME space: the source is cover-rastered toward
+ * the frame first and the chain lands at ~frame/16, so the effective blur stays the composition's
+ * FIXED blur(46px) class for ANY media resolution. The DOM blur is frame-space; the source-relative
+ * chain read ~3x too sharp on a 12MP photo and ~3x too soft on the small lab fixtures (the
+ * treatments parity-verify catch, 2026-07-08). Without a frame: the legacy source-relative chain
+ * (the spike calibration; kept for callers with no frame context).
+ */
+export function buildWash(
+  src: CanvasImage,
+  frame?: { width: number; height: number },
+): HTMLCanvasElement {
+  if (!frame) return buildDownsampleBlur(src, WASH_FACTORS);
+  // Cover-crop into a frame-aspect working canvas at frame/4 (one bounded resample step), then
+  // halve twice to frame/16; multi-step keeps the resample smooth (one giant step blocks up).
+  const w4 = Math.max(2, Math.round(frame.width / 4));
+  const h4 = Math.max(2, Math.round(frame.height / 4));
+  const work = document.createElement("canvas");
+  work.width = w4;
+  work.height = h4;
+  const wx = work.getContext("2d")!;
+  wx.imageSmoothingEnabled = true;
+  wx.imageSmoothingQuality = "high";
+  const { w: sw, h: sh } = sourceSize(src);
+  const r = coverRect(sw, sh, w4, h4);
+  wx.drawImage(src, r.x, r.y, r.w, r.h);
+  return buildDownsampleBlur(work, WASH_FRAME_CHAIN);
 }
+
+// Frame-normalized chain depth, calibrated VISUALLY against the DOM's blur(px(46)) in the parity
+// harness (2026-07-08): frame/4 -> /32. The spike's "2.9px per unit upscale" constant does not
+// transfer across chain shapes (fewer accumulated resamples read sharper at the same final size),
+// so this is an empirical match, not derived.
+const WASH_FRAME_CHAIN = [0.5, 0.5, 0.5] as const;
 
 // ---------------------------------------------------------------------------
 // Halation (clip-media.tsx's highlight-only bloom): a bright-pass of the clip
