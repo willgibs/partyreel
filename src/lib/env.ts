@@ -97,22 +97,6 @@ const serverSchema = z.object({
   // request time so the mint route fails closed (never mints an unsigned/destinationless token).
   EXPORT_SIGNING_SECRET: z.string().min(1).optional(),
   EXPORT_WORKER_URL: z.url().optional(),
-  // Highlight-reel render (Remotion Lambda on AWS). The render trigger (/api/reel/render) calls
-  // renderMediaOnLambda server-side, so these run on Vercel now (Slice 3). REMOTION_AWS_* = the
-  // least-priv `remotion-user` IAM creds; REMOTION_SERVE_URL = the deployed Remotion site;
-  // REMOTION_LAMBDA_FUNCTION_NAME = the render fn name; REMOTION_FRAMES_PER_LAMBDA = the
-  // concurrency-cap workaround (80 on the new account's 10-concurrency quota; drop when raised).
-  // REEL_RENDER_WEBHOOK_SECRET signs the Lambda → /api/internal/reel-complete completion callback
-  // (validateWebhookSignature). All `.optional()` so the app builds before they're set;
-  // assertReelRenderEnv() asserts at request time so the render trigger fails closed. Region
-  // defaults us-east-1 (closest to R2's zero-egress endpoints).
-  REMOTION_AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
-  REMOTION_AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-  REMOTION_AWS_REGION: z.string().min(1).optional(),
-  REMOTION_SERVE_URL: z.url().optional(),
-  REMOTION_LAMBDA_FUNCTION_NAME: z.string().min(1).optional(),
-  REMOTION_FRAMES_PER_LAMBDA: z.coerce.number().int().positive().optional(),
-  REEL_RENDER_WEBHOOK_SECRET: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -163,13 +147,6 @@ function parseServer() {
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
-    REMOTION_AWS_ACCESS_KEY_ID: process.env.REMOTION_AWS_ACCESS_KEY_ID,
-    REMOTION_AWS_SECRET_ACCESS_KEY: process.env.REMOTION_AWS_SECRET_ACCESS_KEY,
-    REMOTION_AWS_REGION: process.env.REMOTION_AWS_REGION,
-    REMOTION_SERVE_URL: process.env.REMOTION_SERVE_URL,
-    REMOTION_LAMBDA_FUNCTION_NAME: process.env.REMOTION_LAMBDA_FUNCTION_NAME,
-    REMOTION_FRAMES_PER_LAMBDA: process.env.REMOTION_FRAMES_PER_LAMBDA,
-    REEL_RENDER_WEBHOOK_SECRET: process.env.REEL_RENDER_WEBHOOK_SECRET,
   });
   if (!parsed.success) {
     throw new Error(
@@ -354,53 +331,4 @@ export function assertExportEnv(): {
     );
   }
   return { EXPORT_SIGNING_SECRET, EXPORT_WORKER_URL };
-}
-
-/**
- * Reel render (Remotion Lambda) config, asserted at request time so the render trigger fails closed.
- * Called by the render service (/api/reel/render) + the completion webhook. Region defaults us-east-1
- * when unset. The function name + the webhook secret are REQUIRED (the render can't track completion
- * without the signed callback); REMOTION_FRAMES_PER_LAMBDA is an optional concurrency-cap lever.
- */
-export function assertReelRenderEnv(): {
-  REMOTION_AWS_ACCESS_KEY_ID: string;
-  REMOTION_AWS_SECRET_ACCESS_KEY: string;
-  REMOTION_AWS_REGION: string;
-  REMOTION_SERVE_URL: string;
-  REMOTION_LAMBDA_FUNCTION_NAME: string;
-  REMOTION_FRAMES_PER_LAMBDA: number | undefined;
-  REEL_RENDER_WEBHOOK_SECRET: string;
-} {
-  const {
-    REMOTION_AWS_ACCESS_KEY_ID,
-    REMOTION_AWS_SECRET_ACCESS_KEY,
-    REMOTION_AWS_REGION,
-    REMOTION_SERVE_URL,
-    REMOTION_LAMBDA_FUNCTION_NAME,
-    REMOTION_FRAMES_PER_LAMBDA,
-    REEL_RENDER_WEBHOOK_SECRET,
-  } = serverEnv;
-  if (
-    !REMOTION_AWS_ACCESS_KEY_ID ||
-    !REMOTION_AWS_SECRET_ACCESS_KEY ||
-    !REMOTION_SERVE_URL ||
-    !REMOTION_LAMBDA_FUNCTION_NAME ||
-    !REEL_RENDER_WEBHOOK_SECRET
-  ) {
-    throw new Error(
-      "Reel render is not configured. Set REMOTION_AWS_ACCESS_KEY_ID / " +
-        "REMOTION_AWS_SECRET_ACCESS_KEY (the remotion-user IAM creds), REMOTION_SERVE_URL (the " +
-        "deployed Remotion site), REMOTION_LAMBDA_FUNCTION_NAME (the render fn), and " +
-        "REEL_RENDER_WEBHOOK_SECRET (the Lambda completion-callback secret) in Vercel + .env.local.",
-    );
-  }
-  return {
-    REMOTION_AWS_ACCESS_KEY_ID,
-    REMOTION_AWS_SECRET_ACCESS_KEY,
-    REMOTION_AWS_REGION: REMOTION_AWS_REGION ?? "us-east-1",
-    REMOTION_SERVE_URL,
-    REMOTION_LAMBDA_FUNCTION_NAME,
-    REMOTION_FRAMES_PER_LAMBDA,
-    REEL_RENDER_WEBHOOK_SECRET,
-  };
 }
