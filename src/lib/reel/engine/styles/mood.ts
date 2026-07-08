@@ -30,6 +30,7 @@ import {
 } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";
 import { computeMotion, dampForFit, type Move } from "../motion";
+import { drawBloom, drawLightsweep, drawSoftedge } from "../overlays";
 import { frameStateAt, planFor } from "../timeline";
 
 function paintClipLayer(
@@ -232,7 +233,9 @@ function draw(
   drawClipLayer(ctx, top, state.top.localFrame, topAlpha, props, assets, env);
 
   // Overlays persist across the whole reel (they sit OUTSIDE the TransitionSeries in Reel.tsx),
-  // drawn in the theme's declared order like the Overlay map.
+  // drawn in the theme's declared order like the Overlay map. t = whole-reel progress (the DOM
+  // side's useCurrentFrame()/durationInFrames), which drives the animated ones.
+  const t = plan.totalFrames > 0 ? frame / plan.totalFrames : 0;
   for (const kind of theme.overlays ?? []) {
     if (kind === "vignette") {
       drawVignette(ctx, W, H);
@@ -246,6 +249,12 @@ function draw(
           'the "grain" overlay needs its tile: declare grain in assetNeeds',
         );
       }
+    } else if (kind === "bloom") {
+      drawBloom(ctx, W, H, t);
+    } else if (kind === "lightsweep") {
+      drawLightsweep(ctx, W, H, t);
+    } else if (kind === "softedge") {
+      drawSoftedge(ctx, W, H);
     } else {
       env.report(`overlay "${kind}" is not ported yet; skipped`);
     }

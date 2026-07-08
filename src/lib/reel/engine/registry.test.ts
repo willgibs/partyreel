@@ -42,6 +42,7 @@ describe("the engine style registry", () => {
   it("pins the ported style set (grows one entry per port)", () => {
     expect(Object.keys(ENGINE_STYLES).sort()).toEqual([
       "classic",
+      "dreamy",
       "editorial",
       "mono",
       "warm",
@@ -113,6 +114,19 @@ describe("mood asset needs (per theme)", () => {
       grain: true,
       haloFilter:
         "sepia(0.2) saturate(1.14) contrast(1.05) brightness(1.09) brightness(0.5) contrast(2.4) saturate(1.15)",
+    });
+  });
+
+  it("Float needs washes only (blur backdrop; bloom/softedge are procedural overlays)", () => {
+    const float: ReelProps = {
+      ...props,
+      theme: resolveTheme("dreamy"),
+      styleId: "dreamy",
+    };
+    expect(ENGINE_STYLES.dreamy.assetNeeds(float)).toEqual({
+      washes: true,
+      grain: false,
+      haloFilter: null,
     });
   });
 });
