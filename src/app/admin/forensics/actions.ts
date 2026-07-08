@@ -20,10 +20,18 @@ export async function preserveMediaAction(
   const trimmedId = mediaId.trim();
   const trimmedReason = reason.trim();
   if (!/^[0-9a-f-]{36}$/i.test(trimmedId)) {
-    return { ok: false, code: "unknown", message: "Enter a valid media id (UUID)." };
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Enter a valid media id (UUID).",
+    };
   }
   if (!trimmedReason) {
-    return { ok: false, code: "unknown", message: "A hold reason is required." };
+    return {
+      ok: false,
+      code: "unknown",
+      message: "A hold reason is required.",
+    };
   }
 
   try {
@@ -32,11 +40,15 @@ export async function preserveMediaAction(
       adminUserId: auth.ctx.userId,
       reason: trimmedReason,
     });
-    if (!result.ok) return { ok: false, code: "unknown", message: result.message };
+    if (!result.ok)
+      return { ok: false, code: "unknown", message: result.message };
     revalidatePath("/admin/forensics");
     return { ok: true };
   } catch (e) {
-    captureError("security", e, { action: "preserve_media", media_id: trimmedId });
+    captureError("security", e, {
+      action: "preserve_media",
+      media_id: trimmedId,
+    });
     return {
       ok: false,
       code: "unknown",
@@ -45,7 +57,9 @@ export async function preserveMediaAction(
   }
 }
 
-export async function releaseHoldAction(mediaId: string): Promise<ActionResult> {
+export async function releaseHoldAction(
+  mediaId: string,
+): Promise<ActionResult> {
   const auth = await requireAdminAction();
   if (!auth.ok) return auth.result;
 
@@ -54,7 +68,8 @@ export async function releaseHoldAction(mediaId: string): Promise<ActionResult> 
       mediaId,
       adminUserId: auth.ctx.userId,
     });
-    if (!result.ok) return { ok: false, code: "unknown", message: result.message };
+    if (!result.ok)
+      return { ok: false, code: "unknown", message: result.message };
     revalidatePath("/admin/forensics");
     return { ok: true };
   } catch (e) {

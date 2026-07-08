@@ -40,7 +40,8 @@ export async function copyObject(params: {
     new HeadObjectCommand({ Bucket: R2_BUCKET, Key: sourceKey }),
   );
   const size = head.ContentLength ?? 0;
-  if (size <= 0) throw new Error(`source object missing or empty: ${sourceKey}`);
+  if (size <= 0)
+    throw new Error(`source object missing or empty: ${sourceKey}`);
   // CopySource is <bucket>/<key>, URI-encoded per segment (keys here are UUID-safe, but encode anyway).
   const copySource = `${R2_BUCKET}/${encodeURIComponent(sourceKey).replaceAll("%2F", "/")}`;
 
@@ -65,7 +66,11 @@ export async function copyObject(params: {
   if (!uploadId) throw new Error("R2 did not return an UploadId for the copy.");
 
   const parts: { ETag: string; PartNumber: number }[] = [];
-  for (let start = 0, partNumber = 1; start < size; start += COPY_PART_BYTES, partNumber++) {
+  for (
+    let start = 0, partNumber = 1;
+    start < size;
+    start += COPY_PART_BYTES, partNumber++
+  ) {
     const end = Math.min(start + COPY_PART_BYTES, size) - 1; // byte range is INCLUSIVE
     const out = await client.send(
       new UploadPartCopyCommand({

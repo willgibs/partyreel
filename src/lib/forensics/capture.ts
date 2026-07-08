@@ -46,8 +46,11 @@ export async function captureUploadForensics(args: {
 
     // Guest linkage: resolve the session token to its guests row and DENORMALIZE the identity as
     // it stands at upload time (a later claim_anonymous_uploads must not rewrite history).
-    let guest: { id: string; user_id: string | null; email: string | null } | null =
-      null;
+    let guest: {
+      id: string;
+      user_id: string | null;
+      email: string | null;
+    } | null = null;
     if (identity.kind === "guest") {
       const { data, error } = await admin
         .from("guests")

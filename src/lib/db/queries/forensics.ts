@@ -82,7 +82,9 @@ export async function listHeldMedia(): Promise<HeldMediaRow[]> {
   if (rows.length === 0) return [];
 
   const mediaIds = rows.map((r: { id: string }) => r.id);
-  const eventIds = [...new Set(rows.map((r: { event_id: string }) => r.event_id))];
+  const eventIds = [
+    ...new Set(rows.map((r: { event_id: string }) => r.event_id)),
+  ];
 
   const [{ data: forensics }, { data: events }] = await Promise.all([
     admin
@@ -92,10 +94,12 @@ export async function listHeldMedia(): Promise<HeldMediaRow[]> {
     admin.from("events").select("id, name").in("id", eventIds),
   ]);
   const preservedBy = new Map<string, string | null>(
-    (forensics ?? []).map((f: { media_id: string; preserved_at: string | null }) => [
-      f.media_id,
-      f.preserved_at,
-    ]),
+    (forensics ?? []).map(
+      (f: { media_id: string; preserved_at: string | null }) => [
+        f.media_id,
+        f.preserved_at,
+      ],
+    ),
   );
   const names = new Map<string, string>(
     (events ?? []).map((e: { id: string; name: string }) => [e.id, e.name]),
@@ -130,7 +134,9 @@ export type ForensicAuditRow = {
 };
 
 /** The recent preserve/export/hold audit trail, newest-first. */
-export async function listForensicAudit(limit = 50): Promise<ForensicAuditRow[]> {
+export async function listForensicAudit(
+  limit = 50,
+): Promise<ForensicAuditRow[]> {
   const admin = createAdminClient() as UntypedAdmin;
   const { data, error } = await admin
     .from("forensic_audit_log")

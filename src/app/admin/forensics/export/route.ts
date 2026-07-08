@@ -34,7 +34,10 @@ export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const mediaId = url.searchParams.get("media")?.trim() ?? "";
   const what = url.searchParams.get("what") ?? "evidence";
-  if (!/^[0-9a-f-]{36}$/i.test(mediaId) || !["evidence", "record"].includes(what)) {
+  if (
+    !/^[0-9a-f-]{36}$/i.test(mediaId) ||
+    !["evidence", "record"].includes(what)
+  ) {
     return NextResponse.json(
       { ok: false, message: "Pass ?media=<uuid>&what=evidence|record." },
       { status: 400 },
@@ -64,7 +67,10 @@ export async function GET(request: Request): Promise<Response> {
           error: "not preserved yet",
         });
         return NextResponse.json(
-          { ok: false, message: "That item has no preserved copy yet. Preserve it first." },
+          {
+            ok: false,
+            message: "That item has no preserved copy yet. Preserve it first.",
+          },
           { status: 404 },
         );
       }

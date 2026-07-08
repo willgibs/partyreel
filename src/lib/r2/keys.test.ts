@@ -82,11 +82,15 @@ describe("preservation keys (ADR-0020)", () => {
 
   it("builds the segregated layout", () => {
     expect(
-      preservedOriginalKey({ eventId: EVENT_ID, mediaId: MEDIA_ID, ext: "jpg" }),
+      preservedOriginalKey({
+        eventId: EVENT_ID,
+        mediaId: MEDIA_ID,
+        ext: "jpg",
+      }),
     ).toBe(`preservation/${EVENT_ID}/${MEDIA_ID}/original.jpg`);
-    expect(preservedForensicsKey({ eventId: EVENT_ID, mediaId: MEDIA_ID })).toBe(
-      `preservation/${EVENT_ID}/${MEDIA_ID}/forensics.json`,
-    );
+    expect(
+      preservedForensicsKey({ eventId: EVENT_ID, mediaId: MEDIA_ID }),
+    ).toBe(`preservation/${EVENT_ID}/${MEDIA_ID}/forensics.json`);
   });
 
   it("stays OUTSIDE the events/ prefix so no delete path can touch it", () => {
@@ -124,7 +128,9 @@ describe("parseEventIdFromKey", () => {
 
   it("returns null for non-media-shaped keys", () => {
     expect(parseEventIdFromKey("")).toBeNull();
-    expect(parseEventIdFromKey("events/not-a-uuid/photo/m/original.jpg")).toBeNull();
+    expect(
+      parseEventIdFromKey("events/not-a-uuid/photo/m/original.jpg"),
+    ).toBeNull();
     expect(
       parseEventIdFromKey(`preservation/${EVENT_ID}/m/original.jpg`),
     ).toBeNull();

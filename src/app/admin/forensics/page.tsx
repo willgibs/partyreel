@@ -49,8 +49,8 @@ export default async function ForensicsPage() {
       <div>
         <PageHeading>Forensics</PageHeading>
         <p className="text-sm text-muted-foreground">
-          Upload capture coverage, legal holds, and evidence preservation. Runbook:
-          docs/systems/trust-safety-forensics.md.
+          Upload capture coverage, legal holds, and evidence preservation.
+          Runbook: docs/systems/trust-safety-forensics.md.
         </p>
       </div>
 
@@ -60,7 +60,9 @@ export default async function ForensicsPage() {
             <Fingerprint className="size-5 text-foreground" />
             <CardTitle className="text-base">Capture coverage (24h)</CardTitle>
             {captureGap > 0 ? (
-              <Badge variant="destructive">{captureGap} uploads missing a record</Badge>
+              <Badge variant="destructive">
+                {captureGap} uploads missing a record
+              </Badge>
             ) : (
               <Badge variant="secondary">healthy</Badge>
             )}
@@ -71,23 +73,29 @@ export default async function ForensicsPage() {
             ) : null}
           </div>
           <CardDescription>
-            Every completed upload should write one forensic record (IP, agent, geo, device). A
-            gap means the capture seam is failing; check Sentry for
-            forensic_capture_failed.
+            Every completed upload should write one forensic record (IP, agent,
+            geo, device). A gap means the capture seam is failing; check Sentry
+            for forensic_capture_failed.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-6 text-sm">
             <div>
-              <p className="text-2xl font-semibold tabular-nums">{health.uploads24h}</p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {health.uploads24h}
+              </p>
               <p className="text-muted-foreground">uploads</p>
             </div>
             <div>
-              <p className="text-2xl font-semibold tabular-nums">{health.captured24h}</p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {health.captured24h}
+              </p>
               <p className="text-muted-foreground">records captured</p>
             </div>
             <div>
-              <p className="text-2xl font-semibold tabular-nums">{health.activeHolds}</p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {health.activeHolds}
+              </p>
               <p className="text-muted-foreground">active holds</p>
             </div>
           </div>
@@ -98,11 +106,14 @@ export default async function ForensicsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-foreground" />
-            <CardTitle className="text-base">Set a hold and preserve evidence</CardTitle>
+            <CardTitle className="text-base">
+              Set a hold and preserve evidence
+            </CardTitle>
           </div>
           <CardDescription>
-            Copies the original into the segregated preservation store and excludes the item from
-            every purge path. Remove it from the live gallery first (Albums), then preserve.
+            Copies the original into the segregated preservation store and
+            excludes the item from every purge path. Remove it from the live
+            gallery first (Albums), then preserve.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -114,8 +125,9 @@ export default async function ForensicsPage() {
         <CardHeader>
           <CardTitle className="text-base">Active legal holds</CardTitle>
           <CardDescription>
-            Held items are never hard-deleted. Releasing a hold puts the item back on its normal
-            purge clock; preserved copies stay until deleted by hand (the 1-year clock).
+            Held items are never hard-deleted. Releasing a hold puts the item
+            back on its normal purge clock; preserved copies stay until deleted
+            by hand (the 1-year clock).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -136,7 +148,10 @@ export default async function ForensicsPage() {
                 <tbody>
                   {holds.map((h) => (
                     <tr key={h.id} className="border-b border-border/50">
-                      <td className="py-2 pr-3 font-mono text-xs" title={h.holdReason ?? ""}>
+                      <td
+                        className="py-2 pr-3 font-mono text-xs"
+                        title={h.holdReason ?? ""}
+                      >
                         {h.id.slice(0, 8)}…
                       </td>
                       <td className="py-2 pr-3">
@@ -149,7 +164,9 @@ export default async function ForensicsPage() {
                         {h.preservedAt ? (
                           <Badge variant="secondary">yes</Badge>
                         ) : (
-                          <span className="text-muted-foreground">hold only</span>
+                          <span className="text-muted-foreground">
+                            hold only
+                          </span>
                         )}
                       </td>
                       <td className="py-2">
@@ -187,8 +204,8 @@ export default async function ForensicsPage() {
         <CardHeader>
           <CardTitle className="text-base">Audit log</CardTitle>
           <CardDescription>
-            Every preserve, export, and release, including failures. This log outlives the media
-            it concerns.
+            Every preserve, export, and release, including failures. This log
+            outlives the media it concerns.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -211,7 +228,9 @@ export default async function ForensicsPage() {
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
                         {new Date(a.createdAt).toLocaleString()}
                       </td>
-                      <td className="py-2 pr-3">{ACTION_LABEL[a.action] ?? a.action}</td>
+                      <td className="py-2 pr-3">
+                        {ACTION_LABEL[a.action] ?? a.action}
+                      </td>
                       <td className="py-2 pr-3 font-mono text-xs">
                         {a.mediaId ? `${a.mediaId.slice(0, 8)}…` : ""}
                       </td>
@@ -219,7 +238,10 @@ export default async function ForensicsPage() {
                         {a.outcome === "ok" ? (
                           <span className="text-foreground">ok</span>
                         ) : (
-                          <span className="text-destructive" title={a.error ?? ""}>
+                          <span
+                            className="text-destructive"
+                            title={a.error ?? ""}
+                          >
                             error
                           </span>
                         )}

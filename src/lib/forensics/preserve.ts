@@ -11,7 +11,11 @@
  */
 import "server-only";
 
-import { parseExtFromKey, preservedForensicsKey, preservedOriginalKey } from "@/lib/r2/keys";
+import {
+  parseExtFromKey,
+  preservedForensicsKey,
+  preservedOriginalKey,
+} from "@/lib/r2/keys";
 import { copyObject, putJsonObject } from "@/lib/r2/objects";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -24,7 +28,11 @@ type UntypedAdmin = SupabaseClient;
 
 export type PreserveOutcome =
   | { ok: true; preservedOriginalKey: string; alreadyHeld: boolean }
-  | { ok: false; code: "not_found" | "copy_failed" | "unknown"; message: string };
+  | {
+      ok: false;
+      code: "not_found" | "copy_failed" | "unknown";
+      message: string;
+    };
 
 export type ReleaseOutcome =
   | { ok: true }
@@ -97,13 +105,15 @@ export async function preserveMedia(args: {
         legal_hold_reason: reason,
       })
       .eq("id", mediaId);
-    if (holdErr) return fail("unknown", `set hold: ${holdErr.message}`, eventId);
+    if (holdErr)
+      return fail("unknown", `set hold: ${holdErr.message}`, eventId);
   }
 
   // 2. Copy the original into the segregated prefix (idempotent: a re-preserve overwrites the
   //    same deterministic key with the same bytes).
   const ext =
-    parseExtFromKey(media.original_key) ?? (media.type === "video" ? "mp4" : "jpg");
+    parseExtFromKey(media.original_key) ??
+    (media.type === "video" ? "mp4" : "jpg");
   const destKey = preservedOriginalKey({ eventId, mediaId, ext });
   try {
     await copyObject({ sourceKey: media.original_key, destKey });
@@ -166,7 +176,8 @@ export async function preserveMedia(args: {
       .from("upload_forensics")
       .update(preservedFields)
       .eq("media_id", mediaId);
-    if (error) return fail("unknown", `record preserve: ${error.message}`, eventId);
+    if (error)
+      return fail("unknown", `record preserve: ${error.message}`, eventId);
   } else {
     const { error } = await admin.from("upload_forensics").insert({
       media_id: mediaId,
@@ -176,7 +187,8 @@ export async function preserveMedia(args: {
       guest_id: media.guest_id ?? null,
       ...preservedFields,
     });
-    if (error) return fail("unknown", `record preserve: ${error.message}`, eventId);
+    if (error)
+      return fail("unknown", `record preserve: ${error.message}`, eventId);
   }
 
   await writeForensicAudit(admin, {
@@ -217,7 +229,11 @@ export async function releaseHold(args: {
       outcome: "error",
       error: mErr?.message ?? "no active hold on that media id",
     }).catch(() => {});
-    return { ok: false, code: "not_found", message: "No active hold on that item." };
+    return {
+      ok: false,
+      code: "not_found",
+      message: "No active hold on that item.",
+    };
   }
 
   const { error } = await admin
@@ -233,7 +249,11 @@ export async function releaseHold(args: {
       outcome: "error",
       error: error.message,
     }).catch(() => {});
-    return { ok: false, code: "unknown", message: "Couldn't release the hold." };
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't release the hold.",
+    };
   }
 
   await writeForensicAudit(admin, {

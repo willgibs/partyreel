@@ -44,7 +44,8 @@ export function extractForensicRequestFacts(
 ): ForensicRequestFacts {
   const hints: Record<string, string> = {};
   headers.forEach((value, name) => {
-    if (name.toLowerCase().startsWith("sec-ch-")) hints[name.toLowerCase()] = value;
+    if (name.toLowerCase().startsWith("sec-ch-"))
+      hints[name.toLowerCase()] = value;
   });
 
   const geo: Record<string, string> = {};
