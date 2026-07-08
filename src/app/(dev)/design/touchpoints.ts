@@ -29,6 +29,7 @@ export type TouchpointId =
   | "host-event-build"
   | "gallery-actions"
   | "marketing-identity"
+  | "marketing-voice"
   | "reel-reveal";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
@@ -313,6 +314,32 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "T1 ruling (Will, 2026-07-05): B+C HYBRID. B's cinema hero leads (the desired visual language, the most design magic) with B's how-it-works reel animation kept, and C's animated product-demo as a close follow-up section visualizing the how. A rejected as too templated. BINDING CAVEAT: these wow sections are the FLOOR, not the site: the build is gated on a full-site IA/content-architecture round (core loop + supporting features) done collaboratively with Will (T2.5) before any production pages.",
+  },
+  {
+    // Marketing-voice lab round (T2.5 cluster-4, 2026-07-07): the marketing
+    // rebuild's LEADING COPY. Four voice directions were drafted (D1 Deadpan,
+    // D2 Warm host, D3 Documentary, D4 The big night); Will RULED a blend of D2
+    // x D4, disciplined by the concise clarity of the current site H1 ("Every
+    // photo from your party, in one place." - "beautiful in its concise
+    // clarity"). D1 is not the spine; D3 survives only as the factual register
+    // for the trust + pricing lines. These boards type-set TWO BLEND EXECUTIONS
+    // (V1 night-leaning, V2 warm-leaning) above the two pure sources (V3 D2, V4
+    // D4) so Will confirms the execution in one look. The night-vs-event word
+    // choice rides the boards (he quoted D4's thesis with "event"; "night"
+    // excludes conferences + trips), so every load-bearing "night" line shows
+    // its "event" alternate. `decision` stays unset until he confirms; the pick
+    // (which blend + the night/event call + the how-it-works rewrite) lands in
+    // decisionNote then.
+    id: "marketing-voice",
+    title: "Marketing voice",
+    surface: "marketing",
+    note: "Two blend executions of the ruled D2xD4 voice mix (night-leaning, warm-leaning) type-set dark-mono at display scale, above the two pure sources for reference, so the leading-copy execution reads in one look",
+    variants: [
+      "Blend: night-leaning",
+      "Blend: warm-leaning",
+      "Warm host (source)",
+      "The big night (source)",
+    ],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
