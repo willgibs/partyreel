@@ -17,6 +17,16 @@ import { createClient } from "@/lib/supabase/server";
 
 export type MediaRow = Tables<"media">;
 
+/**
+ * HOTFIX (2026-07-08): SELECT on media is COLUMN-scoped at the shared DB (migration
+ * 20260707150000 on launch-prep withholds legal_hold_at/legal_hold_reason from authenticated),
+ * so a `select("*")` from the RLS client ERRORS at runtime. Enumerate the granted columns.
+ * launch-prep carries the fuller version (single-sourced MEDIA_HOST_COLUMNS + a grant-parity
+ * test); this back-merges away at the next milestone.
+ */
+const MEDIA_HOST_COLUMNS =
+  "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, highlight_score, clip_start_seconds, clip_end_seconds";
+
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
   const supabase = await createClient();
   const {
@@ -26,7 +36,7 @@ export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
 
   const { data, error } = await supabase
     .from("media")
-    .select("*")
+    .select(MEDIA_HOST_COLUMNS)
     .eq("event_id", eventId)
     .neq("status", "removed")
     .order("created_at", { ascending: false });
@@ -62,7 +72,7 @@ export async function listRecentlyDeletedMedia(
 
   const { data, error } = await supabase
     .from("media")
-    .select("*")
+    .select(MEDIA_HOST_COLUMNS)
     .eq("event_id", eventId)
     .eq("status", "removed")
     .gte("removed_at", windowStart)
