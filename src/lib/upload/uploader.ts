@@ -56,33 +56,36 @@ export type UploadOutcome =
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
+    // Measurement is best-effort and MUST settle: Chrome defers <video> metadata
+    // loading in hidden tabs (backgrounded mid-queue = loadedmetadata never fires),
+    // which wedged the whole queue before its first network call. Same rationale as
+    // preview.ts's waitEvent timeouts; the server re-validates size via R2 HEAD.
+    let done = false;
+    const settle = (m: Measured) => {
+      if (done) return;
+      done = true;
+      clearTimeout(bail);
+      resolve(m);
+      URL.revokeObjectURL(url);
+    };
+    const bail = setTimeout(() => settle({}), 7000);
     if (kind === "photo") {
       const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        URL.revokeObjectURL(url);
-      };
-      img.onerror = () => {
-        resolve({});
-        URL.revokeObjectURL(url);
-      };
+      img.onload = () =>
+        settle({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => settle({});
       img.src = url;
       return;
     }
     const video = document.createElement("video");
     video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      resolve({
+    video.onloadedmetadata = () =>
+      settle({
         width: video.videoWidth,
         height: video.videoHeight,
         duration: Number.isFinite(video.duration) ? video.duration : undefined,
       });
-      URL.revokeObjectURL(url);
-    };
-    video.onerror = () => {
-      resolve({});
-      URL.revokeObjectURL(url);
-    };
+    video.onerror = () => settle({});
     video.src = url;
   });
 }
