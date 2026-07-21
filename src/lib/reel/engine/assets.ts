@@ -49,9 +49,16 @@ async function decodeOne(
 ): Promise<CanvasImage> {
   // Preferred: fetch + createImageBitmap (off-main-thread decode, works for same-origin + CORS-open
   // hosts like the presigned R2 urls).
+  //
+  // cache: "no-store" is LOAD-BEARING, not an optimization knob. The same presigned URL is often
+  // consumed FIRST by a plain <img> tile (no Origin header -> R2 responds WITHOUT
+  // Access-Control-Allow-Origin, and R2 sends no Vary: Origin), so the browser caches an
+  // ACAO-less response. A later CORS fetch of that URL then reads the poisoned cache entry and
+  // fails ("Failed to fetch"), nulling EVERY clip -> the whole reel draws theme holds. Bypassing
+  // the HTTP cache guarantees a fresh request that carries Origin. (~16KB/preview re-download.)
   if (typeof createImageBitmap === "function") {
     try {
-      const res = await fetch(url, { mode: "cors", signal });
+      const res = await fetch(url, { mode: "cors", cache: "no-store", signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await createImageBitmap(await res.blob());
     } catch (err) {
