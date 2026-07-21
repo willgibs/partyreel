@@ -778,17 +778,21 @@ function StudioHostPhone() {
               </div>
 
               {/* The canvas is the room: the live player fills the upper
-                  screen; the publish glow breathes on ITS frame. */}
+                  screen; the publish glow breathes on ITS frame. Height-fit the
+                  9:16 frame (aspect from h-full) so the WHOLE canvas sits above
+                  the filmstrip dock instead of sliding under it (verify catch). */}
               <div className="relative min-h-0 flex-1 px-6">
-                <CanvasReelPlayer reelProps={reelProps} showControls={false} />
-                <div
-                  aria-hidden
-                  data-rxp-pubglow={publishing || undefined}
-                  className={cn(
-                    "pointer-events-none absolute inset-x-6 top-0 bottom-0 rounded-xl",
-                    !publishing && "hidden",
-                  )}
-                />
+                <div className="relative mx-auto aspect-[9/16] h-full max-w-full">
+                  <CanvasReelPlayer reelProps={reelProps} showControls={false} />
+                  <div
+                    aria-hidden
+                    data-rxp-pubglow={publishing || undefined}
+                    className={cn(
+                      "pointer-events-none absolute inset-0 rounded-xl",
+                      !publishing && "hidden",
+                    )}
+                  />
+                </div>
                 {publishing ? (
                   <div
                     data-rxp-toastcard
@@ -1296,7 +1300,12 @@ function PremiereHostPhone() {
                 footprint (the ratified geometry). */}
             <div
               ref={screenBoxRef}
-              className="absolute inset-x-0 top-1/2 z-30 -translate-y-1/2"
+              className={cn(
+                "absolute inset-x-0 top-1/2 z-30 -translate-y-1/2",
+                // Hit-testing ignores opacity: while the screen is unreleased it must not
+                // eat real taps aimed at the builder chrome underneath (verify catch).
+                !released && "pointer-events-none",
+              )}
             >
               <div
                 data-rvl-screen
@@ -1342,8 +1351,18 @@ function PremiereHostPhone() {
             </div>
 
             {/* The settled furniture IS the share prompt: the narrative's next
-                line, not a toolbar (ruling 1's loud moment). */}
-            <div data-rvl-end className="absolute inset-x-6 bottom-5 z-40">
+                line, not a toolbar (ruling 1's loud moment). Its rest state is
+                opacity-0 but still hit-testable + focusable, so gate BOTH until
+                settled or an invisible "Share with guests" sits exactly over the
+                CREATE REEL button and steals real taps (verify catch). */}
+            <div
+              data-rvl-end
+              inert={act !== "settled" || undefined}
+              className={cn(
+                "absolute inset-x-6 bottom-5 z-40",
+                act !== "settled" && "pointer-events-none",
+              )}
+            >
               <div className="rounded-lg bg-white/95 p-3 shadow-lg">
                 <p className="text-xs font-semibold text-zinc-900">
                   Your reel is ready
@@ -1418,23 +1437,27 @@ function PremiereHostPhone() {
               {/* Restyling stays ONE tap after the ceremony (never a
                   re-create): the swipeable carousel restyles the live poster
                   instantly; identity comes from the player itself. */}
-              <div className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-1">
-                {STYLE_GROUPS.flatMap((g) => g.styles).map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    data-dir-press
-                    onClick={() => setStyleId(s.id)}
-                    aria-pressed={s.id === styleId}
-                    className={cn(
-                      "flex h-7 shrink-0 snap-start items-center rounded-full border px-2.5 text-[11px] font-medium",
-                      s.id === styleId
-                        ? "border-reel bg-reel text-white"
-                        : "border-border text-muted-foreground",
-                    )}
-                  >
-                    {s.label}
-                  </button>
+              {/* Frame-locked engine thumbs, not text pills: the 14 styles keep
+                  their visual identity in the fine-tune stage too (verify catch;
+                  the text-pill row was the exact audited pattern this round
+                  exists to kill). */}
+              <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1">
+                {STYLE_GROUPS.map(({ kind, styles }) => (
+                  <div key={kind} className="flex gap-2">
+                    <span className="flex w-4 shrink-0 items-center justify-center">
+                      <span className="rotate-180 text-[8px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase [writing-mode:vertical-rl]">
+                        {STYLE_GROUP_LABEL[kind]}
+                      </span>
+                    </span>
+                    {styles.map((s) => (
+                      <StyleThumb
+                        key={s.id}
+                        style={s}
+                        active={s.id === styleId}
+                        onSelect={setStyleId}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
 
