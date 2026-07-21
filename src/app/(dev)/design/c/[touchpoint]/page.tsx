@@ -11,6 +11,7 @@ import { GalleryActionsVariants } from "../../components/gallery-actions-variant
 import { MarketingIdentityVariants } from "../../components/marketing-identity-variants";
 import { MarketingVoiceBoards } from "../../components/marketing-voice-boards";
 import { ReelRevealVariants } from "../../components/reel-reveal-variants";
+import { ReelExperienceVariants } from "../../components/reel-experience-variants";
 import { EntryVariants } from "../../components/entry-variants";
 import { EventCardVariants } from "../../components/event-card-variants";
 import { FormVariants } from "../../components/form-variants";
@@ -48,6 +49,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "marketing-identity": MarketingIdentityVariants,
   "marketing-voice": MarketingVoiceBoards,
   "reel-reveal": ReelRevealVariants,
+  "reel-experience": ReelExperienceVariants,
 };
 
 // One UX touchpoint, its 2-3 explorations side by side on the locked system.

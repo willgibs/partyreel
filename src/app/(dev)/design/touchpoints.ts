@@ -30,7 +30,8 @@ export type TouchpointId =
   | "gallery-actions"
   | "marketing-identity"
   | "marketing-voice"
-  | "reel-reveal";
+  | "reel-reveal"
+  | "reel-experience";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" was reserved from the lab refresh until the marketing-identity
@@ -357,6 +358,21 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference. T2 (Will, 2026-07-08, on-device): RATIFIED AS-BUILT, no retime (the shipped defaults ARE the tuned values); stays in the lab with the tuner for later revisits; production wiring is R3's job.",
+  },
+  {
+    // Reel-experience lab round (R3 slice C, 2026-07-21): Will's verdict on
+    // the shipped reel UI, verbatim, "very weak and v1". Three directions over
+    // the SAME four moments (event-page section, creation/curation with
+    // 14-style identity, the publish moment, the guest arrival) so they
+    // compare like-for-like; the product model is ruled and closed (ADR-0021/
+    // 0022), the UI is the canvas. The ratified reveal grammar is reused
+    // untouched (V3's Create reel fires it); only the publish beats carry new
+    // tuner knobs. The ruling lands in chat and is recorded here when it does.
+    id: "reel-experience",
+    title: "Reel experience",
+    surface: "host",
+    note: "Three directions for the reel as a product moment: the event-page section, creation with 14-style identity, the publish moment, and the guest arrival",
+    variants: ["Marquee in the feed", "The Studio", "The Premiere"],
   },
 ];
 
