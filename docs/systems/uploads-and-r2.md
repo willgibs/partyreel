@@ -128,6 +128,15 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   Set(["content-type"])`. Bucket **CORS must allow PUT/POST/GET/HEAD + `content-type` and EXPOSE `ETag`**
   (multipart completion needs ETag); a lifecycle rule aborts incomplete multipart uploads. Don't remove
   any of it. *(Cross-cutting landmine — echoed in CLAUDE.md.)*
+- ★ **A CORS consumer of a tile-shared presign must bypass the HTTP cache.** Plain `<img>` tiles fetch
+  presigned URLs with no Origin header, and R2 answers without `Access-Control-Allow-Origin` (and no
+  `Vary: Origin`) — the browser caches that ACAO-less response under the SAME URL the stable-bucket
+  scheme deliberately shares. A later `fetch(mode: "cors")` of that URL (the reel engine's asset
+  loader) then reads the poisoned entry and fails with a bare "Failed to fetch", nulling every clip
+  with zero console errors. The engine fetches with `cache: "no-store"`
+  ([`engine/assets.ts`](../../src/lib/reel/engine/assets.ts)) — keep it, and give any NEW CORS consumer
+  of gallery presigns the same treatment. (Found live 2026-07-21; note R2 403s also omit CORS headers,
+  so an EXPIRED presign probed via CORS fetch masquerades as a CORS failure.)
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side via the shared `toGridItems`;
   the render routes are `force-dynamic` (ADR-0003). **Gallery read presigns are STABLE (Phase 3):**
   `presignDownload({ stable: true })` pins the SigV4 signing date to the current 30-min bucket

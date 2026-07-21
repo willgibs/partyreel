@@ -10,6 +10,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-21 — Videos in reels: posters everywhere (R3 slice A) + two found-live bugs
+
+**Video items now draw their client-generated poster frames in every reel style, live player and
+export alike.** The Remotion-era `posterMode` flag was deleted outright (videos ALWAYS resolve to
+their poster WebP; a missing poster degrades to a theme-color hold, never a black clip or an
+undecodable mp4 URL), `RENDER_VERSION` bumped 2→3 so every cached artifact regenerates, the
+teardown's caller-less GET poll surface (`GET /api/reel/render` + `getReelRenderState` +
+`finalizeIfLanded` + the stitching dialog's dormant poll mode) was pruned, and the style browser
+gained a video fixture proving the poster path visually. The demo event's three legacy null-poster
+videos were replaced through the REAL upload pipeline (fetch-from-R2 File injection; the folder-share
+and localhost-fetch routes both dead-end — Chrome's private-network blocking). The live pass caught
+and fixed TWO real bugs beyond the slice: (1) `measureFile` had no timeout, so Chrome's hidden-tab
+media throttling wedged the whole upload queue before its first network call (now settles empty at
+7s, best-effort like every other media wait); (2) the reel engine's CORS asset fetch read
+img-poisoned HTTP-cache entries (R2 sends no `Vary: Origin`), silently nulling EVERY clip — the
+engine now fetches `cache: "no-store"`; the landmine is recorded in uploads-and-r2.md. Verified live
+on the alias: all 12 reel slots draw real media across styles (video posters at the tail), fresh $0
+on-device encode → artifact stored → clean finalize (`client_minted` → `client_encoded`). 874 tests.
+
 ## 2026-07-08 — The Lambda/Remotion teardown (R3 slice B; "maxing out the services we want to own")
 
 **The reel now has exactly one render path: the canvas engine + on-device WebCodecs encode.** Will's

@@ -48,8 +48,14 @@ before picking up any program work. Headlines a fresh agent must know:
   is the open critical path.** Slice B SHIPPED 2026-07-08: the LAMBDA/REMOTION TEARDOWN (Will: "teardown
   is a go") — the canvas engine + on-device encode is the reel's ONLY render path; ~11.9k lines + 5 deps
   + 7 env vars deleted (the production-scoped env copies + the AWS sub-account close wait for M2 / the
-  launch checklist). Remaining R3: slice A de-black videos (poster fix + RENDER_VERSION 3, now unpaired)
-  → slice C reel-UI lab round → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
+  launch checklist). Slice A SHIPPED + LIVE-VERIFIED 2026-07-21: videos draw their poster frames
+  everywhere (posterMode footgun deleted, RENDER_VERSION 3, the caller-less poll surface pruned), the
+  demo event's 3 legacy black videos replaced with poster-bearing re-uploads, and TWO found-live bugs
+  fixed en route (a hidden-tab video upload wedged the queue: measureFile timeout-guarded; and the
+  img-poisoned CORS cache blacked out every reel clip: the engine fetches `cache: "no-store"` — see
+  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). Remaining R3: slice C reel-UI lab round
+  (IN FLIGHT: 3 directions building on the `reel-experience` touchpoint; Will ruled the reel is BORN by
+  an explicit Create act) → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
 
 ## Where we are
 
