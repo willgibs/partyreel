@@ -15,6 +15,7 @@
  */
 import "server-only";
 
+import { mustQuery } from "@/lib/db/must-query";
 import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -143,18 +144,20 @@ export async function getHostAvatarUrl(
   eventId: string,
 ): Promise<string | null> {
   const admin = createAdminClient();
-  const { data: ev } = await admin
-    .from("events")
-    .select("host_id")
-    .eq("id", eventId)
-    .maybeSingle();
+  const ev = await mustQuery(
+    admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
+    "guest page: event host_id",
+  );
   if (!ev?.host_id) return null;
 
-  const { data: prof } = await admin
-    .from("profiles")
-    .select("avatar_updated_at")
-    .eq("id", ev.host_id)
-    .maybeSingle();
+  const prof = await mustQuery(
+    admin
+      .from("profiles")
+      .select("avatar_updated_at")
+      .eq("id", ev.host_id)
+      .maybeSingle(),
+    "guest page: host avatar marker",
+  );
   return getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
 }
 
@@ -172,18 +175,22 @@ export async function getUploaderIdentities(
   const admin = createAdminClient();
 
   // The host's display name — attributed to host uploads (media.guest_id IS NULL). One read.
+  // mustQuery, not a swallow: a failed read here would silently re-attribute the
+  // HOST's own uploads to "Anonymous" — a wrong answer rendered as a fact.
   let hostName: string | null = null;
-  const { data: ev } = await admin
-    .from("events")
-    .select("host_id")
-    .eq("id", eventId)
-    .maybeSingle();
+  const ev = await mustQuery(
+    admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
+    "attribution: event host_id",
+  );
   if (ev?.host_id) {
-    const { data: hp } = await admin
-      .from("profiles")
-      .select("display_name")
-      .eq("id", ev.host_id)
-      .maybeSingle();
+    const hp = await mustQuery(
+      admin
+        .from("profiles")
+        .select("display_name")
+        .eq("id", ev.host_id)
+        .maybeSingle(),
+      "attribution: host display name",
+    );
     hostName = hp?.display_name ?? null;
   }
 

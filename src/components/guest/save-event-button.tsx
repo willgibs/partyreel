@@ -120,6 +120,10 @@ export function SaveEventButton({
         return;
       }
       setSignedIn(true);
+      // DELIBERATE swallow: seeding the button's saved/unsaved look. A failed read
+      // shows "Save", and pressing it runs the idempotent save which surfaces its
+      // own error. Throwing inside this mount effect would blank the button instead.
+      // eslint-disable-next-line partyreel/no-swallowed-db-error
       const { data: row } = await supabase
         .from("saved_events")
         .select("event_id")

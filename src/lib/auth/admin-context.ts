@@ -64,6 +64,10 @@ async function readGate(): Promise<AdminGate> {
   } = await supabase.auth.getUser();
   if (!user) return { status: "anonymous" };
 
+  // DELIBERATE SWALLOW (fail CLOSED, x2): this is the admin gate. An unreadable
+  // is_admin / AAL must deny, never admit, so "no row" and "read failed" both
+  // land on `forbidden` / aal1. Never convert these to mustQuery-and-default.
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data: profile } = await supabase
     .from("profiles")
     .select("is_admin")
@@ -73,6 +77,7 @@ async function readGate(): Promise<AdminGate> {
 
   // currentLevel = the session's AAL; nextLevel === 'aal2' means a verified TOTP
   // factor exists (so the gate shows "step up" vs "enroll").
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data: aal } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   const current: AdminAal = aal?.currentLevel === "aal2" ? "aal2" : "aal1";

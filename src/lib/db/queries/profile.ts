@@ -11,6 +11,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { mustQuery } from "@/lib/db/must-query";
 import type { Tables } from "@/lib/db/types";
 import { getRequestAuth, getRequestClient } from "@/lib/supabase/request-auth";
 
@@ -49,11 +50,17 @@ export async function getProfileMenu(
   userId: string,
 ): Promise<{ displayName: string | null; avatarMarker: string | null }> {
   const supabase = await getRequestClient();
-  const { data } = await supabase
-    .from("profiles")
-    .select("display_name, avatar_updated_at")
-    .eq("id", userId)
-    .maybeSingle();
+  // A swallowed error here reads as "this host has no name", which the guest
+  // page renders as a missing byline and the display-name nudge reads as
+  // "never set one" — both wrong answers presented as facts.
+  const data = await mustQuery(
+    supabase
+      .from("profiles")
+      .select("display_name, avatar_updated_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    "profile menu",
+  );
   return {
     displayName: data?.display_name ?? null,
     avatarMarker: data?.avatar_updated_at ?? null,

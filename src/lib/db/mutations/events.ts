@@ -122,6 +122,10 @@ export async function updateEvent(
   // the hash is server-side only (never returned to the client).
   if (values.visibility !== undefined) {
     if (values.visibility === "password") {
+      // DELIBERATE SWALLOW (fail CLOSED): a read that fails must not let the
+      // event flip to `password` without a hash, so "no row" and "read failed"
+      // both have to refuse. The refusal below is the safe answer either way.
+      // eslint-disable-next-line partyreel/no-swallowed-db-error
       const { data: existing } = await supabase
         .from("events")
         .select("event_password_hash")

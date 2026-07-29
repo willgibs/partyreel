@@ -108,6 +108,10 @@ export function LikesProvider({
       // Add-only merge => never clobbers an in-flight optimistic toggle, and genuinely-new poll items
       // (which the user hasn't liked) correctly stay unfilled.
       if (mediaIds.length > 0) {
+        // DELIBERATE swallow: this only SEEDS which hearts start filled. A failed
+        // read leaves them unfilled and the (idempotent) like RPC corrects it on
+        // the next tap; the add-only merge means we never clobber real state.
+        // eslint-disable-next-line partyreel/no-swallowed-db-error
         const { data } = await supabase
           .from("media_likes")
           .select("media_id")
@@ -131,6 +135,10 @@ export function LikesProvider({
         }
         let any = false;
         for (const id of pending) {
+          // DELIBERATE swallow: likeOk(undefined) is false, so a failed replay just
+          // doesn't fill that heart (and fires no toast). Fails closed, and one
+          // stuck replay must not block the rest of the queued likes.
+          // eslint-disable-next-line partyreel/no-swallowed-db-error
           const { data } = await supabase.rpc("like_media", { p_media_id: id });
           if (active && likeOk(data)) {
             setLiked((prev) => new Set(prev).add(id));
@@ -259,6 +267,10 @@ export function LikesProvider({
     setDialogOpen(false);
     if (!id) return;
     const supabase = createClient();
+    // DELIBERATE swallow: likeOk(undefined) is false, so a failed like leaves the
+    // heart unfilled and the pending key in place, which is what makes the replay
+    // above pick it up on the next mount. Fails closed toward "try again".
+    // eslint-disable-next-line partyreel/no-swallowed-db-error
     const { data } = await supabase.rpc("like_media", { p_media_id: id });
     if (likeOk(data)) {
       setLiked((prev) => new Set(prev).add(id));

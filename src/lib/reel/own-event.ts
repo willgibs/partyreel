@@ -15,6 +15,10 @@ export async function resolveOwnEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
+  // DELIBERATE SWALLOW (fail CLOSED): this IS the authz gate for the reel
+  // export. A failed read must resolve to "not the host" (the caller 403s),
+  // never to a permissive default.
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data: ev } = await supabase
     .from("events")
     .select("id, name")

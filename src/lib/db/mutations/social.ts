@@ -339,6 +339,10 @@ export async function setProfileSlug(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // DELIBERATE SWALLOW (fail CLOSED): an unreadable tier must never grant a paid
+  // entitlement, and the `!profile` branch below already refuses. Never invert
+  // this to a default-allow.
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data: profile } = await supabase
     .from("profiles")
     .select("tier")

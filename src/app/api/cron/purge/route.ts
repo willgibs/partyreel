@@ -24,6 +24,7 @@ import {
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
+import { mustQuery } from "@/lib/db/must-query";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
@@ -725,12 +726,20 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
     };
 
     // Newest upload (any status — a recent upload means the event is still in use).
-    const { data: media } = await admin
-      .from("media")
-      .select("created_at")
-      .eq("event_id", e.id)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    // mustQuery, because this read can only ever move the verdict toward DELETION:
+    // swallowed, a failed query looked identical to "this event has never had an
+    // upload", so a busy album whose other timestamps were old got warned and then
+    // removed for inactivity. A transient DB error must abort the sweep (it resumes
+    // next night), never silently age out live events.
+    const media = await mustQuery(
+      admin
+        .from("media")
+        .select("created_at")
+        .eq("event_id", e.id)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      "cron/purge: newest upload for inactivity",
+    );
     const latestUpload = media?.[0]?.created_at;
 
     const activityMs = Math.max(

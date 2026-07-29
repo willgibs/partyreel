@@ -42,6 +42,11 @@ export async function isEventOwner(
   userId: string,
   supabase: ServerSupabaseClient,
 ): Promise<boolean> {
+  // DELIBERATE SWALLOW (fail CLOSED): this decides the OWNER BYPASS on the guest
+  // album. A failed read must resolve to "not the owner" (the viewer sees the
+  // guest album) rather than throw and 500 the page a guest is standing in front
+  // of at a venue. Degrade, never escalate, never crash.
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data } = await supabase
     .from("events")
     .select("id")

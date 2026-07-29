@@ -9,6 +9,7 @@ import "server-only";
 
 import { createHmac } from "node:crypto";
 
+import { mustQuery } from "@/lib/db/must-query";
 import { serverEnv } from "@/lib/env";
 import {
   ABUSE_LIMITS,
@@ -53,13 +54,24 @@ export async function checkAbuseRate(
   const scopeSince = new Date(
     Date.now() - cfg.scopeWindowMin * 60_000,
   ).toISOString();
-  const { data } = await admin.rpc("action_rate", {
-    p_kind: kind,
-    p_ip_hash: ipHash,
-    p_scope_hash: scopeHash,
-    p_breadth_since: breadthSince,
-    p_scope_since: scopeSince,
-  });
+  // mustQuery ARMS THE ALERT THAT WAS ALREADY WRITTEN FOR THIS. Every caller wraps
+  // this in try/catch and fails OPEN with captureWarning("abuse_limiter_unavailable
+  // _fail_open") — a deliberate policy (the capability token is the real gate). But
+  // swallowed, the failed RPC returned `{}`, which reads as zero hits, which reads
+  // as ALLOWED. So the limiter failed open exactly as designed while the outage
+  // alert could never fire: the one path nobody would ever learn was broken.
+  // Throwing here does NOT change the allow/deny posture (the callers still fail
+  // open, on purpose); it just makes the outage visible.
+  const data = await mustQuery(
+    admin.rpc("action_rate", {
+      p_kind: kind,
+      p_ip_hash: ipHash,
+      p_scope_hash: scopeHash,
+      p_breadth_since: breadthSince,
+      p_scope_since: scopeSince,
+    }),
+    `security/abuse-limiter: action_rate(${kind})`,
+  );
   const snap = (data ?? {}) as {
     distinct_scopes?: number;
     scope_hits?: number;

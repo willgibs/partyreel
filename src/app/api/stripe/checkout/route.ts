@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { planById } from "@/lib/constants/tiers";
+import { mustQuery } from "@/lib/db/must-query";
 import { eventPassRenewalPriceId, priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
 import {
@@ -52,11 +53,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("stripe_customer_id, tier, tier_expires_at")
-    .eq("id", user.id)
-    .maybeSingle();
+  // mustQuery: a swallowed failure here read as "no profile", which then created a
+  // SECOND Stripe customer for a host who already had one (orphaning the first
+  // customer's subscription webhooks) and dropped the renewal price gate below to
+  // its no-pass branch. Money path: fail the checkout rather than guess the state.
+  const profile = await mustQuery(
+    supabase
+      .from("profiles")
+      .select("stripe_customer_id, tier, tier_expires_at")
+      .eq("id", user.id)
+      .maybeSingle(),
+    "stripe/checkout: profile",
+  );
 
   const { planId, renewal } = parsed.data;
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { mustQuery } from "@/lib/db/must-query";
 import { getStripe } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
@@ -26,11 +27,18 @@ export async function POST() {
     );
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("stripe_customer_id")
-    .eq("id", user.id)
-    .maybeSingle();
+  // mustQuery: swallowed, a failed read became "no_customer", i.e. a PAYING host
+  // told they have no billing account and left with no way to cancel. A 500 is the
+  // honest answer to a broken read; the no_customer branch below stays for the real
+  // never-checked-out case.
+  const profile = await mustQuery(
+    supabase
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", user.id)
+      .maybeSingle(),
+    "stripe/portal: profile",
+  );
 
   if (!profile?.stripe_customer_id) {
     return NextResponse.json(

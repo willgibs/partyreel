@@ -21,6 +21,7 @@ import {
   type Tier,
   toBillingTier,
 } from "@/lib/constants/tiers";
+import { mustQuery } from "@/lib/db/must-query";
 import type { Database } from "@/lib/db/types";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -144,21 +145,27 @@ async function resolveReelRenderContext(
   eventId: string,
 ): Promise<ReelRenderContext | null> {
   // The event (host + name) — authoritative source for the tier read + the download filename.
-  const { data: ev } = await admin
-    .from("events")
-    .select("host_id, name")
-    .eq("id", eventId)
-    .is("deleted_at", null)
-    .maybeSingle();
+  const ev = await mustQuery(
+    admin
+      .from("events")
+      .select("host_id, name")
+      .eq("id", eventId)
+      .is("deleted_at", null)
+      .maybeSingle(),
+    "reel render: event",
+  );
   if (!ev) return null;
 
   // Tier → watermark + the length cap (server-derived; never trust the client). max → pro via
   // toBillingTier.
-  const { data: prof } = await admin
-    .from("profiles")
-    .select("tier")
-    .eq("id", ev.host_id)
-    .maybeSingle();
+  // mustQuery is load-bearing: a swallowed error here falls through to the
+  // `?? "free"` default and stamps the partyreel.com WATERMARK onto a paying
+  // host's video (and clamps their length). A failed tier read must never
+  // silently downgrade a customer's entitlement.
+  const prof = await mustQuery(
+    admin.from("profiles").select("tier").eq("id", ev.host_id).maybeSingle(),
+    "reel render: host tier",
+  );
   const tier = toBillingTier(prof?.tier ?? "free");
   const watermark = tier === "free";
 
