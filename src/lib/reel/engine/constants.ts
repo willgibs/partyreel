@@ -4,6 +4,16 @@
 // adapts to both from one core, so derive dims via reelDimensions(orientation), never hard-code a pair.
 export const FPS = 24;
 
+// Encode bitrates live HERE, not in encode.ts, so that reading one number can
+// never drag the whole mp4 encoder into a bundle. support.ts needs
+// DEFAULT_BITRATE to probe capability ON MOUNT, and while it imported that from
+// encode.ts the encoder (mediabunny muxer + asset loader + the draw registry)
+// was pulled into the host event page's FIRST-LOAD chunk set no matter how
+// lazily the export path itself imported it. Constants are free; the encoder is
+// not. Bitrate default 5 Mbps; the parity harness exposes 4/5/8.
+export const ENCODE_BITRATES = [4_000_000, 5_000_000, 8_000_000] as const;
+export const DEFAULT_BITRATE = 5_000_000;
+
 // Portrait 9:16 (the default; REEL_WIDTH/REEL_HEIGHT stay the portrait pair for back-compat).
 export const REEL_WIDTH = 1080;
 export const REEL_HEIGHT = 1920;

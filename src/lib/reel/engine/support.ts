@@ -5,9 +5,16 @@
 
 import { canEncodeVideo, getEncodableVideoCodecs } from "mediabunny";
 
-import { type Orientation, reelDimensions } from "./constants";
+// DEFAULT_BITRATE comes from ./constants, NOT ./encode. Importing it from
+// encode.ts made this module (which the composer runs on mount) a static edge
+// to the whole mp4 encoder, so the encoder sat in the host event page's
+// first-load chunks however lazily the export path imported it.
+import {
+  DEFAULT_BITRATE,
+  type Orientation,
+  reelDimensions,
+} from "./constants";
 import { detectCtxFilter } from "./canvas2d";
-import { DEFAULT_BITRATE } from "./encode";
 
 export type EngineSupport = {
   /** Can this browser WebCodecs-encode h264 at the reel's dimensions? Gates the export button. */
