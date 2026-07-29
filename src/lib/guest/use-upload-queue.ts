@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { uploadFile } from "@/lib/upload/uploader";
+import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -117,17 +117,31 @@ export function useUploadQueue({
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
         const onProgress = (f: number) =>
           patch(next.id, { progress: Math.round(f * 100) });
-        const outcome = isDemo
-          ? await simulateUpload(next.file, onProgress)
-          : await uploadFile({
-              file: next.file,
-              endpoints: {
-                presign: "/api/r2/presign-upload",
-                complete: "/api/r2/complete-upload",
-              },
-              identity: { session_token: token },
-              onProgress,
-            });
+        // BELT AND BRACES with uploadFile's never-reject contract. If anything
+        // ever DOES reject here, the throw would escape this for(;;) loop: the
+        // current file would be left at "uploading" with no error and no retry
+        // affordance, and every file still queued behind it would be silently
+        // abandoned. One file's failure must only ever fail THAT file.
+        let outcome: UploadOutcome;
+        try {
+          outcome = isDemo
+            ? await simulateUpload(next.file, onProgress)
+            : await uploadFile({
+                file: next.file,
+                endpoints: {
+                  presign: "/api/r2/presign-upload",
+                  complete: "/api/r2/complete-upload",
+                },
+                identity: { session_token: token },
+                onProgress,
+              });
+        } catch (e) {
+          console.error("upload queue: unexpected failure", e);
+          outcome = {
+            ok: false,
+            message: "Something went wrong with that upload. Please try again.",
+          };
+        }
         if (outcome.ok) {
           patch(next.id, {
             status: "done",

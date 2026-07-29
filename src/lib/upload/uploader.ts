@@ -115,16 +115,76 @@ function putWithProgress(args: {
   });
 }
 
+/**
+ * An upload failure whose message is ALREADY guest-ready copy. Anything else
+ * that escapes gets the generic message instead, so a raw JS error string
+ * ("Unexpected token '<'") can never reach a guest's screen.
+ */
+class UploadError extends Error {}
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return (await res.json()) as T;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // fetch REJECTS only on a genuine transport failure (venue WiFi dropping,
+    // a cell handoff, the tab going offline) and never on a 4xx/5xx. This is
+    // the blip that used to wedge the whole batch.
+    throw new UploadError(
+      "Your connection dropped. Check your signal and try again.",
+    );
+  }
+  try {
+    return (await res.json()) as T;
+  } catch {
+    // A proxy/edge failure answers with an HTML error page, so .json() throws
+    // on a response that arrived perfectly well.
+    throw new UploadError(
+      `The server didn't respond properly (${res.status}). Please try again.`,
+    );
+  }
 }
 
+/**
+ * THE CONTRACT: uploadFile ALWAYS RESOLVES an UploadOutcome, never rejects.
+ *
+ * The queue runner awaits this once per file in a sequential loop. A rejection
+ * escaping here used to break out of that loop entirely: the file stayed at
+ * status "uploading" forever (so it never got the errored tile's retry
+ * affordance) and every file still queued behind it was silently abandoned.
+ * One dropped request on venue WiFi therefore killed the whole batch.
+ *
+ * The R2 PUT was already guarded; the presign/complete round-trips were not,
+ * and neither were the best-effort media helpers. Rather than chase each one,
+ * the whole pipeline is wrapped so the contract holds by construction: a new
+ * `await` added below cannot reintroduce the wedge. (The queue ALSO catches,
+ * belt and braces.)
+ */
 export async function uploadFile(args: {
+  file: File;
+  endpoints: { presign: string; complete: string };
+  identity: Record<string, string>;
+  onProgress?: (fraction: number) => void;
+}): Promise<UploadOutcome> {
+  try {
+    return await runUpload(args);
+  } catch (e) {
+    if (e instanceof UploadError) return { ok: false, message: e.message };
+    // An unexpected throw is a bug, not a guest-facing condition: keep it in
+    // the console for triage, and show copy a guest can act on.
+    console.error("uploadFile: unexpected failure", e);
+    return {
+      ok: false,
+      message: "Something went wrong with that upload. Please try again.",
+    };
+  }
+}
+
+async function runUpload(args: {
   file: File;
   // The presign/complete route pair to hit. Guest -> /api/r2/*; host -> /api/host/r2/*.
   // Both pairs return identical response shapes, so the orchestration below is shared.

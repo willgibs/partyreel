@@ -60,7 +60,16 @@ export function GuestMasonry({
   /** The event JOIN url for the lightbox Share button (guest surface only). */
   shareUrl?: string;
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // Target the open item by ID, never by array position: `items` mutates under
+  // an open lightbox (the doorbell/poll prepends newly-approved media, an
+  // optimistic upload prepends its own tile, a host removal drops one), and a
+  // stored index would silently start pointing at a DIFFERENT photo the moment
+  // anything landed. The index handed to the lightbox is derived per render.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openAt = openId ? items.findIndex((m) => m.id === openId) : -1;
+  // -1 covers both "closed" and "the open item just vanished from the album",
+  // which the lightbox reads as closed.
+  const openIndex = openAt >= 0 ? openAt : null;
   // The ids present at FIRST render: only these stagger (later arrivals enter
   // instantly). useState initializer = render-once capture, no ref-in-render.
   const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
@@ -140,7 +149,7 @@ export function GuestMasonry({
           >
             <button
               type="button"
-              onClick={() => setOpenIndex(i)}
+              onClick={() => setOpenId(item.id)}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
               className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
             >
@@ -190,8 +199,10 @@ export function GuestMasonry({
       <MediaLightboxLazy
         items={items}
         index={openIndex}
-        onClose={() => setOpenIndex(null)}
-        onIndexChange={setOpenIndex}
+        onClose={() => setOpenId(null)}
+        // Swipe/arrow navigation still speaks in positions; translate straight
+        // back to the id so the next mutation can't shift it either.
+        onIndexChange={(i) => setOpenId(items[i]?.id ?? null)}
         viewerIsHost={false}
         shareUrl={shareUrl}
       />

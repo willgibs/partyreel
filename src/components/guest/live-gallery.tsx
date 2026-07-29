@@ -32,6 +32,7 @@ import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
+import { reconcileGalleryItems } from "@/lib/guest/reconcile-gallery-items";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 
 // The hybrid doorbell cadence (Phase 3): while the Realtime channel is live,
@@ -122,14 +123,12 @@ export function LiveGallery({
       if (!body.ok || !body.items) return;
       etagRef.current = res.headers.get("etag");
       const items = body.items;
-      // Reconcile by id: KEEP already-rendered items' presigned URLs so unchanged
-      // media doesn't re-download (a new `url` would reload the <img>). Only
-      // genuinely new items use the fresh presign; removed items drop; order
-      // follows the server (newest-first).
-      setServerItems((prev) => {
-        const prevById = new Map(prev.map((m) => [m.id, m]));
-        return items.map((m) => prevById.get(m.id) ?? m);
-      });
+      // Reconcile by id. This MUST adopt refreshed presigned URLs: keeping the
+      // already-rendered object forever (what this used to do) meant a gallery
+      // left open outlived its signatures and every tile 403'd at ~90 min.
+      // Identity is still preserved whenever the row is unchanged, so the
+      // ordinary poll touches no <img>. See reconcile-gallery-items.ts.
+      setServerItems((prev) => reconcileGalleryItems(prev, items));
       // Drop + revoke any optimistic tile the server now reflects (the presigned
       // version takes over seamlessly via mergeGalleryItems' dedupe).
       const serverIds = new Set(items.map((m) => m.id));
