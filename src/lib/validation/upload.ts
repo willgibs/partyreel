@@ -12,6 +12,17 @@ import { z } from "zod";
 
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 
+/**
+ * Upper bound on a CLIENT-DECLARED pixel dimension. These are measured in the
+ * browser and never verified server-side, and they are rendered straight into a
+ * CSS aspect-ratio, so an unbounded value let one upload declare
+ * `1 x 100000000` and render a tile kilometres tall for everyone viewing the
+ * album. Generous on purpose (a 100-megapixel medium-format frame and any real
+ * panorama fit comfortably); the point is only to exclude the absurd.
+ * The RATIO is separately bounded at the render seam, see lib/media/tile-aspect.
+ */
+export const MAX_DECLARED_DIMENSION = 100_000;
+
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
 // The join carries ONLY the capability `qr_token`. Identity (for account-required events) is a signed-in
 // Supabase session: the route derives the verified user id via getUser() and passes it as the trusted
@@ -49,8 +60,8 @@ export const completeUploadSchema = z.object({
   content_type: z.string().trim().min(1),
   size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
-  width: z.number().int().positive().optional(),
-  height: z.number().int().positive().optional(),
+  width: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
+  height: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
   // The preview R2 key the presign route issued, set ONLY when the client uploaded a preview. The
   // server records it as media.preview_key; tiles then serve it.
   preview_key: z.string().trim().min(1).optional(),
@@ -83,8 +94,8 @@ export const hostCompleteUploadSchema = z.object({
   content_type: z.string().trim().min(1),
   size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
-  width: z.number().int().positive().optional(),
-  height: z.number().int().positive().optional(),
+  width: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
+  height: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
   preview_key: z.string().trim().min(1).optional(),
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),

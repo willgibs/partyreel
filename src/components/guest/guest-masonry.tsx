@@ -22,15 +22,18 @@ import type { CSSProperties } from "react";
 import { Check, Download, Play, RefreshCw } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { tileAspect } from "@/lib/media/tile-aspect";
 import { LikeButton } from "@/components/likes/like-button";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
 
-function tileAspect(item: GridMedia): string {
-  return item.width && item.height ? `${item.width} / ${item.height}` : "1 / 1";
-}
+// Uses the SHARED tile-aspect helper (this file used to carry its own copy,
+// which had no bound at all): natural ratios are preserved, but a client-
+// declared absurdity like 1 / 100000000 can no longer render a kilometre-tall
+// tile and wreck the album. `clamp` stays off here on purpose, since the guest
+// gallery's natural ratios are the ratified masonry look.
 
 /** An in-flight upload rendered as a gallery tile (Phase 4: progress lives IN
  *  the gallery, not a separate file list). `url` is a local object URL. */
@@ -94,7 +97,9 @@ export function GuestMasonry({
               <img
                 src={p.url}
                 alt=""
-                className={p.status === "error" ? "w-full opacity-40" : "w-full"}
+                className={
+                  p.status === "error" ? "w-full opacity-40" : "w-full"
+                }
               />
             ) : (
               <video

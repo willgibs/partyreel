@@ -31,7 +31,9 @@ import {
 } from "@/lib/constants/tiers";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
 import type { Orientation } from "@/lib/reel/engine/constants";
-import { encodeReel } from "@/lib/reel/engine/encode";
+// NOTE: `encodeReel` is deliberately NOT imported here. See the dynamic import
+// in the export pipeline below. `shouldClientEncode` stays static: it is a tiny
+// pure gate the composer needs on mount to decide whether to offer Download.
 import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
 import {
   DEFAULT_STYLE_ID,
@@ -341,6 +343,13 @@ export function ReelComposer({
     // Encode the EXACT props the player is showing (the literal-WYSIWYG claim of the canvas engine).
     let blob: Blob;
     try {
+      // DYNAMIC IMPORT: the mp4 encoder (WebCodecs muxing + the asset loader)
+      // is the heaviest thing this component can reach, and only an EXPORT ever
+      // needs it, but importing it statically dragged the whole encoder into
+      // the host event page's FIRST-LOAD bundle. Every host paid that download
+      // just to look at their gallery. It now loads on the first Download tap;
+      // the browser caches the chunk, so a repeat export starts instantly.
+      const { encodeReel } = await import("@/lib/reel/engine/encode");
       const encoded = await encodeReel(reelProps, {
         signal: controller.signal,
         onProgress: (progress) =>
@@ -455,6 +464,10 @@ export function ReelComposer({
                       <button
                         key={s.id}
                         type="button"
+                        // Selection was signalled by colour + weight ONLY, so a
+                        // screen reader heard an undifferentiated list of style
+                        // names. Matches the Orientation/Length groups below.
+                        aria-pressed={active}
                         onClick={() => {
                           setStyleId(s.id);
                           setStyleOpen(false);
@@ -519,6 +532,7 @@ export function ReelComposer({
             <div className="grid grid-cols-3 gap-1.5">
               <button
                 type="button"
+                aria-pressed={coverMediaId == null}
                 onClick={() => setCoverMediaId(null)}
                 className={cn(
                   "flex aspect-square items-center justify-center rounded-md border text-[0.7rem] text-muted-foreground transition-colors ease-emphasis active:scale-[0.97]",
@@ -527,12 +541,17 @@ export function ReelComposer({
               >
                 Auto
               </button>
-              {reelMedia.map((m) => {
+              {reelMedia.map((m, i) => {
                 const active = m.id === coverMediaId;
                 return (
                   <button
                     key={m.id}
                     type="button"
+                    // The thumbnail's alt is empty (decorative), so without a
+                    // label these announced as a row of bare "button"s with no
+                    // way to tell which was the chosen cover.
+                    aria-label={`Use item ${i + 1} as the opening shot`}
+                    aria-pressed={active}
                     onClick={() => setCoverMediaId(m.id)}
                     className={cn(
                       "relative aspect-square overflow-hidden rounded-md border transition-transform ease-emphasis active:scale-[0.97]",
@@ -615,7 +634,11 @@ export function ReelComposer({
           <p className="text-sm text-muted-foreground">{NO_EXPORT_NOTICE}</p>
         ) : (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <Button type="button" onClick={handleDownload} disabled={downloading}>
+            <Button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+            >
               <Download />
               {downloading ? "Preparing…" : "Download video"}
             </Button>

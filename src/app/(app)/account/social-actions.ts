@@ -86,16 +86,32 @@ export async function checkProfileSlugAction(
   return { available: (data ?? []).length === 0 };
 }
 
+// Both visibility toggles MUST revalidate, like every sibling action in this
+// file. Without it the server tree kept serving the pre-toggle value, so the
+// switch visibly snapped back moments after a save that had actually
+// succeeded, which reads as "my privacy setting didn't take". The public
+// profile is revalidated by route pattern (the slug isn't in scope here) since
+// hiding an event is a privacy action and a stale public page is the real harm.
 export async function hideEventFromProfileAction(
   eventId: string,
 ): Promise<SocialActionResult> {
-  return fromMutation(await hideEventFromProfile(eventId));
+  const result = await hideEventFromProfile(eventId);
+  if (result.ok) {
+    revalidatePath("/account");
+    revalidatePath("/u/[slug]", "page");
+  }
+  return fromMutation(result);
 }
 
 export async function unhideEventFromProfileAction(
   eventId: string,
 ): Promise<SocialActionResult> {
-  return fromMutation(await unhideEventFromProfile(eventId));
+  const result = await unhideEventFromProfile(eventId);
+  if (result.ok) {
+    revalidatePath("/account");
+    revalidatePath("/u/[slug]", "page");
+  }
+  return fromMutation(result);
 }
 
 export async function unfollowAction(

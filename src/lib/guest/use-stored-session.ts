@@ -24,9 +24,29 @@ function emit() {
 // setter. Writing here + firing the SAME module `emit()` notifies every useStoredSession
 // subscriber (the `listeners` Set is a module singleton shared across the client bundle),
 // so the header's sign-out clears the very session the upload panel is reading.
+// EVERY localStorage touch is guarded. Blocking site data (Safari's "Block All
+// Cookies", a locked-down enterprise profile, some private modes) makes the
+// localStorage GETTER ITSELF throw a SecurityError, not just its methods. That
+// throw used to happen inside the useSyncExternalStore snapshot below, i.e.
+// during RENDER, which took the whole guest album down with it. A guest who
+// can't persist a session should just be a guest who re-joins, never a guest
+// staring at a crashed page.
+function readStored(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 export function setStoredSession(qrToken: string, value: string | null) {
-  if (value === null) localStorage.removeItem(sessionKey(qrToken));
-  else localStorage.setItem(sessionKey(qrToken), value);
+  try {
+    if (value === null) localStorage.removeItem(sessionKey(qrToken));
+    else localStorage.setItem(sessionKey(qrToken), value);
+  } catch {
+    // Storage unavailable: the token stays in memory for this render pass via
+    // the emit below, so uploading still works for the current visit.
+  }
   emit();
 }
 
@@ -50,7 +70,7 @@ export function useStoredSession(
 
   const token = useSyncExternalStore(
     subscribe,
-    () => localStorage.getItem(key),
+    () => readStored(key),
     () => null,
   );
 

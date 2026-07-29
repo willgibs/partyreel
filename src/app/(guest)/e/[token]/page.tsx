@@ -234,7 +234,13 @@ export default async function GuestEventPage({
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <GuestHeader qrToken={token} eventId={event.id} />
+      {/* event.qr_token, NOT the raw `token` route param: `token` may be a
+          CUSTOM SLUG, and the header's sign-out clears the stored session by
+          this key while EventExperience below reads it by the canonical
+          qr_token. Mismatched keys meant sign-out on a slug URL removed a key
+          that was never written, leaving the previous guest's upload
+          capability live on a shared phone. */}
+      <GuestHeader qrToken={event.qr_token} eventId={event.id} />
       <EventExperience
         event={shellEvent}
         qrToken={event.qr_token}
