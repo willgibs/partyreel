@@ -16,11 +16,24 @@ describe("operator moderation payloads", () => {
     expect(removalUpdate(now)).toEqual({
       status: "removed",
       removed_at: "2026-06-01T12:00:00.000Z",
+      removed_by_admin: true,
     });
   });
 
   it("restoreUpdate un-removes: status='approved' + clears removed_at (so the cron can't reclaim)", () => {
-    expect(restoreUpdate()).toEqual({ status: "approved", removed_at: null });
+    expect(restoreUpdate()).toEqual({
+      status: "approved",
+      removed_at: null,
+      removed_by_admin: false,
+    });
+  });
+
+  // QA #8: the flag is the ONLY thing standing between an operator takedown and the reported host
+  // quietly restoring it from their own Trash (restore_media refuses a removed_by_admin row). Both
+  // operator paths share this helper precisely so one can't be shipped without it.
+  it("marks a takedown as operator-made, and releases it on restore", () => {
+    expect(removalUpdate().removed_by_admin).toBe(true);
+    expect(restoreUpdate().removed_by_admin).toBe(false);
   });
 });
 

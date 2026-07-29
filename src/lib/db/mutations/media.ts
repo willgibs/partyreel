@@ -27,6 +27,12 @@ import { formatBytes } from "@/lib/utils";
 // UPDATE that means "no such media in one of the host's events" (missing,
 // foreign, or already removed). We treat it as a not-found failure, not silent
 // success, so the host gets a real error instead of a phantom "done".
+//
+// One more producer since QA #7 (migration 20260729180000): the
+// media_guard_privileged_transitions BEFORE trigger SKIPS (returns null, no error) any client
+// write to a legally-held row, so a held item also lands here. That is deliberate — the resulting
+// "That item is no longer available." is identical to the missing-row copy, so the host can never
+// use a moderation click as an oracle for whether a hold exists (ADR-0020 discretion).
 const NO_ROWS = "PGRST116";
 
 const UNAUTHORIZED = {
@@ -278,15 +284,21 @@ export async function removeMediaBulk(
  * {ok, reason, …} for EXPECTED refusals (we branch on data.reason — they do NOT raise),
  * so insufficient_space can carry needed_bytes for the UI.
  */
+// `legal_hold` (ADR-0020) and `admin_removed` (QA #8) are DELIBERATELY routed to the discreet
+// default branch below, which produces the same "That item is no longer available." wording a
+// missing row does. Both mean "we acted on this item"; the host must not learn which, or that
+// either mechanism exists. They are named here so the union is honest, not so the copy can differ.
 type RestoreReason =
   | "not_found"
   | "not_removed"
   | "event_deleted"
   | "insufficient_space"
-  | "event_limit";
+  | "event_limit"
+  | "legal_hold"
+  | "admin_removed";
 
 type RestoreResult =
-  | { ok: true; media_still_removed?: number }
+  | { ok: true; media_still_removed?: number; status?: string }
   | {
       ok: false;
       reason: RestoreReason;

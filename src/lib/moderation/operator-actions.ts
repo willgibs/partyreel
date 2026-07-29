@@ -42,20 +42,38 @@ export const ALBUM_FILTER_META: Record<AlbumFilter, { label: string }> = {
 
 // The DB update an operator action applies. Returns ABSOLUTE state (not a toggle) so a
 // re-run is idempotent, and matches the soft-remove shape the reports "Action" path uses.
+// `removed_by_admin` is service-role-write-only (QA #8, migration 20260729180000): it is the
+// difference between a removal the host may undo and a takedown only an operator may undo.
 export type MediaModerationUpdate =
-  | { status: "removed"; removed_at: string }
-  | { status: "approved"; removed_at: null };
+  | { status: "removed"; removed_at: string; removed_by_admin: true }
+  | { status: "approved"; removed_at: null; removed_by_admin: false };
 
-/** Soft-remove: status='removed' + stamp the grace clock (the purge cron reclaims after 7d). */
+/**
+ * Soft-remove: status='removed' + stamp the grace clock (the purge cron reclaims after the
+ * window) + mark it an OPERATOR takedown. That last flag is what stops the reported host from
+ * quietly restoring the item from their own Trash: restore_media refuses a removed_by_admin row
+ * (QA #8). It is ungranted to `authenticated`, so only this service-role path can set it.
+ */
 export function removalUpdate(now: Date = new Date()): MediaModerationUpdate {
-  return { status: "removed", removed_at: now.toISOString() };
+  return {
+    status: "removed",
+    removed_at: now.toISOString(),
+    removed_by_admin: true,
+  };
 }
 
-// Restore (undo a mistaken removal within the grace window): clear removed_at so the cron
-// can't reclaim it, and set status='approved'. We store no prior status (no migration), so a
-// previously-hidden/pending item lands as approved — a rare, documented v1 limitation.
+/**
+ * Restore (undo a takedown): clear removed_at so the cron can't reclaim it, release the operator
+ * flag so the host owns the item again, and un-remove it.
+ *
+ * `status: "approved"` is the FLOOR, not the outcome: the media_derive_removal_provenance BEFORE
+ * trigger rewrites it to `status_before_removed` (QA #24), so an item that was HIDDEN when the
+ * operator took it down comes back HIDDEN rather than being silently republished to the album.
+ * The derivation lives at the DB so every restore path (this one, restore_media, anything future)
+ * inherits it. (Supersedes the old "we store no prior status" limitation note.)
+ */
 export function restoreUpdate(): MediaModerationUpdate {
-  return { status: "approved", removed_at: null };
+  return { status: "approved", removed_at: null, removed_by_admin: false };
 }
 
 // A media row enriched with its album (event) + host — the shared shape produced by the

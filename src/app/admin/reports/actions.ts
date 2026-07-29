@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { requireAdminAction } from "@/lib/auth/admin-context";
+import { removalUpdate } from "@/lib/moderation/operator-actions";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -58,10 +61,15 @@ export async function actionReportAction(
   // removed_at) — the purge cron then reclaims R2 + the row. Album-level reports
   // (no media_id) just get marked actioned; the operator handles the album out
   // of band. `.neq('status','removed')` so we don't reset an existing grace clock.
+  //
+  // Shares removalUpdate() with the Albums browser rather than repeating the payload: the two
+  // operator takedown paths MUST stamp removed_by_admin identically, or the reported host can
+  // still restore whichever one forgot it (QA #8). The untyped client is the pre-regen seam for
+  // that column (see admin/albums/actions.ts).
   if (mediaId) {
-    const { error: mErr } = await admin
+    const { error: mErr } = await (admin as unknown as SupabaseClient)
       .from("media")
-      .update({ status: "removed", removed_at: new Date().toISOString() })
+      .update(removalUpdate())
       .eq("id", mediaId)
       .neq("status", "removed");
     if (mErr) {

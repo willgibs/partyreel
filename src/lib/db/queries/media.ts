@@ -31,9 +31,17 @@ export const MEDIA_HOST_COLUMNS =
 // column-scoped SELECT grant does NOT extend to columns added later, so `authenticated` cannot
 // read it — and shouldn't (it records OUR sweep's action, not the host's). Verified live:
 // has_column_privilege('authenticated','public.media','removed_by_system','SELECT') = false.
+// `removed_by_admin` + `status_before_removed` (QA #8/#24, migration 20260729180000) join them for
+// the same reason: an operator takedown carries the ADR-0020 discretion posture (the host may BE
+// the reported party), and the prior-status stamp is machinery, not host-facing state. Types.ts
+// will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
 export type MediaRow = Omit<
   Tables<"media">,
-  "legal_hold_at" | "legal_hold_reason" | "removed_by_system"
+  | "legal_hold_at"
+  | "legal_hold_reason"
+  | "removed_by_system"
+  | "removed_by_admin"
+  | "status_before_removed"
 >;
 
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
