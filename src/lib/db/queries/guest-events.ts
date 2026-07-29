@@ -81,6 +81,11 @@ async function rehydrateUnlockedDetails(
 
   let hostDisplayName: string | null = null;
   if (data.host_id) {
+    // Deliberate swallow, same policy as the read above: this whole function is a COSMETIC
+    // re-hydration of three display fields for a viewer who has already proven the password.
+    // A failed byline lookup must degrade to "no byline", never fail an unlocked album — the
+    // guest still sees their photos, which is the thing that matters.
+    // eslint-disable-next-line partyreel/no-swallowed-db-error
     const { data: profile } = await admin
       .from("profiles")
       .select("display_name")
