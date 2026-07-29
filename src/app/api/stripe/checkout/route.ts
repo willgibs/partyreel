@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { planById } from "@/lib/constants/tiers";
 import { eventPassRenewalPriceId, priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
+import {
+  formatEntitlementExpiry,
+  resolveEntitlement,
+} from "@/lib/stripe/entitlement";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
@@ -13,6 +17,11 @@ import { checkoutSchema } from "@/lib/validation/checkout";
 // this route never writes profiles.tier. We DO create + persist the Stripe customer
 // here (one per host) so subscription webhooks map back to the profile.
 export const runtime = "nodejs";
+
+/** A refusal the CheckoutButton surfaces verbatim as the toast description. */
+function refuse(code: string, message: string, status = 409) {
+  return NextResponse.json({ ok: false, code, message }, { status });
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -49,32 +58,70 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Renewal uses the cheaper Event Pass price + is gated to current/recent pass holders.
   const { planId, renewal } = parsed.data;
-  if (renewal) {
-    if (planId !== "event_pass") {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "bad_request",
-          message: "Renewal is Event Pass only.",
-        },
-        { status: 400 },
-      );
-    }
-    const eligible =
-      profile?.tier === "event_pass" || profile?.tier_expires_at != null;
-    if (!eligible) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "not_eligible",
-          message: "Renewal is for current or recent Event Pass holders.",
-        },
-        { status: 403 },
-      );
-    }
+
+  // Shape check: the cheaper renewal price exists only for the Event Pass.
+  if (renewal && planId !== "event_pass") {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "bad_request",
+        message: "Renewal is Event Pass only.",
+      },
+      { status: 400 },
+    );
   }
+
+  // ── ADR-0023 ruling 1: ONE PLAN AT A TIME (QA #3) ────────────────────────────────────────────
+  // Refuse a session whenever the caller already holds a live entitlement. Derived server-side
+  // from `profiles` (the webhook is its sole writer), never from the request body.
+  //
+  // THE FAILURES THIS PREVENTS:
+  //   • a second Pro subscription stacked on the first (billed twice, one cap);
+  //   • an Event Pass bought while Pro is active, whose provisioning writes storage_cap_bytes =
+  //     75 GB over the host's 2 TB while Stripe keeps charging for Pro. The nightly over-capacity
+  //     sweep then starts REMOVING media that is legitimately inside the cap they pay for.
+  // Stacking models (cap = max, or cap = sum) were considered and rejected in ADR-0023: both make
+  // provisioning resolve two live entitlements on every webhook, and both are genuinely ambiguous
+  // at the lapse boundary. The portal owns upgrades, downgrades and cancellation.
+  const entitlement = resolveEntitlement(profile, new Date());
+
+  if (entitlement.held === "pro") {
+    return refuse(
+      "already_subscribed",
+      "You're already on Pro. Open the billing portal from your dashboard to change your storage size or cancel.",
+    );
+  }
+
+  if (entitlement.held === "event_pass") {
+    const until = formatEntitlementExpiry(entitlement.expiresAt as string);
+    // The ONE sanctioned purchase for a live pass: renewing it. Provisioning extends from the
+    // current expiry (see resolveEventPassCheckout), so this never costs the host their remaining
+    // time. Everything else is refused.
+    if (!(renewal && planId === "event_pass")) {
+      return refuse(
+        "already_entitled",
+        planId === "event_pass"
+          ? `Your Event Pass is active until ${until}. Use Renew Event Pass to add another year onto that date instead of buying a second one.`
+          : `Your Event Pass is active until ${until}. Partyreel runs one plan at a time, so Pro can start once the pass ends. Get in touch through the contact page if you need to switch sooner.`,
+      );
+    }
+  } else if (renewal) {
+    // ── QA #35, the price gate ───────────────────────────────────────────────────────────────
+    // The old gate (`tier === "event_pass" || tier_expires_at != null`) was dead and leaked in one
+    // direction only: its first arm is subsumed by its second, and `tier_expires_at` is never
+    // cleared, so ANY host who ever held a pass could buy the discounted renewal price forever
+    // while a genuine current holder was the one case it was written for. Renewal now means what
+    // it says: extending a pass that has not expired yet. A lapsed holder buys a fresh pass at the
+    // standard price, which is also the only reading under which "extend from the current expiry"
+    // has a current expiry to extend from.
+    return refuse(
+      "not_eligible",
+      "Renewal applies to an Event Pass that is still active. Yours has ended, so start a new Event Pass from the pricing page.",
+      403,
+    );
+  }
+
   const priceId = renewal ? eventPassRenewalPriceId() : priceIdForPlan(planId);
 
   const stripe = getStripe();
