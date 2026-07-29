@@ -58,6 +58,14 @@ event rows) lands beside it. The sole egress is the audit-logged `/admin/forensi
   hold columns are not granted to `authenticated`, so the owning host can't see a hold via
   PostgREST or the gallery queries (which enumerate `MEDIA_HOST_COLUMNS`, parity-tested against
   the grant). → [database-security.md](database-security.md).
+- ★ **A held row is IMMUTABLE to the host, not merely invisible** (QA #7, `20260729180000`). The RPC
+  refusal above was walkable: a host held `update(status, removed_at)`, so one PATCH to
+  `/rest/v1/media` moved a held item straight back onto the live gallery. The
+  `media_guard_privileged_transitions` BEFORE trigger now SKIPS (`return null`) any direct client
+  write to a held row. **Skip, never raise** — an exception would abort a whole bulk statement, so
+  "Approve all suddenly fails on this album" would itself be a hold oracle; the silent skip yields
+  PGRST116 and therefore the identical "That item is no longer available." copy a missing row
+  produces. Don't turn it into an error.
 - **`restore_media`'s replacement keeps the `removed_by_uploader = false` guard** from the applied
   `20260609150000` body (a guest's self-deletion stays PRIVATE to the host); dropping it in a later
   CREATE OR REPLACE would revert that privacy boundary — `forensics/migration-guards.test.ts` pins

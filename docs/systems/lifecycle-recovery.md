@@ -94,6 +94,15 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
   deletes R2-FIRST in the wrapper, then the RPC calls the service-role `purge_media_rows`. All RETURN jsonb
   `{ok,reason,…}` (expected refusals don't raise → the wrapper maps `data.reason`). Wrappers in
   [`db/mutations/media.ts`](../../src/lib/db/mutations/media.ts); actions in `dashboard/[eventId]/actions.ts`.
+- ★ **The RPCs are the ONLY door** (QA #7/#10, `20260729180000`) — a direct PATCH that un-removes media or
+  un-deletes an event is refused by a BEFORE trigger, so every restore inherits the guards above rather
+  than the grant. → [database-security.md](database-security.md).
+- ★ **Restore returns an item to the status it HELD, not to `approved`** (QA #24). `media.status_before_removed`
+  is stamped on every removal path by the `media_derive_removal_provenance` trigger, and both the host RPC
+  and the operator restore land on it: a HIDDEN item comes back hidden, a PENDING item comes back pending.
+  Pre-Q3 rows carry no stamp → `approved`, the historical behavior. **And an operator takedown is not
+  host-reversible** (QA #8): `media.removed_by_admin` is set by both admin paths (`removalUpdate()`), and
+  `restore_media` refuses it with reason `admin_removed`, mapped to the same discreet copy as `legal_hold`.
 - **UI:** two host bins on one model — a dashboard **tab of soft-deleted EVENTS** (reused `EventCard` with
   `href=null` since a deleted event's detail page 404s + a "Deletes in N days" chip + a `RestoreEventButton`)
   and a per-event **section of removed MEDIA** (`RecentlyDeletedGrid`). RLS reads
