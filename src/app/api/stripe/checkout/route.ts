@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   }
 
   if (entitlement.held === "event_pass") {
-    const until = formatEntitlementExpiry(entitlement.expiresAt as string);
+    const until = formatEntitlementExpiry(entitlement.expiresAt);
     // The ONE sanctioned purchase for a live pass: renewing it. Provisioning extends from the
     // current expiry (see resolveEventPassCheckout), so this never costs the host their remaining
     // time. Everything else is refused.

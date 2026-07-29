@@ -20,11 +20,14 @@ import { toBillingTier } from "@/lib/constants/tiers";
 /** The live entitlement a host holds. "none" covers Free, lapsed, and never-paid alike. */
 export type HeldPlan = "none" | "pro" | "event_pass";
 
-export type Entitlement = {
-  held: HeldPlan;
-  /** ISO expiry of an ACTIVE Event Pass. null in every other state. */
-  expiresAt: string | null;
-};
+/**
+ * Discriminated on `held` so an Event Pass ALWAYS carries its expiry: the refusal copy quotes that
+ * date, and a union beats a `string | null` the caller has to assert away.
+ */
+export type Entitlement =
+  | { held: "none"; expiresAt: null }
+  | { held: "pro"; expiresAt: null }
+  | { held: "event_pass"; expiresAt: string };
 
 /** The only two `profiles` columns the ruling depends on. Both are webhook-written. */
 export type EntitlementProfile = {
@@ -52,9 +55,11 @@ export function resolveEntitlement(
     // midnight. Note the direction: every unreadable or missing value falls through to "none", so
     // bad data lets the customer BUY rather than locking them out of the product they want.
     const expiresAt = profile.tier_expires_at;
-    const expiresMs = expiresAt ? Date.parse(expiresAt) : Number.NaN;
-    if (Number.isFinite(expiresMs) && expiresMs > now.getTime()) {
-      return { held: "event_pass", expiresAt };
+    if (expiresAt) {
+      const expiresMs = Date.parse(expiresAt);
+      if (Number.isFinite(expiresMs) && expiresMs > now.getTime()) {
+        return { held: "event_pass", expiresAt };
+      }
     }
   }
 
