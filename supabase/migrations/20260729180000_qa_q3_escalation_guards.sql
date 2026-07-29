@@ -5,6 +5,17 @@
 -- verbatim; (3) get_advisors; (4) run the rolled-back contract check at the bottom; (5) regenerate
 -- src/lib/db/types.ts and drop the two pre-apply typing seams named in the app diff.
 --
+-- PRE-FLIGHT ALREADY DONE (2026-07-29, so step 2 is not the first time this SQL is parsed): this
+-- file was applied VERBATIM to a throwaway local PostgreSQL 17.10 cluster carrying a faithful
+-- stand-in for the schema it touches (the real column types/defaults, the Supabase roles, an
+-- auth.uid() stub, the live enforce_event_limit + set_media_purge_at + the media/events/profiles/
+-- guests grant state as of `20260708120000`). Result: clean apply, and the contract check at the
+-- bottom passed VERBATIM, plus probes for the bulk-collateral property (a 6-row "Approve all"
+-- carrying one HELD row moved the other 5 and left the held one untouched, no abort), the #40
+-- private/password/owner/open matrix, the #36 anon-vs-signed-in split, and the #23/#41 grants.
+-- That validates syntax, plpgsql/SQL body compilation, trigger firing order and the guard logic.
+-- It does NOT validate against live DRIFT, which is why step 1 stands.
+--
 -- EXPECTED ADVISOR DELTA: NONE. No new tables, no new RPCs, no grant that moves a function between
 -- lint 0028 (anon) and 0029 (authenticated). Specifically: get_event_by_qr_token + get_public_profile
 -- stay in 0028 (anon READ, by design); restore_media stays in 0029 (authenticated); the four trigger
@@ -610,5 +621,3 @@ grant execute on function public.get_event_by_qr_token(text) to anon, authentica
 --   group by p.id, p.tier
 --   having (p.tier = 'free' and count(*) > 1);
 -- ---------------------------------------------------------------------------------------------
-</content>
-</invoke>
