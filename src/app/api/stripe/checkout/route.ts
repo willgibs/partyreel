@@ -103,15 +103,22 @@ export async function POST(request: Request) {
 
   if (entitlement.held === "event_pass") {
     const until = formatEntitlementExpiry(entitlement.expiresAt);
-    // The ONE sanctioned purchase for a live pass: renewing it. Provisioning extends from the
-    // current expiry (see resolveEventPassCheckout), so this never costs the host their remaining
-    // time. Everything else is refused.
-    if (!(renewal && planId === "event_pass")) {
+    // ── Will's ruling (2026-07-29), refining ADR-0023 ruling 1 ──────────────────────────────
+    // The rule the ADR was written to enforce is "no move that COLLAPSES a cap", and the direction
+    // that does that is Pro -> Event Pass (2 TB down to 75 GB while Stripe keeps billing Pro).
+    // Pass -> Pro is the opposite: every Pro size (100 GB / 500 GB / 2 TB) is strictly larger than
+    // the pass's 75 GB, so the upgrade cannot collapse anything and the cap-collapse guarantee is
+    // untouched. Refusing it only made a motivated customer wait up to a YEAR or open a support
+    // ticket. So: a live pass may start Pro, and may renew itself; it still may not buy a SECOND
+    // pass (that stacks the same entitlement rather than upgrading it).
+    //
+    // The remaining pass term is not lost: provisioning keeps `tier_expires_at`, so if the Pro
+    // subscription later lapses the host falls back to a pass that is still inside its term
+    // (sweepExpiredPasses only clears it once the date actually passes).
+    if (planId === "event_pass" && !renewal) {
       return refuse(
         "already_entitled",
-        planId === "event_pass"
-          ? `Your Event Pass is active until ${until}. Use Renew Event Pass to add another year onto that date instead of buying a second one.`
-          : `Your Event Pass is active until ${until}. Partyreel runs one plan at a time, so Pro can start once the pass ends. Get in touch through the contact page if you need to switch sooner.`,
+        `Your Event Pass is active until ${until}. Use Renew Event Pass to add another year onto that date instead of buying a second one.`,
       );
     }
   } else if (renewal) {

@@ -33,6 +33,24 @@ from?" question always has one answer. Stacking models (cap = max, or cap = sum)
 and rejected: both require provisioning to resolve two live entitlements on every webhook, and both
 have genuinely ambiguous behavior at the lapse boundary (whose media survives when one plan ends?).
 
+**1a. Refinement (Will, 2026-07-29, at the Q2 integration): an active Event Pass MAY start Pro.**
+The rule this decision exists to enforce is "no move that COLLAPSES a cap", and only one direction
+does that: Pro to Event Pass (2 TB down to 75 GB while Stripe keeps billing Pro). Pass to Pro is
+the opposite move, since every Pro size (100 GB / 500 GB / 2 TB) exceeds the pass's 75 GB, so the
+cap-collapse guarantee is untouched. Refusing it bought no safety and cost the customer up to a
+year of waiting or a support ticket. A live pass therefore may start Pro and may renew itself, but
+still may not buy a SECOND pass (that stacks one entitlement rather than upgrading it). The
+remaining pass term is preserved in `tier_expires_at`, so a later Pro lapse falls back to a pass
+that is still inside its term.
+
+**1b. Plan switches route to the Stripe billing portal.** `/pricing` is statically generated and
+tier-blind, so a Pro host clicking a different Pro size reaches checkout and is refused there. The
+checkout button acts on that refusal code (`already_subscribed`) and opens the billing portal,
+which is where Stripe handles a size change with correct proration. Making the static page dynamic
+purely to relabel one button was rejected as the worse trade. **Launch-checklist consequence:** the
+Stripe Billing Portal configuration must permit switching between the three Pro prices, which is
+now load-bearing rather than cosmetic.
+
 **2. Locked events gate uploads too.** Uploading to a `password` or `private` event requires
 passing the same unlock as viewing; the upload capability is minted only to unlocked sessions.
 

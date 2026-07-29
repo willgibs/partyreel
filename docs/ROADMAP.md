@@ -205,6 +205,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
 - Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
   (code unchanged); checklist in [`PRICING.md`](PRICING.md).
+- Verify the Stripe Billing Portal permits switching between the three Pro prices `[human]` — now
+  LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
+  portal (checkout refuses the second subscription it used to create silently). If the portal's
+  product config does not allow the swap, a paying host has no self-serve way to resize.
 - Tune `MONTHLY_INGRESS_BYTES.pro` `[eng]` — currently `null`/unmetered; set before Pro launch.
 - Real `/privacy` page `[content]` — replace the stub; include the drafted Sentry session-replay
   disclosure line.
