@@ -738,6 +738,7 @@ export type Database = {
           storage_grace_until: string | null
           storage_used_bytes: number
           stripe_customer_id: string | null
+          stripe_event_created_at: string
           stripe_subscription_id: string | null
           tier: Database["public"]["Enums"]["tier_type"]
           tier_expires_at: string | null
@@ -759,6 +760,7 @@ export type Database = {
           storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
+          stripe_event_created_at?: string
           stripe_subscription_id?: string | null
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null
@@ -780,6 +782,7 @@ export type Database = {
           storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
+          stripe_event_created_at?: string
           stripe_subscription_id?: string | null
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null

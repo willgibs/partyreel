@@ -82,17 +82,10 @@ async function applyEntitlement(
 ): Promise<WriteResult> {
   const { data: updated, error } = await admin
     .from("profiles")
-    .update({
-      ...patch,
-      // The cast drops with the post-apply types regeneration (same convention as
-      // media.removed_by_system and the legal_hold_* columns before it).
-      ...({
-        stripe_event_created_at: createdAt,
-      } as unknown as TablesUpdate<"profiles">),
-    })
+    .update({ ...patch, stripe_event_created_at: createdAt })
     .eq(key.column, key.value)
-    // `.filter` (not `.lt`/`.lte`): the column is not in the generated types until the orchestrator
-    // regenerates post-apply.
+    // The cursor advances in the SAME statement as the entitlement, and the comparison IS the
+    // guard: an out-of-order or replayed delivery matches zero rows and writes nothing.
     .filter(
       "stripe_event_created_at",
       ordering === "absolute" ? "lte" : "lt",
