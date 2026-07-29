@@ -103,6 +103,15 @@ describe("media SELECT column-scoping (finding: hold columns host-readable)", ()
     expect(cols).not.toContain("legal_hold_reason");
   });
 
+  // QA #2 added media.removed_by_system, deliberately OUTSIDE the authenticated grant (a
+  // column-scoped grant does not extend to later columns, and the flag records OUR sweep's
+  // action, not the host's). Selecting an ungranted column ERRORS at runtime for the RLS client:
+  // that is exactly how the star-select broke the live host gallery on 2026-07-08. Pin it so a
+  // future "add the new column to the list" reflex has to grant it in SQL first.
+  it("keeps MEDIA_HOST_COLUMNS free of removed_by_system (ungranted by design)", () => {
+    expect(tsSelectColumns()).not.toContain("removed_by_system");
+  });
+
   it("keeps the DB grant and MEDIA_HOST_COLUMNS identical (change one -> change both)", () => {
     expect([...tsSelectColumns()].sort()).toEqual(
       [...migrationGrantColumns()].sort(),

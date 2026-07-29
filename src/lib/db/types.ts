@@ -488,6 +488,7 @@ export type Database = {
           purge_at: string | null
           reel_eligible: boolean
           removed_at: string | null
+          removed_by_system: boolean
           removed_by_uploader: boolean
           status: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
@@ -512,6 +513,7 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
           type: Database["public"]["Enums"]["media_type"]
@@ -536,6 +538,7 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
           type?: Database["public"]["Enums"]["media_type"]

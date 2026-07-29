@@ -37,7 +37,12 @@ import type { MediaKind } from "@/lib/media/limits";
 import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { mediaObjectKey } from "@/lib/r2/keys";
+import {
+  isValidMediaKey,
+  mediaObjectKey,
+  parseEventIdFromKey,
+  parseMediaIdFromKey,
+} from "@/lib/r2/keys";
 import {
   abortMultipartUpload,
   completeMultipartUpload,
@@ -281,6 +286,41 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
     });
   }
   const { media_id, key, content_type, upload_id, parts } = parsed.data;
+
+  // ★ KEY BINDING (QA Pattern A, defense-in-depth). The server BUILT both keys at presign as
+  // events/<eventId>/<kind>/<mediaId>/<variant>.<ext>, but the client hands them back here, so a
+  // caller can substitute either one. The RPCs hold the authoritative event-ownership check; this
+  // is the edge twin, and it adds a binding the SQL cannot express: both keys must name THIS
+  // media_id and the SAME event. Without it a caller could complete one upload while registering a
+  // preview_key belonging to a different upload of their own (a self-inflicted 404, but also the
+  // shape that made the cross-event plant possible in the first place). Refuse, don't repair.
+  const keyEventId = parseEventIdFromKey(key);
+  if (!keyEventId || parseMediaIdFromKey(key) !== media_id) {
+    captureWarning("upload", "complete_key_mismatch", { key, media_id });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
+    });
+  }
+  const previewKey = parsed.data.preview_key;
+  if (
+    previewKey &&
+    (!isValidMediaKey(previewKey, keyEventId) ||
+      parseMediaIdFromKey(previewKey) !== media_id)
+  ) {
+    captureWarning("upload", "complete_preview_key_mismatch", {
+      key,
+      previewKey,
+      media_id,
+    });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That preview key doesn't match this upload.",
+    });
+  }
+
   // size_bytes is still accepted by the schemas (the presign step uses it) but is
   // NOT trusted here — the authoritative size comes from R2 below.
 

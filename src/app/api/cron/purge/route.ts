@@ -233,7 +233,11 @@ async function sweepExpiredEvents(
   // that shrinks the host's usable cap forever). A >1000-photo wedding album is an ordinary event.
   const rows: MediaRow[] = [];
   const PAGE = 1000;
-  for (let from = 0; ; from += PAGE) {
+  // Advance by what the server ACTUALLY returned and stop only on an empty page. Never compare
+  // against the requested PAGE size: PostgREST silently clamps to its own max_rows, so a cap lower
+  // than PAGE would make a "short" first page look like the last one and re-open the very orphan
+  // bug this loop closes. An empty page is the only unambiguous end-of-list signal.
+  for (let from = 0; ; ) {
     const { data: page, error: mErr } = await admin
       .from("media")
       .select("id, original_key, preview_key")
@@ -242,8 +246,9 @@ async function sweepExpiredEvents(
       .range(from, from + PAGE - 1);
     if (mErr) throw new Error(`select media: ${mErr.message}`);
     const batch = (page ?? []) as MediaRow[];
+    if (batch.length === 0) break;
     rows.push(...batch);
-    if (batch.length < PAGE) break;
+    from += batch.length;
   }
   const mediaIds = rows.map((r) => r.id);
   // Also delete each event's rendered highlight-reel .mp4. It's a DERIVED artifact with no media
@@ -580,9 +585,8 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
             removed_at: now.toISOString(),
             // QA #2: mark these as SYSTEM-binned so sweepStandbyBudget (same invocation, seconds
             // later) excludes them. Without it the standby sweep hard-deletes the media this sweep
-            // just promised the host was recoverable for 30 days. The cast drops with the
-            // post-apply types regeneration (same as the legal_hold_at columns before it).
-            ...({ removed_by_system: true } as Record<string, boolean>),
+            // just promised the host was recoverable for 30 days.
+            removed_by_system: true,
           })
           .in("id", ids);
         if (rmErr) throw new Error(`auto-reduce remove: ${rmErr.message}`);
@@ -875,9 +879,7 @@ async function sweepStandbyBudget(
       .select(BIN_SELECT)
       .eq("events.host_id", p.id)
       .eq("status", "removed")
-      // `.filter` (not `.eq`): removed_by_system isn't in the generated types until the
-      // orchestrator regenerates post-apply — same convention as legal_hold_at above.
-      .filter("removed_by_system", "is", false)
+      .eq("removed_by_system", false)
       .filter("legal_hold_at", "is", null);
     if (rErr) throw new Error(`standby removed bin: ${rErr.message}`);
     const { data: deletedRows, error: dErr } = await admin
