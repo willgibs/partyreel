@@ -8,6 +8,7 @@ import {
   parseMediaIdFromKey,
   preservedForensicsKey,
   preservedOriginalKey,
+  reelOutputKey,
 } from "@/lib/r2/keys";
 
 describe("mediaObjectKey", () => {
@@ -109,6 +110,51 @@ describe("preservation keys (ADR-0020)", () => {
         preservedForensicsKey({ eventId: EVENT_ID, mediaId: MEDIA_ID }),
       ),
     ).toBeNull();
+  });
+});
+
+/**
+ * ADR-0023 ruling 3: rendered reel .mp4 bytes are DELIBERATELY exempt from the host's storage
+ * meter, and that exemption is only safe because the artifact count is bounded at ONE PER EVENT.
+ * The bound is structural (a stable key, so a re-render overwrites in place) rather than metered,
+ * so nothing else would notice if the key ever gained a hash, timestamp, or version segment: the
+ * old objects would simply accumulate, uncharged and unswept, for as long as a host kept
+ * re-rendering. This is the pin the ADR promises. If per-event reels ever become plural, the ADR
+ * must be revisited BEFORE this test is changed.
+ */
+describe("reelOutputKey (ADR-0023: one artifact per event, unmetered)", () => {
+  const EVENT_A = "11111111-2222-3333-4444-555555555555";
+  const EVENT_B = "99999999-8888-7777-6666-555555555555";
+
+  it("is the exact stable shape, with no render-varying segment", () => {
+    expect(reelOutputKey(EVENT_A)).toBe(`events/${EVENT_A}/reel/reel.mp4`);
+  });
+
+  it("collapses any number of re-renders onto ONE key (overwrite, never accumulate)", () => {
+    const renders = Array.from({ length: 50 }, () => reelOutputKey(EVENT_A));
+    expect(new Set(renders).size).toBe(1);
+  });
+
+  it("depends on nothing but the event id (no clock, no randomness, no config)", () => {
+    // A key built from Date.now()/a config hash/a render id would differ across these calls.
+    const first = reelOutputKey(EVENT_A);
+    const second = reelOutputKey(EVENT_A);
+    expect(second).toBe(first);
+    // Substituting the event id back out must leave a FIXED template: nothing else can vary.
+    expect(first.replace(EVENT_A, "{eventId}")).toBe(
+      "events/{eventId}/reel/reel.mp4",
+    );
+  });
+
+  it("still namespaces per event (one artifact each, never a shared one)", () => {
+    expect(reelOutputKey(EVENT_B)).not.toBe(reelOutputKey(EVENT_A));
+    expect(reelOutputKey(EVENT_A).startsWith(`events/${EVENT_A}/`)).toBe(true);
+  });
+
+  it("stays non-media-shaped so the orphan sweep leaves it alone", () => {
+    // parseMediaIdFromKey null = "not ours, never delete"; event-deletion appends this key
+    // explicitly instead (see cron/purge sweepExpiredEvents).
+    expect(parseMediaIdFromKey(reelOutputKey(EVENT_A))).toBeNull();
   });
 });
 
