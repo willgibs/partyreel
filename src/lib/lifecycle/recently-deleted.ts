@@ -38,15 +38,34 @@ export const RECOVERY_PURGE_NUDGE_DAYS = 7;
  * cycling. Mirror of selectForAutoReduce, but oldest-first instead of largest-first. `binned_at`
  * is an ISO timestamp (sorts lexicographically == chronologically).
  */
+/**
+ * Freshly-binned rows are NEVER eligible for standby eviction (QA #2 belt-and-braces). The
+ * over-cap sweep and the standby sweep run in the SAME cron invocation; without this, a set the
+ * over-cap sweep just soft-removed (all sharing an identical `binned_at`) could exceed the budget
+ * on its own and the standby sweep would hard-delete it seconds after the "recoverable for 30
+ * days" email. The primary guard is removed_by_system (system-binned rows are excluded from the
+ * standby query entirely); this age gate additionally protects host-initiated deletes and any
+ * future auto-bin path. 24h ≫ one cron run, ≪ the 30-day window.
+ */
+export const STANDBY_MIN_BIN_AGE_MS = 24 * 60 * 60 * 1000;
+
 export function selectForStandbyEviction(
   binItems: { id: string; file_size_bytes: number; binned_at: string }[],
   budgetBytes: number,
+  nowMs: number,
 ): string[] {
   let total = binItems.reduce((sum, m) => sum + m.file_size_bytes, 0);
   if (total <= budgetBytes) return [];
 
+  // Only rows binned at least STANDBY_MIN_BIN_AGE_MS ago can be evicted; fresh rows keep counting
+  // toward `total` (so the budget math is honest) but are never selected. A bin that is over
+  // budget purely because of fresh rows evicts nothing this run and self-resolves once they age.
+  const evictable = binItems.filter(
+    (m) => nowMs - new Date(m.binned_at).getTime() >= STANDBY_MIN_BIN_AGE_MS,
+  );
+
   const evict: string[] = [];
-  for (const m of [...binItems].sort((a, b) =>
+  for (const m of [...evictable].sort((a, b) =>
     a.binned_at < b.binned_at ? -1 : a.binned_at > b.binned_at ? 1 : 0,
   )) {
     if (total <= budgetBytes) break;

@@ -15,18 +15,23 @@ const B = (id: string, bytes: number, binned_at: string) => ({
   binned_at,
 });
 
+/** Well after every fixture's binned_at, so the 24h age gate is satisfied by default. */
+const NOW = Date.parse("2026-02-01T00:00:00Z");
+
 describe("selectForStandbyEviction", () => {
   it("evicts nothing when standby is under (or at) the budget", () => {
     expect(
       selectForStandbyEviction(
         [B("a", 5, "2026-01-01T00:00:00Z"), B("b", 3, "2026-01-02T00:00:00Z")],
         10,
+        NOW,
       ),
     ).toEqual([]);
     expect(
       selectForStandbyEviction(
         [B("a", 6, "2026-01-01T00:00:00Z"), B("b", 4, "2026-01-02T00:00:00Z")],
         10,
+        NOW,
       ),
     ).toEqual([]);
   });
@@ -41,6 +46,7 @@ describe("selectForStandbyEviction", () => {
           B("mid", 5, "2026-01-02T00:00:00Z"),
         ],
         10,
+        NOW,
       ),
     ).toEqual(["old", "mid"]);
   });
@@ -55,6 +61,7 @@ describe("selectForStandbyEviction", () => {
           B("mid", 5, "2026-01-02T00:00:00Z"),
         ],
         12,
+        NOW,
       ),
     ).toEqual(["old"]);
   });
@@ -64,12 +71,49 @@ describe("selectForStandbyEviction", () => {
       selectForStandbyEviction(
         [B("a", 3, "2026-01-02T00:00:00Z"), B("b", 5, "2026-01-01T00:00:00Z")],
         0,
+        NOW,
       ).sort(),
     ).toEqual(["a", "b"]);
   });
 
   it("handles no bin items", () => {
-    expect(selectForStandbyEviction([], 10)).toEqual([]);
+    expect(selectForStandbyEviction([], 10, NOW)).toEqual([]);
+  });
+
+  // ★ QA #2 (the review's second critical, as a regression pin). The over-cap sweep soft-removes a
+  // whole album in ONE write, so every row shares an identical binned_at and the set alone dwarfs
+  // the budget — the exact shape that had the standby sweep hard-deleting media seconds after the
+  // "recoverable for 30 days" email. Nothing binned inside 24h may be evicted, no matter the size.
+  it("never evicts freshly-binned rows, even when they alone blow the budget", () => {
+    const justNow = new Date(NOW - 60_000).toISOString(); // 1 minute ago
+    expect(
+      selectForStandbyEviction(
+        [
+          B("a", 40_000, justNow),
+          B("b", 40_000, justNow),
+          B("c", 40_000, justNow),
+        ],
+        10_000,
+        NOW,
+      ),
+    ).toEqual([]);
+  });
+
+  it("evicts the aged rows only, leaving a fresh bin intact", () => {
+    const justNow = new Date(NOW - 60_000).toISOString();
+    // total 30 ≫ budget 5. 'aged' is evictable; the fresh pair is not, so eviction stops there
+    // even though the bin is still over budget (it resolves once they age past 24h).
+    expect(
+      selectForStandbyEviction(
+        [
+          B("fresh1", 10, justNow),
+          B("aged", 10, "2026-01-01T00:00:00Z"),
+          B("fresh2", 10, justNow),
+        ],
+        5,
+        NOW,
+      ),
+    ).toEqual(["aged"]);
   });
 
   it("constant mirrors the SQL interval in the media purge_at trigger", () => {

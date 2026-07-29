@@ -30,6 +30,19 @@ export function mediaObjectKey(params: {
 }
 
 /**
+ * Does an R2 media key belong to `eventId`'s namespace? The single validator for the QA-review
+ * Pattern A: any client-supplied key stored on the media path (original_key, preview_key) MUST be
+ * bound to the event, or a host can register a victim's key and destroy the victim's object on
+ * permanent-delete (both purge paths enumerate these keys into deleteR2Objects). The authoritative
+ * gate is the SQL prefix check inside create_media(_as_host) (a client can't reach PostgREST); this
+ * TS twin is defense-in-depth at the server complete seam and gives an early, typed refusal.
+ * Mirrors the SQL `like 'events/' || event_id || '/%'` exactly (prefix + a following segment).
+ */
+export function isValidMediaKey(key: string, eventId: string): boolean {
+  return key.startsWith(`events/${eventId}/`);
+}
+
+/**
  * The R2 key for an event's rendered highlight-reel .mp4 (Slice 3). A DERIVED artifact, NOT media:
  * one STABLE key per event (a re-render overwrites in place — no accumulation; highlight_reels.
  * rendered_hash tracks whether the bytes are current).

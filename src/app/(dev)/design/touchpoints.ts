@@ -373,6 +373,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "host",
     note: "Three directions for the reel as a product moment: the event-page section, creation with 14-style identity, the publish moment, and the guest arrival",
     variants: ["Marquee in the feed", "The Studio", "The Premiere"],
+    decision: 1,
+    decisionNote:
+      "V1 Marquee (ADR-0023): richer + feed-native, a clear create action for the host, and the most beautiful guest arrival. Composite: V1 IS the feed section (poster card, labeled control rows, engine-thumb style rail); deeper editing GRADUATES to a Reel Studio destination (V2's room, entered from the card, never forced inline); the reel is still BORN by an explicit Create act, which is what the ratified reveal triggers on. Re-opened for the production build: the quick-add signal (most-liked is unreliable when likes are sparse, so blend likes + recency + per-guest coverage + media mix behind an honest label, never random)",
   },
 ];
 
