@@ -10,6 +10,72 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-29 — milestone-1.5: the QA hardening rounds (Q1-Q4 + the write spine)
+
+**A ~590-agent adversarial QA round (Will, Opus 5, read-only against `launch-prep`) produced a
+48-finding fix queue; this milestone closes everything that could destroy customer media, mis-bill a
+host, or let a caller escalate past a guard.** 66 commits, 5 migrations, 950 → 973 tests, merged to
+`main` as `8163e45` + tag `milestone-1.5`. Four product questions went to Will and are recorded as
+[ADR-0023](adr/0023-qa-round-product-rulings.md).
+
+- **Q1 (`c0f6bd6` + apply `c03fe4b`) — stop destroying media.** `create_media`/`_as_host` stored the
+  client-supplied `p_preview_key` VERBATIM while prefix-checking `p_original_key`, so any free account
+  could register a victim's key and permanently delete the victim's R2 object from their own Trash
+  (both purge paths enumerate `preview_key` into `deleteR2Objects`); now bound to the event like
+  `original_key`. And the nightly cron's sweep 5 soft-removed over-cap media, emailed "recoverable for
+  30 days", then sweep 8 in the SAME invocation hard-deleted it: a service-role-only `removed_by_system`
+  flag plus a 24h floor stop the standby bin re-collecting same-run removals. Prod audit: zero planted
+  keys. An Opus-5 audit of the work caught three real gaps (a dead validator, pagination compared
+  against the REQUESTED page size, and a `MediaRow` claiming an ungranted column).
+- **Q2 (`58658ad` + apply `1800f90` + `73a7291`) — the money set.** One plan at a time; an active Event
+  Pass MAY start Pro (Will's 1a: only Pro→Pass collapses a cap) and plan switches route to the Stripe
+  portal where proration is correct (1b). Provisioning `.select()`s and asserts exactly one row, so a
+  paid-but-unprovisioned host 5xxs into a Stripe retry instead of returning 200 with nothing granted.
+  `stripe_event_created_at` (epoch sentinel) gives the ordering guard one comparison; a partial unique
+  index on `stripe_customer_id` closes the duplicate-customer path.
+- **Q3 (`014cd6b`/`780b...` + apply `08df59a`) — escalation guards.** The QA proposed revoking
+  `media(status, removed_at)`, which would have broken six legitimate moderation paths. Instead:
+  BEFORE-UPDATE **transition triggers**, which work because inside a SECURITY DEFINER function
+  `current_user` is `postgres` while a direct PostgREST write is `authenticated` (verified empirically on
+  live) — so the trigger refuses exactly the dangerous client transitions and every RPC path survives.
+  Plus removal provenance (a host can no longer silently reverse an operator takedown), an un-delete
+  event-limit trigger, and the #36/#40 disclosure redactions. The hold branch SKIPS rather than raises,
+  to avoid a bulk-statement abort becoming a legal-hold oracle.
+- **Q4 (`841bf94`/`f009575`/`32d5416`/`dc1f15e`) — the guest path works all night.** Pattern B was the
+  widest class: PostgREST resolves with `{ error }`, so `const { data } = await …` reads a BROKEN query
+  as an EMPTY one. `mustQuery`/`mustCount` + an inline `partyreel/no-swallowed-db-error` ESLint rule
+  (which caught 14 real violations on first run) retire it; the reads that were acting on a lie included
+  the guest export summarising a 40 GB album as "0 files" and the cron's inactivity check, where a failed
+  "newest upload" read was indistinguishable from "never had an upload" (it could age out a live album).
+- **The write spine (`b3b6f30`, migration `20260729190000`) — the review's "single clearest structural
+  finding".** The read path re-ran its gate on every surface; the write path never got the same pass.
+  Now all three guest write seams (mint, presign, complete) re-check the event's lock through one
+  `mayUploadPastLock` helper: `private` refuses every guest write, `password` accepts the signed unlock
+  cookie **or** verified ownership. Both halves matter — gating only the mint would let a token minted
+  before the lock upload forever (exactly the remediation for a leaked link), and a bare `isUnlocked()`
+  would break the OWNER, who reads their own album without ever seeing the password modal. #6 pins the
+  complete seam's `<variant>`/`<kind>`/`<ext>` to what presign minted, which transitively pins
+  complete-time `content_type` to presign-time with zero stored state (the QA's proposed presign-issuance
+  table is unnecessary: the key IS the issuance record). #17 gives every capacity decision a per-host
+  `profiles` row lock (Pattern D), one lock in one order so no deadlock is constructible.
+
+**Verification.** Every migration was diffed against live `pg_get_functiondef` BEFORE applying, and for
+the write spine all 8 live `prosrc` bodies were hash-compared to the repo file AFTER applying (an
+800-line hand-passed payload is verified, not assumed). Advisors came back unchanged at every step, the
+load-bearing result being that `get_upload_context` kept its anon grant (it gained a `visibility` key;
+service-role-ing it would have broken every guest presign) while `create_media`/`_as_host`/`create_guest`
+stayed in NEITHER advisor list despite the MCP's default anon EXECUTE grant. Rolled-back contract checks
+rode EXISTING rows (creating an event trips `enforce_event_limit`). Live on the alias, the QA's own
+attacks were re-run: locked-event mint + presign refused 403 `unlock_required`; a pre-lock presigned URL
+with bytes already in R2 refused at COMPLETION; variant-swap, kind-swap, ext-drift and cross-event keys
+all refused; unlock → mint → presign still works; the owner still uploads to their own locked event; an
+open event unaffected. Prod test state restored afterward (guests 6, media 24, event back to `open`).
+
+**Not verified live, carried forward:** QA #11 (the >90-minute presign-roll soak) and #12 (upload retry
+on a dropped request). Both are Q4 code and both need a foregrounded real-album session; staging the
+soak surfaced two traps that make a WORKING album read as broken (a hidden tab never polls by design;
+the demo event skips polling entirely) — recorded in [`systems/testing-verification.md`](systems/testing-verification.md) (`ee6ed5d`).
+
 ## 2026-07-21 — Videos in reels: posters everywhere (R3 slice A) + two found-live bugs
 
 **Video items now draw their client-generated poster frames in every reel style, live player and

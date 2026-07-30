@@ -151,6 +151,27 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   construction (not a runtime viewer flag), guarded by a standing source test (`grid-items.email-safety.test.ts`).
   Live-verified: the anonymous SSR + `/api/guests/gallery` payloads carry no email field (item keys are
   `id, type, url, downloadUrl, uploaderName, isHost, isAnonymous`).
+- ★ **A locked event gates UPLOADS, not just viewing (ADR-0023 ruling 2).** The write path re-checks the
+  event's lock at ALL THREE guest seams (the `/api/guests` mint, presign, complete) via the shared
+  `mayUploadPastLock(eventId)` (`src/lib/events/upload-lock.ts`): `private` refuses every guest write
+  (owner uploads ride the HOST routes), `password` requires the signed HttpOnly unlock cookie **or**
+  verified event ownership. The owner exemption is load-bearing, not a convenience: the owner reads their
+  own album without ever seeing the password modal, so a bare `isUnlocked()` check breaks the host
+  uploading to their own locked event. Gating only the MINT is not enough either — a token minted while
+  the event was open would keep uploading forever, which is precisely the remediation a host reaches for
+  when a link leaks; the per-request presign/complete checks are what kill it. The lock is checked BEFORE
+  `accepting_uploads` on purpose (someone who cannot see the album learns nothing else about it), and
+  `create_guest` re-refuses both cases from its own `p_unlock_proven` param (the DB cannot read cookies,
+  so the server derives the proof) as a belt against a future second caller.
+- ★ **The complete seam pins the key to what presign minted — the key IS the issuance record.** Presign
+  builds `events/<eventId>/<kind>/<mediaId>/<variant>.<ext>` server-side from THAT request's
+  `content_type`, so requiring the completion's echoed `content_type` to re-derive the same `<kind>` and
+  `<ext>`, plus `<variant>` = `original` (and the preview key's = `preview`), transitively pins
+  complete-time `content_type` to presign-time `content_type` with **zero stored state** — no presign
+  issuance table is needed (`checkCompleteKeyConsistency`, `src/lib/upload/complete-key-check.ts`).
+  Without the variant pin, completing with the ~2 MB preview as `key` meters the preview as
+  `file_size_bytes` while the up-to-10 GB original sits uncounted; without the kind pin, video bytes
+  complete as a `photo` row and dodge the free-tier photos-only gate. Refuse, never repair.
 - **`create_media*` is the ONLY write path into `media`.** A host CANNOT RLS-insert directly even though
   `media_host_all` would allow the row — that bypasses the ledger + `storage_used_bytes` accounting + the
   cap check (unmetered free storage). The RPC keeps the accounting honest.

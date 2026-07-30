@@ -132,6 +132,20 @@ The expected, accepted set:
   `enforce_event_pro_gates` trigger that gated `allow_anonymous_uploads` was DROPPED in S5 — require-accounts
   is now FREE for any tier + default-on; password + custom_slug stay Pro-gated via their own
   `set_event_password`/`set_event_slug` RPCs, not a table trigger.)
+- ★ **Every capacity decision takes the host's `profiles` row `for update` FIRST (Pattern D).** The cap /
+  ingress / event-slot checks are all check-then-act, so without serialization two concurrent uploads
+  (or restores, or event creates) for one host each read N-1 and both admit. The `profiles` row is the
+  per-host mutex — exactly one per host, always present, whereas the aggregates themselves
+  (`host_active_bytes`, the event `count(*)`) cannot be row-locked. Carried by `create_media`,
+  `create_media_as_host`, `restore_media`, `restore_event` and the `enforce_event_limit` trigger
+  (migration 20260729190000). **Lock-ordering rule: each takes exactly ONE profiles lock, the host's,
+  as its first lock** — single lock, single order, no deadlock is constructible. `restore_event`'s
+  un-delete re-fires `enforce_event_limit`, which re-locks the SAME row in the SAME transaction (a
+  same-txn re-lock is a no-op). Never lock a second host's row inside these bodies.
+- **The guest WRITE path inherits the READ gate** (ADR-0023 ruling 2): `create_guest` refuses a `private`
+  event outright and requires `p_unlock_proven` for `password`, and `get_upload_context` returns
+  `visibility` so presign/complete re-check per request. `get_upload_context` therefore stays one of the
+  FOUR anon 0028 RPCs — service-role-ing it would break every guest presign. → [uploads-and-r2.md](uploads-and-r2.md).
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side (ADR-0003). → [uploads-and-r2.md](uploads-and-r2.md).
 - **The Stripe webhook is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
 - **The service-role / secret key is server-only** (behind `import "server-only"`); never `NEXT_PUBLIC_`.

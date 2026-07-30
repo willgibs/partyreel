@@ -11,9 +11,11 @@ timing-safe-comparing `Authorization` against `Bearer ${CRON_SECRET}` (Vercel Cr
 bearer; `vercel.json` registers the schedule — you don't wire the header). `CRON_SECRET` is `.optional()`
 in [`env.ts`](../../src/lib/env.ts); `assertCronEnv()` asserts it lazily at request time.
 
-**9 sweeps, each independently try/caught:** `expired_events`, `removed_media`, `orphans`,
+**10 sweeps, each independently try/caught:** `expired_events`, `removed_media`, `orphans`,
 `expired_passes`, `over_capacity`, `renewal_nudges`, `inactive_free_events`, `standby_budget`,
-`unlock_attempts`. (The `orphans` sweep is guarded by the circuit-breaker → [durability-backups.md](durability-backups.md).)
+`unlock_attempts`, `action_attempts`. (The `orphans` sweep is guarded by the circuit-breaker → [durability-backups.md](durability-backups.md).)
+Isolation is per-SWEEP, not per-row: inside each sweep's per-account loop a single throw (a bad row, a
+failed email) still aborts the rest of that sweep's accounts — QA #27, queued for the jobs round.
 
 `purge_media_rows` does the atomic R2-then-row reclaim + the `storage_used_bytes` decrement — it is
 **service-role-only** and must stay REVOKED from anon/authenticated (never in the advisor lists). R2 bulk

@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-07-08
+**Updated:** 2026-07-29
 
 ## THE ELEVATION PROGRAM (the active thread, 2026-07-02)
 
@@ -19,6 +19,20 @@ before picking up any program work. Headlines a fresh agent must know:
 - **Live red-team target between milestones** = `https://partyreel-git-launch-prep-willgibs.vercel.app`
   (branch-scoped env + R2 CORS + Stripe TEST preview webhook wired; Supabase redirect allow-list is
   Will's dashboard step).
+- **MILESTONE-1.5 MERGED to main 2026-07-29 (`8163e45`, tag `milestone-1.5`): the QA hardening rounds.**
+  Will ran a ~590-agent adversarial QA round (fix queue: `~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`,
+  48 findings + 6 systemic patterns A-F). Q1 closed the two criticals that DESTROY customer media (the
+  unbound `preview_key` + the standby sweep hard-deleting media the same cron run promised for 30 days);
+  Q2 the money set (one plan at a time per [ADR-0023](adr/0023-qa-round-product-rulings.md) + Will's
+  1a/1b refinements, provisioning asserts one row, recency guard); Q3 escalation guards (transition
+  TRIGGERS rather than revokes, so no legitimate moderation path breaks) + the disclosure redactions;
+  Q4 the guest path (`mustQuery`/`mustCount` + an ESLint rule retire Pattern B, the swallowed
+  `{ error }` that read as an empty result); and the WRITE SPINE (#18 locked events gate uploads at all
+  three seams, #6 the complete seam pins variant/kind/ext to what presign minted, #17 per-host
+  `for update` cap locks). 5 migrations applied, advisors unchanged throughout, 950 → 973 tests.
+  Live-verified by re-running the QA's own attacks. **STILL UNVERIFIED LIVE: QA #11 (the >90-min
+  presign-roll album soak) + #12 (upload retry on a dropped request)** — both are Q4 code, both need a
+  foregrounded real-album session (see the soak traps in [`systems/testing-verification.md`](systems/testing-verification.md)).
 - **Rounds**: R0 bootstrap + EXIF strip ✅ (milestone-0 `f99d9cc`) → R1 Decision Studio ✅ + R2 Reel
   Engine + Foundation ✅ **(milestone-1 merged 2026-07-08: the full 14-style canvas engine, the composer
   swap + $0 client-encoded export, the ADR-0021 pricing slice, the ADR-0020 forensic capture track →
