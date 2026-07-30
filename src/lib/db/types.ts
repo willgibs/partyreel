@@ -1227,7 +1227,11 @@ export type Database = {
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
-        Args: { p_qr_token: string; p_user_id?: string }
+        Args: {
+          p_qr_token: string
+          p_unlock_proven?: boolean
+          p_user_id?: string
+        }
         Returns: Json
       }
       create_media: {

@@ -40,13 +40,6 @@ export type CreateGuestResult =
       message: string;
     };
 
-// PRE-APPLY CAST: create_guest gains p_unlock_proven with migration 20260729190000; the generated
-// Args type lags until the orchestrator applies + regenerates types. The intersection keeps the
-// two real args checked and only widens by the pending one. Drop after the regen.
-type CreateGuestArgs = Database["public"]["Functions"]["create_guest"]["Args"] & {
-  p_unlock_proven: boolean;
-};
-
 export async function createGuest(input: {
   qrToken: string;
   userId: string | null;
@@ -61,12 +54,11 @@ export async function createGuest(input: {
   // /api/guests route passes the getUser()-verified user id as the trusted p_user_id (null for an anonymous
   // guest); the RPC still reads the verified EMAIL from auth.users for that id (never the client).
   const supabase = createAdminClient();
-  const args: CreateGuestArgs = {
+  const { data, error } = await supabase.rpc("create_guest", {
     p_qr_token: input.qrToken,
     p_user_id: input.userId ?? undefined,
     p_unlock_proven: input.unlockProven,
-  };
-  const { data, error } = await supabase.rpc("create_guest", args);
+  });
 
   if (error) {
     if (error.code === NO_DATA_FOUND) {
