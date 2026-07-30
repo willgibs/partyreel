@@ -61,19 +61,38 @@ export type ReelConfig = {
   seed: number;
   lengthSeconds: number | null;
   coverMediaId: string | null;
+  /** ADR-0022 ruling 1: the publish switch. False until the host's explicit "Share with guests". */
+  guestVisible: boolean;
+};
+
+// TODO(drop after types regen): guest_visible lands with the 20260730120000 migration; until the
+// regen the generated types don't know the column, so the select-string parser would brand the whole
+// row as a SelectQueryError. This local row type overrides the parsed result; after the regen, delete
+// it and the `as` below (natural inference takes over).
+type ReelConfigRowPendingRegen = {
+  style_id: string;
+  theme: string;
+  orientation: string;
+  seed: number;
+  length_seconds: number | null;
+  cover_media_id: string | null;
+  guest_visible: boolean;
 };
 
 export async function getReelConfig(
   eventId: string,
 ): Promise<ReelConfig | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data, error } = (await supabase
     .from("highlight_reels")
     .select(
-      "style_id, theme, orientation, seed, length_seconds, cover_media_id",
+      "style_id, theme, orientation, seed, length_seconds, cover_media_id, guest_visible",
     )
     .eq("event_id", eventId)
-    .maybeSingle();
+    .maybeSingle()) as {
+    data: ReelConfigRowPendingRegen | null;
+    error: { message: string } | null;
+  };
   if (error || !data) return null;
   return {
     styleId: data.style_id,
@@ -82,5 +101,6 @@ export async function getReelConfig(
     seed: data.seed,
     lengthSeconds: data.length_seconds,
     coverMediaId: data.cover_media_id,
+    guestVisible: data.guest_visible ?? false,
   };
 }

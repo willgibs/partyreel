@@ -17,6 +17,7 @@ import {
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { captureError } from "@/lib/observability/sentry";
+import { createClient } from "@/lib/supabase/server";
 
 // Allowlist the host-settable statuses HERE, at the action boundary — the
 // client calls these with a raw string and we never trust it. 'removed' is not
@@ -190,4 +191,88 @@ export async function purgeMediaNowAction(
 
   revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
+}
+
+/**
+ * The reel publish switch (R3, ADR-0022 ruling 1) — the ONE seam the share card, the reveal's
+ * settled "Share with guests", and the Studio header all call. The RPC authorizes internally
+ * (auth.uid() + host-owns-event) on the USER client — defense in depth over RLS, same as the other
+ * reel writes. NO notification here by ruling (2026-07-30): reel-published emails are R5's round;
+ * when R5 lands, its fan-out hooks into THIS action (the single publish seam), nothing else.
+ */
+export type ReelPublishResult =
+  | { ok: true; guestVisible: boolean }
+  | {
+      ok: false;
+      reason: "unauthorized" | "not_found" | "empty" | "error";
+      message: string;
+    };
+
+const PUBLISH_MESSAGES: Record<string, string> = {
+  // 'empty' is the only reason a host can act on; the others are retry/defensive copy.
+  unauthorized: "Please sign in again.",
+  not_found: "We couldn't find this event.",
+  empty: "Add some photos to your reel first.",
+};
+
+export async function setReelGuestVisibleAction(
+  eventId: string,
+  visible: boolean,
+): Promise<ReelPublishResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      ok: false,
+      reason: "unauthorized",
+      message: PUBLISH_MESSAGES.unauthorized,
+    };
+  }
+
+  // TODO(drop after types regen): the RPC name isn't in the generated types until the
+  // 20260730120000 migration applies; the cast mirrors its (uuid, boolean) -> jsonb signature.
+  const rpc = supabase.rpc.bind(supabase) as unknown as (
+    fn: "set_reel_guest_visible",
+    args: { p_event_id: string; p_visible: boolean },
+  ) => PromiseLike<{
+    data: { ok: boolean; reason?: string; guest_visible?: boolean } | null;
+    error: { message: string } | null;
+  }>;
+  const { data, error } = await rpc("set_reel_guest_visible", {
+    p_event_id: eventId,
+    p_visible: visible,
+  });
+
+  if (error || !data) {
+    captureError("reel", new Error(error?.message ?? "no data"), {
+      action: "set_reel_guest_visible",
+      eventId,
+    });
+    return {
+      ok: false,
+      reason: "error",
+      message: "Couldn't update sharing. Please try again.",
+    };
+  }
+  if (!data.ok) {
+    const reason =
+      data.reason === "unauthorized" ||
+      data.reason === "not_found" ||
+      data.reason === "empty"
+        ? data.reason
+        : ("error" as const);
+    return {
+      ok: false,
+      reason,
+      message:
+        PUBLISH_MESSAGES[reason] ?? "Couldn't update sharing. Please try again.",
+    };
+  }
+
+  // The guest page renders from live reads (nothing cached to bust there); the HOST page re-reads
+  // getReelConfig for the card's Draft/Shared state.
+  revalidatePath(`/dashboard/${eventId}`);
+  return { ok: true, guestVisible: data.guest_visible ?? visible };
 }
