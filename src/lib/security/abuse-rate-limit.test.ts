@@ -67,6 +67,30 @@ describe("abuseRateDecision", () => {
     ).toBe(false);
   });
 
+  it("reel_guest_download: venue-generous scope, breadth as the harvester guard", () => {
+    // The case this limiter exists to NOT break: thirty guests behind one venue NAT all tapping
+    // Download on the SAME reel at the end of the night.
+    expect(abuseRateDecision("reel_guest_download", 1, 30).allowed).toBe(true);
+    // Runaway ceiling on that one (IP, event) still exists.
+    expect(
+      abuseRateDecision(
+        "reel_guest_download",
+        1,
+        ABUSE_LIMITS.reel_guest_download.scopeMax,
+      ).allowed,
+    ).toBe(false);
+    // One IP harvesting reels across many DISTINCT events is the real abuse shape.
+    expect(
+      abuseRateDecision(
+        "reel_guest_download",
+        ABUSE_LIMITS.reel_guest_download.breadthMax,
+        0,
+      ).allowed,
+    ).toBe(false);
+    // A venue is ONE event, so breadth can never trip on legitimate party traffic.
+    expect(ABUSE_LIMITS.reel_guest_download.breadthMax).toBeGreaterThan(1);
+  });
+
   it("backstop takes precedence over breadth when both trip", () => {
     const r = abuseRateDecision(
       "join",

@@ -18,7 +18,8 @@ export type AbuseKind =
   | "report"
   | "capture"
   | "export"
-  | "reel_render";
+  | "reel_render"
+  | "reel_guest_download";
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -76,6 +77,21 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: 10,
     scopeWindowMin: 60,
     scopeMax: 20,
+  },
+  // A GUEST downloading the event's reel video, scope = (IP, event). This is the most venue-shaped
+  // limiter we have: at the end of the night, thirty guests on ONE venue WiFi all tap Download on the
+  // SAME reel within a couple of minutes, and every one of them is legitimate. So the per-(IP,event)
+  // scope is deliberately generous (matching `export`, the other end-of-night burst), and BREADTH does
+  // the actual abuse work: one IP pulling reels from 15+ DISTINCT events in an hour is a harvester,
+  // never a party (a venue is exactly ONE event, so it can never trip it). Cheap on our side too - a
+  // hit is a presign over an already-rendered mp4 on R2, whose egress is free; the guest NEVER gets a
+  // render or write path. Access (gallery access FULL + guest_visible) is the real gate, so the route
+  // fails OPEN on a limiter error.
+  reel_guest_download: {
+    breadthWindowMin: 60,
+    breadthMax: 15,
+    scopeWindowMin: 15,
+    scopeMax: 100,
   },
 };
 

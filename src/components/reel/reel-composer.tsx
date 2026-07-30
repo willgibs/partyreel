@@ -30,6 +30,9 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
+// The two device-save helpers live in lib/reel/client-save so the Marquee, the Studio and the guest
+// overlay share ONE implementation of the anchor dance.
+import { downloadReel, saveBlobLocally } from "@/lib/reel/client-save";
 import type { Orientation } from "@/lib/reel/engine/constants";
 // NOTE: `encodeReel` is deliberately NOT imported here. See the dynamic import
 // in the export pipeline below. `shouldClientEncode` stays static: it is a tiny
@@ -257,31 +260,6 @@ export function ReelComposer({
     };
   }, [orientation, styleId]);
 
-  const downloadReel = useCallback((url: string) => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.rel = "noopener";
-    // The presigned URL carries Content-Disposition: attachment, so the file saves (the download attr
-    // is just a hint cross-origin).
-    a.download = "";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }, []);
-
-  // Save the just-encoded blob straight from memory (no round-trip through R2 for the host's copy).
-  const saveBlobLocally = useCallback((blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    // Revoke on a delay: the browser needs the URL alive until the save stream opens.
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  }, []);
-
   const closeEncode = useCallback(() => {
     encodeAbortRef.current = null;
     setEncodeState(null);
@@ -405,14 +383,8 @@ export function ReelComposer({
     } finally {
       closeEncode();
     }
-  }, [
-    eventId,
-    reelProps,
-    postUpload,
-    downloadReel,
-    saveBlobLocally,
-    closeEncode,
-  ]);
+    // downloadReel/saveBlobLocally are module functions now, so they are not dependencies.
+  }, [eventId, reelProps, postUpload, closeEncode]);
 
   const handleDownload = useCallback(async () => {
     setDownloading(true);
