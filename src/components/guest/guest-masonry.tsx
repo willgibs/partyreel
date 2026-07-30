@@ -22,15 +22,18 @@ import type { CSSProperties } from "react";
 import { Check, Download, Play, RefreshCw } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { tileAspect } from "@/lib/media/tile-aspect";
 import { LikeButton } from "@/components/likes/like-button";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
 
-function tileAspect(item: GridMedia): string {
-  return item.width && item.height ? `${item.width} / ${item.height}` : "1 / 1";
-}
+// Uses the SHARED tile-aspect helper (this file used to carry its own copy,
+// which had no bound at all): natural ratios are preserved, but a client-
+// declared absurdity like 1 / 100000000 can no longer render a kilometre-tall
+// tile and wreck the album. `clamp` stays off here on purpose, since the guest
+// gallery's natural ratios are the ratified masonry look.
 
 /** An in-flight upload rendered as a gallery tile (Phase 4: progress lives IN
  *  the gallery, not a separate file list). `url` is a local object URL. */
@@ -60,7 +63,16 @@ export function GuestMasonry({
   /** The event JOIN url for the lightbox Share button (guest surface only). */
   shareUrl?: string;
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // Target the open item by ID, never by array position: `items` mutates under
+  // an open lightbox (the doorbell/poll prepends newly-approved media, an
+  // optimistic upload prepends its own tile, a host removal drops one), and a
+  // stored index would silently start pointing at a DIFFERENT photo the moment
+  // anything landed. The index handed to the lightbox is derived per render.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openAt = openId ? items.findIndex((m) => m.id === openId) : -1;
+  // -1 covers both "closed" and "the open item just vanished from the album",
+  // which the lightbox reads as closed.
+  const openIndex = openAt >= 0 ? openAt : null;
   // The ids present at FIRST render: only these stagger (later arrivals enter
   // instantly). useState initializer = render-once capture, no ref-in-render.
   const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
@@ -85,7 +97,9 @@ export function GuestMasonry({
               <img
                 src={p.url}
                 alt=""
-                className={p.status === "error" ? "w-full opacity-40" : "w-full"}
+                className={
+                  p.status === "error" ? "w-full opacity-40" : "w-full"
+                }
               />
             ) : (
               <video
@@ -140,7 +154,7 @@ export function GuestMasonry({
           >
             <button
               type="button"
-              onClick={() => setOpenIndex(i)}
+              onClick={() => setOpenId(item.id)}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
               className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
             >
@@ -190,8 +204,10 @@ export function GuestMasonry({
       <MediaLightboxLazy
         items={items}
         index={openIndex}
-        onClose={() => setOpenIndex(null)}
-        onIndexChange={setOpenIndex}
+        onClose={() => setOpenId(null)}
+        // Swipe/arrow navigation still speaks in positions; translate straight
+        // back to the id so the next mutation can't shift it either.
+        onIndexChange={(i) => setOpenId(items[i]?.id ?? null)}
         viewerIsHost={false}
         shareUrl={shareUrl}
       />

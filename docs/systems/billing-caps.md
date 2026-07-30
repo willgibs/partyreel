@@ -7,8 +7,12 @@
 ## The cap model (account-level bytes, not item counts)
 
 A tier = a total stored-bytes cap. **Single source** [`tiers.ts`](../../src/lib/constants/tiers.ts) (Free
-2 GB; Pro 100/500/2048 GB; Event Pass 75 GB) MUST mirror the SQL `tier_limits()` — a Vitest parity test
-guards it. `create_media` enforces the cap against **ACTIVE bytes** (`host_active_bytes()` = non-removed
+2 GB; Pro 100/500/2048 GB; Event Pass 75 GB) MUST mirror the SQL `tier_limits()`, guarded by
+[`tier-limits-parity.test.ts`](../../src/lib/constants/tier-limits-parity.test.ts) — it PARSES the newest
+committed migration that defines the fn and compares every tier's every number, and throws rather than
+passing when it cannot read a redefinition. (The block in `tiers.test.ts` that used to claim this only
+re-asserted the TS constants against themselves and could detect no drift at all; it survives, honestly
+relabelled, as marketed-number pins.) `create_media` enforces the cap against **ACTIVE bytes** (`host_active_bytes()` = non-removed
 media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingress meter**
 (`storage_ledger.cumulative_bytes` for the period). Per-event item caps are **gone**.
 
@@ -27,7 +31,10 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
 - App-side limits (client-safe, secret-free): [`tiers.ts`](../../src/lib/constants/tiers.ts) (`MAX_EVENTS`,
   `MONTHLY_INGRESS_BYTES`, `DEFAULT_STORAGE_CAP_BYTES`, `videosAllowedForTier`, `toBillingTier`).
 - Stripe (server-only): [`stripe/provision.ts`](../../src/lib/stripe/provision.ts) (pure
-  `resolveSubscriptionUpdate`), [`stripe/plans.ts`](../../src/lib/stripe/plans.ts) (Price-ID↔plan map),
+  `resolveSubscriptionUpdate` / `resolveEventPassCheckout` / `deliveryCreatedAt`),
+  [`stripe/entitlement.ts`](../../src/lib/stripe/entitlement.ts) (pure `resolveEntitlement` — the
+  one-plan-at-a-time gate; client-safe, but only ever called server-side),
+  [`stripe/plans.ts`](../../src/lib/stripe/plans.ts) (Price-ID↔plan map),
   [`stripe/dashboard.ts`](../../src/lib/stripe/dashboard.ts), [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts);
   routes [`/api/stripe/`](../../src/app/api/stripe) `checkout` / `portal` / `webhook`.
 - Env: `assertStripeEnv()` + the memoized `getStripe()` in [`env.ts`](../../src/lib/env.ts) / `stripe/`.
@@ -45,8 +52,25 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   change a function's return type).
 - **`tiers.ts` is client-import-safe — keep it secret-free** (no env, no Stripe Price IDs). The Price-ID↔plan
   mapping lives in `stripe/plans.ts` (reads env via `assertStripeEnv()`), NEVER in `tiers.ts`.
-- `profiles.tier` / `storage_cap_bytes` / `tier_expires_at` are service-role/webhook-write-only (never
-  client-writable). → [database-security.md](database-security.md).
+- `profiles.tier` / `storage_cap_bytes` / `tier_expires_at` / `stripe_event_created_at` are
+  service-role/webhook-write-only (never client-writable). → [database-security.md](database-security.md).
+- **ONE PLAN AT A TIME (ADR-0023).** `/api/stripe/checkout` refuses a session whenever the caller already
+  holds a live entitlement, resolved server-side by `resolveEntitlement()` from `profiles` (never the
+  request body). Active Pro → refuse everything, the portal owns upgrades/downgrades/cancellation. Active
+  Event Pass → refuse everything EXCEPT its own renewal. Without this a host could stack a second
+  subscription, or buy a pass that writes `storage_cap_bytes = 75 GB` over their 2 TB while Stripe keeps
+  billing Pro, feeding the over-capacity sweep media that is legitimately inside their paid cap.
+- **Every entitlement write asserts EXACTLY ONE matched row** (`applyEntitlement` in the webhook route) and
+  throws otherwise, so a paid-but-unprovisioned host 5xxs into a Stripe retry instead of a silent 200. There
+  is still nothing that reconciles Stripe against `profiles` after the retry window, so the assertion plus
+  its Sentry capture IS the reconciliation.
+- **Deliveries are ordered by `profiles.stripe_event_created_at`**, compared IN THE WHERE CLAUSE (atomic
+  under concurrent delivery, not a read-then-write). `<=` for the absolute subscription patch (a replay is a
+  no-op, and two distinct same-second events must not be dropped); `<` for the accumulating Event Pass
+  extension (a replay would gift a second year). Zero matched rows is ambiguous by construction and is
+  disambiguated with a follow-up select: guard declined → 200, no such profile → 5xx. The customer-binding
+  write deliberately leaves NO stamp, because `customer.subscription.created` can carry an earlier
+  `created` than the checkout session that produced it.
 
 ## Gotchas (why it's like this — don't revert)
 
@@ -69,10 +93,17 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
 - **Event Pass is a ONE-TIME payment, not a subscription** — checkout uses `mode:"payment"` (from
   `plan.billing === "one_time"`), so NO `customer.subscription.*` fires; it's provisioned from
   **`checkout.session.completed`** via `session.metadata.plan_id === "event_pass"`
-  (`resolveEventPassCheckout`). `tier_expires_at` derives from `session.created + termDays` (NOT `now()`) so
-  re-deliveries don't extend the term. Renewal = a cheaper one-time price (`STRIPE_PRICE_EVENT_PASS_RENEWAL`)
-  mapped to the SAME `event_pass` plan; checkout `{ renewal: true }` is gated to current/recent holders. The
-  purge cron's `sweepExpiredPasses` downgrades lapsed passes. → [lifecycle-recovery.md](lifecycle-recovery.md).
+  (`resolveEventPassCheckout`). **`tier_expires_at` = `max(session.created, current expiry) + termDays`** —
+  renewal EXTENDS, never resets (ADR-0023; the old `session.created + term` made an early renewal throw away
+  the remaining paid months). Still keyed off `session.created` rather than `now()` so the value is a pure
+  function of the event, but that is NOT replay-safety on its own: this patch accumulates, so replay-safety
+  comes from the strict `<` ordering guard above. Renewal = a cheaper one-time price
+  (`STRIPE_PRICE_EVENT_PASS_RENEWAL`) mapped to the SAME `event_pass` plan; checkout `{ renewal: true }`
+  requires an UNEXPIRED pass (the old "current or recent" gate keyed on `tier_expires_at != null`, which is
+  never cleared, so every past holder kept the discount forever). The purge cron's `sweepExpiredPasses`
+  downgrades lapsed passes, and `resolveEntitlement` reads the TIMESTAMP rather than the label so a host is
+  not blocked from re-buying for the up-to-a-day gap before that cron runs.
+  → [lifecycle-recovery.md](lifecycle-recovery.md).
 
 ## Stripe MCP runbook (who does what — full cutover in [`../PRICING.md`](../PRICING.md))
 

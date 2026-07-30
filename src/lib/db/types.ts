@@ -120,6 +120,7 @@ export type Database = {
           custom_slug: string | null
           deleted_at: string | null
           description: string | null
+          display_in_profile: boolean
           event_date: string | null
           event_password_hash: string | null
           host_id: string
@@ -130,6 +131,7 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          show_guest_list: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -140,6 +142,7 @@ export type Database = {
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
+          display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
           host_id: string
@@ -150,6 +153,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          show_guest_list?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -160,6 +164,7 @@ export type Database = {
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
+          display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
           host_id?: string
@@ -170,6 +175,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          show_guest_list?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -482,8 +488,11 @@ export type Database = {
           purge_at: string | null
           reel_eligible: boolean
           removed_at: string | null
+          removed_by_admin: boolean
+          removed_by_system: boolean
           removed_by_uploader: boolean
           status: Database["public"]["Enums"]["media_status"]
+          status_before_removed: Database["public"]["Enums"]["media_status"] | null
           type: Database["public"]["Enums"]["media_type"]
           updated_at: string
           width: number | null
@@ -506,8 +515,11 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_admin?: boolean
+          removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
+          status_before_removed?: Database["public"]["Enums"]["media_status"] | null
           type: Database["public"]["Enums"]["media_type"]
           updated_at?: string
           width?: number | null
@@ -530,8 +542,11 @@ export type Database = {
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
+          removed_by_admin?: boolean
+          removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
+          status_before_removed?: Database["public"]["Enums"]["media_status"] | null
           type?: Database["public"]["Enums"]["media_type"]
           updated_at?: string
           width?: number | null
@@ -621,6 +636,47 @@ export type Database = {
           },
         ]
       }
+      notification_prefs: {
+        Row: {
+          created_at: string
+          marketing_opt_in: boolean
+          notify_album_shared: boolean
+          notify_new_follower: boolean
+          notify_new_uploads_digest: boolean
+          notify_reel_ready: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          marketing_opt_in?: boolean
+          notify_album_shared?: boolean
+          notify_new_follower?: boolean
+          notify_new_uploads_digest?: boolean
+          notify_reel_ready?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          marketing_opt_in?: boolean
+          notify_album_shared?: boolean
+          notify_new_follower?: boolean
+          notify_new_uploads_digest?: boolean
+          notify_reel_ready?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ops_flags: {
         Row: {
           enabled: boolean
@@ -639,6 +695,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_hidden_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_hidden_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_hidden_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           announcements_seen_at: string | null
@@ -650,10 +739,12 @@ export type Database = {
           is_admin: boolean
           last_active_at: string
           password_set_at: string | null
+          slug: string | null
           storage_cap_bytes: number | null
           storage_grace_until: string | null
           storage_used_bytes: number
           stripe_customer_id: string | null
+          stripe_event_created_at: string
           stripe_subscription_id: string | null
           tier: Database["public"]["Enums"]["tier_type"]
           tier_expires_at: string | null
@@ -670,10 +761,12 @@ export type Database = {
           is_admin?: boolean
           last_active_at?: string
           password_set_at?: string | null
+          slug?: string | null
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
+          stripe_event_created_at?: string
           stripe_subscription_id?: string | null
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null
@@ -690,10 +783,12 @@ export type Database = {
           is_admin?: boolean
           last_active_at?: string
           password_set_at?: string | null
+          slug?: string | null
           storage_cap_bytes?: number | null
           storage_grace_until?: string | null
           storage_used_bytes?: number
           stripe_customer_id?: string | null
+          stripe_event_created_at?: string
           stripe_subscription_id?: string | null
           tier?: Database["public"]["Enums"]["tier_type"]
           tier_expires_at?: string | null
@@ -1030,6 +1125,72 @@ export type Database = {
           },
         ]
       }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_blocks_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          followee_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followee_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followee_id?: string
+          follower_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_follows_followee_id_fkey"
+            columns: ["followee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1046,6 +1207,7 @@ export type Database = {
         Returns: Json
       }
       add_to_reel: { Args: { p_media_id: string }; Returns: Json }
+      block_user: { Args: { p_blocked: string }; Returns: undefined }
       capture_guest_email: {
         Args: {
           p_email: string
@@ -1065,7 +1227,11 @@ export type Database = {
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
-        Args: { p_qr_token: string; p_user_id?: string }
+        Args: {
+          p_qr_token: string
+          p_unlock_proven?: boolean
+          p_user_id?: string
+        }
         Returns: Json
       }
       create_media: {
@@ -1101,6 +1267,7 @@ export type Database = {
         Args: { p_media_id?: string; p_qr_token: string; p_reason?: string }
         Returns: Json
       }
+      follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
         Args: { p_qr_token: string }
         Returns: {
@@ -1181,6 +1348,7 @@ export type Database = {
           width: number
         }[]
       }
+      get_public_profile: { Args: { p_slug: string }; Returns: Json }
       get_saved_events: {
         Args: never
         Returns: {

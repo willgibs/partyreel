@@ -37,7 +37,13 @@ import type { MediaKind } from "@/lib/media/limits";
 import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { mediaObjectKey } from "@/lib/r2/keys";
+import {
+  isValidMediaKey,
+  mediaObjectKey,
+  parseEventIdFromKey,
+  parseMediaIdFromKey,
+} from "@/lib/r2/keys";
+import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 import {
   abortMultipartUpload,
   completeMultipartUpload,
@@ -281,6 +287,41 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
     });
   }
   const { media_id, key, content_type, upload_id, parts } = parsed.data;
+
+  // ★ KEY BINDING (QA Pattern A, defense-in-depth). The server BUILT both keys at presign as
+  // events/<eventId>/<kind>/<mediaId>/<variant>.<ext>, but the client hands them back here, so a
+  // caller can substitute either one. The RPCs hold the authoritative event-ownership check; this
+  // is the edge twin, and it adds a binding the SQL cannot express: both keys must name THIS
+  // media_id and the SAME event. Without it a caller could complete one upload while registering a
+  // preview_key belonging to a different upload of their own (a self-inflicted 404, but also the
+  // shape that made the cross-event plant possible in the first place). Refuse, don't repair.
+  const keyEventId = parseEventIdFromKey(key);
+  if (!keyEventId || parseMediaIdFromKey(key) !== media_id) {
+    captureWarning("upload", "complete_key_mismatch", { key, media_id });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
+    });
+  }
+  const previewKey = parsed.data.preview_key;
+  if (
+    previewKey &&
+    (!isValidMediaKey(previewKey, keyEventId) ||
+      parseMediaIdFromKey(previewKey) !== media_id)
+  ) {
+    captureWarning("upload", "complete_preview_key_mismatch", {
+      key,
+      previewKey,
+      media_id,
+    });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That preview key doesn't match this upload.",
+    });
+  }
+
   // size_bytes is still accepted by the schemas (the presign step uses it) but is
   // NOT trusted here — the authoritative size comes from R2 below.
 
@@ -291,6 +332,33 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
       status: 415,
       code: "unsupported_type",
       message: "That file type isn't supported.",
+    });
+  }
+
+  // ★ VARIANT/KIND/EXT BINDING (QA #6), the second half of the key binding above. The key IS the
+  // issuance record: presign minted <kind>/<variant>.<ext> from ITS content_type, so requiring the
+  // echoed content_type to re-derive the same segments transitively pins complete-time
+  // content_type to presign-time content_type with zero stored state. Closes the variant swap
+  // (metering the ~2 MB preview as file_size_bytes while the original sits uncounted) and the
+  // kind swap (video bytes completed as a photo row, dodging the free-tier photos-only gate).
+  // Refuse, don't repair — same posture as the id binding.
+  const keyProblem = checkCompleteKeyConsistency({
+    key,
+    previewKey,
+    kind,
+    ext: extForMime(content_type),
+  });
+  if (keyProblem) {
+    captureWarning("upload", `complete_key_inconsistent: ${keyProblem}`, {
+      key,
+      previewKey: previewKey ?? null,
+      media_id,
+      content_type,
+    });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
     });
   }
 

@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
 
-// Bump when the COMPOSITION changes in a way that alters output for the same inputs, so cached .mp4s from
-// an older composition re-render. Folded into the hash below. v2: the style catalog + orientation (the
-// StyleDispatch composition; requires a paired `deploy-site` so the Lambda bundle matches the player).
-export const RENDER_VERSION = 2;
+// Bump when the RENDER changes in a way that alters output for the same inputs, so cached .mp4s from an
+// older render re-encode. Folded into the hash below. (No deploy-site pairing exists anymore: the reel
+// is a single on-device WebCodecs encode, the Lambda/Remotion path was torn down 2026-07-08.)
+// v2: the style catalog + orientation.
+// v3: the video-poster fix (2026-07-08) — previously-black video slots now draw their poster still, so
+//     output differs for identical inputs and every cached artifact with a video item must invalidate.
+export const RENDER_VERSION = 3;
 
 export type RenderHashInput = {
   /** The ordered, approved, present reel media ids — captures membership + approval + order in one list. */

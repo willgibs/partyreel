@@ -26,11 +26,23 @@ service-role admin client (`server-only`).
 
 The expected, accepted set:
 
-- **3 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
-  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`. The
-  opaque token IS the authorization (ADR-0004); these only READ visibility-gated event/media state, so anon
-  EXECUTE is safe. (Was 8 — the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below.
-  `get_public_album` was DROPPED in the one-link consolidation, ADR-0010.)
+- **4 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
+  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
+  `get_public_profile`. The opaque token IS the authorization for the first three (ADR-0004); these only
+  READ visibility-gated event/media state, so anon EXECUTE is safe. `get_public_profile(p_slug)` (the 4th,
+  profiles+social) reads the
+  public-by-existence `/u/[slug]` payload: profile card + host-displayed events + the OPEN-only attended
+  arm; never follow data, never a capability link. → [profiles-social.md](profiles-social.md).
+  ★ **An anon READ must never disclose more than the PAGE it backs** (QA #36/#40, `20260729180000`):
+  `get_event_by_qr_token` redacts description/date/host name (plus the NAME for `private`) from a
+  non-owner of a gated event, matching the locked `/e/` payload — an UNLOCKED viewer's fields come back
+  through a self-guarded admin re-read inside `getEventByQrToken`, because the RPC cannot see the
+  unlock cookie; and `get_public_profile`'s attended arm additionally requires
+  `allow_anonymous_uploads OR a signed-in viewer`, mirroring `resolveGalleryAccess` (an
+  account-required album hides its Guests list from an anonymous viewer, so the reverse surface must
+  too). Both keep their anon grant — the fix is the payload, not the grant. (Was 8 —
+  the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
+  DROPPED in the one-link consolidation, ADR-0010.)
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `create_media`,
   `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
@@ -44,7 +56,9 @@ The expected, accepted set:
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
   `save_event`/`get_saved_events`/`get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`,
-  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`.
+  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`,
+  `follow_user`/`block_user` (profiles+social, with migration `20260708120000` — block-silent follow +
+  atomic two-way severance; → [profiles-social.md](profiles-social.md)).
   (`create_media_as_host` MOVED to service-role-only above when its size authority was hardened.) SECURITY
   DEFINER but `revoke … from public, anon` + `grant … to authenticated`; each authorizes internally via
   `auth.uid()` + ownership. They appear ONLY in 0029, **never 0028** — that split IS the security property.
@@ -66,7 +80,9 @@ The expected, accepted set:
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `handle_new_user`,
-  `notify_gallery_change` [the gallery doorbell, Phase 3], …). If an unexpected one shows up, an over-broad
+  `notify_gallery_change` [the gallery doorbell, Phase 3], `set_media_removal_provenance`,
+  `guard_media_privileged_transitions`, `guard_event_privileged_transitions` [the QA-Q3 transition
+  guards, see Invariants], …). If an unexpected one shows up, an over-broad
   grant slipped in. (`enforce_event_pro_gates` was DROPPED in S5 — see below.)
 - **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING by
   design, and `realtime.messages` has NO day-partitions until the Realtime service first activates (the first
@@ -92,11 +108,25 @@ The expected, accepted set:
 - **Host table writes are COLUMN-locked, not just row-locked.** RLS gates the ROW (ownership); Supabase's
   default grant gives `authenticated` UPDATE/INSERT/DELETE on EVERY column. So host-writable tables must
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
-  - **`profiles`** — writable: `email`, `announcements_seen_at`, `welcomed_at`. Service-role only: `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. `removed_by_uploader` is likewise ungranted (set only by the owner-context `remove_my_upload` RPC — a guest's private self-deletion marker). **SELECT is column-scoped too** (migration `20260707150000`): `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host can't detect a legal hold via PostgREST (the host may BE the investigated uploader — ADR-0020 discretion). Consequences: an authenticated `select("*")` on media ERRORS — the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
+  - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`. Service-role only: `email` (QA #23, `20260729180000`: it is the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive; audited across both deployed branches first — no client path ever wrote it), `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
+  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. Likewise ungranted: `removed_by_uploader` (owner-context `remove_my_upload` — a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker, QA #2), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, QA #8/#24, trigger/service-role-written). **SELECT is column-scoped too** (migration `20260707150000`): `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host can't detect a legal hold via PostgREST (the host may BE the investigated uploader — ADR-0020 discretion), and neither are the three later flags above. Consequences: an authenticated `select("*")` on media ERRORS — the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant, and pins `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
+  - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability (ADR-0004), and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. Writes were already fully revoked (RPC-only).
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE scoped to the host's own event via ownership); INSERT/UPDATE REVOKED at the table grant, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed), and the ONLY position-update path is the `reorder_reel(p_event_id, p_media_ids)` RPC (host-owns + a set-equality guard: the id list must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. Mirrors `media_likes` exactly but HOST-scoped, not owner-self (S5 Reel R1; reorder 2026-06-22).
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes` (+ `insert(host_id)`, `update(deleted_at)`). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list` (+ `insert(host_id)`, `update(deleted_at)` — SOFT-DELETE ONLY; the un-delete direction is refused by a trigger, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+- ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers**
+  (QA #7/#10, `20260729180000`). A column-scoped grant says *which* column may change, never *from what
+  to what* — so `update(status)` also bought "un-remove", and `update(deleted_at)` also bought
+  "un-delete", walking past every guard the restore RPCs carry. Revoking those columns was rejected: it
+  breaks six legitimate host moderation paths + `softDeleteEvent`. Instead, `current_user` distinguishes
+  a direct PostgREST write (`authenticated`/`anon`) from an RPC or the service role (inside a SECURITY
+  DEFINER function `current_user` is the function OWNER, `postgres`), and two BEFORE triggers refuse
+  exactly the two transitions: `media_guard_privileged_transitions` (leaving `status='removed'` → use
+  `restore_media`) and `events_guard_privileged_transitions` (clearing `deleted_at` → use
+  `restore_event`); `events_enforce_limit_on_undelete` re-fires the tier ceiling on that same update.
+  ★ The media guard's LEGAL-HOLD branch SKIPS the row (`return null`) instead of raising — raising would
+  abort a whole bulk statement AND turn "Approve all suddenly fails" into a hold oracle; the skip yields
+  PGRST116 → the same "That item is no longer available." copy a missing row produces. Keep it silent.
 - **Value-gates a bare grant can't express are triggers/CHECK:** the `events_password_requires_hash` CHECK
   (no `visibility='password'` without a hash) + `enforce_event_limit` (MAX_EVENTS, raises 23514). (The
   `enforce_event_pro_gates` trigger that gated `allow_anonymous_uploads` was DROPPED in S5 — require-accounts

@@ -1,4 +1,5 @@
-import { createMedia } from "@/lib/db/mutations/guest";
+import { createMedia, getUploadContext } from "@/lib/db/mutations/guest";
+import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import {
   runCompletePipeline,
   type CompleteStrategy,
@@ -13,7 +14,33 @@ import { completeUploadSchema } from "@/lib/validation/upload";
 const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
   schema: completeUploadSchema,
   captureLabel: "create_media",
-  createRecord(parsed, kind, realSize) {
+  async createRecord(parsed, kind, realSize) {
+    // QA #18 (ADR-0023 ruling 2): re-check the event's lock at COMPLETION too — a presigned URL
+    // outlives a host's lock by up to 2h, and this is the write that counts (the media row +
+    // ledger; the bytes an already-issued URL can land become a swept orphan, never album
+    // content). Same policy as presign: `private` refuses everyone, `password` needs the cookie
+    // or ownership. An invalid session or a deleted event falls through to createMedia, which
+    // owns the canonical refusals for those states.
+    const ctx = await getUploadContext(parsed.session_token, kind);
+    if (ctx.ok && !ctx.data.event_deleted) {
+      if (ctx.data.visibility === "private") {
+        return {
+          ok: false as const,
+          code: "unauthorized",
+          message: "This event is private.",
+        };
+      }
+      if (
+        ctx.data.visibility === "password" &&
+        !(await mayUploadPastLock(ctx.data.event_id))
+      ) {
+        return {
+          ok: false as const,
+          code: "unlock_required",
+          message: "This event is locked. Enter the event password to upload.",
+        };
+      }
+    }
     return createMedia({
       sessionToken: parsed.session_token,
       mediaId: parsed.media_id,
@@ -29,7 +56,9 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
   errorStatus(code) {
     return code === "invalid_session"
       ? 401
-      : code === "uploads_closed"
+      : code === "uploads_closed" ||
+          code === "unlock_required" ||
+          code === "unauthorized"
         ? 403
         : code === "cap_reached"
           ? 409

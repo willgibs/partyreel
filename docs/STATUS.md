@@ -37,6 +37,25 @@ before picking up any program work. Headlines a fresh agent must know:
   IA gate before the build; reveal = the Assembly x First-frame-held x Lights-down COMPOSITE). Cinematic
   canvas parity PASSED (unlocks the 13 style ports; watermark redesign to bottom-right required). The
   post-T1 fan-out is the program plan's active section.
+- **T2 DEVICE SESSION + T2.5 MARKETING-IA WALK COMPLETE (2026-07-08)** — the composite reveal is ratified
+  as-built (tuner stays in the lab; R3 wires it to production), the scrim watermark stands (re-grade when the
+  real logo lands), export quality passed (the render-source variant slice dropped), and videos-in-reels is
+  the diagnosed R3 headline (poster backfill + code fix + RENDER_VERSION bump; motion video = the Pro slice).
+  The marketing IA is ratified in [`decisions/t2p5-marketing-ia.md`](decisions/t2p5-marketing-ia.md): the
+  MADE-FROM home arc, the `/reel` flagship route, product-dark/resources-light, the secondary-route plan,
+  interim license-free media. The leading-copy VOICE is spun into its own exploration round (the remaining
+  gate before Track B copy; round-2 boards in flight on Will's golden-set rulings). **R3 Reel Experience
+  is the open critical path.** Slice B SHIPPED 2026-07-08: the LAMBDA/REMOTION TEARDOWN (Will: "teardown
+  is a go") — the canvas engine + on-device encode is the reel's ONLY render path; ~11.9k lines + 5 deps
+  + 7 env vars deleted (the production-scoped env copies + the AWS sub-account close wait for M2 / the
+  launch checklist). Slice A SHIPPED + LIVE-VERIFIED 2026-07-21: videos draw their poster frames
+  everywhere (posterMode footgun deleted, RENDER_VERSION 3, the caller-less poll surface pruned), the
+  demo event's 3 legacy black videos replaced with poster-bearing re-uploads, and TWO found-live bugs
+  fixed en route (a hidden-tab video upload wedged the queue: measureFile timeout-guarded; and the
+  img-poisoned CORS cache blacked out every reel clip: the engine fetches `cache: "no-store"` — see
+  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). Remaining R3: slice C reel-UI lab round
+  (IN FLIGHT: 3 directions building on the `reel-experience` touchpoint; Will ruled the reel is BORN by
+  an explicit Create act) → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
 
 ## Where we are
 

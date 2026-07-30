@@ -30,15 +30,17 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
+import type { Orientation } from "@/lib/reel/engine/constants";
+// NOTE: `encodeReel` is deliberately NOT imported here. See the dynamic import
+// in the export pipeline below. `shouldClientEncode` stays static: it is a tiny
+// pure gate the composer needs on mount to decide whether to offer Download.
+import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
 import {
   DEFAULT_STYLE_ID,
-  type Orientation,
   resolveStyleEntry,
   STYLE_CATALOG,
   STYLE_IDS,
-} from "@/lib/reel/composition";
-import { encodeReel } from "@/lib/reel/engine/encode";
-import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
+} from "@/lib/reel/engine/style-registry";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
 import { probeEngineSupport } from "@/lib/reel/engine/support";
 import type {
@@ -62,6 +64,11 @@ const LENGTHS: { label: string; value: number | null }[] = [
   { label: "60s", value: 60 },
 ];
 
+// The honest notice when this browser can't encode the mp4 (no WebCodecs). The reel still plays; the
+// download just needs a modern browser. No em-dashes (user-facing copy).
+const NO_EXPORT_NOTICE =
+  "Video export needs a modern browser. Your reel still plays here, and any modern phone or desktop browser can download it.";
+
 function rpcOk(data: unknown): boolean {
   return (
     !!data && typeof data === "object" && (data as { ok?: boolean }).ok === true
@@ -77,13 +84,11 @@ function rpcOk(data: unknown): boolean {
  * reel row on the first edit. Reads the shared ReelProvider so adds/removes/reorders in the grid
  * below reflect live.
  *
- * Download video runs one of TWO paths, decided per browser by the WebCodecs probe:
- *  - CLIENT ENCODE (the default; Plan A Phase C): encodeReel() renders the mp4 on-device from the
- *    SAME props the player shows, saves it locally, and uploads it to the reel output key via the
- *    host-authed /api/reel/upload begin→mint→finalize handshake (cached exactly like Lambda output).
- *  - LAMBDA FALLBACK (no WebCodecs): the untouched server render via /api/reel/render + the poll.
- * Do NOT import @remotion/player here — the Remotion twin lives on only for the parity harness
- * until the R8 teardown.
+ * Download video is a CLIENT ENCODE: encodeReel() renders the mp4 on-device (WebCodecs) from the SAME
+ * props the player shows, saves it locally, and uploads it to the reel output key via the host-authed
+ * /api/reel/upload begin→mint→finalize handshake (cached, guest-servable). A browser without WebCodecs
+ * can't encode — we probe support and, in that rare case, show an honest inline notice instead of the
+ * Download button (the reel still PLAYS; any modern phone/desktop browser can download it).
  */
 export function ReelComposer({
   eventId,
@@ -158,7 +163,6 @@ export function ReelComposer({
         // The tier clamp, applied to the PREVIEW too: Auto fills up to the cap (30/60), so the
         // player shows exactly what the export renders (the render path applies the same clamp).
         lengthSeconds: clampReelSeconds(tier, lengthSeconds),
-        posterMode: true,
         watermark,
       }),
     [
@@ -229,12 +233,29 @@ export function ReelComposer({
     };
   }, [persistConfig]);
 
-  // Download → the .mp4, via one of two paths (see the component JSDoc). `encodeState` doubles as
-  // the mode flag for the shared progress dialog: set = on-device encode, null = the Lambda poll.
+  // Download → the on-device .mp4 encode. `encodeState` drives the shared progress dialog's stages.
   const [downloading, setDownloading] = useState(false);
   const [stitchOpen, setStitchOpen] = useState(false);
   const [encodeState, setEncodeState] = useState<ReelEncodeState | null>(null);
   const encodeAbortRef = useRef<AbortController | null>(null);
+
+  // Proactively probe whether THIS browser can encode at the current orientation/style, so a browser
+  // without WebCodecs sees an honest notice instead of a Download button it can't fulfill. null =
+  // probing (assume yes so the button shows); false = show the notice. Re-probes on orientation/style.
+  const [exportSupported, setExportSupported] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    probeEngineSupport(orientation)
+      .then((support) => {
+        if (alive) setExportSupported(shouldClientEncode(support, styleId));
+      })
+      .catch(() => {
+        if (alive) setExportSupported(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [orientation, styleId]);
 
   const downloadReel = useCallback((url: string) => {
     const a = document.createElement("a");
@@ -322,6 +343,13 @@ export function ReelComposer({
     // Encode the EXACT props the player is showing (the literal-WYSIWYG claim of the canvas engine).
     let blob: Blob;
     try {
+      // DYNAMIC IMPORT: the mp4 encoder (WebCodecs muxing + the asset loader)
+      // is the heaviest thing this component can reach, and only an EXPORT ever
+      // needs it, but importing it statically dragged the whole encoder into
+      // the host event page's FIRST-LOAD bundle. Every host paid that download
+      // just to look at their gallery. It now loads on the first Download tap;
+      // the browser caches the chunk, so a repeat export starts instantly.
+      const { encodeReel } = await import("@/lib/reel/engine/encode");
       const encoded = await encodeReel(reelProps, {
         signal: controller.signal,
         onProgress: (progress) =>
@@ -386,33 +414,6 @@ export function ReelComposer({
     closeEncode,
   ]);
 
-  /** The untouched Lambda fallback (no WebCodecs): trigger the server render + poll via the dialog. */
-  const runLambdaRender = useCallback(async () => {
-    try {
-      const res = await fetch("/api/reel/render", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.ok) {
-        toast.error(
-          data?.message ?? "Couldn't start your reel video. Please try again.",
-        );
-        return;
-      }
-      if (data.status === "ready" && data.downloadUrl) {
-        downloadReel(data.downloadUrl);
-        toast.success("Your reel is ready.");
-      } else {
-        setEncodeState(null);
-        setStitchOpen(true); // processing → the modal polls until it's ready
-      }
-    } catch {
-      toast.error("Couldn't start your reel video. Please try again.");
-    }
-  }, [eventId, downloadReel]);
-
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     try {
@@ -422,18 +423,19 @@ export function ReelComposer({
       // different reel (persistConfig already surfaced its save-failure toast).
       const saved = await persistConfig();
       if (!saved) return;
-      // Per-browser path decision: probe WebCodecs at the CURRENT orientation's dimensions. A probe
-      // failure reads as "can't encode" and falls back to Lambda (never a broken download).
+      // Encode on-device (WebCodecs). Re-probe at the CURRENT orientation as a guard: if this browser
+      // can't encode, say so honestly (the inline notice already covers the proactive case). The reel
+      // still plays here regardless.
       const support = await probeEngineSupport(orientation).catch(() => null);
-      if (shouldClientEncode(support, styleId)) {
-        await runClientEncode();
-      } else {
-        await runLambdaRender();
+      if (!shouldClientEncode(support, styleId)) {
+        toast.info(NO_EXPORT_NOTICE);
+        return;
       }
+      await runClientEncode();
     } finally {
       setDownloading(false);
     }
-  }, [persistConfig, orientation, styleId, runClientEncode, runLambdaRender]);
+  }, [persistConfig, orientation, styleId, runClientEncode]);
 
   return (
     <div className="space-y-3">
@@ -462,6 +464,10 @@ export function ReelComposer({
                       <button
                         key={s.id}
                         type="button"
+                        // Selection was signalled by colour + weight ONLY, so a
+                        // screen reader heard an undifferentiated list of style
+                        // names. Matches the Orientation/Length groups below.
+                        aria-pressed={active}
                         onClick={() => {
                           setStyleId(s.id);
                           setStyleOpen(false);
@@ -526,6 +532,7 @@ export function ReelComposer({
             <div className="grid grid-cols-3 gap-1.5">
               <button
                 type="button"
+                aria-pressed={coverMediaId == null}
                 onClick={() => setCoverMediaId(null)}
                 className={cn(
                   "flex aspect-square items-center justify-center rounded-md border text-[0.7rem] text-muted-foreground transition-colors ease-emphasis active:scale-[0.97]",
@@ -534,12 +541,17 @@ export function ReelComposer({
               >
                 Auto
               </button>
-              {reelMedia.map((m) => {
+              {reelMedia.map((m, i) => {
                 const active = m.id === coverMediaId;
                 return (
                   <button
                     key={m.id}
                     type="button"
+                    // The thumbnail's alt is empty (decorative), so without a
+                    // label these announced as a row of bare "button"s with no
+                    // way to tell which was the chosen cover.
+                    aria-label={`Use item ${i + 1} as the opening shot`}
+                    aria-pressed={active}
                     onClick={() => setCoverMediaId(m.id)}
                     className={cn(
                       "relative aspect-square overflow-hidden rounded-md border transition-transform ease-emphasis active:scale-[0.97]",
@@ -614,31 +626,41 @@ export function ReelComposer({
         )}
       </p>
 
-      {/* Download → the .mp4 (client encode when the browser can, Lambda otherwise). The old
-          "preview is optimized for speed" tip is gone on purpose: with the canvas engine the
-          preview and the encoded export are the same pixels. */}
+      {/* Download → the on-device .mp4 encode. The preview and the encoded export are the same pixels
+          (one canvas draw fn), so there's no "optimized for speed" caveat. A browser that can't encode
+          (no WebCodecs) gets an honest notice instead — the reel still plays above. */}
       <div className="flex flex-col gap-1.5 border-t pt-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <Button type="button" onClick={handleDownload} disabled={downloading}>
-            <Download />
-            {downloading ? "Preparing…" : "Download video"}
-          </Button>
-          {watermark && (
-            <span className="text-xs text-muted-foreground">
-              Free reels include a small partyreel.com mark.
-            </span>
-          )}
-        </div>
+        {exportSupported === false ? (
+          <p className="text-sm text-muted-foreground">{NO_EXPORT_NOTICE}</p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <Button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+            >
+              <Download />
+              {downloading ? "Preparing…" : "Download video"}
+            </Button>
+            {watermark && (
+              <span className="text-xs text-muted-foreground">
+                Free reels include a small partyreel.com mark.
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      <ReelStitchingDialog
-        eventId={eventId}
-        open={stitchOpen}
-        onOpenChange={handleStitchOpenChange}
-        onReady={downloadReel}
-        onRetry={handleDownload}
-        encode={encodeState}
-      />
+      {/* The progress modal exists only during an on-device encode (encodeState non-null); the client
+          finalize flips the reel to ready synchronously, so there's no idle/poll state to render. */}
+      {encodeState && (
+        <ReelStitchingDialog
+          open={stitchOpen}
+          onOpenChange={handleStitchOpenChange}
+          onRetry={handleDownload}
+          encode={encodeState}
+        />
+      )}
     </div>
   );
 }

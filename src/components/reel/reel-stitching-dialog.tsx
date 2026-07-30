@@ -1,8 +1,6 @@
 "use client";
 
 import { Clapperboard, RotateCcw, TriangleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
-// The render is async (~a minute on Lambda); poll the status route until the .mp4 lands. The webhook
-// flips the DB faster in prod, but polling is the reliable signal (it also drives the local-dev path,
-// where Lambda can't reach localhost). 3s keeps it responsive without hammering.
-const POLL_MS = 3000;
-
 /**
  * The composer's export-progress state when the CLIENT encodes (WebCodecs): the parent drives the
- * stages; this dialog only renders them. `null`/absent = the Lambda poll mode below.
+ * stages; this dialog only renders them.
  */
 export type ReelEncodeState =
   | { stage: "encoding"; progress: number } // 0..1 from encodeReel's onProgress
@@ -30,95 +23,36 @@ export type ReelEncodeState =
   | { stage: "error" };
 
 /**
- * The reel export progress modal, in two modes:
- *  - LAMBDA (no `encode` prop): "Stitching your reel". Opened once a server render is in flight;
- *    polls /api/reel/render until the reel is ready (then auto-downloads + closes) or fails. The
- *    host can close and come back, the render keeps going.
- *  - CLIENT ENCODE (`encode` set): the on-device WebCodecs export surface. The composer drives the
- *    stages (encoding with real progress, then the R2 upload); closing the dialog cancels via
- *    onOpenChange (the composer aborts). No polling, the work is local.
+ * The reel export progress modal. The reel is encoded ON-DEVICE (WebCodecs): the composer drives the
+ * stages (encoding with real progress, then the R2 upload) and closing the dialog cancels via
+ * onOpenChange (the composer aborts). No polling and no async render service — the work is local, and
+ * the composer's finalize call flips the reel to ready synchronously. (The old dormant poll mode +
+ * its /api/reel/render GET route were pruned 2026-07-08 with the Lambda/Remotion teardown.)
  */
 export function ReelStitchingDialog({
-  eventId,
   open,
   onOpenChange,
-  onReady,
   onRetry,
   encode,
 }: {
-  eventId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Hand the finished reel's presigned download URL to the trigger (the composer downloads it). */
-  onReady: (downloadUrl: string) => void;
   /** Re-kick the export (the composer's Download handler) after a failure. */
   onRetry: () => void;
-  /** Client-encode mode: the parent-driven stage. Omit/null for the Lambda poll mode. */
-  encode?: ReelEncodeState | null;
+  /** The parent-driven encode stage (the composer always supplies it). */
+  encode: ReelEncodeState;
 }) {
-  const clientMode = encode != null;
-  const [phase, setPhase] = useState<"stitching" | "error">("stitching");
-  // Reset to "stitching" whenever the modal (re)opens — the React-idiomatic "adjust state when a prop
-  // changes" pattern (a setState during render, which React resolves without an extra commit), so we
-  // don't reset inside the effect. onReady/onOpenChange are stable (useCallback / setState), so the
-  // poll loop below never re-arms spuriously.
-  const [wasOpen, setWasOpen] = useState(open);
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) setPhase("stitching");
-  }
-
-  useEffect(() => {
-    // Client-encode mode does no polling: the composer owns the pipeline end to end.
-    if (!open || clientMode) return;
-    let cancelled = false;
-
-    const tick = async () => {
-      try {
-        const res = await fetch(
-          `/api/reel/render?eventId=${encodeURIComponent(eventId)}`,
-          { cache: "no-store" },
-        );
-        const data = await res.json();
-        if (cancelled) return;
-        if (data?.status === "ready" && data.downloadUrl) {
-          onReady(data.downloadUrl);
-          toast.success("Your reel is ready.");
-          onOpenChange(false);
-        } else if (data?.status === "error") {
-          setPhase("error");
-        }
-        // 'processing' | 'idle' → keep waiting (idle can briefly precede the row flip).
-      } catch {
-        /* transient network blip — keep polling */
-      }
-    };
-
-    void tick();
-    const id = setInterval(tick, POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [open, clientMode, eventId, onReady, onOpenChange]);
-
-  const errored = clientMode ? encode.stage === "error" : phase === "error";
+  const errored = encode.stage === "error";
   const title = errored
-    ? clientMode
-      ? "Couldn't create your video"
-      : "Couldn't render your reel"
-    : clientMode
-      ? encode.stage === "uploading"
-        ? "Finishing up"
-        : "Creating your video"
-      : "Stitching your reel";
+    ? "Couldn't create your video"
+    : encode.stage === "uploading"
+      ? "Finishing up"
+      : "Creating your video";
   const description = errored
     ? "Something went wrong on our side. Please try again."
-    : clientMode
-      ? encode.stage === "uploading"
-        ? "Your video is ready. We're storing a copy so your next download is instant."
-        : "Your reel is encoding right here in your browser. This usually takes a few seconds."
-      : "This takes about a minute. You can close this and come back, your reel keeps rendering.";
+    : encode.stage === "uploading"
+      ? "Your video is ready. We're storing a copy so your next download is instant."
+      : "Your reel is encoding right here in your browser. This usually takes a few seconds.";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,7 +80,7 @@ export function ReelStitchingDialog({
           )}
 
           {/* The client encode has REAL progress (frame-accurate from the encoder) — show it. */}
-          {clientMode && encode.stage === "encoding" && (
+          {encode.stage === "encoding" && (
             <div className="flex w-full items-center gap-2">
               <Progress
                 value={Math.round(encode.progress * 100)}
@@ -165,12 +99,7 @@ export function ReelStitchingDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
-            <Button
-              onClick={() => {
-                setPhase("stitching");
-                onRetry();
-              }}
-            >
+            <Button onClick={onRetry}>
               <RotateCcw />
               Try again
             </Button>

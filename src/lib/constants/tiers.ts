@@ -297,6 +297,19 @@ export function withinStorage(
   return capBytes === null || usedBytes <= capBytes;
 }
 
+/**
+ * The cap INCLUDING the deliberate write-path headroom. `create_media` / `create_media_as_host`
+ * accept an upload while `host_active_bytes + size <= v_cap + (v_cap / 10)`; this mirrors that SQL
+ * so the nightly over-cap sweep engages at the SAME line it enforces at write time.
+ *
+ * ★ Keep the two in lockstep (QA #26): with the sweep at a bare `cap`, a host sitting legitimately
+ * inside the headroom (bytes the product just accepted) received "you're over your limit" emails
+ * and, at grace expiry, auto-removals. Integer division mirrors plpgsql's `/` on bigint.
+ */
+export function capWithWriteHeadroom(capBytes: number): number {
+  return capBytes + Math.floor(capBytes / 10);
+}
+
 /** Format a cap for display; `null` renders as the unlimited label. */
 export function formatLimit(
   value: number | null,

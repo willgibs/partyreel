@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { type GridMedia } from "@/components/app/media-grid";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
-import { THEME_CLASSIC } from "@/lib/reel/composition";
+import { THEME_CLASSIC } from "@/lib/reel/engine/reel-types";
 
 // Minimal GridMedia factory — only the fields buildReelProps reads.
 function media(id: string, over: Partial<GridMedia> = {}): GridMedia {
@@ -96,27 +96,22 @@ describe("buildReelProps", () => {
     ]);
   });
 
-  it("renders video by its poster in posterMode, full clip url when exporting", () => {
+  it("always resolves a video to its poster still (never the mp4 url)", () => {
     const items = [media("v", { type: "video" })];
-    const poster = buildReelProps({
+    const props = buildReelProps({
       orderedIds: ["v"],
       byId: byIdOf(items),
       ...base,
     });
-    expect(poster.clips[0]).toMatchObject({
+    // A video ALWAYS draws its poster preview (the only decodable video source until the Pro motion
+    // slice); the original mp4 url is NEVER emitted for a video, so the image-only loader can't choke.
+    expect(props.clips[0]).toMatchObject({
       type: "video",
       url: "https://r2/v/preview",
       trimStartSec: 0,
       trimDurationSec: 3,
     });
-    const exported = buildReelProps({
-      orderedIds: ["v"],
-      byId: byIdOf(items),
-      posterMode: false,
-      ...base,
-    });
-    expect(exported.clips[0].url).toBe("https://r2/v/original");
-    expect(exported.posterMode).toBe(false);
+    expect(props.clips[0].url).not.toBe("https://r2/v/original");
   });
 
   it("emits an empty url for a null-preview video (poster placeholder)", () => {
@@ -183,16 +178,23 @@ describe("buildReelProps", () => {
     expect(props.clips[0].height).toBe(1080);
   });
 
-  it("a treatment shows video by its poster even when exporting (no <Video> path yet)", () => {
+  it("resolves a video to its poster for a treatment style too (mood/treatment distinction gone)", () => {
+    // The old posterMode footgun let a mood route video to the mp4 url in export while a treatment
+    // stayed on the poster. That branch is gone: EVERY style (mood or treatment) now draws the poster.
     const items = [media("v", { type: "video" })];
-    const exported = buildReelProps({
+    const treatment = buildReelProps({
       orderedIds: ["v"],
       byId: byIdOf(items),
-      styleId: "polaroid",
+      styleId: "polaroid", // a treatment
       seed: 1,
-      posterMode: false,
     });
-    // A mood in export uses the original mp4; a treatment must stay on the poster (its <Img> can't play mp4).
-    expect(exported.clips[0].url).toBe("https://r2/v/preview");
+    const mood = buildReelProps({
+      orderedIds: ["v"],
+      byId: byIdOf(items),
+      styleId: "classic", // a mood
+      seed: 1,
+    });
+    expect(treatment.clips[0].url).toBe("https://r2/v/preview");
+    expect(mood.clips[0].url).toBe("https://r2/v/preview");
   });
 });

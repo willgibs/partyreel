@@ -69,9 +69,13 @@ describe("PLANS integrity", () => {
   });
 });
 
-// These numbers MUST mirror public.tier_limits() (DB enforcement). If you change a
-// value here, change the SQL fn too (migration) — that is the hand-kept lockstep.
-describe("tier limits ↔ tier_limits() parity", () => {
+// LITERAL PINS, not the parity guard. This block only re-states the TS constants, so it can
+// never detect drift against the SQL — QA #25 found it masquerading as the tiers.ts ↔
+// tier_limits() drift guard the docs point at. The REAL guard parses the committed migration:
+// tier-limits-parity.test.ts. These pins still earn their keep for a different reason: marketed
+// numbers are sticky (grandfathering), so changing one in lockstep across BOTH sides should still
+// require deliberately editing a test that names the old value.
+describe("tier limit literals (marketed-number pins)", () => {
   it("covers every billing tier", () => {
     for (const t of BILLING_TIERS) {
       expect(MAX_EVENTS[t]).toBeDefined();

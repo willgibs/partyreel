@@ -29,7 +29,9 @@ export type TouchpointId =
   | "host-event-build"
   | "gallery-actions"
   | "marketing-identity"
-  | "reel-reveal";
+  | "marketing-voice"
+  | "reel-reveal"
+  | "reel-experience";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" was reserved from the lab refresh until the marketing-identity
@@ -315,6 +317,24 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "T1 ruling (Will, 2026-07-05): B+C HYBRID. B's cinema hero leads (the desired visual language, the most design magic) with B's how-it-works reel animation kept, and C's animated product-demo as a close follow-up section visualizing the how. A rejected as too templated. BINDING CAVEAT: these wow sections are the FLOOR, not the site: the build is gated on a full-site IA/content-architecture round (core loop + supporting features) done collaboratively with Will (T2.5) before any production pages.",
   },
   {
+    // Marketing-voice lab round (T2.5 cluster-4). ROUND 2 (2026-07-08) rebuilt
+    // the groupings on the owner's ratified palette (event language, collection
+    // co-lead) with a word-animation toggle (Roll default) after the hard cut
+    // read glitchy on text-only boards. Round 1 (2026-07-07) had drafted four
+    // boards off a D2xD4 blend; the owner's rulings reset it: the copy leaned
+    // too hard on the reel (most value is the easy collection), "night" was
+    // banned as identity language, and eight lines were ratified as the GOLDEN
+    // SET to build around verbatim. The three groupings differ in H1/thesis
+    // strategy (G1 collection-led, G2 arc-led, G3 reel-led-tempered); a ratified-
+    // palette strip type-sets his eight lines above them. `decision` stays unset
+    // until he confirms which grouping + the animation mode.
+    id: "marketing-voice",
+    title: "Marketing voice",
+    surface: "marketing",
+    note: "Three copy groupings for the marketing rebuild, all anchored on the owner's ratified eight-line palette but leading with a different thesis (collection, arc, reel-tempered), type-set dark-mono with a three-mode word-animation toggle (Roll default)",
+    variants: ["Collection-led", "Arc-led", "Reel-led"],
+  },
+  {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
     // tapped Create reel watches their reel exist for the first time (the North
     // Star wow; a RARE moment, so animate-by-frequency allows real delight).
@@ -337,7 +357,25 @@ export const TOUCHPOINTS: Touchpoint[] = [
     ],
     decision: 1,
     decisionNote:
-      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference.",
+      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference. T2 (Will, 2026-07-08, on-device): RATIFIED AS-BUILT, no retime (the shipped defaults ARE the tuned values); stays in the lab with the tuner for later revisits; production wiring is R3's job.",
+  },
+  {
+    // Reel-experience lab round (R3 slice C, 2026-07-21): Will's verdict on
+    // the shipped reel UI, verbatim, "very weak and v1". Three directions over
+    // the SAME four moments (event-page section, creation/curation with
+    // 14-style identity, the publish moment, the guest arrival) so they
+    // compare like-for-like; the product model is ruled and closed (ADR-0021/
+    // 0022), the UI is the canvas. The ratified reveal grammar is reused
+    // untouched (V3's Create reel fires it); only the publish beats carry new
+    // tuner knobs. The ruling lands in chat and is recorded here when it does.
+    id: "reel-experience",
+    title: "Reel experience",
+    surface: "host",
+    note: "Three directions for the reel as a product moment: the event-page section, creation with 14-style identity, the publish moment, and the guest arrival",
+    variants: ["Marquee in the feed", "The Studio", "The Premiere"],
+    decision: 1,
+    decisionNote:
+      "V1 Marquee (ADR-0023): richer + feed-native, a clear create action for the host, and the most beautiful guest arrival. Composite: V1 IS the feed section (poster card, labeled control rows, engine-thumb style rail); deeper editing GRADUATES to a Reel Studio destination (V2's room, entered from the card, never forced inline); the reel is still BORN by an explicit Create act, which is what the ratified reveal triggers on. Re-opened for the production build: the quick-add signal (most-liked is unreliable when likes are sparse, so blend likes + recency + per-guest coverage + media mix behind an honest label, never random)",
   },
 ];
 

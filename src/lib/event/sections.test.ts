@@ -11,6 +11,7 @@ describe("resolveInitialEventSection", () => {
     expect(resolveInitialEventSection("gallery", undefined)).toBe("gallery");
     expect(resolveInitialEventSection("reel", undefined)).toBe("reel");
     expect(resolveInitialEventSection("review", undefined)).toBe("review");
+    expect(resolveInitialEventSection("guests", undefined)).toBe("guests");
     expect(resolveInitialEventSection("all", undefined)).toBe("all");
   });
   it("defaults unknown / absent to all", () => {
@@ -31,19 +32,28 @@ describe("resolveInitialEventSection", () => {
 
 describe("orderedSections", () => {
   it("floats review to the top when moderation is on AND a queue waits", () => {
-    expect(
-      orderedSections({ moderationOn: true, hasPending: true }),
-    ).toEqual(["review", "gallery", "reel"]);
+    expect(orderedSections({ moderationOn: true, hasPending: true })).toEqual([
+      "review",
+      "gallery",
+      "reel",
+      "guests",
+    ]);
   });
   it("sinks review to the bottom when caught up", () => {
-    expect(
-      orderedSections({ moderationOn: true, hasPending: false }),
-    ).toEqual(["gallery", "reel", "review"]);
+    expect(orderedSections({ moderationOn: true, hasPending: false })).toEqual([
+      "gallery",
+      "reel",
+      "guests",
+      "review",
+    ]);
   });
   it("sinks review to the bottom when moderation is off (the teaser), even with pending", () => {
-    expect(
-      orderedSections({ moderationOn: false, hasPending: true }),
-    ).toEqual(["gallery", "reel", "review"]);
+    expect(orderedSections({ moderationOn: false, hasPending: true })).toEqual([
+      "gallery",
+      "reel",
+      "guests",
+      "review",
+    ]);
   });
   it("always returns every section exactly once", () => {
     for (const moderationOn of [true, false]) {

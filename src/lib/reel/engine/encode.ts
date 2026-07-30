@@ -16,8 +16,8 @@ import {
   Output,
 } from "mediabunny";
 
-import { FPS, reelDimensions } from "../composition/constants";
-import type { ReelProps } from "../composition/reel-types";
+import { DEFAULT_BITRATE, FPS, reelDimensions } from "./constants";
+import type { ReelProps } from "./reel-types";
 import { loadReelAssets, type ReelAssets } from "./assets";
 import {
   drawReelFrame,
@@ -26,8 +26,10 @@ import {
   resolveEngineStyle,
 } from "./registry";
 
-export const ENCODE_BITRATES = [4_000_000, 5_000_000, 8_000_000] as const;
-export const DEFAULT_BITRATE = 5_000_000;
+// Moved to ./constants (a bitrate number must not drag the encoder into a
+// bundle); re-exported so the dev parity harness + the budget parity test keep
+// their existing import path.
+export { ENCODE_BITRATES, DEFAULT_BITRATE } from "./constants";
 
 export type EncodeReelOptions = {
   /** Target video bitrate in bps (default 5 Mbps). */

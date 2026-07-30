@@ -12,9 +12,9 @@
 //   unsupported (Safari) the port reports + falls back to a scoped black-overlay darken so the
 //   develop-in still reads (the cinematic brightness-fallback precedent).
 
-import { FPS } from "../../composition/constants";
-import type { ReelProps } from "../../composition/reel-types";
-import { seeded, seededRange } from "../../composition/seed";
+import { FPS } from "../constants";
+import type { ReelProps } from "../reel-types";
+import { seeded, seededRange } from "../seed";
 import type { ReelAssets } from "../assets";
 import { drawCover } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

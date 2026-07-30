@@ -3,8 +3,8 @@
 import { Clapperboard, Download, RotateCcw, Share2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
-import type { ReelProps } from "@/lib/reel/composition";
-import { resolveTheme } from "@/lib/reel/composition";
+import type { ReelProps } from "@/lib/reel/engine/reel-types";
+import { resolveTheme } from "@/lib/reel/engine/themes";
 import { cn } from "@/lib/utils";
 
 import { usePrefersReducedMotion } from "./marketing-lab-shared";
@@ -63,7 +63,6 @@ export function useFixtureReelProps(): ReelProps {
       seed: 73,
       styleId: "classic",
       orientation: "portrait" as const,
-      posterMode: true,
       watermark: false,
     }),
     [],

@@ -5,11 +5,18 @@
  * surface reached ONLY via its chip (never in the All scroll). Pure + node-safe
  * so the server page (resolveInitialFilter) and the client chips share one source.
  */
-export type FilterValue = "all" | "events" | "uploads" | "likes" | "trash";
+export type FilterValue =
+  | "all"
+  | "events"
+  | "following"
+  | "uploads"
+  | "likes"
+  | "trash";
 
 const VALID: readonly FilterValue[] = [
   "all",
   "events",
+  "following",
   "uploads",
   "likes",
   "trash",
@@ -19,6 +26,10 @@ const VALID: readonly FilterValue[] = [
 export const FILTER_CHIPS: { value: FilterValue; label: string }[] = [
   { value: "all", label: "All" },
   { value: "events", label: "Events" },
+  // Following (profiles+social): events published by hosts you follow. Chip-only
+  // like Trash (never in the All stack) - it's a lens on OTHER people's events,
+  // not part of your own media scroll.
+  { value: "following", label: "Following" },
   { value: "uploads", label: "Uploads" },
   { value: "likes", label: "Likes" },
   // Label "Deleted" (the 2026-06-20 rename); the `trash` VALUE stays (URL + alias).

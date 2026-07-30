@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PlannedGap } from "../composition/layout";
+import type { PlannedGap } from "./layout";
 import { signatureFrameState } from "./signatures";
 
 // Pins sampled from Reel.tsx's composition-signature block (the source the module ports verbatim):

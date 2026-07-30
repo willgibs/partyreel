@@ -69,6 +69,8 @@ type GuestPresignCode =
   | "invalid_file"
   | "invalid_session"
   | "event_gone"
+  | "unauthorized" // QA #18: private event — guest uploads never
+  | "unlock_required" // QA #18: password event, lock not proven
   | "uploads_closed"
   | "video_not_allowed"
   | "cap_reached"
@@ -81,7 +83,14 @@ type HostPresignCode =
   | "not_found"
   | "video_not_allowed"
   | "cap_reached";
-type GuestRouteCode = "bad_request" | "rate_limited";
+type GuestRouteCode =
+  | "bad_request"
+  | "rate_limited"
+  // QA #18: the mint pre-gates visibility (not_found for a dead link; unauthorized for private;
+  // unlock_required for a password event without the cookie/ownership proof).
+  | "not_found"
+  | "unauthorized"
+  | "unlock_required";
 type UnlockRouteCode =
   | "bad_request"
   | "rate_limited"
@@ -100,13 +109,18 @@ type StripeRouteCode =
   | "no_customer";
 type MeMenuCode = "unauthorized";
 type ReportsRouteCode = "bad_request" | "rate_limited";
-// Guest api/r2/complete-upload inline codes; the host route adds unauthorized.
+// The pipeline-engine inline codes shared by both complete routes; each route file adds its own.
 type CompleteUploadCode =
   | "bad_request"
   | "unsupported_type"
   | "too_large"
   | "complete_failed"
   | "bad_key";
+// QA #18: the guest strategy re-checks the event lock before createMedia.
+type GuestCompleteUploadCode =
+  | CompleteUploadCode
+  | "unauthorized"
+  | "unlock_required";
 type HostCompleteUploadCode = CompleteUploadCode | "unauthorized";
 type _avatar = Expect<IsSubtype<AvatarRouteCode, ErrorCode>>;
 type _presign = Expect<IsSubtype<GuestPresignCode, ErrorCode>>;
@@ -118,7 +132,7 @@ type _gallery = Expect<IsSubtype<GalleryRouteCode, ErrorCode>>;
 type _stripe = Expect<IsSubtype<StripeRouteCode, ErrorCode>>;
 type _meMenu = Expect<IsSubtype<MeMenuCode, ErrorCode>>;
 type _reports = Expect<IsSubtype<ReportsRouteCode, ErrorCode>>;
-type _complete = Expect<IsSubtype<CompleteUploadCode, ErrorCode>>;
+type _complete = Expect<IsSubtype<GuestCompleteUploadCode, ErrorCode>>;
 type _hostComplete = Expect<IsSubtype<HostCompleteUploadCode, ErrorCode>>;
 
 // Keep TS from flagging the assertion aliases as unused.

@@ -7,6 +7,7 @@ import { DashboardFeed } from "@/components/app/dashboard/dashboard-feed";
 import { EmptySectionTeaser } from "@/components/app/dashboard/empty-section-teaser";
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
+import { FollowingSection } from "@/components/app/dashboard/following-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { TrashSection } from "@/components/app/dashboard/trash-section";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
@@ -33,6 +34,7 @@ import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSavedEventCards } from "@/lib/db/queries/saved-events";
+import { getFollowedHostEventCards } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
@@ -62,6 +64,7 @@ export default async function DashboardPage({
     uploads,
     likes,
     siteUrl,
+    followedCards,
   ] = await Promise.all([
     listEvents(),
     getProfile(),
@@ -71,12 +74,18 @@ export default async function DashboardPage({
     getMyUploadCards(),
     getMyLikeCards(),
     getSiteUrl(),
+    // Following chip (profiles+social): events published by followed hosts.
+    // [] pre-apply (the graceful seam) and for a host following no one.
+    getFollowedHostEventCards(),
   ]);
 
   // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
   // account must set a public display name (Phase 1) before reaching the dashboard. Runs BEFORE
   // the presign batch + any JSX, so a nameless account redirects with zero content flash.
-  if (needsDisplayName(profile?.display_name) || shouldShowWelcome(profile?.welcomed_at)) {
+  if (
+    needsDisplayName(profile?.display_name) ||
+    shouldShowWelcome(profile?.welcomed_at)
+  ) {
     redirect("/welcome");
   }
 
@@ -100,7 +109,10 @@ export default async function DashboardPage({
   // Storage gauge (storage-cap model): ACTIVE bytes vs the effective cap (explicit override else
   // the tier default). Active bytes = non-removed media in non-deleted events — what the cap is
   // enforced against, so deleting visibly frees room. The StorageMeter owns the display.
-  const storageCap = effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null);
+  const storageCap = effectiveStorageCap(
+    tier,
+    profile?.storage_cap_bytes ?? null,
+  );
   const storageUsed = storage.activeBytes;
   const standbyBytes = storage.standbyBytes;
   const overBudget = overStandbyBudget(standbyBytes, storageCap);
@@ -254,6 +266,7 @@ export default async function DashboardPage({
         trashCount={deletedEvents.length}
         showChips={layout.showChips}
         eventsSection={eventsSection}
+        followingSection={<FollowingSection cards={followedCards} />}
         uploadsSection={uploadsSection}
         likesSection={likesSection}
         trashSection={trashSection}

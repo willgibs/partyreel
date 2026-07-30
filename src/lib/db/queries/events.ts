@@ -112,7 +112,7 @@ export async function getEventCoverUrls(
 
   const { data, error } = await supabase
     .from("media")
-    .select("event_id, original_key")
+    .select("event_id, original_key, preview_key")
     .in("event_id", eventIds)
     .eq("status", "approved")
     .eq("type", "photo")
@@ -121,10 +121,15 @@ export async function getEventCoverUrls(
   if (error) throw error;
 
   // newest-first → the first row seen per event_id is its cover.
+  // PREFER the small WebP preview, exactly like MediaTile's `previewUrl ?? url`:
+  // a dashboard of event cards was pulling the FULL-RES ORIGINAL for every card
+  // on every render, so a phone loading eight cards downloaded tens of MB to
+  // paint eight thumbnails. Falls back to the original for pre-preview-era rows
+  // (and rows whose preview generation was skipped), so covers never vanish.
   const coverKey = new Map<string, string>();
   for (const row of data ?? []) {
     if (!coverKey.has(row.event_id))
-      coverKey.set(row.event_id, row.original_key);
+      coverKey.set(row.event_id, row.preview_key ?? row.original_key);
   }
   const entries = await Promise.all(
     [...coverKey].map(

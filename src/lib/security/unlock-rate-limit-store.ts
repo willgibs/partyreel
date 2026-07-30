@@ -8,6 +8,7 @@ import "server-only";
 
 import { createHmac } from "node:crypto";
 
+import { mustCount } from "@/lib/db/must-query";
 import { serverEnv } from "@/lib/env";
 import {
   UNLOCK_EVENT_WINDOW_MIN,
@@ -49,19 +50,32 @@ export async function checkUnlockRate(
   const eventSince = new Date(
     Date.now() - UNLOCK_EVENT_WINDOW_MIN * 60_000,
   ).toISOString();
-  const [ipRes, evRes] = await Promise.all([
-    admin
-      .from("unlock_attempts")
-      .select("*", { count: "exact", head: true })
-      .eq("ip_hash", ipHash)
-      .gt("attempted_at", ipSince),
-    admin
-      .from("unlock_attempts")
-      .select("*", { count: "exact", head: true })
-      .eq("token_hash", tokenHash)
-      .gt("attempted_at", eventSince),
+  // mustCount, for the same reason as the abuse limiter: a failed COUNT resolves as
+  // a confident ZERO, i.e. "no failed attempts", i.e. ALLOWED. The unlock route
+  // wraps this in try/catch and fails open on purpose, but its own comment says a
+  // silent outage here is an open brute-force window ("so surface it") — and it
+  // could not surface, because swallowing the error meant nothing ever threw.
+  // NOTE this pair escaped the no-swallowed-db-error lint: `ipRes.count ?? 0` is a
+  // property read, not a destructure, so the rule's AST pattern never saw it.
+  const [ipCount, evCount] = await Promise.all([
+    mustCount(
+      admin
+        .from("unlock_attempts")
+        .select("*", { count: "exact", head: true })
+        .eq("ip_hash", ipHash)
+        .gt("attempted_at", ipSince),
+      "security/unlock-limiter: per-IP failures",
+    ),
+    mustCount(
+      admin
+        .from("unlock_attempts")
+        .select("*", { count: "exact", head: true })
+        .eq("token_hash", tokenHash)
+        .gt("attempted_at", eventSince),
+      "security/unlock-limiter: per-event failures",
+    ),
   ]);
-  return unlockRateDecision(ipRes.count ?? 0, evRes.count ?? 0);
+  return unlockRateDecision(ipCount, evCount);
 }
 
 /** Record ONE failed attempt (best-effort; the caller ignores errors). */

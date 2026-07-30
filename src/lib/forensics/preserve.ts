@@ -11,6 +11,7 @@
  */
 import "server-only";
 
+import { mustQuery } from "@/lib/db/must-query";
 import {
   parseExtFromKey,
   preservedForensicsKey,
@@ -126,16 +127,28 @@ export async function preserveMedia(args: {
   // 3. Snapshot the DB evidence next to the copy: the media row, its forensic row (null for
   //    pre-capture uploads), and the event context. Session tokens are NOT part of any of these
   //    rows — the forensic row carries guest linkage by id/email, never the capability.
-  const { data: forensics } = await admin
-    .from("upload_forensics")
-    .select("*")
-    .eq("media_id", mediaId)
-    .maybeSingle();
-  const { data: event } = await admin
-    .from("events")
-    .select("id, name, host_id, created_at")
-    .eq("id", eventId)
-    .maybeSingle();
+  //    mustQuery on both: this snapshot IS the evidence. A swallowed read wrote a
+  //    well-formed JSON record with `forensics: null` / `event: undefined` and
+  //    reported success, so the gap was indistinguishable from a pre-capture upload
+  //    and nobody would learn of it until the CyberTipline referral. Fail the
+  //    preserve loudly (the audit log records the failure) rather than bank a
+  //    silently incomplete exhibit.
+  const forensics = await mustQuery(
+    admin
+      .from("upload_forensics")
+      .select("*")
+      .eq("media_id", mediaId)
+      .maybeSingle(),
+    "forensics/preserve: upload_forensics snapshot",
+  );
+  const event = await mustQuery(
+    admin
+      .from("events")
+      .select("id, name, host_id, created_at")
+      .eq("id", eventId)
+      .maybeSingle(),
+    "forensics/preserve: event snapshot",
+  );
 
   const snapshotKey = preservedForensicsKey({ eventId, mediaId });
   const preservedAt = new Date().toISOString();

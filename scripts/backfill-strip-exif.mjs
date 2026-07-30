@@ -337,12 +337,20 @@ if (LIVE && dbFixes.length > 0) {
 
   for (const [lk, delta] of ledgerDelta) {
     const [hostId, period] = lk.split("|");
-    const { data: led } = await supabase
+    // Bind the error (this script can't import the @/ alias that mustQuery lives
+    // behind): swallowed, a failed read looked exactly like "no ledger row" and the
+    // month's cumulative_bytes silently kept the un-stripped size forever.
+    const { data: led, error: readErr } = await supabase
       .from("storage_ledger")
       .select("id, cumulative_bytes")
       .eq("host_id", hostId)
       .eq("period", period)
       .maybeSingle();
+    if (readErr) {
+      console.error(`  ledger ${lk}: read failed - ${readErr.message}`);
+      stats.errors++;
+      continue;
+    }
     if (!led) continue; // no ledger row for that month (nothing to shrink)
     const next = Math.max(0, led.cumulative_bytes - delta);
     const { error: lErr } = await supabase

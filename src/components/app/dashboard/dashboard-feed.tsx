@@ -19,6 +19,7 @@ export function DashboardFeed({
   trashCount,
   showChips,
   eventsSection,
+  followingSection,
   uploadsSection,
   likesSection,
   trashSection,
@@ -28,6 +29,8 @@ export function DashboardFeed({
   /** Hidden when there is nothing to navigate (the pure onboarding page). */
   showChips: boolean;
   eventsSection: React.ReactNode;
+  /** Events by hosts you follow (profiles+social). Chip-only, like Trash. */
+  followingSection: React.ReactNode;
   uploadsSection: React.ReactNode;
   likesSection: React.ReactNode;
   trashSection: React.ReactNode;
@@ -47,6 +50,7 @@ export function DashboardFeed({
   }
 
   const showEvents = filter === "all" || filter === "events";
+  const showFollowing = filter === "following";
   const showUploads = filter === "all" || filter === "uploads";
   const showLikes = filter === "all" || filter === "likes";
   const showTrash = filter === "trash";
@@ -54,10 +58,15 @@ export function DashboardFeed({
   return (
     <div className="space-y-6">
       {showChips && (
-        <FilterChips active={filter} onChange={select} trashCount={trashCount} />
+        <FilterChips
+          active={filter}
+          onChange={select}
+          trashCount={trashCount}
+        />
       )}
       <div className="space-y-8">
         {showEvents && eventsSection}
+        {showFollowing && followingSection}
         {showUploads && uploadsSection}
         {showLikes && likesSection}
         {showTrash && trashSection}

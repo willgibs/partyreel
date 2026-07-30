@@ -54,7 +54,10 @@ export function PasswordGate({
   const [cooldownLeft, setCooldownLeft] = useState(0);
   useEffect(() => {
     if (cooldownLeft <= 0) return;
-    const id = setTimeout(() => setCooldownLeft((s) => Math.max(0, s - 1)), 1000);
+    const id = setTimeout(
+      () => setCooldownLeft((s) => Math.max(0, s - 1)),
+      1000,
+    );
     return () => clearTimeout(id);
   }, [cooldownLeft]);
 
@@ -135,6 +138,15 @@ export function PasswordGate({
             // focused field above it.
             aria-label="Event password"
             aria-invalid={error ? true : undefined}
+            // Point at the message below so the failure is READ OUT, not just
+            // reddened: aria-invalid alone announces "invalid" without ever
+            // saying why, and the cooldown countdown is the one thing a guest
+            // who can't see the screen most needs to hear.
+            aria-describedby={
+              (cooldownLeft > 0 || error) && !done
+                ? "password-gate-error"
+                : undefined
+            }
             className={cn(
               // h-11 + 16px text: the ratified gate input size (16px also
               // stops the iOS focus auto-zoom).
@@ -159,6 +171,10 @@ export function PasswordGate({
         </div>
         {(cooldownLeft > 0 || error) && !done && (
           <p
+            id="password-gate-error"
+            // role="alert" so a wrong password is ANNOUNCED the moment it
+            // renders. Without it the only failure signal was colour.
+            role="alert"
             className={cn(
               "text-sm",
               dark ? "text-red-300" : "text-destructive",

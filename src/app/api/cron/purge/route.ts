@@ -18,8 +18,13 @@
  * Each sweep is independently try/caught so one failure doesn't abort the rest.
  */
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
-import { effectiveStorageCap, toBillingTier } from "@/lib/constants/tiers";
+import {
+  capWithWriteHeadroom,
+  effectiveStorageCap,
+  toBillingTier,
+} from "@/lib/constants/tiers";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
+import { mustQuery } from "@/lib/db/must-query";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
@@ -222,13 +227,30 @@ async function sweepExpiredEvents(
     };
   }
 
-  const { data: media, error: mErr } = await admin
-    .from("media")
-    .select("id, original_key, preview_key")
-    .in("event_id", eventIds);
-  if (mErr) throw new Error(`select media: ${mErr.message}`);
-
-  const rows = (media ?? []) as MediaRow[];
+  // ★ PAGINATE TO EXHAUSTION (QA #9). PostgREST caps a response at max_rows (1000). An unbounded
+  // select here silently returned the FIRST page, and the event-row delete below then FK-CASCADED
+  // every remaining media row away — no R2 delete (permanent orphans the sweep can never reclaim,
+  // replicated into the WORM backup bucket) and no storage_used_bytes decrement (a drifted meter
+  // that shrinks the host's usable cap forever). A >1000-photo wedding album is an ordinary event.
+  const rows: MediaRow[] = [];
+  const PAGE = 1000;
+  // Advance by what the server ACTUALLY returned and stop only on an empty page. Never compare
+  // against the requested PAGE size: PostgREST silently clamps to its own max_rows, so a cap lower
+  // than PAGE would make a "short" first page look like the last one and re-open the very orphan
+  // bug this loop closes. An empty page is the only unambiguous end-of-list signal.
+  for (let from = 0; ; ) {
+    const { data: page, error: mErr } = await admin
+      .from("media")
+      .select("id, original_key, preview_key")
+      .in("event_id", eventIds)
+      .order("id", { ascending: true }) // stable order: pages can't overlap or skip
+      .range(from, from + PAGE - 1);
+    if (mErr) throw new Error(`select media: ${mErr.message}`);
+    const batch = (page ?? []) as MediaRow[];
+    if (batch.length === 0) break;
+    rows.push(...batch);
+    from += batch.length;
+  }
   const mediaIds = rows.map((r) => r.id);
   // Also delete each event's rendered highlight-reel .mp4. It's a DERIVED artifact with no media
   // row, so the media-key enumeration above never includes it AND the orphan sweep ignores it
@@ -509,7 +531,13 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
     }[];
     const activeBytes = rows.reduce((s, m) => s + m.file_size_bytes, 0);
 
-    if (activeBytes <= cap) {
+    // ENGAGE at the write-path line, not the bare cap (QA #26): uploads are accepted up to
+    // cap + cap/10, so a host inside that deliberate headroom is exactly where the product put
+    // them — emailing "over your limit" and later auto-removing their media is wrong. Once truly
+    // over, the reduce below still targets the REAL cap (hysteresis, so it can't flap).
+    const engageAt = capWithWriteHeadroom(cap);
+
+    if (activeBytes <= engageAt) {
       if (p.storage_grace_until) {
         await admin
           .from("profiles")
@@ -553,7 +581,14 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
       if (ids.length) {
         const { error: rmErr } = await admin
           .from("media")
-          .update({ status: "removed", removed_at: now.toISOString() })
+          .update({
+            status: "removed",
+            removed_at: now.toISOString(),
+            // QA #2: mark these as SYSTEM-binned so sweepStandbyBudget (same invocation, seconds
+            // later) excludes them. Without it the standby sweep hard-deletes the media this sweep
+            // just promised the host was recoverable for 30 days.
+            removed_by_system: true,
+          })
           .in("id", ids);
         if (rmErr) throw new Error(`auto-reduce remove: ${rmErr.message}`);
       }
@@ -691,12 +726,20 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
     };
 
     // Newest upload (any status — a recent upload means the event is still in use).
-    const { data: media } = await admin
-      .from("media")
-      .select("created_at")
-      .eq("event_id", e.id)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    // mustQuery, because this read can only ever move the verdict toward DELETION:
+    // swallowed, a failed query looked identical to "this event has never had an
+    // upload", so a busy album whose other timestamps were old got warned and then
+    // removed for inactivity. A transient DB error must abort the sweep (it resumes
+    // next night), never silently age out live events.
+    const media = await mustQuery(
+      admin
+        .from("media")
+        .select("created_at")
+        .eq("event_id", e.id)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      "cron/purge: newest upload for inactivity",
+    );
     const latestUpload = media?.[0]?.created_at;
 
     const activityMs = Math.max(
@@ -835,11 +878,17 @@ async function sweepStandbyBudget(
     // LEGAL HOLD (ADR-0020): held rows are excluded from the bin entirely — they can't be evicted
     // (the delete is R2-first, so they must never reach the key list) and they don't count against
     // the host's standby budget (the hold is our doing, not the host's hoarding).
+    // ★ removed_by_system (QA #2): sweep 5 (sweepOverCapacity) soft-removes over-cap media EARLIER
+    // IN THIS SAME INVOCATION and emails "recoverable until <date>". Without this filter those very
+    // rows land in the bin seconds later, blow the budget on their own (they routinely exceed it —
+    // that is what over-cap means), and get HARD-DELETED with their R2 objects. They still purge on
+    // schedule at purge_at. The 24h age gate in selectForStandbyEviction is the second belt.
     const { data: removedRows, error: rErr } = await admin
       .from("media")
       .select(BIN_SELECT)
       .eq("events.host_id", p.id)
       .eq("status", "removed")
+      .eq("removed_by_system", false)
       .filter("legal_hold_at", "is", null);
     if (rErr) throw new Error(`standby removed bin: ${rErr.message}`);
     const { data: deletedRows, error: dErr } = await admin
@@ -868,6 +917,7 @@ async function sweepStandbyBudget(
           minIso(r.removed_at, r.events.deleted_at) ?? now.toISOString(),
       })),
       budget,
+      now.getTime(),
     );
     if (evictIds.length === 0) continue;
 

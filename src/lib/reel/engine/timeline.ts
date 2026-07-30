@@ -18,8 +18,8 @@ import {
   planReel,
   type PlannedGap,
   type ReelPlan,
-} from "../composition/layout";
-import type { ReelProps } from "../composition/reel-types";
+} from "./layout";
+import type { ReelProps } from "./reel-types";
 import { springTimingProgress } from "./spring";
 
 /** One on-screen clip layer at a given output frame. */

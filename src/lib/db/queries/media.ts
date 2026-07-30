@@ -26,11 +26,22 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
 export const MEDIA_HOST_COLUMNS =
   "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, highlight_score, clip_start_seconds, clip_end_seconds";
 
-// The Omit is a no-op until the orchestrator regenerates types.ts post-apply; then it strips the
-// two hold columns the grant withholds, keeping this type equal to what the queries can return.
+// Strips every column the authenticated grant WITHHOLDS, keeping this type equal to what the
+// queries above can actually return. `removed_by_system` (QA #2) joins the hold columns here: a
+// column-scoped SELECT grant does NOT extend to columns added later, so `authenticated` cannot
+// read it — and shouldn't (it records OUR sweep's action, not the host's). Verified live:
+// has_column_privilege('authenticated','public.media','removed_by_system','SELECT') = false.
+// `removed_by_admin` + `status_before_removed` (QA #8/#24, migration 20260729180000) join them for
+// the same reason: an operator takedown carries the ADR-0020 discretion posture (the host may BE
+// the reported party), and the prior-status stamp is machinery, not host-facing state. Types.ts
+// will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
 export type MediaRow = Omit<
   Tables<"media">,
-  "legal_hold_at" | "legal_hold_reason"
+  | "legal_hold_at"
+  | "legal_hold_reason"
+  | "removed_by_system"
+  | "removed_by_admin"
+  | "status_before_removed"
 >;
 
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {

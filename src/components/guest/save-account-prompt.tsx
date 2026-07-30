@@ -69,6 +69,11 @@ export function SaveAccountPrompt({
         data: { session },
       } = await supabase.auth.getSession();
       if (!session || !active) return;
+      // DELIBERATE swallow: this only decides whether to HIDE an optional prompt.
+      // A failed read leaves `row` undefined, so the prompt shows; the save action
+      // itself is idempotent and reports its own errors. Failing toward "show" is
+      // the harmless direction, and a toast here would be noise on a nudge.
+      // eslint-disable-next-line partyreel/no-swallowed-db-error
       const { data: row } = await supabase
         .from("saved_events")
         .select("event_id")

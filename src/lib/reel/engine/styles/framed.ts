@@ -18,9 +18,9 @@
 //   picture-light there instead.
 // - Offscreen pieces are culled (the DOM never rasterizes them; the canvas otherwise would).
 
-import { fitClip } from "../../composition/framing";
-import type { ReelClip, ReelProps } from "../../composition/reel-types";
-import { seeded, seededPick, seededRange } from "../../composition/seed";
+import { fitClip } from "../framing";
+import type { ReelClip, ReelProps } from "../reel-types";
+import { seeded, seededPick, seededRange } from "../seed";
 import type { ReelAssets } from "../assets";
 import { containRect, coverRect } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

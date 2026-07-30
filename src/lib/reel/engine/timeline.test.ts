@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { reelDimensions } from "../composition/constants";
-import { planReel } from "../composition/layout";
-import type { ReelClip, ReelProps } from "../composition/reel-types";
-import { THEME_CLASSIC } from "../composition/reel-types";
-import { THEME_PUNCHY } from "../composition/themes";
+import { reelDimensions } from "./constants";
+import { planReel } from "./layout";
+import type { ReelClip, ReelProps } from "./reel-types";
+import { THEME_CLASSIC } from "./reel-types";
+import { THEME_PUNCHY } from "./themes";
 import {
   clipStartFrames,
   frameStateAt,

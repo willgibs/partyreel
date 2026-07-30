@@ -792,3 +792,289 @@
     filter: none;
   }
 }
+
+/* ─────────────── Reel experience round (R3 slice C, lab-local, 2026-07-21) ───────────────
+   Three directions for the reel as a product moment (Marquee in the feed, The
+   Studio, The Premiere), each covering the event-page section, creation with
+   14-style identity, the publish moment, and the guest arrival. Convention as
+   always: FINAL states live outside the media queries (a reduced-motion flip
+   still arrives), TRANSITIONS live inside no-preference, and the reduce block
+   collapses to 200ms opacity fades. The RATIFIED reveal grammar is reused by
+   name (V3's Create-reel stage IS a [data-rvl-composite] stage, so the closed
+   --tune-rvl-* beats drive it untouched); only NEW choreography (publish beat,
+   studio enter, guest arrival cuts) lives under this prefix. The publish-beat
+   durations are --tune-rxp-* knobs (fallbacks mirror RXP_TUNE_MS in
+   reel-experience-shared.tsx, the motion-tuner contract).
+
+     [data-rxp-thumb]     a style thumb's frame; data-active = the violet ring
+                          (style taps are INSTANT, so no transition on purpose)
+     [data-rxp-swap]      content swap entrance (first-run fill, stage changes,
+                          the guest overlay mount): rise + fade on sheet-ms
+     [data-rxp-ghost]     V3's builder grid the instant its FLIP copies take
+                          over (vanishes with NO transition, no ghost imprint)
+     [data-rxp-share]     V1's share card; data-state="on" fires the one-shot
+                          violet bloom (the occasional-tier publish flourish)
+     [data-rxp-studio]    V2's full-bleed takeover enter (scale settle + fade)
+     [data-rxp-sheet]     V2's control sheets (slide up over the canvas)
+     [data-rxp-pubglow]   V2's publish beat: a violet glow breathing on the
+                          canvas frame (the canvas frames the moment)
+     [data-rxp-toastcard] V2's "Guests can now watch" confirmation card
+     [data-rxp-celebrate] V3's rare-tier finale: the light sweep overlay
+     [data-rxp-badge]     the Shared badge settling inside the celebrate
+     [data-rxp-gstage]    the guest-arrival overlay stage; data-act is the
+                          machine, data-entry names the direction's cut
+     [data-rxp-gscreen]   the guest overlay's CanvasReelPlayer box
+                          (--rxp-g-from = its per-direction hidden pose)
+     [data-rxp-gflash] / [data-rxp-gscrim] / [data-rxp-gtitle] / [data-rxp-gend]
+                          the guest cut's flash, scrim, title card, settled row
+     [data-rxp-tile]      a filmstrip tile (plain; V3's flying copies are
+                          [data-rvl-tile] so the ratified flight rules apply) */
+
+/* Rest/final states. */
+[data-rxp-thumb] {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+}
+[data-rxp-thumb][data-active] {
+  outline-color: var(--reel);
+}
+[data-rvl-stage]:not([data-act="idle"]) [data-rxp-ghost] {
+  opacity: 0;
+  transition: none;
+}
+[data-rxp-gscreen] {
+  opacity: 0;
+  transform: var(--rxp-g-from, scale(0.94));
+}
+[data-rxp-gflash],
+[data-rxp-gscrim] {
+  opacity: 0;
+}
+[data-rxp-gtitle] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+[data-rxp-gend] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* The guest cuts. The screen is born under the flash for the marquee cut
+   (same-size swap, the composite's grammar); the premiere cut holds it back
+   through the title-first beat and breathes it in after. */
+[data-rxp-gstage][data-act="flash"] [data-rxp-gscreen],
+[data-rxp-gstage]:is([data-act="open"], [data-act="settled"])
+  [data-rxp-gscreen],
+[data-rxp-gstage][data-act="title"]:not([data-entry="premiere"])
+  [data-rxp-gscreen],
+[data-rxp-gstage][data-act="breathe"] [data-rxp-gscreen] {
+  opacity: 1;
+}
+[data-rxp-gstage]:is(
+    [data-act="open"],
+    [data-act="breathe"],
+    [data-act="settled"]
+  )
+  [data-rxp-gscreen],
+[data-rxp-gstage][data-act="title"]:not([data-entry="premiere"])
+  [data-rxp-gscreen] {
+  transform: none;
+}
+[data-rxp-gstage]:is([data-act="title"], [data-act="breathe"])
+  [data-rxp-gscrim] {
+  opacity: 1;
+}
+[data-rxp-gstage]:is([data-act="title"], [data-act="breathe"])
+  [data-rxp-gtitle] {
+  opacity: 1;
+  transform: none;
+}
+[data-rxp-gstage][data-act="settled"] [data-rxp-gtitle] {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+[data-rxp-gstage][data-act="settled"] [data-rxp-gend] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-rxp-swap] {
+    transition:
+      opacity var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease),
+      transform var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(10px) scale(0.99);
+    }
+  }
+
+  /* The occasional-tier publish flourish: the card flips state under 300ms
+     (the data-rxp-swap above), then ONE violet bloom rides out from it. */
+  [data-rxp-share][data-state="on"] {
+    animation: rxp-bloom var(--tune-rxp-pub-ms, 700ms) var(--dir-ease) both;
+  }
+
+  /* The studio takeover enters like a scene, not a page: a hard-ish scale
+     settle from 1.03 with the strong curve (the film-cut grammar, softened). */
+  [data-rxp-studio] {
+    transition:
+      opacity var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease),
+      transform var(--tune-rxp-sheet-ms, 260ms) var(--ease-in-out-strong);
+    @starting-style {
+      opacity: 0;
+      transform: scale(1.03);
+    }
+  }
+
+  [data-rxp-sheet] {
+    transition:
+      transform var(--tune-rxp-sheet-ms, 260ms)
+        var(--ease-drawer, cubic-bezier(0.32, 0.72, 0, 1)),
+      opacity var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  [data-rxp-pubglow] {
+    animation: rxp-pubglow var(--tune-rxp-pub-ms, 700ms) var(--dir-ease) both;
+  }
+
+  [data-rxp-toastcard] {
+    transition:
+      opacity var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease),
+      transform var(--tune-rxp-sheet-ms, 260ms) var(--dir-ease);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+  }
+
+  /* V3's rare-tier finale: a warm light band sweeps the poster once while the
+     Shared badge settles in with a restrained pop. The sweep length is the
+     tunable; the badge rides a fraction of it so retiming stays one knob. */
+  [data-rxp-celebrate]::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      oklch(0.99 0 0 / 0.28) 48%,
+      oklch(0.85 0.12 300 / 0.32) 52%,
+      transparent 62%
+    );
+    transform: translateX(-70%);
+    animation: rxp-sweep var(--tune-rxp-celebrate-ms, 950ms)
+      var(--ease-in-out-strong) both;
+  }
+  [data-rxp-badge] {
+    opacity: 0;
+    transform: scale(0.85);
+    animation: rxp-badge 460ms cubic-bezier(0.34, 1.45, 0.64, 1) both;
+    animation-delay: calc(var(--tune-rxp-celebrate-ms, 950ms) * 0.3);
+  }
+
+  /* Guest-cut motion: the expansion + fade beats read the CLOSED reveal vars. */
+  [data-rxp-gscreen] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform var(--tune-rvl-expand-ms, 720ms) var(--ease-in-out-strong);
+  }
+  /* The flash covers the card-to-canvas swap: the screen's birth is a snap. */
+  [data-rxp-gstage][data-act="flash"] [data-rxp-gscreen] {
+    transition-duration: 180ms;
+  }
+  [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
+    animation: rvl-flash var(--tune-rvl-flash-ms, 360ms) var(--dir-ease) both;
+  }
+  [data-rxp-gscrim] {
+    transition: opacity 500ms var(--dir-ease);
+  }
+  [data-rxp-gtitle] {
+    transition:
+      opacity 520ms var(--dir-ease),
+      transform 520ms var(--dir-ease);
+  }
+  [data-rxp-gstage][data-act="settled"] [data-rxp-gtitle] {
+    transition-duration: 260ms; /* exits faster than it enters */
+  }
+  [data-rxp-gend] {
+    transition:
+      opacity 420ms var(--dir-ease),
+      transform 420ms var(--dir-ease);
+    transition-delay: 160ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-rxp-swap],
+  [data-rxp-studio],
+  [data-rxp-sheet],
+  [data-rxp-toastcard],
+  [data-rxp-gscreen],
+  [data-rxp-gtitle],
+  [data-rxp-gend] {
+    transition: opacity 200ms ease-out;
+    transform: none !important;
+    @starting-style {
+      opacity: 0;
+    }
+  }
+  [data-rxp-gscrim] {
+    transition: opacity 200ms ease-out;
+  }
+  /* The flourish beats are theater: reduced motion arrives without them (the
+     JS side also skips their holds, so state lands immediately). */
+  [data-rxp-share][data-state="on"],
+  [data-rxp-pubglow],
+  [data-rxp-celebrate]::before,
+  [data-rxp-badge],
+  [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
+    animation: none !important;
+  }
+  [data-rxp-badge] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rxp-bloom {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.62 0.2 300 / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 18px oklch(0.62 0.2 300 / 0);
+  }
+}
+
+@keyframes rxp-pubglow {
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: inset 0 0 46px 2px oklch(0.62 0.2 300 / 0.55);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+}
+
+@keyframes rxp-sweep {
+  to {
+    transform: translateX(70%);
+  }
+}
+
+@keyframes rxp-badge {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

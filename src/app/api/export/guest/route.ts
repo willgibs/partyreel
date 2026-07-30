@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { z } from "zod";
 
+import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryAccess } from "@/lib/events/gallery-access";
@@ -91,10 +92,18 @@ export async function POST(request: Request) {
   const ids = gallery.rows.map((r) => r.id);
   const sizeById = new Map<string, number>();
   if (ids.length) {
-    const { data: sizes } = await createAdminClient()
-      .from("media")
-      .select("id, file_size_bytes")
-      .in("id", ids);
+    // mustQuery is the CAP GUARD here, not just hygiene. This is the only read of
+    // the real byte sizes; if it failed silently every row fell back to 0, so a
+    // 40 GB album summarised as "0 files, 0 bytes" (an empty-looking download to
+    // the guest) AND sailed through the 20 GB ceiling in exportSummary. A failed
+    // size read must abort the export, never approve an unmeasured one.
+    const sizes = await mustQuery(
+      createAdminClient()
+        .from("media")
+        .select("id, file_size_bytes")
+        .in("id", ids),
+      "export/guest: media sizes",
+    );
     for (const s of sizes ?? []) sizeById.set(s.id, s.file_size_bytes);
   }
   const rows: ExportMediaRow[] = gallery.rows.map((r) => ({

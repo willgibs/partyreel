@@ -396,6 +396,68 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
   });
 
+  // QA #12: one dropped request used to freeze its tile at "uploading" (so the
+  // in-tile retry never appeared) AND break out of the sequential loop, silently
+  // abandoning the rest of the batch. These pin that a REJECTION is contained.
+  it("a REJECTED upload errors only its own tile, never wedges it at uploading", async () => {
+    mockUploadFile.mockRejectedValueOnce(new Error("network went away"));
+    const { addFiles, snapshots } = mountWithQueue();
+    addFiles([makeFile()]);
+
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "error" }),
+    );
+    // "error" is what renders the tap-to-retry affordance; "uploading" is the
+    // stuck state the guest could do nothing about.
+    expect(snapshots.at(-1)?.[0].status).not.toBe("uploading");
+  });
+
+  it("a REJECTED upload does not stop the rest of the batch", async () => {
+    mockUploadFile
+      .mockRejectedValueOnce(new Error("network went away"))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-2",
+        kind: "photo",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-3",
+        kind: "photo",
+      });
+    const { addFiles, snapshots } = mountWithQueue();
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg"), makeFile("c.jpg")]);
+
+    await waitFor(() => {
+      const last = snapshots.at(-1)!;
+      expect(last.map((it) => it.status)).toEqual(["error", "done", "done"]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(3);
+  });
+
+  it("a rejected upload is still retryable", async () => {
+    mockUploadFile
+      .mockRejectedValueOnce(new Error("network went away"))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-1",
+        kind: "photo",
+      });
+    const { addFiles, snapshots, handleRef } = mountWithQueue();
+    addFiles([makeFile()]);
+
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "error" }),
+    );
+    handleRef.current!.retry(snapshots.at(-1)![0].id);
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
+    );
+  });
+
   it("handle.openPicker clicks the hidden file input", () => {
     const { container, handleRef } = mountWithQueue();
     const hidden = container.querySelector(

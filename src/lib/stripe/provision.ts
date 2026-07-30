@@ -85,18 +85,14 @@ export type EventPassPatch = {
 };
 
 /**
- * Resolve a `checkout.session.completed` event for a ONE-TIME Event Pass purchase into a
- * profile patch (Pro subscriptions provision from `customer.subscription.*` instead).
- * Returns null for any other event or a non-Event-Pass session.
- *
- * `tierExpiresAt` is derived from the session's `created` time (NOT now()), so a
- * re-delivered event is idempotent — it rewrites the same expiry instead of extending the
- * term. `plan` (tiers.ts `event_pass`) supplies the storage cap + term length.
+ * Recognize a ONE-TIME Event Pass checkout and pull out the two ids, WITHOUT computing the new
+ * expiry. Split out because the expiry now depends on the host's current one (ADR-0023: renewal
+ * EXTENDS), and the route cannot read that row until it knows whose row to read. Returns null for
+ * any other event or a non-Event-Pass session.
  */
-export function resolveEventPassCheckout(
+export function eventPassSession(
   event: Stripe.Event,
-  plan: Plan,
-): EventPassPatch | null {
+): { userId: string; customerId: string } | null {
   if (event.type !== "checkout.session.completed") return null;
   const session = event.data.object as Stripe.Checkout.Session;
   if (session.metadata?.plan_id !== "event_pass") return null;
@@ -107,16 +103,62 @@ export function resolveEventPassCheckout(
       ? session.customer
       : (session.customer?.id ?? null);
   if (!userId || !customerId) return null;
+  return { userId, customerId };
+}
 
-  const termSeconds = (plan.termDays ?? 365) * 86_400;
-  const tierExpiresAt = new Date(
-    (session.created + termSeconds) * 1000,
-  ).toISOString();
+/**
+ * Resolve a `checkout.session.completed` event for a ONE-TIME Event Pass purchase into a
+ * profile patch (Pro subscriptions provision from `customer.subscription.*` instead).
+ *
+ * ADR-0023 ruling 1: renewal EXTENDS from the current expiry, so the new term starts at
+ * `max(purchase time, current expiry)`. THE FAILURE THIS PREVENTS (QA #35): the old
+ * `session.created + term` reset the clock, so a host who renewed a month early silently threw
+ * away eleven months they had already paid for. An expiry in the PAST (a lapsed pass, or none at
+ * all) falls back to the purchase time, which is a fresh full term.
+ *
+ * Still derived from `session.created` rather than `now()`, so the value is a pure function of the
+ * event: a delivery that reaches this twice computes the same answer instead of drifting forward.
+ * That is not by itself replay-safety though, because this patch ACCUMULATES rather than being
+ * absolute like the subscription one. Replay-safety comes from the ordering guard in the webhook
+ * route, which refuses any delivery not strictly newer than the last one applied to the profile.
+ */
+export function resolveEventPassCheckout(
+  event: Stripe.Event,
+  plan: Plan,
+  currentExpiresAt: string | null,
+): EventPassPatch | null {
+  const ref = eventPassSession(event);
+  if (!ref) return null;
+  const session = event.data.object as Stripe.Checkout.Session;
+
+  const termMs = (plan.termDays ?? 365) * 86_400_000;
+  const purchasedMs = session.created * 1000;
+  const currentMs = currentExpiresAt
+    ? Date.parse(currentExpiresAt)
+    : Number.NaN;
+  // max(purchase, current expiry). An unparseable stored value degrades to a fresh term rather
+  // than throwing: never fail a host's paid purchase over a malformed timestamp.
+  const startMs =
+    Number.isFinite(currentMs) && currentMs > purchasedMs
+      ? currentMs
+      : purchasedMs;
 
   return {
-    userId,
-    customerId,
+    userId: ref.userId,
+    customerId: ref.customerId,
     storageCapBytes: plan.storageBytes,
-    tierExpiresAt,
+    tierExpiresAt: new Date(startMs + termMs).toISOString(),
   };
+}
+
+/**
+ * Stripe's `event.created` (unix seconds) as the ISO timestamp the ordering guard persists and
+ * compares against `profiles.stripe_event_created_at`.
+ *
+ * THE FAILURE THIS PREVENTS (QA #5): provisioning keyed on the customer alone with no recency
+ * check, so a retried or out-of-order delivery could re-grant Pro after a cancellation, or strip a
+ * paying host back to Free. Stripe retries for up to three days and does not guarantee ordering.
+ */
+export function deliveryCreatedAt(event: Stripe.Event): string {
+  return new Date(event.created * 1000).toISOString();
 }

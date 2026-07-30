@@ -1,76 +1,79 @@
 "use client";
 
-import { Player, type PlayerRef } from "@remotion/player";
 import { Pause, Play, Shuffle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  FPS,
-  type Orientation,
-  reelDimensions,
-  type ReelClip,
-  type ReelProps,
-  resolveStyleEntry,
-  resolveTheme,
-  StyleDispatch,
-  styleDuration,
-  styleThemeId,
-} from "@/lib/reel/composition";
 import {
   DEFAULT_WATERMARK_VARIANT,
   setWatermarkVariantOverride,
   WATERMARK_VARIANTS,
   type WatermarkVariant,
 } from "@/lib/reel/engine/canvas2d";
+import type { Orientation } from "@/lib/reel/engine/constants";
+import { FPS, reelDimensions } from "@/lib/reel/engine/constants";
 import {
   DEFAULT_BITRATE,
   ENCODE_BITRATES,
   encodeReel,
 } from "@/lib/reel/engine/encode";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
-import { ENGINE_STYLES } from "@/lib/reel/engine/registry";
+import {
+  ENGINE_STYLES,
+  engineStyleDuration,
+} from "@/lib/reel/engine/registry";
+import type { ReelClip, ReelProps } from "@/lib/reel/engine/reel-types";
+import { resolveStyleEntry, styleThemeId } from "@/lib/reel/engine/style-registry";
 import {
   type EngineSupport,
   probeEngineSupport,
 } from "@/lib/reel/engine/support";
+import { resolveTheme } from "@/lib/reel/engine/themes";
 
-// LOCAL fixtures on purpose: the canvas side must read back pixels for the encode, and a cross-origin
-// host without CORS (picsum, the style-catalog lab's source) TAINTS the canvas and kills the export.
-// Mixed aspects so cover-vs-fit framing differences show on both sides (landscape media in a portrait
-// reel is FIT with the theme backdrop; p12 is portrait and covers).
-const FIXTURES: { src: string; w: number; h: number }[] = [
+// LOCAL fixtures on purpose: the canvas reads back pixels for the encode, and a cross-origin host
+// without CORS (picsum) TAINTS the canvas and kills the export. Mixed aspects so cover-vs-fit framing
+// shows (landscape media in a portrait reel is FIT with the theme backdrop; p12 is portrait and covers).
+// One fixture is a VIDEO whose url is a still standing in for the client-generated poster WebP, so the
+// browser visually proves a video slot draws its poster (not a black hold) across every style.
+const FIXTURES: { src: string; w: number; h: number; type?: "video" }[] = [
   { src: "/design/p01.jpg", w: 900, h: 600 },
   { src: "/design/p12.jpg", w: 700, h: 1050 },
-  { src: "/design/p02.jpg", w: 900, h: 601 },
+  { src: "/design/p02.jpg", w: 900, h: 601, type: "video" }, // a video item: url = its poster still
   { src: "/design/p03.jpg", w: 900, h: 600 },
   { src: "/design/p04.jpg", w: 800, h: 534 },
   { src: "/design/p05.jpg", w: 900, h: 600 },
-  { src: "/design/p06.jpg", w: 900, h: 601 },
+  { src: "/design/p06.jpg", w: 900, h: 600 },
   { src: "/design/p07.jpg", w: 900, h: 600 },
 ];
 
-const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h }) => ({
+const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h, type }) => ({
   url: src,
-  type: "photo",
+  type: type ?? "photo",
   width: w,
   height: h,
 }));
 
-// The styles this harness can grade = whatever the engine has ported (the registry is the single
-// source, so a landing port appears in the picker automatically); the catalog names them.
-const PORTED_STYLE_IDS = Object.keys(ENGINE_STYLES);
+// The styles this browser can show = whatever the engine has (the registry is the single source, so a
+// new style appears here automatically); the catalog names them.
+const STYLE_IDS = Object.keys(ENGINE_STYLES);
 
-export function ReelParity() {
+/**
+ * The REEL CANVAS STYLE BROWSER (lab). Every reel style rendered by the canvas engine on shared props:
+ * pick a style/orientation/seed, watch it play, frame-lock + scrub for a still look at any moment, and
+ * export the mp4 via the on-device WebCodecs encoder (the same engine.encode path the composer ships).
+ * The watermark-variant picker is dev-only tuning. (This was the DOM-vs-canvas parity harness; the
+ * Remotion side was torn down 2026-07-08, so it's canvas-only now.)
+ */
+export function ReelCanvasStyles() {
   const [styleId, setStyleId] = useState("classic");
   const [seed, setSeed] = useState(73);
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [watermark, setWatermark] = useState(true);
-  // Dev-only: which T1 watermark candidate the canvas side stamps (the module-level
-  // override feeds player + encode without prop-threading; reset on unmount).
+  // Dev-only: which T1 watermark candidate the canvas stamps (the module-level override feeds the player
+  // + encode without prop-threading; reset on unmount).
   const [wmVariant, setWmVariant] = useState<WatermarkVariant>(
     DEFAULT_WATERMARK_VARIANT,
   );
-  // null = both players free-run; a number = both frame-locked there (the exact-comparison mode).
+  // null = free-run; a number = frame-locked there (the scrub-a-still mode).
   const [lockedFrame, setLockedFrame] = useState<number | null>(null);
   const [reports, setReports] = useState<string[]>([]);
 
@@ -86,8 +89,6 @@ export function ReelParity() {
     seconds: number;
   } | null>(null);
 
-  const remotionRef = useRef<PlayerRef>(null);
-
   const reelProps: ReelProps = useMemo(
     () => ({
       clips: CLIPS,
@@ -97,20 +98,17 @@ export function ReelParity() {
       seed,
       styleId,
       orientation,
-      posterMode: true,
       watermark,
     }),
     [styleId, seed, orientation, watermark],
   );
 
   const durationInFrames = useMemo(
-    () => Math.max(1, styleDuration(styleId, reelProps)),
+    () => Math.max(1, engineStyleDuration(styleId, reelProps)),
     [styleId, reelProps],
   );
   const { width, height } = reelDimensions(orientation);
   const landscape = width > height;
-  // Fixed tile widths (not max-w): the Remotion <Player> has no intrinsic size, so an auto-width
-  // flex item would shrink-wrap it to nothing.
   const tileClass = landscape ? "w-[560px] max-w-full" : "w-[300px] max-w-full";
 
   const onReport = useCallback((message: string) => {
@@ -127,30 +125,17 @@ export function ReelParity() {
     };
   }, [orientation]);
 
-  // Feed the dev-only watermark override + clear it when leaving the harness so any
-  // other canvas surface (reveal lab, composer) stamps the shipped default again.
+  // Feed the dev-only watermark override + clear it when leaving the lab so any other canvas surface
+  // (reveal lab, composer) stamps the shipped default again.
   useEffect(() => {
     setWatermarkVariantOverride(wmVariant);
     return () => setWatermarkVariantOverride(null);
   }, [wmVariant]);
 
-  // Frame-lock drives the Remotion side imperatively; the canvas side takes the frame as a prop.
-  useEffect(() => {
-    if (lockedFrame === null) return;
-    remotionRef.current?.pause();
-    remotionRef.current?.seekTo(lockedFrame);
-  }, [lockedFrame]);
-
-  const playBoth = () => {
-    setLockedFrame(null);
-    remotionRef.current?.seekTo(0);
-    remotionRef.current?.play();
-  };
-
-  const pauseBoth = () => {
-    const f = remotionRef.current?.getCurrentFrame() ?? 0;
-    setLockedFrame(Math.min(f, durationInFrames - 1));
-  };
+  const play = () => setLockedFrame(null);
+  // Lock to frame 0 to scrub; the range below moves it. (The canvas player takes the frame as a prop,
+  // so no imperative control is needed.)
+  const pause = () => setLockedFrame(0);
 
   const encode = async () => {
     setEncoding(true);
@@ -178,22 +163,19 @@ export function ReelParity() {
     }
   };
 
-  // Re-key both players on the shared inputs so free-run playback restarts (roughly) in sync.
-  // wmVariant is in the key so a variant flip re-renders the canvas side immediately.
+  // Re-key the player on the shared inputs so free-run playback restarts. wmVariant is in the key so a
+  // variant flip re-renders immediately.
   const restartKey = `${styleId}-${seed}-${orientation}-${watermark}-${wmVariant}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Reel canvas parity</h1>
+        <h1 className="text-2xl font-semibold">Reel canvas styles</h1>
         <p className="text-sm text-muted-foreground">
-          The Remotion composition and the canvas engine, same props, side by
-          side. Free-run playback drifts slightly; use Pause to frame-lock both
-          on one timeline and scrub for the exact comparison. Encode renders the
-          canvas side to an mp4 via WebCodecs. Note: the watermark is a
-          DELIBERATE delta since the T1 redesign; the canvas side stamps the new
-          bottom-right lockup while the teardown-bound Remotion side keeps the
-          old centered pill.
+          Every reel style on the canvas engine, on shared props. Pick a style,
+          orientation, and seed; Pause to frame-lock and scrub for a still look
+          at any moment. Encode renders the reel to an mp4 via WebCodecs (the
+          same on-device path the composer ships).
         </p>
       </header>
 
@@ -205,10 +187,10 @@ export function ReelParity() {
             setStyleId(e.target.value);
             setLockedFrame(null);
           }}
-          aria-label="Style (ported moods)"
+          aria-label="Style"
           className="rounded-md border bg-transparent px-2 py-1.5 text-sm"
         >
-          {PORTED_STYLE_IDS.map((id) => (
+          {STYLE_IDS.map((id) => (
             <option key={id} value={id}>
               {resolveStyleEntry(id).label} ({id})
             </option>
@@ -253,7 +235,7 @@ export function ReelParity() {
           <select
             value={wmVariant}
             onChange={(e) => setWmVariant(e.target.value as WatermarkVariant)}
-            aria-label="Watermark variant (canvas side)"
+            aria-label="Watermark variant"
             className="rounded-md border bg-transparent px-2 py-1.5 text-sm"
           >
             {WATERMARK_VARIANTS.map((v) => (
@@ -274,7 +256,7 @@ export function ReelParity() {
         {lockedFrame === null ? (
           <button
             type="button"
-            onClick={pauseBoth}
+            onClick={pause}
             className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-transform ease-emphasis active:scale-95"
           >
             <Pause className="size-4" /> Pause + lock
@@ -282,10 +264,10 @@ export function ReelParity() {
         ) : (
           <button
             type="button"
-            onClick={playBoth}
+            onClick={play}
             className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-transform ease-emphasis active:scale-95"
           >
-            <Play className="size-4" /> Play both
+            <Play className="size-4" /> Play
           </button>
         )}
         <input
@@ -303,28 +285,8 @@ export function ReelParity() {
         </span>
       </div>
 
-      {/* Side by side */}
+      {/* Player + the encoded result */}
       <div className="flex flex-wrap items-start gap-6">
-        <div className="space-y-1.5">
-          <div className="text-xs font-medium">Remotion (DOM)</div>
-          <div
-            className={`${tileClass} overflow-hidden rounded-xl border bg-black shadow-sm`}
-          >
-            <Player
-              key={restartKey}
-              ref={remotionRef}
-              component={StyleDispatch}
-              inputProps={reelProps}
-              durationInFrames={durationInFrames}
-              fps={FPS}
-              compositionWidth={width}
-              compositionHeight={height}
-              autoPlay
-              loop
-              style={{ width: "100%", aspectRatio: `${width} / ${height}` }}
-            />
-          </div>
-        </div>
         <div className="space-y-1.5">
           <div className="text-xs font-medium">Canvas engine</div>
           <div className={tileClass}>
@@ -358,7 +320,7 @@ export function ReelParity() {
               <a
                 className="underline"
                 href={result.url}
-                download="reel-canvas-parity.mp4"
+                download="reel-canvas-styles.mp4"
               >
                 download
               </a>

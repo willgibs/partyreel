@@ -47,6 +47,7 @@ export type ErrorCode =
   | "email_required"
   | "incorrect_password"
   | "wrong_password"
+  | "unlock_required"
   | "not_configured"
   | "rate_limited"
   // billing
@@ -92,6 +93,7 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   email_required: "An email is required to join this event.",
   incorrect_password: "That password is incorrect.",
   wrong_password: "That password is incorrect.",
+  unlock_required: "This event is locked. Enter the event password to continue.",
   not_configured: "That isn't set up for this event.",
   rate_limited: "Too many attempts. Wait a moment and try again.",
   no_customer: "We couldn't find billing details for your account.",

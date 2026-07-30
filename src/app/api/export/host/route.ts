@@ -61,6 +61,10 @@ export async function POST(request: Request) {
   }
 
   // Own-event check + the name in one RLS-scoped read (explicit host_id, not the open-event policy).
+  // DELIBERATE swallow: this is an authz probe, so a failed read MUST fail closed.
+  // `ev` undefined → 403, which is the safe answer to "I could not prove you own
+  // this event". Do not "fix" this into a mustQuery.
+  // eslint-disable-next-line partyreel/no-swallowed-db-error
   const { data: ev } = await supabase
     .from("events")
     .select("id, name")

@@ -30,6 +30,19 @@ export function mediaObjectKey(params: {
 }
 
 /**
+ * Does an R2 media key belong to `eventId`'s namespace? The single validator for the QA-review
+ * Pattern A: any client-supplied key stored on the media path (original_key, preview_key) MUST be
+ * bound to the event, or a host can register a victim's key and destroy the victim's object on
+ * permanent-delete (both purge paths enumerate these keys into deleteR2Objects). The authoritative
+ * gate is the SQL prefix check inside create_media(_as_host) (a client can't reach PostgREST); this
+ * TS twin is defense-in-depth at the server complete seam and gives an early, typed refusal.
+ * Mirrors the SQL `like 'events/' || event_id || '/%'` exactly (prefix + a following segment).
+ */
+export function isValidMediaKey(key: string, eventId: string): boolean {
+  return key.startsWith(`events/${eventId}/`);
+}
+
+/**
  * The R2 key for an event's rendered highlight-reel .mp4 (Slice 3). A DERIVED artifact, NOT media:
  * one STABLE key per event (a re-render overwrites in place — no accumulation; highlight_reels.
  * rendered_hash tracks whether the bytes are current).
@@ -130,4 +143,33 @@ export function parseEventIdFromKey(key: string): string | null {
   const segments = key.split("/");
   if (segments.length !== 5 || segments[0] !== "events") return null;
   return UUID_RE.test(segments[1]) ? segments[1] : null;
+}
+
+/**
+ * Pull the <kind> segment out of a media object key. Used by the complete seam's key/kind
+ * consistency check (QA #6): the key was MINTED at presign from that request's content-type, so
+ * its kind segment is the issuance record of what presign classified. Same structural guards as
+ * the parsers above; null for anything that isn't exactly our layout with a real kind.
+ */
+export function parseKindFromKey(key: string): MediaKind | null {
+  const segments = key.split("/");
+  if (segments.length !== 5 || segments[0] !== "events") return null;
+  const kind = segments[2];
+  return kind === "photo" || kind === "video" ? kind : null;
+}
+
+/**
+ * Pull the <variant> out of a media object key's last segment (`<variant>.<ext>`). The complete
+ * seam uses it to pin `key` to `original` and `preview_key` to `preview` (QA #6): without the pin,
+ * swapping the two would meter the ~2 MB preview as file_size_bytes while the full-size original
+ * sat uncounted. Null for a non-media shape or an unknown variant (refuse, never repair).
+ */
+export function parseVariantFromKey(key: string): MediaVariant | null {
+  const segments = key.split("/");
+  if (segments.length !== 5 || segments[0] !== "events") return null;
+  const lastSegment = segments[4];
+  const dot = lastSegment.indexOf(".");
+  if (dot < 1) return null; // no dot, or a dotfile with no name
+  const variant = lastSegment.slice(0, dot);
+  return variant === "original" || variant === "preview" ? variant : null;
 }

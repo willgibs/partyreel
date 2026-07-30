@@ -2,11 +2,77 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+/**
+ * partyreel/no-swallowed-db-error — the Pattern-B tripwire (2026-07 QA round).
+ *
+ * PostgREST builders never REJECT: a dead connection, a revoked grant and a
+ * genuinely empty table all resolve the same shape and differ only in `error`.
+ * So `const { data } = await supabase.from(…)` reads a BROKEN query as an EMPTY
+ * one, and the code downstream acts on that lie. It shipped an export that
+ * called a 40 GB album empty, kill switches that re-enabled themselves, and a
+ * watermark on a paying host's video.
+ *
+ * The rule flags any `data`/`count` destructure off an `await` that does not
+ * also bind `error`. Fix by wrapping the query in `mustQuery`/`mustCount`
+ * (src/lib/db/must-query.ts), or bind `error` and handle it. A deliberate
+ * swallow (an authz probe that must fail CLOSED) stays legal via an
+ * `eslint-disable-next-line partyreel/no-swallowed-db-error` + a one-line WHY,
+ * which is the point: the choice becomes explicit and reviewable.
+ *
+ * Authored inline (not a published plugin) so it needs no new dependency and
+ * lives next to the config it governs. A `no-restricted-syntax` selector could
+ * match the same AST, but its disable comment would be the blunt
+ * `eslint-disable-next-line no-restricted-syntax` — this way the escape hatch
+ * names the rule it is escaping.
+ *
+ * EXEMPT by construction: nested `data` patterns, i.e. the ubiquitous
+ * `const { data: { user } } = await supabase.auth.getUser()` — the GoTrue
+ * client's own idiom, where a failure surfaces as a null `user` and every call
+ * site already branches on it.
+ */
+const noSwallowedDbError = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Require binding `error` (or using mustQuery/mustCount) when destructuring `data`/`count` off an awaited Supabase query",
+    },
+    schema: [],
+    messages: {
+      swallowed:
+        "`{{ name }}` is destructured off an await without binding `error`: a FAILED query resolves here as an empty result. Wrap the query in mustQuery()/mustCount() from @/lib/db/must-query, or bind `error` and handle it. If the swallow is deliberate (an authz probe that must fail closed), add an eslint-disable-next-line with the reason.",
+    },
+  },
+  create(context) {
+    return {
+      VariableDeclarator(node) {
+        if (node.init?.type !== "AwaitExpression") return;
+        if (node.id?.type !== "ObjectPattern") return;
+        const props = node.id.properties.filter((p) => p.type === "Property");
+        if (props.some((p) => p.key?.name === "error")) return;
+        const target = props.find(
+          (p) =>
+            (p.key?.name === "data" && p.value?.type !== "ObjectPattern") ||
+            p.key?.name === "count",
+        );
+        if (!target) return;
+        context.report({
+          node: target,
+          messageId: "swallowed",
+          data: { name: target.key.name },
+        });
+      },
+    };
+  },
+};
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    plugins: { partyreel: { rules: { "no-swallowed-db-error": noSwallowedDbError } } },
     rules: {
+      "partyreel/no-swallowed-db-error": "error",
       // Treat a leading underscore as "intentionally unused" — lets documented
       // stubs keep their named param shape (e.g. lib/r2/presign.ts) without
       // sprinkling eslint-disable comments. Standard TS convention.

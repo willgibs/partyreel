@@ -6,6 +6,7 @@
  */
 import "server-only";
 
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ExportLogRow = {
@@ -35,10 +36,10 @@ export async function listRecentExports(limit = 50): Promise<ExportLogRow[]> {
   ];
   const names = new Map<string, string>();
   if (ids.length) {
-    const { data: evs } = await admin
-      .from("events")
-      .select("id, name")
-      .in("id", ids);
+    const evs = await mustQuery(
+      admin.from("events").select("id, name").in("id", ids),
+      "admin/exports: event names",
+    );
     for (const e of evs ?? []) names.set(e.id, e.name);
   }
 
@@ -58,21 +59,32 @@ export async function listRecentExports(limit = 50): Promise<ExportLogRow[]> {
 export async function countExportRejections24h(): Promise<number> {
   const admin = createAdminClient();
   const since = new Date(Date.now() - 86_400_000).toISOString();
-  const { count } = await admin
-    .from("export_log")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", since)
-    .neq("outcome", "minted");
-  return count ?? 0;
+  // mustCount, not `count ?? 0`: this is a HEALTH signal, and a failed count
+  // resolves as a confident zero — the one value that reads as "all clear".
+  return mustCount(
+    admin
+      .from("export_log")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", since)
+      .neq("outcome", "minted"),
+    "admin/exports: 24h rejections",
+  );
 }
 
-/** The export kill-switch state (defaults ON if the row is somehow missing). */
+/** The export kill-switch state (defaults ON only when the row is genuinely absent). */
 export async function getExportEnabled(): Promise<boolean> {
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("ops_flags")
-    .select("enabled")
-    .eq("key", "export_enabled")
-    .maybeSingle();
-  return data?.enabled ?? true;
+  // mustQuery is load-bearing here: without it an unreachable ops_flags row
+  // reads as `undefined` and the `?? true` silently RE-ENABLES exports that an
+  // operator deliberately switched off. A kill switch that fails open is not a
+  // kill switch. (The `?? true` still covers the legitimate no-row case.)
+  const row = await mustQuery(
+    admin
+      .from("ops_flags")
+      .select("enabled")
+      .eq("key", "export_enabled")
+      .maybeSingle(),
+    "admin/exports: kill switch",
+  );
+  return row?.enabled ?? true;
 }

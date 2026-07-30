@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 // Settings · Danger zone. Self-contained (outside the settings <Form>): owns the
 // delete action + its pending state. Soft-delete ONLY: deleteEventAction sets
@@ -67,9 +68,16 @@ export function DangerZoneSection({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete “{eventName}”?</DialogTitle>
+              {/* TRUTHFUL (QA #16): this path is softDeleteEvent — the trigger stamps
+                  purge_at = +30 days and Trash has a working restore. The old copy
+                  ("permanently... can't be undone") was wrong in BOTH directions: a host who
+                  deleted by mistake never thought to look in Trash, and a host deleting for
+                  privacy was misinformed about what we still hold. */}
               <DialogDescription>
-                This permanently removes the event and everything guests
-                uploaded. This can&rsquo;t be undone.
+                This removes the event and everything guests uploaded from your
+                album right away. It moves to Trash, where you can restore it
+                for {RECENTLY_DELETED_WINDOW_DAYS} days before it is deleted for
+                good.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

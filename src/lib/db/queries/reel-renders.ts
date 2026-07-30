@@ -6,6 +6,7 @@
  */
 import "server-only";
 
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ReelRenderLogRow = {
@@ -36,10 +37,10 @@ export async function listRecentReelRenders(
   ];
   const names = new Map<string, string>();
   if (ids.length) {
-    const { data: evs } = await admin
-      .from("events")
-      .select("id, name")
-      .in("id", ids);
+    const evs = await mustQuery(
+      admin.from("events").select("id, name").in("id", ids),
+      "admin/reels: event names",
+    );
     for (const e of evs ?? []) names.set(e.id, e.name);
   }
 
@@ -58,21 +59,30 @@ export async function listRecentReelRenders(
 export async function countReelRenderFailures24h(): Promise<number> {
   const admin = createAdminClient();
   const since = new Date(Date.now() - 86_400_000).toISOString();
-  const { count } = await admin
-    .from("reel_render_log")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", since)
-    .eq("outcome", "failed");
-  return count ?? 0;
+  // A failed count resolves as a confident zero, i.e. "no failures" — the exact
+  // reading that hides an outage on a health tile. See db/must-query.ts.
+  return mustCount(
+    admin
+      .from("reel_render_log")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", since)
+      .eq("outcome", "failed"),
+    "admin/reels: 24h failures",
+  );
 }
 
-/** The reel-render kill-switch state (defaults ON if the row is somehow missing). */
+/** The reel-render kill-switch state (defaults ON only when the row is genuinely absent). */
 export async function getReelRenderEnabled(): Promise<boolean> {
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("ops_flags")
-    .select("enabled")
-    .eq("key", "reel_render_enabled")
-    .maybeSingle();
-  return data?.enabled ?? true;
+  // Without mustQuery an unreachable ops_flags row reads as `undefined` and the
+  // `?? true` silently RE-ENABLES rendering an operator switched off.
+  const row = await mustQuery(
+    admin
+      .from("ops_flags")
+      .select("enabled")
+      .eq("key", "reel_render_enabled")
+      .maybeSingle(),
+    "admin/reels: kill switch",
+  );
+  return row?.enabled ?? true;
 }

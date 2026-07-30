@@ -158,48 +158,38 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
     concise per-knob descriptions in the motion tuner; tuning the scroll-spy active-section hand-off on a short
     feed (with Will). The `--reel` violet + the `Clapperboard` icon are RATIFIED (Will, 2026-06-21). Bulk
     "Download all" zip stays its own deferred worker initiative.
-  - **Generation — SLICES 1-3 (2026-06-22) + PHASE 2 the STYLE CATALOG (2026-07-02) SHIPPED ([`specs/reel-v1.md`](specs/reel-v1.md)).**
-    The North Star is live. S1 spike (`d8b6dba`): Remotion Lambda→R2 proven. S2 composer (`4806e71`): the live in-app
-    `@remotion/player` reel. S3 the `.mp4` EXPORT (`f460456`): Download video → direct-to-R2, async trigger+webhook,
-    lazy+cached, free-tier watermark, `/admin/reels` kill-switch. **PHASE 2 (`0cfcc4f` + fixes `b6d1767`/`fafba3c`): the
-    host composer now offers a 14-style catalog (8 media-first moods + 6 stylized treatments, a grouped popover) + a
-    portrait/landscape orientation; SHUFFLE REMOVED (deterministic seed); a styleId dispatcher (pure `style-registry` +
-    remotion `StyleDispatch` w/ hoisted watermark); `highlight_reels.style_id/orientation` + new `upsert_reel_config`;
-    `fitClip` now live in prod; `RENDER_VERSION` 2 + `deploy-site`. Live-verified (parallax landscape mp4 downloaded,
-    $0.024/~3min). Two render fixes the red-team caught: `overwrite:true` (stable key) + a 240s Lambda function.**
-    Settled (do-not-relitigate): **Remotion** one-composition WYSIWYG, **Lazy+cached**, the **14-style catalog +
-    orientation** (shuffle gone), **1 reel all tiers**, **free** w/ the watermark lever, **Pro video** preview+trim.
-    **NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
-    (A) treatment render OPTIMIZATION (blur-downscale — treatments cost ~4× moods; recommended first); (B) guest-facing
-    reel surfacing + download (the next feature; needs a planning round); plus follow-ups (lab→StyleDispatch DRY,
-    style-popover thumbnails, drop the legacy `theme` column, AWS concurrency 10→2000 case `178216366300642`) and Pro
-    video real-video-in-player + R2 CORS + the reveal moment. → [`systems/host-app.md`](systems/host-app.md).
+  - **Generation SHIPPED + LIVE ([`specs/reel-v1.md`](specs/reel-v1.md)).** The North Star runs on a **canvas engine**
+    (`src/lib/reel/engine/`): ONE draw fn powers the live `CanvasReelPlayer` AND the on-device WebCodecs `.mp4` export
+    (mediabunny), uploaded via the host-authed `/api/reel/upload` begin→mint→finalize handshake ($0 at any scale,
+    lazy+cached, free-tier watermark, `/admin/reels` kill-switch + `reel_render_log` + limiter). The **14-style catalog**
+    (8 media-first moods + 6 stylized treatments) + portrait/landscape orientation are live; shuffle removed (deterministic
+    seed). **The Remotion/AWS-Lambda render path was TORN DOWN 2026-07-08** (the original S1-S3 shipped on Lambda; the
+    canvas-engine spike + AWS's concurrency denial retired it — `@remotion/*` deps, `workers/reel-render/`, the Lambda
+    trigger/webhook all gone). Settled (do-not-relitigate): **one-source WYSIWYG** (player == export), **Lazy+cached**, the
+    **14-style catalog + orientation** (shuffle gone), **1 reel all tiers**, **free** w/ the watermark lever, **Pro video**
+    preview+trim. **NEXT:** guest-facing reel surfacing + download (the next feature; needs a planning round —
+    [`specs/reel-v1.md`](specs/reel-v1.md) + [`decisions/t1-reel-guest-surfacing.md`](decisions/t1-reel-guest-surfacing.md));
+    plus Pro video real-video-in-player + R2 CORS, the reveal moment, and dropping the legacy `highlight_reels.theme`
+    column. → [`systems/host-app.md`](systems/host-app.md).
   See [`systems/host-app.md`](systems/host-app.md).
-- **User profiles + social discovery (Will, 2026-06-20 — a NEW platform-expansion program; the dedicated
-  round runs NEXT, right after the Phase-5 host/guest core 3c→3b).** Turns the single-event tool into a
-  multi-event creator network (a VSCO-style link-in-bio + a social graph). Foundations are ~70% there
-  already: ONE unified account (`profiles` = `auth.users`; any signed-in guest can host), uploader→user
-  identity (`media.guest_id`→`guests.user_id`→profiles) + `claim_anonymous_uploads`, `saved_events` (the
-  exact follow template), avatars (public bucket), the Pro custom-slug pattern (`EventSlugControl` +
-  `check_slug_available` + reserved-slugs + `GATED_EVENT_SETTINGS`). The key new primitive: an
-  `events.display_in_profile` boolean that DECOUPLES discovery from access (today `visibility` only gates
-  who can OPEN) — an open-uploadable event can stay OFF a public, indexable profile (a tight-group event),
-  an additive column. Phasing (each shippable, Pro-gated where it monetizes): P1 public profile + Pro
-  `/u/[slug]` + the `display_in_profile` config + attribution-as-profile-link + the disable-downloads
-  public album; P2 `user_follows` (any→any, a `saved_events` clone) + the event guest list (signed-in
-  uploaders, derivable today) — surface it as a **"Guests (N)" feed section + pill** (alongside Review/Gallery/
-  Reel in the stacked feed; "must upload to become a guest," sortable by upload count to encourage contributions — a
-  motivation behind the require-account-to-upload default, Will 2026-06-21); P3 a dashboard "Following"
-  filter-chip → a profiles grid; P4 (v2) a social
-  feed (DEPENDS on the Notification overhaul above) + discovery. THE one-way-door risk (why a dedicated
-  research round, not an interleave): a public profile + guest lists open a CONSENT/privacy surface — a
-  guest may not want to be listed/followable → OPT-IN discoverability (a per-user `discoverable` flag; the
-  guest list host-visible by default, public only by opt-in) + a blocking model, confirmed before build.
+- **User profiles + social discovery (Will, 2026-06-20 — the platform-expansion program; P1-P3 BUILT
+  2026-07-08 on the elevation-program track, pending integration).** Turns the single-event tool into a
+  multi-event creator network (a VSCO-style link-in-bio + a social graph). The consent/privacy one-way-door
+  is RULED — [ADR-0019](adr/0019-social-privacy-host-controlled-guest-list.md), do not re-litigate: the
+  guest list is HOST-controlled (`events.show_guest_list`, no per-guest opt-in), the guest's control lives
+  on their OWN profile (`profile_hidden_events`), there is NO per-user `discoverable` flag (creating a
+  profile IS the consent act), follows are open any-to-any with an owner-private graph, and blocking
+  shipped IN the slice. What's built (track `worktree-wf_421d3486-dcf-1`, migration `20260708120000`
+  UNAPPLIED until the orchestrator integrates): P1 `/u/[slug]` public profile + the app-side Pro slug gate
+  + `display_in_profile` (discovery decoupled from access; the attended arm additionally stays
+  open-visibility-only per the consent scope); P2 `user_follows`/`user_blocks` + the "Guests" feed section
+  + pill + the guest-album guest list (approved signed-in uploaders, deduped); P3 the dashboard "Following"
+  chip (chip-only, never stacked into All). Still ahead: P4 (v2) a social feed (DEPENDS on the Notification
+  overhaul above) + discovery; the notification-prefs UI (R5 owns sends; storage + defaults shipped);
+  guest-list sort-by-upload-count (deferred, the contribution-encouragement idea, Will 2026-06-21).
   Additive, not dilutive: it amplifies the North Star (a guest sees a host's profile + other events → wants
   their own = the "second event" loop); the core frictionless-capture flow stays unchanged. NOT
-  launch-gating. Cheap profile-aware HOOKS are laid during 3c/3b NOW (attribution keeps the uploader user
-  id so the future profile-link is a one-line add). Supersedes the speculative-backlog "guest→full-user
-  conversion" line.
+  launch-gating. Current truth: [`systems/profiles-social.md`](systems/profiles-social.md).
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
@@ -215,6 +205,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
 - Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
   (code unchanged); checklist in [`PRICING.md`](PRICING.md).
+- Verify the Stripe Billing Portal permits switching between the three Pro prices `[human]` — now
+  LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
+  portal (checkout refuses the second subscription it used to create silently). If the portal's
+  product config does not allow the swap, a paying host has no self-serve way to resize.
 - Tune `MONTHLY_INGRESS_BYTES.pro` `[eng]` — currently `null`/unmetered; set before Pro launch.
 - Real `/privacy` page `[content]` — replace the stub; include the drafted Sentry session-replay
   disclosure line.
@@ -239,10 +233,9 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
   auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
-- AWS Lambda concurrency quota 10→2000 `[human]` — support case `178216366300642` **DENIED 2026-06-23**
-  (new-account limits; AWS says re-request later with usage history). Superseded by the R2 render
-  re-architecture (client-rendered reels, Plan A in the program plan): if the spike lands, the whole AWS
-  sub-account tears down instead; re-request only if Plan B (tuned Lambda) activates.
+- Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
+  (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`
+  (the `remotion-lambda-role`/`remotion-user` IAM + the deployed Remotion site/function) has no remaining use.
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.

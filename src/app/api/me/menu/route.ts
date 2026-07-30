@@ -39,6 +39,10 @@ export async function GET(request: Request) {
   let ownsThisEvent = false;
   const eventId = new URL(request.url).searchParams.get("event");
   if (eventId) {
+    // DELIBERATE SWALLOW (fail CLOSED): this only decides whether the account
+    // menu offers a "Manage event" shortcut. A failed read hides one link;
+    // throwing would blank the whole menu. Degrade, don't crash.
+    // eslint-disable-next-line partyreel/no-swallowed-db-error
     const { data: owned } = await supabase
       .from("events")
       .select("id")

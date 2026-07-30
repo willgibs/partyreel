@@ -31,13 +31,24 @@ export type CreateGuestResult =
     }
   | {
       ok: false;
-      code: "not_found" | "email_required" | "unknown";
+      code:
+        | "not_found"
+        | "email_required"
+        | "unlock_required"
+        | "unauthorized"
+        | "unknown";
       message: string;
     };
 
 export async function createGuest(input: {
   qrToken: string;
   userId: string | null;
+  /**
+   * QA #18: the route-derived proof that this request may pass a password event's lock (the
+   * unlock cookie, or event ownership — see mayUploadPastLock). The RPC refuses a `password`
+   * event without it; `open` ignores it; `private` refuses regardless.
+   */
+  unlockProven: boolean;
 }): Promise<CreateGuestResult> {
   // Server-mediated (H3): create_guest is service-role-only now. The admin client has no auth.uid(), so the
   // /api/guests route passes the getUser()-verified user id as the trusted p_user_id (null for an anonymous
@@ -46,6 +57,7 @@ export async function createGuest(input: {
   const { data, error } = await supabase.rpc("create_guest", {
     p_qr_token: input.qrToken,
     p_user_id: input.userId ?? undefined,
+    p_unlock_proven: input.unlockProven,
   });
 
   if (error) {
@@ -57,9 +69,17 @@ export async function createGuest(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
-      // The only check_violation create_guest raises is the account-required gate (an account,
-      // i.e. a verified session, is required to upload). The /e/ page gates this up front via
-      // <EnterEventPrompt>, so reaching here means a direct-API call or a race.
+      // create_guest raises check_violation for three distinct refusals; disambiguate by message
+      // (the mapCheckViolation pattern below). All three are BACKSTOPS: the /api/guests route
+      // pre-gates visibility and the /e/ page gates accounts up front, so reaching any of these
+      // means a direct-API call or a race.
+      const m = error.message.toLowerCase();
+      if (m.includes("locked")) {
+        return { ok: false, code: "unlock_required", message: error.message };
+      }
+      if (m.includes("private")) {
+        return { ok: false, code: "unauthorized", message: error.message };
+      }
       return {
         ok: false,
         code: "email_required",
@@ -91,6 +111,11 @@ export type UploadContext =
       event_id: string;
       accepting_uploads: boolean;
       event_deleted: false;
+      // QA #18: the event's access level, so presign/complete re-check the password/private lock
+      // on EVERY request (a grandfathered session token dies the moment the host locks the event).
+      // Absent (undefined) only until migration 20260729190000 is applied — house ordering applies
+      // it before this code deploys; the gates then no-op to the pre-gate behavior, never crash.
+      visibility: Database["public"]["Enums"]["event_visibility"];
       // Account-level (storage-cap model): at_storage_cap = host's total bytes are
       // at/over cap; at_monthly_cap = host hit the monthly ingress meter. Both coarse
       // pre-checks — create_media is authoritative (see get_upload_context).

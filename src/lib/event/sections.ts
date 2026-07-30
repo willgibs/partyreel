@@ -12,16 +12,23 @@
 // placement; the initial-section resolver only decides which filter the page lands on (default
 // "all" — the review-first behavior is now SPATIAL, the top of the stack, not a landing tab).
 
-export type EventSection = "review" | "gallery" | "reel";
+export type EventSection = "review" | "gallery" | "reel" | "guests";
 export type EventFilter = "all" | EventSection;
 
-const VALID: readonly EventFilter[] = ["all", "review", "gallery", "reel"];
+const VALID: readonly EventFilter[] = [
+  "all",
+  "review",
+  "gallery",
+  "reel",
+  "guests",
+];
 
 /** The non-"all" sections, for building the pill row + the stack. */
 export const EVENT_SECTIONS: readonly EventSection[] = [
   "review",
   "gallery",
   "reel",
+  "guests",
 ];
 
 /** Pill / eyebrow labels. Counts + the urgency order are assembled at render time. */
@@ -29,6 +36,7 @@ export const SECTION_LABEL: Record<EventSection, string> = {
   review: "Review",
   gallery: "Gallery",
   reel: "Reel",
+  guests: "Guests",
 };
 
 // Legacy ?eventTab= deep links (gallery|reel|reviews) -> the new section values. "reviews" was
@@ -68,8 +76,10 @@ export function orderedSections(opts: {
   moderationOn: boolean;
   hasPending: boolean;
 }): EventSection[] {
+  // Guests (the ADR-0019 named list / its discovery teaser) sits after the
+  // media sections: context, never urgency. Review still owns the urgency slot.
   const reviewFirst = opts.moderationOn && opts.hasPending;
   return reviewFirst
-    ? ["review", "gallery", "reel"]
-    : ["gallery", "reel", "review"];
+    ? ["review", "gallery", "reel", "guests"]
+    : ["gallery", "reel", "guests", "review"];
 }

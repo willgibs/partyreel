@@ -58,6 +58,7 @@ export function EventExperience({
   needsName,
   hostAvatarUrl,
   isOwner,
+  guestListSlot,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -82,6 +83,9 @@ export function EventExperience({
   hostAvatarUrl: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
   isOwner: boolean;
+  /** The server-composed named Guests section (ADR-0019) — non-null ONLY when the
+   *  host enabled show_guest_list AND access is full (the page owns that gate). */
+  guestListSlot?: React.ReactNode;
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
@@ -103,8 +107,7 @@ export function EventExperience({
   // only while the header action block's sentinel is out of view.
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
-  const canUpload =
-    access === "full" && event.accepting_uploads && !needsName;
+  const canUpload = access === "full" && event.accepting_uploads && !needsName;
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
@@ -266,10 +269,7 @@ export function EventExperience({
                 : "This event is private"}
             </p>
           </div>
-          <div
-            data-arrive
-            style={{ "--arrive-i": 2 } as React.CSSProperties}
-          >
+          <div data-arrive style={{ "--arrive-i": 2 } as React.CSSProperties}>
             <GhostGrid />
           </div>
         </div>
@@ -373,6 +373,11 @@ export function EventExperience({
               joinUrl={joinUrl}
             />
           </Suspense>
+
+          {/* The named Guests section (ADR-0019, host-keyed) — after the album,
+              before the report footer: context about who filled it, never
+              competing with the media. Server-composed slot; null = key off. */}
+          {guestListSlot}
 
           {/* The floating Add pill: only while the header's Add is scrolled away
               (never both), and never over the empty-state CTA. */}

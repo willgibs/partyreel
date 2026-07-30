@@ -337,6 +337,11 @@ const FONT_STACK =
  * - "ghost": lockup + shadow only, the most invisible treatment (TikTok-corner style).
  * - "badge": the in-app logo chip (logo.tsx's rounded square, in its on-footage
  *   white flavor) with an ink aperture, the strongest brand read.
+ *
+ * T2 grading (Will, 2026-07-08, on-device): scrim and ghost read indistinguishable
+ * and BOTH beat badge; scrim stays the shipped default. Keep all three behind the
+ * parity-page switch: the set gets re-graded when the real logo asset arrives
+ * (badge is the most logo-dependent treatment, so its loss may not survive a real mark).
  */
 export const WATERMARK_VARIANTS = ["scrim", "ghost", "badge"] as const;
 export type WatermarkVariant = (typeof WATERMARK_VARIANTS)[number];

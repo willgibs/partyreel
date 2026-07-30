@@ -13,8 +13,8 @@
 //   replicated as a pattern tile of the same ring geometry; rasterization speckle differs at the
 //   subpixel level (a conscious delta on a barely-visible texture).
 
-import type { ReelProps } from "../../composition/reel-types";
-import { seeded } from "../../composition/seed";
+import type { ReelProps } from "../reel-types";
+import { seeded } from "../seed";
 import type { ReelAssets } from "../assets";
 import { drawCover } from "../canvas2d";
 import type { DrawEnv, ReelStyle } from "../contract";

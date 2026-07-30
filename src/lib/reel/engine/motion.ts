@@ -7,8 +7,8 @@
 // motion budget differently; all four are ported (they are a few lines each) so later mood ports get
 // them for free even though this slice only ships Cinematic (freezeGo).
 
-import type { ClipMotion } from "../composition/layout";
-import type { MotionStyle } from "../composition/reel-types";
+import type { ClipMotion } from "./layout";
+import type { MotionStyle } from "./reel-types";
 import { EASE, interp } from "./easing";
 
 /** The per-frame transform of a clip's media (CSS-property semantics: translate, then rotate, then scale). */

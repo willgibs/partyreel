@@ -10,6 +10,67 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-07-21 — Videos in reels: posters everywhere (R3 slice A) + two found-live bugs
+
+**Video items now draw their client-generated poster frames in every reel style, live player and
+export alike.** The Remotion-era `posterMode` flag was deleted outright (videos ALWAYS resolve to
+their poster WebP; a missing poster degrades to a theme-color hold, never a black clip or an
+undecodable mp4 URL), `RENDER_VERSION` bumped 2→3 so every cached artifact regenerates, the
+teardown's caller-less GET poll surface (`GET /api/reel/render` + `getReelRenderState` +
+`finalizeIfLanded` + the stitching dialog's dormant poll mode) was pruned, and the style browser
+gained a video fixture proving the poster path visually. The demo event's three legacy null-poster
+videos were replaced through the REAL upload pipeline (fetch-from-R2 File injection; the folder-share
+and localhost-fetch routes both dead-end — Chrome's private-network blocking). The live pass caught
+and fixed TWO real bugs beyond the slice: (1) `measureFile` had no timeout, so Chrome's hidden-tab
+media throttling wedged the whole upload queue before its first network call (now settles empty at
+7s, best-effort like every other media wait); (2) the reel engine's CORS asset fetch read
+img-poisoned HTTP-cache entries (R2 sends no `Vary: Origin`), silently nulling EVERY clip — the
+engine now fetches `cache: "no-store"`; the landmine is recorded in uploads-and-r2.md. Verified live
+on the alias: all 12 reel slots draw real media across styles (video posters at the tail), fresh $0
+on-device encode → artifact stored → clean finalize (`client_minted` → `client_encoded`). 874 tests.
+
+## 2026-07-08 — The Lambda/Remotion teardown (R3 slice B; "maxing out the services we want to own")
+
+**The reel now has exactly one render path: the canvas engine + on-device WebCodecs encode.** Will's
+ruling ("Teardown is a go") deleted the entire Remotion/AWS-Lambda surface, ~11,900 lines net: the
+Lambda trigger + webhook finalize in the render service, `lambda-client.ts`, the
+`/api/internal/reel-complete` webhook route, `workers/reel-render/` (plus 695MB of orphaned local
+node_modules), the old `@remotion/player` component, the Remotion composition (its seven PURE modules,
+including the 14-style catalog `style-registry.ts` and the shared `reel-types.ts` contract, were
+relocated into `src/lib/reel/engine/` first), the design lab's DOM sides (the old reel lab deleted; the
+parity page reworked to a canvas-only style browser; the served-its-purpose reel-spike retired), all
+five `@remotion/*` dependencies, and the seven reel env vars (code + the preview-scoped Vercel copies;
+the production-scoped copies wait for milestone-2, when `main` stops carrying Lambda code). The
+no-WebCodecs export fallback became an honest modern-browser notice; playback never needed anything.
+Two feared subtleties resolved cleanly: the engine's spring was ALREADY a self-contained port (the
+sampled-pin suites show zero diff, byte-identical pins = the parity proof), and the composition
+relocation triggered no import-graph breakage (`pnpm build` verified at the relocation commit). The
+client-encode contract survived byte-for-byte (begin/mint/finalize, cache HEAD guard, refusal logging,
+kill-switch, limiter, `rendered_hash`). Kept-and-flagged: the now caller-less `GET /api/reel/render`
+poll surface, pruned in the videos slice. The AWS sub-account closure is a `[human]` launch-checklist
+line. 874 tests + a production build at the merge.
+
+## 2026-07-08 — Profiles + the social layer (ADR-0019 ruled model, P1-P3)
+
+**Public profiles, follows, blocks, and host-controlled guest lists land in one slice.** The data layer:
+`profiles.slug` (service-role write; app-side Pro gate so grandfathering never breaks), the two host
+toggles (`events.display_in_profile` + `show_guest_list`, column-granted), `user_follows` (owner-
+perspective RLS; writes only via the block-aware `follow_user` RPC + a SECURITY DEFINER trigger
+backstop), `user_blocks` (blocker-only RLS; `block_user` severs follows both ways atomically),
+R5-shaped `notification_prefs`, and `profile_hidden_events` (the guest-side hide). The anon
+`get_public_profile` RPC deliberately grows the accepted anon-read set 3 to 4; its attended arm is
+gated open-events-only (the parity-review catch: gated-event attendance must never leak to anonymous
+profile viewers). Surfaces: `/u/[slug]` (logged-out-visible, counts nowhere), the account Public
+profile + Connections cards (slug claim with live availability, per-event hides, owner-private
+follower count, blocks), the event-settings social card (loud guest-list consent copy), the album
+"Guests" feed section on both host and guest surfaces, follow/block affordances, and the dashboard
+Following chip. Verified live on the alias: migration applied + ROLLBACK_OK contract check (slug
+CHECK, follow/block/severance both directions, trigger backstop, prefs defaults, gated-event leak
+negative), advisors exactly the expected delta, third-party graph reads = 0 rows, anon REST probes
+42501 on all four tables, slug write locked from hosts, the anon RPC payload leak-probed clean, and
+the full UI pass (claim @willg, flip both toggles, /u/willg anonymous 200, Guests pill + honest
+empty state). 874 tests at the merge.
+
 ## 2026-07-08 — Milestone 1 (R1 Decision Studio + R2 Reel Engine) merged to main
 
 The `launch-prep` integration branch merged to `main` (`--no-ff`, tag `milestone-1`) carrying: the seven

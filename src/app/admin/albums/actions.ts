@@ -55,6 +55,8 @@ export async function restoreMediaAction(
 
   const admin = createAdminClient();
   // Only un-remove things still 'removed' (the cron may have already purged older ones).
+  // restoreUpdate()'s 'approved' is a floor: the DB trigger lands the row on the status it held
+  // before the takedown, so restoring never un-hides content the host had hidden (QA #24).
   const { error } = await admin
     .from("media")
     .update(restoreUpdate())

@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 
 import { EventFeed } from "@/components/app/event-feed/event-feed";
+import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import { EventUploads } from "@/components/app/event-uploads";
+import { GuestList } from "@/components/social/guest-list";
+import { Button } from "@/components/ui/button";
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
@@ -30,7 +33,9 @@ import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
+import { getEventGuestList } from "@/lib/db/queries/social";
 import { listEventMedia } from "@/lib/db/queries/media";
+import { withAvatarUrls } from "@/lib/social/cards";
 import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
@@ -95,6 +100,7 @@ export default async function EventDetailPage({
     likeCounts,
     reelIds,
     reelConfig,
+    guestListEntries,
   ] = await Promise.all([
     listEventMedia(event.id),
     getLinkStats(event.id),
@@ -103,7 +109,13 @@ export default async function EventDetailPage({
     listReelItems(event.id),
     // The composer config (theme/seed/length/cover); null until the host first composes.
     getReelConfig(event.id),
+    // ADR-0019 Guests section: null = show_guest_list off (or the pre-apply
+    // seam) -> the section renders its turn-it-on teaser instead of a list.
+    getEventGuestList(event.id),
   ]);
+  const guestListItems = guestListEntries
+    ? await withAvatarUrls(guestListEntries)
+    : null;
   // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
   // render, and a forced-download (`attachment`) url the lightbox's Save uses.
   const galleryItems = await Promise.all(
@@ -291,6 +303,28 @@ export default async function EventDetailPage({
                 pendingItems={pendingItems}
                 galleryCount={visibleItems.length}
                 reelCount={reelIds.length}
+                guestsCount={guestListItems?.length ?? 0}
+                guestsSection={
+                  guestListItems ? (
+                    <GuestList items={guestListItems} />
+                  ) : (
+                    // The host key is off: the discovery teaser (the review
+                    // moderation-off pattern). The consented flip lives in
+                    // Settings, where the LOUD copy spells out what it does.
+                    <FeedSectionEmpty
+                      icon={Users}
+                      title="Introduce your guests"
+                      desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
+                      action={
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/dashboard/${event.id}/settings`}>
+                            Guest list settings
+                          </Link>
+                        </Button>
+                      }
+                    />
+                  )
+                }
                 gallerySection={
                   <EventUploads
                     eventId={event.id}
