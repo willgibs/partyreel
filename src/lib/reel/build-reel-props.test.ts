@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { type GridMedia } from "@/components/app/media-grid";
@@ -196,5 +199,73 @@ describe("buildReelProps", () => {
     });
     expect(treatment.clips[0].url).toBe("https://r2/v/preview");
     expect(mood.clips[0].url).toBe("https://r2/v/preview");
+  });
+});
+
+/**
+ * The GUEST side of the same filter (R3 Track A). A guest-facing GridMedia is built by toGridItems,
+ * whose source rows are approved BY CONSTRUCTION (the anon RPC and the unlock query both select
+ * approved media only - GuestMediaRow doesn't even carry a status column). Before toGridItems stamped
+ * `status`, every guest item arrived UNDEFINED and this filter dropped the whole reel: a guest reel
+ * that renders an empty timeline, with nothing anywhere saying why.
+ *
+ * The fix belongs in the stamp, NOT in relaxing the filter: the host's items carry a real status, and
+ * the filter is what keeps a hidden photo out of a rendered/published reel.
+ */
+describe("buildReelProps over guest-shaped items", () => {
+  // Exactly the shape toGridItems emits for a guest: presigned urls + attribution, no host-only
+  // fields (no likeCount, no uploaderEmail), and the stamped status.
+  function guestItem(id: string, over: Partial<GridMedia> = {}): GridMedia {
+    return {
+      id,
+      type: "photo",
+      url: `https://r2/${id}/original`,
+      downloadUrl: `https://r2/${id}/attachment`,
+      previewUrl: `https://r2/${id}/preview`,
+      status: "approved",
+      uploaderName: "Sam",
+      isHost: false,
+      isAnonymous: false,
+      width: 3024,
+      height: 4032,
+      durationSeconds: null,
+      ...over,
+    };
+  }
+
+  it("renders a full timeline from stamped guest items", () => {
+    const items = [guestItem("g1"), guestItem("g2"), guestItem("g3")];
+    const props = buildReelProps({
+      orderedIds: ["g1", "g2", "g3"],
+      byId: byIdOf(items),
+      ...base,
+    });
+    expect(props.clips.map((c) => c.url)).toEqual([
+      "https://r2/g1/preview",
+      "https://r2/g2/preview",
+      "https://r2/g3/preview",
+    ]);
+  });
+
+  it("drops EVERY item when the status stamp is missing (the bug this pins)", () => {
+    const items = [
+      guestItem("g1", { status: undefined }),
+      guestItem("g2", { status: undefined }),
+    ];
+    const props = buildReelProps({
+      orderedIds: ["g1", "g2"],
+      byId: byIdOf(items),
+      ...base,
+    });
+    // An empty reel, silently. This is why the stamp lives in toGridItems.
+    expect(props.clips).toEqual([]);
+  });
+
+  it("toGridItems stamps the status (source pin - the module is server-only)", () => {
+    const src = readFileSync(
+      join(process.cwd(), "src/lib/r2/grid-items.ts"),
+      "utf8",
+    );
+    expect(src).toContain('status: "approved" as const');
   });
 });

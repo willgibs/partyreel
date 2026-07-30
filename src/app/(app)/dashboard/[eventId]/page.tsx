@@ -302,6 +302,11 @@ export default async function EventDetailPage({
                 initialSection={initialSection}
                 pendingItems={pendingItems}
                 galleryCount={visibleItems.length}
+                // ★ The reel count IS listReelItems' length, on purpose. That query already applies
+                // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
+                // pill, the Reorder gate and the ReelProvider seed all agree by construction. Do NOT
+                // re-filter here against visibleItems: a second, differently scoped predicate is
+                // exactly how the count and the grid drifted apart before.
                 reelCount={reelIds.length}
                 guestsCount={guestListItems?.length ?? 0}
                 guestsSection={
