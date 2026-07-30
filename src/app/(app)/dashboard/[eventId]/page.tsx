@@ -321,6 +321,7 @@ export default async function EventDetailPage({
                       // likewise drives the composer's length cap (30s/60s), UX only.
                       watermark={tier === "free"}
                       tier={tier}
+                      guestVisible={reelConfig?.guestVisible ?? false}
                     />
                   }
                 />

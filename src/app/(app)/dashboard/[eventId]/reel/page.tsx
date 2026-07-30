@@ -81,9 +81,7 @@ export default async function ReelStudioPage({ params }: PageProps) {
         // route re-derives it server-side, so the client flag is cosmetic only.
         watermark={tier === "free"}
         tier={tier}
-        // TODO(track-C): getReelConfig gains `guestVisible` on Track C's branch;
-        // swap this literal for reelConfig.guestVisible at integration.
-        guestVisible={false}
+        guestVisible={reelConfig.guestVisible}
       />
     </ReelProvider>
   );
