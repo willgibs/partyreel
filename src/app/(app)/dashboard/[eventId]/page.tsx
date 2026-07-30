@@ -21,6 +21,7 @@ import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
 import { ReelPanel } from "@/components/app/reel-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
+import { ReelStageProvider } from "@/components/reel/reel-stage-provider";
 import { ReelReorderProvider } from "@/components/reel/reel-reorder-provider";
 import {
   DEFAULT_TIER,
@@ -36,10 +37,9 @@ import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
 import { getEventGuestList } from "@/lib/db/queries/social";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { withAvatarUrls } from "@/lib/social/cards";
+import { toHostGalleryItems } from "@/lib/event/gallery-items";
 import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
-import { buildDownloadFilename } from "@/lib/media/download-filename";
-import { presignDownload } from "@/lib/r2/presign";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -116,55 +116,15 @@ export default async function EventDetailPage({
   const guestListItems = guestListEntries
     ? await withAvatarUrls(guestListEntries)
     : null;
-  // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
-  // render, and a forced-download (`attachment`) url the lightbox's Save uses.
-  const galleryItems = await Promise.all(
-    media.map(async (m) => {
-      const [url, downloadUrl, previewUrl] = await Promise.all([
-        presignDownload({ key: m.original_key, stable: true }),
-        presignDownload({
-          key: m.original_key,
-          stable: true,
-          downloadFilename: buildDownloadFilename({
-            eventName: event.name,
-            key: m.original_key,
-            type: m.type,
-          }),
-        }),
-        // The tile-only small preview (this page builds its OWN items, not via toGridItems).
-        m.preview_key
-          ? presignDownload({ key: m.preview_key, stable: true })
-          : Promise.resolve(null),
-      ]);
-      // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that
-      // includes email (for identifying a guest); guest surfaces never carry it.
-      const who = uploaderIdentities.get(m.id);
-      return {
-        id: m.id,
-        type: m.type,
-        url,
-        downloadUrl,
-        previewUrl,
-        status: m.status,
-        uploaderName: who?.displayName ?? null,
-        isHost: who?.isHost ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
-        uploaderEmail: who?.email ?? null,
-        likeCount: likeCounts.get(m.id) ?? 0,
-        // Quick-add signals (R3), never rendered: recency + per-uploader coverage. A null guest_id
-        // means the HOST uploaded it (same rule the contributor count below relies on), so it keys
-        // to the literal "host" bucket; anything unattributable falls to the shared anonymous
-        // bucket. A guest_id is an opaque id, NOT an email, so this is safe to hand the client.
-        createdAt: m.created_at,
-        uploaderKey: m.guest_id ?? (who?.isHost ? "host" : null),
-        // Natural geometry for the masonry (S3·3a). Null on pre-measure rows ->
-        // the grid falls back to 1:1 (no CLS). Rides OUTSIDE any ETag.
-        width: m.width,
-        height: m.height,
-        durationSeconds: m.duration_seconds,
-      };
-    }),
-  );
+  // The presign + attribution + quick-add-signal mapping lives in ONE place
+  // (lib/event/gallery-items) because the Studio route needs the identical items;
+  // two pages hand-building "the same" shape is how a field goes missing on one.
+  const galleryItems = await toHostGalleryItems({
+    media,
+    eventName: event.name,
+    uploaderIdentities,
+    likeCounts,
+  });
 
   // Partition for the host view: hold_for_approval uploads arrive as 'pending'
   // and get their own review queue above the main grid; approved + hidden make
@@ -299,66 +259,72 @@ export default async function EventDetailPage({
           {/* ReelReorderProvider shares the Reel drag-reorder MODE between the header Reorder/Done button
               and the Reel section body (the sortable grid). HostSelectionProvider shares the Gallery
               album bulk-select state so the floating bar's bulk cluster and the gallery grid's tiles +
-              long-press drive one selection. Both inside ReelProvider (the shared reel membership). */}
+              long-press drive one selection. Both inside ReelProvider (the shared reel membership).
+              ReelStageProvider wraps the FEED (not just the Reel section) because the reel's
+              lifecycle stage has two readers: the section, which is either the builder or the
+              Marquee, and the floating action bar, which is either Create reel or Open studio. */}
           <ReelReorderProvider>
             <HostSelectionProvider>
-              <EventFeed
-                eventId={event.id}
-                moderationOn={isModerationOn}
-                initialSection={initialSection}
-                pendingItems={pendingItems}
-                galleryCount={visibleItems.length}
-                // ★ The reel count IS listReelItems' length, on purpose. That query already applies
-                // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
-                // pill, the Reorder gate and the ReelProvider seed all agree by construction. Do NOT
-                // re-filter here against visibleItems: a second, differently scoped predicate is
-                // exactly how the count and the grid drifted apart before.
-                reelCount={reelIds.length}
-                guestsCount={guestListItems?.length ?? 0}
-                guestsSection={
-                  guestListItems ? (
-                    <GuestList items={guestListItems} />
-                  ) : (
-                    // The host key is off: the discovery teaser (the review
-                    // moderation-off pattern). The consented flip lives in
-                    // Settings, where the LOUD copy spells out what it does.
-                    <FeedSectionEmpty
-                      icon={Users}
-                      title="Introduce your guests"
-                      desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
-                      action={
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/dashboard/${event.id}/settings`}>
-                            Guest list settings
-                          </Link>
-                        </Button>
-                      }
+              <ReelStageProvider initialCreated={reelConfig != null}>
+                <EventFeed
+                  eventId={event.id}
+                  moderationOn={isModerationOn}
+                  initialSection={initialSection}
+                  pendingItems={pendingItems}
+                  galleryCount={visibleItems.length}
+                  // ★ The reel count IS listReelItems' length, on purpose. That query already applies
+                  // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
+                  // pill, the Reorder gate and the ReelProvider seed all agree by construction. Do NOT
+                  // re-filter here against visibleItems: a second, differently scoped predicate is
+                  // exactly how the count and the grid drifted apart before.
+                  reelCount={reelIds.length}
+                  guestsCount={guestListItems?.length ?? 0}
+                  guestsSection={
+                    guestListItems ? (
+                      <GuestList items={guestListItems} />
+                    ) : (
+                      // The host key is off: the discovery teaser (the review
+                      // moderation-off pattern). The consented flip lives in
+                      // Settings, where the LOUD copy spells out what it does.
+                      <FeedSectionEmpty
+                        icon={Users}
+                        title="Introduce your guests"
+                        desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
+                        action={
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/dashboard/${event.id}/settings`}>
+                              Guest list settings
+                            </Link>
+                          </Button>
+                        }
+                      />
+                    )
+                  }
+                  gallerySection={
+                    <EventUploads
+                      eventId={event.id}
+                      items={visibleItems}
+                      pendingCount={pendingItems.length}
+                      shareUrl={eventLink}
                     />
-                  )
-                }
-                gallerySection={
-                  <EventUploads
-                    eventId={event.id}
-                    items={visibleItems}
-                    pendingCount={pendingItems.length}
-                    shareUrl={eventLink}
-                  />
-                }
-                reelSection={
-                  <ReelPanel
-                    eventId={event.id}
-                    items={visibleItems}
-                    shareUrl={eventLink}
-                    reelConfig={reelConfig}
-                    // Free reels carry the partyreel.com wordmark (the upgrade nudge); the composer
-                    // mirrors it in the live player so the host sees what they'll download. The render
-                    // route re-derives this server-side — the client flag is cosmetic only. The tier
-                    // likewise drives the composer's length cap (30s/60s), UX only.
-                    watermark={tier === "free"}
-                    tier={tier}
-                  />
-                }
-              />
+                  }
+                  reelSection={
+                    <ReelPanel
+                      eventId={event.id}
+                      eventName={event.name}
+                      items={visibleItems}
+                      shareUrl={eventLink}
+                      reelConfig={reelConfig}
+                      // Free reels carry the partyreel.com wordmark (the upgrade nudge); the composer
+                      // mirrors it in the live player so the host sees what they'll download. The render
+                      // route re-derives this server-side — the client flag is cosmetic only. The tier
+                      // likewise drives the composer's length cap (30s/60s), UX only.
+                      watermark={tier === "free"}
+                      tier={tier}
+                    />
+                  }
+                />
+              </ReelStageProvider>
             </HostSelectionProvider>
           </ReelReorderProvider>
         </ReelProvider>

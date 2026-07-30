@@ -247,7 +247,12 @@ export function EventFeed({
           : nodeFor(filter as EventSection)}
       </div>
 
-      <EventFeedActionBar show={showBar} active={barActive} triage={triage} />
+      <EventFeedActionBar
+        eventId={eventId}
+        show={showBar}
+        active={barActive}
+        triage={triage}
+      />
     </div>
   );
 }

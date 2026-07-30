@@ -1,9 +1,11 @@
 "use client";
 
 import { Clapperboard, ImageUp } from "lucide-react";
+import Link from "next/link";
 
 import { useHostAdd } from "@/components/app/host-add-provider";
 import { useHostSelection } from "@/components/app/host-selection-provider";
+import { useReelStage } from "@/components/reel/reel-stage-provider";
 import { type EventSection } from "@/lib/event/sections";
 import { GalleryBulkBar } from "./gallery-actions";
 import { ReviewActions } from "./review-actions";
@@ -17,14 +19,18 @@ import { type ReviewTriage } from "./use-review-triage";
 //   Review (pending / selecting) → the Select / Approve all / bulk cluster (shared ReviewActions)
 //   Gallery (browse)             → Add photos (opens the command strip's panel) + the uploading chip
 //   Gallery (album select mode)  → the bulk cluster (Add to reel / Like / Hide-Show / Delete), GalleryBulkBar
-//   Reel                         → a disabled Create reel (the future generation flow's holding slot)
+//   Reel (no reel yet)           → a violet Create reel that fires the builder's create + reveal
+//   Reel (reel exists)           → Open studio (the dedicated room, a route)
 // A section with nothing to act on (review caught-up / moderation-off) yields no bar. The content
 // crossfades on section change via [data-section-swap]; the bar itself fades + rises on appearance.
 export function EventFeedActionBar({
+  eventId,
   show,
   active,
   triage,
 }: {
+  /** For the Reel slot's Studio link. */
+  eventId: string;
   show: boolean;
   /** The section in view (scroll-spy in "All", or the pinned filter when narrowed). */
   active: EventSection | null;
@@ -32,6 +38,7 @@ export function EventFeedActionBar({
 }) {
   const add = useHostAdd();
   const selection = useHostSelection();
+  const stage = useReelStage();
 
   let content: React.ReactNode = null;
   if (active === "review") {
@@ -52,7 +59,7 @@ export function EventFeedActionBar({
       <button
         type="button"
         onClick={() => add?.openAdd()}
-        className="pointer-events-auto flex h-11 items-center gap-3 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_6px_16px_rgba(0,0,0,0.18)] outline-none transition-transform duration-200 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring motion-reduce:active:scale-100"
+        className="pointer-events-auto flex h-11 items-center gap-3 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-transform duration-200 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] motion-reduce:active:scale-100"
       >
         <ImageUp className="size-4" />
         Add photos
@@ -64,15 +71,31 @@ export function EventFeedActionBar({
       </button>
     );
   } else if (active === "reel") {
-    content = (
-      <span className="pointer-events-auto flex h-11 cursor-not-allowed items-center gap-2 rounded-full border border-border bg-muted/60 px-5 text-sm font-medium text-muted-foreground shadow-[0_4px_14px_rgba(0,0,0,0.1)] backdrop-blur">
-        <Clapperboard className="size-4" />
+    // The "Soon" holding slot is gone: the reel is real. Pre-Create the bar fires
+    // the BUILDER's own create (the reveal's FLIP measures the builder's tiles, and
+    // the bar only shows while the Reel section is the active one, so those tiles
+    // are on screen by construction). Post-Create it is the Studio door.
+    content = stage?.created ? (
+      <Link
+        href={`/dashboard/${eventId}/reel`}
+        className="pointer-events-auto flex h-11 items-center gap-2 rounded-full border border-border bg-background/95 px-5 text-sm font-medium shadow-[0_6px_16px_rgba(0,0,0,0.18)] backdrop-blur transition-transform duration-200 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] motion-reduce:active:scale-100"
+      >
+        <Clapperboard className="size-4 text-reel" aria-hidden />
+        Open studio
+      </Link>
+    ) : stage?.canCreate ? (
+      <button
+        type="button"
+        onClick={() => stage.requestCreate()}
+        className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-reel px-5 text-sm font-medium text-white shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-transform duration-200 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] motion-reduce:active:scale-100"
+      >
+        <Clapperboard className="size-4" aria-hidden />
         Create reel
-        <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[10px] tracking-wide uppercase">
-          Soon
-        </span>
-      </span>
-    );
+      </button>
+    ) : // No create target yet (nothing curated, so the builder registered nothing):
+    // no bar at all, matching how a caught-up Review section yields none. A
+    // disabled pill would just be the old "Soon" in new clothes.
+    null;
   }
 
   if (!show || !content) return null;
@@ -80,7 +103,7 @@ export function EventFeedActionBar({
   return (
     <div
       data-feed-action-bar
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0 transition-[transform,opacity] duration-200 ease-emphasis"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] transition-[transform,opacity] duration-200 ease-emphasis motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0"
     >
       {/* Re-key on the active section so the content crossfades (the same [data-section-swap]
           language as the pill swap) as the host scrolls from one section into the next. */}
