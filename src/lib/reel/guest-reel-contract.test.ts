@@ -11,12 +11,30 @@
  */
 import { describe, expect, it } from "vitest";
 
+import type { Database } from "@/lib/db/types";
+
 import {
   GUEST_REEL_ALLOWED_KEYS,
   GUEST_REEL_FORBIDDEN_KEYS,
   type GuestReelRpcRow,
   toGuestReelPayload,
 } from "./guest-reel-payload";
+
+// COMPILE-TIME pin against the GENERATED RPC Returns (post-regen): the mirror and the live
+// function must carry the SAME key set, both directions. Key-level on purpose: the generator
+// cannot express a RETURNS TABLE column's runtime nullability (cover_media_id), so a full type
+// equality would be a lie; the ruling's allow-LIST is about NAMES.
+type GeneratedReelRow =
+  Database["public"]["Functions"]["get_event_reel_by_qr_token"]["Returns"][number];
+type AssertKeysEqual<A, B> = [keyof A] extends [keyof B]
+  ? [keyof B] extends [keyof A]
+    ? true
+    : never
+  : never;
+const GENERATED_MATCHES_MIRROR: AssertKeysEqual<
+  GeneratedReelRow,
+  GuestReelRpcRow
+> = true;
 
 // Compile-time exhaustiveness: constructing this record fails to typecheck if the allow-list array
 // misses a key of GuestReelRpcRow, and the `satisfies` on the array itself refuses extras.
@@ -46,11 +64,12 @@ const row: GuestReelRpcRow = {
 };
 
 describe("the guest reel anon allow-list", () => {
-  it("is exactly the 8 ruled keys", () => {
+  it("is exactly the 8 ruled keys (and mirrors the generated RPC type)", () => {
     expect([...GUEST_REEL_ALLOWED_KEYS].sort()).toEqual(
       Object.keys(EXHAUSTIVE).sort(),
     );
     expect(GUEST_REEL_ALLOWED_KEYS).toHaveLength(8);
+    expect(GENERATED_MATCHES_MIRROR).toBe(true);
   });
 
   it("never intersects the forbidden names", () => {

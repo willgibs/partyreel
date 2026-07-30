@@ -342,16 +342,28 @@ $$;
 --     where r.event_id = v_event));
 --   if not (v_res->>'ok')::boolean then
 --     raise exception 'FAIL 5a: ghost still bricks reorder %', v_res; end if;
---   -- ...and HIDE the other: it stays a MEMBER (reorder wants it) but leaves the TIMELINE
---   --    (the RPC's item_ids drop it -> empty set -> zero rows).
+--   -- ...and HIDE the other: it stays a MEMBER (reorder wants it) but leaves the TIMELINE.
+--   -- NOTE (first-run lesson): the picked event may already have OTHER curated approved items,
+--   -- so assert the hidden/removed ids are ABSENT from item_ids (the real invariant), never that
+--   -- the whole reel vanishes.
 --   update public.media set status = 'hidden' where id = v_m1;
---   select count(*) into v_rows from public.get_event_reel_by_qr_token(v_qr);
---   if v_rows <> 0 then raise exception 'FAIL 5b: hidden item still plays for guests'; end if;
---   v_res := public.reorder_reel(v_event, array[v_m1]);
+--   select * into v_row from public.get_event_reel_by_qr_token(v_qr);
+--   if v_row is not null and (v_m1 = any(v_row.item_ids) or v_m2 = any(v_row.item_ids)) then
+--     raise exception 'FAIL 5b: hidden/removed item still plays for guests %', v_row.item_ids;
+--   end if;
+--   v_res := public.reorder_reel(v_event, (
+--     select array_agg(r.media_id order by r.position)
+--     from public.reel_items r
+--     join public.media m on m.id = r.media_id and m.status in ('approved','hidden')
+--     where r.event_id = v_event));
 --   if not (v_res->>'ok')::boolean then
 --     raise exception 'FAIL 5c: hidden member rejected by reorder %', v_res; end if;
 --
---   -- 6. Empty-publish refusal (all items now hidden/removed -> zero APPROVED).
+--   -- 6. Empty-publish refusal: hide EVERY curated member first (see the 5b note).
+--   update public.media set status = 'hidden'
+--     where id in (select r.media_id from public.reel_items r
+--                  where r.event_id = v_event)
+--       and status = 'approved';
 --   v_res := public.set_reel_guest_visible(v_event, true);
 --   if (v_res->>'reason') is distinct from 'empty' then
 --     raise exception 'FAIL 6: empty publish not refused %', v_res; end if;

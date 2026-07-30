@@ -51,8 +51,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type ReelRow = Database["public"]["Tables"]["highlight_reels"]["Row"];
-// TODO(drop after types regen): `guest_visible` lands with the 20260730120000 migration.
-type ReelRowPendingRegen = ReelRow & { guest_visible?: boolean };
 
 function json(body: ReelDownloadResponse, init?: ResponseInit) {
   return NextResponse.json(body, init);
@@ -108,7 +106,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const ctx = await resolveReelRenderContext(admin, event.data.id);
-  const row = (ctx?.row ?? null) as ReelRowPendingRegen | null;
+  const row: ReelRow | null = ctx?.row ?? null;
   // ONE indistinguishable `no_reel` for absent / uncurated / unpublished (the contract's oracle note).
   if (
     !ctx ||

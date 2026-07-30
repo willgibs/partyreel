@@ -36,9 +36,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { GuestReelRpcRow } from "@/lib/reel/guest-reel-payload";
 
 type ReelRow = Database["public"]["Tables"]["highlight_reels"]["Row"];
-// TODO(drop after types regen): `guest_visible` lands with the 20260730120000 migration; until the
-// regen the generated Row type lacks it (the create_guest Args-intersection precedent).
-type ReelRowPendingRegen = ReelRow & { guest_visible?: boolean };
 
 /**
  * Resolve the guest reel payload for the /e/ page. Null = "no reel for this viewer", which
@@ -65,16 +62,7 @@ export async function getGuestReelContext(
 /** The open-event arm: the anon capability RPC, called exactly as a guest's browser could. */
 async function viaAnonRpc(event: GuestEvent): Promise<GuestReelRpcRow | null> {
   const supabase = await createClient();
-  // TODO(drop after types regen): the RPC name isn't in the generated types until the
-  // 20260730120000 migration applies; the cast mirrors its RETURNS TABLE (guest-reel-payload.ts).
-  const rpc = supabase.rpc.bind(supabase) as unknown as (
-    fn: "get_event_reel_by_qr_token",
-    args: { p_qr_token: string },
-  ) => PromiseLike<{
-    data: GuestReelRpcRow[] | null;
-    error: { message: string } | null;
-  }>;
-  const { data, error } = await rpc("get_event_reel_by_qr_token", {
+  const { data, error } = await supabase.rpc("get_event_reel_by_qr_token", {
     // ALWAYS the canonical token (the route param may be a custom slug — GuestEvent's contract).
     p_qr_token: event.qr_token,
   });
@@ -99,7 +87,7 @@ async function viaUnlockedAdmin(
   const ctx = await resolveReelRenderContext(admin, event.id);
   if (!ctx) return null;
 
-  const row = ctx.row as ReelRowPendingRegen | null;
+  const row: ReelRow | null = ctx.row;
   if (row?.guest_visible !== true) return null;
   if (ctx.orderedApprovedIds.length === 0) return null;
 

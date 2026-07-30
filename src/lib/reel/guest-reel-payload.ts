@@ -9,10 +9,9 @@
 import type { Orientation } from "@/lib/reel/engine/constants";
 
 /**
- * One row of get_event_reel_by_qr_token, exactly as PostgREST serializes it.
- * TODO(drop after types regen): once the 20260730120000 migration is applied and types regenerate,
- * the RPC's generated Returns type exists — point the contract test at it and keep this as the
- * narrowed app-facing shape.
+ * One row of get_event_reel_by_qr_token, exactly as PostgREST serializes it. The contract test
+ * pins this mirror key-for-key against the GENERATED Returns type (the mirror stays because the
+ * generator cannot express cover_media_id's runtime nullability).
  */
 export type GuestReelRpcRow = {
   style_id: string;

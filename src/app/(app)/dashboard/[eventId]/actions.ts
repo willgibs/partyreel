@@ -231,19 +231,16 @@ export async function setReelGuestVisibleAction(
     };
   }
 
-  // TODO(drop after types regen): the RPC name isn't in the generated types until the
-  // 20260730120000 migration applies; the cast mirrors its (uuid, boolean) -> jsonb signature.
-  const rpc = supabase.rpc.bind(supabase) as unknown as (
-    fn: "set_reel_guest_visible",
-    args: { p_event_id: string; p_visible: boolean },
-  ) => PromiseLike<{
-    data: { ok: boolean; reason?: string; guest_visible?: boolean } | null;
-    error: { message: string } | null;
-  }>;
-  const { data, error } = await rpc("set_reel_guest_visible", {
+  const { data: raw, error } = await supabase.rpc("set_reel_guest_visible", {
     p_event_id: eventId,
     p_visible: visible,
   });
+  // The RPC returns jsonb; narrow its {ok, reason?, guest_visible?} shape once here.
+  const data = raw as {
+    ok: boolean;
+    reason?: string;
+    guest_visible?: boolean;
+  } | null;
 
   if (error || !data) {
     captureError("reel", new Error(error?.message ?? "no data"), {
