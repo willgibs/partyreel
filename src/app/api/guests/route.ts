@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { createGuest } from "@/lib/db/mutations/guest";
+import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -64,6 +66,44 @@ export async function POST(request: Request) {
     joinKeys = null;
   }
 
+  // QA #18 (ADR-0023 ruling 2): the write path inherits the read gate — resolve the event's
+  // visibility BEFORE minting. `private` never mints (the /e/ page master-locks everyone, owner
+  // included; a 403 leaks nothing the page didn't already show any link-holder). `password`
+  // requires the unlock cookie or ownership (mayUploadPastLock — the owner reads the album
+  // without unlocking, so they upload without it too). The RPC re-refuses both as the belt.
+  const eventResult = await getEventByQrToken(qr_token);
+  if (!eventResult.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "not_found",
+        message: "This event link is no longer valid.",
+      },
+      { status: 404 },
+    );
+  }
+  const event = eventResult.data;
+  if (event.visibility === "private") {
+    return NextResponse.json(
+      { ok: false, code: "unauthorized", message: "This event is private." },
+      { status: 403 },
+    );
+  }
+  let unlockProven = false;
+  if (event.visibility === "password") {
+    unlockProven = await mayUploadPastLock(event.id);
+    if (!unlockProven) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "unlock_required",
+          message: "This event is locked. Enter the event password to upload.",
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   // create_guest is service-role-only (H3); derive the TRUSTED user id here from the verified session (or
   // null for an anonymous guest). The RPC reads the verified email from auth.users for this id, so the
   // client can't supply an identity or email.
@@ -75,6 +115,7 @@ export async function POST(request: Request) {
   const result = await createGuest({
     qrToken: qr_token,
     userId: user?.id ?? null,
+    unlockProven,
   });
 
   if (!result.ok) {
@@ -83,7 +124,9 @@ export async function POST(request: Request) {
         ? 404
         : result.code === "email_required"
           ? 422
-          : 500;
+          : result.code === "unlock_required" || result.code === "unauthorized"
+            ? 403
+            : 500;
     return NextResponse.json(
       { ok: false, code: result.code, message: result.message },
       { status },

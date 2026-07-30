@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   PRESERVATION_PREFIX,
+  isValidMediaKey,
   mediaObjectKey,
   parseEventIdFromKey,
   parseExtFromKey,
+  parseKindFromKey,
   parseMediaIdFromKey,
+  parseVariantFromKey,
   preservedForensicsKey,
   preservedOriginalKey,
   reelOutputKey,
@@ -181,6 +184,100 @@ describe("parseEventIdFromKey", () => {
       parseEventIdFromKey(`preservation/${EVENT_ID}/m/original.jpg`),
     ).toBeNull();
     expect(parseEventIdFromKey(`events/${EVENT_ID}/reel/reel.mp4`)).toBeNull();
+  });
+});
+
+describe("isValidMediaKey (QA Pattern A: event-namespace binding)", () => {
+  const EVENT_ID = "11111111-2222-3333-4444-555555555555";
+  const OTHER_EVENT = "99999999-8888-7777-6666-555555555555";
+  const MEDIA_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
+  const key = mediaObjectKey({
+    eventId: EVENT_ID,
+    mediaId: MEDIA_ID,
+    kind: "photo",
+    variant: "preview",
+    ext: "webp",
+  });
+
+  it("accepts a key inside the event's namespace", () => {
+    expect(isValidMediaKey(key, EVENT_ID)).toBe(true);
+  });
+
+  it("rejects another event's key (the cross-event preview plant)", () => {
+    expect(isValidMediaKey(key, OTHER_EVENT)).toBe(false);
+  });
+
+  it("mirrors the SQL prefix check: the id must be a complete segment", () => {
+    // A prefix-of-the-uuid event id must NOT match (events/<uuid> vs events/<uuid>-suffix).
+    expect(isValidMediaKey(key, EVENT_ID.slice(0, -1))).toBe(false);
+    // Traversal-ish junk never validates.
+    expect(isValidMediaKey(`events/../${EVENT_ID}/x`, EVENT_ID)).toBe(false);
+    expect(isValidMediaKey("", EVENT_ID)).toBe(false);
+  });
+});
+
+describe("parseKindFromKey / parseVariantFromKey (QA #6: the key is the issuance record)", () => {
+  const EVENT_ID = "11111111-2222-3333-4444-555555555555";
+  const MEDIA_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
+
+  it("round-trips kind and variant out of keys mediaObjectKey built", () => {
+    const original = mediaObjectKey({
+      eventId: EVENT_ID,
+      mediaId: MEDIA_ID,
+      kind: "video",
+      variant: "original",
+      ext: "mp4",
+    });
+    const preview = mediaObjectKey({
+      eventId: EVENT_ID,
+      mediaId: MEDIA_ID,
+      kind: "photo",
+      variant: "preview",
+      ext: "webp",
+    });
+    expect(parseKindFromKey(original)).toBe("video");
+    expect(parseVariantFromKey(original)).toBe("original");
+    expect(parseKindFromKey(preview)).toBe("photo");
+    expect(parseVariantFromKey(preview)).toBe("preview");
+  });
+
+  it("returns null for the wrong segment count or prefix (never guess)", () => {
+    for (const junk of [
+      "",
+      `events/${EVENT_ID}/original.jpg`, // too few segments
+      `events/${EVENT_ID}/photo/${MEDIA_ID}/extra/original.jpg`, // too many
+      `uploads/${EVENT_ID}/photo/${MEDIA_ID}/original.jpg`, // wrong prefix
+      reelOutputKey(EVENT_ID), // deliberately non-media-shaped
+      `${PRESERVATION_PREFIX}${EVENT_ID}/${MEDIA_ID}/original.jpg`,
+    ]) {
+      expect(parseKindFromKey(junk), junk).toBeNull();
+      expect(parseVariantFromKey(junk), junk).toBeNull();
+    }
+  });
+
+  it("returns null for an unknown kind or variant segment (refuse, never repair)", () => {
+    expect(
+      parseKindFromKey(`events/${EVENT_ID}/audio/${MEDIA_ID}/original.mp3`),
+    ).toBeNull();
+    expect(
+      parseVariantFromKey(`events/${EVENT_ID}/photo/${MEDIA_ID}/thumb.jpg`),
+    ).toBeNull();
+    // Dotfile / extension-less last segments have no parseable variant.
+    expect(
+      parseVariantFromKey(`events/${EVENT_ID}/photo/${MEDIA_ID}/.jpg`),
+    ).toBeNull();
+    expect(
+      parseVariantFromKey(`events/${EVENT_ID}/photo/${MEDIA_ID}/original`),
+    ).toBeNull();
+  });
+
+  it("handles traversal-ish junk in the segments", () => {
+    expect(
+      parseKindFromKey(`events/${EVENT_ID}/../${MEDIA_ID}/original.jpg`),
+    ).toBeNull();
+    expect(
+      parseVariantFromKey(`events/${EVENT_ID}/photo/${MEDIA_ID}/..`),
+    ).toBeNull();
   });
 });
 

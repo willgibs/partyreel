@@ -43,6 +43,7 @@ import {
   parseEventIdFromKey,
   parseMediaIdFromKey,
 } from "@/lib/r2/keys";
+import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 import {
   abortMultipartUpload,
   completeMultipartUpload,
@@ -331,6 +332,33 @@ export async function runCompletePipeline<Schema extends z.ZodType<CompleteCommo
       status: 415,
       code: "unsupported_type",
       message: "That file type isn't supported.",
+    });
+  }
+
+  // ★ VARIANT/KIND/EXT BINDING (QA #6), the second half of the key binding above. The key IS the
+  // issuance record: presign minted <kind>/<variant>.<ext> from ITS content_type, so requiring the
+  // echoed content_type to re-derive the same segments transitively pins complete-time
+  // content_type to presign-time content_type with zero stored state. Closes the variant swap
+  // (metering the ~2 MB preview as file_size_bytes while the original sits uncounted) and the
+  // kind swap (video bytes completed as a photo row, dodging the free-tier photos-only gate).
+  // Refuse, don't repair — same posture as the id binding.
+  const keyProblem = checkCompleteKeyConsistency({
+    key,
+    previewKey,
+    kind,
+    ext: extForMime(content_type),
+  });
+  if (keyProblem) {
+    captureWarning("upload", `complete_key_inconsistent: ${keyProblem}`, {
+      key,
+      previewKey: previewKey ?? null,
+      media_id,
+      content_type,
+    });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
     });
   }
 

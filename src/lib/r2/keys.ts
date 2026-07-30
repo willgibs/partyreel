@@ -144,3 +144,32 @@ export function parseEventIdFromKey(key: string): string | null {
   if (segments.length !== 5 || segments[0] !== "events") return null;
   return UUID_RE.test(segments[1]) ? segments[1] : null;
 }
+
+/**
+ * Pull the <kind> segment out of a media object key. Used by the complete seam's key/kind
+ * consistency check (QA #6): the key was MINTED at presign from that request's content-type, so
+ * its kind segment is the issuance record of what presign classified. Same structural guards as
+ * the parsers above; null for anything that isn't exactly our layout with a real kind.
+ */
+export function parseKindFromKey(key: string): MediaKind | null {
+  const segments = key.split("/");
+  if (segments.length !== 5 || segments[0] !== "events") return null;
+  const kind = segments[2];
+  return kind === "photo" || kind === "video" ? kind : null;
+}
+
+/**
+ * Pull the <variant> out of a media object key's last segment (`<variant>.<ext>`). The complete
+ * seam uses it to pin `key` to `original` and `preview_key` to `preview` (QA #6): without the pin,
+ * swapping the two would meter the ~2 MB preview as file_size_bytes while the full-size original
+ * sat uncounted. Null for a non-media shape or an unknown variant (refuse, never repair).
+ */
+export function parseVariantFromKey(key: string): MediaVariant | null {
+  const segments = key.split("/");
+  if (segments.length !== 5 || segments[0] !== "events") return null;
+  const lastSegment = segments[4];
+  const dot = lastSegment.indexOf(".");
+  if (dot < 1) return null; // no dot, or a dotfile with no name
+  const variant = lastSegment.slice(0, dot);
+  return variant === "original" || variant === "preview" ? variant : null;
+}
