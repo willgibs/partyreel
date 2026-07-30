@@ -42,6 +42,23 @@ site, these are the ways the *test tooling* misreports, so a working change look
     the element + ancestors (not the screenshot), and for the interaction itself hand the human the 10-second
     look (the S5 anon-confirm modal was verified this way). Don't "fix" working UI chasing the dimmed frame.
 
+## Long-lived-session tests (the presign-roll soak)
+
+Testing "the album survives the evening" (refreshed presigns adopted as the 30-min stable bucket rolls,
+QA #11) has TWO setup traps that both produce a false "broken" reading, and neither is a product bug:
+
+- **A HIDDEN tab never polls, on purpose.** `live-gallery.tsx` stops the fallback poll interval on
+  `visibilitychange` (frugality + correctness) and calls `refresh()` immediately when the tab returns to
+  visible. So a backgrounded soak tab collects ZERO polls, never adopts refreshed URLs, and looks dead after
+  ~90 min. The soak tab must stay **foregrounded** for the whole window (which is also the real scenario:
+  a host leaving the album up on a screen). Verify the setup mid-run with
+  `performance.getEntriesByType("resource")` filtered to `/api/guests/gallery` — zero entries means the tab
+  was hidden, not that the poll is broken. The return-to-visible refresh is itself the recovery path worth
+  asserting: a phone that sleeps past the expiry repaints on wake.
+- **The DEMO event cannot test it at all.** `liveEnabled` is false in demo mode ("the curated media is static
+  and the simulated tiles are local-only, so skip it entirely"), so the demo `/e/` link never polls no matter
+  what. Run the soak on a REAL test event's link.
+
 ## Vercel preview chrome
 
 - **The dev Toolbar overlaps the UI and does not exist for real guests.** Vercel injects a dev **Toolbar**
