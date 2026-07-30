@@ -299,16 +299,24 @@ export function ReelBuilder({
       </div>
 
       {/* The stage is a body-level portal that rests fully transparent, so it can
-          mount from here without covering the feed until Create fires. */}
-      <ReelReveal
-        stage={reveal}
-        tiles={revealTiles}
-        reelProps={config.reelProps}
-        eventName={eventName}
-        onShare={onShare}
-        onDismiss={reveal.reset}
-        sharing={sharing}
-      />
+          mount from here without covering the feed until Create fires.
+          Gated on having moments: with nothing curated there is no reel to reveal
+          and no tiles to fly, and mounting a player over an EMPTY clip list would
+          ask the engine to draw a reel that does not exist. The moment the host
+          fills, it mounts, which is still a separate user action (and at least a
+          frame) before any Create tap, so the copies' first transform is a
+          transition exactly as the ratified flight requires. */}
+      {!empty ? (
+        <ReelReveal
+          stage={reveal}
+          tiles={revealTiles}
+          reelProps={config.reelProps}
+          eventName={eventName}
+          onShare={onShare}
+          onDismiss={reveal.reset}
+          sharing={sharing}
+        />
+      ) : null}
     </div>
   );
 }
