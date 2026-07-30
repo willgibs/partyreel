@@ -85,7 +85,7 @@ export function MotionPlayground() {
     setBeatOn(true);
     window.setTimeout(
       () => setBeatOn(false),
-      readMs("--tune-review-beat-ms", 1800),
+      readMs("--tune-review-beat-ms", 2500),
     );
   }
 

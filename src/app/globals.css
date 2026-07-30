@@ -593,9 +593,9 @@
       /* Duration + easing are var()-tunable (S4·0 motion tuner) — the fallbacks
          ARE the baked defaults, so this is identical without the dev panel. */
       transition:
-        opacity var(--tune-route-fade-ms, 220ms)
+        opacity var(--tune-route-fade-ms, 310ms)
           var(--tune-route-fade-ease, var(--ease-emphasis)),
-        transform var(--tune-route-fade-ms, 220ms)
+        transform var(--tune-route-fade-ms, 310ms)
           var(--tune-route-fade-ease, var(--ease-emphasis));
       @starting-style {
         opacity: 0;

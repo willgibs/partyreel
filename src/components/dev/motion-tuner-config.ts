@@ -58,7 +58,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     max: 500,
     step: 10,
     unit: "ms",
-    default: 220,
+    default: 310,
   },
   {
     kind: "select",
@@ -108,7 +108,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     max: 2600,
     step: 50,
     unit: "ms",
-    default: 1800,
+    default: 2500,
   },
   // Event-feed prototype (the /design/event-feed lab): the filter-swap entrance + the
   // urgency-reorder duration. Baked as lab defaults; promoted to globals.css on ratification.
@@ -130,7 +130,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     max: 700,
     step: 20,
     unit: "ms",
-    default: 360,
+    default: 500,
   },
   // ── R3, the REEL REVEAL + reel experience. RATIFIED, REVISIT-ONLY: the reveal
   // grammar was ruled by Will at T1 and ratified as-built at T2, so these knobs
