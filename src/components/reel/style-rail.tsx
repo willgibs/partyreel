@@ -193,7 +193,12 @@ export function StyleRail({
     >
       <span ref={sentinelRef} aria-hidden className="w-0 shrink-0" />
       {STYLE_GROUPS.map(({ kind, styles }) => (
-        <div key={kind} className="flex gap-2" role="group">
+        <div
+          key={kind}
+          role="group"
+          aria-label={STYLE_GROUP_LABEL[kind]}
+          className="flex gap-2"
+        >
           {/* The group name is REAL text (not a decorative flourish): a screen
               reader must hear "Looks" / "Layouts" before the 8 or 6 thumbs. */}
           <span className="flex w-4 shrink-0 items-center justify-center">
@@ -237,7 +242,12 @@ export function StyleWall({
   return (
     <div role="group" aria-label="Reel style">
       {STYLE_GROUPS.map(({ kind, styles }) => (
-        <div key={kind} className="mb-2 last:mb-0" role="group">
+        <div
+          key={kind}
+          role="group"
+          aria-label={STYLE_GROUP_LABEL[kind]}
+          className="mb-2 last:mb-0"
+        >
           <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-white/45 uppercase">
             {STYLE_GROUP_LABEL[kind]}
           </p>
