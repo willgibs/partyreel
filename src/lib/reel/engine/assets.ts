@@ -43,7 +43,17 @@ export type ReelAssets = {
   grain: CanvasImage | null;
 };
 
-async function decodeOne(
+/**
+ * The image-decode SEAM. Default = this module's own fetch+decode (below); the shared bitmap cache
+ * (asset-cache.ts) injects a memoized one so many players over one url set decode each url ONCE.
+ * The type lives here (next to the default) so asset-cache imports in ONE direction: cache -> assets.
+ */
+export type DecodeImage = (
+  url: string,
+  signal?: AbortSignal,
+) => Promise<CanvasImage>;
+
+export async function decodeImage(
   url: string,
   signal?: AbortSignal,
 ): Promise<CanvasImage> {
@@ -85,17 +95,24 @@ export async function loadReelAssets(
     haloFilter?: string | null;
     /** The render frame; washes normalize their blur to it (frame-space, like the DOM blur). */
     frame?: { width: number; height: number };
+    /**
+     * Override the per-url decode (default: this module's fetch+createImageBitmap). The player hands
+     * in the SHARED bitmap cache so the hero + the 14 style thumbs decode each url once between them.
+     * Additive: omit it and this function behaves exactly as it always has.
+     */
+    decode?: DecodeImage;
     signal?: AbortSignal;
   } = { washes: false },
 ): Promise<ReelAssets> {
   // Dedupe by url: the same media can appear twice (cover hoist edge cases); decode it once.
   const byUrl = new Map<string, Promise<CanvasImage>>();
+  const decode = opts.decode ?? decodeImage;
   let failures = 0;
 
   // The grain tile decodes in parallel with the clips; a failure is a graceful null (the draw
   // reports + skips grain), never a crash.
   const grainPromise = opts.grain
-    ? decodeOne(GRAIN_TILE_URI, opts.signal).catch((err) => {
+    ? decode(GRAIN_TILE_URI, opts.signal).catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") throw err;
         return null;
       })
@@ -111,7 +128,7 @@ export async function loadReelAssets(
       if (!clip.url) return null;
       let promise = byUrl.get(clip.url);
       if (!promise) {
-        promise = decodeOne(clip.url, opts.signal);
+        promise = decode(clip.url, opts.signal);
         byUrl.set(clip.url, promise);
       }
       try {
