@@ -100,17 +100,41 @@ export function ReelBuilder({
     [membership],
   );
 
+  // ★ The panel swap must wait for the THEATER, not the save. markCreated() flips
+  // reel-panel's builder→marquee switch, which unmounts this component AND the
+  // reveal stage portal it hosts — so calling it when the RPC resolves (~1s) killed
+  // the 4.7s choreography mid-act (found live on the alias, 2026-07-30). The save
+  // result lands in a ref; the swap fires only from finishReveal (the settled
+  // card's exits), or from the .then() if the host somehow dismissed first.
+  const savedRef = useRef<boolean | null>(null); // null = save still in flight
+  const swapQueuedRef = useRef(false); // dismissed before the save resolved
+
+  const finishReveal = useCallback(() => {
+    reveal.reset();
+    if (savedRef.current === true) {
+      stageCtx?.markCreated();
+    } else if (savedRef.current === null) {
+      // The theater outran the save (slow network): swap the moment it lands.
+      swapQueuedRef.current = true;
+    }
+    // savedRef false: the save failed — persistConfig's path already toasted and
+    // the builder stays up for a retry.
+  }, [reveal, stageCtx]);
+
   const create = useCallback(() => {
     if (creating || momentCount === 0 || reveal.running) return;
     setCreating(true);
+    savedRef.current = null;
+    swapQueuedRef.current = false;
     // The reveal FIRST, measured against the tiles as they still sit at rest.
     reveal.start(sourceEls.current.slice(0, momentCount));
     // ...and the write concurrently. persistConfig's upsert IS the lazy create,
     // so this row's existence is the reel's birth certificate.
     void config.persistConfig().then((saved) => {
       setCreating(false);
+      savedRef.current = saved;
       if (saved) {
-        stageCtx?.markCreated();
+        if (swapQueuedRef.current) stageCtx?.markCreated();
         return;
       }
       // Let the theater finish (the reel really is there, client-side) and land
@@ -120,6 +144,28 @@ export function ReelBuilder({
       reveal.reset();
     });
   }, [creating, momentCount, reveal, config, stageCtx]);
+
+  // The settled card's Share: publish (optimistic, via the panel's controller),
+  // then exit the theater once the transition lands. `sharing` goes true→false
+  // around the action; finishing on the falling edge keeps the stage up while
+  // the button shows its pending state.
+  const shareTappedRef = useRef(false);
+  const wasSharingRef = useRef(false);
+  const handleShare = useCallback(() => {
+    shareTappedRef.current = true;
+    onShare();
+  }, [onShare]);
+  useEffect(() => {
+    if (sharing) {
+      wasSharingRef.current = true;
+      return;
+    }
+    if (shareTappedRef.current && wasSharingRef.current) {
+      shareTappedRef.current = false;
+      wasSharingRef.current = false;
+      finishReveal();
+    }
+  }, [sharing, finishReveal]);
 
   // The floating action bar's "Create reel" fires THIS create (the FLIP needs the
   // builder's own tiles). The bar only shows while the Reel section is the active
@@ -312,8 +358,8 @@ export function ReelBuilder({
           tiles={revealTiles}
           reelProps={config.reelProps}
           eventName={eventName}
-          onShare={onShare}
-          onDismiss={reveal.reset}
+          onShare={handleShare}
+          onDismiss={finishReveal}
           sharing={sharing}
         />
       ) : null}
