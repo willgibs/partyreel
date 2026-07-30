@@ -151,6 +151,12 @@ export default async function EventDetailPage({
         isAnonymous: who?.isAnonymous ?? false,
         uploaderEmail: who?.email ?? null,
         likeCount: likeCounts.get(m.id) ?? 0,
+        // Quick-add signals (R3), never rendered: recency + per-uploader coverage. A null guest_id
+        // means the HOST uploaded it (same rule the contributor count below relies on), so it keys
+        // to the literal "host" bucket; anything unattributable falls to the shared anonymous
+        // bucket. A guest_id is an opaque id, NOT an email, so this is safe to hand the client.
+        createdAt: m.created_at,
+        uploaderKey: m.guest_id ?? (who?.isHost ? "host" : null),
         // Natural geometry for the masonry (S3·3a). Null on pre-measure rows ->
         // the grid falls back to 1:1 (no CLS). Rides OUTSIDE any ETag.
         width: m.width,

@@ -59,6 +59,15 @@ export type GridMedia = {
   width?: number | null;
   height?: number | null;
   durationSeconds?: number | null;
+  /**
+   * Quick-add signals (R3). NEVER RENDERED — they feed `pickQuickAdd`, which needs to know WHEN a
+   * moment was uploaded and BY WHOM to blend recency with per-guest coverage. Optional, so every
+   * surface that runs no quick-add stays exactly as it was (only the host dashboard populates them).
+   * `uploaderKey` is a grouping key: a guest_id, "host", or null (one shared anonymous bucket).
+   * Deliberately NOT the email — see the uploaderEmail note above; this must stay safe to carry.
+   */
+  createdAt?: string | null;
+  uploaderKey?: string | null;
 };
 
 // Presentational thumbnail shared by every gallery surface (the shared
