@@ -85,7 +85,8 @@ export function ReelBuilder({
     return pickQuickAdd(candidates, { seed: defaultReelSeed(eventId) });
   }, [approved, eventId]);
 
-  const canQuickAdd = approved.length >= QUICK_ADD_MIN && quickAdd.ids.length > 0;
+  const canQuickAdd =
+    approved.length >= QUICK_ADD_MIN && quickAdd.ids.length > 0;
 
   // The flight's SOURCES: the tiles the host can already see. Pre-create with
   // moments picked, that is the builder card's own grid; the reveal's flying
@@ -95,8 +96,7 @@ export function ReelBuilder({
 
   /** The flying copies' visual twins, in reel order. */
   const revealTiles: RevealTile[] = useMemo(
-    () =>
-      membership.map((m) => ({ id: m.id, src: m.previewUrl ?? m.url })),
+    () => membership.map((m) => ({ id: m.id, src: m.previewUrl ?? m.url })),
     [membership],
   );
 
@@ -208,19 +208,18 @@ export function ReelBuilder({
               aria-hidden
               className="grid grid-cols-4 gap-[2px] opacity-25 blur-[1.5px]"
             >
-              {(approved.length > 0
-                ? approved.slice(0, GHOST_TILES)
-                : []
-              ).map((m) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={m.id}
-                  src={m.previewUrl ?? m.url}
-                  alt=""
-                  style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
-                  className="w-full object-cover"
-                />
-              ))}
+              {(approved.length > 0 ? approved.slice(0, GHOST_TILES) : []).map(
+                (m) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={m.id}
+                    src={m.previewUrl ?? m.url}
+                    alt=""
+                    style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
+                    className="w-full object-cover"
+                  />
+                ),
+              )}
               {/* Nothing uploaded yet: hold the card's height with plain blocks
                   so the copy never sits on a collapsed box. */}
               {approved.length === 0
@@ -248,7 +247,7 @@ export function ReelBuilder({
                   type="button"
                   onClick={quickFill}
                   disabled={filling}
-                  className="mt-1 flex h-9 items-center gap-1.5 rounded-[var(--radius-action-sm)] bg-reel px-3.5 text-xs font-medium text-white outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70 motion-reduce:active:scale-100"
+                  className="mt-1 flex h-9 items-center gap-1.5 rounded-[var(--radius-action-sm)] bg-reel px-3.5 text-xs font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
                 >
                   {quickAdd.signals.likes ? (
                     <Heart className="size-3.5" aria-hidden />
@@ -262,10 +261,15 @@ export function ReelBuilder({
                       : "Start with a first cut"}
                 </button>
               ) : null}
+              {/* The "pick them myself" route. This USED to say "tap the clapperboard on any
+                  photo", which stopped being true when ADR-0024 took the reel chip off the
+                  gallery tiles. Select mode is the honest pre-Create answer (the Studio's
+                  Moments picker is the post-Create one, and the Studio does not exist yet
+                  here, so it cannot be the instruction). */}
               <p className="text-[11px] text-muted-foreground">
                 {approved.length === 0
                   ? "Add some photos to the gallery first"
-                  : "Pick them myself: tap the clapperboard on any photo in the gallery"}
+                  : "Or use Select in the gallery to add several at once"}
               </p>
             </div>
           </>
@@ -324,7 +328,7 @@ export function ReelBuilder({
                   type="button"
                   onClick={quickFill}
                   disabled={filling}
-                  className="flex h-6 shrink-0 items-center gap-1 rounded-full border border-border px-2 text-[11px] font-medium outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70 motion-reduce:active:scale-100"
+                  className="flex h-6 shrink-0 items-center gap-1 rounded-full border border-border px-2 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
                 >
                   {filling ? "Adding…" : "Fill"}
                 </button>
@@ -335,7 +339,7 @@ export function ReelBuilder({
               onClick={create}
               disabled={creating || reveal.running}
               aria-busy={creating || reveal.running}
-              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-action-lg)] bg-reel text-sm font-semibold text-white outline-none transition-transform duration-150 ease-emphasis active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60 motion-reduce:active:scale-100"
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-action-lg)] bg-reel text-sm font-semibold text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100"
             >
               <Clapperboard className="size-4" aria-hidden />
               Create reel

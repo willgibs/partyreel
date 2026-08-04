@@ -168,7 +168,7 @@ function AttributionPill({
             </>
           ))}
         {hasAttribution && <span className="text-white/40">·</span>}
-        <span className="tabular-nums text-white/70">{position}</span>
+        <span className="text-white/70 tabular-nums">{position}</span>
       </span>
       {item.uploaderEmail && (
         <span className="pointer-events-auto text-[10px] text-white/55">
@@ -520,7 +520,8 @@ export function MediaLightbox({
       if (fraction < 0.3) {
         if (index !== null && index > 0) onIndexChange(index - 1);
       } else if (fraction > 0.7) {
-        if (index !== null && index < items.length - 1) onIndexChange(index + 1);
+        if (index !== null && index < items.length - 1)
+          onIndexChange(index + 1);
       } else {
         handleClose();
       }
@@ -804,9 +805,12 @@ export function MediaLightbox({
                           className="h-5 w-px shrink-0 bg-white/20"
                         />
                         {/* Add to reel (host curation, approved-only): violet clapperboard
-                            when in-reel. No-op without a ReelProvider. */}
+                            when in-reel. No-op without a ReelProvider. Since ADR-0024 dropped
+                            the tile chip, this is one of the reel's three curation doors (with
+                            gallery bulk-Select and the Studio's Moments picker), and the only
+                            one that acts on the moment you are actually looking at. */}
                         {current.status === "approved" && (
-                          <ReelButton item={current} variant="lightbox" />
+                          <ReelButton item={current} />
                         )}
                         {current.status === "pending" && (
                           <ActionTooltip label="Approve">
@@ -814,7 +818,10 @@ export function MediaLightbox({
                               type="button"
                               aria-label="Approve"
                               onClick={() => onSetStatus(current, "approved")}
-                              className={cn(LIGHTBOX_ACTION, "hover:text-success")}
+                              className={cn(
+                                LIGHTBOX_ACTION,
+                                "hover:text-success",
+                              )}
                             >
                               <Check className="size-5" />
                             </button>
@@ -842,7 +849,10 @@ export function MediaLightbox({
                               type="button"
                               aria-label="Hide"
                               onClick={() => onSetStatus(current, "hidden")}
-                              className={cn(LIGHTBOX_ACTION, "hover:text-warning")}
+                              className={cn(
+                                LIGHTBOX_ACTION,
+                                "hover:text-warning",
+                              )}
                             >
                               <EyeOff className="size-5" />
                             </button>
@@ -869,8 +879,8 @@ export function MediaLightbox({
                                 <DialogTitle>Remove this item?</DialogTitle>
                                 <DialogDescription>
                                   It disappears from the album right away and is
-                                  permanently deleted after a short grace period.
-                                  Guests won&rsquo;t see it.
+                                  permanently deleted after a short grace
+                                  period. Guests won&rsquo;t see it.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>
