@@ -15,8 +15,15 @@
  */
 
 import { Check, Download, Lock, Share2, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEventHandler,
+} from "react";
 
 import {
   formatReelDuration,
@@ -25,7 +32,11 @@ import {
 import { useReel } from "@/components/reel/reel-provider";
 import { useReelPublish } from "@/components/reel/reel-share-card";
 import { ReelStitchingDialog } from "@/components/reel/reel-stitching-dialog";
-import { StudioFilmstrip } from "@/components/reel/studio-filmstrip";
+import {
+  AddMomentsTile,
+  StudioFilmstrip,
+} from "@/components/reel/studio-filmstrip";
+import { StudioMomentsPicker } from "@/components/reel/studio-moments-picker";
 import { StyleWall } from "@/components/reel/style-rail";
 import {
   NO_EXPORT_NOTICE,
@@ -40,9 +51,12 @@ import { CanvasReelPlayer } from "@/lib/reel/engine/player";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
-type Sheet = "none" | "style" | "cover" | "length" | "layout";
+type Sheet = "none" | "moments" | "style" | "cover" | "length" | "layout";
 
+// Moments leads the tray (ADR-0024): WHAT is in the reel is the first question, and since R3.1 this is
+// the primary door for answering it anywhere in the product. The other four style what is already there.
 const SHEETS: { id: Exclude<Sheet, "none">; label: string }[] = [
+  { id: "moments", label: "Moments" },
   { id: "style", label: "Style" },
   { id: "cover", label: "Cover" },
   { id: "length", label: "Length" },
@@ -126,6 +140,13 @@ export function ReelStudio({
   const closeSheet = useCallback(() => {
     setSheet("none");
     sheetTrigger.current?.focus({ preventScroll: true });
+  }, []);
+
+  /** The dock's "+" opens the same sheet the tray's first chip does, and records ITSELF as the
+   *  trigger so Escape hands focus back to the tile that was tapped, not to the tray. */
+  const openMoments = useCallback<MouseEventHandler<HTMLButtonElement>>((e) => {
+    sheetTrigger.current = e.currentTarget;
+    setSheet("moments");
   }, []);
 
   // Escape closes the open sheet. Registered only while one is open, so it never
@@ -276,38 +297,51 @@ export function ReelStudio({
         ) : null}
       </div>
 
-      {/* The dock: reorder while the reel keeps playing. */}
+      {/* The dock: reorder while the reel keeps playing, plus the "+" door into the
+          picker. The dock stays ORDER-only otherwise (one job per surface) - adding
+          and removing happen in the sheet, where there is room to actually look. */}
       <div className="px-3 pt-2">
         {reel && config.membership.length > 1 ? (
           <StudioFilmstrip
             items={config.membership}
             coverMediaId={config.coverMediaId}
             onReorder={(ids) => void reel.reorder(ids)}
+            trailing={<AddMomentsTile onClick={openMoments} />}
           />
+        ) : reel ? (
+          // One moment, or none: nothing to reorder, but the door still belongs here.
+          // It is the fastest path out of a one-shot reel.
+          <div className="flex justify-center pb-1">
+            <AddMomentsTile onClick={openMoments} />
+          </div>
         ) : null}
       </div>
 
-      {/* The control tray: four sheets that slide over the canvas. */}
-      <div className="flex items-center justify-center gap-1.5 px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        {SHEETS.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            aria-expanded={sheet === id}
-            onClick={(e) => {
-              sheetTrigger.current = e.currentTarget;
-              setSheet(sheet === id ? "none" : id);
-            }}
-            className={cn(
-              "flex h-8 items-center rounded-[var(--radius-action-sm)] border px-3 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
-              sheet === id
-                ? "border-white bg-white text-zinc-900"
-                : "border-white/20 text-white/80",
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* The control tray: five sheets that slide over the canvas. `mx-auto w-fit` + overflow rather
+          than justify-center, because a centered flex row CLIPS its own start once the content
+          overflows, which on a narrow phone would hide the Moments chip. */}
+      <div className="px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 overflow-x-auto">
+          {SHEETS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              aria-expanded={sheet === id}
+              onClick={(e) => {
+                sheetTrigger.current = e.currentTarget;
+                setSheet(sheet === id ? "none" : id);
+              }}
+              className={cn(
+                "flex h-8 shrink-0 items-center rounded-[var(--radius-action-sm)] border px-3 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
+                sheet === id
+                  ? "border-white bg-white text-zinc-900"
+                  : "border-white/20 text-white/80",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ONE sheet at a time, each mounted only while open. That is what makes the
@@ -323,6 +357,10 @@ export function ReelStudio({
           className={cn(
             "absolute inset-x-0 bottom-0 z-10 rounded-t-xl border-t border-white/10 bg-[oklch(0.15_0_0)] p-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]",
             sheet === "style" && "max-h-[52%] overflow-y-auto",
+            // The picker is a whole album, so it gets the tall body. It still stops short of the
+            // top so the reel stays visible above it: choosing a cut while watching it is the
+            // entire argument for doing this in the Studio.
+            sheet === "moments" && "max-h-[70dvh] overflow-y-auto",
           )}
         >
           <div className="mb-2 flex items-center justify-between">
@@ -338,6 +376,10 @@ export function ReelStudio({
               <X className="size-3.5" aria-hidden />
             </button>
           </div>
+
+          {sheet === "moments" ? (
+            <StudioMomentsPicker eventId={eventId} items={items} />
+          ) : null}
 
           {sheet === "style" ? (
             <StyleWall
@@ -406,8 +448,24 @@ export function ReelStudio({
                   );
                 })}
               </div>
+              {/* The free-tier upgrade line. It followed the length control down from the marquee
+                  (ADR-0024): the Lock on 60s is the nudge, and this is the only place that says
+                  what to do about it, so the move had to bring it along. */}
               <p className="mt-2 text-[11px] text-white/45">
                 Auto fits your moments into {config.maxSeconds} seconds.
+                {config.tier === "free" ? (
+                  <>
+                    {" "}
+                    60-second reels are a paid feature.{" "}
+                    <Link
+                      href="/pricing"
+                      className="font-medium text-white underline underline-offset-4"
+                    >
+                      Upgrade to enable
+                    </Link>
+                    .
+                  </>
+                ) : null}
               </p>
             </>
           ) : null}
