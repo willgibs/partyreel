@@ -7,7 +7,6 @@ import { updateEventAction } from "@/app/(app)/dashboard/actions";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
-import { ReelReorderButton } from "@/components/reel/reel-reorder-button";
 import {
   EVENT_SECTIONS,
   SECTION_LABEL,
@@ -198,12 +197,13 @@ export function EventFeed({
       </section>
     ) : k === "reel" ? (
       <section aria-label="Reel" className="space-y-2.5">
+        {/* Label + count ONLY. Reorder used to live in this header; ADR-0024 moved it to the Studio's
+            filmstrip dock (reordering beside a live player is the dock's whole point, and the feed's
+            reel section is a visual surface now). `reelCount` stays: the filter pill reads it. The
+            header is layout-safe with or without an action (min-h-7 sits on the ROW). */}
         <FeedSectionHeader
           label={SECTION_LABEL.reel}
           count={reelCount || undefined}
-          // Reorder/Done lives in the header (reorder is meaningless with <= 1 item). The button reads
-          // the ReelReorderProvider directly. size="sm" (h-7) respects the no-bounce row.
-          action={reelCount > 1 ? <ReelReorderButton /> : undefined}
         />
         {reelSection}
       </section>

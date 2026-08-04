@@ -22,7 +22,6 @@ import { HostSelectionProvider } from "@/components/app/host-selection-provider"
 import { ReelPanel } from "@/components/app/reel-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
 import { ReelStageProvider } from "@/components/reel/reel-stage-provider";
-import { ReelReorderProvider } from "@/components/reel/reel-reorder-provider";
 import {
   DEFAULT_TIER,
   toBillingTier,
@@ -256,78 +255,76 @@ export default async function EventDetailPage({
           videosAllowed={videosAllowedForTier(tier)}
         />
         <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-          {/* ReelReorderProvider shares the Reel drag-reorder MODE between the header Reorder/Done button
-              and the Reel section body (the sortable grid). HostSelectionProvider shares the Gallery
-              album bulk-select state so the floating bar's bulk cluster and the gallery grid's tiles +
-              long-press drive one selection. Both inside ReelProvider (the shared reel membership).
+          {/* HostSelectionProvider shares the Gallery album bulk-select state so the floating bar's bulk
+              cluster and the gallery grid's tiles + long-press drive one selection; it sits inside
+              ReelProvider (the shared reel membership, which its "Add to reel" bulk action commits).
               ReelStageProvider wraps the FEED (not just the Reel section) because the reel's
               lifecycle stage has two readers: the section, which is either the builder or the
-              Marquee, and the floating action bar, which is either Create reel or Open studio. */}
-          <ReelReorderProvider>
-            <HostSelectionProvider>
-              <ReelStageProvider initialCreated={reelConfig != null}>
-                <EventFeed
-                  eventId={event.id}
-                  moderationOn={isModerationOn}
-                  initialSection={initialSection}
-                  pendingItems={pendingItems}
-                  galleryCount={visibleItems.length}
-                  // ★ The reel count IS listReelItems' length, on purpose. That query already applies
-                  // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
-                  // pill, the Reorder gate and the ReelProvider seed all agree by construction. Do NOT
-                  // re-filter here against visibleItems: a second, differently scoped predicate is
-                  // exactly how the count and the grid drifted apart before.
-                  reelCount={reelIds.length}
-                  guestsCount={guestListItems?.length ?? 0}
-                  guestsSection={
-                    guestListItems ? (
-                      <GuestList items={guestListItems} />
-                    ) : (
-                      // The host key is off: the discovery teaser (the review
-                      // moderation-off pattern). The consented flip lives in
-                      // Settings, where the LOUD copy spells out what it does.
-                      <FeedSectionEmpty
-                        icon={Users}
-                        title="Introduce your guests"
-                        desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
-                        action={
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/dashboard/${event.id}/settings`}>
-                              Guest list settings
-                            </Link>
-                          </Button>
-                        }
-                      />
-                    )
-                  }
-                  gallerySection={
-                    <EventUploads
-                      eventId={event.id}
-                      items={visibleItems}
-                      pendingCount={pendingItems.length}
-                      shareUrl={eventLink}
+              Marquee, and the floating action bar, which is either Create reel or Open studio.
+              (A ReelReorderProvider used to wrap these two; ADR-0024 moved reorder into the Studio's
+              dock, so the feed no longer has a reorder MODE to share.) */}
+          <HostSelectionProvider>
+            <ReelStageProvider initialCreated={reelConfig != null}>
+              <EventFeed
+                eventId={event.id}
+                moderationOn={isModerationOn}
+                initialSection={initialSection}
+                pendingItems={pendingItems}
+                galleryCount={visibleItems.length}
+                // ★ The reel count IS listReelItems' length, on purpose. That query already applies
+                // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
+                // pill and the ReelProvider seed agree by construction. Do NOT re-filter here against
+                // visibleItems: a second, differently scoped predicate is exactly how the count and
+                // the grid drifted apart before.
+                reelCount={reelIds.length}
+                guestsCount={guestListItems?.length ?? 0}
+                guestsSection={
+                  guestListItems ? (
+                    <GuestList items={guestListItems} />
+                  ) : (
+                    // The host key is off: the discovery teaser (the review
+                    // moderation-off pattern). The consented flip lives in
+                    // Settings, where the LOUD copy spells out what it does.
+                    <FeedSectionEmpty
+                      icon={Users}
+                      title="Introduce your guests"
+                      desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
+                      action={
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/dashboard/${event.id}/settings`}>
+                            Guest list settings
+                          </Link>
+                        </Button>
+                      }
                     />
-                  }
-                  reelSection={
-                    <ReelPanel
-                      eventId={event.id}
-                      eventName={event.name}
-                      items={visibleItems}
-                      shareUrl={eventLink}
-                      reelConfig={reelConfig}
-                      // Free reels carry the partyreel.com wordmark (the upgrade nudge); the composer
-                      // mirrors it in the live player so the host sees what they'll download. The render
-                      // route re-derives this server-side — the client flag is cosmetic only. The tier
-                      // likewise drives the composer's length cap (30s/60s), UX only.
-                      watermark={tier === "free"}
-                      tier={tier}
-                      guestVisible={reelConfig?.guestVisible ?? false}
-                    />
-                  }
-                />
-              </ReelStageProvider>
-            </HostSelectionProvider>
-          </ReelReorderProvider>
+                  )
+                }
+                gallerySection={
+                  <EventUploads
+                    eventId={event.id}
+                    items={visibleItems}
+                    pendingCount={pendingItems.length}
+                    shareUrl={eventLink}
+                  />
+                }
+                reelSection={
+                  <ReelPanel
+                    eventId={event.id}
+                    eventName={event.name}
+                    items={visibleItems}
+                    reelConfig={reelConfig}
+                    // Free reels carry the partyreel.com wordmark (the upgrade nudge); the player
+                    // mirrors it so the host sees what they'll download. The render route re-derives
+                    // this server-side — the client flag is cosmetic only. The tier likewise drives
+                    // the length cap (30s/60s), UX only.
+                    watermark={tier === "free"}
+                    tier={tier}
+                    guestVisible={reelConfig?.guestVisible ?? false}
+                  />
+                }
+              />
+            </ReelStageProvider>
+          </HostSelectionProvider>
         </ReelProvider>
       </HostAddProvider>
     </div>

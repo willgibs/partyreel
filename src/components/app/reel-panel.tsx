@@ -1,11 +1,8 @@
 "use client";
 
 import { type GridMedia } from "@/components/app/media-grid";
-import { ReelSortableGrid } from "@/components/app/reel-sortable-grid";
 import { ReelBuilder } from "@/components/reel/reel-builder";
 import { ReelMarquee } from "@/components/reel/reel-marquee";
-import { useReel } from "@/components/reel/reel-provider";
-import { useReelReorder } from "@/components/reel/reel-reorder-provider";
 import { useReelPublish } from "@/components/reel/reel-share-card";
 import { useReelStage } from "@/components/reel/reel-stage-provider";
 import { useReelConfig } from "@/components/reel/use-reel-config";
@@ -17,8 +14,11 @@ import { type ReelConfig } from "@/lib/db/queries/reel";
  *
  * A first visit and a hundredth visit finally differ:
  *   no config row → ReelBuilder (curate, then Create fires the ratified reveal)
- *   config row    → ReelMarquee (the poster, the labeled controls, the share card)
- *   reorder mode  → the sortable grid (unchanged)
+ *   config row    → ReelMarquee (the poster + the status + the share card)
+ *
+ * There used to be a third arm, a REORDER MODE that swapped the section for a
+ * sortable grid. ADR-0024 retired it: reorder is Studio-only now (the dock), so
+ * this switch is a clean two-state one again.
  *
  * ★ The switch is on the CONFIG ROW, not on membership. Create-birth means the
  * row's existence IS the reel's birth certificate, so a LEGACY reel (curated
@@ -34,7 +34,6 @@ export function ReelPanel({
   eventId,
   eventName,
   items,
-  shareUrl,
   reelConfig,
   watermark,
   tier,
@@ -45,7 +44,6 @@ export function ReelPanel({
   eventName: string;
   /** All visible (approved + hidden) gallery items. */
   items: GridMedia[];
-  shareUrl?: string;
   /** The stored reel config (style/seed/length/cover); null until first created. */
   reelConfig: ReelConfig | null;
   /** Free tier → the live player + the .mp4 export carry the partyreel.com wordmark. */
@@ -59,23 +57,9 @@ export function ReelPanel({
    */
   guestVisible?: boolean;
 }) {
-  const reel = useReel();
-  const reorder = useReelReorder();
   const stage = useReelStage();
   const config = useReelConfig({ eventId, items, reelConfig, watermark, tier });
   const publish = useReelPublish(eventId, guestVisible);
-
-  // Reorder mode: the sortable uniform grid over the FULL membership (a hidden
-  // in-reel item still shows, dimmed, so reorder commits the complete set the
-  // RPC's set-equality guard requires). Untouched by this round.
-  if (reorder?.reorderMode && reel) {
-    return (
-      <ReelSortableGrid
-        items={config.membership}
-        onReorder={(ids) => reel.reorder(ids)}
-      />
-    );
-  }
 
   const created = stage?.created ?? reelConfig != null;
 
@@ -96,7 +80,6 @@ export function ReelPanel({
     <ReelMarquee
       eventId={eventId}
       eventName={eventName}
-      shareUrl={shareUrl}
       config={config}
       publish={publish}
     />
