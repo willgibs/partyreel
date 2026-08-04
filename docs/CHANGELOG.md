@@ -10,6 +10,44 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-04 — R3.1: the studio-first recomposition of the reel
+
+**Will's M2 gate review of the live R3 build ruled a composition change, not a feature change:** the
+feed's Reel section had become a settings page wedged into a scroll of media, while the Studio, which
+already twinned every one of those controls, was missing the one thing it needed. Recorded as
+[ADR-0024](adr/0024-studio-first-reel-composition.md) (amending ADR-0023 ruling 4's composite). Pure
+recomposition: no migration, no schema change, no advisors movement, no engine change. Built on
+`lp/reel-studio-first`, 1059 → 1063 tests.
+
+- **The feed section is visual only** (`c3ddebe`). The marquee keeps the status chip + "Open studio"
+  door, the poster (a live paused player), and the Share card. The style rail, layout, cover, length,
+  moments grid, download row and stitching dialog all leave, ~165 lines. The feed now mounts ZERO
+  thumbnail canvases: the IO-gated poster is the section's only player. The PRE-Create builder is
+  deliberately untouched, because birth is a feed event.
+- **Feed reorder retired** (same commit). The header Reorder/Done mode and its sortable-grid swap are
+  gone (`reel-reorder-provider`, `reel-reorder-button`, `reel-sortable-grid` deleted, plus the panel's
+  third arm and the page's provider mount); the Studio's filmstrip dock reorders beside a reel that
+  keeps PLAYING. `useSortableGrid` survives, the dock consumes it.
+- **The tile-row diet** (`bf442d4`). Add-to-reel and DELETE come off `HostTileOverlay`, leaving
+  `like, download, hide/show` and closing the row at three: a five-chip hover fan on a dense masonry
+  grid is a misclick trap, and hide already covers the urgent case reversibly. Both actions keep the
+  lightbox + bulk-Select unchanged. `ReelButton` loses its row variant and its `variant` prop with it.
+  The builder's "tap the clapperboard on any photo" copy had become false and now points at gallery
+  Select.
+- **The Moments picker** (`1e1f685`), the round's one net-new surface and now the primary selection
+  door anywhere in the product. First in the Studio's sheet tray (plus a "+" tile on the dock), a
+  bespoke dark-room grid over the route's full pool in a `70dvh` sheet. Membership IS the state: a tap
+  writes, the dock reshuffles, the player re-cuts. Violet POSITION badge when in-reel, a soft
+  "suggested" hint from `pickQuickAdd` with one "Add suggested (N)" chip, a read-only like count.
+  ★ Add routes through the SILENT `addMany`, never `toggle` (toggle toasts on every add, and adding
+  several in a row is the normal gesture); the rule is pure and pinned. Hidden members stay removable
+  but cannot be re-added, matching `add_to_reel`'s own predicate. The Studio's length sheet also
+  gained the free-tier `/pricing` link, the one capability the marquee's length row had that it
+  lacked.
+- **Verification.** Gate green at each commit (typecheck / lint / 1063 tests / build). Grep-proofs:
+  zero imports of the three deleted files, the marquee free of StyleRail / HostMediaGrid /
+  StitchingDialog, `HostTileOverlay` down to three chips. The authed live pass runs at integration.
+
 ## 2026-07-29 — milestone-1.5: the QA hardening rounds (Q1-Q4 + the write spine)
 
 **A ~590-agent adversarial QA round (Will, Opus 5, read-only against `launch-prep`) produced a

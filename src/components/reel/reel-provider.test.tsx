@@ -4,10 +4,14 @@
  * 1. REORDER — the provider must send the RPC exactly the ids it was handed, in
  *    order, and must REVERT when the RPC refuses. Both halves are load-bearing:
  *    reorder_reel's set-equality guard rejects a partial list outright (which is
- *    why the Studio dock and the feed's grid both commit the FULL membership,
- *    hidden items included), and a Set keeps INSERTION order, so building a NEW
- *    Set from the reordered array is the only thing that actually reorders it.
- *    Re-adding into the old Set silently keeps the old order.
+ *    why the Studio's filmstrip dock, the ONLY reorder surface since ADR-0024,
+ *    commits the FULL membership, hidden items included), and a Set keeps
+ *    INSERTION order, so building a NEW Set from the reordered array is the only
+ *    thing that actually reorders it. Re-adding into the old Set silently keeps
+ *    the old order.
+ *
+ *    The provider's other committers are the Studio's Moments PICKER (addMany to
+ *    add, silently; toggle to remove), the lightbox, and gallery bulk-Select.
  *
  * 2. THE EXPORT FLOW's flush gate — a failed config flush must STOP the export
  *    before any encode. The server derives the artifact hash from the DB row, so
@@ -42,7 +46,11 @@ import { ReelProvider, useReel } from "./reel-provider";
 import { useReelConfig } from "./use-reel-config";
 
 /** Exposes the provider's controller to the test. */
-function ReelProbe({ onReady }: { onReady: (r: ReturnType<typeof useReel>) => void }) {
+function ReelProbe({
+  onReady,
+}: {
+  onReady: (r: ReturnType<typeof useReel>) => void;
+}) {
   const reel = useReel();
   onReady(reel);
   return <div data-testid="order">{(reel?.orderedIds ?? []).join(",")}</div>;
@@ -77,7 +85,10 @@ describe("ReelProvider.reorder", () => {
   });
 
   it("reverts to the previous order when the RPC refuses (a stale list)", async () => {
-    rpc.mockResolvedValue({ data: { ok: false, reason: "stale" }, error: null });
+    rpc.mockResolvedValue({
+      data: { ok: false, reason: "stale" },
+      error: null,
+    });
     let api: ReturnType<typeof useReel> = null;
     const { getByTestId } = render(
       <ReelProvider eventId="ev1" initialReelIds={["a", "b", "c"]}>
@@ -94,7 +105,11 @@ describe("ReelProvider.reorder", () => {
 });
 
 /** Drives just the export handler out of the config controller. */
-function ExportProbe({ onReady }: { onReady: (h: () => Promise<void>) => void }) {
+function ExportProbe({
+  onReady,
+}: {
+  onReady: (h: () => Promise<void>) => void;
+}) {
   const config = useReelConfig({
     eventId: "ev1",
     items: [],
