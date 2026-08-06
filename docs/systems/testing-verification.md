@@ -20,6 +20,12 @@ site, these are the ways the *test tooling* misreports, so a working change look
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
   screenshot off that, or hand the human the look. (Unit tests mock `sonner` globally — see
   [design-system.md](design-system.md).)
+- **Browser downloads land in an iCloud dir, and the network panel can lie about them.** In Will's Chrome,
+  downloads save to `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/` — NOT `~/Downloads`
+  (confirmed 2026-08-06; a "missing" export zip was sitting there). For the export Worker specifically, the
+  network panel has shown phantom/transient 503s while the stream actually succeeded — `wrangler tail
+  partyreel-export` is ground truth for whether the Worker was invoked and what it returned (a bad HMAC is
+  a clean "Forbidden", never a 503).
 - **Isolated-world DOM + timing artifacts.** Because the MCP executes in an isolated world, buffered or
   just-painted state can be missing and timing/race effects can read as failures. The perf-baseline doc hit
   the same isolated-world caveat measuring LCP ([`../perf/v1-baseline.md`](../perf/v1-baseline.md)).

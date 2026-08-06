@@ -43,8 +43,12 @@ STATUS had already deferred).
   live on the alias (CORS fetch + decode), and a browser export POST invoking the Worker with an Ok
   stream (EXPORT_SIGNING_SECRET Vercel↔Worker parity confirmed; a bogus-token probe correctly got
   403). One transient uninvoked 503 was observed on an earlier attempt (edge blip, not the app).
-- **Still open**: Sentry source-map upload confirmation (M2 prod pass) and decommission (delete the
-  old project + old-alias Stripe endpoint + old-alias allow-list entries) behind Will's confirm.
+- **Decommission complete (2026-08-06, Will's confirm)**: old Vercel project deleted (verified
+  not_found), old-alias Stripe TEST endpoint `we_1TowqZ...` deleted (2 endpoints remain: apex + new
+  alias), old-alias removed from the Supabase redirect list (6 entries) and from R2 CORS (3 origins),
+  old token retired from `.env.local`. Bonus: `partyreel.vercel.app` was claimed by the new project
+  the moment the old one released it (verified). Still open: Sentry source-map upload confirmation
+  (M2 prod pass).
 
 ## 2026-08-04 — R3.1: the studio-first recomposition of the reel
 
