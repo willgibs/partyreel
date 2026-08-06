@@ -16,9 +16,10 @@ before picking up any program work. Headlines a fresh agent must know:
 - **Branch protocol supersedes straight-to-main** (see CLAUDE.md Git): work rides the `launch-prep`
   integration branch; tracks commit to `lp/<track>`; the orchestrator alone integrates, applies
   migrations, deploys workers; `main` is frozen except milestone merges + hotfixes.
-- **Live red-team target between milestones** = `https://partyreel-git-launch-prep-willgibs.vercel.app`
-  (branch-scoped env + R2 CORS + Stripe TEST preview webhook wired; Supabase redirect allow-list is
-  Will's dashboard step).
+- **Live red-team target between milestones** = `https://partyreel-git-launch-prep-partyreel.vercel.app`
+  (branch-scoped env + Stripe TEST preview webhook + Supabase redirect entry wired; ⏳ R2 CORS for this
+  origin pends the P3-Cloudflare dashboard hand-off — until then alias uploads, the reel canvas, and
+  export fetches fail browser CORS; partyreel.com is unaffected).
 - **MILESTONE-1.5 MERGED to main 2026-07-29 (`8163e45`, tag `milestone-1.5`): the QA hardening rounds.**
   Will ran a ~590-agent adversarial QA round (fix queue: `~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`,
   48 findings + 6 systemic patterns A-F). Q1 closed the two criticals that DESTROY customer media (the
@@ -266,8 +267,10 @@ is recorded in [`CHANGELOG.md`](CHANGELOG.md)):
   P3 web client. In-app operator `partyr33l@gmail.com` (`is_admin` + TOTP MFA).
 - **"Allow new signups" must stay ON** (account-from-guest + email+password create all depend on it;
   anonymous sign-ins stay OFF per ADR-0008).
-- **Deferred cutovers** (not blocking): Vercel hosting (still willgibs **Hobby** → P3 **Pro** at launch),
-  domain + DNS (GoDaddy → P3 Cloudflare), the GitHub repo (`github.com/willgibs/partyreel` → P3 at sale).
+- **Deferred cutovers** (not blocking): Vercel **Hobby → Pro** at launch (hosting itself MOVED to the P3
+  Vercel "Partyreel Team" 2026-08-05, after a co-tenant project drained the old willgibs account and took
+  prod dark), DNS hosting (GoDaddy → P3 Cloudflare), the GitHub repo (`github.com/willgibs/partyreel` →
+  P3 at sale).
 
 ## Pre-launch / human-blocked
 
@@ -285,7 +288,8 @@ products/prices + webhook endpoint + Billing Portal + the 5 env vars; Supabase T
 (`partyr33l@gmail.com` holds the TOTP factor; break-glass = delete it in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup GitHub
 Action secrets; the deletion-aware prune (deployed in dry-run, both crons) + its shared `PRUNE_API_SECRET`
-(Vercel + the Worker).
+(Vercel + the Worker). (All Vercel-side items on this list were RECREATED on the P3 Vercel project during
+the 2026-08-05 hosting migration — the list still holds.)
 
 ## After any change
 

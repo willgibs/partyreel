@@ -10,6 +10,38 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-05 — Vercel hosting migration: willgibs account → P3 "Partyreel Team"
+
+A co-tenant project drained the old willgibs Vercel account's free tier; Vercel paused the whole
+account and partyreel.com + www + admin + the launch-prep alias all served **402** (prod dark, builds
+blocked). Ruled permanent move to the P3 Vercel account (Hobby now, Pro at launch — the cutover
+STATUS had already deferred).
+
+- **New project**: imported `willgibs/partyreel` into the P3 "Partyreel Team" (the GitHub App already
+  covered the repo — zero grant friction). Settings parity verified via API: the ignored-build-step
+  command verbatim, Node 24.x, region default, deployment protection off (`ssoProtection: null`,
+  program mode), prodBranch main.
+- **Env restore**: 37 rows. 35 mirrored from the old project (encrypted rows via per-id API decrypt;
+  the 11 Sensitive rows sourced from `.env.local` — the swappable-values policy paying off), plus 2
+  computed: `NEXT_PUBLIC_SITE_URL` preview@launch-prep = the new alias, and a NEW Stripe TEST preview
+  endpoint (`we_1U1I3GPtjqmVkBwkjUqWGpvR`) whose signing secret landed before the first real build
+  (NEXT_PUBLIC_* is build-inlined; order mattered). The 7 dead reel-render rows (REMOTION_* ×6 +
+  REEL_RENDER_WEBHOOK_SECRET) were DROPPED per ruling — the Lambda path was torn down 2026-07-08, so
+  M2's env-removal task became a no-op; `.env.example`'s staged block went with them.
+- **Domain cutover**: registrar is external (GoDaddy), so the move was pure `_vercel` TXT
+  re-verification with pointing records untouched (zero propagation window). Apex verified + serving,
+  www 308→apex, admin 307→/admin. New branch alias
+  `partyreel-git-launch-prep-partyreel.vercel.app`; its exact `/auth/callback` added to the Supabase
+  redirect allow-list (old-alias entry kept until decommission).
+- **Verified**: robots/sitemap hosts, demo `/e/`, pricing/login/blog, cron 401-unauth vs authorized
+  full purge sweep (also proving the R2 object creds from P3 runtime), crons registered + enabled,
+  env inventory complete, and a full Google OAuth round trip on the new alias landing signed-in on
+  the dashboard.
+- **Left open at ship**: R2 bucket CORS for the new alias origin (bucket-config ops need the P3
+  Cloudflare account; both `wrangler` and the browser session were on the personal account — pending
+  a dashboard hand-off), Sentry source-map upload confirmation, and decommission (delete the old
+  project + old-alias Stripe endpoint + old-alias allow-list entries) behind Will's confirm.
+
 ## 2026-08-04 — R3.1: the studio-first recomposition of the reel
 
 **Will's M2 gate review of the live R3 build ruled a composition change, not a feature change:** the

@@ -257,9 +257,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   post-program workflow (straight-to-main speed vs branches/PR previews once real users arrive).
 - **Elevation-program teardown** `[eng]` — when the program's final milestone merges: re-enable Vercel SSO
   deployment protection (`ssoProtection: all_except_custom_domains`), delete the temporary Stripe TEST
-  webhook endpoint `we_1TowqZPtjqmVkBwk3IWfebCS` (the launch-prep preview endpoint — it must NOT survive
-  into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
-  auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
+  webhook endpoint `we_1U1I3GPtjqmVkBwkjUqWGpvR` (the launch-prep preview endpoint, recreated in the
+  2026-08-05 P3 migration — it must NOT survive into the live-mode cutover), remove the preview origin from
+  the R2 `partyreel` bucket CORS + the Supabase auth redirect allow-list, remove the 3 branch-scoped
+  Vercel env vars (`NEXT_PUBLIC_SITE_URL`/`STRIPE_WEBHOOK_SECRET`/`DESIGN_PREVIEW_KEY` @launch-prep),
+  delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
 - Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
   (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`
