@@ -37,10 +37,14 @@ STATUS had already deferred).
   full purge sweep (also proving the R2 object creds from P3 runtime), crons registered + enabled,
   env inventory complete, and a full Google OAuth round trip on the new alias landing signed-in on
   the dashboard.
-- **Left open at ship**: R2 bucket CORS for the new alias origin (bucket-config ops need the P3
-  Cloudflare account; both `wrangler` and the browser session were on the personal account — pending
-  a dashboard hand-off), Sentry source-map upload confirmation, and decommission (delete the old
-  project + old-alias Stripe endpoint + old-alias allow-list entries) behind Will's confirm.
+- **R2 CORS closed next-day (2026-08-06)**: Will restored the partyr33l wrangler OAuth + Chrome
+  session; the new alias origin was appended read-then-merge via `wrangler r2 bucket cors set` and
+  proven three ways: preflight 204 (hostile origin still 403), the Film-strip poster canvas drawing
+  live on the alias (CORS fetch + decode), and a browser export POST invoking the Worker with an Ok
+  stream (EXPORT_SIGNING_SECRET Vercel↔Worker parity confirmed; a bogus-token probe correctly got
+  403). One transient uninvoked 503 was observed on an earlier attempt (edge blip, not the app).
+- **Still open**: Sentry source-map upload confirmation (M2 prod pass) and decommission (delete the
+  old project + old-alias Stripe endpoint + old-alias allow-list entries) behind Will's confirm.
 
 ## 2026-08-04 — R3.1: the studio-first recomposition of the reel
 

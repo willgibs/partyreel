@@ -17,9 +17,8 @@ before picking up any program work. Headlines a fresh agent must know:
   integration branch; tracks commit to `lp/<track>`; the orchestrator alone integrates, applies
   migrations, deploys workers; `main` is frozen except milestone merges + hotfixes.
 - **Live red-team target between milestones** = `https://partyreel-git-launch-prep-partyreel.vercel.app`
-  (branch-scoped env + Stripe TEST preview webhook + Supabase redirect entry wired; ⏳ R2 CORS for this
-  origin pends the P3-Cloudflare dashboard hand-off — until then alias uploads, the reel canvas, and
-  export fetches fail browser CORS; partyreel.com is unaffected).
+  (branch-scoped env + Stripe TEST preview webhook + Supabase redirect entry + R2 CORS all wired;
+  preflight, reel-canvas draw, and an export-worker round trip verified 2026-08-06).
 - **MILESTONE-1.5 MERGED to main 2026-07-29 (`8163e45`, tag `milestone-1.5`): the QA hardening rounds.**
   Will ran a ~590-agent adversarial QA round (fix queue: `~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`,
   48 findings + 6 systemic patterns A-F). Q1 closed the two criticals that DESTROY customer media (the

@@ -164,10 +164,11 @@ CLI ergonomics are ever needed). Read: `GET api.vercel.com/v9/projects/partyreel
 decrypted value); write: `POST /v10/projects/partyreel/env?upsert=true` with rows
 `{key, value, type: "encrypted", target: [...], gitBranch?}`. The Vercel MCP can't write env vars. Cloudflare Worker secrets: `wrangler secret put`
 (write-only). Deploy auth: `gh` → `willgibs/partyreel`; Vercel → the `VERCEL_TOKEN` (scoped to the P3
-"Partyreel Team", since the 2026-08-05 hosting migration). ★ `wrangler` currently holds a PERSONAL-account
-OAuth (willg97, no R2 scope) while the Workers + R2 buckets live on the P3 Cloudflare "Partyreel Team"
-account — `wrangler login` as partyr33l BEFORE any Worker deploy or R2 bucket-config op (`wrangler whoami`
-to confirm). Never commit a real secret value to git.
+"Partyreel Team", since the 2026-08-05 hosting migration); `wrangler` → the P3 Cloudflare "Partyreel Team"
+(partyr33l OAuth, restored 2026-08-06 — R2 bucket-config ops like CORS ride `wrangler r2 bucket cors
+list/set`). ★ Work on OTHER projects (QRCDN) can silently re-login wrangler to the personal account, which
+has NO access to our Workers/R2 — `wrangler whoami` BEFORE any Worker deploy or bucket-config op. Never
+commit a real secret value to git.
 **`git push` auth runs through the `gh` credential helper** (`gh auth setup-git`, configured globally), so
 pushes use `gh`'s token with NO macOS-keychain prompt. If a `git-credential-osxkeychain` dialog ever appears
 (e.g. after a `gh` re-auth), re-run `gh auth setup-git`. The Vercel project link lives in gitignored
