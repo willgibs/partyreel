@@ -85,8 +85,13 @@ export function ReelBuilder({
     return pickQuickAdd(candidates, { seed: defaultReelSeed(eventId) });
   }, [approved, eventId]);
 
-  const canQuickAdd =
-    approved.length >= QUICK_ADD_MIN && quickAdd.ids.length > 0;
+  // Offered at ONE approved item, not QUICK_ADD_MIN: since ADR-0024 took the reel chip off the
+  // gallery tiles, this button and gallery-Select are the only pre-Create fill paths, and gating it
+  // at 4 left a small event with NO in-card path at all (Will hit exactly this on a 2-photo event,
+  // 2026-08-06 — the bar's Create was a silent no-op and nothing in the card could fill).
+  // pickQuickAdd already returns a small pool whole, so the pick stays honest at any size.
+  const smallPool = approved.length < QUICK_ADD_MIN;
+  const canQuickAdd = approved.length > 0 && quickAdd.ids.length > 0;
 
   // The flight's SOURCES: the tiles the host can already see. Pre-create with
   // moments picked, that is the builder card's own grid; the reveal's flying
@@ -170,12 +175,18 @@ export function ReelBuilder({
   // The floating action bar's "Create reel" fires THIS create (the FLIP needs the
   // builder's own tiles). The bar only shows while the Reel section is the active
   // section, so the sources are on screen by construction.
+  // Registered ONLY once a moment is picked: create() refuses at zero moments, so
+  // registering unconditionally gave the bar a pill whose tap did nothing (Will's
+  // phone, 2026-08-06). No target at zero = no pill, which is the bar's own
+  // documented contract — and the pill appearing right after FILL makes the
+  // two-beat flow legible instead of silently broken.
   const registerCreate = stageCtx?.registerCreate;
+  const hasMoments = momentCount > 0;
   useEffect(() => {
     if (!registerCreate) return;
-    registerCreate(create);
+    registerCreate(hasMoments ? create : null);
     return () => registerCreate(null);
-  }, [registerCreate, create]);
+  }, [registerCreate, create, hasMoments]);
 
   async function quickFill() {
     if (!reel || filling) return;
@@ -238,9 +249,13 @@ export function ReelBuilder({
                 Your reel starts here
               </p>
               <p className="max-w-[260px] text-xs leading-snug text-muted-foreground">
-                {quickAdd.signals.likes
-                  ? "Your most liked moments, plus a few recent ones from everyone"
-                  : "A mix of recent moments from across your guests"}
+                {/* A 2-photo album is not "a mix from across your guests" — at a small pool the
+                    honest promise is simply everything so far, in one cut. */}
+                {smallPool
+                  ? "Everything added so far, in one first cut"
+                  : quickAdd.signals.likes
+                    ? "Your most liked moments, plus a few recent ones from everyone"
+                    : "A mix of recent moments from across your guests"}
               </p>
               {canQuickAdd ? (
                 <button

@@ -116,10 +116,27 @@ export function GuestReelOverlay({
   const released = GUEST_RELEASED.has(act);
   const settled = act === "settled";
 
-  // The cut plays once, when the reel can actually draw (after the use() above resolved).
-  useEffect(() => {
+  // The cut plays once, when the reel can actually DRAW — which is the player's decode landing, not
+  // the gallery promise resolving. The engine fetches its clips with `cache: "no-store"` (the CORS
+  // lesson), so a COLD open re-downloads and decodes everything, and running the choreography over
+  // that main-thread work is exactly the first-load jitter Will hit on device (2026-08-06; the
+  // second open was smooth because the shared bitmap cache was warm). So: wait for onAssetsReady,
+  // with a cap so a stalled network still gets the show over a still-loading canvas rather than a
+  // frozen cover. startedRef keeps the two triggers from ever running the script twice.
+  const startedRef = useRef(false);
+  const begin = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     run();
   }, [run]);
+  const [assetsReady, setAssetsReady] = useState(false);
+  useEffect(() => {
+    if (assetsReady) begin();
+  }, [assetsReady, begin]);
+  useEffect(() => {
+    const cap = setTimeout(begin, 2500);
+    return () => clearTimeout(cap);
+  }, [begin]);
 
   const byId = useMemo(
     () => new Map(gallery.items.map((item) => [item.id, item])),
@@ -311,6 +328,7 @@ export function GuestReelOverlay({
             // Reduced motion never autoplays, so hand it the controls: the reel arrives paused on
             // frame 0 and play is one tap away.
             showControls={released && reduced}
+            onAssetsReady={() => setAssetsReady(true)}
           />
         </div>
       </div>

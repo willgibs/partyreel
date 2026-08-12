@@ -53,6 +53,7 @@ export function CanvasReelPlayer({
   maxDim,
   showControls = true,
   onReport,
+  onAssetsReady,
 }: {
   reelProps: ReelProps;
   /** Controlled frame: render exactly this frame and stop the clock (the harness scrub-lock). */
@@ -66,6 +67,14 @@ export function CanvasReelPlayer({
   showControls?: boolean;
   /** Capability-gap reports from the draw (deduplicated), surfaced by the harness. */
   onReport?: (message: string) => void;
+  /**
+   * Fires once per props identity, the moment the decode set has landed and the first frame can
+   * actually draw. The guest overlay gates its arrival choreography on it: the engine fetches with
+   * `cache: "no-store"` (the CORS lesson), so a COLD open decodes everything fresh and animating
+   * over that work is what made the first-load cut jitter (Will, on device, 2026-08-06). Display
+   * timing only — never touches the draw path.
+   */
+  onAssetsReady?: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -165,6 +174,14 @@ export function CanvasReelPlayer({
     [reelProps, assets, scaled, scaleX, scaleY, composition],
   );
 
+  // The ready callback rides a latest-ref so its identity can never re-trigger the decode effect
+  // (a caller passing an inline closure must not cost a re-fetch). Synced in an effect per the
+  // react-hooks/refs rule; the decode's .then always lands later than any render's effects.
+  const onAssetsReadyRef = useRef(onAssetsReady);
+  useEffect(() => {
+    onAssetsReadyRef.current = onAssetsReady;
+  });
+
   // Decode the clips ONCE per props change (assets.ts dedupes urls + builds any washes the style needs).
   useEffect(() => {
     const controller = new AbortController();
@@ -182,6 +199,7 @@ export function CanvasReelPlayer({
         if (controller.signal.aborted) return;
         timeRef.current = 0; // a fresh cut starts from the top
         setLoaded({ props: reelProps, assets: result });
+        onAssetsReadyRef.current?.();
       })
       .catch(() => {
         // Only the abort path rejects (per-clip failures resolve as null holds); nothing to do.
