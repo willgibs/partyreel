@@ -41,6 +41,13 @@ export type EventType = {
   ctaTitle: string;
   /** Stamped onto the per-page OG card. */
   ogTitle: string;
+  /**
+   * The per-type highlight-reel hook (T2.5 B2: every landing page routes its
+   * reader to /reel through its OWN moment, e.g. weddings lead with the
+   * first-dance cut). One sentence, reel register, no counts (style/length
+   * numbers render from their single sources at the component).
+   */
+  reelAngle: string;
 };
 
 export const EVENT_TYPES: EventType[] = [
@@ -103,6 +110,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Collect every photo from your wedding",
     ogTitle: "Every wedding photo, from everyone there",
+    reelAngle:
+      "The first dance from every angle, the toasts, the send-off: cut into one highlight reel you can share before the thank-you notes go out.",
   },
   {
     slug: "parties",
@@ -137,7 +146,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Radio,
         title: "Watch it fill, live",
-        body: "New photos and videos appear as they're taken. Put the album on a TV and let it build all night.",
+        body: "New photos and videos appear as they're taken. Put the album on a TV and watch it build while the party is still going.",
       },
       {
         icon: Download,
@@ -165,6 +174,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Start your party's album",
     ogTitle: "The whole party's camera roll, in one place",
+    reelAngle:
+      "The best candids from every corner of the room, cut into a highlight reel while everyone is still talking about the party.",
   },
   {
     slug: "conferences",
@@ -228,6 +239,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Capture your whole conference",
     ogTitle: "Your conference, captured by everyone there",
+    reelAngle:
+      "The keynote, the booths, and the hallway conversations, cut into a highlight reel that opens your recap email.",
   },
   {
     slug: "trips",
@@ -291,6 +304,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Make one album for the trip",
     ogTitle: "One shared album for the whole trip",
+    reelAngle:
+      "The whole trip, from the airport selfie to the last sunset, cut into a highlight reel the group can watch on the way home.",
   },
 ];
 
@@ -319,7 +334,7 @@ export const EVENTS_HUB: EventsHub = {
   subhead:
     "Weddings, parties, conferences, trips: if your people show up with phones, Partyreel collects what they capture.",
   overview:
-    "The best moments at any event are spread across everyone's cameras, and most of them never reach you. Partyreel turns every guest into a contributor: they scan one QR code and upload straight from their phone, so the whole night lands in a single album you control. Pick your kind of event below, or start free and have a QR ready in a minute.",
+    "The best moments at any event are spread across everyone's cameras, and most of them never reach you. Partyreel turns every guest into a contributor: they scan one QR code and upload straight from their phone, so the whole event lands in a single album you control. Pick your kind of event below, or start free and have a QR ready in a minute.",
   benefits: [
     {
       icon: QrCode,

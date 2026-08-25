@@ -22,6 +22,7 @@ describe("event-type constants", () => {
         eventType.intro,
         eventType.ctaTitle,
         eventType.ogTitle,
+        eventType.reelAngle,
       ]) {
         expect(field.trim()).not.toBe("");
       }
