@@ -18,7 +18,12 @@ export default function CinemaLayout({
 }) {
   return (
     <div
-      className="dark flex min-h-0 flex-1 flex-col"
+      // text-foreground is load-bearing, not styling drift: body sits OUTSIDE
+      // this wrapper, so inherited text color is the SESSION theme's ink — on a
+      // light session the hero h1 rendered near-black on the cinema room (the
+      // body-edge finding's sibling gap; caught in the c5 verification pass).
+      // Resolving color AT the wrapper picks up the .dark tokens instead.
+      className="dark flex min-h-0 flex-1 flex-col text-foreground"
       data-mkt
       data-mkt-skin="cinema"
     >
