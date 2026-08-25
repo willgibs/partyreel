@@ -1,42 +1,23 @@
 import type { Metadata } from "next";
 
-import { Events } from "@/components/marketing/events";
-import { Faq } from "@/components/marketing/faq";
-import { FaqJsonLd } from "@/components/marketing/faq-jsonld";
-import { FeatureHighlights } from "@/components/marketing/feature-highlights";
-import { FinalCta } from "@/components/marketing/final-cta";
-import { Hero } from "@/components/marketing/hero";
-import { HowItWorks } from "@/components/marketing/how-it-works";
-import { PricingTeaser } from "@/components/marketing/pricing-teaser";
-import { ProblemSolution } from "@/components/marketing/problem-solution";
-import { ReelTeaser } from "@/components/marketing/reel-teaser";
-import { TrustStrip } from "@/components/marketing/trust-strip";
+import { HOME_SECTIONS } from "@/components/marketing/sections/home";
 
-// Home keeps the default "Partyreel" title (no template) but gets its own
-// description + canonical for SEO; the share card inherits these via the root.
+// Home keeps the default "Partyreel" title (no template) and inherits the root
+// SITE_DESCRIPTION (the ruled thesis register, single-sourced in site.ts);
+// only the canonical is declared here.
 export const metadata: Metadata = {
-  description:
-    "Partyreel collects every photo and video from your event. Guests scan a QR code and upload from their phones. No app, no account. Create an event free.",
   alternates: { canonical: "/" },
 };
 
-// One long landing page, section by section (each is its own component so the
-// order is easy to read and reshuffle). Arc: hook → why → how → what → who →
-// vision → price → objections → convert.
+// The 13-section made-from arc (T2.5 Call 2 + Will's 2026-08-25 order ruling).
+// sections/home/index.ts is the ONE source of the order (Vitest-pinned via
+// section-ids.ts); this page just maps it, so reshuffling is an index edit.
 export default function MarketingHome() {
   return (
     <>
-      <Hero />
-      <TrustStrip />
-      <ProblemSolution />
-      <HowItWorks />
-      <FeatureHighlights />
-      <Events />
-      <ReelTeaser />
-      <PricingTeaser />
-      <Faq />
-      <FinalCta />
-      <FaqJsonLd />
+      {HOME_SECTIONS.map(({ id, Component }) => (
+        <Component key={id} />
+      ))}
     </>
   );
 }
