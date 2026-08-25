@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 /**
  * The header's scroll-state shell (the transparent-over-hero enhancement the
@@ -22,6 +27,20 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
  *    before paint. The border is always present but transparent at rest — the
  *    swap is paint-only, never layout.
  */
+/** The at-hydration scroll truth, as a store read (the useHydrated precedent):
+ *  the server snapshot is false (transparent, matching SSR), the client
+ *  snapshot reads the REAL scroll position during the hydration pass — no
+ *  effect, no setState, no hydration mismatch (differing snapshots are
+ *  exactly what useSyncExternalStore exists to reconcile). */
+const noopSubscribe = () => () => {};
+function useMountScrolled(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => window.scrollY > 8,
+    () => false,
+  );
+}
+
 export function HeaderShell({
   overlay = false,
   children,
@@ -31,7 +50,7 @@ export function HeaderShell({
 }) {
   const [inView, setInView] = useState(true);
   const [ioReady, setIoReady] = useState(false);
-  const [mountScrolled, setMountScrolled] = useState(false);
+  const mountScrolled = useMountScrolled();
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   const sentinelRef = useCallback((el: HTMLDivElement | null) => {
@@ -44,11 +63,6 @@ export function HeaderShell({
     });
     observer.observe(el);
     observerRef.current = observer;
-  }, []);
-
-  // Pre-paint truth for the already-scrolled load (see the header comment).
-  useLayoutEffect(() => {
-    if (window.scrollY > 8) setMountScrolled(true);
   }, []);
 
   if (!overlay) {

@@ -60,8 +60,17 @@ const TILES: BurstTile[] = [
 
 const STAGE_W = 940;
 
-/** Design-px to container-query width units (the stage is the container). */
-const cq = (px: number) => `${((px / STAGE_W) * 100).toFixed(3)}cqw`;
+/** Design-px to container-query width units (the stage is the container).
+ *  --dscale (1 by default) is the MOBILE readability knob: below sm the stage
+ *  sets it to 1.6 so the surviving tiles render at a legible size (a 375px
+ *  container at 1x made 104px seats into ~41px thumbnails — the flagged
+ *  uniform-scale tradeoff, now solved by cropping instead of shrinking: the
+ *  far seats hide below sm and the near field scales up). */
+const cq = (px: number) =>
+  `calc(${((px / STAGE_W) * 100).toFixed(3)}cqw * var(--dscale, 1))`;
+
+/** Seats beyond this |x| fall outside the mobile crop; they hide below sm. */
+const MOBILE_CROP_X = 310;
 
 // The closing line, in the made-from register. Recast from the IA's draft:
 // "night" is banned as identity language (Will's round-2 ruling).
@@ -156,15 +165,18 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
 
   return (
     <div ref={ref} data-inview={inView ? "true" : "false"}>
-      {/* The container-query stage: aspect-locked, seats in cqw. */}
-      <div className="[container-type:inline-size] relative mx-auto w-full max-w-[940px] overflow-hidden">
-        <div className="relative aspect-[940/470]">
+      {/* The container-query stage: aspect-locked, seats in cqw. Below sm the
+          stage CROPS instead of shrinking: --dscale grows the near field, the
+          taller aspect gives the scaled seats vertical room, and the far
+          seats (hidden there) would have left the frame anyway. */}
+      <div className="[container-type:inline-size] relative mx-auto w-full max-w-[940px] overflow-hidden max-sm:[--dscale:1.6]">
+        <div className="relative aspect-[940/470] max-sm:aspect-[940/700]">
           {TILES.map((t, i) => (
             <div
               key={t.id}
               data-mkt-fly
               data-on={inView ? "true" : undefined}
-              className="absolute"
+              className={`absolute ${Math.abs(t.x) > MOBILE_CROP_X ? "max-sm:hidden" : ""}`}
               style={
                 {
                   left: `calc(50% + ${cq(t.x)})`,

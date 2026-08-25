@@ -20,9 +20,11 @@ import { InlineReelPlayer, requireReel } from "./inline-reel-player";
  * the NEXT open jump from the closing scale, the recipe's own warning).
  */
 
-// The portrait sample. Stays valid across the final-media re-render (the
-// recipe ledger re-renders the same ids from batch-OK'd media).
-const OVERLAY_REEL_ID = "hero-candidate-01";
+// The LANDSCAPE sample: its frame is full (the portrait classic render
+// letterboxes the all-landscape interim clip set into black bars — judged on
+// screenshots; revisit when batch-1's portrait media lands). Stays valid
+// across the final-media re-render (the recipe ledger re-renders by id).
+const OVERLAY_REEL_ID = "hero-candidate-02";
 
 // Mirrors --mkt-modal-close-ms (marketing.css); the live value is read off the
 // card at close time so a tuner override still wins. readCssMs() reads :root,
@@ -95,7 +97,7 @@ export default function SampleReelOverlay({
       <div
         ref={cardRef}
         className={cn(
-          "mkt-modal relative w-full max-w-[min(24rem,80svh*9/16)]",
+          "mkt-modal relative w-full max-w-[min(58rem,85svh*16/9)]",
           entered && !closing && "is-open",
           closing && "is-closing",
         )}
@@ -103,7 +105,7 @@ export default function SampleReelOverlay({
         <InlineReelPlayer
           reelId={OVERLAY_REEL_ID}
           autoStart
-          sizes="384px"
+          sizes="(min-width: 1024px) 928px, 100vw"
           className="max-h-[80svh]"
         />
         <MonoCaption className="mt-3 text-center text-white/60">
