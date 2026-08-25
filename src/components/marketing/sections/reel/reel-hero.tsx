@@ -39,7 +39,7 @@ export function ReelHero() {
             <Eyebrow {...cut(0)}>The highlight reel</Eyebrow>
             <h1
               {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+              className="font-heading text-4xl text-balance sm:text-5xl lg:text-7xl"
             >
               {GOLDEN_LINES.reelThesis}.
             </h1>

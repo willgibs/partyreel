@@ -83,7 +83,7 @@ export function SectionShell({
       {heading && (
         <Heading
           {...mark()}
-          className="font-heading text-3xl text-balance sm:text-4xl"
+          className="font-heading text-3xl text-balance sm:text-4xl lg:text-5xl"
         >
           {heading}
         </Heading>

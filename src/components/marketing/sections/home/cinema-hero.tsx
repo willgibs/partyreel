@@ -222,7 +222,7 @@ export function CinemaHero() {
           <p className="text-xs font-medium tracking-[0.22em] text-white/60 uppercase">
             {HERO_EYEBROW}
           </p>
-          <h1 className="mt-4 max-w-3xl font-heading text-5xl leading-[1.02] text-white sm:text-6xl md:text-7xl">
+          <h1 className="mt-4 max-w-4xl font-heading text-5xl leading-[1.02] text-white sm:text-6xl md:text-7xl lg:text-8xl">
             {THESIS_BEFORE}
             {/* The accessible sentence stays the static thesis; the kinetic
                 slot is presentation only. */}
