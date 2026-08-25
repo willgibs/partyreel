@@ -27,10 +27,16 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  * rendered engine loop (the F5 hero-substrate lab round, rewritten with
  * reference). The load-bearing mechanics, all red-team-ratified in the plan:
  *
- *  - LCP CONTRACT: the poster is a SERVER-RENDERED next/image with `preload`
- *    (Next 16 renamed `priority`), layered UNDER the video, never the <video>
- *    poster attribute (the video mounts post-hydration, so relying on it would
- *    regress the LCP element to the H1).
+ *  - LCP CONTRACT: the poster is a SERVER-RENDERED next/image layered UNDER
+ *    the video, never the <video> poster attribute (the video mounts
+ *    post-hydration, so relying on it would regress the LCP element to the
+ *    H1). In Next 16 the old `priority` behavior split THREE ways, and
+ *    `preload` alone leaves the image lazy (the dev server logs an LCP
+ *    warning): the poster needs `preload` + `loading="eager"` +
+ *    `fetchPriority="high"` together (/reel-track finding, 2026-08-25). ONLY
+ *    this LCP element gets the trio; every other poster on the page stays
+ *    lazy. Its wrapper also carries NO reveal attribute: a reveal's initial
+ *    opacity delay would suppress the LCP paint.
  *  - The <video> mounts post-hydration with preload="none" muted loop
  *    playsInline; a rejected play() (iOS Low Power Mode, data saver) leaves
  *    the poster standing, never a spinner.
@@ -189,6 +195,8 @@ export function CinemaHero() {
           fill
           sizes="100vw"
           preload
+          loading="eager"
+          fetchPriority="high"
           className="object-cover"
         />
         {showVideo && (
@@ -313,11 +321,22 @@ function RollWord({ word }: { word: string }) {
     };
   }, [word]);
 
-  // Measure the incoming word off the hidden sizer (same font by inheritance)
-  // and animate the explicit width to it. Re-measures per word change, so a
-  // late font load or a breakpoint resize self-corrects on the next cycle.
+  // Keep the explicit width synced to the sizer's RENDERED size: measures on
+  // the word swap AND re-syncs whenever the sizer's own box changes (a late
+  // webfont swap, a breakpoint's font-size change, zoom) via ResizeObserver.
+  // Waiting for "the next cycle" to self-correct is not enough here: a paused
+  // substrate (play() rejected on Low Power Mode) never advances the word, so
+  // a stale measure would leave the H1 clipped indefinitely (caught in the c1
+  // verification pass). ceil() guards sub-pixel clipping; the sizer renders
+  // inline-block because ResizeObserver never fires for inline boxes.
   useLayoutEffect(() => {
-    if (sizerRef.current) setWidth(sizerRef.current.offsetWidth);
+    const sizer = sizerRef.current;
+    if (!sizer) return;
+    const sync = () => setWidth(Math.ceil(sizer.getBoundingClientRect().width));
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(sizer);
+    return () => ro.disconnect();
   }, [word]);
 
   const move =
@@ -332,7 +351,11 @@ function RollWord({ word }: { word: string }) {
     >
       {/* The sizer holds the box pre-measure (first paint) and is the
           measuring target after; the explicit width owns layout from then on. */}
-      <span aria-hidden ref={sizerRef} className="invisible whitespace-nowrap">
+      <span
+        aria-hidden
+        ref={sizerRef}
+        className="invisible inline-block whitespace-nowrap"
+      >
         {word}
       </span>
       {prev !== null && (
