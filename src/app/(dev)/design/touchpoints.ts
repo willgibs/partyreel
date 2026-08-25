@@ -335,6 +335,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "Three copy groupings for the marketing rebuild, all anchored on the owner's ratified eight-line palette but leading with a different thesis (collection, arc, reel-tempered), type-set dark-mono with a three-mode word-animation toggle (Roll default)",
     variants: ["Collection-led", "Arc-led", "Reel-led"],
+    decision: "Ruled in chat (2026-08-25): no pure grouping; Will supplied the map",
+    decisionNote:
+      "Thesis 'The whole event, in one album.' + a verbatim subhead + per-section headers (marketing-voice.ts is the single source; ruled vs provisional flagged there with his notes). Collection vs Arc left open with 'Arc has a much better voice in the sentence examples'; the decomposition's third fact warmed to 'Created for you.'; pricing follows the reel section; the width-reserving kinetic slot rejected ('a huge inline gap') in favor of a measured, animated width. The word-ANIMATION mode still confirms on the hero prototype.",
   },
   {
     // Track B F5 lab round 1 (2026-08-25, the trackb-marketing-build plan):

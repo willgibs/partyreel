@@ -200,7 +200,7 @@ function OneShotStage({ onReplay }: { onReplay: () => void }) {
           className="text-[24px] leading-tight text-white/90"
           style={{ "--i": 2, "--mkt-stagger-ms": "260ms" } as React.CSSProperties}
         >
-          Edited by no one.
+          Created for you.
         </p>
       </div>
       <p
@@ -463,7 +463,7 @@ function DecompositionScrub() {
                   className="text-[22px] leading-tight text-white/90"
                   style={{ opacity: 0 }}
                 >
-                  Edited by no one.
+                  Created for you.
                 </p>
               </div>
               <p

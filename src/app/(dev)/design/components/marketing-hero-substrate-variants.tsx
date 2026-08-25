@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Play, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
@@ -90,12 +90,6 @@ const MODE_LABEL: Record<AnimMode, string> = {
   cut: "Cut",
 };
 
-/** Reserve the widest word's width so the H1 never reflows on a swap. */
-const WIDEST_WORD = KINETIC_WORDS.reduce(
-  (a, b) => (b.length > a.length ? b : a),
-  "",
-);
-
 function KineticWord({
   index,
   mode,
@@ -110,14 +104,12 @@ function KineticWord({
   }
   const word = KINETIC_WORDS[index % KINETIC_WORDS.length];
   return (
-    <span
-      className="relative inline-flex align-baseline"
-      style={{ minWidth: `${WIDEST_WORD.length}ch` }}
-    >
+    <span className="relative inline-flex align-baseline">
       {mode === "roll" && <RollWord word={word} />}
       {mode === "type" && <TypeWord word={word} />}
       {mode === "cut" && (
         // key forces a fresh node each change: an instant, transition-free cut.
+        // A cut's width snap is part of the cut (it lands WITH an image cut).
         <span key={word} className="text-white">
           {word}
         </span>
@@ -127,11 +119,16 @@ function KineticWord({
 }
 
 /** Roll: a vertical swap, outgoing up + fading beneath the incoming word
- *  sliding up from below, both clipped to the line box. */
+ *  sliding up from below, both clipped to the line box. The box WIDTH is
+ *  measured per word and transitioned alongside the roll: the old widest-word
+ *  reservation left "a huge inline gap" on short words (Will, 2026-08-25) --
+ *  the sentence must close up around each word, smoothly. */
 function RollWord({ word }: { word: string }) {
   const [prev, setPrev] = useState<string | null>(null);
   const [entered, setEntered] = useState(true);
+  const [width, setWidth] = useState<number | null>(null);
   const wordRef = useRef(word);
+  const sizerRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     if (wordRef.current === word) return;
@@ -146,13 +143,26 @@ function RollWord({ word }: { word: string }) {
     };
   }, [word]);
 
+  // Measure the incoming word off the hidden sizer (same font by inheritance)
+  // and animate the explicit width to it. Re-measures per word change, so a
+  // late font load self-corrects on the next cycle.
+  useLayoutEffect(() => {
+    if (sizerRef.current) setWidth(sizerRef.current.offsetWidth);
+  }, [word]);
+
   const move =
     "transform 260ms var(--ease-emphasis), opacity 260ms var(--ease-emphasis)";
   return (
-    <span className="relative inline-block overflow-hidden align-baseline">
-      {/* A zero-opacity sizer holds the box so the clip never crops
-          descenders and the baseline stays put. */}
-      <span aria-hidden className="invisible">
+    <span
+      className="relative inline-block overflow-hidden align-baseline"
+      style={{
+        width: width === null ? undefined : width,
+        transition: `width 260ms var(--ease-emphasis)`,
+      }}
+    >
+      {/* The sizer holds the box pre-measure (first paint) and is the
+          measuring target after; the explicit width owns layout from then on. */}
+      <span aria-hidden ref={sizerRef} className="invisible whitespace-nowrap">
         {word}
       </span>
       {prev !== null && (
@@ -251,13 +261,15 @@ type Grouping = {
 
 const GROUPINGS: Grouping[] = [
   {
+    // RULED (Will, 2026-08-25, in-chat): the site thesis + subhead verbatim
+    // (see marketing-voice.ts). G2/G3 stay mounted for comparison only.
     id: "g1",
-    label: "G1 Collection",
+    label: "Ruled thesis",
     eyebrow: "One QR. No app. No account.",
     before: "The whole ",
-    after: ", in one place, forever.",
+    after: ", in one album.",
     subcopy:
-      "Guests scan one QR and every photo comes to you. No app, no account, no chasing anyone down.",
+      "Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after.",
   },
   {
     id: "g2",
@@ -611,7 +623,8 @@ function SegmentedControl<T extends string>({
 
 export function MarketingHeroSubstrateVariants() {
   const reduced = usePrefersReducedMotion();
-  const [groupingId, setGroupingId] = useState("g3");
+  // Default = the ruled thesis (Will, 2026-08-25); g2/g3 remain for comparison.
+  const [groupingId, setGroupingId] = useState("g1");
   const [mode, setMode] = useState<AnimMode>("roll");
   const [substrate, setSubstrate] = useState<Substrate>("probing");
   const [runId, setRunId] = useState(0);
@@ -633,7 +646,7 @@ export function MarketingHeroSubstrateVariants() {
     };
   }, []);
 
-  const grouping = GROUPINGS.find((g) => g.id === groupingId) ?? GROUPINGS[2];
+  const grouping = GROUPINGS.find((g) => g.id === groupingId) ?? GROUPINGS[0];
 
   return (
     <div className="flex flex-col gap-6 py-4">

@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import { MARKETING_CTA } from "./marketing-nav";
-import { DEMO_CTA_LABEL, GOLDEN_LINES, SITE_THESIS } from "./marketing-voice";
+import {
+  DECOMPOSITION_FACTS,
+  DEMO_CTA_LABEL,
+  GOLDEN_LINES,
+  SECTION_HEADERS,
+  SITE_SUBHEAD,
+  SITE_THESIS,
+  SITE_THESIS_STATUS,
+} from "./marketing-voice";
 
 /**
- * Will's golden set is RATIFIED VERBATIM (voice round 2, 2026-07-08): these byte-match pins make
- * a rewrite a deliberate act (edit the pin AND the source, with a ruling) instead of copy drift
- * inside some section build. The CTA pin guards the primary conversion label the same way.
+ * Byte-match pins over Will's ratified copy (the golden set, 2026-07-08; the in-chat section
+ * ruling, 2026-08-25): a rewrite is a deliberate act (edit pin AND source, with a ruling),
+ * never drift inside some section build.
  */
 
 describe("the marketing voice single-source", () => {
@@ -23,8 +31,34 @@ describe("the marketing voice single-source", () => {
     });
   });
 
-  it("the site thesis is one of the golden lines (the grouping pick chooses which)", () => {
-    expect(Object.values(GOLDEN_LINES)).toContain(SITE_THESIS);
+  it("byte-matches the 2026-08-25 ruled lines", () => {
+    expect(SITE_THESIS).toBe("The whole event, in one album.");
+    expect(SITE_THESIS_STATUS).toBe("ruled");
+    expect(SITE_SUBHEAD).toBe(
+      "Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after.",
+    );
+    expect(SECTION_HEADERS.howItWorks).toEqual({
+      line: "Scan, upload, done. No app to install.",
+      status: "ruled",
+    });
+    expect(SECTION_HEADERS.pricing).toEqual({
+      line: "Start free, upgrade for more events.",
+      status: "ruled",
+    });
+    expect(DECOMPOSITION_FACTS).toEqual([
+      "Built from 214 photos.",
+      "Shot by 23 guests.",
+      "Created for you.",
+    ]);
+  });
+
+  it("every section header has a non-empty line, and provisional ones carry Will's note", () => {
+    for (const [key, entry] of Object.entries(SECTION_HEADERS)) {
+      expect(entry.line.trim().length, key).toBeGreaterThan(0);
+      if (entry.status === "provisional") {
+        expect(entry.note?.trim().length, `${key} needs its note`).toBeGreaterThan(0);
+      }
+    }
   });
 
   it('the primary CTA is "Start free" and stays internal', () => {
@@ -32,10 +66,17 @@ describe("the marketing voice single-source", () => {
     expect(MARKETING_CTA.href.startsWith("/")).toBe(true);
   });
 
-  it("no golden line uses banned identity language", () => {
-    for (const line of Object.values(GOLDEN_LINES)) {
+  it("no ruled copy uses banned identity language", () => {
+    const all = [
+      ...Object.values(GOLDEN_LINES),
+      SITE_THESIS,
+      SITE_SUBHEAD,
+      ...Object.values(SECTION_HEADERS).map((h) => h.line),
+      ...DECOMPOSITION_FACTS,
+      DEMO_CTA_LABEL,
+    ];
+    for (const line of all) {
       expect(/\bnight\b/i.test(line), line).toBe(false);
     }
-    expect(/\bnight\b/i.test(DEMO_CTA_LABEL)).toBe(false);
   });
 });

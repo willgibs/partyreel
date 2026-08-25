@@ -1,14 +1,17 @@
 /**
- * THE marketing voice single-source (Track B). Will's GOLDEN SET: eight lines he ratified
- * verbatim in the voice round (2026-07-08, round 2) that anchor all production copy. The ruled
- * voice around them: warm-host ease x big-event stakes, disciplined by concise clarity; "night"
- * is BANNED as identity language (event/party everywhere); collection value co-leads the reel.
- * A Vitest pin byte-matches these strings, so a rewrite is a deliberate act, never drift.
+ * THE marketing voice single-source (Track B). Two layers:
  *
- * SITE_THESIS is the one grouping-dependent slot: the H1/thesis line the whole site echoes.
- * It fills from Will's grouping pick (G1 Collection-led / G2 Arc-led / G3 Reel-led tempered,
- * the Sitting-0 boards). Until the pick lands it carries G1's line marked PROVISIONAL; the copy
- * FREEZE (not any merge) gates on the ruling.
+ * 1. GOLDEN_LINES: the eight lines Will ratified verbatim in the voice round (2026-07-08,
+ *    round 2). The historical palette the site was drafted around; kept as reference and for
+ *    lines still standing unchanged.
+ * 2. THE 2026-08-25 IN-CHAT RULING (supersedes the boards' grouping question): Will supplied the
+ *    site thesis, the hero subhead, and a per-section header map directly. Ruled lines are final;
+ *    "provisional" ones are HIS OWN words that he explicitly wants alternatives for (his notes in
+ *    each entry), so they ship as the working line until a replacement is ruled.
+ *
+ * The ruled voice around all of it: warm-host ease x big-event stakes, disciplined by concise
+ * clarity; "night" is BANNED as identity language; collection value co-leads the reel. Byte-match
+ * pins make any rewrite a deliberate act, never drift.
  */
 
 export const GOLDEN_LINES = {
@@ -22,9 +25,60 @@ export const GOLDEN_LINES = {
   curation: "Every moment, and you decide what stays",
 } as const;
 
-/** "provisional" until Will's grouping pick (then flip to "ruled" + point at the picked line). */
-export const SITE_THESIS_STATUS: "provisional" | "ruled" = "provisional";
-export const SITE_THESIS: string = GOLDEN_LINES.thesis;
+/** RULED (Will, 2026-08-25). The kinetic hero renders it as "The whole {word}, in one album." */
+export const SITE_THESIS = "The whole event, in one album.";
+export const SITE_THESIS_STATUS: "provisional" | "ruled" = "ruled";
+
+/** RULED (Will, 2026-08-25), verbatim. */
+export const SITE_SUBHEAD =
+  "Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after.";
+
+export type HeaderStatus = "ruled" | "provisional";
+
+/**
+ * The home-arc section headers (Will, 2026-08-25). status "provisional" = his line ships as the
+ * working copy while alternatives go to him (his appetite recorded in `note`); NEVER silently
+ * replace a line here: a change lands with his ruling and a pin update.
+ */
+export const SECTION_HEADERS: Record<
+  string,
+  { line: string; status: HeaderStatus; note?: string }
+> = {
+  howItWorks: { line: "Scan, upload, done. No app to install.", status: "ruled" },
+  liveDemo: {
+    line: "Watch your album fill up.",
+    status: "provisional",
+    note: "Will entertains other ideas here.",
+  },
+  album: {
+    line: "Every photo comes to you first.",
+    status: "provisional",
+    note: "Wants more distinctness from the live demo before it and curation after it.",
+  },
+  curation: {
+    line: "Every moment, and you decide what stays.",
+    status: "provisional",
+    note: "Wants guest-side benefits in the frame, not only host moderation.",
+  },
+  privacy: {
+    line: "Your event stays yours.",
+    status: "provisional",
+    note: "Wants it cleaner; privacy benefits may also spread into the curation section.",
+  },
+  reel: {
+    line: "The whole event, cut down to the highlights.",
+    status: "provisional",
+    note: "Explore a share-the-highlights framing that feels more alive.",
+  },
+  pricing: { line: "Start free, upgrade for more events.", status: "ruled" },
+} as const;
+
+/** RULED (Will, 2026-08-25): the decomposition's third fact warmed from "Edited by no one." */
+export const DECOMPOSITION_FACTS = [
+  "Built from 214 photos.",
+  "Shot by 23 guests.",
+  "Created for you.",
+] as const;
 
 /** The recurring demo CTA line (DemoCtaLink renders it everywhere the demo is offered). */
 export const DEMO_CTA_LABEL = "Try the live demo, no signup.";
