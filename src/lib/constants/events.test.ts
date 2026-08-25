@@ -16,6 +16,7 @@ describe("event-type constants", () => {
       for (const field of [
         eventType.slug,
         eventType.navLabel,
+        eventType.singularLabel,
         eventType.teaser,
         eventType.headline,
         eventType.subhead,

@@ -29,6 +29,8 @@ export type EventTypeHelp = { icon: LucideIcon; title: string; body: string };
 export type EventType = {
   slug: string;
   navLabel: string;
+  /** Singular form for sentence slots ("Every wedding ends with a reel."). */
+  singularLabel: string;
   icon: LucideIcon;
   /** Short line for the home grid + hub cards. */
   teaser: string;
@@ -54,6 +56,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     slug: "weddings",
     navLabel: "Weddings",
+    singularLabel: "wedding",
     icon: Heart,
     teaser: "Every guest's angle of the day, not just the photographer's.",
     headline: "Every photo from your wedding, from everyone there",
@@ -116,6 +119,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     slug: "parties",
     navLabel: "Parties",
+    singularLabel: "party",
     icon: PartyPopper,
     teaser: "The candids from every corner of the room, before anyone leaves.",
     headline: "The whole party's camera roll, in one place",
@@ -180,6 +184,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     slug: "conferences",
     navLabel: "Conferences",
+    singularLabel: "conference",
     icon: Briefcase,
     teaser:
       "Talks, booths, and hallway moments from hundreds of attendees in one feed.",
@@ -245,6 +250,7 @@ export const EVENT_TYPES: EventType[] = [
   {
     slug: "trips",
     navLabel: "Trips",
+    singularLabel: "trip",
     icon: Plane,
     teaser:
       "Pool everyone's photos from the whole trip instead of chasing them later.",

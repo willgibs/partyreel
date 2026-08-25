@@ -17,7 +17,7 @@ export function FaqAccordion({
   return (
     <div
       className={cn(
-        "mx-auto mt-12 max-w-2xl divide-y rounded-xl border",
+        "mx-auto mt-10 max-w-2xl divide-y rounded-xl border bg-card/40",
         className,
       )}
     >
