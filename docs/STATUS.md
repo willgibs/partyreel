@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-07-08
+**Updated:** 2026-08-06
 
 ## THE ELEVATION PROGRAM (the active thread, 2026-07-02)
 
@@ -16,14 +16,37 @@ before picking up any program work. Headlines a fresh agent must know:
 - **Branch protocol supersedes straight-to-main** (see CLAUDE.md Git): work rides the `launch-prep`
   integration branch; tracks commit to `lp/<track>`; the orchestrator alone integrates, applies
   migrations, deploys workers; `main` is frozen except milestone merges + hotfixes.
-- **Live red-team target between milestones** = `https://partyreel-git-launch-prep-willgibs.vercel.app`
-  (branch-scoped env + R2 CORS + Stripe TEST preview webhook wired; Supabase redirect allow-list is
-  Will's dashboard step).
+- **Live red-team target between milestones** = `https://partyreel-git-launch-prep-partyreel.vercel.app`
+  (branch-scoped env + Stripe TEST preview webhook + Supabase redirect entry + R2 CORS all wired;
+  preflight, reel-canvas draw, and an export-worker round trip verified 2026-08-06).
+- **MILESTONE-1.5 MERGED to main 2026-07-29 (`8163e45`, tag `milestone-1.5`): the QA hardening rounds.**
+  Will ran a ~590-agent adversarial QA round (fix queue: `~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`,
+  48 findings + 6 systemic patterns A-F). Q1 closed the two criticals that DESTROY customer media (the
+  unbound `preview_key` + the standby sweep hard-deleting media the same cron run promised for 30 days);
+  Q2 the money set (one plan at a time per [ADR-0023](adr/0023-qa-round-product-rulings.md) + Will's
+  1a/1b refinements, provisioning asserts one row, recency guard); Q3 escalation guards (transition
+  TRIGGERS rather than revokes, so no legitimate moderation path breaks) + the disclosure redactions;
+  Q4 the guest path (`mustQuery`/`mustCount` + an ESLint rule retire Pattern B, the swallowed
+  `{ error }` that read as an empty result); and the WRITE SPINE (#18 locked events gate uploads at all
+  three seams, #6 the complete seam pins variant/kind/ext to what presign minted, #17 per-host
+  `for update` cap locks). 5 migrations applied, advisors unchanged throughout, 950 → 973 tests.
+  Live-verified by re-running the QA's own attacks. QA #11 (the >90-min presign-roll album soak) + #12
+  (upload retry) rode Will's M2 device review (2026-08-06, runbook step 5) and were not M2-gating by his
+  ruling; the soak traps stay documented in [`systems/testing-verification.md`](systems/testing-verification.md).
+- **MILESTONE-2 MERGED to main 2026-08-06 (tag `milestone-2`): R3 the Reel Experience + R3.1 the
+  studio-first recomposition + the on-device review fixes.** The reel is now a full host + GUEST feature:
+  builder/Create-birth + the ratified composite reveal, the slim feed marquee, the Studio room (Moments
+  picker primary), the publish seam, the guest card/overlay/download ladder, the 5th anon RPC, and the
+  `reel_guest_download` limiter. Also rode along to prod: profiles+social P1-P3 (preview-only since
+  2026-07-08 — its migration has been APPLIED all along; the DB is shared state). Narrative:
+  [`CHANGELOG.md`](CHANGELOG.md); current truth: [`systems/host-app.md`](systems/host-app.md) +
+  [`systems/guest-flow.md`](systems/guest-flow.md). The 2026-08-05 **Vercel hosting migration to the P3
+  account** (prod was dark on the drained old account) shipped mid-round — see its CHANGELOG entry.
 - **Rounds**: R0 bootstrap + EXIF strip ✅ (milestone-0 `f99d9cc`) → R1 Decision Studio ✅ + R2 Reel
   Engine + Foundation ✅ **(milestone-1 merged 2026-07-08: the full 14-style canvas engine, the composer
   swap + $0 client-encoded export, the ADR-0021 pricing slice, the ADR-0020 forensic capture track →
-  [`CHANGELOG.md`](CHANGELOG.md))** → R3 Reel Experience (NEXT: guest surfacing + the ruled composite
-  reveal) → parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish ·
+  [`CHANGELOG.md`](CHANGELOG.md))** → R3 Reel Experience ✅ + R3.1 studio-first ✅ **(milestone-2 merged
+  2026-08-06)** → parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish ·
   R7 Admin) → R8 Hardening + Certification.
 - **Gates**: lab-validate before shipping creative magic; options-doc + Will's ruling for one-way-doors;
   NO launch switches (those accrete in ROADMAP's Launch checkpoint).
@@ -53,9 +76,10 @@ before picking up any program work. Headlines a fresh agent must know:
   demo event's 3 legacy black videos replaced with poster-bearing re-uploads, and TWO found-live bugs
   fixed en route (a hidden-tab video upload wedged the queue: measureFile timeout-guarded; and the
   img-poisoned CORS cache blacked out every reel clip: the engine fetches `cache: "no-store"` — see
-  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). Remaining R3: slice C reel-UI lab round
-  (IN FLIGHT: 3 directions building on the `reel-experience` touchpoint; Will ruled the reel is BORN by
-  an explicit Create act) → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
+  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). **R3 is COMPLETE (milestone-2, 2026-08-06):**
+  slice C's lab round ruled the V1 Marquee, the production build shipped builder/reveal/Marquee/Studio +
+  the guest surface (0028 anon set 4 → 5), R3.1 recomposed studio-first (ADR-0024), and Will's on-device
+  review drove two final fixes (small-event create path, cold-open jitter). See the milestone bullet above.
 
 ## Where we are
 
@@ -160,7 +184,7 @@ with an AMBER count and Reviews-as-landing-tab when a queue waits; the full-scre
 `ReviewTakeoverProvider` (a tab sibling, so it survives switches). Turning moderation OFF pops a count-named
 confirm and `approveAllPending` auto-approves the queue on save (the server enforces "live mode holds no
 pending media"). Live-verified end-to-end. (Album bulk-select, drag-reorder, and reel generation all
-shipped since; guest-facing reel surfacing is the remaining deferred slice — see the reel roadmap below.)
+shipped since; guest-facing reel surfacing SHIPPED in R3/milestone-2 — see [`systems/guest-flow.md`](systems/guest-flow.md).)
 **Event-page feed redesign ✅ (2026-06-22, `4d3ddcc` + beat hotfix `c316b21`): the host event page is now a
 stacked, pill-filtered media-forward feed** (the Gallery|Reel|Reviews TABS retired). `EventFeed` mirrors
 `DashboardFeed` (`?section=`, urgency-ordered `Review · Gallery · Reel`); the review pop-up is inlined into the
@@ -208,12 +232,10 @@ Lambda bundle.** Live-verified end-to-end (Layered parallax + Landscape → play
 + downloads: `status ready`, $0.024/~3min). ★ Two render fixes the live red-team caught (from the version bump forcing
 re-renders): `overwrite:true` (stable output key) + a 240s Lambda function (heavy treatments hit the 120s ceiling).
 Current truth: [`systems/host-app.md`](systems/host-app.md) "Reel composer" + the `project_reel_generation_spec` memory.
-**▶ NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
-(A) **treatment render OPTIMIZATION** (blur-downscale — treatments cost ~4× moods; recommended first, self-contained);
-(B) **guest-facing reel surfacing + download** (the next feature — a new `/e/` surface + an anon capability-token reel
-RPC; needs a planning round with Will); plus follow-ups (lab→StyleDispatch DRY, style-popover thumbnails, drop the
-legacy `theme` column, AWS concurrency 10→2000). Beyond the reel: the roadmapped user-profiles +
-social program. The S3+S4+S5+Reel specs live in the slice plans
+**▶ The reel arc is COMPLETE through milestone-2** (the canvas engine replaced Lambda; guest surfacing +
+download shipped; the Studio is the control room). Remaining reel work lives in [`ROADMAP.md`](ROADMAP.md):
+Pro motion-video trim (R6), themes/reveal polish, dropping the legacy `theme` column (R8 destructive
+batch). The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
@@ -252,8 +274,10 @@ is recorded in [`CHANGELOG.md`](CHANGELOG.md)):
   P3 web client. In-app operator `partyr33l@gmail.com` (`is_admin` + TOTP MFA).
 - **"Allow new signups" must stay ON** (account-from-guest + email+password create all depend on it;
   anonymous sign-ins stay OFF per ADR-0008).
-- **Deferred cutovers** (not blocking): Vercel hosting (still willgibs **Hobby** → P3 **Pro** at launch),
-  domain + DNS (GoDaddy → P3 Cloudflare), the GitHub repo (`github.com/willgibs/partyreel` → P3 at sale).
+- **Deferred cutovers** (not blocking): Vercel **Hobby → Pro** at launch (hosting itself MOVED to the P3
+  Vercel "Partyreel Team" 2026-08-05, after a co-tenant project drained the old willgibs account and took
+  prod dark), DNS hosting (GoDaddy → P3 Cloudflare), the GitHub repo (`github.com/willgibs/partyreel` →
+  P3 at sale).
 
 ## Pre-launch / human-blocked
 
@@ -271,7 +295,8 @@ products/prices + webhook endpoint + Billing Portal + the 5 env vars; Supabase T
 (`partyr33l@gmail.com` holds the TOTP factor; break-glass = delete it in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup GitHub
 Action secrets; the deletion-aware prune (deployed in dry-run, both crons) + its shared `PRUNE_API_SECRET`
-(Vercel + the Worker).
+(Vercel + the Worker). (All Vercel-side items on this list were RECREATED on the P3 Vercel project during
+the 2026-08-05 hosting migration — the list still holds.)
 
 ## After any change
 

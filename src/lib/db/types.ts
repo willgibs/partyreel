@@ -311,6 +311,7 @@ export type Database = {
           cover_media_id: string | null
           created_at: string
           event_id: string
+          guest_visible: boolean
           id: string
           length_seconds: number | null
           orientation: string
@@ -331,6 +332,7 @@ export type Database = {
           cover_media_id?: string | null
           created_at?: string
           event_id: string
+          guest_visible?: boolean
           id?: string
           length_seconds?: number | null
           orientation?: string
@@ -351,6 +353,7 @@ export type Database = {
           cover_media_id?: string | null
           created_at?: string
           event_id?: string
+          guest_visible?: boolean
           id?: string
           length_seconds?: number | null
           orientation?: string
@@ -492,7 +495,9 @@ export type Database = {
           removed_by_system: boolean
           removed_by_uploader: boolean
           status: Database["public"]["Enums"]["media_status"]
-          status_before_removed: Database["public"]["Enums"]["media_status"] | null
+          status_before_removed:
+            | Database["public"]["Enums"]["media_status"]
+            | null
           type: Database["public"]["Enums"]["media_type"]
           updated_at: string
           width: number | null
@@ -519,7 +524,9 @@ export type Database = {
           removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
-          status_before_removed?: Database["public"]["Enums"]["media_status"] | null
+          status_before_removed?:
+            | Database["public"]["Enums"]["media_status"]
+            | null
           type: Database["public"]["Enums"]["media_type"]
           updated_at?: string
           width?: number | null
@@ -546,7 +553,9 @@ export type Database = {
           removed_by_system?: boolean
           removed_by_uploader?: boolean
           status?: Database["public"]["Enums"]["media_status"]
-          status_before_removed?: Database["public"]["Enums"]["media_status"] | null
+          status_before_removed?:
+            | Database["public"]["Enums"]["media_status"]
+            | null
           type?: Database["public"]["Enums"]["media_type"]
           updated_at?: string
           width?: number | null
@@ -1306,6 +1315,19 @@ export type Database = {
           width: number
         }[]
       }
+      get_event_reel_by_qr_token: {
+        Args: { p_qr_token: string }
+        Returns: {
+          cover_media_id: string
+          item_ids: string[]
+          length_seconds: number
+          mp4_ready: boolean
+          orientation: string
+          seed: number
+          style_id: string
+          watermark: boolean
+        }[]
+      }
       get_host_upload_context: {
         Args: {
           p_event_id: string
@@ -1412,6 +1434,10 @@ export type Database = {
       set_event_slug: {
         Args: { p_event_id: string; p_slug: string }
         Returns: undefined
+      }
+      set_reel_guest_visible: {
+        Args: { p_event_id: string; p_visible: boolean }
+        Returns: Json
       }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }

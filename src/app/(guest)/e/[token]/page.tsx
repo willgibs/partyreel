@@ -24,6 +24,7 @@ import {
   loadGalleryForAccess,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { getGuestReelContext } from "@/lib/reel/guest-reel";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { needsDisplayName } from "@/lib/welcome";
@@ -170,7 +171,19 @@ export default async function GuestEventPage({
   // Header stats (Phase 4): cheap awaited read (numbers only — never identities).
   // For a LOCKED password event this still returns counts: the ratified entry
   // tease (the sheet says "N photos are waiting"; the header shows name only).
-  const stats = await getGalleryStats(event);
+  //
+  // The guest REEL read (R3, ADR-0022) rides alongside it, awaited CONCURRENTLY:
+  // both are cheap indexed reads, and the reel card must be in the SHELL HTML
+  // (a streamed top card would shift the keepsake album's hero as it lands), so
+  // it cannot stream like the gallery does — but it must not cost a serial
+  // round-trip either. Returns null for everything that isn't "this viewer may
+  // see a published, non-empty reel" (access, publish state, curation, locks),
+  // so the card below needs no further gating. The raw `event` on purpose: it
+  // carries the canonical qr_token the RPC matches on.
+  const [stats, guestReel] = await Promise.all([
+    getGalleryStats(event),
+    getGuestReelContext(event, access),
+  ]);
 
   // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
   // access `none` the page must reveal the event NAME + media COUNT only, and
@@ -253,6 +266,7 @@ export default async function GuestEventPage({
         hostAvatarUrl={hostAvatarUrl}
         isOwner={isOwner}
         guestListSlot={guestListSlot}
+        guestReel={guestReel}
       />
     </div>
   );

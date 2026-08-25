@@ -171,8 +171,12 @@ Review caught-up + moderation-off; it renders UNDER the header, never replacing 
   **MORPHS its action to the section the host is looking at** via a scroll-spy
   ([`use-active-section.ts`](../../src/lib/shared/use-active-section.ts), one `IntersectionObserver` with a
   center band): **Review** → `Select` / `Approve all` (then the select-mode bulk bar); **Gallery** → `Add
-  photos` (opens the shared panel); **Reel** → a DISABLED `Create reel` placeholder. A section with nothing to
-  act on yields no bar. Content crossfades on section change (`[data-section-swap]`). In "All" the active
+  photos` (opens the shared panel); **Reel** → pre-Create a violet `Create reel` pill that fires the
+  BUILDER's own create via `ReelStageProvider.requestCreate()` (the reveal's FLIP measures the builder's
+  tiles, on screen by construction while the section is active) — ★ the builder registers that target only
+  once ≥1 moment is picked, because `create()` refuses at zero and an unregistered target means NO pill
+  rather than a dead tap (Will's phone, fixed `6bc779d`); post-Create it is the `Open studio` link. A
+  section with nothing to act on yields no bar. Content crossfades on section change (`[data-section-swap]`). In "All" the active
   section is the scroll-spy's; when filtered, it's the pinned pill.
 - **Hydration:** the SSR'd surfaces (header, command-bar row, pills, gallery/reel tiles) are native-`title`
   ONLY — NO radix Tooltip on SSR'd elements (the silent prod-hydration regression cause, see
@@ -231,21 +235,25 @@ the reports queue live in [admin-observability.md](admin-observability.md).)
 moderation rides in via a HOVER-REVEALED top-right action row (`HostTileOverlay`), colored per action on
 direct hover (the emil "monochrome at rest → color on hover/state" rule; the palette is the
 [design-system](design-system.md) action colors). **Desktop:** a FIXED left→right order
-`reel, like, download, hide/show, delete` (beneficial curation first, danger last). reel (approved-only) rides
-the FAR LEFT so hiding an item, which drops it from the reel, collapses the LEADING chip without shuffling the
-rest; and hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in
-place. (No per-tile Approve: pending media lives in the **Review section**, never this album/reel grid; the
-bulk path is the Review section's Approve all.) Like/Reel get a full-brightness colored STROKE on hover +
-a SUBTLE fill (`/25`) when active (liked rose / in-reel violet / hidden amber) so the outline stays legible.
+`like, download, hide/show` — and the row is **CLOSED at three** (ADR-0024, Will 2026-08-04). hide/show is
+ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling swaps the glyph in place.
+★ **Add-to-reel and DELETE are deliberately NOT tile chips** (they were, until R3.1): a five-chip hover fan on
+a dense masonry grid is a misclick trap, and those two were the consequential ones. Neither lost a home —
+delete lives in the **lightbox + Gallery bulk-Select** (and hide, still on the tile, covers the urgent
+"get it off the album now" case reversibly), and add-to-reel lives in the **lightbox, bulk-Select, and the
+Studio's Moments picker** (the primary door). Do not re-add either without re-opening the ruling.
+(No per-tile Approve either: pending media lives in the **Review section**, never this album grid; the
+bulk path is the Review section's Approve all.) Like gets a full-brightness colored STROKE on hover +
+a SUBTLE fill (`/25`) when active (liked rose / hidden amber) so the outline stays legible.
 **At rest the hover-reveal chips COLLAPSE** (the `[data-reveal-chip]` hook: width + margin → 0) so the
-persistent chips (liked / in-reel / hidden marker) pack neatly to the right edge, then SLIDE back to their
+persistent chips (liked / hidden marker) pack neatly to the right edge, then SLIDE back to their
 interleaved slots on tile hover (the row uses per-chip margin, not gap, so a collapsed chip leaves no gap).
 The hook is **`!important`** (it lives in `@layer base` but the chips' own Tailwind transition + `ml-1` are
 in the higher `utilities` layer, which silently killed the slide + the margin-collapse) and keys the expand
 on `:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a MOUSE click doesn't leave
-a chip stuck-expanded (keyboard focus still reveals). Reduced-motion = opacity-only, no slide. **Mobile:** the
-row is `hidden
-md:flex` — only reel + Like + Download (and the persistent hidden marker) stay; **hide/remove move to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
+a chip stuck-expanded (keyboard focus still reveals). Reduced-motion = opacity-only, no slide. **Mobile:** hide
+is `hidden md:flex`, so a mobile tile is **Like + Download** (plus the persistent hidden marker) and **hide
+moves to the lightbox**. **Hidden media renders at 30% opacity** (`dimItem`) — the active-vs-hidden mark, both
 kept in-gallery. The **shared lightbox** ([`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx))
 carries the host's full set as a grouped "enjoy | curate" pill (`[like · count · download · share] | [approve-or-hide-or-unhide · remove]`),
 gated `viewerIsHost && onSetStatus` so the **guest pill is behavior-identical** (it just gains the same
@@ -290,26 +298,37 @@ insert ONLY via the access-checked SECURITY DEFINER `add_to_reel` RPC; un-reel i
 browser), a HOST-ONLY `ReelProvider` ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx);
 optimistic, insertion-ordered Set, client-direct, NO signed-out branch — wraps the whole feed so an add in
 the Gallery reflects instantly in the Reel section), and a `ReelButton` (a `Clapperboard` in the `--reel`
-VIOLET, distinct from Like) in the tile overlay (before Like, approved-only) + the lightbox curate group.
-Curation is FREE for any tier; ONE reel per event; host-only + host-private (no
-Reel on `/e/`); approved-only eligibility. `media.reel_eligible`/`highlight_score`/`clip_*`/`preview_key`
+VIOLET, distinct from Like) in the **lightbox** curate group. ★ **The three curation doors** (ADR-0024, R3.1):
+the **Studio's Moments picker** (the primary one), the **lightbox**, and **Gallery bulk-Select**. The tile-row
+chip is GONE (see "the gallery-action model"), and selection is MODE-based on purpose — the room carries the
+meaning, not an icon on every card. Likes are an INPUT SIGNAL to quick-add, **never** membership (the
+favorites-vs-reel conflict, ruled). Curation is FREE for any tier; ONE reel per event; approved-only
+eligibility (the TIMELINE predicate; MEMBERSHIP for host UI/counts/reorder additionally keeps `hidden` —
+see [database-security.md](database-security.md)). **Guests see the reel only after the host SHARES it**
+(R3): `setReelGuestVisibleAction` → the `set_reel_guest_visible` RPC flips `highlight_reels.guest_visible`
+(refuses `empty` at 0 approved items; mp4 NOT required — the live player needs no artifact); the share
+card, the reveal's settled "Share with guests", and the Studio header all call this ONE seam, and R5's
+reel-published notification hooks HERE when it lands (ruled: no email until R5). The guest surface itself
+is [guest-flow.md](guest-flow.md)'s. `media.reel_eligible`/`highlight_score`/`clip_*`
 remain DEAD scaffold (zero app code; `reel_eligible` is reserved for a FUTURE auto-scoring worker, NOT this
 host signal). The album **bulk-select** (Select mode → Add to reel / Like / Hide-Show / Delete) SHIPPED
-2026-06-22 (see "the gallery-action model"). DEFERRED: guest-facing surfacing, multiple reels. (The Review
+2026-06-22 (see "the gallery-action model"). DEFERRED: multiple reels. (The Review
 queue + the moderation-disable auto-approve confirm shipped 2026-06-21 as the Reviews TAB; the
 2026-06-22 feed redesign inlined that queue as the urgency-ordered Review section — see "The event page".)
 
-**Reel DRAG-REORDER + uniform Reel/Review grids SHIPPED** (2026-06-22). The **Reel + Review sections render as
-UNIFORM grids** (a fixed `4/5` `object-cover` tile, `grid-cols-3 sm:grid-cols-4`) while the **Gallery keeps the
-natural-ratio masonry "wow"** (incl. its album select) — uniformity gives the reel a legible sequence to drag
-and standardizes Review's selection hit-targets. It's a `layout: "masonry" | "uniform"` prop on the SHARED grids
-(`MasonryColumns` + `SelectableMediaGrid`, default masonry; Gallery passes nothing). A `Reorder` button in the
-Reel section header (shown when `> 1` item; toggles to `Done`) enters a mode (`ReelReorderProvider`) where the
-section swaps to [`reel-sortable-grid.tsx`](../../src/components/app/reel-sortable-grid.tsx): numbered drag tiles,
-no per-tile actions/lightbox. Drag is powered by our own dependency-free
+**Reel DRAG-REORDER + uniform Review grids SHIPPED** (2026-06-22; reorder moved to the Studio 2026-08-04). The
+**Review section renders as a UNIFORM grid** (a fixed `4/5` `object-cover` tile, `grid-cols-3 sm:grid-cols-4`)
+while the **Gallery keeps the natural-ratio masonry "wow"** (incl. its album select) — uniformity standardizes
+Review's selection hit-targets. It's a `layout: "masonry" | "uniform"` prop on the SHARED grids
+(`MasonryColumns` + `SelectableMediaGrid`, default masonry; Gallery passes nothing).
+★ **Reorder is STUDIO-ONLY** (ADR-0024): the feed's `Reorder`/`Done` header mode and its sortable-grid swap are
+RETIRED (`reel-reorder-provider`/`reel-reorder-button`/`reel-sortable-grid` deleted), because reordering beside
+a reel that keeps PLAYING (the Studio's filmstrip dock) beats a mode that hides the reel to show a grid. Drag is
+powered by our own dependency-free
 [`useSortableGrid`](../../src/lib/shared/use-sortable-grid.ts) (pointer drag + a 2-axis FLIP for the sibling
 slide; on a uniform grid the drop-index is a geometric computation, so hand-rolling beats dnd-kit — see
-[design-system.md](design-system.md)). Reorder operates on the **FULL membership** (`reel.orderedIds`, hidden
+[design-system.md](design-system.md)); the dock feeds it an explicit `repeat(N, …)` so its 2-axis maths
+collapses to a single-row shuffle. Reorder operates on the **FULL membership** (`reel.orderedIds`, hidden
 in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_media_ids)`** SECURITY DEFINER RPC
 (the SECOND reel write path after `add_to_reel`, since `reel_items` UPDATE is grant-revoked): host-owns + a
 **set-equality membership guard** (rejects cross-event / partial / dup / stale lists with `reason:'stale'`), one
@@ -317,21 +336,61 @@ in-reel items show dimmed) and persists via the **`reorder_reel(p_event_id, p_me
 is optimistic (★ rebuild a NEW `Set` from the reordered array — mutating the old Set keeps the old order) + reverts
 on the `stale`/error path. (The Review uniform grid keeps its `[data-exiting]` beat + `[data-check-pop]` — tile-local.)
 
-**The COMPOSER (the live in-app reel) SHIPPED** (slice 2, `4806e71`; the **STYLE CATALOG + orientation Phase 2** shipped
-2026-07-02, `0cfcc4f`; **swapped onto the CANVAS ENGINE 2026-07-08**, Plan A Phase C): the curated set **plays as a live
-`CanvasReelPlayer`** ([`engine/player.tsx`](../../src/lib/reel/engine/player.tsx) — the same `drawReelFrame` the encoder
-steps, so **the preview pixels ARE the export pixels**, WYSIWYG by construction) in the Reel section (player hero on top,
-the editable curated grid below), with controls — **style · orientation · cover · length**
-([`reel-composer.tsx`](../../src/components/reel/reel-composer.tsx)) — all client-side + **$0** (nothing encodes until
-Download). **Style** = a scalable
-**popover** picker over the flat **14-style catalog** (8 media-first "moods" + 6 stylized "treatments", grouped); **orientation**
+**★ THE FEED / STUDIO SPLIT (R3.1, ADR-0024 — the composition rule).** Will's alias review ruled the feed's
+Reel section over-controlled for a visual surface, so the two host reel surfaces now have disjoint jobs and
+that split is load-bearing:
+- **The FEED section is VISUAL ONLY.** Post-Create it is [`reel-marquee.tsx`](../../src/components/reel/reel-marquee.tsx)
+  = status chip + "Open studio" door · the `PosterCard` (a live paused `CanvasReelPlayer`, the reel's face,
+  IO-gated) · `ReelShareCard`. **Nothing else may be added here.** A consequence worth keeping: the feed mounts
+  **zero thumbnail canvases** (the poster is its only player). The section header is label + count only.
+  PRE-Create is unchanged — the builder (quick-add → Create → the ratified reveal) stays a feed moment,
+  because birth is a feed event.
+- **The STUDIO (`/dashboard/[eventId]/reel`) is the EXCLUSIVE room for every control.** Five slide-up sheets
+  (`[data-rxp-sheet]`): **Moments** (first) · Style · Cover · Length (incl. the free-tier `/pricing` upsell,
+  which moved down WITH the control) · Layout, plus the filmstrip **dock** (order-only) and Download.
+- **The Moments picker** ([`studio-moments-picker.tsx`](../../src/components/reel/studio-moments-picker.tsx))
+  is the primary selection door: a bespoke dark-room grid (never `SelectableMediaGrid`, which hard-codes the
+  light palette) over the route's full pool, in a `70dvh` sheet. **Membership IS the state** (provider
+  `inReel`; no local selection, no Done) — a tap writes, the dock reshuffles, the player re-cuts. Per tile: a
+  violet **POSITION** badge + check when in-reel, a soft "suggested" hint from `pickQuickAdd` (+ one
+  "Add suggested (N)" header chip), a read-only like count, a video badge. ★ **Add routes through the SILENT
+  `addMany([id])`, never `toggle`** — toggle toasts on every add and adding several in a row is the normal
+  gesture; remove IS `toggle` (silent on the remove half). A **hidden** item that is already a member stays
+  removable but cannot be re-added (`add_to_reel` refuses non-approved) — the rule is pure + pinned in
+  [`lib/reel/moment-picker.ts`](../../src/lib/reel/moment-picker.ts). The dock's trailing "+" opens the same
+  sheet and sits OUTSIDE the sortable container (inside it would be a phantom drop slot).
+
+**THE BUILDER + CREATE-BIRTH (pre-Create, a feed moment).** [`reel-builder.tsx`](../../src/components/reel/reel-builder.tsx):
+the reel is BORN by an explicit Create act (ADR-0023 ruling 4) in two beats, FILL then CREATE — never one
+button (that would fire the ratified reveal off an empty reel). **Quick-add** is the honest fill:
+[`pickQuickAdd`](../../src/lib/reel/quick-add.ts) is pure + DETERMINISTIC (mulberry32 off the reel's own
+seed, no Math.random) blending rank-normalized likes + recency decay + per-uploader round-robin coverage +
+a photo/video mix; its LABEL switches on whether likes actually shaped the pick. ★ **Offered at ONE
+approved item** (`6bc779d`): `QUICK_ADD_MIN` (4) no longer gates the button (post-ADR-0024 it was the only
+in-card fill path, and gating it stranded small events) — a small pool comes back whole and the copy stops
+promising a guest-wide mix ("Everything added so far, in one first cut"). **Create** runs the ratified
+composite reveal IMMEDIATELY and persists CONCURRENTLY (`persistConfig`'s upsert IS the lazy create); on a
+failed save the theater still finishes, then toasts and falls back. ★ **The panel swap waits for the
+THEATER, not the save**: `markCreated()` (the builder→marquee switch, which unmounts the reveal's portal)
+fires only from the settled card's exits — calling it when the RPC resolved killed the 4.7s choreography
+mid-act (found live 2026-07-30).
+
+**The CONFIG BRAIN (was "the composer") + the canvas engine** (slice 2 `4806e71`; the **STYLE CATALOG +
+orientation** 2026-07-02 `0cfcc4f`; **swapped onto the CANVAS ENGINE 2026-07-08**; the composer COMPONENT
+died in R3 — its state/persist/export logic was lifted BODILY into
+[`use-reel-config.ts`](../../src/components/reel/use-reel-config.ts), the ONE controller the Marquee's
+poster and the Studio's sheets both consume): the curated set **plays as a live `CanvasReelPlayer`**
+([`engine/player.tsx`](../../src/lib/reel/engine/player.tsx) — the same `drawReelFrame` the encoder
+steps, so **the preview pixels ARE the export pixels**, WYSIWYG by construction), with the
+**style · orientation · cover · length** controls all client-side + **$0** (nothing encodes until
+Download). **Style** = the Studio's wall over the flat **14-style catalog** (8 media-first "moods" + 6 stylized "treatments", grouped); **orientation**
 = a portrait 9:16 / landscape 16:9 toggle (every style adapts from one core). **Shuffle was REMOVED** — the seed is now the
 deterministic `defaultReelSeed(eventId)` (one stable take). ★ **The styleId dispatcher** keeps a PURE/rendering split, both
 under `engine/`: [`engine/style-registry.ts`](../../src/lib/reel/engine/style-registry.ts) is PURE (catalog → `{kind, themeId}`,
 server-safe) so `build-reel-props`/`render-service` resolve `styleId`→theme without pulling any browser runtime; the draw
 registry is [`engine/registry.ts`](../../src/lib/reel/engine/registry.ts) (`drawReelFrame` stamps the **watermark in the
-dispatch layer**, so no style can export unmarked). The player shows video by its POSTER still
-(`posterMode` — the canvas engine draws images; real video in the reel is a later Pro slice).
+dispatch layer**, so no style can export unmarked). Videos draw their POSTER frame (`preview_key`; the
+`posterMode` flag died in R3 slice A — real motion video in the reel is a later Pro slice).
 [`build-reel-props.ts`](../../src/lib/reel/build-reel-props.ts) (pure, tested) turns the `reel_items` order + the
 already-presigned `GridMedia` into props (NO 2nd presign/RPC), resolving `styleId`→theme and populating
 `ReelClip.width/height` → **`fitClip` runs in prod** (designed mismatched-orientation framing). Config persists (debounced)
@@ -366,7 +425,7 @@ inline notice instead of the Download button (the reel still plays).
   resilience net; nothing polls it today (the client finalize is synchronous).
 
 **Lazy + cached (unchanged semantics):** an unchanged reel (a stored `rendered_hash` over
-media+style+orientation+config+watermark+`RENDER_VERSION`, currently **2**) re-serves the existing mp4 for $0; any
+media+style+orientation+config+watermark+`RENDER_VERSION`, currently **3**) re-serves the existing mp4 for $0; any
 config change invalidates. **Free tier** stamps the `partyreel.com` watermark: `props.watermark` is **server-tier-derived**
 (the render/mint paths NEVER trust the client flag; the engine stamps it in the dispatch layer `drawReelFrame`, so ALL
 14 styles carry it). ★ **ACCEPTED pre-launch caveat (do NOT build detection):** the client-encode server never sees the

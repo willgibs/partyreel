@@ -90,7 +90,8 @@ async function recordRender(admin: Admin, f: LogFields): Promise<void> {
 }
 
 /** The reel mp4's attachment filename ("<event>-reel.mp4") — also the client-encode local-save name. */
-function reelFilename(eventName: string): string {
+// Exported for the guest download route (R3): guests receive the SAME filename the host does.
+export function reelFilename(eventName: string): string {
   return `${slugify(eventName) || "partyreel"}-reel.mp4`;
 }
 
@@ -112,7 +113,9 @@ async function reelDownloadUrl(
  * the client is never trusted for style/length/watermark/membership. Returns null when the event is
  * gone (deleted or never existed).
  */
-type ReelRenderContext = {
+// Exported for the guest read/download path (R3): guest-reel.ts + /api/reel/download resolve the
+// SAME render identity (same clamp, same watermark derivation, same hash) instead of duplicating it.
+export type ReelRenderContext = {
   eventName: string;
   tier: Tier;
   watermark: boolean;
@@ -140,7 +143,7 @@ type ReelRenderContext = {
   hash: string;
 };
 
-async function resolveReelRenderContext(
+export async function resolveReelRenderContext(
   admin: Admin,
   eventId: string,
 ): Promise<ReelRenderContext | null> {

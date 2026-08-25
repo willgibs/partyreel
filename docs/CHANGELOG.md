@@ -10,6 +10,186 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-06 — MILESTONE-2: R3 the Reel Experience (host + guest) + the on-device review fixes
+
+**The North Star's experience round: the reel became a full host + GUEST feature** (tag `milestone-2`;
+R3 integrated 2026-07-30, R3.1 2026-08-04 — its own entry below, review fixes `6bc779d` 2026-08-06;
+1031 → 1063 tests across the round). Built as three tracks off ADR-0022/0023 rulings, integrated by the
+orchestrator through a sustained 529 outage (inline building + agent resumes):
+
+- **Track A, the substrate:** the engine gained a `maxDim` thumb path (pre-scale transform over the SAME
+  draw code; full-res-reporting DrawEnv + a shared scratch pool — byte-identical full-res output proven),
+  a shared decoded-bitmap cache (in-flight dedupe + LRU; the `no-store` CORS fetch stays), IO-gated
+  players, the deterministic `pickQuickAdd` blend (likes-rank + recency decay + per-uploader coverage +
+  photo/video mix; no Math.random), and the GHOST read-filter (`listReelItems` joins media
+  `approved+hidden`) — which also repaired the LIVE prod demo reel (12 rows / 3 ghosts, reorder bricked;
+  pill 12→9, drag persisted after the fix).
+- **Track B, the host experience:** the shared `PosterCard`, the ratified composite reveal transplanted
+  verbatim (canvas mounted frame 0, released at open; reduced-motion fade script), the builder's
+  Create-birth (theater-first, save concurrent — ★ the panel swap waits for the THEATER: `markCreated` at
+  the settled exits, found live when the RPC's resolve killed the choreography mid-act), the Marquee, the
+  Studio route (sheets + the filmstrip dock on `useSortableGrid`), and the share card over the one publish
+  seam.
+- **Track C, the guest surface:** migration `20260730120000` (`guest_visible` + `set_reel_guest_visible`
+  + the 5th anon RPC `get_event_reel_by_qr_token` whose RETURNS TABLE is the 8-key allow-list, + the
+  membership-predicate `reorder_reel` guard), `getGuestReelContext`'s two access arms, the two ruled card
+  placements, the arrival-cut overlay, and the download route + pure client ladder (fresh artifact →
+  self-encode → stale → ask-the-host; `reel_guest_download` limiter; `no_reel` oracle-free). Red-teamed on
+  the alias: leak probes dark across all five event states, the 8-key shape grep-clean, the ladder forced
+  ×4, limiter 429s at breadth 15, publish refusals + ghost reorder + freshness both directions live.
+- **Will's on-device review round (2026-08-06)** passed R3.1's composition and drove two real fixes
+  (`6bc779d`): small events had NO create path (quick-add's button gated at 4 items post-ADR-0024 + the
+  action-bar pill registered unconditionally while `create()` refuses at zero — a silent dead tap; now
+  offered at ≥1 with honest small-pool copy, and the pill exists only when a tap would work), and the
+  guest cut's COLD open jittered (the choreography started on the gallery promise while the engine's
+  `no-store` fetches decoded mid-flight; the player gained `onAssetsReady` and the overlay waits, 2.5s
+  cap). Plus test-data repairs: Test Wedding's QA-debris media wiped (3 rows with destroyed R2 objects +
+  2 synthetics) and reseeded.
+
+## 2026-08-05 — Vercel hosting migration: willgibs account → P3 "Partyreel Team"
+
+A co-tenant project drained the old willgibs Vercel account's free tier; Vercel paused the whole
+account and partyreel.com + www + admin + the launch-prep alias all served **402** (prod dark, builds
+blocked). Ruled permanent move to the P3 Vercel account (Hobby now, Pro at launch — the cutover
+STATUS had already deferred).
+
+- **New project**: imported `willgibs/partyreel` into the P3 "Partyreel Team" (the GitHub App already
+  covered the repo — zero grant friction). Settings parity verified via API: the ignored-build-step
+  command verbatim, Node 24.x, region default, deployment protection off (`ssoProtection: null`,
+  program mode), prodBranch main.
+- **Env restore**: 37 rows. 35 mirrored from the old project (encrypted rows via per-id API decrypt;
+  the 11 Sensitive rows sourced from `.env.local` — the swappable-values policy paying off), plus 2
+  computed: `NEXT_PUBLIC_SITE_URL` preview@launch-prep = the new alias, and a NEW Stripe TEST preview
+  endpoint (`we_1U1I3GPtjqmVkBwkjUqWGpvR`) whose signing secret landed before the first real build
+  (NEXT_PUBLIC_* is build-inlined; order mattered). The 7 dead reel-render rows (REMOTION_* ×6 +
+  REEL_RENDER_WEBHOOK_SECRET) were DROPPED per ruling — the Lambda path was torn down 2026-07-08, so
+  M2's env-removal task became a no-op; `.env.example`'s staged block went with them.
+- **Domain cutover**: registrar is external (GoDaddy), so the move was pure `_vercel` TXT
+  re-verification with pointing records untouched (zero propagation window). Apex verified + serving,
+  www 308→apex, admin 307→/admin. New branch alias
+  `partyreel-git-launch-prep-partyreel.vercel.app`; its exact `/auth/callback` added to the Supabase
+  redirect allow-list (old-alias entry kept until decommission).
+- **Verified**: robots/sitemap hosts, demo `/e/`, pricing/login/blog, cron 401-unauth vs authorized
+  full purge sweep (also proving the R2 object creds from P3 runtime), crons registered + enabled,
+  env inventory complete, and a full Google OAuth round trip on the new alias landing signed-in on
+  the dashboard.
+- **R2 CORS closed next-day (2026-08-06)**: Will restored the partyr33l wrangler OAuth + Chrome
+  session; the new alias origin was appended read-then-merge via `wrangler r2 bucket cors set` and
+  proven three ways: preflight 204 (hostile origin still 403), the Film-strip poster canvas drawing
+  live on the alias (CORS fetch + decode), and a browser export POST invoking the Worker with an Ok
+  stream (EXPORT_SIGNING_SECRET Vercel↔Worker parity confirmed; a bogus-token probe correctly got
+  403). One transient uninvoked 503 was observed on an earlier attempt (edge blip, not the app).
+- **Decommission complete (2026-08-06, Will's confirm)**: old Vercel project deleted (verified
+  not_found), old-alias Stripe TEST endpoint `we_1TowqZ...` deleted (2 endpoints remain: apex + new
+  alias), old-alias removed from the Supabase redirect list (6 entries) and from R2 CORS (3 origins),
+  old token retired from `.env.local`. Bonus: `partyreel.vercel.app` was claimed by the new project
+  the moment the old one released it (verified). Still open: Sentry source-map upload confirmation
+  (M2 prod pass).
+
+## 2026-08-04 — R3.1: the studio-first recomposition of the reel
+
+**Will's M2 gate review of the live R3 build ruled a composition change, not a feature change:** the
+feed's Reel section had become a settings page wedged into a scroll of media, while the Studio, which
+already twinned every one of those controls, was missing the one thing it needed. Recorded as
+[ADR-0024](adr/0024-studio-first-reel-composition.md) (amending ADR-0023 ruling 4's composite). Pure
+recomposition: no migration, no schema change, no advisors movement, no engine change. Built on
+`lp/reel-studio-first`, 1059 → 1063 tests.
+
+- **The feed section is visual only** (`c3ddebe`). The marquee keeps the status chip + "Open studio"
+  door, the poster (a live paused player), and the Share card. The style rail, layout, cover, length,
+  moments grid, download row and stitching dialog all leave, ~165 lines. The feed now mounts ZERO
+  thumbnail canvases: the IO-gated poster is the section's only player. The PRE-Create builder is
+  deliberately untouched, because birth is a feed event.
+- **Feed reorder retired** (same commit). The header Reorder/Done mode and its sortable-grid swap are
+  gone (`reel-reorder-provider`, `reel-reorder-button`, `reel-sortable-grid` deleted, plus the panel's
+  third arm and the page's provider mount); the Studio's filmstrip dock reorders beside a reel that
+  keeps PLAYING. `useSortableGrid` survives, the dock consumes it.
+- **The tile-row diet** (`bf442d4`). Add-to-reel and DELETE come off `HostTileOverlay`, leaving
+  `like, download, hide/show` and closing the row at three: a five-chip hover fan on a dense masonry
+  grid is a misclick trap, and hide already covers the urgent case reversibly. Both actions keep the
+  lightbox + bulk-Select unchanged. `ReelButton` loses its row variant and its `variant` prop with it.
+  The builder's "tap the clapperboard on any photo" copy had become false and now points at gallery
+  Select.
+- **The Moments picker** (`1e1f685`), the round's one net-new surface and now the primary selection
+  door anywhere in the product. First in the Studio's sheet tray (plus a "+" tile on the dock), a
+  bespoke dark-room grid over the route's full pool in a `70dvh` sheet. Membership IS the state: a tap
+  writes, the dock reshuffles, the player re-cuts. Violet POSITION badge when in-reel, a soft
+  "suggested" hint from `pickQuickAdd` with one "Add suggested (N)" chip, a read-only like count.
+  ★ Add routes through the SILENT `addMany`, never `toggle` (toggle toasts on every add, and adding
+  several in a row is the normal gesture); the rule is pure and pinned. Hidden members stay removable
+  but cannot be re-added, matching `add_to_reel`'s own predicate. The Studio's length sheet also
+  gained the free-tier `/pricing` link, the one capability the marquee's length row had that it
+  lacked.
+- **Verification.** Gate green at each commit (typecheck / lint / 1063 tests / build). Grep-proofs:
+  zero imports of the three deleted files, the marquee free of StyleRail / HostMediaGrid /
+  StitchingDialog, `HostTileOverlay` down to three chips. The authed live pass runs at integration.
+
+## 2026-07-29 — milestone-1.5: the QA hardening rounds (Q1-Q4 + the write spine)
+
+**A ~590-agent adversarial QA round (Will, Opus 5, read-only against `launch-prep`) produced a
+48-finding fix queue; this milestone closes everything that could destroy customer media, mis-bill a
+host, or let a caller escalate past a guard.** 66 commits, 5 migrations, 950 → 973 tests, merged to
+`main` as `8163e45` + tag `milestone-1.5`. Four product questions went to Will and are recorded as
+[ADR-0023](adr/0023-qa-round-product-rulings.md).
+
+- **Q1 (`c0f6bd6` + apply `c03fe4b`) — stop destroying media.** `create_media`/`_as_host` stored the
+  client-supplied `p_preview_key` VERBATIM while prefix-checking `p_original_key`, so any free account
+  could register a victim's key and permanently delete the victim's R2 object from their own Trash
+  (both purge paths enumerate `preview_key` into `deleteR2Objects`); now bound to the event like
+  `original_key`. And the nightly cron's sweep 5 soft-removed over-cap media, emailed "recoverable for
+  30 days", then sweep 8 in the SAME invocation hard-deleted it: a service-role-only `removed_by_system`
+  flag plus a 24h floor stop the standby bin re-collecting same-run removals. Prod audit: zero planted
+  keys. An Opus-5 audit of the work caught three real gaps (a dead validator, pagination compared
+  against the REQUESTED page size, and a `MediaRow` claiming an ungranted column).
+- **Q2 (`58658ad` + apply `1800f90` + `73a7291`) — the money set.** One plan at a time; an active Event
+  Pass MAY start Pro (Will's 1a: only Pro→Pass collapses a cap) and plan switches route to the Stripe
+  portal where proration is correct (1b). Provisioning `.select()`s and asserts exactly one row, so a
+  paid-but-unprovisioned host 5xxs into a Stripe retry instead of returning 200 with nothing granted.
+  `stripe_event_created_at` (epoch sentinel) gives the ordering guard one comparison; a partial unique
+  index on `stripe_customer_id` closes the duplicate-customer path.
+- **Q3 (`014cd6b`/`780b...` + apply `08df59a`) — escalation guards.** The QA proposed revoking
+  `media(status, removed_at)`, which would have broken six legitimate moderation paths. Instead:
+  BEFORE-UPDATE **transition triggers**, which work because inside a SECURITY DEFINER function
+  `current_user` is `postgres` while a direct PostgREST write is `authenticated` (verified empirically on
+  live) — so the trigger refuses exactly the dangerous client transitions and every RPC path survives.
+  Plus removal provenance (a host can no longer silently reverse an operator takedown), an un-delete
+  event-limit trigger, and the #36/#40 disclosure redactions. The hold branch SKIPS rather than raises,
+  to avoid a bulk-statement abort becoming a legal-hold oracle.
+- **Q4 (`841bf94`/`f009575`/`32d5416`/`dc1f15e`) — the guest path works all night.** Pattern B was the
+  widest class: PostgREST resolves with `{ error }`, so `const { data } = await …` reads a BROKEN query
+  as an EMPTY one. `mustQuery`/`mustCount` + an inline `partyreel/no-swallowed-db-error` ESLint rule
+  (which caught 14 real violations on first run) retire it; the reads that were acting on a lie included
+  the guest export summarising a 40 GB album as "0 files" and the cron's inactivity check, where a failed
+  "newest upload" read was indistinguishable from "never had an upload" (it could age out a live album).
+- **The write spine (`b3b6f30`, migration `20260729190000`) — the review's "single clearest structural
+  finding".** The read path re-ran its gate on every surface; the write path never got the same pass.
+  Now all three guest write seams (mint, presign, complete) re-check the event's lock through one
+  `mayUploadPastLock` helper: `private` refuses every guest write, `password` accepts the signed unlock
+  cookie **or** verified ownership. Both halves matter — gating only the mint would let a token minted
+  before the lock upload forever (exactly the remediation for a leaked link), and a bare `isUnlocked()`
+  would break the OWNER, who reads their own album without ever seeing the password modal. #6 pins the
+  complete seam's `<variant>`/`<kind>`/`<ext>` to what presign minted, which transitively pins
+  complete-time `content_type` to presign-time with zero stored state (the QA's proposed presign-issuance
+  table is unnecessary: the key IS the issuance record). #17 gives every capacity decision a per-host
+  `profiles` row lock (Pattern D), one lock in one order so no deadlock is constructible.
+
+**Verification.** Every migration was diffed against live `pg_get_functiondef` BEFORE applying, and for
+the write spine all 8 live `prosrc` bodies were hash-compared to the repo file AFTER applying (an
+800-line hand-passed payload is verified, not assumed). Advisors came back unchanged at every step, the
+load-bearing result being that `get_upload_context` kept its anon grant (it gained a `visibility` key;
+service-role-ing it would have broken every guest presign) while `create_media`/`_as_host`/`create_guest`
+stayed in NEITHER advisor list despite the MCP's default anon EXECUTE grant. Rolled-back contract checks
+rode EXISTING rows (creating an event trips `enforce_event_limit`). Live on the alias, the QA's own
+attacks were re-run: locked-event mint + presign refused 403 `unlock_required`; a pre-lock presigned URL
+with bytes already in R2 refused at COMPLETION; variant-swap, kind-swap, ext-drift and cross-event keys
+all refused; unlock → mint → presign still works; the owner still uploads to their own locked event; an
+open event unaffected. Prod test state restored afterward (guests 6, media 24, event back to `open`).
+
+**Not verified live, carried forward:** QA #11 (the >90-minute presign-roll soak) and #12 (upload retry
+on a dropped request). Both are Q4 code and both need a foregrounded real-album session; staging the
+soak surfaced two traps that make a WORKING album read as broken (a hidden tab never polls by design;
+the demo event skips polling entirely) — recorded in [`systems/testing-verification.md`](systems/testing-verification.md) (`ee6ed5d`).
+
 ## 2026-07-21 — Videos in reels: posters everywhere (R3 slice A) + two found-live bugs
 
 **Video items now draw their client-generated poster frames in every reel style, live player and

@@ -8,6 +8,7 @@ import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GhostGrid } from "@/components/guest/ghost-grid";
+import { GuestReelCard } from "@/components/guest/guest-reel-card";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
+import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
@@ -59,6 +61,7 @@ export function EventExperience({
   hostAvatarUrl,
   isOwner,
   guestListSlot,
+  guestReel,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -86,6 +89,10 @@ export function EventExperience({
   /** The server-composed named Guests section (ADR-0019) — non-null ONLY when the
    *  host enabled show_guest_list AND access is full (the page owns that gate). */
   guestListSlot?: React.ReactNode;
+  /** The published reel for THIS viewer, or null (R3, ADR-0022). Null already covers
+   *  unpublished / empty / locked / below-full-access, so the card renders on
+   *  non-null alone: this component adds only the ruled PLACEMENT. */
+  guestReel: GuestReelPayload | null;
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
@@ -111,6 +118,18 @@ export function EventExperience({
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
+  // THE REEL CARD's two ruled placements (ADR-0022 ruling 2), a function of the
+  // event's lifecycle: while uploads are open, adding photos is still the page's
+  // primary job, so the reel sits UNDER the action block; once the host closes
+  // uploads the link IS the keepsake album, so the reel leads the page.
+  // Mutually exclusive by construction, and both null unless the server resolved
+  // a reel this viewer may see.
+  const heroReel = guestReel && !event.accepting_uploads ? guestReel : null;
+  const inlineReel = guestReel && event.accepting_uploads ? guestReel : null;
+  // The hero takes the first reveal beat, so the header's own beats step back one
+  // and the cascade still reads top-to-bottom (the inline card instead lands
+  // AFTER the action block's beat, where nothing follows it in this track).
+  const revealBase = heroReel ? 1 : 0;
   // THE REVEAL CURTAIN (Phase 4.5): while the entry sheet's success beat
   // holds, the freshly mounted reveal targets + masonry tiles wait at their
   // pre-entrance state (globals.css [data-reveal-curtain]); when the hold
@@ -174,6 +193,29 @@ export function EventExperience({
           saved.
         </div>
       )}
+      {/* THE KEEPSAKE HERO: uploads are closed, so the reel opens the page (ruled
+          promotion). Above the header on purpose - the album's first statement is
+          now "here is the film of your night", and the event name lives on the
+          card itself. It renders in the SHELL HTML (the page awaits the read), so
+          it costs no layout shift as the gallery streams in below. No access
+          guard needed here: guestReel is null at anything below full access. */}
+      {heroReel && (
+        <div
+          className="mb-6"
+          data-reveal
+          style={{ "--reveal-i": 0 } as React.CSSProperties}
+        >
+          <GuestReelCard
+            payload={heroReel}
+            eventName={event.name}
+            joinUrl={joinUrl}
+            qrToken={qrToken}
+            galleryPromise={galleryPromise}
+            variant="hero"
+          />
+        </div>
+      )}
+
       {/* LEFT-EDITORIAL header (the ratified V1, per the lab demo composition):
           identity title, one byline line, the stats line, then the action block.
           PRIVACY RULE: at `none` (locked password event) only the NAME renders —
@@ -193,7 +235,7 @@ export function EventExperience({
             {(event.host_display_name?.trim() || event.event_date) && (
               <p
                 data-reveal
-                style={{ "--reveal-i": 0 } as React.CSSProperties}
+                style={{ "--reveal-i": revealBase } as React.CSSProperties}
                 className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
               >
                 {event.host_display_name?.trim() && (
@@ -224,7 +266,7 @@ export function EventExperience({
             )}
             <p
               data-reveal
-              style={{ "--reveal-i": 1 } as React.CSSProperties}
+              style={{ "--reveal-i": revealBase + 1 } as React.CSSProperties}
               className="mt-1 text-xs text-muted-foreground"
             >
               {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
@@ -240,7 +282,7 @@ export function EventExperience({
             {event.description && (
               <p
                 data-reveal
-                style={{ "--reveal-i": 2 } as React.CSSProperties}
+                style={{ "--reveal-i": revealBase + 2 } as React.CSSProperties}
                 className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground"
               >
                 {event.description}
@@ -284,7 +326,7 @@ export function EventExperience({
             className="mt-4"
             ref={sentinelRef}
             data-reveal
-            style={{ "--reveal-i": 3 } as React.CSSProperties}
+            style={{ "--reveal-i": revealBase + 3 } as React.CSSProperties}
           >
             {canUpload && !galleryEmpty && (
               <Button
@@ -315,6 +357,28 @@ export function EventExperience({
               />
             </div>
           </div>
+
+          {/* THE MID-EVENT REEL CARD: under the action block (ruled), so the primary
+              Add still sits above it - the party is still happening and uploading
+              is the page's job; the reel is the reward on the way past. It takes
+              the beat AFTER the action block's, which nothing else in this track
+              follows, so no other index shifts. */}
+          {inlineReel && (
+            <div
+              className="mt-7"
+              data-reveal
+              style={{ "--reveal-i": revealBase + 4 } as React.CSSProperties}
+            >
+              <GuestReelCard
+                payload={inlineReel}
+                eventName={event.name}
+                joinUrl={joinUrl}
+                qrToken={qrToken}
+                galleryPromise={galleryPromise}
+                variant="inline"
+              />
+            </div>
+          )}
 
           {/* Upload area — only at `full` access (a `teaser` viewer must create an account first, which
               the entry modal / the "See all" button own). While accepting: a signed-in but nameless

@@ -89,9 +89,40 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 ## Major overhauls (each its own planning round; drop related deferred tasks here)
 
+- **QA hardening — the remaining fix queue** (the ~590-agent round of 2026-07-28/29; queue file
+  `~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`; Q1-Q4 + the write spine shipped as
+  milestone-1.5). What's left, roughly in the intended order:
+  - **Abuse + jobs + observability:** #13 a `presign` abuse kind (pure TS, `action_attempts` is
+    kind-generic; needs `Retry-After`/429 vocabulary the pipeline lacks today) · #14 the contact + careers
+    limiter, fail-CLOSED (unauthenticated + unthrottled today: each call = one service-role insert + one
+    Resend send, and ~3,000 requests drain the monthly quota, after which the orphan-sweep and prune
+    breaker alerts cannot send) · #15 the purge cron + backup Worker have NO `/admin` surface and NO kill
+    switch (the P8 mandate; `/admin/exports` + `/admin/reels` are the byte-identical template, and
+    NOTHING persists a job run today — no heartbeat table exists) · #27 per-ROW isolation inside the
+    sweep loops (isolation is per-sweep today, so one bad address aborts the rest of that sweep's
+    accounts) · #37/#38 persist the pagination cursor for the backup reconcile + orphan sweep (both are
+    function-local `let`s, so both restart at bucket head every run and nothing past the per-run cap is
+    ever examined) · #39 POST id batches (supabase-js renders `.in()` into the URL; several sites can
+    reach ~1000-2000 UUIDs) · #22 scrub Sentry (guest capability tokens ride the URL PATH, and
+    `beforeSend` is error-events-only, so breadcrumbs/transactions/`extra` bypass the current scrubber)
+    · quick wins: hoist `assertResendEnv` ABOVE the `sent_emails` claim (a throw currently leaves the
+    claim row, permanently suppressing that dedupeKey), #42 security headers (`poweredByHeader` is still
+    on), a `STYLE_IDS.every(engineSupports)` catalog↔engine parity assertion.
+  - **Infrastructure debt:** #46 CI · #45 recover the two live-only columns into a migration file
+    (committed migrations can no longer rebuild the schema) · #44 preservation-prefix backup truth ·
+    #47 teardown residue + stale doc claims.
+  - **Carried-forward live verification:** #11 the >90-min presign-roll soak + #12 upload retry.
+  - ⚠️ **#46 CI is blocked until 2026-08-01** — the GitHub account's monthly Actions minutes are
+    exhausted (Will, 2026-07-29), so a new workflow cannot be validated before the reset. The same
+    outage means the **DB-backup Action (durability Pillar C) is not running** in the meantime; the R2
+    media-backup Worker (Pillar B) is unaffected since it runs on Cloudflare.
+
 - **Notification system** — the announcements overhaul · new bell signals (link-activity "new since last
   seen" deltas; billing `past_due` alerts, needs a denormalized flag on `profiles`) · a durable per-item
-  feed + real-time push · per-item announcement un-read toggling. Build the foundational features first so
+  feed + real-time push · per-item announcement un-read toggling · **the reel-published guest send** (R3
+  ruled NO email until R5 and shipped only the seam: `setReelGuestVisibleAction` is the single publish
+  hook — audience/transport design lands here, and late joiners see the card meanwhile, no catch-up mail).
+  Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
 - **Admin / operations portal** — **P8 backend-ops & observability (the priority piece):** every backend
   job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)
@@ -229,9 +260,11 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
   post-program workflow (straight-to-main speed vs branches/PR previews once real users arrive).
 - **Elevation-program teardown** `[eng]` — when the program's final milestone merges: re-enable Vercel SSO
   deployment protection (`ssoProtection: all_except_custom_domains`), delete the temporary Stripe TEST
-  webhook endpoint `we_1TowqZPtjqmVkBwk3IWfebCS` (the launch-prep preview endpoint — it must NOT survive
-  into the live-mode cutover), remove the preview origin from the R2 `partyreel` bucket CORS + the Supabase
-  auth redirect allow-list, remove the 9 branch-scoped Vercel env vars, delete the `launch-prep` branch +
+  webhook endpoint `we_1U1I3GPtjqmVkBwkjUqWGpvR` (the launch-prep preview endpoint, recreated in the
+  2026-08-05 P3 migration — it must NOT survive into the live-mode cutover), remove the preview origin from
+  the R2 `partyreel` bucket CORS + the Supabase auth redirect allow-list, remove the 3 branch-scoped
+  Vercel env vars (`NEXT_PUBLIC_SITE_URL`/`STRIPE_WEBHOOK_SECRET`/`DESIGN_PREVIEW_KEY` @launch-prep),
+  delete the `launch-prep` branch +
   `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
 - Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
   (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`

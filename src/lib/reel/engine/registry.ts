@@ -109,3 +109,70 @@ export function makeDrawEnv(
     },
   };
 }
+
+/**
+ * A module-level pool of FULL-composition-size scratch canvases, keyed `${w}x${h}` -> slot index.
+ *
+ * WHY pooled (and not per-env like makeDrawEnv's): the style rail mounts 14 thumb players at once
+ * and each needs up to 4 scratch slots at FULL composition size (1080x1920 x 4 bytes ~ 8 MB each).
+ * Per-env that is ~450 MB of canvas backing store for thumbnails. Pooled it is at most 4.
+ *
+ * ★ SAFETY INVARIANT (do not break): a frame draw is fully SYNCHRONOUS. drawReelFrame runs to
+ * completion — no await, no rAF yield — before any other player's draw can begin, so two envs can
+ * never hold the same scratch simultaneously. Every consumer also clearRect()s its slot before
+ * painting (scene2d.drawAlphaLayer / drawLayerFiltered, mood.ts), so no pixels bleed between envs.
+ * If a draw ever gains an async step, this pool MUST go back to per-env allocation.
+ */
+const scaledScratchPool = new Map<
+  string,
+  (CanvasRenderingContext2D | null)[]
+>();
+
+/**
+ * The DrawEnv for a DOWNSCALED canvas (the style-rail thumbs). It reports the FULL composition dims,
+ * because every style computes its geometry from env.width/height and must keep thinking full-res —
+ * the shrink is a single pre-scale transform the CALLER brackets the draw with (see player.tsx's
+ * maxDim). Scratch layers are therefore full-res too: a style draws into one natural-size and
+ * blits it at (0,0), which the caller's transform lands correctly on the small canvas.
+ *
+ * `frame` is the FULL composition size (reelDimensions(orientation)), NOT the canvas backing size.
+ * (Deviation from the plan's sketched `makeScaledDrawEnv(canvas, frame, …)`: the canvas argument
+ * would be unused — the env deliberately ignores the backing store — so it is dropped.)
+ */
+export function makeScaledDrawEnv(
+  frame: { width: number; height: number },
+  onReport?: (message: string) => void,
+): DrawEnv {
+  const { width, height } = frame;
+  const key = `${width}x${height}`;
+  const reported = new Set<string>();
+  return {
+    width,
+    height,
+    filterOk: detectCtxFilter(),
+    scratch: (slot = 0) => {
+      let slots = scaledScratchPool.get(key);
+      if (!slots) {
+        slots = [];
+        scaledScratchPool.set(key, slots);
+      }
+      let ctx = slots[slot];
+      if (!ctx) {
+        const c = document.createElement("canvas");
+        c.width = width;
+        c.height = height;
+        ctx = c.getContext("2d");
+        if (!ctx)
+          throw new Error("2d context unavailable for the scratch layer");
+        slots[slot] = ctx;
+      }
+      return ctx;
+    },
+    report: (message) => {
+      if (reported.has(message)) return;
+      reported.add(message);
+      console.warn(`[reel-engine] ${message}`);
+      onReport?.(message);
+    },
+  };
+}

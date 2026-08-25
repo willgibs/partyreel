@@ -62,6 +62,13 @@ export async function toGridItems(
         url,
         downloadUrl,
         previewUrl,
+        // Every row that reaches here is APPROVED by construction: the guest/album gallery queries
+        // select approved media only (a pending or hidden item never gets presigned for a guest).
+        // Stamping it is not decoration - `buildReelProps` filters on `status === "approved"`, so
+        // leaving it undefined makes the reel drop EVERY guest item and render an empty timeline.
+        // The filter itself is load-bearing on the host side (their items carry a real status), so
+        // the fix belongs here, in the surface that knows its rows are approved.
+        status: "approved" as const,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
         isAnonymous: who?.isAnonymous ?? false,

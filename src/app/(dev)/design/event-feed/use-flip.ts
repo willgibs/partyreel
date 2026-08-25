@@ -28,7 +28,7 @@ export function useFlip(orderKey: string) {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const dur = readCssMs("--tune-reorder-ms", 360);
+    const dur = readCssMs("--tune-reorder-ms", 500);
     for (const [key, el] of nodes.current) {
       const now = el.getBoundingClientRect();
       const was = prev.current.get(key);
