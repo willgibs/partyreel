@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery (doorbell + conditional poll), demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config (→ [host-app.md](host-app.md)).
+> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery (doorbell + conditional poll), the guest reel (card / overlay / download), demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config + reel curation/Studio (→ [host-app.md](host-app.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -265,6 +265,45 @@ page through `event-experience.tsx`; the ~12 s poll is paused, the silent join s
 the queue skips the real upload — `simulateUpload` returns a synthetic `approved` outcome so the optimistic
 tile appears but is **never persisted**. The marketing side of the demo → [marketing-content.md](marketing-content.md).
 
+## The guest reel (R3, ADR-0022)
+
+Guests see the host's highlight reel on `/e/` **only after the host shares it** (`highlight_reels.guest_visible`,
+the host-side publish seam → [host-app.md](host-app.md)). Server resolution is
+[`getGuestReelContext(event, access)`](../../src/lib/reel/guest-reel.ts), awaited by the page (one indexed
+read; a streamed top card would CLS the keepsake hero):
+
+- **Access matrix (structural, not cosmetic):** `access !== "full"` ⇒ **null FIRST** — a `teaser` viewer
+  (account-required, signed out) and a locked password page get NO card, NO payload, even when published.
+  **Open events** ride the anon RPC `get_event_reel_by_qr_token` on the USER client (the page exercises the
+  exact anon contract; its RETURNS TABLE is the 8-key allow-list → [database-security.md](database-security.md)).
+  **Password events** cannot use it (the RPC can't see the unlock cookie): the `isUnlocked` check runs INSIDE
+  a self-guarded admin arm. Unpublished/empty ⇒ zero rows, indistinguishable from absent (no publish-state
+  oracle). Length comes back tier-DERIVED, watermark tier-derived, items `approved`-only (the TIMELINE
+  predicate).
+- **Two ruled placements**, a function of the event's lifecycle: while `accepting_uploads` the card sits
+  **under the action block** (uploading is still the page's job; the reel is the reward on the way past);
+  once uploads close the reel is **the KEEPSAKE HERO above the header** (the link IS the album now). Both are
+  [`guest-reel-card.tsx`](../../src/components/guest/guest-reel-card.tsx) over the shared `PosterCard`
+  (cover presigned server-side, `preview_key ?? original_key`, failure degrades to a styled frame).
+- **The overlay** ([`guest-reel-overlay.tsx`](../../src/components/guest/guest-reel-overlay.tsx),
+  React.lazy per the EntryModalLazy precedent): the guest ARRIVAL CUT is the ratified composite's back half
+  (flash → expand → title → settled) over a full-res `CanvasReelPlayer`; reelProps come from
+  `buildReelProps` over the SAME `galleryPromise` the album consumes (no second presign). ★ **The cut waits
+  for the player's `onAssetsReady`** (2.5s cap): the engine re-fetches clips `cache: "no-store"`, so a cold
+  first open decodes everything and animating over that work was on-device jitter (`6bc779d`). Reduced
+  motion skips to settled, player paused with controls. Closing aborts any in-flight encode.
+- **Download** (settled row) — `POST /api/reel/download` re-derives EVERYTHING from the qr_token
+  (access must be `full`; `no_reel` = 404 oracle-free; the artifact must pass the same blessing as the
+  host cache path) and answers per the pure
+  [`guest-download-plan.ts`](../../src/lib/reel/guest-download-plan.ts) ladder: **fresh artifact** →
+  presigned GET · **stale + WebCodecs** → the guest's device self-encodes the EXACT shown props (freshness
+  LOSES to a local encode, WINS over nothing; zero server writes) · **stale, no WebCodecs** → the stale
+  artifact · **nothing + no WebCodecs** → the ask-the-host copy. ★ Guests NEVER get a write path
+  (`/api/reel/upload` stays host-authed); the `reel_guest_download` limiter guards breadth/scope
+  (→ [database-security.md](database-security.md)); each grant logs `guest_download` to `reel_render_log`
+  for `/admin/reels`. Share = `navigator.share` with the **joinUrl** (guests share the ALBUM, never a
+  video url).
+
 ## See also
 
-[ADR-0004](../adr/0004-anonymous-guests-capability-tokens.md) · [ADR-0007](../adr/0007-event-visibility-password-protection.md) · [ADR-0008](../adr/0008-account-from-guest-verified-email.md) · [ADR-0010](../adr/0010-one-link-per-event.md) · [uploads-and-r2.md](uploads-and-r2.md) · [notifications-analytics-growth.md](notifications-analytics-growth.md).
+[ADR-0004](../adr/0004-anonymous-guests-capability-tokens.md) · [ADR-0007](../adr/0007-event-visibility-password-protection.md) · [ADR-0008](../adr/0008-account-from-guest-verified-email.md) · [ADR-0010](../adr/0010-one-link-per-event.md) · [ADR-0022](../adr/0022-reel-guest-surfacing.md) · [uploads-and-r2.md](uploads-and-r2.md) · [notifications-analytics-growth.md](notifications-analytics-growth.md).

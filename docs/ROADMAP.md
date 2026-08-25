@@ -119,7 +119,10 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 - **Notification system** — the announcements overhaul · new bell signals (link-activity "new since last
   seen" deltas; billing `past_due` alerts, needs a denormalized flag on `profiles`) · a durable per-item
-  feed + real-time push · per-item announcement un-read toggling. Build the foundational features first so
+  feed + real-time push · per-item announcement un-read toggling · **the reel-published guest send** (R3
+  ruled NO email until R5 and shipped only the seam: `setReelGuestVisibleAction` is the single publish
+  hook — audience/transport design lands here, and late joiners see the card meanwhile, no catch-up mail).
+  Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
 - **Admin / operations portal** — **P8 backend-ops & observability (the priority piece):** every backend
   job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)

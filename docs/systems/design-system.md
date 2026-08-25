@@ -200,7 +200,10 @@ so `2500ms` ships as `2.5s`; `parseInt("2.5s")` is `2`, which once collapsed the
 `parseCssMs` handles `s`/`ms`/bare (unit-tested).
 
 **The baked motion values** (globals.css `:root`, ratified): `--tune-route-fade-ms` 310 / `--tune-route-fade-ease`
-ease-out, `--tune-section-swap-ms` 180, `--tune-reorder-ms` 500, `--tune-review-beat-ms` 2500. The tuner overrides
+ease-out, `--tune-section-swap-ms` 180, `--tune-reorder-ms` 500, `--tune-review-beat-ms` 2500 — plus the
+REEL REVEAL grammar's `--tune-rvl-*` / `--tune-rxp-*` set (T2-ratified as-built, production since R3; the
+tuner knobs are annotated "ratified, revisit-only" — per the tuner contract, a retune must move the config
+default + the CSS fallback + any JS fallback together). The tuner overrides
 these live with an inline style on `<html>` (which outranks `:root`), so the playground tunes against them.
 
 **The contextual floating action bar** ([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx)):

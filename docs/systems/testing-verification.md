@@ -20,6 +20,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
   screenshot off that, or hand the human the look. (Unit tests mock `sonner` globally — see
   [design-system.md](design-system.md).)
+- **The in-app Browser pane FREEZES canvases between tool calls.** The pane backgrounds itself when not
+  fronted (`document.hidden === true`, rAF never fires between calls), so a PLAYING reel canvas screenshots
+  as frozen — a working player reads as broken. Front the pane (take a screenshot first) before pixel
+  probes, or drive the real Chrome (claude-in-chrome tabs animate between screenshots). Play-FEEL is never
+  tooling-judgeable either way — that check is the human's device session.
 - **Browser downloads land in an iCloud dir, and the network panel can lie about them.** In Will's Chrome,
   downloads save to `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/` — NOT `~/Downloads`
   (confirmed 2026-08-06; a "missing" export zip was sitting there). For the export Worker specifically, the

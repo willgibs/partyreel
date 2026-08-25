@@ -26,11 +26,21 @@ service-role admin client (`server-only`).
 
 The expected, accepted set:
 
-- **4 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
+- **5 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
   revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
-  `get_public_profile`. The opaque token IS the authorization for the first three (ADR-0004); these only
-  READ visibility-gated event/media state, so anon EXECUTE is safe. `get_public_profile(p_slug)` (the 4th,
-  profiles+social) reads the
+  `get_public_profile`, `get_event_reel_by_qr_token`. The opaque token IS the authorization for the
+  qr-keyed ones (ADR-0004); these only
+  READ visibility-gated event/media state, so anon EXECUTE is safe. `get_event_reel_by_qr_token` (the 5th,
+  R3 guest surfacing, `20260730120000`) returns the published reel for an OPEN event only
+  (`guest_visible=true` internally; unpublished/empty/gated ⇒ zero rows — no publish-state oracle): its
+  **RETURNS TABLE IS the allow-list** (8 keys, pinned key-for-key by
+  [`guest-reel-contract.test.ts`](../../src/lib/reel/guest-reel-contract.test.ts) against the generated
+  type — render internals/timestamps/tier can NEVER ride it), length comes back tier-DERIVED via
+  `tier_limits()` and watermark tier-derived, and item_ids are `status='approved'` only (the TIMELINE
+  predicate). ★ Changing its RETURNS means DROP+CREATE, which drops grants — re-grant anon+authenticated
+  explicitly. Password events never use it (the unlock cookie is invisible to an RPC): they ride the
+  self-guarded admin arm inside `getGuestReelContext`. `get_public_profile(p_slug)` (profiles+social)
+  reads the
   public-by-existence `/u/[slug]` payload: profile card + host-displayed events + the OPEN-only attended
   arm; never follow data, never a capability link. → [profiles-social.md](profiles-social.md).
   ★ **An anon READ must never disclose more than the PAGE it backs** (QA #36/#40, `20260729180000`):
@@ -56,7 +66,11 @@ The expected, accepted set:
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`,
   `check_slug_available`, `has_password`/`verify_current_password`/`mark_password_set`,
   `save_event`/`get_saved_events`/`get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`, `restore_media`/`restore_event`/`purge_media_now`,
-  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`,
+  `like_media`/`get_my_likes`/`get_event_like_counts`, `add_to_reel`/`reorder_reel`/`set_reel_guest_visible`
+  (the publish switch: UPSERTs the reel row, refuses `empty` at 0 approved items — mp4 NOT required;
+  ★ the reel has TWO deliberate predicates: MEMBERSHIP (host UI/counts/`reorder_reel`'s guard) =
+  `status in ('approved','hidden')` vs TIMELINE/guest/publish = `approved` only — commented at every
+  site; an approved-only reorder guard would brick reels holding hidden items),
   `follow_user`/`block_user` (profiles+social, with migration `20260708120000` — block-silent follow +
   atomic two-way severance; → [profiles-social.md](profiles-social.md)).
   (`create_media_as_host` MOVED to service-role-only above when its size authority was hardened.) SECURITY
@@ -97,7 +111,10 @@ The expected, accepted set:
   operator/service-role-only. The "Download all" export adds NO new
   SECURITY DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing), so the 0028/0029
   advisor split is unchanged. The abuse limiter gains an `"export"` kind (`action_attempts` is kind-generic — no
-  schema change); scope = (IP, event), breadth-guarded like `join`.
+  schema change); scope = (IP, event), breadth-guarded like `join`. R3's guest reel download adds the
+  `"reel_guest_download"` kind the same way: breadth 15/60min (the cross-event HARVESTER guard — one venue
+  NAT hammering many events) over a venue-generous scope of 100/15min per (IP, event); fails OPEN with an
+  armed `captureWarning`.
 - **Leaked Password Protection (HaveIBeenPwned) is ENABLED** (2026-06-08) — that WARN is cleared. Supabase
   now rejects pwned ACCOUNT passwords at set/change; the account-security form surfaces the rejection via the
   `updateUser` error. It's an Auth feature → applies to `auth.users` passwords ONLY, not event passwords
@@ -145,7 +162,7 @@ The expected, accepted set:
 - **The guest WRITE path inherits the READ gate** (ADR-0023 ruling 2): `create_guest` refuses a `private`
   event outright and requires `p_unlock_proven` for `password`, and `get_upload_context` returns
   `visibility` so presign/complete re-check per request. `get_upload_context` therefore stays one of the
-  FOUR anon 0028 RPCs — service-role-ing it would break every guest presign. → [uploads-and-r2.md](uploads-and-r2.md).
+  FIVE anon 0028 RPCs — service-role-ing it would break every guest presign. → [uploads-and-r2.md](uploads-and-r2.md).
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side (ADR-0003). → [uploads-and-r2.md](uploads-and-r2.md).
 - **The Stripe webhook is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
 - **The service-role / secret key is server-only** (behind `import "server-only"`); never `NEXT_PUBLIC_`.

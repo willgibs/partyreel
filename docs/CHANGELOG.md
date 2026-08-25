@@ -10,6 +10,42 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-06 — MILESTONE-2: R3 the Reel Experience (host + guest) + the on-device review fixes
+
+**The North Star's experience round: the reel became a full host + GUEST feature** (tag `milestone-2`;
+R3 integrated 2026-07-30, R3.1 2026-08-04 — its own entry below, review fixes `6bc779d` 2026-08-06;
+1031 → 1063 tests across the round). Built as three tracks off ADR-0022/0023 rulings, integrated by the
+orchestrator through a sustained 529 outage (inline building + agent resumes):
+
+- **Track A, the substrate:** the engine gained a `maxDim` thumb path (pre-scale transform over the SAME
+  draw code; full-res-reporting DrawEnv + a shared scratch pool — byte-identical full-res output proven),
+  a shared decoded-bitmap cache (in-flight dedupe + LRU; the `no-store` CORS fetch stays), IO-gated
+  players, the deterministic `pickQuickAdd` blend (likes-rank + recency decay + per-uploader coverage +
+  photo/video mix; no Math.random), and the GHOST read-filter (`listReelItems` joins media
+  `approved+hidden`) — which also repaired the LIVE prod demo reel (12 rows / 3 ghosts, reorder bricked;
+  pill 12→9, drag persisted after the fix).
+- **Track B, the host experience:** the shared `PosterCard`, the ratified composite reveal transplanted
+  verbatim (canvas mounted frame 0, released at open; reduced-motion fade script), the builder's
+  Create-birth (theater-first, save concurrent — ★ the panel swap waits for the THEATER: `markCreated` at
+  the settled exits, found live when the RPC's resolve killed the choreography mid-act), the Marquee, the
+  Studio route (sheets + the filmstrip dock on `useSortableGrid`), and the share card over the one publish
+  seam.
+- **Track C, the guest surface:** migration `20260730120000` (`guest_visible` + `set_reel_guest_visible`
+  + the 5th anon RPC `get_event_reel_by_qr_token` whose RETURNS TABLE is the 8-key allow-list, + the
+  membership-predicate `reorder_reel` guard), `getGuestReelContext`'s two access arms, the two ruled card
+  placements, the arrival-cut overlay, and the download route + pure client ladder (fresh artifact →
+  self-encode → stale → ask-the-host; `reel_guest_download` limiter; `no_reel` oracle-free). Red-teamed on
+  the alias: leak probes dark across all five event states, the 8-key shape grep-clean, the ladder forced
+  ×4, limiter 429s at breadth 15, publish refusals + ghost reorder + freshness both directions live.
+- **Will's on-device review round (2026-08-06)** passed R3.1's composition and drove two real fixes
+  (`6bc779d`): small events had NO create path (quick-add's button gated at 4 items post-ADR-0024 + the
+  action-bar pill registered unconditionally while `create()` refuses at zero — a silent dead tap; now
+  offered at ≥1 with honest small-pool copy, and the pill exists only when a tap would work), and the
+  guest cut's COLD open jittered (the choreography started on the gallery promise while the engine's
+  `no-store` fetches decoded mid-flight; the player gained `onAssetsReady` and the overlay waits, 2.5s
+  cap). Plus test-data repairs: Test Wedding's QA-debris media wiped (3 rows with destroyed R2 objects +
+  2 synthetics) and reseeded.
+
 ## 2026-08-05 — Vercel hosting migration: willgibs account → P3 "Partyreel Team"
 
 A co-tenant project drained the old willgibs Vercel account's free tier; Vercel paused the whole

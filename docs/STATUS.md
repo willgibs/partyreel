@@ -4,7 +4,7 @@
 > BELONGS HERE: current state, the infrastructure summary, the pre-launch pointer, "after any change". · NOT HERE: shipped history (→ [`CHANGELOG.md`](CHANGELOG.md)), how systems work (→ [`systems/`](systems)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (it's a snapshot — keep it short and current; move shipped narrative to CHANGELOG).
 
-**Updated:** 2026-07-29
+**Updated:** 2026-08-06
 
 ## THE ELEVATION PROGRAM (the active thread, 2026-07-02)
 
@@ -30,14 +30,23 @@ before picking up any program work. Headlines a fresh agent must know:
   `{ error }` that read as an empty result); and the WRITE SPINE (#18 locked events gate uploads at all
   three seams, #6 the complete seam pins variant/kind/ext to what presign minted, #17 per-host
   `for update` cap locks). 5 migrations applied, advisors unchanged throughout, 950 → 973 tests.
-  Live-verified by re-running the QA's own attacks. **STILL UNVERIFIED LIVE: QA #11 (the >90-min
-  presign-roll album soak) + #12 (upload retry on a dropped request)** — both are Q4 code, both need a
-  foregrounded real-album session (see the soak traps in [`systems/testing-verification.md`](systems/testing-verification.md)).
+  Live-verified by re-running the QA's own attacks. QA #11 (the >90-min presign-roll album soak) + #12
+  (upload retry) rode Will's M2 device review (2026-08-06, runbook step 5) and were not M2-gating by his
+  ruling; the soak traps stay documented in [`systems/testing-verification.md`](systems/testing-verification.md).
+- **MILESTONE-2 MERGED to main 2026-08-06 (tag `milestone-2`): R3 the Reel Experience + R3.1 the
+  studio-first recomposition + the on-device review fixes.** The reel is now a full host + GUEST feature:
+  builder/Create-birth + the ratified composite reveal, the slim feed marquee, the Studio room (Moments
+  picker primary), the publish seam, the guest card/overlay/download ladder, the 5th anon RPC, and the
+  `reel_guest_download` limiter. Also rode along to prod: profiles+social P1-P3 (preview-only since
+  2026-07-08 — its migration has been APPLIED all along; the DB is shared state). Narrative:
+  [`CHANGELOG.md`](CHANGELOG.md); current truth: [`systems/host-app.md`](systems/host-app.md) +
+  [`systems/guest-flow.md`](systems/guest-flow.md). The 2026-08-05 **Vercel hosting migration to the P3
+  account** (prod was dark on the drained old account) shipped mid-round — see its CHANGELOG entry.
 - **Rounds**: R0 bootstrap + EXIF strip ✅ (milestone-0 `f99d9cc`) → R1 Decision Studio ✅ + R2 Reel
   Engine + Foundation ✅ **(milestone-1 merged 2026-07-08: the full 14-style canvas engine, the composer
   swap + $0 client-encoded export, the ADR-0021 pricing slice, the ADR-0020 forensic capture track →
-  [`CHANGELOG.md`](CHANGELOG.md))** → R3 Reel Experience (NEXT: guest surfacing + the ruled composite
-  reveal) → parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish ·
+  [`CHANGELOG.md`](CHANGELOG.md))** → R3 Reel Experience ✅ + R3.1 studio-first ✅ **(milestone-2 merged
+  2026-08-06)** → parallel tracks (Marketing build · R4 Growth · R4b Social · R5 Notifications · R6 Polish ·
   R7 Admin) → R8 Hardening + Certification.
 - **Gates**: lab-validate before shipping creative magic; options-doc + Will's ruling for one-way-doors;
   NO launch switches (those accrete in ROADMAP's Launch checkpoint).
@@ -67,9 +76,10 @@ before picking up any program work. Headlines a fresh agent must know:
   demo event's 3 legacy black videos replaced with poster-bearing re-uploads, and TWO found-live bugs
   fixed en route (a hidden-tab video upload wedged the queue: measureFile timeout-guarded; and the
   img-poisoned CORS cache blacked out every reel clip: the engine fetches `cache: "no-store"` — see
-  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). Remaining R3: slice C reel-UI lab round
-  (IN FLIGHT: 3 directions building on the `reel-experience` touchpoint; Will ruled the reel is BORN by
-  an explicit Create act) → slice D guest surfacing + the reveal (0028 anon set grows 4 → 5) → M2.
+  [`systems/uploads-and-r2.md`](systems/uploads-and-r2.md)). **R3 is COMPLETE (milestone-2, 2026-08-06):**
+  slice C's lab round ruled the V1 Marquee, the production build shipped builder/reveal/Marquee/Studio +
+  the guest surface (0028 anon set 4 → 5), R3.1 recomposed studio-first (ADR-0024), and Will's on-device
+  review drove two final fixes (small-event create path, cold-open jitter). See the milestone bullet above.
 
 ## Where we are
 
@@ -174,7 +184,7 @@ with an AMBER count and Reviews-as-landing-tab when a queue waits; the full-scre
 `ReviewTakeoverProvider` (a tab sibling, so it survives switches). Turning moderation OFF pops a count-named
 confirm and `approveAllPending` auto-approves the queue on save (the server enforces "live mode holds no
 pending media"). Live-verified end-to-end. (Album bulk-select, drag-reorder, and reel generation all
-shipped since; guest-facing reel surfacing is the remaining deferred slice — see the reel roadmap below.)
+shipped since; guest-facing reel surfacing SHIPPED in R3/milestone-2 — see [`systems/guest-flow.md`](systems/guest-flow.md).)
 **Event-page feed redesign ✅ (2026-06-22, `4d3ddcc` + beat hotfix `c316b21`): the host event page is now a
 stacked, pill-filtered media-forward feed** (the Gallery|Reel|Reviews TABS retired). `EventFeed` mirrors
 `DashboardFeed` (`?section=`, urgency-ordered `Review · Gallery · Reel`); the review pop-up is inlined into the
@@ -222,12 +232,10 @@ Lambda bundle.** Live-verified end-to-end (Layered parallax + Landscape → play
 + downloads: `status ready`, $0.024/~3min). ★ Two render fixes the live red-team caught (from the version bump forcing
 re-renders): `overwrite:true` (stable output key) + a 240s Lambda function (heavy treatments hit the 120s ceiling).
 Current truth: [`systems/host-app.md`](systems/host-app.md) "Reel composer" + the `project_reel_generation_spec` memory.
-**▶ NEXT (fully specified for a fresh agent in [`specs/reel-v1.md`](specs/reel-v1.md) → "Next slices — roadmap"):**
-(A) **treatment render OPTIMIZATION** (blur-downscale — treatments cost ~4× moods; recommended first, self-contained);
-(B) **guest-facing reel surfacing + download** (the next feature — a new `/e/` surface + an anon capability-token reel
-RPC; needs a planning round with Will); plus follow-ups (lab→StyleDispatch DRY, style-popover thumbnails, drop the
-legacy `theme` column, AWS concurrency 10→2000). Beyond the reel: the roadmapped user-profiles +
-social program. The S3+S4+S5+Reel specs live in the slice plans
+**▶ The reel arc is COMPLETE through milestone-2** (the canvas engine replaced Lambda; guest surfacing +
+download shipped; the Studio is the control room). Remaining reel work lives in [`ROADMAP.md`](ROADMAP.md):
+Pro motion-video trim (R6), themes/reveal polish, dropping the legacy `theme` column (R8 destructive
+batch). The S3+S4+S5+Reel specs live in the slice plans
 (`~/.claude/plans/p5-s3-gallery-first-event-page.md` + `please-continue-on-the-concurrent-scott.md`); the
 program arc + invariants are in the memory
 `project_v1_rebuild_program.md`. Settled program decisions (hybrid doorbell gallery, monochrome identity +
