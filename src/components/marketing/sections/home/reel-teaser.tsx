@@ -63,10 +63,9 @@ export function ReelTeaser() {
       </div>
 
       <div className="mt-10 text-center">
-        {/* TODO(reel-route): INTERIM target. The /reel flagship is the B2
-            lp/mkt-reel track; the orchestrator repoints this href at /reel in
-            that integration commit. NEVER point it at the dead route early. */}
-        <LearnMoreLink href="/features">
+        {/* Deep-links into the flagship's catalog section (repointed from the
+            /features interim at the lp/mkt-reel integration). */}
+        <LearnMoreLink href="/reel#styles">
           See all {STYLE_CATALOG.length} styles
         </LearnMoreLink>
       </div>

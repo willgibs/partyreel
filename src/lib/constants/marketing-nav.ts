@@ -24,6 +24,7 @@ export const MARKETING_CTA: NavLink = { label: "Start free", href: "/login" };
 // drift from EVENT_TYPE_SLUGS.
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Features", href: "/features" },
+  { label: "Reel", href: "/reel" },
   {
     label: "Events",
     href: "/events",
@@ -56,6 +57,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "Features", href: "/features" },
       { label: "How it works", href: "/#how-it-works" },
+      { label: "Reel", href: "/reel" },
       { label: "Pricing", href: "/pricing" },
       { label: "FAQ", href: "/#faq" },
     ],

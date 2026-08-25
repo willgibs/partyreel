@@ -74,6 +74,19 @@ describe("marketing nav config", () => {
     expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 
+  it("Reel is the second primary item and the footer Product column carries the ruled shape", () => {
+    // The IA nav spec (T2.5 Call 1): Features · Reel · Events · Pricing · Resources.
+    expect(PRIMARY_NAV[1]).toEqual({ label: "Reel", href: "/reel" });
+    const product = FOOTER_NAV.find((col) => col.title === "Product");
+    expect(product?.links.map((link) => link.href)).toEqual([
+      "/features",
+      "/#how-it-works",
+      "/reel",
+      "/pricing",
+      "/#faq",
+    ]);
+  });
+
   it("footer Company column links to Careers (Contact moved to Resources)", () => {
     const company = FOOTER_NAV.find((col) => col.title === "Company");
     const hrefs = company?.links.map((link) => link.href) ?? [];

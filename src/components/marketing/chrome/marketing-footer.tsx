@@ -14,8 +14,8 @@ export function MarketingFooter() {
           <div className="flex max-w-xs flex-col gap-3">
             <Logo />
             <p className="text-sm text-pretty text-muted-foreground">
-              Collect every photo and video from your event. Guests scan a QR
-              code and upload in seconds. No app, no account.
+              The whole event, in one album. Guests scan one QR code and every
+              photo and video comes to you. No app, no account.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-12 gap-y-8">
