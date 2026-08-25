@@ -226,3 +226,34 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
     default: 260,
   },
 ];
+
+/**
+ * The MARKETING knobs (Track B), mounted by MarketingMotionTuner on the
+ * (cinema) group layout. Three-way contract as above: each `default` MIRRORS
+ * the var() fallback baked into marketing.css chapter 1 ([data-mkt-reveal]);
+ * both beats are CSS-only today (no JS readCssMs mirror to keep in sync).
+ * Marketing build tracks APPEND their section beats here in the same commit
+ * that wires the matching var() into marketing.css.
+ */
+export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
+  {
+    kind: "range",
+    cssVar: "--mkt-reveal-ms",
+    label: "Section reveal",
+    min: 200,
+    max: 1400,
+    step: 20,
+    unit: "ms",
+    default: 700,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-stagger-ms",
+    label: "Reveal stagger",
+    min: 0,
+    max: 240,
+    step: 10,
+    unit: "ms",
+    default: 90,
+  },
+];

@@ -104,11 +104,14 @@ function toText(node: ReactNode): string {
   return "";
 }
 
-// `scroll-mt-24` so a TOC/anchor jump clears the sticky h-16 header (otherwise the
-// heading lands flush under it — caught in live testing).
+// The scroll margin rides --mkt-header-h (the one chrome-height knob; same calc as
+// SectionShell) so a TOC/anchor jump clears the sticky header even if its height is
+// ever retuned (the old hardcoded scroll-mt-24 silently coupled to h-16).
+const HEADING_SCROLL_MT = "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
+
 function H2({ children }: { children?: ReactNode }) {
   return (
-    <h2 id={slugify(toText(children))} className="scroll-mt-24">
+    <h2 id={slugify(toText(children))} className={HEADING_SCROLL_MT}>
       {children}
     </h2>
   );
@@ -116,7 +119,7 @@ function H2({ children }: { children?: ReactNode }) {
 
 function H3({ children }: { children?: ReactNode }) {
   return (
-    <h3 id={slugify(toText(children))} className="scroll-mt-24">
+    <h3 id={slugify(toText(children))} className={HEADING_SCROLL_MT}>
       {children}
     </h3>
   );

@@ -124,8 +124,15 @@
 /* THE LOOP-PAUSE CONTRACT (production addition the lab lacked): use-ambient-pause
    mirrors its `paused` onto the loop element or a shared container as
    `data-paused`; either form freezes the ambient set. Videos pause imperatively. */
-[data-mkt] :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse])[data-paused="true"],
-[data-mkt] [data-paused="true"] :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse]) {
+[data-mkt]
+  :is(
+    [data-mkt-marquee],
+    [data-mkt-shot],
+    [data-mkt-pulse]
+  )[data-paused="true"],
+[data-mkt]
+  [data-paused="true"]
+  :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse]) {
   animation-play-state: paused;
 }
 
@@ -188,9 +195,864 @@
   }
 }
 
-/* ─── Chapter 2: the standard register (transitions.dev recipes, re-tokened) ───
-   Added by the build tracks per the plan's adopted-recipe map. lp/mkt-system
-   lands the full set in B1; lp/mkt-reel alone may append residuals. ─── */
+/* ════════════════════════════════════════════════════════════════════════════
+   Chapter 2: the standard register — the ADOPTED transitions.dev recipe set,
+   re-tokened per the containment contract. lp/mkt-system lands the full map in
+   B1; lp/mkt-reel alone may append residuals. Each block names its reference
+   file in .claude/skills/transitions-dev/ (pro recipes: ~/.claude/skills/
+   transitions-pro/recipes/). The re-token rules applied throughout:
+     • tunables → --mkt-* tokens declared on [data-mkt] below (never :root);
+     • custom cubic-beziers absorbed into the FOUR house curves — smooth-out
+       cubic-bezier(0.22,1,0.36,1) → --ease-emphasis (near-twin), every bounce
+       → --mkt-ease-pop; keyword eases (ease, ease-in-out, linear) stay;
+     • colors → house tokens; sanctioned literals ONLY: the tilt glare's white
+       light (capped 0.15) + mask-image alpha ramps (#000 = alpha machinery,
+       not palette) — the policy test pins this;
+     • keyframes mkt-prefixed (document-global once this sheet loads);
+     • the skill's reduced-motion guards are kept verbatim (the globals.css
+       0.01ms clamp backstops them anyway).
+   ════════════════════════════════════════════════════════════════════════════ */
+
+[data-mkt] {
+  /* 18-texts-reveal */
+  --mkt-lines-dur: 500ms;
+  --mkt-lines-distance: 12px;
+  --mkt-lines-stagger: 40ms;
+  --mkt-lines-blur: 3px;
+  /* 02-number-pop-in */
+  --mkt-digit-dur: 500ms;
+  --mkt-digit-distance: 8px;
+  --mkt-digit-stagger: 70ms;
+  --mkt-digit-blur: 2px;
+  /* 26-spinning-counter (the recipe's --reel-* renamed: --reel is the house
+     curation violet, so the counter tokens live under --mkt-count-*) */
+  --mkt-count-dur: 1400ms;
+  --mkt-count-cell: 1.15em;
+  --mkt-count-stagger: 90ms;
+  /* 21-accordion */
+  --mkt-acc-expand: 250ms;
+  --mkt-acc-collapse: 250ms;
+  --mkt-acc-chevron: 250ms;
+  /* 05-menu-dropdown (clocks only; the nav applies data-mkt-dropdown) */
+  --mkt-dropdown-open-ms: 250ms;
+  --mkt-dropdown-close-ms: 150ms;
+  /* 24-learn-more-hover */
+  --mkt-learn-shift: 2px;
+  --mkt-learn-spread: 8deg;
+  --mkt-learn-in: 350ms;
+  --mkt-learn-out: 350ms;
+  /* 19-card-tilt (glare opacity CAPPED at 0.15 per the token policy: white
+     light is the one sanctioned color literal, kept subtle) */
+  --mkt-tilt-perspective: 1000px;
+  --mkt-tilt-return: 1000ms;
+  --mkt-tilt-follow: 400ms;
+  --mkt-tilt-glare-opacity: 0.15;
+  --mkt-tilt-glare-fade: 300ms;
+  /* 16-tabs-sliding */
+  --mkt-tabs-dur: 250ms;
+  /* 04-text-states-swap */
+  --mkt-swap-dur: 150ms;
+  --mkt-swap-y: 4px;
+  --mkt-swap-blur: 2px;
+  /* 06-modal */
+  --mkt-modal-open-ms: 250ms;
+  --mkt-modal-close-ms: 150ms;
+  --mkt-modal-scale: 0.96;
+  /* 10-success-check */
+  --mkt-check-dur: 500ms;
+  --mkt-check-rotate-from: 80deg;
+  --mkt-check-y: 40px;
+  --mkt-check-blur-from: 10px;
+  --mkt-check-path-delay: 80ms;
+  /* 12-error-state-shake */
+  --mkt-shake-distance: 6px;
+  --mkt-shake-overshoot: 4px;
+  --mkt-shake-dur-a: 80ms;
+  --mkt-shake-dur-b: 60ms;
+  --mkt-revert-hold: 3000ms;
+  --mkt-revert-dur: 280ms;
+  /* 09-icon-swap */
+  --mkt-icon-swap-dur: 250ms;
+  --mkt-icon-swap-blur: 2px;
+  --mkt-icon-swap-scale: 0.25;
+  /* 14-skeleton-reveal */
+  --mkt-skel-pulse-dur: 1000ms;
+  --mkt-skel-pulse-min: 0.5;
+  --mkt-skel-reveal-dur: 400ms;
+  --mkt-skel-blur: 2px;
+  /* pro: card-stack-hover (springs absorbed into --mkt-ease-pop) */
+  --mkt-stack-open: 410ms;
+  --mkt-stack-close: 360ms;
+  --mkt-stack-scale-dur: 610ms;
+  --mkt-stack-scale: 1.04;
+  --mkt-stack-spread: 1.42;
+  --mkt-stack-rotation: 1;
+  /* pro: image-open-tilt (CSS core; the optional canvas-bend layer is NOT
+     adopted — software-warp JS is a per-surface lab decision, not a recipe) */
+  --mkt-opentilt-open: 620ms;
+  --mkt-opentilt-close: 420ms;
+  --mkt-opentilt-closed-scale: 0.3;
+  --mkt-opentilt-tilt-x: 22deg;
+  --mkt-opentilt-tilt-y: -14deg;
+  --mkt-opentilt-lift: 70px;
+  --mkt-opentilt-perspective: 900px;
+}
+
+/* ── 18-texts-reveal: staggered blurred rise for stacked lines; the exit is a
+   single quiet fade (never a reverse reveal). Line order rides --i (like the
+   chapter-1 grammar) instead of the recipe's per-line modifier classes. ── */
+[data-mkt] .mkt-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--mkt-lines-distance));
+  filter: blur(var(--mkt-lines-blur));
+  transition:
+    opacity var(--mkt-lines-dur) var(--ease-emphasis),
+    transform var(--mkt-lines-dur) var(--ease-emphasis),
+    filter var(--mkt-lines-dur) var(--ease-emphasis);
+  transition-delay: calc(var(--i, 0) * var(--mkt-lines-stagger));
+  will-change: transform, opacity, filter;
+}
+[data-mkt] .mkt-lines.is-shown .mkt-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+[data-mkt] .mkt-lines.is-hiding .mkt-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Arrival guarantee: reduce shows the lines even if .is-shown never lands. */
+  [data-mkt] .mkt-line {
+    transition: none !important;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ── 02-number-pop-in: each digit re-enters from below with blur. The recipe's
+   last-two-digit data-stagger is generalized to the --i roll (StatBand pops
+   whole counts, not price decimals). Bounce ease = --mkt-ease-pop (identical
+   curve to the recipe's cubic-bezier(0.34, 1.45, 0.64, 1)). ── */
+@keyframes mkt-digit-pop {
+  0% {
+    transform: translate(0, var(--mkt-digit-distance));
+    opacity: 0;
+    filter: blur(var(--mkt-digit-blur));
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+[data-mkt] [data-mkt-digit] {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+[data-mkt] [data-mkt-digits][data-on="true"] [data-mkt-digit] {
+  animation: mkt-digit-pop var(--mkt-digit-dur) var(--mkt-ease-pop) both;
+  animation-delay: calc(var(--i, 0) * var(--mkt-digit-stagger));
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] [data-mkt-digits] [data-mkt-digit] {
+    animation: none !important;
+  }
+}
+
+/* ── 26-spinning-counter: StatBand builds one clipped column per digit; the
+   strip server-renders ON its final digit and rolls two extra passes when
+   fired (content-first — no-JS shows the true number). The SVG motion-blur
+   decay is NOT adopted (JS-per-frame filter churn for a subliminal streak);
+   the soft mask window is, with tighter 12% ramps for the 1.15em cell. ── */
+[data-mkt] [data-mkt-count-col] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+}
+[data-mkt] [data-mkt-count-strip] {
+  transition: transform var(--mkt-count-dur) var(--ease-emphasis);
+  transition-delay: calc(var(--col-i, 0) * var(--mkt-count-stagger));
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] [data-mkt-count-strip] {
+    transition: none !important;
+  }
+}
+
+/* ── 21-accordion: grid-rows 0fr↔1fr height (no JS measuring) + the scaleY
+   chevron flip (CSS `d:` morph is Chromium-only; the flip works everywhere).
+   Padding lives on -inner, NEVER on -panel (a padded 0fr track never fully
+   closes). The FAQ rebuild wires data-open. ── */
+[data-mkt] .mkt-acc-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--mkt-acc-collapse) var(--ease-emphasis);
+}
+[data-mkt] .mkt-acc[data-open="true"] .mkt-acc-panel {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--mkt-acc-expand) var(--ease-emphasis);
+}
+[data-mkt] .mkt-acc-panel-inner {
+  overflow: hidden;
+  opacity: 0;
+  filter: blur(2px);
+  transition:
+    opacity var(--mkt-acc-collapse) var(--ease-emphasis),
+    filter var(--mkt-acc-collapse) var(--ease-emphasis);
+}
+[data-mkt] .mkt-acc[data-open="true"] .mkt-acc-panel-inner {
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--mkt-acc-expand) var(--ease-emphasis),
+    filter var(--mkt-acc-expand) var(--ease-emphasis);
+}
+[data-mkt] .mkt-acc-chevron {
+  display: inline-flex;
+  transform: scaleY(1);
+  transform-origin: center;
+  transition: transform var(--mkt-acc-chevron) var(--ease-emphasis);
+}
+[data-mkt] .mkt-acc-chevron path {
+  vector-effect: non-scaling-stroke;
+}
+[data-mkt] .mkt-acc[data-open="true"] .mkt-acc-chevron {
+  transform: scaleY(-1);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-acc-panel,
+  [data-mkt] .mkt-acc-panel-inner,
+  [data-mkt] .mkt-acc-chevron {
+    transition: none !important;
+  }
+}
+
+/* ── 05-menu-dropdown, CLOCKS ONLY: the ui/dropdown-menu primitive already
+   grows origin-aware via tw-animate; the nav's data-mkt-dropdown retunes its
+   clocks to the recipe (250ms open / 150ms close, 0.97 pre-scale / 0.99
+   closing scale) WITHOUT touching the primitive. Works because tw-animate
+   reads var(--tw-duration) and the zoom utilities set --tw-enter/exit-scale:
+   these unlayered declarations outrank the utility layer. data-mkt sits ON
+   the portaled content (THE PORTAL RULE), so the pair-selector matches. ── */
+[data-mkt][data-mkt-dropdown] {
+  --tw-duration: var(--mkt-dropdown-open-ms);
+  --tw-enter-scale: 0.97;
+  --tw-exit-scale: 0.99;
+}
+[data-mkt][data-mkt-dropdown][data-state="closed"] {
+  --tw-duration: var(--mkt-dropdown-close-ms);
+}
+
+/* ── 24-learn-more-hover: the chevron slides with the reading direction while
+   its arms spread into an arrow; hover-only (focus/touch rest state carries
+   everything essential). Pure CSS; DemoCtaLink ships the markup. ── */
+[data-mkt] .mkt-learn-chevron {
+  display: inline-flex;
+  transform: translateX(0);
+  transition: transform var(--mkt-learn-out) var(--ease-emphasis);
+}
+[data-mkt] .mkt-learn-arm {
+  transform-box: view-box;
+  transform-origin: 10px 8px;
+  vector-effect: non-scaling-stroke;
+  transition: transform var(--mkt-learn-out) var(--ease-emphasis);
+}
+[data-mkt] .mkt-learn:hover .mkt-learn-chevron {
+  transform: translateX(var(--mkt-learn-shift));
+  transition-duration: var(--mkt-learn-in);
+}
+[data-mkt] .mkt-learn:hover .mkt-learn-arm {
+  transition-duration: var(--mkt-learn-in);
+}
+[data-mkt] .mkt-learn:hover .mkt-learn-arm-top {
+  transform: rotate(var(--mkt-learn-spread));
+}
+[data-mkt] .mkt-learn:hover .mkt-learn-arm-bot {
+  transform: rotate(calc(var(--mkt-learn-spread) * -1));
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-learn-chevron,
+  [data-mkt] .mkt-learn-arm {
+    transition: none !important;
+  }
+}
+
+/* ── 19-card-tilt: 3D pointer tilt + cursor-tracked glare. TiltCard (system/)
+   tracks the pointer on the FLAT outer .mkt-tilt (tracking the rotating card
+   makes the hover flicker) and writes --mkt-tilt-rx/ry/gx/gy. The glare's
+   white rgba stack is THE sanctioned color literal (light, not palette),
+   opacity capped by --mkt-tilt-glare-opacity (0.15). border-radius inherits
+   so the consumer's card rounding clips the glare. ── */
+[data-mkt] .mkt-tilt-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  transform: perspective(var(--mkt-tilt-perspective))
+    rotateX(var(--mkt-tilt-rx, 0deg)) rotateY(var(--mkt-tilt-ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform var(--mkt-tilt-return) var(--ease-emphasis);
+  will-change: transform;
+}
+[data-mkt] .mkt-tilt-card.is-tilting {
+  transition: transform var(--mkt-tilt-follow) var(--ease-emphasis);
+}
+[data-mkt] .mkt-tilt-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(
+      circle 95px at var(--mkt-tilt-gx, 50%) var(--mkt-tilt-gy, 50%),
+      rgba(255, 255, 255, 0.48),
+      rgba(255, 255, 255, 0.06) 52%,
+      rgba(255, 255, 255, 0) 84%
+    ),
+    radial-gradient(
+      circle 200px at var(--mkt-tilt-gx, 50%) var(--mkt-tilt-gy, 50%),
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.04) 58%,
+      rgba(255, 255, 255, 0) 78%
+    ),
+    radial-gradient(
+      circle 360px at var(--mkt-tilt-gx, 50%) var(--mkt-tilt-gy, 50%),
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0) 88%
+    );
+  transition: opacity var(--mkt-tilt-glare-fade) var(--ease-emphasis);
+}
+[data-mkt] .mkt-tilt.is-hover .mkt-tilt-glare {
+  opacity: var(--mkt-tilt-glare-opacity);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── 16-tabs-sliding: the active pill slides between segments (JS writes the
+   active tab's offsetLeft/offsetWidth onto the pill; first paint + resize
+   write WITHOUT a transition or the pill flies in from x=0). Colors re-point
+   at house tokens: bar = muted, pill = popover (opaque in both skins). ── */
+[data-mkt] .mkt-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 48px;
+  background: var(--muted);
+}
+[data-mkt] .mkt-tab {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 30px;
+  padding: 4px 12px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  border-radius: 48px;
+  z-index: 1;
+  transition: color var(--mkt-tabs-dur) var(--ease-emphasis);
+}
+[data-mkt] .mkt-tab:not([aria-selected="true"]):hover,
+[data-mkt] .mkt-tab[aria-selected="true"] {
+  color: var(--foreground);
+}
+[data-mkt] .mkt-tabs-pill {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 30px;
+  width: 0;
+  background: var(--popover);
+  border-radius: 48px;
+  transform: translateX(0);
+  transition:
+    transform var(--mkt-tabs-dur) var(--ease-emphasis),
+    width var(--mkt-tabs-dur) var(--ease-emphasis);
+  will-change: transform, width;
+  z-index: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-tabs-pill,
+  [data-mkt] .mkt-tab {
+    transition: none !important;
+  }
+}
+
+/* ── 04-text-states-swap: old text exits up with blur, new text enters from
+   below (the hero Roll candidate + status lines). Three-phase JS: .is-exit →
+   swap textContent + .is-enter-start (no transition) → reflow → remove. ── */
+[data-mkt] .mkt-text-swap {
+  display: inline-block;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--mkt-swap-dur) ease-in-out,
+    filter var(--mkt-swap-dur) ease-in-out,
+    opacity var(--mkt-swap-dur) ease-in-out;
+  will-change: transform, filter, opacity;
+}
+[data-mkt] .mkt-text-swap.is-exit {
+  transform: translateY(calc(var(--mkt-swap-y) * -1));
+  filter: blur(var(--mkt-swap-blur));
+  opacity: 0;
+}
+[data-mkt] .mkt-text-swap.is-enter-start {
+  transform: translateY(var(--mkt-swap-y));
+  filter: blur(var(--mkt-swap-blur));
+  opacity: 0;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-text-swap {
+    transition: none !important;
+  }
+}
+
+/* ── 06-modal, CLOCKS: scale-up open, softer scale-down close (the sample-reel
+   overlay). Swap .is-open for .is-closing on close, then drop .is-closing
+   after --mkt-modal-close-ms (skipping the cleanup makes the NEXT open jump
+   from the closing scale). ── */
+[data-mkt] .mkt-modal {
+  transform-origin: center;
+  transform: scale(var(--mkt-modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--mkt-modal-open-ms) var(--ease-emphasis),
+    opacity var(--mkt-modal-open-ms) var(--ease-emphasis);
+  will-change: transform, opacity;
+}
+[data-mkt] .mkt-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+[data-mkt] .mkt-modal.is-closing {
+  transform: scale(var(--mkt-modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--mkt-modal-close-ms) var(--ease-emphasis),
+    opacity var(--mkt-modal-close-ms) var(--ease-emphasis);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-modal {
+    transition: none !important;
+  }
+}
+
+/* ── 10-success-check: fade + rotate-upright + Y-bob + stroke-draw for the
+   contact form's sent state (chosen over spinner-check-morph). stroke-dasharray
+   20 is the recipe placeholder — calibrate to path.getTotalLength() + 1 for
+   the real icon or the stroke pre-reveals/over-draws. Bob = --mkt-ease-pop. ── */
+[data-mkt] .mkt-check {
+  display: inline-block;
+  transform-origin: center;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+[data-mkt] .mkt-check svg {
+  display: block;
+  overflow: visible;
+}
+[data-mkt] .mkt-check svg path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+}
+[data-mkt] .mkt-check[data-state="in"] {
+  animation:
+    mkt-check-fade var(--mkt-check-dur) var(--ease-emphasis) forwards,
+    mkt-check-rotate var(--mkt-check-dur) var(--ease-emphasis) forwards,
+    mkt-check-blur var(--mkt-check-dur) var(--ease-emphasis) forwards,
+    mkt-check-bob var(--mkt-check-dur) var(--mkt-ease-pop) forwards;
+}
+[data-mkt] .mkt-check[data-state="in"] svg path {
+  animation: mkt-check-draw var(--mkt-check-dur) var(--ease-emphasis)
+    var(--mkt-check-path-delay) forwards;
+}
+@keyframes mkt-check-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mkt-check-rotate {
+  from {
+    transform: rotate(var(--mkt-check-rotate-from));
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+@keyframes mkt-check-blur {
+  from {
+    filter: blur(var(--mkt-check-blur-from));
+  }
+  to {
+    filter: blur(0);
+  }
+}
+@keyframes mkt-check-bob {
+  from {
+    translate: 0 var(--mkt-check-y);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes mkt-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-check {
+    animation: none !important;
+    opacity: 1;
+  }
+  [data-mkt] .mkt-check svg path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+/* ── 12-error-state-shake: per-segment shake + auto-reverting error border and
+   message (the contact form's invalid state). Keep .is-error and .is-shaking
+   ORTHOGONAL so the shake replays (remove → reflow → re-add) without
+   flickering the whole error treatment; the %-stops are baked to the 80/60
+   leg ratio — retune both together. The consumer's own border-color rules
+   drive the visible color (real state colors are sanctioned there). ── */
+[data-mkt] .mkt-input {
+  transition: border-color 150ms ease-out;
+  will-change: transform;
+}
+[data-mkt] .mkt-input.is-error {
+  transition: border-color var(--mkt-revert-dur) ease-out;
+}
+[data-mkt] .mkt-error-msg {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--mkt-revert-dur) ease-out,
+    visibility 0s linear var(--mkt-revert-dur);
+}
+[data-mkt] .mkt-input-wrap.is-error .mkt-error-msg {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--mkt-revert-dur) ease-out,
+    visibility 0s linear 0s;
+}
+[data-mkt] .mkt-input.is-shaking {
+  animation: mkt-shake
+    calc(var(--mkt-shake-dur-a) * 2 + var(--mkt-shake-dur-b) * 2) linear;
+}
+@keyframes mkt-shake {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: var(--ease-emphasis);
+  }
+  28.57% {
+    transform: translateX(var(--mkt-shake-distance));
+    animation-timing-function: var(--ease-emphasis);
+  }
+  57.14% {
+    transform: translateX(calc(var(--mkt-shake-distance) * -1));
+    animation-timing-function: var(--ease-emphasis);
+  }
+  78.57% {
+    transform: translateX(var(--mkt-shake-overshoot));
+    animation-timing-function: var(--ease-emphasis);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-input {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ── 09-icon-swap: two icons stacked in one grid cell cross-fade with blur +
+   scale (play/pause, the mobile-menu hamburger↔close). data-state="a"|"b". ── */
+[data-mkt] .mkt-icon-swap {
+  position: relative;
+  display: inline-grid;
+}
+[data-mkt] .mkt-icon-swap .mkt-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--mkt-icon-swap-dur) ease-in-out,
+    filter var(--mkt-icon-swap-dur) ease-in-out,
+    transform var(--mkt-icon-swap-dur) ease-in-out;
+  will-change: opacity, filter, transform;
+}
+[data-mkt] .mkt-icon-swap[data-state="a"] .mkt-icon[data-icon="a"],
+[data-mkt] .mkt-icon-swap[data-state="b"] .mkt-icon[data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+[data-mkt] .mkt-icon-swap[data-state="a"] .mkt-icon[data-icon="b"],
+[data-mkt] .mkt-icon-swap[data-state="b"] .mkt-icon[data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--mkt-icon-swap-blur));
+  transform: scale(var(--mkt-icon-swap-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-icon-swap .mkt-icon {
+    transition: none !important;
+  }
+}
+
+/* ── 14-skeleton-reveal: poster/still placeholders cross-fade + cross-blur to
+   the loaded media. The pulse rides the skeleton's CHILDREN so the skeleton's
+   own opacity stays free for the reveal. NOTE the mkt- keyframe prefix is
+   load-bearing here: the app's own shimmer skeletons must never be hijacked
+   once this sheet loads. ── */
+[data-mkt] .mkt-skel {
+  position: relative;
+}
+[data-mkt] .mkt-skel-skeleton,
+[data-mkt] .mkt-skel-content {
+  position: absolute;
+  inset: 0;
+}
+[data-mkt] .mkt-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--mkt-skel-reveal-dur) ease-in-out,
+    filter var(--mkt-skel-reveal-dur) ease-in-out;
+}
+[data-mkt] .mkt-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(var(--mkt-skel-blur));
+  transition:
+    opacity var(--mkt-skel-reveal-dur) ease-in-out,
+    filter var(--mkt-skel-reveal-dur) ease-in-out;
+}
+[data-mkt] .mkt-skel.is-revealed .mkt-skel-skeleton {
+  opacity: 0;
+  filter: blur(var(--mkt-skel-blur));
+}
+[data-mkt] .mkt-skel.is-revealed .mkt-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+[data-mkt] .mkt-skel.is-resetting .mkt-skel-skeleton,
+[data-mkt] .mkt-skel.is-resetting .mkt-skel-content {
+  transition: none !important;
+}
+/* Re-token deviation: the recipe pulses `.is-pulsing > *`; the policy pin bans
+   universal selectors outright (cheap mechanical guard), so the bones opt in
+   with an explicit class instead — mark each placeholder bar/avatar/box
+   .mkt-skel-bone. Also honors the loop-pause contract via data-paused. */
+[data-mkt] .mkt-skel-skeleton.is-pulsing .mkt-skel-bone {
+  animation: mkt-skel-pulse var(--mkt-skel-pulse-dur) ease-in-out infinite;
+}
+[data-mkt] [data-paused="true"] .mkt-skel-bone,
+[data-mkt] .mkt-skel-bone[data-paused="true"] {
+  animation-play-state: paused;
+}
+@keyframes mkt-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--mkt-skel-pulse-min);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-skel-skeleton,
+  [data-mkt] .mkt-skel-content {
+    transition: none !important;
+  }
+  [data-mkt] .mkt-skel-skeleton.is-pulsing .mkt-skel-bone {
+    animation: none !important;
+  }
+}
+
+/* ── pro/card-stack-hover: a photo pile that fans out on container hover.
+   Slot geometry is INLINE per card (--cx/--cy/--rot rest pose, --dx/--dy/
+   --drot fan delta); the shared multipliers scale the fan. Both springs are
+   absorbed into --mkt-ease-pop (no fifth curve without a lab round) and the
+   card surface re-points at house tokens (hairline ring, no shadows — the
+   dark elevation contract). Hover-gated with @media (hover: hover) so touch
+   taps don't stick. ── */
+[data-mkt] .mkt-stack {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+[data-mkt] .mkt-stack-card {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 78px;
+  height: 78px;
+  border-radius: var(--radius-tile);
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  translate: var(--cx) var(--cy);
+  rotate: var(--rot);
+  scale: 1;
+  transition:
+    translate var(--mkt-stack-close) var(--mkt-ease-pop),
+    rotate var(--mkt-stack-close) var(--mkt-ease-pop),
+    scale var(--mkt-stack-scale-dur) var(--ease-emphasis);
+  will-change: translate, rotate, scale;
+}
+@media (hover: hover) {
+  [data-mkt] .mkt-stack:hover .mkt-stack-card {
+    translate: calc(var(--cx) + var(--dx))
+      calc(var(--cy) + var(--dy) * var(--mkt-stack-spread));
+    rotate: calc(var(--rot) + var(--drot) * var(--mkt-stack-rotation));
+    transition:
+      translate var(--mkt-stack-open) var(--mkt-ease-pop),
+      rotate var(--mkt-stack-open) var(--mkt-ease-pop),
+      scale var(--mkt-stack-scale-dur) var(--ease-emphasis);
+  }
+  [data-mkt] .mkt-stack-card:hover {
+    scale: var(--mkt-stack-scale);
+    z-index: 30;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-stack-card {
+    transition: none;
+  }
+}
+
+/* ── pro/image-open-tilt, CSS core: an image zooms open iPadOS-style — pure
+   transforms (scale + rotateX/Y + translateZ under real perspective, zero
+   reflow), pitched back strongest ~40% into the flight, flat by landing; the
+   close dives with a smaller opposite tilt on a faster clock. The card lays
+   out FULL-SIZE and shrinks via `scale` so the zoom is ONE continuous spring;
+   overflow stays visible (the rounded clip lives on the img) so Safari never
+   drops the compositor layer mid-flight. The recipe's optional canvas-bend
+   warp is NOT adopted (see the token block note). ── */
+[data-mkt] .mkt-opentilt-stage {
+  perspective: var(--mkt-opentilt-perspective);
+}
+[data-mkt] .mkt-opentilt-card {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  position: relative;
+  border-radius: 32px;
+  overflow: visible;
+  cursor: pointer;
+  background: var(--muted);
+  box-shadow: 0 0 0 1px var(--border);
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: center;
+  scale: var(--mkt-opentilt-closed-scale);
+  transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+  will-change: scale, transform;
+  transition:
+    scale var(--mkt-opentilt-close) var(--ease-emphasis),
+    border-radius var(--mkt-opentilt-close) var(--ease-emphasis);
+}
+[data-mkt] .mkt-opentilt-card.is-open {
+  border-radius: 16px;
+  scale: 1;
+  transition:
+    scale var(--mkt-opentilt-open) var(--ease-emphasis),
+    border-radius var(--mkt-opentilt-open) var(--ease-emphasis);
+  animation: mkt-opentilt-open var(--mkt-opentilt-open) both;
+}
+[data-mkt] .mkt-opentilt-card.is-closing {
+  animation: mkt-opentilt-close var(--mkt-opentilt-close) both;
+}
+@keyframes mkt-opentilt-open {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+    animation-timing-function: var(--ease-in-out-strong);
+  }
+  40% {
+    transform: rotateX(var(--mkt-opentilt-tilt-x))
+      rotateY(var(--mkt-opentilt-tilt-y)) translateZ(var(--mkt-opentilt-lift));
+    animation-timing-function: var(--ease-in-out-strong);
+  }
+  100% {
+    transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+  }
+}
+@keyframes mkt-opentilt-close {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+    animation-timing-function: var(--ease-in-out-strong);
+  }
+  45% {
+    transform: rotateX(calc(var(--mkt-opentilt-tilt-x) * -0.45))
+      rotateY(calc(var(--mkt-opentilt-tilt-y) * -0.45))
+      translateZ(calc(var(--mkt-opentilt-lift) * 0.4));
+    animation-timing-function: var(--ease-in-out-strong);
+  }
+  100% {
+    transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+  }
+}
+[data-mkt] .mkt-opentilt-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+  border-radius: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-opentilt-card,
+  [data-mkt] .mkt-opentilt-card.is-open {
+    animation: none;
+    transition: none;
+  }
+}
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +

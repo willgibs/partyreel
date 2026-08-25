@@ -20,22 +20,45 @@ import {
 } from "@/components/ui/sheet";
 import {
   isNavGroup,
+  MARKETING_CTA,
   PRIMARY_NAV,
   type NavGroup,
 } from "@/lib/constants/marketing-nav";
 import { cn } from "@/lib/utils";
+
+/** Which marketing skin the chrome sits in (the group layouts thread it down). */
+export type MarketingSkin = "cinema" | "paper";
+
+// ★ THE PORTAL RULE (Track B theming): radix dropdown/sheet content PORTALS to
+// <body> and so ESCAPES the cinema wrapper's descendant-scoped `dark` class —
+// without help, a dark page would pop a paper-light menu. Whenever skin is
+// "cinema", portaled content (DropdownMenuContent, SheetContent) must receive
+// className="dark" AND the data-mkt attribute (the marketing tokens are scoped
+// to [data-mkt], which the portal also escapes). Both ui primitives spread
+// className + extra props onto the portaled element, so this threads through.
+const portalSkinProps = (skin: MarketingSkin) =>
+  ({
+    "data-mkt": "",
+    className: skin === "cinema" ? "dark" : undefined,
+  }) as const;
 
 // Quick (<160ms) hover color transition per the emil-design-eng craft bar.
 const linkClass =
   "text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground";
 
 /** Desktop primary nav: flat items render as links, `children` items as dropdowns. */
-export function MarketingNavDesktop({ className }: { className?: string }) {
+export function MarketingNavDesktop({
+  className,
+  skin = "paper",
+}: {
+  className?: string;
+  skin?: MarketingSkin;
+}) {
   return (
     <nav className={cn("items-center gap-6", className)}>
       {PRIMARY_NAV.map((item) =>
         isNavGroup(item) ? (
-          <NavGroupMenu key={item.label} group={item} />
+          <NavGroupMenu key={item.label} group={item} skin={skin} />
         ) : (
           <Link key={item.label} href={item.href} className={linkClass}>
             {item.label}
@@ -46,11 +69,17 @@ export function MarketingNavDesktop({ className }: { className?: string }) {
   );
 }
 
-function NavGroupMenu({ group }: { group: NavGroup }) {
+function NavGroupMenu({
+  group,
+  skin,
+}: {
+  group: NavGroup;
+  skin: MarketingSkin;
+}) {
+  const portal = portalSkinProps(skin);
   return (
     <DropdownMenu>
-      {/* `group` class lets the chevron react to the trigger's open state. The
-          DropdownMenuContent (ui primitive) already scales in origin-aware + fast. */}
+      {/* `group` class lets the chevron react to the trigger's open state. */}
       <DropdownMenuTrigger
         className={cn(
           linkClass,
@@ -60,7 +89,15 @@ function NavGroupMenu({ group }: { group: NavGroup }) {
         {group.label}
         <ChevronDown className="size-3.5 transition-transform duration-150 group-data-[state=open]:rotate-180" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-44">
+      {/* data-mkt-dropdown = the menu-dropdown recipe CLOCKS (marketing.css
+          chapter 2): 250ms open / 150ms close, 0.97 pre-scale / 0.99 closing
+          scale — marketing-scoped, so ui/dropdown-menu.tsx stays untouched. */}
+      <DropdownMenuContent
+        align="start"
+        data-mkt-dropdown=""
+        {...portal}
+        className={cn("min-w-44", portal.className)}
+      >
         {group.href && (
           <DropdownMenuItem asChild>
             <Link href={group.href}>All {group.label.toLowerCase()}</Link>
@@ -78,7 +115,14 @@ function NavGroupMenu({ group }: { group: NavGroup }) {
 
 /** Mobile nav: a hamburger that opens a Sheet listing everything (the desktop nav
     is `hidden md:flex`, so without this there is no nav on phones). */
-export function MarketingNavMobile({ className }: { className?: string }) {
+export function MarketingNavMobile({
+  className,
+  skin = "paper",
+}: {
+  className?: string;
+  skin?: MarketingSkin;
+}) {
+  const portal = portalSkinProps(skin);
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -91,8 +135,13 @@ export function MarketingNavMobile({ className }: { className?: string }) {
           <Menu />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72 gap-0 p-0">
-        <div className="flex h-16 items-center border-b px-4">
+      {/* THE PORTAL RULE applies here too: the sheet portals to <body>. */}
+      <SheetContent
+        side="right"
+        {...portal}
+        className={cn("w-72 gap-0 p-0", portal.className)}
+      >
+        <div className="flex h-[var(--mkt-header-h,4rem)] items-center border-b px-4">
           <Logo />
           <SheetTitle className="sr-only">Menu</SheetTitle>
         </div>
@@ -129,7 +178,7 @@ export function MarketingNavMobile({ className }: { className?: string }) {
           </SheetClose>
           <SheetClose asChild>
             <Button asChild>
-              <Link href="/login">Get started</Link>
+              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
             </Button>
           </SheetClose>
         </div>

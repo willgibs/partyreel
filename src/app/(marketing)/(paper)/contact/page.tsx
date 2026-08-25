@@ -2,7 +2,7 @@ import { ArrowRight, Clock, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Section } from "@/components/marketing/section";
+import { SectionShell } from "@/components/marketing/system/section-shell";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 
 import { ContactForm } from "./contact-form";
@@ -16,7 +16,10 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <Section
+    // as="h1": the page's lead (and only) section heading — /contact previously
+    // shipped with NO h1 (the audit gap this SectionShell prop exists to fix).
+    <SectionShell
+      as="h1"
       eyebrow="Contact"
       heading="Get in touch"
       subhead="Questions about your event, billing, or anything else? Send us a note and we'll get back to you."
@@ -78,6 +81,6 @@ export default function ContactPage() {
         </div>
         <ContactForm />
       </div>
-    </Section>
+    </SectionShell>
   );
 }
