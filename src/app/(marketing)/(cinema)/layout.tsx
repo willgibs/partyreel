@@ -1,5 +1,6 @@
 import type { Viewport } from "next";
 
+import { MarketingMotionTuner } from "@/components/dev/marketing-motion-tuner";
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 
@@ -25,6 +26,10 @@ export default function CinemaLayout({
       <MarketingHeader skin="cinema" />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
+      {/* Key-gated (server-validated ?key=) and inert for everyone else; layouts
+          get no searchParams in Next 16 and the page-level await would cost the
+          home its static render — see marketing-motion-tuner.tsx. */}
+      <MarketingMotionTuner />
     </div>
   );
 }
