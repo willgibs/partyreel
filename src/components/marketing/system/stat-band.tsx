@@ -129,6 +129,7 @@ function StatValue({
           <span
             key={i}
             aria-hidden
+            data-mkt-count-col
             className="inline-flex h-[var(--mkt-count-cell,1.15em)] overflow-hidden"
             style={{ "--col-i": colIndex } as CSSProperties}
           >
