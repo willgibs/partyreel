@@ -11,8 +11,16 @@ import { useEffect, useRef, useState } from "react";
  *
  * This is NOT `use-in-view-sentinel` (two-way "is it visible right now", for sticky affordances)
  * and not `use-ambient-pause` (the loop-pause contract) — three different questions, three hooks.
+ *
+ * `rootMargin` (additive, default none) exists for APPROACH-MOUNT islands: the /reel style
+ * switcher lazy-loads its engine chunk on approach, so it trips the observer a generous margin
+ * BEFORE arrival (threshold 0 + e.g. "600px 0px") and the chunk + first decode land while the
+ * visitor is still scrolling toward it. Reveal callers keep the default (trip on real entry).
  */
-export function useInViewOnce<T extends HTMLElement>(threshold = 0.2) {
+export function useInViewOnce<T extends HTMLElement>(
+  threshold = 0.2,
+  rootMargin?: string,
+) {
   const ref = useRef<T | null>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -25,10 +33,10 @@ export function useInViewOnce<T extends HTMLElement>(threshold = 0.2) {
           io.disconnect();
         }
       },
-      { threshold },
+      { threshold, rootMargin },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [threshold]);
+  }, [threshold, rootMargin]);
   return { ref, inView };
 }
