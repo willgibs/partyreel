@@ -14,7 +14,10 @@ import { cn } from "@/lib/utils";
  *  - The POSTER is a next/image rendered in the SSR HTML and layered UNDER the video
  *    (never the <video poster> attribute: the video only starts fetching post-hydration,
  *    so the poster must be the LCP-capable layer). `preloadPoster` marks the ONE
- *    above-the-fold instance (Next 16 renamed `priority` → `preload`).
+ *    above-the-fold instance. Next 16 split the old `priority` into three: `preload`
+ *    (the head <link>) no longer implies eager loading, so the hero instance passes
+ *    preload + loading="eager" + fetchPriority="high" together (dev's LCP warning
+ *    fires on preload alone) while every other instance stays default-lazy.
  *  - The VIDEO ships `preload="none" muted loop playsInline` and is driven imperatively
  *    off use-ambient-pause (offscreen / hidden tab / reduced motion all pause it — the
  *    loop-pause contract). A rejected play() (iOS Low Power Mode, data saver) leaves the
@@ -69,6 +72,8 @@ export function AmbientReelVideo({
         fill
         sizes={sizes}
         preload={preloadPoster}
+        loading={preloadPoster ? "eager" : undefined}
+        fetchPriority={preloadPoster ? "high" : undefined}
         className="object-cover"
       />
       <video
