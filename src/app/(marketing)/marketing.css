@@ -103,6 +103,14 @@
   [data-mkt-pulse] {
     animation: mkt-pulse 2.2s ease-out infinite;
   }
+
+  /* THE ALBUM WALL (the 2026-08-25 hero rework): the full-bleed media grid
+     drifts slowly upward and back — ambient, linear on purpose (constant
+     motion, the conveyor rule), alternate so there is no loop jump. The wall
+     component doubles its tile sequence to cover the travel. */
+  [data-mkt-wall] {
+    animation: mkt-wall-drift 55s linear infinite alternate;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -128,12 +136,22 @@
   :is(
     [data-mkt-marquee],
     [data-mkt-shot],
-    [data-mkt-pulse]
+    [data-mkt-pulse],
+    [data-mkt-wall]
   )[data-paused="true"],
 [data-mkt]
   [data-paused="true"]
-  :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse]) {
+  :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse], [data-mkt-wall]) {
   animation-play-state: paused;
+}
+
+@keyframes mkt-wall-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-14%);
+  }
 }
 
 @keyframes mkt-kenburns {

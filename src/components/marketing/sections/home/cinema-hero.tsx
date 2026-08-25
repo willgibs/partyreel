@@ -14,46 +14,46 @@ import {
 } from "react";
 
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
-import { MARKETING_REELS } from "@/lib/constants/marketing-media";
+import {
+  MARKETING_IMAGES,
+  MARKETING_REELS,
+} from "@/lib/constants/marketing-media";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
- * LOUD (the loud/quiet map): the ruled Direction-B cinema hero over the real
- * rendered engine loop (the F5 hero-substrate lab round, rewritten with
- * reference). The load-bearing mechanics, all red-team-ratified in the plan:
+ * LOUD (the loud/quiet map): THE LIVING ALBUM WALL (Will's 2026-08-25 rework
+ * ruling: keep the bold media-forwardness, kill the "slides design" — the
+ * single letterboxed cut-cut loop plus story segments and a timecode read as
+ * a slideshow). The rework EMBODIES the thesis instead of presenting shots:
  *
- *  - LCP CONTRACT: the poster is a SERVER-RENDERED next/image layered UNDER
- *    the video, never the <video> poster attribute (the video mounts
- *    post-hydration, so relying on it would regress the LCP element to the
- *    H1). In Next 16 the old `priority` behavior split THREE ways, and
- *    `preload` alone leaves the image lazy (the dev server logs an LCP
- *    warning): the poster needs `preload` + `loading="eager"` +
- *    `fetchPriority="high"` together (/reel-track finding, 2026-08-25). ONLY
- *    this LCP element gets the trio; every other poster on the page stays
- *    lazy. Its wrapper also carries NO reveal attribute: a reveal's initial
- *    opacity delay would suppress the LCP paint.
- *  - The <video> mounts post-hydration with preload="none" muted loop
- *    playsInline; a rejected play() (iOS Low Power Mode, data saver) leaves
- *    the poster standing, never a spinner.
- *  - use-ambient-pause owns the loop-pause contract (offscreen / hidden tab /
- *    reduced motion all pause the mp4); the 12 sections below give the pause
- *    its runway.
- *  - STATELESS shot sync: every presented frame derives the active shot from
- *    currentTime against the manifest's shotBoundaries (never increment, so
- *    the native loop wrap self-heals), via requestVideoFrameCallback
- *    (mediaTime, Safari 15.4+) with an rAF fallback. Segment fills + the mono
- *    timecode write through refs (no re-render per frame); only a shot CHANGE
- *    touches state (the kinetic word needs React).
- *  - The kinetic H1 renders the byte-pinned SITE_THESIS with the ruled slot:
- *    "The whole {word}, in one album." The word cuts WITH the footage via the
- *    WIDTH-ANIMATED Roll (Will's 2026-08-25 ruling replaced the widest-word
- *    reservation: the sentence closes up around each word). Reduced motion is
- *    the static thesis (the word "event"), no cycling, no video.
+ *  - The substrate is a full-bleed, slowly drifting WALL of real event media
+ *    (the whole event, in one album — literally), edge to edge under a
+ *    lower-third scrim. Many photos at once reads as an ALBUM; one cutting
+ *    video reads as slides. The media supplies the color (the achromatic
+ *    doctrine); the drift is ambient (linear, ~55s alternate) and rides the
+ *    loop-pause contract via [data-mkt-wall] + data-paused in marketing.css.
+ *  - ONE live reel card sits IN the wall (desktop+): the album's reel,
+ *    playing the real engine render poster-first. It is product truth (album
+ *    plus reel), not player chrome: its only adornment is a hairline ring and
+ *    a mono duration chip. The card hides on mobile (the "Watch a sample
+ *    reel" CTA carries the reel there); its <video> mounts post-hydration,
+ *    play() rejection leaves the poster, ambient-pause pauses it.
+ *  - LCP CONTRACT (revised for the wall): the LCP element is the H1 or an
+ *    eager wall tile. The first WALL_EAGER tiles load eager (they paint the
+ *    above-the-fold wall immediately; ~50-135KB each), the rest lazy; the
+ *    reel-card poster is eager too (small). No element carries the full
+ *    preload/fetchPriority trio anymore — with a text-or-tile LCP there is no
+ *    single hero image to prioritize above the others.
+ *  - The kinetic H1 keeps the byte-pinned SITE_THESIS with the ruled
+ *    WIDTH-ANIMATED Roll (the sentence closes up around each word), now on a
+ *    plain interval (the word no longer syncs to footage cuts; the wall has
+ *    none). Reduced motion: static thesis ("event"), static wall, no video.
  */
 
 const SampleReelOverlay = lazy(
@@ -66,7 +66,10 @@ function requireReel(id: string) {
   return reel;
 }
 
-const HERO_REEL = requireReel("hero-candidate-01");
+// The LANDSCAPE render: its frame is FULL (the portrait classic render
+// letterboxes landscape clips, so its poster reads as black bars — judged on
+// screenshots, not code). Landscape is a real product orientation; honest.
+const HERO_REEL = requireReel("hero-candidate-02");
 
 // The ruled thesis splits around its kinetic slot; deriving the halves keeps
 // the byte-pinned constant the ONLY copy source (home-sections.test.ts pins
@@ -77,21 +80,41 @@ const [THESIS_BEFORE, THESIS_AFTER] = SITE_THESIS.split("event") as [
 ];
 
 const KINETIC_WORDS = ["wedding", "birthday", "festival", "send-off"] as const;
+const WORD_INTERVAL_MS = 2800;
 
 const HERO_EYEBROW = "One QR. No app. No account.";
 
-/** rVFC feature detection without depending on the lib.dom version. */
-type VfcVideo = HTMLVideoElement & {
-  requestVideoFrameCallback?: (
-    cb: (now: number, meta: { mediaTime: number }) => void,
-  ) => number;
-  cancelVideoFrameCallback?: (id: number) => void;
-};
+/** The wall's tile order: manifest media re-sequenced so adjacent tiles vary
+ *  in palette and subject (hand-tuned against the real images, not random —
+ *  determinism keeps SSR/client identical). The wall doubles the sequence so
+ *  the drift never exposes an empty edge. */
+const WALL_ORDER = [
+  "wedding-golden",
+  "party-balloons",
+  "festival-crowd",
+  "wedding-toast",
+  "party-dj",
+  "wedding-petals",
+  "reception-table",
+  "festival-lights",
+  "wedding-rings",
+  "concert-confetti",
+  "reception-hall",
+  "wedding-arch",
+] as const;
 
-function formatTimecode(t: number, dur: number) {
-  const ss = (n: number) => String(Math.max(0, Math.floor(n))).padStart(2, "0");
-  return `00:${ss(t)} / 00:${ss(Math.round(dur))}`;
-}
+/** Tiles that load eager: the above-the-fold wall must paint with the page. */
+const WALL_EAGER = 6;
+
+/** Taller tiles at deterministic positions give the wall its album masonry
+ *  rhythm (spans on a fixed grid; no measurement, no CLS). */
+const TALL_TILES = new Set([0, 3, 5, 8, 10, 13, 16, 19, 21]);
+
+const WALL_TILES = [...WALL_ORDER, ...WALL_ORDER].map((id, i) => {
+  const image = MARKETING_IMAGES.find((m) => m.id === id);
+  if (!image) throw new Error(`Unknown wall image id: ${id}`);
+  return { ...image, key: `${id}-${i}`, tall: TALL_TILES.has(i), index: i };
+});
 
 /** True only after hydration (server snapshot false): the post-hydration gate
  *  for the <video> mount, as a store subscription so no effect sets state. */
@@ -109,19 +132,14 @@ export function CinemaHero() {
   const { ref: pauseRef, paused } = useAmbientPause<HTMLElement>();
   const mounted = useHydrated();
   const [videoLive, setVideoLive] = useState(false);
-  const [shot, setShot] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const segRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const timeRef = useRef<HTMLSpanElement | null>(null);
-
-  const boundaries = HERO_REEL.shotBoundaries;
-  const dur = HERO_REEL.durationSeconds;
 
   // Post-hydration + full-motion only (SSR/no-JS/reduced ship poster only).
   const showVideo = mounted && !reduced;
 
-  // Transport: play/pause rides the ambient-pause signal.
+  // Reel-card transport: play/pause rides the ambient-pause signal.
   useEffect(() => {
     if (!showVideo) return;
     const v = videoRef.current;
@@ -133,53 +151,16 @@ export function CinemaHero() {
       });
   }, [showVideo, paused]);
 
-  // The stateless per-frame sync (see the header comment).
+  // The kinetic word cycles on a plain interval, held while paused/offscreen
+  // (a word flipping in a background tab is wasted theater).
   useEffect(() => {
-    if (!showVideo) return;
-    const v = videoRef.current as VfcVideo | null;
-    if (!v) return;
-    let raf = 0;
-    let vfc = 0;
-    let alive = true;
-
-    const sync = (t: number) => {
-      let idx = 0;
-      for (let i = 0; i < boundaries.length; i++)
-        if (t >= boundaries[i]) idx = i;
-      setShot((s) => (s === idx ? s : idx));
-      boundaries.forEach((b, i) => {
-        const fill = segRefs.current[i];
-        if (!fill) return;
-        const end = i + 1 < boundaries.length ? boundaries[i + 1] : dur;
-        const p = t >= end ? 1 : t < b ? 0 : (t - b) / (end - b);
-        fill.style.transform = `scaleX(${p})`;
-      });
-      if (timeRef.current) timeRef.current.textContent = formatTimecode(t, dur);
-    };
-
-    if (v.requestVideoFrameCallback && v.cancelVideoFrameCallback) {
-      const loop = (_now: number, meta: { mediaTime: number }) => {
-        if (!alive) return;
-        sync(meta.mediaTime);
-        vfc = v.requestVideoFrameCallback!(loop);
-      };
-      vfc = v.requestVideoFrameCallback(loop);
-      return () => {
-        alive = false;
-        v.cancelVideoFrameCallback?.(vfc);
-      };
-    }
-    const loop = () => {
-      if (!alive) return;
-      sync(v.currentTime);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      alive = false;
-      cancelAnimationFrame(raf);
-    };
-  }, [showVideo, boundaries, dur]);
+    if (reduced || paused) return;
+    const timer = setInterval(
+      () => setWordIndex((i) => (i + 1) % KINETIC_WORDS.length),
+      WORD_INTERVAL_MS,
+    );
+    return () => clearInterval(timer);
+  }, [reduced, paused]);
 
   return (
     <section
@@ -187,38 +168,75 @@ export function CinemaHero() {
       data-paused={paused ? "true" : undefined}
       className="relative flex min-h-[calc(100svh-var(--mkt-header-h,4rem))] flex-col justify-end overflow-hidden"
     >
-      {/* THE SUBSTRATE SLOT: poster under video (see the header comment). */}
-      <div className="absolute inset-0" aria-hidden>
-        <Image
-          src={HERO_REEL.poster}
-          alt=""
-          fill
-          sizes="100vw"
-          preload
-          loading="eager"
-          fetchPriority="high"
-          className="object-cover"
-        />
-        {showVideo && (
-          <video
-            ref={videoRef}
-            src={HERO_REEL.src}
-            preload="none"
-            muted
-            loop
-            playsInline
-            onPlaying={() => setVideoLive(true)}
-            className={`absolute inset-0 size-full object-cover transition-opacity duration-500 ${
-              videoLive ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        )}
-        {/* The scrim keeps the lower-third type legible over any footage. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40" />
+      {/* THE ALBUM WALL (see the header comment). The grid is taller than the
+          viewport and drifts slowly; the doubled sequence covers the travel. */}
+      <div className="absolute inset-x-0 -top-[6%] -bottom-[10%]" aria-hidden>
+        <div
+          data-mkt-wall
+          className="grid h-[130%] w-full grid-flow-dense auto-rows-[minmax(0,1fr)] grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5"
+        >
+          {WALL_TILES.map((tile) => (
+            <div
+              key={tile.key}
+              className={`relative overflow-hidden ${tile.tall ? "row-span-2" : ""}`}
+            >
+              <Image
+                src={tile.src}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 20vw, (min-width: 640px) 25vw, 34vw"
+                loading={tile.index < WALL_EAGER ? "eager" : "lazy"}
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        {/* The scrim: a flat base darkening (bright tiles must never compete
+            with the H1) + lower-third weight + an edge vignette. The wall
+            stays visibly alive midframe, but the type is sovereign. */}
+        <div className="absolute inset-0 bg-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_30%_75%,transparent_30%,rgba(0,0,0,0.4)_100%)]" />
+      </div>
+
+      {/* THE REEL CARD: the album's live reel, sitting in the wall. */}
+      <div className="pointer-events-none absolute inset-0 hidden lg:block">
+        <div className="absolute right-[6%] bottom-[18%] w-[300px] xl:w-[340px]">
+          <div className="relative aspect-video overflow-hidden rounded-lg ring-1 ring-white/25">
+            <Image
+              src={HERO_REEL.poster}
+              alt=""
+              fill
+              sizes="260px"
+              loading="eager"
+              className="object-cover"
+            />
+            {showVideo && (
+              <video
+                ref={videoRef}
+                src={HERO_REEL.src}
+                preload="none"
+                muted
+                loop
+                playsInline
+                onPlaying={() => setVideoLive(true)}
+                className={`absolute inset-0 size-full object-cover transition-opacity duration-500 ${
+                  videoLive ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            )}
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
+              <MonoCaption className="text-white/80">The reel</MonoCaption>
+              <MonoCaption className="text-white/60">
+                0:{String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
+              </MonoCaption>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="relative">
-        <Container className="pt-24 pb-10 sm:pb-14">
+        <Container className="pt-28 pb-14 sm:pb-20">
           <p className="text-xs font-medium tracking-[0.22em] text-white/60 uppercase">
             {HERO_EYEBROW}
           </p>
@@ -231,12 +249,12 @@ export function CinemaHero() {
               {reduced ? (
                 <span>event</span>
               ) : (
-                <RollWord word={KINETIC_WORDS[shot % KINETIC_WORDS.length]} />
+                <RollWord word={KINETIC_WORDS[wordIndex]} />
               )}
             </span>
             {THESIS_AFTER}
           </h1>
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-pretty text-white/70">
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-pretty text-white/75">
             {SITE_SUBHEAD}
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -255,33 +273,6 @@ export function CinemaHero() {
           </div>
           <div className="mt-4">
             <DemoCtaLink className="text-white/60 hover:text-white" />
-          </div>
-
-          {/* Story-style progress (one segment per shot, boundaries-count) +
-              the mono timecode; the sync loop writes both through refs. */}
-          <div className="mt-8 flex items-center gap-4">
-            <div className="flex flex-1 gap-1.5">
-              {boundaries.map((b, i) => (
-                <span
-                  key={b}
-                  className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/25"
-                >
-                  <span
-                    ref={(el) => {
-                      segRefs.current[i] = el;
-                    }}
-                    className="block h-full w-full origin-left bg-white"
-                    style={{ transform: "scaleX(0)" }}
-                  />
-                </span>
-              ))}
-            </div>
-            <span
-              ref={timeRef}
-              className="font-mono text-[11px] text-white/50 tabular-nums"
-            >
-              {formatTimecode(0, dur)}
-            </span>
           </div>
         </Container>
       </div>
@@ -324,9 +315,7 @@ function RollWord({ word }: { word: string }) {
   // Keep the explicit width synced to the sizer's RENDERED size: measures on
   // the word swap AND re-syncs whenever the sizer's own box changes (a late
   // webfont swap, a breakpoint's font-size change, zoom) via ResizeObserver.
-  // Waiting for "the next cycle" to self-correct is not enough here: a paused
-  // substrate (play() rejected on Low Power Mode) never advances the word, so
-  // a stale measure would leave the H1 clipped indefinitely (caught in the c1
+  // A stale measure would leave the H1 clipped indefinitely (caught in the c1
   // verification pass). ceil() guards sub-pixel clipping; the sizer renders
   // inline-block because ResizeObserver never fires for inline boxes.
   useLayoutEffect(() => {
