@@ -172,8 +172,53 @@ export const MARKETING_IMAGES: readonly MarketingImage[] = [
   },
 ];
 
-/** Rendered reel loops. Empty until the first render session records its recipes (Track B F4). */
-export const MARKETING_REELS: readonly MarketingReel[] = [];
+/**
+ * Rendered reel loops. CANDIDATES ONLY so far (rendered from the bootstrap set for the hero
+ * substrate lab round); finals re-render from the batch-OK'd set before milestone-4 ships (the
+ * provenance gate). Boundaries were extracted from planReel for the exact recipe (transition
+ * midpoints; frame-exact at 24fps).
+ */
+export const MARKETING_REELS: readonly MarketingReel[] = [
+  {
+    id: "hero-candidate-01",
+    src: "/marketing/reels/hero-candidate-01.mp4",
+    poster: "/marketing/posters/hero-candidate-01.jpg",
+    orientation: "portrait",
+    durationSeconds: 13.083333333333334,
+    shotBoundaries: [0, 2.375, 4.5, 6.541666666666667, 8.666666666666666, 10.75],
+    recipe: {
+      styleId: "classic",
+      seed: 73,
+      clipIds: [
+        "wedding-golden",
+        "party-balloons",
+        "festival-crowd",
+        "wedding-petals",
+        "party-dj",
+        "wedding-toast",
+      ],
+      sourceBitrate: 4_000_000,
+      finish: "ffmpeg scale=720:1280 b:v 2200k yuv420p +faststart -an",
+      renderedAt: "2026-08-25",
+    },
+  },
+  {
+    id: "hero-candidate-02",
+    src: "/marketing/reels/hero-candidate-02.mp4",
+    poster: "/marketing/posters/hero-candidate-02.jpg",
+    orientation: "landscape",
+    durationSeconds: 8.25,
+    shotBoundaries: [0, 2.1666666666666665, 4.125, 6],
+    recipe: {
+      styleId: "golden",
+      seed: 73,
+      clipIds: ["festival-lights", "festival-crowd", "concert-confetti", "party-dj"],
+      sourceBitrate: 4_000_000,
+      finish: "ffmpeg scale=1280:720 b:v 2200k yuv420p +faststart -an",
+      renderedAt: "2026-08-25",
+    },
+  },
+];
 
 const IMAGE_BY_ID = new Map(MARKETING_IMAGES.map((m) => [m.id, m]));
 

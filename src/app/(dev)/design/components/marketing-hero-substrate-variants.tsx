@@ -55,11 +55,14 @@ export type HeroCandidate = {
   shotBoundaries: number[];
 };
 
+// Values from the F4 render session (recipe: mixed-6 clips, classic, seed 73 —
+// see MARKETING_REELS "hero-candidate-01"): planReel-extracted transition
+// midpoints, so the word flips exactly where the engine actually cuts.
 const HERO_CANDIDATE: HeroCandidate = {
   src: "/marketing/reels/hero-candidate-01.mp4",
   poster: "/marketing/posters/hero-candidate-01.jpg",
-  durationSeconds: 8,
-  shotBoundaries: [0, 2, 4, 6],
+  durationSeconds: 13.083333333333334,
+  shotBoundaries: [0, 2.375, 4.5, 6.541666666666667, 8.666666666666666, 10.75],
 };
 
 /** Montage stills, one per shot/word (wedding, birthday, festival, send-off). */
