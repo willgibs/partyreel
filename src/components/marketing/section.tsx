@@ -15,6 +15,12 @@ type SectionProps = ComponentProps<"section"> & {
   containerClassName?: string;
 };
 
+// DEPRECATED (Track B): superseded by system/section-shell.tsx (SectionShell),
+// which adds the h1/h2 choice, width clamps, the entrance registers, and the
+// --mkt-header-h scroll margin. Do NOT build new sections on this. It stays only
+// until the remaining callers (features/events/careers pages) migrate with their
+// own tracks' rebuilds — migrate your caller, then delete this file with the last one.
+//
 // Shared marketing section: consistent vertical rhythm + an optional heading
 // block, so every homepage section lines up without copy-pasting the wrapper.
 // `scroll-mt-20` clears the sticky h-16 header when an anchor link jumps here.

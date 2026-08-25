@@ -1,7 +1,7 @@
 import type { Viewport } from "next";
 
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
-import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
+import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 
 // THE CINEMA SKIN (Track B theme posture, T2.5 Call 3: product is cinema, docs
 // are paper). The wrapper's `dark` class is the descendant-scoped token flip
@@ -21,7 +21,8 @@ export default function CinemaLayout({
       data-mkt
       data-mkt-skin="cinema"
     >
-      <MarketingHeader />
+      {/* skin="cinema" -> THE PORTAL RULE: portaled nav content re-darkens. */}
+      <MarketingHeader skin="cinema" />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
     </div>

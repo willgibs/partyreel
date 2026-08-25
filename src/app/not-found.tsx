@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
-import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
+import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
 
 // Root catch-all 404 for UNMATCHED URLs (and any notFound() with no nearer boundary).
@@ -11,6 +11,10 @@ import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
 // (app) — so the group layout's header/footer is never doubled here (the (marketing) one
 // exists precisely to stop the root chrome from stacking on top of the marketing layout's,
 // which was live-caught). Next returns a 404 status and injects noindex.
+// NOTE (Track B): this renders OUTSIDE (marketing), so marketing.css never loads here —
+// the chrome's --mkt-header-h fallback covers it, and it stays theme-following (no skin
+// prop); the marketing-side 404s live in (marketing)/(cinema|paper)/not-found.tsx. The
+// dark re-skin of this boundary belongs to the B3 reading track, not the chrome move.
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false, follow: false },

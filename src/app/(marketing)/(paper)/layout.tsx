@@ -1,5 +1,5 @@
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
-import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
+import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 
 // THE PAPER SKIN (Track B theme posture, T2.5 Call 3): reading surfaces stay
 // theme-following (light default) — no `dark` class, no viewport override (the
