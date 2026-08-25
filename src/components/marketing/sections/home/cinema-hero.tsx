@@ -166,7 +166,7 @@ export function CinemaHero() {
     <section
       ref={pauseRef}
       data-paused={paused ? "true" : undefined}
-      className="relative flex min-h-[calc(100svh-var(--mkt-header-h,4rem))] flex-col justify-end overflow-hidden"
+      className="relative -mt-[var(--mkt-header-h,4rem)] flex min-h-[100svh] flex-col justify-end overflow-hidden"
     >
       {/* THE ALBUM WALL (see the header comment). The grid is taller than the
           viewport and drifts slowly; the doubled sequence covers the travel. */}

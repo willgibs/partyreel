@@ -28,7 +28,7 @@ export default function CinemaLayout({
       data-mkt-skin="cinema"
     >
       {/* skin="cinema" -> THE PORTAL RULE: portaled nav content re-darkens. */}
-      <MarketingHeader skin="cinema" />
+      <MarketingHeader skin="cinema" overlay />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
       {/* Key-gated (server-validated ?key=) and inert for everyone else; layouts
