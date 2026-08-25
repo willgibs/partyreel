@@ -4,14 +4,14 @@ import {
   OrganizationJsonLd,
   WebsiteJsonLd,
 } from "@/components/marketing/jsonld";
-import { MarketingFooter } from "@/components/marketing/marketing-footer";
-import { MarketingHeader } from "@/components/marketing/marketing-header";
 
-// Chrome for the public marketing surface. Lives in its own route group so the
-// host app `(app)` and guest `(guest)` groups can render completely different
-// layouts on the SAME domain — clean shared links, no full reload between
-// groups (the one minimal root layout in app/layout.tsx ties them together).
-// See ADR-0002.
+// The (marketing) group root, slimmed to the cross-skin concerns: the JSON-LD
+// emitters + the marketing.css import (motion grammar + skin blocks; loaded once
+// for every marketing route). The CHROME lives in the nested (cinema) / (paper)
+// group layouts (Track B theme posture) so each skin owns its wrapper — which
+// also means anything rendered at THIS level (error.tsx) has NO header/footer;
+// the group-owned not-found.tsx files exist for exactly that reason. See
+// ADR-0002 for the route-group domain split.
 export default function MarketingLayout({
   children,
 }: {
@@ -21,9 +21,7 @@ export default function MarketingLayout({
     <>
       <OrganizationJsonLd />
       <WebsiteJsonLd />
-      <MarketingHeader />
-      <main className="flex-1">{children}</main>
-      <MarketingFooter />
+      {children}
     </>
   );
 }
