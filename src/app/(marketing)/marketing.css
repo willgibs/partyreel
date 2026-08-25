@@ -1,0 +1,212 @@
+/* ════════════════════════════════════════════════════════════════════════════════
+   MARKETING MOTION + SKIN (Track B; imported ONLY by the (marketing) layout).
+
+   THE CONTAINMENT CONTRACT (pinned by marketing-css-policy.test.ts): this file
+   persists app-wide once any marketing route has loaded (Next never unloads
+   layout CSS on client navigation), so nothing here may touch global names:
+   NO `:root` declarations, NO bare element selectors (the one sanctioned
+   `body:has([data-mkt…])` excepted), every `@keyframes` name `mkt-`-prefixed
+   (keyframes are document-global; an unprefixed `shimmer` would hijack the
+   app's skeletons), and NO defining the Tailwind/theme ease names
+   (`--ease-out` etc. — an unlayered definition outranks the theme layer and
+   silently re-times the whole app). Tokens declare on `[data-mkt]`.
+
+   THE MOTION REGISTERS: the `[data-mkt-*]` grammar below is the CINEMATIC
+   register (the five ratified signature mechanics, lab-ratified 2026-07-03,
+   promoted here per the `[data-rvl-*]` recipe precedent in globals.css with
+   `--dir-ease` remapped to `--ease-emphasis`). transitions.dev recipes form
+   the STANDARD register (chapter 2, added by the build tracks, re-tokened to
+   house curves). Four curves only: --ease-emphasis, --mkt-ease-pop,
+   --ease-in-out-strong, --ease-drawer.
+
+   House convention throughout: FINAL states sit OUTSIDE the media queries (a
+   reduced-motion jump still ARRIVES), transitions live inside no-preference,
+   and the reduce block collapses to fades. Marketing is the one surface
+   allowed past the 300ms UI ceiling (cinematic reveals are explanatory, not
+   workflow) — bounded by reduced-motion safety and the loop-pause contract:
+   every infinite animation carries `data-paused` wiring (use-ambient-pause).
+
+   Dropped on promotion: `[data-mkt-plate]` + `[data-mkt-rule]` (Direction A's
+   grammar; A was rejected "too templated" and nothing ratified uses them).
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Chapter 1: the cinematic [data-mkt-*] grammar ─── */
+
+[data-mkt] {
+  /* Direction-C's playful curve: a restrained overshoot (crafted, not cartoonish). */
+  --mkt-ease-pop: cubic-bezier(0.34, 1.45, 0.64, 1);
+  /* The QR pulse ring, tokened so it reads on paper AND cinema (no color literals here). */
+  --mkt-pulse-ring: color-mix(in oklab, var(--foreground) 18%, transparent);
+  /* The one knob chrome + anchors share; SectionShell scroll-margins ride it too. */
+  --mkt-header-h: 4rem;
+}
+
+/* Final states first (outside media queries: reduced motion still ARRIVES). */
+[data-inview="true"] [data-mkt-reveal],
+[data-inview="true"][data-mkt-reveal] {
+  opacity: 1;
+  transform: none;
+}
+[data-mkt-fly][data-on="true"],
+[data-mkt-toast][data-on="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity var(--mkt-reveal-ms, 700ms) var(--ease-emphasis),
+      transform var(--mkt-reveal-ms, 700ms) var(--ease-emphasis);
+    transition-delay: calc(var(--i, 0) * var(--mkt-stagger-ms, 90ms));
+  }
+
+  [data-mkt-shot] {
+    animation: mkt-kenburns 14s linear infinite alternate;
+    animation-delay: calc(var(--shot-i, 0) * -3.5s);
+  }
+
+  /* A film cut settles hard: near-instant presence, then a short scale landing.
+     Deliberately NOT a soft fade (that would read editorial, not cinema). */
+  [data-inview="true"] [data-mkt-cut] {
+    animation: mkt-cut 480ms var(--ease-emphasis) both;
+    animation-delay: calc(var(--i, 0) * 120ms);
+  }
+
+  [data-mkt-marquee] {
+    animation: mkt-marquee 32s linear infinite;
+  }
+
+  [data-mkt-fly] {
+    opacity: 0;
+    transform: translate(var(--fly-x, -56px), var(--fly-y, -20px)) scale(0.55);
+    transition:
+      opacity 380ms var(--mkt-ease-pop),
+      transform 460ms var(--mkt-ease-pop);
+    transition-delay: calc(var(--i, 0) * 65ms);
+  }
+
+  [data-mkt-toast] {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+    transition:
+      opacity 300ms var(--ease-emphasis),
+      transform 300ms var(--ease-emphasis);
+  }
+
+  [data-mkt-scan][data-on="true"] {
+    animation: mkt-scan 950ms var(--ease-in-out-strong) both;
+  }
+
+  [data-mkt-pulse] {
+    animation: mkt-pulse 2.2s ease-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reveals keep a gentle fade (comprehension aid), movement is dropped. */
+  [data-mkt-reveal] {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    transition-delay: 0ms;
+  }
+  [data-mkt-fly],
+  [data-mkt-toast] {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    transition-delay: 0ms;
+    transform: none;
+  }
+}
+
+/* THE LOOP-PAUSE CONTRACT (production addition the lab lacked): use-ambient-pause
+   mirrors its `paused` onto the loop element or a shared container as
+   `data-paused`; either form freezes the ambient set. Videos pause imperatively. */
+[data-mkt] :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse])[data-paused="true"],
+[data-mkt] [data-paused="true"] :is([data-mkt-marquee], [data-mkt-shot], [data-mkt-pulse]) {
+  animation-play-state: paused;
+}
+
+@keyframes mkt-kenburns {
+  from {
+    transform: scale(1.06) translate(0.6%, 0.6%);
+  }
+  to {
+    transform: scale(1.14) translate(-0.6%, -0.6%);
+  }
+}
+
+@keyframes mkt-cut {
+  from {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mkt-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mkt-scan {
+  from {
+    transform: translateY(-130%);
+  }
+  to {
+    transform: translateY(240%);
+  }
+}
+
+@keyframes mkt-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--mkt-pulse-ring);
+  }
+  70% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes mkt-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ─── Chapter 2: the standard register (transitions.dev recipes, re-tokened) ───
+   Added by the build tracks per the plan's adopted-recipe map. lp/mkt-system
+   lands the full set in B1; lp/mkt-reel alone may append residuals. ─── */
+
+/* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
+   The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
+   data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema
+   room and fixes native form controls. 0-2-0 specificity so it can't lose the
+   --background tie against `.dark` on stylesheet order. The body:has rule stops
+   paper-light overscroll/short-page bleed around the wrapper (the red-team's
+   body-edge finding); it is the file's ONLY body selector, sanctioned by the
+   policy test. ─── */
+
+.dark[data-mkt-skin="cinema"] {
+  --background: oklch(0.11 0 0);
+  color-scheme: dark;
+}
+
+body:has([data-mkt-skin="cinema"]) {
+  background: oklch(0.11 0 0);
+  color-scheme: dark;
+}
