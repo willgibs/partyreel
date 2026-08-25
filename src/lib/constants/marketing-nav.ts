@@ -12,6 +12,11 @@ export function isNavGroup(item: NavItem): item is NavGroup {
   return "children" in item;
 }
 
+// The primary conversion CTA, single-sourced (Track B): the header, the mobile
+// sheet, and CtaBand all read THIS, so the label can never drift back to the
+// retired "Get started" (a Vitest pin holds it). The ruled label is "Start free".
+export const MARKETING_CTA: NavLink = { label: "Start free", href: "/login" };
+
 // Desktop header primary nav (between the logo and the CTAs). Anchors use `/#id`
 // (not `#id`) so they resolve from any page. The Events children mirror EVENT_TYPES
 // in lib/constants/events.ts (kept here as plain strings so this nav module stays
