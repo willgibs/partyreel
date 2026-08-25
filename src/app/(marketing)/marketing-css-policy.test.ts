@@ -106,7 +106,10 @@ describe("marketing.css containment policy", () => {
         const sanctioned =
           lit === "oklch(0.11 0 0)" ||
           /^rgba?\(\s*255\s*,\s*255\s*,\s*255/.test(lit) ||
-          (lit === "#000" && /mask-image/.test(chunk));
+          (lit === "#000" && /mask-image/.test(chunk)) ||
+          // The accent block (the 2026-08-25 achromatic ruling): color
+          // literals may define ONLY the --mkt-confetti-N tokens.
+          /--mkt-confetti-\d\s*:/.test(chunk);
         expect(sanctioned, `${lit} in: ${chunk.trim()}`).toBe(true);
       }
     });

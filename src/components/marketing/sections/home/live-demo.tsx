@@ -2,8 +2,9 @@
 
 import { Play, QrCode, RotateCcw } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
+import { ConfettiBurst } from "@/components/marketing/sections/shared/confetti-burst";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
@@ -71,6 +72,7 @@ export function LiveDemo() {
   const { ref: pauseRef, paused } = useAmbientPause<HTMLDivElement>();
   const [phase, setPhase] = useState<Phase>("idle");
   const [runId, setRunId] = useState(0);
+  const payoffRef = useRef<HTMLDivElement | null>(null);
 
   // Every step (including the reset) is timeout-scheduled: setState stays out
   // of the effect body (lint) AND a replay visibly restarts from a clean stage.
@@ -166,8 +168,21 @@ export function LiveDemo() {
             </div>
           </div>
 
+          {/* THE CELEBRATORY BEAT (the achromatic ruling's canonical accent):
+              colored confetti with real physics rains once per run when the
+              reel lands, colliding with the payoff card below. One-shot, never
+              a loop; reduced motion skips it inside the component (and the
+              reduced path never staggers phases anyway). */}
+          {!reduced && (
+            <ConfettiBurst
+              fire={after(phase, "reel") ? runId + 1 : 0}
+              targetRef={payoffRef}
+            />
+          )}
+
           {/* The payoff: the reel card lands once the album has filled. */}
           <div
+            ref={payoffRef}
             data-mkt-toast
             data-on={after(phase, "reel") ? "true" : undefined}
             className="absolute right-4 bottom-4 flex items-center gap-3 rounded-xl border bg-popover/95 p-3 pr-4 backdrop-blur sm:right-6 sm:bottom-6"

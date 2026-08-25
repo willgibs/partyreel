@@ -16,21 +16,33 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 const GUEST_LINE =
   "Your guests just see the good part: one clean album, the best of everyone's camera roll.";
 
-const CONTROLS: { icon: LucideIcon; title: string; body: string }[] = [
+// `tint` = the app's REAL action colors (approve green, hide amber, the reel
+// violet on the sweep), per the 2026-08-25 achromatic ruling: accents where
+// they add clarity — here they teach the product's universal action-color
+// system before the visitor ever signs in. Icon-stroke only; chrome stays ink.
+const CONTROLS: {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  tint: string;
+}[] = [
   {
     icon: ListChecks,
     title: "Approve in one scroll",
     body: "Review new uploads in a single pass, and hold anything for approval before it goes public.",
+    tint: "text-success",
   },
   {
     icon: EyeOff,
     title: "Hide with a tap",
     body: "Tuck a photo away instantly. Hidden stays hidden, and guests never see it.",
+    tint: "text-warning",
   },
   {
     icon: CopyCheck,
     title: "Bulk select",
     body: "Sweep up dozens at once to feature, hide, or download together.",
+    tint: "text-reel",
   },
 ];
 
@@ -49,7 +61,9 @@ export function Curation() {
             className="flex flex-col items-center gap-3 text-center"
             style={{ "--i": i } as CSSProperties}
           >
-            <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
+            <span
+              className={`flex size-10 items-center justify-center rounded-lg border ${item.tint}`}
+            >
               <item.icon className="size-5" strokeWidth={1.5} />
             </span>
             <h3 className="font-heading text-base font-medium">{item.title}</h3>
