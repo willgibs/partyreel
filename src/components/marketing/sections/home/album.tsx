@@ -68,17 +68,19 @@ export function Album() {
 function AlbumVisual() {
   return (
     /* THE STRADDLE (the chapter seam's one signature, lg+): the album card
-       translates up across the dark→paper cut so it sits half on the event's
-       dark field, half on the morning-after paper — the album arriving out of
-       the event into daylight, the chapter doctrine drawn literally. translate
-       (not margin) so layout never shifts: the section keeps its box and the
-       card simply paints over the seam (the transform also makes it a stacking
-       context, so it rides above the preceding dark section's content).
-       shadow-float is the light theme's real elevation, which the paper
-       chapter restores — over the dark field it reads as a print laid on the
-       desk. Below lg the split stacks and the plain hard cut carries the
-       seam. */
-    <div aria-hidden className="lg:-translate-y-24">
+       overhangs the dark→paper cut so it sits half on the event's dark field,
+       half on the morning-after paper — the album arriving out of the event
+       into daylight, the chapter doctrine drawn literally. NEGATIVE MARGIN,
+       not translate (Will's checkpoint catch): a transform left the layout
+       box behind — a phantom gap under the card and the copy centered against
+       the untranslated row. The margin genuinely shrinks the grid row, so the
+       card's box overhangs the chapter top for real and items-center centers
+       the copy against what's visible. relative+z keep it painting over the
+       dark section it overhangs. shadow-float is the light theme's real
+       elevation, which the paper chapter restores — over the dark field it
+       reads as a print laid on the desk. Below lg the split stacks and the
+       plain hard cut carries the seam. */
+    <div aria-hidden className="relative z-10 lg:-mt-40">
       <BrowserFrame
         className="lg:shadow-[var(--shadow-float)]"
         label="partyreel.com/a/maya-and-jay"

@@ -1,5 +1,3 @@
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
-import { Container } from "@/components/shared/container";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,6 +21,16 @@ import { cn } from "@/lib/utils";
  *    properties substitute at the DECLARING element — without data-mkt here
  *    the ring inherits pre-baked 18%-white from the cinema wrapper and turns
  *    invisible on paper). Same reason portalSkinProps re-applies data-mkt.
+ *  - The stacked-viewport variant compresses the child sections' py-20/24 to
+ *    py-14 below lg (the wrapper's extra type-selector specificity beats the
+ *    child utility): the cut double-stacked two section paddings into a long
+ *    quiet stretch on phones (Will's checkpoint note). Desktop keeps the full
+ *    rhythm — the straddle needs the room.
+ *
+ * NO chapter-label slot, on purpose: a floating "On paper" kicker confused
+ * its first reader (Will, checkpoint review) — chapters announce through
+ * their sections' own eyebrows and headers, the device that already works.
+ * Don't reintroduce a kicker.
  *
  * Doctrine (do NOT relax):
  *  - NEVER put `data-mkt-skin` on a chapter — `body:has([data-mkt-skin=...])`
@@ -36,31 +44,20 @@ import { cn } from "@/lib/utils";
  *    the cut with negative margin) must be free to overhang the chapter box.
  */
 export function PaperChapter({
-  kicker,
   className,
   children,
   ...props
-}: React.ComponentProps<"section"> & {
-  /** Optional chapter label at the cut, mono register ("the bigger concept"
-   *  beat). Copy comes from marketing-voice CHAPTER_KICKERS (provisional). */
-  kicker?: string;
-}) {
+}: React.ComponentProps<"section">) {
   return (
     <section
       data-mkt
       className={cn(
         "surface-paper border-y bg-background text-foreground",
+        "max-lg:[&>section]:py-14",
         className,
       )}
       {...props}
     >
-      {kicker ? (
-        <Container className="pt-14 sm:pt-16">
-          <MonoCaption className="text-center tracking-[0.18em] uppercase">
-            {kicker}
-          </MonoCaption>
-        </Container>
-      ) : null}
       {children}
     </section>
   );

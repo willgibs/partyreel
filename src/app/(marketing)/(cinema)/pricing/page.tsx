@@ -13,7 +13,7 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
-import { CHAPTER_KICKERS, GOLDEN_LINES } from "@/lib/constants/marketing-voice";
+import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
 import {
   friendlyCapacity,
   MAX_REEL_SECONDS,
@@ -154,8 +154,10 @@ export default function PricingPage() {
       {/* THE PAPER DOCUMENT IN A DARK ROOM (the 2026-08-26 chapter ruling):
           the money turns the page to paper — plans read as the honest sheet
           (receipts, clarity, trust), framed by the dark hero above and the
-          dark close below. The kicker debuts here (provisional copy). */}
-      <PaperChapter kicker={CHAPTER_KICKERS.pricing}>
+          dark close below. No chapter label: the "On paper" kicker confused
+          its first reader (Will's checkpoint review) — the cut speaks for
+          itself. */}
+      <PaperChapter>
         <SectionShell>
           <Reveal className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-3">
             {/* Free */}
