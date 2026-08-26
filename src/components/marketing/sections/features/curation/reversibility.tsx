@@ -109,15 +109,25 @@ export function Reversibility() {
       heading="Nothing here has to be final."
       subhead="Curation is a series of small, reversible calls. The only permanent delete is the one you confirm on purpose."
     >
-      <div className="mx-auto mt-12 max-w-5xl">
-        <MediaSplit media={<TrashMock />} mediaSide="end">
-          <Reveal className="flex flex-col gap-7">
+      {/* One Reveal around the whole split so the Trash mock arrives WITH the
+          trio instead of standing there already-painted; slots continue
+          SectionShell's header count (0-2). */}
+      <Reveal className="mx-auto mt-12 max-w-5xl">
+        <MediaSplit
+          media={
+            <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+              <TrashMock />
+            </div>
+          }
+          mediaSide="end"
+        >
+          <div className="flex flex-col gap-7">
             {TRIO.map((item, i) => (
               <div
                 key={item.title}
                 data-mkt-reveal
                 className="flex items-start gap-4"
-                style={{ "--i": i } as CSSProperties}
+                style={{ "--i": 3 + i } as CSSProperties}
               >
                 <span
                   className={`flex size-10 shrink-0 items-center justify-center rounded-lg border ${item.tint}`}
@@ -134,14 +144,14 @@ export function Reversibility() {
                 </div>
               </div>
             ))}
-            <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+            <div data-mkt-reveal style={{ "--i": 5 } as CSSProperties}>
               <LearnMoreLink href="/help/how-long-media-is-kept">
                 How long media is kept
               </LearnMoreLink>
             </div>
-          </Reveal>
+          </div>
         </MediaSplit>
-      </div>
+      </Reveal>
     </SectionShell>
   );
 }

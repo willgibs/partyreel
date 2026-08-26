@@ -12,9 +12,11 @@ import {
 
 import { BrowserFrame } from "@/components/marketing/frames";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { readCssMs } from "@/lib/shared/read-css-ms";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -47,16 +49,40 @@ const QUEUE_IDS = [
   "wedding-toast",
   "concert-confetti",
 ];
-const ALBUM_SEED_IDS = [
-  "wedding-golden",
-  "reception-table",
-  "party-dj",
-  "festival-crowd",
+// The album already has a life before the queue clears: a FULL first row of
+// real shots (every manifest image the queue isn't using), so the resting frame
+// reads as a working album with room to fill instead of a sheet of empty slots.
+// One seed rests HIDDEN so the caption's "hidden items land dimmed" has
+// something to point at before you touch anything.
+const ALBUM_SEEDS: { id: string; hidden?: boolean }[] = [
+  { id: "wedding-golden" },
+  { id: "reception-table" },
+  { id: "wedding-arch" },
+  { id: "party-dj", hidden: true },
+  { id: "festival-crowd" },
+  { id: "wedding-petals" },
 ];
 
+// The approve cascade's offset. Deliberately longer than the entrance stagger
+// token: this is sequential ACTION feedback (you watch each verdict land), not
+// an entrance, so the usage is a readable beat rather than a group arrival.
 const APPROVE_STAGGER_MS = 160;
-// The mkt-check draw (500ms) + its path delay (80ms) + a settle beat.
-const CHECK_MS = 700;
+// The tile settles for a breath after the check finishes drawing.
+const CHECK_SETTLE_MS = 120;
+
+/**
+ * How long the approval beat runs, READ from the CSS clocks that own it
+ * (marketing.css chapter 2's check recipe) so a tuner change can never desync
+ * the JS wait. readCssMs, never parseInt: Lightning CSS canonicalizes 500ms
+ * to `.5s` and parseInt would collapse the beat to 0.
+ */
+function checkBeatMs() {
+  return (
+    readCssMs("--mkt-check-dur", 500) +
+    readCssMs("--mkt-check-path-delay", 80) +
+    CHECK_SETTLE_MS
+  );
+}
 
 export function ReviewQueueDemo() {
   const [runId, setRunId] = useState(0);
@@ -68,12 +94,21 @@ export function ReviewQueueDemo() {
         "Turn on review and new uploads wait for you instead of going live. This queue works: clear it in one tap, or Select just the exceptions."
       }
     >
-      <div className="mx-auto mt-10 max-w-3xl">
-        <QueueStage key={runId} onReplay={() => setRunId((n) => n + 1)} />
-        <MonoCaption className="mt-4 text-center">
+      {/* The body rides the header's choreography: SectionShell's own Reveal
+          spends --i 0-2 on eyebrow/heading/subhead, so the frame and its
+          caption arrive together on slot 3 (one device, one arrival). */}
+      <Reveal className="mx-auto mt-10 max-w-3xl">
+        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+          <QueueStage key={runId} onReplay={() => setRunId((n) => n + 1)} />
+        </div>
+        <MonoCaption
+          data-mkt-reveal
+          className="mt-4 text-center"
+          style={{ "--i": 3 } as CSSProperties}
+        >
           the host view · hidden items land dimmed, and only you see them
         </MonoCaption>
-      </div>
+      </Reveal>
     </SectionShell>
   );
 }
@@ -100,7 +135,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
   ).length;
   const cleared = queueCount === 0;
   const galleryCount =
-    ALBUM_SEED_IDS.length +
+    ALBUM_SEEDS.length +
     QUEUE_IDS.filter(
       (id) => states[id] === "approved" || states[id] === "hidden",
     ).length;
@@ -121,6 +156,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
       });
       return;
     }
+    const beat = checkBeatMs();
     ids.forEach((id, i) => {
       timers.current.push(
         setTimeout(
@@ -129,7 +165,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
         ),
         setTimeout(
           () => setStates((s) => ({ ...s, [id]: "approved" })),
-          i * APPROVE_STAGGER_MS + CHECK_MS,
+          i * APPROVE_STAGGER_MS + beat,
         ),
       );
     });
@@ -269,22 +305,17 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
               </span>
             </span>
           </div>
-          <div className="mt-2.5 grid grid-cols-5 gap-1.5">
-            {ALBUM_SEED_IDS.map((id) => (
-              <AlbumCell key={id}>
-                <Image
-                  src={marketingImage(id).src}
-                  alt=""
-                  fill
-                  sizes="130px"
-                  className="object-cover"
-                />
+          {/* Six columns, same rhythm as the queue above: the seeds fill row
+              one, the six landing slots wait as row two. */}
+          <div className="mt-2.5 grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+            {ALBUM_SEEDS.map((seed) => (
+              <AlbumCell key={seed.id}>
+                <AlbumPhoto id={seed.id} hidden={Boolean(seed.hidden)} />
               </AlbumCell>
             ))}
             {QUEUE_IDS.map((id) => {
               const landed =
                 states[id] === "approved" || states[id] === "hidden";
-              const hidden = states[id] === "hidden";
               return (
                 <AlbumCell key={id}>
                   <div
@@ -299,25 +330,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
                       } as CSSProperties
                     }
                   >
-                    <div
-                      className={cn(
-                        "absolute inset-0 overflow-hidden rounded-lg",
-                        hidden && "opacity-40",
-                      )}
-                    >
-                      <Image
-                        src={marketingImage(id).src}
-                        alt=""
-                        fill
-                        sizes="130px"
-                        className="object-cover"
-                      />
-                    </div>
-                    {hidden && (
-                      <span className="absolute right-1 bottom-1 flex size-5 items-center justify-center rounded-full bg-background/85 text-warning">
-                        <EyeOff className="size-3" />
-                      </span>
-                    )}
+                    <AlbumPhoto id={id} hidden={states[id] === "hidden"} />
                   </div>
                 </AlbumCell>
               );
@@ -339,6 +352,36 @@ function AlbumCell({ children }: { children: ReactNode }) {
       />
       {children}
     </div>
+  );
+}
+
+/**
+ * One album tile. Hidden is the HOST's view of it: dimmed, with the amber
+ * eye badge, which is exactly what the caption under the frame promises.
+ */
+function AlbumPhoto({ id, hidden }: { id: string; hidden: boolean }) {
+  return (
+    <>
+      <div
+        className={cn(
+          "absolute inset-0 overflow-hidden rounded-lg",
+          hidden && "opacity-40",
+        )}
+      >
+        <Image
+          src={marketingImage(id).src}
+          alt=""
+          fill
+          sizes="130px"
+          className="object-cover"
+        />
+      </div>
+      {hidden && (
+        <span className="absolute right-1 bottom-1 flex size-5 items-center justify-center rounded-full bg-background/85 text-warning">
+          <EyeOff className="size-3" />
+        </span>
+      )}
+    </>
   );
 }
 

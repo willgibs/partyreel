@@ -38,13 +38,14 @@ export function PeopleNotMachines() {
       heading="People, not machines."
       subhead="When something should come down, a human decides, and the host always moves fastest."
     >
+      {/* Slots continue SectionShell's header count (0-2). */}
       <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-8 gap-y-10 sm:grid-cols-3">
         {ITEMS.map((item, i) => (
           <div
             key={item.title}
             data-mkt-reveal
             className="flex flex-col items-center gap-3 text-center"
-            style={{ "--i": i } as CSSProperties}
+            style={{ "--i": 3 + i } as CSSProperties}
           >
             <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
               <item.icon className="size-5" strokeWidth={1.5} />
@@ -56,8 +57,12 @@ export function PeopleNotMachines() {
           </div>
         ))}
       </Reveal>
-      {/* GoDeeper: the ladder's bottom rung into the help center. */}
-      <Reveal className="mt-14 flex flex-col items-center gap-2 text-center">
+      {/* GoDeeper: the ladder's bottom rung into the help center. STILL by
+          convention (a pointer you find, not a beat that performs) — the old
+          <Reveal> here wrapped children carrying no [data-mkt-reveal], so it
+          was a dead island rendering statically anyway. Now that is the
+          deliberate call, and a plain div says so. */}
+      <div className="mt-14 flex flex-col items-center gap-2 text-center">
         <MonoCaption>The exact details live in the help center</MonoCaption>
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           <LearnMoreLink href="/help/who-can-see-your-event">
@@ -67,7 +72,7 @@ export function PeopleNotMachines() {
             How long media is kept
           </LearnMoreLink>
         </div>
-      </Reveal>
+      </div>
     </SectionShell>
   );
 }

@@ -93,7 +93,21 @@ export function Spine() {
       heading="Six steps, two sides."
       subhead="What you set up as the host and what your guests see, interleaved in the order a real event runs."
     >
-      <div className="mx-auto mt-16 flex max-w-5xl flex-col gap-20 sm:gap-24">
+      {/* The two-sided legend, moved down from the hero (where two inert chips
+          sat in the primary-action slot and read as dead buttons). Here it
+          annotates the chips it actually explains. */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+          <SideChip>Host</SideChip>
+          what you set up
+        </span>
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+          <SideChip>Guest</SideChip>
+          what your guests see
+        </span>
+      </div>
+
+      <div className="mx-auto mt-14 flex max-w-5xl flex-col gap-20 sm:gap-24">
         {STEPS.map((step, i) => (
           <Reveal
             key={step.title}
@@ -126,28 +140,36 @@ export function Spine() {
               >
                 {step.body}
               </p>
-              <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+              <div data-mkt-reveal style={{ "--i": 2 } as CSSProperties}>
                 <LearnMoreLink href={step.href}>{step.linkLabel}</LearnMoreLink>
               </div>
             </div>
+            {/* ONE width for every mock, centered in a column that never
+                changes size: the six frames used to run 280px to 448px with
+                different insets per step, so the two-column rhythm wobbled all
+                the way down the spine. The frame arrives with the step's body,
+                not before it. */}
             <div
               aria-hidden
               data-mkt-reveal
               className={`lg:col-span-7 ${i % 2 === 1 ? "lg:order-1" : ""}`}
               style={{ "--i": 2 } as CSSProperties}
             >
-              {step.frame}
+              <div className="mx-auto w-full max-w-md">{step.frame}</div>
             </div>
           </Reveal>
         ))}
       </div>
-      {/* GoDeeper: the one help article that retells this whole page plainly. */}
-      <Reveal className="mt-20 flex flex-col items-center gap-2 text-center">
+      {/* GoDeeper: the one help article that retells this whole page plainly.
+          STILL by convention (a pointer you find, not a beat that performs);
+          the old <Reveal> here wrapped children with no [data-mkt-reveal] and
+          animated nothing anyway. */}
+      <div className="mt-20 flex flex-col items-center gap-2 text-center">
         <MonoCaption>The exact details live in the help center</MonoCaption>
         <LearnMoreLink href="/help/how-partyreel-works">
           How Partyreel works
         </LearnMoreLink>
-      </Reveal>
+      </div>
     </SectionShell>
   );
 }

@@ -35,6 +35,9 @@ export function MediaLives() {
       heading="Boring, on purpose."
       subhead="Where your media lives is the least exciting part of Partyreel. We work hard to keep it that way."
     >
+      {/* Slots continue SectionShell's header count (0-2), and the seven rows
+          GROUP: the first three lead, the rest share the last delay, so the
+          document settles in ~180ms instead of drifting for 540. */}
       <Reveal className="mx-auto mt-12 max-w-2xl">
         <ol className="divide-y rounded-xl border bg-card/40">
           {FACTS.map((fact, i) => (
@@ -42,7 +45,7 @@ export function MediaLives() {
               key={fact}
               data-mkt-reveal
               className="flex items-baseline gap-5 px-5 py-4"
-              style={{ "--i": i } as CSSProperties}
+              style={{ "--i": Math.min(i, 2) + 3 } as CSSProperties}
             >
               <span className="font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
@@ -52,7 +55,10 @@ export function MediaLives() {
           ))}
         </ol>
       </Reveal>
-      <Reveal className="mt-14">
+      {/* StatBand owns its own in-view trigger and spin, so it needs no Reveal
+          around it (the old wrapper held no [data-mkt-reveal] child and did
+          nothing but render a div). */}
+      <div className="mt-14">
         <StatBand
           stats={[
             { value: 2, label: "Storage regions" },
@@ -60,7 +66,7 @@ export function MediaLives() {
             { value: WINDOW, suffix: "-day", label: "Recovery bin" },
           ]}
         />
-      </Reveal>
+      </div>
     </SectionShell>
   );
 }

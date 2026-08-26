@@ -31,17 +31,22 @@ export const CURATION_FAQ: FaqItem[] = [
 export function CurationFaq() {
   return (
     <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
-      <FaqAccordion items={CURATION_FAQ} />
-      <Reveal className="mt-10 flex flex-col items-center gap-2 text-center">
-        <MonoCaption data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-          the exact steps live in the help center
-        </MonoCaption>
-        <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
-          <LearnMoreLink href="/help/moderate-and-curate-your-album">
-            Curate what shows up in your album
-          </LearnMoreLink>
+      {/* The list arrives as one block on the slot after the header's lines,
+          instead of popping in finished under an animated heading. */}
+      <Reveal>
+        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+          <FaqAccordion items={CURATION_FAQ} />
         </div>
       </Reveal>
+      {/* GoDeeper rows stay STILL by convention (the quiet register: a pointer
+          you find, not a beat that performs). It used to rise; every GoDeeper
+          row on these pages is now consistently static. */}
+      <div className="mt-10 flex flex-col items-center gap-2 text-center">
+        <MonoCaption>the exact steps live in the help center</MonoCaption>
+        <LearnMoreLink href="/help/moderate-and-curate-your-album">
+          Curate what shows up in your album
+        </LearnMoreLink>
+      </div>
     </SectionShell>
   );
 }
