@@ -50,14 +50,19 @@ export function NeverRidesAlong() {
       heading="What never rides along."
       subhead="Most of the privacy work happens before a photo is ever visible, in defaults you never have to think about."
     >
+      {/* ONE column of claims, not a 2x2: at 1440 the old sub-grid squeezed
+          this to a ~181px measure (28 chars a line, every heading wrapping)
+          while the 375 stack read fine. Stacked, the claims run at the same
+          comfortable measure the phone already had. Slots continue
+          SectionShell's header count (0-2). */}
       <Reveal className="mx-auto mt-12 grid max-w-4xl items-center gap-x-12 gap-y-10 lg:grid-cols-[1fr_minmax(0,21rem)]">
-        <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+        <div className="flex flex-col gap-8">
           {CLAIMS.map((claim, i) => (
             <div
               key={claim.title}
               data-mkt-reveal
               className="flex items-start gap-4"
-              style={{ "--i": i } as CSSProperties}
+              style={{ "--i": 3 + i } as CSSProperties}
             >
               <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
                 <claim.icon className="size-4.5" strokeWidth={1.5} />
@@ -73,7 +78,7 @@ export function NeverRidesAlong() {
             </div>
           ))}
         </div>
-        <div data-mkt-reveal style={{ "--i": 4 } as CSSProperties}>
+        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
           <SettingsMock />
         </div>
       </Reveal>
