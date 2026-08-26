@@ -1,11 +1,12 @@
 "use client";
 
 import { Check, Download } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
 import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
   QR_PRESETS,
@@ -74,9 +75,14 @@ export function PresetSwitcher() {
           so the preview floated low under ~220px of dead air while the picker
           towered over it. Even columns, top-aligned, with a bigger code: the
           thing being styled outweighs the control that styles it. */}
-      <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+      {/* Body choreography: --i continues after the header's three slots. */}
+      <Reveal className="mx-auto mt-12 grid max-w-4xl grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
         {/* The one live code: a preset tap rerenders it in place. */}
-        <div className="flex flex-col gap-6 lg:col-span-6">
+        <div
+          data-mkt-reveal
+          style={{ "--i": 3 } as CSSProperties}
+          className="flex flex-col gap-6 lg:col-span-6"
+        >
           <div className="mx-auto w-fit">
             <div className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5">
               <div className="w-fit rounded-xl bg-white p-4">
@@ -103,7 +109,11 @@ export function PresetSwitcher() {
         </div>
 
         {/* The designer, quoted: the app's 2x2 swatch grid + save. */}
-        <div className="flex flex-col gap-5 lg:col-span-6">
+        <div
+          data-mkt-reveal
+          style={{ "--i": 4 } as CSSProperties}
+          className="flex flex-col gap-5 lg:col-span-6"
+        >
           <div className="mx-auto w-full max-w-md rounded-2xl border bg-card/60 p-4 sm:p-5">
             <div className="grid grid-cols-2 gap-3">
               {QR_STYLE_KEYS.map((key) => {
@@ -188,7 +198,7 @@ export function PresetSwitcher() {
             </MonoCaption>
           )}
         </div>
-      </div>
+      </Reveal>
     </SectionShell>
   );
 }
