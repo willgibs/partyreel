@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { JOB_SLUGS } from "@/lib/constants/careers";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
+import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { SITE_URL } from "@/lib/constants/site";
 import { getAllBlogSlugs } from "@/lib/content/blog";
 import { getAllSlugs as getHelpSlugs } from "@/lib/content/help";
@@ -20,6 +21,7 @@ type Entry = {
 const ROUTES: Entry[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/features", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/how-it-works", changeFrequency: "monthly", priority: 0.8 },
   { path: "/reel", changeFrequency: "monthly", priority: 0.8 },
   { path: "/events", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
@@ -35,6 +37,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   const entries: Entry[] = [
     ...ROUTES,
+    ...FEATURE_PAGE_SLUGS.map((slug) => ({
+      path: `/features/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
     ...EVENT_TYPE_SLUGS.map((slug) => ({
       path: `/events/${slug}`,
       changeFrequency: "monthly" as const,
