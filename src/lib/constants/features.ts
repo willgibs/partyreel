@@ -228,12 +228,6 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
   },
 ];
 
-// Home FeatureHighlights teaser = the curated `featured` subset (single source, no
-// copy duplicated between the home grid and the /features page).
-export const HOME_FEATURES: Feature[] = FEATURE_GROUPS.flatMap(
-  (group) => group.features,
-).filter((feature) => feature.featured);
-
 // The highlight reel, the product's namesake payoff, on the SHIPPED truth (the
 // 14-style canvas engine: named catalog, WYSIWYG preview, $0 on-device render).
 // Consumed by the /features reel band; deliberately number-free — counts render
