@@ -4,6 +4,7 @@ import { Check, Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
+import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
@@ -28,6 +29,16 @@ import { cn } from "@/lib/utils";
  */
 
 const QR_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
+
+/**
+ * R4 / review B8: at swatch scale a full event URL packs ~33 modules into ~100px,
+ * and Classic / Rounded / Dots become the same grey square — the headline says
+ * "four presets" while the visual proves one. The swatches encode a SHORT value
+ * instead, so the same real renderer draws chunky modules whose square / rounded
+ * / dot shapes are legible at a glance. The big live preview keeps the real
+ * (scannable) demo URL: only the style SAMPLES trade payload for legibility.
+ */
+const SWATCH_VALUE = "https://partyreel.com";
 const SAVED_FLASH_MS = 1600;
 
 export function PresetSwitcher() {
@@ -48,32 +59,52 @@ export function PresetSwitcher() {
     <SectionShell
       id="designer"
       eyebrow="The designer"
-      heading="Four presets. One rule: it has to scan."
+      heading={
+        <>
+          {/* R4 / review B22: the auto-break landed mid-phrase ("One / rule").
+              The break is explicit from sm up; below sm the line wraps on its
+              own anyway and a forced two-line split would only crowd it. */}
+          Four presets.
+          <br className="hidden sm:block" /> One rule: it has to scan.
+        </>
+      }
       subhead="Every preset keeps dark modules on a white background, always. The brand color only ever tints the corner markers, so a styled code still reads first try."
     >
-      <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
+      {/* R4 / review B7: the two columns were vertically CENTERED and split 5/7,
+          so the preview floated low under ~220px of dead air while the picker
+          towered over it. Even columns, top-aligned, with a bigger code: the
+          thing being styled outweighs the control that styles it. */}
+      <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
         {/* The one live code: a preset tap rerenders it in place. */}
-        <div className="lg:col-span-5">
+        <div className="flex flex-col gap-6 lg:col-span-6">
           <div className="mx-auto w-fit">
-            <div className="rounded-2xl border bg-card p-4 ring-1 ring-foreground/5">
-              <div className="rounded-xl bg-white p-4">
+            <div className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5">
+              <div className="w-fit rounded-xl bg-white p-4">
                 <StyledQr
                   ref={qrRef}
                   value={QR_VALUE}
-                  size={220}
+                  size={300}
                   style={preset.options}
                 />
               </div>
             </div>
             <MonoCaption aria-live="polite" className="mt-3 text-center">
-              {preset.label} · {preset.description}
+              <TextSwap value={`${preset.label} · ${preset.description}`} />
             </MonoCaption>
           </div>
+          {/* The explainer belongs with the thing it explains — and it is what
+              keeps the two columns near the same height (B7 again). */}
+          <p className="mx-auto max-w-md text-center text-sm text-pretty text-muted-foreground">
+            Tap a swatch and the code restyles instantly, exactly like the
+            designer inside the app. Shape changes that trim the decode margin
+            automatically step up the error correction, so pretty never beats
+            scannable.
+          </p>
         </div>
 
         {/* The designer, quoted: the app's 2x2 swatch grid + save. */}
-        <div className="flex flex-col gap-5 lg:col-span-7">
-          <div className="mx-auto w-full max-w-sm rounded-2xl border bg-card/60 p-4 sm:p-5">
+        <div className="flex flex-col gap-5 lg:col-span-6">
+          <div className="mx-auto w-full max-w-md rounded-2xl border bg-card/60 p-4 sm:p-5">
             <div className="grid grid-cols-2 gap-3">
               {QR_STYLE_KEYS.map((key) => {
                 const p = QR_PRESETS[key];
@@ -92,7 +123,11 @@ export function PresetSwitcher() {
                     )}
                   >
                     <span className="rounded-md bg-white p-1.5">
-                      <StyledQr value={QR_VALUE} size={84} style={p.options} />
+                      <StyledQr
+                        value={SWATCH_VALUE}
+                        size={128}
+                        style={p.options}
+                      />
                     </span>
                     <span className="text-xs font-medium">{p.label}</span>
                     {isSelected && (
@@ -118,14 +153,10 @@ export function PresetSwitcher() {
               }}
               className="mt-4 flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.98]"
             >
-              {saved ? (
-                <>
-                  <Check className="size-4" />
-                  Saved
-                </>
-              ) : (
-                "Save QR style"
-              )}
+              {/* R4: the label trades on the .mkt-text-swap grammar instead of a
+                  hard conditional. The shipped button carries no icon at all
+                  ("Saving…" / "Save QR style"), so the wink is the WORD. */}
+              <TextSwap value={saved ? "Saved" : "Save QR style"} />
             </button>
           </div>
 
@@ -156,13 +187,6 @@ export function PresetSwitcher() {
               screens)
             </MonoCaption>
           )}
-
-          <p className="mx-auto max-w-md text-center text-sm text-pretty text-muted-foreground">
-            Tap a swatch and the code restyles instantly, exactly like the
-            designer inside the app. Shape changes that trim the decode margin
-            automatically step up the error correction, so pretty never beats
-            scannable.
-          </p>
         </div>
       </div>
     </SectionShell>

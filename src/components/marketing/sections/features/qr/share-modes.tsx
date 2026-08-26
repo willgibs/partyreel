@@ -39,13 +39,15 @@ export function ShareModes() {
       heading="Three ways in, one album."
       subhead="The code is just the front door. Put it wherever people already look."
     >
+      {/* R4 body choreography: --i continues after the SectionShell header's
+          three slots so header and cards read as one move. */}
       <Reveal className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
         {MODES.map((mode, i) => (
           <div
             key={mode.title}
             data-mkt-reveal
             className="flex flex-col gap-2.5 rounded-xl border bg-card p-5"
-            style={{ "--i": i } as CSSProperties}
+            style={{ "--i": i + 3 } as CSSProperties}
           >
             <mode.icon
               className="size-5 text-muted-foreground"

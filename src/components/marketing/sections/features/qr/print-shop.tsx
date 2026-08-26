@@ -28,7 +28,9 @@ export function PrintShop() {
 
   return (
     <SectionShell>
-      <MediaSplit media={<PrintMocks />}>
+      {/* R4 / review B14: both columns start on the same line, so the shorter
+          copy run no longer floats mid-height against the taller stock. */}
+      <MediaSplit className="lg:items-start" media={<PrintMocks />}>
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>Print it</Eyebrow>
           <h2
@@ -62,22 +64,25 @@ function PrintMocks() {
       aria-hidden
       className="relative mx-auto flex min-h-[21rem] w-full max-w-md items-center justify-center py-6"
     >
-      {/* The poster corner: cropped by its own frame, big type first. */}
+      {/* The welcome sign: big type first, then the code. R4 / review B9 — the
+          88px code used to sit hard LEFT under a left-set headline, stranding a
+          tiny mark in a wide white field. Centered and scaled up, it composes
+          like the table card in front of it: type, then code, on one axis. */}
       <div
         data-mkt-reveal
-        className="absolute top-0 left-0 w-64 rotate-1 overflow-hidden rounded-lg border bg-white p-6 pb-10 text-neutral-900 shadow-[var(--shadow-float)] sm:w-72"
+        className="absolute top-0 left-0 w-64 rotate-1 overflow-hidden rounded-lg border bg-white p-6 text-center text-neutral-900 shadow-[var(--shadow-float)] sm:w-72"
         style={{ "--i": 0 } as CSSProperties}
       >
         <p className="font-heading text-3xl leading-tight text-balance">
           Add your photos
         </p>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1.5 text-xs text-neutral-500">
           Scan the code. No app, no account.
         </p>
-        <div className="mt-5 w-fit rounded-md bg-white">
+        <div className="mx-auto mt-4 w-fit rounded-md bg-white">
           <StyledQr
             value={QR_VALUE}
-            size={88}
+            size={124}
             style={resolveQrPreset("classic")}
           />
         </div>
