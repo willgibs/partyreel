@@ -1076,9 +1076,12 @@
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
    data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema
    room and fixes native form controls. 0-2-0 specificity so it can't lose the
-   --background tie against `.dark` on stylesheet order. The body:has rule stops
-   paper-light overscroll/short-page bleed around the wrapper (the red-team's
-   body-edge finding); it is the file's ONLY body selector, sanctioned by the
+   --background tie against `.dark` on stylesheet order. The body:has rules stop
+   session-theme overscroll/short-page bleed around the wrappers (the red-team's
+   body-edge finding) — one per skin since the 2026-08-26 forced-light ruling
+   (marketing themes are AUTHORED; the app is the only theme-following surface):
+   cinema edges stay room-dark, paper edges stay paper-light, whatever the
+   session says. They are the file's only body selectors, sanctioned by the
    policy test. ─── */
 
 /* ─── THE ACCENT BLOCK (sanctioned by the policy test; the 2026-08-25 ruling:
@@ -1111,4 +1114,9 @@
 body:has([data-mkt-skin="cinema"]) {
   background: oklch(0.11 0 0);
   color-scheme: dark;
+}
+
+body:has([data-mkt-skin="paper"]) {
+  background: oklch(0.99 0 0);
+  color-scheme: light;
 }

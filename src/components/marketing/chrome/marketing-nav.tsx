@@ -30,16 +30,20 @@ import { cn } from "@/lib/utils";
 export type MarketingSkin = "cinema" | "paper";
 
 // ★ THE PORTAL RULE (Track B theming): radix dropdown/sheet content PORTALS to
-// <body> and so ESCAPES the cinema wrapper's descendant-scoped `dark` class —
-// without help, a dark page would pop a paper-light menu. Whenever skin is
-// "cinema", portaled content (DropdownMenuContent, SheetContent) must receive
-// className="dark" AND the data-mkt attribute (the marketing tokens are scoped
-// to [data-mkt], which the portal also escapes). Both ui primitives spread
-// className + extra props onto the portaled element, so this threads through.
+// <body> and so ESCAPES the skin wrapper — without help, a dark page would pop
+// a session-themed menu (and, since the 2026-08-26 forced-light ruling, a dark
+// session would pop a DARK sheet over a light paper page). Portaled content
+// (DropdownMenuContent, SheetContent) must therefore receive the skin's OWN
+// theme class — "dark" for cinema, "surface-paper" for paper — AND the
+// data-mkt attribute (the marketing tokens are scoped to [data-mkt], which the
+// portal also escapes). Both ui primitives spread className + extra props onto
+// the portaled element, so this threads through. surface-paper is a no-op in
+// light sessions (it aliases the :root values) — the class simply makes the
+// paper chrome session-independent, matching the pages it serves.
 const portalSkinProps = (skin: MarketingSkin) =>
   ({
     "data-mkt": "",
-    className: skin === "cinema" ? "dark" : undefined,
+    className: skin === "cinema" ? "dark" : "surface-paper",
   }) as const;
 
 // Quick (<160ms) hover color transition per the emil-design-eng craft bar.

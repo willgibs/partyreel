@@ -55,7 +55,15 @@
   ────────────────────────────────────────────────────────────────────────────
 */
 
-@custom-variant dark (&:is(.dark *));
+/* The `:not(.surface-paper *)` guard: paper chapters/pages (marketing) force a
+   LIGHT subtree inside forced-dark cinema wrappers, and shadcn primitives carry
+   `dark:` utilities that would otherwise still fire there (the variant matches
+   ANY `.dark` descendant). Named `.surface-paper`, NOT `.light`, on purpose:
+   next-themes puts class="light" on <html> for explicit-light sessions, and a
+   `:not(.light *)` guard would strip `dark:` styling from every cinema page in
+   those sessions. Do NOT rewrite with `:where()` — that drops `dark:` rules
+   below plain utilities in specificity, a real regression. */
+@custom-variant dark (&:is(.dark *):not(.surface-paper *));
 
 @theme inline {
   --color-background: var(--background);
@@ -154,7 +162,19 @@
   }
 }
 
-:root {
+/* `.surface-paper` aliases the WHOLE light block: a subtree-scoped "force the
+   paper theme" hook (marketing paper pages + paper chapters inside the cinema
+   dark). Custom-property inheritance is nearest-ancestor, so a .surface-paper
+   element inside `.dark` flips every token light for its subtree — including
+   the light elevation (--shadow-float returns) and light state colors. Tokens
+   added to :root later reach paper surfaces automatically; `.dark`-only
+   overrides stay dark-only. NEVER alias `.dark` this way, and never nest
+   `.dark` inside `.surface-paper` (always-dark media surfaces use --gallery*
+   instead — the standing rule). Nuance: --tune-* re-declared here means
+   html-inline tuner overrides don't pierce paper subtrees; no marketing
+   surface reads --tune-* inside one today. */
+:root,
+.surface-paper {
   /* Light = paper. No pure white anywhere (Hobday): bg 0.99, card 0.997 —
      the lift is real but hairlines, not contrast, do the layering. */
   --background: oklch(0.99 0 0);
@@ -210,7 +230,12 @@
   --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
   --tune-rvl-flash-ms: 360ms; /* the camera flash */
   --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
-  --tune-rvl-expand-ease: cubic-bezier(0.77, 0, 0.175, 1); /* = --ease-in-out-strong (on-screen movement) */
+  --tune-rvl-expand-ease: cubic-bezier(
+    0.77,
+    0,
+    0.175,
+    1
+  ); /* = --ease-in-out-strong (on-screen movement) */
   --tune-rvl-title-ms: 1700ms; /* the title hold */
   /* The reel-experience beats: the publish flourish + the sheet/swap family. */
   --tune-rxp-pub-ms: 700ms; /* publish flourish (share-card bloom / studio glow) */
@@ -296,6 +321,13 @@
   --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
+}
+
+/* Separate from the shared :root block ON PURPOSE: color-scheme on :root would
+   fight next-themes' html-inline value. Paper subtrees also fix native widget
+   rendering (form controls, <details> markers, scrollbars) to light. */
+.surface-paper {
+  color-scheme: light;
 }
 
 @layer base {
@@ -979,8 +1011,7 @@
   transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--r, 0deg))
     scale(var(--s, 1));
 }
-[data-rvl-stage]:is([data-act="condense"], [data-act="held"])
-  [data-rvl-tile] {
+[data-rvl-stage]:is([data-act="condense"], [data-act="held"]) [data-rvl-tile] {
   transform: translate(var(--dx, 0px), var(--dy, 0px))
     rotate(calc(var(--r, 0deg) * 0.25)) scale(var(--s, 1));
 }
