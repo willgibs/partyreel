@@ -16,7 +16,6 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
-import { EVENT_PRESENTATION } from "@/lib/constants/events-layout";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 export function generateStaticParams() {
@@ -38,11 +37,14 @@ export async function generateMetadata({
   };
 }
 
-// The per-type landing page (B2 re-skin): all SEO structure carries over intact
-// (static params, per-type metadata + OG, Breadcrumb + FAQPage JSON-LD, the
-// EVENT_TYPES single source, the per-type BuiltFor layouts), rebuilt onto the
-// cinema system layer with real manifest media in the hero and the NEW per-type
-// reel angle routing to /reel.
+// The per-type landing page: all SEO structure carries over intact (static
+// params, per-type metadata + OG, Breadcrumb + FAQPage JSON-LD, the EVENT_TYPES
+// single source), on the cinema system layer.
+//
+// R4 re-cut: the hero media is per-type again but keyed off the SLUG (two
+// compositions changed shape, A9), the benefits section shares ONE grammar with
+// its three siblings and the hub (A20), and the reel band actually plays a reel
+// (A29).
 export default async function EventTypePage({
   params,
 }: {
@@ -112,7 +114,10 @@ export default async function EventTypePage({
               <DemoCtaLink />
             </div>
           </Reveal>
-          <EventHeroMedia frame={EVENT_PRESENTATION[slug].frame} />
+          {/* LCP RULE: the hero visual arrives painted. No reveal-hidden state
+              rides the H1 or the media under it; the entrances on this page
+              start below the fold. */}
+          <EventHeroMedia slug={slug} />
         </Container>
       </section>
 
@@ -131,9 +136,12 @@ export default async function EventTypePage({
             >
               {eventType.intro}
             </p>
+            {/* A25: the chip row wrapped 6 + 1 on the wider types, stranding an
+                orphan pill. A tighter clamp than the paragraph above balances
+                the wrap without trimming SEO terms. */}
             <div
               data-mkt-reveal
-              className="mt-6 flex flex-wrap justify-center gap-2"
+              className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-2"
               style={{ "--i": 1 } as CSSProperties}
             >
               {eventType.nestedThemes.map((theme) => (
@@ -149,13 +157,16 @@ export default async function EventTypePage({
         </SectionShell>
 
         <BuiltFor
-          layout={EVENT_PRESENTATION[slug].builtFor}
+          className="pt-4 sm:pt-6"
           help={eventType.howItHelps}
           navLabel={eventType.navLabel}
         />
       </PaperChapter>
 
-      <ReelAngleBand eventType={eventType} />
+      <ReelAngleBand
+        singular={eventType.singularLabel}
+        angle={eventType.reelAngle}
+      />
 
       <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
         <FaqAccordion items={eventType.faq} />

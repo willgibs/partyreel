@@ -5,25 +5,29 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import type { EventTypeHelp } from "@/lib/constants/events";
-import type { BuiltForLayout } from "@/lib/constants/events-layout";
+import { FOOTER_NAV } from "@/lib/constants/marketing-nav";
 
 /**
- * The "Built for X" benefits section (B2 re-skin; survives per the T2.5
- * architecture table). Renders the SAME howItHelps[] in a DISTINCT layout per
- * event type (the "no two pages alike" bar): a featured-first bento (weddings),
- * icon-left rows (parties), a four-quadrant windowpane (conferences), or a
- * numbered timeline (trips). Rebuilt onto the system layer: SectionShell
- * rhythm + the standard reveal register, mono hairline chips (achromatic base;
- * the old brand tints dropped with the retired accent). LAYOUT varies, the
- * grayscale system does not.
+ * The "Built for X" benefits section, ONE grammar across the whole events
+ * family (R4, A20). Four sibling pages used to run four different layout
+ * systems — a featured bento, a divided row list, a hairline windowpane, and a
+ * numbered timeline — so moving between them felt like moving between
+ * templates, and three of the four stranded 400-500px of void beside a narrow
+ * column. The windowpane read strongest, so every page (and the /events hub)
+ * now shares it: same cell shape, same header treatment, same reveal.
+ *
+ * Distinctiveness moved to where it belongs: the per-type hero artifact, the
+ * copy, and the per-type reel line. LAYOUT is the family resemblance.
+ *
+ * A37: the trips variant used to number its cells 01-04, which read as STEPS
+ * and collided with the home page's real scene steps. Benefits are not a
+ * sequence; the numbers are gone.
  */
 export function BuiltFor({
-  layout,
   help,
   navLabel,
   className,
 }: {
-  layout: BuiltForLayout;
   help: EventTypeHelp[];
   navLabel: string;
   className?: string;
@@ -34,37 +38,19 @@ export function BuiltFor({
       eyebrow="Why Partyreel"
       heading={`Built for ${navLabel.toLowerCase()}`}
     >
-      {layout === "bento" && <Bento help={help} />}
-      {layout === "rows" && <Rows help={help} />}
-      {layout === "grid2x2" && <Quadrants help={help} />}
-      {layout === "list" && <Timeline help={help} />}
+      <HelpPane help={help} />
     </SectionShell>
   );
 }
 
-/** A cell title that becomes a ladder link when the constants give it a
- *  featureHref (the expansion round's use-case-to-feature web): the title
- *  renders as a learn-more into its feature page; plain cells stay plain. */
-function HelpTitle({
-  title,
-  featureHref,
-  className,
-}: {
-  title: string;
-  featureHref?: string;
-  className: string;
-}) {
-  if (!featureHref) return <h3 className={className}>{title}</h3>;
+const FEATURE_LINKS =
+  FOOTER_NAV.find((column) => column.title === "Features")?.links ?? [];
+
+/** The destination's own nav label, so a crosslink never invents a name for a
+ *  page that already has one. */
+function featureLabel(href: string): string {
   return (
-    <h3 className={className}>
-      <Link
-        href={featureHref}
-        className="mkt-learn inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-muted-foreground"
-      >
-        {title}
-        <LearnChevron />
-      </Link>
-    </h3>
+    FEATURE_LINKS.find((link) => link.href === href)?.label ?? "Learn more"
   );
 }
 
@@ -77,128 +63,49 @@ function Chip({ icon: Icon }: { icon: EventTypeHelp["icon"] }) {
   );
 }
 
-const mark = (i: number) => ({
-  "data-mkt-reveal": "",
-  style: { "--i": i } as CSSProperties,
-});
-
-// weddings — featured-first bento: the lead benefit spans the row, then a 3-up.
-function Bento({ help }: { help: EventTypeHelp[] }) {
-  const [lead, ...rest] = help;
-  return (
-    <Reveal className="mx-auto mt-12 grid max-w-5xl gap-5">
-      {lead && (
-        <div
-          {...mark(0)}
-          className="flex flex-col gap-4 rounded-xl border bg-card/60 p-6 sm:flex-row sm:items-center sm:gap-6 sm:p-8"
-        >
-          <Chip icon={lead.icon} />
-          <div>
-            <HelpTitle
-              title={lead.title}
-              featureHref={lead.featureHref}
-              className="font-heading text-lg sm:text-xl"
-            />
-            <p className="mt-1 text-sm text-muted-foreground">{lead.body}</p>
-          </div>
-        </div>
-      )}
-      {rest.length > 0 && (
-        <div className="grid gap-5 sm:grid-cols-3">
-          {rest.map(({ icon, title, body, featureHref }, i) => (
-            <div
-              key={title}
-              {...mark(i + 1)}
-              className="rounded-xl border bg-card/60 p-6"
-            >
-              <Chip icon={icon} />
-              <HelpTitle
-                title={title}
-                featureHref={featureHref}
-                className="mt-4 font-heading text-base sm:text-lg"
-              />
-              <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </Reveal>
-  );
-}
-
-// parties — icon-left rows in one bordered, divided list (reads as a checklist,
-// distinct from a card grid).
-function Rows({ help }: { help: EventTypeHelp[] }) {
-  return (
-    <Reveal className="mx-auto mt-12 max-w-2xl divide-y rounded-xl border bg-card/40">
-      {help.map(({ icon, title, body, featureHref }, i) => (
-        <div key={title} {...mark(i)} className="flex items-start gap-4 p-5">
-          <Chip icon={icon} />
-          <div>
-            <HelpTitle
-              title={title}
-              featureHref={featureHref}
-              className="font-heading text-base sm:text-lg"
-            />
-            <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-          </div>
-        </div>
-      ))}
-    </Reveal>
-  );
-}
-
-// conferences — four-quadrant "windowpane": one bordered container split by
-// hairline dividers (the gap-px over bg-border trick reveals the lines).
-function Quadrants({ help }: { help: EventTypeHelp[] }) {
+/**
+ * The hairline windowpane: one bordered container split by hairlines (the
+ * gap-px over bg-border trick reveals the lines). Also the /events hub's
+ * benefits grid, so hub and type pages read as one family.
+ *
+ * A11: the ladder links used to hang off SOME cell titles as a bare chevron,
+ * which made an identical-looking set of cells randomly clickable. Now a linked
+ * cell carries a quiet bottom row naming its destination, pinned to the cell
+ * floor (mt-auto) so the linked cells line up and the asymmetry reads as a
+ * deliberate extra, not a missing one.
+ */
+export function HelpPane({
+  help,
+  /** First stagger slot: SectionShell's header spends 0 (eyebrow) and 1
+   *  (heading), so the cells continue the same choreography. */
+  startIndex = 2,
+}: {
+  help: EventTypeHelp[];
+  startIndex?: number;
+}) {
   return (
     <Reveal className="mx-auto mt-12 grid max-w-3xl gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-2">
       {help.map(({ icon, title, body, featureHref }, i) => (
-        <div key={title} {...mark(i)} className="bg-card p-6 sm:p-8">
+        <div
+          key={title}
+          data-mkt-reveal
+          style={{ "--i": i + startIndex } as CSSProperties}
+          className="flex flex-col bg-card p-6 sm:p-8"
+        >
           <Chip icon={icon} />
-          <HelpTitle
-            title={title}
-            featureHref={featureHref}
-            className="mt-4 font-heading text-base sm:text-lg"
-          />
+          <h3 className="mt-4 font-heading text-base sm:text-lg">{title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+          {featureHref && (
+            <Link
+              href={featureHref}
+              className="mkt-learn mt-auto inline-flex w-fit items-center gap-1.5 pt-5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
+            >
+              {featureLabel(featureHref)}
+              <LearnChevron />
+            </Link>
+          )}
         </div>
       ))}
-    </Reveal>
-  );
-}
-
-// trips — a numbered timeline (icon nodes joined by a connecting line), echoing
-// the "from the first airport selfie to the last sunset" journey copy. Numbers
-// ride Geist Mono (the timecode vocabulary), not an accent hue.
-function Timeline({ help }: { help: EventTypeHelp[] }) {
-  return (
-    <Reveal>
-      <ol className="mx-auto mt-12 flex max-w-xl flex-col">
-        {help.map(({ icon: Icon, title, body, featureHref }, i) => (
-          <li key={title} {...mark(i)} className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-card text-muted-foreground">
-                <Icon className="size-5" strokeWidth={1.5} />
-              </span>
-              {i < help.length - 1 && (
-                <span className="w-px flex-1 bg-border" />
-              )}
-            </div>
-            <div className="pb-10">
-              <span className="font-mono text-xs font-medium text-muted-foreground tabular-nums">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <HelpTitle
-                title={title}
-                featureHref={featureHref}
-                className="mt-1 font-heading text-base sm:text-lg"
-              />
-              <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
     </Reveal>
   );
 }
