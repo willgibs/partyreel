@@ -58,27 +58,33 @@ export default function CurationFeaturePage() {
       <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
         <Container>
           <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            <Link
-              {...cut(0)}
-              href="/features"
-              className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-foreground"
-            >
-              Features
-            </Link>
-            <Eyebrow {...cut(1)}>{page.navLabel}</Eyebrow>
+            {/* ONE ruled eyebrow, not two stacked labels: the parent link and
+                the page name read as a single breadcrumb line. */}
+            <Eyebrow {...cut(0)}>
+              <Link
+                href="/features"
+                className="transition-colors duration-150 hover:text-foreground"
+              >
+                Features
+              </Link>
+              <span aria-hidden className="px-1.5 text-muted-foreground/50">
+                ·
+              </span>
+              {page.navLabel}
+            </Eyebrow>
             <h1
-              {...cut(2)}
+              {...cut(1)}
               className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
             >
               {page.h1}
             </h1>
             <p
-              {...cut(3)}
+              {...cut(2)}
               className="max-w-2xl text-lg text-pretty text-muted-foreground"
             >
               {page.heroSub}
             </p>
-            <div {...cut(4)} className="mt-2 flex flex-col gap-3 sm:flex-row">
+            <div {...cut(3)} className="mt-2 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>

@@ -1,10 +1,7 @@
-import type { CSSProperties } from "react";
-
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
-import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
@@ -32,16 +29,15 @@ export function CurationFaq() {
   return (
     <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
       <FaqAccordion items={CURATION_FAQ} />
-      <Reveal className="mt-10 flex flex-col items-center gap-2 text-center">
-        <MonoCaption data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-          the exact steps live in the help center
-        </MonoCaption>
-        <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
-          <LearnMoreLink href="/help/moderate-and-curate-your-album">
-            Curate what shows up in your album
-          </LearnMoreLink>
-        </div>
-      </Reveal>
+      {/* GoDeeper rows stay STILL by convention (the quiet register: a pointer
+          you find, not a beat that performs). It used to rise; every GoDeeper
+          row on these pages is now consistently static. */}
+      <div className="mt-10 flex flex-col items-center gap-2 text-center">
+        <MonoCaption>the exact steps live in the help center</MonoCaption>
+        <LearnMoreLink href="/help/moderate-and-curate-your-album">
+          Curate what shows up in your album
+        </LearnMoreLink>
+      </div>
     </SectionShell>
   );
 }

@@ -73,14 +73,17 @@ export function ReviewModes() {
       heading="Live as it happens, or held for review."
       subhead="Casual events usually run live, so the room can watch the album grow. For weddings and conferences, flip on review and nothing unexpected reaches the big screen."
     >
+      {/* Body slots continue SectionShell's header count (0-2), so the two
+          mode cards land on 3 and the settings pair on 4 (two beats, 180ms
+          total, well inside the stagger budget). */}
       <div className="mx-auto mt-12 max-w-4xl">
         <Reveal className="grid gap-5 sm:grid-cols-2">
-          {MODES.map((mode, i) => (
+          {MODES.map((mode) => (
             <div
               key={mode.title}
               data-mkt-reveal
               className="flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5"
-              style={{ "--i": i } as CSSProperties}
+              style={{ "--i": 3 } as CSSProperties}
             >
               <span
                 className={`flex size-10 items-center justify-center rounded-lg border ${mode.tint}`}
@@ -101,7 +104,7 @@ export function ReviewModes() {
           <div
             data-mkt-reveal
             className="flex flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5"
-            style={{ "--i": 0 } as CSSProperties}
+            style={{ "--i": 4 } as CSSProperties}
           >
             <MonoCaption className="mb-4">event settings</MonoCaption>
             <div
@@ -119,7 +122,10 @@ export function ReviewModes() {
               </div>
               <SwitchLook />
             </div>
-            <p className="mt-4 text-sm text-pretty text-muted-foreground">
+            {/* mt-auto, not mt-4: the two cards stretch to a shared height, so
+                the closing lines bottom-align instead of leaving the shorter
+                card's ~120px of slack hanging under its last sentence. */}
+            <p className="mt-auto pt-4 text-sm text-pretty text-muted-foreground">
               One switch in your event settings. Flip it on before the day, or
               mid-event when the dance floor gets brave.
             </p>
@@ -129,7 +135,7 @@ export function ReviewModes() {
           <div
             data-mkt-reveal
             className="flex flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5"
-            style={{ "--i": 1 } as CSSProperties}
+            style={{ "--i": 4 } as CSSProperties}
           >
             <MonoCaption className="mb-4">turning it off</MonoCaption>
             <div aria-hidden className="rounded-xl border p-4">
@@ -144,7 +150,7 @@ export function ReviewModes() {
                 <ButtonLook variant="primary">Approve all and stop</ButtonLook>
               </div>
             </div>
-            <p className="mt-4 text-sm text-pretty text-muted-foreground">
+            <p className="mt-auto pt-4 text-sm text-pretty text-muted-foreground">
               Nothing slips through the switch: anything still waiting is
               approved on the way out, never dropped.
             </p>

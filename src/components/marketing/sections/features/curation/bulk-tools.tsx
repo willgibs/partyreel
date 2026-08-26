@@ -1,6 +1,6 @@
-import { Check } from "lucide-react";
+import { Check, Clapperboard, Download, EyeOff, X } from "lucide-react";
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -11,9 +11,15 @@ import { cn } from "@/lib/utils";
 /**
  * Curation page section 5: the bulk sweep (copy absorbed from FEATURE_GROUPS
  * hosts "Approve in bulk"). The visual quotes the gallery selection state
- * (selectable-media-grid.tsx's scrim + corner check), static on purpose: the
- * interactive triage lives in the signature demo above; this one just shows
- * that selection scales to a whole batch.
+ * (selectable-media-grid.tsx's scrim + corner check) AND the bar it summons
+ * (event-feed-action-bar.tsx's floating pill wrapping gallery-actions.tsx's
+ * GalleryBulkBar). Static on purpose: the interactive triage lives in the
+ * signature demo above; this one shows that selection scales to a batch, and
+ * ends where the app ends it, on the actions.
+ *
+ * The bar shows the three actions this section's copy names (add to reel, hide,
+ * download) in the app's own state hues; Like and the destructive Delete are
+ * left out rather than restated in marketing, and nothing here invents a label.
  */
 
 const GRID: { id: string; selected: boolean }[] = [
@@ -27,6 +33,51 @@ const GRID: { id: string; selected: boolean }[] = [
   { id: "festival-lights", selected: false },
 ];
 
+/** One icon action inside the mock bar (a resting shape, never a control). */
+function BarAction({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label: string;
+}) {
+  return (
+    <span
+      title={label}
+      className="flex size-8 items-center justify-center rounded-md"
+    >
+      {children}
+    </span>
+  );
+}
+
+/**
+ * The floating select-mode bar, quoted: the app's rounded-full pill over the
+ * album, carrying All/Clear, the live count, the actions, and Cancel.
+ */
+function BulkBarMock({ count }: { count: number }) {
+  return (
+    <span className="flex items-center gap-0.5 rounded-full border border-border bg-background/95 px-2 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.18)] backdrop-blur sm:gap-1">
+      <span className="px-2 text-xs font-medium">All</span>
+      <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
+        {count}
+      </span>
+      <BarAction label="Add to reel">
+        <Clapperboard className="size-4 text-reel" />
+      </BarAction>
+      <BarAction label="Hide">
+        <EyeOff className="size-4 text-warning" />
+      </BarAction>
+      <BarAction label="Download">
+        <Download className="size-4 text-muted-foreground" />
+      </BarAction>
+      <BarAction label="Cancel selection">
+        <X className="size-4" />
+      </BarAction>
+    </span>
+  );
+}
+
 export function BulkTools() {
   const selectedCount = GRID.filter((t) => t.selected).length;
   return (
@@ -39,8 +90,8 @@ export function BulkTools() {
         <div
           aria-hidden
           data-mkt-reveal
-          className="rounded-2xl border bg-card p-4 ring-1 ring-foreground/5 sm:p-5"
-          style={{ "--i": 0 } as CSSProperties}
+          className="relative rounded-2xl border bg-card p-4 ring-1 ring-foreground/5 sm:p-5"
+          style={{ "--i": 3 } as CSSProperties}
         >
           <div className="grid grid-cols-4 gap-1.5">
             {GRID.map((tile) => (
@@ -77,11 +128,16 @@ export function BulkTools() {
               </div>
             ))}
           </div>
+          {/* The bar the selection summons, straddling the album's edge the
+              way the app's floating bar rides the bottom of the screen. */}
+          <span className="absolute inset-x-0 -bottom-5 flex justify-center">
+            <BulkBarMock count={selectedCount} />
+          </span>
         </div>
         <MonoCaption
           data-mkt-reveal
-          className="mt-4 text-center"
-          style={{ "--i": 1 } as CSSProperties}
+          className="mt-9 text-center"
+          style={{ "--i": 3 } as CSSProperties}
         >
           {selectedCount} selected · long-press to start, tap to add more
         </MonoCaption>
