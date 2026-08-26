@@ -6,7 +6,6 @@ import {
   EVENT_TYPES,
   getEventType,
 } from "@/lib/constants/events";
-import { EVENT_PRESENTATION } from "@/lib/constants/events-layout";
 
 describe("event-type constants", () => {
   it("has unique slugs and complete text fields", () => {
@@ -46,12 +45,6 @@ describe("event-type constants", () => {
       expect(getEventType(slug)?.slug).toBe(slug);
     }
     expect(getEventType("not-an-event-type")).toBeUndefined();
-  });
-
-  it("every event type has an /events presentation (no type renders unstyled)", () => {
-    for (const eventType of EVENT_TYPES) {
-      expect(EVENT_PRESENTATION[eventType.slug]).toBeDefined();
-    }
   });
 
   it("contains no em-dashes (copy policy guard for this file)", () => {

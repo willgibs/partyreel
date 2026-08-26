@@ -71,7 +71,8 @@ export default async function EventTypePage({
       <FaqPageJsonLd items={eventType.faq} />
 
       {/* Hero: centered copy at the route-H1 scale, then the type's DISTINCT
-          media moment (EventHeroMedia keys off EVENT_PRESENTATION.frame). */}
+          media moment (EventHeroMedia keys off the slug; its map is
+          exhaustive per type). */}
       <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
         <Container>
           <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">

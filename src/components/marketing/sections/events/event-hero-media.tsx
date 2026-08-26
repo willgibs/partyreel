@@ -128,9 +128,9 @@ function PartyPrints() {
 }
 
 /** Keyed off the SLUG, not a frame name: two of the four compositions changed
- *  shape in R4, and `EVENT_PRESENTATION.frame`'s literals ("qr", "reel") would
- *  now mislabel what renders. Adding a type here without a case is a visible
- *  hole, so the map is exhaustive on purpose. */
+ *  shape in R4, and the old frame-literal map ("qr", "reel" — the since-deleted
+ *  events-layout.ts) would now mislabel what renders. Adding a type here
+ *  without a case is a visible hole, so the map is exhaustive on purpose. */
 export function EventHeroMedia({ slug }: { slug: string }) {
   return (
     <div aria-hidden className="mx-auto mt-12 w-full max-w-3xl">
