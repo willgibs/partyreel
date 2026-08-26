@@ -114,7 +114,13 @@ export default function PrivacyFeaturePage() {
       <RelatedFeatures slugs={["curation", "sharing", "guests"]} />
 
       <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
-        <FaqAccordion items={PRIVACY_FAQ} />
+        {/* The list arrives on the slot after the header's lines, instead of
+            popping in finished under an animated heading. */}
+        <Reveal>
+          <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+            <FaqAccordion items={PRIVACY_FAQ} />
+          </div>
+        </Reveal>
       </SectionShell>
 
       <CtaBand

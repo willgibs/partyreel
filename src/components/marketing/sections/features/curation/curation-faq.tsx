@@ -1,7 +1,10 @@
+import type { CSSProperties } from "react";
+
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
@@ -28,7 +31,13 @@ export const CURATION_FAQ: FaqItem[] = [
 export function CurationFaq() {
   return (
     <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
-      <FaqAccordion items={CURATION_FAQ} />
+      {/* The list arrives as one block on the slot after the header's lines,
+          instead of popping in finished under an animated heading. */}
+      <Reveal>
+        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+          <FaqAccordion items={CURATION_FAQ} />
+        </div>
+      </Reveal>
       {/* GoDeeper rows stay STILL by convention (the quiet register: a pointer
           you find, not a beat that performs). It used to rise; every GoDeeper
           row on these pages is now consistently static. */}

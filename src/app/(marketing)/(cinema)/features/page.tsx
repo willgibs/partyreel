@@ -378,9 +378,14 @@ export default function FeaturesPage() {
         subhead="Guests scan and shoot. You curate and keep. The walkthrough shows both sides, start to finish."
       >
         <Reveal className="mt-8 flex justify-center">
-          <Button asChild size="lg" variant="outline" className="h-11 px-6">
-            <Link href="/how-it-works">See how it works</Link>
-          </Button>
+          {/* The Reveal was here already but wrapped an unmarked child, so it
+              animated nothing; the button now rides the header's choreography
+              on the slot after its three lines. */}
+          <span data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+            <Button asChild size="lg" variant="outline" className="h-11 px-6">
+              <Link href="/how-it-works">See how it works</Link>
+            </Button>
+          </span>
         </Reveal>
         {/* Still by convention: GoDeeper rows are a pointer you find, not a
             beat that performs (the quiet register). */}
