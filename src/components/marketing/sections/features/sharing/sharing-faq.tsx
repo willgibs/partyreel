@@ -30,17 +30,21 @@ export const SHARING_FAQ: FaqItem[] = [
 export function SharingFaq() {
   return (
     <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
-      <FaqAccordion items={SHARING_FAQ} />
-      <Reveal className="mt-10 flex flex-col items-center gap-2 text-center">
-        <MonoCaption data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-          the exact details live in the help center
-        </MonoCaption>
-        <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
-          <LearnMoreLink href="/help/download-photos-videos-and-albums">
-            Download your photos and videos
-          </LearnMoreLink>
+      {/* Same body choreography as FeatureFaq: one quiet slot after the
+          header's two, no per-question stagger. */}
+      <Reveal>
+        <div data-mkt-reveal style={{ "--i": 2 } as CSSProperties}>
+          <FaqAccordion items={SHARING_FAQ} />
         </div>
       </Reveal>
+      {/* The help-centre pointer stays STILL (the quiet-rows rule), which is
+          also how the shared GoDeeper row behaves on the other pages. */}
+      <div className="mt-10 flex flex-col items-center gap-2 text-center">
+        <MonoCaption>the exact details live in the help center</MonoCaption>
+        <LearnMoreLink href="/help/download-photos-videos-and-albums">
+          Download your photos and videos
+        </LearnMoreLink>
+      </div>
     </SectionShell>
   );
 }

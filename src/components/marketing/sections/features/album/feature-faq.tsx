@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
 /**
@@ -22,7 +23,17 @@ export function FeatureFaq({
   return (
     <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
       <FaqPageJsonLd items={items} />
-      <FaqAccordion items={items} />
+      {/* R4 body choreography: the list used to appear statically under a header
+          that rose. ONE quiet slot continuing the header's two (eyebrow +
+          heading), not a per-question stagger — this is a reading surface, and
+          animating each row would make a calm block twitch. */}
+      <Reveal>
+        <div data-mkt-reveal style={{ "--i": 2 } as CSSProperties}>
+          <FaqAccordion items={items} />
+        </div>
+      </Reveal>
+      {/* GoDeeper stays STILL on purpose (the quiet-rows rule): it is a
+          help-centre pointer, not a moment. */}
       {children && (
         <div className="mt-10 flex flex-col items-center gap-3">{children}</div>
       )}

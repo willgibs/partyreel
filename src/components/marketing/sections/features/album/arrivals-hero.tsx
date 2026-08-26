@@ -215,7 +215,9 @@ export function ArrivalsHero() {
                 setLanded(0);
                 setRunId((n) => n + 1);
               }}
-              className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-95"
+              // Press feedback idiom: 0.97-0.99 with an explicit property (the
+              // old 0.95 sat outside the house band and read like a bounce).
+              className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-[0.97] motion-reduce:active:scale-100"
             >
               <RotateCcw className="size-3.5" />
               Replay

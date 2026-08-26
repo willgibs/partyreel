@@ -13,15 +13,17 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * modal further down.
  */
 
+/** R4 (the family note): six of eight marketing pages lead with a browser frame
+ *  of uniform tiles, so album / sharing / guests blurred together. This page is
+ *  the LINK page, where the album opens ON a photo, so its frame leads with one
+ *  big shot and a row of thumbs beside it instead of another even wall. The
+ *  first id is the focal tile. */
 const HERO_TILE_IDS = [
   "wedding-golden",
   "party-balloons",
   "wedding-toast",
   "festival-crowd",
   "reception-table",
-  "party-dj",
-  "concert-confetti",
-  "festival-lights",
 ];
 
 export function AlbumLinkHero() {
@@ -59,17 +61,20 @@ export function AlbumLinkHero() {
         </span>
       </div>
       <div className="grid grid-cols-4 gap-2">
-        {HERO_TILE_IDS.map((id) => (
+        {HERO_TILE_IDS.map((id, i) => (
           <div
             key={id}
-            className="relative aspect-square overflow-hidden rounded-lg"
+            className={`relative aspect-square overflow-hidden rounded-lg ${
+              i === 0 ? "col-span-2 row-span-2" : ""
+            }`}
           >
             <Image
               src={marketingImage(id).src}
               alt=""
               fill
-              sizes="(min-width: 768px) 180px, 25vw"
+              sizes={i === 0 ? "(min-width: 768px) 368px, 50vw" : "(min-width: 768px) 180px, 25vw"}
               className="object-cover"
+              priority={i === 0}
             />
           </div>
         ))}
