@@ -1,5 +1,8 @@
+import type { CSSProperties } from "react";
+
 import { Conveyor } from "@/components/marketing/system/conveyor";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { MARKETING_REELS } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
@@ -43,45 +46,64 @@ export function ReelTeaser() {
       eyebrow="The reel"
       heading={SECTION_HEADERS.reel.line}
       subhead={SUBHEAD}
+      /* TEMPO (R4/A32): the pointer at the end of this section is a bridge to
+         /reel, so the section gives back part of its bottom padding. */
+      className="pb-10 sm:pb-12"
     >
-      {/* EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
-          at both gutters, which read as a broken container rather than a
-          conveyor, and nothing tied the names to the reel underneath. The mask
-          ramps the row out at both edges (alpha machinery, the sanctioned #000
-          literal), and the ONE filled chip is the style this render actually
-          used — the same fact the caption states in words. */}
-      <Conveyor
-        className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)]"
-        copyClassName="gap-2 pr-2"
-      >
-        {chips.map((style, i) => (
-          <span
-            key={`${style.id}-${i}`}
-            className={
-              style.id === reel.recipe.styleId
-                ? "rounded-full border border-foreground/30 bg-foreground/10 px-3 py-1 text-xs font-medium whitespace-nowrap text-foreground"
-                : "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground"
-            }
+      {/* ONE CHOREOGRAPHY (R4): chips, player, caption and pointer used to pop
+          in flat under a revealed header. They now continue the header's
+          cascade (slots 0-2) under ONE observer at a tightened 70ms step. */}
+      <Reveal style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}>
+        {/* EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
+            at both gutters, which read as a broken container rather than a
+            conveyor, and nothing tied the names to the reel underneath. The
+            mask ramps the row out at both edges (alpha machinery, the
+            sanctioned #000 literal), and the ONE filled chip is the style this
+            render actually used — the same fact the caption states in words. */}
+        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+          <Conveyor
+            className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)]"
+            copyClassName="gap-2 pr-2"
           >
-            {style.label}
-          </span>
-        ))}
-      </Conveyor>
+            {chips.map((style, i) => (
+              <span
+                key={`${style.id}-${i}`}
+                className={
+                  style.id === reel.recipe.styleId
+                    ? "rounded-full border border-foreground/30 bg-foreground/10 px-3 py-1 text-xs font-medium whitespace-nowrap text-foreground"
+                    : "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground"
+                }
+              >
+                {style.label}
+              </span>
+            ))}
+          </Conveyor>
+        </div>
 
-      <div className="mx-auto mt-10 max-w-3xl">
-        <InlineReelPlayer reelId={INLINE_REEL_ID} />
-        <MonoCaption className="mt-3 text-center">
-          A real render · {styleLabel} · {formatDuration(reel.durationSeconds)}
-        </MonoCaption>
-      </div>
+        <div
+          data-mkt-reveal
+          className="mx-auto mt-10 max-w-3xl"
+          style={{ "--i": 4 } as CSSProperties}
+        >
+          <InlineReelPlayer reelId={INLINE_REEL_ID} />
+          <MonoCaption className="mt-3 text-center">
+            A real render · {styleLabel} ·{" "}
+            {formatDuration(reel.durationSeconds)}
+          </MonoCaption>
+        </div>
 
-      <div className="mt-10 text-center">
-        {/* Deep-links into the flagship's catalog section (repointed from the
-            /features interim at the lp/mkt-reel integration). */}
-        <LearnMoreLink href="/reel#styles">
-          See all {STYLE_CATALOG.length} styles
-        </LearnMoreLink>
-      </div>
+        <div
+          data-mkt-reveal
+          className="mt-10 text-center"
+          style={{ "--i": 5 } as CSSProperties}
+        >
+          {/* Deep-links into the flagship's catalog section (repointed from the
+              /features interim at the lp/mkt-reel integration). */}
+          <LearnMoreLink href="/reel#styles">
+            See all {STYLE_CATALOG.length} styles
+          </LearnMoreLink>
+        </div>
+      </Reveal>
     </SectionShell>
   );
 }

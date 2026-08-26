@@ -54,34 +54,45 @@ export function Curation() {
       heading={SECTION_HEADERS.curation.line}
       subhead={GUEST_LINE}
     >
-      <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-8 gap-y-10 sm:grid-cols-3">
-        {CONTROLS.map((item, i) => (
-          <div
-            key={item.title}
-            data-mkt-reveal
-            className="flex flex-col items-center gap-3 text-center"
-            style={{ "--i": i } as CSSProperties}
-          >
-            <span
-              className={`flex size-10 items-center justify-center rounded-lg border ${item.tint}`}
+      {/* ONE CHOREOGRAPHY (R4): the header's three lines hold slots 0-2, so the
+          cards continue at 3 and the pointer closes the cascade at 6. Body and
+          pointer share ONE Reveal on purpose: a second observer would restart
+          the count and the pointer would either race the cards or sit half a
+          second late behind its own trigger. */}
+      <Reveal className="mx-auto mt-12 max-w-4xl">
+        <div className="grid gap-x-8 gap-y-10 sm:grid-cols-3">
+          {CONTROLS.map((item, i) => (
+            <div
+              key={item.title}
+              data-mkt-reveal
+              className="flex flex-col items-center gap-3 text-center"
+              style={{ "--i": i + 3 } as CSSProperties}
             >
-              <item.icon className="size-5" strokeWidth={1.5} />
-            </span>
-            {/* The H3 TIER (Will's checkpoint note: titles blended with body —
-                font-medium was overriding font-heading's 700): the heading
-                face at full weight, two sizes under the h2. */}
-            <h3 className="font-heading text-lg sm:text-xl">{item.title}</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {item.body}
-            </p>
-          </div>
-        ))}
-      </Reveal>
-      {/* The ladder pointer (expansion round): the full curation story. */}
-      <Reveal className="mt-10 flex justify-center">
-        <LearnMoreLink href="/features/curation">
-          How curation works
-        </LearnMoreLink>
+              <span
+                className={`flex size-10 items-center justify-center rounded-lg border ${item.tint}`}
+              >
+                <item.icon className="size-5" strokeWidth={1.5} />
+              </span>
+              {/* The H3 TIER (Will's checkpoint note: titles blended with body —
+                  font-medium was overriding font-heading's 700): the heading
+                  face at full weight, two sizes under the h2. */}
+              <h3 className="font-heading text-lg sm:text-xl">{item.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+        {/* The ladder pointer (expansion round): the full curation story. */}
+        <div
+          data-mkt-reveal
+          className="mt-10 flex justify-center"
+          style={{ "--i": 6 } as CSSProperties}
+        >
+          <LearnMoreLink href="/features/curation">
+            How curation works
+          </LearnMoreLink>
+        </div>
       </Reveal>
     </SectionShell>
   );

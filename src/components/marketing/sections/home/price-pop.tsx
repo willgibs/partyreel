@@ -23,12 +23,15 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 
 type PriceParts = { prefix: string; money: string; suffix: string };
 
-/** "$24 one-time" -> { money: "$24", suffix: "one-time" }; a label with no
- *  recognizable money core renders whole (nothing is ever dropped). */
+/** "$24 one-time" -> { money: "$24", suffix: " one-time" }; a label with no
+ *  recognizable money core renders whole (nothing is ever dropped). The
+ *  separating SPACES stay inside the qualifier parts on purpose: they are the
+ *  optical gap AND they keep the rendered text identical to the label, so the
+ *  accessibility tree still reads "from $9/mo" rather than "from$9/mo". */
 export function splitPrice(label: string): PriceParts {
   const m = label.match(/^(.*?)(\$[\d.,]+(?:\/[a-z]+)?)(.*)$/i);
   if (!m) return { prefix: "", money: label, suffix: "" };
-  return { prefix: m[1].trim(), money: m[2], suffix: m[3].trim() };
+  return { prefix: m[1], money: m[2], suffix: m[3] };
 }
 
 export function PricePop({ label }: { label: string }) {
@@ -37,7 +40,7 @@ export function PricePop({ label }: { label: string }) {
   let digit = 0;
   return (
     <span ref={ref} data-mkt-digits data-on={inView ? "true" : "false"}>
-      {prefix && <Qualifier className="mr-1.5">{prefix}</Qualifier>}
+      {prefix && <Qualifier>{prefix}</Qualifier>}
       {money.split("").map((ch, i) =>
         /\d/.test(ch) ? (
           <span
@@ -51,22 +54,14 @@ export function PricePop({ label }: { label: string }) {
           <span key={i}>{ch}</span>
         ),
       )}
-      {suffix && <Qualifier className="ml-1.5">{suffix}</Qualifier>}
+      {suffix && <Qualifier>{suffix}</Qualifier>}
     </span>
   );
 }
 
-function Qualifier({
-  children,
-  className,
-}: {
-  children: string;
-  className: string;
-}) {
+function Qualifier({ children }: { children: string }) {
   return (
-    <span
-      className={`text-[0.55em] font-medium tracking-normal text-muted-foreground ${className}`}
-    >
+    <span className="text-[0.55em] font-medium tracking-normal whitespace-pre text-muted-foreground">
       {children}
     </span>
   );

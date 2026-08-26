@@ -1,5 +1,8 @@
+import type { CSSProperties } from "react";
+
 import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { FaqJsonLd } from "@/components/marketing/faq-jsonld";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
 import { HomeFaqAccordion } from "./faq-accordion";
@@ -18,7 +21,13 @@ export function Faq() {
       heading="Questions, answered"
       width="narrow"
     >
-      <HomeFaqAccordion items={FAQ_ITEMS} className="mt-10" />
+      {/* ONE CHOREOGRAPHY (R4): the panel used to appear flat under a revealed
+          two-line header. It rises as ONE block at slot 2 on purpose: eight
+          staggered rows would blow past the stagger budget, and a question
+          list is a calm surface, not a cascade. */}
+      <Reveal data-mkt-reveal style={{ "--i": 2 } as CSSProperties}>
+        <HomeFaqAccordion items={FAQ_ITEMS} className="mt-10" />
+      </Reveal>
       <FaqJsonLd />
     </SectionShell>
   );
