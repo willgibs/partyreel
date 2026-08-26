@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { HelpPane } from "@/components/marketing/built-for";
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { ReelAngleBand } from "@/components/marketing/sections/events/reel-angle-band";
 import { TypeDirectory } from "@/components/marketing/sections/events/type-directory";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
@@ -22,10 +24,17 @@ export const metadata: Metadata = {
   alternates: { canonical: "/events" },
 };
 
-// The /events hub (B2 re-skin): a real landing page (cross-event story + the
-// type directory + an aggregate FAQ for rich results), rebuilt onto the cinema
-// system layer. All copy stays single-sourced in EVENTS_HUB; structure + JSON-LD
-// (Breadcrumb + FAQPage) carry over intact, the SEO equity this route exists for.
+// The /events hub: a real landing page (cross-event story + the type directory
+// + an aggregate FAQ for rich results) on the cinema system layer. All copy
+// stays single-sourced in EVENTS_HUB; structure + JSON-LD (Breadcrumb +
+// FAQPage) carry over intact, the SEO equity this route exists for.
+
+/** The hub's reel hook, the cross-event register (the per-type pages each have
+ *  their own on EVENT_TYPES.reelAngle). Local like reel-teaser's SUBHEAD: the
+ *  events constants have no hub-level reel field. */
+const HUB_REEL_ANGLE =
+  "Every angle your guests caught, cut into one highlight reel you can send the same night.";
+
 export default function EventsHub() {
   const cut = (i: number) => ({
     "data-mkt-cut": "",
@@ -89,28 +98,19 @@ export default function EventsHub() {
         <TypeDirectory />
       </SectionShell>
 
+      {/* The hub's benefits ride the SAME windowpane the four type pages use
+          (A20 cohesion), so the umbrella page reads as their parent rather
+          than a different template. */}
       <SectionShell eyebrow="Why Partyreel" heading="Built for any event">
-        <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-2">
-          {EVENTS_HUB.benefits.map(({ icon: Icon, title, body }, i) => (
-            <div
-              key={title}
-              data-mkt-reveal
-              className="flex items-start gap-4"
-              style={{ "--i": i } as CSSProperties}
-            >
-              <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
-                <Icon className="size-5" strokeWidth={1.5} />
-              </span>
-              <div className="flex flex-col gap-1">
-                <h3 className="font-heading text-base sm:text-lg">{title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {body}
-                </p>
-              </div>
-            </div>
-          ))}
-        </Reveal>
+        <HelpPane help={EVENTS_HUB.benefits} />
       </SectionShell>
+
+      {/* A31: the hub was an all-dark stub of generic benefits with no product
+          moment. It stays all-dark (ruled), and this is the moment: the site
+          thesis, and the reel actually playing. Hub-level copy lives here
+          because EVENTS_HUB has no reel field yet (per-type angles stay
+          single-sourced on EVENT_TYPES.reelAngle). */}
+      <ReelAngleBand singular="event" angle={HUB_REEL_ANGLE} />
 
       <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
         <FaqAccordion items={EVENTS_HUB.faq} />
