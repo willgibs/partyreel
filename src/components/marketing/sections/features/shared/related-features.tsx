@@ -39,8 +39,17 @@ function tileFor(slug: string): RelatedTile {
 export function RelatedFeatures({ slugs }: { slugs: string[] }) {
   return (
     <SectionShell className="py-14 sm:py-16">
-      <Reveal className="mx-auto flex max-w-5xl flex-col gap-5">
-        <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
+      {/* R4 / review B20: the band used to run max-w-5xl with a LEFT eyebrow on
+          pages whose every other section is a centered showcase clamp, so the
+          tail read as a different page. It now rides the pages' own max-w-4xl
+          showcase width with the eyebrow centered like every SectionShell
+          header above it. */}
+      <Reveal className="mx-auto flex max-w-4xl flex-col gap-5">
+        <Eyebrow
+          data-mkt-reveal
+          className="text-center"
+          style={{ "--i": 0 } as CSSProperties}
+        >
           Related features
         </Eyebrow>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

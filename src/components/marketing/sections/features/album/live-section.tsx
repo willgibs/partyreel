@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -62,7 +63,12 @@ export function LiveSection() {
 
   return (
     <SectionShell>
+      {/* R4 / review B14: the copy column ran ~200px shorter than the frame and
+          sat vertically centered, so the split left a dead bottom-right
+          quadrant. Both columns start on the same line now, and a third proof
+          line carries the reader onward instead of trailing off. */}
       <MediaSplit
+        className="lg:items-start"
         media={
           /* The Reveal wrapper supplies the [data-inview] ancestor the chip's
              keyed mkt-cut re-pop rides on (and reveals the frame itself). */
@@ -151,6 +157,15 @@ export function LiveSection() {
             Guests keep adding as the night goes on, and the newest shots are
             always at the top when you look.
           </p>
+          <p {...rise(4)} className="text-pretty text-muted-foreground">
+            You stay in charge of it while it runs: approve, hide, or reorder
+            from the same page, without stopping anybody uploading.
+          </p>
+          <div {...rise(5)}>
+            <LearnMoreLink href="/features/curation">
+              Shape it while it fills
+            </LearnMoreLink>
+          </div>
         </Reveal>
       </MediaSplit>
     </SectionShell>
