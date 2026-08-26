@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Minus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
@@ -60,6 +60,24 @@ function Feature({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * A CAP, NOT AN INCLUSION (R4/A16): "Photos only" and "30-second reels" wore
+ * the same green check as real inclusions, which dressed the free plan's
+ * limits as features. Same row, same copy, a muted neutral mark: green now
+ * means "you get this" everywhere on the page.
+ */
+function Limit({ children }: { children: ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <Minus
+        className="mt-0.5 size-4 shrink-0 text-muted-foreground/60"
+        strokeWidth={2}
+      />
+      <span className="text-muted-foreground">{children}</span>
+    </li>
+  );
+}
+
 function PlanCard({
   name,
   whyLine,
@@ -67,6 +85,7 @@ function PlanCard({
   popular = false,
   index,
   children,
+  note,
   footer,
 }: {
   name: string;
@@ -76,6 +95,13 @@ function PlanCard({
   popular?: boolean;
   index: number;
   children: ReactNode;
+  /**
+   * The one line above the CTA (R4/A15). Pro's storage selector made its
+   * footer ~80px taller than a single button, which left the other two cards
+   * with a dead band above their CTAs. Every card now ends the same way: list,
+   * then the sentence a shopper needs at the decision point, then the action.
+   */
+  note: string;
   footer: ReactNode;
 }) {
   return (
@@ -107,7 +133,10 @@ function PlanCard({
       <div className="mt-6 flex-1">
         <ul className="space-y-2.5 text-sm">{children}</ul>
       </div>
-      <div className="mt-6">{footer}</div>
+      <div className="mt-6">
+        <p className="mb-3 text-sm text-pretty text-muted-foreground">{note}</p>
+        {footer}
+      </div>
     </div>
   );
 }
@@ -170,6 +199,7 @@ export default function PricingPage() {
               whyLine="Free covers your whole first event."
               priceLabel={free.priceLabel}
               index={0}
+              note="Upgrade only when you host again."
               footer={
                 <Button asChild className="w-full" variant="outline">
                   <Link href="/login">Start free</Link>
@@ -179,9 +209,14 @@ export default function PricingPage() {
               <Feature>1 event</Feature>
               <Feature>{formatBytes(free.storageBytes)} of storage</Feature>
               <Feature>{photosCapacityLine(free.storageBytes)}</Feature>
-              <Feature>Photos only</Feature>
-              <Feature>{MAX_REEL_SECONDS.free}-second reels</Feature>
+              <Limit>Photos only</Limit>
+              <Limit>{MAX_REEL_SECONDS.free}-second reels</Limit>
               <Feature>No watermark on photos or the album</Feature>
+              {/* The guest-verification control is FREE on every plan and on by
+                  default, and saying so here is what keeps the free card from
+                  reading as the stripped-of-safety plan (it also earns back the
+                  height Pro's three-button selector takes). */}
+              <Feature>Require a verified email to upload</Feature>
             </PlanCard>
 
             {/* Pro — the storage selector lives in one card. */}
@@ -191,14 +226,18 @@ export default function PricingPage() {
               priceLabel={`from ${proFrom.priceLabel}`}
               popular
               index={1}
+              note="Pick the storage you need:"
               footer={
                 // The 3 storage options ARE the selector — each starts checkout.
+                // The FILLED one is the "from" tier the headline quotes (R4/A17):
+                // pre-filling 500 GB sold a $19 plan under a $9 promise. Derived
+                // from proFrom so the two can never drift apart.
                 <div className="grid w-full gap-2">
                   {proPlans.map((p) => (
                     <CheckoutButton
                       key={p.id}
                       planId={p.id}
-                      variant={p.id === "pro_500" ? "default" : "outline"}
+                      variant={p.id === proFrom.id ? "default" : "outline"}
                     >
                       {formatBytes(p.storageBytes)} for {p.priceLabel}
                     </CheckoutButton>
@@ -212,7 +251,6 @@ export default function PricingPage() {
                 {MAX_REEL_SECONDS.pro}-second reels, no watermark
               </Feature>
               <Feature>Password-protected albums</Feature>
-              <Feature>Pick the storage you need:</Feature>
             </PlanCard>
 
             {/* Event Pass */}
@@ -221,6 +259,7 @@ export default function PricingPage() {
               whyLine="One big event, paid once, kept for about a year."
               priceLabel={eventPass.priceLabel}
               index={2}
+              note="Need it longer? Move to Pro before the pass ends."
               footer={
                 <CheckoutButton
                   planId="event_pass"
