@@ -1,10 +1,13 @@
-import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { AlbumFrame } from "@/components/marketing/frames";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { Section } from "@/components/marketing/section";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/careers" },
 };
 
+// The paper type ladder (2026-08-25 ruling): H1 4xl/5xl in the heading face;
+// section h2s step below at 2xl/3xl (SectionShell's built-in heading reaches
+// 5xl at lg — a tie with the paper H1 — so the section headers here are
+// composed bespoke inside the shell and only the rhythm/anchor plumbing is
+// SectionShell's). Sections migrated off the deprecated section.tsx.
 export default function CareersPage() {
   return (
     <>
@@ -32,29 +40,42 @@ export default function CareersPage() {
         ]}
       />
 
-      {/* Hero */}
+      {/* Hero — the one entrance (texts-reveal), calm register. */}
       <section className="border-b">
         <Container className="flex flex-col items-center gap-6 py-20 text-center sm:py-28">
-          <span className="text-sm font-medium text-brand">
-            {CAREERS_INTRO.eyebrow}
-          </span>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tighter text-balance sm:text-5xl">
-            {CAREERS_INTRO.headline}
-          </h1>
-          <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
-            {CAREERS_INTRO.subhead}
-          </p>
-          <Button asChild size="lg" className="h-11 px-6 text-base">
-            <Link href="#open-roles">See open roles</Link>
-          </Button>
+          <TextsReveal className="flex flex-col items-center gap-6">
+            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
+              {CAREERS_INTRO.eyebrow}
+            </Eyebrow>
+            <h1
+              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl"
+              style={{ "--i": 1 } as CSSProperties}
+            >
+              {CAREERS_INTRO.headline}
+            </h1>
+            <p
+              className="mkt-line max-w-2xl text-lg text-pretty text-muted-foreground"
+              style={{ "--i": 2 } as CSSProperties}
+            >
+              {CAREERS_INTRO.subhead}
+            </p>
+            <span
+              className="mkt-line"
+              style={{ "--i": 3 } as CSSProperties}
+            >
+              <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Link href="#open-roles">See open roles</Link>
+              </Button>
+            </span>
+          </TextsReveal>
         </Container>
       </section>
 
       {/* What we're building — asymmetric 2-col (story + media frame) */}
-      <Section>
+      <SectionShell reveal="none">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            <h2 className="font-heading text-2xl text-balance sm:text-3xl">
               {CAREERS_MISSION.heading}
             </h2>
             {CAREERS_MISSION.paragraphs.map((paragraph) => (
@@ -65,41 +86,47 @@ export default function CareersPage() {
           </div>
           <AlbumFrame label="partyreel.com/a/the-team" />
         </div>
-      </Section>
+      </SectionShell>
 
-      {/* How we work — numbered principles */}
-      <Section
-        className="bg-muted/30"
-        eyebrow="How we work"
-        heading="A few things we believe"
-      >
-        <ol className="mx-auto mt-14 grid max-w-4xl gap-8 sm:grid-cols-2">
+      {/* How we work — numbered principles, mono numerals in achromatic chips */}
+      <SectionShell reveal="none" className="bg-muted/30">
+        <div className="mx-auto max-w-2xl text-center">
+          <Eyebrow>How we work</Eyebrow>
+          <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+            A few things we believe
+          </h2>
+        </div>
+        <ol className="mx-auto mt-12 grid max-w-4xl gap-x-10 gap-y-9 sm:grid-cols-2">
           {HOW_WE_WORK.map(({ title, body }, index) => (
             <li key={title} className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-sm font-semibold text-brand">
-                  {index + 1}
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border font-mono text-xs text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
                 </span>
                 <h3 className="font-heading text-lg font-medium">{title}</h3>
               </div>
-              <p className="text-sm text-muted-foreground">{body}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {body}
+              </p>
             </li>
           ))}
         </ol>
-      </Section>
+      </SectionShell>
 
       {/* Open roles */}
-      <Section
-        id="open-roles"
-        eyebrow="Open roles"
-        heading="Come build with us"
-      >
-        <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-4">
+      <SectionShell id="open-roles" reveal="none">
+        <div className="mx-auto max-w-2xl text-center">
+          <Eyebrow>Open roles</Eyebrow>
+          <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+            Come build with us
+          </h2>
+        </div>
+        <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
           {JOB_OPENINGS.map((job) => (
             <Link
               key={job.slug}
               href={`/careers/${job.slug}`}
-              className="group flex flex-col gap-4 rounded-xl border bg-card p-6 transition-colors duration-150 hover:border-brand/40 sm:flex-row sm:items-center sm:justify-between"
+              className="mkt-learn group flex flex-col gap-4 rounded-xl border bg-card p-6 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99] sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex flex-col gap-2">
                 <h3 className="font-heading text-lg font-medium">
@@ -114,14 +141,14 @@ export default function CareersPage() {
                   )}
                 </div>
               </div>
-              <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-foreground transition-colors duration-150 group-hover:text-brand">
+              <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
                 View role
-                <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+                <LearnChevron />
               </span>
             </Link>
           ))}
         </div>
-      </Section>
+      </SectionShell>
     </>
   );
 }

@@ -58,6 +58,8 @@ export function BlogList({
   );
 }
 
+// Active = a solid ink pill (the achromatic register: state is contrast, not
+// hue); idle chips stay quiet until hover. Press feedback per the house rule.
 function TagChip({
   label,
   active,
@@ -73,9 +75,9 @@ function TagChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full border px-3 py-1 text-sm transition-colors duration-150 active:scale-[0.98]",
+        "rounded-full border px-3 py-1 text-sm transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.97]",
         active
-          ? "border-brand bg-brand/10 text-brand"
+          ? "border-transparent bg-primary font-medium text-primary-foreground"
           : "text-muted-foreground hover:border-foreground/30 hover:text-foreground",
       )}
     >
@@ -95,8 +97,8 @@ function PostCard({
     <Link
       href={`/blog/${post.slug}`}
       className={cn(
-        "group flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-colors duration-150 hover:border-brand/40",
-        featured && "sm:col-span-2",
+        "group flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]",
+        featured && "sm:col-span-2 sm:p-8",
       )}
     >
       {post.tags.length > 0 && (
@@ -110,17 +112,24 @@ function PostCard({
       )}
       <h2
         className={cn(
-          "font-heading font-semibold tracking-tight text-balance transition-colors duration-150 group-hover:text-brand",
-          featured ? "text-2xl" : "text-lg",
+          "font-heading text-balance",
+          featured ? "max-w-3xl text-2xl sm:text-3xl" : "text-lg",
         )}
       >
         {post.title}
       </h2>
-      <p className="text-sm text-pretty text-muted-foreground">
+      <p
+        className={cn(
+          "text-sm text-pretty text-muted-foreground",
+          featured && "max-w-2xl",
+        )}
+      >
         {post.description}
       </p>
-      <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">{post.authorName}</span>
+      {/* Byline in the mono caption voice (dates and reading time are factual
+          captions, the documented utility exception). */}
+      <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 font-mono text-xs tracking-wide text-muted-foreground">
+        <span className="text-foreground">{post.authorName}</span>
         <span aria-hidden>·</span>
         <time dateTime={post.date}>{post.dateLabel}</time>
         <span aria-hidden>·</span>
