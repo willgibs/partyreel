@@ -124,11 +124,16 @@ describe("marketing nav config", () => {
     ]);
   });
 
-  it("footer Company column links to Careers (Contact moved to Resources)", () => {
+  it("footer Company column carries the R5 shape (About leads; no Contact)", () => {
     const company = FOOTER_NAV.find((col) => col.title === "Company");
-    const hrefs = company?.links.map((link) => link.href) ?? [];
-    expect(hrefs).toContain("/careers");
-    expect(hrefs).not.toContain("/contact");
+    // About is footer-only by ruling (no header-nav row), so this pin is the
+    // one guard keeping the route reachable — do not drop it casually.
+    expect(company?.links.map((link) => link.href)).toEqual([
+      "/about",
+      "/careers",
+      "/privacy",
+      "/terms",
+    ]);
   });
 
   it("Resources surfaces Help + Blog + Contact in both the header group and footer column", () => {

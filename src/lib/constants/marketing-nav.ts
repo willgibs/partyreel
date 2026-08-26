@@ -174,6 +174,9 @@ export const FOOTER_NAV: FooterColumn[] = [
   {
     title: "Company",
     links: [
+      // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
+      // header-nav row. It leads the column as the column's anchor.
+      { label: "About", href: "/about" },
       { label: "Careers", href: "/careers" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
