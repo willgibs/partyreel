@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 
+import type { FaqItem } from "@/components/marketing/faq-data";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { FeatureFaq } from "@/components/marketing/sections/features/album/feature-faq";
+import { RelatedFeatures } from "@/components/marketing/sections/features/album/related-features";
+import { AttributionHero } from "@/components/marketing/sections/features/guests/attribution-hero";
+import { CreditedAlbum } from "@/components/marketing/sections/features/guests/credited-album";
+import { GuestListSection } from "@/components/marketing/sections/features/guests/guest-list-section";
+import { ProfilesSection } from "@/components/marketing/sections/features/guests/profiles-section";
+import { CtaBand } from "@/components/marketing/system/cta-band";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { featurePage } from "@/lib/constants/feature-pages";
 
-import { FeatureStub } from "../feature-stub";
-
-// PHASE-A STUB: the Phase-B track replaces this page's body wholesale (the
-// registry keeps metadata + hero truthful in the meantime).
+// GUESTS & PROFILES page (expansion Phase B, T1): the people page, warm. Arc:
+// the attribution wall + the credited album (dark) -> the guest list + opt-in
+// profiles (ONE paper chapter) -> related, FAQ, CTA back in the dark. No
+// GoDeeper on purpose: no help article covers profiles yet (the track report
+// proposes one).
 const page = featurePage("guests");
 
 export const metadata: Metadata = {
@@ -14,6 +25,45 @@ export const metadata: Metadata = {
   alternates: { canonical: "/features/guests" },
 };
 
+const FAQ_ITEMS: FaqItem[] = [
+  {
+    q: "Do guests have to make a profile?",
+    a: "No. Profiles are optional and opt-in. A guest can upload with just a display name (or anonymously, where the host allows it) and never have a public page at all.",
+  },
+  {
+    q: "Who sees the guest list?",
+    a: "You do, on your event page. It appears on the shared album only if you switch that on; otherwise guests just see the names on the photos. Anonymous uploaders are never listed either way.",
+  },
+  {
+    q: "Can guests stay anonymous?",
+    a: 'Yes, when the host allows anonymous uploads. Those shots show as "Anonymous" in the album, and they never appear on the guest list or on any profile.',
+  },
+];
+
 export default function GuestsFeaturePage() {
-  return <FeatureStub slug="guests" />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Features", href: "/features" },
+          { name: page.navLabel, href: "/features/guests" },
+        ]}
+      />
+      <AttributionHero />
+      <CreditedAlbum />
+      <PaperChapter>
+        <GuestListSection />
+        <ProfilesSection />
+      </PaperChapter>
+      <RelatedFeatures slugs={["album", "qr", "privacy"]} />
+      <FeatureFaq items={FAQ_ITEMS} />
+      <CtaBand
+        className="border-t"
+        heading="Fill the room, then keep it."
+        subhead="Start free. Every guest with a phone becomes part of the album, by name."
+        demoLink
+      />
+    </>
+  );
 }
