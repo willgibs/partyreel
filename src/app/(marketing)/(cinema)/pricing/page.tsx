@@ -8,11 +8,12 @@ import { PricingJsonLd } from "@/components/marketing/jsonld";
 import { PricePop } from "@/components/marketing/sections/home/price-pop";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
-import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
+import { CHAPTER_KICKERS, GOLDEN_LINES } from "@/lib/constants/marketing-voice";
 import {
   friendlyCapacity,
   MAX_REEL_SECONDS,
@@ -78,12 +79,16 @@ function PlanCard({
   footer: ReactNode;
 }) {
   return (
+    // The paper-card recipe (bg-card + border + whisper ring): these live in
+    // the page's PAPER chapter since the 2026-08-26 mixed-theme ruling, so the
+    // dark-tuned translucent bg-card/40 gave way to the paper surface the help
+    // cards use. Popular keeps the stronger ink ring.
     <div
       data-mkt-reveal
       className={
         popular
-          ? "relative flex flex-col rounded-2xl border bg-card/40 p-6 ring-1 ring-foreground/25"
-          : "flex flex-col rounded-2xl border bg-card/40 p-6"
+          ? "relative flex flex-col rounded-2xl border bg-card p-6 ring-1 ring-foreground/25"
+          : "flex flex-col rounded-2xl border bg-card p-6 ring-1 ring-foreground/5"
       }
       style={{ "--i": index } as CSSProperties}
     >
@@ -136,108 +141,119 @@ export default function PricingPage() {
             </h1>
             <p
               data-mkt-reveal
-              className="max-w-2xl text-pretty text-lg text-muted-foreground"
+              className="max-w-2xl text-lg text-pretty text-muted-foreground"
               style={{ "--i": 2 } as CSSProperties}
             >
-              No per-guest fees and no expiry clock. Plans are sized by
-              storage, so pick the room your event actually needs.
+              No per-guest fees and no expiry clock. Plans are sized by storage,
+              so pick the room your event actually needs.
             </p>
           </Reveal>
         </Container>
       </section>
 
-      <SectionShell>
-        <Reveal className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-3">
-          {/* Free */}
-          <PlanCard
-            name={free.name}
-            whyLine="Free covers your whole first event."
-            priceLabel={free.priceLabel}
-            index={0}
-            footer={
-              <Button asChild className="w-full" variant="outline">
-                <Link href="/login">Start free</Link>
-              </Button>
-            }
-          >
-            <Feature>1 event</Feature>
-            <Feature>{formatBytes(free.storageBytes)} of storage</Feature>
-            <Feature>{photosCapacityLine(free.storageBytes)}</Feature>
-            <Feature>Photos only</Feature>
-            <Feature>{MAX_REEL_SECONDS.free}-second reels</Feature>
-            <Feature>No watermark on photos or the album</Feature>
-          </PlanCard>
+      {/* THE PAPER DOCUMENT IN A DARK ROOM (the 2026-08-26 chapter ruling):
+          the money turns the page to paper — plans read as the honest sheet
+          (receipts, clarity, trust), framed by the dark hero above and the
+          dark close below. The kicker debuts here (provisional copy). */}
+      <PaperChapter kicker={CHAPTER_KICKERS.pricing}>
+        <SectionShell>
+          <Reveal className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-3">
+            {/* Free */}
+            <PlanCard
+              name={free.name}
+              whyLine="Free covers your whole first event."
+              priceLabel={free.priceLabel}
+              index={0}
+              footer={
+                <Button asChild className="w-full" variant="outline">
+                  <Link href="/login">Start free</Link>
+                </Button>
+              }
+            >
+              <Feature>1 event</Feature>
+              <Feature>{formatBytes(free.storageBytes)} of storage</Feature>
+              <Feature>{photosCapacityLine(free.storageBytes)}</Feature>
+              <Feature>Photos only</Feature>
+              <Feature>{MAX_REEL_SECONDS.free}-second reels</Feature>
+              <Feature>No watermark on photos or the album</Feature>
+            </PlanCard>
 
-          {/* Pro — the storage selector lives in one card. */}
-          <PlanCard
-            name="Pro"
-            whyLine={`Pro unlocks video, unlimited events, and the ${MAX_REEL_SECONDS.pro}-second cut with no watermark.`}
-            priceLabel={`from ${proFrom.priceLabel}`}
-            popular
-            index={1}
-            footer={
-              // The 3 storage options ARE the selector — each starts checkout.
-              <div className="grid w-full gap-2">
-                {proPlans.map((p) => (
-                  <CheckoutButton
-                    key={p.id}
-                    planId={p.id}
-                    variant={p.id === "pro_500" ? "default" : "outline"}
-                  >
-                    {formatBytes(p.storageBytes)} for {p.priceLabel}
-                  </CheckoutButton>
-                ))}
-              </div>
-            }
-          >
-            <Feature>Unlimited events</Feature>
-            <Feature>Photos and video</Feature>
-            <Feature>{MAX_REEL_SECONDS.pro}-second reels, no watermark</Feature>
-            <Feature>Password-protected albums</Feature>
-            <Feature>Pick the storage you need:</Feature>
-          </PlanCard>
+            {/* Pro — the storage selector lives in one card. */}
+            <PlanCard
+              name="Pro"
+              whyLine={`Pro unlocks video, unlimited events, and the ${MAX_REEL_SECONDS.pro}-second cut with no watermark.`}
+              priceLabel={`from ${proFrom.priceLabel}`}
+              popular
+              index={1}
+              footer={
+                // The 3 storage options ARE the selector — each starts checkout.
+                <div className="grid w-full gap-2">
+                  {proPlans.map((p) => (
+                    <CheckoutButton
+                      key={p.id}
+                      planId={p.id}
+                      variant={p.id === "pro_500" ? "default" : "outline"}
+                    >
+                      {formatBytes(p.storageBytes)} for {p.priceLabel}
+                    </CheckoutButton>
+                  ))}
+                </div>
+              }
+            >
+              <Feature>Unlimited events</Feature>
+              <Feature>Photos and video</Feature>
+              <Feature>
+                {MAX_REEL_SECONDS.pro}-second reels, no watermark
+              </Feature>
+              <Feature>Password-protected albums</Feature>
+              <Feature>Pick the storage you need:</Feature>
+            </PlanCard>
 
-          {/* Event Pass */}
-          <PlanCard
-            name={eventPass.name}
-            whyLine="One big event, paid once, kept for a year."
-            priceLabel={eventPass.priceLabel}
-            index={2}
-            footer={
-              <CheckoutButton
-                planId="event_pass"
-                variant="outline"
-                className="w-full"
-              >
-                Buy a pass
-              </CheckoutButton>
-            }
-          >
-            <Feature>1 event, kept for ~1 year</Feature>
-            <Feature>{formatBytes(eventPass.storageBytes)} of storage</Feature>
-            <Feature>{capacityLine(eventPass.storageBytes)}</Feature>
-            <Feature>Photos and video</Feature>
-            <Feature>{MAX_REEL_SECONDS.event_pass}-second reels</Feature>
-            <Feature>No subscription, pay once</Feature>
-          </PlanCard>
-        </Reveal>
+            {/* Event Pass */}
+            <PlanCard
+              name={eventPass.name}
+              whyLine="One big event, paid once, kept for a year."
+              priceLabel={eventPass.priceLabel}
+              index={2}
+              footer={
+                <CheckoutButton
+                  planId="event_pass"
+                  variant="outline"
+                  className="w-full"
+                >
+                  Buy a pass
+                </CheckoutButton>
+              }
+            >
+              <Feature>1 event, kept for ~1 year</Feature>
+              <Feature>
+                {formatBytes(eventPass.storageBytes)} of storage
+              </Feature>
+              <Feature>{capacityLine(eventPass.storageBytes)}</Feature>
+              <Feature>Photos and video</Feature>
+              <Feature>{MAX_REEL_SECONDS.event_pass}-second reels</Feature>
+              <Feature>No subscription, pay once</Feature>
+            </PlanCard>
+          </Reveal>
 
-        <Reveal className="mx-auto mt-10 max-w-2xl">
-          <p
-            data-mkt-reveal
-            className="text-center text-sm text-pretty text-muted-foreground"
-            style={{ "--i": 0 } as CSSProperties}
-          >
-            {/* One template string on purpose: the JSX-text space after the
+          <Reveal className="mx-auto mt-10 max-w-2xl">
+            <p
+              data-mkt-reveal
+              className="text-center text-sm text-pretty text-muted-foreground"
+              style={{ "--i": 0 } as CSSProperties}
+            >
+              {/* One template string on purpose: the JSX-text space after the
                 {uploadSize} expression was stripped at compile ("10 GBeach"),
                 caught in the screenshot pass. */}
-            {`Video uploads come with Pro and Event Pass, up to ${uploadSize} each. Your events stay up until you delete them. There’s no expiry clock counting down on your memories.`}
-          </p>
-        </Reveal>
-      </SectionShell>
+              {`Video uploads come with Pro and Event Pass, up to ${uploadSize} each. Your events stay up until you delete them. There’s no expiry clock counting down on your memories.`}
+            </p>
+          </Reveal>
+        </SectionShell>
+      </PaperChapter>
 
+      {/* No border-t here: the chapter's own bottom hairline marks the cut
+          back to the cinema (a second rule would double the seam). */}
       <CtaBand
-        className="border-t"
         heading="Ready when you are."
         subhead="Start your first event free, and upgrade only when you host again."
         demoLink

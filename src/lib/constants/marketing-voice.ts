@@ -44,7 +44,10 @@ export const SECTION_HEADERS: Record<
   string,
   { line: string; status: HeaderStatus; note?: string }
 > = {
-  howItWorks: { line: "Scan, upload, done. No app to install.", status: "ruled" },
+  howItWorks: {
+    line: "Scan, upload, done. No app to install.",
+    status: "ruled",
+  },
   liveDemo: {
     line: "Watch your album fill up.",
     status: "provisional",
@@ -82,3 +85,17 @@ export const DECOMPOSITION_FACTS = [
 
 /** The recurring demo CTA line (DemoCtaLink renders it everywhere the demo is offered). */
 export const DEMO_CTA_LABEL = "Try the live demo, no signup.";
+
+/**
+ * PROVISIONAL (2026-08-26 chapter round): the mono chapter labels at the
+ * dark→paper cuts (PaperChapter's kicker slot). One entry per chapter that
+ * USES a kicker — home's morning-after chapter deliberately has none (its
+ * album section opens with its own eyebrow + ruled header, and the straddling
+ * card is the seam signature; two devices at one cut would be noise). Awaiting
+ * Will's word alongside the five provisional section headers.
+ */
+export const CHAPTER_KICKERS = {
+  /** /pricing's paper document: "on paper" = plain written terms, and the
+   *  surface literally turns to paper. */
+  pricing: "On paper",
+} as const;
