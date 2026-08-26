@@ -28,7 +28,8 @@ export const metadata: Metadata = {
 const FAQ_ITEMS: FaqItem[] = [
   {
     q: "What file types can guests upload?",
-    a: "Photos as JPEG, PNG, WebP, HEIC, HEIF, or AVIF on every plan, and videos as MP4, MOV, or WebM on events hosted with a paid plan. Each file can be up to 10 GB.",
+    // B26 ruling: name BOTH paid plans rather than saying "a paid plan".
+    a: "Photos as JPEG, PNG, WebP, HEIC, HEIF, or AVIF on every plan, and videos as MP4, MOV, or WebM on events hosted with Pro or Event Pass. Each file can be up to 10 GB.",
   },
   {
     q: "Does Partyreel compress photos or videos?",
