@@ -41,8 +41,16 @@ export function EventsTeaser() {
       <CardGrid columns={4} className="mx-auto mt-12 max-w-6xl">
         {EVENT_TYPES.map(({ slug, navLabel, teaser }) => {
           const still = marketingImage(EVENT_STILLS[slug] ?? "wedding-golden");
+          // EQUAL BOTTOM EDGE (R4/A7): grid items stretch, but the tilt's
+          // inner .mkt-tilt-card is a plain block, so a 2-line teaser card
+          // stopped short of its 3-line neighbours. Height is threaded through
+          // BOTH wrappers here (the shared .mkt-tilt-card class also serves
+          // non-grid consumers, so it must not be made 100% globally).
           return (
-            <TiltCard key={slug} className="rounded-xl">
+            <TiltCard
+              key={slug}
+              className="h-full rounded-xl [&>.mkt-tilt-card]:h-full"
+            >
               <Link
                 href={`/events/${slug}`}
                 className="flex h-full flex-col overflow-hidden rounded-xl border bg-card"

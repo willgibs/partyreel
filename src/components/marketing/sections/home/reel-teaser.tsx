@@ -44,11 +44,24 @@ export function ReelTeaser() {
       heading={SECTION_HEADERS.reel.line}
       subhead={SUBHEAD}
     >
-      <Conveyor className="mt-10" copyClassName="gap-2 pr-2">
+      {/* EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
+          at both gutters, which read as a broken container rather than a
+          conveyor, and nothing tied the names to the reel underneath. The mask
+          ramps the row out at both edges (alpha machinery, the sanctioned #000
+          literal), and the ONE filled chip is the style this render actually
+          used — the same fact the caption states in words. */}
+      <Conveyor
+        className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)]"
+        copyClassName="gap-2 pr-2"
+      >
         {chips.map((style, i) => (
           <span
             key={`${style.id}-${i}`}
-            className="rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground"
+            className={
+              style.id === reel.recipe.styleId
+                ? "rounded-full border border-foreground/30 bg-foreground/10 px-3 py-1 text-xs font-medium whitespace-nowrap text-foreground"
+                : "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground"
+            }
           >
             {style.label}
           </span>

@@ -52,12 +52,16 @@ const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
 export function Privacy() {
   return (
     <SectionShell eyebrow="Privacy" heading={SECTION_HEADERS.privacy.line}>
-      <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {/* FIVE ITEMS, NO HOLE (R4/A18): a 3-column GRID left the sixth cell
+          empty, which read as a missing claim. A wrapped flex row with the
+          same column widths centers the short last row instead (3 + 2 at lg,
+          2 + 2 + 1 at sm), so the shape reads deliberate at every width. */}
+      <Reveal className="mx-auto mt-12 flex max-w-4xl flex-wrap justify-center gap-x-10 gap-y-10">
         {CLAIMS.map((claim, i) => (
           <div
             key={claim.title}
             data-mkt-reveal
-            className="flex items-start gap-4"
+            className="flex w-full items-start gap-4 sm:w-[calc((100%-2.5rem)/2)] lg:w-[calc((100%-5rem)/3)]"
             style={{ "--i": i } as CSSProperties}
           >
             <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">

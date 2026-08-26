@@ -1,12 +1,15 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { Play, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { ReelFrame } from "@/components/marketing/frames";
 import { Container } from "@/components/shared/container";
-import { marketingImage } from "@/lib/constants/marketing-media";
+import {
+  MARKETING_REELS,
+  marketingImage,
+} from "@/lib/constants/marketing-media";
 import { DECOMPOSITION_FACTS } from "@/lib/constants/marketing-voice";
 import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
@@ -59,6 +62,20 @@ const TILES: BurstTile[] = [
 ];
 
 const STAGE_W = 940;
+
+/* THE CARD AT THE CENTER (R4/A6): ReelFrame's bare placeholder rendered as a
+   grey rectangle with a painted-on timeline, so the one thing the whole burst
+   points at was the only dead pixel on the page. Its `media` slot now carries
+   the REAL landscape render's poster (the same frame the hero's reel card and
+   the reel teaser play), which is what "built from 214 photos" is supposed to
+   be showing. Poster only, no <video>: this stage is a still composition and a
+   second autoplaying loop next to the hero's would be noise. */
+function requireReel(id: string) {
+  const reel = MARKETING_REELS.find((r) => r.id === id);
+  if (!reel) throw new Error(`Unknown marketing reel id: ${id}`);
+  return reel;
+}
+const REEL_POSTER = requireReel("hero-candidate-02");
 
 /** Design-px to container-query width units (the stage is the container).
  *  --dscale (1 by default) is the MOBILE readability knob: below sm the stage
@@ -137,6 +154,28 @@ function CountUp({
   return <span className="font-mono tabular-nums">{n}</span>;
 }
 
+/** The real render's poster filling ReelFrame's player area, with the play
+ *  badge kept as the only chrome (the fake 0:12/0:48 timeline goes: a painted
+ *  transport over a still reads as broken). The frame itself is aria-hidden. */
+function ReelPoster() {
+  return (
+    <>
+      <Image
+        src={REEL_POSTER.poster}
+        alt=""
+        fill
+        sizes="(min-width: 1024px) 340px, 60vw"
+        className="object-cover"
+      />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lg">
+          <Play className="size-5 translate-x-0.5 fill-current" />
+        </span>
+      </span>
+    </>
+  );
+}
+
 function TilePhoto({ id }: { id: string }) {
   const m = marketingImage(id);
   return (
@@ -197,7 +236,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
             </div>
           ))}
           <div className="absolute top-1/2 left-1/2 z-10 w-[36cqw] max-w-[340px] min-w-[180px] -translate-x-1/2 -translate-y-1/2">
-            <ReelFrame />
+            <ReelFrame media={<ReelPoster />} />
           </div>
         </div>
       </div>
@@ -238,7 +277,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
       <button
         type="button"
         onClick={onReplay}
-        className="absolute top-6 right-4 flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-95 sm:right-6"
+        className="absolute top-6 right-4 flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.97] sm:right-6"
       >
         <RotateCcw className="size-3.5" />
         Replay
