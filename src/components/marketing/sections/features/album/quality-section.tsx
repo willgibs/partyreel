@@ -24,6 +24,7 @@ import {
 const FRIENDLY_FORMAT: Record<string, string> = {
   "image/jpeg": "JPEG",
   "image/webp": "WebP",
+  "video/webm": "WebM",
 };
 
 function formatName(mime: string): string {

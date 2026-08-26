@@ -81,7 +81,9 @@ export function AttributionHero() {
             the shots; the reveal grammar's stagger does the sequencing). */}
         <Reveal className="mx-auto mt-12 max-w-3xl sm:mt-16">
           <BrowserFrame label="partyreel.com/a/maya-and-jay">
-            <div className="grid grid-cols-4 gap-1.5">
+            {/* 2-up below sm: at 375px a 4-col tile is too narrow for the
+                "Anonymous" chip; the wall goes taller instead of clipping. */}
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {WALL.map((tile, i) => {
                 const m = marketingImage(tile.id);
                 return (

@@ -113,10 +113,13 @@ export function LiveSection() {
                     <span
                       key={turn}
                       data-mkt-cut
-                      className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] leading-4 font-medium text-white backdrop-blur-sm"
+                      className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] leading-4 font-medium whitespace-nowrap text-white backdrop-blur-sm"
                       style={{ "--i": 0 } as CSSProperties}
                     >
-                      Just added · {incoming.by}
+                      {/* The prefix drops below sm: the chip must never wrap on
+                          a small tile. */}
+                      <span className="hidden sm:inline">Just added · </span>
+                      {incoming.by}
                     </span>
                   </div>
                 </div>

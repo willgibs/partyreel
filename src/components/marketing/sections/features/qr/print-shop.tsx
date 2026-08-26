@@ -86,7 +86,7 @@ function PrintMocks() {
       {/* The table card, laid over the poster's lower corner (never its copy). */}
       <div
         data-mkt-reveal
-        className="relative mt-28 ml-40 w-52 -rotate-3 rounded-lg border bg-white p-5 text-center text-neutral-900 shadow-[var(--shadow-float)] sm:ml-48"
+        className="relative mt-32 ml-24 w-52 -rotate-3 rounded-lg border bg-white p-5 text-center text-neutral-900 shadow-[var(--shadow-float)] sm:mt-28 sm:ml-48"
         style={{ "--i": 1 } as CSSProperties}
       >
         <div className="mx-auto w-fit rounded-md bg-white">
