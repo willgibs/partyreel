@@ -98,7 +98,7 @@ function PlanCard({
         </span>
       )}
       <div className="flex flex-col gap-2">
-        <h2 className="font-heading text-base font-medium">{name}</h2>
+        <h2 className="font-heading text-lg">{name}</h2>
         <p className="text-sm text-pretty text-muted-foreground">{whyLine}</p>
         <div className="mt-2 font-mono text-3xl font-medium tracking-tight tabular-nums">
           <PricePop label={priceLabel} />

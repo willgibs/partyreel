@@ -59,9 +59,7 @@ export function FeatureSpotlight({
                   <Icon className="size-4.5" strokeWidth={1.5} />
                 </span>
                 <div className="flex flex-col gap-0.5">
-                  <h3 className="font-heading text-base font-medium">
-                    {title}
-                  </h3>
+                  <h3 className="font-heading text-base sm:text-lg">{title}</h3>
                   <p className="text-sm text-muted-foreground">{body}</p>
                 </div>
               </li>

@@ -55,7 +55,7 @@ export default function EventsHub() {
             </h1>
             <p
               {...cut(2)}
-              className="max-w-2xl text-pretty text-lg text-muted-foreground"
+              className="max-w-2xl text-lg text-pretty text-muted-foreground"
             >
               {EVENTS_HUB.subhead}
             </p>
@@ -102,7 +102,7 @@ export default function EventsHub() {
                 <Icon className="size-5" strokeWidth={1.5} />
               </span>
               <div className="flex flex-col gap-1">
-                <h3 className="font-heading text-base font-medium">{title}</h3>
+                <h3 className="font-heading text-base sm:text-lg">{title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {body}
                 </p>

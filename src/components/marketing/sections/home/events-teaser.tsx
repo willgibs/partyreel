@@ -57,7 +57,7 @@ export function EventsTeaser() {
                   />
                 </div>
                 <div className="flex flex-col gap-1 p-5">
-                  <h3 className="font-heading text-lg font-medium">
+                  <h3 className="font-heading text-lg sm:text-xl">
                     {navLabel}
                   </h3>
                   <p className="text-sm text-muted-foreground">{teaser}</p>

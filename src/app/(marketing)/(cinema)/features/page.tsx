@@ -77,7 +77,7 @@ function FeaturesHero() {
             </h1>
             <p
               {...cut(2)}
-              className="max-w-xl text-pretty text-lg text-muted-foreground"
+              className="max-w-xl text-lg text-pretty text-muted-foreground"
             >
               One QR code in, one album out. This is everything Partyreel does
               in between, for your guests and for you.
@@ -155,7 +155,7 @@ function PrivacyPanel() {
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
                   <Icon className="size-4" strokeWidth={1.5} />
                 </span>
-                <h3 className="font-heading text-base font-medium">{title}</h3>
+                <h3 className="font-heading text-base sm:text-lg">{title}</h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {longBody}
@@ -184,7 +184,7 @@ function StorageTrio() {
             <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
               <Icon className="size-5" strokeWidth={1.5} />
             </span>
-            <h3 className="font-heading text-base font-medium">{title}</h3>
+            <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
             <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
               {longBody}
             </p>

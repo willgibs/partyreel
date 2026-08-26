@@ -63,7 +63,9 @@ export function Privacy() {
               <claim.icon className="size-4.5" strokeWidth={1.5} />
             </span>
             <div className="flex flex-col gap-1">
-              <h3 className="text-sm font-medium">{claim.title}</h3>
+              <h3 className="font-heading text-base sm:text-lg">
+                {claim.title}
+              </h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {claim.body}
               </p>

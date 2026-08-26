@@ -66,7 +66,10 @@ export function Curation() {
             >
               <item.icon className="size-5" strokeWidth={1.5} />
             </span>
-            <h3 className="font-heading text-base font-medium">{item.title}</h3>
+            {/* The H3 TIER (Will's checkpoint note: titles blended with body —
+                font-medium was overriding font-heading's 700): the heading
+                face at full weight, two sizes under the h2. */}
+            <h3 className="font-heading text-lg sm:text-xl">{item.title}</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {item.body}
             </p>

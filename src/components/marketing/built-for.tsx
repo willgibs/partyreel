@@ -66,7 +66,7 @@ function Bento({ help }: { help: EventTypeHelp[] }) {
         >
           <Chip icon={lead.icon} />
           <div>
-            <h3 className="font-heading text-lg font-medium">{lead.title}</h3>
+            <h3 className="font-heading text-lg sm:text-xl">{lead.title}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{lead.body}</p>
           </div>
         </div>
@@ -80,7 +80,7 @@ function Bento({ help }: { help: EventTypeHelp[] }) {
               className="rounded-xl border bg-card/60 p-6"
             >
               <Chip icon={icon} />
-              <h3 className="mt-4 font-heading text-base font-medium">
+              <h3 className="mt-4 font-heading text-base sm:text-lg">
                 {title}
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">{body}</p>
@@ -101,7 +101,7 @@ function Rows({ help }: { help: EventTypeHelp[] }) {
         <div key={title} {...mark(i)} className="flex items-start gap-4 p-5">
           <Chip icon={icon} />
           <div>
-            <h3 className="font-heading text-base font-medium">{title}</h3>
+            <h3 className="font-heading text-base sm:text-lg">{title}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{body}</p>
           </div>
         </div>
@@ -118,7 +118,7 @@ function Quadrants({ help }: { help: EventTypeHelp[] }) {
       {help.map(({ icon, title, body }, i) => (
         <div key={title} {...mark(i)} className="bg-card p-6 sm:p-8">
           <Chip icon={icon} />
-          <h3 className="mt-4 font-heading text-base font-medium">{title}</h3>
+          <h3 className="mt-4 font-heading text-base sm:text-lg">{title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
         </div>
       ))}
@@ -147,7 +147,7 @@ function Timeline({ help }: { help: EventTypeHelp[] }) {
               <span className="font-mono text-xs font-medium text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="mt-1 font-heading text-base font-medium">
+              <h3 className="mt-1 font-heading text-base sm:text-lg">
                 {title}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">{body}</p>
