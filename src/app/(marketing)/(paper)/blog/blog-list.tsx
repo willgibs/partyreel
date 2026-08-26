@@ -25,6 +25,17 @@ export function BlogList({
     [active, posts],
   );
 
+  // C2 fix: the grid pairs regular cards 2-up below the full-width featured
+  // lead. Whenever that leaves an ODD number of regular cards, the last one
+  // lands alone in its row with the other half of the grid empty (a content-
+  // count artifact, not a design choice). Span that trailing card full-width
+  // instead so a lone closer always reads as deliberate. Recomputed from
+  // whatever's currently filtered, so it holds for any post count or tag
+  // selection, not just today's, without ever needing a manual re-tune.
+  const hasFeatured = active === null && filtered.length > 0;
+  const regularCount = hasFeatured ? filtered.length - 1 : filtered.length;
+  const oddTailIndex = regularCount % 2 === 1 ? filtered.length - 1 : -1;
+
   return (
     <div>
       {tags.length > 0 && (
@@ -51,6 +62,7 @@ export function BlogList({
             key={post.slug}
             post={post}
             featured={active === null && index === 0}
+            spanFull={index === oddTailIndex}
           />
         ))}
       </div>
@@ -89,16 +101,20 @@ function TagChip({
 function PostCard({
   post,
   featured,
+  spanFull,
 }: {
   post: BlogListItem;
   featured?: boolean;
+  /** Trailing odd-one-out in the 2-col grid: same card, just full-width. */
+  spanFull?: boolean;
 }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
       className={cn(
         "group flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]",
-        featured && "sm:col-span-2 sm:p-8",
+        (featured || spanFull) && "sm:col-span-2",
+        featured && "sm:p-8",
       )}
     >
       {post.tags.length > 0 && (

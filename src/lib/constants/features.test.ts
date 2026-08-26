@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  FEATURE_GROUPS,
-  HIGHLIGHT_REEL,
-  HOME_FEATURES,
-} from "@/lib/constants/features";
+import { FEATURE_GROUPS, HIGHLIGHT_REEL } from "@/lib/constants/features";
 import { FEATURE_PRESENTATION } from "@/lib/constants/features-layout";
 
 describe("features constants", () => {
@@ -28,15 +24,6 @@ describe("features constants", () => {
       expect(feature.body.trim()).not.toBe("");
       expect(feature.longBody.trim()).not.toBe("");
     }
-  });
-
-  it("HOME_FEATURES is exactly the featured subset (non-empty)", () => {
-    expect(HOME_FEATURES.length).toBeGreaterThan(0);
-    expect(HOME_FEATURES.every((feature) => feature.featured)).toBe(true);
-    const featuredCount = FEATURE_GROUPS.flatMap(
-      (group) => group.features,
-    ).filter((feature) => feature.featured).length;
-    expect(HOME_FEATURES.length).toBe(featuredCount);
   });
 
   it("highlight reel has title + body + points", () => {

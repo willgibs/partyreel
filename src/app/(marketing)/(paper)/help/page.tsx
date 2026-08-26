@@ -109,18 +109,17 @@ export default function HelpIndexPage() {
                 </div>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {articles.map((article) => (
-                    <Link
+                    <CategoryCard
                       key={article.slug}
-                      href={`/help/${article.slug}`}
-                      className="flex flex-col gap-1.5 rounded-xl border bg-card p-5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
-                    >
-                      <h3 className="font-heading text-base font-medium">
-                        {article.frontmatter.title}
-                      </h3>
-                      <p className="text-sm text-pretty text-muted-foreground">
-                        {article.frontmatter.description}
-                      </p>
-                    </Link>
+                      article={article}
+                      // C1 fix: a single-article category otherwise renders one
+                      // card at 1/3 grid width with two-thirds of the row dead
+                      // (a content-count artifact: siblings fill 2-3 cards, this
+                      // one just doesn't have them yet). Span the row instead of
+                      // leaving a hole, and cap the text width so it still reads
+                      // as a comfortable card, not a stretched-thin bar.
+                      wide={articles.length === 1}
+                    />
                   ))}
                 </div>
               </Container>
@@ -147,5 +146,40 @@ export default function HelpIndexPage() {
         </section>
       </HelpSearch>
     </>
+  );
+}
+
+// `wide` = the sole card in a single-article category: spans the full row
+// (instead of sitting at 1/3 width with the rest of the row empty) and caps
+// its text at a comfortable reading width so the card doesn't stretch thin.
+function CategoryCard({
+  article,
+  wide,
+}: {
+  article: HelpArticle;
+  wide?: boolean;
+}) {
+  return (
+    <Link
+      href={`/help/${article.slug}`}
+      className={cn(
+        "flex flex-col gap-1.5 rounded-xl border bg-card p-5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]",
+        wide && "col-span-full sm:p-6",
+      )}
+    >
+      <h3
+        className={cn("font-heading text-base font-medium", wide && "max-w-xl")}
+      >
+        {article.frontmatter.title}
+      </h3>
+      <p
+        className={cn(
+          "text-sm text-pretty text-muted-foreground",
+          wide && "max-w-xl",
+        )}
+      >
+        {article.frontmatter.description}
+      </p>
+    </Link>
   );
 }
