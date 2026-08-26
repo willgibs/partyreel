@@ -1,6 +1,7 @@
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
 import type { FaqItem } from "./faq-data";
+import { pricingJsonLdData } from "./pricing-jsonld";
 
 // Structured-data helpers for the marketing site. All content is our own static
 // strings (no user input) → safe to inline as application/ld+json, same as the
@@ -125,6 +126,23 @@ export function BlogJsonLd({
           datePublished: post.date,
         })),
       }}
+    />
+  );
+}
+
+/**
+ * The /pricing Product + AggregateOffer node. The builder lives in
+ * pricing-jsonld.ts (pure, Vitest-pinned against PLANS); this wires the real
+ * site strings in and renders the script tag.
+ */
+export function PricingJsonLd() {
+  return (
+    <JsonLd
+      data={pricingJsonLdData({
+        url: SITE_URL,
+        name: SITE_NAME,
+        description: SITE_DESCRIPTION,
+      })}
     />
   );
 }
