@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import { BuiltFor } from "@/components/marketing/built-for";
-import { eventFrame } from "@/components/marketing/event-frame";
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
-import { FinalCta } from "@/components/marketing/final-cta";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
-import { Section } from "@/components/marketing/section";
+import { EventHeroMedia } from "@/components/marketing/sections/events/event-hero-media";
+import { ReelAngleBand } from "@/components/marketing/sections/events/reel-angle-band";
+import { CtaBand } from "@/components/marketing/system/cta-band";
+import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { Reveal } from "@/components/marketing/system/reveal";
+import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
 import { EVENT_PRESENTATION } from "@/lib/constants/events-layout";
+import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 export function generateStaticParams() {
   return EVENT_TYPE_SLUGS.map((slug) => ({ slug }));
@@ -32,6 +38,11 @@ export async function generateMetadata({
   };
 }
 
+// The per-type landing page (B2 re-skin): all SEO structure carries over intact
+// (static params, per-type metadata + OG, Breadcrumb + FAQPage JSON-LD, the
+// EVENT_TYPES single source, the per-type BuiltFor layouts), rebuilt onto the
+// cinema system layer with real manifest media in the hero and the NEW per-type
+// reel angle routing to /reel.
 export default async function EventTypePage({
   params,
 }: {
@@ -40,6 +51,11 @@ export default async function EventTypePage({
   const { slug } = await params;
   const eventType = getEventType(slug);
   if (!eventType) notFound();
+
+  const cut = (i: number) => ({
+    "data-mkt-cut": "",
+    style: { "--i": i } as CSSProperties,
+  });
 
   return (
     <>
@@ -52,43 +68,68 @@ export default async function EventTypePage({
       />
       <FaqPageJsonLd items={eventType.faq} />
 
-      <section className="border-b">
-        <Container className="flex flex-col items-center gap-6 py-20 text-center sm:py-28">
-          <Link
-            href="/events"
-            className="text-sm font-medium text-brand transition-colors duration-150 hover:text-brand/80"
-          >
-            Events
-          </Link>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tighter text-balance sm:text-5xl">
-            {eventType.headline}
-          </h1>
-          <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
-            {eventType.subhead}
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="h-11 px-6 text-base">
-              <Link href="/login">Start free</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
+      {/* Hero: centered copy at the route-H1 scale, then the type's DISTINCT
+          media moment (EventHeroMedia keys off EVENT_PRESENTATION.frame). */}
+      <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
+        <Container>
+          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
+            <Link
+              {...cut(0)}
+              href="/events"
+              className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-foreground"
             >
-              <Link href="/pricing">See pricing</Link>
-            </Button>
-          </div>
-          {eventFrame(EVENT_PRESENTATION[slug].frame, "hero", slug)}
+              Events
+            </Link>
+            <h1
+              {...cut(1)}
+              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+            >
+              {eventType.headline}
+            </h1>
+            <p
+              {...cut(2)}
+              className="max-w-2xl text-pretty text-lg text-muted-foreground"
+            >
+              {eventType.subhead}
+            </p>
+            <div
+              {...cut(3)}
+              className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="h-11 px-6 text-base">
+                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-11 px-6 text-base"
+                >
+                  <Link href="/pricing">See pricing</Link>
+                </Button>
+              </div>
+              <DemoCtaLink />
+            </div>
+          </Reveal>
+          <EventHeroMedia frame={EVENT_PRESENTATION[slug].frame} />
         </Container>
       </section>
 
-      <Section>
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-lg text-pretty text-muted-foreground">
+      <SectionShell width="narrow">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <p
+            data-mkt-reveal
+            className="text-lg text-pretty text-muted-foreground"
+            style={{ "--i": 0 } as CSSProperties}
+          >
             {eventType.intro}
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <div
+            data-mkt-reveal
+            className="mt-6 flex flex-wrap justify-center gap-2"
+            style={{ "--i": 1 } as CSSProperties}
+          >
             {eventType.nestedThemes.map((theme) => (
               <span
                 key={theme}
@@ -98,21 +139,27 @@ export default async function EventTypePage({
               </span>
             ))}
           </div>
-        </div>
-      </Section>
+        </Reveal>
+      </SectionShell>
 
       <BuiltFor
         layout={EVENT_PRESENTATION[slug].builtFor}
         help={eventType.howItHelps}
         navLabel={eventType.navLabel}
-        className="bg-muted/30"
       />
 
-      <Section eyebrow="FAQ" heading="Common questions">
-        <FaqAccordion items={eventType.faq} />
-      </Section>
+      <ReelAngleBand eventType={eventType} />
 
-      <FinalCta />
+      <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
+        <FaqAccordion items={eventType.faq} />
+      </SectionShell>
+
+      <CtaBand
+        className="border-t"
+        heading={`${eventType.ctaTitle}.`}
+        subhead="Free to start. Your guests need nothing but their phones."
+        demoLink
+      />
     </>
   );
 }

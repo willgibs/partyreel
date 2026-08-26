@@ -1,17 +1,21 @@
 import {
   BellRing,
   CalendarHeart,
+  CopyCheck,
   Download,
   Film,
+  FolderArchive,
   Images,
   ListChecks,
   Lock,
   type LucideIcon,
+  MapPinOff,
   Palette,
   QrCode,
   Radio,
   ShieldCheck,
   Smartphone,
+  Undo2,
   Wallet,
 } from "lucide-react";
 
@@ -74,7 +78,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     eyebrow: "For hosts",
     heading: "You run the event, Partyreel runs the camera roll",
     subhead:
-      "Everything you need to collect, shape, and keep the night, without chasing anyone.",
+      "Everything you need to collect, shape, and keep the whole event, without chasing anyone.",
     features: [
       {
         icon: ListChecks,
@@ -96,21 +100,31 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         title: "Watch it fill, live",
         body: "New photos and videos land in your gallery as guests take them, no refresh needed.",
         longBody:
-          "Your gallery updates in real time as the night unfolds, so you can watch the album build and catch the best moments as they happen instead of waiting until everyone's gone home.",
+          "Your gallery updates in real time as the event unfolds, so you can watch the album build and catch the best moments as they happen instead of waiting until everyone's gone home.",
+      },
+      {
+        // The bulk tools shipped with the album re-architecture; named here per
+        // the T2.5 IA's missing-features batch (bulk approve was invisible on
+        // /features until the B2 re-skin).
+        icon: CopyCheck,
+        title: "Approve in bulk",
+        body: "Sweep up dozens of uploads at once: approve a whole event in one scroll, or select and feature, hide, or download together.",
+        longBody:
+          "Big events fill fast, so the tools scale with them. Approve everything new in a single pass, long-press to select dozens at once, then feature, hide, or download them together. Curation takes minutes, not the whole morning after.",
       },
       {
         icon: BellRing,
         title: "Stay on top of it",
         body: "A quiet notification center flags what needs you: uploads to review, account nudges, and more.",
         longBody:
-          "Partyreel keeps a running tally of anything that wants your attention, photos waiting for review, storage and renewal reminders, so nothing slips by without buzzing your phone all night.",
+          "Partyreel keeps a running tally of anything that wants your attention, photos waiting for review, storage and renewal reminders, so nothing slips by and your phone never buzzes through the party.",
       },
     ],
   },
   {
     id: "share",
     eyebrow: "Share & relive",
-    heading: "One link to the whole night",
+    heading: "One link to the whole event",
     subhead:
       "When it's over, everyone gets the album (and the originals), not a fraction of it.",
     features: [
@@ -119,7 +133,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         title: "One album, beautifully shown",
         body: "Share a single public album link. Photos and videos open full-screen, swipe to the next.",
         longBody:
-          "Instead of a dozen group chats and a shared folder no one opens, you share one link. The album puts the media first on a clean, dark canvas. Tap any shot to fill the screen and swipe through the whole night.",
+          "Instead of a dozen group chats and a shared folder no one opens, you share one link. The album puts the media first on a clean, dark canvas. Tap any shot to fill the screen and swipe through the whole event.",
       },
       {
         icon: Download,
@@ -127,6 +141,15 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         body: "Save any photo or video at full resolution: the originals, not compressed copies.",
         longBody:
           "Anyone with the album can save the originals at full quality, a single favorite or the keepsakes that matter most. No re-compression, no watermarks, no quality lost on the way in or out.",
+      },
+      {
+        // Shipped as the streaming zip export (ADR-0018); named here per the
+        // T2.5 IA's missing-features batch.
+        icon: FolderArchive,
+        title: "Download it all as a zip",
+        body: "One tap exports the whole album (or just your selection) as a zip of the original files.",
+        longBody:
+          "Nobody wants to save two hundred photos one at a time. Hosts and guests can export the whole album, or a filtered selection, as a single zip of the untouched originals, so everyone leaves with everything.",
       },
       {
         icon: Film,
@@ -152,6 +175,15 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
           "Nothing is public until you decide it is. Albums open only to the link you choose to share, and those links are kept out of search engines, so your event stays between you and the people you sent it to.",
       },
       {
+        // Shipped in milestone-0 (client-side strip, backfilled); named here per
+        // the T2.5 IA's missing-features batch (the "unused ammunition").
+        icon: MapPinOff,
+        title: "Location data never leaves the phone",
+        body: "EXIF and GPS metadata are stripped in the browser before a photo ever uploads.",
+        longBody:
+          "Phones stamp every photo with where it was taken. Partyreel strips that EXIF and GPS metadata in the guest's browser, before the file ever uploads, so nobody's home address rides along with the album.",
+      },
+      {
         icon: ShieldCheck,
         title: "Safety and control",
         featured: true,
@@ -174,7 +206,16 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         featured: true,
         body: "Events stay up until you delete them. There's no expiry clock counting down on your photos.",
         longBody:
-          "There's no countdown quietly deleting your night a month later. Your event stays exactly where you left it until you choose to take it down, so you can come back to it next week or next year.",
+          "There's no countdown quietly deleting your event a month later. It stays exactly where you left it until you choose to take it down, so you can come back to it next week or next year.",
+      },
+      {
+        // Shipped with the recovery/recently-deleted phases; named here per the
+        // T2.5 IA's missing-features batch.
+        icon: Undo2,
+        title: "30 days to change your mind",
+        body: "Deleted photos wait in a recovery bin for 30 days before they're gone for good.",
+        longBody:
+          "A slip of the thumb shouldn't erase a memory. Anything you delete moves to a recovery bin and waits 30 days before it's gone for good, so an accidental swipe is always reversible.",
       },
       {
         icon: Wallet,
@@ -193,16 +234,18 @@ export const HOME_FEATURES: Feature[] = FEATURE_GROUPS.flatMap(
   (group) => group.features,
 ).filter((feature) => feature.featured);
 
-// The highlight reel, the product's namesake payoff. Shared by the home ReelTeaser
-// and the /features marquee so the story is told once. Written as a shipped capability
-// (see ROADMAP for build status; copy finalizes pre-launch).
+// The highlight reel, the product's namesake payoff, on the SHIPPED truth (the
+// 14-style canvas engine: named catalog, WYSIWYG preview, $0 on-device render).
+// Consumed by the /features reel band; deliberately number-free — counts render
+// from their own single sources (STYLE_CATALOG.length, MAX_REEL_SECONDS) at the
+// component so a catalog or tier change can never strand stale copy here.
 export const HIGHLIGHT_REEL = {
   eyebrow: "The highlight reel",
   title: "Every event ends with a reel",
-  body: "When the night winds down, Partyreel stitches the best moments into a highlight reel you can share or download, automatically.",
+  body: "Partyreel cuts your guests' photos into a cinematic highlight reel. Pick a style from the named catalog and the engine does the editing.",
   points: [
-    "Auto-built from the favorite moments of your event",
-    "Keep the clips you love, or let Partyreel pick for you",
-    "Share it anywhere, or download the full-quality video",
+    "A named style catalog: pick a mood and a look, done",
+    "What you preview is exactly what renders, pixel for pixel",
+    "Rendered on your phone, free, in seconds",
   ],
 } as const;

@@ -1,28 +1,32 @@
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { FeatureSpotlight } from "@/components/marketing/feature-spotlight";
-import { FinalCta } from "@/components/marketing/final-cta";
+import { QrFrame } from "@/components/marketing/frames";
 import {
-  AlbumFrame,
-  GalleryFrame,
-  PhoneFrame,
-  QrFrame,
-} from "@/components/marketing/frames";
-import { ReelTeaser } from "@/components/marketing/reel-teaser";
-import { Section } from "@/components/marketing/section";
+  GuestPhoneVisual,
+  HostGalleryVisual,
+  ShareAlbumVisual,
+} from "@/components/marketing/sections/features/feature-visuals";
+import { FeaturesReelBand } from "@/components/marketing/sections/features/reel-band";
+import { CtaBand } from "@/components/marketing/system/cta-band";
+import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { Reveal } from "@/components/marketing/system/reveal";
+import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { type FeatureGroup, FEATURE_GROUPS } from "@/lib/constants/features";
 import { FEATURE_PRESENTATION } from "@/lib/constants/features-layout";
+import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { DEMO_EVENT_URL } from "@/lib/demo";
+import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 export const metadata: Metadata = {
   title: "Features",
-  description:
-    "Everything Partyreel does: no-app guest uploads, a styled QR code, a live gallery, host curation, private-by-default albums, full-quality downloads, and an automatic highlight reel.",
+  description: `Everything Partyreel does: no-app guest uploads, a styled QR code, a live album, host curation with bulk approve, EXIF stripping, a 30-day recovery bin, download-all zip export, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
   alternates: { canonical: "/features" },
 };
 
@@ -30,12 +34,12 @@ const group = (id: string): FeatureGroup =>
   FEATURE_GROUPS.find((g) => g.id === id)!;
 
 const SPOTLIGHT_FRAME: Record<"phone" | "gallery" | "album", ReactNode> = {
-  phone: <PhoneFrame />,
-  gallery: <GalleryFrame />,
-  album: <AlbumFrame />,
+  phone: <GuestPhoneVisual />,
+  gallery: <HostGalleryVisual />,
+  album: <ShareAlbumVisual />,
 };
 
-function Spotlight({ id, className }: { id: string; className?: string }) {
+function Spotlight({ id }: { id: string }) {
   const presentation = FEATURE_PRESENTATION[id];
   if (presentation.kind !== "spotlight") return null;
   return (
@@ -43,120 +47,170 @@ function Spotlight({ id, className }: { id: string; className?: string }) {
       group={group(id)}
       media={SPOTLIGHT_FRAME[presentation.frame]}
       mediaSide={presentation.mediaSide}
-      className={className}
     />
   );
 }
 
-// privacy → a bespoke trust panel (one unified bordered card, shield motif).
-function PrivacyPanel() {
-  const g = group("privacy");
+/**
+ * Hero — split copy + the LIVE demo QR (the ONE real scannable QR on the site;
+ * QrFrame falls back to its decorative block when no demo is configured).
+ * Hand-rolled like the /reel hero because the route H1 sits ABOVE the section
+ * scale (the ruled hierarchy: 4xl / 5xl / 6xl) on the cinema cut register.
+ */
+function FeaturesHero() {
+  const cut = (i: number) => ({
+    "data-mkt-cut": "",
+    style: { "--i": i } as CSSProperties,
+  });
+
   return (
-    <Section>
-      <div className="mx-auto max-w-4xl rounded-3xl border bg-card p-8 ring-1 ring-foreground/5 sm:p-12">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-            <ShieldCheck className="size-6" />
-          </span>
-          <span className="text-sm font-medium text-brand">{g.eyebrow}</span>
-          <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            {g.heading}
-          </h2>
-          <p className="max-w-xl text-pretty text-muted-foreground">
-            {g.subhead}
-          </p>
-        </div>
-        <div className="mt-10 grid gap-8 sm:grid-cols-2">
-          {g.features.map(({ icon: Icon, title, longBody }) => (
-            <div key={title} className="flex flex-col gap-2">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-foreground">
-                  <Icon className="size-4" />
-                </span>
-                <h3 className="font-heading text-base font-medium">{title}</h3>
+    <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
+      <Container>
+        <Reveal className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
+          <div className="flex max-w-2xl flex-col items-start gap-5 lg:col-span-7">
+            <Eyebrow {...cut(0)}>Features</Eyebrow>
+            <h1
+              {...cut(1)}
+              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+            >
+              Everything you need, nothing to chase.
+            </h1>
+            <p
+              {...cut(2)}
+              className="max-w-xl text-pretty text-lg text-muted-foreground"
+            >
+              One QR code in, one album out. This is everything Partyreel does
+              in between, for your guests and for you.
+            </p>
+            <div
+              {...cut(3)}
+              className="mt-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="h-11 px-6 text-base">
+                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-11 px-6 text-base"
+                >
+                  <Link href="/pricing">See pricing</Link>
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground">{longBody}</p>
+              <DemoCtaLink />
             </div>
-          ))}
-        </div>
-      </div>
-    </Section>
+          </div>
+          <div className="flex justify-center lg:col-span-5 lg:justify-end">
+            <QrFrame caption="Scan to join" liveQrUrl={DEMO_EVENT_URL} />
+          </div>
+        </Reveal>
+      </Container>
+    </section>
   );
 }
 
-// storage → a bespoke keepsake pair (open 2-up, no card chrome).
-function StoragePair({ className }: { className?: string }) {
+/** privacy → the bespoke trust panel: one bordered card, mono shield motif. */
+function PrivacyPanel() {
+  const g = group("privacy");
+  return (
+    <SectionShell>
+      <Reveal className="mx-auto max-w-5xl rounded-3xl border bg-card/40 p-8 ring-1 ring-foreground/5 sm:p-12">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span
+            data-mkt-reveal
+            className="flex size-12 items-center justify-center rounded-2xl border text-muted-foreground"
+            style={{ "--i": 0 } as CSSProperties}
+          >
+            <ShieldCheck className="size-6" strokeWidth={1.5} />
+          </span>
+          <Eyebrow data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
+            {g.eyebrow}
+          </Eyebrow>
+          <h2
+            data-mkt-reveal
+            className="font-heading text-3xl text-balance sm:text-4xl"
+            style={{ "--i": 2 } as CSSProperties}
+          >
+            {g.heading}
+          </h2>
+          <p
+            data-mkt-reveal
+            className="max-w-xl text-pretty text-muted-foreground"
+            style={{ "--i": 3 } as CSSProperties}
+          >
+            {g.subhead}
+          </p>
+        </div>
+        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {g.features.map(({ icon: Icon, title, longBody }, i) => (
+            <div
+              key={title}
+              data-mkt-reveal
+              className="flex flex-col gap-2"
+              style={{ "--i": 4 + i } as CSSProperties}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
+                  <Icon className="size-4" strokeWidth={1.5} />
+                </span>
+                <h3 className="font-heading text-base font-medium">{title}</h3>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {longBody}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </SectionShell>
+  );
+}
+
+/** storage → the keepsake trio (open layout, no card chrome, quiet). */
+function StorageTrio() {
   const g = group("storage");
   return (
-    <Section
-      className={className}
-      eyebrow={g.eyebrow}
-      heading={g.heading}
-      subhead={g.subhead}
-    >
-      <div className="mx-auto mt-12 grid max-w-3xl gap-10 sm:grid-cols-2">
-        {g.features.map(({ icon: Icon, title, longBody }) => (
+    <SectionShell eyebrow={g.eyebrow} heading={g.heading} subhead={g.subhead}>
+      <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-8 gap-y-10 sm:grid-cols-3">
+        {g.features.map(({ icon: Icon, title, longBody }, i) => (
           <div
             key={title}
-            className="flex flex-col items-center gap-3 text-center sm:items-start sm:text-left"
+            data-mkt-reveal
+            className="flex flex-col items-center gap-3 text-center"
+            style={{ "--i": i } as CSSProperties}
           >
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-              <Icon className="size-6" />
+            <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
+              <Icon className="size-5" strokeWidth={1.5} />
             </span>
-            <h3 className="font-heading text-lg font-medium">{title}</h3>
-            <p className="text-sm text-pretty text-muted-foreground">
+            <h3 className="font-heading text-base font-medium">{title}</h3>
+            <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
               {longBody}
             </p>
           </div>
         ))}
-      </div>
-    </Section>
+      </Reveal>
+    </SectionShell>
   );
 }
 
 export default function FeaturesPage() {
   return (
     <>
-      {/* Hero — copy + the QR "scan to join" frame (demo-ready for Round 3). */}
-      <section className="border-b">
-        <Container className="grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            <span className="text-sm font-medium text-brand">Features</span>
-            <h1 className="text-4xl font-semibold tracking-tighter text-balance sm:text-5xl">
-              Everything from the night, nothing in your way
-            </h1>
-            <p className="text-lg text-pretty text-muted-foreground">
-              Partyreel turns every guest into a contributor and the whole event
-              into one shareable album, with a highlight reel to match.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-11 px-6 text-base">
-                <Link href="/login">Start free</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
-                <Link href="/pricing">See pricing</Link>
-              </Button>
-            </div>
-          </div>
-          <div className="flex justify-center lg:justify-end">
-            <QrFrame caption="Scan to join" liveQrUrl={DEMO_EVENT_URL} />
-          </div>
-        </Container>
-      </section>
-
+      <FeaturesHero />
       <Spotlight id="guests" />
-      <Spotlight id="hosts" className="bg-muted/30" />
-      <ReelTeaser />
-      <Spotlight id="share" className="bg-muted/30" />
+      <Spotlight id="hosts" />
+      <FeaturesReelBand />
+      <Spotlight id="share" />
       <PrivacyPanel />
-      <StoragePair className="bg-muted/30" />
-
-      <FinalCta />
+      <StorageTrio />
+      <CtaBand
+        className="border-t"
+        heading="Start your first event free."
+        subhead="Create the event, put the QR where people can see it, and the album fills itself."
+        demoLink
+      />
     </>
   );
 }

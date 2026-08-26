@@ -16,12 +16,14 @@ describe("event-type constants", () => {
       for (const field of [
         eventType.slug,
         eventType.navLabel,
+        eventType.singularLabel,
         eventType.teaser,
         eventType.headline,
         eventType.subhead,
         eventType.intro,
         eventType.ctaTitle,
         eventType.ogTitle,
+        eventType.reelAngle,
       ]) {
         expect(field.trim()).not.toBe("");
       }
