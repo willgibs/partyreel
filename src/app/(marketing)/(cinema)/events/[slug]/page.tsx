@@ -10,7 +10,7 @@ import { EventHeroMedia } from "@/components/marketing/sections/events/event-her
 import { ReelAngleBand } from "@/components/marketing/sections/events/reel-angle-band";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
@@ -88,7 +88,7 @@ export default async function EventTypePage({
             </h1>
             <p
               {...cut(2)}
-              className="max-w-2xl text-pretty text-lg text-muted-foreground"
+              className="max-w-2xl text-lg text-pretty text-muted-foreground"
             >
               {eventType.subhead}
             </p>
@@ -116,37 +116,44 @@ export default async function EventTypePage({
         </Container>
       </section>
 
-      <SectionShell width="narrow">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p
-            data-mkt-reveal
-            className="text-lg text-pretty text-muted-foreground"
-            style={{ "--i": 0 } as CSSProperties}
-          >
-            {eventType.intro}
-          </p>
-          <div
-            data-mkt-reveal
-            className="mt-6 flex flex-wrap justify-center gap-2"
-            style={{ "--i": 1 } as CSSProperties}
-          >
-            {eventType.nestedThemes.map((theme) => (
-              <span
-                key={theme}
-                className="rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground"
-              >
-                {theme}
-              </span>
-            ))}
-          </div>
-        </Reveal>
-      </SectionShell>
+      {/* THE PLANNING CHAPTER (the 2026-08-26 chapter ruling, type-page shape
+          1-2-3): the per-type media hero stays cinema; the intro + BuiltFor
+          read as the planning document on paper (this is the "how it works
+          for YOUR wedding" content — a thing you read at a desk); then the
+          reel angle, FAQ, and CTA close back in the dark. */}
+      <PaperChapter>
+        <SectionShell width="narrow">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <p
+              data-mkt-reveal
+              className="text-lg text-pretty text-muted-foreground"
+              style={{ "--i": 0 } as CSSProperties}
+            >
+              {eventType.intro}
+            </p>
+            <div
+              data-mkt-reveal
+              className="mt-6 flex flex-wrap justify-center gap-2"
+              style={{ "--i": 1 } as CSSProperties}
+            >
+              {eventType.nestedThemes.map((theme) => (
+                <span
+                  key={theme}
+                  className="rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground"
+                >
+                  {theme}
+                </span>
+              ))}
+            </div>
+          </Reveal>
+        </SectionShell>
 
-      <BuiltFor
-        layout={EVENT_PRESENTATION[slug].builtFor}
-        help={eventType.howItHelps}
-        navLabel={eventType.navLabel}
-      />
+        <BuiltFor
+          layout={EVENT_PRESENTATION[slug].builtFor}
+          help={eventType.howItHelps}
+          navLabel={eventType.navLabel}
+        />
+      </PaperChapter>
 
       <ReelAngleBand eventType={eventType} />
 
