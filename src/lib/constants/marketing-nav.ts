@@ -126,10 +126,12 @@ export const PRIMARY_NAV: NavItem[] = [
 
 export type FooterColumn = { title: string; links: NavLink[] };
 
-// Footer columns: Product / Features / Events / Resources / Company / Legal.
+// Footer columns: Product / Features / Events / Resources / Company.
 // The Features column carries the six pages (the expansion IA); Product keeps
 // the cross-cutting routes. "How it works" now points at the PAGE (the home
-// film-strip keeps its /#how-it-works anchor id for deep links).
+// film-strip keeps its /#how-it-works anchor id for deep links). Privacy/Terms
+// live under Company: a separate 2-link Legal column made the footer's 6th
+// column WRAP at 1440 (the R4-A19 orphan; 6 × min-w-28 + gaps overflow the row).
 export const FOOTER_NAV: FooterColumn[] = [
   {
     title: "Product",
@@ -171,11 +173,8 @@ export const FOOTER_NAV: FooterColumn[] = [
   },
   {
     title: "Company",
-    links: [{ label: "Careers", href: "/careers" }],
-  },
-  {
-    title: "Legal",
     links: [
+      { label: "Careers", href: "/careers" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
     ],

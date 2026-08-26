@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { MARKETING_CTA, type NavLink } from "@/lib/constants/marketing-nav";
 
@@ -19,8 +18,10 @@ type CtaBandProps = {
   /** Render the recurring demo CTA line under the buttons (DemoCtaLink-gated). */
   demoLink?: boolean;
   /**
-   * The cinema-close credit: the shared Logo lockup over the Geist Mono
-   * production line. One per page at most (it reads as the final frame).
+   * The cinema-close credit: the Geist Mono production line, alone. One per
+   * page at most (it reads as the final frame). Deliberately NO Logo lockup:
+   * the footer opens with the brand mark ~250px below, and doubling it read
+   * as a mistake (R4-A23) — the mono line carries the film-credit register.
    */
   credit?: boolean;
   reveal?: "cinema" | "standard" | "none";
@@ -68,8 +69,7 @@ export function CtaBand({
         {demoLink && <DemoCtaLink />}
       </div>
       {credit && (
-        <div className="mt-16 flex flex-col items-center gap-3">
-          <Logo />
+        <div className="mt-16 flex flex-col items-center">
           <MonoCaption>A Partyreel production · partyreel.com</MonoCaption>
         </div>
       )}
