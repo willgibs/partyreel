@@ -52,33 +52,51 @@ const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
 export function Privacy() {
   return (
     <SectionShell eyebrow="Privacy" heading={SECTION_HEADERS.privacy.line}>
-      <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {CLAIMS.map((claim, i) => (
-          <div
-            key={claim.title}
-            data-mkt-reveal
-            className="flex items-start gap-4"
-            style={{ "--i": i } as CSSProperties}
-          >
-            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
-              <claim.icon className="size-4.5" strokeWidth={1.5} />
-            </span>
-            <div className="flex flex-col gap-1">
-              <h3 className="font-heading text-base sm:text-lg">
-                {claim.title}
-              </h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {claim.body}
-              </p>
+      {/* FIVE ITEMS, NO HOLE (R4/A18): a 3-column GRID left the sixth cell
+          empty, which read as a missing claim. A wrapped flex row with the
+          same column widths centers the short last row instead (3 + 2 at lg,
+          2 + 2 + 1 at sm), so the shape reads deliberate at every width. */}
+      {/* ONE CHOREOGRAPHY (R4): this header is two lines, so the claims
+          continue at slot 2 and the pointer closes at 7, all under ONE
+          observer. Seven slots at the 90ms default would trail past 600ms, so
+          the block tightens the stagger token to 70ms (the polish rule: keep a
+          long stagger's total inside ~300ms of spread past the header). */}
+      <Reveal
+        className="mx-auto mt-12 max-w-4xl"
+        style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}
+      >
+        <div className="flex flex-wrap justify-center gap-x-10 gap-y-10">
+          {CLAIMS.map((claim, i) => (
+            <div
+              key={claim.title}
+              data-mkt-reveal
+              className="flex w-full items-start gap-4 sm:w-[calc((100%-2.5rem)/2)] lg:w-[calc((100%-5rem)/3)]"
+              style={{ "--i": i + 2 } as CSSProperties}
+            >
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
+                <claim.icon className="size-4.5" strokeWidth={1.5} />
+              </span>
+              <div className="flex flex-col gap-1">
+                <h3 className="font-heading text-base sm:text-lg">
+                  {claim.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {claim.body}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </Reveal>
-      {/* The ladder pointer (expansion round): the full trust story. */}
-      <Reveal className="mt-10 flex justify-center">
-        <LearnMoreLink href="/features/privacy">
-          The full privacy story
-        </LearnMoreLink>
+          ))}
+        </div>
+        {/* The ladder pointer (expansion round): the full trust story. */}
+        <div
+          data-mkt-reveal
+          className="mt-10 flex justify-center"
+          style={{ "--i": 7 } as CSSProperties}
+        >
+          <LearnMoreLink href="/features/privacy">
+            The full privacy story
+          </LearnMoreLink>
+        </div>
       </Reveal>
     </SectionShell>
   );

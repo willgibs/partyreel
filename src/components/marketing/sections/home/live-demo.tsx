@@ -56,10 +56,13 @@ const TILES: { id: string; h: string }[] = [
 
 // Art-directed fixtures (the IA's Maya & Jay demo event), not real people.
 const DEMO_EVENT_NAME = "Maya & Jay's Wedding";
-const TOASTS: { at: Phase; text: string }[] = [
-  { at: "tiles", text: "Maya added 3 photos" },
-  { at: "tiles", text: "Jay is in" },
-  { at: "reel", text: "12 more from the dance floor" },
+// `phoneOnly: false` drops a toast from the MOBILE composition (R4/A4): below
+// sm the stage stacks instead of overlaying, and the reel beat is carried by
+// the payoff card alone — a third chip there was one element too many.
+const TOASTS: { at: Phase; text: string; mobile: boolean }[] = [
+  { at: "tiles", text: "Maya added 3 photos", mobile: true },
+  { at: "tiles", text: "Jay is in", mobile: true },
+  { at: "reel", text: "12 more from the dance floor", mobile: false },
 ];
 const COUNTER_TARGETS = { photos: 128, guests: 23 };
 
@@ -180,14 +183,42 @@ export function LiveDemo() {
             />
           )}
 
-          {/* The payoff: the reel card lands once the album has filled. */}
+          {/* Live toasts: the room, arriving. The ratified [data-mkt-toast]
+              vocabulary, deliberately NOT sonner. Same mobile rule as the
+              payoff card below: a wrapped chip row in flow under sm, the
+              floating stack from sm up. DOM order is the STORY order (toasts
+              during the tiles phase, then the reel card), which is what the
+              stacked mobile layout reads out loud. */}
+          <div className="mt-3 flex flex-wrap gap-2 sm:absolute sm:bottom-6 sm:left-6 sm:mt-0 sm:flex-col">
+            {TOASTS.map((toast, i) => (
+              <span
+                key={toast.text}
+                data-mkt-toast
+                data-on={after(phase, toast.at) ? "true" : undefined}
+                className={`w-fit rounded-full border bg-popover/95 px-3 py-1.5 text-xs font-medium backdrop-blur ${
+                  toast.mobile ? "" : "max-sm:hidden"
+                }`}
+                style={{ transitionDelay: `${i * 220}ms` }}
+              >
+                {toast.text}
+              </span>
+            ))}
+          </div>
+
+          {/* The payoff: the reel card lands once the album has filled.
+              MOBILE COMPOSITION (R4/A4): below sm the card sits IN FLOW under
+              the mosaic (full width) instead of floating over it — at 375 the
+              overlay collided with both the tiles and the toast chips. From sm
+              up it floats over the album exactly as before (the landing card
+              IS the praised beat). ConfettiBurst reads the card's live rect,
+              so the physics target follows either layout. */}
           <div
             ref={payoffRef}
             data-mkt-toast
             data-on={after(phase, "reel") ? "true" : undefined}
-            className="absolute right-4 bottom-4 flex items-center gap-3 rounded-xl border bg-popover/95 p-3 pr-4 backdrop-blur sm:right-6 sm:bottom-6"
+            className="mt-3 flex items-center gap-3 rounded-xl border bg-popover/95 p-3 backdrop-blur sm:absolute sm:right-6 sm:bottom-6 sm:mt-0 sm:pr-4"
           >
-            <div className="relative size-12 overflow-hidden rounded-[3px]">
+            <div className="relative size-12 shrink-0 overflow-hidden rounded-[3px]">
               <Image
                 src={reelCover.src}
                 alt=""
@@ -206,40 +237,28 @@ export function LiveDemo() {
               </p>
             </div>
           </div>
-
-          {/* Live toasts: the room, arriving. The ratified [data-mkt-toast]
-              vocabulary, deliberately NOT sonner. */}
-          <div className="absolute bottom-4 left-4 flex flex-col gap-2 sm:bottom-6 sm:left-6">
-            {TOASTS.map((toast, i) => (
-              <span
-                key={toast.text}
-                data-mkt-toast
-                data-on={after(phase, toast.at) ? "true" : undefined}
-                className="w-fit rounded-full border bg-popover/95 px-3 py-1.5 text-xs font-medium backdrop-blur"
-                style={{ transitionDelay: `${i * 220}ms` }}
-              >
-                {toast.text}
-              </span>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setRunId((n) => n + 1)}
-            className="absolute top-3 right-3 flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-95 sm:top-4 sm:right-4"
-          >
-            <RotateCcw className="size-3.5" />
-            Replay
-          </button>
         </div>
 
-        {/* The status line under the stage: live state + the counters. */}
+        {/* The status line under the stage: live state, the counters, and the
+            Replay control. Replay used to float INSIDE the stage's top-right
+            corner, where it sat on a tile at every width (R4/A4); out here it
+            is a real control on a real row, and the frame stays pure media. */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
             <LiveDot on={after(phase, "tiles")} paused={paused} />
             Filling live right now
           </span>
-          <LiveCounters key={runId} phase={phase} reduced={reduced} />
+          <div className="flex items-center gap-3">
+            <LiveCounters key={runId} phase={phase} reduced={reduced} />
+            <button
+              type="button"
+              onClick={() => setRunId((n) => n + 1)}
+              className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.97]"
+            >
+              <RotateCcw className="size-3.5" />
+              Replay
+            </button>
+          </div>
         </div>
       </div>
     </SectionShell>

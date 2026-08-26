@@ -199,6 +199,12 @@ export function CinemaHero() {
         <div className="absolute inset-0 bg-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/50" />
         <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_30%_75%,transparent_30%,rgba(0,0,0,0.4)_100%)]" />
+        {/* THE MOBILE COPY SCRIM (R4/A12): at 375 the copy block sits high in
+            the frame, where the ramp above is at its weakest, so the eyebrow
+            and subhead ran straight over bright tiles. One extra ramp below sm
+            puts ink behind the WHOLE block; the desktop scrim (tuned against
+            the wall) is deliberately untouched. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-transparent sm:hidden" />
       </div>
 
       {/* THE REEL CARD: the album's live reel, sitting in the wall. */}
@@ -240,7 +246,9 @@ export function CinemaHero() {
 
       <div className="relative">
         <Container className="pt-28 pb-14 sm:pb-20">
-          <p className="text-xs font-medium tracking-[0.22em] text-white/60 uppercase">
+          {/* white/75, up from white/60 (R4/A12): the wide tracking already
+              thins this line, and over a live media wall 60% lost it. */}
+          <p className="text-xs font-medium tracking-[0.22em] text-white/75 uppercase">
             {HERO_EYEBROW}
           </p>
           <h1 className="mt-4 max-w-4xl font-heading text-5xl leading-[1.02] text-white sm:text-6xl md:text-7xl lg:text-8xl">
@@ -257,18 +265,22 @@ export function CinemaHero() {
             </span>
             {THESIS_AFTER}
           </h1>
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-pretty text-white/75">
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-pretty text-white/85">
             {SITE_SUBHEAD}
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
             </Button>
+            {/* A REAL SECONDARY BUTTON (R4/A13): a 25% hairline over a bright
+                media wall read as plain text at 375. A dark glass fill plus a
+                40% edge gives it a button's body while the solid-white primary
+                keeps the hierarchy. */}
             <Button
               size="lg"
               variant="outline"
               onClick={() => setOverlayOpen(true)}
-              className="h-11 gap-2 border-white/25 bg-transparent px-5 text-base text-white hover:bg-white/10 hover:text-white"
+              className="h-11 gap-2 border-white/40 bg-black/40 px-5 text-base text-white backdrop-blur-[2px] hover:border-white/50 hover:bg-white/15 hover:text-white"
             >
               <Play className="size-4 fill-current" />
               Watch a sample reel

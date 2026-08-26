@@ -22,7 +22,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What can guests upload?",
-    a: `Photos and videos straight from their phones, up to ${uploadSize} each, at full quality.`,
+    a: `Photos and videos straight from their phones, up to ${uploadSize} per file, at full quality.`,
   },
   {
     q: "Can I control what shows up?",
@@ -34,7 +34,10 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "How long do you keep my photos?",
-    a: "Your event stays up until you delete it. There's no expiry clock counting down on your memories.",
+    // PROVISIONAL (R4 truth ruling A2): "no expiry clock" is true on Free and
+    // Pro, but an Event Pass covers its event for about a year, so the
+    // exception rides in the same breath (help/how-long-media-is-kept.mdx).
+    a: "On Free and Pro your event stays up until you delete it, with no expiry clock counting down on your memories. An Event Pass covers its event for about a year.",
   },
   {
     q: "What does it cost?",

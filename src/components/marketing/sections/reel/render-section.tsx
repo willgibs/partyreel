@@ -17,8 +17,12 @@ export function RenderSection() {
       heading="Rendered on your phone, free, in seconds."
       subhead="The reel is drawn frame by frame and encoded right on your device. No render farm, no queue, nothing extra to pay, on any plan."
     >
+      {/* THREE CLEAN ROWS ON A PHONE (R4/A22): the three stats need ~430px
+          side by side, so at 375 the band broke 2 + 1 and the orphan read as a
+          layout accident. Below sm it stacks into one centered column; from sm
+          up the band is untouched. */}
       <StatBand
-        className="mt-12"
+        className="mt-12 max-sm:flex-col max-sm:items-center"
         stats={[
           { value: 0, prefix: "$", label: "per render" },
           { value: STYLE_COUNT, label: "cinematic styles" },

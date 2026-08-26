@@ -1,15 +1,17 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { Play, RotateCcw } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 
 import { ReelFrame } from "@/components/marketing/frames";
 import { Container } from "@/components/shared/container";
-import { marketingImage } from "@/lib/constants/marketing-media";
+import {
+  MARKETING_REELS,
+  marketingImage,
+} from "@/lib/constants/marketing-media";
 import { DECOMPOSITION_FACTS } from "@/lib/constants/marketing-voice";
 import { useInViewOnce } from "@/lib/shared/use-in-view-once";
-import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
  * LOUD (the loud/quiet map): the page's SIGNATURE move (IA section 3, the
@@ -60,6 +62,20 @@ const TILES: BurstTile[] = [
 
 const STAGE_W = 940;
 
+/* THE CARD AT THE CENTER (R4/A6): ReelFrame's bare placeholder rendered as a
+   grey rectangle with a painted-on timeline, so the one thing the whole burst
+   points at was the only dead pixel on the page. Its `media` slot now carries
+   the REAL landscape render's poster (the same frame the hero's reel card and
+   the reel teaser play), which is what "built from 214 photos" is supposed to
+   be showing. Poster only, no <video>: this stage is a still composition and a
+   second autoplaying loop next to the hero's would be noise. */
+function requireReel(id: string) {
+  const reel = MARKETING_REELS.find((r) => r.id === id);
+  if (!reel) throw new Error(`Unknown marketing reel id: ${id}`);
+  return reel;
+}
+const REEL_POSTER = requireReel("hero-candidate-02");
+
 /** Design-px to container-query width units (the stage is the container).
  *  --dscale (1 by default) is the MOBILE readability knob: below sm the stage
  *  sets it to 1.6 so the surviving tiles render at a legible size (a 375px
@@ -90,51 +106,75 @@ function splitFact(fact: string): FactParts {
 
 const FACTS: FactParts[] = DECOMPOSITION_FACTS.map(splitFact);
 
-const easeOutCubic = (n: number) => 1 - Math.pow(1 - n, 3);
+/* THE FACT NUMBERS RIDE THE HOUSE GRAMMAR (R4 motion census): this used to be
+   a hand-rolled rAF count-up with its own easing curve, its own reduced-motion
+   branch, and its own clock — a private copy of a mechanic the site already
+   has. The numbers now use the number-pop-in hooks (marketing.css chapter 2,
+   [data-mkt-digits]/[data-mkt-digit]): each digit blur-rises from below,
+   staggered by --i, and CSS owns the reduced-motion fallback. The server HTML
+   carries the TRUE number, so no-JS and reduced motion read it immediately
+   (the StatBand content-first contract) instead of a zero that never ticks.
 
-/** JS count-up for one fact number (reduced motion jumps to the target).
- *  Everything (the reduced jump included) is timeout-scheduled so setState
- *  stays out of the effect body (the live-direction lint lesson). */
-function CountUp({
-  to,
+   The --i base keeps the SHIPPED cadence: the count used to start 350ms in and
+   step 260ms per fact, which at the 70ms --mkt-digit-stagger unit is 5 slots
+   in, 4 slots apart. Retune the token and the whole row scales with it. */
+const DIGIT_LEAD_IN = 5;
+const DIGIT_FACT_STEP = 4;
+
+function FactNumber({
+  value,
+  factIndex,
   on,
-  reduced,
-  delayMs,
-  durMs = 1250,
 }: {
-  to: number;
+  value: number;
+  factIndex: number;
   on: boolean;
-  reduced: boolean;
-  delayMs: number;
-  durMs?: number;
 }) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (!on) return;
-    let raf = 0;
-    let start: number | null = null;
-    const delay = setTimeout(
-      () => {
-        if (reduced) {
-          setN(to);
-          return;
-        }
-        const tick = (t: number) => {
-          if (start === null) start = t;
-          const p = Math.min((t - start) / durMs, 1);
-          setN(Math.round(to * easeOutCubic(p)));
-          if (p < 1) raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
-      },
-      reduced ? 0 : delayMs,
-    );
-    return () => {
-      clearTimeout(delay);
-      cancelAnimationFrame(raf);
-    };
-  }, [on, reduced, to, delayMs, durMs]);
-  return <span className="font-mono tabular-nums">{n}</span>;
+  return (
+    <span
+      data-mkt-digits
+      data-on={on ? "true" : "false"}
+      className="font-mono tabular-nums"
+    >
+      {String(value)
+        .split("")
+        .map((ch, d) => (
+          <span
+            key={d}
+            data-mkt-digit
+            style={
+              {
+                "--i": DIGIT_LEAD_IN + factIndex * DIGIT_FACT_STEP + d,
+              } as CSSProperties
+            }
+          >
+            {ch}
+          </span>
+        ))}
+    </span>
+  );
+}
+
+/** The real render's poster filling ReelFrame's player area, with the play
+ *  badge kept as the only chrome (the fake 0:12/0:48 timeline goes: a painted
+ *  transport over a still reads as broken). The frame itself is aria-hidden. */
+function ReelPoster() {
+  return (
+    <>
+      <Image
+        src={REEL_POSTER.poster}
+        alt=""
+        fill
+        sizes="(min-width: 1024px) 340px, 60vw"
+        className="object-cover"
+      />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-gallery shadow-lg">
+          <Play className="size-5 translate-x-0.5 fill-current" />
+        </span>
+      </span>
+    </>
+  );
 }
 
 function TilePhoto({ id }: { id: string }) {
@@ -159,7 +199,6 @@ export function Decomposition() {
 }
 
 function DecompositionStage({ onReplay }: { onReplay: () => void }) {
-  const reduced = usePrefersReducedMotion();
   // 0.3: the burst fires once roughly a third of the stage has scrolled in.
   const { ref, inView } = useInViewOnce<HTMLDivElement>(0.3);
 
@@ -197,7 +236,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
             </div>
           ))}
           <div className="absolute top-1/2 left-1/2 z-10 w-[36cqw] max-w-[340px] min-w-[180px] -translate-x-1/2 -translate-y-1/2">
-            <ReelFrame />
+            <ReelFrame media={<ReelPoster />} />
           </div>
         </div>
       </div>
@@ -215,12 +254,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
             >
               {fact.before}
               {fact.value !== null && (
-                <CountUp
-                  to={fact.value}
-                  on={inView}
-                  reduced={reduced}
-                  delayMs={350 + i * 260}
-                />
+                <FactNumber value={fact.value} factIndex={i} on={inView} />
               )}
               {fact.after}
             </p>
@@ -238,7 +272,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
       <button
         type="button"
         onClick={onReplay}
-        className="absolute top-6 right-4 flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-95 sm:right-6"
+        className="absolute top-6 right-4 flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.97] sm:right-6"
       >
         <RotateCcw className="size-3.5" />
         Replay

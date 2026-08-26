@@ -41,6 +41,11 @@ export function FilmStrip() {
       eyebrow="How it works"
       heading={SECTION_HEADERS.howItWorks.line}
       width="wide"
+      /* TEMPO (R4/A32): a section that ends on a POINTER link is a bridge, not
+         a full stop, so it gives back part of its bottom padding. The reviewer
+         clocked ~190px of dead black under this link before the next eyebrow;
+         the pointer now sits ~50px closer to what it points at. */
+      className="pb-10 sm:pb-12"
     >
       {/* Negative margins bleed the strip through the Container gutter so the
           conveyor reads edge-to-edge, the cinema framing. */}
@@ -69,11 +74,16 @@ export function FilmStrip() {
         ))}
       </Reveal>
       {/* The ladder pointer (expansion round): the teaser routes into the full
-          two-sided walkthrough page. */}
+          two-sided walkthrough page. The Reveal used to wrap a link that
+          carried no [data-mkt-reveal], so it observed nothing and the pointer
+          popped in flat under three cut-in cards (R4 choreography pass). --i 0
+          because a lone trailing element has nothing to queue behind. */}
       <Reveal className="mt-8 flex justify-center">
-        <LearnMoreLink href="/how-it-works">
-          The full walkthrough, both sides
-        </LearnMoreLink>
+        <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
+          <LearnMoreLink href="/how-it-works">
+            The full walkthrough, both sides
+          </LearnMoreLink>
+        </div>
       </Reveal>
     </SectionShell>
   );

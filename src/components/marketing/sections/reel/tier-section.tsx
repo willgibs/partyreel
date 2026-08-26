@@ -18,6 +18,16 @@ const ROWS: { tier: Tier; mark: string }[] = [
   { tier: "event_pass", mark: "None" },
 ];
 
+/** The column name repeated inside a cell for the stacked mobile layout only
+ *  (display:none from sm up, so the desktop table is byte-identical). */
+function RowLabel({ children }: { children: string }) {
+  return (
+    <span className="font-sans text-xs tracking-[0.08em] text-muted-foreground uppercase sm:hidden">
+      {children}
+    </span>
+  );
+}
+
 export function TierSection() {
   return (
     <SectionShell
@@ -26,9 +36,14 @@ export function TierSection() {
       eyebrow="Plans"
       heading="The free reel carries a small mark. Upgrade and it is gone."
     >
+      {/* PER-PLAN ROWS ON A PHONE (R4/A5): the 26rem minimum ran past a 375px
+          screen, so the watermark column and the table's right border were cut
+          off mid-word. Below sm each plan becomes its own block with the column
+          name carried inline (the head row is hidden there, so nothing is left
+          unlabelled); from sm up the markup renders as the identical table. */}
       <div className="mt-10 overflow-x-auto rounded-2xl border">
-        <table className="w-full min-w-[26rem] text-sm">
-          <thead>
+        <table className="w-full text-sm sm:min-w-[26rem]">
+          <thead className="max-sm:hidden">
             <tr className="border-b text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
               <th scope="col" className="px-4 py-3 font-medium">
                 Plan
@@ -43,18 +58,26 @@ export function TierSection() {
           </thead>
           <tbody>
             {ROWS.map((row) => (
-              <tr key={row.tier} className="border-b last:border-0">
+              <tr
+                key={row.tier}
+                className="border-b last:border-0 max-sm:block max-sm:py-2"
+              >
                 <th
                   scope="row"
-                  className="px-4 py-3.5 text-left font-medium whitespace-nowrap"
+                  className="px-4 py-3.5 text-left font-medium whitespace-nowrap max-sm:block max-sm:pt-2 max-sm:pb-1"
                 >
                   {TIER_NAMES[row.tier]}
                 </th>
-                <td className="px-4 py-3.5 font-mono tabular-nums">
-                  {MAX_REEL_SECONDS[row.tier]} seconds
+                <td className="px-4 py-3.5 font-mono tabular-nums max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
+                  {/* The value is ONE span on purpose: as bare text nodes the
+                      number and "seconds" became separate flex items below sm
+                      and justify-between blew them apart. */}
+                  <RowLabel>Reel length</RowLabel>
+                  <span>{MAX_REEL_SECONDS[row.tier]} seconds</span>
                 </td>
-                <td className="px-4 py-3.5 text-muted-foreground">
-                  {row.mark}
+                <td className="px-4 py-3.5 text-muted-foreground max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
+                  <RowLabel>Watermark</RowLabel>
+                  <span className="max-sm:text-right">{row.mark}</span>
                 </td>
               </tr>
             ))}

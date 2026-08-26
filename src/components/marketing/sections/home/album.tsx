@@ -34,9 +34,13 @@ const ALBUM_TILE_IDS = [
 const BODY =
   "Every angle of the same moment, from every phone in the room, at full quality. It all lands in one album while the party is still going, nothing to install and nothing to chase.";
 
+// TEMPO (R4/A32): the copy column is short beside a tall straddling card, so a
+// full 96px bottom pad left a big empty field under the left half before the
+// curation header. Part of it goes back; the straddle itself (a negative TOP
+// margin on the media) is untouched.
 export function Album() {
   return (
-    <SectionShell>
+    <SectionShell className="pb-10 sm:pb-12">
       <MediaSplit media={<AlbumVisual />} mediaSide="end">
         <Reveal className="flex flex-col gap-3">
           <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
