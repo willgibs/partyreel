@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import {
   getAllArticles,
   getArticlesByCategory,
-  getCategory,
   getSearchIndex,
   type HelpArticle,
 } from "@/lib/content/help";
@@ -48,28 +48,37 @@ export default function HelpIndexPage() {
 
       <HelpSearch items={getSearchIndex()}>
         {/* Browse — shown when the search box is empty. */}
+        {/* "Start here": the guided path, and the page's ONE accent moment
+            (2026-08-25 achromatic ruling) — the mono step numerals wear the
+            success green because green reads as GO; everything else on the
+            page stays ink. Cards carry the mkt-learn hooks so the chevron
+            answers a hover anywhere on the card. */}
         {popular.length > 0 && (
-          <section className="py-12 sm:py-16">
+          <section className="py-14 sm:py-16">
             <Container>
-              <h2 className="font-heading text-xl font-semibold tracking-tight">
+              <h2 className="font-heading text-2xl tracking-tight">
                 Start here
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {popular.map((article) => (
+                {popular.map((article, step) => (
                   <Link
                     key={article.slug}
                     href={`/help/${article.slug}`}
-                    className="group flex flex-col gap-2 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-colors duration-150 hover:border-brand/40"
+                    className="mkt-learn group flex flex-col gap-2.5 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
                   >
-                    <span className="text-xs font-medium text-brand">
-                      {getCategory(article.frontmatter.category).title}
+                    <span className="font-mono text-xs tracking-wider text-success">
+                      {String(step + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="font-heading text-lg font-medium transition-colors duration-150 group-hover:text-brand">
+                    <h3 className="font-heading text-lg font-medium">
                       {article.frontmatter.title}
                     </h3>
                     <p className="text-sm text-pretty text-muted-foreground">
                       {article.frontmatter.description}
                     </p>
+                    <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                      Read the guide
+                      <LearnChevron />
+                    </span>
                   </Link>
                 ))}
               </div>
@@ -82,15 +91,15 @@ export default function HelpIndexPage() {
           return (
             <section
               key={category.slug}
-              className={cn("py-12 sm:py-16", index % 2 === 0 && "bg-muted/30")}
+              className={cn("py-14 sm:py-16", index % 2 === 0 && "bg-muted/30")}
             >
               <Container>
-                <div className="flex items-start gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                    <Icon className="size-5" />
+                <div className="flex items-start gap-4">
+                  <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
+                    <Icon className="size-5" strokeWidth={1.5} />
                   </span>
                   <div className="flex flex-col gap-1">
-                    <h2 className="font-heading text-xl font-semibold tracking-tight">
+                    <h2 className="font-heading text-xl tracking-tight sm:text-2xl">
                       {category.title}
                     </h2>
                     <p className="text-sm text-muted-foreground">
@@ -103,9 +112,9 @@ export default function HelpIndexPage() {
                     <Link
                       key={article.slug}
                       href={`/help/${article.slug}`}
-                      className="group flex flex-col gap-1.5 rounded-xl border bg-card p-5 transition-colors duration-150 hover:border-brand/40"
+                      className="flex flex-col gap-1.5 rounded-xl border bg-card p-5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
                     >
-                      <h3 className="font-medium transition-colors duration-150 group-hover:text-brand">
+                      <h3 className="font-heading text-base font-medium">
                         {article.frontmatter.title}
                       </h3>
                       <p className="text-sm text-pretty text-muted-foreground">
@@ -121,7 +130,7 @@ export default function HelpIndexPage() {
 
         <section className="border-t">
           <Container className="flex flex-col items-center gap-6 py-16 text-center sm:py-20">
-            <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            <h2 className="max-w-xl font-heading text-2xl text-balance sm:text-3xl">
               Still need help?
             </h2>
             <p className="max-w-md text-pretty text-muted-foreground">

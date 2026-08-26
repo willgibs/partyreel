@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -29,6 +29,9 @@ export async function generateMetadata({
   };
 }
 
+// The paper type ladder (2026-08-25 ruling): H1 4xl/5xl in the heading face,
+// role sections step below at xl/2xl (the old text-lg h2s sat too close to the
+// body and left a hierarchy cliff under the 5xl title).
 export default async function RolePage({
   params,
 }: {
@@ -47,15 +50,16 @@ export default async function RolePage({
           { name: job.title, href: `/careers/${slug}` },
         ]}
       />
-      <Container className="py-16 sm:py-20">
+      <Container className="py-12 sm:py-16">
         <div className="mx-auto max-w-3xl">
           <Link
             href="/careers"
-            className="text-sm font-medium text-brand transition-colors duration-150 hover:text-brand/80"
+            className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
           >
-            ← Careers
+            <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
+            Careers
           </Link>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tighter text-balance sm:text-5xl">
+          <h1 className="mt-6 font-heading text-4xl text-balance sm:text-5xl">
             {job.title}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -77,14 +81,16 @@ export default async function RolePage({
             />
           )}
           {job.offer && job.offer.length > 0 && (
-            <div className="mt-10 rounded-xl border bg-muted/30 p-6">
-              <h2 className="font-heading text-base font-medium">
+            <div className="mt-12 rounded-2xl border bg-muted/30 p-6 sm:p-7">
+              <h2 className="font-heading text-lg font-medium">
                 What we offer
               </h2>
-              <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              {/* The page's one accent moment: green checks read as "included"
+                  (a real state color, per the achromatic-plus-accents ruling). */}
+              <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2.5 text-sm text-muted-foreground">
                 {job.offer.map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <Check className="size-4 text-brand" />
+                    <Check className="size-4 text-success" aria-hidden />
                     {item}
                   </li>
                 ))}
@@ -92,8 +98,8 @@ export default async function RolePage({
             </div>
           )}
 
-          <div className="mt-12 border-t pt-10">
-            <h2 className="text-2xl font-semibold tracking-tight">Apply</h2>
+          <div className="mt-14 border-t pt-10">
+            <h2 className="font-heading text-2xl tracking-tight">Apply</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Send us a note and any links. We read every application.
             </p>
@@ -109,15 +115,17 @@ export default async function RolePage({
 
 function RoleList({ heading, items }: { heading: string; items: string[] }) {
   return (
-    <div className="mt-10">
-      <h2 className="font-heading text-lg font-medium">{heading}</h2>
-      <ul className="mt-4 flex flex-col gap-3">
+    <div className="mt-12">
+      <h2 className="font-heading text-xl tracking-tight sm:text-2xl">
+        {heading}
+      </h2>
+      <ul className="mt-5 flex flex-col gap-3">
         {items.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-3 text-sm text-muted-foreground"
+            className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground"
           >
-            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+            <span className="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-foreground/50" />
             <span>{item}</span>
           </li>
         ))}

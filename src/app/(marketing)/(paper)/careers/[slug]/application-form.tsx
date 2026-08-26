@@ -54,7 +54,27 @@ export function ApplicationForm({
 
   if (submitted) {
     return (
+      // The drawn check = the 10-success-check recipe (marketing.css ch. 2):
+      // data-state="in" fires on mount, the inline dasharray (24 ≈ path length
+      // + 1) scopes the draw, success green is the sanctioned state accent.
       <div className="flex flex-col items-start gap-3 rounded-xl border bg-card p-6">
+        <span className="mkt-check text-success" data-state="in" aria-hidden>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+              style={{ strokeDasharray: 24, strokeDashoffset: 24 }}
+            />
+          </svg>
+        </span>
         <h3 className="font-heading text-base font-medium">
           Application received
         </h3>

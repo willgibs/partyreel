@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { compileMDX } from "next-mdx-remote/rsc";
 import Link from "next/link";
@@ -7,6 +7,8 @@ import remarkGfm from "remark-gfm";
 
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
+import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,41 +85,46 @@ export default async function HelpArticlePage({
           <div className="max-w-2xl min-w-0">
             <Link
               href="/help"
-              className="inline-flex items-center gap-1 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand/80"
+              className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
             >
-              <ArrowLeft className="size-4" />
+              <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
               Help center
             </Link>
 
+            {/* Header ladder (the 2026-08-25 type ruling): article H1 reaches
+                4xl/5xl in the heading face; the meta line goes mono (the
+                marketing caption voice for factual lines). */}
             <header className="mt-6">
               <Badge variant="secondary">{category.title}</Badge>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tighter text-balance sm:text-4xl">
+              <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
                 {article.frontmatter.title}
               </h1>
-              <p className="mt-3 text-sm text-muted-foreground">
+              <MonoCaption className="mt-4">
                 Updated {formatEventDate(article.frontmatter.updated)}
-              </p>
+              </MonoCaption>
             </header>
 
-            <article className="prose mt-8 max-w-none prose-help">
+            {/* prose-headings:font-heading pulls the article's h2/h3 onto the
+                house heading face (Urbanist) so long-form matches the chrome;
+                the prose SCALE itself is untouched (the ruling keeps it). */}
+            <article className="prose mt-8 max-w-none prose-help prose-headings:font-heading">
               {content}
             </article>
 
             {related.length > 0 && (
               <section className="mt-16 border-t pt-10">
-                <h2 className="font-heading text-lg font-medium">
+                <h2 className="font-heading text-xl tracking-tight">
                   Related articles
                 </h2>
-                <ul className="mt-4 flex flex-col gap-3">
+                <ul className="mt-5 flex flex-col gap-3.5">
                   {related.map((item) => (
                     <li key={item.slug}>
-                      <Link
+                      <LearnMoreLink
                         href={`/help/${item.slug}`}
-                        className="group inline-flex items-center gap-1.5 text-sm font-medium transition-colors duration-150 hover:text-brand"
+                        className="text-foreground"
                       >
                         {item.frontmatter.title}
-                        <ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
-                      </Link>
+                      </LearnMoreLink>
                     </li>
                   ))}
                 </ul>
@@ -125,7 +132,7 @@ export default async function HelpArticlePage({
             )}
 
             <section className="mt-12 rounded-2xl border bg-muted/30 p-8 text-center">
-              <h2 className="text-xl font-semibold tracking-tight">
+              <h2 className="font-heading text-xl tracking-tight">
                 Still need help?
               </h2>
               <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">
@@ -139,17 +146,17 @@ export default async function HelpArticlePage({
           </div>
 
           {headings.length >= 2 && (
-            <aside className="hidden shrink-0 lg:block lg:w-44">
+            <aside className="hidden shrink-0 lg:block lg:w-48">
               <nav aria-label="On this page" className="sticky top-24">
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
                 </p>
-                <ul className="mt-3 flex flex-col">
+                <ul className="mt-3 flex flex-col border-l">
                   {headings.map((heading) => (
                     <li key={heading.id}>
                       <a
                         href={`#${heading.id}`}
-                        className="-ml-px block border-l py-1.5 pl-3 text-sm text-muted-foreground transition-colors duration-150 hover:border-brand hover:text-foreground"
+                        className="-ml-px block border-l border-transparent py-1.5 pl-3 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground hover:text-foreground"
                       >
                         {heading.text}
                       </a>

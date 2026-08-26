@@ -61,11 +61,32 @@ export function ContactForm() {
     return (
       <FormCard>
         {/* h-full + justify-center so the short confirmation sits centered in the
-            stretched card frame (the grid matches its height to the form column). */}
+            stretched card frame (the grid matches its height to the form column).
+            The drawn check is the 10-success-check recipe (marketing.css ch. 2):
+            data-state="in" fires on mount, the inline dasharray (24 ≈ path length
+            + 1, per the recipe's calibration note) scopes the draw to THIS icon,
+            and success green is the sanctioned state accent. */}
         <div
           data-contact-success
           className="flex h-full flex-col items-start justify-center gap-3"
         >
+          <span className="mkt-check text-success" data-state="in" aria-hidden>
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+                style={{ strokeDasharray: 24, strokeDashoffset: 24 }}
+              />
+            </svg>
+          </span>
           <h3 className="font-heading text-lg font-medium">Message sent</h3>
           <p className="text-sm text-muted-foreground">
             Thanks for reaching out. We&rsquo;ll get back to you within one

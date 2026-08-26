@@ -9,17 +9,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-// Legal stub. Replace with real terms before public launch.
+// Legal stub. Replace with real terms before public launch. Presentation only
+// rides the paper ladder (heading face, 4xl/5xl H1, mono status line); the
+// copy is launch-gated and stays untouched.
 export default function TermsPage() {
   return (
-    <Container className="max-w-2xl py-20">
-      <h1 className="text-3xl font-semibold tracking-tight">
+    <Container className="max-w-2xl py-16 sm:py-20">
+      <h1 className="font-heading text-4xl text-balance sm:text-5xl">
         Terms of Service
       </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
+      <p className="mt-4 font-mono text-xs tracking-wide text-muted-foreground">
         Placeholder. The full terms land before public launch.
       </p>
-      <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">
+      <div className="mt-10 space-y-4 border-t pt-8 text-sm leading-6 text-muted-foreground">
         <p>
           By creating an event you agree to use Partyreel for lawful purposes
           and to have the right to collect and share the media your guests
