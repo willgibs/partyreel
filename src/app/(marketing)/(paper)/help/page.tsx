@@ -69,7 +69,9 @@ export default function HelpIndexPage() {
                     <span className="font-mono text-xs tracking-wider text-success">
                       {String(step + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="font-heading text-lg font-medium">
+                    {/* No font-medium with font-heading: the 500 utility beats
+                        the face's 700 and the title blends into body copy. */}
+                    <h3 className="font-heading text-lg">
                       {article.frontmatter.title}
                     </h3>
                     <p className="text-sm text-pretty text-muted-foreground">
@@ -107,7 +109,15 @@ export default function HelpIndexPage() {
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Same defect class as the C1 lone card: a 2-article category
+                    in a forced 3-col grid strands the row's last third. Cap the
+                    columns at the article count so 2 cards split the row. */}
+                <div
+                  className={cn(
+                    "mt-6 grid gap-3 sm:grid-cols-2",
+                    articles.length >= 3 && "lg:grid-cols-3",
+                  )}
+                >
                   {articles.map((article) => (
                     <CategoryCard
                       key={article.slug}
@@ -167,9 +177,8 @@ function CategoryCard({
         wide && "col-span-full sm:p-6",
       )}
     >
-      <h3
-        className={cn("font-heading text-base font-medium", wide && "max-w-xl")}
-      >
+      {/* No font-medium with font-heading (500 beats the face's 700). */}
+      <h3 className={cn("font-heading text-base", wide && "max-w-xl")}>
         {article.frontmatter.title}
       </h3>
       <p
