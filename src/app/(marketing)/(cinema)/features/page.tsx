@@ -12,6 +12,7 @@ import {
 } from "@/components/marketing/sections/features/feature-visuals";
 import { FeaturesReelBand } from "@/components/marketing/sections/features/reel-band";
 import { CtaBand } from "@/components/marketing/system/cta-band";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -116,7 +117,9 @@ function PrivacyPanel() {
   const g = group("privacy");
   return (
     <SectionShell>
-      <Reveal className="mx-auto max-w-5xl rounded-3xl border bg-card/40 p-8 ring-1 ring-foreground/5 sm:p-12">
+      {/* bg-card (not /40): this panel lives in the paper chapter now — the
+          paper-card recipe, matching the pricing cards. */}
+      <Reveal className="mx-auto max-w-5xl rounded-3xl border bg-card p-8 ring-1 ring-foreground/5 sm:p-12">
         <div className="flex flex-col items-center gap-3 text-center">
           <span
             data-mkt-reveal
@@ -195,16 +198,26 @@ function StorageTrio() {
   );
 }
 
+// THE TWO-SIDED STORY (the 2026-08-26 chapter ruling, features shape 2-3-3):
+// AT THE EVENT (cinema): the hero + the guests' side, phones out in the dark.
+// YOUR DESK (paper): the host's side — curation, trust, keeping — one concept
+// group on daylight (hosts moved beside privacy + storage; the old flat
+// spotlight list buried the guest/host IA the cut now makes legible).
+// THE PAYOFF (cinema): lights back down for the reel, everyone takes the
+// album home, the CTA. The reel band doubles as the color-forward re-entry,
+// so no extra media breaker is needed at the exit seam.
 export default function FeaturesPage() {
   return (
     <>
       <FeaturesHero />
       <Spotlight id="guests" />
-      <Spotlight id="hosts" />
+      <PaperChapter>
+        <Spotlight id="hosts" />
+        <PrivacyPanel />
+        <StorageTrio />
+      </PaperChapter>
       <FeaturesReelBand />
       <Spotlight id="share" />
-      <PrivacyPanel />
-      <StorageTrio />
       <CtaBand
         className="border-t"
         heading="Start your first event free."
