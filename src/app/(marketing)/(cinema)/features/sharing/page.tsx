@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { AlbumLinkHero } from "@/components/marketing/sections/features/sharing/album-link-hero";
 import { DownloadsSection } from "@/components/marketing/sections/features/sharing/downloads-section";
 import { OneLink } from "@/components/marketing/sections/features/sharing/one-link";
@@ -13,7 +14,6 @@ import {
 } from "@/components/marketing/sections/features/sharing/sharing-faq";
 import { WhoGetsWhat } from "@/components/marketing/sections/features/sharing/who-gets-what";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
@@ -56,27 +56,18 @@ export default function SharingFeaturePage() {
       <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
         <Container>
           <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            <Link
-              {...cut(0)}
-              href="/features"
-              className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-foreground"
-            >
-              Features
-            </Link>
-            <Eyebrow {...cut(1)}>{page.navLabel}</Eyebrow>
-            <h1
-              {...cut(2)}
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
-            >
+            <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
+            {/* LCP rule: the H1 never carries a reveal-hidden state. */}
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
               {page.h1}
             </h1>
             <p
-              {...cut(3)}
+              {...cut(1)}
               className="max-w-2xl text-lg text-pretty text-muted-foreground"
             >
               {page.heroSub}
             </p>
-            <div {...cut(4)} className="mt-2 flex flex-col gap-3 sm:flex-row">
+            <div {...cut(2)} className="mt-2 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
@@ -90,8 +81,12 @@ export default function SharingFeaturePage() {
               </Button>
             </div>
           </Reveal>
+          {/* The Reveal is the trigger ANCESTOR only: the tiles inside are the
+              hero's LCP media, so nothing here is reveal-hidden. The frame's
+              own non-LCP chrome (the address pill, the copy control) carries
+              the quiet arrival instead. */}
           <Reveal className="mx-auto mt-10 w-full max-w-3xl sm:mt-14">
-            <div {...cut(5)} aria-hidden>
+            <div aria-hidden>
               <AlbumLinkHero />
             </div>
           </Reveal>
