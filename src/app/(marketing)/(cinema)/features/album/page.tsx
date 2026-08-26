@@ -8,7 +8,7 @@ import { FeatureFaq } from "@/components/marketing/sections/features/album/featu
 import { GoDeeper } from "@/components/marketing/sections/features/album/go-deeper";
 import { LiveSection } from "@/components/marketing/sections/features/album/live-section";
 import { QualitySection } from "@/components/marketing/sections/features/album/quality-section";
-import { RelatedFeatures } from "@/components/marketing/sections/features/album/related-features";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { featurePage } from "@/lib/constants/feature-pages";
 

@@ -9,7 +9,7 @@ import { MediaLives } from "@/components/marketing/sections/features/privacy/med
 import { NeverRidesAlong } from "@/components/marketing/sections/features/privacy/never-rides-along";
 import { PeopleNotMachines } from "@/components/marketing/sections/features/privacy/people-not-machines";
 import { PRIVACY_FAQ } from "@/components/marketing/sections/features/privacy/privacy-faq";
-import { RelatedFeatures } from "@/components/marketing/sections/features/privacy/related-features";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";

@@ -30,7 +30,7 @@ const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: LockKeyhole,
     title: "Three ways to share",
-    body: "Open, password-protected on Pro, or fully private. A locked event shows only its name and a count.",
+    body: "Open, password-protected on paid plans, or fully private. A locked event shows only its name and a count.",
   },
   {
     icon: MailCheck,

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import type { EventTypeHelp } from "@/lib/constants/events";
@@ -40,6 +42,32 @@ export function BuiltFor({
   );
 }
 
+/** A cell title that becomes a ladder link when the constants give it a
+ *  featureHref (the expansion round's use-case-to-feature web): the title
+ *  renders as a learn-more into its feature page; plain cells stay plain. */
+function HelpTitle({
+  title,
+  featureHref,
+  className,
+}: {
+  title: string;
+  featureHref?: string;
+  className: string;
+}) {
+  if (!featureHref) return <h3 className={className}>{title}</h3>;
+  return (
+    <h3 className={className}>
+      <Link
+        href={featureHref}
+        className="mkt-learn inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-muted-foreground"
+      >
+        {title}
+        <LearnChevron />
+      </Link>
+    </h3>
+  );
+}
+
 /** Shared mono hairline icon chip (the marketing section vocabulary). */
 function Chip({ icon: Icon }: { icon: EventTypeHelp["icon"] }) {
   return (
@@ -66,23 +94,29 @@ function Bento({ help }: { help: EventTypeHelp[] }) {
         >
           <Chip icon={lead.icon} />
           <div>
-            <h3 className="font-heading text-lg sm:text-xl">{lead.title}</h3>
+            <HelpTitle
+              title={lead.title}
+              featureHref={lead.featureHref}
+              className="font-heading text-lg sm:text-xl"
+            />
             <p className="mt-1 text-sm text-muted-foreground">{lead.body}</p>
           </div>
         </div>
       )}
       {rest.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-3">
-          {rest.map(({ icon, title, body }, i) => (
+          {rest.map(({ icon, title, body, featureHref }, i) => (
             <div
               key={title}
               {...mark(i + 1)}
               className="rounded-xl border bg-card/60 p-6"
             >
               <Chip icon={icon} />
-              <h3 className="mt-4 font-heading text-base sm:text-lg">
-                {title}
-              </h3>
+              <HelpTitle
+                title={title}
+                featureHref={featureHref}
+                className="mt-4 font-heading text-base sm:text-lg"
+              />
               <p className="mt-2 text-sm text-muted-foreground">{body}</p>
             </div>
           ))}
@@ -97,11 +131,15 @@ function Bento({ help }: { help: EventTypeHelp[] }) {
 function Rows({ help }: { help: EventTypeHelp[] }) {
   return (
     <Reveal className="mx-auto mt-12 max-w-2xl divide-y rounded-xl border bg-card/40">
-      {help.map(({ icon, title, body }, i) => (
+      {help.map(({ icon, title, body, featureHref }, i) => (
         <div key={title} {...mark(i)} className="flex items-start gap-4 p-5">
           <Chip icon={icon} />
           <div>
-            <h3 className="font-heading text-base sm:text-lg">{title}</h3>
+            <HelpTitle
+              title={title}
+              featureHref={featureHref}
+              className="font-heading text-base sm:text-lg"
+            />
             <p className="mt-1 text-sm text-muted-foreground">{body}</p>
           </div>
         </div>
@@ -115,10 +153,14 @@ function Rows({ help }: { help: EventTypeHelp[] }) {
 function Quadrants({ help }: { help: EventTypeHelp[] }) {
   return (
     <Reveal className="mx-auto mt-12 grid max-w-3xl gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-2">
-      {help.map(({ icon, title, body }, i) => (
+      {help.map(({ icon, title, body, featureHref }, i) => (
         <div key={title} {...mark(i)} className="bg-card p-6 sm:p-8">
           <Chip icon={icon} />
-          <h3 className="mt-4 font-heading text-base sm:text-lg">{title}</h3>
+          <HelpTitle
+            title={title}
+            featureHref={featureHref}
+            className="mt-4 font-heading text-base sm:text-lg"
+          />
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
         </div>
       ))}
@@ -133,7 +175,7 @@ function Timeline({ help }: { help: EventTypeHelp[] }) {
   return (
     <Reveal>
       <ol className="mx-auto mt-12 flex max-w-xl flex-col">
-        {help.map(({ icon: Icon, title, body }, i) => (
+        {help.map(({ icon: Icon, title, body, featureHref }, i) => (
           <li key={title} {...mark(i)} className="flex gap-4">
             <div className="flex flex-col items-center">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-card text-muted-foreground">
@@ -147,9 +189,11 @@ function Timeline({ help }: { help: EventTypeHelp[] }) {
               <span className="font-mono text-xs font-medium text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="mt-1 font-heading text-base sm:text-lg">
-                {title}
-              </h3>
+              <HelpTitle
+                title={title}
+                featureHref={featureHref}
+                className="mt-1 font-heading text-base sm:text-lg"
+              />
               <p className="mt-1 text-sm text-muted-foreground">{body}</p>
             </div>
           </li>

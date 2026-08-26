@@ -140,10 +140,15 @@ function StatValue({
                 transform: `translateY(calc(${fired ? target : rest} * var(--mkt-count-cell, 1.15em) * -1))`,
               }}
             >
+              {/* shrink-0 is load-bearing (T1's expansion find): the column
+                  window's inline-flex stretched the strip and let these cells
+                  flex-shrink from 1.15em toward their line box, landing every
+                  spin ~1.4px/cell off (visible split half-digits on /reel's
+                  RenderSection). Fixed height only works if it can't shrink. */}
               {Array.from({ length: SPIN_ROUNDS * 10 + 10 }, (_, n) => (
                 <span
                   key={n}
-                  className="flex h-[var(--mkt-count-cell,1.15em)] items-center justify-center"
+                  className="flex h-[var(--mkt-count-cell,1.15em)] shrink-0 items-center justify-center"
                 >
                   {n % 10}
                 </span>

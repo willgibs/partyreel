@@ -3,7 +3,10 @@ import Image from "next/image";
 
 import { BrowserFrame, ReelFrame } from "@/components/marketing/frames";
 import { AmbientReelVideo } from "@/components/marketing/sections/reel/ambient-reel-video";
-import { marketingImage, MARKETING_REELS } from "@/lib/constants/marketing-media";
+import {
+  marketingImage,
+  MARKETING_REELS,
+} from "@/lib/constants/marketing-media";
 import type { EventFrame } from "@/lib/constants/events-layout";
 
 /**
@@ -15,7 +18,8 @@ import type { EventFrame } from "@/lib/constants/events-layout";
  *  - weddings ("album"): the shared album mid-fill, a browser grid of the day.
  *  - parties ("phone"): three tilted prints, the tactile candid pile.
  *  - conferences ("qr"): the decorative QR beside the venue (NEVER liveQrUrl
- *    here; the one real scannable QR lives on the /features hero only).
+ *    here; live scannable QRs live where they're the point: the home hero's
+ *    demo ticket, the nav's Features panel, and /features/qr).
  *  - trips ("reel"): a real engine render looping in the player frame (the
  *    reel-angle payoff made visible).
  *
@@ -113,7 +117,7 @@ function PartyPrints() {
    which INVERTS on the cinema skin (white data, invisible ink finders — no
    longer reads as a QR). A real QR is ink-on-white for scanners, so the badge
    draws exactly that on a white plate (the LiveQr precedent), deterministic so
-   SSR/client never drift. Decorative only — the ONE live QR stays on /features. */
+   SSR/client never drift. Decorative only — live QRs belong to the demo ticket + /features/qr. */
 const BADGE_QR_SIZE = 11;
 const BADGE_QR_CELLS: boolean[] = Array.from(
   { length: BADGE_QR_SIZE * BADGE_QR_SIZE },

@@ -8,7 +8,7 @@ import {
   CURATION_FAQ,
   CurationFaq,
 } from "@/components/marketing/sections/features/curation/curation-faq";
-import { RelatedFeatures } from "@/components/marketing/sections/features/curation/related-features";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { Reversibility } from "@/components/marketing/sections/features/curation/reversibility";
 import { ReviewModes } from "@/components/marketing/sections/features/curation/review-modes";
 import { ReviewQueueDemo } from "@/components/marketing/sections/features/curation/review-queue-demo";
@@ -107,7 +107,7 @@ export default function CurationFeaturePage() {
       {/* The dark close: siblings, questions, then the one conversion band.
           The chapter's own bottom hairline owns the cut back to the cinema,
           so no border-t anywhere in the close. */}
-      <RelatedFeatures />
+      <RelatedFeatures slugs={["album", "sharing", "privacy"]} />
       <CurationFaq />
       <CtaBand
         heading="Your album, your call."

@@ -4,7 +4,7 @@ import type { FaqItem } from "@/components/marketing/faq-data";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { FeatureFaq } from "@/components/marketing/sections/features/album/feature-faq";
 import { GoDeeper } from "@/components/marketing/sections/features/album/go-deeper";
-import { RelatedFeatures } from "@/components/marketing/sections/features/album/related-features";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { EntryFlow } from "@/components/marketing/sections/features/qr/entry-flow";
 import { PresetSwitcher } from "@/components/marketing/sections/features/qr/preset-switcher";
 import { PrintShop } from "@/components/marketing/sections/features/qr/print-shop";

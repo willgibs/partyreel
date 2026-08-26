@@ -24,7 +24,15 @@ import type { FaqItem } from "@/components/marketing/faq-data";
 // terms the umbrella absorbs (good for SEO body copy, e.g. "Parties" covers
 // birthdays, graduations, showers…). Named EVENT_TYPE* (not Event/EVENTS) to avoid
 // colliding with the DOM `Event` type and the real `events` domain.
-export type EventTypeHelp = { icon: LucideIcon; title: string; body: string };
+export type EventTypeHelp = {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  /** Optional ladder link: BuiltFor renders this cell's title as a learn-more
+   *  into the matching feature page (the expansion round's use-case-to-feature
+   *  web; at most 1-2 per type so the grid stays calm). */
+  featureHref?: string;
+};
 
 export type EventType = {
   slug: string;
@@ -80,11 +88,13 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: QrCode,
         title: "A QR on every table",
+        featureHref: "/features/qr",
         body: "Drop your code on table cards or the program. Guests scan and upload between courses, no chasing required.",
       },
       {
         icon: Lock,
         title: "Yours, kept private",
+        featureHref: "/features/privacy",
         body: "Your album opens only to the link you share and stays out of search engines. Share it with family, not the world.",
       },
       {
@@ -145,6 +155,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Smartphone,
         title: "No app to kill the vibe",
+        featureHref: "/features/qr",
         body: "Guests scan, type a name, and upload. No download, no sign-up, nothing to break the moment.",
       },
       {
@@ -211,6 +222,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: ListChecks,
         title: "Curate before you reshare",
+        featureHref: "/features/curation",
         body: "Approve uploads before they appear, then pull the best shots for recaps, socials, and sponsor reports.",
       },
       {
@@ -282,6 +294,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Images,
         title: "One link to relive it",
+        featureHref: "/features/sharing",
         body: "Share a single album link when you're home, and everyone can browse and download the whole trip.",
       },
       {

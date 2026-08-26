@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { AlbumLinkHero } from "@/components/marketing/sections/features/sharing/album-link-hero";
 import { DownloadsSection } from "@/components/marketing/sections/features/sharing/downloads-section";
 import { OneLink } from "@/components/marketing/sections/features/sharing/one-link";
-import { RelatedFeatures } from "@/components/marketing/sections/features/sharing/related-features";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import {
   SHARING_FAQ,
   SharingFaq,
@@ -107,7 +107,7 @@ export default function SharingFeaturePage() {
         <WhoGetsWhat />
       </PaperChapter>
 
-      <RelatedFeatures />
+      <RelatedFeatures slugs={["album", "privacy", "reel"]} />
       <SharingFaq />
       <CtaBand
         className="border-t"

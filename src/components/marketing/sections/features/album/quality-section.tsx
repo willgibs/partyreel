@@ -42,15 +42,7 @@ export function QualitySection() {
       subhead="No messaging-app squeeze, no surprise downscale. The album keeps exactly what the camera made."
     >
       <div className="mt-12">
-        {/* shrink-0 patch (T1): the column window stretches the strip, whose
-            cells then flex-shrink from 1.15em to their 40px line box and the
-            roll lands 1.4px-per-cell off its digits. System files are closed
-            to this track, so the fix rides a wrapper-variant here; the
-            one-line upstream fix (shrink-0 on the cell span in
-            system/stat-band.tsx, /reel is affected too) is proposed in the
-            track report. */}
         <StatBand
-          className="[&_[data-mkt-count-strip]>span]:shrink-0"
           stats={[
             {
               // 10, derived from the enforced ceiling (limits.ts), never typed.
