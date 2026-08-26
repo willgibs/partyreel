@@ -144,8 +144,12 @@ export default function PricingPage() {
               className="max-w-2xl text-lg text-pretty text-muted-foreground"
               style={{ "--i": 2 } as CSSProperties}
             >
-              No per-guest fees and no expiry clock. Plans are sized by storage,
-              so pick the room your event actually needs.
+              {/* PROVISIONAL (R4 truth ruling A2): the flat "no expiry clock"
+                  moved OUT of the hero. It is true on Free and Pro but not on
+                  an Event Pass, and the qualified version belongs in one
+                  place: the footnote under the cards. */}
+              No per-guest fees. Plans are sized by storage, so pick the room
+              your event actually needs.
             </p>
           </Reveal>
         </Container>
@@ -214,7 +218,7 @@ export default function PricingPage() {
             {/* Event Pass */}
             <PlanCard
               name={eventPass.name}
-              whyLine="One big event, paid once, kept for a year."
+              whyLine="One big event, paid once, kept for about a year."
               priceLabel={eventPass.priceLabel}
               index={2}
               footer={
@@ -227,7 +231,9 @@ export default function PricingPage() {
                 </CheckoutButton>
               }
             >
-              <Feature>1 event, kept for ~1 year</Feature>
+              {/* "about a year", not "~1 year": the tilde read as a spec, and
+                  the term is a real 365-day clock (tiers.ts termDays). */}
+              <Feature>1 event, kept for about a year</Feature>
               <Feature>
                 {formatBytes(eventPass.storageBytes)} of storage
               </Feature>
@@ -246,8 +252,13 @@ export default function PricingPage() {
             >
               {/* One template string on purpose: the JSX-text space after the
                 {uploadSize} expression was stripped at compile ("10 GBeach"),
-                caught in the screenshot pass. */}
-              {`Video uploads come with Pro and Event Pass, up to ${uploadSize} each. Your events stay up until you delete them. There’s no expiry clock counting down on your memories.`}
+                caught in the screenshot pass.
+                PROVISIONAL (R4 truth rulings A2 + A34): "each" read as a
+                per-upload total, so it is now "per file"; and the retention
+                promise carries the Event Pass term in the same breath (the
+                pass covers its event for about a year, help doc
+                how-long-media-is-kept.mdx). */}
+              {`Video uploads come with Pro and Event Pass, up to ${uploadSize} per file. On Free and Pro, your events stay up until you delete them, with no expiry clock counting down on your memories. An Event Pass covers its event for about a year: move it to Pro before the pass ends to keep it longer.`}
             </p>
           </Reveal>
         </SectionShell>
