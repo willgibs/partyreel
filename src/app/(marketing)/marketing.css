@@ -39,6 +39,11 @@
   --mkt-pulse-ring: color-mix(in oklab, var(--foreground) 18%, transparent);
   /* The one knob chrome + anchors share; SectionShell scroll-margins ride it too. */
   --mkt-header-h: 4rem;
+  /* The chapter-1 reveal clocks (standard rise + per-item stagger). Until R4
+     these existed only as var() fallbacks below — undeclared, so untunable.
+     Declared with the shipped fallback values: ZERO visual change, one home. */
+  --mkt-reveal-ms: 700ms;
+  --mkt-stagger-ms: 90ms;
 }
 
 /* Final states first (outside media queries: reduced motion still ARRIVES). */
@@ -298,6 +303,13 @@
   --mkt-skel-pulse-min: 0.5;
   --mkt-skel-reveal-dur: 400ms;
   --mkt-skel-blur: 2px;
+  /* 11-avatar-group-hover (direction-aware easing: the island writes the
+     phase's timing-function inline — in = --ease-emphasis, return =
+     --mkt-ease-pop, the house bounce standing in for the recipe's spring) */
+  --mkt-avatar-lift: -4px;
+  --mkt-avatar-dur: 320ms;
+  --mkt-avatar-scale: 1.05;
+  --mkt-avatar-falloff: 0.45;
   /* pro: card-stack-hover (springs absorbed into --mkt-ease-pop) */
   --mkt-stack-open: 410ms;
   --mkt-stack-close: 360ms;
@@ -924,6 +936,29 @@
   }
   [data-mkt] .mkt-skel-skeleton.is-pulsing .mkt-skel-bone {
     animation: none !important;
+  }
+}
+
+/* ── 11-avatar-group-hover: distance-falloff lift for a horizontal people
+   row (the guests-page attribution strip). The island walks the row on
+   mouseenter writing --shift/--scale-active per item, and sets the phase's
+   timing-function INLINE first (the browser samples whatever function is
+   current when a transitionable property changes): --ease-emphasis on the
+   way up, --mkt-ease-pop settling back — the direction-aware feel with no
+   second class. translateY BEFORE scale so scale doesn't amplify the lift.
+   Hover-gated (touch scrolls, never combs); no will-change (a row of items
+   would hold a layer apiece for a mere hover). ── */
+@media (hover: hover) {
+  [data-mkt] .mkt-avatar {
+    transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
+    transform-origin: center;
+    transition: transform var(--mkt-avatar-dur) var(--ease-emphasis);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt] .mkt-avatar {
+    transition: none !important;
+    transform: none !important;
   }
 }
 
