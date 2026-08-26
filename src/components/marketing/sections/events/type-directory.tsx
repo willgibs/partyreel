@@ -29,7 +29,7 @@ const THEME_CHIP_COUNT = 3;
 export function TypeDirectory() {
   return (
     <div className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-2">
-      {EVENT_TYPES.map(({ slug, navLabel, teaser, nestedThemes }) => {
+      {EVENT_TYPES.map(({ slug, navLabel, teaser, nestedThemes }, i) => {
         const still = marketingImage(DIRECTORY_STILLS[slug] ?? "wedding-arch");
         return (
           <TiltCard key={slug} className="rounded-2xl">
@@ -44,6 +44,11 @@ export function TypeDirectory() {
                   fill
                   sizes="(min-width: 640px) 430px, 100vw"
                   className="object-cover"
+                  // The top row peeks above the fold on desktop, where Next's
+                  // LCP heuristic picks a card still as the LCP element; two
+                  // eager stills (~tens of KB as served) keep LCP off a lazy
+                  // load without touching the mobile budget meaningfully.
+                  loading={i < 2 ? "eager" : undefined}
                 />
               </div>
               <div className="flex flex-1 flex-col gap-2.5 p-6">

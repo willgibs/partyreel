@@ -1,7 +1,7 @@
 import { QrCode } from "lucide-react";
 import Image from "next/image";
 
-import { BrowserFrame, QrFrame, ReelFrame } from "@/components/marketing/frames";
+import { BrowserFrame, ReelFrame } from "@/components/marketing/frames";
 import { AmbientReelVideo } from "@/components/marketing/sections/reel/ambient-reel-video";
 import { marketingImage, MARKETING_REELS } from "@/lib/constants/marketing-media";
 import type { EventFrame } from "@/lib/constants/events-layout";
@@ -25,6 +25,8 @@ import type { EventFrame } from "@/lib/constants/events-layout";
  * intake, never a component change. All decorative (aria-hidden).
  */
 
+// All wedding-read subjects (the screenshot pass swapped festival-lights out:
+// rainbow lasers read as a rave inside a wedding album).
 const WEDDING_ALBUM_TILES = [
   "wedding-golden",
   "wedding-arch",
@@ -33,7 +35,7 @@ const WEDDING_ALBUM_TILES = [
   "reception-table",
   "wedding-rings",
   "reception-hall",
-  "festival-lights",
+  "party-balloons",
 ];
 
 const PARTY_PRINTS: { id: string; className: string }[] = [
@@ -106,12 +108,69 @@ function PartyPrints() {
   );
 }
 
+/* The conference badge's decorative QR, drawn locally: the shared QrFrame's
+   decorative block tokens its cells (bg-foreground data + bg-brand finders),
+   which INVERTS on the cinema skin (white data, invisible ink finders — no
+   longer reads as a QR). A real QR is ink-on-white for scanners, so the badge
+   draws exactly that on a white plate (the LiveQr precedent), deterministic so
+   SSR/client never drift. Decorative only — the ONE live QR stays on /features. */
+const BADGE_QR_SIZE = 11;
+const BADGE_QR_CELLS: boolean[] = Array.from(
+  { length: BADGE_QR_SIZE * BADGE_QR_SIZE },
+  (_, i) => {
+    const x = i % BADGE_QR_SIZE;
+    const y = Math.floor(i / BADGE_QR_SIZE);
+    const inFinder =
+      (x < 3 && y < 3) ||
+      (x >= BADGE_QR_SIZE - 3 && y < 3) ||
+      (x < 3 && y >= BADGE_QR_SIZE - 3);
+    if (inFinder) {
+      const fx = x < 3 ? x : x - (BADGE_QR_SIZE - 3);
+      const fy = y < 3 ? y : y - (BADGE_QR_SIZE - 3);
+      return !(fx === 1 && fy === 1);
+    }
+    return (x * 73 + y * 151 + x * y * 13) % 5 < 2;
+  },
+);
+
+function ConferenceBadge() {
+  return (
+    <div className="mx-auto flex w-full max-w-[230px] flex-col gap-3 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
+      <div className="mx-auto h-1.5 w-10 rounded-full bg-muted-foreground/25" />
+      <div className="flex flex-col gap-0.5 text-center">
+        <span className="text-sm font-medium">Alex Rivera</span>
+        <span className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+          Attendee
+        </span>
+      </div>
+      <div className="mx-auto rounded-lg bg-white p-2">
+        <div
+          className="grid w-28 gap-px"
+          style={{
+            gridTemplateColumns: `repeat(${BADGE_QR_SIZE}, minmax(0, 1fr))`,
+          }}
+        >
+          {BADGE_QR_CELLS.map((dark, index) => (
+            <span
+              key={index}
+              className={`aspect-square rounded-[1px] ${dark ? "bg-black" : "bg-white"}`}
+            />
+          ))}
+        </div>
+      </div>
+      <span className="text-center text-xs text-muted-foreground">
+        Scan to add photos
+      </span>
+    </div>
+  );
+}
+
 function ConferenceSplit() {
   const venue = marketingImage(CONFERENCE_VENUE);
   return (
     <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-5 sm:gap-6">
       <div className="flex justify-center sm:col-span-2">
-        <QrFrame caption="On every badge" />
+        <ConferenceBadge />
       </div>
       <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border ring-1 ring-foreground/5 sm:col-span-3">
         <Image

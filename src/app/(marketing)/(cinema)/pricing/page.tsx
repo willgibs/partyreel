@@ -228,9 +228,10 @@ export default function PricingPage() {
             className="text-center text-sm text-pretty text-muted-foreground"
             style={{ "--i": 0 } as CSSProperties}
           >
-            Video uploads come with Pro and Event Pass, up to {uploadSize} each.
-            Your events stay up until you delete them. There&rsquo;s no expiry
-            clock counting down on your memories.
+            {/* One template string on purpose: the JSX-text space after the
+                {uploadSize} expression was stripped at compile ("10 GBeach"),
+                caught in the screenshot pass. */}
+            {`Video uploads come with Pro and Event Pass, up to ${uploadSize} each. Your events stay up until you delete them. There’s no expiry clock counting down on your memories.`}
           </p>
         </Reveal>
       </SectionShell>
