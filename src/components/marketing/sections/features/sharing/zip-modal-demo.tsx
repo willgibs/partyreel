@@ -112,79 +112,84 @@ export function ZipModalDemo() {
 
   return (
     <div role="group" aria-label="Download album demo">
-      <div className="mx-auto w-full max-w-[26rem] rounded-2xl border bg-card p-6 ring-1 ring-foreground/5">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-lg font-semibold">Download album</p>
-          <p className="text-sm text-muted-foreground">
-            Pick what to bundle into your copy.
-          </p>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          {CHIPS.map(({ key, label, Icon }) => {
-            const active = types === key;
-            const count = totalFor(key, includeHidden).count;
-            return (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setTypes(key)}
-                className={cn(
-                  "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-3 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
-                  active
-                    ? "border-primary bg-accent"
-                    : "border-border hover:bg-accent/50",
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "size-5",
-                    active ? "text-foreground" : "text-muted-foreground",
-                  )}
-                />
-                <span className="text-sm font-medium">{label}</span>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <label className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3.5">
-          <span className="text-sm text-muted-foreground">
-            Include hidden items
-          </span>
-          <Switch
-            checked={includeHidden}
-            onCheckedChange={setIncludeHidden}
-            aria-label="Include hidden items"
-          />
-        </label>
-
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <div>
-            <SizePop text={sizeText} />
-            <div className="text-xs text-muted-foreground tabular-nums">
-              {result.count} items
-            </div>
+      {/* The quiet stage: in the app this dialog floats over the gallery, so
+          the mock gets a muted backdrop + the paper float shadow instead of
+          sitting flush on the page. */}
+      <div className="rounded-3xl border bg-muted/40 p-4 sm:p-8">
+        <div className="mx-auto w-full max-w-[26rem] rounded-2xl border bg-card p-6 shadow-[var(--shadow-float)] ring-1 ring-foreground/5">
+          <div className="flex flex-col gap-1.5">
+            <p className="text-lg font-semibold">Download album</p>
+            <p className="text-sm text-muted-foreground">
+              Pick what to bundle into your copy.
+            </p>
           </div>
-          <Button type="button" onClick={onDownload}>
-            <span
-              className="mkt-icon-swap"
-              data-state={swapped ? "b" : "a"}
-              aria-hidden
-            >
-              <span className="mkt-icon" data-icon="a">
-                <Download />
-              </span>
-              <span className="mkt-icon" data-icon="b">
-                <Check />
-              </span>
+
+          <div className="mt-4 flex gap-2">
+            {CHIPS.map(({ key, label, Icon }) => {
+              const active = types === key;
+              const count = totalFor(key, includeHidden).count;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setTypes(key)}
+                  className={cn(
+                    "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-3 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
+                    active
+                      ? "border-primary bg-accent"
+                      : "border-border hover:bg-accent/50",
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "size-5",
+                      active ? "text-foreground" : "text-muted-foreground",
+                    )}
+                  />
+                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3.5">
+            <span className="text-sm text-muted-foreground">
+              Include hidden items
             </span>
-            Download
-          </Button>
+            <Switch
+              checked={includeHidden}
+              onCheckedChange={setIncludeHidden}
+              aria-label="Include hidden items"
+            />
+          </label>
+
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <div>
+              <SizePop text={sizeText} />
+              <div className="text-xs text-muted-foreground tabular-nums">
+                {result.count} items
+              </div>
+            </div>
+            <Button type="button" onClick={onDownload}>
+              <span
+                className="mkt-icon-swap"
+                data-state={swapped ? "b" : "a"}
+                aria-hidden
+              >
+                <span className="mkt-icon" data-icon="a">
+                  <Download />
+                </span>
+                <span className="mkt-icon" data-icon="b">
+                  <Check />
+                </span>
+              </span>
+              Download
+            </Button>
+          </div>
         </div>
       </div>
       <MonoCaption className="mt-4 text-center">
