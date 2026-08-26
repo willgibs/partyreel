@@ -45,10 +45,12 @@ const TILES: { id: string; col: 0 | 1 | 2; h: string; by?: string }[] = [
   { id: "wedding-golden", col: 0, h: "h-28", by: "Maya" },
   { id: "reception-table", col: 1, h: "h-36" },
   { id: "party-balloons", col: 2, h: "h-24", by: "Priya" },
-  { id: "reception-hall", col: 0, h: "h-36" },
+  { id: "wedding-petals", col: 0, h: "h-40", by: "Jay" },
   { id: "party-dj", col: 1, h: "h-36", by: "Anonymous" },
   { id: "wedding-rings", col: 2, h: "h-28", by: "Jay" },
-  { id: "wedding-petals", col: 0, h: "h-40", by: "Jay" },
+  // Column 0 ends on the venue shot on purpose: the arrival toasts stack over
+  // the bottom-left tile, and a room reads better under them than faces do.
+  { id: "reception-hall", col: 0, h: "h-36" },
   { id: "concert-confetti", col: 1, h: "h-32" },
   { id: "festival-crowd", col: 2, h: "h-24" },
   { id: "wedding-toast", col: 2, h: "h-28", by: "Maya" },

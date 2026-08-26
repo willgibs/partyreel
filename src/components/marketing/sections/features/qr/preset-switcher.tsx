@@ -63,10 +63,10 @@ export function PresetSwitcher() {
       heading={
         <>
           {/* R4 / review B22: the auto-break landed mid-phrase ("One / rule").
-              The break is explicit from sm up; below sm the line wraps on its
-              own anyway and a forced two-line split would only crowd it. */}
+              Explicit at every width — on a phone the second sentence still
+              wraps, but it wraps INSIDE itself instead of orphaning "One". */}
           Four presets.
-          <br className="hidden sm:block" /> One rule: it has to scan.
+          <br /> One rule: it has to scan.
         </>
       }
       subhead="Every preset keeps dark modules on a white background, always. The brand color only ever tints the corner markers, so a styled code still reads first try."
@@ -86,11 +86,17 @@ export function PresetSwitcher() {
           <div className="mx-auto w-fit">
             <div className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5">
               <div className="w-fit rounded-xl bg-white p-4">
+                {/* The rendered SVG carries width/height attributes, so the
+                    box below is what actually sizes it on a phone: at 300px
+                    flat the plate overflowed a 375px viewport. `size` stays
+                    the DOWNLOAD resolution (the imperative handle re-renders
+                    at it), the CSS is the on-screen fit. */}
                 <StyledQr
                   ref={qrRef}
                   value={QR_VALUE}
                   size={300}
                   style={preset.options}
+                  className="w-[min(300px,68vw)] [&>svg]:h-auto [&>svg]:w-full"
                 />
               </div>
             </div>
@@ -132,11 +138,12 @@ export function PresetSwitcher() {
                         : "border-border hover:border-foreground/25",
                     )}
                   >
-                    <span className="rounded-md bg-white p-1.5">
+                    <span className="w-full rounded-md bg-white p-1.5">
                       <StyledQr
                         value={SWATCH_VALUE}
                         size={128}
                         style={p.options}
+                        className="mx-auto w-full max-w-32 [&>svg]:h-auto [&>svg]:w-full"
                       />
                     </span>
                     <span className="text-xs font-medium">{p.label}</span>
