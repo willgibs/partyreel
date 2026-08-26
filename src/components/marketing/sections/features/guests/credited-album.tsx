@@ -25,7 +25,9 @@ export function CreditedAlbum() {
 
   return (
     <SectionShell>
+      {/* R4 / review B14 family: both columns start on the same line. */}
       <MediaSplit
+        className="lg:items-start"
         mediaSide="end"
         media={
           <Reveal
@@ -45,9 +47,13 @@ export function CreditedAlbum() {
                 />
               </div>
               {/* The real attribution pill's shape: a floating capsule, bare
-                  display name over the "1 of N" position counter. */}
-              <div className="absolute inset-x-0 bottom-4 flex justify-center">
-                <div className="flex flex-col items-center gap-0.5 rounded-full bg-black/55 px-3.5 py-1.5 text-center backdrop-blur-sm">
+                  display name over the "1 of N" position counter.
+                  R4 / review B12: it used to float bottom-CENTRE, over the
+                  busiest part of the frame and against the convention every
+                  other chip on the site follows. Corner-anchored bottom-left,
+                  like the wall chips above it. */}
+              <div className="absolute bottom-3 left-3">
+                <div className="flex flex-col gap-0.5 rounded-2xl bg-black/55 px-3 py-1.5 backdrop-blur-sm">
                   <span className="text-[11px] leading-4 font-medium text-white/90">
                     Maya
                   </span>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -30,21 +30,37 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 
 const LAND_EVERY_MS = 420;
 
-/** Masonry tiles (three CSS columns, varied heights) in landing order; `by` is
- *  the attribution chip some shots carry (the credited-album truth made
- *  visible: display names, and "Anonymous" where the host allows it). */
-const TILES: { id: string; h: string; by?: string }[] = [
-  { id: "wedding-golden", h: "h-28", by: "Maya" },
-  { id: "reception-table", h: "h-36" },
-  { id: "party-balloons", h: "h-24", by: "Priya" },
-  { id: "concert-confetti", h: "h-32" },
-  { id: "wedding-rings", h: "h-24", by: "Jay" },
-  { id: "reception-hall", h: "h-36" },
-  { id: "party-dj", h: "h-28", by: "Anonymous" },
-  { id: "wedding-toast", h: "h-28", by: "Maya" },
-  { id: "festival-crowd", h: "h-32" },
-  { id: "wedding-petals", h: "h-40", by: "Jay" },
+/** Masonry tiles in LANDING order; `col` is the column each one settles into and
+ *  `by` is the attribution chip some shots carry (the credited-album truth made
+ *  visible: display names, and "Anonymous" where the host allows it).
+ *
+ *  R4 / review B6 — the columns are EXPLICIT now. CSS `columns-3` balanced these
+ *  into a 4/4/2 split that left column three stopping ~200px above the frame
+ *  floor: a black hole inside a browser frame. Hand-assigned buckets let the
+ *  three runs finish level (416px of tile per column, ±6px of gap) AND let the
+ *  landing order walk left-to-right across the columns instead of filling one
+ *  column at a time, which reads much more like a room actually feeding it.
+ *  Keep the per-column height sums matched if you re-cast a tile. */
+const TILES: { id: string; col: 0 | 1 | 2; h: string; by?: string }[] = [
+  { id: "wedding-golden", col: 0, h: "h-28", by: "Maya" },
+  { id: "reception-table", col: 1, h: "h-36" },
+  { id: "party-balloons", col: 2, h: "h-24", by: "Priya" },
+  { id: "wedding-petals", col: 0, h: "h-40", by: "Jay" },
+  { id: "party-dj", col: 1, h: "h-36", by: "Anonymous" },
+  { id: "wedding-rings", col: 2, h: "h-28", by: "Jay" },
+  // Column 0 ends on the venue shot on purpose: the arrival toasts stack over
+  // the bottom-left tile, and a room reads better under them than faces do.
+  { id: "reception-hall", col: 0, h: "h-36" },
+  { id: "concert-confetti", col: 1, h: "h-32" },
+  { id: "festival-crowd", col: 2, h: "h-24" },
+  { id: "wedding-toast", col: 2, h: "h-28", by: "Maya" },
 ];
+
+/** The buckets, resolved once at module scope; each tile keeps its LANDING
+ *  index so the fill clock stays a single global sequence. */
+const COLUMNS = [0, 1, 2].map((col) =>
+  TILES.map((tile, i) => ({ ...tile, i })).filter((tile) => tile.col === col),
+);
 
 /** Arrival toasts, keyed to how many tiles have landed when they pop. */
 const TOASTS: { at: number; text: string }[] = [
@@ -84,27 +100,20 @@ export function ArrivalsHero() {
     <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
       <Container>
         <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-          <Link
-            {...cut(0)}
-            href="/features"
-            className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-foreground"
-          >
-            Features
-          </Link>
-          <Eyebrow {...cut(1)}>{page.navLabel}</Eyebrow>
+          <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
           <h1
-            {...cut(2)}
+            {...cut(1)}
             className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
           >
             {page.h1}
           </h1>
           <p
-            {...cut(3)}
+            {...cut(2)}
             className="max-w-2xl text-lg text-pretty text-muted-foreground"
           >
             {page.heroSub}
           </p>
-          <div {...cut(4)} className="mt-2 flex flex-col gap-3 sm:flex-row">
+          <div {...cut(3)} className="mt-2 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
             </Button>
@@ -123,46 +132,50 @@ export function ArrivalsHero() {
         <div ref={stageRef} className="mx-auto mt-12 max-w-3xl sm:mt-16">
           <BrowserFrame label="partyreel.com/a/maya-and-jay">
             <div className="relative">
-              <div className="columns-3 gap-1.5">
-                {TILES.map((tile, i) => {
-                  const m = marketingImage(tile.id);
-                  const on = i < landed;
-                  return (
-                    <div
-                      key={tile.id}
-                      data-mkt-fly
-                      data-on={on ? "true" : undefined}
-                      className={`relative mb-1.5 ${tile.h} w-full overflow-hidden rounded-[4px]`}
-                      style={
-                        {
-                          // Arrive from just below, no cross-stage flight: the
-                          // shots land INTO the album, calm on purpose.
-                          "--i": 0,
-                          "--fly-x": "0px",
-                          "--fly-y": "26px",
-                        } as CSSProperties
-                      }
-                    >
-                      <Image
-                        src={m.src}
-                        alt=""
-                        fill
-                        sizes="(min-width: 640px) 232px, 33vw"
-                        className="object-cover"
-                      />
-                      {tile.by && (
-                        <span
-                          data-mkt-toast
+              <div className="flex gap-1.5">
+                {COLUMNS.map((column, col) => (
+                  <div key={col} className="flex flex-1 flex-col gap-1.5">
+                    {column.map((tile) => {
+                      const m = marketingImage(tile.id);
+                      const on = tile.i < landed;
+                      return (
+                        <div
+                          key={tile.id}
+                          data-mkt-fly
                           data-on={on ? "true" : undefined}
-                          className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] leading-4 font-medium text-white backdrop-blur-sm"
-                          style={{ transitionDelay: on ? "260ms" : "0ms" }}
+                          className={`relative ${tile.h} w-full overflow-hidden rounded-[4px]`}
+                          style={
+                            {
+                              // Arrive from just below, no cross-stage flight:
+                              // the shots land INTO the album, calm on purpose.
+                              "--i": 0,
+                              "--fly-x": "0px",
+                              "--fly-y": "26px",
+                            } as CSSProperties
+                          }
                         >
-                          {tile.by}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+                          <Image
+                            src={m.src}
+                            alt=""
+                            fill
+                            sizes="(min-width: 640px) 232px, 33vw"
+                            className="object-cover"
+                          />
+                          {tile.by && (
+                            <span
+                              data-mkt-toast
+                              data-on={on ? "true" : undefined}
+                              className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] leading-4 font-medium text-white backdrop-blur-sm"
+                              style={{ transitionDelay: on ? "260ms" : "0ms" }}
+                            >
+                              {tile.by}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
 
               {/* Arrival toasts: the room, adding. The ratified [data-mkt-toast]
@@ -202,7 +215,9 @@ export function ArrivalsHero() {
                 setLanded(0);
                 setRunId((n) => n + 1);
               }}
-              className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-95"
+              // Press feedback idiom: 0.97-0.99 with an explicit property (the
+              // old 0.95 sat outside the house band and read like a bounce).
+              className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-[0.97] motion-reduce:active:scale-100"
             >
               <RotateCcw className="size-3.5" />
               Replay

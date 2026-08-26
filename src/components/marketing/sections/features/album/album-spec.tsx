@@ -42,10 +42,13 @@ export function WhatLandsSection() {
       heading="What lands in your album."
       subhead="The fine print, without the squinting: who gets credited, what fits, and what your guests never have to do."
     >
+      {/* R4 body choreography: --i continues after the SectionShell header's
+          eyebrow/heading/subhead slots (0-2) so header and body read as one
+          move rather than two entrances racing each other. */}
       <Reveal
         data-mkt-reveal
         className="mx-auto mt-10 max-w-3xl"
-        style={{ "--i": 0 } as CSSProperties}
+        style={{ "--i": 3 } as CSSProperties}
       >
         <dl className="divide-y rounded-2xl border bg-card">
           <SpecRow term="Attribution">
@@ -53,9 +56,13 @@ export function WhatLandsSection() {
             shot they add. Where you allow anonymous uploads, those show as
             &ldquo;Anonymous&rdquo; in the album.
           </SpecRow>
+          {/* R4 / review B26: "on every plan" read as if VIDEO were free too.
+              The ceiling really is universal, the video KIND is not, so the
+              qualifier names both paid plans in place. */}
           <SpecRow term="Per-file ceiling">
-            Up to {formatBytes(MAX_UPLOAD_BYTES)} per photo or video, on every
-            plan. Size is the only gate; there is no duration cap on video.
+            Up to {formatBytes(MAX_UPLOAD_BYTES)} per photo or video (video
+            uploads on Pro and Event Pass). Size is the only gate; there is no
+            duration cap on video.
           </SpecRow>
           <SpecRow term="Your own cap">
             Prefer a tighter rein for one event? Set a per-upload limit from
@@ -96,7 +103,7 @@ export function KeepingSection() {
         <div
           data-mkt-reveal
           className="flex flex-col gap-1.5 rounded-xl border bg-card p-5"
-          style={{ "--i": 0 } as CSSProperties}
+          style={{ "--i": 3 } as CSSProperties}
         >
           <h3 className="font-heading text-lg sm:text-xl">No expiry date</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">
@@ -107,7 +114,7 @@ export function KeepingSection() {
         <div
           data-mkt-reveal
           className="flex flex-col gap-1.5 rounded-xl border bg-card p-5"
-          style={{ "--i": 1 } as CSSProperties}
+          style={{ "--i": 4 } as CSSProperties}
         >
           <h3 className="font-heading text-lg sm:text-xl">
             A 30-day safety net

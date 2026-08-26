@@ -60,7 +60,11 @@ export function OneLink() {
 
   return (
     <SectionShell>
-      <MediaSplit media={<LightboxMock />}>
+      {/* R4 / review B14: the copy ran ~200px shorter than the lightbox and sat
+          vertically centred, leaving a dead bottom-right quadrant. Same top
+          line for both columns, plus a third proof line under the Save control
+          the mock is showing. */}
+      <MediaSplit className="lg:items-start" media={<LightboxMock />}>
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>One link</Eyebrow>
           <h2
@@ -78,7 +82,11 @@ export function OneLink() {
             Media first, on a clean, dark canvas: tap any shot to fill the
             screen, swipe to the next, and save the ones you love as you go.
           </p>
-          <div {...rise(4)}>
+          <p {...rise(4)} className="text-pretty text-muted-foreground">
+            Save hands back the file that was uploaded, at the resolution it
+            arrived at. There is no screen-sized copy anywhere in the album.
+          </p>
+          <div {...rise(5)}>
             <LearnMoreLink href="/features/qr">
               Where the link begins
             </LearnMoreLink>

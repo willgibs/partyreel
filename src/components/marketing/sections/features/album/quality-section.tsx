@@ -1,4 +1,6 @@
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import type { CSSProperties } from "react";
+
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { StatBand } from "@/components/marketing/system/stat-band";
 import { GIGABYTE } from "@/lib/constants/tiers";
@@ -54,13 +56,33 @@ export function QualitySection() {
             { value: ACCEPTED_MIME.length, label: "file formats accepted" },
           ]}
         />
-        <MonoCaption className="mt-10 text-center">
-          {PHOTO_FORMATS} + {VIDEO_FORMATS}
-        </MonoCaption>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm text-pretty text-muted-foreground">
-          Photos on every plan, straight off the phone (HEIC included). Video
-          uploads come with the paid plans, up to the same ceiling.
-        </p>
+        {/* R4 body choreography: the formats block used to pop in statically
+            under an animated header, so it joins the header's rise with --i
+            continuing after the eyebrow/heading/subhead slots (0-2). The
+            StatBand above owns its own in-view counter and stays out of it. */}
+        <Reveal>
+          {/* R4 / review B29: one run of dot-separated names with a "+" in the
+              middle parsed as "AVIF + MP4". The two kinds get their own labeled
+              rows, so the divider is structural rather than punctuation. */}
+          <dl
+            data-mkt-reveal
+            className="mx-auto mt-10 grid w-fit grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2 font-mono text-xs tracking-wide"
+            style={{ "--i": 3 } as CSSProperties}
+          >
+            <dt className="text-muted-foreground/60 uppercase">Photos</dt>
+            <dd className="text-muted-foreground">{PHOTO_FORMATS}</dd>
+            <dt className="text-muted-foreground/60 uppercase">Video</dt>
+            <dd className="text-muted-foreground">{VIDEO_FORMATS}</dd>
+          </dl>
+          <p
+            data-mkt-reveal
+            className="mx-auto mt-4 max-w-xl text-center text-sm text-pretty text-muted-foreground"
+            style={{ "--i": 4 } as CSSProperties}
+          >
+            Photos on every plan, straight off the phone (HEIC included). Video
+            uploads come with Pro and Event Pass, up to the same ceiling.
+          </p>
+        </Reveal>
       </div>
     </SectionShell>
   );

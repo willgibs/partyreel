@@ -1,8 +1,13 @@
 import { Camera, Images, ImageUp } from "lucide-react";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
+import { marketingImage } from "@/lib/constants/marketing-media";
+
+/** The three shots mid-upload in card 03 (the third is the in-flight one). */
+const UPLOADING_IDS = ["wedding-toast", "party-balloons", "reception-table"];
 
 /**
  * /features/qr dark close, part 1: THE ENTRY FLOW. Three mini frames of what a
@@ -13,9 +18,12 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  */
 
 export function EntryFlow() {
-  const cut = (i: number) => ({
-    "data-mkt-cut": "",
-    style: { "--i": i } as CSSProperties,
+  // R4 body choreography: the cards used to CUT (the cinema register) under a
+  // header that RISES, so one section spoke in two motion voices. They join the
+  // header's rise with --i continuing after its eyebrow/heading/subhead (0-2).
+  const rise = (i: number) => ({
+    "data-mkt-reveal": "",
+    style: { "--i": i + 3 } as CSSProperties,
   });
 
   return (
@@ -25,8 +33,12 @@ export function EntryFlow() {
       subhead="Camera roll to album in under a minute, and nothing to install on the way."
     >
       <Reveal className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3">
-        {/* 01 · The welcome. */}
-        <div {...cut(0)} className="flex flex-col gap-3">
+        {/* 01 · The welcome. R4 / review B10: this card used to stop a third of
+            the way down and leave the rest empty. It carries the modal's whole
+            resting state now — byline avatar, the default primary label ("View
+            the gallery") and the browse-out ("Just browsing") — all strings the
+            shipped entry modal actually renders. */}
+        <div {...rise(0)} className="flex flex-col gap-3">
           <StepLabel n="01" label="The welcome" />
           <div className="flex flex-1 flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -35,15 +47,24 @@ export function EntryFlow() {
             <p className="mt-1.5 font-heading text-xl leading-tight text-balance">
               Maya &amp; Jay&rsquo;s Wedding
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="grid size-5 place-items-center rounded-full bg-muted text-[9px] font-medium text-foreground">
+                M
+              </span>
               Hosted by{" "}
               <span className="font-medium text-foreground">Maya</span>
             </p>
+            <span className="mt-auto flex h-9 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground">
+              View the gallery
+            </span>
+            <span className="mt-1.5 flex h-8 items-center justify-center text-xs text-muted-foreground">
+              Just browsing
+            </span>
           </div>
         </div>
 
         {/* 02 · The promise. */}
-        <div {...cut(1)} className="flex flex-col gap-3">
+        <div {...rise(1)} className="flex flex-col gap-3">
           <StepLabel n="02" label="The promise" />
           <div className="flex flex-1 flex-col gap-3.5 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
@@ -58,24 +79,35 @@ export function EntryFlow() {
         </div>
 
         {/* 03 · The upload. */}
-        <div {...cut(2)} className="flex flex-col gap-3">
+        <div {...rise(2)} className="flex flex-col gap-3">
           <StepLabel n="03" label="The upload" />
           <div className="flex flex-1 flex-col gap-3 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <span className="flex h-9 items-center justify-center gap-1.5 rounded-md border border-dashed text-sm font-medium text-muted-foreground">
               <ImageUp className="size-4" />
               Add photos &amp; videos
             </span>
+            {/* R4 / review B10: these were three EMPTY grey rectangles under a
+                heading about uploading photos. They are the guest's actual
+                camera roll now (manifest fixtures), so the card shows shots
+                landing rather than placeholders. */}
             <div className="grid grid-cols-3 gap-1.5">
-              {[0, 1, 2].map((i) => (
+              {UPLOADING_IDS.map((id, i) => (
                 <span
-                  key={i}
+                  key={id}
                   className="relative aspect-square overflow-hidden rounded-[4px] bg-muted"
                 >
+                  <Image
+                    src={marketingImage(id).src}
+                    alt=""
+                    fill
+                    sizes="(min-width: 640px) 92px, 28vw"
+                    className={`object-cover ${i === 2 ? "opacity-60" : ""}`}
+                  />
                   {/* The in-flight shot: the thin progress strip the guest
                       uploader shows over an uploading tile. */}
                   {i === 2 && (
-                    <span className="absolute inset-x-1 bottom-1 h-1 overflow-hidden rounded-full bg-white/20">
-                      <span className="block h-full w-[70%] rounded-full bg-white/80" />
+                    <span className="absolute inset-x-1 bottom-1 h-1 overflow-hidden rounded-full bg-black/40">
+                      <span className="block h-full w-[70%] rounded-full bg-white/90" />
                     </span>
                   )}
                 </span>

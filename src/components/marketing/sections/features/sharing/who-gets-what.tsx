@@ -22,7 +22,10 @@ const ROWS: {
 }[] = [
   {
     icon: Users,
-    tint: "text-success",
+    // R4 / review B13 (icon-colour ruling): hue encodes APP STATE only — green
+    // is live/approve/success, amber is review/hide, violet is reel. "Everyone
+    // with the link" is none of those, so it reads neutral like Lock does.
+    tint: "text-muted-foreground",
     title: "Everyone with the link",
     body: "Whoever can open the album can save from it: one favorite from the lightbox or the whole zip. Guests get the originals, not compressed copies.",
   },
@@ -53,13 +56,15 @@ export function WhoGetsWhat() {
       eyebrow="Who gets what"
       heading="Access to the album is access to the originals."
     >
+      {/* R4 body choreography: --i continues after the header's two slots
+          (eyebrow + heading; this section has no subhead). */}
       <Reveal className="mx-auto mt-6 max-w-2xl divide-y">
         {ROWS.map((row, i) => (
           <div
             key={row.title}
             data-mkt-reveal
             className="flex items-start gap-4 py-7"
-            style={{ "--i": i } as CSSProperties}
+            style={{ "--i": i + 2 } as CSSProperties}
           >
             <span
               className={`flex size-10 shrink-0 items-center justify-center rounded-lg border ${row.tint}`}

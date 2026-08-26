@@ -5,10 +5,12 @@ import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
+import { GuestListCard } from "./guest-list-card";
+
 /**
- * /features/guests paper section 1: THE GUEST LIST. A calm mock of the host's
- * "Guests" section (the real feed section label) using the shipped GuestList
- * chip shape (avatar + display name in an h-8 pill) and the settings truth:
+ * /features/guests paper section 1: THE GUEST LIST. The card itself (mock +
+ * the avatar comb + the live "show on the album" switch) lives in the
+ * GuestListCard island; this section is the copy half and the settings truth:
  * only signed-in uploaders appear, anonymous uploads are never listed, and
  * showing the list ON the album is the host's own switch.
  */
@@ -22,42 +24,20 @@ export function GuestListSection() {
   });
 
   return (
-    <SectionShell>
+    // R4 / review B15: the chapter read thin — a ~180px card adrift in a ~470px
+    // white section. The card carries its governing setting now (and the comb),
+    // and the section runs one rhythm step tighter so paper reads dense and
+    // confident like the album/curation chapters.
+    <SectionShell className="py-16 sm:py-20">
       <MediaSplit
+        className="lg:items-start"
         media={
           <Reveal
-            aria-hidden
             data-mkt-reveal
             className="mx-auto w-full max-w-md"
             style={{ "--i": 0 } as CSSProperties}
           >
-            <div className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-float)]">
-              <div className="flex items-baseline justify-between">
-                {/* "Guests" is the real event-page section label. */}
-                <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                  Guests
-                </span>
-                <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                  {GUESTS.length} signed in
-                </span>
-              </div>
-              <ul className="mt-4 flex flex-wrap gap-1.5">
-                {GUESTS.map((name) => (
-                  <li
-                    key={name}
-                    className="flex h-8 items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm"
-                  >
-                    <span className="grid size-6 place-items-center rounded-full bg-muted text-[10px] font-medium">
-                      {name[0]}
-                    </span>
-                    {name}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-                Guests who uploaded anonymously are never listed.
-              </p>
-            </div>
+            <GuestListCard names={GUESTS} />
           </Reveal>
         }
       >
