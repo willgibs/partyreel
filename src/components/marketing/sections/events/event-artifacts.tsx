@@ -152,20 +152,23 @@ export function BadgeFan() {
   );
 }
 
-/* The roll's stills. Only frames that can honestly belong to a weekend away
-   with a group (the manifest has no vacation subjects) and only TWO of them:
-   the ARTIFACT leads here, and a wall of festival frames would put the page
-   right back where A9 found it. */
-const ROLL_STILLS = ["festival-crowd", "concert-confetti"];
+/* The roll, tile by tile. Only TWO stills, INTERLEAVED rather than blocked
+   together: the manifest has no vacation subjects, so the least-wrong frames
+   are festival ones, and two of them side by side would rebuild the "this is a
+   concert" read A9 came here to kill. The rest are uploads in flight (initials
+   + how far along, the phone frame's progress vocabulary) — four people adding
+   at once IS the trip pitch, where four blank plates were just a hole. */
+type RollTile =
+  | { kind: "still"; id: string }
+  | { kind: "arriving"; initials: string; percent: number };
 
-/* The uploads in flight: initials + how far along, the same progress vocabulary
-   the phone frame uses. This is what fills the roll's empty half — four people
-   adding at once IS the trip pitch, where four blank plates were just a hole. */
-const ROLL_ARRIVING: { initials: string; percent: number }[] = [
-  { initials: "AR", percent: 70 },
-  { initials: "BN", percent: 35 },
-  { initials: "CD", percent: 55 },
-  { initials: "MK", percent: 20 },
+const ROLL_TILES: RollTile[] = [
+  { kind: "still", id: "festival-crowd" },
+  { kind: "arriving", initials: "AR", percent: 70 },
+  { kind: "still", id: "concert-confetti" },
+  { kind: "arriving", initials: "BN", percent: 35 },
+  { kind: "arriving", initials: "CD", percent: 55 },
+  { kind: "arriving", initials: "MK", percent: 20 },
 ];
 
 /**
@@ -180,7 +183,7 @@ export function SharedRoll({ scale = "hero" }: { scale?: "hero" | "card" }) {
   const hero = scale === "hero";
   return (
     <BrowserFrame
-      className={cn("mx-auto", hero ? "max-w-md" : "rounded-xl p-2")}
+      className={cn("mx-auto", hero ? "max-w-lg" : "rounded-xl p-2")}
       label={hero ? <>partyreel.com/a/desert-weekend</> : undefined}
     >
       <div
@@ -205,55 +208,53 @@ export function SharedRoll({ scale = "hero" }: { scale?: "hero" | "card" }) {
       </div>
 
       <div className={cn("grid grid-cols-3", hero ? "gap-2" : "gap-1")}>
-        {ROLL_STILLS.map((id) => {
-          const still = marketingImage(id);
-          return (
+        {ROLL_TILES.map((tile) =>
+          tile.kind === "still" ? (
             <div
-              key={id}
+              key={tile.id}
               className={cn(
                 "relative aspect-square overflow-hidden",
                 hero ? "rounded-lg" : "rounded-md",
               )}
             >
               <Image
-                src={still.src}
+                src={marketingImage(tile.id).src}
                 alt=""
                 fill
-                sizes={hero ? "150px" : "70px"}
+                sizes={hero ? "170px" : "70px"}
                 className="object-cover"
               />
             </div>
-          );
-        })}
-        {ROLL_ARRIVING.map(({ initials, percent }) => (
-          <div
-            key={initials}
-            className={cn(
-              "flex aspect-square flex-col items-center justify-center bg-muted/50",
-              hero ? "gap-2 rounded-lg" : "gap-1 rounded-md",
-            )}
-          >
-            <span
+          ) : (
+            <div
+              key={tile.initials}
               className={cn(
-                "flex items-center justify-center rounded-full border bg-card font-medium text-muted-foreground",
-                hero ? "size-7 text-[10px]" : "size-4 text-[7px]",
-              )}
-            >
-              {initials}
-            </span>
-            <span
-              className={cn(
-                "relative h-1 overflow-hidden rounded-full bg-foreground/10",
-                hero ? "w-12" : "w-6",
+                "flex aspect-square flex-col items-center justify-center bg-muted/50",
+                hero ? "gap-2 rounded-lg" : "gap-1 rounded-md",
               )}
             >
               <span
-                className="absolute inset-y-0 left-0 rounded-full bg-foreground/40"
-                style={{ width: `${percent}%` }}
-              />
-            </span>
-          </div>
-        ))}
+                className={cn(
+                  "flex items-center justify-center rounded-full border bg-card font-medium text-muted-foreground",
+                  hero ? "size-7 text-[10px]" : "size-4 text-[7px]",
+                )}
+              >
+                {tile.initials}
+              </span>
+              <span
+                className={cn(
+                  "relative h-1 overflow-hidden rounded-full bg-foreground/10",
+                  hero ? "w-12" : "w-6",
+                )}
+              >
+                <span
+                  className="absolute inset-y-0 left-0 rounded-full bg-foreground/40"
+                  style={{ width: `${tile.percent}%` }}
+                />
+              </span>
+            </div>
+          ),
+        )}
       </div>
     </BrowserFrame>
   );
