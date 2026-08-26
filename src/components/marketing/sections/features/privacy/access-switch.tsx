@@ -249,7 +249,7 @@ function HintSwap({ text }: { text: string }) {
       // transition from and the line would just appear.
       void el.offsetHeight;
       el.classList.remove("is-enter-start");
-    }, readCssMs("--mkt-swap-dur", 150));
+    }, readCssMs("--mkt-swap-dur", 150, el));
     return () => clearTimeout(t);
   }, [text, reduced]);
 

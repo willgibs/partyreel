@@ -71,19 +71,20 @@ export default function PrivacyFeaturePage() {
               </span>
               {page.navLabel}
             </Eyebrow>
-            <h1
-              {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
-            >
+            {/* The H1 stays STATIC (no cut): the six-page family rule after
+                R4 — the hero's headline is the LCP-adjacent anchor and the
+                post-hydration re-cut read as a flash. Secondary elements
+                keep the register. */}
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
               {page.h1}
             </h1>
             <p
-              {...cut(2)}
+              {...cut(1)}
               className="max-w-2xl text-lg text-pretty text-muted-foreground"
             >
               {page.heroSub}
             </p>
-            <div {...cut(3)} className="mt-2 flex flex-col gap-3 sm:flex-row">
+            <div {...cut(2)} className="mt-2 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>

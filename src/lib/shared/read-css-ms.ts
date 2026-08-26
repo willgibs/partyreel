@@ -18,9 +18,17 @@ export function parseCssMs(raw: string, fallbackMs: number): number {
 
 // Read a CSS custom property as a millisecond number. Used by the JS-timed motion (the review beat
 // + the FLIP) so the JS waits match the CSS exactly, even when the tuner overrides the var live.
-export function readCssMs(varName: string, fallbackMs: number): number {
+// Pass `from` when the var is NOT declared at the root: the marketing `--mkt-*` clocks live on
+// `[data-mkt]` (never :root, the containment contract), so reading them off documentElement
+// silently returns the fallback — hand this any element inside the [data-mkt] scope instead
+// (R4, flagged by the M2 track).
+export function readCssMs(
+  varName: string,
+  fallbackMs: number,
+  from?: Element | null,
+): number {
   if (typeof window === "undefined") return fallbackMs;
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(
+  const raw = getComputedStyle(from ?? document.documentElement).getPropertyValue(
     varName,
   );
   return parseCssMs(raw, fallbackMs);

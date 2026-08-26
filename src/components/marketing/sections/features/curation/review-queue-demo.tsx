@@ -76,10 +76,13 @@ const CHECK_SETTLE_MS = 120;
  * the JS wait. readCssMs, never parseInt: Lightning CSS canonicalizes 500ms
  * to `.5s` and parseInt would collapse the beat to 0.
  */
-function checkBeatMs() {
+function checkBeatMs(from: Element | null) {
+  // `from` = any element inside the [data-mkt] scope: the --mkt-* clocks are
+  // declared there (never :root), so a documentElement read would silently
+  // return the fallbacks (R4 readCssMs fix).
   return (
-    readCssMs("--mkt-check-dur", 500) +
-    readCssMs("--mkt-check-path-delay", 80) +
+    readCssMs("--mkt-check-dur", 500, from) +
+    readCssMs("--mkt-check-path-delay", 80, from) +
     CHECK_SETTLE_MS
   );
 }
@@ -121,6 +124,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const pending = timers.current;
     return () => pending.forEach(clearTimeout);
@@ -156,7 +160,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
       });
       return;
     }
-    const beat = checkBeatMs();
+    const beat = checkBeatMs(rootRef.current);
     ids.forEach((id, i) => {
       timers.current.push(
         setTimeout(
@@ -194,7 +198,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
     pendingIds.length > 0 && selected.size === pendingIds.length;
 
   return (
-    <div role="group" aria-label="Interactive review queue demo">
+    <div ref={rootRef} role="group" aria-label="Interactive review queue demo">
       <BrowserFrame label={"Maya & Jay’s Wedding · host view"}>
         <div className="px-1 pb-1">
           {/* The REVIEW header row: the FeedSectionHeader shape, quoted. */}
