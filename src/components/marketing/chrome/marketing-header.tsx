@@ -36,7 +36,10 @@ export function MarketingHeader({
         <Link href="/" aria-label="Partyreel home" className="shrink-0">
           <Logo />
         </Link>
-        <MarketingNavDesktop className="hidden md:flex" skin={skin} />
+        {/* Desktop panels render in-flow (no skin prop needed since the
+            NavigationMenu flip); the mobile sheet still portals and threads
+            `skin` for THE PORTAL RULE. */}
+        <MarketingNavDesktop className="hidden md:flex" />
         <div className="flex items-center gap-2">
           <Button
             asChild

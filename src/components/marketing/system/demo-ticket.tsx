@@ -9,7 +9,7 @@ import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 
 /**
- * THE DEMO TICKET (Will's checkpoint ask): the hero points at the REAL demo
+ * THE DEMO TICKET (Will's checkpoint ask; PROMOTED to system/ in the expansion round: the hero AND the Features mega-panel both render it): points at the REAL demo
  * event with both a scannable QR and a clickable route, folded into one small
  * glass artifact so the CTA stack stays calm. Desktop: scan with a phone OR
  * tap; mobile: the QR reads as the product's core symbol (scannability is a
@@ -27,12 +27,23 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  */
 const QR_SIZE = 92;
 
-export function HeroDemoTicket() {
+export function DemoTicket({
+  layout = "row",
+}: {
+  /** "row" = the hero shape (QR beside copy); "column" = the narrow-pane shape
+   *  (QR above copy — the Features mega-panel's featured slot). */
+  layout?: "row" | "column";
+}) {
   if (!DEMO_EVENT_URL) return null;
+  const column = layout === "column";
   return (
     <Link
       href={DEMO_EVENT_URL}
-      className="inline-flex items-center gap-4 rounded-xl border border-white/15 bg-black/45 p-2.5 pr-6 backdrop-blur-sm transition-[border-color,transform] duration-150 hover:border-white/35 active:scale-[0.99]"
+      className={
+        column
+          ? "flex flex-col items-center gap-3 rounded-xl border border-white/15 bg-black/45 p-4 text-center backdrop-blur-sm transition-[border-color,transform] duration-150 hover:border-white/35 active:scale-[0.99]"
+          : "inline-flex items-center gap-4 rounded-xl border border-white/15 bg-black/45 p-2.5 pr-6 backdrop-blur-sm transition-[border-color,transform] duration-150 hover:border-white/35 active:scale-[0.99]"
+      }
     >
       <span className="rounded-lg bg-white p-1.5">
         <StyledQr
@@ -42,7 +53,11 @@ export function HeroDemoTicket() {
           className="size-[92px]"
         />
       </span>
-      <span className="flex flex-col gap-1.5">
+      <span
+        className={
+          column ? "flex flex-col items-center gap-1" : "flex flex-col gap-1.5"
+        }
+      >
         <span className="text-sm font-medium text-white sm:text-[15px]">
           {DEMO_CTA_LABEL}
         </span>

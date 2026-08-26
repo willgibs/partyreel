@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Menu } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetClose,
@@ -22,24 +26,21 @@ import {
   isNavGroup,
   MARKETING_CTA,
   PRIMARY_NAV,
-  type NavGroup,
 } from "@/lib/constants/marketing-nav";
 import { cn } from "@/lib/utils";
+
+import { MegaPanel } from "./mega-panel";
 
 /** Which marketing skin the chrome sits in (the group layouts thread it down). */
 export type MarketingSkin = "cinema" | "paper";
 
-// ★ THE PORTAL RULE (Track B theming): radix dropdown/sheet content PORTALS to
-// <body> and so ESCAPES the skin wrapper — without help, a dark page would pop
-// a session-themed menu (and, since the 2026-08-26 forced-light ruling, a dark
-// session would pop a DARK sheet over a light paper page). Portaled content
-// (DropdownMenuContent, SheetContent) must therefore receive the skin's OWN
-// theme class — "dark" for cinema, "surface-paper" for paper — AND the
-// data-mkt attribute (the marketing tokens are scoped to [data-mkt], which the
-// portal also escapes). Both ui primitives spread className + extra props onto
-// the portaled element, so this threads through. surface-paper is a no-op in
-// light sessions (it aliases the :root values) — the class simply makes the
-// paper chrome session-independent, matching the pages it serves.
+// ★ THE PORTAL RULE (Track B theming), now MOBILE-ONLY: the Sheet still portals
+// to <body> and so escapes the skin wrapper — it must receive the skin's own
+// theme class ("dark" | "surface-paper") AND data-mkt. The DESKTOP panels no
+// longer need any of this: NavigationMenu renders its viewport IN-FLOW inside
+// the skin wrapper (verified against the primitive's source in the expansion
+// round), so tokens + skins apply naturally. surface-paper is a no-op in light
+// sessions (it aliases the :root values).
 const portalSkinProps = (skin: MarketingSkin) =>
   ({
     "data-mkt": "",
@@ -50,70 +51,67 @@ const portalSkinProps = (skin: MarketingSkin) =>
 const linkClass =
   "text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground";
 
-/** Desktop primary nav: flat items render as links, `children` items as dropdowns. */
-export function MarketingNavDesktop({
-  className,
-  skin = "paper",
-}: {
-  className?: string;
-  skin?: MarketingSkin;
-}) {
-  return (
-    <nav className={cn("items-center gap-6", className)}>
-      {PRIMARY_NAV.map((item) =>
-        isNavGroup(item) ? (
-          <NavGroupMenu key={item.label} group={item} skin={skin} />
-        ) : (
-          <Link key={item.label} href={item.href} className={linkClass}>
-            {item.label}
-          </Link>
-        ),
-      )}
-    </nav>
-  );
-}
+// The house trigger look layered OVER the generated nova pill style (cn's
+// tailwind-merge lets the later utilities win): quiet text links, no pill
+// fills, ink on open. The built-in chevron rotation comes with the primitive.
+const quietTrigger = cn(
+  linkClass,
+  "h-auto rounded-md bg-transparent px-2 py-1.5 font-normal",
+  "hover:bg-transparent hover:text-foreground focus:bg-transparent",
+  "focus-visible:ring-2 focus-visible:ring-ring/40",
+  "data-open:bg-transparent data-open:text-foreground data-popup-open:bg-transparent data-popup-open:hover:bg-transparent",
+);
 
-function NavGroupMenu({
-  group,
-  skin,
-}: {
-  group: NavGroup;
-  skin: MarketingSkin;
-}) {
-  const portal = portalSkinProps(skin);
+/** Desktop primary nav (the expansion mega-menu): flat items render as links,
+ *  `children` items as rich PANELS (MegaPanel) on a shared centered viewport.
+ *  The Root is CONTROLLED so a route change closes the panel (covers featured
+ *  cards whose roots are plain Links and can't dispatch the primitive's
+ *  close-on-select). */
+export function MarketingNavDesktop({ className }: { className?: string }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState("");
+  // Close on route change via the render-time derived-state reset (the
+  // React-sanctioned pattern; an effect-body setState trips the
+  // set-state-in-effect lint, the header-shell lesson).
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    if (open) setOpen("");
+  }
+
   return (
-    <DropdownMenu>
-      {/* `group` class lets the chevron react to the trigger's open state. */}
-      <DropdownMenuTrigger
-        className={cn(
-          linkClass,
-          "group inline-flex items-center gap-1 data-[state=open]:text-foreground",
+    <NavigationMenu
+      value={open}
+      onValueChange={setOpen}
+      className={cn("max-w-none", className)}
+    >
+      <NavigationMenuList className="gap-2">
+        {PRIMARY_NAV.map((item) =>
+          isNavGroup(item) ? (
+            <NavigationMenuItem key={item.label} value={item.label}>
+              <NavigationMenuTrigger className={quietTrigger}>
+                {item.label}
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <MegaPanel group={item} />
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          ) : (
+            <NavigationMenuItem key={item.label}>
+              <NavigationMenuLink
+                asChild
+                className={cn(
+                  linkClass,
+                  "rounded-md bg-transparent px-2 py-1.5 hover:bg-transparent focus:bg-transparent",
+                )}
+              >
+                <Link href={item.href}>{item.label}</Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          ),
         )}
-      >
-        {group.label}
-        <ChevronDown className="size-3.5 transition-transform duration-150 group-data-[state=open]:rotate-180" />
-      </DropdownMenuTrigger>
-      {/* data-mkt-dropdown = the menu-dropdown recipe CLOCKS (marketing.css
-          chapter 2): 250ms open / 150ms close, 0.97 pre-scale / 0.99 closing
-          scale — marketing-scoped, so ui/dropdown-menu.tsx stays untouched. */}
-      <DropdownMenuContent
-        align="start"
-        data-mkt-dropdown=""
-        {...portal}
-        className={cn("min-w-44", portal.className)}
-      >
-        {group.href && (
-          <DropdownMenuItem asChild>
-            <Link href={group.href}>All {group.label.toLowerCase()}</Link>
-          </DropdownMenuItem>
-        )}
-        {group.children.map((child) => (
-          <DropdownMenuItem key={child.href} asChild>
-            <Link href={child.href}>{child.label}</Link>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 }
 

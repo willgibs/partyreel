@@ -1,0 +1,167 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { DemoTicket } from "@/components/marketing/system/demo-ticket";
+import { NavigationMenuLink } from "@/components/ui/navigation-menu";
+import { marketingImage } from "@/lib/constants/marketing-media";
+import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
+import { DEMO_EVENT_URL } from "@/lib/demo";
+import { cn } from "@/lib/utils";
+
+/**
+ * THE MEGA-PANEL (expansion round): the rich content of one nav panel — an
+ * item column (or two, for the seven-row Features panel) + a FEATURED pane +
+ * an optional utility row. Lives in chrome/ (single consumer: the desktop
+ * NavigationMenu in marketing-nav.tsx). Renders IN-FLOW inside the skin
+ * wrapper (NavigationMenu never portals), so tokens and the dark/paper skins
+ * apply with no portal props.
+ *
+ * The FEATURED registry is COMPONENT-SIDE on purpose: marketing-nav.ts stays
+ * pure serializable data (its byte-pins toEqual-compare items, and the footer/
+ * sitemap consumers must never drag client/env deps). Resources' article card
+ * is plain literals for the same reason: lib/content/help.ts reads node:fs and
+ * must never be imported client-side (a node-world test pins the slug exists).
+ *
+ * Every interactive element is a NavigationMenuLink (close-on-select + the
+ * roving focus contract) EXCEPT the DemoTicket, whose root is already a Link
+ * to the demo event; the controlled root's pathname-close covers in-app
+ * navigations, and the demo is a full-page exit anyway.
+ */
+export function MegaPanel({ group }: { group: NavGroup }) {
+  const featured = FEATURED[group.label];
+  const twoCol = group.children.length > 4;
+  return (
+    <div
+      className={cn(
+        "grid w-[min(680px,calc(100vw-2rem))] gap-2 p-2",
+        featured && "md:grid-cols-[1fr_272px]",
+        featured && twoCol && "md:w-[min(760px,calc(100vw-2rem))]",
+      )}
+    >
+      <div className="flex min-w-0 flex-col gap-1">
+        {group.href && (
+          <NavigationMenuLink
+            asChild
+            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
+          >
+            <Link href={group.href}>
+              All {group.label.toLowerCase()}
+              <LearnChevron />
+            </Link>
+          </NavigationMenuLink>
+        )}
+        <ul
+          className={cn(
+            "flex list-none flex-col gap-0.5",
+            twoCol && "grid grid-cols-1 sm:grid-cols-2",
+          )}
+        >
+          {group.children.map((child) => (
+            <li key={child.href}>
+              <ItemLink link={child} />
+            </li>
+          ))}
+        </ul>
+        {group.label === "Features" && (
+          <NavigationMenuLink
+            asChild
+            className="mt-1 flex-row items-center gap-1.5 border-t px-3 pt-2.5 pb-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <Link href="/how-it-works" className="mkt-learn">
+              New here? See how it works
+              <LearnChevron />
+            </Link>
+          </NavigationMenuLink>
+        )}
+      </div>
+      {featured}
+    </div>
+  );
+}
+
+function ItemLink({ link }: { link: NavLink }) {
+  return (
+    <NavigationMenuLink
+      asChild
+      className="flex-col items-start gap-0.5 px-3 py-2"
+    >
+      <Link href={link.href}>
+        <span className="text-sm font-medium text-foreground">
+          {link.label}
+        </span>
+        {link.description && (
+          <span className="text-xs leading-snug text-muted-foreground">
+            {link.description}
+          </span>
+        )}
+      </Link>
+    </NavigationMenuLink>
+  );
+}
+
+/** The featured right panes, keyed by group label (see the header comment). */
+const FEATURED: Record<string, ReactNode> = {
+  Features: DEMO_EVENT_URL ? (
+    <div className="flex flex-col justify-center">
+      <DemoTicket layout="column" />
+    </div>
+  ) : null,
+  Events: (
+    <FeaturedCard
+      href="/events"
+      title="Every kind of event"
+      blurb="Weddings to conferences: see how hosts run Partyreel."
+      imageId="wedding-toast"
+    />
+  ),
+  Resources: (
+    <FeaturedCard
+      href="/help/how-partyreel-works"
+      title="How Partyreel works"
+      blurb="The whole loop in four steps, from the help center."
+      imageId="reception-table"
+    />
+  ),
+};
+
+function FeaturedCard({
+  href,
+  title,
+  blurb,
+  imageId,
+}: {
+  href: string;
+  title: string;
+  blurb: string;
+  imageId: string;
+}) {
+  const image = marketingImage(imageId);
+  return (
+    <NavigationMenuLink
+      asChild
+      className="flex-col items-stretch gap-0 overflow-hidden rounded-lg border bg-card p-0"
+    >
+      <Link href={href}>
+        <span className="relative block aspect-[16/9] w-full overflow-hidden">
+          <Image
+            src={image.src}
+            alt=""
+            fill
+            sizes="272px"
+            className="object-cover"
+          />
+        </span>
+        <span className="flex flex-col gap-1 p-3">
+          <span className="text-sm font-medium text-foreground">{title}</span>
+          <span className="text-xs leading-snug text-muted-foreground">
+            {blurb}
+          </span>
+        </span>
+      </Link>
+    </NavigationMenuLink>
+  );
+}

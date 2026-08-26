@@ -13,7 +13,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { HeroDemoTicket } from "@/components/marketing/sections/home/hero-demo-ticket";
+import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  *    on a plain interval. Reduced motion: static thesis ("event"), static
  *    wall, no video.
  *  - The DEMO TICKET under the CTAs points at the real demo event (QR + tap
- *    route in one glass artifact — hero-demo-ticket.tsx).
+ *    route in one glass artifact — system/demo-ticket.tsx, shared with the nav's Features panel).
  */
 
 const SampleReelOverlay = lazy(
@@ -277,7 +277,7 @@ export function CinemaHero() {
           {/* The demo ticket: QR + route to the real demo event (Will's
               checkpoint ask), replacing the text-only demo link here. */}
           <div className="mt-5">
-            <HeroDemoTicket />
+            <DemoTicket />
           </div>
         </Container>
       </div>

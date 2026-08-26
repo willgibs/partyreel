@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * The header's scroll-state shell (the transparent-over-hero enhancement the
@@ -76,13 +71,17 @@ export function HeaderShell({
   const stuck = ioReady ? !inView : mountScrolled;
   return (
     <>
-      <div ref={sentinelRef} aria-hidden className="h-px w-full -mb-px" />
+      <div ref={sentinelRef} aria-hidden className="-mb-px h-px w-full" />
       <header
         data-stuck={stuck ? "true" : undefined}
         className={`sticky top-0 z-40 border-b transition-[background-color,border-color] duration-200 ${
           stuck
             ? "border-border bg-background/80 backdrop-blur"
-            : "border-transparent bg-transparent"
+            : // The has-[] arm forces the glass while a nav panel is open (a
+              // big solid panel under a fully transparent bar reads
+              // disconnected over the hero wall). Matches any open descendant
+              // (the mobile SheetTrigger too — harmless, the sheet overlays).
+              "border-transparent bg-transparent has-[[data-state=open]]:border-border has-[[data-state=open]]:bg-background/80 has-[[data-state=open]]:backdrop-blur"
         }`}
       >
         {children}
