@@ -23,7 +23,11 @@ export function LiveQr({
     <Link href={url} aria-label="Try the live demo" className={className}>
       <div className="flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-transform duration-150 active:scale-[0.99]">
         <div className="rounded-lg bg-white p-2">
-          <StyledQr value={url} size={160} style={resolveQrPreset("bold")} />
+          {/* "classic" (mono) per the 2026-08-25 achromatic ruling: the bold
+              preset's coral finder corners were the one legacy brand hue left
+              on a cinema surface. In-app events keep their chosen presets;
+              this is only the marketing demo QR. */}
+          <StyledQr value={url} size={160} style={resolveQrPreset("classic")} />
         </div>
         <span className="text-sm font-medium text-foreground">{caption}</span>
       </div>
