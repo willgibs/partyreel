@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { FeatureFaq } from "@/components/marketing/sections/features/album/feature-faq";
+import { GoDeeper } from "@/components/marketing/sections/features/album/go-deeper";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { AttributionHero } from "@/components/marketing/sections/features/guests/attribution-hero";
 import { CreditedAlbum } from "@/components/marketing/sections/features/guests/credited-album";
@@ -14,9 +15,9 @@ import { featurePage } from "@/lib/constants/feature-pages";
 
 // GUESTS & PROFILES page (expansion Phase B, T1): the people page, warm. Arc:
 // the attribution wall + the credited album (dark) -> the guest list + opt-in
-// profiles (ONE paper chapter) -> related, FAQ, CTA back in the dark. No
-// GoDeeper on purpose: no help article covers profiles yet (the track report
-// proposes one).
+// profiles (ONE paper chapter) -> related, FAQ, CTA back in the dark. The
+// GoDeeper arrived with its article in R5 (profiles-guest-lists-and-following
+// closed the one gap in the ladder).
 const page = featurePage("guests");
 
 export const metadata: Metadata = {
@@ -57,7 +58,16 @@ export default function GuestsFeaturePage() {
         <ProfilesSection />
       </PaperChapter>
       <RelatedFeatures slugs={["album", "qr", "privacy"]} />
-      <FeatureFaq items={FAQ_ITEMS} />
+      <FeatureFaq items={FAQ_ITEMS}>
+        <GoDeeper
+          links={[
+            {
+              href: "/help/profiles-guest-lists-and-following",
+              label: "Profiles, guest lists, and following",
+            },
+          ]}
+        />
+      </FeatureFaq>
       <CtaBand
         className="border-t"
         heading="Fill the room, then keep it."
