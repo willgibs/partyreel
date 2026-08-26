@@ -72,7 +72,7 @@ function MockPrimary({
 /* ── S1 · HOST: create the event + pick a QR preset ── */
 export function CreateFrame() {
   return (
-    <FrameCard className="mx-auto w-full max-w-sm">
+    <FrameCard>
       <p className="text-xs font-medium">Event name</p>
       <div className="mt-1.5 flex h-9 items-center rounded-md border bg-background px-3 text-sm">
         {EVENT_NAME}
@@ -111,7 +111,7 @@ export function CreateFrame() {
 /* ── S2 · GUEST: the entry sheet + the verify beat ── */
 export function GuestEntryFrame() {
   return (
-    <FrameCard className="mx-auto w-full max-w-[17.5rem]">
+    <FrameCard>
       <p className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
         You&rsquo;re invited to
       </p>
@@ -155,10 +155,7 @@ const ALBUM_TILE_IDS = [
 
 export function LiveAlbumFrame() {
   return (
-    <BrowserFrame
-      className="mx-auto w-full max-w-md"
-      label="partyreel.com/a/maya-and-jay"
-    >
+    <BrowserFrame label="partyreel.com/a/maya-and-jay">
       <div className="grid grid-cols-4 gap-1.5">
         {ALBUM_TILE_IDS.map((id) => {
           const m = marketingImage(id);
@@ -196,7 +193,7 @@ const REVIEW_TILE_IDS = ["wedding-rings", "reception-hall", "festival-lights"];
 
 export function ReviewFrame() {
   return (
-    <FrameCard className="mx-auto w-full max-w-sm">
+    <FrameCard>
       {/* The feed section header, quoted: amber REVIEW eyebrow + count pill +
           the Approve all cluster (the app's one needs-action tone). */}
       <div className="flex min-h-7 items-center justify-between gap-3">
@@ -248,7 +245,7 @@ const EXPORT_CHIPS = [
 
 export function ExportFrame() {
   return (
-    <FrameCard className="mx-auto w-full max-w-sm">
+    <FrameCard>
       <p className="text-sm font-medium">Download album</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {EXPORT_CHIPS.map(({ label, Icon, active }) => (
@@ -286,7 +283,7 @@ export function ReelPayoffFrame() {
   const shown = STYLE_CATALOG.slice(0, 4);
   const rest = STYLE_CATALOG.length - shown.length;
   return (
-    <FrameCard className="mx-auto w-full max-w-sm">
+    <FrameCard>
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-1.5">
           <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">

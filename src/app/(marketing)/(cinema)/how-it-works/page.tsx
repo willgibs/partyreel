@@ -5,7 +5,6 @@ import type { CSSProperties } from "react";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { PricingPointer } from "@/components/marketing/sections/how-it-works/pricing-pointer";
 import { ReelPayoff } from "@/components/marketing/sections/how-it-works/reel-payoff";
-import { SideChip } from "@/components/marketing/sections/how-it-works/side-chip";
 import { Spine } from "@/components/marketing/sections/how-it-works/spine";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
@@ -62,12 +61,11 @@ export default function HowItWorksPage() {
               What you set up, what your guests see, and how the whole event
               comes back as one album and a highlight reel.
             </p>
-            {/* The legend: the spine below interleaves both sides. */}
-            <div {...cut(3)} className="flex items-center gap-2">
-              <SideChip>For hosts</SideChip>
-              <SideChip>For guests</SideChip>
-            </div>
-            <div {...cut(4)} className="mt-2 flex flex-col gap-3 sm:flex-row">
+            {/* The two-sided legend USED to sit here, and two inert chips
+                directly above the buttons read as a pair of dead controls in
+                the primary-action slot. It now lives in the walkthrough, next
+                to the chips it explains; the hero keeps only real CTAs. */}
+            <div {...cut(3)} className="mt-2 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
