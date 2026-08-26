@@ -12,16 +12,17 @@ import { LiveDemo } from "./live-demo";
 import { PricingTeaser } from "./pricing-teaser";
 import { Privacy } from "./privacy";
 import { ReelTeaser } from "./reel-teaser";
-import { HOME_SECTION_IDS, type HomeSectionId } from "./section-ids";
+import { type HomeSectionId } from "./section-ids";
 import { TrustStrip } from "./trust-strip";
 
 /**
- * The home's ordered section manifest (the page maps it). The ORDER lives in
+ * The home's id → component pairing (the page renders section-ids' surface
+ * CHUNKS and looks components up here). The ORDER and the chapter map live in
  * section-ids.ts (Vitest-pinned); this Record only pairs ids with components,
  * and its HomeSectionId key type makes a missing or extra section a type
  * error, so the pin and the render can never drift apart.
  */
-const SECTION_COMPONENTS: Record<HomeSectionId, ComponentType> = {
+export const HOME_SECTION_COMPONENTS: Record<HomeSectionId, ComponentType> = {
   "cinema-hero": CinemaHero,
   "trust-strip": TrustStrip,
   decomposition: Decomposition,
@@ -29,15 +30,10 @@ const SECTION_COMPONENTS: Record<HomeSectionId, ComponentType> = {
   "live-demo": LiveDemo,
   album: Album,
   curation: Curation,
-  "reel-teaser": ReelTeaser,
   privacy: Privacy,
+  "reel-teaser": ReelTeaser,
   "events-teaser": EventsTeaser,
   "pricing-teaser": PricingTeaser,
   faq: Faq,
   "cinema-close": CinemaClose,
 };
-
-export const HOME_SECTIONS: ReadonlyArray<{
-  id: HomeSectionId;
-  Component: ComponentType;
-}> = HOME_SECTION_IDS.map((id) => ({ id, Component: SECTION_COMPONENTS[id] }));

@@ -5,13 +5,19 @@ import {
   SITE_THESIS,
 } from "@/lib/constants/marketing-voice";
 
-import { HOME_SECTION_IDS } from "./section-ids";
+import {
+  HOME_SECTION_IDS,
+  HOME_SECTION_SURFACE,
+  homeSurfaceChunks,
+} from "./section-ids";
 
 /**
  * The ratified home order (Will, 2026-08-25: album/curation split, pricing
- * after the reel). index.ts renders exactly this array (its Record type pins
- * the pairing), so this byte-pin makes any reshuffle a deliberate act. The
- * test imports section-ids (pure) rather than index because the section tree
+ * after the reel; 2026-08-26: privacy up beside curation so the paper chapter
+ * is contiguous) + the ratified CHAPTER MAP (the mixed-theme ruling). index.ts
+ * renders exactly this array (its Record type pins the pairing), so these
+ * byte-pins make any reshuffle or re-chaptering a deliberate act. The test
+ * imports section-ids (pure) rather than index because the section tree
  * transitively imports lib/demo.ts -> lib/env.ts, which throws in the test
  * runner without NEXT_PUBLIC_* vars.
  */
@@ -25,8 +31,8 @@ describe("the home section order", () => {
       "live-demo",
       "album",
       "curation",
-      "reel-teaser",
       "privacy",
+      "reel-teaser",
       "events-teaser",
       "pricing-teaser",
       "faq",
@@ -49,5 +55,42 @@ describe("the home section order", () => {
     for (const fact of numeric) {
       expect(fact).toMatch(/^\D*\d+\D*$/);
     }
+  });
+});
+
+describe("the home chapter map", () => {
+  it("pins the ratified surface per section (5 dark, 3 paper, 5 dark)", () => {
+    expect(HOME_SECTION_SURFACE).toEqual({
+      "cinema-hero": "cinema",
+      "trust-strip": "cinema",
+      decomposition: "cinema",
+      "film-strip": "cinema",
+      "live-demo": "cinema",
+      album: "paper",
+      curation: "paper",
+      privacy: "paper",
+      "reel-teaser": "cinema",
+      "events-teaser": "cinema",
+      "pricing-teaser": "cinema",
+      faq: "cinema",
+      "cinema-close": "cinema",
+    });
+  });
+
+  it("keeps the cinema bookends (the page opens and closes in the cinema)", () => {
+    expect(HOME_SECTION_SURFACE["cinema-hero"]).toBe("cinema");
+    expect(HOME_SECTION_SURFACE["cinema-close"]).toBe("cinema");
+  });
+
+  it("chunking preserves the pinned order byte-for-byte", () => {
+    expect(homeSurfaceChunks().flatMap((chunk) => chunk.ids)).toEqual([
+      ...HOME_SECTION_IDS,
+    ]);
+  });
+
+  it("forms exactly one paper chapter (chapter cuts, not stripes)", () => {
+    const chunks = homeSurfaceChunks();
+    expect(chunks.filter((chunk) => chunk.surface === "paper")).toHaveLength(1);
+    expect(chunks).toHaveLength(3);
   });
 });
