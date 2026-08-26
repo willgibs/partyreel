@@ -13,7 +13,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import { HeroDemoTicket } from "@/components/marketing/sections/home/hero-demo-ticket";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -50,10 +50,12 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  *    reel-card poster is eager too (small). No element carries the full
  *    preload/fetchPriority trio anymore — with a text-or-tile LCP there is no
  *    single hero image to prioritize above the others.
- *  - The kinetic H1 keeps the byte-pinned SITE_THESIS with the ruled
- *    WIDTH-ANIMATED Roll (the sentence closes up around each word), now on a
- *    plain interval (the word no longer syncs to footage cuts; the wall has
- *    none). Reduced motion: static thesis ("event"), static wall, no video.
+ *  - The kinetic H1 keeps the byte-pinned SITE_THESIS with the SPLICE word
+ *    mechanic (round 2: instant swap + one fast width glide — see SpliceWord)
+ *    on a plain interval. Reduced motion: static thesis ("event"), static
+ *    wall, no video.
+ *  - The DEMO TICKET under the CTAs points at the real demo event (QR + tap
+ *    route in one glass artifact — hero-demo-ticket.tsx).
  */
 
 const SampleReelOverlay = lazy(
@@ -80,7 +82,7 @@ const [THESIS_BEFORE, THESIS_AFTER] = SITE_THESIS.split("event") as [
 ];
 
 const KINETIC_WORDS = ["wedding", "birthday", "festival", "send-off"] as const;
-const WORD_INTERVAL_MS = 2800;
+const WORD_INTERVAL_MS = 3200;
 
 const HERO_EYEBROW = "One QR. No app. No account.";
 
@@ -228,7 +230,8 @@ export function CinemaHero() {
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
               <MonoCaption className="text-white/80">The reel</MonoCaption>
               <MonoCaption className="text-white/60">
-                0:{String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
+                0:
+                {String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
               </MonoCaption>
             </div>
           </div>
@@ -249,7 +252,7 @@ export function CinemaHero() {
               {reduced ? (
                 <span>event</span>
               ) : (
-                <RollWord word={KINETIC_WORDS[wordIndex]} />
+                <SpliceWord word={KINETIC_WORDS[wordIndex]} />
               )}
             </span>
             {THESIS_AFTER}
@@ -271,8 +274,10 @@ export function CinemaHero() {
               Watch a sample reel
             </Button>
           </div>
-          <div className="mt-4">
-            <DemoCtaLink className="text-white/60 hover:text-white" />
+          {/* The demo ticket: QR + route to the real demo event (Will's
+              checkpoint ask), replacing the text-only demo link here. */}
+          <div className="mt-5">
+            <HeroDemoTicket />
           </div>
         </Container>
       </div>
@@ -286,38 +291,24 @@ export function CinemaHero() {
   );
 }
 
-/** Roll (the ruled word animation): a vertical swap, outgoing up and fading
- *  beneath the incoming word sliding up from below, both clipped to the line
- *  box. The box WIDTH is measured per word and transitioned alongside the
- *  roll: the old widest-word reservation left "a huge inline gap" on short
- *  words (Will, 2026-08-25); the sentence must close up around each word,
- *  smoothly. Ported from the hero-substrate lab round. */
-function RollWord({ word }: { word: string }) {
-  const [prev, setPrev] = useState<string | null>(null);
-  const [entered, setEntered] = useState(true);
+/** SPLICE (round 2; the Roll was "still not very clean" — Will's checkpoint
+ *  review; three simultaneous motions read as a busy little machine at 8xl).
+ *  The house film-cut grammar instead: the word swaps INSTANTLY, a projector
+ *  splice — no travel, no crossfade — and the box width glides once, fast, so
+ *  the sentence closing up around the new word is the ONLY visible motion.
+ *  The natural clip during the glide reads as intent: a longer word wipes in
+ *  as its box opens; a shorter word's box closes up behind the comma. The
+ *  measured-width machinery survives from the Roll: the sizer holds the box
+ *  pre-measure, then the explicit width owns layout; ResizeObserver re-syncs
+ *  on late webfont swaps / breakpoint font-size changes / zoom (a stale
+ *  measure clips the H1 indefinitely — the c1 lesson); ceil() guards
+ *  sub-pixel clipping; the sizer is inline-block because ResizeObserver never
+ *  fires for inline boxes. FALLBACK if this version also fails Will's eye:
+ *  render "event" static and retire KINETIC_WORDS (pre-agreed). */
+function SpliceWord({ word }: { word: string }) {
   const [width, setWidth] = useState<number | null>(null);
-  const wordRef = useRef(word);
   const sizerRef = useRef<HTMLSpanElement | null>(null);
 
-  useEffect(() => {
-    if (wordRef.current === word) return;
-    setPrev(wordRef.current);
-    wordRef.current = word;
-    setEntered(false);
-    const raf = requestAnimationFrame(() => setEntered(true));
-    const done = setTimeout(() => setPrev(null), 340);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(done);
-    };
-  }, [word]);
-
-  // Keep the explicit width synced to the sizer's RENDERED size: measures on
-  // the word swap AND re-syncs whenever the sizer's own box changes (a late
-  // webfont swap, a breakpoint's font-size change, zoom) via ResizeObserver.
-  // A stale measure would leave the H1 clipped indefinitely (caught in the c1
-  // verification pass). ceil() guards sub-pixel clipping; the sizer renders
-  // inline-block because ResizeObserver never fires for inline boxes.
   useLayoutEffect(() => {
     const sizer = sizerRef.current;
     if (!sizer) return;
@@ -328,18 +319,14 @@ function RollWord({ word }: { word: string }) {
     return () => ro.disconnect();
   }, [word]);
 
-  const move =
-    "transform 260ms var(--ease-emphasis), opacity 260ms var(--ease-emphasis)";
   return (
     <span
       className="relative inline-block overflow-hidden align-baseline"
       style={{
         width: width === null ? undefined : width,
-        transition: "width 260ms var(--ease-emphasis)",
+        transition: "width 180ms var(--ease-in-out-strong)",
       }}
     >
-      {/* The sizer holds the box pre-measure (first paint) and is the
-          measuring target after; the explicit width owns layout from then on. */}
       <span
         aria-hidden
         ref={sizerRef}
@@ -347,29 +334,7 @@ function RollWord({ word }: { word: string }) {
       >
         {word}
       </span>
-      {prev !== null && (
-        <span
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            transition: move,
-            transform: entered ? "translateY(-100%)" : "translateY(0)",
-            opacity: entered ? 0 : 1,
-          }}
-        >
-          {prev}
-        </span>
-      )}
-      <span
-        className="absolute inset-0"
-        style={{
-          transition: move,
-          transform: entered ? "translateY(0)" : "translateY(100%)",
-          opacity: entered ? 1 : 0,
-        }}
-      >
-        {word}
-      </span>
+      <span className="absolute inset-0 whitespace-nowrap">{word}</span>
     </span>
   );
 }
