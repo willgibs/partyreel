@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
+import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
   FOOTER_NAV,
   isNavGroup,
@@ -74,16 +75,52 @@ describe("marketing nav config", () => {
     expect(column?.links.map((link) => link.href)).toEqual(expected);
   });
 
-  it("Reel is the second primary item and the footer Product column carries the ruled shape", () => {
-    // The IA nav spec (T2.5 Call 1): Features · Reel · Events · Pricing · Resources.
-    expect(PRIMARY_NAV[1]).toEqual({ label: "Reel", href: "/reel" });
+  it("the expansion IA: Features panel leads with the six pages + the nested reel", () => {
+    // The 2026-08-26 expansion ruling (supersedes the T2.5 Call-1 nav spec):
+    // Features · Events · Pricing · Resources, with the reel NESTED inside the
+    // Features panel (top-level Reel retired) and /reel's URL unchanged.
+    const expected = [
+      ...FEATURE_PAGES.map((page) => `/features/${page.slug}`),
+      "/reel",
+    ];
+    const features = PRIMARY_NAV[0];
+    expect(isNavGroup(features) && features.label).toBe("Features");
+    if (isNavGroup(features)) {
+      expect(features.href).toBe("/features");
+      expect(features.children.map((child) => child.href)).toEqual(expected);
+      // Panel labels + one-liners mirror the registry (no copy drift).
+      for (const page of FEATURE_PAGES) {
+        const child = features.children.find(
+          (c) => c.href === `/features/${page.slug}`,
+        );
+        expect(child?.label).toBe(page.navLabel);
+        expect(child?.description).toBe(page.navDescription);
+      }
+      // Every panel row carries a description (the mega-panel contract).
+      for (const child of features.children) {
+        expect(child.description?.trim()).not.toBe("");
+      }
+    }
+    expect(PRIMARY_NAV.map((item) => item.label)).toEqual([
+      "Features",
+      "Events",
+      "Pricing",
+      "Resources",
+    ]);
+  });
+
+  it("the footer Product + Features columns carry the ruled expansion shape", () => {
     const product = FOOTER_NAV.find((col) => col.title === "Product");
     expect(product?.links.map((link) => link.href)).toEqual([
-      "/features",
-      "/#how-it-works",
+      "/how-it-works",
       "/reel",
       "/pricing",
       "/#faq",
+    ]);
+    const featuresCol = FOOTER_NAV.find((col) => col.title === "Features");
+    expect(featuresCol?.links.map((link) => link.href)).toEqual([
+      "/features",
+      ...FEATURE_PAGES.map((page) => `/features/${page.slug}`),
     ]);
   });
 
