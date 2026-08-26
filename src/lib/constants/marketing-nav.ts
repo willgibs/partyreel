@@ -116,6 +116,11 @@ export const PRIMARY_NAV: NavItem[] = [
         description: "Notes on hosting and sharing.",
       },
       {
+        label: "Press & brand",
+        href: "/press",
+        description: "Logos, facts, and who to ask.",
+      },
+      {
         label: "Contact",
         href: "/contact",
         description: "A real person answers.",
@@ -168,6 +173,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "Help center", href: "/help" },
       { label: "Blog", href: "/blog" },
+      { label: "Press & brand", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
   },

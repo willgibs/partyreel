@@ -136,8 +136,9 @@ describe("marketing nav config", () => {
     ]);
   });
 
-  it("Resources surfaces Help + Blog + Contact in both the header group and footer column", () => {
-    const expected = ["/help", "/blog", "/contact"];
+  it("Resources surfaces Help + Blog + Press + Contact in both the header group and footer column", () => {
+    // Press joined at R5 (the media-kit page; ruled into Resources).
+    const expected = ["/help", "/blog", "/press", "/contact"];
     const group = PRIMARY_NAV.find(
       (item) => isNavGroup(item) && item.label === "Resources",
     );
