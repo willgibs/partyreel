@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { Conveyor } from "@/components/marketing/system/conveyor";
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
@@ -66,6 +67,13 @@ export function FilmStrip() {
             </p>
           </div>
         ))}
+      </Reveal>
+      {/* The ladder pointer (expansion round): the teaser routes into the full
+          two-sided walkthrough page. */}
+      <Reveal className="mt-8 flex justify-center">
+        <LearnMoreLink href="/how-it-works">
+          The full walkthrough, both sides
+        </LearnMoreLink>
       </Reveal>
     </SectionShell>
   );

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
@@ -72,6 +73,12 @@ export function Privacy() {
             </div>
           </div>
         ))}
+      </Reveal>
+      {/* The ladder pointer (expansion round): the full trust story. */}
+      <Reveal className="mt-10 flex justify-center">
+        <LearnMoreLink href="/features/privacy">
+          The full privacy story
+        </LearnMoreLink>
       </Reveal>
     </SectionShell>
   );

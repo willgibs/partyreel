@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
-import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -56,8 +56,13 @@ export function Album() {
           >
             {BODY}
           </p>
+          {/* The ladder pointer (expansion round): this section's depth lives
+              at /features/album now; the demo link stays in the hero ticket +
+              the CTA bands. */}
           <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <DemoCtaLink />
+            <LearnMoreLink href="/features/album">
+              Inside the live album
+            </LearnMoreLink>
           </div>
         </Reveal>
       </MediaSplit>

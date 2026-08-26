@@ -1,6 +1,7 @@
 import { CopyCheck, EyeOff, ListChecks, type LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
+import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
@@ -75,6 +76,12 @@ export function Curation() {
             </p>
           </div>
         ))}
+      </Reveal>
+      {/* The ladder pointer (expansion round): the full curation story. */}
+      <Reveal className="mt-10 flex justify-center">
+        <LearnMoreLink href="/features/curation">
+          How curation works
+        </LearnMoreLink>
       </Reveal>
     </SectionShell>
   );

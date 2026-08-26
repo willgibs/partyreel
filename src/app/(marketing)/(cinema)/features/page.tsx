@@ -1,74 +1,52 @@
-import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 
-import { FeatureSpotlight } from "@/components/marketing/feature-spotlight";
-import { QrFrame } from "@/components/marketing/frames";
-import {
-  GuestPhoneVisual,
-  HostGalleryVisual,
-  ShareAlbumVisual,
-} from "@/components/marketing/sections/features/feature-visuals";
-import { FeaturesReelBand } from "@/components/marketing/sections/features/reel-band";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
-import { type FeatureGroup, FEATURE_GROUPS } from "@/lib/constants/features";
-import { FEATURE_PRESENTATION } from "@/lib/constants/features-layout";
+import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
-import { DEMO_EVENT_URL } from "@/lib/demo";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `Everything Partyreel does: no-app guest uploads, a styled QR code, a live album, host curation with bulk approve, EXIF stripping, a 30-day recovery bin, download-all zip export, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
+  description: `Everything Partyreel does: the live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
   alternates: { canonical: "/features" },
 };
 
-const group = (id: string): FeatureGroup =>
-  FEATURE_GROUPS.find((g) => g.id === id)!;
-
-const SPOTLIGHT_FRAME: Record<"phone" | "gallery" | "album", ReactNode> = {
-  phone: <GuestPhoneVisual />,
-  gallery: <HostGalleryVisual />,
-  album: <ShareAlbumVisual />,
-};
-
-function Spotlight({ id }: { id: string }) {
-  const presentation = FEATURE_PRESENTATION[id];
-  if (presentation.kind !== "spotlight") return null;
-  return (
-    <FeatureSpotlight
-      group={group(id)}
-      media={SPOTLIGHT_FRAME[presentation.frame]}
-      mediaSide={presentation.mediaSide}
-    />
-  );
-}
-
 /**
- * Hero — split copy + the LIVE demo QR (the ONE real scannable QR on the site;
- * QrFrame falls back to its decorative block when no demo is configured).
- * Hand-rolled like the /reel hero because the route H1 sits ABOVE the section
- * scale (the ruled hierarchy: 4xl / 5xl / 6xl) on the cinema cut register.
+ * THE FEATURES HUB AS A DIRECTORY (the expansion round; the events-hub
+ * precedent): land, see the seven doors, pick the question that matters to
+ * you. The old flat spotlight depth REDISTRIBUTED into the dedicated feature
+ * pages; this page's job is orientation + routing (the progressive-disclosure
+ * ladder's middle rung). Tile visuals get their bespoke mini-identities in the
+ * Phase-C polish pass once the pages themselves land.
  */
-function FeaturesHero() {
+export default function FeaturesPage() {
   const cut = (i: number) => ({
     "data-mkt-cut": "",
     style: { "--i": i } as CSSProperties,
   });
 
   return (
-    <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
-      <Container>
-        <Reveal className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
-          <div className="flex max-w-2xl flex-col items-start gap-5 lg:col-span-7">
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Features", href: "/features" },
+        ]}
+      />
+
+      <section className="overflow-hidden pt-14 pb-4 sm:pt-20 sm:pb-6">
+        <Container>
+          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
             <Eyebrow {...cut(0)}>Features</Eyebrow>
             <h1
               {...cut(1)}
@@ -85,139 +63,70 @@ function FeaturesHero() {
             </p>
             <div
               {...cut(3)}
-              className="mt-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6"
+              className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
             >
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="h-11 px-6 text-base">
-                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="h-11 px-6 text-base"
-                >
-                  <Link href="/pricing">See pricing</Link>
-                </Button>
-              </div>
+              <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+              </Button>
               <DemoCtaLink />
             </div>
-          </div>
-          <div className="flex justify-center lg:col-span-5 lg:justify-end">
-            <QrFrame caption="Scan to join" liveQrUrl={DEMO_EVENT_URL} />
-          </div>
-        </Reveal>
-      </Container>
-    </section>
-  );
-}
+          </Reveal>
+        </Container>
+      </section>
 
-/** privacy → the bespoke trust panel: one bordered card, mono shield motif. */
-function PrivacyPanel() {
-  const g = group("privacy");
-  return (
-    <SectionShell>
-      {/* bg-card (not /40): this panel lives in the paper chapter now — the
-          paper-card recipe, matching the pricing cards. */}
-      <Reveal className="mx-auto max-w-5xl rounded-3xl border bg-card p-8 ring-1 ring-foreground/5 sm:p-12">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span
-            data-mkt-reveal
-            className="flex size-12 items-center justify-center rounded-2xl border text-muted-foreground"
-            style={{ "--i": 0 } as CSSProperties}
-          >
-            <ShieldCheck className="size-6" strokeWidth={1.5} />
-          </span>
-          <Eyebrow data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
-            {g.eyebrow}
-          </Eyebrow>
-          <h2
-            data-mkt-reveal
-            className="font-heading text-3xl text-balance sm:text-4xl"
-            style={{ "--i": 2 } as CSSProperties}
-          >
-            {g.heading}
-          </h2>
-          <p
-            data-mkt-reveal
-            className="max-w-xl text-pretty text-muted-foreground"
-            style={{ "--i": 3 } as CSSProperties}
-          >
-            {g.subhead}
-          </p>
-        </div>
-        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {g.features.map(({ icon: Icon, title, longBody }, i) => (
-            <div
-              key={title}
+      {/* The directory: the six feature pages + the reel, each one buyer
+          question. Whole tiles are mkt-learn links (the paper-card interaction
+          recipe on the cinema field). */}
+      <SectionShell>
+        <Reveal className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ...FEATURE_PAGES.map((page) => ({
+              href: `/features/${page.slug}`,
+              title: page.navLabel,
+              blurb: page.heroSub,
+            })),
+            {
+              href: "/reel",
+              title: "The highlight reel",
+              blurb:
+                "The whole event, cut into a cinematic minute you can restyle instantly and take home.",
+            },
+          ].map((tile, i) => (
+            <Link
+              key={tile.href}
+              href={tile.href}
               data-mkt-reveal
-              className="flex flex-col gap-2"
-              style={{ "--i": 4 + i } as CSSProperties}
+              className="mkt-learn group flex flex-col gap-2 rounded-xl border bg-card/40 p-6 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
+              style={{ "--i": i } as CSSProperties}
             >
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
-                  <Icon className="size-4" strokeWidth={1.5} />
-                </span>
-                <h3 className="font-heading text-base sm:text-lg">{title}</h3>
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {longBody}
-              </p>
-            </div>
+              <span className="flex items-center gap-1.5 font-heading text-lg sm:text-xl">
+                {tile.title}
+                <LearnChevron />
+              </span>
+              <span className="text-sm leading-relaxed text-muted-foreground">
+                {tile.blurb}
+              </span>
+            </Link>
           ))}
-        </div>
-      </Reveal>
-    </SectionShell>
-  );
-}
+        </Reveal>
+      </SectionShell>
 
-/** storage → the keepsake trio (open layout, no card chrome, quiet). */
-function StorageTrio() {
-  const g = group("storage");
-  return (
-    <SectionShell eyebrow={g.eyebrow} heading={g.heading} subhead={g.subhead}>
-      <Reveal className="mx-auto mt-12 grid max-w-4xl gap-x-8 gap-y-10 sm:grid-cols-3">
-        {g.features.map(({ icon: Icon, title, longBody }, i) => (
-          <div
-            key={title}
-            data-mkt-reveal
-            className="flex flex-col items-center gap-3 text-center"
-            style={{ "--i": i } as CSSProperties}
-          >
-            <span className="flex size-10 items-center justify-center rounded-lg border text-muted-foreground">
-              <Icon className="size-5" strokeWidth={1.5} />
-            </span>
-            <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
-            <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-              {longBody}
-            </p>
-          </div>
-        ))}
-      </Reveal>
-    </SectionShell>
-  );
-}
+      {/* The two-sided teaser: the one concept the directory can't carry in
+          tiles — the product has a guest side and a host side — routing to the
+          walkthrough that interleaves them. */}
+      <SectionShell
+        width="narrow"
+        eyebrow="How it works"
+        heading="Two sides, one album."
+        subhead="Guests scan and shoot. You curate and keep. The walkthrough shows both sides, start to finish."
+      >
+        <Reveal className="mt-8 flex justify-center">
+          <Button asChild size="lg" variant="outline" className="h-11 px-6">
+            <Link href="/how-it-works">See how it works</Link>
+          </Button>
+        </Reveal>
+      </SectionShell>
 
-// THE TWO-SIDED STORY (the 2026-08-26 chapter ruling, features shape 2-3-3):
-// AT THE EVENT (cinema): the hero + the guests' side, phones out in the dark.
-// YOUR DESK (paper): the host's side — curation, trust, keeping — one concept
-// group on daylight (hosts moved beside privacy + storage; the old flat
-// spotlight list buried the guest/host IA the cut now makes legible).
-// THE PAYOFF (cinema): lights back down for the reel, everyone takes the
-// album home, the CTA. The reel band doubles as the color-forward re-entry,
-// so no extra media breaker is needed at the exit seam.
-export default function FeaturesPage() {
-  return (
-    <>
-      <FeaturesHero />
-      <Spotlight id="guests" />
-      <PaperChapter>
-        <Spotlight id="hosts" />
-        <PrivacyPanel />
-        <StorageTrio />
-      </PaperChapter>
-      <FeaturesReelBand />
-      <Spotlight id="share" />
       <CtaBand
         className="border-t"
         heading="Start your first event free."
