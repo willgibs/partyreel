@@ -18,7 +18,10 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Do guests need an account?",
-    a: "No sign-up. A guest just enters a display name, and an email only if you choose to ask for one.",
+    // Truth note (R4): require-accounts is FREE and DEFAULT-ON, so the email
+    // code IS the out-of-the-box path; name-only is the host's opt-out. The
+    // old line inverted that ("an email only if you choose to ask for one").
+    a: "No app and no password. Guests add their name, and by default verify their email with a one-tap code so every upload has a real person behind it. You can switch that off for casual events.",
   },
   {
     q: "What can guests upload?",
