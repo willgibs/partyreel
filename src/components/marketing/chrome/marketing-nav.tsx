@@ -30,22 +30,16 @@ import {
 import { cn } from "@/lib/utils";
 
 import { MegaPanel } from "./mega-panel";
+import { portalSkinProps, type MarketingSkin } from "./portal-skin";
 
-/** Which marketing skin the chrome sits in (the group layouts thread it down). */
-export type MarketingSkin = "cinema" | "paper";
+// Re-export so existing importers (marketing-header) keep their path.
+export type { MarketingSkin } from "./portal-skin";
 
-// ★ THE PORTAL RULE (Track B theming), now MOBILE-ONLY: the Sheet still portals
-// to <body> and so escapes the skin wrapper — it must receive the skin's own
-// theme class ("dark" | "surface-paper") AND data-mkt. The DESKTOP panels no
-// longer need any of this: NavigationMenu renders its viewport IN-FLOW inside
-// the skin wrapper (verified against the primitive's source in the expansion
-// round), so tokens + skins apply naturally. surface-paper is a no-op in light
-// sessions (it aliases the :root values).
-const portalSkinProps = (skin: MarketingSkin) =>
-  ({
-    "data-mkt": "",
-    className: skin === "cinema" ? "dark" : "surface-paper",
-  }) as const;
+// ★ THE PORTAL RULE lives in ./portal-skin.ts (shared with the help palette
+// since R6). In the nav it applies to the MOBILE Sheet only: the DESKTOP
+// panels need none of it (NavigationMenu renders its viewport IN-FLOW inside
+// the skin wrapper, verified against the primitive's source in the expansion
+// round), so tokens + skins apply naturally there.
 
 // Quick (<160ms) hover color transition per the emil-design-eng craft bar.
 const linkClass =

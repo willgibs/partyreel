@@ -21,6 +21,8 @@ import {
 } from "@/lib/content/help";
 import { formatEventDate } from "@/lib/utils";
 
+import { HelpSearchTrigger } from "../help-palette";
+
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
 }
@@ -83,13 +85,18 @@ export default async function HelpArticlePage({
       <Container className="py-12 sm:py-16">
         <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
           <div className="max-w-2xl min-w-0">
-            <Link
-              href="/help"
-              className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
-            >
-              <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
-              Help center
-            </Link>
+            {/* Top utility row: the way back + the way to search (the palette
+                is also on ⌘K, but a visible affordance beats a secret one). */}
+            <div className="flex items-center justify-between gap-4">
+              <Link
+                href="/help"
+                className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
+              >
+                <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
+                Help center
+              </Link>
+              <HelpSearchTrigger variant="compact" />
+            </div>
 
             {/* Header ladder (the 2026-08-25 type ruling): article H1 reaches
                 4xl/5xl in the heading face; the meta line goes mono (the
