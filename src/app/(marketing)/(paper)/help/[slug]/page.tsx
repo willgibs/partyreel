@@ -128,7 +128,16 @@ export default async function HelpArticlePage({
                 with tabular digits (the R6 mono ruling: mono only for
                 numerals/tabular alignment, never caption prose). */}
             <header className="mt-6">
-              <Badge variant="secondary">{category.title}</Badge>
+              {/* The badge is the way back to this category's pane on the
+                  index (the ids landed with the R6 index sheet). */}
+              <Link href={`/help#${category.slug}`} className="inline-flex">
+                <Badge
+                  variant="secondary"
+                  className="transition-colors duration-150 hover:bg-secondary/70"
+                >
+                  {category.title}
+                </Badge>
+              </Link>
               <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
                 {article.frontmatter.title}
               </h1>
