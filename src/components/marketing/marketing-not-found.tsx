@@ -81,7 +81,12 @@ const STRIP_TILES: { missing?: boolean; className?: string }[] = [
   { className: "rotate-[-2deg] translate-y-0.5" },
 ];
 
-function MissingFrameStrip() {
+/**
+ * The tilted photo-strip with one missing frame. Exported since R5: the
+ * marketing error screen reuses it with a "500" label so the two dead-end
+ * surfaces read as siblings.
+ */
+export function MissingFrameStrip({ label = "404" }: { label?: string }) {
   return (
     <div aria-hidden className="flex items-center justify-center gap-2.5">
       {STRIP_TILES.map((tile, i) => (
@@ -97,7 +102,7 @@ function MissingFrameStrip() {
         >
           {tile.missing && (
             <span className="font-mono text-[9px] tracking-wider text-muted-foreground/70">
-              404
+              {label}
             </span>
           )}
         </span>
