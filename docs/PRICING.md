@@ -31,12 +31,14 @@ mode; the live cutover is a launch task).
 | **Pro 2 TB**   | $39/mo                    | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
 | **Event Pass** | $24 one-time, ~$15/yr ren | 75 GB   | ~37k photos / ~15 hrs video   | 1 event/~1yr |
 
-- **Free** also gates features by tier: requiring an account to upload (turning off `allow_anonymous_uploads`) + password-protected albums are
-  locked on Free, and **video is Pro-only** (Phase 2 — a free event is photos-only for guests
-  AND the host; video comes with Pro + Event Pass, enforced at upload in `create_media`/
-  `create_media_as_host`, mirrored client-side by `videosAllowedForTier`). The first-event
-  experience must still shine; it sells the upgrade. **Primary upgrade triggers:** a 2nd event,
-  outgrowing event #1's storage, wanting video, or password/verified-email access controls.
+- **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
+  Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "require accounts to upload" became FREE + default-on
+  2026-06-21 — allowing anonymous uploads is the opt-in), and **video is Pro-only** (a free event is
+  photos-only for guests AND the host; enforced at upload in `create_media`/`create_media_as_host`,
+  mirrored client-side by `videosAllowedForTier`). **Reel length is tier-capped** (`MAX_REEL_SECONDS`:
+  30s Free / 60s paid, ADR-0021); reel generation itself is free for every tier (watermark on Free).
+  The first-event experience must still shine; it sells the upgrade. **Primary upgrade triggers:** a
+  2nd event, outgrowing event #1's storage, wanting video, or password/custom-slug controls.
 - **Saving events is FREE** (Phase 3, ADR-0009): any signed-in visitor can save an event to
   their dashboard. Deliberately ungated — it's the account-creation growth driver (a saved event
   is the reason a guest makes a free account), not a paid perk.
@@ -45,6 +47,16 @@ mode; the live cutover is a launch task).
 - ≈ figures assume ~4 MB/photo and ~150 MB/min 1080p video — illustrative; the in-app
   "≈ X photos / Y video" is derived from the GB.
 
+## Grandfathering (policy, ruled — not yet built)
+
+When prices ever change: a **paid subscription keeps its join-time rate for as long as the plan stays
+active**. Grandfathered plans additionally **inherit beneficial changes** (price drops, storage bumps)
+but never adverse ones. A lapse to Free **breaks** grandfathering — re-subscribing pays current
+pricing. Mechanically this means **multiple historical Stripe Price IDs per plan**: `planForPriceId`
+must map every historical Price ID to its plan (the newest = the public offer), and Price IDs stay
+out of the client-safe `tiers.ts`. The build lands with the first real price change
+([`ROADMAP.md`](ROADMAP.md) "Billing follow-ons").
+
 ## Unit economics (sanity check)
 
 R2 storage ≈ **$0.015/GB/mo, zero egress**. Full-use storage cost ≈ $1.50 (100 GB),
@@ -52,118 +64,16 @@ $7.50 (500 GB), **~$31 (2 TB)**, ~$1.13/mo (75 GB Event Pass). Healthy except th
 **Pro 2 TB at $39 is thin if fully used** — most won't fill it, but price the top tier
 assuming someone does (consider $49 or a 1 TB cap if margins matter).
 
-## Shaped `tiers.ts` (WIRED in Cut 4a)
+## `tiers.ts` — the live source (snapshot removed)
 
-This shape is now live in [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts)
-(Cut 4a) — the snapshot below is kept for reference; the file is the source of truth. The
-DB `tier_type` enum still lists `max` (retired — folded into Pro storage options); it's
-left unused, and app code coerces it with `toBillingTier()` (`max`→`pro`).
-
-```ts
-export const BILLING_TIERS = ["free", "pro", "event_pass"] as const;
-export type Tier = (typeof BILLING_TIERS)[number];
-export const DEFAULT_TIER: Tier = "free";
-
-export const GIGABYTE = 1024 ** 3;
-export const TERABYTE = 1024 ** 4;
-
-/** A purchasable plan = billing tier + storage cap + (Stripe) price. */
-export type Plan = {
-  id: string; // "free" | "pro_100" | "pro_500" | "pro_2tb" | "event_pass"
-  tier: Tier;
-  name: string;
-  storageBytes: number;
-  priceLabel: string; // display only — Stripe Prices are the billing truth
-  billing: "free" | "subscription" | "one_time";
-  stripePriceEnvKey?: string; // env var holding the Stripe Price ID
-  termDays?: number; // Event Pass only
-};
-
-export const PLANS: Plan[] = [
-  {
-    id: "free",
-    tier: "free",
-    name: "Free",
-    storageBytes: 2 * GIGABYTE,
-    priceLabel: "$0",
-    billing: "free",
-  },
-  {
-    id: "pro_100",
-    tier: "pro",
-    name: "Pro 100 GB",
-    storageBytes: 100 * GIGABYTE,
-    priceLabel: "$9/mo",
-    billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_100",
-  },
-  {
-    id: "pro_500",
-    tier: "pro",
-    name: "Pro 500 GB",
-    storageBytes: 500 * GIGABYTE,
-    priceLabel: "$19/mo",
-    billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_500",
-  },
-  {
-    id: "pro_2tb",
-    tier: "pro",
-    name: "Pro 2 TB",
-    storageBytes: 2 * TERABYTE,
-    priceLabel: "$39/mo",
-    billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB",
-  },
-  {
-    id: "event_pass",
-    tier: "event_pass",
-    name: "Event Pass",
-    storageBytes: 75 * GIGABYTE,
-    priceLabel: "$24 one-time",
-    billing: "one_time",
-    stripePriceEnvKey: "STRIPE_PRICE_EVENT_PASS",
-    termDays: 365,
-  },
-];
-
-/** Events that may exist per tier — the free→paid wall. null = unlimited. */
-export const MAX_EVENTS: Record<Tier, number | null> = {
-  free: 1,
-  pro: null,
-  event_pass: 1,
-};
-
-/** Monthly uploaded-bytes (ingress) cap — anti-abuse, unmarketed, never refunds. null = unmetered. */
-export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
-  free: 20 * GIGABYTE, // generous; only catches extreme churn
-  pro: null, // revisit — likely a high multiple of the storage cap
-  event_pass: null,
-};
-
-/** Host event-settings gated to paid tiers (locked + upgrade hint on Free). */
-export const GATED_EVENT_SETTINGS = ["allow_anonymous_uploads", "password", "custom_slug"] as const;
-export function isSettingLocked(
-  _setting: (typeof GATED_EVENT_SETTINGS)[number],
-  tier: Tier,
-) {
-  return tier === "free";
-}
-
-export function withinStorage(usedBytes: number, capBytes: number): boolean {
-  return usedBytes <= capBytes;
-}
-
-/** "≈ X photos or Y min of video" for the pricing page, from a byte cap. */
-const AVG_PHOTO_BYTES = 4 * 1024 ** 2; // ~4 MB
-const VIDEO_BYTES_PER_MIN = 150 * 1024 ** 2; // ~150 MB/min @ 1080p
-export function friendlyCapacity(bytes: number) {
-  return {
-    photos: Math.round(bytes / AVG_PHOTO_BYTES),
-    videoMinutes: Math.round(bytes / VIDEO_BYTES_PER_MIN),
-  };
-}
-```
+The shape lives in [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts) — **the file is the
+source of truth; read it, don't trust a doc copy** (an embedded snapshot here went stale and was
+removed 2026-08-27). What the file holds beyond the tables above: the `Plan` records + Stripe price
+env keys, `MAX_EVENTS`, the ingress model (`MONTHLY_INGRESS_BYTES.free = 20 GB`; paid tiers DERIVE
+`INGRESS_CAP_MULTIPLIER (3) x storage cap`, ADR-0021), `GATED_EVENT_SETTINGS` (password +
+custom_slug), `MAX_REEL_SECONDS` (30/60), and the `friendlyCapacity` display helper. The DB
+`tier_type` enum still lists `max` (retired; coerced by `toBillingTier()`), and the SQL
+`tier_limits()` fn must mirror the file (a Vitest parity test guards it).
 
 ## Stripe setup (Cut 4b)
 

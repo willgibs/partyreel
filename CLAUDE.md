@@ -11,8 +11,11 @@ Partyreel is a guest-powered event media platform. A host creates an event and s
 guests scan it and upload photos/videos from their phones with **no app install and no account** (just a
 verified email when the host requires one). The host curates; the growth loop is that every QR exposes
 Partyreel to future hosts. Marketing site + host app + guest links + the admin portal all live on **one
-domain**. The v1 build is **done and live**; the project is in **one-off-task mode** (a goal → its own
-small plan → build → verify on partyreel.com → record).
+domain**. The full product is **built and live at partyreel.com with ZERO real users** (Stripe TEST
+mode; the launch switches deliberately unspent): the project is in **pre-launch continuous elevation**
+under the active **elevation program** ([`docs/PROGRAM.md`](docs/PROGRAM.md)) — work rides the
+`launch-prep` branch, and each goal still becomes its own small plan (plan → build → verify live →
+record).
 
 **Core loop:** host creates an event → gets a QR (the single `/e/[qr_token]` link) → guests scan + upload
 (no app/account) → host curates → the link doubles as the shareable album → guests become future hosts.
@@ -26,14 +29,19 @@ Read the ONE doc whose question matches your task. Don't read everything; load d
 | Your question | Read |
 | --- | --- |
 | How do we work here? (this file) | `CLAUDE.md` — workflows, universal rules, the map |
-| What exists + its invariants + the gotchas? | the [`docs/SYSTEMS.md`](docs/SYSTEMS.md) index → the **`docs/systems/<x>.md`** deep doc (folder view: [`docs/systems/README.md`](docs/systems/README.md)) |
+| What exists + its invariants + the gotchas? | the [`docs/SYSTEMS.md`](docs/SYSTEMS.md) index → the **`docs/systems/<x>.md`** deep doc |
 | The whole-picture architecture / data flow? | [`docs/systems/architecture.md`](docs/systems/architecture.md) |
 | How do I verify live? (test-tool blind-spots) | [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md) |
-| Where are we right now? (live state, blockers) | [`docs/STATUS.md`](docs/STATUS.md) |
+| Where are we right now? (era, program position, live state, Will's queue) | [`docs/STATUS.md`](docs/STATUS.md) |
+| What program is running + its rules? (roles, gates, protocol depth, init templates) | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 | Why was a decision made? | [`docs/adr/`](docs/adr) — rationale at decision time (a later ADR or change may have superseded it; the system docs are current truth) |
 | What shipped, when? (history) | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — off the orient path; read only for history |
 | Product vision / pricing model | [`docs/PRD.md`](docs/PRD.md) · [`docs/PRICING.md`](docs/PRICING.md) |
+
+Off the orient path (open on demand, like CHANGELOG): [`docs/decisions/`](docs/decisions) (ratified
+options-docs, mostly tombstoned to git history) · [`docs/specs/`](docs/specs) (settled product specs)
+· [`docs/perf/`](docs/perf) (measured baselines).
 
 **The system docs (`docs/systems/`) are the load-bearing layer** — "what exists + don't-revert". The
 ROADMAP is **provisional** (candidate work that may change; never a spec). ADRs are **point-in-time
@@ -53,10 +61,31 @@ A goal becomes its own small plan. Defaults, not rails — use judgment:
 4. **Build** — leave WHY-comments for the next agent; reuse `src/components/ui` + `src/components/shared`; use the MCPs directly. For UI/design work, go past "correct": **proactively propose a creative DELIGHT** (the "feels like magic" bar, our differentiator) — apply the `/emil-design-eng` skill + animate-by-frequency (high-freq instant, occasional standard, rare delightful). See [`docs/systems/design-system.md`](docs/systems/design-system.md) "craft guidance stack".
 5. **Test (internal)** — Vitest for pure logic + a **rolled-back Supabase-MCP RPC contract check** for any new SQL (run RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists); run `pnpm typecheck && lint && test && build`. After any DDL run **`get_advisors`**.
 6. **Verify antagonistically — the bar is "force a break", not "prove a success"** (the most important step). **Red-team your own change**: force the error cases, the cross-tenant/escalation/abuse paths, malformed inputs, and the catastrophic-fault paths — never just the happy path; drive via curl + the Supabase/R2 MCPs (local) and the Chrome MCP (live), seed/inspect freely, break things on purpose (test data is disposable). Local FIRST, then live for the allow-list-gated flows + a final pass — the full policy + the test-tool blind-spots live in "Local dev vs live testing" below.
-7. **Commit + ship as you go (high agency) — via the ELEVATION-PROGRAM branch protocol (2026-07-02, supersedes the old push-straight-to-main rule while the program runs).** Commit early and often on your own initiative the moment gates are green — but to the RIGHT branch: **subagents/tracks commit ONLY to their own `lp/<track>` branch** (created off `launch-prep` by the orchestrator, usually in a dedicated worktree) and may push it for durability (Vercel ignores `lp/*` builds). **Only the orchestrator merges tracks into `launch-prep`** (the integration branch; its stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`), re-running the full gate at the integration point, and **only milestone merges touch `main`** (`--no-ff`, tagged, prod-verified). `main` is otherwise FROZEN except true hotfixes (fix on `main`, verify, back-merge to `launch-prep` in the same session). Subagents NEVER: check out/commit/push `main` or `launch-prep`, apply DB migrations (write the SQL file; the orchestrator applies via MCP at integration — the DB is shared prod state), deploy Workers/Lambda, mutate Vercel/Stripe/Supabase config, or hand-edit `src/lib/db/types.ts` — propose instead. Unchanged guardrails: tests green first, never `git add -A` (stage explicitly), never commit secrets, never `--no-verify` or force-push, `Co-Authored-By` trailer on every commit. After an integration push, confirm the preview deploy is READY at the intended SHA (Vercel MCP) before red-teaming.
+7. **Commit + ship as you go (high agency) — on the elevation-program branch protocol.** Commit early and often on your own initiative the moment gates are green, but to YOUR branch per the canonical Git rules below ("Universal gotchas → Git"): Agents/tracks → their own `lp/<track>`; only the Orchestrator merges `launch-prep` and runs milestone merges to `main`. After an integration push, confirm the preview deploy is READY at the intended SHA (Vercel MCP) before red-teaming.
 8. **Record (subtractively)** — update the owning `docs/systems/` doc **in place** (refine the line; don't append a dated block); move any shipping narrative to [`CHANGELOG.md`](docs/CHANGELOG.md); prune what your change made stale; log any new deferred task as a **one-liner under its ROADMAP bucket**. See "Keeping the docs healthy".
 
 **Two-phase posture — clarify hard, then execute boldly.** FRONT of a task (planning, step 3): ask lots of clarifying questions and settle the exact strategy with the human before building — high caution, low presumption on direction; nail the foundation before moving. ONCE the path is aligned (execution, steps 4-8): high agency — carry it all the way through (build → test → commit + deploy → red-team → `pnpm build` → report) without pausing for permission, and don't re-litigate a settled plan mid-flow. The bright line: direction/strategy questions belong UP FRONT; during execution, only stop if you hit a genuinely NEW decision that could branch from the agreed goal — then ask (AskUserQuestion). Bold execution is earned by a well-clarified plan, never a substitute for one: start from the right foundation, then grow from it. **High agency INCLUDES the human as a targeted instrument, not just solo work:** for the few critical-verification steps you genuinely can't drive yourself (file uploads, password/OTP entry, a logged-out flow), never skip or silently downgrade the test to stay autonomous — set it up and hand off the SMALLEST precise action (stage the data, pull the field up in Chrome, give the exact tap/email), verify the result, then resume solo. The aim is the verified outcome with minimal, well-targeted human friction — NOT autonomy as the goal itself. (Don't overcorrect into routine hand-offs either: solo by default; reach for the human only where a real boundary or a real-device need blocks the next goal.) **A second, distinct trigger to reach for the human: a test result that smells NON-human — a timing/race artifact, or a limitation of the test TOOLING itself rather than a real product bug.** Before you build instrumentation or "fix" working code to chase it, STOP and hand the human the 10-second look ("does X actually show on your screen?"); a quick human eyeball confirms reality far cheaper than more tooling. The specific test-tool blind-spots (and why a *working* feature can read as broken) live in [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md).
+
+---
+
+## Sessions & roles — Orchestrator / Agent
+
+Every top-level session is an **Agent** unless Will's first prompt designates it **the Orchestrator**
+(max ONE at a time, seated in the repo root). **Assume you are an Agent.**
+
+- **Agents** work in a worktree on their own `lp/<track>` branch. Will's app worktree-toggle lands at
+  `.claude/worktrees/<name>` and can cut from `main` — BASE_CHECK against `launch-prep` first (the
+  Agent init template in [`docs/PROGRAM.md`](docs/PROGRAM.md) opens with it); Orchestrator-spawned
+  tracks live at `../partyreel-wt/<track>`. Full build/test/push rights on their own branch; the
+  hard prohibitions are in the Git rules below. Handoff = push `lp/<track>` + a report; no live
+  Orchestrator needed.
+- **The Orchestrator** alone integrates, applies migrations, deploys, and runs milestone merges; it
+  closes every round succession-ready. Duties, seat-in, and both init templates:
+  [`docs/PROGRAM.md`](docs/PROGRAM.md).
+- A repo-root session WITHOUT the designation shares the Orchestrator's working tree: read and advise
+  freely, but make NO commits there — ask for a worktree for real work.
+- Worktree sessions inherit no out-of-repo memory BY DESIGN — the repo (this file + `docs/`) is the
+  whole context; if something an agent needs is missing from it, that's a doc bug to report.
 
 ---
 
@@ -99,7 +128,7 @@ dynamic classNames in the diff, and prefer `cn()` over `${… ? " x" : ""}` for 
 | Validation | zod (v4)                             | `^4.4.3`               |
 | Toasts     | sonner                               | `^2.0.7`               |
 | Storage    | Cloudflare R2 (`@aws-sdk/client-s3`) | `3.1056.0`             |
-| Payments   | Stripe (`stripe@22.2.0`)             | wired + live           |
+| Payments   | Stripe (`stripe@22.2.0`)             | wired, live-verified (TEST mode) |
 | Tests      | Vitest                               | `^4.1.7`               |
 
 ---
@@ -201,7 +230,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git — the elevation-program branch protocol (2026-07-02, supersedes the old "straight to `main`" rule while the program runs).** Tracks/subagents commit ONLY to their own `lp/<track>` branch; the orchestrator alone merges into `launch-prep` (the integration branch + its stable Vercel preview) and alone applies DB migrations / deploys Workers / mutates service config; `main` is FROZEN except milestone merges (`--no-ff`, tagged) and true hotfixes (fix → verify → back-merge to `launch-prep` same session). Vercel builds only `main` + `launch-prep` (an ignored-build-step skips `lp/*`), so pushing a track branch for durability is free. Unchanged: never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push. (Full protocol: the program plan; when the program ends this reverts to a deliberate post-program decision — tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
+**Git — the elevation-program branch protocol (2026-07-02; THE canonical statement — operating depth in [`docs/PROGRAM.md`](docs/PROGRAM.md)).** Agents/tracks/subagents commit ONLY to their own `lp/<track>` branch (cut from `launch-prep`, worked in a worktree) and may push it freely for durability — Vercel's ignored-build-step builds only `main` + `launch-prep`, so `lp/*` never deploys. **Only the Orchestrator**: merges into `launch-prep` (the integration branch; stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`) re-running the full gate on the merged tree, applies DB migrations (Agents write the SQL file only — the DB is shared prod state), deploys Workers, and mutates Vercel/Stripe/Supabase config; `src/lib/db/types.ts` is generated, never hand-edited — propose instead. After an integration push, confirm the preview deploy is READY at the intended SHA before red-teaming. `main` is FROZEN except milestone merges (`--no-ff`, tagged `milestone-<n>`, prod-verified at the merge SHA) and true hotfixes (fix on `main` → verify → back-merge to `launch-prep` the same session). Unchanged guardrails: tests green before any commit; never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push; `Co-Authored-By` trailer on every commit. (When the program ends this reverts to a deliberate post-program decision — the teardown checklist is in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 

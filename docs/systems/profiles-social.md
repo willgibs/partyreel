@@ -4,13 +4,6 @@
 > BELONGS HERE: the slug/handle system, `display_in_profile`/`show_guest_list`, follows/blocks + their RPCs, the guest-list surfaces, `notification_prefs`' shape. · NOT HERE: the cross-cutting advisor/grant model (→ [database-security.md](database-security.md)), auth/avatars/display names (→ [auth-accounts.md](auth-accounts.md)), why the ruled model (→ [ADR-0019](../adr/0019-social-privacy-host-controlled-guest-list.md)).
 > GROWS BY: integrate-in-place.
 
-> **Integration state (2026-07-08):** built on the elevation-program track; migration
-> `20260708120000_profiles_social_foundation.sql` is UNAPPLIED until the orchestrator integrates
-> (apply → header contract check → `get_advisors` delta → regenerate `types.ts` → delete the marked
-> typing seams). The data layer runs green pre-apply via the `isSocialSchemaMissing` runtime seam
-> (codes 42703/42P01/PGRST202/204/205 → feature-absent nulls); that seam may be kept or deleted
-> post-apply. Remove this blockquote at integration.
-
 ## What it does
 
 The ADR-0019 ruled model, verbatim-in-intent: profiles are **public by existence** (claiming a handle

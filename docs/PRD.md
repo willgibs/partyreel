@@ -1,6 +1,10 @@
-# Partyreel — Product Requirements (v1)
+# Partyreel — Product Requirements
 
-_Last meaningful update: 2026-05-29 (Phase 4 payments live; fast-follows + free-tier 6-month inactivity removal specified)._
+_Written for the v1 build (last full pass 2026-05-29); the product has since shipped WELL past this
+document — the reel, profiles+social, exports, and the marketing identity are all live. The vision,
+monetization/anti-abuse reasoning, and retention model below still hold; for what exists today trust
+[SYSTEMS.md](SYSTEMS.md) over any "v1"/"Phase N" scoping here. A full refresh is roadmapped
+([ROADMAP.md](ROADMAP.md) "Billing follow-ons")._
 
 ## Vision
 
@@ -43,14 +47,14 @@ additive `event_members` table adds the rest._
    unfurls with a branded, per-event preview card (but stays `noindex`, the `qr_token` is a private
    capability). After a guest's first upload, a soft, one-time prompt invites them to create a free
    account to save the event (with an optional newsletter opt-in), feeding the guest → future-host loop.
-5. **Reel** _(scaffold only in v1)_ — a highlight reel is stitched from the best
-   clips. The schema supports it (`highlight_reels`, media reel fields); no
-   processing ships in v1.
+5. **Reel** — a highlight reel stitched from the best clips. **SHIPPED** (host curation + the canvas
+   engine + on-device `.mp4` export + guest surfacing/download — [SYSTEMS.md](SYSTEMS.md) "Highlight
+   reel").
 
 ## Where this maps in the build
 
-The phased build that shipped this loop is **complete** — steps 1–4 are live; step 5 (the reel) is
-scaffold-only. What exists today is mapped in [SYSTEMS.md](SYSTEMS.md) (→ the `systems/` deep docs); the
+The build that shipped this loop is **complete — all five steps are live**. What exists today is
+mapped in [SYSTEMS.md](SYSTEMS.md) (→ the `systems/` deep docs); the
 dated build history is in [CHANGELOG.md](CHANGELOG.md); [STATUS.md](STATUS.md) is the live "you are here"
 and [ROADMAP.md](ROADMAP.md) is what might be next.
 
@@ -183,12 +187,11 @@ to billing (Phase 4).
   primary CTA, active state). Guest galleries render on an always-dark surface so
   photos/videos are the hero.
 
-## v1 non-goals (explicitly out of scope)
+## v1 non-goals — historical; most have since shipped
 
-- Highlight-reel **processing** (schema scaffold only; real pipeline is Phase 5).
-- Native mobile apps (guests use the mobile web; that's the whole point).
-- Per-guest accounts, social features, comments/reactions.
-
-_Promoted out of non-goals:_ free-event inactivity removal is now planned (6 months —
-see "Data retention & lifecycle"), and a safety **report/review** flow is now planned
-(see "Safety & moderation"). Proactive upload scanning stays a v2+ non-goal.
+Original v1 exclusions, kept for the record: highlight-reel processing (**since SHIPPED** — the
+canvas engine), per-guest accounts + social features (**since SHIPPED** — profiles/follows/guest
+lists, ADR-0019), native mobile apps (**still a non-goal** — guests use the mobile web; that's the
+whole point), comments/reactions (**still unbuilt**). Free-event inactivity removal and the safety
+report/review flow were promoted into the build long ago. Proactive upload scanning stays a
+later-stage non-goal (ADR-0020's reactive posture).

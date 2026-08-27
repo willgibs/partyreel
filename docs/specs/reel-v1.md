@@ -89,7 +89,8 @@ the add-system clean).
   free reel reads as a mediocre product, hurting upgrades) · **corner watermark** · shorter max length.
 - **Pro:** **no watermark** · **longer length** · video clips in the reel.
 - The **watermark pulls double duty**: an upgrade nudge AND free marketing (every shared free reel carries the
-  brand). Exact free-vs-Pro **length** values land pre-launch.
+  brand). Free-vs-Pro **length**: RULED 30s / 60s ([ADR-0021](../adr/0021-pricing-numbers-reel-caps-ingress.md);
+  `MAX_REEL_SECONDS` in `tiers.ts`).
 
 ## Architecture (as shipped — the render machinery below is historical)
 
@@ -138,19 +139,16 @@ The pure style catalog + resolver (`STYLE_CATALOG`/`resolveStyleEntry`/`styleThe
 `src/lib/reel/engine/style-registry.ts`; the canvas draw registry is `src/lib/reel/engine/registry.ts`. The free-tier
 watermark is stamped by the engine for all styles. Current build detail: [`../systems/host-app.md`](../systems/host-app.md).
 
-## Open product question — GUEST reel surfacing + download
+## Guest reel surfacing + download — RULED + SHIPPED (was the open product question)
 
-The reel is host-only today; guests reach the album via `/e/[qr_token]` but can't see or share the reel, and the
-growth loop wants them to. This needs a planning round with Will — the decisions (some one-way doors): (1) reel
-guest-visible always vs host-toggled; (2) WHERE on `/e/[qr]` (hero / tab / feed section); (3) guests download the mp4
-vs watch the live player only; (4) if download, serve the last-rendered mp4 (recommended) vs let a guest trigger an
-encode (anon rate-limiting + cost control); (5) confirm no host-only metadata leaks. Architecture must follow ADR-0004
-(anon guests use capability tokens validated inside security-definer RPCs, never direct table access); the guest surface
-reuses `build-reel-props` + `CanvasReelPlayer`, and the mp4 lives at the stable `reelOutputKey`. Full recommendations:
-[`../decisions/t1-reel-guest-surfacing.md`](../decisions/t1-reel-guest-surfacing.md). (This is tracked in ROADMAP.md.)
+Ruled in [ADR-0022](../adr/0022-reel-guest-surfacing.md) (host publish switch, adaptive placement,
+guest downloads of the last-rendered mp4, hybrid source, no end-card) and shipped at milestone-2
+(2026-08-06) per ADR-0004's capability-token architecture. Current build:
+[`../systems/guest-flow.md`](../systems/guest-flow.md); the options analysis lives in git history
+(`decisions/t1-reel-guest-surfacing.md`, tombstoned).
 
-Other deferred product items: exact free/Pro length caps (pre-launch), and the legacy `highlight_reels.theme` column is
-vestigial (synced to `style_id`; a future migration can drop it + the `?? theme` fallback).
+Remaining deferred product item: the legacy `highlight_reels.theme` column is vestigial (synced to
+`style_id`; the R8 destructive batch drops it + the `?? theme` fallback).
 
 Provenance: discovery 2026-06-22 (this session), grounded in the reel-curation foundation + the render-infra cost
 workflow. The curation foundation's current truth: [`../systems/host-app.md`](../systems/host-app.md) "Reel curation".
