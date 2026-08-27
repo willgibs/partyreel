@@ -10,6 +10,35 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-27 — The consolidation round + MILESTONE-3 (one boot surface for parallel sessions)
+
+**The repo became the single self-sufficient boot surface for any agent, and prod caught up to the
+marketing identity build** (launch-prep `b6f9841`+`5e6375e` → milestone-3 merge `310e504`, tagged).
+Driven by Will's call to run parallel top-level sessions safely: three audits (docs / git /
+out-of-repo context) + a stress pass found two opposite inheritance failures (repo-root sessions
+inherited a memory that made every reader "the standing orchestrator"; worktree sessions provably
+inherit nothing), a 24-item stale-era hit-list stacked across three doc generations, 14 out-of-repo
+doc pointers, and total-but-safe branch debris. Shipped: **`docs/PROGRAM.md`** born (charter, the
+new **Orchestrator/Agent role system** with Will's two rulings — max one Orchestrator, Agents
+handoff without one live, succession-ready round closes — gates, round definitions, the versioning
+protocol, both init templates); **STATUS.md rewritten** as the thin snapshot; CLAUDE.md's era
+keystone + "Sessions & roles" + ONE canonical Git protocol statement (three partial copies
+collapsed); the era reframe across README/SYSTEMS (the false "reel is scaffold-only" section
+killed)/ROADMAP (duplicate loop deleted, shipped narratives pruned, QA #19 + the venue-NAT limiter
+restored to the queue, the expired CI-blocker rewritten after a live check showed the DB-backup
+Action green daily)/PRD/PRICING (stale tiers.ts snapshot pruned; grandfathering policy homed);
+`docs/systems/README.md` folded into SYSTEMS.md. **Memory distilled 33 → 17 files** under a
+retirement invariant (every lesson grep-verified into a repo home first — the four QA migration
+lessons, the Tailwind standalone-translate gotcha, two P4-era craft rules, and the
+callback-ref-sentinel rule were the misses, all homed). **Git teardown**: all 19 worktrees removed
+(clean, no --force), 35 local + 24 remote branches deleted (every one re-verified 0-ahead or
+patch-equivalent via `git cherry` at deletion time), ~26 GB reclaimed; tags + scripts + skills kept.
+Verified: the full gate (1143 tests) + a **fresh-agent boot quiz** run in an isolation worktree — the
+agent independently detected its worktree had materialized at `main`'s tip and self-corrected via the
+new BASE_CHECK (live-validating the documented trap), then answered all 8 boot questions correctly
+from the consolidated docs and confirmed every old contradiction fixed. **MILESTONE-3** merged
+`--no-ff` + tagged with prod READY at the merge SHA and a marketing smoke pass on partyreel.com.
+
 ## 2026-08-27 — R6: the Help Center arc (system + the elevation passes)
 
 **The help center became a designed product surface** (launch-prep `fa7a9bd`→`671c652`, 1122→1143 tests).
