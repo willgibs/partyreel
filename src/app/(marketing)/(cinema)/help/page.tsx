@@ -9,6 +9,7 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,9 @@ import {
 } from "@/lib/content/help";
 import { cn } from "@/lib/utils";
 
-import { CategoryEmblem } from "./help-emblems";
-import { HelpFactsBand } from "./help-facts-band";
-import { HelpSearchTrigger } from "./help-palette";
+import { CategoryEmblem } from "@/components/marketing/help/help-emblems";
+import { HelpFactsBand } from "@/components/marketing/help/help-facts-band";
+import { HelpSearchTrigger } from "@/components/marketing/help/help-palette";
 
 export const metadata: Metadata = {
   title: "Help center",
@@ -67,23 +68,21 @@ export default function HelpIndexPage() {
         ]}
       />
 
-      {/* ── Hero: the front desk on the GALLERY register (Will's pure-paper
-             break, 2026-08-27). The always-dark media tokens are the ONE
-             sanctioned dark surface inside surface-paper (never a nested
-             .dark), so the stage is hand-painted in gallery ink while the
-             search field and emblem strip stay PAPER objects floating on it.
+      {/* ── Hero: the front desk, now NATIVE CINEMA (Will's dark-nav note,
+             2026-08-27: /help moved into the (cinema) group, so the dark
+             stage runs seamlessly from the overlay header instead of sitting
+             under a light bar). The search field and emblem strip are PAPER
+             ISLANDS (surface-paper token flips — the sanctioned
+             .dark > .surface-paper direction) floating on the dark room.
              CENTERING IDIOM: .mkt-line forces display:block (the texts-reveal
              recipe, 0,2,1 specificity), silently killing flex utilities on
              the same element — constrained children center with mx-auto,
              never a parent justify-center (the off-center-search bug Will
              caught on the first polish pass). */}
-      <section className="bg-gallery text-gallery-foreground">
+      <section>
         <Container className="flex flex-col items-center pt-16 pb-0 text-center sm:pt-20">
           <TextsReveal className="flex w-full flex-col items-center gap-6">
-            <Eyebrow
-              className="mkt-line text-gallery-foreground/60"
-              style={{ "--i": 0 } as CSSProperties}
-            >
+            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
               Help center
             </Eyebrow>
             <h1
@@ -93,14 +92,14 @@ export default function HelpIndexPage() {
               How can we help?
             </h1>
             <p
-              className="mkt-line max-w-2xl text-lg text-pretty text-gallery-foreground/65"
+              className="mkt-line max-w-2xl text-lg text-pretty text-muted-foreground"
               style={{ "--i": 2 } as CSSProperties}
             >
               Guides for hosts and guests: setup, sharing, privacy, plans, and
               the highlight reel.
             </p>
             <div
-              className="mkt-line mt-1 w-full"
+              className="surface-paper mkt-line mt-1 w-full"
               style={{ "--i": 3 } as CSSProperties}
             >
               <HelpSearchTrigger variant="hero" className="mx-auto" />
@@ -113,7 +112,7 @@ export default function HelpIndexPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="mx-1 mb-2 inline-flex rounded-full border border-gallery-border px-3.5 py-1.5 text-[13px] text-gallery-foreground/60 transition-colors duration-150 hover:border-gallery-foreground/40 hover:text-gallery-foreground"
+                  className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
                 >
                   {link.label}
                 </Link>
@@ -122,13 +121,13 @@ export default function HelpIndexPage() {
 
             {/* THE EMBLEM STRIP: the nine categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
-                the gallery→paper cut — the negative bottom margin ends the
+                the cinema→paper cut — the negative bottom margin ends the
                 dark stage halfway up the strip, so the index arrives out of
                 the dark the way the album arrives out of the event on home
                 (the R2 negative-margin move: real layout, no translate). */}
             <nav
               aria-label="Browse by category"
-              className="mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
+              className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
               style={{ "--i": 5 } as CSSProperties}
             >
               <div className="overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -155,6 +154,10 @@ export default function HelpIndexPage() {
         </Container>
       </section>
 
+      {/* THE PAPER CHAPTER: the reading body (trio, filmstrip, sheet) on
+          forced light inside the cinema page — the ratified chapter grammar
+          (pricing precedent). The strip above straddles into its top edge. */}
+      <PaperChapter>
       {/* ── Start here: the guided path, media-led (the elevation layer: real
              photo compositions + the float shadow; the sheet below stays
              hairline-flat on purpose — featured vs index). The success-green
@@ -340,9 +343,11 @@ export default function HelpIndexPage() {
         </Container>
       </section>
 
-      {/* ── The multi-path close: contact first, then onward (the de-silo
-             ruling — help is one resource inside a bigger site). ──────────── */}
-      <section className="border-t bg-muted/30">
+      </PaperChapter>
+
+      {/* ── The multi-path close: back in the cinema room (the dark bookend;
+             contact first, then onward per the de-silo ruling). ───────────── */}
+      <section>
         <Container className="flex flex-col items-center gap-4 py-16 text-center sm:py-20">
           <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
             Still need help?

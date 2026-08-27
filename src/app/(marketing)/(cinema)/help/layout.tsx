@@ -1,6 +1,6 @@
 import { getSearchIndex, HELP_QUICK_LINKS } from "@/lib/content/help";
 
-import { HelpPaletteProvider } from "./help-palette";
+import { HelpPaletteProvider } from "@/components/marketing/help/help-palette";
 
 /**
  * Help layout (R6): mounts the ONE search-palette island over the index + every

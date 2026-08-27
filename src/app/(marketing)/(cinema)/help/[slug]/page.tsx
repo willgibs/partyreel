@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,10 @@ import {
 } from "@/lib/content/help";
 import { cn, formatEventDate } from "@/lib/utils";
 
-import { ArticleFeedback } from "../article-feedback";
-import { ArticleToc } from "../article-toc";
-import { HeadingAnchorsDelegate } from "../heading-anchors";
-import { HelpSearchTrigger } from "../help-palette";
+import { ArticleFeedback } from "@/components/marketing/help/article-feedback";
+import { ArticleToc } from "@/components/marketing/help/article-toc";
+import { HeadingAnchorsDelegate } from "@/components/marketing/help/heading-anchors";
+import { HelpSearchTrigger } from "@/components/marketing/help/help-palette";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -107,65 +108,83 @@ export default async function HelpArticlePage({
         dateModified={article.frontmatter.updated}
       />
 
-      <Container className="py-12 sm:py-16">
+      {/* THE DARK STAGE (R6 polish v3, the index treatment applied): the
+          article opens in the cinema room — way back, search, category, the
+          title — and THE SHORT ANSWER rides a paper card STRADDLING the
+          cinema→paper cut (negative margin, the strip's sibling move): the
+          answer arriving out of the dark is the article's whole thesis. */}
+      <section>
+        <Container className="pt-10 pb-0 sm:pt-12">
+          <div className="mx-auto max-w-5xl">
+            <div className="max-w-2xl min-w-0">
+              <div className="flex items-center justify-between gap-4">
+                <Link
+                  href="/help"
+                  className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                >
+                  <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
+                  Help center
+                </Link>
+                {/* Paper island: the trigger stays a light pill on the dark
+                    stage (the hero search-card grammar). */}
+                <span className="surface-paper inline-flex">
+                  <HelpSearchTrigger variant="compact" />
+                </span>
+              </div>
+
+              {/* Header ladder (the 2026-08-25 type ruling): H1 at 4xl/5xl in
+                  the heading face; meta in Inter small muted with tabular
+                  digits (the mono ruling). The badge is the way back to this
+                  category's pane on the index — a paper chip on the stage. */}
+              <header className="mt-8">
+                <span className="surface-paper inline-flex">
+                  <Link href={`/help#${category.slug}`} className="inline-flex">
+                    <Badge
+                      variant="secondary"
+                      className="transition-colors duration-150 hover:bg-secondary/70"
+                    >
+                      {category.title}
+                    </Badge>
+                  </Link>
+                </span>
+                <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
+                  {article.frontmatter.title}
+                </h1>
+                <p className="mt-4 text-sm text-muted-foreground tabular-nums">
+                  Updated {formatEventDate(article.frontmatter.updated)}{" "}
+                  &middot; {readingTime(article.body)}
+                </p>
+              </header>
+
+              {/* THE SHORT ANSWER, straddling: frontmatter description as the
+                  lead (the legal shell's two-register pattern; AUTHORING.md
+                  binds authors to write descriptions that carry this slot). */}
+              <div className="surface-paper relative z-10 mt-8 -mb-10">
+                <div className="rounded-2xl border bg-card p-5 shadow-float ring-1 ring-foreground/5 sm:p-6">
+                  <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    In short
+                  </p>
+                  <p className="mt-1.5 leading-7 text-pretty text-foreground">
+                    {article.frontmatter.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <PaperChapter>
+      <section className="pt-16 pb-12 sm:pt-20 sm:pb-16">
+        <Container>
         <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
           <div className="max-w-2xl min-w-0">
-            {/* Top utility row: the way back + the way to search (the palette
-                is also on ⌘K, but a visible affordance beats a secret one). */}
-            <div className="flex items-center justify-between gap-4">
-              <Link
-                href="/help"
-                className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
-              >
-                <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
-                Help center
-              </Link>
-              <HelpSearchTrigger variant="compact" />
-            </div>
-
-            {/* Header ladder (the 2026-08-25 type ruling): article H1 reaches
-                4xl/5xl in the heading face; the meta line is Inter small muted
-                with tabular digits (the R6 mono ruling: mono only for
-                numerals/tabular alignment, never caption prose). */}
-            <header className="mt-6">
-              {/* The badge is the way back to this category's pane on the
-                  index (the ids landed with the R6 index sheet). */}
-              <Link href={`/help#${category.slug}`} className="inline-flex">
-                <Badge
-                  variant="secondary"
-                  className="transition-colors duration-150 hover:bg-secondary/70"
-                >
-                  {category.title}
-                </Badge>
-              </Link>
-              <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
-                {article.frontmatter.title}
-              </h1>
-              <p className="mt-4 text-sm text-muted-foreground tabular-nums">
-                Updated {formatEventDate(article.frontmatter.updated)} &middot;{" "}
-                {readingTime(article.body)}
-              </p>
-            </header>
-
-            {/* THE SHORT ANSWER (R6, answer-first): the frontmatter description
-                rendered as the article's lead — the legal shell's two-register
-                "In short" pattern come home. AUTHORING.md binds authors to
-                write descriptions that can carry this slot. */}
-            <div className="mt-7 border-l-2 border-foreground/25 pl-4">
-              <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                In short
-              </p>
-              <p className="mt-1.5 leading-7 text-pretty">
-                {article.frontmatter.description}
-              </p>
-            </div>
-
             {/* Mobile contents: the zero-JS chip row (the desktop rail is
                 lg-only; an accordion here was deliberately cut). */}
             {headings.length >= 2 && (
               <nav
                 aria-label="On this page"
-                className="mt-7 flex flex-wrap items-center gap-2 lg:hidden"
+                className="flex flex-wrap items-center gap-2 lg:hidden"
               >
                 <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
@@ -185,7 +204,7 @@ export default async function HelpArticlePage({
             {/* prose-headings:font-heading pulls the article's h2/h3 onto the
                 house heading face (Urbanist) so long-form matches the chrome;
                 the prose SCALE itself is untouched (the ruling keeps it). */}
-            <article className="prose mt-8 max-w-none prose-help prose-headings:font-heading">
+            <article className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading">
               {content}
             </article>
             {/* One delegated island upgrades every heading's copy-link anchor. */}
@@ -266,7 +285,9 @@ export default async function HelpArticlePage({
             </aside>
           )}
         </div>
-      </Container>
+        </Container>
+      </section>
+      </PaperChapter>
     </>
   );
 }
