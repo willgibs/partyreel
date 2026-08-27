@@ -33,7 +33,10 @@ function collectMdx(dir: string): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) out.push(...collectMdx(full));
-    else if (entry.name.endsWith(".mdx")) out.push(full);
+    // .md too (R6): content/help/AUTHORING.md is the content agent's brief and
+    // must obey the same policy it teaches (it never renders — the loader only
+    // reads .mdx — but its text trains the library's voice).
+    else if (/\.mdx?$/.test(entry.name)) out.push(full);
   }
   return out;
 }
