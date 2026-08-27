@@ -36,6 +36,18 @@ A fresh agent given a goal can run this loop (defaults, not rails — use judgme
 
 ## Now (concrete, pick-up-able)
 
+- **Elevation-program deferred queue (marketing; the program plan file is the working ledger).** Logged at
+  R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
+  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);
+  the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
+  the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
+  article's contact path — swap that article's deletion section when it ships); faq-accordion
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
+  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** (does the R6 mono ruling extend
+  to press facts / legal status lines / GoDeeper captions — Will rules); `/press` grows into the
+  partnerships/ambassador kit; post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
+  the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects).
+
 - **Uploader attribution + unified identity (4-phase initiative) — SHIPPED + CLOSED 2026-06-09** (ADR-0015;
   full record in [`CHANGELOG.md`](CHANGELOG.md)): P1 required public display names + `allow_anonymous_uploads`,
   P2 the lightbox attribution caption, P3 claim-anonymous-uploads-on-sign-in, P4 the merged Events tab + the

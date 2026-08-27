@@ -42,11 +42,11 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help (rebuilt R6, 2026-08-26 — "the index
   of everything"): a NINE-category lifecycle taxonomy (each category carries a `feature` link up to its
   marketing rung; a new category must land WITH its first article — the test requires ≥1 per category) +
-  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(paper)/help/layout.tsx)
-  ([`help-palette.tsx`](../../src/app/(marketing)/(paper)/help/help-palette.tsx); pure fs-free scorer in
+  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
+  ([`help-palette.tsx`](../../src/components/marketing/help/help-palette.tsx); pure fs-free scorer in
   [`help-search-rank.ts`](../../src/lib/content/help-search-rank.ts) — heading hits deep-link to sections
   only when they're the sole match reason, plus a static "Pages" tail onward to the site) + the index
-  sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/app/(marketing)/(paper)/help/help-emblems.tsx),
+  sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx),
   a live-constants "numbers" strip) + answer-first articles (the frontmatter `description` renders as the
   "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated copy-anchor island; prev/next;
   an honest feedback row handing misses to `/contact?about=<slug>`, which the static contact page prefills
@@ -54,8 +54,15 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   ([`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx) — `Callout`, `AlbumShowcase`,
   `Steps`/`Step`, `Kbd`, `UiLabel`, inline spec components reading the `limits.ts`/`tiers.ts` single sources
   so numbers can't drift; NOTHING client-side may import it, it reaches `node:fs`) + a `prose-help` theme.
-  ★ The R6 MONO RULING (Will): mono type is for numerals/tabular alignment ONLY in standard UI — captions,
-  labels, and CTA notes are Inter. The content agent's brief lives at
+  Help lives in the **(cinema) group** since the polish arc (dark overlay nav + dark stages; the reading
+  bodies ride `PaperChapter`, the search card / emblem strip / In-short card are `surface-paper` islands,
+  the strip and the article's In-short card STRADDLE the cinema→paper cut via negative margin). Shared help
+  components live in [`components/marketing/help/`](../../src/components/marketing/help). ★ MOTION LANDMINE:
+  `[data-mkt] .mkt-line` forces `display:block` (texts-reveal recipe, 0,2,1 specificity) and silently kills
+  flex utilities on the same element — center constrained children with `mx-auto`, never a parent
+  `justify-center`. ★ The R6 MONO RULING (site-wide type doctrine, full text in
+  [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
+  captions, labels, and CTA notes are Inter. The content agent's brief lives at
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
   writing rules; the content-policy tests scan `.md` too so the brief obeys itself). Blog: date-sorted index + client-side tag filter, a client-safe author registry
   ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards, and a

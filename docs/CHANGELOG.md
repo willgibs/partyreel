@@ -10,6 +10,39 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-27 — R6: the Help Center arc (system + the elevation passes)
+
+**The help center became a designed product surface** (launch-prep `fa7a9bd`→`671c652`, 1122→1143 tests).
+The SYSTEM round: taxonomy v3 (nine lifecycle categories, each mapped to its marketing rung; `qr-and-invites`
+split out, `troubleshooting` new with its seed article), the ranked **⌘K search palette** (fs-free scorer,
+match emphasis, section deep links only when a heading is the sole match reason, a Pages tail onward, radix
+Dialog + `portalSkinProps`), answer-first articles (the frontmatter description renders as the "In short"
+lead; scroll-spy ToC on pure `pickActiveHeading`; one delegated copy-anchor island; prev/next; keyword-scored
+related; an honest feedback row → `/contact?about=` with a build-time allowlist prefill), per-article OG
+cards, `content/help/AUTHORING.md` as the content agent's standing brief, and MDX vocabulary
+(`Steps`/`Kbd`/`UiLabel`). The ELEVATION passes (Will's "wireframe" review → four screenshot-iterated
+rounds): DOM-art category emblems + the hero emblem strip, real-photo Start-here scenes, THE FILMSTRIP
+numbers band (digit pop-in over live constants), both routes moved into the **(cinema) group** (dark
+overlay nav; `PaperChapter` bodies; the strip and the article's In-short card STRADDLE the cut), article
+stage art (the category emblem large in light ink), `AlbumShowcase` upgraded to eight real manifest
+photographs, and the sticky-ToC root-cause fix (`lg:items-start` had collapsed the rail's sticky runway).
+Two site-wide rulings landed and are recorded in [`systems/design-system.md`](systems/design-system.md):
+the **72px-class page-H1 ladder** (17 surfaces swept) and the **mono-for-numerals-only ruling**. Verified:
+a 28-check scripted red-team (palette keyboard walk, deep links, anchors, feedback, prefill + a
+crafted-slug injection case, forced-light in a dark session, reduced motion) ran green on the round's first
+ship AND re-certified on the final state; every deploy alias-swept.
+
+## 2026-08-26 — R5: routes-complete (the last new marketing surfaces)
+
+The site reached **100% routes-complete** (launch-prep `33ee6ac`→`516219f`, 1121→1122 tests): `/about`
+(mission & principles, footer-only by ruling, zero team framing), `/press` (boilerplate, fact sheet, three
+downloadable brand marks generated from the shipped icon geometry), two seed help articles (profiles +
+your-data, closing the guests GoDeeper gap), the `LegalArticle` two-register shell (privacy 8 / terms 10
+accurate plain-language draft sections; the "In short" rails survive the future legal rewrite; stable
+section ids are the legal agent's anchor contract), and the branded marketing error screen (the 404's
+sibling with the "500" missing-frame strip). All verified by scroll-capture screenshots + an all-green
+alias sweep.
+
 ## 2026-08-06 — MILESTONE-2: R3 the Reel Experience (host + guest) + the on-device review fixes
 
 **The North Star's experience round: the reel became a full host + GUEST feature** (tag `milestone-2`;

@@ -64,6 +64,19 @@ stay Inter" rule; app page + card titles now use the heading face):
 `--tracking-tight` is `0em`, which would CANCEL the utility's -0.03em). `--tracking-tight` stays `0em` so the
 90+ legacy `tracking-tight` usages are no-ops (re-tuning them is its own deferred pass).
 
+**The marketing page-H1 ladder (RULED site-wide 2026-08-27: titles must OWN their headers):** standard
+marketing page H1s ramp `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` (the 72px class on desktop).
+Exemptions by the ruling's own latitude: the HOME hero keeps its unique display ramp (5xl→8xl), `/reel`
+was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
+utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
+keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+
+**The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
+tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
+where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
+devtool" — Will). Existing `MonoCaption` surfaces (press facts, legal status lines, GoDeeper rows) are
+grandfathered pending Will's ruling on a sweep (→ ROADMAP).
+
 ## Rounding: sharp surfaces, round actions
 
 | Layer | Token | Value |
