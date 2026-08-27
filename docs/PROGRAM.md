@@ -21,7 +21,8 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
 - **Max ONE Orchestrator at a time**, seated in the repo root on `launch-prep`. It alone merges into
   `launch-prep`, applies DB migrations, deploys Workers, mutates Vercel/Stripe/Supabase config, and
   runs milestone merges. It closes every round **succession-ready** (checklist below).
-- **Agents** work in worktrees on their own `lp/<track>`. An Agent needs NO live Orchestrator: it
+- **Agents** work in worktrees on their own `lp/<track>`, **self-created at boot** (the Agent boot
+  sequence below — Will never pre-creates branches). An Agent needs NO live Orchestrator: it
   prepares the handoff (push `lp/<track>` + a report naming what it built, its gate results, and any
   proposed migrations/config changes) and stops. Worktree sessions have no out-of-repo memory by
   design — the repo is their whole context.
@@ -37,20 +38,43 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
-**Agent** (branch `lp/<track>` + the worktree toggle ON at session init):
+Will only manages agents, never branches: state the goal and the Agent creates + owns its branch
+via the boot sequence below. Worktree toggle ON is preferred (one click); the sequence also handles
+a session opened in the repo root.
 
-> You are an AGENT on Partyreel's elevation program. Track: `<track>`. Goal: `<goal>`.
-> BASE_CHECK first: confirm `git branch --show-current` is `lp/<track>` and
-> `git merge-base --is-ancestor origin/launch-prep HEAD` succeeds — a worktree can materialize cut
-> from `main`; if so, rebase onto `origin/launch-prep` before any work. Then read `docs/STATUS.md`,
-> `docs/PROGRAM.md`, and the `docs/systems/` doc(s) the goal touches. Follow CLAUDE.md's working
-> loop. Commit only to `lp/<track>` (push for durability); hand off by pushing + a final report.
-> You never merge, apply migrations, deploy, or change service config — propose those in the report.
+**Agent:**
+
+> You are an AGENT on Partyreel's elevation program. Goal: `<goal>`.
+> Boot per `docs/PROGRAM.md` "Agent boot" (self-create your `lp/<track>` branch), then proceed;
+> hand off by pushing + a final report.
+
+(A bare goal works too — CLAUDE.md "Sessions & roles" routes any undesignated session here — but the
+one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
+one, say so: "resume `lp/<track>`".)
 
 **Orchestrator** (repo root, no worktree):
 
 > You are THE ORCHESTRATOR for Partyreel's elevation program (single-writer integration role).
 > Seat in per `docs/PROGRAM.md` "Orchestrator seat-in", then take up the goal: `<goal>`.
+
+### Agent boot (the self-branching sequence — run before ANY work)
+
+1. `git fetch origin`, then derive a short kebab `<track>` from the goal (e.g. `help-content`).
+   If `origin/lp/<track>` already exists, that's someone's handoff — pick a fresh variant name;
+   never adopt an existing branch unless Will's prompt said to resume it.
+2. **In a worktree** (the normal case — `git rev-parse --git-dir` contains `/worktrees/`): note your
+   birth branch (`git branch --show-current`; the app's toggle auto-creates one, often cut from
+   `main`), then `git checkout -b lp/<track> origin/launch-prep`. Delete the auto-created birth
+   branch with `git branch -d <birth>` (safe: `-d` refuses if it holds unique commits — leave it
+   then and say so in your report). This is what keeps `worktree-agent-*` ref debris from
+   accumulating again.
+3. **In the primary checkout** (no `/worktrees/` in the git-dir — this is the Orchestrator's working
+   tree): do NOT branch, commit, or edit here. Create your own worktree and do ALL work inside it:
+   `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`.
+4. Confirm the invariant: `git branch --show-current` = `lp/<track>` AND
+   `git merge-base --is-ancestor origin/launch-prep HEAD` succeeds.
+5. Read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, then follow CLAUDE.md's
+   working loop. First push: `git push -u origin lp/<track>`.
 
 ## The hard gates (religious — no exceptions)
 
@@ -86,7 +110,8 @@ same session.
 ## The multi-agent versioning protocol (the operating depth behind CLAUDE.md's Git rules)
 
 - **Worktrees.** Will-initiated Agents ride the app's worktree toggle (lands at
-  `.claude/worktrees/<name>` — hence the BASE_CHECK, since the toggle can cut from `main`). The
+  `.claude/worktrees/<name>`, often cut from `main` — the Agent boot sequence re-bases onto
+  `origin/launch-prep` and cleans up the auto-birth branch; proven live 2026-08-27). The
   Orchestrator creates subagent-track worktrees explicitly:
   `git worktree add ../partyreel-wt/<track> -b lp/<track> launch-prep`.
 - **Integration is single-writer.** Track rebases onto `launch-prep` (the track's own agent resolves

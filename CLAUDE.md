@@ -73,17 +73,19 @@ A goal becomes its own small plan. Defaults, not rails — use judgment:
 Every top-level session is an **Agent** unless Will's first prompt designates it **the Orchestrator**
 (max ONE at a time, seated in the repo root). **Assume you are an Agent.**
 
-- **Agents** work in a worktree on their own `lp/<track>` branch. Will's app worktree-toggle lands at
-  `.claude/worktrees/<name>` and can cut from `main` — BASE_CHECK against `launch-prep` first (the
-  Agent init template in [`docs/PROGRAM.md`](docs/PROGRAM.md) opens with it); Orchestrator-spawned
-  tracks live at `../partyreel-wt/<track>`. Full build/test/push rights on their own branch; the
-  hard prohibitions are in the Git rules below. Handoff = push `lp/<track>` + a report; no live
-  Orchestrator needed.
+- **Agents** work in a worktree on their own `lp/<track>` branch, which they CREATE THEMSELVES at
+  boot from `origin/launch-prep` — Will states only the goal; the **Agent boot sequence** in
+  [`docs/PROGRAM.md`](docs/PROGRAM.md) is the first thing to run (it handles the app's
+  worktree-toggle cutting from `main`, cleans up the auto-birth branch, and covers a session opened
+  in the repo root by creating its own worktree). Orchestrator-spawned tracks live at
+  `../partyreel-wt/<track>`. Full build/test/push rights on their own branch; the hard prohibitions
+  are in the Git rules below. Handoff = push `lp/<track>` + a report; no live Orchestrator needed.
 - **The Orchestrator** alone integrates, applies migrations, deploys, and runs milestone merges; it
   closes every round succession-ready. Duties, seat-in, and both init templates:
   [`docs/PROGRAM.md`](docs/PROGRAM.md).
 - A repo-root session WITHOUT the designation shares the Orchestrator's working tree: read and advise
-  freely, but make NO commits there — ask for a worktree for real work.
+  freely, but make NO commits or edits there — for real work, self-create a worktree per the Agent
+  boot sequence and do everything inside it.
 - Worktree sessions inherit no out-of-repo memory BY DESIGN — the repo (this file + `docs/`) is the
   whole context; if something an agent needs is missing from it, that's a doc bug to report.
 
@@ -230,7 +232,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git — the elevation-program branch protocol (2026-07-02; THE canonical statement — operating depth in [`docs/PROGRAM.md`](docs/PROGRAM.md)).** Agents/tracks/subagents commit ONLY to their own `lp/<track>` branch (cut from `launch-prep`, worked in a worktree) and may push it freely for durability — Vercel's ignored-build-step builds only `main` + `launch-prep`, so `lp/*` never deploys. **Only the Orchestrator**: merges into `launch-prep` (the integration branch; stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`) re-running the full gate on the merged tree, applies DB migrations (Agents write the SQL file only — the DB is shared prod state), deploys Workers, and mutates Vercel/Stripe/Supabase config; `src/lib/db/types.ts` is generated, never hand-edited — propose instead. After an integration push, confirm the preview deploy is READY at the intended SHA before red-teaming. `main` is FROZEN except milestone merges (`--no-ff`, tagged `milestone-<n>`, prod-verified at the merge SHA) and true hotfixes (fix on `main` → verify → back-merge to `launch-prep` the same session). Unchanged guardrails: tests green before any commit; never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push; `Co-Authored-By` trailer on every commit. (When the program ends this reverts to a deliberate post-program decision — the teardown checklist is in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
+**Git — the elevation-program branch protocol (2026-07-02; THE canonical statement — operating depth in [`docs/PROGRAM.md`](docs/PROGRAM.md)).** Agents/tracks/subagents commit ONLY to their own `lp/<track>` branch (self-created at boot from `origin/launch-prep` per the PROGRAM.md boot sequence, worked in a worktree) and may push it freely for durability — Vercel's ignored-build-step builds only `main` + `launch-prep`, so `lp/*` never deploys. **Only the Orchestrator**: merges into `launch-prep` (the integration branch; stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`) re-running the full gate on the merged tree, applies DB migrations (Agents write the SQL file only — the DB is shared prod state), deploys Workers, and mutates Vercel/Stripe/Supabase config; `src/lib/db/types.ts` is generated, never hand-edited — propose instead. After an integration push, confirm the preview deploy is READY at the intended SHA before red-teaming. `main` is FROZEN except milestone merges (`--no-ff`, tagged `milestone-<n>`, prod-verified at the merge SHA) and true hotfixes (fix on `main` → verify → back-merge to `launch-prep` the same session). Unchanged guardrails: tests green before any commit; never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push; `Co-Authored-By` trailer on every commit. (When the program ends this reverts to a deliberate post-program decision — the teardown checklist is in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 
