@@ -5,16 +5,18 @@ import type { CSSProperties } from "react";
 
 import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
+import { cn } from "@/lib/utils";
 
 type Fact = { label: string; value: string; href: string };
 
 /**
- * The numbers band (R6 polish): StatBand's ratified stat register (Geist Mono
- * numerals at display scale, the number-pop-in recipe firing once in view)
- * applied to the help facts, each stat a quiet link to the guide that explains
- * it. Digits pop, punctuation and units stay planted; the FINAL value is
- * server-rendered so no-JS and SEO always read the true numbers. Mono here is
- * the ruling-sanctioned use: tabular numerals, StatBand precedent.
+ * THE FILMSTRIP (R6 polish v2, after Will's rework note on the floating
+ * stats): the numbers printed on a strip of film — perforated edges, hairline
+ * frame cells, display mono numerals with the number-pop-in recipe firing once
+ * in view. Every cell links to the guide that explains its number; the FINAL
+ * value is server-rendered so no-JS and SEO always read the truth. Mono is the
+ * ruling-sanctioned use (tabular numerals, StatBand register). The perforation
+ * is a CSS gradient, not marketing.css (no policy surface).
  */
 export function HelpFactsBand({ facts }: { facts: Fact[] }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>(0.4);
@@ -23,26 +25,52 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
   return (
     <div
       ref={ref}
-      className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5"
+      className="overflow-hidden rounded-2xl border bg-card shadow-xs ring-1 ring-foreground/5"
     >
-      {facts.map((fact) => (
-        <Link
-          key={fact.label}
-          href={fact.href}
-          className="group flex flex-col items-center gap-2 text-center"
-        >
-          <span className="font-mono text-3xl font-medium tracking-tight tabular-nums sm:text-4xl">
-            {reduced ? (
-              fact.value
-            ) : (
-              <PoppingValue value={fact.value} fired={inView} />
+      <Perforation edge="top" />
+      <div className="grid grid-cols-2 gap-px border-y bg-border sm:grid-cols-3 lg:grid-cols-5">
+        {facts.map((fact, index) => (
+          <Link
+            key={fact.label}
+            href={fact.href}
+            className={cn(
+              "group flex flex-col items-center gap-1.5 bg-card px-4 py-6 text-center transition-colors duration-150 hover:bg-muted/50",
+              // 5 frames: the last spans the leftover cell(s) below lg.
+              index === facts.length - 1 &&
+                "col-span-2 sm:col-span-1 lg:col-span-1",
+              index === 3 && "sm:col-span-2 lg:col-span-1",
             )}
-          </span>
-          <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 group-hover:text-foreground">
-            {fact.label}
-          </span>
-        </Link>
-      ))}
+          >
+            <span className="font-mono text-2xl font-medium tracking-tight tabular-nums sm:text-3xl">
+              {reduced ? (
+                fact.value
+              ) : (
+                <PoppingValue value={fact.value} fired={inView} />
+              )}
+            </span>
+            <span className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 group-hover:text-foreground sm:text-[11px]">
+              {fact.label}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <Perforation edge="bottom" />
+    </div>
+  );
+}
+
+/** The film edge: a row of sprocket holes drawn with one repeating gradient. */
+function Perforation({ edge }: { edge: "top" | "bottom" }) {
+  return (
+    <div aria-hidden className="bg-muted/40 px-4 py-[7px]">
+      <div
+        className="h-1.5 w-full rounded-full"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(90deg, var(--border) 0 8px, transparent 8px 20px)",
+        }}
+        data-edge={edge}
+      />
     </div>
   );
 }
@@ -57,7 +85,9 @@ function PoppingValue({ value, fired }: { value: string; fired: boolean }) {
     >
       {value.split("").map((ch, i) => {
         if (!/\d/.test(ch)) {
-          // Words, units, and separators stay planted; only digits pop.
+          // Words, units, and separators stay planted; only digits pop. A
+          // plain space would be a whitespace-only text node, which flex
+          // layout DROPS — render NBSP so "10 GB" keeps its gap.
           return <span key={i}>{ch === " " ? " " : ch}</span>;
         }
         const style = { "--i": digitIndex++ } as CSSProperties;

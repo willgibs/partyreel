@@ -67,11 +67,23 @@ export default function HelpIndexPage() {
         ]}
       />
 
-      {/* ── Hero: the question, then the answer machine. ─────────────────── */}
-      <section className="border-b">
-        <Container className="flex flex-col items-center gap-6 py-16 text-center sm:py-20">
+      {/* ── Hero: the front desk on the GALLERY register (Will's pure-paper
+             break, 2026-08-27). The always-dark media tokens are the ONE
+             sanctioned dark surface inside surface-paper (never a nested
+             .dark), so the stage is hand-painted in gallery ink while the
+             search field and emblem strip stay PAPER objects floating on it.
+             CENTERING IDIOM: .mkt-line forces display:block (the texts-reveal
+             recipe, 0,2,1 specificity), silently killing flex utilities on
+             the same element — constrained children center with mx-auto,
+             never a parent justify-center (the off-center-search bug Will
+             caught on the first polish pass). */}
+      <section className="bg-gallery text-gallery-foreground">
+        <Container className="flex flex-col items-center pt-16 pb-0 text-center sm:pt-20">
           <TextsReveal className="flex w-full flex-col items-center gap-6">
-            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
+            <Eyebrow
+              className="mkt-line text-gallery-foreground/60"
+              style={{ "--i": 0 } as CSSProperties}
+            >
               Help center
             </Eyebrow>
             <h1
@@ -81,42 +93,45 @@ export default function HelpIndexPage() {
               How can we help?
             </h1>
             <p
-              className="mkt-line max-w-2xl text-lg text-pretty text-muted-foreground"
+              className="mkt-line max-w-2xl text-lg text-pretty text-gallery-foreground/65"
               style={{ "--i": 2 } as CSSProperties}
             >
               Guides for hosts and guests: setup, sharing, privacy, plans, and
               the highlight reel.
             </p>
             <div
-              className="mkt-line mt-1 flex w-full justify-center"
+              className="mkt-line mt-1 w-full"
               style={{ "--i": 3 } as CSSProperties}
             >
-              <HelpSearchTrigger variant="hero" />
+              <HelpSearchTrigger variant="hero" className="mx-auto" />
             </div>
             <div
-              className="mkt-line flex max-w-2xl flex-wrap justify-center gap-2"
+              className="mkt-line max-w-3xl text-center"
               style={{ "--i": 4 } as CSSProperties}
             >
               {HELP_QUICK_LINKS.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
+                  className="mx-1 mb-2 inline-flex rounded-full border border-gallery-border px-3.5 py-1.5 text-[13px] text-gallery-foreground/60 transition-colors duration-150 hover:border-gallery-foreground/40 hover:text-gallery-foreground"
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
 
-            {/* THE EMBLEM STRIP (R6 polish): the nine categories as a hairline
-                instrument row — art AND wayfinding (each cell jumps to its
-                pane). Scrolls with snap on phones; fits whole on desktop. */}
+            {/* THE EMBLEM STRIP: the nine categories as a paper instrument
+                row (art AND wayfinding; snap-scroll on phones), STRADDLING
+                the gallery→paper cut — the negative bottom margin ends the
+                dark stage halfway up the strip, so the index arrives out of
+                the dark the way the album arrives out of the event on home
+                (the R2 negative-margin move: real layout, no translate). */}
             <nav
               aria-label="Browse by category"
-              className="mkt-line mt-5 w-full max-w-3xl"
+              className="mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
               style={{ "--i": 5 } as CSSProperties}
             >
-              <div className="overflow-x-auto rounded-2xl border bg-card shadow-xs ring-1 ring-foreground/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-9">
                   {groups.map(({ category }, i) => (
                     <a
@@ -143,8 +158,9 @@ export default function HelpIndexPage() {
       {/* ── Start here: the guided path, media-led (the elevation layer: real
              photo compositions + the float shadow; the sheet below stays
              hairline-flat on purpose — featured vs index). The success-green
-             numerals stay the page's accent moment. ─────────────────────── */}
-      <section className="py-14 sm:py-16">
+             numerals stay the page's accent moment. Top padding clears the
+             straddling strip. ────────────────────────────────────────────── */}
+      <section className="pt-24 pb-14 sm:pt-28 sm:pb-16">
         <Container>
           <Reveal className="flex flex-col gap-1.5">
             <h2
@@ -196,12 +212,12 @@ export default function HelpIndexPage() {
         </Container>
       </section>
 
-      {/* ── The numbers: a full-bleed stat band (the StatBand register —
-             display-scale mono numerals, digits pop once in view), every
-             value from the real constants, every stat a link. ─────────────── */}
+      {/* ── The numbers: THE FILMSTRIP — hard limits printed on a strip of
+             film (perforated edges, framed cells, digits popping in), every
+             value from the real constants, every frame a link. ────────────── */}
       <section className="border-y bg-muted/30">
         <Container className="py-14 sm:py-16">
-          <Reveal className="flex flex-col items-center gap-1.5 text-center">
+          <Reveal className="flex flex-col gap-1.5">
             <h2
               data-mkt-reveal
               className="font-heading text-2xl tracking-tight sm:text-3xl"
@@ -216,7 +232,7 @@ export default function HelpIndexPage() {
               The limits at a glance, rendered from the product itself.
             </p>
           </Reveal>
-          <div className="mt-10">
+          <div className="mt-6">
             <HelpFactsBand facts={facts} />
           </div>
         </Container>
