@@ -13,6 +13,16 @@ site, these are the ways the *test tooling* misreports, so a working change look
 > your screen?").** Chasing a tool-blindness ghost is how you burn a loop and ship a change for a bug that
 > never existed; a human eyeball confirms reality far cheaper than more tooling.
 
+## Test accounts + fixtures (live testing runs on disposable test data ONLY)
+
+- **Accounts:** `willg97@gmail.com` = the host (Pro) · `hi@willgibs.com` = a Free host ·
+  `partyr33l@gmail.com` = the operator/admin (TOTP MFA). Google sign-in via the account CHOOSER is
+  authorized for switching; typing a password/OTP is never allowed — stop and ask Will (CLAUDE.md
+  "Local dev vs. live testing").
+- **Media fixtures:** real images/videos live at `/Users/gibby/local/ai/partyreel-test-media`. Seed
+  via REAL uploads through the product, never raw DB rows — a `media` row with no R2 object renders
+  broken images and poisons later checks.
+
 ## Chrome MCP blind spots
 
 - **Ephemeral `sonner` toasts are invisible.** The Chrome MCP reads the DOM in an isolated world and toasts

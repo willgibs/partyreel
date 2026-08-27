@@ -24,11 +24,21 @@ import type { FaqItem } from "@/components/marketing/faq-data";
 // terms the umbrella absorbs (good for SEO body copy, e.g. "Parties" covers
 // birthdays, graduations, showers…). Named EVENT_TYPE* (not Event/EVENTS) to avoid
 // colliding with the DOM `Event` type and the real `events` domain.
-export type EventTypeHelp = { icon: LucideIcon; title: string; body: string };
+export type EventTypeHelp = {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  /** Optional ladder link: BuiltFor renders this cell's title as a learn-more
+   *  into the matching feature page (the expansion round's use-case-to-feature
+   *  web; at most 1-2 per type so the grid stays calm). */
+  featureHref?: string;
+};
 
 export type EventType = {
   slug: string;
   navLabel: string;
+  /** Singular form for sentence slots ("Every wedding ends with a reel."). */
+  singularLabel: string;
   icon: LucideIcon;
   /** Short line for the home grid + hub cards. */
   teaser: string;
@@ -41,12 +51,20 @@ export type EventType = {
   ctaTitle: string;
   /** Stamped onto the per-page OG card. */
   ogTitle: string;
+  /**
+   * The per-type highlight-reel hook (T2.5 B2: every landing page routes its
+   * reader to /reel through its OWN moment, e.g. weddings lead with the
+   * first-dance cut). One sentence, reel register, no counts (style/length
+   * numbers render from their single sources at the component).
+   */
+  reelAngle: string;
 };
 
 export const EVENT_TYPES: EventType[] = [
   {
     slug: "weddings",
     navLabel: "Weddings",
+    singularLabel: "wedding",
     icon: Heart,
     teaser: "Every guest's angle of the day, not just the photographer's.",
     headline: "Every photo from your wedding, from everyone there",
@@ -70,17 +88,22 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: QrCode,
         title: "A QR on every table",
+        featureHref: "/features/qr",
         body: "Drop your code on table cards or the program. Guests scan and upload between courses, no chasing required.",
       },
       {
         icon: Lock,
         title: "Yours, kept private",
+        featureHref: "/features/privacy",
         body: "Your album opens only to the link you share and stays out of search engines. Share it with family, not the world.",
       },
       {
         icon: Film,
         title: "Full-quality memories",
-        body: "Photos and long videos upload at full resolution: the originals, ready to download and keep forever.",
+        // R4 truth ruling A35: video is a paid feature, so a blanket
+        // "photos and videos at full resolution" line was false on Free.
+        // Both paid plans get named, never "Pro only".
+        body: "Photos upload at full resolution on every plan, the originals, ready to download and keep forever. Video too, on Pro and Event Pass.",
       },
     ],
     faq: [
@@ -94,7 +117,9 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "Will we get the original-quality files?",
-        a: "Yes. Photos and videos upload at full resolution, and anyone with the album can download the originals. No compression, no watermarks.",
+        // A1 + A35: photos and the album are never watermarked on any plan (the
+        // small mark lives on the FREE reel only), and video is a paid feature.
+        a: "Yes. Photos upload at full resolution on every plan, and video on Pro and Event Pass. Anyone with the album can download the originals, with no compression and no watermark.",
       },
       {
         q: "How long do the photos stay up?",
@@ -103,10 +128,13 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Collect every photo from your wedding",
     ogTitle: "Every wedding photo, from everyone there",
+    reelAngle:
+      "The first dance from every angle, the toasts, the send-off: cut into one highlight reel you can share before the thank-you notes go out.",
   },
   {
     slug: "parties",
     navLabel: "Parties",
+    singularLabel: "party",
     icon: PartyPopper,
     teaser: "The candids from every corner of the room, before anyone leaves.",
     headline: "The whole party's camera roll, in one place",
@@ -132,12 +160,17 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Smartphone,
         title: "No app to kill the vibe",
-        body: "Guests scan, type a name, and upload. No download, no sign-up, nothing to break the moment.",
+        featureHref: "/features/qr",
+        // A3: the old line ("scan, type a name") described the
+        // require-accounts-OFF path AND a display-name step that no longer
+        // exists. Canon framing only; the verified-email nuance is
+        // /features/privacy's to tell.
+        body: "Guests scan, add their photos, and they're in. No app, nothing to install.",
       },
       {
         icon: Radio,
         title: "Watch it fill, live",
-        body: "New photos and videos appear as they're taken. Put the album on a TV and let it build all night.",
+        body: "New photos and videos appear as they're taken. Put the album on a TV and watch it build while the party is still going.",
       },
       {
         icon: Download,
@@ -152,7 +185,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "Do guests need an app or an account?",
-        a: "No. Guests scan the QR code and upload from their phone browser. No install, no sign-up, just a display name.",
+        a: "No. Guests scan the QR code and upload from their phone browser. There's nothing to install and no app to download.",
       },
       {
         q: "Can I show the photos during the party?",
@@ -165,10 +198,13 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Start your party's album",
     ogTitle: "The whole party's camera roll, in one place",
+    reelAngle:
+      "The best candids from every corner of the room, cut into a highlight reel while everyone is still talking about the party.",
   },
   {
     slug: "conferences",
     navLabel: "Conferences",
+    singularLabel: "conference",
     icon: Briefcase,
     teaser:
       "Talks, booths, and hallway moments from hundreds of attendees in one feed.",
@@ -195,6 +231,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: ListChecks,
         title: "Curate before you reshare",
+        featureHref: "/features/curation",
         body: "Approve uploads before they appear, then pull the best shots for recaps, socials, and sponsor reports.",
       },
       {
@@ -228,10 +265,13 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Capture your whole conference",
     ogTitle: "Your conference, captured by everyone there",
+    reelAngle:
+      "The keynote, the booths, and the hallway conversations, cut into a highlight reel that opens your recap email.",
   },
   {
     slug: "trips",
     navLabel: "Trips",
+    singularLabel: "trip",
     icon: Plane,
     teaser:
       "Pool everyone's photos from the whole trip instead of chasing them later.",
@@ -263,6 +303,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Images,
         title: "One link to relive it",
+        featureHref: "/features/sharing",
         body: "Share a single album link when you're home, and everyone can browse and download the whole trip.",
       },
       {
@@ -291,6 +332,8 @@ export const EVENT_TYPES: EventType[] = [
     ],
     ctaTitle: "Make one album for the trip",
     ogTitle: "One shared album for the whole trip",
+    reelAngle:
+      "The whole trip, from the airport selfie to the last sunset, cut into a highlight reel the group can watch on the way home.",
   },
 ];
 
@@ -318,23 +361,29 @@ export const EVENTS_HUB: EventsHub = {
   headline: "Every event, every photo, in one shared album",
   subhead:
     "Weddings, parties, conferences, trips: if your people show up with phones, Partyreel collects what they capture.",
+  // A27: this renders as the type-directory's subhead, where a full SEO
+  // paragraph became a seven-line wall on a phone. One line sets the cards up;
+  // the cards and the FAQ below carry the long-tail terms.
   overview:
-    "The best moments at any event are spread across everyone's cameras, and most of them never reach you. Partyreel turns every guest into a contributor: they scan one QR code and upload straight from their phone, so the whole night lands in a single album you control. Pick your kind of event below, or start free and have a QR ready in a minute.",
+    "Every event runs the same way here. One QR code, one shared album, whatever you're hosting.",
   benefits: [
     {
       icon: QrCode,
-      title: "One QR for any guest list",
-      body: "Print it, project it, or share a link. Ten guests or a thousand, everyone joins the same way with nothing to install.",
+      title: "One code, any size of room",
+      body: "Print it, project it, or drop it in the group chat. Ten guests or a thousand, and no per-guest fees either way.",
     },
     {
       icon: ListChecks,
-      title: "Curate before you share",
-      body: "Approve uploads before they appear, hide anything off-key, and publish one album you're proud of.",
+      title: "The album shows what you choose",
+      body: "Hold uploads for approval, hide anything off-key, and hand out a link you're happy to send anyone.",
     },
     {
       icon: Film,
-      title: "Full quality, no watermark",
-      body: "Photos and long videos arrive at full resolution, ready to download and keep. We never stamp your memories.",
+      // A1 + A35: photo-scoped truth. Photos and the album are never
+      // watermarked on any plan (the small mark is the FREE REEL's alone), and
+      // video is a paid feature, so both paid plans get named here.
+      title: "Full quality photos, never watermarked",
+      body: "Photos land at full resolution on every plan, ready to download and keep. Video comes with Pro and Event Pass.",
     },
     {
       icon: Lock,
@@ -349,7 +398,7 @@ export const EVENTS_HUB: EventsHub = {
     },
     {
       q: "Do my guests need an app or an account?",
-      a: "No. Guests scan your QR code and upload straight from their phone browser. There's nothing to install and no account to create, just a display name.",
+      a: "No. Guests scan your QR code and upload straight from their phone browser. There's nothing to install and no app to download.",
     },
     {
       q: "How many guests can contribute?",

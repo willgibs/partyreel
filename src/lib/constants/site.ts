@@ -1,3 +1,4 @@
+import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { env } from "@/lib/env";
 
 // Single source for the canonical public origin + brand strings. Used by sitemap,
@@ -20,5 +21,7 @@ export const BRAND_HEX = "#101010";
 // never has to change when `help@` receiving is wired up later.
 export const SUPPORT_EMAIL = "help@partyreel.com";
 
-export const SITE_DESCRIPTION =
-  "Collect every photo and video from your event. Guests scan a QR code and upload in seconds. No app, no account.";
+// The site-wide meta description (root layout, manifest, RSS, JSON-LD),
+// composed from the byte-pinned voice constants so every unfurl carries the
+// ruled 2026-08-25 register and a thesis rewrite propagates automatically.
+export const SITE_DESCRIPTION = `${SITE_THESIS} ${SITE_SUBHEAD}`;

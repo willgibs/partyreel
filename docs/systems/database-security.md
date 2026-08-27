@@ -211,6 +211,21 @@ The expected, accepted set:
    anon vs authenticated placement of any new RPC). 3. Regenerate `types.ts`. 4. Add a rolled-back
    Supabase-MCP RPC contract check (run the RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists).
 
+QA-round workflow lessons (2026-07-29 — don't relearn these):
+- **★ Apply BEFORE push when an RPC signature changes.** PostgREST resolves RPCs by argument NAME, so
+  code that passes a new arg before the migration lands fails EVERY call (it broke every guest join in
+  rehearsal). Migration first, then the code push, in one sitting.
+- **Prefer a transition TRIGGER over a revoke when a column's legitimate writers are RPCs.** Inside a
+  SECURITY DEFINER fn `current_user` is `postgres`; a direct PostgREST write is `authenticated` — so a
+  BEFORE trigger can refuse exactly the dangerous client transitions while every legitimate grant
+  survives (the QA's proposed revoke would have broken six moderation paths).
+- **Verify a hand-passed migration payload, don't trust it**: after applying, hash-compare every live
+  `prosrc` to the repo file. ★ Postgres `btrim(text)` trims SPACES only — it leaves the body's
+  leading/trailing newlines so every hash looks wrong by +2 chars; collapse whitespace THEN trim.
+- **A rolled-back contract check must ride EXISTING rows** — creating an event inside the txn trips
+  `enforce_event_limit`; get a locked event by UPDATE-ing one (set `event_password_hash` alongside,
+  per the `events_password_requires_hash` CHECK).
+
 ## See also
 
 [ADR-0001](../adr/0001-supabase-native-data-layer.md) (data layer) · [ADR-0004](../adr/0004-anonymous-guests-capability-tokens.md) (capability tokens) · [ADR-0014](../adr/0014-data-layer-security-posture.md) (the white-hat hardening) · [auth-accounts.md](auth-accounts.md) · [uploads-and-r2.md](uploads-and-r2.md) · [billing-caps.md](billing-caps.md).

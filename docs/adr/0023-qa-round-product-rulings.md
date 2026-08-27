@@ -1,8 +1,8 @@
 # ADR-0023: QA-round product rulings: one plan at a time, gated uploads, reel bytes exempt
 
 **Status:** Accepted (2026-07-29, Will's rulings at the QA planning checkpoint) · **Context:**
-the ~590-agent adversarial QA round of 2026-07-28/29 (fix queue:
-`~/.claude/plans/please-conduct-a-thorough-staged-pixel.md`) surfaced three findings whose fix
+the ~590-agent adversarial QA round of 2026-07-28/29 (fix queue: a session plan file, since retired —
+the remaining queue lives in `docs/ROADMAP.md` "QA hardening") surfaced three findings whose fix
 depended on a product decision rather than an engineering one. Related: ADR-0021 (pricing numbers),
 ADR-0022 (guest surfacing), ADR-0004 (capability tokens).
 

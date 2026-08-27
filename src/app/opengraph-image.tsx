@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { BRAND_HEX } from "@/lib/constants/site";
 
 // Site-wide social card. File-based OG: Next auto-emits og:image + twitter:image
@@ -7,10 +8,11 @@ import { BRAND_HEX } from "@/lib/constants/site";
 // their own opengraph-image). 1200×630 is the standard large-summary card size.
 // No custom font on purpose — loading Geist into satori needs a readFile dance
 // (Next-16 gotcha); the built-in font is fine for a clean wordmark card.
-export const alt = "Partyreel: every photo from your party, in one place";
+// Headline = the byte-pinned SITE_THESIS (the 2026-08-25 voice ruling), so
+// every unfurl advertises the ruled voice; the visual OG pass stays ROADMAP.
+export const alt = `Partyreel. ${SITE_THESIS}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
 
 export default function OgImage() {
   return new ImageResponse(
@@ -78,7 +80,7 @@ export default function OgImage() {
           letterSpacing: "-0.02em",
         }}
       >
-        Every photo from your party, in one place.
+        {SITE_THESIS}
       </div>
       <div
         style={{
@@ -88,7 +90,7 @@ export default function OgImage() {
           color: "#a1a1aa",
         }}
       >
-        Guests scan a QR code and upload. No app, no account.
+        Guests scan one QR code and upload. No app, no account.
       </div>
     </div>,
     { ...size },

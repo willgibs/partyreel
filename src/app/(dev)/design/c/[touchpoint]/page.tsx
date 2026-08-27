@@ -10,6 +10,8 @@ import { HostEventBuildVariants } from "../../components/host-event-build-varian
 import { GalleryActionsVariants } from "../../components/gallery-actions-variants";
 import { MarketingIdentityVariants } from "../../components/marketing-identity-variants";
 import { MarketingVoiceBoards } from "../../components/marketing-voice-boards";
+import { MarketingDecompositionVariants } from "../../components/marketing-decomposition-variants";
+import { MarketingHeroSubstrateVariants } from "../../components/marketing-hero-substrate-variants";
 import { ReelRevealVariants } from "../../components/reel-reveal-variants";
 import { ReelExperienceVariants } from "../../components/reel-experience-variants";
 import { EntryVariants } from "../../components/entry-variants";
@@ -48,6 +50,8 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "gallery-actions": GalleryActionsVariants,
   "marketing-identity": MarketingIdentityVariants,
   "marketing-voice": MarketingVoiceBoards,
+  "marketing-decomposition": MarketingDecompositionVariants,
+  "marketing-hero-substrate": MarketingHeroSubstrateVariants,
   "reel-reveal": ReelRevealVariants,
   "reel-experience": ReelExperienceVariants,
 };

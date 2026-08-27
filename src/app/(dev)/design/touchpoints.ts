@@ -30,6 +30,8 @@ export type TouchpointId =
   | "gallery-actions"
   | "marketing-identity"
   | "marketing-voice"
+  | "marketing-decomposition"
+  | "marketing-hero-substrate"
   | "reel-reveal"
   | "reel-experience";
 
@@ -333,6 +335,50 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "Three copy groupings for the marketing rebuild, all anchored on the owner's ratified eight-line palette but leading with a different thesis (collection, arc, reel-tempered), type-set dark-mono with a three-mode word-animation toggle (Roll default)",
     variants: ["Collection-led", "Arc-led", "Reel-led"],
+    decision: 1,
+    decisionNote:
+      "Ruled in chat (2026-08-25), not as a pure grouping pick: the thesis Will supplied ('The whole event, in one album.') is Collection-led's evolved form, so V1 stands as the shipped spine while 'Arc has a much better voice in the sentence examples' guides the register. He supplied the subhead verbatim + a per-section header map (marketing-voice.ts is the single source; ruled vs provisional flagged there with his notes), warmed the decomposition's third fact to 'Created for you.', ordered pricing after the reel section, and rejected the width-reserving kinetic slot ('a huge inline gap') in favor of a measured, animated width. The word-ANIMATION mode still confirms on the hero prototype.",
+  },
+  {
+    // Track B F5 lab round 1 (2026-08-25, the trackb-marketing-build plan):
+    // the home's SIGNATURE section (IA section 3, the made-from spine's anchor
+    // beat) has NO prototype; the lab-first gate mandates this round before
+    // lp/mkt-home builds it. Two selectable mechanics for the same story (the
+    // hero's reel comes APART into its source tiles while three counters land
+    // as facts): V1 plays once on scroll-into-view; V2 is scrubbed by scroll
+    // (the one sanctioned scroll-linked JS candidate; V1 is the fallback if
+    // the feel is off). The same session carries the plan's tactile candidates
+    // (drag-drop photo pile, card-stack hover) and the mono confetti-burst
+    // proposal for the live demo's "Reel ready" beat (default OFF). `decision`
+    // stays unset until Will rules V1 vs V2 (+ the extras' fate) in-session.
+    id: "marketing-decomposition",
+    title: "Marketing decomposition",
+    surface: "marketing",
+    note: "The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal",
+    variants: [
+      "One-shot play",
+      "Scroll-driven",
+      "Photo-pile drag (extra)",
+      "Card-stack hover (extra)",
+      "Confetti proposal (extra)",
+    ],
+  },
+  {
+    // Track B F5 lab round 2 (2026-08-25, the trackb-marketing-build plan):
+    // decides the PRODUCTION hero. The cinema hero is ruled (Direction B) but
+    // the round-2 voice finding was that a hard word cut needs an IMAGE cut to
+    // motivate it, so this round judges Roll/Type/Cut against MOVING footage: a
+    // substrate slot plays /marketing/reels/hero-candidate-01.mp4 when the
+    // render session has landed it (poster-first, ambient-pause wired) and
+    // falls back to the 4-shot Ken Burns montage until then. The kinetic H1 is
+    // parameterized across ALL THREE voice groupings so an unanswered voice
+    // pick cannot stall it (both picks can land in one sitting). `decision`
+    // stays unset until Will rules the word animation (+ grouping if open).
+    id: "marketing-hero-substrate",
+    title: "Marketing hero substrate",
+    surface: "marketing",
+    note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
+    variants: ["Roll on footage", "Type on footage", "Cut on footage"],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

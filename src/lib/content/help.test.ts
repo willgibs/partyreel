@@ -3,9 +3,16 @@ import { describe, expect, it } from "vitest";
 import {
   extractHeadings,
   getAllArticles,
+  getAllSlugs,
+  getHelpFacts,
+  getSearchIndex,
+  getStartHereArticles,
   HELP_CATEGORIES,
+  HELP_QUICK_LINKS,
   helpFrontmatterSchema,
+  scoreRelated,
   slugify,
+  START_HERE_SLUGS,
 } from "@/lib/content/help";
 
 const articles = getAllArticles();
@@ -44,6 +51,73 @@ describe("help content integrity", () => {
         articles.some((article) => article.frontmatter.category === slug),
       ).toBe(true);
     }
+  });
+});
+
+describe("curated index surfaces (R6)", () => {
+  // The old page-local POPULAR_SLUGS array silently dropped a card when a slug
+  // was renamed; these pins make a dead curated slug a test failure instead.
+  it("every Start-here slug resolves, in curated order", () => {
+    const resolved = getStartHereArticles();
+    expect(resolved.map((article) => article.slug)).toEqual([
+      ...START_HERE_SLUGS,
+    ]);
+  });
+
+  it("every quick-link and numbers-strip href resolves to a real article", () => {
+    const slugs = new Set(getAllSlugs());
+    const hrefs = [
+      ...HELP_QUICK_LINKS.map((link) => link.href),
+      ...getHelpFacts().map((fact) => fact.href),
+    ];
+    for (const href of hrefs) {
+      expect(href.startsWith("/help/")).toBe(true);
+      expect(slugs.has(href.slice("/help/".length))).toBe(true);
+    }
+  });
+
+  it("numbers-strip values render from the real constants (never empty)", () => {
+    for (const fact of getHelpFacts()) {
+      expect(fact.label.trim()).not.toBe("");
+      expect(fact.value.trim()).not.toBe("");
+    }
+  });
+
+  it("the search index carries heading anchors for the palette", () => {
+    const index = getSearchIndex();
+    const howItWorks = index.find((i) => i.slug === "how-partyreel-works");
+    expect(howItWorks).toBeDefined();
+    expect(howItWorks!.headings.length).toBeGreaterThanOrEqual(2);
+    for (const heading of howItWorks!.headings) {
+      expect(heading.id).toMatch(/^[a-z0-9-]+$/);
+      expect(heading.text.trim()).not.toBe("");
+    }
+  });
+});
+
+describe("scoreRelated", () => {
+  it("shared keywords outweigh mere same-category membership", () => {
+    const self = { category: "a", keywords: ["zip", "download"] };
+    const sibling = { category: "a", keywords: ["cover"] };
+    const crossMatch = { category: "b", keywords: ["zip"] };
+    expect(scoreRelated(self, crossMatch)).toBeGreaterThan(
+      scoreRelated(self, sibling),
+    );
+  });
+
+  it("is case-insensitive on keywords and 0 for the unrelated", () => {
+    expect(
+      scoreRelated(
+        { category: "a", keywords: ["Zip"] },
+        { category: "b", keywords: ["zip"] },
+      ),
+    ).toBe(2);
+    expect(
+      scoreRelated(
+        { category: "a", keywords: [] },
+        { category: "b", keywords: ["zip"] },
+      ),
+    ).toBe(0);
   });
 });
 

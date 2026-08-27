@@ -64,6 +64,19 @@ stay Inter" rule; app page + card titles now use the heading face):
 `--tracking-tight` is `0em`, which would CANCEL the utility's -0.03em). `--tracking-tight` stays `0em` so the
 90+ legacy `tracking-tight` usages are no-ops (re-tuning them is its own deferred pass).
 
+**The marketing page-H1 ladder (RULED site-wide 2026-08-27: titles must OWN their headers):** standard
+marketing page H1s ramp `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` (the 72px class on desktop).
+Exemptions by the ruling's own latitude: the HOME hero keeps its unique display ramp (5xl→8xl), `/reel`
+was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
+utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
+keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+
+**The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
+tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
+where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
+devtool" — Will). Existing `MonoCaption` surfaces (press facts, legal status lines, GoDeeper rows) are
+grandfathered pending Will's ruling on a sweep (→ ROADMAP).
+
 ## Rounding: sharp surfaces, round actions
 
 | Layer | Token | Value |
@@ -281,6 +294,13 @@ NOTHING there; the exits-faster rule must override `animation-duration` (`!impor
 `data-state="closed"`). The drawer's TRANSITION only drives drag-release snap-back (under
 `data-state="open"`) — never touch it. Don't trust "vaul hardcodes inline transitions" notes from
 older write-ups.
+
+**Two adjacent craft rules (P4-era, still binding):** any full-width `inset-x-0` overlay floating
+above a GESTURE track needs `pointer-events-none` on the box + `pointer-events-auto` on just its
+controls (`items-center` centers children but the BOX stays edge-to-edge and eats pointerdown across
+its flanks — this once killed swipe-nav on all six shared-viewer surfaces). And the repo's
+react-hooks lint bans setState-in-effect sync resets — use the adjust-state-during-render pattern
+(prev-state comparison) for transient view resets.
 
 ## Where it lives
 

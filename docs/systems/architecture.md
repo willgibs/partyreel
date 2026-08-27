@@ -98,6 +98,15 @@ every local check and break only in production.
   hydrated on prod. Fix: tooltips are **LIGHTBOX-ONLY**. The lightbox (`MediaLightboxLazy`) is
   `dynamic(..., { ssr:false })` = client-only = NO SSR = it **cannot** cause a hydration mismatch, so rich
   client UI (radix tooltips, nested asChild) is safe there; SSR'd tiles must stay simple (native `title`).
+- **A soft RSC refresh (`router.refresh()`) re-renders WITHOUT remounting** — so a sentinel/observer
+  hook with a mount-only `[]`-effect (early-return on a null ref) never attaches when its node first
+  appears via such a refresh (e.g. a password unlock flipping access none→full). Use a CALLBACK ref
+  for any sentinel whose node can appear post-mount.
+- **The gate has a blind spot here: `pnpm build` + `typecheck` do NOT catch RSC serialization errors**
+  (passing a non-serializable prop — a function, a class instance, a Set — across the server→client
+  boundary). The break surfaces only at RUNTIME render, same silent-in-prod family as the mismatch
+  above. When you move code across the boundary, render the page (local or preview), don't trust a
+  green gate.
 - **Verifying host-page hydration:** the **CDP / Chrome-MCP is UNRELIABLE on the heavy `(app)` host page** —
   a programmatic `.click()` doesn't reliably fire React 19's delegated events there, and react-fiber
   inspection FALSE-NEGATIVES (both wrongly read "not hydrated" on a working page). Use the two reliable

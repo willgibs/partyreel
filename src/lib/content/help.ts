@@ -2,15 +2,27 @@ import {
   CreditCard,
   Film,
   Images,
+  QrCode,
   Rocket,
+  Share2,
   ShieldCheck,
   Users,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { cache } from "react";
 import { z } from "zod";
 
-import { type CollectionEntry, loadCollection } from "./collection";
+import { MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { formatBytes } from "@/lib/utils";
+
+import {
+  type CollectionEntry,
+  extractHeadings,
+  loadCollection,
+} from "./collection";
 
 // Re-export the generic content helpers so existing importers of help.ts (the shared
 // MDX components, the article page, the test) keep their import paths unchanged.
@@ -27,51 +39,91 @@ export type { ArticleHeading } from "./collection";
 // never imports it (it receives plain metadata via props). Round 7 (Blog) reuses this
 // same shape with a `content/blog` directory.
 
-// Closed, ordered category set. The index renders sections in THIS order; the
-// frontmatter `category` enum is derived from these slugs (an unknown category fails
-// the build). Icons are decorative section/card accents.
+// Closed, ordered category set — TAXONOMY v3 (R6, ruled by Will 2026-08-26):
+// lifecycle-ordered (set up → invite → guests → album → out → reel → pay → trust →
+// fix), host-voiced except Guest experience, names concise with no leading "The".
+// The frontmatter `category` enum derives from these slugs (an unknown category
+// fails the build), and the Vitest suite requires every category to hold ≥1
+// article — so a NEW category must land in the same commit as its first article.
+// `feature` is the de-silo map: each category's one marketing rung, surfaced as
+// the index pane's tail link + the article end-matter "bigger picture" pointer
+// (labels mirror the nav registry so the two surfaces can't drift in voice).
+// Icons are the legacy card accents (the R6 index draws DOM-art emblems instead;
+// icons remain for any compact surface that wants a glyph).
 export const HELP_CATEGORIES = [
   {
     slug: "getting-started",
     title: "Getting started",
-    blurb: "Create an event, design your QR code, and share it with guests.",
+    blurb: "How it works, your first event, and your dashboard.",
     icon: Rocket,
+    feature: { href: "/how-it-works", label: "How it works" },
   },
   {
-    slug: "for-guests",
-    title: "For guests",
-    blurb: "Joining and uploading: no app, no account, just a phone.",
+    slug: "qr-and-invites",
+    title: "QR & invites",
+    blurb: "The code, the cards, the screens: getting guests in.",
+    icon: QrCode,
+    feature: { href: "/features/qr", label: "The QR code" },
+  },
+  {
+    slug: "guest-experience",
+    title: "Guest experience",
+    blurb: "Joining, uploading, and browsing: no app, no account.",
     icon: Users,
+    feature: { href: "/features/guests", label: "Guests & profiles" },
   },
   {
-    slug: "managing-your-album",
-    title: "Managing your album",
-    blurb: "Curate what shows up and download everything you collect.",
+    slug: "event-album",
+    title: "Event album",
+    blurb: "Review, curate, and shape what everyone sees.",
     icon: Images,
+    // Curation (not /features/album) on purpose: this category answers "will the
+    // album be presentable", the curation rung's question. Album-rung articles
+    // still cross-link at the article level.
+    feature: { href: "/features/curation", label: "Curation" },
+  },
+  {
+    slug: "sharing-and-downloads",
+    title: "Sharing & downloads",
+    blurb: "The album link, full-quality downloads, and the zip.",
+    icon: Share2,
+    feature: { href: "/features/sharing", label: "Sharing & downloads" },
   },
   {
     slug: "highlight-reel",
-    title: "The highlight reel",
-    blurb: "Your event's best moments, auto-compiled into one shareable video.",
+    title: "Highlight reel",
+    blurb: "Your event's best moments, cut into one shareable video.",
     icon: Film,
+    feature: { href: "/reel", label: "The highlight reel" },
   },
   {
     slug: "plans-and-billing",
     title: "Plans & billing",
     blurb: "Storage, the free plan, Pro, and the one-time Event Pass.",
     icon: CreditCard,
+    feature: { href: "/pricing", label: "Pricing" },
   },
   {
     slug: "privacy-and-safety",
     title: "Privacy & safety",
-    blurb: "Who can see your media, how long it's kept, and reporting.",
+    blurb: "Who can see your media, how long it's kept, and your data.",
     icon: ShieldCheck,
+    feature: { href: "/features/privacy", label: "Privacy & trust" },
+  },
+  {
+    slug: "troubleshooting",
+    title: "Troubleshooting",
+    blurb: "When something won't scan, send, or upload.",
+    icon: Wrench,
+    // No marketing rung for failure modes; the contact band is its "up" path.
+    feature: null,
   },
 ] as const satisfies readonly {
   slug: string;
   title: string;
   blurb: string;
   icon: LucideIcon;
+  feature: { href: string; label: string } | null;
 }[];
 
 export type HelpCategory = (typeof HELP_CATEGORIES)[number];
@@ -147,22 +199,56 @@ export function getArticlesByCategory(): {
   })).filter((group) => group.articles.length > 0);
 }
 
-// Same-category siblings (excluding the current article) for "Related articles".
+/**
+ * Relatedness score between two articles (R6): shared frontmatter keywords carry
+ * the signal (x2, case-insensitive), same category adds a base point. Pure so the
+ * Vitest unit test can drive it with synthetic fixtures; a score of 0 means "not
+ * related" and never renders. This replaced same-category-first-3, which left any
+ * alone-in-its-category article with an empty Related section and could never
+ * cross categories.
+ */
+export function scoreRelated(
+  a: { category: string; keywords: readonly string[] },
+  b: { category: string; keywords: readonly string[] },
+): number {
+  const mine = new Set(a.keywords.map((k) => k.toLowerCase()));
+  const shared = b.keywords.filter((k) => mine.has(k.toLowerCase())).length;
+  return shared * 2 + (a.category === b.category ? 1 : 0);
+}
+
+// Scored related articles; ties break on the canonical index order so results are
+// deterministic. Under-filling is intentional (never pad with unrelated articles).
 export function getRelatedArticles(
   article: HelpArticle,
   limit = 3,
 ): HelpArticle[] {
+  const self = {
+    category: article.frontmatter.category,
+    keywords: article.frontmatter.keywords,
+  };
   return getAllArticles()
-    .filter(
-      (a) =>
-        a.frontmatter.category === article.frontmatter.category &&
-        a.slug !== article.slug,
-    )
-    .slice(0, limit);
+    .map((candidate, index) => ({
+      candidate,
+      index,
+      score:
+        candidate.slug === article.slug
+          ? 0
+          : scoreRelated(self, {
+              category: candidate.frontmatter.category,
+              keywords: candidate.frontmatter.keywords,
+            }),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, limit)
+    .map((entry) => entry.candidate);
 }
 
-// Light, serializable metadata for the client search component (NO bodies — they stay
-// on the server). Shape kept flat so it crosses the server→client boundary cleanly.
+// Light, serializable metadata for the client search palette (NO bodies — they stay
+// on the server; headings are the one body-derived signal, small and high-value:
+// they let the palette deep-link straight to a section). Shape kept flat so it
+// crosses the server→client boundary cleanly; the ranking logic lives in the
+// fs-free `help-search-rank.ts`, which imports this TYPE only.
 export type HelpSearchItem = {
   slug: string;
   title: string;
@@ -170,6 +256,7 @@ export type HelpSearchItem = {
   category: HelpCategorySlug;
   categoryTitle: string;
   keywords: string[];
+  headings: { id: string; text: string }[];
 };
 
 export function getSearchIndex(): HelpSearchItem[] {
@@ -180,5 +267,74 @@ export function getSearchIndex(): HelpSearchItem[] {
     category: article.frontmatter.category,
     categoryTitle: getCategory(article.frontmatter.category).title,
     keywords: article.frontmatter.keywords,
+    headings: extractHeadings(article.body),
   }));
+}
+
+// ── Curated index surfaces (R6) ────────────────────────────────────────────────
+// Single-sourced here (server-only) so the index page stays declarative and the
+// Vitest existence test can catch a renamed slug — the old page-local POPULAR_SLUGS
+// array silently dropped a card on rename. Order is render order.
+
+/** The "Start here" trio on /help. */
+export const START_HERE_SLUGS = [
+  "how-partyreel-works",
+  "create-your-first-event",
+  "the-highlight-reel",
+] as const;
+
+export function getStartHereArticles(): HelpArticle[] {
+  // Preserves the curated order; the existence test guarantees every slug resolves.
+  return START_HERE_SLUGS.map((slug) => getArticle(slug)).filter(
+    (article): article is HelpArticle => article !== null,
+  );
+}
+
+/**
+ * Quick-link chips under the hero search: the questions people actually arrive
+ * with, one deliberately guest-voiced (the guest fast-lane). Labels PROVISIONAL.
+ */
+export const HELP_QUICK_LINKS = [
+  { label: "What's on the free plan?", href: "/help/storage-plans-and-limits" },
+  { label: "How do guests join?", href: "/help/how-guests-join-and-upload" },
+  {
+    label: "Download everything",
+    href: "/help/download-photos-videos-and-albums",
+  },
+  { label: "Is my event private?", href: "/help/who-can-see-your-event" },
+] as const satisfies readonly { label: string; href: string }[];
+
+/**
+ * "The numbers" strip on /help: the product's hard limits at a glance, every
+ * value rendered FROM the real constant (never hand-typed — the whole point),
+ * each linking to the article that explains it. Server-only by construction.
+ */
+export function getHelpFacts(): { label: string; value: string; href: string }[] {
+  return [
+    {
+      label: "Max upload size",
+      value: formatBytes(MAX_UPLOAD_BYTES),
+      href: "/help/how-guests-join-and-upload",
+    },
+    {
+      label: "Free storage",
+      value: formatBytes(planById("free").storageBytes),
+      href: "/help/storage-plans-and-limits",
+    },
+    {
+      label: "Recovery window",
+      value: `${RECENTLY_DELETED_WINDOW_DAYS} days`,
+      href: "/help/moderate-and-curate-your-album",
+    },
+    {
+      label: "Reel, free / paid",
+      value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
+      href: "/help/the-highlight-reel",
+    },
+    {
+      label: "Event Pass storage",
+      value: formatBytes(planById("event_pass").storageBytes),
+      href: "/help/pro-vs-event-pass",
+    },
+  ];
 }

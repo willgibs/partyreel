@@ -27,6 +27,7 @@ import {
   type EngineSupport,
   probeEngineSupport,
 } from "@/lib/reel/engine/support";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { resolveTheme } from "@/lib/reel/engine/themes";
 
 // LOCAL fixtures on purpose: the canvas reads back pixels for the encode, and a cross-origin host
@@ -52,6 +53,38 @@ const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h, type }) => ({
   height: h,
 }));
 
+// Dev-only clip SETS (Track B F4): the lab pack above stays the default; the
+// marketing sets pull same-origin manifest media so hero-loop candidates render
+// from the real curated set. Composed by id so a manifest swap re-points them.
+const marketingClip = (id: string): ReelClip => {
+  const m = marketingImage(id);
+  return { url: m.src, type: "photo", width: m.width, height: m.height };
+};
+
+const CLIP_SETS: { id: string; label: string; clips: ReelClip[] }[] = [
+  { id: "lab", label: "Lab pack (current)", clips: CLIPS },
+  {
+    id: "mkt-wedding",
+    label: "Marketing: wedding arc",
+    clips: ["wedding-golden", "wedding-rings", "wedding-arch", "wedding-petals", "wedding-toast", "reception-table"].map(marketingClip),
+  },
+  {
+    id: "mkt-party",
+    label: "Marketing: party arc",
+    clips: ["party-balloons", "reception-hall", "party-dj", "concert-confetti"].map(marketingClip),
+  },
+  {
+    id: "mkt-festival",
+    label: "Marketing: festival arc",
+    clips: ["festival-lights", "festival-crowd", "concert-confetti", "party-dj"].map(marketingClip),
+  },
+  {
+    id: "mkt-mixed",
+    label: "Marketing: mixed 6",
+    clips: ["wedding-golden", "party-balloons", "festival-crowd", "wedding-petals", "party-dj", "wedding-toast"].map(marketingClip),
+  },
+];
+
 // The styles this browser can show = whatever the engine has (the registry is the single source, so a
 // new style appears here automatically); the catalog names them.
 const STYLE_IDS = Object.keys(ENGINE_STYLES);
@@ -65,6 +98,7 @@ const STYLE_IDS = Object.keys(ENGINE_STYLES);
  */
 export function ReelCanvasStyles() {
   const [styleId, setStyleId] = useState("classic");
+  const [clipSetId, setClipSetId] = useState("lab");
   const [seed, setSeed] = useState(73);
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [watermark, setWatermark] = useState(true);
@@ -89,9 +123,16 @@ export function ReelCanvasStyles() {
     seconds: number;
   } | null>(null);
 
+  // The selected set's clips: a stable per-set reference, so the memo below
+  // re-derives exactly when the set changes.
+  const clips = useMemo(
+    () => (CLIP_SETS.find((s) => s.id === clipSetId) ?? CLIP_SETS[0]).clips,
+    [clipSetId],
+  );
+
   const reelProps: ReelProps = useMemo(
     () => ({
-      clips: CLIPS,
+      clips,
       // A treatment renders with its NATIVE theme (polaroid -> warm, ...), exactly like
       // build-reel-props resolves it; a mood's styleId IS its themeId (a pass-through).
       theme: resolveTheme(styleThemeId(styleId)),
@@ -100,7 +141,7 @@ export function ReelCanvasStyles() {
       orientation,
       watermark,
     }),
-    [styleId, seed, orientation, watermark],
+    [clips, styleId, seed, orientation, watermark],
   );
 
   const durationInFrames = useMemo(
@@ -164,8 +205,8 @@ export function ReelCanvasStyles() {
   };
 
   // Re-key the player on the shared inputs so free-run playback restarts. wmVariant is in the key so a
-  // variant flip re-renders immediately.
-  const restartKey = `${styleId}-${seed}-${orientation}-${watermark}-${wmVariant}`;
+  // variant flip re-renders immediately; the clip-set id so a set change restarts from frame 0.
+  const restartKey = `${clipSetId}-${styleId}-${seed}-${orientation}-${watermark}-${wmVariant}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
@@ -181,6 +222,19 @@ export function ReelCanvasStyles() {
 
       {/* Shared inputs */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <select
+          value={clipSetId}
+          onChange={(e) => setClipSetId(e.target.value)}
+          aria-label="Clip set"
+          className="rounded-md border bg-transparent px-2 py-1.5 text-sm"
+        >
+          {CLIP_SETS.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        <div className="h-5 w-px bg-border" aria-hidden />
         <select
           value={styleId}
           onChange={(e) => {

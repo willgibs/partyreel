@@ -29,8 +29,9 @@ The orphan sweep (delete R2 objects that have no `media` row) is guarded by `eva
 deletes NOTHING and alerts (Sentry + a deduped operator email) when the `media` table is empty OR the
 orphan set exceeds an absolute (1000) / fractional (25% of objects scanned) cap. So a DB fault (bad
 migration, snapshot restore, mass delete, RLS/query bug) can't let one run wipe the bucket.
-**Note:** `media` is currently empty pre-launch, so the breaker is protectively ACTIVE — reclaim
-intentional orphans via a force-purge path, not the guarded cron.
+**Note:** pre-launch the `media` table holds only a small set of disposable test rows (~16 as of
+2026-08-27), so the empty-table breaker arms whenever a test reset empties it — reclaim intentional
+orphans via a force-purge path, not the guarded cron.
 
 ## Pillar B — real-time media backup (Worker → locked 2nd bucket)
 
@@ -89,8 +90,9 @@ admin-portal **P8** → [admin-observability.md](admin-observability.md) + [`../
 The backup is **keep-all by design**: an age-based "expire after N days" rule was REJECTED because it would
 delete backups of media that is still LIVE in the primary. So the backup is **accrue-only** — when media
 leaves the primary (guest/host delete, the purge cron, the orphan sweep), the primary object disappears but
-its backup copy stays, so backup storage climbs as media churns (primary `partyreel` ~0 B pre-launch, backup
-`partyreel-backup` ~136 MB). The prune bounds that growth. It is the **inverse of the orphan sweep** and the
+its backup copy stays, so backup storage climbs as media churns (pre-launch the primary holds only
+disposable test media while the accrue-only backup keeps every object that ever existed — the gap IS
+the prune's target). The prune bounds that growth. It is the **inverse of the orphan sweep** and the
 **single most dangerous job in the system — the ONLY job that DELETES from the backup (the last-resort
 copy)** — so it is layered defense-in-depth:
 

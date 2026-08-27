@@ -2,7 +2,12 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    // AVIF preferred, WebP fallback (array order matters). The default config
+    // serves WebP only; the hero poster is the marketing LCP element, so the
+    // smaller format pays the budget back directly (Track B, B1).
+    formats: ["image/avif", "image/webp"],
+  },
 };
 
 // Sentry build wiring (R2). Source-map upload is gated on the build-time creds — when
