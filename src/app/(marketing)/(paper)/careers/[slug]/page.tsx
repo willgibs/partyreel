@@ -59,7 +59,7 @@ export default async function RolePage({
             <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
             Careers
           </Link>
-          <h1 className="mt-6 font-heading text-4xl text-balance sm:text-5xl">
+          <h1 className="mt-6 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
             {job.title}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">

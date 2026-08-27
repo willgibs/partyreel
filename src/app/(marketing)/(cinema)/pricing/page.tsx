@@ -163,7 +163,7 @@ export default function PricingPage() {
             </Eyebrow>
             <h1
               data-mkt-reveal
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+              className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ "--i": 1 } as CSSProperties}
             >
               {GOLDEN_LINES.pricing}.

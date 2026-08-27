@@ -58,7 +58,7 @@ export default function EventsHub() {
             <Eyebrow {...cut(0)}>{EVENTS_HUB.eyebrow}</Eyebrow>
             <h1
               {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+              className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
             >
               {EVENTS_HUB.headline}
             </h1>

@@ -75,7 +75,7 @@ export default function PressPage() {
               Press &amp; brand
             </Eyebrow>
             <h1
-              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl"
+              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ "--i": 1 } as CSSProperties}
             >
               Writing about Partyreel?

@@ -101,7 +101,7 @@ export default async function BlogPostPage({
                   ))}
                 </div>
               )}
-              <h1 className="font-heading text-4xl text-balance sm:text-5xl">
+              <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                 {post.frontmatter.title}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs tracking-wide text-muted-foreground">

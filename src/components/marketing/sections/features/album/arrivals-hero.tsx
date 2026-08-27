@@ -103,7 +103,7 @@ export function ArrivalsHero() {
           <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
           <h1
             {...cut(1)}
-            className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl"
+            className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
           >
             {page.h1}
           </h1>

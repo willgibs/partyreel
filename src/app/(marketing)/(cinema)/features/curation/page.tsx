@@ -76,7 +76,7 @@ export default function CurationFeaturePage() {
                 R4 — the hero's headline is the LCP-adjacent anchor and the
                 post-hydration re-cut read as a flash. Secondary elements
                 keep the register. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
               {page.h1}
             </h1>
             <p

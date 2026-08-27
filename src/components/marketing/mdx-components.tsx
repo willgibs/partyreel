@@ -9,8 +9,11 @@ import {
   type ReactNode,
 } from "react";
 
-import { AlbumFrame } from "@/components/marketing/frames";
+import Image from "next/image";
+
+import { BrowserFrame } from "@/components/marketing/frames";
 import { Kbd } from "@/components/shared/kbd";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
 import { planById } from "@/lib/constants/tiers";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
@@ -74,8 +77,10 @@ export function Callout({
 }) {
   const { Icon, box, icon } = CALLOUT[type];
   return (
-    <div className={cn("my-6 flex gap-3 rounded-xl border p-4", box)}>
-      <Icon className={cn("mt-0.5 size-5 shrink-0", icon)} aria-hidden />
+    <div className={cn("my-6 flex gap-3.5 rounded-xl border p-4", box)}>
+      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border bg-card">
+        <Icon className={cn("size-4", icon)} aria-hidden />
+      </span>
       {/* Trim the first/last child margins so the box hugs its prose content. */}
       <div className="text-sm [&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {title && <p className="font-medium text-foreground">{title}</p>}
@@ -85,7 +90,20 @@ export function Callout({
   );
 }
 
-// ── AlbumShowcase — drop the shared media frame into an article (decorative) ─────
+// ── AlbumShowcase — a real album moment inside an article (decorative) ──────────
+// Eight manifest photographs in the browser frame: the media-is-the-color rule
+// applied to long-form (the old gray placeholder tiles read as wireframe).
+const SHOWCASE_IMAGE_IDS = [
+  "party-balloons",
+  "wedding-golden",
+  "concert-confetti",
+  "reception-table",
+  "party-dj",
+  "wedding-toast",
+  "festival-lights",
+  "reception-hall",
+] as const;
+
 export function AlbumShowcase({
   label,
   caption,
@@ -95,7 +113,30 @@ export function AlbumShowcase({
 }) {
   return (
     <figure className="not-prose my-8">
-      <AlbumFrame label={label} />
+      <BrowserFrame label={label}>
+        <div
+          aria-hidden
+          className="grid grid-cols-4 gap-[var(--gap-gallery)] overflow-hidden rounded-lg"
+        >
+          {SHOWCASE_IMAGE_IDS.map((id) => {
+            const img = marketingImage(id);
+            return (
+              <span
+                key={id}
+                className="relative block aspect-square overflow-hidden rounded-[var(--radius-tile)]"
+              >
+                <Image
+                  src={img.src}
+                  alt=""
+                  fill
+                  sizes="180px"
+                  className="object-cover"
+                />
+              </span>
+            );
+          })}
+        </div>
+      </BrowserFrame>
       {caption && (
         <figcaption className="mt-3 text-center text-sm text-muted-foreground">
           {caption}

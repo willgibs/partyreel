@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
+import { CategoryEmblem } from "@/components/marketing/help/help-emblems";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
@@ -115,7 +116,19 @@ export default async function HelpArticlePage({
           answer arriving out of the dark is the article's whole thesis. */}
       <section>
         <Container className="pt-10 pb-0 sm:pt-12">
-          <div className="mx-auto max-w-5xl">
+          <div className="relative mx-auto max-w-5xl">
+            {/* Stage art: the category's emblem drawn LARGE in light ink on
+                the dark room (the strokes are border-foreground, so cinema
+                renders them light for free) — fills the stage's right reach
+                so the header stops feeling like narrow content on a void. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 right-10 hidden -translate-y-1/3 opacity-30 lg:block xl:right-20"
+            >
+              <span className="block scale-[2.75]">
+                <CategoryEmblem slug={category.slug} size="lg" />
+              </span>
+            </span>
             <div className="max-w-2xl min-w-0">
               <div className="flex items-center justify-between gap-4">
                 <Link
@@ -147,7 +160,7 @@ export default async function HelpArticlePage({
                     </Badge>
                   </Link>
                 </span>
-                <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
+                <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                   {article.frontmatter.title}
                 </h1>
                 <p className="mt-4 text-sm text-muted-foreground tabular-nums">
@@ -274,8 +287,12 @@ export default async function HelpArticlePage({
             </section>
           </div>
 
+          {/* aside self-stretch is LOAD-BEARING: the grid's lg:items-start
+              collapses the rail to content height, leaving sticky zero travel
+              room — the ToC never tracked (Will's catch). Stretching restores
+              the full-column runway for sticky top-24. */}
           {headings.length >= 2 && (
-            <aside className="hidden shrink-0 lg:block lg:w-48">
+            <aside className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch">
               <nav aria-label="On this page" className="sticky top-24">
                 <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
