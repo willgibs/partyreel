@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { compileMDX } from "next-mdx-remote/rsc";
 import Link from "next/link";
@@ -8,19 +8,24 @@ import remarkGfm from "remark-gfm";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { readingTime } from "@/lib/content/collection";
 import {
   extractHeadings,
+  getAllArticles,
   getAllSlugs,
   getArticle,
   getCategory,
   getRelatedArticles,
+  type HelpArticle,
 } from "@/lib/content/help";
-import { formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
+import { ArticleFeedback } from "../article-feedback";
+import { ArticleToc } from "../article-toc";
+import { HeadingAnchorsDelegate } from "../heading-anchors";
 import { HelpSearchTrigger } from "../help-palette";
 
 export function generateStaticParams() {
@@ -39,6 +44,17 @@ export async function generateMetadata({
     title: article.frontmatter.title,
     description: article.frontmatter.description,
     alternates: { canonical: `/help/${slug}` },
+    openGraph: {
+      // `tags`, not `keywords` (which is not an openGraph field and would
+      // silently do nothing). The share IMAGE comes from the file-convention
+      // opengraph-image.tsx beside this page.
+      type: "article",
+      publishedTime: article.frontmatter.updated,
+      modifiedTime: article.frontmatter.updated,
+      tags: article.frontmatter.keywords.length
+        ? article.frontmatter.keywords
+        : undefined,
+    },
   };
 }
 
@@ -54,6 +70,15 @@ export default async function HelpArticlePage({
   const category = getCategory(article.frontmatter.category);
   const headings = extractHeadings(article.body);
   const related = getRelatedArticles(article);
+
+  // Prev/next within the category's shipping order (getAllArticles is already
+  // category+order sorted); under-populated ends just render one card.
+  const siblings = getAllArticles().filter(
+    (a) => a.frontmatter.category === article.frontmatter.category,
+  );
+  const at = siblings.findIndex((a) => a.slug === slug);
+  const prev = at > 0 ? siblings[at - 1] : null;
+  const next = at >= 0 && at < siblings.length - 1 ? siblings[at + 1] : null;
 
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
   // container. Frontmatter is already stripped (gray-matter), so no parseFrontmatter.
@@ -99,17 +124,54 @@ export default async function HelpArticlePage({
             </div>
 
             {/* Header ladder (the 2026-08-25 type ruling): article H1 reaches
-                4xl/5xl in the heading face; the meta line goes mono (the
-                marketing caption voice for factual lines). */}
+                4xl/5xl in the heading face; the meta line is Inter small muted
+                with tabular digits (the R6 mono ruling: mono only for
+                numerals/tabular alignment, never caption prose). */}
             <header className="mt-6">
               <Badge variant="secondary">{category.title}</Badge>
               <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl">
                 {article.frontmatter.title}
               </h1>
-              <MonoCaption className="mt-4">
-                Updated {formatEventDate(article.frontmatter.updated)}
-              </MonoCaption>
+              <p className="mt-4 text-sm text-muted-foreground tabular-nums">
+                Updated {formatEventDate(article.frontmatter.updated)} &middot;{" "}
+                {readingTime(article.body)}
+              </p>
             </header>
+
+            {/* THE SHORT ANSWER (R6, answer-first): the frontmatter description
+                rendered as the article's lead — the legal shell's two-register
+                "In short" pattern come home. AUTHORING.md binds authors to
+                write descriptions that can carry this slot. */}
+            <div className="mt-7 border-l-2 border-foreground/25 pl-4">
+              <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                In short
+              </p>
+              <p className="mt-1.5 leading-7 text-pretty">
+                {article.frontmatter.description}
+              </p>
+            </div>
+
+            {/* Mobile contents: the zero-JS chip row (the desktop rail is
+                lg-only; an accordion here was deliberately cut). */}
+            {headings.length >= 2 && (
+              <nav
+                aria-label="On this page"
+                className="mt-7 flex flex-wrap items-center gap-2 lg:hidden"
+              >
+                <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                  On this page
+                </span>
+                {headings.map((heading) => (
+                  <a
+                    key={heading.id}
+                    href={`#${heading.id}`}
+                    className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
+                  >
+                    {heading.text}
+                  </a>
+                ))}
+              </nav>
+            )}
 
             {/* prose-headings:font-heading pulls the article's h2/h3 onto the
                 house heading face (Urbanist) so long-form matches the chrome;
@@ -117,9 +179,27 @@ export default async function HelpArticlePage({
             <article className="prose mt-8 max-w-none prose-help prose-headings:font-heading">
               {content}
             </article>
+            {/* One delegated island upgrades every heading's copy-link anchor. */}
+            <HeadingAnchorsDelegate />
+
+            <ArticleFeedback slug={slug} />
+
+            {(prev || next) && (
+              <nav
+                aria-label={`More in ${category.title}`}
+                className="mt-10 grid gap-3 sm:grid-cols-2"
+              >
+                {prev ? (
+                  <PaginationCard direction="prev" article={prev} />
+                ) : (
+                  <span aria-hidden className="hidden sm:block" />
+                )}
+                {next && <PaginationCard direction="next" article={next} />}
+              </nav>
+            )}
 
             {related.length > 0 && (
-              <section className="mt-16 border-t pt-10">
+              <section className="mt-12 border-t pt-10">
                 <h2 className="font-heading text-xl tracking-tight">
                   Related articles
                 </h2>
@@ -138,7 +218,21 @@ export default async function HelpArticlePage({
               </section>
             )}
 
-            <section className="mt-12 rounded-2xl border bg-muted/30 p-8 text-center">
+            {/* The ladder points UP too (the de-silo ruling): each category
+                maps to one marketing rung. */}
+            {category.feature && (
+              <p className="mt-10 text-sm text-muted-foreground">
+                Want the bigger picture?{" "}
+                <LearnMoreLink
+                  href={category.feature.href}
+                  className="text-foreground"
+                >
+                  {category.feature.label}
+                </LearnMoreLink>
+              </p>
+            )}
+
+            <section className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center">
               <h2 className="font-heading text-xl tracking-tight">
                 Still need help?
               </h2>
@@ -147,7 +241,7 @@ export default async function HelpArticlePage({
                 back to you.
               </p>
               <Button asChild className="mt-4">
-                <Link href="/contact">Contact us</Link>
+                <Link href={`/contact?about=${slug}`}>Contact us</Link>
               </Button>
             </section>
           </div>
@@ -158,23 +252,46 @@ export default async function HelpArticlePage({
                 <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
                 </p>
-                <ul className="mt-3 flex flex-col border-l">
-                  {headings.map((heading) => (
-                    <li key={heading.id}>
-                      <a
-                        href={`#${heading.id}`}
-                        className="-ml-px block border-l border-transparent py-1.5 pl-3 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground hover:text-foreground"
-                      >
-                        {heading.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                <ArticleToc headings={headings} />
               </nav>
             </aside>
           )}
         </div>
       </Container>
     </>
+  );
+}
+
+// Prev/next within the category: the reading order made walkable. Direction
+// shapes alignment + which arrow nudges on hover.
+function PaginationCard({
+  direction,
+  article,
+}: {
+  direction: "prev" | "next";
+  article: HelpArticle;
+}) {
+  const isNext = direction === "next";
+  return (
+    <Link
+      href={`/help/${article.slug}`}
+      className={cn(
+        "group flex flex-col gap-1.5 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]",
+        isNext && "items-end text-right",
+      )}
+    >
+      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        {!isNext && (
+          <ArrowLeft className="size-3.5 transition-transform duration-150 group-hover:-translate-x-0.5" />
+        )}
+        {isNext ? "Next" : "Previous"}
+        {isNext && (
+          <ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+        )}
+      </span>
+      <span className="text-sm font-medium text-balance text-foreground">
+        {article.frontmatter.title}
+      </span>
+    </Link>
   );
 }
