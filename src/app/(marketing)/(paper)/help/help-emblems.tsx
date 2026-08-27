@@ -108,20 +108,31 @@ function Scene({ slug }: { slug: string }) {
 
 export function CategoryEmblem({
   slug,
+  size = "md",
   className,
 }: {
   slug: string;
+  /** md = row/strip scale; lg = the sheet-pane folio scale (scaled scene). */
+  size?: "md" | "lg";
   className?: string;
 }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "flex size-11 shrink-0 items-center justify-center transition-transform duration-200 ease-emphasis group-hover:-translate-y-0.5 motion-reduce:transition-none",
+        "flex shrink-0 items-center justify-center transition-transform duration-200 ease-emphasis group-hover:-translate-y-0.5 motion-reduce:transition-none",
+        size === "lg" ? "size-14" : "size-11",
         className,
       )}
     >
-      <Scene slug={slug} />
+      <span
+        className={cn(
+          "flex items-center justify-center",
+          size === "lg" && "scale-[1.35]",
+        )}
+      >
+        <Scene slug={slug} />
+      </span>
     </span>
   );
 }

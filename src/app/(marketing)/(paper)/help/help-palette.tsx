@@ -485,7 +485,9 @@ export function HelpSearchTrigger({
       type="button"
       onClick={open}
       className={cn(
-        "flex h-12 w-full max-w-xl items-center gap-3 rounded-full border bg-card px-5 pr-2.5 text-left shadow-xs ring-1 ring-foreground/5 transition-[border-color,box-shadow] duration-150 hover:border-foreground/25 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none",
+        // The desk elevation: the search field is the page's primary
+        // instrument, so it carries the float shadow at rest (R6 polish).
+        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left shadow-float ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
         className,
       )}
     >

@@ -327,13 +327,13 @@ export function getHelpFacts(): { label: string; value: string; href: string }[]
       href: "/help/moderate-and-curate-your-album",
     },
     {
-      label: "Reel length",
-      value: `${MAX_REEL_SECONDS.free}s free, ${MAX_REEL_SECONDS.pro}s paid`,
+      label: "Reel, free / paid",
+      value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
       href: "/help/the-highlight-reel",
     },
     {
-      label: "Event Pass",
-      value: `${formatBytes(planById("event_pass").storageBytes)}, about a year`,
+      label: "Event Pass storage",
+      value: formatBytes(planById("event_pass").storageBytes),
       href: "/help/pro-vs-event-pass",
     },
   ];
