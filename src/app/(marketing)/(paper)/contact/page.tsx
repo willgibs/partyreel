@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { SectionShell } from "@/components/marketing/system/section-shell";
+import { getAllArticles } from "@/lib/content/help";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 
 import { ContactForm } from "./contact-form";
@@ -16,6 +17,18 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  // The help→contact handoff (R6): a help article's "didn't answer it" path
+  // links /contact?about=<slug>. The page STAYS static (no searchParams read —
+  // any dynamic API would flip the whole route to per-request rendering); the
+  // slug→title map is baked at build and the client island reads
+  // window.location on mount, prefilling the subject ONLY for a known slug (so
+  // a crafted query can never inject free text into the field).
+  const helpSubjects = Object.fromEntries(
+    getAllArticles().map((article) => [
+      article.slug,
+      article.frontmatter.title,
+    ]),
+  );
   return (
     // as="h1": the page's lead (and only) section heading — /contact previously
     // shipped with NO h1 (the audit gap this SectionShell prop exists to fix).
@@ -79,7 +92,7 @@ export default function ContactPage() {
             </span>
           </Link>
         </div>
-        <ContactForm />
+        <ContactForm helpSubjects={helpSubjects} />
       </div>
     </SectionShell>
   );

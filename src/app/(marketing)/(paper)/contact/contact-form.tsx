@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -32,7 +32,12 @@ function FormCard({ children }: { children: ReactNode }) {
   );
 }
 
-export function ContactForm() {
+export function ContactForm({
+  helpSubjects,
+}: {
+  /** Build-time slug→title map for the help handoff (?about=<slug>). */
+  helpSubjects?: Record<string, string>;
+}) {
   const [submitted, setSubmitted] = useState(false);
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
@@ -45,6 +50,20 @@ export function ContactForm() {
     },
   });
   const { isSubmitting } = form.formState;
+
+  // Help handoff: prefill the subject from ?about=<slug>, allowlisted against
+  // the build-time map so nothing attacker-controlled reaches the field. Read
+  // in a mount effect (never useSearchParams: on this static route it would
+  // demand a Suspense boundary or deopt the page; the motion-tuner precedent).
+  // Server and first client render both produce "" — no hydration mismatch.
+  useEffect(() => {
+    if (!helpSubjects) return;
+    const slug = new URLSearchParams(window.location.search).get("about");
+    const title = slug ? helpSubjects[slug] : undefined;
+    if (title && !form.getValues("subject")) {
+      form.setValue("subject", `Help: ${title}`, { shouldDirty: false });
+    }
+  }, [form, helpSubjects]);
 
   async function onSubmit(values: ContactInput) {
     const result = await submitContactForm(values);
