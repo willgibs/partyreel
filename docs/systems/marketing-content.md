@@ -39,11 +39,25 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   + `next-mdx-remote/rsc` + **build-time zod frontmatter validation**. The generic core is
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +
   `extractHeadings` + `readingTime` + `escapeXml`); [`help.ts`](../../src/lib/content/help.ts) +
-  [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help: categorized index + client-side search
-  ([`help-search.tsx`](../../src/app/(marketing)/help/help-search.tsx)) + first-party MDX components
+  [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help (rebuilt R6, 2026-08-26 — "the index
+  of everything"): a NINE-category lifecycle taxonomy (each category carries a `feature` link up to its
+  marketing rung; a new category must land WITH its first article — the test requires ≥1 per category) +
+  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(paper)/help/layout.tsx)
+  ([`help-palette.tsx`](../../src/app/(marketing)/(paper)/help/help-palette.tsx); pure fs-free scorer in
+  [`help-search-rank.ts`](../../src/lib/content/help-search-rank.ts) — heading hits deep-link to sections
+  only when they're the sole match reason, plus a static "Pages" tail onward to the site) + the index
+  sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/app/(marketing)/(paper)/help/help-emblems.tsx),
+  a live-constants "numbers" strip) + answer-first articles (the frontmatter `description` renders as the
+  "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated copy-anchor island; prev/next;
+  an honest feedback row handing misses to `/contact?about=<slug>`, which the static contact page prefills
+  from an allowlist). First-party MDX components
   ([`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx) — `Callout`, `AlbumShowcase`,
-  inline spec components reading the `limits.ts`/`tiers.ts` single sources so numbers can't drift) + a
-  `prose-help` theme. Blog: date-sorted index + client-side tag filter, a client-safe author registry
+  `Steps`/`Step`, `Kbd`, `UiLabel`, inline spec components reading the `limits.ts`/`tiers.ts` single sources
+  so numbers can't drift; NOTHING client-side may import it, it reaches `node:fs`) + a `prose-help` theme.
+  ★ The R6 MONO RULING (Will): mono type is for numerals/tabular alignment ONLY in standard UI — captions,
+  labels, and CTA notes are Inter. The content agent's brief lives at
+  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
+  writing rules; the content-policy tests scan `.md` too so the brief obeys itself). Blog: date-sorted index + client-side tag filter, a client-safe author registry
   ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards, and a
   build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
   that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
