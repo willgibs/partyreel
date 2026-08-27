@@ -295,6 +295,13 @@ NOTHING there; the exits-faster rule must override `animation-duration` (`!impor
 `data-state="open"`) — never touch it. Don't trust "vaul hardcodes inline transitions" notes from
 older write-ups.
 
+**Two adjacent craft rules (P4-era, still binding):** any full-width `inset-x-0` overlay floating
+above a GESTURE track needs `pointer-events-none` on the box + `pointer-events-auto` on just its
+controls (`items-center` centers children but the BOX stays edge-to-edge and eats pointerdown across
+its flanks — this once killed swipe-nav on all six shared-viewer surfaces). And the repo's
+react-hooks lint bans setState-in-effect sync resets — use the adjust-state-during-render pattern
+(prev-state comparison) for transient view resets.
+
 ## Where it lives
 
 `src/app/globals.css` (tokens + utilities + guards, the single source) ·
