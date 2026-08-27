@@ -75,24 +75,30 @@ export function resolveSubscriptionUpdate(
   };
 }
 
-export type EventPassPatch = {
+export type EventPassCheckoutRef = {
   /** profiles.id — Event Pass is provisioned by user id (client_reference_id). */
   userId: string;
   customerId: string;
-  storageCapBytes: number;
-  /** ISO timestamp — when the pass lapses (the expiry sweep downgrades to Free). */
-  tierExpiresAt: string;
+  /** The idempotency key: one session mints at most one ledger row. */
+  sessionId: string;
+  /** session.created in ms — the purchase instant the window derives from. */
+  createdMs: number;
+  /** Checkout stamped metadata.renewal="1" → the window CHAINS instead of stacking. */
+  renewal: boolean;
+  /** What was ACTUALLY charged (promo codes reduce it); null if Stripe omitted it. */
+  amountTotalCents: number | null;
 };
 
 /**
- * Recognize a ONE-TIME Event Pass checkout and pull out the two ids, WITHOUT computing the new
- * expiry. Split out because the expiry now depends on the host's current one (ADR-0023: renewal
- * EXTENDS), and the route cannot read that row until it knows whose row to read. Returns null for
- * any other event or a non-Event-Pass session.
+ * Recognize a ONE-TIME Event Pass checkout and pull out everything the ledger insert
+ * needs (ADR-0025). The WINDOW itself ([start, expiry)) is not computed here — it
+ * depends on the host's other live passes, which the route reads once it knows whose
+ * ledger to read; the math is `passWindowForPurchase` in lib/billing/passes.ts.
+ * Returns null for any other event or a non-Event-Pass session.
  */
 export function eventPassSession(
   event: Stripe.Event,
-): { userId: string; customerId: string } | null {
+): EventPassCheckoutRef | null {
   if (event.type !== "checkout.session.completed") return null;
   const session = event.data.object as Stripe.Checkout.Session;
   if (session.metadata?.plan_id !== "event_pass") return null;
@@ -103,52 +109,49 @@ export function eventPassSession(
       ? session.customer
       : (session.customer?.id ?? null);
   if (!userId || !customerId) return null;
-  return { userId, customerId };
+  return {
+    userId,
+    customerId,
+    sessionId: session.id,
+    createdMs: session.created * 1000,
+    renewal: session.metadata?.renewal === "1",
+    amountTotalCents:
+      typeof session.amount_total === "number" ? session.amount_total : null,
+  };
 }
 
+export type ProCreditRef = {
+  userId: string;
+  customerId: string;
+  /** Keys the idempotent Stripe balance grant (`pass-credit-<sessionId>`). */
+  sessionId: string;
+  /** The prorated credit the checkout route computed and stamped, in cents. */
+  creditCents: number;
+};
+
 /**
- * Resolve a `checkout.session.completed` event for a ONE-TIME Event Pass purchase into a
- * profile patch (Pro subscriptions provision from `customer.subscription.*` instead).
- *
- * ADR-0023 ruling 1: renewal EXTENDS from the current expiry, so the new term starts at
- * `max(purchase time, current expiry)`. THE FAILURE THIS PREVENTS (QA #35): the old
- * `session.created + term` reset the clock, so a host who renewed a month early silently threw
- * away eleven months they had already paid for. An expiry in the PAST (a lapsed pass, or none at
- * all) falls back to the purchase time, which is a fresh full term.
- *
- * Still derived from `session.created` rather than `now()`, so the value is a pure function of the
- * event: a delivery that reaches this twice computes the same answer instead of drifting forward.
- * That is not by itself replay-safety though, because this patch ACCUMULATES rather than being
- * absolute like the subscription one. Replay-safety comes from the ordering guard in the webhook
- * route, which refuses any delivery not strictly newer than the last one applied to the profile.
+ * Recognize a Pro subscription checkout that carries a prorated Event Pass credit
+ * (ADR-0025: the checkout route stamps `pass_credit_cents` when the buyer holds
+ * live passes). The metadata is our own server-side write inside a
+ * signature-verified event, so the number is trusted; malformed or non-positive
+ * values return null and the session falls through to plain customer binding.
  */
-export function resolveEventPassCheckout(
-  event: Stripe.Event,
-  plan: Plan,
-  currentExpiresAt: string | null,
-): EventPassPatch | null {
-  const ref = eventPassSession(event);
-  if (!ref) return null;
+export function proCreditSession(event: Stripe.Event): ProCreditRef | null {
+  if (event.type !== "checkout.session.completed") return null;
   const session = event.data.object as Stripe.Checkout.Session;
+  if (session.mode !== "subscription") return null;
+  const raw = session.metadata?.pass_credit_cents;
+  if (!raw) return null;
+  const creditCents = Number.parseInt(raw, 10);
+  if (!Number.isFinite(creditCents) || creditCents <= 0) return null;
 
-  const termMs = (plan.termDays ?? 365) * 86_400_000;
-  const purchasedMs = session.created * 1000;
-  const currentMs = currentExpiresAt
-    ? Date.parse(currentExpiresAt)
-    : Number.NaN;
-  // max(purchase, current expiry). An unparseable stored value degrades to a fresh term rather
-  // than throwing: never fail a host's paid purchase over a malformed timestamp.
-  const startMs =
-    Number.isFinite(currentMs) && currentMs > purchasedMs
-      ? currentMs
-      : purchasedMs;
-
-  return {
-    userId: ref.userId,
-    customerId: ref.customerId,
-    storageCapBytes: plan.storageBytes,
-    tierExpiresAt: new Date(startMs + termMs).toISOString(),
-  };
+  const userId = session.client_reference_id;
+  const customerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : (session.customer?.id ?? null);
+  if (!userId || !customerId) return null;
+  return { userId, customerId, sessionId: session.id, creditCents };
 }
 
 /**

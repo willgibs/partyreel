@@ -49,8 +49,8 @@ export function CheckoutButton({
         // the page dynamic just to relabel one button, we act on the server's refusal code: it
         // already knows the caller holds a subscription, and the portal is exactly where Stripe
         // handles a size change (with correct proration, which a fresh checkout would not give).
-        // Only `already_subscribed` routes here. An Event Pass refusal deliberately does NOT: it
-        // is a one-time payment with no subscription for the portal to manage.
+        // Only `already_subscribed` routes here (Event Passes STACK per ADR-0025, so a second
+        // pass purchase is a normal checkout, not a refusal).
         if (res.status === 409 && data?.code === "already_subscribed") {
           const portal = await fetch("/api/stripe/portal", { method: "POST" });
           const portalData = await portal.json();

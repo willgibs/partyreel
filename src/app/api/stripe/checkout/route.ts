@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { activeNowPasses, passProCreditCents } from "@/lib/billing/passes";
 import { planById } from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
+import { getLivePasses } from "@/lib/db/queries/event-passes";
 import { eventPassRenewalPriceId, priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
-import {
-  formatEntitlementExpiry,
-  resolveEntitlement,
-} from "@/lib/stripe/entitlement";
+import { resolveEntitlement } from "@/lib/stripe/entitlement";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
@@ -80,18 +79,16 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── ADR-0023 ruling 1: ONE PLAN AT A TIME (QA #3) ────────────────────────────────────────────
-  // Refuse a session whenever the caller already holds a live entitlement. Derived server-side
-  // from `profiles` (the webhook is its sole writer), never from the request body.
+  // ── ADR-0025 (supersedes ADR-0023 ruling 1's pass arm) ──────────────────────────────────────
+  // Pro stays ONE AT A TIME: a second subscription would double-bill against one cap, and plan
+  // switches belong to the billing portal (correct proration). Derived server-side from
+  // `profiles` (the webhook is its sole writer), never from the request body.
   //
-  // THE FAILURES THIS PREVENTS:
-  //   • a second Pro subscription stacked on the first (billed twice, one cap);
-  //   • an Event Pass bought while Pro is active, whose provisioning writes storage_cap_bytes =
-  //     75 GB over the host's 2 TB while Stripe keeps charging for Pro. The nightly over-capacity
-  //     sweep then starts REMOVING media that is legitimately inside the cap they pay for.
-  // Stacking models (cap = max, or cap = sum) were considered and rejected in ADR-0023: both make
-  // provisioning resolve two live entitlements on every webhook, and both are genuinely ambiguous
-  // at the lapse boundary. The portal owns upgrades, downgrades and cancellation.
+  // Event Passes STACK (Will, 2026-08-27): each purchase is its own ledger row granting +1 event
+  // slot and +75 GB for its own year, so "already holds a pass" is no longer a refusal. The old
+  // cap-collapse hazard (a pass write flattening a Pro cap) is gone structurally: pass state is
+  // recomputed from the ledger and never touches a Pro profile. Pro holders still cannot buy a
+  // pass (nothing to stack ONTO under a bigger live cap; the portal owns their billing moves).
   const entitlement = resolveEntitlement(profile, new Date());
 
   if (entitlement.held === "pro") {
@@ -101,40 +98,45 @@ export async function POST(request: Request) {
     );
   }
 
-  if (entitlement.held === "event_pass") {
-    const until = formatEntitlementExpiry(entitlement.expiresAt);
-    // ── Will's ruling (2026-07-29), refining ADR-0023 ruling 1 ──────────────────────────────
-    // The rule the ADR was written to enforce is "no move that COLLAPSES a cap", and the direction
-    // that does that is Pro -> Event Pass (2 TB down to 75 GB while Stripe keeps billing Pro).
-    // Pass -> Pro is the opposite: every Pro size (100 GB / 500 GB / 2 TB) is strictly larger than
-    // the pass's 75 GB, so the upgrade cannot collapse anything and the cap-collapse guarantee is
-    // untouched. Refusing it only made a motivated customer wait up to a YEAR or open a support
-    // ticket. So: a live pass may start Pro, and may renew itself; it still may not buy a SECOND
-    // pass (that stacks the same entitlement rather than upgrading it).
-    //
-    // The remaining pass term is not lost: provisioning keeps `tier_expires_at`, so if the Pro
-    // subscription later lapses the host falls back to a pass that is still inside its term
-    // (sweepExpiredPasses only clears it once the date actually passes).
-    if (planId === "event_pass" && !renewal) {
-      return refuse(
-        "already_entitled",
-        `Your Event Pass is active until ${until}. Use Renew Event Pass to add another year onto that date instead of buying a second one.`,
-      );
-    }
-  } else if (renewal) {
-    // ── QA #35, the price gate ───────────────────────────────────────────────────────────────
-    // The old gate (`tier === "event_pass" || tier_expires_at != null`) was dead and leaked in one
-    // direction only: its first arm is subsumed by its second, and `tier_expires_at` is never
-    // cleared, so ANY host who ever held a pass could buy the discounted renewal price forever
-    // while a genuine current holder was the one case it was written for. Renewal now means what
-    // it says: extending a pass that has not expired yet. A lapsed holder buys a fresh pass at the
-    // standard price, which is also the only reading under which "extend from the current expiry"
-    // has a current expiry to extend from.
+  // The ledger, not the profile label, answers renewal eligibility and the credit math: the
+  // profile's tier can lag the nightly sweep, while windows never lie about "active right now".
+  const now = new Date();
+  const passes = await getLivePasses(user.id);
+  const activeNow = activeNowPasses(passes, now);
+
+  if (renewal && activeNow.length === 0) {
+    // QA #35's price gate, ledger-edition: the discounted renewal price extends a pass that is
+    // still running. With nothing active there is nothing to chain onto — a lapsed holder buys a
+    // fresh pass at the standard price.
     return refuse(
       "not_eligible",
       "Renewal applies to an Event Pass that is still active. Yours has ended, so start a new Event Pass from the pricing page.",
       403,
     );
+  }
+
+  const plan = planById(planId);
+
+  // ── The prorated Pass → Pro credit (ADR-0025) ───────────────────────────────────────────────
+  // "I only pay for what I've used, and everything else goes toward what I get moving forward."
+  // Computed here (the promise the buyer clicks on), stamped into session metadata, and honored
+  // by the webhook on completion: it grants the amount as Stripe customer balance (auto-applied
+  // to upcoming Pro invoices; Checkout's own first invoice never consumes balance, so nothing is
+  // lost to the first charge) and consumes every live pass. Passes with unopened renewal windows
+  // credit at 100% — nothing gets banked, nothing gets lost.
+  const metadata: Record<string, string> = { plan_id: planId };
+  if (renewal) metadata.renewal = "1";
+  if (plan.tier === "pro") {
+    const creditCents = passProCreditCents(passes, now);
+    if (creditCents > 0) {
+      metadata.pass_credit_cents = String(creditCents);
+      // Audit trail only (consumption is every-live-row); capped well under Stripe's 500-char
+      // metadata value limit.
+      metadata.credited_pass_ids = passes
+        .map((p) => p.id)
+        .slice(0, 10)
+        .join(",");
+    }
   }
 
   const priceId = renewal ? eventPassRenewalPriceId() : priceIdForPlan(planId);
@@ -157,15 +159,16 @@ export async function POST(request: Request) {
   }
 
   // Pro = recurring subscription; Event Pass = one-time payment. The webhook reads
-  // metadata.plan_id to recognize an Event Pass purchase (no subscription fires).
-  const plan = planById(planId);
+  // metadata.plan_id to recognize an Event Pass purchase (no subscription fires),
+  // metadata.renewal to chain the window, and metadata.pass_credit_cents to honor
+  // the prorated credit.
   const siteUrl = await getSiteUrl();
   const session = await stripe.checkout.sessions.create({
     mode: plan.billing === "one_time" ? "payment" : "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     allow_promotion_codes: true,
-    metadata: { plan_id: planId },
+    metadata,
     // client_reference_id is a belt-and-suspenders link the webhook can use to bind
     // the customer to the host (we also already persisted stripe_customer_id above).
     client_reference_id: user.id,
