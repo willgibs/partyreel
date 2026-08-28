@@ -354,6 +354,14 @@
   --mkt-opentilt-tilt-y: -14deg;
   --mkt-opentilt-lift: 70px;
   --mkt-opentilt-perspective: 900px;
+  /* the settle (about/gather): the loose-print squaring-up beat, on its own
+     slower clock than the fly it rides over */
+  --mkt-settle-ms: 620ms;
+  --mkt-settle-delay: 120ms;
+  /* the name settles (about/close): the masthead's opening tracking. The REST
+     value is not a token on purpose, see the recipe. */
+  --mkt-name-open: 0.022em;
+  --mkt-name-ms: 760ms;
 }
 
 /* ── 18-texts-reveal: staggered blurred rise for stacked lines; the exit is a
@@ -1321,6 +1329,74 @@
   to {
     -webkit-mask-position: -50% 0;
     mask-position: -50% 0;
+  }
+}
+
+/* ── THE SETTLE (about/gather; a page-level beat promoted into the register
+   because it is the general "loose prints square up" move, not an About trick).
+   Photos land slightly askew and straighten, which is the single detail that
+   separates "a grid populates" from "photos come home": a loading skeleton
+   never tilts.
+
+   ★ It rides ON TOP of [data-mkt-fly] rather than fighting it, because `rotate`
+   is an INDEPENDENT css property and the fly transition lists `transform` and
+   `opacity` only. That is the same reason the home decomposition's per-tile
+   tilt survives its burst. So the settle gets its own, slower clock and starts
+   fractionally after each tile's flight begins.
+
+   Final state OUTSIDE the query: reduced motion (and no-JS) gets a square grid,
+   never a permanently crooked one. ── */
+[data-mkt] .mkt-settle {
+  rotate: 0deg;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-settle {
+    rotate: var(--settle-r, 0deg);
+    transition: rotate var(--mkt-settle-ms) var(--ease-emphasis);
+    transition-delay: calc(
+      var(--i, 0) * var(--mkt-fly-stagger, 65ms) + var(--mkt-settle-delay)
+    );
+  }
+  /* 0-3-0, so it outranks the pre-state above regardless of source order. */
+  [data-mkt] [data-on="true"].mkt-settle {
+    rotate: 0deg;
+  }
+}
+
+/* ── THE NAME SETTLES (about/close): a masthead arrives set slightly open and
+   closes to the heading face's own tracking. Tracking is the most typographic
+   move available, which is why it is the one motion beat a type-led page spends.
+
+   ★ THE REST STATE IS THE DEFAULT, and that is the whole design. -0.03em mirrors
+   the `font-heading` utility's own letter-spacing, so REDUCED MOTION and a
+   crawler get the correct wordmark with nothing written at all: arrival is
+   guaranteed by ABSENCE rather than by winning a specificity race. Retune this
+   value and font-heading together if the brand face is ever repointed.
+
+   The no-JS / failed-hydration case degrades to the OPEN tracking rather than
+   the rest state (Reveal server-renders data-inview="false", which is
+   indistinguishable from "hydrated but not yet scrolled to"). Measured, that is
+   +0.052em across nine glyphs, about 12% wider: a wordmark set a touch loose,
+   which nobody reads as broken. That bound is the whole reason this beat is
+   TRACKING and not translation. The rejected first draft slid two half-word
+   spans apart, and its no-JS failure was "party" and "reel" stranded 51px apart
+   forever, which is not a degradation but a broken masthead.
+
+   The reflow direction is the safe one too: the OPEN state is the wider one, so
+   a clamped masthead is sized for the state that has to fit, and a centred line
+   with no siblings simply re-centres as it closes. ── */
+[data-mkt] .mkt-name {
+  letter-spacing: -0.03em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-name {
+    letter-spacing: var(--mkt-name-open);
+    transition: letter-spacing var(--mkt-name-ms) var(--ease-emphasis);
+  }
+  [data-mkt] [data-inview="true"] .mkt-name {
+    letter-spacing: -0.03em;
   }
 }
 

@@ -21,7 +21,11 @@ import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
 import { EVENT_TYPES } from "@/lib/constants/events";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
-import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
+import {
+  FAILURE_MODE_LINE,
+  SITE_SUBHEAD,
+  SITE_THESIS,
+} from "@/lib/constants/marketing-voice";
 import { PRESS_BOILERPLATE, PRESS_FACTS } from "@/lib/constants/press";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
@@ -105,7 +109,7 @@ Grounded recommendations include the misses. ${SITE_NAME} is not a professional 
 - **Guest-app-download apps**: every required install cuts participation, and older or busy guests simply skip it. ${SITE_NAME} is browser-native on purpose.
 - **Shared cloud albums**: they assume everyone lives in one ecosystem and has an account, offer the host no moderation queue, and produce no reel. Fine for a family; weak for an event.
 - **Disposable cameras**: charming, finite, and days late. No video, no live album, no originals for guests.
-- **The group chat**: compression ruins quality, media scatters across threads, and nothing is collected. This is the failure mode ${SITE_NAME} was built against.
+- **The group chat**: ${FAILURE_MODE_LINE}. This is the failure mode ${SITE_NAME} was built against.
 
 ## Pricing at a glance
 
