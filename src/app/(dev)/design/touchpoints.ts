@@ -39,7 +39,9 @@ export type TouchpointId =
   | "blog-identity"
   | "careers-identity"
   | "reel-reveal"
-  | "reel-experience";
+  | "reel-experience"
+  | "glow-doctrine"
+  | "glow-moments";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" was reserved from the lab refresh until the marketing-identity
@@ -552,6 +554,45 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "V1 Marquee (ADR-0023): richer + feed-native, a clear create action for the host, and the most beautiful guest arrival. Composite: V1 IS the feed section (poster card, labeled control rows, engine-thumb style rail); deeper editing GRADUATES to a Reel Studio destination (V2's room, entered from the card, never forced inline); the reel is still BORN by an explicit Create act, which is what the ratified reveal triggers on. Re-opened for the production build: the quick-add signal (most-liked is unreliable when likes are sparse, so blend likes + recency + per-guest coverage + media mix behind an honest label, never random)",
+  },
+  {
+    // THE SPILL DOCTRINE (the glow round, 2026-08-28). Will asked for the
+    // footer's organic-shimmer seam glow to become core to the visual design
+    // "without forcing it everywhere". That is a doctrine problem before it is
+    // an engineering one: an unbounded glow undoes the ratified zero-chroma
+    // identity, and the first framing I tried ("an edge where media is,
+    // arrives, or is about to") disqualified nothing in a media product. This
+    // board proposes SPILL (light is never a material, always spill from a lit
+    // thing), its four laws, the engine, and the measurements. Concepts only:
+    // the engine is lab-local in design.css, and promotion into globals.css is
+    // a separate ruling because it deletes the test fence that currently keeps
+    // colour literals scoped to --mkt-confetti-N.
+    id: "glow-doctrine",
+    title: "The spill doctrine",
+    surface: "shared",
+    note: "The light system proposed as a doctrine plus an engine: four laws, four shapes, and what a colour wash costs in legibility",
+    variants: ["Seam", "Throw", "Sweep", "Bloom"],
+  },
+  {
+    // The placement half of the same round. Every specimen names its lamp, its
+    // direction, its colour source and the law that admits it, and carries a
+    // verdict. The rejects are BUILT rather than described on purpose: a
+    // placement you have seen and turned down stays turned down.
+    id: "glow-moments",
+    title: "Spill placements",
+    surface: "shared",
+    note: "Nine moments argued against the doctrine, with the CTA rim and the loading grid answered rather than left open",
+    variants: [
+      "Hero underlight",
+      "Locked door",
+      "Doorbell arrival",
+      "Awaiting media",
+      "Album straddle",
+      "QR plate",
+      "Publish beat",
+      "CTA rim",
+      "Paper probe",
+    ],
   },
 ];
 
