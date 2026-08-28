@@ -64,6 +64,20 @@ pass — the Browser pane runs `document.hidden`, which suspends rAF, ResizeObse
 IntersectionObserver and transition progress alike (now recorded in
 [testing-verification.md](systems/testing-verification.md)).
 
+**Integrated 2026-08-28 (the program's first Agent-handoff merge):** `lp/nav-interaction` merged to
+`launch-prep` at `50e6f23`. Two docs conflicts with the same-day contact round resolved editorially
+(the `document.hidden` mechanism subsumed the contact round's clone-probe bullet into one lesson);
+`marketing-nav.ts` auto-merged with both rounds' edits intact. Full gate re-run green on the merged
+tree (1,184 tests) + a built-CSS check that the new-to-repo utilities emit. Mechanics verified live
+on the preview alias at the SHA in real Chrome: the order/ink/`aria-current`, the glass layer at
+rest/panel-open/stuck, the enter (8px radius, origin aimed at the trigger, fade, 200ms/emphasis),
+both panel→panel sweeps with the swap-gated `width,height` morph, the close, the indicator's
+hover>focus>open precedence, keyboard (Enter opens / Esc closes with focus returned), panel-link
+navigation + close-on-route-change, the /404 `var(…, fallback)` clocks holding with no `[data-mkt]`
+wrapper present, both skins' panels + the recolored demo ticket, and the full-screen mobile menu at
+375 (collapsed one-at-a-time disclosures, 44px rows, tap-through navigation, no horizontal scroll).
+Will's feel pass remains the open item.
+
 ## 2026-08-28 — MILESTONE-5: the contact round
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-5`, `2cabc1e`; 36 files, +1,653/−193),

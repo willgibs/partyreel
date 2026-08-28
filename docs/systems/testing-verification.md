@@ -39,7 +39,9 @@ site, these are the ways the *test tooling* misreports, so a working change look
   scroll-sentinel header never flips to `stuck`), and **CSS transition progress** (a mid-transition
   `getComputedStyle` returns the START value forever, so an element reads as "never animated"). Each
   `screenshot` call forces ONE frame, which is why a panel often appears only on the second or third
-  screenshot after the hover that opened it. What still works, and is the right thing to lean on: computed
+  screenshot after the hover that opened it — and why a Radix layer whose unmount waits on
+  `animationend` (Sheet, Dialog) can read as STILL MOUNTED at `data-state="closed"` long after a
+  close: force a frame or two (screenshots), then re-probe, before judging presence. What still works, and is the right thing to lean on: computed
   styles, `getBoundingClientRect`, DOM/attribute assertions, real hovers/clicks, and reading a state's
   styling by flipping its `data-*` attribute by hand. Assert the MECHANISM (durations, easings,
   `transition-property`, `--tw-enter-*`, ancestor `backdrop-filter`), not the frames. The trap hiding
@@ -58,6 +60,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
 - **Isolated-world DOM + timing artifacts.** Because the MCP executes in an isolated world, buffered or
   just-painted state can be missing and timing/race effects can read as failures. The perf-baseline doc hit
   the same isolated-world caveat measuring LCP ([`../perf/v1-baseline.md`](../perf/v1-baseline.md)).
+  - **Clicks aimed during an ENTER animation miss (real Chrome too).** `find`/ref clicks and any
+    coordinates read while a menu/panel is still animating in aim at the MID-FLIGHT rect (a
+    cross-slide had a nav link 250px right of its settled spot; the click "dismissed the menu, no
+    navigation" — twice, and it looked like a product bug). Wait for the enter to settle, re-read
+    `getBoundingClientRect`, then click.
   - **`javascript_tool` writes don't cross into the app's world.** A `document.documentElement.style.set
     Property('--x', …)` (or any DOM mutation) from `javascript_tool` does NOT reach the app's MAIN-world
     `getComputedStyle` readers (e.g. a hook's runtime `readMs`) — so you can't inject a CSS var to widen/slow
