@@ -77,7 +77,21 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 `metadataBase` is set in the root [`layout.tsx`](../../src/app/layout.tsx) (`env.NEXT_PUBLIC_SITE_URL ??
 "https://partyreel.com"`) — WITHOUT it Next errors on relative OG URLs. OG images are **code-generated via
 `next/og`** ([`opengraph-image.tsx`](../../src/app/opengraph-image.tsx) site-wide + a per-event card at
-`(guest)/e/[token]/opengraph-image.tsx`). `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes.
+`(guest)/e/[token]/opengraph-image.tsx`). `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes
+(sitemap `lastModified` carries help/blog frontmatter dates; build time elsewhere).
+
+**The AI-discoverability layer (milestone-4, 2026-08-28):** `/llms.txt` + `/llms-full.txt` (the
+llmstxt.org format) are built by pure fns in [`content/llms.ts`](../../src/lib/content/llms.ts)
+(numbers derive from `tiers.ts`/`limits.ts`; the builders are content-policy `CLAIM_FILES`, so the
+social-proof + backstop fences cover the AI surface; link integrity is unit-tested against the real
+routes) and served by force-static routes (the RSS pattern). `robots.ts` names 14 AI crawlers with
+explicit allow blocks (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, ...); a
+`SoftwareApplication` schema mounts sitewide beside Org/WebSite (offers = the shared
+AggregateOffer; NO ratings/reviews — absent beats fabricated). Posture (Will, 2026-08-28): the
+comparison content stays CATEGORY-level, never rival brand names; the honest when-it-is-not section
+is deliberate credibility, don't "fix" it into pure praise. The press boilerplate + fact sheet live
+in [`constants/press.ts`](../../src/lib/constants/press.ts) (one quotable home: /press + the llms
+builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
 
 ## Gotchas (why it's like this — don't revert)
 

@@ -38,7 +38,15 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
-**The pricing round (2026-08-27, on `launch-prep`, unmerged):** `/pricing` rebuilt from zero
+**MILESTONE-4 (2026-08-28): prod = the pricing round + the AI-discoverability layer.** `main` @ tag
+`milestone-4` (`62220cb`), prod READY + verified at the merge SHA: /pricing (stacks, wall, toggle),
+/llms.txt + /llms-full.txt live, robots welcoming 14 AI crawlers, SoftwareApplication schema
+sitewide, and the webhook E2E on the NEW code (API subscription create→cancel: pro with
+`event_slots` null → free, ledger untouched; the pass-purchase E2E staged for Will's test-card
+completion). The AI layer's strategy: llms.txt as the forward bet, crawlability + grounded
+retrievable facts as the real play ([`systems/marketing-content.md`](systems/marketing-content.md)).
+
+**The pricing round (2026-08-27, on `launch-prep`, merged at milestone-4):** `/pricing` rebuilt from zero
 (Biograph-informed IA: identity pair + pass ticket + unlock grid + find-your-size calculator + full
 comparison matrix + FAQ) AND the Event Pass economics it markets made TRUE first —
 **[ADR-0025](adr/0025-event-pass-economics.md)**: passes STACK (the `event_passes` ledger +
@@ -52,11 +60,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-3`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-4`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1162 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1173 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).

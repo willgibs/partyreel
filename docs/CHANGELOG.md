@@ -10,6 +10,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-4: the pricing round + the AI-discoverability layer
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-4`, `62220cb`; 55 files, +4,162/−624),
+prod READY + verified at the merge SHA. The milestone carries the full pricing round (below) plus
+the **AI-discoverability layer** (`17e1d87`), Will's strategic bet on assistant recommendations:
+`/llms.txt` + `/llms-full.txt` (llmstxt.org format; pure builders derived from the pricing/voice
+constants; the grounded case with an honest when-it-is-not section and category-level comparison
+per Will's ruling; builders are CLAIM_FILES so the social-proof/backstop fence covers the AI
+surface; 10 tests incl. link-integrity against real routes); robots.ts welcoming 14 AI crawlers by
+name (+ /account, /welcome, /design hygiene disallows); SoftwareApplication JSON-LD sitewide;
+Organization email/contactPoint/foundingDate; sitemap lastModified from content frontmatter; the
+press boilerplate + fact sheet extracted to `constants/press.ts` (one quotable home). Research
+honesty recorded: no major model confirmedly consumes llms.txt yet (Semrush 2025), so the layer
+treats it as the cheap forward bet while the real weight sits on crawlability + retrievable facts.
+
+**Prod verification at the SHA:** all three text surfaces 200 on partyreel.com, robots showing 15
+UA blocks, SoftwareApplication in the homepage HTML, /pricing serving the stacking copy; the
+subscription webhook E2E on the NEW code (API create→cancel: pro provisioned with `event_slots`
+null → downgraded to free with recompute, ledger untouched); the pass-purchase E2E staged live at
+a real $24 prod checkout for Will's test-card completion, with a ledger watch armed for the
+moment it lands.
+
 ## 2026-08-27 — The pricing round: /pricing rebuilt from zero + the Event Pass economics made true (ADR-0025)
 
 Will's brief: "if the pricing page didn't exist yet, what would the ideal version be?" — with Biograph

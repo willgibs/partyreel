@@ -135,6 +135,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the chain; Phase 3 added the interim `loading.tsx` skeletons).
 - **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
   `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
+- **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — question-shaped
+  comparison/blog content for assistant retrieval (category pages stay brand-nameless per Will's
+  2026-08-28 ruling) · `.md` mirrors of key pages (the llms spec's optional convention) · the
+  `/u/[slug]` sitemap/robots decision (ADR-0019 says indexable; needs a slug feed) · WebSite
+  SearchAction (needs a real `?q=` route) · AI-referral analytics (UA-tagged hits on /llms.txt).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is
   ruled + recorded in [`PRICING.md`](PRICING.md) "Grandfathering"; the build is `planForPriceId` mapping
   MULTIPLE historical Price IDs per plan, newest = the public offer) · a full [`PRD.md`](PRD.md) refresh
