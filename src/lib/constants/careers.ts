@@ -19,6 +19,12 @@ export type JobOpening = {
   requirements: string[];
   /** "What we offer" — set ONLY for roles that opt into a perks/comp framing. */
   offer?: string[];
+  /**
+   * The open-ended "tell us what you'd build" entry, which is NOT a vacancy.
+   * Flagged rather than inferred from the slug so the hiring signal below stays
+   * honest if the catch-all is ever renamed.
+   */
+  catchAll?: true;
 };
 
 const reelsEngineer: JobOpening = {
@@ -55,6 +61,7 @@ const reelsEngineer: JobOpening = {
 
 const generalApplication: JobOpening = {
   slug: "general",
+  catchAll: true,
   title: "General Application",
   team: "Any team",
   type: "Open",
@@ -73,6 +80,16 @@ const generalApplication: JobOpening = {
 export const JOB_OPENINGS: JobOpening[] = [reelsEngineer, generalApplication];
 
 export const JOB_SLUGS = JOB_OPENINGS.map((job) => job.slug);
+
+/** Real, named vacancies (the catch-all is not one). */
+export const OPEN_ROLES = JOB_OPENINGS.filter((job) => !job.catchAll);
+
+/**
+ * Whether to advertise hiring in chrome (the footer's Careers badge). DERIVED,
+ * never hardcoded: the badge disappears on its own the day the last real role
+ * closes, so nobody has to remember to take it down.
+ */
+export const IS_HIRING = OPEN_ROLES.length > 0;
 
 export function getJob(slug: string): JobOpening | undefined {
   return JOB_OPENINGS.find((job) => job.slug === slug);
