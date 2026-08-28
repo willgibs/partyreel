@@ -132,6 +132,10 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   Supabase/R2/Stripe allow-list, so sign-in, upload, email round-trips, and checkout fail there BY DESIGN —
   the policy home is CLAUDE.md "Local dev vs. live testing"; red-team those flows on the launch-prep alias.
   (2) They build with the UNSCOPED preview env: `NEXT_PUBLIC_SITE_URL` inlines to the prod URL (absolute
-  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is absent (the `/design` gate is
-  unreachable). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
+  QR/share/OG links point at partyreel.com). `DESIGN_PREVIEW_KEY`, however, IS set on the unscoped
+  preview target as well as the launch-prep-scoped one (verified against the Vercel env API
+  2026-08-28), so **the `/design` lab IS reachable on an `lp/*` preview** with `?key=` and is a valid
+  place to hand Will a lab round for a ruling. Confirm scope with
+  `GET /v9/projects/partyreel/env` rather than assuming; this line previously claimed the key was
+  absent. (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
   behavior can differ from the long-lived launch-prep origin (the stored-theme trap above).

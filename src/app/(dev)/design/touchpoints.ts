@@ -35,6 +35,7 @@ export type TouchpointId =
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
+  | "blog-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -429,6 +430,31 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 2,
     decisionNote:
       "COMPOSITE on V2 (Will, 2026-08-28): 'I like the V2 desk layout most for the form section, as it feels very structured, but I'd like to use the V1 note design and the v2 form itself to jazz up the visual design.' Wired same-day: the desk structure + facts rows, the note's stamp + letterhead on the card, the Polaroid spread DROPPED ('so it doesn't feel too busy'), the seven open chips collapsed to a clean dropdown ('takes a ton of room'), and the card on the Biograph gray panel with white fields (his biograph.com/contact reference). V3's numbered-index grammar was grafted onto the self-serve directory.",
+  },
+  {
+    // The blog round (2026-08-28): /blog is the last marketing surface still
+    // on its route-completeness scaffold (centered hero, pill row, card boxes,
+    // and NO photography on a media product). Will ruled the move into the
+    // (cinema) group, an optional per-post `cover` with a deterministic
+    // fallback, and freeform tags with a redesigned rail; his brief for the
+    // shape was "a bespoke header/hero article, with a polished library
+    // beneath that can be filtered as needed". That makes DISTINCTNESS FROM
+    // /help the round's hard constraint (both hubs now open on the dark
+    // stage), so every direction opens on the lead STORY rather than on an
+    // instrument. V4 was added after a fresh-eyes pass found the first three
+    // each carry a structural flaw: V1 restates /help's index sheet, V2 is the
+    // most exposed to a 12-image manifest, and V3's fanning stack already
+    // ships in the footer of every page.
+    id: "blog-identity",
+    title: "Blog identity",
+    surface: "marketing",
+    note: "The index from zero: a type-led broadsheet, a photographic contact sheet, a desk of physical objects, or a letterboxed edit track",
+    variants: [
+      "The Broadsheet",
+      "The Contact Sheet",
+      "The Reading Table",
+      "The Cutting Room",
+    ],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
