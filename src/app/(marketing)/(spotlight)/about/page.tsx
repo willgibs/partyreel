@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
@@ -8,6 +9,8 @@ import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
+import { Button } from "@/components/ui/button";
+import { trackAttrs } from "@/lib/analytics/events";
 import {
   ABOUT_CAREERS,
   ABOUT_CONVICTIONS,
@@ -17,6 +20,7 @@ import {
   ABOUT_STORY,
 } from "@/lib/constants/about";
 import { IS_HIRING } from "@/lib/constants/careers";
+import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import { Gather } from "./gather";
 
@@ -79,7 +83,18 @@ export default function AboutPage() {
             grammar while the wordmark's tracking closes from open to the heading
             face's own -0.03em (the .mkt-name recipe). Different properties, so
             the two entrances compose instead of fighting. */}
-        <section className="pt-20 pb-16 sm:pt-28 sm:pb-20">
+        {/* The negative top margin slides the hero UNDER the overlay header
+            (the cinema-hero mechanism), so the dark ground starts at the very
+            top of the page rather than below a 64px band. The top padding then
+            has to clear the header again.
+            ★ The `!` is not decoration. CinemaChapter carries
+            `max-lg:[&>section]:py-14` (PaperChapter's rule: two section
+            paddings meeting at a chapter cut read as dead space on phones), and
+            that child selector OUTRANKS a plain utility here, so below lg every
+            pt-* on this element was silently a no-op and the eyebrow sat 14px
+            under the nav. The compression is right for a chapter's INTERIOR
+            sections and wrong for one that has to clear an overlay header. */}
+        <section className="-mt-[var(--mkt-header-h)] pt-28! pb-16 sm:pt-40! sm:pb-20 lg:pt-44">
           <Reveal className="flex flex-col items-center gap-6 text-center">
             <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
               {ABOUT_HERO.eyebrow}
@@ -91,6 +106,43 @@ export default function AboutPage() {
             >
               {ABOUT_HERO.wordmark}
             </p>
+            <p
+              data-mkt-reveal
+              style={{ "--i": 2 } as CSSProperties}
+              className="max-w-xl text-lg text-pretty text-muted-foreground"
+            >
+              {ABOUT_HERO.subhead}
+            </p>
+            {/* h-11 px-6 text-base is the site's hero CTA size, shared verbatim
+                with cinema-hero and CtaBand: this is the one control pair the
+                page carries, so it matches the others exactly. */}
+            <div
+              data-mkt-reveal
+              style={{ "--i": 3 } as CSSProperties}
+              className="mt-2 flex flex-col items-center gap-3 sm:flex-row"
+            >
+              <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Link
+                  href={MARKETING_CTA.href}
+                  {...trackAttrs("cta_click", {
+                    cta: "start-free",
+                    location: "hero",
+                  })}
+                >
+                  {MARKETING_CTA.label}
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-11 px-6 text-base"
+              >
+                <Link href={ABOUT_HERO.secondaryHref}>
+                  {ABOUT_HERO.secondaryLabel}
+                </Link>
+              </Button>
+            </div>
           </Reveal>
         </section>
 
@@ -172,7 +224,7 @@ export default function AboutPage() {
                     (the ring would otherwise sit well clear of the text). */}
                 <LearnMoreLink
                   href={href}
-                  className="mt-2 rounded-[2px] py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                  className="mt-2 rounded-[2px] py-1 text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
                 >
                   {linkLabel}
                 </LearnMoreLink>
@@ -194,11 +246,30 @@ export default function AboutPage() {
           <p className="max-w-xl text-pretty text-muted-foreground">
             {IS_HIRING ? ABOUT_CAREERS.hiring : ABOUT_CAREERS.notHiring}
           </p>
-          <LearnMoreLink href={ABOUT_CAREERS.href} className="mt-1">
-            {IS_HIRING
-              ? ABOUT_CAREERS.linkLabelHiring
-              : ABOUT_CAREERS.linkLabelNotHiring}
-          </LearnMoreLink>
+          {/* A button, not a text link: the heading asks a question, so the
+              answer should look clickable. Outline rather than filled because
+              the footer's Start free sits ~200px below and the two must not
+              compete (its doctrine: the footer is the paper lane's one
+              CONVERSION action). Same size as the hero's secondary, so the
+              page's two action moments match. */}
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="mt-1 h-11 px-6 text-base"
+          >
+            <Link
+              href={ABOUT_CAREERS.href}
+              {...trackAttrs("cta_click", {
+                cta: "careers",
+                location: "about-close",
+              })}
+            >
+              {IS_HIRING
+                ? ABOUT_CAREERS.linkLabelHiring
+                : ABOUT_CAREERS.linkLabelNotHiring}
+            </Link>
+          </Button>
         </Container>
       </section>
     </>

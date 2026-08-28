@@ -357,8 +357,8 @@
   /* the gather (about): strewn prints drawing together into one album. Long by
      UI standards on purpose — the travel is real distance, and marketing is the
      one surface allowed past the 300ms ceiling. */
-  --mkt-gather-ms: 800ms;
-  --mkt-gather-stagger: 55ms;
+  --mkt-gather-ms: 700ms;
+  --mkt-gather-stagger: 50ms;
   /* the name settles (about/close): the masthead's opening tracking. The REST
      value is not a token on purpose, see the recipe. */
   --mkt-name-open: 0.022em;

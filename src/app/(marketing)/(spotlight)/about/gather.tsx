@@ -38,7 +38,7 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * four columns.
  *
  * ★ INDEX 5 IS THE STRAGGLER. Eleven photographs gather; this one stays out and
- * arrives alone at i:32, about 400ms after the others have settled. A complete
+ * arrives alone at i:29, about 250ms after the others have settled. A complete
  * rectangle says "this is all of it", which is a photo album; the product's
  * promise is that there is always one more phone in the room. The pause is the
  * content, not a bug. It reads far better here than in the first build: the
@@ -67,7 +67,7 @@ const TILES: readonly GatherTile[] = [
   { id: "party-balloons", dx: 70, dy: -95, rot: -7, i: 1 },
   { id: "concert-confetti", dx: 185, dy: -60, rot: 13, i: 9 },
   { id: "wedding-rings", dx: -195, dy: 30, rot: 9, i: 5 },
-  { id: "reception-hall", dx: -40, dy: -25, rot: -14, i: 32 }, // ← the straggler
+  { id: "reception-hall", dx: -40, dy: -25, rot: -14, i: 29 }, // ← the straggler
   { id: "party-dj", dx: 65, dy: 35, rot: 6, i: 10 },
   { id: "wedding-toast", dx: 200, dy: -10, rot: -9, i: 2 },
   { id: "festival-lights", dx: -180, dy: 85, rot: 11, i: 6 },

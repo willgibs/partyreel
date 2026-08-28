@@ -25,12 +25,15 @@ import { MarketingNavMobile } from "./mobile-menu";
 export function MarketingHeader({
   skin = "paper",
   overlay = false,
+  className,
 }: {
   skin?: MarketingSkin;
   overlay?: boolean;
+  /** Extra classes for the sticky bar (see HeaderShell): the token ground. */
+  className?: string;
 }) {
   return (
-    <HeaderShell overlay={overlay}>
+    <HeaderShell overlay={overlay} className={className}>
       <Container className="flex h-[var(--mkt-header-h,4rem)] items-center justify-between gap-4">
         <Link href="/" aria-label="Partyreel home" className="shrink-0">
           <Logo />

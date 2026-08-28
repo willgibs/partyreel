@@ -1,6 +1,24 @@
 import { cn } from "@/lib/utils";
 
 /**
+ * THE DARK-GROUND TOKEN SET, on its own so more than one element can wear it.
+ * CinemaChapter is the usual consumer; the (spotlight) layout puts it on the
+ * sticky <header> so the nav reads dark over a cinema hero. Deliberately
+ * carries NO background or text colour: a chapter paints itself opaque, while
+ * the header must stay transparent so its own glass layer can fade in.
+ *
+ * cinema-chapter-contract.test.ts pins every entry, because each one fails
+ * silently and invisibly (see the component note below).
+ */
+export const CINEMA_TOKENS = cn(
+  "[--background:var(--gallery)] [--border:var(--gallery-border)] [--foreground:var(--gallery-foreground)] [--muted-foreground:var(--gallery-muted)] [--ring:var(--gallery-foreground)]",
+  "[--card-foreground:var(--gallery-foreground)] [--card:var(--gallery)] [--muted:var(--gallery)]",
+  "[--accent-foreground:var(--gallery-foreground)] [--accent:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))] [--secondary-foreground:var(--gallery-foreground)] [--secondary:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))]",
+  "[--brand-foreground:var(--gallery)] [--brand:var(--gallery-foreground)] [--input:var(--gallery-border)] [--primary-foreground:var(--gallery)] [--primary:var(--gallery-foreground)]",
+  "[--shadow-float:0_0_0_0_oklch(0_0_0/0)]",
+);
+
+/**
  * A CINEMA CHAPTER: a group of sections forced onto the dark ("cinema") ground
  * inside a forced-light paper page. The exact inverse of PaperChapter, and the
  * half of the chapter doctrine the system was missing — until this existed the
@@ -95,13 +113,7 @@ export function CinemaChapter({
     <section
       data-mkt
       className={cn(
-        // The local token redeclaration (see the header note). Keep together;
-        // cinema-chapter-contract.test.ts pins every line of it.
-        "[--background:var(--gallery)] [--border:var(--gallery-border)] [--foreground:var(--gallery-foreground)] [--muted-foreground:var(--gallery-muted)] [--ring:var(--gallery-foreground)]",
-        "[--card-foreground:var(--gallery-foreground)] [--card:var(--gallery)] [--muted:var(--gallery)]",
-        "[--accent-foreground:var(--gallery-foreground)] [--accent:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))] [--secondary-foreground:var(--gallery-foreground)] [--secondary:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))]",
-        "[--brand-foreground:var(--gallery)] [--brand:var(--gallery-foreground)] [--input:var(--gallery-border)] [--primary-foreground:var(--gallery)] [--primary:var(--gallery-foreground)]",
-        "[--shadow-float:0_0_0_0_oklch(0_0_0/0)]",
+        CINEMA_TOKENS,
         // ★ `relative` WITHOUT `isolate`. The footer uses isolate because its
         // seam glow must not escape upward, but a chapter has the opposite job:
         // isolate creates a stacking context and TRAPS a straddling child's

@@ -52,6 +52,12 @@ export const ABOUT_META = {
 export const ABOUT_HERO = {
   eyebrow: "About",
   wordmark: "Partyreel",
+  // One line under the masthead, because a wordmark alone reads as a cover
+  // rather than a page. It states the premise the story then earns.
+  subhead:
+    "Every guest is already a photographer. We are building the one place all of it can land.",
+  secondaryLabel: "How it works",
+  secondaryHref: "/how-it-works",
 } as const;
 
 /**
@@ -61,12 +67,12 @@ export const ABOUT_HERO = {
  * the mission in the same breath.
  */
 export const ABOUT_STORY = {
-  eyebrow: "Why we exist",
+  eyebrow: "Our mission",
   heading: "Everyone is a photographer. Nothing collects it.",
   paragraphs: [
-    "Every person at your event is carrying a camera good enough to shoot it. That part of the problem solved itself years ago. The same few hours get photographed from every angle in the room, and between all of those phones there is a far better record of the event than any one person walked away with.",
-    "Getting it into one place is where it breaks, and it breaks in a different spot every time. The shared album only opens for half the room, because the other half brought a different kind of phone. The group chat delivers photos one at a time, so collecting them means scrolling back through a week of messages to find them. The cloud folder wants an account and a password, and the guests whose photos you would most like to see are the first to give up on it. Rent cameras for the tables and you pay by the table. Somewhere in there almost everyone stops trying, and the rest of the photos are simply never seen.",
-    "We kept hitting this at our own events, and there was never a version that worked for everyone who was actually there. So we built one, for any event and any phone: a single code, nothing to install, no account to make, and every photo and video landing in the same album at the size it was taken.",
+    "Every person at your event is carrying a camera good enough to shoot it. That part solved itself years ago. The same few hours get photographed from every angle in the room, and between all those phones there is a better record of the event than anyone walked away with.",
+    "Getting it into one place is where it breaks, and it breaks somewhere different every time. The shared album opens for half the room. The group chat drips photos out one at a time. The cloud folder wants an account, so the guests whose photos you want most are the first to quit. Rented cameras charge by the table. Somewhere in there everyone gives up, and the rest of the photos are never seen.",
+    "We kept running into this at our own events, and there was never a version that worked for everyone who was there. So we built one: a single code, any phone, nothing to install and no account to make, with every photo and video landing in the same album at the size it was taken.",
   ],
 } as const;
 
@@ -82,7 +88,7 @@ export const ABOUT_STORY = {
  * rename cannot silently strand them.
  */
 export const ABOUT_LEDGER = {
-  eyebrow: "What we hold to",
+  eyebrow: "Our philosophy",
   heading: "Six things we will not trade away.",
   lead: "This is what the product does about it, and each line links to where you can check it.",
 } as const;
@@ -141,7 +147,7 @@ export const ABOUT_CONVICTIONS: readonly {
  * ledger promises not to ship.
  */
 export const ABOUT_CAREERS = {
-  heading: "Come build the rest of it.",
+  heading: "Want to join our team?",
   hiring:
     "The list above is the easy part to write and the hard part to keep. If that is the kind of problem you want to spend your time on, we are hiring.",
   notHiring:
