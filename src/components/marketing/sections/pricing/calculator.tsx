@@ -27,7 +27,8 @@ import { recommendPlan } from "./recommend";
  * before it lands here.
  */
 
-const STOP_GB = [1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048];
+/** The curated stop ladder (exported for the lab's calculator prototypes). */
+export const STOP_GB = [1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048];
 
 export function Calculator() {
   const [stop, setStop] = useState(5); // 50 GB — a real wedding's neighborhood
