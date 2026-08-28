@@ -18,7 +18,8 @@
 export type JobOpening = {
   slug: string;
   title: string;
-  team: string;
+  /** The hiring team - set ONLY for a real vacancy (a catch-all has none). */
+  team?: string;
   type: string;
   /** A stated location/remote policy - set ONLY for roles that have one. */
   location?: string;
@@ -83,9 +84,10 @@ const generalApplication: JobOpening = {
   slug: "general",
   catchAll: true,
   title: "General Application",
-  team: "Any team",
+  // No `team`: "Any team" was vacancy-shaped metadata on a non-vacancy. The row
+  // states only that it is always open, which is the one true fact about it.
   type: "Always open",
-  hook: "Don't see your role? Tell us what you'd love to build.",
+  hook: "Nothing above fits? Tell us what you'd want to own.",
   summary:
     "We are always glad to meet people who care about this kind of work. If nothing above fits but you think you would be a great addition, tell us what you would want to own, and why Partyreel.",
   responsibilities: [],
@@ -122,11 +124,16 @@ export function getJob(slug: string): JobOpening | undefined {
 // General and short, on purpose. The hub's job is context plus the listings;
 // the description lives on the role page.
 
+// ! WATCH THE WORD "BUILD" (Will, 2026-08-28). The first pass ran "Come build
+// the album...", "Come build with us." and "See what you'd be building." as
+// three of its four headings, plus "tell us what you'd love to build" in the
+// catch-all. The page now says it once, in the catch-all, where it is doing
+// real work. Vary the verb before adding another heading here.
 export const CAREERS_INTRO = {
   eyebrow: "Careers",
-  headline: "Come build the album every event deserves.",
+  headline: "Come make something people keep.",
   subhead:
-    "Partyreel gathers every photo and video from an event with one QR code, then hands it back as something worth keeping. We are a small team that cares a great deal about how that feels.",
+    "Partyreel gathers every photo and video from an event with one QR code, then hands it back as an album worth keeping. We are a small team that cares a great deal about how that feels.",
   cta: "See open roles",
 };
 

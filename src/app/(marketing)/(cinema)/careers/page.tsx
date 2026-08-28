@@ -3,7 +3,11 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { MarksWall } from "@/components/marketing/sections/careers/careers-marks";
+import {
+  MarkBadge,
+  MarksField,
+  type MarkKind,
+} from "@/components/marketing/sections/careers/careers-marks";
 import { RoleListings } from "@/components/marketing/sections/careers/role-listings";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { CtaBand } from "@/components/marketing/system/cta-band";
@@ -28,37 +32,37 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE CAREERS HUB (rebuilt from zero, the careers round 2026-08-28).
+ * THE CAREERS HUB.
  *
- *   dark hero (the marks wall) -> PAPER (why we're building it + how we work)
- *   -> dark open roles -> CtaBand.
+ *   dark hero (the marks field) -> PAPER (why it matters) -> dark (how we work)
+ *   -> PAPER (open roles) -> dark CtaBand.
  *
- * The chapter alternation is the home arc's ratified rhythm (cinema, paper,
- * cinema), and the cut is load-bearing rather than decoration: the company
- * material is a DOCUMENT and reads on paper, while the listings land back in
- * the room so the thing you came to do is the destination.
+ * ! THE CHAPTERS ALTERNATE, and that is a fix, not a flourish. The first pass
+ *   ran hero / paper / dark / dark and Will's read was that it "feels very
+ *   bland, not very engaging as you scroll, nor much hierarchy to visually
+ *   track", and that "only having one paper section also feels forced." Two
+ *   paper chapters give the page a rhythm instead of a single light interlude,
+ *   and the roles now land ON paper, which is the same move /pricing ruled for
+ *   the money: a listing is a DOCUMENT, so the job turns the page.
  *
- * ! WHAT THIS PAGE DELIBERATELY IS NOT (Will's verdict on the first rebuild,
- *   2026-08-28 - do not walk any of it back):
- *   - NOT a tour of how the product works internally. "Why in the world am I
- *     reading about Reel CSS rendering on the careers page... this will all be
- *     handled during interviews." The engine internals are gone; a visitor here
- *     to send a General Application should never meet them.
- *   - NOT centred on one role. The General Application is permanent and more
- *     listings are coming, so RoleListings scales and the catch-all is a
- *     first-class entry, never a peer vacancy card and never an afterthought.
- *   - NOT a pre-launch confessional. "We're building this for launch," so the
- *     page does not dwell on having no users yet.
- *   - NOT self-deprecating in the header. An earlier headline built from our own
- *     "details nobody consciously notices" value read to a prospect as "your
- *     work will be invisible here"; the H1 sells the opportunity instead.
+ * ! The hero's mark vocabulary is reused down the page as the principle
+ *   anchors. That is what stops the field from being decoration that appears
+ *   once and never returns, and it is most of the missing hierarchy: each
+ *   principle now has a shape to track, not just a number.
  *
- * The one thing carried over from the lab round is the WALL: abstract
- * achromatic marks of the global Partyreel loop, which Will kept because it
- * "makes it feel cool in a developer 'this is cool work' way versus repeating
- * more images." The metric row from that round was cut with him for lack of
- * honest content (no social proof exists, and hiring facts read as boring).
+ * WHAT THIS PAGE DELIBERATELY IS NOT (Will's earlier verdict, still binding):
+ * not a tour of the product's internals ("this will all be handled during
+ * interviews"), not centred on one role, not a pre-launch confessional, and not
+ * self-deprecating in the header.
  */
+
+/**
+ * Each principle borrows a mark from the hero's own vocabulary, chosen for
+ * meaning AND for surviving 34px: craft = the reel we make, media = the album,
+ * the party = the QR a guest meets there, ownership = the album kept.
+ */
+const PRINCIPLE_MARKS: MarkKind[] = ["reel", "album", "scan", "keep"];
+
 export default function CareersPage() {
   return (
     <>
@@ -69,16 +73,14 @@ export default function CareersPage() {
         ]}
       />
 
-      {/* The room, with the loop drawn across it. The wall is texture, not
-          content, so a scrim pools over the type rather than blanketing the
-          grid (a blanket made the wall invisible and wasted the device). */}
+      {/* The room, with the product loop drifting through it in three planes. */}
       <section className="relative overflow-hidden">
-        <MarksWall />
+        <MarksField />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 mkt-careers-scrim"
+          className="mkt-careers-scrim pointer-events-none absolute inset-0"
         />
-        <Container className="relative flex flex-col items-center gap-6 py-24 text-center sm:py-32">
+        <Container className="relative flex flex-col items-center gap-6 py-28 text-center sm:py-36">
           <TextsReveal className="flex flex-col items-center gap-6">
             <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
               {CAREERS_INTRO.eyebrow}
@@ -115,47 +117,79 @@ export default function CareersPage() {
         </Container>
       </section>
 
-      {/* THE DOCUMENT. Why we're building it, then how we work: the company
-          material a candidate reads before they look at the list. */}
+      {/* Chapter one: why the work matters. Asymmetric on purpose - a centered
+          column here was most of what made the page read as flat. */}
       <PaperChapter>
-        <SectionShell>
-          <div className="mx-auto flex max-w-2xl flex-col gap-4">
-            <h2 className="font-heading text-2xl text-balance sm:text-3xl">
-              {CAREERS_MISSION.heading}
-            </h2>
-            {CAREERS_MISSION.paragraphs.map((paragraph) => (
-              <p key={paragraph} className="text-pretty text-muted-foreground">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-
-          <Reveal className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-9 sm:grid-cols-2">
-            {HOW_WE_WORK.map(({ title, body }, index) => (
-              <div
-                key={title}
-                data-mkt-reveal
-                style={{ "--i": index } as CSSProperties}
-                className="flex flex-col gap-1.5"
-              >
-                <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
-                <p className="text-sm text-pretty text-muted-foreground">
-                  {body}
+        <SectionShell reveal="none">
+          <Reveal className="grid gap-x-16 gap-y-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+            <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
+              <Eyebrow>Why it matters</Eyebrow>
+              <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+                {CAREERS_MISSION.heading}
+              </h2>
+            </div>
+            <div className="flex max-w-2xl flex-col gap-4 lg:pt-1">
+              {CAREERS_MISSION.paragraphs.map((paragraph, i) => (
+                <p
+                  key={paragraph}
+                  data-mkt-reveal
+                  style={{ "--i": i + 1 } as CSSProperties}
+                  className="text-lg text-pretty text-muted-foreground"
+                >
+                  {paragraph}
                 </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </Reveal>
         </SectionShell>
       </PaperChapter>
 
-      <RoleListings />
+      {/* Chapter two: how we work, back on the room. Each principle carries a
+          mark from the hero so the page keeps one visual vocabulary. */}
+      <SectionShell
+        eyebrow="How we work"
+        heading="Four things we actually do."
+        align="left"
+        reveal="standard"
+      >
+        <Reveal className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2">
+          {HOW_WE_WORK.map(({ title, body }, index) => (
+            <div
+              key={title}
+              data-mkt-reveal
+              style={{ "--i": index } as CSSProperties}
+              className="flex flex-col gap-3 border-t pt-6"
+            >
+              <div className="flex items-center gap-3">
+                <MarkBadge kind={PRINCIPLE_MARKS[index]} />
+                <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <h3 className="font-heading text-xl sm:text-2xl">{title}</h3>
+              <p className="text-pretty text-muted-foreground">{body}</p>
+            </div>
+          ))}
+        </Reveal>
+      </SectionShell>
+
+      {/* Chapter three: the job turns the page to paper. */}
+      <PaperChapter>
+        <SectionShell
+          id="open-roles"
+          eyebrow="Open roles"
+          heading="Where you'd fit."
+          subhead="Every application gets read. If nothing here is yours, the last entry is always open."
+        >
+          <div className="mt-14">
+            <RoleListings />
+          </div>
+        </SectionShell>
+      </PaperChapter>
 
       <CtaBand
-        heading="See what you'd be building."
-        subhead="The live demo album is open, and the reel is one tap away. It is the fastest way to understand what we do."
+        heading="Try it before you apply."
+        subhead="The live demo album is open and the reel is one tap away. It is the fastest way to understand what we do all day."
         demoLink
       />
     </>

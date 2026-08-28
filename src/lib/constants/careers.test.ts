@@ -16,13 +16,14 @@ describe("careers constants", () => {
       for (const field of [
         job.slug,
         job.title,
-        job.team,
         job.type,
         job.hook,
         job.summary,
       ]) {
         expect(field.trim()).not.toBe("");
       }
+      // `team` is optional (a catch-all has none) but must never be blank.
+      if (job.team !== undefined) expect(job.team.trim()).not.toBe("");
       expect(job.requirements.length).toBeGreaterThan(0);
       for (const item of [...job.requirements, ...job.responsibilities]) {
         expect(item.trim()).not.toBe("");
@@ -38,6 +39,9 @@ describe("careers constants", () => {
     expect(general).toBeDefined();
     expect(general?.location).toBeUndefined();
     expect(general?.offer).toBeUndefined();
+    // No team either: vacancy-shaped metadata on a non-vacancy reads as a job
+    // we do not have, which is the same lie IS_HIRING exists to prevent.
+    expect(general?.team).toBeUndefined();
   });
 
   it("the hiring signal counts real vacancies, not the catch-all", () => {
