@@ -73,17 +73,27 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
   (a two-way Vitest mirror: change one side and you must change the other).
 
-**THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a nested
-`.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides). Three
-registers: a sign-off row addressed to machines (a server-rendered scannable QR pointing at
-`DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, beside the assistant deep-links that
-give the `/llms.txt` layer its one human-facing surface), then the index, then a legal bar. IA is three
-columns beside the brand block: **Product** (How it works · Reel · Pricing · FAQ, then the only two
-collapsed groups, Features + Events) · **Resources** · **Company** (About · Careers), with `FOOTER_LEGAL`
-owning Privacy + Terms. **Only long-tail pages may nest** (Will's ruling): conversion and trust routes stay
-flat. This SUPERSEDES R4-A19 (Privacy/Terms sat under Company only because a sixth column wrapped at 1440;
-a bar is a different shape). The root 404 renders it with `disclosure={false}` — that boundary is outside
-`(marketing)`, so `[data-mkt]` is absent and every `.mkt-acc` selector would fail to match.
+**THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a
+nested `.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides).
+Three registers: the demo invitation (a server-rendered scannable QR on a fanning pile of event
+photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, plus a
+secondary `Start free`), the index, and a legal bar. A turbulence-warped seam glow on the ratified
+confetti palette turns the top edge into spilled light instead of a hard cut.
+
+IA is four columns beside the brand block: **Features** (hub + the six pages) · **Events** (hub + the
+four types) · **Product** (How it works · Pricing · The reel · FAQ) · **Resources**, with About +
+Careers as Resources' TAIL under a hairline and `FOOTER_LEGAL` owning Privacy + Terms. **Nothing is
+collapsed** (Will's review, superseding the first pass's disclosure columns): Features and Events are
+the most core marketing page families and folding them behind chevrons buried them, while the whole
+sitemap is small enough to show at once. A Vitest pin guards against an accordion returning. This
+SUPERSEDES R4-A19 for legal (Privacy/Terms sat under Company only because a sixth column wrapped at
+1440; a bar is a different shape). The brand block carries the thesis and the assistant row, the one
+human-facing surface of the `/llms.txt` layer.
+
+The root 404 renders the same footer, but outside `(marketing)`: `marketing.css` never loads there,
+so the glow and the photo fan simply do not fire. Anything the footer needs in order to not BREAK
+there (the stack's absolute positioning, the slab's tokens) is therefore carried on the components
+themselves, never inherited from that sheet.
 
 ## SEO / OG
 
