@@ -11,10 +11,20 @@ import type { TunerControl } from "@/components/dev/motion-tuner-config";
  * makes "build-direct + tune-live" (Will, 2026-06-21) work: finetune the polish
  * timings LIVE on the real (prod) host event page, no rebuild loop.
  *
- * HOW IT WORKS: each control binds to a CSS custom property written to
- * document.documentElement.style; the polish CSS reads `var(--tune-x, <baked
- * default>)`, so the panel is a pure NO-OP until a control moves, and unmount
- * (navigation/reload) clears every var it set. Drag -> feel it -> "Copy CSS" ->
+ * HOW IT WORKS: each control binds to a CSS custom property written as an
+ * inline style on the element that OWNS that token; the polish CSS reads
+ * `var(--tune-x, <baked default>)`, so the panel is a pure NO-OP until a control
+ * moves, and unmount (navigation/reload) clears every var it set.
+ *
+ * ★ WRITE TARGET IS NOT ALWAYS <html> (fixed 2026-08-28, caught while wiring the
+ * nav knobs). The app's --tune-* tokens are only ever var() fallbacks, so an
+ * inline value on <html> inherits down and wins. The marketing --mkt-* tokens
+ * are DECLARED on the [data-mkt] wrapper (marketing.css's containment contract
+ * forbids :root), and a declaration on a descendant beats an inherited value
+ * from an ancestor no matter how specific that ancestor's rule is — so every
+ * --mkt-* knob written to <html> was silently doing nothing. Verified live:
+ * setting --mkt-reveal-ms on <html> left the [data-mkt] scope reading .7s.
+ * tunerScope() routes each var to the element that actually declares it. Drag -> feel it -> "Copy CSS" ->
  * bake the value as the globals.css default -> "Reset". In-house on purpose (no
  * lil-gui/leva prod dep), tailored to CSS-var tuning, config-driven so each
  * polish increment adds knobs without touching this file.
@@ -33,6 +43,17 @@ import type { TunerControl } from "@/components/dev/motion-tuner-config";
 
 function controlCssValue(control: TunerControl, raw: number | string): string {
   return control.kind === "range" ? `${raw}${control.unit}` : String(raw);
+}
+
+/** The element an override has to be written on to actually take effect — see
+ *  the WRITE TARGET note above. Falls back to <html> if the marketing wrapper
+ *  isn't on the page (then the var is a plain fallback and inheritance works). */
+function tunerScope(cssVar: string): HTMLElement {
+  if (cssVar.startsWith("--mkt-")) {
+    const scope = document.querySelector<HTMLElement>("[data-mkt]");
+    if (scope) return scope;
+  }
+  return document.documentElement;
 }
 
 // SSR-safe "are we on the client yet" without set-state-in-effect (the lab's
@@ -62,9 +83,9 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
   // never outlive the panel and silently mask the baked defaults. Cleanup-only ->
   // no set-state-in-effect.
   useEffect(() => {
-    const root = document.documentElement;
     return () => {
-      for (const c of controls) root.style.removeProperty(c.cssVar);
+      for (const c of controls)
+        tunerScope(c.cssVar).style.removeProperty(c.cssVar);
     };
   }, [controls]);
 
@@ -72,7 +93,7 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
 
   function update(control: TunerControl, raw: number | string) {
     setValues((v) => ({ ...v, [control.cssVar]: raw }));
-    document.documentElement.style.setProperty(
+    tunerScope(control.cssVar).style.setProperty(
       control.cssVar,
       controlCssValue(control, raw),
     );
@@ -80,8 +101,8 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
   }
 
   function reset() {
-    const root = document.documentElement;
-    for (const c of controls) root.style.removeProperty(c.cssVar);
+    for (const c of controls)
+      tunerScope(c.cssVar).style.removeProperty(c.cssVar);
     setValues(Object.fromEntries(controls.map((c) => [c.cssVar, c.default])));
     setCopied(false);
   }
@@ -93,14 +114,35 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
 
   async function copyCss() {
     const changed = changedControls();
-    const body =
+    // --mkt-* tokens bake onto [data-mkt] in marketing.css, never :root (the
+    // containment contract), so they get their own block — a `:root {}` block
+    // would be dead the moment it was pasted, for the same reason the writes
+    // above needed a scope.
+    const block = (selector: string, list: TunerControl[]) =>
+      list.length === 0
+        ? ""
+        : `${selector} {\n${list
+            .map(
+              (c) => `  ${c.cssVar}: ${controlCssValue(c, values[c.cssVar])};`,
+            )
+            .join("\n")}\n}`;
+    const text =
       changed.length === 0
-        ? "  /* no changes from the baked defaults */"
-        : changed
-            .map((c) => `  ${c.cssVar}: ${controlCssValue(c, values[c.cssVar])};`)
-            .join("\n");
+        ? ":root {\n  /* no changes from the baked defaults */\n}"
+        : [
+            block(
+              ":root",
+              changed.filter((c) => !c.cssVar.startsWith("--mkt-")),
+            ),
+            block(
+              "[data-mkt]",
+              changed.filter((c) => c.cssVar.startsWith("--mkt-")),
+            ),
+          ]
+            .filter(Boolean)
+            .join("\n\n");
     try {
-      await navigator.clipboard.writeText(`:root {\n${body}\n}`);
+      await navigator.clipboard.writeText(text);
       setCopied(true);
     } catch {
       // Clipboard can reject without a user gesture / over http; the on-screen
@@ -129,7 +171,9 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setSide((s) => (s === "right" ? "left" : "right"))}
+                onClick={() =>
+                  setSide((s) => (s === "right" ? "left" : "right"))
+                }
                 className="rounded px-1.5 py-0.5 text-neutral-400 hover:bg-white/10 hover:text-neutral-100"
                 title="Flip to the other corner"
               >
@@ -157,7 +201,9 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
                   <div className="flex items-center justify-between gap-2">
                     <label className="text-neutral-300">{c.label}</label>
                     <span
-                      className={changed ? "text-amber-300" : "text-neutral-500"}
+                      className={
+                        changed ? "text-amber-300" : "text-neutral-500"
+                      }
                     >
                       {c.kind === "range"
                         ? `${values[c.cssVar]}${c.unit}`
@@ -205,7 +251,9 @@ export function MotionTuner({ controls }: { controls: TunerControl[] }) {
               ) : (
                 <Copy className="size-3.5" />
               )}
-              {copied ? "Copied" : `Copy CSS${changedCount ? ` (${changedCount})` : ""}`}
+              {copied
+                ? "Copied"
+                : `Copy CSS${changedCount ? ` (${changedCount})` : ""}`}
             </button>
             <button
               type="button"

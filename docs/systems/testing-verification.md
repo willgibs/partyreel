@@ -30,16 +30,27 @@ site, these are the ways the *test tooling* misreports, so a working change look
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
   screenshot off that, or hand the human the look. (Unit tests mock `sonner` globally — see
   [design-system.md](design-system.md).)
-- **The in-app Browser pane FREEZES canvases between tool calls.** The pane backgrounds itself when not
-  fronted (`document.hidden === true`, rAF never fires between calls), so a PLAYING reel canvas screenshots
-  as frozen — a working player reads as broken. Front the pane (take a screenshot first) before pixel
-  probes, or drive the real Chrome (claude-in-chrome tabs animate between screenshots). Play-FEEL is never
-  tooling-judgeable either way — that check is the human's device session.
-- **The pane can also freeze STYLE RECALC, so `getComputedStyle` lies about dynamic changes.** Observed
-  2026-08-28: a label whose className provably changed (ink-inversion classes present in the DOM string)
-  kept returning its pre-change computed background through class toggles and forced reflows, while a
-  fresh `cloneNode` of the same element resolved correctly. In the pane, computed-style assertions are
-  trustworthy only for INITIAL renders; for state-driven restyles, clone-probe or drive real Chrome.
+- **The in-app Browser pane runs with `document.hidden === true`, which suspends the whole rendering
+  loop.** In a non-interactive session the pane is never actually visible, and `tabs_select` does not change
+  that. Everything the spec ties to the "update the rendering" steps therefore never runs between tool
+  calls: **rAF** (so a playing canvas screenshots frozen, and any rAF frame-time sampler records ZERO
+  frames — do not try to measure jank this way), **ResizeObserver** and **IntersectionObserver** delivery
+  (so a Radix NavigationMenu viewport stays 0×0 because its measured size vars never arrive, and a
+  scroll-sentinel header never flips to `stuck`), and **CSS transition progress** (a mid-transition
+  `getComputedStyle` returns the START value forever, so an element reads as "never animated"). Each
+  `screenshot` call forces ONE frame, which is why a panel often appears only on the second or third
+  screenshot after the hover that opened it — and why a Radix layer whose unmount waits on
+  `animationend` (Sheet, Dialog) can read as STILL MOUNTED at `data-state="closed"` long after a
+  close: force a frame or two (screenshots), then re-probe, before judging presence. What still works, and is the right thing to lean on: computed
+  styles, `getBoundingClientRect`, DOM/attribute assertions, real hovers/clicks, and reading a state's
+  styling by flipping its `data-*` attribute by hand. Assert the MECHANISM (durations, easings,
+  `transition-property`, `--tw-enter-*`, ancestor `backdrop-filter`), not the frames. The trap hiding
+  inside "computed styles work": an element with a TRANSITION on the probed property. Observed 2026-08-28
+  (the contact round): a label whose className provably flipped kept returning its PRE-change computed
+  background through forced reflows — its `transition-colors` was frozen at progress 0 — while a fresh
+  `cloneNode` (no running transition) resolved the end state correctly. For a state-driven restyle on a
+  transitioning element: clone-probe, or drive real Chrome. Motion FEEL and
+  `prefers-reduced-motion` (not emulable here) are never tooling-judgeable — those are the human's session.
 - **Browser downloads land in an iCloud dir, and the network panel can lie about them.** In Will's Chrome,
   downloads save to `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/` — NOT `~/Downloads`
   (confirmed 2026-08-06; a "missing" export zip was sitting there). For the export Worker specifically, the
@@ -49,6 +60,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
 - **Isolated-world DOM + timing artifacts.** Because the MCP executes in an isolated world, buffered or
   just-painted state can be missing and timing/race effects can read as failures. The perf-baseline doc hit
   the same isolated-world caveat measuring LCP ([`../perf/v1-baseline.md`](../perf/v1-baseline.md)).
+  - **Clicks aimed during an ENTER animation miss (real Chrome too).** `find`/ref clicks and any
+    coordinates read while a menu/panel is still animating in aim at the MID-FLIGHT rect (a
+    cross-slide had a nav link 250px right of its settled spot; the click "dismissed the menu, no
+    navigation" — twice, and it looked like a product bug). Wait for the enter to settle, re-read
+    `getBoundingClientRect`, then click.
   - **`javascript_tool` writes don't cross into the app's world.** A `document.documentElement.style.set
     Property('--x', …)` (or any DOM mutation) from `javascript_tool` does NOT reach the app's MAIN-world
     `getComputedStyle` readers (e.g. a hook's runtime `readMs`) — so you can't inject a CSS var to widen/slow

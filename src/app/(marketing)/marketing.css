@@ -256,9 +256,37 @@
   --mkt-acc-expand: 250ms;
   --mkt-acc-collapse: 250ms;
   --mkt-acc-chevron: 250ms;
-  /* 05-menu-dropdown (clocks only; the nav applies data-mkt-dropdown) */
-  --mkt-dropdown-open-ms: 250ms;
-  --mkt-dropdown-close-ms: 150ms;
+  /* 05-menu-dropdown + 01-card-resize + 08-page-side-by-side, all fused into
+     ONE nav clock family (the 2026-08-28 nav round). --mkt-dropdown-open-ms is
+     deliberately shared by three things at once — the panel's enter animation,
+     the box's width/height morph, and the incoming panel's cross-slide — so the
+     box and its contents can never again move as two objects on two clocks
+     (they used to: 100ms/ease box vs 150ms/emphasis content). Retuned from
+     250/150 to 200/130: exits stay faster than enters. */
+  --mkt-dropdown-open-ms: 200ms;
+  --mkt-dropdown-close-ms: 130ms;
+  /* The side-by-side sweep. 208px (the shipped slide-in-from-right-52) read as
+     a whoosh that outran the box; the transitions.dev recipe's own 8px reads as
+     a plain crossfade and loses the directionality Will liked. 32px keeps the
+     sweep and lets the morph read underneath it. Tunable (motion tuner). */
+  --mkt-dropdown-swap-distance: 32px;
+  --mkt-dropdown-swap-blur: 3px;
+  /* Panel-row hover, asymmetric ON PURPOSE: a nav row is skimmed, not studied,
+     so the IN must land inside a fast pass (the old symmetric 150ms on
+     cubic-bezier(0.4,0,0.2,1) needed ~64ms just to reach half opacity, which is
+     why a moderately fast skim missed rows entirely). OUT stays slow so the
+     trail is calm. --mkt-dropdown-ink-ms is the LABEL's lead: colour lands
+     first, surface follows, so the response starts within a frame or two. */
+  --mkt-dropdown-hover-ms: 90ms;
+  --mkt-dropdown-hover-out-ms: 180ms;
+  --mkt-dropdown-ink-ms: 60ms;
+  /* The nav's own indicator + hover intent. NOT --mkt-tabs-dur: a segmented
+     pill tracks a CLICK and can take 250ms; this one tracks a moving CURSOR and
+     has to keep up. --mkt-nav-intent-ms is read by JS (readCssMs) as Radix's
+     delayDuration: 0 would flash panels while the cursor sweeps toward the CTA,
+     200 (the Radix default) reads as lag. */
+  --mkt-nav-indicator-ms: 180ms;
+  --mkt-nav-intent-ms: 100ms;
   /* 24-learn-more-hover */
   --mkt-learn-shift: 2px;
   --mkt-learn-spread: 8deg;
@@ -478,20 +506,53 @@
   }
 }
 
-/* ── 05-menu-dropdown, CLOCKS ONLY: the ui/dropdown-menu primitive already
-   grows origin-aware via tw-animate; the nav's data-mkt-dropdown retunes its
-   clocks to the recipe (250ms open / 150ms close, 0.97 pre-scale / 0.99
-   closing scale) WITHOUT touching the primitive. Works because tw-animate
-   reads var(--tw-duration) and the zoom utilities set --tw-enter/exit-scale:
-   these unlayered declarations outrank the utility layer. data-mkt sits ON
-   the portaled content (THE PORTAL RULE), so the pair-selector matches. ── */
+/* ── 05-menu-dropdown + 08-page-side-by-side, SHAPE ONLY. The CLOCKS moved
+   INTO the primitive (ui/navigation-menu.tsx now reads
+   duration-[var(--mkt-dropdown-open-ms,200ms)] directly, the faq-accordion
+   pattern) because a `duration-*` utility writes BOTH --tw-duration and a
+   literal transition-duration — retuning only the variable from here left the
+   box's transition on its own 100ms clock while the animation ran at 250ms,
+   which is precisely what made the swap look jagged. One utility, one clock,
+   and the var(…, fallback) keeps the root /404 correct where this sheet never
+   loads.
+
+   What stays here is the SHAPE: the recipe's pre/closing scale, and the sweep
+   distance + blur. The distance/blur MUST be declared on the CONTENT element,
+   not the viewport: every --tw-enter and --tw-exit property is registered
+   `inherits: false`, so a value set on the viewport would never reach its
+   children. These unlayered declarations outrank the utility layer, so the
+   utility classes on the primitive act purely as the no-marketing.css
+   fallback. data-mkt sits ON the portaled content (THE PORTAL RULE). ── */
 [data-mkt][data-mkt-dropdown] {
-  --tw-duration: var(--mkt-dropdown-open-ms);
   --tw-enter-scale: 0.97;
   --tw-exit-scale: 0.99;
 }
-[data-mkt][data-mkt-dropdown][data-state="closed"] {
-  --tw-duration: var(--mkt-dropdown-close-ms);
+[data-mkt][data-mkt-dropdown] [data-motion="from-start"] {
+  --tw-enter-translate-x: calc(var(--mkt-dropdown-swap-distance) * -1);
+  --tw-enter-blur: var(--mkt-dropdown-swap-blur);
+}
+[data-mkt][data-mkt-dropdown] [data-motion="from-end"] {
+  --tw-enter-translate-x: var(--mkt-dropdown-swap-distance);
+  --tw-enter-blur: var(--mkt-dropdown-swap-blur);
+}
+[data-mkt][data-mkt-dropdown] [data-motion="to-start"] {
+  --tw-exit-translate-x: calc(var(--mkt-dropdown-swap-distance) * -1);
+  --tw-exit-blur: var(--mkt-dropdown-swap-blur);
+}
+[data-mkt][data-mkt-dropdown] [data-motion="to-end"] {
+  --tw-exit-translate-x: var(--mkt-dropdown-swap-distance);
+  --tw-exit-blur: var(--mkt-dropdown-swap-blur);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The global 0.01ms clamp already collapses the clocks; zeroing the SHAPE too
+     means reduced motion gets a plain state swap with no travel and no blur
+     (the recipe's own guard, kept). */
+  [data-mkt][data-mkt-dropdown] [data-motion] {
+    --tw-enter-translate-x: 0;
+    --tw-exit-translate-x: 0;
+    --tw-enter-blur: 0;
+    --tw-exit-blur: 0;
+  }
 }
 
 /* ── 24-learn-more-hover: the chevron slides with the reading direction while

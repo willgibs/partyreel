@@ -30,7 +30,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** (does the R6 mono ruling extend
   to press facts / legal status lines / GoDeeper captions — Will rules); `/press` grows into the
   partnerships/ambassador kit; post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
-  the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects).
+  the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
+  the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
+  for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
+  explored range for the next pass.
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,

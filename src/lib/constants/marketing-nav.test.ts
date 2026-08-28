@@ -5,6 +5,7 @@ import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
   FOOTER_NAV,
   isNavGroup,
+  isNavItemCurrent,
   PRIMARY_NAV,
   type NavItem,
 } from "@/lib/constants/marketing-nav";
@@ -76,9 +77,12 @@ describe("marketing nav config", () => {
   });
 
   it("the expansion IA: Features panel leads with the six pages + the nested reel", () => {
-    // The 2026-08-26 expansion ruling (supersedes the T2.5 Call-1 nav spec):
-    // Features · Events · Pricing · Resources, with the reel NESTED inside the
-    // Features panel (top-level Reel retired) and /reel's URL unchanged.
+    // The 2026-08-26 expansion ruling (supersedes the T2.5 Call-1 nav spec)
+    // as re-ordered 2026-08-28: Features · Events · Resources · Pricing, with
+    // the reel NESTED inside the Features panel (top-level Reel retired) and
+    // /reel's URL unchanged. The three PANEL groups must stay CONTIGUOUS —
+    // Radix derives its cross-slide from the index delta between adjacent
+    // items, so a flat link between two panels kills one pair's sweep.
     const expected = [
       ...FEATURE_PAGES.map((page) => `/features/${page.slug}`),
       "/reel",
@@ -104,9 +108,38 @@ describe("marketing nav config", () => {
     expect(PRIMARY_NAV.map((item) => item.label)).toEqual([
       "Features",
       "Events",
-      "Pricing",
       "Resources",
+      "Pricing",
     ]);
+    // The contiguity invariant itself, not just the literal order: every
+    // panel group precedes every flat link.
+    // "g" sorts before "l", so a sorted copy IS "all groups, then all links".
+    const kinds = PRIMARY_NAV.map((item) => (isNavGroup(item) ? "g" : "l"));
+    expect(kinds.join("")).toBe([...kinds].sort().join(""));
+  });
+
+  it("isNavItemCurrent: hubs, children, and the hub-less Resources group", () => {
+    const byLabel = (label: string) =>
+      PRIMARY_NAV.find((item) => item.label === label)!;
+    const features = byLabel("Features");
+    const resources = byLabel("Resources");
+    const pricing = byLabel("Pricing");
+
+    expect(isNavItemCurrent(features, "/features")).toBe(true);
+    expect(isNavItemCurrent(features, "/features/album")).toBe(true);
+    // The reel lives INSIDE the Features panel, so /reel inks Features.
+    expect(isNavItemCurrent(features, "/reel")).toBe(true);
+    expect(isNavItemCurrent(features, "/pricing")).toBe(false);
+
+    // Resources has no hub of its own — only its children can light it.
+    expect(isNavItemCurrent(resources, "/help")).toBe(true);
+    expect(isNavItemCurrent(resources, "/blog/some-post")).toBe(true);
+    expect(isNavItemCurrent(resources, "/about")).toBe(false);
+
+    expect(isNavItemCurrent(pricing, "/pricing")).toBe(true);
+    expect(isNavItemCurrent(pricing, "/")).toBe(false);
+    // Segment-aware, not a raw prefix: /pressure must never ink /press.
+    expect(isNavItemCurrent(resources, "/pressure")).toBe(false);
   });
 
   it("the footer Product + Features columns carry the ruled expansion shape", () => {

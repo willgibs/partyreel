@@ -7,6 +7,7 @@ import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEMO_EVENT_URL } from "@/lib/demo";
+import { cn } from "@/lib/utils";
 
 /**
  * THE DEMO TICKET (Will's checkpoint ask; PROMOTED to system/ in the expansion round: the hero AND the Features mega-panel both render it): points at the REAL demo
@@ -39,12 +40,21 @@ export function DemoTicket({
   return (
     <Link
       href={DEMO_EVENT_URL}
+      // The two shapes sit on DIFFERENT grounds and so cannot share a palette
+      // (2026-08-28): `row` floats over the hero's media wall, where hard
+      // white-on-black glass is exactly right, while `column` sits inside the
+      // OPAQUE nav mega-panel — on the paper skin that made a mid-grey block
+      // with near-illegible white caption text, and the backdrop-blur bought a
+      // per-frame filter pass with nothing behind it to blur. The panel shape
+      // rides house surface tokens instead, so it reads on cinema AND paper.
       className={
         column
-          ? "flex flex-col items-center gap-3 rounded-xl border border-white/15 bg-black/45 p-4 text-center backdrop-blur-sm transition-[border-color,transform] duration-150 hover:border-white/35 active:scale-[0.99]"
+          ? "flex flex-col items-center gap-3 rounded-xl border bg-card p-4 text-center transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
           : "inline-flex items-center gap-4 rounded-xl border border-white/15 bg-black/45 p-2.5 pr-6 backdrop-blur-sm transition-[border-color,transform] duration-150 hover:border-white/35 active:scale-[0.99]"
       }
     >
+      {/* A REAL white plate either way: scanners need the contrast and the
+          quiet zone (the ConferenceBadge/LiveQr precedent). */}
       <span className="rounded-lg bg-white p-1.5">
         <StyledQr
           value={DEMO_EVENT_URL}
@@ -58,10 +68,15 @@ export function DemoTicket({
           column ? "flex flex-col items-center gap-1" : "flex flex-col gap-1.5"
         }
       >
-        <span className="text-sm font-medium text-white sm:text-[15px]">
+        <span
+          className={cn(
+            "text-sm font-medium sm:text-[15px]",
+            column ? "text-foreground" : "text-white",
+          )}
+        >
           {DEMO_CTA_LABEL}
         </span>
-        <MonoCaption className="text-white/60">
+        <MonoCaption className={column ? undefined : "text-white/60"}>
           <span className="hidden sm:inline">
             Scan with your phone, or tap to open
           </span>
