@@ -10,6 +10,66 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The footer round: the ink slab (`lp/footer-ink`)
+
+The footer was the last wireframe-grade surface on the marketing site: five flat 13px columns, a
+hardcoded thesis copy, no motion, no landmarks — rendered on every page in both skins plus the root
+404. Rebuilt as **the ink slab** over a seven-commit Agent track (with a mid-track redo after Will's
+"barely qualifies as wireframe-level quality" verdict on pass one: the fix was type confidence +
+air, and nothing collapsed). Three registers:
+
+- **The demo invitation:** a server-rendered scannable QR (`qrcode-generator`, DOM-free, one
+  `<path>`, zero client JS, the 4-module quiet zone baked into the viewBox) on a pile of four
+  license-audited event photos that fans open on hover (the ratified card-stack recipe; positioning
+  self-sufficient so the root 404 — no marketing.css — degrades to the plate alone instead of
+  blowing out the layout, the bug pass one shipped). Desktop-only, since you cannot scan your own
+  screen; phones get the "Open the demo album" tap path. A hairline `Start free` rides the
+  register's right edge (the only conversion action a (paper) route gets).
+- **The index:** four full columns (Features · Events · Product · Resources) beside the wordmark
+  brand block, nothing collapsed (pass one's disclosure columns buried the core families; a pin
+  guards against an accordion returning). Features/Events carry their hub on the underlined column
+  TITLE; About + Careers ride as Resources' tail; Careers wears a DERIVED "We're hiring" badge
+  (`careers.ts` `catchAll`/`OPEN_ROLES`/`IS_HIRING`: the badge takes itself down when the last real
+  role closes, and a pin keeps the catch-all from lighting it alone). The assistant row is the
+  llms.txt layer's one human-facing surface — each deep link DRIVEN in a browser, not assumed:
+  ChatGPT auto-submits correctly logged-out; Claude prefills without submitting; Perplexity was
+  REMOVED (its `?q=` dead-ends logged-out visitors at a signup wall); the query is domain-anchored
+  after the bare question made ChatGPT describe a different company. `ask-ai.ts` joined the
+  content-policy CLAIM_FILES.
+- **The legal bar:** `FOOTER_LEGAL` (Privacy + Terms, superseding R4-A19's Company placement) +
+  `/llms.txt` + the mono-numeral copyright.
+
+The slab paints `--gallery*` under BOTH skins and **redeclares the tokens that family does not
+cover** (measured on paper routes: focus rings 1.44:1 → 17.9:1, muted text 2.62:1 → 5.37:1;
+`--brand` redeclared DIRECTLY since a `var()` inside a custom property resolves at the declaring
+element) — pinned by the new `footer-contract.test.ts`. The seam glow is the organic-shimmer
+mechanic on the confetti five via color-mix, split **base + band** so the paused state (the default:
+the footer is below the fold) and reduced motion still ARRIVE lit (the swept-mask lesson,
+design-system.md). Logo gains `wordmarkOnly`; `built-for.tsx` crosslinks re-sourced to
+FEATURE_PAGES so the footer re-cut could not silently degrade them.
+
+**Integrated 2026-08-28 (the second Agent-handoff merge):** `lp/footer-ink` merged to `launch-prep`
+at `dd159b2`. The branch predated the contact AND nav rounds; one docs conflict resolved editorially
+(the nav round's header paragraph is current truth; the ink-slab block taken whole), and
+`marketing-nav.ts`/`.test.ts` auto-merged with BOTH rounds' pin suites coexisting (order/contiguity/
+`isNavItemCurrent` + mirror/About/no-accordion/legal). Full gate on the merged tree: typecheck /
+lint / **1,195 tests** / build, plus built-CSS emission checks. Verified live on the preview at the
+SHA: the slab on paper (/about) with the redeclared ring/muted values computed correct, the glow
+base lit at 0.62 WHILE PAUSED (`document.hidden` — the split doing its job), the fan clearing the
+plate on hover, the QR server-rendered and pointing at the live demo event, all four columns +
+badge + legal bar, the /404 with zero horizontal scroll and the pile degrading to the plate, and
+mobile 375 (QR hidden, tap path visible, badge one line at 31px, no overflow). Consoles clean.
+Open for Will: the preview feel pass, and the flagged call on Claude's "use caution" banner over
+URL-injected prompts.
+
+## 2026-08-28 — MILESTONE-6: the nav round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-6`, `bfa69ba`; 23 files, +1,216/−233),
+prod READY + verified at the merge SHA: the rebuilt header mechanics spot-checked live on
+partyreel.com (order/ink/`aria-current`, the glass layer, panel open + swap, the mobile menu at
+375) with a clean console. Will's feel pass on the preview approved the round ("Feels much
+better") the same day the Agent handed it off. Round content: the entry below.
+
 ## 2026-08-28 — The nav round: the marketing header's interaction rebuilt (`lp/nav-interaction`)
 
 Will's brief was a feel report, not a bug list: hover-opening a dropdown felt slow and jagged and
@@ -76,7 +136,7 @@ hover>focus>open precedence, keyboard (Enter opens / Esc closes with focus retur
 navigation + close-on-route-change, the /404 `var(…, fallback)` clocks holding with no `[data-mkt]`
 wrapper present, both skins' panels + the recolored demo ticket, and the full-screen mobile menu at
 375 (collapsed one-at-a-time disclosures, 44px rows, tap-through navigation, no horizontal scroll).
-Will's feel pass remains the open item.
+Will's feel pass approved same-day; the round shipped to prod at milestone-6 (above).
 
 ## 2026-08-28 — MILESTONE-5: the contact round
 

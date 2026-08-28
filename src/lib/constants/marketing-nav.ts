@@ -153,28 +153,52 @@ export const PRIMARY_NAV: NavItem[] = [
   { label: "Pricing", href: "/pricing" },
 ];
 
-export type FooterColumn = { title: string; links: NavLink[] };
+export type FooterColumn = {
+  title: string;
+  /**
+   * The column's own hub route, when it has one. The TITLE becomes the link
+   * (rendered with a hairline underline so it reads as one), which is tidier
+   * than spending a row on "All features" and puts the directory where the eye
+   * already lands. Columns with no hub (Product, Resources) leave this unset.
+   */
+  href?: string;
+  links: NavLink[];
+  /**
+   * A second group under a hairline, inside the same column. The reference
+   * shape: it lets a short group (Company: two links) read as deliberate
+   * instead of as a stunted fifth column, and it keeps the footer at four nav
+   * columns so none of them has to be narrow.
+   */
+  tail?: NavLink[];
+};
 
-// Footer columns: Product / Features / Events / Resources / Company.
-// The Features column carries the six pages (the expansion IA); Product keeps
-// the cross-cutting routes. "How it works" now points at the PAGE (the home
-// film-strip keeps its /#how-it-works anchor id for deep links). Privacy/Terms
-// live under Company: a separate 2-link Legal column made the footer's 6th
-// column WRAP at 1440 (the R4-A19 orphan; 6 × min-w-28 + gaps overflow the row).
+// THE FOOTER IA (the ink-slab rebuild, revised after Will's review).
+//
+// FEATURES AND EVENTS ARE FULL COLUMNS, NOT DISCLOSURES. The first pass folded
+// them into collapsed groups at the bottom of Product, which buried the two most
+// core marketing page families behind a chevron. Will's rule was that anything
+// core to conversion stays one glance away, and these are exactly that. No
+// accordion survives: the whole sitemap is ~22 links, which fits four columns on
+// desktop and a two-up grid on phones, so collapsing anything only ever cost a
+// click and hid the good stuff.
+//
+// Four columns, tallest first (the reference's own arrangement), beside the
+// brand block. Company rides as Resources' TAIL under a hairline rather than a
+// fifth two-link column: five nav columns plus the brand block is the R4-A19
+// overflow shape, and a two-item column reads as a mistake.
+//
+// SUPERSEDES R4-A19 for legal: Privacy and Terms sat under Company only because
+// a separate two-link Legal COLUMN wrapped at 1440. A bar is a different shape,
+// so FOOTER_LEGAL owns them and they read as legal, not as company.
+//
+// UNCHANGED: the Resources LINKS still mirror the header's Resources panel
+// exactly (a two-way Vitest pin), and About still leads its group (the R5 pin,
+// the only mechanical guard keeping /about reachable).
 export const FOOTER_NAV: FooterColumn[] = [
   {
-    title: "Product",
-    links: [
-      { label: "How it works", href: "/how-it-works" },
-      { label: "Reel", href: "/reel" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "FAQ", href: "/#faq" },
-    ],
-  },
-  {
     title: "Features",
+    href: "/features",
     links: [
-      { label: "All features", href: "/features" },
       { label: "The live album", href: "/features/album" },
       { label: "The QR code", href: "/features/qr" },
       { label: "Curation", href: "/features/curation" },
@@ -185,11 +209,21 @@ export const FOOTER_NAV: FooterColumn[] = [
   },
   {
     title: "Events",
+    href: "/events",
     links: [
       { label: "Weddings", href: "/events/weddings" },
       { label: "Parties", href: "/events/parties" },
       { label: "Conferences", href: "/events/conferences" },
       { label: "Trips", href: "/events/trips" },
+    ],
+  },
+  {
+    title: "Product",
+    links: [
+      { label: "How it works", href: "/how-it-works" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "The reel", href: "/reel" },
+      { label: "FAQ", href: "/#faq" },
     ],
   },
   {
@@ -200,16 +234,19 @@ export const FOOTER_NAV: FooterColumn[] = [
       { label: "Press & brand", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
-  },
-  {
-    title: "Company",
-    links: [
-      // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
-      // header-nav row. It leads the column as the column's anchor.
+    // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
+    // header-nav row. It leads the tail as the group's anchor.
+    tail: [
       { label: "About", href: "/about" },
       { label: "Careers", href: "/careers" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Terms", href: "/terms" },
     ],
   },
+];
+
+/** The legal bar (the footer's last row, beside the copyright). Separate from
+ *  FOOTER_NAV because these are not a sitemap column: they read as legal, and
+ *  the bar shape is what let them leave Company (see the R4-A19 note above). */
+export const FOOTER_LEGAL: NavLink[] = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
 ];

@@ -10,7 +10,7 @@ The public `(marketing)` route group on the shared domain. Nav is single-sourced
 ([`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts)) and consumed by the config-driven
 [`marketing-header.tsx`](../../src/components/marketing/chrome/marketing-header.tsx) (desktop mega-panels in
 [`marketing-nav.tsx`](../../src/components/marketing/chrome/marketing-nav.tsx) + a full-screen mobile menu in
-[`mobile-menu.tsx`](../../src/components/marketing/chrome/mobile-menu.tsx)) + the multi-column
+[`mobile-menu.tsx`](../../src/components/marketing/chrome/mobile-menu.tsx)) + the ink-slab
 [`marketing-footer.tsx`](../../src/components/marketing/chrome/marketing-footer.tsx); both render only
 **live** routes.
 
@@ -104,7 +104,33 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
   that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
   `draft: true` posts are excluded from listing/sitemap/RSS.
-- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact.
+- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
+  (a two-way Vitest mirror: change one side and you must change the other).
+
+**THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a
+nested `.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides).
+Three registers: the demo invitation (a server-rendered scannable QR on a fanning pile of event
+photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, plus a
+secondary `Start free`), the index, and a legal bar. A turbulence-warped seam glow on the ratified
+confetti palette turns the top edge into spilled light instead of a hard cut.
+
+IA is four columns beside the brand block: **Features** · **Events** · **Product** (How it works ·
+Pricing · The reel · FAQ) · **Resources**, with About + Careers as Resources' TAIL under a hairline
+and the legal bar owning `FOOTER_LEGAL` (Privacy + Terms) plus `/llms.txt`. Features and Events
+carry their hub on the column TITLE (a `href` on the column, rendered with a hairline underline that
+brightens on hover) rather than spending a row on "All features": the directory sits where the eye
+already lands, and the underline is the only signal separating a linked title from an unlinked one. **Nothing is
+collapsed** (Will's review, superseding the first pass's disclosure columns): Features and Events are
+the most core marketing page families and folding them behind chevrons buried them, while the whole
+sitemap is small enough to show at once. A Vitest pin guards against an accordion returning. This
+SUPERSEDES R4-A19 for legal (Privacy/Terms sat under Company only because a sixth column wrapped at
+1440; a bar is a different shape). The brand block carries the wordmark (no mark tile: its filled
+square clashed with the QR plate above), the thesis, and the assistant row.
+
+The root 404 renders the same footer, but outside `(marketing)`: `marketing.css` never loads there,
+so the glow and the photo fan simply do not fire. Anything the footer needs in order to not BREAK
+there (the stack's absolute positioning, the slab's tokens) is therefore carried on the components
+themselves, never inherited from that sheet.
 
 ## SEO / OG
 
