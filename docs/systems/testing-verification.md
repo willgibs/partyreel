@@ -80,6 +80,18 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   and the simulated tiles are local-only, so skip it entirely"), so the demo `/e/` link never polls no matter
   what. Run the soak on a REAL test event's link.
 
+## Dev-server theming (localhost only)
+
+- **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
+  (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the
+  `.surface-paper` re-light, so a PaperChapter (and the whole `(paper)` route group) shows dark tokens
+  and the pricing pair's ink inversion flips white. **The production build resolves correctly** (verified
+  2026-08-27: preview with `html.dark` → paper `lab(98.84)`), so this is a dev-only capture lie, not a
+  product bug — do NOT "fix" theme CSS chasing it. Verify paper surfaces on the preview deploy, or set
+  an explicit light theme on the localhost origin first. Bonus trap from the same session: a STORED
+  `theme` in an origin's localStorage (from past app testing) can mask system-theme behavior entirely —
+  the preview origin carried `theme: "light"` for weeks of walks.
+
 ## Vercel preview chrome
 
 - **The dev Toolbar overlaps the UI and does not exist for real guests.** Vercel injects a dev **Toolbar**

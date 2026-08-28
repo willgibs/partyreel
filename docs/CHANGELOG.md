@@ -49,10 +49,20 @@ a real $24 Stripe TEST session (the branch old code refused); pass holder → Pr
 carried `pass_credit_cents: 1742`, the wire-exact floor(2400 × 265/365); renewal → a $15 session
 stamped `renewal: "1"`. Seed torn down after. **Deferred to the milestone merge:** webhook E2E on a
 COMPLETED purchase — Stripe delivers to prod's registered endpoint, which still runs `main`'s webhook
-(stated loudly, not silently downgraded). Lab sitting pending: `pricing-plan-cards` +
-`pricing-calculator` (the magic layer wires in after Will's ruling). Rides along: the A35 video-gate
+(stated loudly, not silently downgraded). Rides along: the A35 video-gate
 copy fix, the stale per-file-limits doc drift (PRICING.md + tiers.ts), the stale `#FB4817` accent
 claim in marketing-content.md.
+
+**The sitting, ruled + wired the same day (`20057e1`):** cards → V2 Stacked photos ("within the card
+v2 has a nice balance"): real event photos fanned above each card head (Free two grayscale, Pro four
+vivid on ink), hover spreads the stack, soft shadows via the photo-depth exception. Calculator → V1
+Album fill ("definitely the V1 direction"): the slider fills a 48-tile album wall on the real gallery
+grammar; video swaps timecoded clip tiles; the bare meter retired. Will's mono flag ("don't know
+where this mono font is coming from") swapped the price register pricing-wide: money in the display
+face (Urbanist + tabular digits), values in Inter; Geist Mono survives only as the wall's timecode
+chips. Verified on the deployed preview (stacks/spread/wall/fonts; the same walk surfaced a DEV-ONLY
+theming lie now recorded in testing-verification.md: `next dev` + `html.dark` can render paper
+surfaces dark while the production build resolves them light).
 
 ## 2026-08-27 — The consolidation round + MILESTONE-3 (one boot surface for parallel sessions)
 

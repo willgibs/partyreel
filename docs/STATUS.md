@@ -46,7 +46,9 @@ comparison matrix + FAQ) AND the Event Pass economics it markets made TRUE first
 checkout branches red-teamed live on the preview (the $17.42 proration verified wire-accurate in
 session metadata). Webhook E2E (a COMPLETED purchase provisioning through the new ledger) waits for
 the milestone merge: Stripe delivers to the endpoint registered for prod, which still runs `main`'s
-webhook. Lab sitting pending (below).
+webhook. **Sitting ruled same-day and wired** (`20057e1`): cards = V2 Stacked photos, calculator =
+V1 Album fill, and the price register swapped off Geist Mono (money in Urbanist, values in Inter)
+after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
@@ -95,10 +97,7 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
 5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
-6. **The pricing-round sitting:** `/design/c/pricing-plan-cards` (the pair's visual identity: Media
-   burst / Stacked photos / Quiet ink) + `/design/c/pricing-calculator` (Album fill vs the shipped
-   Receipt meter) — the ratified directions wire into /pricing after the ruling.
-7. **Annual Pro pricing numbers** (whenever ready — monthly-only was the ruled scope this round; the
+6. **Annual Pro pricing numbers** (whenever ready — monthly-only was the ruled scope this round; the
    toggle slot is reserved, [ROADMAP](ROADMAP.md) "Billing follow-ons").
 
 ## Pre-launch / human-blocked
