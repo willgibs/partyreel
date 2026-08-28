@@ -1537,6 +1537,28 @@
 [data-mkt] ::selection {
   background: color-mix(in oklab, var(--foreground) 14%, transparent);
   color: var(--foreground);
+/* ── THE CAREERS HERO SCRIM (the careers round). The marks wall behind the hero
+   has to READ (it is the page's one visual device) while the type stays fully
+   legible, so the scrim is a POOL over the copy rather than a blanket over the
+   grid: an early blanket at 0.92 flat made the wall invisible and wasted the
+   device entirely. Colour is a color-mix over --background, never a literal, so
+   it resolves to whatever the chapter's own surface is (the ruled cinema room
+   here) and can never drift away from the skin block below. ── */
+[data-mkt] .mkt-careers-scrim {
+  background:
+    radial-gradient(
+      62% 52% at 50% 50%,
+      color-mix(in oklab, var(--background) 94%, transparent) 26%,
+      color-mix(in oklab, var(--background) 68%, transparent) 62%,
+      color-mix(in oklab, var(--background) 22%, transparent) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      var(--background) 0%,
+      transparent 22%,
+      transparent 78%,
+      var(--background) 100%
+    );
 }
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───

@@ -110,6 +110,32 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   off-screen. Eleven gather and a twelfth arrives late, because a complete rectangle says "this is all
   of it" and there is always one more phone in the room.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
+- **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — moved into the **(cinema)** group
+  (URL unchanged; every consumer addresses it by path). The arc is the home rhythm: dark hero → PAPER
+  (why we are building it + how we work) → dark **open roles** → CtaBand. The hero's one device is the
+  **marks wall** ([`careers-marks.tsx`](../../src/components/marketing/sections/careers/careers-marks.tsx)):
+  hand-built achromatic DOM art of the GLOBAL product loop (scan, phone, album, choose, reel, share,
+  keep, download) on the existing `[data-mkt-wall]` drift, under the `.mkt-careers-scrim` pool. ★ The
+  marks are DRAWN FROM SOLID BLOCKS and tuned at ~54px, because hairlines disappear at wall size; the
+  per-tile opacity cycle is coprime with the mark sequence so a fixed pattern stops reading as
+  wallpaper. Listings live in one scalable section
+  ([`role-listings.tsx`](../../src/components/marketing/sections/careers/role-listings.tsx)): real
+  vacancies render as rows from `OPEN_ROLES`, and the **General Application is permanent and
+  first-class** on its own muted plate labelled "Always open", never a peer vacancy card (the site must
+  never appear to advertise a job it does not have, the same invariant `IS_HIRING` protects for the
+  footer badge). The empty state (zero named roles) is built, not theoretical. **★ WHAT THIS PAGE IS
+  DELIBERATELY NOT** (Will's verdict on the first rebuild, do not walk back): not a tour of the
+  product's internals ("this will all be handled during interviews" — an engine-internals draft was
+  rejected outright), not centred on one role, not a pre-launch confessional, and not self-deprecating
+  in the header. The role page mirrors the cut (dark identity + facts + an apply jump → paper document
+  and form) and keeps the ARTICLE H1 exemption at `lg:text-6xl`; **no `JobPosting` JSON-LD while the
+  listing is placeholder copy**. The application form is the contact round's instrument treatment, with
+  the work link promoted (optional on purpose: the same form serves the General Application) and a
+  specific note prompt instead of a blank cover-letter box. Copy single-source:
+  [`careers.ts`](../../src/lib/constants/careers.ts), which is a content-policy `CLAIM_FILES` entry;
+  its `offer` block (incl. "Competitive compensation") is KEPT by Will's ruling, the posting being
+  meant to spark a conversation rather than close a hire.
+- **`/contact`** (rebuilt, the contact round 2026-08-28) — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
   Contact's first field is a REQUIRED **topic Select** (single source
