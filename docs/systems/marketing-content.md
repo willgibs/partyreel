@@ -154,12 +154,18 @@ in [`constants/press.ts`](../../src/lib/constants/press.ts) (one quotable home: 
 builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
 
 **THE RESOURCE-PAGE CHAPTER SHAPE (Will + the /about track, 2026-08-28): cinema hero, paper body,
-dark footer.** A short utility page (`/press`, `/about`) does not have the section count to alternate
-chapters cleanly the way the long marketing pages do, so the dark ground BOOKENDS it rather than
-interrupting it: one `CinemaChapter` at the top, paper for the reading body, and the always-dark
-footer closing it out. ★ Do NOT drop a cinema chapter into the middle of one of these pages. The
-light-grey register for a set-apart block inside the paper body is `bg-muted/40` with `border-y` (the
-`/contact` panel surface).
+dark footer.** A short utility page does not have the section count to alternate chapters cleanly the
+way the long marketing pages do, so the dark ground BOOKENDS it rather than interrupting it. ★ Do NOT
+drop a cinema chapter into the middle of one of these pages. The light-grey register for a set-apart
+block inside a paper body is `bg-muted/40` with `border-y` (the `/contact` panel surface).
+
+★ **A DARK HERO MUST BE PAIRED WITH A DARK NAV** (Will, 2026-08-28), and that decides the ROUTE GROUP,
+because the header skin is chosen by the group layout and a page cannot override it from inside. So a
+resource page wanting this shape belongs in **(cinema)** with a `PaperChapter` body — the `/help`
+precedent — NOT in (paper) with a `CinemaChapter` hero, which leaves the light paper header sitting on
+a dark hero. `/press` moved groups for exactly this reason (the route path is unchanged; only the
+chrome is). ⚠️ `/about` currently takes the (paper) + `CinemaChapter` route and so still has a light
+nav over its dark hero: worth reconciling when that track next lands.
 
 **`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The kit as a photographic proof sheet: eight
 numbered frames on the 3px `--gap-gallery` album grid, riding INSIDE the hero chapter because the

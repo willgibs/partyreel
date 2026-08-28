@@ -132,6 +132,7 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   Supabase/R2/Stripe allow-list, so sign-in, upload, email round-trips, and checkout fail there BY DESIGN —
   the policy home is CLAUDE.md "Local dev vs. live testing"; red-team those flows on the launch-prep alias.
   (2) They build with the UNSCOPED preview env: `NEXT_PUBLIC_SITE_URL` inlines to the prod URL (absolute
-  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is absent (the `/design` gate is
-  unreachable). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
+  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is now present (an UNSCOPED `preview`
+  row was added 2026-08-28 alongside the `@launch-prep` one, so `/design` opens on any `lp/*` alias with
+  `?key=`; verified 200 with the key and 404 without). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
   behavior can differ from the long-lived launch-prep origin (the stored-theme trap above).

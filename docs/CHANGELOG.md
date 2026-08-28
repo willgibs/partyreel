@@ -80,6 +80,25 @@ launch-prep`, which is why `/design` 404'd on every `lp/*` preview. Will supplie
 unscoped `preview` row was added via the Vercel REST API. Verified live on this branch's preview:
 `200` with the key, `404` without, so the gate still holds.
 
+**Refinement pass two.** The page moved from (paper) into **(cinema)**, because "a dark hero should
+always be paired with a dark nav" is a chrome rule and chrome is chosen by the group layout, which a
+page cannot override from inside; `/help` had already set that precedent. The sheet now OPENS the paper
+body instead of riding in the dark with the hero, which needed the REBATE (the grid paints `--border`
+and pads itself by the same 3px, so every gap is a hairline) because white plates on a near-white page
+made the album grid dissolve. The body became a sticky two-column spine, Assets / Words / Fact sheet
+pinned left with their content spending the full measure, replacing a narrow centered column that left
+the page emptier than its own hero; each section is a deep-link target and the pinned Assets column
+carries a Download-all. The kit button reads "Download kit" with the size only. The frame index dropped
+`mix-blend-difference`, which composites a 55%-alpha ink glyph to mid-grey and then differences it into
+near-invisibility on paper, for an explicit tone per plate. `CinemaChapter` was dropped again, so the
+/about track keeps sole ownership.
+
+Two hours of this round went to a TOOLING trap worth naming: Turbopack reuses chunk filenames, so a dev
+server on a port another worktree had used serves that worktree's cached CSS and JS to the browser. It
+presented as "the arbitrary grid-cols class is in the DOM, `lg` matches, and no rule exists" and as a
+hydration mismatch where the client rendered `Copy` while the server rendered the hex. Both were
+correct code against a stale bundle. Verify on the deployed preview, or on a port no sibling has used.
+
 **Open:** Will's feel pass on the built page. Also blocked at handoff: `/design` 404s on every agent branch
 preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
 localhost until that var is set unscoped for Preview (proposed, not applied: config is the
