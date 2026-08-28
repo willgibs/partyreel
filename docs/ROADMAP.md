@@ -20,6 +20,21 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The spill wiring round** (the glow doctrine's second half; the lab boards are `glow-doctrine` +
+  `glow-moments`, engine in `design.css` behind the `glw-` prefix). Blocked on Will's ruling on the
+  doctrine AND on promoting the engine plus its five-hue palette to `globals.css`/`:root` (a one-way
+  door: it deletes the `marketing-css-policy.test.ts` fence that scopes colour literals to
+  `--mkt-confetti-N`, so PROGRAM.md's second hard gate wants an ADR). First task once ruled: collapse
+  `--mkt-confetti-1..5` onto the promoted tokens so there is one palette home. Unmeasured and carried
+  forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
+  and the buttons; a background tab throttles rAF to zero, so it needs a foreground window).
+- **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
+  production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
+  `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
+  definition wins, so any `/design` visit shadows the production definitions for the rest of the
+  session. Worth a uniqueness pin across the three sheets. (2) The repo has NO `forced-colors` and no
+  `@media print` rule anywhere; the spill engine is the first thing to carry either.
+
 - **Elevation-program deferred queue (marketing).** Logged at
   R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
   [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);

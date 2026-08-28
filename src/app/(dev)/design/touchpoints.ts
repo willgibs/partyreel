@@ -572,6 +572,8 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "shared",
     note: "The light system proposed as a doctrine plus an engine: four laws, four shapes, and what a colour wash costs in legibility",
     variants: ["Seam", "Throw", "Sweep", "Bloom"],
+    decisionNote:
+      "AWAITING A RULING, on two things. (1) The doctrine: light is never a material, always spill from a lit thing, with scarcity DERIVED from one lamp per view rather than budgeted as a quota. (2) Whether to promote the engine and its five-hue palette to globals.css and :root, which is the one-way door in this work, since it deletes the test fence that currently scopes colour literals to --mkt-confetti-N. Section 02 is the falsifiable half: if the sampled and fixed palettes look the same, law 3 is wrong.",
   },
   {
     // The placement half of the same round. Every specimen names its lamp, its
@@ -582,6 +584,8 @@ export const TOUCHPOINTS: Touchpoint[] = [
     title: "Spill placements",
     surface: "shared",
     note: "Nine moments argued against the doctrine, with the CTA rim and the loading grid answered rather than left open",
+    decisionNote:
+      "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, and the QR plate. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light.",
     variants: [
       "Hero underlight",
       "Locked door",

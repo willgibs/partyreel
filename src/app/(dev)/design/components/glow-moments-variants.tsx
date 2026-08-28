@@ -17,6 +17,7 @@ import {
   Section,
   Spec,
   Verdict,
+  WALL_IDS,
   type VerdictKind,
 } from "./glow-lab-shared";
 
@@ -95,8 +96,10 @@ export function GlowMomentsVariants() {
 /* ── 01 ─────────────────────────────────────────────────────────────────── */
 
 function HeroUnderlight() {
-  const wall = marketingImage("wedding-golden");
-  const sampled = useSampledPalette(wall.src);
+  // The lamp is the WALL, not one tile in it, so the sample reads all of it.
+  const sampled = useSampledPalette(
+    WALL_IDS.map((id) => marketingImage(id).src),
+  );
   return (
     <Moment
       n="01"
@@ -770,21 +773,27 @@ function CtaQuestion() {
             on="slab"
             className="flex min-h-40 items-center justify-center"
           >
-            <span className="relative isolate inline-flex overflow-hidden rounded-[0.9rem]">
-              <Glow
-                shape="throw"
-                drive="mask"
-                vars={{
-                  "--glw-from-x": "50%",
-                  "--glw-from-y": "50%",
-                  "--glw-reach": "140%",
-                  "--glw-scale": "0.35",
-                  "--glw-blur": "7px",
-                  "--glw-strength": "0.8",
-                  "--glw-base": "0.7",
-                }}
-              />
-              <Button size="lg" className="relative bg-transparent">
+            {/* The wash creeps in AROUND the pill and never over the label:
+                the recipe masks its own centre clear for exactly this reason,
+                and painting across the text would argue against this option
+                for the wrong reason. */}
+            <span className="relative isolate inline-flex p-3">
+              <span className="absolute inset-0 isolate overflow-hidden rounded-full">
+                <Glow
+                  shape="throw"
+                  drive="mask"
+                  vars={{
+                    "--glw-from-x": "50%",
+                    "--glw-from-y": "50%",
+                    "--glw-reach": "130%",
+                    "--glw-scale": "0.4",
+                    "--glw-blur": "9px",
+                    "--glw-strength": "0.85",
+                    "--glw-base": "0.75",
+                  }}
+                />
+              </span>
+              <Button size="lg" className="relative">
                 Start free
               </Button>
             </span>

@@ -116,38 +116,55 @@ export function huesToSpillColors(hues: { hue: number }[]): string[] {
 }
 
 /**
- * Sample a same-origin image into a spill palette. Returns null until it
- * resolves (callers fall back to the ratified five, which is law 3's
- * no-media branch, so there is never an unlit frame).
+ * Sample same-origin media into a spill palette. Returns null until it resolves
+ * (callers fall back to the ratified five, which is law 3's no-media branch, so
+ * there is never an unlit frame).
+ *
+ * Takes MORE THAN ONE source on purpose. A hero wall is eight photographs, and
+ * sampling only the first produces light that is honest about one tile and
+ * arbitrary about the rest, which is precisely the criticism law 3 exists to
+ * answer. Every source is drawn into one small canvas as a strip, so "the
+ * wall's colour" is a single read over all of it rather than an average of
+ * separate reads.
  */
-export function useSampledPalette(src: string | null): string[] | null {
+export function useSampledPalette(
+  src: string | readonly string[] | null,
+): string[] | null {
   // Keyed by the src that produced it, so switching lamps DERIVES null during
   // render instead of resetting state inside the effect (the repo's
   // react-hooks lint bans setState-in-effect sync resets; the
   // adjust-state-during-render pattern is the house answer).
-  const [state, setState] = useState<{ src: string; colors: string[] } | null>(
+  const [state, setState] = useState<{ key: string; colors: string[] } | null>(
     null,
   );
+  const sources = src == null ? [] : typeof src === "string" ? [src] : [...src];
+  const key = sources.join("|");
 
   useEffect(() => {
-    if (!src) return;
+    if (!key) return;
     let cancelled = false;
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
-    img
-      .decode()
-      .then(() => {
+    const list = key.split("|");
+    Promise.all(
+      list.map((one) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = one;
+        return img.decode().then(() => img);
+      }),
+    )
+      .then((images) => {
         if (cancelled) return;
-        const N = 32;
+        const CELL = 32;
         const canvas = document.createElement("canvas");
-        canvas.width = N;
-        canvas.height = N;
+        canvas.width = CELL * images.length;
+        canvas.height = CELL;
         const ctx = canvas.getContext("2d", { willReadFrequently: false });
         if (!ctx) return;
-        ctx.drawImage(img, 0, 0, N, N);
-        const data = ctx.getImageData(0, 0, N, N).data;
-        setState({ src, colors: huesToSpillColors(pickSpillHues(data, 5)) });
+        images.forEach((img, i) => {
+          ctx.drawImage(img, i * CELL, 0, CELL, CELL);
+        });
+        const data = ctx.getImageData(0, 0, canvas.width, CELL).data;
+        setState({ key, colors: huesToSpillColors(pickSpillHues(data, 5)) });
       })
       .catch(() => {
         // A decode failure is not an error state for a decorative layer: the
@@ -156,7 +173,7 @@ export function useSampledPalette(src: string | null): string[] | null {
     return () => {
       cancelled = true;
     };
-  }, [src]);
+  }, [key]);
 
-  return state && state.src === src ? state.colors : null;
+  return state && state.key === key ? state.colors : null;
 }

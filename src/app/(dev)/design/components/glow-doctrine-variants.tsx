@@ -318,7 +318,12 @@ function ExperimentStage({
           shape="seam"
           drive="mask"
           colors={colors}
-          vars={{ "--glw-blur": "22px" }}
+          vars={{
+            "--glw-blur": "22px",
+            "--glw-h": "150px",
+            "--glw-strength": "0.45",
+            "--glw-base": "0.45",
+          }}
         />
         <div className="relative">
           <p className="font-heading text-xl">The whole event, in one album.</p>
@@ -368,6 +373,28 @@ const SHAPES: {
   },
 ];
 
+const SHAPE_VARS: Record<string, GlowVars> = {
+  // A seam lights the top third of what it meets, never the whole box.
+  seam: { "--glw-h": "42%", "--glw-strength": "0.55", "--glw-base": "0.55" },
+  // Thrown up from the bottom edge, like a card overhanging a dark field.
+  throw: {
+    "--glw-from-y": "100%",
+    "--glw-reach": "95%",
+    "--glw-strength": "0.5",
+    "--glw-base": "0.5",
+  },
+  // The edge beam's geometry is pixel-tuned for a 142px tile, so the scale
+  // token is doing real work here: without it the ring sits 20px inside a
+  // 250px stage and reads as a second box.
+  sweep: { "--glw-scale": "1.9", "--glw-radius": "16px", "--glw-dur": "6s" },
+  bloom: {
+    "--glw-from-y": "50%",
+    "--glw-reach": "120%",
+    "--glw-strength": "0.85",
+    "--glw-base": "0.25",
+  },
+};
+
 function Shapes() {
   const [runId, setRunId] = useState(0);
   return (
@@ -376,29 +403,23 @@ function Shapes() {
       title="Four shapes, one engine"
       lede="Each on production's real ground, beside its unlit control. The lab's own mock sheet uses a pure-white card and the app's 0.14 night; the cinema room is 0.11 and the ink slab is 0.155, so every stage here redeclares the real tokens."
     >
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="flex flex-col gap-8">
         {SHAPES.map((s) => (
           <Spec key={s.shape} name={s.name} note={s.note}>
-            <div className="grid grid-cols-2 gap-2">
-              <Ground on="slab" className="relative isolate aspect-[4/3]">
+            <div className="grid grid-cols-2 gap-3">
+              <Ground on="slab" className="relative isolate aspect-[16/9]">
                 <Glow
                   shape={s.shape}
                   drive="mask"
                   edge={s.shape === "sweep"}
                   runId={runId}
-                  vars={
-                    s.shape === "throw"
-                      ? { "--glw-from-y": "100%", "--glw-reach": "110%" }
-                      : s.shape === "bloom"
-                        ? { "--glw-from-y": "50%" }
-                        : undefined
-                  }
+                  vars={SHAPE_VARS[s.shape]}
                 />
                 <span className="absolute bottom-2 left-3 font-mono text-[10px] text-muted-foreground">
                   lit
                 </span>
               </Ground>
-              <Ground on="slab" className="relative aspect-[4/3]">
+              <Ground on="slab" className="relative aspect-[16/9]">
                 <span className="absolute bottom-2 left-3 font-mono text-[10px] text-muted-foreground">
                   control
                 </span>

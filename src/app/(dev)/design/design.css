@@ -1727,6 +1727,11 @@
   --glw-reach: 90%;
   /* Comet thickness inside the travelling window. */
   --glw-span: 26%;
+  /* ★ A SEAM IS A BAND, NOT A FILL. The shipped footer pins its layer to 210px
+     regardless of how tall the footer is, and generalising that away (letting
+     the layer be inset: 0 of whatever contains it) is what turns spill into a
+     wash sitting on the copy. Caught by eye in the lab, not by any test. */
+  --glw-h: 210px;
 
   position: absolute;
   inset: 0;
@@ -1755,6 +1760,8 @@
    the edge rather than radially, which is the one shape that wants a linear
    ramp. The footer's own mask, generalised. */
 [data-glw][data-glw-shape="seam"] {
+  inset: 0 0 auto 0;
+  height: var(--glw-h);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
   mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
 }

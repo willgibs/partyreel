@@ -45,6 +45,7 @@ export type GlowVars = Partial<
     | "--glw-dur"
     | "--glw-blur"
     | "--glw-scale"
+    | "--glw-h"
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
