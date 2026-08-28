@@ -10,6 +10,16 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-5: the contact round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-5`, `2cabc1e`; 36 files, +1,653/−193),
+prod READY + verified at the merge SHA: the composite /contact identity rendering on partyreel.com
+(the desk + note on the gray panel, the topic Select, the page-wide palette), the `?about=` handoff
+pre-picking end to end, the neutralized copy across every fetched surface, and llms.txt carrying
+the new posture. Will's acceptance: "I'm not in love yet, but good enough for rising tides" — the
+identity revisit is logged as a ROADMAP one-liner with the `contact-identity` touchpoint as the
+explored range. Round content: the entry below.
+
 ## 2026-08-28 — The contact round: the connected front door + the promise neutralization
 
 Will's brief: /contact "genuinely feels like the most bare-bones wireframe contact page possible" —

@@ -38,7 +38,12 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
-**The contact round (2026-08-28, on `launch-prep`, preview-verified):** /contact rebuilt as the
+**MILESTONE-5 (2026-08-28): prod = the contact round.** `main` @ tag `milestone-5` (`2cabc1e`),
+prod READY + verified at the merge SHA: the composite /contact identity live, the neutralized copy
+across every surface, llms.txt carrying the new posture. Will's acceptance: "good enough for rising
+tides" (the identity revisit is a ROADMAP one-liner; he is "not in love yet").
+
+**The contact round (2026-08-28, merged at milestone-5):** /contact rebuilt as the
 connected front door (a required topic Select routing each note + in-form deflection hints, the
 page-wide ⌘K help palette + embedded search band, the numbered self-serve directory;
 `contact_submissions.topic` structured intake feeding the notify-email tag + `/admin/support`), and
@@ -72,7 +77,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-4`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-5`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
