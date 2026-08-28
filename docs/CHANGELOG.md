@@ -55,6 +55,22 @@ mobile 375 (no overflow; the DOM re-ordered so the form follows the intro), and 
 through the DEPLOYED action (row topic=press + notify email → Vercel env complete). Both probe rows
 torn down after verification. 1,179 tests green.
 
+**The identity redo (same day):** Will's verdict on the first visual build was the program's
+sharpest yet ("super bland... wireframe feel... most disappointing result yet... did not follow
+'if this page didn't already exist'") — root cause owned: the old page's DNA survived the
+elevation (mono link, display-face-at-body-size pseudo-headings, the icon-chip card template,
+zero media). The IA stood; the identity restarted from zero in the lab (`contact-identity`: The
+note / The desk / The ledger) and Will ruled a COMPOSITE: the desk structure + the note's
+stationery dress (photo postage stamp + letterhead) on the Biograph gray panel with white fields,
+the seven open chips collapsed to a clean Select dropdown, the Polaroid spread dropped, and the
+ledger's numbered-index grammar grafted onto the self-serve directory. New `ui/select.tsx`
+(registry source via the MCP; the CLI crashes on the pinned zod v4). Two Radix catches run to
+ground with render-level instrumentation: a controlled "" latches the placeholder, and the hidden
+native-select bridge emits an EMPTY onValueChange during mount cycles that clobbered the handoff's
+programmatic pre-pick (the store held "billing", a stray "" wiped it) — fixed by never passing ""
+and dropping empty emissions; the trigger renders its own label since closed-popper items can't
+resolve one. The handoff now pre-picks end to end on the preview.
+
 ## 2026-08-28 — MILESTONE-4: the pricing round + the AI-discoverability layer
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-4`, `62220cb`; 55 files, +4,162/−624),

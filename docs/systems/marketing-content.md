@@ -36,16 +36,23 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
-  Contact's first field is a REQUIRED **topic router** (7 chips; single source
+  Contact's first field is a REQUIRED **topic Select** (single source
   [`constants/contact.ts`](../../src/lib/constants/contact.ts) — labels/icons/fastest-path hints; the zod
   enum + the `contact_submissions.topic` CHECK + the `[label]` email-subject tag + the `/admin/support`
   chip all read it, and a parity test pins the enum to the migration). Picking a topic swaps a deflection
-  hint INSIDE the form; the selected state rides `cn()` off the controlled value, NEVER `:has(:checked)`
-  (a Chromium-embedded engine failed :has invalidation on React's checked flip). The page mounts
-  `HelpPaletteProvider` itself (⌘K + an embedded hero search band work on /contact; the palette is
-  already `portalSkinProps("paper")`), and the `?about=<slug>` handoff prefills subject AND pre-picks the
-  topic via the exhaustive `CATEGORY_TOPIC` map (a new help category fails typecheck until mapped). The
-  route stays static (window.location read on mount, allowlisted — never `useSearchParams`).
+  hint INSIDE the form. The form card is the STATIONERY NOTE on the Biograph gray panel (Will's
+  composite ruling on the `contact-identity` touchpoint): `bg-muted/50` card + the photo postage stamp +
+  the letterhead MonoCaption, with fields explicitly `bg-background` so white reads against the gray.
+  ★ Radix Select gotchas (all live-caught): never pass a controlled `""` (it latches the placeholder
+  over later programmatic values); the hidden native-select bridge emits an EMPTY `onValueChange`
+  during mount cycles (drop empty emissions or programmatic pre-picks get clobbered); and render the
+  trigger label yourself — `SelectValue` cannot resolve a label while the popper items have never
+  mounted. The page mounts `HelpPaletteProvider` itself (⌘K + an embedded hero search band work on
+  /contact; the palette is already `portalSkinProps("paper")`), and the `?about=<slug>` handoff
+  prefills subject AND pre-picks the topic via the exhaustive `CATEGORY_TOPIC` map (a new help
+  category fails typecheck until mapped), applied via `form.reset` so "Send another" keeps the
+  article context. The route stays static (window.location read on mount, allowlisted — never
+  `useSearchParams`).
 - **`/help`** + **`/blog`** — an in-repo **MDX content pipeline** (ADR-0006): `content/*.mdx` + `gray-matter`
   + `next-mdx-remote/rsc` + **build-time zod frontmatter validation**. The generic core is
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +

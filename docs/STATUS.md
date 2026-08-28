@@ -39,13 +39,15 @@ anything shared.
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
 **The contact round (2026-08-28, on `launch-prep`, preview-verified):** /contact rebuilt as the
-connected front door (the required topic-chip router + in-form deflection hints, the page-wide ⌘K
-help palette + embedded search band, the directory tiles, the email rail with copy micro-delight;
+connected front door (a required topic Select routing each note + in-form deflection hints, the
+page-wide ⌘K help palette + embedded search band, the numbered self-serve directory;
 `contact_submissions.topic` structured intake feeding the notify-email tag + `/admin/support`), and
 the **site-wide promise neutralization** (Will's ruling: no human-response, no human-moderation, no
 never-automate language anywhere incl. both legal drafts; the standard reply line "Every note gets a
-reply, usually within a day."; enforced by a wrap-proof content-policy fence). Sitting queue: the
-`contact-topic-router` lab ruling (Icon pills [shipped] vs Segmented tiles). Truth:
+reply, usually within a day."; enforced by a wrap-proof content-policy fence). The first visual
+build failed Will's bar ("wireframe feel") and the identity was REDONE from zero the same day via
+the `contact-identity` lab: his composite ruling = the desk structure + the stationery note dress
+(photo stamp + letterhead) on the Biograph gray panel with white fields. Truth:
 [`systems/marketing-content.md`](systems/marketing-content.md).
 
 **MILESTONE-4 (2026-08-28): prod = the pricing round + the AI-discoverability layer.** `main` @ tag
@@ -110,8 +112,8 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 1. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7).
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
-   items, the real-phone QR ticket-scan check, and the NEW `contact-topic-router` ruling: Icon pills
-   [shipped] vs Segmented tiles).
+   items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
+   the desk + note composite, wired same-day.)
 4. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
 5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
