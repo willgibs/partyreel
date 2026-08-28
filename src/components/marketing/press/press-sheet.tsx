@@ -3,7 +3,6 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { CopyButton } from "@/components/marketing/press/copy-button";
 import { Reveal } from "@/components/marketing/system/reveal";
-import { Container } from "@/components/shared/container";
 import { PRESS_KIT, type PressKitAsset } from "@/lib/constants/press";
 import { BRAND_HEX } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
@@ -53,12 +52,15 @@ function byLabel(...ids: string[]): PressKitAsset[] {
 function Frame({
   index,
   plate,
+  onDark = false,
   label,
   actions,
   children,
 }: {
   index: number;
   plate: string;
+  /** True when the plate is ink, so the frame index flips to a light tone. */
+  onDark?: boolean;
   label: string;
   actions?: ReactNode;
   children: ReactNode;
@@ -81,8 +83,18 @@ function Frame({
           )}
         >
           {/* Mono earns its place here and almost nowhere else on the sheet: the index is
-              a NUMBER in a column of numbers, so tabular figures keep it aligned. */}
-          <span className="absolute top-2 left-2 font-mono text-[10px] tracking-wider text-foreground/55 mix-blend-difference">
+              a NUMBER in a column of numbers, so tabular figures keep it aligned.
+              ★ An explicit tone per plate, NOT mix-blend-difference. The blend was fine on
+              the old ink ground but the sheet now sits on paper, where a 55%-alpha ink
+              glyph composites to mid-grey and then differences against white into
+              near-invisibility. The plates are literal artwork grounds, so the index
+              matches them literally. */}
+          <span
+            className={cn(
+              "absolute top-2 left-2 font-mono text-[10px] tracking-wider",
+              onDark ? "text-white/45" : "text-black/40",
+            )}
+          >
             {String(index + 1).padStart(2, "0")}
           </span>
           {children}
@@ -131,146 +143,143 @@ export function PressSheet() {
 
   return (
     <Reveal>
-      <Container className="pb-16 sm:pb-24">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b pb-3">
-          <h2 className="text-sm font-medium">The sheet</h2>
-          <p className="text-sm text-muted-foreground">
-            Artwork, an app icon, a share card, a working code, the ink and the
-            type.
-          </p>
-        </div>
-
-        <ul
-          data-mkt-isolate
-          className="mt-4 grid grid-cols-2 gap-[var(--gap-gallery)] sm:grid-cols-4"
+      {/* ★ THE REBATE. On the ink ground the 3px --gap-gallery read on its own; on paper,
+          white plates against a near-white page made the grid dissolve. The list paints
+          --border and pads itself by the same 3px, so every gap becomes a hairline and
+          the sheet gets a defined outer edge, which is exactly how frames sit in the
+          rebate of real film. Keep the padding and the gap the same value. */}
+      <ul
+        data-mkt-isolate
+        className="grid grid-cols-2 gap-[var(--gap-gallery)] rounded-tile bg-border p-[var(--gap-gallery)] sm:grid-cols-4"
+      >
+        <Frame
+          index={0}
+          plate="bg-white"
+          label="Mark, dark chip"
+          actions={
+            <>
+              <DownloadChip asset={markDark} />
+              <DownloadChip asset={markDarkPng} />
+            </>
+          }
         >
-          <Frame
-            index={0}
-            plate="bg-white"
-            label="Mark, dark chip"
-            actions={
-              <>
-                <DownloadChip asset={markDark} />
-                <DownloadChip asset={markDarkPng} />
-              </>
-            }
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- a static press asset
+          {/* eslint-disable-next-line @next/next/no-img-element -- a static press asset
                 previewing itself; the downloadable file wants no optimization pipeline. */}
-            <img src={markDark.file} alt="" className="size-[46%]" />
-          </Frame>
+          <img src={markDark.file} alt="" className="size-[46%]" />
+        </Frame>
 
-          <Frame
-            index={1}
-            plate="bg-[#101010]"
-            label="Mark, light chip"
-            actions={
-              <>
-                <DownloadChip asset={markLight} />
-                <DownloadChip asset={markLightPng} />
-              </>
-            }
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
-            <img src={markLight.file} alt="" className="size-[46%]" />
-          </Frame>
+        <Frame
+          index={1}
+          plate="bg-[#101010]"
+          onDark
+          label="Mark, light chip"
+          actions={
+            <>
+              <DownloadChip asset={markLight} />
+              <DownloadChip asset={markLightPng} />
+            </>
+          }
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
+          <img src={markLight.file} alt="" className="size-[46%]" />
+        </Frame>
 
-          <Frame
-            index={2}
-            plate="bg-white"
-            label="Bare mark"
-            actions={
-              <>
-                <DownloadChip asset={markMono} />
-                <DownloadChip asset={markMonoPng} />
-              </>
-            }
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
-            <img src={markMono.file} alt="" className="size-[46%]" />
-          </Frame>
+        <Frame
+          index={2}
+          plate="bg-white"
+          label="Bare mark"
+          actions={
+            <>
+              <DownloadChip asset={markMono} />
+              <DownloadChip asset={markMonoPng} />
+            </>
+          }
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
+          <img src={markMono.file} alt="" className="size-[46%]" />
+        </Frame>
 
-          <Frame
-            index={3}
-            plate="bg-white"
-            label="App icon"
-            actions={<DownloadChip asset={appIcon} />}
-          >
-            <Image
-              src={appIcon.file}
-              alt=""
-              width={512}
-              height={512}
-              className="size-[54%] rounded-[18%]"
-            />
-          </Frame>
+        <Frame
+          index={3}
+          plate="bg-white"
+          label="App icon"
+          actions={<DownloadChip asset={appIcon} />}
+        >
+          <Image
+            src={appIcon.file}
+            alt=""
+            width={512}
+            height={512}
+            className="size-[54%] rounded-[18%]"
+          />
+        </Frame>
 
-          {/* object-contain on an ink plate, NOT cover: the card is 1.9:1 and its
+        {/* object-contain on an ink plate, NOT cover: the card is 1.9:1 and its
               content is left-aligned, so a square crop would slice the mark off. No
               padding either, so it spans the full frame width; the letterbox bands are
               invisible because the card's own ground is the same ink as the plate. */}
-          <Frame
-            index={4}
-            plate="bg-[#101010]"
-            label="Share card"
-            actions={<DownloadChip asset={shareCard} />}
-          >
-            <Image
-              src={shareCard.file}
-              alt=""
-              fill
-              sizes="(min-width: 640px) 25vw, 50vw"
-              className="object-contain"
+        <Frame
+          index={4}
+          plate="bg-[#101010]"
+          onDark
+          label="Share card"
+          actions={<DownloadChip asset={shareCard} />}
+        >
+          <Image
+            src={shareCard.file}
+            alt=""
+            fill
+            sizes="(min-width: 640px) 25vw, 50vw"
+            className="object-contain"
+          />
+        </Frame>
+
+        <Frame
+          index={5}
+          plate="bg-white"
+          label="The QR code"
+          actions={
+            <>
+              <DownloadChip asset={qr} />
+              <DownloadChip asset={qrPng} />
+            </>
+          }
+        >
+          <Image
+            src={qr.file}
+            alt=""
+            width={512}
+            height={512}
+            className="size-[62%]"
+          />
+        </Frame>
+
+        <Frame
+          index={6}
+          plate="bg-white"
+          label="Ink"
+          actions={
+            <CopyButton
+              value={BRAND_HEX}
+              label="Copy the ink hex"
+              display={<span className="font-mono">{BRAND_HEX}</span>}
+              className="border-foreground/25 px-2 py-1 text-[11px] text-foreground/80 hover:border-foreground/50 hover:text-foreground"
             />
-          </Frame>
+          }
+        >
+          <span className="size-[46%] bg-[#101010]" />
+        </Frame>
 
-          <Frame
-            index={5}
-            plate="bg-white"
-            label="The QR code"
-            actions={
-              <>
-                <DownloadChip asset={qr} />
-                <DownloadChip asset={qrPng} />
-              </>
-            }
-          >
-            <Image
-              src={qr.file}
-              alt=""
-              width={512}
-              height={512}
-              className="size-[62%]"
-            />
-          </Frame>
+        <Frame index={7} plate="bg-white" label="Type: Urbanist 700">
+          <span className="font-heading text-6xl text-[#101010]">Aa</span>
+        </Frame>
+      </ul>
 
-          <Frame
-            index={6}
-            plate="bg-white"
-            label="Ink"
-            actions={
-              <CopyButton
-                value={BRAND_HEX}
-                label="Copy the ink hex"
-                display={<span className="font-mono">{BRAND_HEX}</span>}
-                className="border-foreground/25 px-2 py-1 text-[11px] text-foreground/80 hover:border-foreground/50 hover:text-foreground"
-              />
-            }
-          >
-            <span className="size-[46%] bg-[#101010]" />
-          </Frame>
-
-          <Frame index={7} plate="bg-white" label="Type: Urbanist 700">
-            <span className="font-heading text-6xl text-[#101010]">Aa</span>
-          </Frame>
-        </ul>
-
-        <p className="mt-5 max-w-2xl text-sm text-muted-foreground">
-          Everything here is Partyreel artwork, free to use in coverage as it
-          ships. If a file needs editing to work in your layout, write instead
-          and we will make the one you need.
-        </p>
-      </Container>
+      <p className="mt-5 max-w-2xl text-sm text-pretty text-muted-foreground">
+        Everything here is Partyreel artwork, free to use in coverage as it
+        ships. If a file needs editing to work in your layout, write instead and
+        we will make the one you need.
+      </p>
     </Reveal>
   );
 }
