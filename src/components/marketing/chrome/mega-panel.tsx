@@ -36,17 +36,27 @@ export function MegaPanel({ group }: { group: NavGroup }) {
   const twoCol = group.children.length > 4;
   return (
     <div
+      // The viewport cap is 100vw MINUS 5rem, not 2rem, and the extra is not
+      // arbitrary. The shared panel is centred on the NavigationMenu root, and
+      // the root sits ~16px LEFT of the page centre at every width — the header
+      // is `justify-between` over logo / nav / actions, so the middle child's
+      // centre is W/2 + (logoWidth - actionsWidth) / 2, and that delta is a
+      // constant -32px. A `100vw - 2rem` panel is therefore exactly W - 32 wide
+      // around a centre 16px left of middle, which lands its left edge on 0:
+      // flush against the window at ~768-900px. 5rem leaves a 24px left gutter
+      // with margin to spare. Re-derive this if the header's logo or action
+      // cluster ever changes width.
       className={cn(
-        "grid w-[min(680px,calc(100vw-2rem))] gap-2 p-2",
+        "grid w-[min(680px,calc(100vw-5rem))] gap-2 p-2",
         featured && "md:grid-cols-[1fr_272px]",
-        featured && twoCol && "md:w-[min(760px,calc(100vw-2rem))]",
+        featured && twoCol && "md:w-[min(760px,calc(100vw-5rem))]",
       )}
     >
       <div className="flex min-w-0 flex-col gap-1">
         {group.href && (
           <NavigationMenuLink
             asChild
-            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
+            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
           >
             <Link href={group.href}>
               All {group.label.toLowerCase()}
@@ -69,7 +79,7 @@ export function MegaPanel({ group }: { group: NavGroup }) {
         {group.label === "Features" && (
           <NavigationMenuLink
             asChild
-            className="mt-1 flex-row items-center gap-1.5 border-t px-3 pt-2.5 pb-1.5 text-xs text-muted-foreground hover:text-foreground"
+            className="mt-1 flex-row items-center gap-1.5 border-t px-3 pt-2.5 pb-1.5 text-xs text-muted-foreground transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
           >
             <Link href="/how-it-works" className="mkt-learn">
               New here? See how it works

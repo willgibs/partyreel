@@ -136,3 +136,35 @@ The 60 seeded media rows were deleted after measurement
 (`delete from media where event_id = ... and file_size_bytes = 800000`) and
 `profiles.storage_used_bytes` verified back at 0 (rows were inserted directly, bypassing the
 accounting RPCs). Re-seed per the section-2 methodology when re-baselining.
+
+## 4. Marketing nav interaction (2026-08-28, the nav round)
+
+**Why this section is styles, not frame times.** The intended measurement was a `requestAnimationFrame`
+frame-time sampler around each nav interaction. It is not possible from an agent session: the in-app
+Browser pane runs with `document.hidden === true`, so rAF never fires and the sampler records zero frames
+(ResizeObserver/IntersectionObserver delivery and CSS transition progress are suspended for the same
+reason — see [`../systems/testing-verification.md`](../systems/testing-verification.md)). Rather than
+invent numbers, the round measured the MECHANISM: the computed styles that decide whether a frame can be
+cheap, read on the cinema home at 1440x900 against the dev server, before and after. Every row below is a
+`getComputedStyle` reading on the live page, not an estimate.
+
+| What | BEFORE (`cb7d421`) | AFTER |
+| --- | --- | --- |
+| Panel box transition | `all` / **100ms** / `ease` (nothing set `transition-property`; only `duration-100` was present, so it sat at the CSS initial value `all`) | `none`, armed to `width, height` / **200ms** / `--ease-emphasis` only on a panel→panel swap |
+| Panel enter animation | `enter` **250ms** `ease` | `enter` **200ms** `cubic-bezier(0.23,1,0.32,1)` (= `--ease-emphasis`) |
+| Panel enter opacity | `--tw-enter-opacity: 1` (**no fade** — a large opaque panel popped in) | `0` |
+| Panel exit | 150ms, `--tw-exit-opacity: 1` (**no fade** — it snapped away) | 130ms, `--tw-exit-opacity: 0` |
+| `transform-origin` | `50% 50%` (`origin-top-center` is not a Tailwind utility) | `calc(50% + <trigger delta>) top` — measured per open, so the panel grows out of the hovered label |
+| Radius / shadow | `2px` (= `--radius`, the SHARP general-UI radius) / a raw `shadow` **drawn in dark mode** | `8px` (`rounded-float`) / `shadow-float`, which resolves to none in dark |
+| Cross-slide | 208px (`slide-in-from-right-52`), 150ms, no blur | 32px token (`--mkt-dropdown-swap-distance`), 200ms — the SAME clock and curve as the box — plus a 3px blur |
+| Panel-row hover | `all` / 150ms / `cubic-bezier(0.4,0,0.2,1)` (~64ms to half-visible, which is why a fast skim missed rows) | `color, background-color` / **90ms in, 180ms out** / `--ease-emphasis` |
+| Ancestors with `backdrop-filter` above a panel row | `[HEADER]` — every hover repaint happened inside a `blur(8px)` region | **none** — the glass moved to an inert `-z-10` sibling layer |
+| Header state change | `background-color, border-color` 200ms **with `backdrop-filter` snapping outside the transition** | `opacity` 200ms on the glass layer; the bar itself is `backdrop-filter: none` |
+| Hover-open delay | Radix default **200ms**, never overridden | `--mkt-nav-intent-ms` **100ms**, then instant while open (`skipDelayDuration` 500) |
+| First open | viewport `0×0` for a frame (the size vars arrive from a ResizeObserver a beat late), then a snap | unchanged 0→N, but the size transition is DISARMED there, so it snaps in one frame instead of animating a wipe |
+
+**Wire JS:** unchanged at the 439 KB marketing floor (no new dependency; the indicator is ~40 lines of
+measuring in an existing client component).
+
+**Still owed to a human session:** actual frame timings and motion FEEL, and a
+`prefers-reduced-motion: reduce` pass — none of the three are judgeable from an agent session.
