@@ -14,7 +14,7 @@ import { MarketingDecompositionVariants } from "../../components/marketing-decom
 import { MarketingHeroSubstrateVariants } from "../../components/marketing-hero-substrate-variants";
 import { PricingPlanCardsVariants } from "../../components/pricing-plan-cards-variants";
 import { PricingCalculatorVariants } from "../../components/pricing-calculator-variants";
-import { ContactTopicRouterVariants } from "../../components/contact-topic-router-variants";
+import { ContactIdentityVariants } from "../../components/contact-identity-variants";
 import { ReelRevealVariants } from "../../components/reel-reveal-variants";
 import { ReelExperienceVariants } from "../../components/reel-experience-variants";
 import { EntryVariants } from "../../components/entry-variants";
@@ -57,7 +57,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "marketing-hero-substrate": MarketingHeroSubstrateVariants,
   "pricing-plan-cards": PricingPlanCardsVariants,
   "pricing-calculator": PricingCalculatorVariants,
-  "contact-topic-router": ContactTopicRouterVariants,
+  "contact-identity": ContactIdentityVariants,
   "reel-reveal": ReelRevealVariants,
   "reel-experience": ReelExperienceVariants,
 };

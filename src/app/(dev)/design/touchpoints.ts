@@ -34,7 +34,7 @@ export type TouchpointId =
   | "marketing-hero-substrate"
   | "pricing-plan-cards"
   | "pricing-calculator"
-  | "contact-topic-router"
+  | "contact-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -415,17 +415,17 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
   },
   {
-    // The contact round (2026-08-28): the rebuilt /contact form opens with a
-    // REQUIRED topic picker — the round's creative element. The structured
-    // value routes the note (admin chip + notify-email tag + future support
-    // routing) and swaps a fastest-path hint INSIDE the form. Two treatments
-    // of the same field on the same ink-inversion grammar; the page shipped
-    // with V1 pending the sitting's ruling.
-    id: "contact-topic-router",
-    title: "Contact topic router",
+    // The contact round REDO (2026-08-28): the first build kept the old page's
+    // wireframe DNA and Will called it ("super bland... did not follow 'if
+    // this page didn't already exist'"). The IA survives (topic router, help
+    // search, directory); THIS touchpoint re-designs the form chapter's
+    // visual identity from zero. Each direction carries its own topic-router
+    // treatment, so one ruling settles the page.
+    id: "contact-identity",
+    title: "Contact identity",
     surface: "marketing",
-    note: "The topic picker's treatment: tactile icon pills against segmented tiles (same field, same hint swap)",
-    variants: ["Icon pills", "Segmented tiles"],
+    note: "The form chapter from zero: a stationery note with a photo stamp, a media-split desk, or a bare-paper editorial ledger",
+    variants: ["The note", "The desk", "The ledger"],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
