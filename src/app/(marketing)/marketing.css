@@ -1400,6 +1400,21 @@
   }
 }
 
+/* ── THE SELECTION COLOUR. The site had none, so every marketing surface fell
+   back to the browser's saturated system blue: on a zero-chroma paper page that
+   is the loudest colour that will ever appear, and inside a CinemaChapter it is
+   close to illegible against the near-black ground. Selecting text is a primary
+   interaction on a type-led page, since it is the page people quote from.
+
+   Token-driven rather than literal, so it inverts by construction: a chapter
+   redeclares --foreground, and the selection follows it onto the dark ground
+   with no second rule. Scoped to [data-mkt] so it cannot leak into the app
+   (this file persists app-wide once any marketing route has loaded). ── */
+[data-mkt] ::selection {
+  background: color-mix(in oklab, var(--foreground) 14%, transparent);
+  color: var(--foreground);
+}
+
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
    data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema
