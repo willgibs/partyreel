@@ -5,6 +5,7 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 import { ASK_AI_TARGETS, LLMS_TXT_HREF } from "@/lib/constants/ask-ai";
+import { IS_HIRING } from "@/lib/constants/careers";
 import {
   FOOTER_LEGAL,
   FOOTER_NAV,
@@ -185,8 +186,12 @@ function SignOff() {
 /** Register two: the brand block plus the four sitemap columns. */
 function Index() {
   return (
-    <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-12 border-t pt-14 sm:mt-16 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10">
-      <div className="col-span-2 flex flex-col items-start gap-4 lg:col-span-1">
+    <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-12 border-t pt-14 sm:mt-16 sm:pt-16 lg:grid-cols-[minmax(0,1.45fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10">
+      {/* lg:pr-12 rather than a bigger grid gap: the four link columns keep
+          their own even rhythm and only the brand block is pushed away from
+          them. The track widens to 1.45fr to PAY for that padding, or the
+          padding eats the column and the thesis starts wrapping. */}
+      <div className="col-span-2 flex flex-col items-start gap-4 lg:col-span-1 lg:pr-12">
         {/* Wordmark only: the mark's filled tile is a second white rectangle
             directly under the QR plate, and the two read as a clash. */}
         <Link href="/" aria-label="Partyreel home">
@@ -273,10 +278,23 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
 }
 
 function FooterLink({ link }: { link: NavLink }) {
+  // The badge is matched on the route here rather than declared in
+  // marketing-nav.ts on purpose: that module is deliberately dependency-free and
+  // never imports the registries it mirrors, and this signal is DERIVED from
+  // JOB_OPENINGS so it takes itself down when the last real role closes.
+  const hiring = IS_HIRING && link.href === "/careers";
   return (
     <li>
-      <Link href={link.href} className={FOOTER_LINK}>
+      <Link
+        href={link.href}
+        className={cn(FOOTER_LINK, hiring && "flex items-center gap-2")}
+      >
         {link.label}
+        {hiring && (
+          <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium tracking-[0.1em] whitespace-nowrap text-foreground uppercase">
+            We&rsquo;re hiring
+          </span>
+        )}
       </Link>
     </li>
   );

@@ -45,8 +45,8 @@ const CARDS = [
     cx: "26px",
     cy: "12px",
     rot: "-8deg",
-    dx: "-30px",
-    dy: "-30px",
+    dx: "-24px",
+    dy: "-32px",
     drot: "-15deg",
   },
   {
@@ -54,8 +54,8 @@ const CARDS = [
     cx: "88px",
     cy: "10px",
     rot: "7deg",
-    dx: "58px",
-    dy: "-26px",
+    dx: "34px",
+    dy: "-30px",
     drot: "14deg",
   },
   {
@@ -63,8 +63,8 @@ const CARDS = [
     cx: "28px",
     cy: "76px",
     rot: "-5deg",
-    dx: "-34px",
-    dy: "36px",
+    dx: "-28px",
+    dy: "38px",
     drot: "-12deg",
   },
   {
@@ -72,8 +72,8 @@ const CARDS = [
     cx: "86px",
     cy: "80px",
     rot: "6deg",
-    dx: "62px",
-    dy: "32px",
+    dx: "36px",
+    dy: "36px",
     drot: "13deg",
   },
 ] as const;
@@ -84,7 +84,7 @@ export function FooterDemo({ href, value }: { href: string; value: string }) {
       href={href}
       aria-label="Explore a demo event"
       className="mkt-stack relative block shrink-0"
-      style={{ width: 268, height: 208 }}
+      style={{ width: 200, height: 196 }}
     >
       {CARDS.map((card, i) => {
         const img = marketingImage(card.id);
