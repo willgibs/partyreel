@@ -82,10 +82,10 @@ group, so it is untracked too). Both product toggles were already ON project-sid
   products on that device. Verify collection by the NETWORK beacons (the script at
   `/_vercel/insights/script.js` + the `view` beacons; v2 also posts to a per-deployment unique path),
   not by dashboard latency. Dev never sends (the package no-ops off Vercel).
-- **Reading the numbers**: the Vercel dashboard, or the Vercel MCP `get_web_analytics` — which is
-  currently connected to the personal team and 403s on partyreel; re-point the MCP connector at the P3
-  team to use it (the REST `$VERCEL_TOKEN` path is unaffected). The proxy skips `/_vercel/*` so
-  beacons stop costing a Supabase `getUser` round-trip.
+- **Reading the numbers**: the Vercel dashboard
+  (vercel.com/partyreel/partyreel/analytics) or the Vercel MCP `get_web_analytics` (the MCP was
+  re-pointed at the P3 team 2026-08-28; the REST `$VERCEL_TOKEN` path also works). The proxy skips
+  `/_vercel/*` so beacons stop costing a Supabase `getUser` round-trip.
 - **Privacy-claim coupling**: `/privacy` "what we collect" discloses the cookieless, first-party
   counting; if the vendor ever changes, re-verify its "no cookies / never identifies you / no
   cross-site" sentences still hold.
