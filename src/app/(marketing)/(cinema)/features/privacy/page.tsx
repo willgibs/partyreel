@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
 import { AccessSwitch } from "@/components/marketing/sections/features/privacy/access-switch";
 import { MediaLives } from "@/components/marketing/sections/features/privacy/media-lives";
 import { NeverRidesAlong } from "@/components/marketing/sections/features/privacy/never-rides-along";
-import { PeopleNotMachines } from "@/components/marketing/sections/features/privacy/people-not-machines";
+import { ReportReview } from "@/components/marketing/sections/features/privacy/report-review";
 import { PRIVACY_FAQ } from "@/components/marketing/sections/features/privacy/privacy-faq";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { CtaBand } from "@/components/marketing/system/cta-band";
@@ -107,7 +107,7 @@ export default function PrivacyFeaturePage() {
         <AccessSwitch />
         <NeverRidesAlong />
         <MediaLives />
-        <PeopleNotMachines />
+        <ReportReview />
       </PaperChapter>
 
       {/* The dark close: sideways routes, the FAQ, then the one CTA. The

@@ -242,7 +242,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: ShieldCheck,
         title: "Control and safety",
-        body: "Review what shows, hide anything off-brand, and rest easy: a real person reviews every report.",
+        body: "Review what shows, hide anything off-brand, and rest easy: every report gets reviewed.",
       },
     ],
     faq: [

@@ -168,7 +168,7 @@ ${blogLinks}
 ## Optional
 
 - [Careers](${url("/careers")}): How the team works and open roles.
-- [Contact](${url("/contact")}): A real person answers at ${SUPPORT_EMAIL}.
+- [Contact](${url("/contact")}): Send a note to ${SUPPORT_EMAIL}; every note gets a reply.
 - [llms-full.txt](${url("/llms-full.txt")}): This file with the FAQ and fact sheet inlined for ingestion.
 `;
 }

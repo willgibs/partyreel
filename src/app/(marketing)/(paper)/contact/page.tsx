@@ -12,7 +12,7 @@ import { ContactForm } from "./contact-form";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with the Partyreel team: questions about your event, billing, or anything else. We usually reply within one business day.",
+    "Get in touch with Partyreel: questions about your event, billing, or anything else. Every note gets a reply, usually within a day.",
   alternates: { canonical: "/contact" },
 };
 
@@ -66,7 +66,7 @@ export default function ContactPage() {
                   Response time
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Usually within one business day.
+                  Every note gets a reply, usually within a day.
                 </p>
               </div>
             </div>

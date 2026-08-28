@@ -43,6 +43,21 @@ function collectMdx(dir: string): string[] {
 
 const mdxFiles = collectMdx(join(ROOT, "content"));
 
+// The human-promise fence (Will's 2026-08-28 neutralization ruling) walks the
+// WHOLE user-facing copy surface, not just the claim single-sources: every
+// marketing page, marketing component, and copy constant. A tree walk so new
+// pages are covered the day they land.
+function collectSource(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectSource(full));
+    else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name))
+      out.push(full);
+  }
+  return out;
+}
+
 // Copy single-sources the fence applies to beyond MDX (careers JD, the golden
 // voice lines, the FAQ answers - the FAQ also feeds FAQPage JSON-LD verbatim).
 const CLAIM_FILES = [
@@ -115,6 +130,49 @@ describe("content policy", () => {
     expect(
       found,
       `Fenced marketing claims found (the T2.5 "must not claim" fence):\n${found.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("promises no human response, no human moderation, and no automation absolutes", () => {
+    // Will's neutralization ruling (2026-08-28): published copy commits to
+    // OUTCOMES (a reply, a review, host control), never to WHO or WHAT delivers
+    // them, so support/moderation tooling can evolve without breaking published
+    // (especially legal) language. Deliberately phrase-narrow, like the claims
+    // fence: "every upload has a real person behind it" (guest attribution) and
+    // careers' "We read every application" stay legal on purpose.
+    const BANNED: { why: string; re: RegExp }[] = [
+      {
+        why: "human-response/-moderation promise",
+        re: /a (real )?person (answers|reviews|will get|behind every report)|replies from a real person|human answer|handled by a person|a human (reviews|decides)|made by humans|ask a person|handled personally/i,
+      },
+      // "Business day" is desk-hours framing; the standard reply line is
+      // "Every note gets a reply, usually within a day."
+      { why: "desk-hours reply framing", re: /business day/i },
+      // Never-automate absolutes trap us exactly like human promises do (an
+      // automated first gate for reports would break "never an automatic
+      // takedown" the day it ships).
+      {
+        why: "no-automation absolute",
+        re: /automat(ic|ed) takedown|auto-?removed by a machine|never fired off by a filter/i,
+      },
+    ];
+    const surfaces = [
+      ...new Set([
+        ...mdxFiles,
+        ...CLAIM_FILES,
+        ...collectSource(join(ROOT, "src/app/(marketing)")),
+        ...collectSource(join(ROOT, "src/components/marketing")),
+        ...collectSource(join(ROOT, "src/lib/constants")),
+      ]),
+    ];
+    const found = scanLines(surfaces, (line) => {
+      for (const { why, re } of BANNED) if (re.test(line)) return why;
+      return null;
+    });
+    expect(
+      found,
+      `Human-promise/automation-absolute language found (the neutralization fence). ` +
+        `Recast actor-free (reviewed / a reply / host control):\n${found.join("\n")}`,
     ).toEqual([]);
   });
 });

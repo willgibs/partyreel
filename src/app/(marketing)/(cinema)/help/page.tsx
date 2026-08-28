@@ -360,7 +360,7 @@ export default function HelpIndexPage() {
             <Link href="/contact">Contact us</Link>
           </Button>
           <p className="text-sm text-muted-foreground">
-            Replies from a real person, usually within a day.
+            Every note gets a reply, usually within a day.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t pt-6 text-sm">
             <span className="text-muted-foreground">Keep exploring:</span>

@@ -108,8 +108,8 @@ export function ContactForm({
           </span>
           <h3 className="font-heading text-lg font-medium">Message sent</h3>
           <p className="text-sm text-muted-foreground">
-            Thanks for reaching out. We&rsquo;ll get back to you within one
-            business day.
+            Thanks for reaching out. Every note gets a reply, usually within a
+            day.
           </p>
           <Button
             variant="outline"
