@@ -42,8 +42,8 @@ const PRINCIPLES: { title: string; body: string }[] = [
     body: "Albums do not expire. Deletes are reversible for 30 days, and every file lives in two regions with daily checks behind it.",
   },
   {
-    title: "People, not machines",
-    body: "A real person reviews every report. The judgment calls that touch your event are made by humans, never fired off by a filter.",
+    title: "Careful with what matters",
+    body: "Every report gets reviewed before anything comes down, and hosts always hold the final say over their own album.",
   },
   {
     title: "Your photos leave with you",

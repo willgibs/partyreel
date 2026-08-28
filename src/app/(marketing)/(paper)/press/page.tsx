@@ -82,8 +82,8 @@ export default function PressPage() {
               style={{ "--i": 2 } as CSSProperties}
             >
               Everything you need is on this page: the one-paragraph version,
-              the facts, and the brand marks. If you need more than that, a real
-              person answers.
+              the facts, and the brand marks. If you need more than that, send
+              a note and it gets answered.
             </p>
           </TextsReveal>
         </Container>
@@ -194,8 +194,7 @@ export default function PressPage() {
           </h2>
           <p className="text-pretty text-muted-foreground">
             Interviews, higher-resolution assets, partnership ideas, or a
-            walkthrough of the product: send a note and a real person will get
-            back to you.
+            walkthrough of the product: send a note and we&rsquo;ll set it up.
           </p>
           <Button asChild size="lg" className="h-11 px-6 text-base">
             <Link href="/contact">Contact us</Link>

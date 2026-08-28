@@ -2,7 +2,9 @@
 
 import { setContactStatus } from "@/app/admin/support/actions";
 import { TriageStatusControl } from "@/components/admin/triage-status-control";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { contactTopicLabel } from "@/lib/constants/contact";
 import { type TriageStatus } from "@/lib/constants/triage";
 import type { ContactSubmission } from "@/lib/db/queries/support";
 
@@ -21,7 +23,16 @@ function SubmissionCard({ submission }: { submission: ContactSubmission }) {
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-base">{submission.name}</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-base">{submission.name}</CardTitle>
+              {/* Topic chip (nullable: rows predate the picker). Falls back to
+                  the raw value so an unknown/legacy topic is still visible. */}
+              {submission.topic ? (
+                <Badge variant="secondary">
+                  {contactTopicLabel(submission.topic) ?? submission.topic}
+                </Badge>
+              ) : null}
+            </div>
             {/* toLocaleString renders in the server tz on SSR + the browser tz on hydration
                 (React #418) — suppress the mismatch; the viewer's local time wins. */}
             <p

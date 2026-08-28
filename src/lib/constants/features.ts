@@ -164,7 +164,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     id: "privacy",
     eyebrow: "Privacy & safety",
     heading: "Yours, and only as public as you make it",
-    subhead: "Private by default, with a real person behind every report.",
+    subhead: "Private by default, and every report gets a careful review.",
     features: [
       {
         icon: Lock,
@@ -187,9 +187,9 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: ShieldCheck,
         title: "Safety and control",
         featured: true,
-        body: "Anyone viewing an album can flag a problem, and a real person reviews every report, never an automatic takedown.",
+        body: "Anyone viewing an album can flag a problem, and every report is reviewed before anything comes down.",
         longBody:
-          "If something doesn't belong, anyone viewing the album can flag it discreetly, and a real person reviews every report. Nothing is auto-removed by a machine. Moderation stays human, and stays in your hands.",
+          "If something doesn't belong, anyone viewing the album can flag it discreetly, and every report is reviewed before anything comes down. Moderation stays careful, and stays in your hands.",
       },
     ],
   },

@@ -10,6 +10,91 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The contact round: the connected front door + the promise neutralization
+
+Will's brief: /contact "genuinely feels like the most bare-bones wireframe contact page possible" —
+rebuild it to the north-star bar with more sections/resources, and **stop guaranteeing a human
+response** anywhere ("let's not make promises we intend to break"). His planning rulings widened the
+second half: neutralize EVERYWHERE — the 9 human-support-reply promises AND the 13 human-moderation
+promises, marketing and legal alike ("the less legal exposure we open ourselves up to, the better...
+I don't want to break our initial legal language if we could've avoided trapping ourselves") — and
+the standard reply line became "Every note gets a reply, usually within a day." (soft speed, no
+"business day" desk-hours framing).
+
+**The neutralization (`6e1020e` + the press catch):** 27 sites recast actor-free across marketing,
+both legal drafts, help content, the nav, the ⌘K empty state, and llms.txt; "People, not machines"
+became `ReportReview` ("Flagged, reviewed, handled."); never-automate absolutes ("never an automatic
+takedown") went with the human claims, since an AI first-gate would break those the day it ships.
+A third content-policy fence enforces the ban — hardened mid-round to scan whitespace-COLLAPSED
+whole files after the live pass caught "a real / person answers" wrapped across JSX lines on /press,
+invisible to every line-based grep (mine and the recon's).
+
+**The rebuild (`4512226` + refinements):** the paper hero (TextsReveal, the promise-clean subhead),
+then the form chapter with the round's creative element: a REQUIRED **topic router** as the first
+field (7 icon chips, single source `constants/contact.ts`; picking one swaps a fastest-path
+deflection hint INSIDE the form — billing → the pricing FAQ, broke → troubleshooting), marketing-
+scale fields, the drawn-check success carrying onward links, the email rail (mono address +
+copy-to-clipboard micro-delight + the reply row); then "Answers, ready now." — the help palette
+mounted PAGE-WIDE (⌘K + an embedded hero search + quick-link chips + a 3-tile directory); then the
+CtaBand close with the demo link. The `?about=<slug>` handoff now pre-picks the topic through an
+exhaustive category map. The rider: `contact_submissions.topic` (nullable CHECK mirroring the app
+enum, parity-tested; applied + contract-checked rolled back), tagged into the notify-email subject
+(`[Plans & billing] ...`) and chipped in `/admin/support` — the structured intake future support
+automation keys on (ROADMAP bucket). Engineering catches: chip selection rides `cn()` off the
+controlled value after one embedded engine provably failed `:has(:checked)` invalidation on React's
+checked flip; two tooling gotchas recorded (dev-served stale Tailwind for new-to-repo utilities;
+pane-frozen style recalc). Lab: the `contact-topic-router` touchpoint (Icon pills vs Segmented
+tiles) awaits the sitting.
+
+**Verified:** locally, the full red-team (real submission → row topic=bug + `sent_emails` claim +
+success card; honeypot fill → success theater, ZERO rows; handoff → subject + billing chip
+pre-picked); on the preview alias at the deploy SHA, the production-paper visual pass (the 2-col
+chapter, ink inversion, hint swap, palette searching on paper skin), the site-wide banned-phrase
+fetch across 7 surfaces (the press wrap was the one catch → fixed), llms.txt's new contact line,
+mobile 375 (no overflow; the DOM re-ordered so the form follows the intro), and a second submission
+through the DEPLOYED action (row topic=press + notify email → Vercel env complete). Both probe rows
+torn down after verification. 1,179 tests green.
+
+**The identity redo (same day):** Will's verdict on the first visual build was the program's
+sharpest yet ("super bland... wireframe feel... most disappointing result yet... did not follow
+'if this page didn't already exist'") — root cause owned: the old page's DNA survived the
+elevation (mono link, display-face-at-body-size pseudo-headings, the icon-chip card template,
+zero media). The IA stood; the identity restarted from zero in the lab (`contact-identity`: The
+note / The desk / The ledger) and Will ruled a COMPOSITE: the desk structure + the note's
+stationery dress (photo postage stamp + letterhead) on the Biograph gray panel with white fields,
+the seven open chips collapsed to a clean Select dropdown, the Polaroid spread dropped, and the
+ledger's numbered-index grammar grafted onto the self-serve directory. New `ui/select.tsx`
+(registry source via the MCP; the CLI crashes on the pinned zod v4). Two Radix catches run to
+ground with render-level instrumentation: a controlled "" latches the placeholder, and the hidden
+native-select bridge emits an EMPTY onValueChange during mount cycles that clobbered the handoff's
+programmatic pre-pick (the store held "billing", a stray "" wiped it) — fixed by never passing ""
+and dropping empty emissions; the trigger renders its own label since closed-popper items can't
+resolve one. The handoff now pre-picks end to end on the preview.
+
+## 2026-08-28 — MILESTONE-4: the pricing round + the AI-discoverability layer
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-4`, `62220cb`; 55 files, +4,162/−624),
+prod READY + verified at the merge SHA. The milestone carries the full pricing round (below) plus
+the **AI-discoverability layer** (`17e1d87`), Will's strategic bet on assistant recommendations:
+`/llms.txt` + `/llms-full.txt` (llmstxt.org format; pure builders derived from the pricing/voice
+constants; the grounded case with an honest when-it-is-not section and category-level comparison
+per Will's ruling; builders are CLAIM_FILES so the social-proof/backstop fence covers the AI
+surface; 10 tests incl. link-integrity against real routes); robots.ts welcoming 14 AI crawlers by
+name (+ /account, /welcome, /design hygiene disallows); SoftwareApplication JSON-LD sitewide;
+Organization email/contactPoint/foundingDate; sitemap lastModified from content frontmatter; the
+press boilerplate + fact sheet extracted to `constants/press.ts` (one quotable home). Research
+honesty recorded: no major model confirmedly consumes llms.txt yet (Semrush 2025), so the layer
+treats it as the cheap forward bet while the real weight sits on crawlability + retrievable facts.
+
+**Prod verification at the SHA:** all three text surfaces 200 on partyreel.com, robots showing 15
+UA blocks, SoftwareApplication in the homepage HTML, /pricing serving the stacking copy; the
+subscription webhook E2E on the NEW code (API create→cancel: pro provisioned with `event_slots`
+null → downgraded to free with recompute, ledger untouched); the pass-purchase E2E COMPLETED with
+Will's test-card entries: purchase #1 minted the ledger row (initial/$24, a clean 365-day window,
+recompute -> event_pass/75 GB/1 slot) and purchase #2 proved STACKING through the branch old code
+refused (2 rows -> 2 slots/150 GB, the dashboard reading "1 of 2 events used, 0 B / 150 GB").
+Both TEST payments refunded, rows deleted, the profile recomputed back to Free.
+
 ## 2026-08-27 — The pricing round: /pricing rebuilt from zero + the Event Pass economics made true (ADR-0025)
 
 Will's brief: "if the pricing page didn't exist yet, what would the ideal version be?" — with Biograph

@@ -123,7 +123,7 @@ export const PRIMARY_NAV: NavItem[] = [
       {
         label: "Contact",
         href: "/contact",
-        description: "A real person answers.",
+        description: "Any question, any topic.",
       },
     ],
   },

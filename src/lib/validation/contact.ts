@@ -1,9 +1,17 @@
 import { z } from "zod";
 
+import { CONTACT_TOPIC_VALUES } from "@/lib/constants/contact";
+
 // Shared by the /contact client form (via zodResolver) and the server action
 // (which re-validates — never trust the client). `website` is a honeypot: a hidden
 // field real users leave empty; the action silently drops any submission that fills it.
+// `topic` is required on the form (the chip picker) though the DB column is nullable;
+// the enum mirrors the migration CHECK via CONTACT_TOPIC_VALUES.
 export const contactSchema = z.object({
+  topic: z.enum(
+    CONTACT_TOPIC_VALUES,
+    "Pick a topic so your note lands in the right place.",
+  ),
   name: z
     .string()
     .trim()

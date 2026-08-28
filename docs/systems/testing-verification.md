@@ -35,6 +35,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
   as frozen — a working player reads as broken. Front the pane (take a screenshot first) before pixel
   probes, or drive the real Chrome (claude-in-chrome tabs animate between screenshots). Play-FEEL is never
   tooling-judgeable either way — that check is the human's device session.
+- **The pane can also freeze STYLE RECALC, so `getComputedStyle` lies about dynamic changes.** Observed
+  2026-08-28: a label whose className provably changed (ink-inversion classes present in the DOM string)
+  kept returning its pre-change computed background through class toggles and forced reflows, while a
+  fresh `cloneNode` of the same element resolved correctly. In the pane, computed-style assertions are
+  trustworthy only for INITIAL renders; for state-driven restyles, clone-probe or drive real Chrome.
 - **Browser downloads land in an iCloud dir, and the network panel can lie about them.** In Will's Chrome,
   downloads save to `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/` — NOT `~/Downloads`
   (confirmed 2026-08-06; a "missing" export zip was sitting there). For the export Worker specifically, the
@@ -80,7 +85,15 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   and the simulated tiles are local-only, so skip it entirely"), so the demo `/e/` link never polls no matter
   what. Run the soak on a REAL test event's link.
 
-## Dev-server theming (localhost only)
+## Dev-server CSS (localhost only)
+
+- **`next dev` can serve STALE Tailwind CSS that's missing newly-introduced utilities** — resistant to
+  server restarts AND an `.next` wipe in the observed case (2026-08-28: a brand-new
+  `lg:grid-cols-[1fr_1.6fr]` + `min-h-36` never reached the browser; every class that "worked"
+  pre-existed elsewhere in the repo, which is what makes this trap invisible). `pnpm build` emitted them
+  correctly (`grep -r "<value>" .next/static/chunks/*.css` is the 5-second ground-truth check). So: a
+  new-to-the-repo utility that has no effect in dev is NOT proof the class is wrong — check the build
+  CSS, then verify on the preview deploy. Don't rewrite working classes chasing dev.
 
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the

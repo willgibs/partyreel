@@ -339,7 +339,7 @@ export function HelpPaletteProvider({
                   <MissingFrameStrip label="0" />
                   <p className="text-sm text-muted-foreground">
                     No matches for &ldquo;{query}&rdquo;. Try fewer words, or
-                    ask a person.
+                    send us a note.
                   </p>
                   <Link
                     href="/contact"

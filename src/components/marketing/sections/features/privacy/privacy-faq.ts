@@ -19,7 +19,7 @@ export const PRIVACY_FAQ: FaqItem[] = [
     a: `It moves to a recovery bin for ${RECENTLY_DELETED_WINDOW_DAYS} days, where you can restore it exactly as it was. After that it is permanently deleted.`,
   },
   {
-    q: "Is there a real person behind reports?",
-    a: "Yes. Anyone viewing an album can flag a photo or video, and a real person reviews every report before anything happens. Nothing is taken down automatically, and hosts can remove anything from their own album instantly.",
+    q: "What happens when something gets reported?",
+    a: "Anyone viewing an album can flag a photo or video, and every report is reviewed before anything comes down. Hosts can remove anything from their own album instantly, any time.",
   },
 ];

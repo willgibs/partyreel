@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { contactSchema } from "@/lib/validation/contact";
 
 const valid = {
+  topic: "hosting",
   name: "Ada Lovelace",
   email: "ada@example.com",
   message: "Hi — I have a question about hosting a wedding album.",
@@ -36,6 +37,17 @@ describe("contactSchema", () => {
       contactSchema.safeParse({ ...valid, subject: "Billing", website: "" })
         .success,
     ).toBe(true);
+  });
+
+  it("rejects a missing topic (the picker is required)", () => {
+    const { topic: _topic, ...rest } = valid;
+    expect(contactSchema.safeParse(rest).success).toBe(false);
+  });
+
+  it("rejects an unknown topic (the enum mirrors the DB CHECK)", () => {
+    expect(contactSchema.safeParse({ ...valid, topic: "spam" }).success).toBe(
+      false,
+    );
   });
 
   it("rejects an over-length name with a friendly message", () => {

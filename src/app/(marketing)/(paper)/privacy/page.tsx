@@ -88,19 +88,19 @@ const SECTIONS: LegalSection[] = [
   {
     id: "reports-and-safety",
     title: "Reports and safety",
-    summary: "A real person reviews every report.",
+    summary: "Every report gets reviewed.",
     body: [
-      "Anyone who can see an album can report something in it. Reports go to a person, not an automated takedown: a human reviews each one and acts on it. Hosts can remove anything from their own album at any time, instantly.",
+      "Anyone who can see an album can report something in it. Every report is reviewed before anything comes down, and hosts can remove anything from their own album at any time, instantly.",
     ],
   },
   {
     id: "changes-and-contact",
     title: "Changes and contact",
-    summary: "Updates are posted here, and a person answers questions.",
+    summary: "Updates are posted here, and questions get answered.",
     body: [
       <>
         When this policy changes, the new version is posted on this page with
-        its date. Questions about your data get a human answer:{" "}
+        its date. Questions about your data get answered:{" "}
         <Link
           href="/contact"
           className="underline underline-offset-2 transition-colors duration-150 hover:text-foreground"

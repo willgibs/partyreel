@@ -127,15 +127,19 @@ export function contactFormEmail(opts: {
   email: string;
   subject?: string;
   message: string;
+  /** The topic LABEL (contactTopicLabel), tagged into the subject for inbox scanning/filters. */
+  topic?: string;
 }): { subject: string; html: string } {
   const trimmedSubject = opts.subject?.trim();
+  const topicTag = opts.topic ? ` [${opts.topic}]` : "";
   return {
     subject: trimmedSubject
-      ? `Contact form: ${trimmedSubject}`
-      : `Contact form from ${opts.name}`,
+      ? `Contact form${topicTag}: ${trimmedSubject}`
+      : `Contact form${topicTag} from ${opts.name}`,
     html: `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:560px;margin:0 auto;color:#111;">
   <h1 style="font-size:18px;font-weight:700;">New contact form submission</h1>
   <p style="margin:4px 0;"><strong>From:</strong> ${esc(opts.name)} &lt;${esc(opts.email)}&gt;</p>
+  ${opts.topic ? `<p style="margin:4px 0;"><strong>Topic:</strong> ${esc(opts.topic)}</p>` : ""}
   ${trimmedSubject ? `<p style="margin:4px 0;"><strong>Subject:</strong> ${esc(trimmedSubject)}</p>` : ""}
   <p style="margin:16px 0 4px;"><strong>Message:</strong></p>
   <p style="white-space:pre-wrap;margin:0;">${esc(opts.message)}</p>

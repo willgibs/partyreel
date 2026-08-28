@@ -53,7 +53,7 @@ const SECTIONS: LegalSection[] = [
     title: "Acceptable use",
     summary: "Lawful events, and hosts run their own rooms.",
     body: [
-      "Use Partyreel for lawful purposes. Do not upload content that is illegal or abusive, and do not use the service to harass anyone. Hosts moderate their own albums and can remove anything instantly; anyone with access can report content, and a real person reviews every report and can act on it, up to removing content or suspending accounts.",
+      "Use Partyreel for lawful purposes. Do not upload content that is illegal or abusive, and do not use the service to harass anyone. Hosts moderate their own albums and can remove anything instantly; anyone with access can report content, and reports are reviewed and acted on, up to removing content or suspending accounts.",
     ],
   },
   {
@@ -117,8 +117,7 @@ const SECTIONS: LegalSection[] = [
           your data and deleting your account
         </Link>
         ). Download what you want to keep first: deletion is real. Partyreel
-        can suspend or terminate accounts that break these terms, with report
-        review handled by a person.
+        can suspend or terminate accounts that break these terms.
       </>,
     ],
   },
@@ -133,11 +132,11 @@ const SECTIONS: LegalSection[] = [
   {
     id: "changes-and-contact",
     title: "Changes and contact",
-    summary: "Updates are posted here, and a person answers questions.",
+    summary: "Updates are posted here, and questions get answered.",
     body: [
       <>
         When these terms change, the new version is posted on this page with
-        its date. Questions get a human answer:{" "}
+        its date. Questions get answered:{" "}
         <Link
           href="/contact"
           className="underline underline-offset-2 transition-colors duration-150 hover:text-foreground"

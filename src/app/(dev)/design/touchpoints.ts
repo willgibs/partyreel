@@ -34,6 +34,7 @@ export type TouchpointId =
   | "marketing-hero-substrate"
   | "pricing-plan-cards"
   | "pricing-calculator"
+  | "contact-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -412,6 +413,22 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
+  },
+  {
+    // The contact round REDO (2026-08-28): the first build kept the old page's
+    // wireframe DNA and Will called it ("super bland... did not follow 'if
+    // this page didn't already exist'"). The IA survives (topic router, help
+    // search, directory); THIS touchpoint re-designs the form chapter's
+    // visual identity from zero. Each direction carries its own topic-router
+    // treatment, so one ruling settles the page.
+    id: "contact-identity",
+    title: "Contact identity",
+    surface: "marketing",
+    note: "The form chapter from zero: a stationery note with a photo stamp, a media-split desk, or a bare-paper editorial ledger",
+    variants: ["The note", "The desk", "The ledger"],
+    decision: 2,
+    decisionNote:
+      "COMPOSITE on V2 (Will, 2026-08-28): 'I like the V2 desk layout most for the form section, as it feels very structured, but I'd like to use the V1 note design and the v2 form itself to jazz up the visual design.' Wired same-day: the desk structure + facts rows, the note's stamp + letterhead on the card, the Polaroid spread DROPPED ('so it doesn't feel too busy'), the seven open chips collapsed to a clean dropdown ('takes a ton of room'), and the card on the Biograph gray panel with white fields (his biograph.com/contact reference). V3's numbered-index grammar was grafted onto the self-serve directory.",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
