@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -268,17 +267,39 @@ export function ContactForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>What&rsquo;s this about?</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value ?? ""}
-                >
+                {/* value stays undefined until set — Radix treats a controlled
+                    "" as a real (empty) selection and latches the placeholder,
+                    which ate the ?about= handoff's programmatic pre-pick. The
+                    trigger display is rendered manually from CONTACT_TOPICS
+                    instead of <SelectValue>: with the popper closed the items
+                    never mounted, so Radix cannot resolve a label for a value
+                    set without opening (the same handoff path). */}
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger
                       className={cn(
                         "w-full rounded-xl bg-background text-base data-[size=default]:h-11 md:text-base",
                       )}
                     >
-                      <SelectValue placeholder="Pick a topic" />
+                      {(() => {
+                        const picked = CONTACT_TOPICS.find(
+                          (t) => t.value === field.value,
+                        );
+                        return picked ? (
+                          <span className="flex items-center gap-2">
+                            <picked.icon
+                              aria-hidden
+                              className="size-4"
+                              strokeWidth={1.5}
+                            />
+                            {picked.label}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Pick a topic
+                          </span>
+                        );
+                      })()}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
