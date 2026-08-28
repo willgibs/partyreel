@@ -111,7 +111,22 @@ Three curves in `@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entra
 (`data-closed:duration-*` composes with tw-animate via `--tw-duration` — verified); press feedback =
 `active:scale-[0.97]` on buttons; explicit transition properties, never `transition-all` on
 primitives. Current timings: dialog 200/150 · dropdown/popover 175/120 · tooltip 150/100 (+
-`skipDelayDuration` 300) · sheet 300/200 on the drawer curve. Skeletons shimmer via a
+`skipDelayDuration` 300) · sheet 300/200 on the drawer curve · **marketing nav 200/130 with a 100ms
+hover intent** (its clocks are `--mkt-dropdown-*` / `--mkt-nav-*`, [marketing-content.md](marketing-content.md)).
+**★ THE FLOATING-LAYER CONTRACT** (named 2026-08-28 when the nav turned out to be the one menu
+outside it): every floating surface ships `rounded-float` + `shadow-float` + an origin-AWARE
+`transform-origin` + `fade-in-0`/`fade-out-0` beside its zoom + one house clock on `--ease-emphasis`.
+Miss any of the five and the surface reads wrong in a way that is hard to name: `rounded-lg` resolves
+to the 2px SHARP general-UI radius, a raw `shadow` draws in dark mode against the elevation contract,
+a centre origin detaches the panel from its trigger, and a scale with no fade pops. Three reusable
+patterns came out of that round: the **`data-swap`-gated box morph** (a size transition must be armed
+only when there is a previous size to morph FROM, or a measured-late 0×0 first frame animates as a
+wipe), the **glass LAYER** (`backdrop-filter` on an inert `-z-10` sibling whose `opacity` animates —
+never a class-toggled filter on the bar itself, which both snaps and drags every descendant's repaint
+into a blurred region), and the **measured indicator** (JS writes `offsetLeft`/`offsetWidth`, CSS owns
+the tween; the first placement MUST suspend the transition and force a reflow or it flies in from
+x=0). Hover is the one place enters may be SLOWER than exits: a row that is skimmed rather than
+studied needs its in inside ~90ms and can take ~180ms to fade back out. Skeletons shimmer via a
 background-position sweep (`--animate-shimmer`, linear on purpose: ambient loop, a strong curve
 stutters at the loop point). **`MediaTile` (every gallery tile) renders the shimmer skeleton under the photo
 until it decodes, then fades the photo in over it (S5 P1)** — a cold presigned-R2 load (no thumbnail variant)

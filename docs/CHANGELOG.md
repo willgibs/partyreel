@@ -10,6 +10,60 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The nav round: the marketing header's interaction rebuilt (`lp/nav-interaction`)
+
+Will's brief was a feel report, not a bug list: hover-opening a dropdown felt slow and jagged and
+skipped frames, skimming the cursor over panel links reacted so slowly you could miss a row, the close
+was as bad as the open, and the nav background swap was very jagged. Only the side-by-side panel
+transition felt right. Plus: move Resources beside Events with Pricing last, and rebuild mobile so the
+menu opens with its dropdowns collapsed.
+
+Tracing every clock through the compiled CSS turned the feel report into one root cause: **the nav
+panel had never joined the floating-layer contract every other menu in the app already followed** (now
+named in [design-system.md](systems/design-system.md)). Eight verified defects, each measured live
+before the change and re-measured after (the table is in
+[perf/v1-baseline.md §4](perf/v1-baseline.md)): a `duration-100` that set a literal duration while
+leaving `transition-property` at its CSS initial value `all`, so the box morphed on 100ms/`ease` while
+the content swept 208px on 150ms/emphasis; `origin-top-center`, which is **not a Tailwind utility**, so
+the panel scaled from its centre and detached from the bar; zoom with **no fade** on either the open or
+the close; `rounded-lg`, which in this system is the 2px SHARP general-UI radius, plus a raw `shadow`
+that drew in dark mode against the elevation contract; `transition-all` on the trigger and link at
+150ms on a slow-headed curve (~64ms to half-visible — why a fast skim missed rows); Radix's default
+200ms `delayDuration`, never overridden; a `backdrop-filter` on the sticky bar that both snapped
+outside its own transition list and dragged every panel repaint into a blurred region.
+
+**Shipped:** the IA reorder (panel groups contiguous, Pricing last — a Vitest pin holds the order AND
+the contiguity invariant, since Radix derives its cross-slide from the index delta between adjacent
+items); one shared `--mkt-dropdown-open-ms` driving the enter, the box morph and the sweep; a
+`data-swap`-gated `width,height` morph so a first open cannot animate its measured-late 0×0 frame as a
+wipe; the missing fades; origin-aware growth aimed at the hovered label; a measured sliding indicator
+(`NAV_INDICATOR` swaps pill↔underline in one word, Will's stated fallback) that doubles as the origin
+source; a 100ms hover intent read from CSS via `readCssMs`; the header glass moved to an inert `-z-10`
+layer that only animates opacity; current-section ink + `aria-current`; and a **full-screen mobile
+menu** with collapsed one-at-a-time disclosures, 44px+ rows, a staggered entrance and safe-area padding.
+
+**Found and fixed on the way:** the marketing motion tuner's knobs were **dead** — it wrote `--mkt-*`
+overrides to `<html>`, but those tokens are declared on `[data-mkt]`, and a declaration on a descendant
+beats an inherited value from an ancestor (proven live: writing 1234ms left the scope reading .7s). The
+tuner now routes each var to the element that declares it and its Copy CSS emits the right selector, so
+the two existing reveal knobs work again and the round added seven nav knobs — hover intent, open,
+close, sweep distance, sweep blur, indicator travel, row hover — so Will can settle the taste numbers
+live at `?key=`. Also: the panel collided flush with the window edge between ~768 and 900px (the shared
+panel centres on the nav root, which sits a constant 16px left of the page centre, so a
+`100vw - 2rem` panel lands its left edge on exactly 0), and the Features panel's demo ticket was
+hard-coded white-on-black glass that read as a mid-grey block with illegible caption text inside the
+light paper panel, with a `backdrop-blur` over an opaque popover that blurred nothing.
+
+**Verification:** the full gate green (typecheck / lint / 1178 tests / production build). Driven live
+on the dev server: hover, panel→panel swap with the box morphing on the same clock, close, keyboard
+(Tab → Enter → Arrow → Esc with focus returning to the trigger and the indicator following focus),
+both skins, the root `/404` where marketing.css never loads and every `var(…, fallback)` had to hold,
+1440 / 768 widths, and the mobile menu under touch emulation. **Not verifiable from an agent session
+and named as owed:** frame timings, motion feel, `prefers-reduced-motion`, and a real-device touch
+pass — the Browser pane runs `document.hidden`, which suspends rAF, ResizeObserver,
+IntersectionObserver and transition progress alike (now recorded in
+[testing-verification.md](systems/testing-verification.md)).
+
 ## 2026-08-28 — MILESTONE-4: the pricing round + the AI-discoverability layer
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-4`, `62220cb`; 55 files, +4,162/−624),

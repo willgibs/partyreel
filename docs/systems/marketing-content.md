@@ -8,10 +8,27 @@
 
 The public `(marketing)` route group on the shared domain. Nav is single-sourced
 ([`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts)) and consumed by the config-driven
-[`marketing-header.tsx`](../../src/components/marketing/marketing-header.tsx) (desktop dropdowns + a mobile
-`Sheet`, both in the client [`marketing-nav.tsx`](../../src/components/marketing/marketing-nav.tsx)) + the
-multi-column [`marketing-footer.tsx`](../../src/components/marketing/marketing-footer.tsx); both render only
-**live** routes. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
+[`marketing-header.tsx`](../../src/components/marketing/chrome/marketing-header.tsx) (desktop mega-panels in
+[`marketing-nav.tsx`](../../src/components/marketing/chrome/marketing-nav.tsx) + a full-screen mobile menu in
+[`mobile-menu.tsx`](../../src/components/marketing/chrome/mobile-menu.tsx)) + the multi-column
+[`marketing-footer.tsx`](../../src/components/marketing/chrome/marketing-footer.tsx); both render only
+**live** routes.
+
+**The nav (rebuilt 2026-08-28).** ★ `PRIMARY_NAV` ORDER IS LOAD-BEARING: the three PANEL groups
+(Features · Events · Resources) stay CONTIGUOUS and Pricing is last as the only flat link, because Radix
+derives its side-by-side cross-slide from the index delta between adjacent items and a flat link wedged
+between two panels left one pair without a sweep (a Vitest pin holds both the order and the invariant).
+The panel now sits on the floating-layer contract ([design-system.md](design-system.md)); its clocks are
+`--mkt-dropdown-*` / `--mkt-nav-*` on `[data-mkt]`, with `--mkt-dropdown-open-ms` deliberately shared by
+the enter animation, the box morph and the cross-slide so they can never drift into separate clocks
+again. Hover intent is `--mkt-nav-intent-ms`, read by JS through `readCssMs` (never `parseInt`). A
+measured indicator ([`nav-indicator.tsx`](../../src/components/marketing/chrome/nav-indicator.tsx)) glides
+behind the labels and doubles as the panel's `transform-origin` source, so the panel grows out of the
+label you pointed at; `NAV_INDICATOR` swaps pill↔underline in one word. **Everything in the chrome carries
+`var(…, fallback)` clocks**: the root `app/not-found.tsx` renders this header WITHOUT marketing.css, so a
+bare `--mkt-*` reference there is silently unset. The header's glass is an inert `-z-10` layer whose
+opacity animates ([`header-shell.tsx`](../../src/components/marketing/chrome/header-shell.tsx)) — the bar
+itself must never carry `backdrop-filter` again, or every panel repaint happens inside a blurred region. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
 `--brand` aliases ink, there is no brand hue — the 2026-08-25 ruling; [design-system.md](design-system.md)
 is authoritative), media is the color; marketing runs louder via type/layout/motion only (motion follows the
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
@@ -70,7 +87,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
   that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
   `draft: true` posts are excluded from listing/sitemap/RSS.
-- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Contact.
+- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact.
 
 ## SEO / OG
 
