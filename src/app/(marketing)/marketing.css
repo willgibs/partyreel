@@ -1367,14 +1367,14 @@
    authored offsets: a phone has three columns and far less room around the
    grid, so the pile compresses rather than flying off-frame. */
 [data-mkt] .mkt-gather-plate {
-  width: 58cqw;
-  --scatter: 1;
+  width: 88cqw;
+  --scatter: 0.5;
 }
 
-@media (width < 40rem) {
+@media (width >= 40rem) {
   [data-mkt] .mkt-gather-plate {
-    width: 88cqw;
-    --scatter: 0.4;
+    width: 58cqw;
+    --scatter: 1;
   }
 }
 

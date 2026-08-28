@@ -111,7 +111,7 @@ export default function AboutPage() {
           pass did. It scales per breakpoint because the overhang does. */}
       <SectionShell
         reveal="none"
-        className="pt-48 pb-16 sm:pt-64 sm:pb-20 lg:pt-[24rem]"
+        className="pt-16 pb-16 sm:pt-64 sm:pb-20 lg:pt-[24rem]"
       >
         <div className="mx-auto max-w-[36rem]">
           <Eyebrow>{ABOUT_STORY.eyebrow}</Eyebrow>
