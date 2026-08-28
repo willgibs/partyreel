@@ -36,6 +36,7 @@ export type TouchpointId =
   | "pricing-calculator"
   | "contact-identity"
   | "press-identity"
+  | "careers-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -449,6 +450,29 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. One mechanic was promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe. The page also briefly borrowed the concurrent lp/about CinemaChapter, then dropped it when it moved into the (cinema) route group instead, which is where it shipped.',
+    // Careers-identity lab round (the careers round, 2026-08-28). Today's
+    // /careers is a template instance: it shares its hero AND its numbered-
+    // principles grid with /about (whose comment calls the shape "the careers
+    // idiom"), invents a team album that does not exist, restates the product
+    // pitch four times before the job appears, and buries the reel engine one
+    // click deep. Ruled before prototyping: cinema-led with paper chapters, no
+    // JobPosting JSON-LD while the listing is placeholder, the small-team hook
+    // KEPT (headcount and founder identity stay off the site), and copy leads,
+    // so each direction carries its own rewritten voice and one ruling settles
+    // layout and words together.
+    //
+    // Two directions were dropped BEFORE build, with reasons, so they are not
+    // re-proposed: THE CALL SHEET (a call sheet persuades by being full of
+    // facts we are forbidden from publishing, and it is mono-native against the
+    // R6 mono ruling) and THE WORK SAMPLE (its centrepiece was the live style
+    // switcher, already /reel's ruled flagship signature, and it would drag the
+    // engine into a marketing chunk that style-switcher-island.tsx exists to
+    // keep it out of). The proof survives as a LINK to /reel#styles.
+    id: "careers-identity",
+    title: "Careers identity",
+    surface: "marketing",
+    note: "The careers page from zero: an album of the build, an annotated handoff, or one role in one room",
+    variants: ["The contact sheet", "The handoff", "One room"],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
