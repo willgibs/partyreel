@@ -9,8 +9,15 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { MARKETING_IMAGES, marketingImage } from "@/lib/constants/marketing-media";
-import { friendlyCapacity, GIGABYTE } from "@/lib/constants/tiers";
+import {
+  MARKETING_IMAGES,
+  marketingImage,
+} from "@/lib/constants/marketing-media";
+import {
+  annualPlanFor,
+  friendlyCapacity,
+  GIGABYTE,
+} from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
 import { recommendPlan } from "./recommend";
@@ -38,7 +45,9 @@ import { recommendPlan } from "./recommend";
  */
 
 /** The curated stop ladder (exported for the lab's calculator prototypes). */
-export const STOP_GB = [1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048];
+export const STOP_GB = [
+  1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048,
+];
 
 const WALL_COLS = 12;
 const WALL_ROWS = 4;
@@ -129,7 +138,7 @@ export function Calculator() {
             >
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform ease-emphasis [transition-duration:var(--mkt-tabs-dur)] motion-reduce:transition-none"
+                className="absolute inset-y-1 left-1 w-[calc((100%-0.75rem)/2)] rounded-md bg-background shadow-sm transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
                 style={{
                   transform: `translateX(calc(${hostingAgain ? 1 : 0} * (100% + 0.25rem)))`,
                 }}
@@ -180,11 +189,11 @@ export function Calculator() {
                       alt=""
                       width={48}
                       height={48}
-                      className="size-full object-cover animate-in duration-150 zoom-in-75 motion-reduce:animate-none"
+                      className="size-full animate-in object-cover duration-150 zoom-in-75 motion-reduce:animate-none"
                     />
                   )}
                   {isClip && (
-                    <div className="flex size-full items-center justify-center bg-foreground animate-in duration-150 zoom-in-75 motion-reduce:animate-none">
+                    <div className="flex size-full animate-in items-center justify-center bg-foreground duration-150 zoom-in-75 motion-reduce:animate-none">
                       <span className="font-mono text-[7px] text-background">
                         {CLIP_TIMES[i % CLIP_TIMES.length]}
                       </span>
@@ -218,6 +227,12 @@ export function Calculator() {
             <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
               {rec.reason}
             </p>
+            {annualPlanFor(rec.planId) && (
+              <p className="mt-1.5 text-xs text-muted-foreground/70">
+                Or {annualPlanFor(rec.planId)!.priceLabel} billed yearly, two
+                months free.
+              </p>
+            )}
 
             {rec.alternative && (
               <p className="mt-3 text-xs text-pretty text-muted-foreground/70">

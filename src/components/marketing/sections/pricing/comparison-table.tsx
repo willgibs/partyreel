@@ -63,6 +63,20 @@ function buildGroups(): MatrixGroup[] {
       title: "Events and storage",
       rows: [
         {
+          label: "Billing",
+          tip: `Yearly Pro is exactly ten months' price: ${plansForTier(
+            "pro",
+            "year",
+          )
+            .map((p) => p.priceLabel)
+            .join(", ")}.`,
+          values: [
+            "Free forever",
+            `${pass.priceLabel.replace(" one-time", " once")}, ${EVENT_PASS_RENEWAL_PRICE_LABEL}/yr to renew`,
+            "Monthly or yearly, 2 months free",
+          ],
+        },
+        {
           label: "Events",
           tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in the trash.",
           values: [
@@ -101,7 +115,11 @@ function buildGroups(): MatrixGroup[] {
         {
           label: "Idle cleanup",
           tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to the 30-day trash.",
-          values: ["After ~6 months idle", "Not while the pass is live", "Never"],
+          values: [
+            "After ~6 months idle",
+            "Not while the pass is live",
+            "Never",
+          ],
         },
       ],
     },
@@ -308,7 +326,7 @@ export function ComparisonTable() {
                   >
                     <div className="flex flex-col items-start gap-2">
                       <span className="font-heading text-base">{name}</span>
-                      <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                      <span className="text-xs font-medium text-muted-foreground tabular-nums">
                         {headerPrices[i]}
                       </span>
                       {headerCtas[i]}

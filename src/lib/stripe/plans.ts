@@ -14,12 +14,21 @@ import { serverEnv } from "@/lib/env";
 // Paid plan id → the env value holding its Stripe Price ID. Explicit (not a dynamic
 // serverEnv index) so it stays type-safe.
 const PRICE_ENV: Record<
-  "pro_100" | "pro_500" | "pro_2tb" | "event_pass",
+  | "pro_100"
+  | "pro_500"
+  | "pro_2tb"
+  | "pro_100_yr"
+  | "pro_500_yr"
+  | "pro_2tb_yr"
+  | "event_pass",
   string | undefined
 > = {
   pro_100: serverEnv.STRIPE_PRICE_PRO_100,
   pro_500: serverEnv.STRIPE_PRICE_PRO_500,
   pro_2tb: serverEnv.STRIPE_PRICE_PRO_2TB,
+  pro_100_yr: serverEnv.STRIPE_PRICE_PRO_100_YR,
+  pro_500_yr: serverEnv.STRIPE_PRICE_PRO_500_YR,
+  pro_2tb_yr: serverEnv.STRIPE_PRICE_PRO_2TB_YR,
   event_pass: serverEnv.STRIPE_PRICE_EVENT_PASS,
 };
 

@@ -62,6 +62,9 @@ export const PLAN_IDS = [
   "pro_100",
   "pro_500",
   "pro_2tb",
+  "pro_100_yr",
+  "pro_500_yr",
+  "pro_2tb_yr",
   "event_pass",
 ] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
@@ -75,6 +78,8 @@ export type Plan = {
   /** Display only — Stripe Prices are the billing truth. */
   priceLabel: string;
   billing: BillingKind;
+  /** Subscription cadence; undefined = "month" (annual ruled 2026-08-27). */
+  interval?: "month" | "year";
   /** Env var holding the Stripe Price ID (paid plans only). */
   stripePriceEnvKey?: string;
   /** Event Pass only — fixed term before it lapses into the retention flow. */
@@ -116,6 +121,39 @@ export const PLANS: Plan[] = [
     priceLabel: "$39/mo",
     billing: "subscription",
     stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB",
+  },
+  // Annual Pro (ruled 2026-08-27): exactly x10 the monthly, marketed as "two
+  // months free". x10 is a DRIFT GUARD as much as a price: a test pins each
+  // yearly label to 10x its monthly sibling, so the pair can only move together.
+  {
+    id: "pro_100_yr",
+    tier: "pro",
+    name: "Pro 100 GB",
+    storageBytes: 100 * GIGABYTE,
+    priceLabel: "$90/yr",
+    billing: "subscription",
+    interval: "year",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_100_YR",
+  },
+  {
+    id: "pro_500_yr",
+    tier: "pro",
+    name: "Pro 500 GB",
+    storageBytes: 500 * GIGABYTE,
+    priceLabel: "$190/yr",
+    billing: "subscription",
+    interval: "year",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_500_YR",
+  },
+  {
+    id: "pro_2tb_yr",
+    tier: "pro",
+    name: "Pro 2 TB",
+    storageBytes: 2 * TERABYTE,
+    priceLabel: "$390/yr",
+    billing: "subscription",
+    interval: "year",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB_YR",
   },
   {
     id: "event_pass",
@@ -223,9 +261,29 @@ export function planById(id: PlanId): Plan {
   return plan;
 }
 
-/** Plans belonging to a tier, in declared order (e.g. the 3 Pro options). */
-export function plansForTier(tier: Tier): Plan[] {
-  return PLANS.filter((p) => p.tier === tier);
+/**
+ * Plans belonging to a tier at one billing cadence, in declared order. The
+ * interval DEFAULTS to "month" so every pre-annual caller keeps meaning "the 3
+ * Pro storage options"; yearly is an explicit opt-in (`plansForTier("pro",
+ * "year")`). Non-subscription plans (Free, the pass) carry no interval and are
+ * treated as monthly-cadence for this filter.
+ */
+export function plansForTier(
+  tier: Tier,
+  interval: "month" | "year" = "month",
+): Plan[] {
+  return PLANS.filter(
+    (p) => p.tier === tier && (p.interval ?? "month") === interval,
+  );
+}
+
+/**
+ * The annual sibling of a monthly Pro plan (the `<id>_yr` convention), or null
+ * for plans with no annual form. Drives the pricing page's cadence toggle.
+ */
+export function annualPlanFor(id: PlanId): Plan | null {
+  const yearly = PLANS.find((p) => p.id === `${id}_yr`);
+  return yearly ?? null;
 }
 
 /**
