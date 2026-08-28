@@ -5,7 +5,7 @@ import { PLANS, planById, type Plan } from "@/lib/constants/tiers";
 import {
   deliveryCreatedAt,
   eventPassSession,
-  resolveEventPassCheckout,
+  proCreditSession,
   resolveSubscriptionUpdate,
 } from "@/lib/stripe/provision";
 
@@ -119,155 +119,140 @@ describe("Pro plans ↔ Stripe wiring", () => {
   });
 });
 
-// checkout.session.completed fixture — resolveEventPassCheckout reads metadata.plan_id,
-// client_reference_id, customer, and created.
+// checkout.session.completed fixture — the ADR-0025 recognizers read metadata,
+// client_reference_id, customer, id, created, mode, and amount_total.
 function checkoutEvent(opts: {
   planId?: string;
   userId?: string | null;
   customer?: string;
   created?: number;
+  sessionId?: string;
+  renewal?: boolean;
+  amountTotal?: number | null;
+  mode?: string;
+  passCreditCents?: string;
 }): Stripe.Event {
+  const metadata: Record<string, string> = {};
+  if (opts.planId) metadata.plan_id = opts.planId;
+  if (opts.renewal) metadata.renewal = "1";
+  if (opts.passCreditCents) metadata.pass_credit_cents = opts.passCreditCents;
   return {
     type: "checkout.session.completed",
     data: {
       object: {
+        id: opts.sessionId ?? "cs_1",
         client_reference_id: opts.userId === undefined ? "user_1" : opts.userId,
         customer: opts.customer ?? "cus_1",
         created: opts.created ?? 1_700_000_000,
-        metadata: opts.planId ? { plan_id: opts.planId } : {},
+        mode: opts.mode ?? "payment",
+        amount_total: opts.amountTotal === undefined ? 2400 : opts.amountTotal,
+        metadata,
       },
     },
   } as unknown as Stripe.Event;
 }
 
-describe("resolveEventPassCheckout", () => {
-  const eventPass = planById("event_pass");
-  const term = eventPass.termDays ?? 365;
-  const termMs = term * 86_400_000;
-
-  it("provisions Event Pass (75 GB) + a full term for a first purchase", () => {
-    const created = 1_700_000_000;
-    const patch = resolveEventPassCheckout(
-      checkoutEvent({
-        planId: "event_pass",
-        userId: "u1",
-        customer: "cus_x",
-        created,
-      }),
-      eventPass,
-      null,
-    );
-    expect(patch).toEqual({
-      userId: "u1",
-      customerId: "cus_x",
-      storageCapBytes: eventPass.storageBytes,
-      tierExpiresAt: new Date(created * 1000 + termMs).toISOString(),
-    });
-  });
-
-  // QA #35 / ADR-0023 ruling 1. The old arithmetic was `session.created + term`, so a host who
-  // renewed a month early silently threw away the eleven months they had already paid for.
-  it("EXTENDS from the current expiry when the pass is still live", () => {
-    const created = 1_700_000_000;
-    const current = new Date(
-      created * 1000 + 300 * 86_400_000, // 300 days left on the pass
-    ).toISOString();
-    const patch = resolveEventPassCheckout(
-      checkoutEvent({ planId: "event_pass", created }),
-      eventPass,
-      current,
-    );
-    expect(patch?.tierExpiresAt).toBe(
-      new Date(Date.parse(current) + termMs).toISOString(),
-    );
-    // and it is strictly better than the reset it replaced
-    expect(Date.parse(patch!.tierExpiresAt)).toBeGreaterThan(
-      created * 1000 + termMs,
-    );
-  });
-
-  it("starts a fresh term from a lapsed or absent expiry (never backdates)", () => {
-    const created = 1_700_000_000;
-    const lapsed = new Date(created * 1000 - 86_400_000).toISOString();
-    const fresh = new Date(created * 1000 + termMs).toISOString();
-    expect(
-      resolveEventPassCheckout(
-        checkoutEvent({ planId: "event_pass", created }),
-        eventPass,
-        lapsed,
-      )?.tierExpiresAt,
-    ).toBe(fresh);
-    // A malformed stored value degrades the same way rather than throwing: never fail a paid
-    // purchase over a timestamp we wrote badly.
-    expect(
-      resolveEventPassCheckout(
-        checkoutEvent({ planId: "event_pass", created }),
-        eventPass,
-        "not-a-date",
-      )?.tierExpiresAt,
-    ).toBe(fresh);
-  });
-
-  it("is a pure function of its inputs (no clock, so a retry cannot drift)", () => {
-    const e = checkoutEvent({ planId: "event_pass", created: 1_711_111_111 });
-    expect(resolveEventPassCheckout(e, eventPass, null)?.tierExpiresAt).toBe(
-      resolveEventPassCheckout(e, eventPass, null)?.tierExpiresAt,
-    );
-    // NOTE: purity is NOT replay-safety here. This patch accumulates, so re-feeding it the expiry
-    // it just produced legitimately extends again. Replay-safety lives in the webhook's ordering
-    // guard, which only applies a delivery strictly newer than the last one on that profile.
-    const first = resolveEventPassCheckout(e, eventPass, null)!.tierExpiresAt;
-    expect(
-      resolveEventPassCheckout(e, eventPass, first)!.tierExpiresAt,
-    ).not.toBe(first);
-  });
-
-  it("ignores non-Event-Pass checkouts (Pro subscription) and missing user", () => {
-    expect(
-      resolveEventPassCheckout(
-        checkoutEvent({ planId: "pro_500" }),
-        eventPass,
-        null,
-      ),
-    ).toBeNull();
-    expect(
-      resolveEventPassCheckout(checkoutEvent({}), eventPass, null),
-    ).toBeNull();
-    expect(
-      resolveEventPassCheckout(
-        checkoutEvent({ planId: "event_pass", userId: null }),
-        eventPass,
-        null,
-      ),
-    ).toBeNull();
-  });
-
-  it("ignores unrelated event types", () => {
-    const sub = {
-      type: "customer.subscription.created",
-      data: { object: {} },
-    } as unknown as Stripe.Event;
-    expect(resolveEventPassCheckout(sub, eventPass, null)).toBeNull();
-  });
-});
-
-describe("eventPassSession", () => {
-  it("recognizes the pass checkout without needing the current expiry", () => {
+describe("eventPassSession (the ADR-0025 ledger recognizer)", () => {
+  it("pulls out everything the ledger insert needs", () => {
     expect(
       eventPassSession(
         checkoutEvent({
           planId: "event_pass",
           userId: "u9",
           customer: "cus_9",
+          sessionId: "cs_pass_1",
+          created: 1_700_000_000,
+          amountTotal: 2400,
         }),
       ),
-    ).toEqual({ userId: "u9", customerId: "cus_9" });
+    ).toEqual({
+      userId: "u9",
+      customerId: "cus_9",
+      sessionId: "cs_pass_1",
+      createdMs: 1_700_000_000_000,
+      renewal: false,
+      amountTotalCents: 2400,
+    });
   });
 
-  it("returns null for everything else (so the route falls through to customer binding)", () => {
+  it("carries the renewal flag (the window chains instead of stacking)", () => {
+    const ref = eventPassSession(
+      checkoutEvent({ planId: "event_pass", renewal: true, amountTotal: 1500 }),
+    );
+    expect(ref?.renewal).toBe(true);
+    expect(ref?.amountTotalCents).toBe(1500);
+  });
+
+  it("degrades a missing amount_total to null (the ledger stores 0, never over-credits)", () => {
+    const ref = eventPassSession(
+      checkoutEvent({ planId: "event_pass", amountTotal: null }),
+    );
+    expect(ref?.amountTotalCents).toBeNull();
+  });
+
+  it("returns null for non-pass sessions and missing ids", () => {
     expect(eventPassSession(checkoutEvent({ planId: "pro_500" }))).toBeNull();
+    expect(eventPassSession(checkoutEvent({}))).toBeNull();
+    expect(
+      eventPassSession(checkoutEvent({ planId: "event_pass", userId: null })),
+    ).toBeNull();
     expect(
       eventPassSession(subEvent("customer.subscription.created", {})),
+    ).toBeNull();
+  });
+});
+
+describe("proCreditSession (the prorated Pass → Pro credit)", () => {
+  it("recognizes a subscription checkout stamped with a credit", () => {
+    expect(
+      proCreditSession(
+        checkoutEvent({
+          planId: "pro_100",
+          mode: "subscription",
+          userId: "u3",
+          customer: "cus_3",
+          sessionId: "cs_pro_1",
+          passCreditCents: "1200",
+        }),
+      ),
+    ).toEqual({
+      userId: "u3",
+      customerId: "cus_3",
+      sessionId: "cs_pro_1",
+      creditCents: 1200,
+    });
+  });
+
+  it("returns null without the stamp, off subscription mode, or for junk values", () => {
+    expect(
+      proCreditSession(checkoutEvent({ planId: "pro_100", mode: "subscription" })),
+    ).toBeNull();
+    expect(
+      proCreditSession(
+        checkoutEvent({
+          planId: "event_pass",
+          mode: "payment",
+          passCreditCents: "1200",
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      proCreditSession(
+        checkoutEvent({
+          planId: "pro_100",
+          mode: "subscription",
+          passCreditCents: "0",
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      proCreditSession(
+        checkoutEvent({
+          planId: "pro_100",
+          mode: "subscription",
+          passCreditCents: "junk",
+        }),
+      ),
     ).toBeNull();
   });
 });

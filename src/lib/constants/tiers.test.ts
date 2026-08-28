@@ -17,6 +17,7 @@ import {
   friendlyCapacity,
   isSettingLocked,
   monthlyIngressCap,
+  annualPlanFor,
   planById,
   plansForTier,
   toBillingTier,
@@ -66,6 +67,32 @@ describe("PLANS integrity", () => {
       "pro_500",
       "pro_2tb",
     ]);
+  });
+  it("plansForTier('pro','year') returns the three annual siblings", () => {
+    expect(plansForTier("pro", "year").map((p) => p.id)).toEqual([
+      "pro_100_yr",
+      "pro_500_yr",
+      "pro_2tb_yr",
+    ]);
+  });
+  // The annual ruling (Will, 2026-08-27): a year costs exactly TEN months
+  // ("two months free"), and the pair can only move together. Parsed off the
+  // display labels because the labels ARE the marketed numbers.
+  it("every annual Pro price is exactly 10x its monthly sibling", () => {
+    for (const monthly of plansForTier("pro")) {
+      const yearly = annualPlanFor(monthly.id);
+      expect(yearly, `${monthly.id} has an annual sibling`).not.toBeNull();
+      const m = Number(monthly.priceLabel.match(/\$(\d+)/)?.[1]);
+      const y = Number(yearly!.priceLabel.match(/\$(\d+)/)?.[1]);
+      expect(y).toBe(m * 10);
+      expect(yearly!.storageBytes).toBe(monthly.storageBytes);
+      expect(yearly!.interval).toBe("year");
+    }
+  });
+  it("annualPlanFor is null off the monthly Pro plans", () => {
+    expect(annualPlanFor("free")).toBeNull();
+    expect(annualPlanFor("event_pass")).toBeNull();
+    expect(annualPlanFor("pro_100_yr")).toBeNull();
   });
 });
 

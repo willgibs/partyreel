@@ -138,7 +138,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is
   ruled + recorded in [`PRICING.md`](PRICING.md) "Grandfathering"; the build is `planForPriceId` mapping
   MULTIPLE historical Price IDs per plan, newest = the public offer) · a full [`PRD.md`](PRD.md) refresh
-  to the shipped product (this consolidation pass fixed only the misleading era claims).
+  to the shipped product (this consolidation pass fixed only the misleading era claims) · **per-pass dashboard management**
+  (choose WHICH stacked pass a renewal extends, per-pass expiry rows in the storage meter; v1 renews the
+  soonest-expiring, ADR-0025) · the `authenticated` role holds a latent table-level **TRUNCATE grant on
+  `profiles`** (unreachable via PostgREST, found 2026-08-27; sweep table grants and revoke in the next
+  security pass).
 - **Share studio (QR + share-content configurator)** — (Will, 2026-06-11, from the V1 design lab's QR-card
   round) an in-app generator for polished share outputs so hosts never build their own: card presets
   (minimal-ink + photo-backed won the lab round), per-common-event-type curated stock cover images +

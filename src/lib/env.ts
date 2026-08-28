@@ -59,6 +59,12 @@ const serverSchema = z.object({
   STRIPE_PRICE_PRO_100: z.string().min(1).optional(),
   STRIPE_PRICE_PRO_500: z.string().min(1).optional(),
   STRIPE_PRICE_PRO_2TB: z.string().min(1).optional(),
+  // Annual Pro (ruled 2026-08-27: x10 monthly, "two months free"). Like the Event
+  // Pass prices: NOT in assertStripeEnv()'s hard assert; validated lazily by
+  // priceIdForPlan so monthly checkout keeps working if these are ever unset.
+  STRIPE_PRICE_PRO_100_YR: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_500_YR: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_2TB_YR: z.string().min(1).optional(),
   // Cut 4c — one-time Event Pass price. NOT in assertStripeEnv()'s hard assert (Pro
   // routes keep working if it's unset); validated lazily by priceIdForPlan.
   STRIPE_PRICE_EVENT_PASS: z.string().min(1).optional(),
@@ -136,6 +142,9 @@ function parseServer() {
     STRIPE_PRICE_PRO_100: process.env.STRIPE_PRICE_PRO_100,
     STRIPE_PRICE_PRO_500: process.env.STRIPE_PRICE_PRO_500,
     STRIPE_PRICE_PRO_2TB: process.env.STRIPE_PRICE_PRO_2TB,
+    STRIPE_PRICE_PRO_100_YR: process.env.STRIPE_PRICE_PRO_100_YR,
+    STRIPE_PRICE_PRO_500_YR: process.env.STRIPE_PRICE_PRO_500_YR,
+    STRIPE_PRICE_PRO_2TB_YR: process.env.STRIPE_PRICE_PRO_2TB_YR,
     STRIPE_PRICE_EVENT_PASS: process.env.STRIPE_PRICE_EVENT_PASS,
     STRIPE_PRICE_EVENT_PASS_RENEWAL:
       process.env.STRIPE_PRICE_EVENT_PASS_RENEWAL,

@@ -25,6 +25,7 @@ import {
 } from "@/lib/constants/tiers";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { mustQuery } from "@/lib/db/must-query";
+import { recomputePassEntitlement } from "@/lib/db/mutations/event-passes";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
@@ -454,22 +455,38 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
 }
 
 /**
- * Sweep 4 — expired Event Passes. A one-time Event Pass sets `tier_expires_at` (~1 yr);
- * once it lapses we downgrade to Free. Minimal over-capacity: reset the cap (null → 2 GB
- * Free default), so new uploads are blocked when over cap but existing media stays
- * (the full grace + renewal-nudge emails are a fast-follow). storage_used_bytes is left
- * alone — bytes are only reclaimed if the host later deletes events (the purge sweeps).
+ * Sweep 4 — Event Pass entitlement recompute (ADR-0025, ledger edition). The pass is
+ * a per-purchase LEDGER row now, so "expiry" is not a stored state to clear: this
+ * sweep re-derives every pass holder's profile from their windows, which covers
+ * natural expiry (tier → free, cap → null), a stacked pass lapsing (150 GB → 75 GB,
+ * absorbed by the over-capacity grace machinery), a renewal window opening, and
+ * drift healing after any missed webhook. Candidates: profiles labelled event_pass
+ * PLUS owners of any unconsumed ledger row (a future-window renewal keeps a lapsed
+ * label alive again once it opens). storage_used_bytes is left alone — bytes are
+ * only reclaimed if the host later deletes events (the purge sweeps).
  */
 async function sweepExpiredPasses(admin: AdminClient, now: Date) {
-  const { data, error } = await admin
-    .from("profiles")
-    .update({ tier: "free", storage_cap_bytes: null, tier_expires_at: null })
-    .eq("tier", "event_pass")
-    .not("tier_expires_at", "is", null)
-    .lte("tier_expires_at", now.toISOString())
-    .select("id");
-  if (error) throw new Error(`expire passes: ${error.message}`);
-  return { downgraded: (data ?? []).length };
+  const [labelled, owners] = await Promise.all([
+    admin.from("profiles").select("id").eq("tier", "event_pass"),
+    admin.from("event_passes").select("profile_id").is("consumed_at", null),
+  ]);
+  if (labelled.error) {
+    throw new Error(`pass recompute candidates: ${labelled.error.message}`);
+  }
+  if (owners.error) {
+    throw new Error(`pass ledger candidates: ${owners.error.message}`);
+  }
+
+  const ids = new Set<string>([
+    ...(labelled.data ?? []).map((row) => row.id),
+    ...(owners.data ?? []).map((row) => row.profile_id),
+  ]);
+
+  let updated = 0;
+  for (const id of ids) {
+    if ((await recomputePassEntitlement(id, now)) === "updated") updated += 1;
+  }
+  return { recomputed: ids.size, updated };
 }
 
 function fmtDate(d: Date): string {

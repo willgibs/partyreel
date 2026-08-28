@@ -40,7 +40,9 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
         refusal: {
           status: 403,
           code: "video_not_allowed",
-          message: "Video uploads are available on the Pro plan.",
+          // A35: both paid plans get named, never "Pro only" (the gate is
+          // tier !== "free", so an Event Pass qualifies too).
+          message: "Video uploads come with Pro and the Event Pass.",
         },
       };
     }

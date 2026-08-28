@@ -99,7 +99,9 @@ export default async function DashboardPage({
   ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
-  const maxEvents = MAX_EVENTS[tier];
+  // Stacked Event Passes (ADR-0025): event_slots is the webhook-derived concurrent-pass
+  // count and overrides the static tier limit, exactly as enforce_event_limit does in SQL.
+  const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
   const used = events.length;
   // withinLimit(current, limit) answers "can I add one more?" — so its negation
   // is "already at the cap." `null` maxEvents (Pro = unlimited) is never at cap.

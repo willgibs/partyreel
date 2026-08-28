@@ -11,8 +11,9 @@ The public `(marketing)` route group on the shared domain. Nav is single-sourced
 [`marketing-header.tsx`](../../src/components/marketing/marketing-header.tsx) (desktop dropdowns + a mobile
 `Sheet`, both in the client [`marketing-nav.tsx`](../../src/components/marketing/marketing-nav.tsx)) + the
 multi-column [`marketing-footer.tsx`](../../src/components/marketing/marketing-footer.tsx); both render only
-**live** routes. **Brand = the app's design system turned up**: grayscale UI + the single `#FB4817` accent
-(`--brand`), media is the color; marketing runs louder via type/layout/motion only (motion follows the
+**live** routes. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
+`--brand` aliases ink, there is no brand hue — the 2026-08-25 ruling; [design-system.md](design-system.md)
+is authoritative), media is the color; marketing runs louder via type/layout/motion only (motion follows the
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
 incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `robots.ts` / the root `metadataBase`.
 

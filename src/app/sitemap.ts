@@ -4,8 +4,8 @@ import { JOB_SLUGS } from "@/lib/constants/careers";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { SITE_URL } from "@/lib/constants/site";
-import { getAllBlogSlugs } from "@/lib/content/blog";
-import { getAllSlugs as getHelpSlugs } from "@/lib/content/help";
+import { getAllPosts } from "@/lib/content/blog";
+import { getAllArticles } from "@/lib/content/help";
 
 // Public, crawlable routes ONLY. Never list /a/ or /e/ (opaque capability-token
 // share links — indexing them would leak semi-private albums) or the gated app
@@ -16,6 +16,8 @@ type Entry = {
   path: string;
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority: number;
+  /** Content date from frontmatter where one exists; build time otherwise. */
+  lastModified?: Date;
 };
 
 const ROUTES: Entry[] = [
@@ -54,21 +56,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.4,
     })),
-    ...getHelpSlugs().map((slug) => ({
-      path: `/help/${slug}`,
+    // Content entries carry their frontmatter dates so lastModified means
+    // something (it was uniformly build time before; crawlers rightly ignore
+    // a sitemap where every page "changed" every deploy).
+    ...getAllArticles().map((article) => ({
+      path: `/help/${article.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.5,
+      lastModified: article.frontmatter.updated
+        ? new Date(article.frontmatter.updated)
+        : undefined,
     })),
-    ...getAllBlogSlugs().map((slug) => ({
-      path: `/blog/${slug}`,
+    ...getAllPosts().map((post) => ({
+      path: `/blog/${post.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.6,
+      lastModified: new Date(post.frontmatter.date),
     })),
   ];
-  return entries.map(({ path, changeFrequency, priority }) => ({
-    url: `${SITE_URL}${path}`,
-    lastModified,
-    changeFrequency,
-    priority,
-  }));
+  return entries.map(
+    ({ path, changeFrequency, priority, lastModified: lm }) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: lm ?? lastModified,
+      changeFrequency,
+      priority,
+    }),
+  );
 }

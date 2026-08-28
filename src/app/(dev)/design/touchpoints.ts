@@ -32,6 +32,8 @@ export type TouchpointId =
   | "marketing-voice"
   | "marketing-decomposition"
   | "marketing-hero-substrate"
+  | "pricing-plan-cards"
+  | "pricing-calculator"
   | "reel-reveal"
   | "reel-experience";
 
@@ -379,6 +381,37 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
     variants: ["Roll on footage", "Type on footage", "Cut on footage"],
+  },
+  {
+    // The pricing round (2026-08-27): /pricing rebuilt on the restrained
+    // default; this decides the plan cards' visual identity layer (the
+    // Biograph-burst equivalent, built from media). Each variant renders the
+    // REAL pair anatomy (paper Free + ink Pro) in miniature so the identity is
+    // judged across both registers at once. V2 uses the back-pocket
+    // soft-shadow exception (photos physically stacking).
+    id: "pricing-plan-cards",
+    title: "Pricing plan cards",
+    surface: "marketing",
+    note: "The pair's visual identity layer: a media burst, a stacked-photo depth read, or quiet concentric ink",
+    variants: ["Media burst", "Stacked photos", "Quiet ink"],
+    decision: 2,
+    decisionNote:
+      "V2 Stacked photos (Will, 2026-08-27): 'v1 is really cool but within the card v2 has a nice balance.' Wired into /pricing the same day (Free stacks two grayscale, Pro four vivid on ink; hover spreads; the back-pocket soft-shadow exception carries the depth). His sitting also flagged the mono face on the cards ('don't know where this mono font is coming from') -> the pricing-wide price-register swap: money in the display face (Urbanist, tabular digits), values in Inter; Geist Mono survives only as the wall's timecode chips.",
+  },
+  {
+    // The pricing round (2026-08-27): does the find-your-size slider earn its
+    // delight layer? V1 makes the golden line mechanical (the album wall fills
+    // as you slide); V2 is the shipped receipt meter reproduced as the
+    // baseline. Both run the same stop ladder + the same pure recommendPlan
+    // brain, so only the EXPRESSION differs.
+    id: "pricing-calculator",
+    title: "Pricing calculator",
+    surface: "marketing",
+    note: "The find-your-size slider's expression: the album-fill wall against the shipped receipt meter",
+    variants: ["Album fill", "Receipt meter"],
+    decision: 1,
+    decisionNote:
+      "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

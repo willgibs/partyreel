@@ -1,12 +1,18 @@
 import type Stripe from "stripe";
 
-import { planById } from "@/lib/constants/tiers";
+import { passWindowForPurchase } from "@/lib/billing/passes";
+import {
+  consumeLivePassesForProCredit,
+  insertPassPurchase,
+  recomputePassEntitlement,
+} from "@/lib/db/mutations/event-passes";
+import { getLivePasses } from "@/lib/db/queries/event-passes";
 import { getStripe } from "@/lib/stripe/client";
 import { planForPriceId } from "@/lib/stripe/plans";
 import {
   deliveryCreatedAt,
   eventPassSession,
-  resolveEventPassCheckout,
+  proCreditSession,
   resolveSubscriptionUpdate,
 } from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
@@ -144,42 +150,73 @@ export async function POST(request: Request) {
 
   try {
     if (event.type === "checkout.session.completed") {
-      // One-time Event Pass purchase → provision tier + cap + expiry here (no
-      // subscription event fires for a one-time payment).
+      // One-time Event Pass purchase → mint a LEDGER row, then recompute the profile
+      // from the ledger (ADR-0025; no subscription event fires for a one-time payment).
+      // Replay-safety moved OFF the event-time ordering guard onto the ledger's unique
+      // stripe_session_id: a re-delivery inserts nothing and the recompute re-derives
+      // the same absolute state.
       const ref = eventPassSession(event);
       if (ref) {
-        // Read the CURRENT expiry first: ADR-0023 says renewal EXTENDS from it rather than
-        // resetting the term. A concurrent duplicate cannot double-extend off this read, because
-        // the write only lands when it is strictly newer than the last delivery on that row.
-        const { data: current, error: readError } = await admin
-          .from("profiles")
-          .select("tier_expires_at")
-          .eq("id", ref.userId)
-          .maybeSingle();
-        if (readError) {
-          throw new Error(`event-pass current expiry: ${readError.message}`);
-        }
+        // The window this purchase occupies: an initial pass stacks a fresh year from
+        // the purchase instant; a renewal chains onto the soonest-expiring active pass
+        // (ADR-0023's "extends, never resets", now per-window). price_cents records
+        // what was ACTUALLY charged so promo purchases prorate off the real payment;
+        // a missing amount degrades to 0 (never over-credit later).
+        const passes = await getLivePasses(ref.userId);
+        const kind = ref.renewal ? ("renewal" as const) : ("initial" as const);
+        const window = passWindowForPurchase(kind, passes, ref.createdMs);
+        await insertPassPurchase({
+          profileId: ref.userId,
+          startAt: window.startAt,
+          expiresAt: window.expiresAt,
+          priceCents: ref.amountTotalCents ?? 0,
+          source: kind,
+          stripeSessionId: ref.sessionId,
+        });
+        await recomputePassEntitlement(ref.userId);
 
-        const pass = resolveEventPassCheckout(
-          event,
-          planById("event_pass"),
-          current?.tier_expires_at ?? null,
+        // Keep the customer bound + any stale subscription pointer cleared (a pass
+        // holder has no live subscription by the checkout gate).
+        const { error: bindError } = await admin
+          .from("profiles")
+          .update({
+            stripe_customer_id: ref.customerId,
+            stripe_subscription_id: null,
+          })
+          .eq("id", ref.userId);
+        if (bindError) {
+          throw new Error(`event-pass customer bind: ${bindError.message}`);
+        }
+        return Response.json({ received: true });
+      }
+
+      // A Pro checkout carrying a prorated pass credit (ADR-0025): honor it BEFORE the
+      // generic customer binding. Three idempotent steps, each safe under Stripe's
+      // three-day retry window, ordered so a mid-flight failure can always resume:
+      //   1. grant the credit as Stripe customer balance (the idempotency key pins the
+      //      POST, so a retry never double-grants); balance auto-applies to upcoming
+      //      Pro invoices and Checkout's own first invoice never consumes balance;
+      //   2. consume every live pass ("nothing gets banked" — 0 rows on a replay);
+      //   3. clear the chain fields (tier/cap themselves arrive via the subscription
+      //      events, which also null event_slots).
+      const credit = proCreditSession(event);
+      if (credit) {
+        await getStripe().customers.createBalanceTransaction(
+          credit.customerId,
+          {
+            amount: -credit.creditCents,
+            currency: "usd",
+            description: "Event Pass credit (prorated)",
+          },
+          { idempotencyKey: `pass-credit-${credit.sessionId}` },
         );
-        if (pass) {
-          await applyEntitlement(
-            admin,
-            {
-              tier: "event_pass",
-              storage_cap_bytes: pass.storageCapBytes,
-              tier_expires_at: pass.tierExpiresAt,
-              stripe_customer_id: pass.customerId,
-              stripe_subscription_id: null,
-            },
-            { column: "id", value: pass.userId },
-            createdAt,
-            "accumulating",
-          );
-          return Response.json({ received: true });
+        await consumeLivePassesForProCredit(credit.userId);
+        const { error: clearError } = await admin
+          .from("profiles")
+          .update({ tier_expires_at: null, event_slots: null })
+          .eq("id", credit.userId);
+        if (clearError) {
+          throw new Error(`pass credit clear: ${clearError.message}`);
         }
       }
 
@@ -209,19 +246,40 @@ export async function POST(request: Request) {
     }
 
     // Subscription lifecycle → derive tier + storage cap and write it (idempotent).
+    // event_slots is nulled on EVERY subscription write: Pro is unlimited events, and a
+    // stale stacked-pass slot count would cap a Pro host in enforce_event_limit's
+    // coalesce. tier_expires_at is nulled for the same doctrine (ADR-0025: nothing
+    // banked behind Pro; a credited pass already cleared it, this is the belt).
     const patch = resolveSubscriptionUpdate(event, planForPriceId);
     if (patch) {
-      await applyEntitlement(
+      const result = await applyEntitlement(
         admin,
         {
           tier: patch.tier,
           storage_cap_bytes: patch.storageCapBytes,
           stripe_subscription_id: patch.subscriptionId,
+          event_slots: null,
+          tier_expires_at: null,
         },
         { column: "stripe_customer_id", value: patch.customerId },
         createdAt,
         "absolute",
       );
+
+      // A downgrade to Free re-derives from the ledger: if the host somehow still owns
+      // live UNCREDITED passes (they never started Pro through the credited checkout),
+      // those windows resurface as event_pass entitlement instead of evaporating.
+      if (result === "applied" && patch.tier === "free") {
+        const { data: owner, error: ownerError } = await admin
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", patch.customerId)
+          .maybeSingle();
+        if (ownerError) {
+          throw new Error(`downgrade owner lookup: ${ownerError.message}`);
+        }
+        if (owner) await recomputePassEntitlement(owner.id);
+      }
     }
   } catch (error) {
     // 5xx so STRIPE RETRIES. Every throw above lands on a host who is not getting what they paid

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -106,6 +106,53 @@ export type Database = {
           {
             foreignKeyName: "contact_submissions_handled_by_fkey"
             columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_passes: {
+        Row: {
+          consumed_at: string | null
+          consumed_reason: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          price_cents: number
+          profile_id: string
+          source: string
+          start_at: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          consumed_at?: string | null
+          consumed_reason?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          price_cents: number
+          profile_id: string
+          source: string
+          start_at: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          consumed_at?: string | null
+          consumed_reason?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          price_cents?: number
+          profile_id?: string
+          source?: string
+          start_at?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_passes_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -744,6 +791,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          event_slots: number | null
           id: string
           is_admin: boolean
           last_active_at: string
@@ -766,6 +814,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          event_slots?: number | null
           id: string
           is_admin?: boolean
           last_active_at?: string
@@ -788,6 +837,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          event_slots?: number | null
           id?: string
           is_admin?: boolean
           last_active_at?: string

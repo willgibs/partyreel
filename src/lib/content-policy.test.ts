@@ -49,6 +49,11 @@ const CLAIM_FILES = [
   "src/lib/constants/careers.ts",
   "src/lib/constants/marketing-voice.ts",
   "src/components/marketing/faq-data.ts",
+  // The AI-crawler surfaces (2026-08-28): the llms.txt builders and the shared
+  // press boilerplate carry marketing claims straight to model training and
+  // retrieval, so the fence covers them like any other claim source.
+  "src/lib/content/llms.ts",
+  "src/lib/constants/press.ts",
 ].map((f) => join(ROOT, f));
 
 function scanLines(
@@ -98,7 +103,10 @@ describe("content policy", () => {
       // The word itself: content should never discuss the ingress backstop at all.
       { why: "ingress backstop", re: /\bingress\b/i },
       // The literal byte numbers (word-bounded so 100 GB / 500 GB / 2 TB stay legal).
-      { why: "ingress cap number", re: /\b(?:20|225|300) ?GB\b|\b(?:1\.5|6) ?TB\b/i },
+      {
+        why: "ingress cap number",
+        re: /\b(?:20|225|300) ?GB\b|\b(?:1\.5|6) ?TB\b/i,
+      },
     ];
     const found = scanLines([...mdxFiles, ...CLAIM_FILES], (line) => {
       for (const { why, re } of BANNED) if (re.test(line)) return why;

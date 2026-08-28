@@ -18,18 +18,31 @@ mode; the live cutover is a launch task).
 - **Monthly ingress meter** (bytes uploaded per month; never refunds on delete;
   unmarketed) is the anti-abuse guard — storage caps alone don't stop delete→re-upload
   egress burn.
-- **No watermarks.** Universal per-file limits (all tiers) stay in `lib/media/limits.ts`:
-  video ≤ 5 min and ≤ 2 GB, photo ≤ 50 MB.
+- **No watermarks on photos or the album, any tier** (only the free reel carries a small mark).
+  The universal per-file limit (all tiers) stays in `lib/media/limits.ts`: **10 GB per file,
+  photos and videos alike — size is the ONLY per-file gate, there is no duration cap** (the old
+  5-min/2-GB/50-MB trio was retired there long ago; this doc had drifted).
 
 ## Tiers (locked 2026-05-29)
 
 | Plan           | Price                     | Storage | ≈ holds                       | Events       |
 | -------------- | ------------------------- | ------- | ----------------------------- | ------------ |
 | **Free**       | $0                        | 2 GB    | ~500 photos (no video)        | 1            |
-| **Pro 100 GB** | $9/mo                     | 100 GB  | ~25k photos / ~10 hrs video   | unlimited    |
-| **Pro 500 GB** | $19/mo                    | 500 GB  | ~125k photos / ~50 hrs video  | unlimited    |
-| **Pro 2 TB**   | $39/mo                    | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
-| **Event Pass** | $24 one-time, ~$15/yr ren | 75 GB   | ~37k photos / ~15 hrs video   | 1 event/~1yr |
+| **Pro 100 GB** | $9/mo or $90/yr           | 100 GB  | ~25k photos / ~10 hrs video   | unlimited    |
+| **Pro 500 GB** | $19/mo or $190/yr         | 500 GB  | ~125k photos / ~50 hrs video  | unlimited    |
+| **Pro 2 TB**   | $39/mo or $390/yr         | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
+| **Event Pass** | $24 one-time, $15/yr ren  | 75 GB   | ~19k photos / ~8.5 hrs video  | 1 per pass/~1yr |
+
+- **Annual Pro (ruled 2026-08-27, built same day): exactly ×10 the monthly, marketed as "two months
+  free"** (a Vitest pin holds each yearly label at 10× its sibling). Why 2-months-free and not
+  deeper: the 2 TB tier's worst-case full-use cost (~$372/yr) sits AT a 20% discount, so 16.7% is
+  the deepest uniform discount the catalog carries without the top tier going underwater; and under
+  the only-move-in-the-customer's-favor rule, starting conservative leaves deepening as a free
+  future win. Yearly Stripe prices live on the SAME products as monthly (portal
+  monthly↔yearly switching rides same-product active prices, `proration_behavior:
+  always_invoice`); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. Note: a pass holder's prorated
+  credit (ADR-0025) lands as customer balance, which applies to the NEXT invoice — on yearly
+  that's a year out (never lost; special-case only if it ever feels wrong in practice).
 
 - **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
   Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "require accounts to upload" became FREE + default-on
@@ -42,8 +55,16 @@ mode; the live cutover is a launch task).
 - **Saving events is FREE** (Phase 3, ADR-0009): any signed-in visitor can save an event to
   their dashboard. Deliberately ungated — it's the account-creation growth driver (a saved event
   is the reason a guest makes a free account), not a paid perk.
-- **Event Pass** is per-event, fixed ~1-yr term, with a cheap renewal near the end; at
-  expiry without renewal it enters the over-capacity retention flow (PRD).
+- **Event Pass economics v2 (ADR-0025, ruled + BUILT 2026-08-27):** passes **STACK** (each purchase
+  is a ledger row granting +1 event slot and +75 GB for its own ~1-yr window; `event_passes` +
+  `profiles.event_slots`), and moving to Pro converts every live pass as **PRORATED CREDIT**
+  (unused fraction of what was actually paid becomes Stripe customer balance that pays down
+  upcoming Pro invoices; nothing banked, nothing lost — supersedes the ADR-0023 banked-term
+  fallback). Renewal ($15, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) chains a new window onto the
+  soonest-expiring active pass: extends, never resets, and an unopened renewal year credits at
+  100%. At expiry without renewal the account recomputes down (eventually Free + the over-capacity
+  retention flow). The renewal price is SURFACED on /pricing (the pass card + table + FAQ) via
+  `EVENT_PASS_RENEWAL_PRICE_LABEL` in `tiers.ts`.
 - ≈ figures assume ~4 MB/photo and ~150 MB/min 1080p video — illustrative; the in-app
   "≈ X photos / Y video" is derived from the GB.
 
