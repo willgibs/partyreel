@@ -229,7 +229,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the R2 `partyreel` bucket CORS + the Supabase auth redirect allow-list, remove the 3 branch-scoped
   Vercel env vars (`NEXT_PUBLIC_SITE_URL`/`STRIPE_WEBHOOK_SECRET`/`DESIGN_PREVIEW_KEY` @launch-prep),
   delete the `launch-prep` branch +
-  `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
+  `lp/*` remnants, decide the post-program fate of the `lp/*` build gate (`vercel.json`
+  `ignoreCommand` → [`scripts/vercel-ignore-build.mjs`](../scripts/vercel-ignore-build.mjs), part of
+  the "revisit the git workflow" item above), and revert CLAUDE.md's git section to the post-program rule.
 - Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
   (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`
   (the `remotion-lambda-role`/`remotion-user` IAM + the deployed Remotion site/function) has no remaining use.

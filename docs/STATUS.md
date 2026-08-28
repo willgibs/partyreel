@@ -17,7 +17,8 @@ unspent (they accrete in [`ROADMAP.md`](ROADMAP.md) → Launch checkpoint and ne
 The **elevation program** ([`PROGRAM.md`](PROGRAM.md)) is the only active thread: work rides the
 `launch-prep` integration branch, verified between milestones on the preview alias
 `https://partyreel-git-launch-prep-partyreel.vercel.app` (allow-listed in Supabase/R2/Stripe-TEST like
-prod); partyreel.com changes only at tagged milestone merges. Every session is an **Agent** unless Will
+prod); agent `lp/<track>` branches auto-deploy their own review previews (NOT allow-listed, UI-review
+only); partyreel.com changes only at tagged milestone merges. Every session is an **Agent** unless Will
 designates it **the Orchestrator** — see CLAUDE.md "Sessions & roles" + PROGRAM.md before touching
 anything shared.
 
