@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type CSSProperties } from "react";
 
@@ -8,6 +9,7 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { MARKETING_IMAGES, marketingImage } from "@/lib/constants/marketing-media";
 import { friendlyCapacity, GIGABYTE } from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
@@ -22,13 +24,29 @@ import { recommendPlan } from "./recommend";
  * The slider walks a CURATED LADDER of stops instead of a raw byte range:
  * meaningful detents (the 2 GB Free cap, the 75 GB pass, the three Pro sizes),
  * clean keyboard steps, honest numbers. Interaction is HIGH-frequency, so the
- * result swaps instantly (no theater); the capacity meter's fill is the one
- * standard transition. The album-fill delight direction goes through the lab
- * before it lands here.
+ * result swaps instantly (no theater).
+ *
+ * THE ALBUM-FILL WALL = the ratified V1 direction (Will's sitting ruling,
+ * 2026-08-27: "definitely the V1 direction"): the slider fills a tiny album
+ * wall with real event tiles — the "Watch your album fill up" golden line made
+ * mechanical. Video ON swaps periodic tiles to clip tiles with a timecode chip
+ * (the ONE place mono belongs: a timecode, the documented utility exception).
+ * The wall rides the real gallery grammar (3px tiles, 3px gaps), fills
+ * linearly along the ladder so growth FEELS steady, and each newly filled tile
+ * pops in over 150ms (reduced motion: tiles simply appear). aria-hidden: the
+ * receipt line + aria-live verdict stay the accessible summary.
  */
 
 /** The curated stop ladder (exported for the lab's calculator prototypes). */
 export const STOP_GB = [1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048];
+
+const WALL_COLS = 12;
+const WALL_ROWS = 4;
+const WALL_CELLS = WALL_COLS * WALL_ROWS;
+const WALL_IDS = MARKETING_IMAGES.filter(
+  (m) => !m.id.startsWith("hero-candidate"),
+).map((m) => m.id);
+const CLIP_TIMES = ["0:08", "0:12", "0:24", "0:31"];
 
 export function Calculator() {
   const [stop, setStop] = useState(5); // 50 GB — a real wedding's neighborhood
@@ -42,7 +60,9 @@ export function Calculator() {
   );
   const need = friendlyCapacity(bytes);
   const planCap = rec.plan.storageBytes;
-  const fillPct = Math.min(100, Math.round((bytes / planCap) * 100));
+  // Linear along the LADDER, not the bytes: the wall's growth feels steady
+  // under the thumb even though the stops are roughly logarithmic.
+  const filled = Math.round(((stop + 1) / STOP_GB.length) * WALL_CELLS);
 
   return (
     <SectionShell
@@ -59,7 +79,7 @@ export function Calculator() {
         >
           {/* The slider + its live annotation. */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="font-mono text-3xl font-medium tracking-tight tabular-nums">
+            <span className="font-heading text-3xl tabular-nums">
               {formatBytes(bytes)}
             </span>
             <span className="text-right text-sm text-muted-foreground">
@@ -135,10 +155,53 @@ export function Calculator() {
             </div>
           </div>
 
+          {/* THE ALBUM WALL (ratified V1): filled tiles are real event media,
+              clip tiles carry a mono timecode. Gallery grammar: 3px radius,
+              3px gaps. Watch your album fill up. */}
+          <div
+            aria-hidden
+            className="mt-6 grid gap-[3px] rounded-xl border bg-background/40 p-3"
+            style={{
+              gridTemplateColumns: `repeat(${WALL_COLS}, minmax(0, 1fr))`,
+            }}
+          >
+            {Array.from({ length: WALL_CELLS }, (_, i) => {
+              const isFilled = i < filled;
+              const isClip = video && isFilled && i % 7 === 3;
+              const m = marketingImage(WALL_IDS[i % WALL_IDS.length]);
+              return (
+                <div
+                  key={i}
+                  className="relative aspect-square overflow-hidden rounded-[3px] bg-muted"
+                >
+                  {isFilled && !isClip && (
+                    <Image
+                      src={m.src}
+                      alt=""
+                      width={48}
+                      height={48}
+                      className="size-full object-cover animate-in duration-150 zoom-in-75 motion-reduce:animate-none"
+                    />
+                  )}
+                  {isClip && (
+                    <div className="flex size-full items-center justify-center bg-foreground animate-in duration-150 zoom-in-75 motion-reduce:animate-none">
+                      <span className="font-mono text-[7px] text-background">
+                        {CLIP_TIMES[i % CLIP_TIMES.length]}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground/60">
+            {formatBytes(bytes)} of the plan&apos;s {formatBytes(planCap)}
+          </p>
+
           {/* The verdict. aria-live so keyboard sliding announces the change. */}
           <div
             aria-live="polite"
-            className="mt-7 rounded-xl border bg-background/40 p-5"
+            className="mt-5 rounded-xl border bg-background/40 p-5"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="font-heading text-lg">
@@ -148,27 +211,13 @@ export function Calculator() {
                     ? "The Event Pass fits"
                     : `${rec.plan.name} fits`}
               </p>
-              <span className="font-mono text-lg font-medium tracking-tight tabular-nums">
+              <span className="text-lg font-semibold tabular-nums">
                 {rec.plan.priceLabel}
               </span>
             </div>
             <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
               {rec.reason}
             </p>
-
-            {/* The capacity meter: your need inside the plan's room. */}
-            <div className="mt-4">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
-                <div
-                  className="h-full rounded-full bg-foreground transition-[width] duration-300 ease-emphasis motion-reduce:transition-none"
-                  style={{ width: `${fillPct}%` }}
-                />
-              </div>
-              <p className="mt-1.5 text-xs text-muted-foreground/60">
-                {formatBytes(bytes)} of the plan&apos;s{" "}
-                {formatBytes(planCap)}
-              </p>
-            </div>
 
             {rec.alternative && (
               <p className="mt-3 text-xs text-pretty text-muted-foreground/70">

@@ -394,6 +394,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "The pair's visual identity layer: a media burst, a stacked-photo depth read, or quiet concentric ink",
     variants: ["Media burst", "Stacked photos", "Quiet ink"],
+    decision: 2,
+    decisionNote:
+      "V2 Stacked photos (Will, 2026-08-27): 'v1 is really cool but within the card v2 has a nice balance.' Wired into /pricing the same day (Free stacks two grayscale, Pro four vivid on ink; hover spreads; the back-pocket soft-shadow exception carries the depth). His sitting also flagged the mono face on the cards ('don't know where this mono font is coming from') -> the pricing-wide price-register swap: money in the display face (Urbanist, tabular digits), values in Inter; Geist Mono survives only as the wall's timecode chips.",
   },
   {
     // The pricing round (2026-08-27): does the find-your-size slider earn its
@@ -406,6 +409,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "The find-your-size slider's expression: the album-fill wall against the shipped receipt meter",
     variants: ["Album fill", "Receipt meter"],
+    decision: 1,
+    decisionNote:
+      "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

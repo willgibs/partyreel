@@ -48,7 +48,9 @@ export function PassCard() {
           <p className="text-sm text-pretty text-muted-foreground">
             One big event, paid once.
           </p>
-          <div className="mt-3 font-mono text-4xl font-medium tracking-tight tabular-nums">
+          {/* The display face for money (the sitting's mono flag): Urbanist,
+              tabular digits; qualifiers drop small via PricePop. */}
+          <div className="mt-3 font-heading text-4xl tabular-nums">
             <PricePop label={pass.priceLabel} />
           </div>
           <p className="text-xs text-muted-foreground/70">

@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Minus } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
@@ -8,6 +9,7 @@ import { CheckoutButton } from "@/components/app/checkout-button";
 import { PricePop } from "@/components/marketing/sections/home/price-pop";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Button } from "@/components/ui/button";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import {
   friendlyCapacity,
   GATED_EVENT_SETTINGS,
@@ -28,9 +30,72 @@ import { formatBytes } from "@/lib/utils";
  * no new tokens at all. Light/dark is tier identity here; the page's chapter
  * alternation stays brand rhythm (note 4).
  *
+ * VISUAL IDENTITY = V2 "Stacked photos" (Will's sitting ruling, 2026-08-27:
+ * "within the card v2 has a nice balance"): a small physical stack of real
+ * event photos above each card head, using the back-pocket soft-shadow
+ * exception (shadows may return where photos physically stack for depth).
+ * Free stacks two, grayscale (your photos, before the color arrives); Pro
+ * stacks four, vivid, on the ink. Hovering the card spreads the stack.
+ *
+ * PRICE REGISTER: money renders in the DISPLAY face (Urbanist via font-heading)
+ * with tabular numerals, values in Inter — the mono face came from the old
+ * page's register and read devtool on these cards (Will's sitting flag). Geist
+ * Mono keeps only its documented timecode duty elsewhere.
+ *
  * Every number renders from tiers.ts. The A16 rule holds on both surfaces:
  * green check = you get this; muted minus = a cap, not an inclusion.
  */
+
+const STACK_IDS = {
+  free: ["wedding-golden", "reception-table"],
+  pro: ["wedding-golden", "party-balloons", "concert-confetti", "wedding-toast"],
+} as const;
+
+/** The ratified V2 stack. aria-hidden: pure identity, the copy carries meaning. */
+function PhotoStack({ ink }: { ink?: boolean }) {
+  const ids = ink ? STACK_IDS.pro : STACK_IDS.free;
+  const n = ids.length;
+  return (
+    <div aria-hidden className="relative h-24">
+      <div className="absolute inset-x-0 top-1 flex justify-center">
+        {ids.map((id, i) => {
+          const m = marketingImage(id);
+          const off = i - (n - 1) / 2;
+          return (
+            <div
+              key={id}
+              className="absolute"
+              style={{
+                transform: `rotate(${off * (ink ? 9 : 7)}deg) translateX(${off * 16}px)`,
+              }}
+            >
+              <Image
+                src={m.src}
+                alt=""
+                width={88}
+                height={88}
+                className={cn(
+                  "size-20 rounded-md border-4 object-cover shadow-lg",
+                  "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
+                  "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
+                  ink
+                    ? "border-background/90"
+                    : "border-background opacity-85 grayscale",
+                )}
+                style={
+                  {
+                    "--sx": `${off * 30}px`,
+                    "--sr": `${off * 3}deg`,
+                  } as CSSProperties
+                }
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function Item({
   children,
@@ -89,9 +154,7 @@ function StatRow({
           >
             {s.label}
           </dt>
-          <dd className="mt-0.5 font-mono text-sm font-medium tabular-nums">
-            {s.value}
-          </dd>
+          <dd className="mt-0.5 text-sm font-medium tabular-nums">{s.value}</dd>
         </div>
       ))}
     </dl>
@@ -112,14 +175,15 @@ export function PlanPair() {
       <div
         data-mkt-reveal
         style={{ "--i": 0 } as CSSProperties}
-        className="flex flex-col rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 sm:p-7"
+        className="group flex flex-col rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 sm:p-7"
       >
+        <PhotoStack />
         <div className="flex flex-col gap-2">
           <h2 className="font-heading text-xl">{free.name}</h2>
           <p className="text-sm text-pretty text-muted-foreground">
             Your first event, covered.
           </p>
-          <div className="mt-3 font-mono text-4xl font-medium tracking-tight tabular-nums">
+          <div className="mt-3 font-heading text-4xl tabular-nums">
             <PricePop label={free.priceLabel} />
           </div>
         </div>
@@ -157,17 +221,18 @@ export function PlanPair() {
       <div
         data-mkt-reveal
         style={{ "--i": 1 } as CSSProperties}
-        className="relative flex flex-col rounded-2xl bg-foreground p-6 text-background sm:p-7"
+        className="group relative flex flex-col rounded-2xl bg-foreground p-6 text-background sm:p-7"
       >
         <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-card px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-foreground uppercase">
           Most popular
         </span>
+        <PhotoStack ink />
         <div className="flex flex-col gap-2">
           <h2 className="font-heading text-xl">Pro</h2>
           <p className="text-sm text-pretty text-background/75">
             For hosts who host again.
           </p>
-          <div className="mt-3 font-mono text-4xl font-medium tracking-tight tabular-nums">
+          <div className="mt-3 font-heading text-4xl tabular-nums">
             {/* Keyed remount so a size change swaps the price instantly
                 (high-frequency interaction: no re-pop theater). */}
             <PricePop key={pro.id} label={pro.priceLabel} />
@@ -216,7 +281,7 @@ export function PlanPair() {
                 aria-pressed={proId === p.id}
                 onClick={() => setProId(p.id)}
                 className={cn(
-                  "relative z-10 rounded-md px-2 py-1.5 text-center font-mono text-sm font-medium tabular-nums transition-colors outline-none",
+                  "relative z-10 rounded-md px-2 py-1.5 text-center text-sm font-medium tabular-nums transition-colors outline-none",
                   "focus-visible:ring-2 focus-visible:ring-background/60",
                   "active:scale-[0.98] motion-reduce:active:scale-100",
                   proId === p.id

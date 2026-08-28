@@ -308,7 +308,7 @@ export function ComparisonTable() {
                   >
                     <div className="flex flex-col items-start gap-2">
                       <span className="font-heading text-base">{name}</span>
-                      <span className="font-mono text-xs font-medium tabular-nums text-muted-foreground">
+                      <span className="text-xs font-medium tabular-nums text-muted-foreground">
                         {headerPrices[i]}
                       </span>
                       {headerCtas[i]}
