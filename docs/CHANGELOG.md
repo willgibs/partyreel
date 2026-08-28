@@ -10,10 +10,24 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-8: the exec round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-8`, `4063f6e`), prod READY + verified at
+the merge SHA: both analytics scripts live on partyreel.com with `view`/`event` beacons POSTing 200,
+the first prod pageviews confirmed through the re-authorized P3 Vercel MCP same-hour (1 visitor /
+4 pageviews — the verification session), the `pr-no-track` opt-out set in the test profile on the
+prod origin, console clean. Speed Insights `vitals` 503s on prod as well, so that gate is the Hobby
+plan itself, not the environment (silent to the page; it activates at the Pro cutover). Post-milestone
+hygiene: the merged `lp/footer-ink` + `lp/nav-interaction` remotes deleted, and the dashboard-side
+ignored-build-step command PATCHed to null (verified) so `scripts/vercel-ignore-build.mjs` is the
+single source of the branch gate. Will's approval: "All approved and ready for you to close"; his
+PostHog pricing research (1M/mo free, then $50/M vs Vercel ~$30/M, PostHog cheaper past ~15M/mo) is
+folded into the ROADMAP vendor item for the pre-launch cost-vs-features call. Round content: the
+entry below.
+
 ## 2026-08-28 — The exec round: agent-branch previews + marketing analytics
 
-On `launch-prep` (`9ae0bf2` + `6d0ebe0`), verified on the preview; the milestone-8 merge takes it to
-prod. **(1) The Vercel branch gate moved into the repo**: `vercel.json` `ignoreCommand` →
+On `launch-prep` (`9ae0bf2` + `6d0ebe0`), verified on the preview; merged at milestone-8 (above). **(1) The Vercel branch gate moved into the repo**: `vercel.json` `ignoreCommand` →
 `scripts/vercel-ignore-build.mjs` (build `main` / `launch-prep` / `lp/*`; a ref-less manual deploy
 always builds; everything else skips). Every Agent push now auto-deploys a review preview at
 `partyreel-git-lp-<track>-partyreel.vercel.app`, closing the nav-round gap where Will could not see a
