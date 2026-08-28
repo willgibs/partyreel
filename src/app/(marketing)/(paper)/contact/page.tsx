@@ -1,13 +1,32 @@
-import { Clock, Mail } from "lucide-react";
+import { Briefcase, LifeBuoy, Newspaper, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
+import {
+  HelpPaletteProvider,
+  HelpSearchTrigger,
+} from "@/components/marketing/help/help-palette";
+import {
+  BreadcrumbJsonLd,
+  ContactPageJsonLd,
+} from "@/components/marketing/jsonld";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
+import { CtaBand } from "@/components/marketing/system/cta-band";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { getAllArticles } from "@/lib/content/help";
-import { SUPPORT_EMAIL } from "@/lib/constants/site";
+import { Container } from "@/components/shared/container";
+import { type ContactTopicValue } from "@/lib/constants/contact";
+import {
+  getAllArticles,
+  getSearchIndex,
+  HELP_QUICK_LINKS,
+  type HelpCategorySlug,
+} from "@/lib/content/help";
 
-import { ContactForm } from "./contact-form";
+import { ContactEmailCard, ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -16,84 +35,185 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
+// The help->contact handoff (R6, extended by the contact round): a help
+// article's "didn't answer it" path links /contact?about=<slug>. The page STAYS
+// static (no searchParams read — any dynamic API would flip the whole route to
+// per-request rendering); the slug map is baked at build and the client island
+// reads window.location on mount, prefilling the subject AND pre-picking the
+// topic chip ONLY for a known slug (so a crafted query can never inject free
+// text into the field). The category->topic map is exhaustive over
+// HelpCategorySlug on purpose: a new help category fails typecheck here until
+// it gets a conscious topic mapping.
+const CATEGORY_TOPIC: Record<HelpCategorySlug, ContactTopicValue> = {
+  "getting-started": "hosting",
+  "qr-and-invites": "hosting",
+  "guest-experience": "guest",
+  "event-album": "hosting",
+  "sharing-and-downloads": "hosting",
+  "highlight-reel": "hosting",
+  "plans-and-billing": "billing",
+  "privacy-and-safety": "privacy",
+  troubleshooting: "bug",
+};
+
+// The self-serve directory tiles (the "connected resource" onward paths). The
+// help tile is the front door to the same library the search band queries; the
+// press and careers tiles keep those routes one hop from the contact surface.
+const DIRECTORY: {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  href: string;
+  linkLabel: string;
+}[] = [
+  {
+    icon: LifeBuoy,
+    title: "Help center",
+    body: "Guides for every step, from the first QR to the final download.",
+    href: "/help",
+    linkLabel: "Browse the guides",
+  },
+  {
+    icon: Newspaper,
+    title: "Press & brand",
+    body: "The boilerplate, the fact sheet, and brand marks, ready to take.",
+    href: "/press",
+    linkLabel: "Open the press kit",
+  },
+  {
+    icon: Briefcase,
+    title: "Careers",
+    body: "How the team works, and the roles open right now.",
+    href: "/careers",
+    linkLabel: "See open roles",
+  },
+];
+
 export default function ContactPage() {
-  // The help→contact handoff (R6): a help article's "didn't answer it" path
-  // links /contact?about=<slug>. The page STAYS static (no searchParams read —
-  // any dynamic API would flip the whole route to per-request rendering); the
-  // slug→title map is baked at build and the client island reads
-  // window.location on mount, prefilling the subject ONLY for a known slug (so
-  // a crafted query can never inject free text into the field).
   const helpSubjects = Object.fromEntries(
     getAllArticles().map((article) => [
       article.slug,
-      article.frontmatter.title,
+      {
+        title: article.frontmatter.title,
+        topic: CATEGORY_TOPIC[article.frontmatter.category],
+      },
     ]),
   );
-  return (
-    // as="h1": the page's lead (and only) section heading — /contact previously
-    // shipped with NO h1 (the audit gap this SectionShell prop exists to fix).
-    <SectionShell
-      as="h1"
-      eyebrow="Contact"
-      heading="Get in touch"
-      subhead="Questions about your event, billing, or anything else? Send us a note and we'll get back to you."
-    >
-      <div className="mx-auto mt-12 grid max-w-4xl gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-10">
-        <div className="flex flex-col gap-6">
-          {/* Ways to reach us: achromatic hairline icon chips (the privacy-claims
-              language) + the mono caption voice for the address itself. */}
-          <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 sm:p-7">
-            <div className="flex items-start gap-4">
-              <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
-                <Mail aria-hidden className="size-5" strokeWidth={1.5} />
-              </span>
-              <div className="flex flex-col gap-1.5">
-                <p className="font-heading text-base font-medium">Email us</p>
-                <a
-                  href={`mailto:${SUPPORT_EMAIL}`}
-                  className="font-mono text-sm tracking-wide text-muted-foreground underline decoration-border underline-offset-4 transition-colors duration-150 hover:text-foreground hover:decoration-foreground"
-                >
-                  {SUPPORT_EMAIL}
-                </a>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
-                <Clock aria-hidden className="size-5" strokeWidth={1.5} />
-              </span>
-              <div className="flex flex-col gap-1.5">
-                <p className="font-heading text-base font-medium">
-                  Response time
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Every note gets a reply, usually within a day.
-                </p>
-              </div>
-            </div>
-          </div>
 
-          {/* Deflection: most questions are answered faster in the help center
-              (which links back to /contact), so close the loop. mkt-learn on
-              the whole card animates the chevron from anywhere on it. */}
-          <Link
-            href="/help"
-            className="mkt-learn group flex flex-col gap-2 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99] sm:p-7"
-          >
-            <h3 className="font-heading text-lg font-medium">
-              Looking for a quick answer?
-            </h3>
-            <p className="text-sm text-pretty text-muted-foreground">
-              Our help center covers setup, guests, billing, and the highlight
-              reel.
+  return (
+    // The palette provider wraps the whole page so cmd-K works anywhere on
+    // /contact, exactly like the help layout (the index serializes once here).
+    <HelpPaletteProvider index={getSearchIndex()} quickLinks={HELP_QUICK_LINKS}>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Contact", href: "/contact" },
+        ]}
+      />
+      <ContactPageJsonLd />
+
+      {/* Hero: the paper-page header idiom (texts-reveal, calm register). */}
+      <section className="border-b">
+        <Container className="flex flex-col items-center gap-6 py-20 text-center sm:py-28">
+          <TextsReveal className="flex flex-col items-center gap-6">
+            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
+              Contact
+            </Eyebrow>
+            <h1
+              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl"
+              style={{ "--i": 1 } as CSSProperties}
+            >
+              Talk to Partyreel.
+            </h1>
+            <p
+              className="mkt-line max-w-xl text-pretty text-muted-foreground sm:text-lg"
+              style={{ "--i": 2 } as CSSProperties}
+            >
+              An event you&rsquo;re planning, a plan you&rsquo;re weighing,
+              something that broke. Every note gets a reply, usually within a
+              day.
             </p>
-            <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-              Browse the help center
-              <LearnChevron />
-            </span>
-          </Link>
+          </TextsReveal>
+        </Container>
+      </section>
+
+      {/* The form chapter: the page's instrument. Form leads on mobile (the
+          page's purpose); the rail sits beside it from lg. */}
+      <SectionShell reveal="none" className="border-b">
+        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-14">
+          <div className="flex flex-col gap-6 lg:order-1 lg:pt-2">
+            <div className="flex flex-col gap-5">
+              <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
+                Send a note
+              </h2>
+              <p className="text-pretty text-muted-foreground">
+                Pick a topic so it lands in the right place, say what&rsquo;s
+                going on, and that&rsquo;s it.
+              </p>
+            </div>
+            {/* Plain email stays a first-class door; the island renders the
+                address with the copy affordance. */}
+            <ContactEmailCard />
+          </div>
+          <div className="lg:order-2">
+            <ContactForm helpSubjects={helpSubjects} />
+          </div>
         </div>
-        <ContactForm helpSubjects={helpSubjects} />
-      </div>
-    </SectionShell>
+      </SectionShell>
+
+      {/* Self-serve: the help library, searchable right here (the palette is
+          mounted page-wide), on the light band variation. */}
+      <SectionShell
+        eyebrow="Self-serve"
+        heading="Answers, ready now."
+        subhead="Search the help center without leaving this page, or start from a common question."
+        className="border-b bg-muted/30"
+      >
+        <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-5">
+          <HelpSearchTrigger variant="hero" />
+          <div className="flex flex-wrap justify-center gap-2">
+            {HELP_QUICK_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-full border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <Reveal className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-3">
+          {DIRECTORY.map((tile, i) => (
+            <Link
+              key={tile.href}
+              href={tile.href}
+              data-mkt-reveal
+              style={{ "--i": 3 + i } as CSSProperties}
+              className="mkt-learn group flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
+            >
+              <span className="flex size-10 items-center justify-center rounded-xl border text-muted-foreground">
+                <tile.icon aria-hidden className="size-5" strokeWidth={1.5} />
+              </span>
+              <h3 className="font-heading text-lg font-medium">{tile.title}</h3>
+              <p className="text-sm text-pretty text-muted-foreground">
+                {tile.body}
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                {tile.linkLabel}
+                <LearnChevron />
+              </span>
+            </Link>
+          ))}
+        </Reveal>
+      </SectionShell>
+
+      {/* Quiet close: curiosity has somewhere to go. */}
+      <CtaBand
+        heading="See what guests see."
+        subhead="The live demo album is open, and the reel is one tap away. Then make one of your own."
+        demoLink
+      />
+    </HelpPaletteProvider>
   );
 }

@@ -135,6 +135,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the chain; Phase 3 added the interim `loading.tsx` skeletons).
 - **Emails** — a transactional-email automation system + the guest "email me the album" auto-send (reuses
   `sendOnce`). See [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md).
+- **The support-automation arc** — AI-default first responses keyed on `contact_submissions.topic` (the
+  structured intake shipped 2026-08-28; the neutralized copy already permits automation) + auto-routing
+  rules in `/admin/support`; published language must keep committing to outcomes only (the
+  promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
 - **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — question-shaped
   comparison/blog content for assistant retrieval (category pages stay brand-nameless per Will's
   2026-08-28 ruling) · `.md` mirrors of key pages (the llms spec's optional convention) · the

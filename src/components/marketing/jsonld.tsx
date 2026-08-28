@@ -202,6 +202,30 @@ export function PricingJsonLd() {
   );
 }
 
+/**
+ * The /contact page node: names this page as THE support surface and binds the
+ * support email to it. Deliberately minimal — no response-time or channel
+ * promises in structured data (the neutralization ruling covers schema too).
+ */
+export function ContactPageJsonLd() {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        name: `Contact ${SITE_NAME}`,
+        url: `${SITE_URL}/contact`,
+        mainEntity: {
+          "@type": "Organization",
+          name: SITE_NAME,
+          url: SITE_URL,
+          email: SUPPORT_EMAIL,
+        },
+      }}
+    />
+  );
+}
+
 export type BreadcrumbItem = { name: string; href: string };
 
 export function BreadcrumbJsonLd({ items }: { items: BreadcrumbItem[] }) {

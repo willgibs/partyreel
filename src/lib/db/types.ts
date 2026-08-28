@@ -74,6 +74,7 @@ export type Database = {
           source: string | null
           status: string
           subject: string | null
+          topic: string | null
           user_agent: string | null
         }
         Insert: {
@@ -87,6 +88,7 @@ export type Database = {
           source?: string | null
           status?: string
           subject?: string | null
+          topic?: string | null
           user_agent?: string | null
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           source?: string | null
           status?: string
           subject?: string | null
+          topic?: string | null
           user_agent?: string | null
         }
         Relationships: [

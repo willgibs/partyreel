@@ -34,6 +34,7 @@ export type TouchpointId =
   | "marketing-hero-substrate"
   | "pricing-plan-cards"
   | "pricing-calculator"
+  | "contact-topic-router"
   | "reel-reveal"
   | "reel-experience";
 
@@ -412,6 +413,19 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
+  },
+  {
+    // The contact round (2026-08-28): the rebuilt /contact form opens with a
+    // REQUIRED topic picker — the round's creative element. The structured
+    // value routes the note (admin chip + notify-email tag + future support
+    // routing) and swaps a fastest-path hint INSIDE the form. Two treatments
+    // of the same field on the same ink-inversion grammar; the page shipped
+    // with V1 pending the sitting's ruling.
+    id: "contact-topic-router",
+    title: "Contact topic router",
+    surface: "marketing",
+    note: "The topic picker's treatment: tactile icon pills against segmented tiles (same field, same hint swap)",
+    variants: ["Icon pills", "Segmented tiles"],
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

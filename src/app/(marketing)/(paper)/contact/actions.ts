@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 
+import { contactTopicLabel } from "@/lib/constants/contact";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { sendOnce } from "@/lib/email/send";
 import { contactFormEmail } from "@/lib/email/templates";
@@ -42,6 +43,7 @@ export async function submitContactForm(
       email: data.email,
       subject: data.subject?.trim() || null,
       message: data.message,
+      topic: data.topic,
       source: "marketing_contact",
       user_agent: userAgent,
     })
@@ -63,6 +65,7 @@ export async function submitContactForm(
       email: data.email,
       subject: data.subject,
       message: data.message,
+      topic: contactTopicLabel(data.topic) ?? undefined,
     });
     await sendOnce({
       kind: "contact_form",
