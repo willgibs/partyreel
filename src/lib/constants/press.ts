@@ -92,46 +92,6 @@ export const PRESS_FACTS: { label: string; value: string }[] = [
 /** The year for Organization.foundingDate (mirrors the fact sheet). */
 export const FOUNDED_YEAR = "2026";
 
-/**
- * Brand usage rules, ordered by audience: everyone needs the name and the quoting rule,
- * only the designer laying out the piece needs clear space and minimum size.
- *
- * ★ Written about the SYSTEM, never about this glyph. The mark set changes before launch,
- * so clear space is expressed against the mark's OWN box ("a quarter of its height") and
- * the color rule names the three shipped versions rather than the artwork inside them. A
- * new mark inherits every rule below unchanged.
- */
-export const PRESS_USAGE_RULES: { title: string; body: string }[] = [
-  {
-    title: "The name",
-    body: "Write Partyreel. One word, one capital P, nothing else capitalized. Not PartyReel, not Party Reel, not PARTYREEL. It takes no 'the' in front of it.",
-  },
-  {
-    title: "Quoting",
-    body: "Quote the boilerplate whole or in part, and edit it to fit your piece. No permission needed and no link required, though a link is always welcome.",
-  },
-  {
-    title: "Clear space",
-    body: "Keep a margin around the mark equal to a quarter of its height, on all four sides. Nothing crosses into it: no type, no page edge, no other logo.",
-  },
-  {
-    title: "Minimum size",
-    body: "Never smaller than 24px on screen or 8mm in print. Below that it stops reading as a mark and starts reading as a smudge.",
-  },
-  {
-    title: "Ink",
-    body: "The marks are drawn in #101010 on white. That hex is the color of the artwork, not a sample of the site, so match the file rather than a screenshot.",
-  },
-  {
-    title: "Type",
-    body: "Urbanist for headlines, Inter for everything else. The name itself is set in Inter Semibold at slightly tight tracking, so you can set it yourself from those two faces. There is no wordmark file in the kit.",
-  },
-  {
-    title: "Please do not",
-    body: "Recolor it, stretch it, rotate it, outline it, add a shadow, set it on a busy photo, or tuck it inside another shape. If a file needs editing to work in your layout, write instead and we will make the one you need.",
-  },
-];
-
 /** One downloadable file in the kit. `bytes` is pinned so client components can print a
  *  size without an fs.stat; press-kit.test.ts asserts it against the file on disk. */
 export type PressKitAsset = {

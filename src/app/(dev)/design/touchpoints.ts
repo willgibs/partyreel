@@ -446,6 +446,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     surface: "marketing",
     note: "Two directions for the press kit, same content and IA throughout: the assets as a photographic contact sheet on ink, or as a type-foundry specimen sheet on paper",
     variants: ["The contact sheet", "The specimen sheet"],
+    decision: 1,
+    decisionNote:
+      'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. Two mechanics were promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe, and CinemaChapter adopted verbatim from the concurrent lp/about track rather than forking a second ink-inside-paper component.',
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

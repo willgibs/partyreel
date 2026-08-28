@@ -150,6 +150,48 @@
   animation-play-state: paused;
 }
 
+/* THE ISOLATE (promoted from the press-identity lab round, 2026-08-28).
+
+   A grid where pointing at one item steps the OTHERS back, instead of growing the
+   one under the cursor. The gesture a picture editor makes at a light table: you
+   isolate a frame, you do not enlarge it. Generic on purpose — any media grid can
+   opt in — so it lives in the shared grammar rather than in a page.
+
+   Usage: [data-mkt-isolate] on the container, [data-mkt-isolate-item] on each child.
+
+   ★ THE ITEM MUST NOT ALSO CARRY AN ENTRANCE ANIMATION. A filling animation
+   (animation-fill-mode: both, which is what [data-mkt-cut] uses) keeps applying its
+   final keyframe forever and the animation origin outranks every author declaration,
+   so the dim below is silently inert on an element that also carries the cut. Put the
+   entrance on an inner layer. This cost a live debugging session: the selector
+   matched, the rule was in the stylesheet, and nothing moved.
+
+   ★ The keyboard twin is :focus-within, deliberately, NOT :has(:focus-visible):
+   Chromium invalidates a :has() ancestor on :hover changes but not reliably on
+   focus-visible ones, so the :has() form matches in element.matches() and never
+   repaints. The usual :focus-within objection (a click pins the state on) is the
+   WANTED behaviour here: a picked frame stays picked.
+
+   @media (hover: hover) so a touch tap can never strand the grid dimmed, and the dim
+   lives only inside that block, so the resting state is full opacity for
+   reduced-motion and no-hover devices alike. */
+[data-mkt-isolate-item] {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  [data-mkt-isolate] [data-mkt-isolate-item] {
+    transition: opacity var(--mkt-isolate-out, 220ms) var(--ease-emphasis);
+  }
+  [data-mkt-isolate]:has([data-mkt-isolate-item]:hover)
+    [data-mkt-isolate-item]:not(:hover),
+  [data-mkt-isolate]:focus-within [data-mkt-isolate-item]:not(:focus-within) {
+    opacity: var(--mkt-isolate-dim, 0.5);
+    /* Faster in than out: a skimmed row, the design system's stated hover exception. */
+    transition-duration: var(--mkt-isolate-in, 140ms);
+  }
+}
+
 @keyframes mkt-wall-drift {
   from {
     transform: translateY(0);

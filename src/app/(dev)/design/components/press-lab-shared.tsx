@@ -10,7 +10,6 @@ import {
   PRESS_KIT,
   PRESS_KIT_BYTES,
   PRESS_KIT_ZIP,
-  PRESS_USAGE_RULES,
   formatKitBytes,
   type PressKitAsset,
 } from "@/lib/constants/press";
@@ -66,12 +65,51 @@ export function pressMarks(): PressMark[] {
 }
 
 export const PRESS_INK = BRAND_HEX;
+
+/**
+ * The brand-usage rules, LAB-LOCAL as of Will's ruling (2026-08-28): "focusing press
+ * around the assets and quick hit points... can even drop the logo usage guidelines."
+ * They lived in constants/press.ts while both directions were candidates; the shipped
+ * page does not render them, so keeping the export in production would have left a dead
+ * constant in a fence-scanned file. They stay HERE so the design record still shows what
+ * V2's register actually held. Do not re-promote without a new ruling.
+ */
+export const PRESS_USAGE_RULES: { title: string; body: string }[] = [
+  {
+    title: "The name",
+    body: "Write Partyreel. One word, one capital P, nothing else capitalized. Not PartyReel, not Party Reel, not PARTYREEL. It takes no 'the' in front of it.",
+  },
+  {
+    title: "Quoting",
+    body: "Quote the boilerplate whole or in part, and edit it to fit your piece. No permission needed and no link required, though a link is always welcome.",
+  },
+  {
+    title: "Clear space",
+    body: "Keep a margin around the mark equal to a quarter of its height, on all four sides. Nothing crosses into it: no type, no page edge, no other logo.",
+  },
+  {
+    title: "Minimum size",
+    body: "Never smaller than 24px on screen or 8mm in print. Below that it stops reading as a mark and starts reading as a smudge.",
+  },
+  {
+    title: "Ink",
+    body: "The marks are drawn in #101010 on white. That hex is the color of the artwork, not a sample of the site, so match the file rather than a screenshot.",
+  },
+  {
+    title: "Type",
+    body: "Urbanist for headlines, Inter for everything else. The name itself is set in Inter Semibold at slightly tight tracking, so you can set it yourself from those two faces. There is no wordmark file in the kit.",
+  },
+  {
+    title: "Please do not",
+    body: "Recolor it, stretch it, rotate it, outline it, add a shadow, set it on a busy photo, or tuck it inside another shape. If a file needs editing to work in your layout, write instead and we will make the one you need.",
+  },
+];
+
 export {
   PRESS_BOILERPLATE,
   PRESS_BOILERPLATE_SHORT,
   PRESS_FACTS,
   PRESS_KIT_ZIP,
-  PRESS_USAGE_RULES,
   formatKitBytes,
 };
 
