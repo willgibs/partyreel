@@ -5,6 +5,7 @@ import {
   SoftwareApplicationJsonLd,
   WebsiteJsonLd,
 } from "@/components/marketing/jsonld";
+import { WebAnalytics } from "@/components/marketing/system/web-analytics";
 
 // The (marketing) group root, slimmed to the cross-skin concerns: the JSON-LD
 // emitters + the marketing.css import (motion grammar + skin blocks; loaded once
@@ -23,6 +24,10 @@ export default function MarketingLayout({
       <OrganizationJsonLd />
       <WebsiteJsonLd />
       <SoftwareApplicationJsonLd />
+      {/* Web analytics is deliberately MARKETING-scoped: mounting the island in
+          this layout (not the root) is what keeps app/guest surfaces untracked
+          until that becomes its own decision. */}
+      <WebAnalytics />
       {children}
     </>
   );

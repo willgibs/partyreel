@@ -127,3 +127,11 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   for logged-in team members (a floating circle on the right-middle edge) that overlaps app UI but is
   invisible to real, logged-out guests. Don't treat it as a layout bug or let it block a click: navigate by
   keyboard, or dismiss it. Anonymous curl / real guest sessions never see it.
+
+- **Agent `lp/*` preview origins mislead in three ways; none are product bugs.** (1) They are in NO
+  Supabase/R2/Stripe allow-list, so sign-in, upload, email round-trips, and checkout fail there BY DESIGN —
+  the policy home is CLAUDE.md "Local dev vs. live testing"; red-team those flows on the launch-prep alias.
+  (2) They build with the UNSCOPED preview env: `NEXT_PUBLIC_SITE_URL` inlines to the prod URL (absolute
+  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is absent (the `/design` gate is
+  unreachable). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
+  behavior can differ from the long-lived launch-prep origin (the stored-theme trap above).

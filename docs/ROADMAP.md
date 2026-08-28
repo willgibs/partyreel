@@ -33,7 +33,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
-  explored range for the next pass.
+  explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
+  milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
+  drop to ChatGPT-only if first impressions warrant
+  ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,
@@ -185,6 +188,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
 - Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+- Pick the web-analytics vendor at the Vercel Hobby → Pro cutover `[eng+human]` — Hobby collects free
+  (pageviews only, hard caps); Pro activates the wired custom-event taxonomy but bills usage. Will's
+  pricing research (2026-08-28): PostHog gives 1M events/mo free (likely covering launch traffic
+  entirely), then $0.00005/event ($50/M) vs Vercel's ~$30/M; past ~15M events/mo PostHog's volume
+  tiers ($0.0000295/event) undercut Vercel. So the call is cost vs features (PostHog adds funnels +
+  session replay, strongest once the app opens) with observed marketing traffic in hand; other
+  candidates: Cloudflare WA (free, shallow) / self-host Umami / GA4 (free, consent banner + ad-block
+  losses; the move if Google Ads enter). The swap is one file (`src/lib/analytics/web.ts`); see
+  [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
 - Counsel sign-off gate (ADR-0020 D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
   ToS forensic-capture disclosure language (IP/UA/geo/device UUID per upload), (2) the CSAM incident
   runbook ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)) + NCMEC registration,
@@ -226,7 +238,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the R2 `partyreel` bucket CORS + the Supabase auth redirect allow-list, remove the 3 branch-scoped
   Vercel env vars (`NEXT_PUBLIC_SITE_URL`/`STRIPE_WEBHOOK_SECRET`/`DESIGN_PREVIEW_KEY` @launch-prep),
   delete the `launch-prep` branch +
-  `lp/*` remnants, and revert CLAUDE.md's git section to the post-program rule.
+  `lp/*` remnants, decide the post-program fate of the `lp/*` build gate (`vercel.json`
+  `ignoreCommand` → [`scripts/vercel-ignore-build.mjs`](../scripts/vercel-ignore-build.mjs), part of
+  the "revisit the git workflow" item above), and revert CLAUDE.md's git section to the post-program rule.
 - Close the AWS Remotion sub-account (console) `[human]` — the Lambda render path was torn down 2026-07-08
   (canvas + on-device client-encode is the only reel path now); the sub-account under `partyr33l@gmail.com`
   (the `remotion-lambda-role`/`remotion-user` IAM + the deployed Remotion site/function) has no remaining use.

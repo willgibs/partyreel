@@ -27,6 +27,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { track } from "@/lib/analytics/web";
 import {
   CONTACT_TOPICS,
   type ContactTopicValue,
@@ -183,6 +184,7 @@ export function ContactForm({
   async function onSubmit(values: ContactInput) {
     const result = await submitContactForm(values);
     if (result.ok) {
+      track("contact_submit");
       setSubmitted(true);
       form.reset();
       toast.success("Thanks! Your message is on its way.");
@@ -348,7 +350,7 @@ export function ContactForm({
           {hint && (
             <div
               key={topicValue}
-              className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-background px-4 py-3 text-sm text-muted-foreground duration-200 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none"
+              className="flex animate-in flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-background px-4 py-3 text-sm text-muted-foreground duration-200 fade-in slide-in-from-bottom-1 motion-reduce:animate-none"
             >
               <span className="text-pretty">{hint.text}</span>
               <Link

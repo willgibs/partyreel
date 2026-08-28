@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { track } from "@/lib/analytics/web";
 import { showActionError } from "@/lib/errors";
 import { careerSchema, type CareerInput } from "@/lib/validation/careers";
 
@@ -44,6 +45,7 @@ export function ApplicationForm({
   async function onSubmit(values: CareerInput) {
     const result = await submitApplication(roleSlug, values);
     if (result.ok) {
+      track("careers_apply");
       setSubmitted(true);
       form.reset();
       toast.success("Application received, thanks!");

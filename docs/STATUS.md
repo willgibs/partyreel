@@ -17,7 +17,8 @@ unspent (they accrete in [`ROADMAP.md`](ROADMAP.md) → Launch checkpoint and ne
 The **elevation program** ([`PROGRAM.md`](PROGRAM.md)) is the only active thread: work rides the
 `launch-prep` integration branch, verified between milestones on the preview alias
 `https://partyreel-git-launch-prep-partyreel.vercel.app` (allow-listed in Supabase/R2/Stripe-TEST like
-prod); partyreel.com changes only at tagged milestone merges. Every session is an **Agent** unless Will
+prod); agent `lp/<track>` branches auto-deploy their own review previews (NOT allow-listed, UI-review
+only); partyreel.com changes only at tagged milestone merges. Every session is an **Agent** unless Will
 designates it **the Orchestrator** — see CLAUDE.md "Sessions & roles" + PROGRAM.md before touching
 anything shared.
 
@@ -38,14 +39,34 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**The exec round (2026-08-28, on `launch-prep` at `6d0ebe0`; awaiting the milestone-8 gate):** two
+executive tasks ahead of the marketing rebuild. (1) **Agent branches now deploy**: the Vercel branch
+gate moved into the repo (`vercel.json` `ignoreCommand` → `scripts/vercel-ignore-build.mjs`) and every
+`lp/<track>` push auto-builds `partyreel-git-lp-<track>-partyreel.vercel.app` for Will's live review
+BEFORE integration — probe-verified (an lp probe BUILT + served while a non-lp probe CANCELED;
+launch-prep unaffected; probes deleted). The aliases are UI-review-only (in no allow-list, by design)
+and share prod data. (2) **Marketing web analytics**: Vercel WA + Speed Insights v2, scoped by
+mounting the one island in the (marketing) layout; the 7-event taxonomy ships wired-but-dormant
+(custom events are Pro-only; pageviews collect NOW, free + hard-capped on Hobby), the `pr-no-track`
+opt-out mutes both products (set in the test profile), the proxy skips `/_vercel/*`, and the privacy
+draft discloses the counting. Live-verified on the preview: view + event beacons POST 200, the
+opt-out silences everything, console clean, zero layout impact (Speed Insights vitals 503 on the
+preview; prod recheck at milestone-8). Truth:
+[`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
+
+**MILESTONE-7 (2026-08-28): prod = the footer round.** `main` @ tag `milestone-7` (`a6dc857`), prod
+READY + verified at the merge SHA: the ink slab live on partyreel.com. Will's feel-pass acceptance:
+"It's beautiful." The Claude assistant-link caution banner ships as flagged (the revisit option is a
+ROADMAP one-liner; `ask-ai.ts` carries the verified vendor behavior).
+
 **The footer round (2026-08-28, merged to `launch-prep` at `dd159b2`; the SECOND Agent-handoff
 integration):** the footer rebuilt as the ink slab by the `lp/footer-ink` Agent — three registers
 (the server-rendered QR on a fanning photo pile, the full-column index with hub-linked titles + the
 derived hiring badge, the `FOOTER_LEGAL` bar with /llms.txt), the seam glow split base+band so a
 paused/reduced-motion arrival stays lit, the `--gallery*` token-redeclaration contrast fixes
 (pinned by `footer-contract.test.ts`), and the browser-verified assistant deep-link row. Mechanics
-verified live on the preview at the SHA; **Will's preview feel pass is the open item** (he approved
-the localhost build; the integrated production build is what ships). Truth:
+verified live on the preview at the SHA; Will's preview feel pass approved same-day and the round
+merged at milestone-7. Truth:
 [`systems/marketing-content.md`](systems/marketing-content.md) +
 [`systems/design-system.md`](systems/design-system.md).
 
@@ -103,11 +124,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-6`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-7`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1195 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1204 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -140,13 +161,10 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The footer round feel pass** — the ink slab is integrated and live on the preview at
-   `dd159b2`: confirm the localhost look carried through the production build (the fan, the seam
-   glow sweep when the tab is frontmost, both skins, a real-phone scan of the footer QR), and rule
-   the one flagged call: Claude's deep link renders a "use caution before running this prompt"
-   banner over the URL-injected question — keep the link, or drop to ChatGPT-only
-   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified behavior of all three
-   vendors).
+1. **The milestone-8 gate** — the exec round (agent-branch previews + marketing analytics) is
+   verified on the preview; a small merge starts partyreel.com collecting the pre-rebuild traffic
+   baseline. Then: **the next program goal** (continue marketing under rising-tides, or open
+   R4/R5/R6/R7). No track branches are pending.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:

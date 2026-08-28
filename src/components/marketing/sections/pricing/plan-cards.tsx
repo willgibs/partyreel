@@ -9,6 +9,7 @@ import { CheckoutButton } from "@/components/app/checkout-button";
 import { PricePop } from "@/components/marketing/sections/home/price-pop";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Button } from "@/components/ui/button";
+import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import {
   annualPlanFor,
@@ -274,7 +275,15 @@ export function PlanPair() {
               ]}
             />
             <Button asChild className="mt-5 w-full" variant="outline">
-              <Link href="/login">Start free</Link>
+              <Link
+                href="/login"
+                {...trackAttrs("cta_click", {
+                  cta: "start-free",
+                  location: "pricing-free",
+                })}
+              >
+                Start free
+              </Link>
             </Button>
             <p className="mt-3 text-center text-xs text-muted-foreground/70">
               No card. Upgrade only when you host again.
@@ -376,6 +385,7 @@ export function PlanPair() {
 
             <CheckoutButton
               planId={proDisplay.id}
+              {...trackAttrs("checkout_start", { plan: proDisplay.id })}
               className="mt-5 w-full bg-background text-foreground hover:bg-background/90"
             >
               Get Pro at {proDisplay.priceLabel}

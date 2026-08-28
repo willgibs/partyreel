@@ -23,8 +23,9 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   runs milestone merges. It closes every round **succession-ready** (checklist below).
 - **Agents** work in worktrees on their own `lp/<track>`, **self-created at boot** (the Agent boot
   sequence below — Will never pre-creates branches). An Agent needs NO live Orchestrator: it
-  prepares the handoff (push `lp/<track>` + a report naming what it built, its gate results, and any
-  proposed migrations/config changes) and stops. Worktree sessions have no out-of-repo memory by
+  prepares the handoff (push `lp/<track>` + a report naming what it built, its gate results, its
+  branch preview URL (`partyreel-git-lp-<track>-partyreel.vercel.app`), and any proposed
+  migrations/config changes) and stops. Worktree sessions have no out-of-repo memory by
   design — the repo is their whole context.
 - **Orchestrator seat-in (a fresh Orchestrator session):** read [`STATUS.md`](STATUS.md) then this
   doc; sweep `git branch -r --list 'lp/*'` for unintegrated handoffs; confirm the preview deploy
@@ -46,7 +47,7 @@ a session opened in the repo root.
 
 > You are an AGENT on Partyreel's elevation program. Goal: `<goal>`.
 > Boot per `docs/PROGRAM.md` "Agent boot" (self-create your `lp/<track>` branch), then proceed;
-> hand off by pushing + a final report.
+> hand off by pushing + a final report (include your branch preview URL).
 
 (A bare goal works too — CLAUDE.md "Sessions & roles" routes any undesignated session here — but the
 one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
@@ -59,7 +60,8 @@ one, say so: "resume `lp/<track>`".)
 
 ### Agent boot (the self-branching sequence — run before ANY work)
 
-1. `git fetch origin`, then derive a short kebab `<track>` from the goal (e.g. `help-content`).
+1. `git fetch origin`, then derive a short kebab `<track>` from the goal (e.g. `help-content`),
+   keeping it ≤ 36 chars (past that the preview-alias label truncates).
    If `origin/lp/<track>` already exists, that's someone's handoff — pick a fresh variant name;
    never adopt an existing branch unless Will's prompt said to resume it.
 2. **In a worktree** (the normal case — `git rev-parse --git-dir` contains `/worktrees/`): note your
@@ -74,7 +76,10 @@ one, say so: "resume `lp/<track>`".)
 4. Confirm the invariant: `git branch --show-current` = `lp/<track>` AND
    `git merge-base --is-ancestor origin/launch-prep HEAD` succeeds.
 5. Read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, then follow CLAUDE.md's
-   working loop. First push: `git push -u origin lp/<track>`.
+   working loop. First push: `git push -u origin lp/<track>` — every push auto-deploys your review
+   preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (builds queue one-at-a-time on the
+   Hobby plan; UI-review only — the allow-list-gated flows fail there by design, see CLAUDE.md
+   "Local dev vs. live testing").
 
 ## The hard gates (religious — no exceptions)
 
@@ -119,8 +124,8 @@ same session.
   lie by omission) → one push per round → confirm the Vercel preview READY at the pushed SHA before
   any red-team. Contention hotspots (minimize subagent touches): STATUS / CHANGELOG / ROADMAP /
   `src/lib/env.ts`.
-- **DB migrations are global state** (ONE prod Supabase serves prod AND the preview — preview writes
-  ARE prod writes). Agents write migration FILES only. The Orchestrator applies via the Supabase MCP
+- **DB migrations are global state** (ONE prod Supabase serves prod AND every preview, launch-prep
+  and agent `lp/*` aliases alike — preview writes ARE prod writes). Agents write migration FILES only. The Orchestrator applies via the Supabase MCP
   one at a time (re-timestamped; diff-against-live before any `CREATE OR REPLACE`), then
   `get_advisors` + regenerate `types.ts` + commit file+types together. **Additive-only while any
   branch is unmerged**, and the change must stay compatible with `main`'s DEPLOYED code (a
@@ -128,8 +133,8 @@ same session.
   expand→migrate→contract; destructive drops batch in R8.
 - **Workers are global** (one deployed instance serves prod + preview): Orchestrator deploys at
   integration; must stay compatible with `main`'s callers. `wrangler whoami` first (CLAUDE.md).
-- **Shared services:** one Supabase + R2 + Stripe TEST + Resend + Sentry behind both hosts.
-  Disposable test data only (the accounts + fixtures:
+- **Shared services:** one Supabase + R2 + Stripe TEST + Resend + Sentry behind prod and every
+  preview (agent `lp/*` aliases included). Disposable test data only (the accounts + fixtures:
   [`systems/testing-verification.md`](systems/testing-verification.md)).
 
 ## Program principles

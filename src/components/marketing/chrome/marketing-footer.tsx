@@ -4,6 +4,7 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
+import { trackAttrs } from "@/lib/analytics/events";
 import { ASK_AI_TARGETS, LLMS_TXT_HREF } from "@/lib/constants/ask-ai";
 import { IS_HIRING } from "@/lib/constants/careers";
 import {
@@ -157,6 +158,7 @@ function SignOff() {
           </p>
           <Link
             href={DEMO_EVENT_URL}
+            {...trackAttrs("demo_open", { source: "footer-mobile" })}
             className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-[15px] font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
           >
             Open the demo album
@@ -174,6 +176,7 @@ function SignOff() {
           wireframe quality this pass exists to remove. */}
       <Link
         href={MARKETING_CTA.href}
+        {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
         className="mkt-learn hidden items-center gap-2 rounded-[var(--radius-action)] border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex"
       >
         {MARKETING_CTA.label}
@@ -220,6 +223,9 @@ function Index() {
                 href={target.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                {...trackAttrs("assistant_click", {
+                  target: target.label.toLowerCase(),
+                })}
                 className={INLINE_LINK}
               >
                 {target.label}

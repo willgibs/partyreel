@@ -7,24 +7,28 @@ import { toast } from "sonner";
 import type { PlanId } from "@/lib/constants/tiers";
 import { Button } from "@/components/ui/button";
 
-type CheckoutButtonProps = {
+type CheckoutButtonProps = Omit<
+  React.ComponentProps<typeof Button>,
+  "onClick" | "disabled" | "asChild"
+> & {
   planId: PlanId;
   /** Event Pass only — uses the cheaper renewal price (gated server-side). */
   renewal?: boolean;
-  children: React.ReactNode;
-  variant?: React.ComponentProps<typeof Button>["variant"];
-  className?: string;
 };
 
 // Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Anonymous
 // visitors (the public pricing page) are sent to /login first. The server route is
 // authoritative — this is just the trigger.
+//
+// Rest props pass through to the Button so MARKETING call sites can attach
+// trackAttrs(...) data attributes. Keep analytics imports OUT of this file: it
+// is shared with the app dashboard, and the marketing island's delegated
+// listener is what scopes those attributes to marketing-only firing.
 export function CheckoutButton({
   planId,
   renewal,
   children,
-  variant,
-  className,
+  ...buttonProps
 }: CheckoutButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -76,12 +80,7 @@ export function CheckoutButton({
   }
 
   return (
-    <Button
-      onClick={startCheckout}
-      disabled={isPending}
-      variant={variant}
-      className={className}
-    >
+    <Button onClick={startCheckout} disabled={isPending} {...buttonProps}>
       {isPending ? "Starting…" : children}
     </Button>
   );

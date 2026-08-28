@@ -1,3 +1,4 @@
+import { trackAttrs } from "@/lib/analytics/events";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
@@ -7,12 +8,21 @@ import { cn } from "@/lib/utils";
  * DEMO_CTA_LABEL, gated on DEMO_EVENT_URL — no demo event configured means no
  * link ANYWHERE (never a dead CTA). The chevron rides the learn-more-hover recipe
  * (mkt-learn, marketing.css chapter 2): it slides and its arms spread on hover.
+ * `source` labels the demo_open analytics event; distinctive placements (the
+ * CtaBand) pass their own, the long tail ships as "inline".
  */
-export function DemoCtaLink({ className }: { className?: string }) {
+export function DemoCtaLink({
+  className,
+  source = "inline",
+}: {
+  className?: string;
+  source?: string;
+}) {
   if (!DEMO_EVENT_URL) return null;
   return (
     <a
       href={DEMO_EVENT_URL}
+      {...trackAttrs("demo_open", { source })}
       className={cn(
         "mkt-learn inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
         className,
