@@ -5,7 +5,7 @@ import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevr
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import type { EventTypeHelp } from "@/lib/constants/events";
-import { FOOTER_NAV } from "@/lib/constants/marketing-nav";
+import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 
 /**
  * The "Built for X" benefits section, ONE grammar across the whole events
@@ -43,14 +43,17 @@ export function BuiltFor({
   );
 }
 
-const FEATURE_LINKS =
-  FOOTER_NAV.find((column) => column.title === "Features")?.links ?? [];
-
 /** The destination's own nav label, so a crosslink never invents a name for a
- *  page that already has one. */
+ *  page that already has one. Reads the REGISTRY, not the footer nav config:
+ *  the footer used to carry a flat "Features" column and this looked the label
+ *  up there, which meant the ink-slab rebuild (feature pages moved into a
+ *  collapsed group) would have silently degraded all five crosslinks to the
+ *  fallback with typecheck still green. FEATURE_PAGES is the actual
+ *  single-source both the nav and these crosslinks derive from. */
 function featureLabel(href: string): string {
+  const slug = href.replace(/^\/features\//, "");
   return (
-    FEATURE_LINKS.find((link) => link.href === href)?.label ?? "Learn more"
+    FEATURE_PAGES.find((page) => page.slug === slug)?.navLabel ?? "Learn more"
   );
 }
 

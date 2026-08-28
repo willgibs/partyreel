@@ -54,6 +54,9 @@ const CLAIM_FILES = [
   // retrieval, so the fence covers them like any other claim source.
   "src/lib/content/llms.ts",
   "src/lib/constants/press.ts",
+  // The footer's assistant row: its question ships to third-party assistants
+  // and is user-facing copy on every page, so it answers to the same fence.
+  "src/lib/constants/ask-ai.ts",
 ].map((f) => join(ROOT, f));
 
 function scanLines(

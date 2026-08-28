@@ -37,6 +37,17 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   pill; brand stays mono (color is punctuation). (`--reel` violet + the `Clapperboard` icon are RATIFIED,
   Will 2026-06-21.) → [host-app.md](host-app.md) for the action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
+  ★ **Painting a subtree with `bg-gallery` is only half the job.** `--ring`, `--border`, `--foreground`,
+  `--muted-foreground` and `--brand` are NOT in that family, so under `.surface-paper` they keep their
+  LIGHT values: `outline-ring/50` (applied to `*`) lands a **1.44:1** focus ring on the slab against a 3:1
+  requirement, muted text reads **2.62:1** against 4.5:1, and a bare `border-t` paints a near-white
+  hairline. All of it is INVISIBLE while working on a cinema page, where the subtree sits inside `.dark`.
+  Redeclare the tokens locally on the wrapper (`[--ring:var(--gallery-foreground)]` etc.) — the
+  `.surface-paper` mechanism applied to one subtree. **`--brand` must be redeclared DIRECTLY, not via
+  `--primary`:** a `var()` inside a custom property is substituted at the element that DECLARES it, so
+  `--brand: var(--primary)` already resolved to ink back at `:root` and inherits down resolved. The ink
+  footer is the worked example ([marketing-footer.tsx](../../src/components/marketing/chrome/marketing-footer.tsx),
+  pinned by `footer-contract.test.ts`).
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
 - The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events

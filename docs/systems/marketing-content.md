@@ -8,10 +8,10 @@
 
 The public `(marketing)` route group on the shared domain. Nav is single-sourced
 ([`marketing-nav.ts`](../../src/lib/constants/marketing-nav.ts)) and consumed by the config-driven
-[`marketing-header.tsx`](../../src/components/marketing/marketing-header.tsx) (desktop dropdowns + a mobile
-`Sheet`, both in the client [`marketing-nav.tsx`](../../src/components/marketing/marketing-nav.tsx)) + the
-multi-column [`marketing-footer.tsx`](../../src/components/marketing/marketing-footer.tsx); both render only
-**live** routes. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
+[`marketing-header.tsx`](../../src/components/marketing/chrome/marketing-header.tsx) (desktop dropdowns + a
+mobile `Sheet`, both in the client [`marketing-nav.tsx`](../../src/components/marketing/chrome/marketing-nav.tsx))
++ the ink-slab [`marketing-footer.tsx`](../../src/components/marketing/chrome/marketing-footer.tsx); both
+render only **live** routes. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
 `--brand` aliases ink, there is no brand hue — the 2026-08-25 ruling; [design-system.md](design-system.md)
 is authoritative), media is the color; marketing runs louder via type/layout/motion only (motion follows the
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
@@ -70,7 +70,20 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
   that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
   `draft: true` posts are excluded from listing/sitemap/RSS.
-- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Contact.
+- `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
+  (a two-way Vitest mirror: change one side and you must change the other).
+
+**THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a nested
+`.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides). Three
+registers: a sign-off row addressed to machines (a server-rendered scannable QR pointing at
+`DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, beside the assistant deep-links that
+give the `/llms.txt` layer its one human-facing surface), then the index, then a legal bar. IA is three
+columns beside the brand block: **Product** (How it works · Reel · Pricing · FAQ, then the only two
+collapsed groups, Features + Events) · **Resources** · **Company** (About · Careers), with `FOOTER_LEGAL`
+owning Privacy + Terms. **Only long-tail pages may nest** (Will's ruling): conversion and trust routes stay
+flat. This SUPERSEDES R4-A19 (Privacy/Terms sat under Company only because a sixth column wrapped at 1440;
+a bar is a different shape). The root 404 renders it with `disclosure={false}` — that boundary is outside
+`(marketing)`, so `[data-mkt]` is absent and every `.mkt-acc` selector would fail to match.
 
 ## SEO / OG
 
