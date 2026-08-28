@@ -1133,9 +1133,9 @@
    the wrong trade. ── */
 [data-mkt] {
   --mkt-fglow-h: 210px;
-  --mkt-fglow-dur: 14s;
+  --mkt-fglow-dur: 11s;
   --mkt-fglow-base: 0.62;
-  --mkt-fglow-sweep: 0.5;
+  --mkt-fglow-sweep: 0.62;
   --mkt-fglow-blur: 16px;
 }
 

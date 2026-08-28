@@ -98,8 +98,9 @@ describe("marketing nav config", () => {
 
   // ── the footer (the ink-slab IA) ──────────────────────────────────────────
 
-  // Every href a footer column exposes, tail included.
+  // Every href a footer column exposes: the title link, the rows, the tail.
   const columnHrefs = (column: FooterColumn): string[] => [
+    ...(column.href ? [column.href] : []),
     ...column.links.map((link) => link.href),
     ...(column.tail ?? []).map((link) => link.href),
   ];
@@ -139,12 +140,14 @@ describe("marketing nav config", () => {
     }
   });
 
-  it("Features is a full column mirroring FEATURE_PAGES, hub first", () => {
+  it("Features is a full column mirroring FEATURE_PAGES, hub on the title", () => {
     const features = FOOTER_NAV.find((col) => col.title === "Features");
-    expect(features?.links.map((link) => link.href)).toEqual([
-      "/features",
-      ...FEATURE_PAGES.map((page) => `/features/${page.slug}`),
-    ]);
+    // The hub rides the column TITLE rather than an "All features" row, so the
+    // directory sits where the eye already lands and costs no extra row.
+    expect(features?.href).toBe("/features");
+    expect(features?.links.map((link) => link.href)).toEqual(
+      FEATURE_PAGES.map((page) => `/features/${page.slug}`),
+    );
     // Labels mirror the registry (no copy drift), same contract the header panel
     // carries. Note the footer does NOT nest /reel the way the header does.
     for (const page of FEATURE_PAGES) {
@@ -155,12 +158,21 @@ describe("marketing nav config", () => {
     }
   });
 
-  it("Events is a full column mirroring EVENT_TYPE_SLUGS, hub first", () => {
+  it("Events is a full column mirroring EVENT_TYPE_SLUGS, hub on the title", () => {
     const events = FOOTER_NAV.find((col) => col.title === "Events");
-    expect(events?.links.map((link) => link.href)).toEqual([
-      "/events",
-      ...EVENT_TYPE_SLUGS.map((slug) => `/events/${slug}`),
-    ]);
+    expect(events?.href).toBe("/events");
+    expect(events?.links.map((link) => link.href)).toEqual(
+      EVENT_TYPE_SLUGS.map((slug) => `/events/${slug}`),
+    );
+  });
+
+  it("a column title href is internal, and only the hub columns have one", () => {
+    for (const column of FOOTER_NAV) {
+      if (column.href) expect(isInternal(column.href)).toBe(true);
+    }
+    expect(
+      FOOTER_NAV.filter((col) => col.href).map((col) => col.title),
+    ).toEqual(["Features", "Events"]);
   });
 
   it("the Product column carries the cross-cutting conversion routes", () => {

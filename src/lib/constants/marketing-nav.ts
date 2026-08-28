@@ -131,6 +131,13 @@ export const PRIMARY_NAV: NavItem[] = [
 
 export type FooterColumn = {
   title: string;
+  /**
+   * The column's own hub route, when it has one. The TITLE becomes the link
+   * (rendered with a hairline underline so it reads as one), which is tidier
+   * than spending a row on "All features" and puts the directory where the eye
+   * already lands. Columns with no hub (Product, Resources) leave this unset.
+   */
+  href?: string;
   links: NavLink[];
   /**
    * A second group under a hairline, inside the same column. The reference
@@ -166,8 +173,8 @@ export type FooterColumn = {
 export const FOOTER_NAV: FooterColumn[] = [
   {
     title: "Features",
+    href: "/features",
     links: [
-      { label: "All features", href: "/features" },
       { label: "The live album", href: "/features/album" },
       { label: "The QR code", href: "/features/qr" },
       { label: "Curation", href: "/features/curation" },
@@ -178,8 +185,8 @@ export const FOOTER_NAV: FooterColumn[] = [
   },
   {
     title: "Events",
+    href: "/events",
     links: [
-      { label: "All events", href: "/events" },
       { label: "Weddings", href: "/events/weddings" },
       { label: "Parties", href: "/events/parties" },
       { label: "Conferences", href: "/events/conferences" },

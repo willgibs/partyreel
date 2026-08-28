@@ -42,8 +42,8 @@ const QR_PX = 128;
 const CARDS = [
   {
     id: "wedding-arch",
-    cx: "6px",
-    cy: "4px",
+    cx: "26px",
+    cy: "12px",
     rot: "-8deg",
     dx: "-30px",
     dy: "-30px",
@@ -51,8 +51,8 @@ const CARDS = [
   },
   {
     id: "concert-confetti",
-    cx: "96px",
-    cy: "2px",
+    cx: "88px",
+    cy: "10px",
     rot: "7deg",
     dx: "58px",
     dy: "-26px",
@@ -60,8 +60,8 @@ const CARDS = [
   },
   {
     id: "reception-table",
-    cx: "10px",
-    cy: "88px",
+    cx: "28px",
+    cy: "76px",
     rot: "-5deg",
     dx: "-34px",
     dy: "36px",
@@ -69,8 +69,8 @@ const CARDS = [
   },
   {
     id: "festival-lights",
-    cx: "92px",
-    cy: "94px",
+    cx: "86px",
+    cy: "80px",
     rot: "6deg",
     dx: "62px",
     dy: "32px",

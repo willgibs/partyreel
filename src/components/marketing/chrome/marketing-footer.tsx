@@ -90,6 +90,9 @@ const FOOTER_LINK =
 const INLINE_LINK =
   "text-foreground underline decoration-current/30 underline-offset-4 transition-colors duration-150 hover:decoration-current";
 
+const LEGAL_LINK =
+  "block py-1 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground";
+
 const columnId = (title: string) =>
   `footer-nav-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -184,8 +187,10 @@ function Index() {
   return (
     <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-12 border-t pt-14 sm:mt-16 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10">
       <div className="col-span-2 flex flex-col items-start gap-4 lg:col-span-1">
+        {/* Wordmark only: the mark's filled tile is a second white rectangle
+            directly under the QR plate, and the two read as a clash. */}
         <Link href="/" aria-label="Partyreel home">
-          <Logo />
+          <Logo wordmarkOnly />
         </Link>
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite
@@ -216,11 +221,7 @@ function Index() {
               </a>
             </span>
           ))}{" "}
-          about Partyreel, or read our{" "}
-          <Link href={LLMS_TXT_HREF} className={INLINE_LINK}>
-            llms.txt
-          </Link>
-          .
+          about Partyreel.
         </p>
       </div>
       {FOOTER_NAV.map((column) => (
@@ -239,9 +240,22 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
           headings is most of what separates the two. A <p>, not an <h2>: the
           footer should name its landmarks without inventing headings in the
           document outline. */}
-      <p id={id} className="font-heading text-lg text-foreground">
-        {column.title}
-      </p>
+      {column.href ? (
+        // The hairline underline is the whole distinction between a linked and
+        // an unlinked column title; it brightens on hover. Same vocabulary the
+        // assistant row uses, so "underlined = goes somewhere" stays one idea.
+        <Link
+          href={column.href}
+          id={id}
+          className="inline-block font-heading text-lg text-foreground underline decoration-current/25 underline-offset-[6px] transition-[text-decoration-color] duration-150 hover:decoration-current"
+        >
+          {column.title}
+        </Link>
+      ) : (
+        <p id={id} className="font-heading text-lg text-foreground">
+          {column.title}
+        </p>
+      )}
       <ul className="mt-6 flex flex-col gap-y-3">
         {column.links.map((link) => (
           <FooterLink key={link.href} link={link} />
@@ -281,14 +295,19 @@ function LegalBar() {
       <ul className="flex flex-wrap items-center gap-x-6">
         {FOOTER_LEGAL.map((link) => (
           <li key={link.href}>
-            <Link
-              href={link.href}
-              className="block py-1 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
-            >
+            <Link href={link.href} className={LEGAL_LINK}>
               {link.label}
             </Link>
           </li>
         ))}
+        {/* The machine-readable source sits with the other fine print rather
+            than in the assistant blurb: a human reader never needs it, and a
+            crawler finds it wherever it lives. */}
+        <li>
+          <Link href={LLMS_TXT_HREF} className={LEGAL_LINK}>
+            llms.txt
+          </Link>
+        </li>
       </ul>
     </div>
   );

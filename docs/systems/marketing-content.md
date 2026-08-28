@@ -80,15 +80,18 @@ photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your ow
 secondary `Start free`), the index, and a legal bar. A turbulence-warped seam glow on the ratified
 confetti palette turns the top edge into spilled light instead of a hard cut.
 
-IA is four columns beside the brand block: **Features** (hub + the six pages) · **Events** (hub + the
-four types) · **Product** (How it works · Pricing · The reel · FAQ) · **Resources**, with About +
-Careers as Resources' TAIL under a hairline and `FOOTER_LEGAL` owning Privacy + Terms. **Nothing is
+IA is four columns beside the brand block: **Features** · **Events** · **Product** (How it works ·
+Pricing · The reel · FAQ) · **Resources**, with About + Careers as Resources' TAIL under a hairline
+and the legal bar owning `FOOTER_LEGAL` (Privacy + Terms) plus `/llms.txt`. Features and Events
+carry their hub on the column TITLE (a `href` on the column, rendered with a hairline underline that
+brightens on hover) rather than spending a row on "All features": the directory sits where the eye
+already lands, and the underline is the only signal separating a linked title from an unlinked one. **Nothing is
 collapsed** (Will's review, superseding the first pass's disclosure columns): Features and Events are
 the most core marketing page families and folding them behind chevrons buried them, while the whole
 sitemap is small enough to show at once. A Vitest pin guards against an accordion returning. This
 SUPERSEDES R4-A19 for legal (Privacy/Terms sat under Company only because a sixth column wrapped at
-1440; a bar is a different shape). The brand block carries the thesis and the assistant row, the one
-human-facing surface of the `/llms.txt` layer.
+1440; a bar is a different shape). The brand block carries the wordmark (no mark tile: its filled
+square clashed with the QR plate above), the thesis, and the assistant row.
 
 The root 404 renders the same footer, but outside `(marketing)`: `marketing.css` never loads there,
 so the glow and the photo fan simply do not fire. Anything the footer needs in order to not BREAK
