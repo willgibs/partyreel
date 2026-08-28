@@ -128,6 +128,15 @@ describe("the spill engine CSS", () => {
     expect(prePos).toBe(stdPos);
   });
 
+  it("isolates, so the edge beam cannot paint over the lit content", () => {
+    // Without `isolation`, [data-glw] is position:absolute at z-index auto and
+    // creates no stacking context, so [data-glw-edge]'s z-index: 1 competes at
+    // the PARENT's level and lands the beam on top of the very content the
+    // light is meant to sit behind. It reads as "too strong" and sends you
+    // tuning opacity instead of fixing the stack.
+    expect(engineCode).toMatch(/\[data-glw\]\s*\{[^}]*isolation:\s*isolate/);
+  });
+
   it("carries the forced-colors, print and no-mask fallbacks", () => {
     // A purely decorative colour layer is exactly where these belong, and the
     // repo has no other instance of any of them.

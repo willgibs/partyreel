@@ -1737,6 +1737,14 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  /* ★ LAW 4 IS A STACKING RULE TOO. Without `isolation`, this element is
+     position:absolute with z-index auto, so it creates NO stacking context and
+     the edge beam's own `z-index: 1` competes at the PARENT's level, landing
+     the beam on top of the content the light is supposed to sit behind. The
+     symptom is a lit photo looking washed out rather than lit, which reads as
+     "the effect is too strong" and sends you tuning opacity instead of fixing
+     the stack. Caught on the doorbell specimen. */
+  isolation: isolate;
   /* Law 4: falloff from the lamp outward. Origin-anchored, so the same rule
      serves a seam (50% 0%), a card throwing down (50% 100%) and a plate
      throwing outward (50% 50%). */

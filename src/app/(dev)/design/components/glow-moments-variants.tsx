@@ -528,38 +528,47 @@ function StraddleStage({
   return (
     <div className="overflow-hidden rounded-2xl">
       <div className="h-16" style={{ background: "oklch(0.99 0 0)" }} />
-      <Ground on="cinema" className="relative isolate min-h-52 rounded-none">
-        {lit && (
-          <div className="absolute inset-x-0 top-0 isolate h-40">
-            <Glow
-              shape="throw"
-              drive="mask"
-              colors={colors}
-              vars={{
-                "--glw-from-x": "50%",
-                "--glw-from-y": "0%",
-                "--glw-reach": "70%",
-                "--glw-strength": "0.55",
-              }}
-            />
-          </div>
-        )}
+      <Ground on="cinema" className="relative min-h-52 rounded-none">
         <div className="relative -mt-10 px-8">
-          <div
-            className="overflow-hidden rounded-xl border border-border"
-            style={{ background: "oklch(0.21 0 0)" }}
-          >
-            <div className="relative aspect-[16/10]">
-              <Image
-                src={marketingImage("reception-table").src}
-                alt=""
-                fill
-                sizes="380px"
-                className="object-cover"
-              />
+          {/* The lamp is the CARD, so the light is pinned to the card's own box
+              and thrown outward from it. Pinning it to the section's top edge
+              instead put it behind the card, where nothing could see it, and
+              pinning it to the CHAPTER is how this becomes the
+              every-seam-on-every-page failure. */}
+          <div className="relative isolate">
+            {lit && (
+              <div className="absolute -inset-x-10 -top-6 -bottom-16 isolate -z-10 overflow-hidden">
+                <Glow
+                  shape="throw"
+                  drive="mask"
+                  colors={colors}
+                  vars={{
+                    "--glw-from-x": "50%",
+                    "--glw-from-y": "40%",
+                    "--glw-reach": "100%",
+                    "--glw-strength": "0.6",
+                    "--glw-base": "0.55",
+                    "--glw-blur": "26px",
+                  }}
+                />
+              </div>
+            )}
+            <div
+              className="relative overflow-hidden rounded-xl border border-border"
+              style={{ background: "oklch(0.21 0 0)" }}
+            >
+              <div className="relative aspect-[16/10]">
+                <Image
+                  src={marketingImage("reception-table").src}
+                  alt=""
+                  fill
+                  sizes="380px"
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
-          <p className="mt-4 pb-8 text-sm text-muted-foreground">
+          <p className="relative mt-4 pb-10 text-sm text-muted-foreground">
             The morning after, everything is already in one place.
           </p>
         </div>
