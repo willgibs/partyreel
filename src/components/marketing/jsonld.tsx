@@ -1,4 +1,10 @@
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
+import { FOUNDED_YEAR } from "@/lib/constants/press";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  SUPPORT_EMAIL,
+} from "@/lib/constants/site";
 
 import type { FaqItem } from "./faq-data";
 import { pricingJsonLdData } from "./pricing-jsonld";
@@ -26,6 +32,55 @@ export function OrganizationJsonLd() {
         url: SITE_URL,
         logo: `${SITE_URL}/icon.svg`,
         description: SITE_DESCRIPTION,
+        email: SUPPORT_EMAIL,
+        foundingDate: FOUNDED_YEAR,
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: SUPPORT_EMAIL,
+          contactType: "customer support",
+          url: `${SITE_URL}/contact`,
+        },
+      }}
+    />
+  );
+}
+
+/**
+ * The sitewide "what is this product" signal (2026-08-28, the AI-discoverability
+ * layer): Product schema only lived on /pricing, so a crawler landing anywhere
+ * else saw a bare Organization. Mounted beside Org + WebSite in the marketing
+ * layout. Prices reuse the same AggregateOffer the pricing page emits (one
+ * derivation, pricing-jsonld.ts). No ratings and no reviews by design: the
+ * social-proof fence bans fabricating them, and an absent field beats a fake
+ * one with every ranking system that matters.
+ */
+export function SoftwareApplicationJsonLd() {
+  const pricing = pricingJsonLdData({
+    url: SITE_URL,
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  });
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: SITE_NAME,
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        applicationCategory: "MultimediaApplication",
+        operatingSystem: "Web",
+        offers: pricing.offers,
+        featureList: [
+          "Guests upload photos and videos by scanning one QR code, from the browser, with no app and no account",
+          "One live shared album per event, full resolution, never watermarked",
+          "Automatic highlight reel cut from the album, rendered on-device",
+          "Host moderation: approve, hide, and feature anything",
+          "No per-guest fees and no guest limit; plans are sized by storage",
+          "Albums never expire; deletions wait 30 days in a restorable trash",
+          "GPS location metadata stripped from uploads",
+          "Open, link-only, or password-locked album visibility",
+        ],
       }}
     />
   );

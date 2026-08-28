@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { PRESS_BOILERPLATE, PRESS_FACTS } from "@/lib/constants/press";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
@@ -22,13 +23,9 @@ export const metadata: Metadata = {
 // grow into the partnerships/ambassador kit (visuals + resources) in a later
 // round. Product imagery deliberately NOT faked here: the live demo album is
 // the honest source until a curated shot set exists. Copy PROVISIONAL.
-const FACTS: { label: string; value: string }[] = [
-  { label: "What", value: "Guest-powered event albums" },
-  { label: "How", value: "One QR code in, one album out" },
-  { label: "Guests need", value: "A phone and a browser. No app, no account." },
-  { label: "Pricing", value: "Free to start; plans sized by storage" },
-  { label: "Launched", value: "2026" },
-];
+// Boilerplate + facts moved to constants/press.ts (the llms.txt builder shares
+// them; one quotable home).
+const FACTS = PRESS_FACTS;
 
 const MARKS: {
   variant: "dark" | "light" | "mono";
@@ -85,8 +82,8 @@ export default function PressPage() {
               style={{ "--i": 2 } as CSSProperties}
             >
               Everything you need is on this page: the one-paragraph version,
-              the facts, and the brand marks. If you need more than that, a
-              real person answers.
+              the facts, and the brand marks. If you need more than that, a real
+              person answers.
             </p>
           </TextsReveal>
         </Container>
@@ -97,14 +94,7 @@ export default function PressPage() {
         <div className="mx-auto max-w-2xl">
           <Eyebrow>The boilerplate</Eyebrow>
           <blockquote className="mt-4 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 sm:p-8">
-            <p className="text-pretty leading-7">
-              Partyreel turns every guest&rsquo;s phone into the event&rsquo;s
-              camera. Hosts share one QR code; guests scan and upload photos
-              and videos with no app and no account; everything lands in one
-              live album at full quality. Hosts curate, everyone leaves with
-              the originals, and the event can end as a one-minute highlight
-              reel.
-            </p>
+            <p className="leading-7 text-pretty">{PRESS_BOILERPLATE}</p>
           </blockquote>
           <MonoCaption className="mt-3">
             Quote it whole or in part. &ldquo;Partyreel&rdquo; is one word,

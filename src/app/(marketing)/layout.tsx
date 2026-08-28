@@ -2,6 +2,7 @@ import "./marketing.css";
 
 import {
   OrganizationJsonLd,
+  SoftwareApplicationJsonLd,
   WebsiteJsonLd,
 } from "@/components/marketing/jsonld";
 
@@ -21,6 +22,7 @@ export default function MarketingLayout({
     <>
       <OrganizationJsonLd />
       <WebsiteJsonLd />
+      <SoftwareApplicationJsonLd />
       {children}
     </>
   );
