@@ -153,20 +153,30 @@ is deliberate credibility, don't "fix" it into pure praise. The press boilerplat
 in [`constants/press.ts`](../../src/lib/constants/press.ts) (one quotable home: /press + the llms
 builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
 
-**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The kit as a photographic proof sheet: one
-`CinemaChapter` holding every asset as a numbered frame on the 3px `--gap-gallery` album grid, so the
-page reads as a Partyreel album at a glance. ★ The frames are deliberately NOT all the same kind of
-thing (three marks, the ink, the type, a working QR, two rooms) — a uniform grid of marks is a
-downloads table wearing a metaphor; do not "tidy" it. ★ NO BRAND-GUIDELINES SECTION, by ruling
-("focusing press around the assets and quick hit points"; the specimen-sheet alternative "felt more
-like internal brand guidelines"). Clear space / minimum size / misuse are brand-book material and
-stay out; the two usage points that are press business (quoting needs no permission, how to write the
-name) ship as quick hits beside the copy they govern. The masthead is LEFT-aligned on purpose,
-breaking the centered "careers idiom" hero that `/about` and `/careers` still share. No seam straddle:
-the plane change is the cut, and overhanging the grid would float downloadable assets on paper. The
-kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` + the committed zip, guarded by
-`press-kit.test.ts`), so the pre-launch logo change is a files-and-rows edit with no component work.
-Explored range + the ruling: `/design/c/press-identity`.
+**THE RESOURCE-PAGE CHAPTER SHAPE (Will + the /about track, 2026-08-28): cinema hero, paper body,
+dark footer.** A short utility page (`/press`, `/about`) does not have the section count to alternate
+chapters cleanly the way the long marketing pages do, so the dark ground BOOKENDS it rather than
+interrupting it: one `CinemaChapter` at the top, paper for the reading body, and the always-dark
+footer closing it out. ★ Do NOT drop a cinema chapter into the middle of one of these pages. The
+light-grey register for a set-apart block inside the paper body is `bg-muted/40` with `border-y` (the
+`/contact` panel surface).
+
+**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The kit as a photographic proof sheet: eight
+numbered frames on the 3px `--gap-gallery` album grid, riding INSIDE the hero chapter because the
+assets are what a reporter came for and belong above the words. ★ The frames are deliberately NOT all
+the same kind of thing (artwork, an app icon, the share card, a working QR, the ink, the type) — a
+uniform grid of marks is a downloads table wearing a metaphor; do not "tidy" it. ★ EVERY FRAME IS
+OURS: the first cut used two stock event photos and Will pulled them ("just feels weird to say here's
+a random stock photo"), which was right twice, since a press page must not hand a publisher media
+whose rights we do not hold. ★ NO BRAND-GUIDELINES SECTION, by ruling — clear space / minimum size /
+misuse are brand-book material; only the two press-business usage points (quoting needs no permission,
+how to write the name) ship, as quick hits beside the copy they govern. ★ Plate by LEGIBILITY, not
+variety: white behind ink-drawn artwork, ink behind white-drawn artwork. Every section is centered on
+one rhythm (a mixed left/full-bleed/narrow page read as jarring), with prose left-aligned inside its
+centered column. The kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` +
+`scripts/build-press-qr.mjs` + the committed zip, guarded by `press-kit.test.ts`), so the pre-launch
+logo change is a files-and-rows edit with no component work. Explored range + the ruling:
+`/design/c/press-identity`.
 
 **The promise-neutralization doctrine (Will, 2026-08-28):** published copy commits to OUTCOMES (a
 reply, a review, host control), never to WHO or WHAT delivers them — no "a real person answers", no
