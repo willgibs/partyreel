@@ -167,12 +167,17 @@ export function ContactForm({
     const slug = new URLSearchParams(window.location.search).get("about");
     const entry = slug ? helpSubjects[slug] : undefined;
     if (!entry) return;
-    if (!form.getValues("subject")) {
-      form.setValue("subject", `Help: ${entry.title}`, { shouldDirty: false });
-    }
-    if (!form.getValues("topic")) {
-      form.setValue("topic", entry.topic, { shouldDirty: false });
-    }
+    const values = form.getValues();
+    if (values.subject || values.topic) return;
+    // reset() over setValue(): with the Select's empty-emission guard both
+    // now work, but reset() also makes the handoff the form's BASELINE, so
+    // the post-success "Send another" keeps the article context instead of
+    // wiping it. At mount the form is empty; merging over values is safe.
+    form.reset({
+      ...values,
+      subject: `Help: ${entry.title}`,
+      topic: entry.topic,
+    });
   }, [form, helpSubjects]);
 
   async function onSubmit(values: ContactInput) {
@@ -274,7 +279,17 @@ export function ContactForm({
                     instead of <SelectValue>: with the popper closed the items
                     never mounted, so Radix cannot resolve a label for a value
                     set without opening (the same handoff path). */}
-                <Select onValueChange={field.onChange} value={field.value}>
+                {/* The onChange guard: Radix's hidden native-select bridge
+                    emits an EMPTY onValueChange during mount cycles, which
+                    clobbered the handoff's programmatic pre-pick (observed:
+                    "" -> reset lands "billing" -> a stray "" wipes it). No
+                    real selection is ever "", so empties are dropped. */}
+                <Select
+                  onValueChange={(v) => {
+                    if (v) field.onChange(v);
+                  }}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger
                       className={cn(
