@@ -25,9 +25,9 @@
  *     what the host pays for (ADR-0021).
  *
  * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
- * enforcement) — a Vitest parity test guards the pairing. Universal per-file limits
- * (5 min / 2 GB / 50 MB) are NOT here — they live in lib/media/limits.ts because
- * they apply to every tier. (The `tier_type` enum still lists a retired `max`
+ * enforcement) — a Vitest parity test guards the pairing. The universal per-file
+ * limit (10 GB per file, size is the ONLY per-file gate) is NOT here — it lives in
+ * lib/media/limits.ts because it applies to every tier. (The `tier_type` enum still lists a retired `max`
  * value — folded into Pro storage options; it is unused, left in place because
  * dropping a Postgres enum value is risky.)
  *
@@ -135,6 +135,15 @@ export const TIER_NAMES: Record<Tier, string> = {
   pro: "Pro",
   event_pass: "Event Pass",
 };
+
+/**
+ * The Event Pass RENEWAL price label (display only — the Stripe price
+ * STRIPE_PRICE_EVENT_PASS_RENEWAL is the billing truth, see PRICING.md). A
+ * separate cheaper one-time price that extends a live pass by another year
+ * (ADR-0021 decision 3); surfaced on /pricing so the keep-it-alive cost is
+ * never a surprise.
+ */
+export const EVENT_PASS_RENEWAL_PRICE_LABEL = "$15";
 
 /** Events that may EXIST per tier — the free→paid wall. null = unlimited. */
 export const MAX_EVENTS: Record<Tier, number | null> = {
