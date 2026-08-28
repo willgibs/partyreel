@@ -28,6 +28,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `--mkt-confetti-1..5` onto the promoted tokens so there is one palette home. Unmeasured and carried
   forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
   and the buttons; a background tab throttles rAF to zero, so it needs a foreground window).
+- **`DESIGN_PREVIEW_KEY` is scoped to the `launch-prep` preview, so the design lab 404s on EVERY
+  agent `lp/*` preview** (verified 2026-08-28: the same key opens `/design` on
+  `partyreel-git-launch-prep-partyreel.vercel.app` and 404s on
+  `partyreel-git-lp-glow-doctrine-partyreel.vercel.app`, while `/` and `/pricing` serve fine there).
+  Since a lab round is the program's standard way for an Agent to hand off creative work, and agent
+  branches only started deploying at milestone-8, this makes the review surface unreachable for
+  exactly the handoffs it was built for. Orchestrator fix: widen that env var to all Preview
+  deployments. Until then, lab handoffs are reviewed locally (`pnpm dev`, where the gate returns early
+  and needs no key at all).
 - **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
   production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
   `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
