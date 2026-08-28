@@ -153,6 +153,21 @@ is deliberate credibility, don't "fix" it into pure praise. The press boilerplat
 in [`constants/press.ts`](../../src/lib/constants/press.ts) (one quotable home: /press + the llms
 builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
 
+**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The kit as a photographic proof sheet: one
+`CinemaChapter` holding every asset as a numbered frame on the 3px `--gap-gallery` album grid, so the
+page reads as a Partyreel album at a glance. ★ The frames are deliberately NOT all the same kind of
+thing (three marks, the ink, the type, a working QR, two rooms) — a uniform grid of marks is a
+downloads table wearing a metaphor; do not "tidy" it. ★ NO BRAND-GUIDELINES SECTION, by ruling
+("focusing press around the assets and quick hit points"; the specimen-sheet alternative "felt more
+like internal brand guidelines"). Clear space / minimum size / misuse are brand-book material and
+stay out; the two usage points that are press business (quoting needs no permission, how to write the
+name) ship as quick hits beside the copy they govern. The masthead is LEFT-aligned on purpose,
+breaking the centered "careers idiom" hero that `/about` and `/careers` still share. No seam straddle:
+the plane change is the cut, and overhanging the grid would float downloadable assets on paper. The
+kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` + the committed zip, guarded by
+`press-kit.test.ts`), so the pre-launch logo change is a files-and-rows edit with no component work.
+Explored range + the ruling: `/design/c/press-identity`.
+
 **The promise-neutralization doctrine (Will, 2026-08-28):** published copy commits to OUTCOMES (a
 reply, a review, host control), never to WHO or WHAT delivers them — no "a real person answers", no
 "a human reviews every report", no "never an automatic takedown", no "business day" — so support and

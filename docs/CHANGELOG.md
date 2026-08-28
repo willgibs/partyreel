@@ -47,7 +47,19 @@ byte-identical to the committed artifact and passes an integrity check; the ligh
 measured dimming siblings to 0.5; the sheet collapses 4 columns to 2 at 375px with the 3px gap intact
 and zero horizontal overflow.
 
-**Open:** Will's direction ruling. Also blocked at handoff: `/design` 404s on every agent branch
+**RULED + BUILT same day.** Will took direction 1, the contact sheet, "focusing press around the
+assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines", and
+cut the logo usage guidelines from the page entirely. `/press` is now the sheet: a `CinemaChapter`
+holding eight numbered frames on the album grid, the boilerplate in two lengths with copy buttons, the
+12-row fact sheet, and the contact. `PRESS_USAGE_RULES` moved out of production constants into the lab
+file that still renders V2 as the design record. `CinemaChapter` was adopted verbatim from the
+concurrent `lp/about` track rather than forked (identical file on both branches, so the integration
+merge sees no conflict), and the light-table isolate was promoted into `marketing.css` as the generic
+`[data-mkt-isolate]` recipe. Verified: all seven download hrefs 200, the isolate holds the hovered
+frame and dims the other seven, 4 columns at 1440 and 2 at 375 with the 3px gap intact and zero
+overflow at both, frames rest visible so a reduced-motion arrival still arrives.
+
+**Open:** Will's feel pass on the built page. Also blocked at handoff: `/design` 404s on every agent branch
 preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
 localhost until that var is set unscoped for Preview (proposed, not applied: config is the
 Orchestrator's).
