@@ -159,6 +159,27 @@ off-layer and shows NOTHING. Anything under the loop-pause contract therefore de
 rule. Split it: an always-on base layer plus the travelling band over it. The footer seam glow is the
 worked example (`.mkt-fglow-base` / `.mkt-fglow-band`, marketing.css).
 
+★ **A FILLING ANIMATION OUTRANKS EVERY AUTHOR DECLARATION, so an entrance and a hover state can
+never share an element.** `[data-mkt-cut]` (and any `animation-fill-mode: both` entrance) keeps
+applying its final keyframe forever once it completes, and the animation origin beats author-normal
+in the cascade, so a later rule setting the same property on that element is inert. The symptom is
+maddening: the selector matches, DevTools shows the rule, and nothing moves. Put the entrance on an
+inner layer and the interactive state on the outer one. Found building the press contact sheet, where
+the cut pinned `opacity: 1` and the light-table dim silently never applied.
+
+★ **`:has(:focus-visible)` matches in `element.matches()` but does not repaint.** Chromium invalidates
+a `:has()` ancestor on `:hover` changes but not reliably on focus-visible changes, so a
+`:has(:focus-visible)` isolate is live, matching, and dead. Use `:focus-within`, which propagates
+natively with no `:has()` involved. The standing `:focus-within` objection (a mouse click pins the
+state on) is contextual, not absolute: on the press sheet's light table, a clicked frame staying
+picked is the wanted behaviour, whereas on `[data-reveal-chip]` it was not.
+
+★ **Focus states do not paint while `document.hasFocus()` is false**, and `matches(':focus')` returns
+false with them, even though `document.activeElement` is correct. Any `:focus-*` styling is therefore
+unverifiable from a backgrounded/headless browser seat: an `!important` `a:focus{outline}` control
+refuses to paint too. Hand that check to a human rather than "fixing" working CSS
+([testing-verification.md](testing-verification.md)).
+
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on
 `transitionend`/`animationend`) and stops infinite loops. Component-level

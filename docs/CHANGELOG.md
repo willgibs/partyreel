@@ -10,6 +10,48 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The press-kit round (lab handoff, `lp/press-kit`)
+
+`/press` was the last wireframe-grade page on the marketing site: five centered reading columns,
+`reveal="none"` on every section so nothing moved below the fold, a hero copy-pasted verbatim from
+`/careers` and `/about`, and no metaphor while every other elevated surface here is a physical object.
+Will's brief set the frame: scope is the press and brand kit only, prototype BOTH the contact sheet and
+the specimen sheet, build the kit ZIP, and stop at the lab for a ruling. His governing constraint was
+that **the logo changes before launch, so this round builds the working system, not a shrine to the
+current glyph.**
+
+**Shipped (two commits, `0244d0f` + `6887dce`).** `PRESS_KIT` is now the single source for what the kit
+contains, so a logo swap is: replace the files, edit the rows, rerun `scripts/build-press-kit.mjs`. The
+ZIP is a committed CDN-served artifact rather than a route handler (ADR-0018 had already ruled against
+hand-rolled encoders and confined the zip library to the Worker package), guarded by
+`press-kit.test.ts`, which parses the archive's central directory back and CRC-checks every member
+against the source files. The guard was proven to FAIL on drift, not merely to pass. Copy grew three
+boilerplate lengths, a 12-row fact sheet with prices derived from `tiers.ts`, and
+`PRESS_USAGE_RULES` written against the mark's own box so a new mark inherits every rule.
+
+**Five defects the read turned up, all fixed in copy.** The page promised a wordmark that does not
+exist AND named the wrong face (`Logo` never calls `font-heading`, so the wordmark is Inter Semibold,
+not Urbanist); it published `#101010` as the brand ink when that hex matches no token and is really the
+ink inside the mark SVGs; it invited publishers to "lift anything from the live demo album", granting
+rights over real event media; it drifted off the byte-pinned reply line; and its `/contact?about=press`
+link was dead, because `?about=` is allowlisted against help-article slugs, not contact topics.
+
+**The lab round** (`/design/c/press-identity`) carries two directions on identical content and IA, so
+the ruling is about identity alone. Three motion findings came out of building it and are recorded in
+[design-system.md](systems/design-system.md): a filling animation outranks every author declaration
+(so an entrance and a hover state can never share an element), `:has(:focus-visible)` matches without
+repainting in Chromium, and focus states do not paint at all while `document.hasFocus()` is false.
+
+**Verified:** typecheck + lint + 1211 tests green; the kit ZIP downloads from the branch preview
+byte-identical to the committed artifact and passes an integrity check; the light-table isolate
+measured dimming siblings to 0.5; the sheet collapses 4 columns to 2 at 375px with the 3px gap intact
+and zero horizontal overflow.
+
+**Open:** Will's direction ruling. Also blocked at handoff: `/design` 404s on every agent branch
+preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
+localhost until that var is set unscoped for Preview (proposed, not applied: config is the
+Orchestrator's).
+
 ## 2026-08-28 — MILESTONE-8: the exec round
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-8`, `4063f6e`), prod READY + verified at
