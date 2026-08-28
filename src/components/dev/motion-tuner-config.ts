@@ -230,10 +230,19 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
 /**
  * The MARKETING knobs (Track B), mounted by MarketingMotionTuner on the
  * (cinema) group layout. Three-way contract as above: each `default` MIRRORS
- * the var() fallback baked into marketing.css chapter 1 ([data-mkt-reveal]);
- * both beats are CSS-only today (no JS readCssMs mirror to keep in sync).
- * Marketing build tracks APPEND their section beats here in the same commit
- * that wires the matching var() into marketing.css.
+ * the value baked into marketing.css. Marketing build tracks APPEND their beats
+ * here in the same commit that wires the matching var() into marketing.css.
+ *
+ * ★ These knobs write to the [data-mkt] wrapper, not <html> — the --mkt-*
+ * tokens are DECLARED there, so an inline value on <html> is shadowed and does
+ * nothing (motion-tuner.tsx's tunerScope; the bug that made the two reveal
+ * knobs inert was found and fixed in the 2026-08-28 nav round).
+ *
+ * The NAV group exists because the nav's numbers are TASTE, not correctness —
+ * how instant a hover feels and how far a panel sweeps are Will's calls, and a
+ * round-trip per 20ms is a bad loop. Hover intent is included even though it is
+ * consumed by JS: marketing-nav.tsx reads it with readCssMs off the [data-mkt]
+ * scope, so a live tuner change lands on the next mount (a reload, not a drag).
  */
 export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
   {
@@ -252,6 +261,77 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     label: "Reveal stagger",
     min: 0,
     max: 240,
+    step: 10,
+    unit: "ms",
+    default: 90,
+  },
+  // ── Nav (the header dropdowns + the hover indicator) ──
+  {
+    kind: "range",
+    cssVar: "--mkt-nav-intent-ms",
+    label: "Nav hover intent (reload)",
+    min: 0,
+    max: 300,
+    step: 10,
+    unit: "ms",
+    default: 100,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-dropdown-open-ms",
+    label: "Panel open + morph",
+    min: 80,
+    max: 400,
+    step: 10,
+    unit: "ms",
+    default: 200,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-dropdown-close-ms",
+    label: "Panel close",
+    min: 60,
+    max: 300,
+    step: 10,
+    unit: "ms",
+    default: 130,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-dropdown-swap-distance",
+    label: "Side-by-side sweep",
+    min: 0,
+    max: 208,
+    step: 4,
+    unit: "px",
+    default: 32,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-dropdown-swap-blur",
+    label: "Sweep blur",
+    min: 0,
+    max: 8,
+    step: 1,
+    unit: "px",
+    default: 3,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-nav-indicator-ms",
+    label: "Indicator travel",
+    min: 60,
+    max: 400,
+    step: 10,
+    unit: "ms",
+    default: 180,
+  },
+  {
+    kind: "range",
+    cssVar: "--mkt-dropdown-hover-ms",
+    label: "Panel row hover in",
+    min: 0,
+    max: 300,
     step: 10,
     unit: "ms",
     default: 90,

@@ -21,6 +21,24 @@ export function isNavGroup(item: NavItem): item is NavGroup {
   return "children" in item;
 }
 
+/** Does `pathname` sit under `href`? Exact match, or a real path segment below
+ *  it — never a prefix match, or /press would light up /pressure. */
+function isUnder(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** Is this nav item the section the visitor is currently in? Used by the header
+ *  to ink the current trigger and to set aria-current on flat links. A GROUP is
+ *  current when the visitor is under its hub OR under any of its children —
+ *  Resources has no hub of its own, so its children are the only signal. */
+export function isNavItemCurrent(item: NavItem, pathname: string): boolean {
+  if (isNavGroup(item)) {
+    if (item.href && isUnder(pathname, item.href)) return true;
+    return item.children.some((child) => isUnder(pathname, child.href));
+  }
+  return isUnder(pathname, item.href);
+}
+
 // The primary conversion CTA, single-sourced (Track B): the header, the mobile
 // sheet, and CtaBand all read THIS, so the label can never drift back to the
 // retired "Get started" (a Vitest pin holds it). The ruled label is "Start free".
@@ -29,8 +47,14 @@ export const MARKETING_CTA: NavLink = { label: "Start free", href: "/login" };
 // Desktop header primary nav (between the logo and the CTAs). The 2026-08-26
 // expansion IA: Features is a PANEL group (the six feature pages + the reel,
 // per Will's nest-the-reel ruling; top-level Reel retired), Events stays the
-// use-cases panel, Pricing stays flat, Resources is the reading panel. Panel
-// descriptions are PROVISIONAL copy (the registry pattern).
+// use-cases panel, Resources is the reading panel. Panel descriptions are
+// PROVISIONAL copy (the registry pattern).
+//
+// ORDER IS LOAD-BEARING (Will, 2026-08-28): the three PANEL groups sit
+// CONTIGUOUS and Pricing goes last as the only flat link. Radix derives its
+// side-by-side cross-slide (`data-motion` from-start/from-end) from the index
+// delta between adjacent items, so a flat link wedged between two panels left
+// one of the three pairs without a sweep. Groups first, links last.
 export const PRIMARY_NAV: NavItem[] = [
   {
     label: "Features",
@@ -99,7 +123,6 @@ export const PRIMARY_NAV: NavItem[] = [
       },
     ],
   },
-  { label: "Pricing", href: "/pricing" },
   {
     // No `href` (there is no /resources hub) → the panel renders just the
     // children, no "All resources" link. Mirrors the footer Resources column.
@@ -127,6 +150,7 @@ export const PRIMARY_NAV: NavItem[] = [
       },
     ],
   },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export type FooterColumn = { title: string; links: NavLink[] };

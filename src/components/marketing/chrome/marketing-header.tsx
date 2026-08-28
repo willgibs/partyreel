@@ -6,18 +6,16 @@ import { Button } from "@/components/ui/button";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import { HeaderShell } from "./header-shell";
-import {
-  MarketingNavDesktop,
-  MarketingNavMobile,
-  type MarketingSkin,
-} from "./marketing-nav";
+import { MarketingNavDesktop, type MarketingSkin } from "./marketing-nav";
+import { MarketingNavMobile } from "./mobile-menu";
 
 /**
  * The marketing header (Track B chrome). `skin` threads to the nav for THE
- * PORTAL RULE (see marketing-nav.tsx) — it defaults to paper so the root
+ * PORTAL RULE (see mobile-menu.tsx) — it defaults to paper so the root
  * app/not-found.tsx (which renders this outside any marketing group) needs no
  * knowledge of skins. `overlay` (cinema pages) starts the header TRANSPARENT
- * over the hero's media wall and flips to glass on scroll via HeaderShell; the
+ * over the hero's media wall and CROSSFADES to glass on scroll via HeaderShell
+ * (an inert layer, never a filter on the bar itself — see its header note); the
  * solid variant is the classic always-glass sticky bar. Height rides
  * --mkt-header-h (marketing.css, the one chrome-height knob that SectionShell/
  * MDX scroll margins share); the 4rem fallback keeps the root 404 sane, where
@@ -37,7 +35,7 @@ export function MarketingHeader({
           <Logo />
         </Link>
         {/* Desktop panels render in-flow (no skin prop needed since the
-            NavigationMenu flip); the mobile sheet still portals and threads
+            NavigationMenu flip); the mobile menu still portals and threads
             `skin` for THE PORTAL RULE. */}
         <MarketingNavDesktop className="hidden md:flex" />
         <div className="flex items-center gap-2">
