@@ -97,8 +97,8 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
 5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
-6. **Annual Pro pricing numbers** (whenever ready — monthly-only was the ruled scope this round; the
-   toggle slot is reserved, [ROADMAP](ROADMAP.md) "Billing follow-ons").
+(Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
+remains open.)
 
 ## Pre-launch / human-blocked
 

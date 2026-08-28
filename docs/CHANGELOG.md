@@ -53,6 +53,19 @@ COMPLETED purchase — Stripe delivers to prod's registered endpoint, which stil
 copy fix, the stale per-file-limits doc drift (PRICING.md + tiers.ts), the stale `#FB4817` accent
 claim in marketing-content.md.
 
+**Annual Pro, recommended → ruled → built the same day (`e248c77`):** $90 / $190 / $390, exactly
+×10 the monthly ("two months free" — the deepest uniform discount the 2 TB tier's ~$372/yr
+worst-case cost permits, and the conservative end of the only-move-in-the-customer's-favor door).
+Three yearly Stripe TEST prices on the existing Pro products; `STRIPE_PRICE_PRO_*_YR` env trio in
+all three homes; `tiers.ts` yearly plans with `plansForTier` gaining a defaulted interval param
+(every pre-annual caller keeps meaning) + `annualPlanFor` + a ×10 drift-guard pin; checkout schema
++ `planForPriceId` accept the yearly ids (webhook provisioning + the ADR-0025 pass credit compose
+for free). /pricing: the cadence toggle above the pair (size × cadence as independent axes),
+yearly CTA note, a Billing row heading the matrix, the calculator offering the annual sibling on
+Pro verdicts. Live-verified on the preview: toggle swap, Yearly × 2 TB → $390/yr, a real $90/yr
+Stripe session with `plan_id: pro_100_yr`, and the portal's plan-change screen listing both
+cadences with proration.
+
 **The sitting, ruled + wired the same day (`20057e1`):** cards → V2 Stacked photos ("within the card
 v2 has a nice balance"): real event photos fanned above each card head (Free two grayscale, Pro four
 vivid on ink), hover spreads the stack, soft shadows via the photo-depth exception. Calculator → V1

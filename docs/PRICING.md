@@ -28,10 +28,21 @@ mode; the live cutover is a launch task).
 | Plan           | Price                     | Storage | ≈ holds                       | Events       |
 | -------------- | ------------------------- | ------- | ----------------------------- | ------------ |
 | **Free**       | $0                        | 2 GB    | ~500 photos (no video)        | 1            |
-| **Pro 100 GB** | $9/mo                     | 100 GB  | ~25k photos / ~10 hrs video   | unlimited    |
-| **Pro 500 GB** | $19/mo                    | 500 GB  | ~125k photos / ~50 hrs video  | unlimited    |
-| **Pro 2 TB**   | $39/mo                    | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
+| **Pro 100 GB** | $9/mo or $90/yr           | 100 GB  | ~25k photos / ~10 hrs video   | unlimited    |
+| **Pro 500 GB** | $19/mo or $190/yr         | 500 GB  | ~125k photos / ~50 hrs video  | unlimited    |
+| **Pro 2 TB**   | $39/mo or $390/yr         | 2 TB    | ~500k photos / ~200 hrs video | unlimited    |
 | **Event Pass** | $24 one-time, $15/yr ren  | 75 GB   | ~19k photos / ~8.5 hrs video  | 1 per pass/~1yr |
+
+- **Annual Pro (ruled 2026-08-27, built same day): exactly ×10 the monthly, marketed as "two months
+  free"** (a Vitest pin holds each yearly label at 10× its sibling). Why 2-months-free and not
+  deeper: the 2 TB tier's worst-case full-use cost (~$372/yr) sits AT a 20% discount, so 16.7% is
+  the deepest uniform discount the catalog carries without the top tier going underwater; and under
+  the only-move-in-the-customer's-favor rule, starting conservative leaves deepening as a free
+  future win. Yearly Stripe prices live on the SAME products as monthly (portal
+  monthly↔yearly switching rides same-product active prices, `proration_behavior:
+  always_invoice`); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. Note: a pass holder's prorated
+  credit (ADR-0025) lands as customer balance, which applies to the NEXT invoice — on yearly
+  that's a year out (never lost; special-case only if it ever feels wrong in practice).
 
 - **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
   Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "require accounts to upload" became FREE + default-on

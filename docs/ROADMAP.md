@@ -138,9 +138,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is
   ruled + recorded in [`PRICING.md`](PRICING.md) "Grandfathering"; the build is `planForPriceId` mapping
   MULTIPLE historical Price IDs per plan, newest = the public offer) · a full [`PRD.md`](PRD.md) refresh
-  to the shipped product (this consolidation pass fixed only the misleading era claims) · **annual Pro
-  billing** when Will rules the yearly numbers (the /pricing hero reserves the toggle slot; needs new
-  Stripe prices + `planForPriceId` rows + a tiers.ts shape addition) · **per-pass dashboard management**
+  to the shipped product (this consolidation pass fixed only the misleading era claims) · **per-pass dashboard management**
   (choose WHICH stacked pass a renewal extends, per-pass expiry rows in the storage meter; v1 renews the
   soonest-expiring, ADR-0025) · the `authenticated` role holds a latent table-level **TRUNCATE grant on
   `profiles`** (unreachable via PostgREST, found 2026-08-27; sweep table grants and revoke in the next
