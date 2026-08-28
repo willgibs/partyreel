@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Clock, Copy, Mail } from "lucide-react";
+import { Check, Copy } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,11 +20,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CONTACT_TOPICS,
   type ContactTopicValue,
 } from "@/lib/constants/contact";
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { showActionError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
@@ -30,28 +40,44 @@ import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
 import { submitContactForm } from "./actions";
 
-// Shared card shell so the live form and the success state render in one
-// identical container: submitting swaps the inner content without the frame
-// appearing or reflowing. The form is this page's primary instrument, so the
-// card carries the float shadow at rest (the help search-field precedent).
+// THE NOTE on THE DESK (Will's composite ruling, 2026-08-28 sitting): the V2
+// desk structure carries the form, dressed in V1's stationery identity (the
+// photo postage stamp + the letterhead line), on the Biograph gray panel so
+// the WHITE fields read against the card (his biograph.com/contact reference).
+// The stamp is the page's one media gesture (the desk spread was dropped as
+// too busy next to it). Shared shell for the live form AND the success state
+// so submitting swaps content without the frame reflowing.
 function FormCard({ children }: { children: ReactNode }) {
+  const stamp = marketingImage("party-balloons");
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-float ring-1 ring-foreground/5 sm:p-8">
-      {children}
+    <div className="relative rounded-2xl border bg-muted/50 p-6 ring-1 ring-foreground/5 sm:p-8">
+      {/* The postage stamp: white border, a hair of rotation, the soft-shadow
+          photo-depth exception. aria-hidden: pure stationery identity. */}
+      <div aria-hidden className="absolute -top-4 right-6 rotate-3 sm:right-8">
+        <Image
+          src={stamp.src}
+          alt=""
+          width={64}
+          height={64}
+          className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lg"
+        />
+      </div>
+      <MonoCaption>A note to Partyreel</MonoCaption>
+      <div className="mt-5">{children}</div>
     </div>
   );
 }
 
-// Marketing-scale field grammar (the app default is h-8; a marketing page
-// wants the CTA register). Overrides ride className, no new primitives.
-const FIELD = "h-11 rounded-xl text-base md:text-base";
+// Marketing-scale field grammar on the gray panel: fields go bg-background
+// (paper white) so they pop against the card, per the Biograph reference.
+const FIELD = "h-11 rounded-xl bg-background text-base md:text-base";
 
 /**
- * The rail's plain-email door with the copy-to-clipboard micro-delight: one
- * tap, the icon swaps to the drawn-check green for a beat. Clipboard failure
- * (odd browsers, permissions) falls back to a toast carrying the address.
+ * The desk's contact facts (the V2 definition rows, replacing the old icon-chip
+ * cards): plain email with the copy micro-delight, and the reply expectation.
+ * Real text registers only; no mono, no icon chips.
  */
-export function ContactEmailCard() {
+export function ContactFacts() {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -73,54 +99,35 @@ export function ContactEmailCard() {
   }
 
   return (
-    <div className="rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 sm:p-7">
-      <div className="flex items-start gap-4">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
-          <Mail aria-hidden className="size-5" strokeWidth={1.5} />
-        </span>
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <p className="font-heading text-base font-medium">
-            Prefer plain email?
-          </p>
-          <div className="flex items-center gap-1.5">
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="truncate font-mono text-sm tracking-wide text-muted-foreground underline decoration-border underline-offset-4 transition-colors duration-150 hover:text-foreground hover:decoration-foreground"
-            >
-              {SUPPORT_EMAIL}
-            </a>
-            <button
-              type="button"
-              onClick={copy}
-              aria-label={copied ? "Copied" : "Copy email address"}
-              className="flex size-7 shrink-0 items-center justify-center rounded-md border text-muted-foreground transition-[border-color,color,transform] duration-150 hover:border-foreground/30 hover:text-foreground active:scale-[0.92]"
-            >
-              {copied ? (
-                <Check aria-hidden className="size-3.5 text-success" />
-              ) : (
-                <Copy aria-hidden className="size-3.5" />
-              )}
-            </button>
-          </div>
-          <p className="text-sm text-pretty text-muted-foreground">
-            Notes land in the same inbox as the form.
-          </p>
-        </div>
+    <dl className="flex flex-col text-sm">
+      <div className="flex items-baseline justify-between gap-4 border-t py-3.5">
+        <dt className="text-muted-foreground">Plain email</dt>
+        <dd className="flex items-center gap-1.5">
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
+          >
+            {SUPPORT_EMAIL}
+          </a>
+          <button
+            type="button"
+            onClick={copy}
+            aria-label={copied ? "Copied" : "Copy email address"}
+            className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.9]"
+          >
+            {copied ? (
+              <Check aria-hidden className="size-3.5 text-success" />
+            ) : (
+              <Copy aria-hidden className="size-3.5" />
+            )}
+          </button>
+        </dd>
       </div>
-      {/* The standard reply line earns a second seat at the commit point (the
-          hero states it a full scroll away); same wording, never a variant. */}
-      <div className="mt-5 flex items-start gap-4 border-t pt-5">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
-          <Clock aria-hidden className="size-5" strokeWidth={1.5} />
-        </span>
-        <div className="flex flex-col gap-1.5">
-          <p className="font-heading text-base font-medium">Reply time</p>
-          <p className="text-sm text-pretty text-muted-foreground">
-            Every note gets a reply, usually within a day.
-          </p>
-        </div>
+      <div className="flex items-baseline justify-between gap-4 border-y py-3.5">
+        <dt className="text-muted-foreground">Reply time</dt>
+        <dd className="text-pretty">Usually within a day</dd>
       </div>
-    </div>
+    </dl>
   );
 }
 
@@ -129,7 +136,7 @@ export function ContactForm({
 }: {
   /**
    * Build-time slug map for the help handoff (?about=<slug>): the article
-   * title prefills the subject and its category pre-picks the topic chip.
+   * title prefills the subject and its category pre-picks the topic.
    */
   helpSubjects?: Record<string, { title: string; topic: ContactTopicValue }>;
 }) {
@@ -183,14 +190,13 @@ export function ContactForm({
   if (submitted) {
     return (
       <FormCard>
-        {/* h-full + justify-center so the short confirmation sits centered in
-            the stretched card frame. The drawn check is the 10-success-check
-            recipe (marketing.css ch. 2): data-state="in" fires on mount, the
-            inline dasharray (24 ≈ path length + 1) scopes the draw to THIS
-            icon, and success green is the sanctioned state accent. */}
+        {/* The drawn check is the 10-success-check recipe (marketing.css
+            ch. 2): data-state="in" fires on mount, the inline dasharray
+            (24 ≈ path length + 1) scopes the draw to THIS icon, and success
+            green is the sanctioned state accent. */}
         <div
           data-contact-success
-          className="flex h-full flex-col items-start justify-center gap-3"
+          className="flex min-h-72 flex-col items-start justify-center gap-3"
         >
           <span className="mkt-check text-success" data-state="in" aria-hidden>
             <svg
@@ -218,6 +224,7 @@ export function ContactForm({
             <Button
               variant="outline"
               size="sm"
+              className="bg-background"
               onClick={() => setSubmitted(false)}
             >
               Send another
@@ -251,68 +258,61 @@ export function ContactForm({
             className="hidden"
             {...form.register("website")}
           />
-          {/* The topic router: sr-only radios inside styled labels, so keyboard
-              semantics (arrow keys, groups) come from the platform while the
-              chips carry the marketing register. Selected = the ink inversion
-              (the pricing segmented-control grammar). */}
+          {/* The topic router as ONE clean field (the sitting's ruling: seven
+              open chips ate the form; a dropdown keeps the routing without the
+              room). The portaled content must carry the paper skin itself
+              (the portal rule, portal-skin.ts). */}
           <FormField
             control={form.control}
             name="topic"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>What&rsquo;s this about?</FormLabel>
-                <FormControl>
-                  <div
-                    role="radiogroup"
-                    aria-label="Topic"
-                    className="flex flex-wrap gap-2 pt-1"
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? ""}
+                >
+                  <FormControl>
+                    <SelectTrigger
+                      className={cn(
+                        "w-full rounded-xl bg-background text-base data-[size=default]:h-11 md:text-base",
+                      )}
+                    >
+                      <SelectValue placeholder="Pick a topic" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent
+                    data-mkt=""
+                    position="popper"
+                    className="surface-paper rounded-xl"
                   >
                     {CONTACT_TOPICS.map((topic) => (
-                      /* Selected state rides cn() off the CONTROLLED value, not
-                         :has(:checked): React flips the checked property and at
-                         least one Chromium-embedded engine never re-resolves
-                         the ancestor's :has() (verified 2026-08-28: a clone of
-                         the same node styled correctly while the live one
-                         stayed stale). The state is already in JS; use it.
-                         :has survives only for the focus ring (non-critical). */
-                      <label
+                      <SelectItem
                         key={topic.value}
-                        className={cn(
-                          "ease-emphasis inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-medium transition-[background-color,border-color,color,transform] duration-150 select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40 active:scale-[0.97] motion-reduce:transition-none",
-                          field.value === topic.value
-                            ? "border-foreground bg-foreground text-background"
-                            : "bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                        )}
+                        value={topic.value}
+                        className="rounded-lg py-2.5"
                       >
-                        <input
-                          type="radio"
-                          className="sr-only"
-                          name={field.name}
-                          value={topic.value}
-                          checked={field.value === topic.value}
-                          onChange={() => field.onChange(topic.value)}
-                          onBlur={field.onBlur}
-                        />
                         <topic.icon
                           aria-hidden
                           className="size-4"
                           strokeWidth={1.5}
                         />
                         {topic.label}
-                      </label>
+                      </SelectItem>
                     ))}
-                  </div>
-                </FormControl>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
           {/* The fastest-path hint swaps with the topic (keyed remount so the
-              entrance replays per pick; occasional frequency, standard beat). */}
+              entrance replays per pick; on the gray panel the hint sits on
+              paper white for contrast). */}
           {hint && (
             <div
               key={topicValue}
-              className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground duration-200 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none"
+              className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-background px-4 py-3 text-sm text-muted-foreground duration-200 animate-in fade-in slide-in-from-bottom-1 motion-reduce:animate-none"
             >
               <span className="text-pretty">{hint.text}</span>
               <Link
@@ -391,7 +391,7 @@ export function ContactForm({
                 <FormLabel>Message</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="min-h-36 rounded-xl text-base md:text-base"
+                    className="min-h-36 rounded-xl bg-background text-base md:text-base"
                     placeholder="What's going on?"
                     {...field}
                   />
@@ -400,17 +400,20 @@ export function ContactForm({
               </FormItem>
             )}
           />
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSubmitting}
-            className={cn(
-              "h-11 self-start px-6 text-base",
-              "transition-transform active:scale-[0.98]",
-            )}
-          >
-            {isSubmitting ? "Sending…" : "Send message"}
-          </Button>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="h-11 px-6 text-base transition-transform active:scale-[0.98]"
+            >
+              {isSubmitting ? "Sending…" : "Send message"}
+            </Button>
+            {/* The V1 steal: the reply line seated at the commit point. */}
+            <p className="text-xs text-muted-foreground">
+              Every note gets a reply, usually within a day.
+            </p>
+          </div>
         </form>
       </Form>
     </FormCard>

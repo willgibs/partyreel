@@ -1,4 +1,3 @@
-import { Briefcase, LifeBuoy, Newspaper, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -26,7 +25,7 @@ import {
   type HelpCategorySlug,
 } from "@/lib/content/help";
 
-import { ContactEmailCard, ContactForm } from "./contact-form";
+import { ContactFacts, ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -56,32 +55,29 @@ const CATEGORY_TOPIC: Record<HelpCategorySlug, ContactTopicValue> = {
   troubleshooting: "bug",
 };
 
-// The self-serve directory tiles (the "connected resource" onward paths). The
-// help tile is the front door to the same library the search band queries; the
-// press and careers tiles keep those routes one hop from the contact surface.
+// The self-serve directory (the "connected resource" onward paths), in the
+// numbered editorial register (the identity sitting's ledger steal): hairline
+// top rules + index numbers, no icon-chip template. The help entry fronts the
+// same library the search band queries.
 const DIRECTORY: {
-  icon: LucideIcon;
   title: string;
   body: string;
   href: string;
   linkLabel: string;
 }[] = [
   {
-    icon: LifeBuoy,
     title: "Help center",
     body: "Guides for every step, from the first QR to the final download.",
     href: "/help",
     linkLabel: "Browse the guides",
   },
   {
-    icon: Newspaper,
     title: "Press & brand",
     body: "The boilerplate, the fact sheet, and brand marks, ready to take.",
     href: "/press",
     linkLabel: "Open the press kit",
   },
   {
-    icon: Briefcase,
     title: "Careers",
     body: "How the team works, and the roles open right now.",
     href: "/careers",
@@ -157,10 +153,10 @@ export default function ContactPage() {
           <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <ContactForm helpSubjects={helpSubjects} />
           </div>
-          {/* Plain email stays a first-class door; the island renders the
-              address with the copy affordance + the reply row. */}
-          <div className="lg:col-start-1 lg:row-start-2 lg:self-start">
-            <ContactEmailCard />
+          {/* Plain email stays a first-class door: the desk's definition rows
+              (copy affordance included), bottom-anchored against the card. */}
+          <div className="lg:col-start-1 lg:row-start-2 lg:self-end">
+            <ContactFacts />
           </div>
         </div>
       </SectionShell>
@@ -187,19 +183,19 @@ export default function ContactPage() {
             ))}
           </div>
         </div>
-        <Reveal className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-3">
+        <Reveal className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-3">
           {DIRECTORY.map((tile, i) => (
             <Link
               key={tile.href}
               href={tile.href}
               data-mkt-reveal
               style={{ "--i": 3 + i } as CSSProperties}
-              className="mkt-learn group flex flex-col gap-3 rounded-2xl border bg-card p-6 ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:border-foreground/25 active:scale-[0.99]"
+              className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
             >
-              <span className="flex size-10 items-center justify-center rounded-xl border text-muted-foreground">
-                <tile.icon aria-hidden className="size-5" strokeWidth={1.5} />
+              <span className="font-heading text-sm tabular-nums text-muted-foreground/60">
+                {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="font-heading text-lg font-medium">{tile.title}</h3>
+              <h3 className="font-heading text-lg">{tile.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">
                 {tile.body}
               </p>
