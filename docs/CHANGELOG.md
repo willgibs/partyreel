@@ -10,6 +10,31 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The exec round: agent-branch previews + marketing analytics
+
+On `launch-prep` (`9ae0bf2` + `6d0ebe0`), verified on the preview; the milestone-8 merge takes it to
+prod. **(1) The Vercel branch gate moved into the repo**: `vercel.json` `ignoreCommand` →
+`scripts/vercel-ignore-build.mjs` (build `main` / `launch-prep` / `lp/*`; a ref-less manual deploy
+always builds; everything else skips). Every Agent push now auto-deploys a review preview at
+`partyreel-git-lp-<track>-partyreel.vercel.app`, closing the nav-round gap where Will could not see a
+handoff live before integration. Probe-verified end to end: `lp/deploy-probe` BUILT and served
+(HTTP 200) while `probe-skip` showed CANCELED, with launch-prep still building; both probes deleted
+after. The dashboard-side command stays as a fallback until milestone-8 lands on `main`, then gets
+cleared so the tracked script is the single source. **(2) Marketing web analytics**:
+`@vercel/analytics` + `@vercel/speed-insights` v2 installed (both project toggles had been ON with no
+package, collecting nothing). One island in the `(marketing)` layout scopes tracking to marketing
+only; the 7-event taxonomy + the delegated `[data-track]` listener ship wired-but-dormant (custom
+events are Pro-only on Hobby; pageviews/referrers/UTM collect immediately, free + hard-capped), the
+shared `CheckoutButton` stays analytics-free (attributes pass through and only fire under the
+marketing island), the proxy skips `/_vercel/*`, and the privacy draft discloses the cookieless
+counting. Live-verified in Chrome on the preview: both v2 unique-path scripts load, `view` beacons
+POST 200 on load AND client navigation, a `reel_play` event POSTs 200, the `pr-no-track` opt-out
+silences both products (left set in the test profile so red-team traffic never pollutes the numbers),
+console clean, zero layout shift. Speed Insights `vitals` returned 503 on the preview (silent to the
+page); recheck on prod at milestone-8. The vendor decision is deferred to the Hobby → Pro cutover
+with observed volume in hand (a ROADMAP launch-checkpoint item); the `web.ts` wrapper makes any swap
+a one-file change.
+
 ## 2026-08-28 — MILESTONE-7: the footer round
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-7`, `a6dc857`), prod READY + verified at

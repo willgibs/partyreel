@@ -188,6 +188,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
 - Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+- Pick the web-analytics vendor at the Vercel Hobby → Pro cutover `[eng+human]` — Hobby collects free
+  (pageviews only, hard caps); Pro activates the wired custom-event taxonomy but bills usage (~$0.03/1k
+  events past included). Decide with observed volume: stay on Vercel WA / PostHog free tier (1M
+  events/mo, funnels + replay, strongest once the app opens) / Cloudflare WA (free, shallow) /
+  self-host Umami / GA4 (free, consent banner + ad-block losses; the move if Google Ads enter). The
+  swap is one file (`src/lib/analytics/web.ts`); see [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
 - Counsel sign-off gate (ADR-0020 D2) `[human]` — before launch counsel signs: (1) the privacy-policy +
   ToS forensic-capture disclosure language (IP/UA/geo/device UUID per upload), (2) the CSAM incident
   runbook ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)) + NCMEC registration,

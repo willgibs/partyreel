@@ -1,7 +1,7 @@
 # Notifications, analytics & growth
 
-> ROLE: the host notification bell, link analytics, saved events, and guest email capture — the engagement + growth surfaces.
-> BELONGS HERE: the derive-on-read bell, `link_stats`, `save_event`/`get_saved_events`, `capture_guest_email`. · NOT HERE: the guest page that mounts the Save button (→ [guest-flow.md](guest-flow.md)), the operator announcement compose UI (→ [admin-observability.md](admin-observability.md)), the lifecycle nudges that some alerts mirror (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
+> ROLE: the host notification bell, link analytics, the marketing web analytics, saved events, and guest email capture — the engagement + growth surfaces.
+> BELONGS HERE: the derive-on-read bell, `link_stats`, the Vercel WA/Speed-Insights marketing layer (`analytics/events.ts` + `analytics/web.ts`), `save_event`/`get_saved_events`, `capture_guest_email`. · NOT HERE: the guest page that mounts the Save button (→ [guest-flow.md](guest-flow.md)), the operator announcement compose UI (→ [admin-observability.md](admin-observability.md)), the lifecycle nudges that some alerts mirror (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
 > GROWS BY: integrate-in-place.
 
 ## Notification center (derive-on-read)
@@ -47,6 +47,48 @@ Per-event-per-day **aggregate counts, NO PII** (`link_stats`: `event_id, kind, d
 - **Record ONLY in the page-body success branch, NEVER in `generateMetadata`** (which runs for
   unfurls/prefetch → double-count). "Scans" = join-link visits — the host's own "Open"/re-visits count too
   (an honest label, accepted for v1).
+
+## Web analytics (marketing site)
+
+**Vercel Web Analytics + Speed Insights, MARKETING-SCOPED** (the exec round, 2026-08-28): the one
+client island [`marketing/system/web-analytics.tsx`](../../src/components/marketing/system/web-analytics.tsx)
+mounts in `(marketing)/layout.tsx`, and that placement IS the scoping — app/guest/admin surfaces stay
+untracked until that becomes its own deliberate decision (the root `not-found.tsx` sits outside the
+group, so it is untracked too). Both product toggles were already ON project-side; installing
+`@vercel/analytics` / `@vercel/speed-insights` (v2) is what made them real.
+
+- **The wrapper pair is the DRY seam.** [`lib/analytics/events.ts`](../../src/lib/analytics/events.ts)
+  (pure, dependency-free): the 7-event taxonomy (`cta_click · demo_open · reel_play · checkout_start ·
+  contact_submit · careers_apply · assistant_click`, Vitest-pinned, append-only — a rename splits its
+  dashboard history) plus `trackAttrs()`. [`lib/analytics/web.ts`](../../src/lib/analytics/web.ts)
+  (client): silent-safe `track()` + the `pr-no-track` localStorage opt-out (`beforeSendDrop`, wired to
+  BOTH products). Swapping vendors later means rewriting `web.ts` alone; the taxonomy + attributes
+  carry over.
+- **Server components instrument by ATTRIBUTES, not islands**: spread `trackAttrs(event, props)` on
+  the clickable element; the island's delegated capture-phase click listener does the rest (capture
+  because Radix chrome can swallow bubble-phase clicks; known gap: middle-click/auxclick). That is why
+  `footer-qr.tsx` stays server-rendered and why the shared `CheckoutButton` passes rest props through
+  but carries NO analytics import — attributes only fire where the island exists, which keeps
+  app-surface checkouts silent by construction.
+- **Hobby-plan reality (2026-08-28): custom events are Pro-only.** The taxonomy ships wired-but-dormant;
+  what collects today is pageviews/referrers/UTM/paths + Speed Insights vitals. Quotas: WA 50k
+  events/mo, 1-month data window, hard-pauses at cap (NO overage billing on Hobby); SI is free for one
+  project, 10k data points/mo, 7-day window. The vendor decision at the Hobby → Pro cutover is a
+  ROADMAP launch-checkpoint item (decide with observed volume in hand).
+- **Props discipline**: single lowercase words only (the listener round-trips them through the
+  camelCased DOM dataset), few and short (Pro caps custom events at 2 props, 255 chars each; 8 with
+  the paid add-on).
+- **Test traffic**: red-team browser profiles set `localStorage["pr-no-track"]` FIRST; it mutes both
+  products on that device. Verify collection by the NETWORK beacons (the script at
+  `/_vercel/insights/script.js` + the `view` beacons; v2 also posts to a per-deployment unique path),
+  not by dashboard latency. Dev never sends (the package no-ops off Vercel).
+- **Reading the numbers**: the Vercel dashboard, or the Vercel MCP `get_web_analytics` — which is
+  currently connected to the personal team and 403s on partyreel; re-point the MCP connector at the P3
+  team to use it (the REST `$VERCEL_TOKEN` path is unaffected). The proxy skips `/_vercel/*` so
+  beacons stop costing a Supabase `getUser` round-trip.
+- **Privacy-claim coupling**: `/privacy` "what we collect" discloses the cookieless, first-party
+  counting; if the vendor ever changes, re-verify its "no cookies / never identifies you / no
+  cross-site" sentences still hold.
 
 ## Saved events (accounts-from-guest growth — ADR-0009)
 

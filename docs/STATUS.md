@@ -39,6 +39,21 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**The exec round (2026-08-28, on `launch-prep` at `6d0ebe0`; awaiting the milestone-8 gate):** two
+executive tasks ahead of the marketing rebuild. (1) **Agent branches now deploy**: the Vercel branch
+gate moved into the repo (`vercel.json` `ignoreCommand` → `scripts/vercel-ignore-build.mjs`) and every
+`lp/<track>` push auto-builds `partyreel-git-lp-<track>-partyreel.vercel.app` for Will's live review
+BEFORE integration — probe-verified (an lp probe BUILT + served while a non-lp probe CANCELED;
+launch-prep unaffected; probes deleted). The aliases are UI-review-only (in no allow-list, by design)
+and share prod data. (2) **Marketing web analytics**: Vercel WA + Speed Insights v2, scoped by
+mounting the one island in the (marketing) layout; the 7-event taxonomy ships wired-but-dormant
+(custom events are Pro-only; pageviews collect NOW, free + hard-capped on Hobby), the `pr-no-track`
+opt-out mutes both products (set in the test profile), the proxy skips `/_vercel/*`, and the privacy
+draft discloses the counting. Live-verified on the preview: view + event beacons POST 200, the
+opt-out silences everything, console clean, zero layout impact (Speed Insights vitals 503 on the
+preview; prod recheck at milestone-8). Truth:
+[`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
+
 **MILESTONE-7 (2026-08-28): prod = the footer round.** `main` @ tag `milestone-7` (`a6dc857`), prod
 READY + verified at the merge SHA: the ink slab live on partyreel.com. Will's feel-pass acceptance:
 "It's beautiful." The Claude assistant-link caution banner ships as flagged (the revisit option is a
@@ -113,7 +128,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1195 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1204 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -146,8 +161,10 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7). Both
-   Agent handoffs are integrated and on prod; no track branches are pending.
+1. **The milestone-8 gate** — the exec round (agent-branch previews + marketing analytics) is
+   verified on the preview; a small merge starts partyreel.com collecting the pre-rebuild traffic
+   baseline. Then: **the next program goal** (continue marketing under rising-tides, or open
+   R4/R5/R6/R7). No track branches are pending.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
