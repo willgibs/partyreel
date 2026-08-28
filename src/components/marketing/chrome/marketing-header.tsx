@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { trackAttrs } from "@/lib/analytics/events";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import { HeaderShell } from "./header-shell";
@@ -45,10 +46,26 @@ export function MarketingHeader({
             size="sm"
             className="hidden sm:inline-flex"
           >
-            <Link href="/login">Log in</Link>
+            <Link
+              href="/login"
+              {...trackAttrs("cta_click", {
+                cta: "log-in",
+                location: "header",
+              })}
+            >
+              Log in
+            </Link>
           </Button>
           <Button asChild size="sm">
-            <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+            <Link
+              href={MARKETING_CTA.href}
+              {...trackAttrs("cta_click", {
+                cta: "start-free",
+                location: "header",
+              })}
+            >
+              {MARKETING_CTA.label}
+            </Link>
           </Button>
           <MarketingNavMobile className="md:hidden" skin={skin} />
         </div>

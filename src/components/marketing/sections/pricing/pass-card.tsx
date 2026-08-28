@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { PricePop } from "@/components/marketing/sections/home/price-pop";
 import { Reveal } from "@/components/marketing/system/reveal";
+import { trackAttrs } from "@/lib/analytics/events";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   friendlyCapacity,
@@ -60,6 +61,7 @@ export function PassCard() {
           <div className="mt-auto pt-5">
             <CheckoutButton
               planId="event_pass"
+              {...trackAttrs("checkout_start", { plan: "event_pass" })}
               variant="outline"
               className="w-full lg:w-auto lg:px-8"
             >

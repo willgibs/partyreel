@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 import { FooterQr } from "./footer-qr";
@@ -83,6 +84,7 @@ export function FooterDemo({ href, value }: { href: string; value: string }) {
     <Link
       href={href}
       aria-label="Explore a demo event"
+      {...trackAttrs("demo_open", { source: "footer-qr" })}
       className="mkt-stack relative block shrink-0"
       style={{ width: 200, height: 196 }}
     >

@@ -27,6 +27,7 @@ const SECTIONS: LegalSection[] = [
     summary: "An email, a display name, your events, and your uploads.",
     body: [
       "Your account is a verified email address and the display name you picked. Your events are the albums you host, their settings, and the media inside them. Your uploads are the photos and videos you add to events, attributed to your display name (or to “Anonymous” where a host allows unsigned uploads).",
+      "On the marketing site we also count visits with cookieless, first-party analytics: aggregate numbers like which pages get viewed, roughly where visits come from, and which buttons get clicked. It sets no cookies, never identifies you, and does not follow you to other sites.",
       "There is no advertising profile, no tracking across other sites, and nothing about you is sold. We collect what the product needs to run, and that is the list above.",
     ],
   },
@@ -71,10 +72,10 @@ const SECTIONS: LegalSection[] = [
     summary: "Download everything, delete anything, leave whenever.",
     body: [
       <>
-        Everything you uploaded comes back out at the quality it went in,
-        one photo at a time or the whole album at once. Hosts can delete any
-        media or event; guests can ask a host to remove one of their shots,
-        and hosts can do it instantly. To delete your account entirely, see{" "}
+        Everything you uploaded comes back out at the quality it went in, one
+        photo at a time or the whole album at once. Hosts can delete any media
+        or event; guests can ask a host to remove one of their shots, and hosts
+        can do it instantly. To delete your account entirely, see{" "}
         <Link
           href="/help/your-data-and-deleting-your-account"
           className="underline underline-offset-2 transition-colors duration-150 hover:text-foreground"

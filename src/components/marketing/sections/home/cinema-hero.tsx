@@ -17,6 +17,8 @@ import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+import { trackAttrs } from "@/lib/analytics/events";
+import { track } from "@/lib/analytics/web";
 import {
   MARKETING_IMAGES,
   MARKETING_REELS,
@@ -270,7 +272,15 @@ export function CinemaHero() {
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="h-11 px-6 text-base">
-              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+              <Link
+                href={MARKETING_CTA.href}
+                {...trackAttrs("cta_click", {
+                  cta: "start-free",
+                  location: "hero",
+                })}
+              >
+                {MARKETING_CTA.label}
+              </Link>
             </Button>
             {/* A REAL SECONDARY BUTTON (R4/A13): a 25% hairline over a bright
                 media wall read as plain text at 375. A dark glass fill plus a
@@ -279,7 +289,10 @@ export function CinemaHero() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => setOverlayOpen(true)}
+              onClick={() => {
+                track("reel_play");
+                setOverlayOpen(true);
+              }}
               className="h-11 gap-2 border-white/40 bg-black/40 px-5 text-base text-white backdrop-blur-[2px] hover:border-white/50 hover:bg-white/15 hover:text-white"
             >
               <Play className="size-4 fill-current" />

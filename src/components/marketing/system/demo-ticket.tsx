@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { trackAttrs } from "@/lib/analytics/events";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEMO_EVENT_URL } from "@/lib/demo";
@@ -40,6 +41,11 @@ export function DemoTicket({
   return (
     <Link
       href={DEMO_EVENT_URL}
+      // The layout IS the placement (row = hero, column = the nav mega-panel),
+      // so the analytics source derives from it instead of a second prop.
+      {...trackAttrs("demo_open", {
+        source: column ? "nav-ticket" : "hero-ticket",
+      })}
       // The two shapes sit on DIFFERENT grounds and so cannot share a palette
       // (2026-08-28): `row` floats over the hero's media wall, where hard
       // white-on-black glass is exactly right, while `column` sits inside the

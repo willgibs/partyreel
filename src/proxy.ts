@@ -32,10 +32,13 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Match everything except Next internals and static image assets, so the auth
-  // cookie stays fresh app-wide. The matcher only skips work that never needs a
-  // session; route-level protection is enforced in the (app) layout.
+  // Match everything except Next internals, Vercel platform paths (the
+  // /_vercel/insights + /_vercel/speed-insights analytics beacons need no
+  // session, and each hit here costs a Supabase getUser round-trip), and static
+  // image assets, so the auth cookie stays fresh app-wide. The matcher only
+  // skips work that never needs a session; route-level protection is enforced
+  // in the (app) layout.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
