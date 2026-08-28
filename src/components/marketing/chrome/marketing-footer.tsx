@@ -205,7 +205,13 @@ function SignOff() {
           Ask{" "}
           {ASK_AI_TARGETS.map((target, i) => (
             <span key={target.label}>
-              {i > 0 && (i === ASK_AI_TARGETS.length - 1 ? ", or " : ", ")}
+              {/* "A or B" for two, "A, B, or C" for three or more. */}
+              {i > 0 &&
+                (i === ASK_AI_TARGETS.length - 1
+                  ? ASK_AI_TARGETS.length === 2
+                    ? " or "
+                    : ", or "
+                  : ", ")}
               <a
                 href={target.href}
                 target="_blank"
