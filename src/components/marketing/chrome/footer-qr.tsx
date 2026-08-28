@@ -1,4 +1,3 @@
-import Link from "next/link";
 import qrcode from "qrcode-generator";
 
 import { cn } from "@/lib/utils";
@@ -27,8 +26,9 @@ import { cn } from "@/lib/utils";
  * Error correction "M" (15%) at 33 modules gives ~4.1px per module at the
  * default size, comfortably above the ~3px screen-scanning floor.
  *
- * StyledQr renders aria-hidden, and so does this: the wrapping Link carries the
- * accessible name, exactly as live-qr.tsx does.
+ * Renders the plate only. It is aria-hidden and carries no link: FooterDemo
+ * wraps it so one accessible name covers the whole object (QR + photo stack),
+ * the live-qr.tsx precedent.
  */
 
 /** Quiet zone in modules. The QR spec minimum; do not lower it. */
@@ -36,17 +36,11 @@ const QUIET_ZONE = 4;
 
 export function FooterQr({
   value,
-  href,
-  label,
-  size = 168,
+  size = 128,
   className,
 }: {
   /** What the code encodes. */
   value: string;
-  /** Where a tap goes (desktop scans, phones tap). */
-  href: string;
-  /** The link's accessible name (the graphic itself is aria-hidden). */
-  label: string;
   /** Rendered edge length in px, quiet zone included. */
   size?: number;
   className?: string;
@@ -68,15 +62,9 @@ export function FooterQr({
   }
 
   return (
-    <Link
-      href={href}
-      aria-label={label}
+    <span
       className={cn(
         "inline-flex rounded-[var(--radius-tile)] bg-white p-2",
-        // The press feedback the craft bar asks of anything pressable. Only
-        // transform transitions (never `all`), and scale is listed on its own
-        // because Tailwind v4 compiles scale-* to the standalone CSS property.
-        "transition-[transform,scale] duration-150 ease-emphasis active:scale-[0.99]",
         className,
       )}
     >
@@ -93,6 +81,6 @@ export function FooterQr({
         <rect width={span} height={span} fill="#fff" />
         <path d={d} fill="#000" />
       </svg>
-    </Link>
+    </span>
   );
 }

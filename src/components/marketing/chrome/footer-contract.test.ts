@@ -71,26 +71,15 @@ describe("the ink-slab footer contract", () => {
     expect(stripComments(qr)).not.toContain('"use client"');
   });
 
-  it("the root 404 renders the footer WITHOUT disclosure", () => {
-    // not-found.tsx renders outside (marketing), so marketing.css and [data-mkt]
-    // are both absent and every .mkt-acc selector fails to match. A "collapsed"
-    // group would sit permanently open there. Nothing throws; it just looks
-    // broken on a page nobody screenshots.
-    expect(stripComments(read("src/app/not-found.tsx"))).toContain(
-      "<MarketingFooter disclosure={false} />",
+  it("the seam glow owns the loop-pause contract", () => {
+    // The sweep is infinite, and marketing.css requires every infinite animation
+    // to carry data-paused wiring. It matters more here than anywhere: the
+    // footer is below the fold on every page, so the default state is paused and
+    // the animation only runs while someone is actually looking at it.
+    const glow = stripComments(
+      read("src/components/marketing/chrome/footer-glow.tsx"),
     );
-  });
-
-  it("closed disclosure panels are inert (clipped links leave the tab order)", () => {
-    // .mkt-acc-panel-inner is `overflow: hidden`, not `clip`, so a clipped link
-    // stays focusable: tabbing into it scrolls the hidden box and drops focus
-    // somewhere invisible. The FAQ accordion never hit this because its panels
-    // hold only a <p>.
-    const disclosure = stripComments(
-      read("src/components/marketing/chrome/footer-disclosure.tsx"),
-    );
-    expect(disclosure).toContain("inert={!open || undefined}");
-    // Padding on the list, never on -inner: a padded 0fr track never closes.
-    expect(disclosure).not.toMatch(/mkt-acc-panel-inner[^>]*p[xytblr]?-\d/);
+    expect(glow).toContain("useAmbientPause");
+    expect(glow).toContain("data-paused");
   });
 });

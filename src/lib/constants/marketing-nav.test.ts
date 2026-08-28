@@ -7,8 +7,8 @@ import {
   FOOTER_NAV,
   isNavGroup,
   PRIMARY_NAV,
+  type FooterColumn,
   type NavItem,
-  type NavLink,
 } from "@/lib/constants/marketing-nav";
 
 // Every href a nav surface exposes (flat links + group parents + children).
@@ -24,11 +24,6 @@ function hrefsOf(items: NavItem[]): string[] {
   }
   return out;
 }
-
-// The flat (non-group) entries of a footer column, narrowed. `filter(x => !g(x))`
-// does not narrow on its own, so the predicate is spelled out.
-const flatLinks = (items: NavItem[]): NavLink[] =>
-  items.filter((item): item is NavLink => !isNavGroup(item));
 
 // Internal app routes or in-page anchors — never an external/protocol URL (the
 // marketing nav should never point off-site). Guards against a stray "https://…".
@@ -56,37 +51,7 @@ describe("marketing nav config", () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
-  it("footer: titled columns, non-empty internal links, no dupes within a column", () => {
-    for (const column of FOOTER_NAV) {
-      expect(column.title.trim()).not.toBe("");
-      expect(column.links.length).toBeGreaterThan(0);
-      // A column entry is a flat link OR a collapsed group, so the href set is
-      // the FLATTENED one (hub + children included) — a nested off-site link or
-      // a dupe hiding inside a group must fail exactly like a top-level one.
-      const hrefs = hrefsOf(column.links);
-      expect(new Set(hrefs).size).toBe(hrefs.length);
-      for (const href of hrefs) expect(isInternal(href)).toBe(true);
-      for (const item of column.links) {
-        expect(item.label.trim()).not.toBe("");
-        if (isNavGroup(item)) {
-          expect(item.children.length).toBeGreaterThan(0);
-          for (const child of item.children) {
-            expect(child.label.trim()).not.toBe("");
-          }
-        }
-      }
-    }
-  });
-
-  it("footer has no duplicate hrefs across columns or the legal bar", () => {
-    const hrefs = [
-      ...FOOTER_NAV.flatMap((column) => hrefsOf(column.links)),
-      ...FOOTER_LEGAL.map((link) => link.href),
-    ];
-    expect(new Set(hrefs).size).toBe(hrefs.length);
-  });
-
-  it("the Events nav mirrors EVENT_TYPE_SLUGS (no drift)", () => {
+  it("the header Events panel mirrors EVENT_TYPE_SLUGS (no drift)", () => {
     const expected = EVENT_TYPE_SLUGS.map((slug) => `/events/${slug}`);
     const group = PRIMARY_NAV.find(
       (item) => isNavGroup(item) && item.label === "Events",
@@ -94,19 +59,6 @@ describe("marketing nav config", () => {
     expect(group && isNavGroup(group)).toBe(true);
     if (group && isNavGroup(group)) {
       expect(group.children.map((child) => child.href)).toEqual(expected);
-    }
-    // The footer no longer has an Events COLUMN: the four type pages are the
-    // collapsed long-tail group inside Product (the ink-slab IA). The mirror
-    // invariant survives the move.
-    const footerEvents = FOOTER_NAV.find(
-      (col) => col.title === "Product",
-    )?.links.find((item) => isNavGroup(item) && item.label === "Events");
-    expect(footerEvents && isNavGroup(footerEvents)).toBe(true);
-    if (footerEvents && isNavGroup(footerEvents)) {
-      expect(footerEvents.href).toBe("/events");
-      expect(footerEvents.children.map((child) => child.href)).toEqual(
-        expected,
-      );
     }
   });
 
@@ -144,50 +96,98 @@ describe("marketing nav config", () => {
     ]);
   });
 
-  it("the footer Product column keeps conversion routes FLAT and the long tail collapsed", () => {
-    // Will's ruling for the ink slab: only long-tail pages may sit behind a
-    // disclosure. Anything a first-time visitor needs to convert or to trust
-    // stays one glance away. This pin is that ruling made mechanical — moving
-    // any of these four into a group is what it exists to catch.
-    const product = FOOTER_NAV.find((col) => col.title === "Product");
-    expect(flatLinks(product?.links ?? []).map((link) => link.href)).toEqual([
-      "/how-it-works",
-      "/reel",
-      "/pricing",
-      "/#faq",
-    ]);
+  // ── the footer (the ink-slab IA) ──────────────────────────────────────────
 
-    const groups = (product?.links ?? []).filter(isNavGroup);
-    expect(groups.map((group) => group.label)).toEqual(["Features", "Events"]);
+  // Every href a footer column exposes, tail included.
+  const columnHrefs = (column: FooterColumn): string[] => [
+    ...column.links.map((link) => link.href),
+    ...(column.tail ?? []).map((link) => link.href),
+  ];
 
-    // The Features group mirrors the registry. Note it does NOT nest /reel the
-    // way the header panel does: Reel already sits flat above it.
-    const features = groups[0];
-    expect(features.href).toBe("/features");
-    expect(features.children.map((child) => child.href)).toEqual(
-      FEATURE_PAGES.map((page) => `/features/${page.slug}`),
-    );
-    for (const page of FEATURE_PAGES) {
-      const child = features.children.find(
-        (c) => c.href === `/features/${page.slug}`,
-      );
-      expect(child?.label).toBe(page.navLabel);
+  it("footer: titled columns, non-empty internal links, no dupes within a column", () => {
+    for (const column of FOOTER_NAV) {
+      expect(column.title.trim()).not.toBe("");
+      expect(column.links.length).toBeGreaterThan(0);
+      const hrefs = columnHrefs(column);
+      expect(new Set(hrefs).size).toBe(hrefs.length);
+      for (const href of hrefs) expect(isInternal(href)).toBe(true);
+      for (const link of [...column.links, ...(column.tail ?? [])]) {
+        expect(link.label.trim()).not.toBe("");
+      }
     }
   });
 
-  it("the ONLY collapsed groups are the two long-tail registries", () => {
-    const grouped = FOOTER_NAV.flatMap((col) => col.links.filter(isNavGroup));
-    expect(grouped.map((group) => group.label)).toEqual(["Features", "Events"]);
+  it("footer has no duplicate hrefs across columns or the legal bar", () => {
+    const hrefs = [
+      ...FOOTER_NAV.flatMap(columnHrefs),
+      ...FOOTER_LEGAL.map((link) => link.href),
+    ];
+    expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
-  it("footer Company column carries the R5 shape (About leads; no Contact)", () => {
-    const company = FOOTER_NAV.find((col) => col.title === "Company");
-    // About is footer-only by ruling (no header-nav row), so this pin is the
-    // one guard keeping the route reachable — do not drop it casually.
-    // Privacy/Terms left for FOOTER_LEGAL in the ink-slab rebuild (see the
-    // R4-A19 supersession note in marketing-nav.ts). About + Careers remain,
-    // and About still LEADS.
-    expect(hrefsOf(company?.links ?? [])).toEqual(["/about", "/careers"]);
+  it("NOTHING in the footer is collapsed: the whole sitemap is one glance", () => {
+    // The first ink-slab pass folded Features + Events into disclosures at the
+    // bottom of Product, which buried the two most core marketing page families
+    // behind a chevron (Will's review). The sitemap is small enough to show
+    // whole, so this pin exists to stop an accordion creeping back in.
+    for (const column of FOOTER_NAV) {
+      for (const link of column.links) {
+        expect(isNavGroup(link as NavItem), `${column.title} has a group`).toBe(
+          false,
+        );
+      }
+    }
+  });
+
+  it("Features is a full column mirroring FEATURE_PAGES, hub first", () => {
+    const features = FOOTER_NAV.find((col) => col.title === "Features");
+    expect(features?.links.map((link) => link.href)).toEqual([
+      "/features",
+      ...FEATURE_PAGES.map((page) => `/features/${page.slug}`),
+    ]);
+    // Labels mirror the registry (no copy drift), same contract the header panel
+    // carries. Note the footer does NOT nest /reel the way the header does.
+    for (const page of FEATURE_PAGES) {
+      const link = features?.links.find(
+        (l) => l.href === `/features/${page.slug}`,
+      );
+      expect(link?.label).toBe(page.navLabel);
+    }
+  });
+
+  it("Events is a full column mirroring EVENT_TYPE_SLUGS, hub first", () => {
+    const events = FOOTER_NAV.find((col) => col.title === "Events");
+    expect(events?.links.map((link) => link.href)).toEqual([
+      "/events",
+      ...EVENT_TYPE_SLUGS.map((slug) => `/events/${slug}`),
+    ]);
+  });
+
+  it("the Product column carries the cross-cutting conversion routes", () => {
+    const product = FOOTER_NAV.find((col) => col.title === "Product");
+    expect(product?.links.map((link) => link.href)).toEqual([
+      "/how-it-works",
+      "/pricing",
+      "/reel",
+      "/#faq",
+    ]);
+  });
+
+  it("Resources keeps the R5 shape and carries About + Careers as its tail", () => {
+    const resources = FOOTER_NAV.find((col) => col.title === "Resources");
+    expect(resources?.links.map((link) => link.href)).toEqual([
+      "/help",
+      "/blog",
+      "/press",
+      "/contact",
+    ]);
+    // About is footer-only by ruling (no header-nav row), so this pin is the one
+    // guard keeping the route reachable — do not drop it casually. It moved from
+    // a Company COLUMN to this tail, and it still leads.
+    expect(resources?.tail?.map((link) => link.href)).toEqual([
+      "/about",
+      "/careers",
+    ]);
   });
 
   it("the legal bar owns Privacy + Terms, and nothing duplicates them", () => {
@@ -199,11 +199,11 @@ describe("marketing nav config", () => {
       expect(link.label.trim()).not.toBe("");
       expect(isInternal(link.href)).toBe(true);
     }
-    // FOOTER_LEGAL sits outside the column validation loop, so without this it
-    // would carry no shape guard at all.
-    const columnHrefs = FOOTER_NAV.flatMap((col) => hrefsOf(col.links));
+    // FOOTER_LEGAL sits outside the column loop, so without this it would carry
+    // no shape guard at all.
+    const inColumns = FOOTER_NAV.flatMap(columnHrefs);
     for (const link of FOOTER_LEGAL) {
-      expect(columnHrefs).not.toContain(link.href);
+      expect(inColumns).not.toContain(link.href);
     }
   });
 

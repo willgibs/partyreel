@@ -129,68 +129,70 @@ export const PRIMARY_NAV: NavItem[] = [
   },
 ];
 
-// A footer column entry is either a flat link or a COLLAPSED GROUP (NavItem is
-// reused verbatim from the header, so `isNavGroup` narrows both surfaces).
-export type FooterColumn = { title: string; links: NavItem[] };
+export type FooterColumn = {
+  title: string;
+  links: NavLink[];
+  /**
+   * A second group under a hairline, inside the same column. The reference
+   * shape: it lets a short group (Company: two links) read as deliberate
+   * instead of as a stunted fifth column, and it keeps the footer at four nav
+   * columns so none of them has to be narrow.
+   */
+  tail?: NavLink[];
+};
 
-// THE FOOTER IA (the ink-slab rebuild). Three columns beside the brand block,
-// down from five, plus a legal bar.
+// THE FOOTER IA (the ink-slab rebuild, revised after Will's review).
 //
-// WHAT NESTS, AND WHY ONLY THAT: Will's ruling is that only LONG-TAIL pages may
-// sit behind a disclosure. Anything a first-time visitor needs for conversion or
-// for trust (pricing, how it works, help center, blog, contact, press) stays
-// flat and one glance away. That leaves exactly two nestable sets: the six
-// feature detail pages and the four event-type pages, both of which are also
-// reachable from their own hubs, the sitemap, and llms.txt, so collapsing them
-// costs no crawl path.
+// FEATURES AND EVENTS ARE FULL COLUMNS, NOT DISCLOSURES. The first pass folded
+// them into collapsed groups at the bottom of Product, which buried the two most
+// core marketing page families behind a chevron. Will's rule was that anything
+// core to conversion stays one glance away, and these are exactly that. No
+// accordion survives: the whole sitemap is ~22 links, which fits four columns on
+// desktop and a two-up grid on phones, so collapsing anything only ever cost a
+// click and hid the good stuff.
 //
-// A group's `href` is the hub. The footer renders it as the panel's leading
-// "All features" / "All events" row rather than making the disclosure header
-// both a link and a button (two roles on one control is an a11y trap). Same
-// idiom the mobile sheet already uses.
+// Four columns, tallest first (the reference's own arrangement), beside the
+// brand block. Company rides as Resources' TAIL under a hairline rather than a
+// fifth two-link column: five nav columns plus the brand block is the R4-A19
+// overflow shape, and a two-item column reads as a mistake.
 //
-// SUPERSEDES R4-A19 (the six-column wrap at 1440): Privacy and Terms lived under
-// Company only because a separate two-link Legal COLUMN overflowed the row. A
-// bottom bar is a different shape, so the wrap risk does not apply and legal
-// links now read as legal rather than as company. FOOTER_LEGAL below owns them.
+// SUPERSEDES R4-A19 for legal: Privacy and Terms sat under Company only because
+// a separate two-link Legal COLUMN wrapped at 1440. A bar is a different shape,
+// so FOOTER_LEGAL owns them and they read as legal, not as company.
 //
-// UNCHANGED ON PURPOSE: Resources still mirrors the header's Resources panel
-// exactly (a two-way Vitest pin), and Company still leads with About and carries
-// no Contact (the R5 pin, which is the only mechanical guard keeping /about
-// reachable). Neither was reversed by this rebuild.
+// UNCHANGED: the Resources LINKS still mirror the header's Resources panel
+// exactly (a two-way Vitest pin), and About still leads its group (the R5 pin,
+// the only mechanical guard keeping /about reachable).
 export const FOOTER_NAV: FooterColumn[] = [
+  {
+    title: "Features",
+    links: [
+      { label: "All features", href: "/features" },
+      { label: "The live album", href: "/features/album" },
+      { label: "The QR code", href: "/features/qr" },
+      { label: "Curation", href: "/features/curation" },
+      { label: "Sharing & downloads", href: "/features/sharing" },
+      { label: "Guests & profiles", href: "/features/guests" },
+      { label: "Privacy & trust", href: "/features/privacy" },
+    ],
+  },
+  {
+    title: "Events",
+    links: [
+      { label: "All events", href: "/events" },
+      { label: "Weddings", href: "/events/weddings" },
+      { label: "Parties", href: "/events/parties" },
+      { label: "Conferences", href: "/events/conferences" },
+      { label: "Trips", href: "/events/trips" },
+    ],
+  },
   {
     title: "Product",
     links: [
       { label: "How it works", href: "/how-it-works" },
-      { label: "Reel", href: "/reel" },
       { label: "Pricing", href: "/pricing" },
+      { label: "The reel", href: "/reel" },
       { label: "FAQ", href: "/#faq" },
-      // The two collapsed sets. Children mirror their registries (Vitest-pinned);
-      // the header's Features panel additionally nests /reel, the footer's does
-      // not because Reel already sits flat above.
-      {
-        label: "Features",
-        href: "/features",
-        children: [
-          { label: "The live album", href: "/features/album" },
-          { label: "The QR code", href: "/features/qr" },
-          { label: "Curation", href: "/features/curation" },
-          { label: "Sharing & downloads", href: "/features/sharing" },
-          { label: "Guests & profiles", href: "/features/guests" },
-          { label: "Privacy & trust", href: "/features/privacy" },
-        ],
-      },
-      {
-        label: "Events",
-        href: "/events",
-        children: [
-          { label: "Weddings", href: "/events/weddings" },
-          { label: "Parties", href: "/events/parties" },
-          { label: "Conferences", href: "/events/conferences" },
-          { label: "Trips", href: "/events/trips" },
-        ],
-      },
     ],
   },
   {
@@ -201,12 +203,9 @@ export const FOOTER_NAV: FooterColumn[] = [
       { label: "Press & brand", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
-  },
-  {
-    title: "Company",
-    links: [
-      // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
-      // header-nav row. It leads the column as the column's anchor.
+    // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
+    // header-nav row. It leads the tail as the group's anchor.
+    tail: [
       { label: "About", href: "/about" },
       { label: "Careers", href: "/careers" },
     ],

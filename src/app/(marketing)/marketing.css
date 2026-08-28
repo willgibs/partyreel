@@ -1107,6 +1107,162 @@
   }
 }
 
+/* ── pro/organic-shimmer, adapted as THE FOOTER SEAM GLOW. The ink slab meets a
+   bright paper page (and a darker cinema room) at a hard cut that read as a
+   wireframe edge. Two layers, both warped by one SVG turbulence field so the
+   light undulates instead of ruling a straight line:
+
+     BASE  — a static multi-hue bloom hugging the top edge. This is the "inner
+             shadow" itself and it is ALWAYS visible.
+     BAND  — the recipe's travelling shimmer, a mask 280% the layer's width
+             swept across the base so a brighter comet passes along the seam.
+
+   ★ The split is load-bearing, not decorative layering. A single swept layer
+   rests at mask-position 140% (fully off-layer), so the glow VANISHES whenever
+   the sweep is paused — which, given the loop-pause contract, is its default
+   state (the footer is below the fold on every page) and its reduced-motion
+   state. The house convention is that a reduced-motion jump still ARRIVES; a
+   base that never moves is how this one does.
+
+   COLOUR: the already-ratified confetti five (the accent block below), consumed
+   through color-mix, so this file gains NO new literal and the effect needs no
+   new palette ruling. `in oklab` carries no "(", so the policy test's literal
+   scan is untouched. Mask stops are fixed rather than calc()-derived: that same
+   scan reads a multi-line declaration as a selector and a ` * ` multiplier trips
+   its universal-selector check, and weakening a guard to fit my formatting is
+   the wrong trade. ── */
+[data-mkt] {
+  --mkt-fglow-h: 210px;
+  --mkt-fglow-dur: 14s;
+  --mkt-fglow-base: 0.62;
+  --mkt-fglow-sweep: 0.5;
+  --mkt-fglow-blur: 16px;
+}
+
+[data-mkt] .mkt-fglow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--mkt-fglow-h);
+  overflow: hidden;
+  pointer-events: none;
+  /* Full at the seam, gone well before the layer ends, so it reads as spill. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
+}
+
+/* Split wrapper + layers: a filter applies BEFORE a mask on a single element,
+   so the warp has to sit on a parent for the band's masked edge to undulate. */
+[data-mkt] .mkt-fglow-warp {
+  position: absolute;
+  inset: -40px -40px 0 -40px;
+  filter: url(#mkt-fglow-warp) blur(var(--mkt-fglow-blur));
+}
+
+[data-mkt] .mkt-fglow-base,
+[data-mkt] .mkt-fglow-band {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 42% 90% at 14% 0%,
+      color-mix(in oklab, var(--mkt-confetti-4) 62%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 36% 85% at 38% 0%,
+      color-mix(in oklab, var(--mkt-confetti-5) 58%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 40% 90% at 60% 0%,
+      color-mix(in oklab, var(--mkt-confetti-1) 52%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 34% 85% at 80% 0%,
+      color-mix(in oklab, var(--mkt-confetti-2) 52%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 38% 90% at 96% 0%,
+      color-mix(in oklab, var(--mkt-confetti-3) 48%, transparent),
+      transparent 72%
+    );
+}
+
+[data-mkt] .mkt-fglow-base {
+  opacity: var(--mkt-fglow-base);
+}
+
+[data-mkt] .mkt-fglow-band {
+  opacity: var(--mkt-fglow-sweep);
+  -webkit-mask-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 24%,
+    rgba(255, 255, 255, 0.25) 36%,
+    rgba(255, 255, 255, 0.7) 44%,
+    white 50%,
+    rgba(255, 255, 255, 0.7) 56%,
+    rgba(255, 255, 255, 0.25) 64%,
+    transparent 76%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 24%,
+    rgba(255, 255, 255, 0.25) 36%,
+    rgba(255, 255, 255, 0.7) 44%,
+    white 50%,
+    rgba(255, 255, 255, 0.7) 56%,
+    rgba(255, 255, 255, 0.25) 64%,
+    transparent 76%,
+    transparent 100%
+  );
+  -webkit-mask-size: 280% 100%;
+  mask-size: 280% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 0;
+  mask-position: 50% 0;
+}
+
+/* The seam itself: a hairline the light appears to be leaking through. */
+[data-mkt] .mkt-fglow-ring {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--gallery-foreground) 20%, transparent) 25%,
+    color-mix(in oklab, var(--gallery-foreground) 34%, transparent) 50%,
+    color-mix(in oklab, var(--gallery-foreground) 20%, transparent) 75%,
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-fglow-band {
+    animation: mkt-fglow-sweep var(--mkt-fglow-dur) linear infinite;
+  }
+  [data-mkt] .mkt-fglow[data-paused="true"] .mkt-fglow-band {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes mkt-fglow-sweep {
+  from {
+    -webkit-mask-position: 150% 0;
+    mask-position: 150% 0;
+  }
+  to {
+    -webkit-mask-position: -50% 0;
+    mask-position: -50% 0;
+  }
+}
+
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
    The cinema wrapper carries class="dark" (the descendant-scoped token flip) +
    data-mkt-skin="cinema"; this deepens the app's 0.14 night to the ruled cinema

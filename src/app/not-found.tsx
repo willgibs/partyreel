@@ -36,12 +36,11 @@ export default function NotFound() {
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">
         <MarketingNotFound />
       </main>
-      {/* disclosure={false}: this boundary renders OUTSIDE (marketing), so
-          marketing.css and [data-mkt] are both absent and every .mkt-acc
-          selector fails to match. A "collapsed" footer group would sit
-          permanently open here, so the long-tail links render flat instead.
-          Pinned by marketing-footer.test.tsx (the failure is silent). */}
-      <MarketingFooter disclosure={false} />
+      {/* Renders outside (marketing), so marketing.css and [data-mkt] are both
+          absent: the seam glow and the photo-stack fan simply do not fire here.
+          The footer needs no prop for that any more, because nothing in it is
+          collapsed by default. */}
+      <MarketingFooter />
     </div>
   );
 }
