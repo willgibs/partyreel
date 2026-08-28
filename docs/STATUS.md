@@ -38,13 +38,19 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**MILESTONE-6 (2026-08-28): prod = the nav round.** `main` @ tag `milestone-6` (`bfa69ba`), prod
+READY + verified at the merge SHA: the rebuilt header interaction live on partyreel.com. Will's
+feel-pass acceptance: "Feels much better." The next agreed step: circle back to the `lp/footer-ink`
+handoff (the second Agent track awaiting integration).
+
 **The nav round (2026-08-28, merged to `launch-prep` at `50e6f23`; the program's FIRST Agent-handoff
 integration):** the marketing header's interaction rebuilt on the floating-layer contract by the
 `lp/nav-interaction` Agent — one shared dropdown clock, the swap-gated box morph, origin-aware growth,
 the measured hover indicator, the header glass moved to an inert opacity layer, `PRIMARY_NAV`
 reordered (panels contiguous, Pricing last; Vitest-pinned), and the full-screen mobile menu with
-one-at-a-time disclosures. Mechanics verified live on the preview at the SHA; **Will's feel pass is
-the open item** (decision queue). Truth: [`systems/marketing-content.md`](systems/marketing-content.md)
+one-at-a-time disclosures. Mechanics verified live on the preview at the SHA; Will's feel pass
+approved same-day and the round merged at milestone-6.
+Truth: [`systems/marketing-content.md`](systems/marketing-content.md)
 + [`systems/design-system.md`](systems/design-system.md).
 
 **MILESTONE-5 (2026-08-28): prod = the contact round.** `main` @ tag `milestone-5` (`2cabc1e`),
@@ -86,9 +92,8 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-5`. **Preview** = `launch-prep` tip (`50e6f23`,
-  the nav round) at the alias above (branch-scoped env + Stripe TEST preview webhook + Supabase
-  redirect + R2 CORS wired).
+- **Prod (partyreel.com)** = `main` @ tag `milestone-6`. **Preview** = `launch-prep` tip at the alias
+  above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** 1184 green (`pnpm test`); the full gate is typecheck + lint + test + build.
@@ -124,18 +129,15 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The nav round feel pass** — the rebuilt header is live on the preview at `50e6f23`: judge the
-   hover/close feel and the indicator, the mobile menu on a real phone, and `prefers-reduced-motion`
-   (the three checks an agent session cannot judge — [perf/v1-baseline.md §4](perf/v1-baseline.md));
-   the pill↔underline swap is one word (`NAV_INDICATOR`) if the pill doesn't land.
-2. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7).
-3. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
-4. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
+1. **The `lp/footer-ink` handoff** — the agreed next step ("we'll circle back for the footer
+   branch"): Will opens the round, the Orchestrator reviews + integrates per the nav-round pattern.
+2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
+3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
-   the desk + note composite, wired same-day.)
-5. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
+   the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
+4. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-6. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
+5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)

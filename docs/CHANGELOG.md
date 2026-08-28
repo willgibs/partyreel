@@ -10,6 +10,14 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-6: the nav round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-6`, `bfa69ba`; 23 files, +1,216/−233),
+prod READY + verified at the merge SHA: the rebuilt header mechanics spot-checked live on
+partyreel.com (order/ink/`aria-current`, the glass layer, panel open + swap, the mobile menu at
+375) with a clean console. Will's feel pass on the preview approved the round ("Feels much
+better") the same day the Agent handed it off. Round content: the entry below.
+
 ## 2026-08-28 — The nav round: the marketing header's interaction rebuilt (`lp/nav-interaction`)
 
 Will's brief was a feel report, not a bug list: hover-opening a dropdown felt slow and jagged and
@@ -76,7 +84,7 @@ hover>focus>open precedence, keyboard (Enter opens / Esc closes with focus retur
 navigation + close-on-route-change, the /404 `var(…, fallback)` clocks holding with no `[data-mkt]`
 wrapper present, both skins' panels + the recolored demo ticket, and the full-screen mobile menu at
 375 (collapsed one-at-a-time disclosures, 44px rows, tap-through navigation, no horizontal scroll).
-Will's feel pass remains the open item.
+Will's feel pass approved same-day; the round shipped to prod at milestone-6 (above).
 
 ## 2026-08-28 — MILESTONE-5: the contact round
 
