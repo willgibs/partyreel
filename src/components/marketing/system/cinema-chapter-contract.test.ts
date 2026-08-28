@@ -104,6 +104,11 @@ describe("the cinema chapter contract", () => {
     // A plate pulled across the cut with a negative margin has to be free to
     // overhang the chapter box. PaperChapter carries the same rule.
     expect(chapterCode).not.toContain("overflow-hidden");
+    // ★ isolate would create a stacking context and trap the straddling child's
+    // z-index inside the chapter, so the next section's background would paint
+    // over the very thing meant to overhang it. The footer WANTS isolate (its
+    // glow must not escape upward); a chapter must never have it.
+    expect(chapterCode).not.toMatch(/\bisolate\b/);
   });
 
   it("carries the stacked-viewport padding rule", () => {

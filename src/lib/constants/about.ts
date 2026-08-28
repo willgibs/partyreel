@@ -1,5 +1,3 @@
-import { FAILURE_MODE_LINE } from "@/lib/constants/marketing-voice";
-
 /**
  * THE /about COPY SINGLE-SOURCE.
  *
@@ -9,92 +7,86 @@ import { FAILURE_MODE_LINE } from "@/lib/constants/marketing-voice";
  * PAGE file was in neither. Only the weaker neutralization fence reached it. So
  * the copy lives here and here is on the list.
  *
- * ── THE PAGE'S JOB (R5 ruling 2026-08-26, re-affirmed and extended 2026-08-28) ──
+ * ── THE PAGE'S JOB (rebuilt 2026-08-28 on Will's second pass) ──
  *
- * We-voice throughout. ZERO team / headcount / founder framing ("nothing that
- * hints at less than a stellar product"). Every conviction verifiable in the
- * shipped product, and since this pass, LINKED to where you verify it: the old
- * page promised "you can verify each one on your first event" and then gave the
- * reader nothing to click.
+ * The page was on probation: "If we can't figure it out, I plan on killing the
+ * page entirely since it doesn't seem to be adding much value." What justifies
+ * it is the MISSION, told as a story: everyone is already a photographer, and
+ * there has never been a way to get everyone's pictures into one place. The
+ * convictions then read as the answer to that story rather than as a list, and
+ * the page closes by pointing at careers.
  *
- * ★ AFFIRMATIVE ONLY (Will, 2026-08-28). A "where Partyreel is the wrong call"
- * section was planned and cut: "Those are incredibly limiting, considering the
- * fact that a photographer could also deliver their photos via this platform.
- * It could also act as somewhat of a slideshow app with the reels... We don't
- * need to box ourselves in if people find more use cases beyond what's directly
- * listed. I genuinely hope people do find ways to use this beyond what we've
- * thought of. THIS IS ABOUT WHO WE ARE, NOT WHO WE ARE NOT." So: never enumerate
- * what the product is not for, and never fence a use case. The close carries the
- * openness itself.
+ * ★ THE R5 ZERO-TEAM RULING IS RELAXED FOR THIS PAGE (Will, 2026-08-28). It
+ * banned all team/founder framing; this pass asks for both a first-person
+ * origin ("We had this problem and wanted to solve it for everyone for any
+ * event") and a "join our team" close. The ruling's intent (nothing that hints
+ * at less than a stellar product) still holds: no headcount, no scrappiness, no
+ * founder biography. Careers is where "small team" is allowed to live.
+ *
+ * ★ CATEGORY-LEVEL, NEVER BRAND NAMES. Will's raw notes named specific photo
+ * and drive products; the 2026-08-28 AI-posture ruling keeps comparison content
+ * brand-nameless, and category-level reads better anyway (naming products dates
+ * the copy and sounds defensive). Every texture from his notes survives: the
+ * cross-platform album, the drip-fed thread, the account wall, the per-person
+ * rental.
  *
  * Copy is PROVISIONAL (the SECTION_HEADERS convention; Will rules later), but it
  * answers to every mechanical fence: no em-dashes, no "night" as identity
  * language, no counts and nothing borrowed (pre-launch, Stripe TEST), outcomes
  * never actors. Row 5's first clause is phrased outcome-first PRECISELY to clear
- * the neutralization fence: do not "improve" it into naming a reviewer.
+ * the neutralization fence, which bans naming WHO does the reviewing. Keep the
+ * passive voice.
  */
 
 export const ABOUT_META = {
   title: "About",
   description:
-    "The photos from your event already exist, on everyone else's phones. Why Partyreel gathers them, and the commitments the product holds to.",
+    "Everyone at an event is already a photographer, and none of it ends up in one place. Why Partyreel exists, and the six things it will not trade away.",
 } as const;
 
+/**
+ * The masthead. Will ruled the wordmark itself as the page title (plain text at
+ * display scale, NOT the Logo lockup): an About page is a title page, so the
+ * header carries no argument and the story below does all the explaining.
+ */
 export const ABOUT_HERO = {
   eyebrow: "About",
-  // Four words that reframe the category: Partyreel is not a camera, it is the
-  // thing that gathers what was already shot. Affirmative in grammar, and it
-  // makes the reader ask "so where are they", which the subhead answers.
-  heading: "The photos already exist.",
-  subhead:
-    "Every phone in the room made a record of the same event. Partyreel exists so that record comes back whole, at full size, to everyone who was there.",
+  wordmark: "Partyreel",
 } as const;
 
 /**
- * The argument. Ink, not muted (the footer round's lesson: muted body copy reads
- * as small print, and the fix was to spend the scale and the ink).
- *
- * Deliberately NOT careers' problem story, which is candid-vs-posed and photos
- * scattering across camera rolls. This one is about POSSESSION and the social
- * cost of collecting. "Camera roll" is avoided on purpose so the two do not
- * rhyme, and none of PRESS_BOILERPLATE's nouns appear.
+ * THE MISSION, as a story. The shape is Will's: the shift already happened
+ * (everyone is a photographer), the collecting never got solved, and every
+ * workaround fails a different part of the room. Paragraph 3 is the origin and
+ * the mission in the same breath.
  */
-export const ABOUT_ARGUMENT = [
-  "By the end of any event, your guests have a better record of it than you do. They were closer to the moment, they were not the ones running the thing, and there were a lot more of them. The photos you would most want from your own event are, almost by definition, on a phone that is not yours.",
-  "Getting them is where it falls apart. A few land in the group chat and slide out of reach by the next morning. Most never leave the phone they were taken on. The rest depend on you asking, and then asking again, and nobody wants to be the person who asks again.",
-  `So Partyreel is built around the collecting, which is the only part that was ever hard. One code, and everything anyone shot goes to the same place at the size it was taken. Nobody gets asked twice. The alternative is the group chat, where ${FAILURE_MODE_LINE}. This is the failure mode Partyreel was built against.`,
-] as const;
-
-/**
- * The one dark beat. Written from THE ROOM (the table, the phone already in
- * someone's hand, the party still going), which is what keeps it distinct from
- * PRESS_BOILERPLATE, written from the product. No hosts, no guests, no "no app
- * and no account", no "full quality", no reel.
- */
-export const ABOUT_GATHER = {
-  eyebrow: "In the room",
-  heading: "Nobody has to leave the table.",
-  subhead:
-    "Somebody has a phone in their hand already, the code is on the table, and one scan opens the album right there in the browser. The party carries on, and the album fills the whole time it does.",
-  // ★ Sits under an album made entirely of photos the reader did not take, and
-  // it is the emotional close of the argument the h1 opened. It is about
-  // ARRIVING, never about completeness, which is what makes it compatible with
-  // the thirteenth photo landing after it. Do not revise toward "everything".
-  payoff: "This is what everyone else saw.",
+export const ABOUT_STORY = {
+  eyebrow: "Why we exist",
+  heading: "Everyone is a photographer. Nothing collects it.",
+  paragraphs: [
+    "Every person at your event is carrying a camera good enough to shoot it. That part of the problem solved itself years ago. The same few hours get photographed from every angle in the room, and between all of those phones there is a far better record of the event than any one person walked away with.",
+    "Getting it into one place is where it breaks, and it breaks in a different spot every time. The shared album only opens for half the room, because the other half brought a different kind of phone. The group chat delivers photos one at a time, so collecting them means scrolling back through a week of messages to find them. The cloud folder wants an account and a password, and the guests whose photos you would most like to see are the first to give up on it. Rent cameras for the tables and you pay by the table. Somewhere in there almost everyone stops trying, and the rest of the photos are simply never seen.",
+    "We kept hitting this at our own events, and there was never a version that worked for everyone who was actually there. So we built one, for any event and any phone: a single code, nothing to install, no account to make, and every photo and video landing in the same album at the size it was taken.",
+  ],
 } as const;
 
 /**
- * The convictions ledger. Each row links to the page that shows it working,
- * which is what turns "checkable" from a sentence into the page's architecture.
+ * The convictions, framed as the answer to the story above rather than as a
+ * list of features. Each links to the page that proves it, which is what turns
+ * "checkable" from a sentence into the page's architecture.
  *
  * ★ Mechanism copy has a HARD ~120-character budget: at the ledger's ~61ch right
- * column it must fit two lines, and a third line breaks the row rhythm. Four of
- * the six bodies this replaced ran 122-143 and could not be kept. Current
- * lengths: 114 / 112 / 95 / 95 / 113 / 111.
+ * column it must fit two lines, and a third breaks the row rhythm.
  *
- * The help slugs below are plain literals, pinned by help-slug-pins.test.ts so a
+ * The help slugs are plain literals, pinned by help-slug-pins.test.ts so a
  * rename cannot silently strand them.
  */
+export const ABOUT_LEDGER = {
+  eyebrow: "What we hold to",
+  heading: "Six things we will not trade away.",
+  lead: "This is what the product does about it, and each line links to where you can check it.",
+} as const;
+
 export const ABOUT_CONVICTIONS: readonly {
   title: string;
   body: string;
@@ -126,9 +118,6 @@ export const ABOUT_CONVICTIONS: readonly {
     href: "/help/how-long-media-is-kept",
   },
   {
-    // ★ The first clause is verbatim from the shipped page and stays that way:
-    // it is phrased outcome-first to clear the neutralization fence, which bans
-    // naming WHO does the reviewing. Keep the passive voice.
     title: "Review comes before removal.",
     body: "Every report gets reviewed before anything comes down, and a host can remove anything from their album instantly.",
     linkLabel: "Reporting and safety",
@@ -142,27 +131,22 @@ export const ABOUT_CONVICTIONS: readonly {
   },
 ];
 
-export const ABOUT_LEDGER = {
-  eyebrow: "Convictions",
-  heading: "Every one of these is checkable.",
-  lead: "Each row links to the page that shows it working.",
-} as const;
-
 /**
- * The close. Reading order is link, then the masthead, then this: a page that
- * ends on a link ends on an errand, a page that ends on its own name ends on a
- * conviction.
+ * The close. Points at careers rather than at signup: the footer already owns
+ * the paper lane's one conversion action (its own doctrine), so a second Start
+ * free directly above it would be the same solicitation twice.
  *
- * "The name:" is dropped from the shipped version because the wordmark sits
- * directly above and has just settled; announcing it would explain the joke.
- * The last two sentences are Will's 2026-08-28 openness ruling in the page's own
- * voice, and they are the one moment of first-person warmth on a page that by
- * ruling has no team, no headcount and no founder to spend it on.
+ * Two variants because `IS_HIRING` is derived from the open roles: a hiring
+ * claim that outlives the roles is exactly the kind of stale copy the page's own
+ * ledger promises not to ship.
  */
-export const ABOUT_CLOSE = {
-  linkLabel: "From the first scan to the final cut",
-  linkHref: "/how-it-works",
-  wordmark: "Partyreel",
-  caption:
-    "A party, plus a reel. Every album can end as a film. Everything past that we left open on purpose: whatever you gather here is yours, and what you make of it is yours too. We genuinely hope people find uses for it that we never thought of.",
+export const ABOUT_CAREERS = {
+  heading: "Come build the rest of it.",
+  hiring:
+    "The list above is the easy part to write and the hard part to keep. If that is the kind of problem you want to spend your time on, we are hiring.",
+  notHiring:
+    "The list above is the easy part to write and the hard part to keep. There is no open role today, but we always want to know who we should be talking to.",
+  linkLabelHiring: "See open roles",
+  linkLabelNotHiring: "About working here",
+  href: "/careers",
 } as const;

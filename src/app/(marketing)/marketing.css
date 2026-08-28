@@ -354,10 +354,11 @@
   --mkt-opentilt-tilt-y: -14deg;
   --mkt-opentilt-lift: 70px;
   --mkt-opentilt-perspective: 900px;
-  /* the settle (about/gather): the loose-print squaring-up beat, on its own
-     slower clock than the fly it rides over */
-  --mkt-settle-ms: 620ms;
-  --mkt-settle-delay: 120ms;
+  /* the gather (about): strewn prints drawing together into one album. Long by
+     UI standards on purpose — the travel is real distance, and marketing is the
+     one surface allowed past the 300ms ceiling. */
+  --mkt-gather-ms: 800ms;
+  --mkt-gather-stagger: 55ms;
   /* the name settles (about/close): the masthead's opening tracking. The REST
      value is not a token on purpose, see the recipe. */
   --mkt-name-open: 0.022em;
@@ -1332,34 +1333,63 @@
   }
 }
 
-/* ── THE SETTLE (about/gather; a page-level beat promoted into the register
-   because it is the general "loose prints square up" move, not an About trick).
-   Photos land slightly askew and straighten, which is the single detail that
-   separates "a grid populates" from "photos come home": a loading skeleton
-   never tilts.
+/* ── THE GATHER (about): photographs lie strewn like prints dropped on a table,
+   then draw together into one album.
 
-   ★ It rides ON TOP of [data-mkt-fly] rather than fighting it, because `rotate`
-   is an INDEPENDENT css property and the fly transition lists `transform` and
-   `opacity` only. That is the same reason the home decomposition's per-tile
-   tilt survives its burst. So the settle gets its own, slower clock and starts
-   fractionally after each tile's flight begins.
+   ★ WHY THIS IS NOT [data-mkt-fly]. The fly grammar animates opacity 0 → 1, so
+   its pre-state is INVISIBLE: a viewer never sees the scatter, only an empty
+   frame that fills in. The first build of this beat used it and Will's read was
+   exactly that — "almost unnoticeable" — because the whole idea ("scattered
+   becomes whole") was happening in a state nobody could see. Opacity is
+   therefore untouched here. The photos are visible the entire time; only their
+   position and angle change, which is the one thing the concept is about.
 
-   Final state OUTSIDE the query: reduced motion (and no-JS) gets a square grid,
-   never a permanently crooked one. ── */
-[data-mkt] .mkt-settle {
+   Uses the STANDALONE `translate` and `rotate` properties, not `transform`, so
+   the two carry independent clocks and neither can clobber the other (the same
+   reason the home decomposition's per-tile tilt survives its burst). Note the
+   house gotcha: `transform: none` will NOT clear either of them.
+
+   ARRIVAL, both directions: the gathered state sits OUTSIDE the media query, so
+   reduced motion gets the assembled album with nothing written. Without JS the
+   pre-state persists and the photos simply stay scattered — which is a real
+   composition (prints on a table, the album waiting), not a broken one. That is
+   the whole reason the scatter is authored to sit inside the frame. ── */
+[data-mkt] .mkt-gather {
+  translate: 0 0;
   rotate: 0deg;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-mkt] .mkt-settle {
-    rotate: var(--settle-r, 0deg);
-    transition: rotate var(--mkt-settle-ms) var(--ease-emphasis);
-    transition-delay: calc(
-      var(--i, 0) * var(--mkt-fly-stagger, 65ms) + var(--mkt-settle-delay)
-    );
+/* The album's geometry lives here rather than in utilities: `w-[var(--plate)]`
+   and `[--plate:58cqw]` both emitted NO rule at all through the arbitrary-value
+   path, so the plate silently fell to shrink-to-fit and collapsed to the width
+   of its own grid gaps (9px). Nothing errors when that happens, which is why it
+   belongs in the same file as the recipe it serves. --scatter multiplies the
+   authored offsets: a phone has three columns and far less room around the
+   grid, so the pile compresses rather than flying off-frame. */
+[data-mkt] .mkt-gather-plate {
+  width: 58cqw;
+  --scatter: 1;
+}
+
+@media (width < 40rem) {
+  [data-mkt] .mkt-gather-plate {
+    width: 88cqw;
+    --scatter: 0.4;
   }
-  /* 0-3-0, so it outranks the pre-state above regardless of source order. */
-  [data-mkt] [data-on="true"].mkt-settle {
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-gather {
+    translate: var(--gx, 0) var(--gy, 0);
+    rotate: var(--gr, 0deg);
+    transition:
+      translate var(--mkt-gather-ms) var(--ease-emphasis),
+      rotate var(--mkt-gather-ms) var(--ease-emphasis);
+    transition-delay: calc(var(--i, 0) * var(--mkt-gather-stagger));
+  }
+  /* 0-3-0, so it outranks the pre-state regardless of source order. */
+  [data-mkt] [data-on="true"] .mkt-gather {
+    translate: 0 0;
     rotate: 0deg;
   }
 }

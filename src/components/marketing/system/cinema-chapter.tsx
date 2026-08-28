@@ -71,8 +71,10 @@ import { cn } from "@/lib/utils";
  *  - No border-y. PaperChapter's hairline works because it draws with the LIGHT
  *    --border against dark; reversed it resolves to --gallery-border (2.49:1),
  *    which paints nothing against paper. A dark slab meeting paper IS the seam.
- *  - No overflow-hidden: a seam-straddling child (a plate pulled across the cut
- *    with a negative margin) must be free to overhang. ★ Such a child carries
+ *  - No overflow-hidden and NO isolate: a seam-straddling child (a plate pulled
+ *    across the cut with a negative margin, the /help + album.tsx idiom) must be
+ *    free to overhang AND to out-stack what follows it, which it does with
+ *    `relative z-10` in the PAGE's stacking context. ★ Such a child carries
  *    `surface-paper` ITSELF, which re-aliases the whole light block including
  *    --shadow-float — so the attribute that makes it straddle is also the one
  *    that gives back the shadow this chapter turns off.
@@ -100,9 +102,12 @@ export function CinemaChapter({
         "[--accent-foreground:var(--gallery-foreground)] [--accent:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))] [--secondary-foreground:var(--gallery-foreground)] [--secondary:color-mix(in_oklab,var(--gallery-foreground)_11%,var(--gallery))]",
         "[--brand-foreground:var(--gallery)] [--brand:var(--gallery-foreground)] [--input:var(--gallery-border)] [--primary-foreground:var(--gallery)] [--primary:var(--gallery-foreground)]",
         "[--shadow-float:0_0_0_0_oklch(0_0_0/0)]",
-        // isolate + relative give a seam hairline something to pin to without
-        // it escaping over the page above.
-        "relative isolate bg-background text-foreground",
+        // ★ `relative` WITHOUT `isolate`. The footer uses isolate because its
+        // seam glow must not escape upward, but a chapter has the opposite job:
+        // isolate creates a stacking context and TRAPS a straddling child's
+        // z-index inside it, so a later sibling with any background paints
+        // straight over the thing that is meant to overhang.
+        "relative bg-background text-foreground",
         // The stacked-viewport rule PaperChapter learned: below lg the cut
         // double-stacks two section paddings into a long dead stretch.
         "max-lg:[&>section]:py-14",
