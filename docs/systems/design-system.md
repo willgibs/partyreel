@@ -48,6 +48,24 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   `--brand: var(--primary)` already resolved to ink back at `:root` and inherits down resolved. The ink
   footer is the worked example ([marketing-footer.tsx](../../src/components/marketing/chrome/marketing-footer.tsx),
   pinned by `footer-contract.test.ts`).
+  Three more the footer never hit, found building `CinemaChapter` (2026-08-28): **`--shadow-float` must be
+  zeroed to the INVISIBLE value `0 0 0 0 oklch(0 0 0 / 0)`, never `none`** (Tailwind composes `--tw-shadow`
+  into a comma-separated `box-shadow` beside the ring/inset slots, and a `none` in that list invalidates the
+  whole declaration, taking any ring on the element with it — `.dark` says exactly this at its own
+  declaration); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
+  text-card-foreground`, so half-redeclaring makes a Card ink-on-ink, i.e. invisible rather than merely
+  wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
+  `--border` is redeclared to stop. Derive `--secondary`/`--accent` by `color-mix` over the gallery pair
+  rather than copying `.dark`'s literals, or the two drift the first time the dark ramp is retuned.
+- **`CinemaChapter`** ([cinema-chapter.tsx](../../src/components/marketing/system/cinema-chapter.tsx), pinned by
+  `cinema-chapter-contract.test.ts`) is the reusable form of all of the above: a dark chapter inside a light
+  page, the exact inverse of `PaperChapter`. Until it existed the system could only go light-inside-dark,
+  which is a real reason the paper pages read flatter than the cinema ones. It is for TYPE AND MEDIA: it
+  deliberately does not re-ramp the state colors (that would fork globals) and cannot fix native form
+  controls (the page-level `color-scheme: light` still applies), so controls and status UI stay outside a
+  chapter. A seam-straddling child carries `surface-paper` ITSELF, which re-aliases the whole light block
+  including the `--shadow-float` the chapter zeroes: the attribute that makes it straddle is the one that
+  gives back its elevation.
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
 - The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events
@@ -81,6 +99,11 @@ Exemptions by the ruling's own latitude: the HOME hero keeps its unique display 
 was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
 utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
 keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+A **non-heading display exemption** exists once: `/about`'s closing wordmark, a `<p>` at
+`clamp(3.75rem, 13vw, 10rem)`. The ladder governs H1s and this is not one, but a 160px string is a
+recorded decision, not a stray arbitrary value. It needs `text-[length:...]` (v4 must be told whether a
+`clamp()` in `text-*` is a size or a color) and it is the page's second and larger type peak, deliberately
+above its own H1: do not "fix" it back down toward 72px.
 
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts

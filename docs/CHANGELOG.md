@@ -10,6 +10,66 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The /about round: the conviction page (Agent, `lp/about`)
+
+On `lp/about` (`052b728` + `2ce2086`), preview READY and verified at
+`partyreel-git-lp-about-partyreel.vercel.app`. `/about` was a scaffold from the R5 route build-out:
+four centred blocks, zero media, zero frames, one motion beat, no type peak between 20px and 72px,
+and every section at `reveal="none"`. It also carried four live bugs, all fixed: **"night" as
+identity language** (banned by the ruled voice, but the pin only scans `marketing-voice.ts`'s
+exports so /about slipped through), a near-duplicate fork of `PRESS_BOILERPLATE`, a promise that
+"you can verify each one on your first event" with nothing to click, and a link row reproducing the
+footer's Resources column ~200px above the footer.
+
+**The thesis.** About cannot use team, traction or social proof (the R5 zero-team ruling plus the
+pre-launch claims fence), which leaves conviction and checkable truth. So the six convictions each
+LINK to the page that proves them: the promise became the architecture rather than a sentence.
+Will's ruling this round cut a planned "where Partyreel is the wrong call" section: "a photographer
+could also deliver their photos via this platform... I genuinely hope people do find ways to use
+this beyond what we've thought of. **This is about who we are, not who we are not.**" The close
+carries that openness instead, which is the page's last line.
+
+**The gather** is the site's second signature beat and the mirror of the first. Home takes a reel
+APART with `[data-mkt-fly]` inverted; About converges twelve photos into one album with the same
+ratified grammar in its documented default direction, which was unused anywhere. Zero new motion
+CSS. Vectors are an authored equal-magnitude compass, not `k * seat`: radial vectors are right for a
+burst but do not gather (inner middle-row tiles would start one tile-width out and slide in like a
+carousel), and equal magnitude over equal duration reads as one gesture instead of twelve
+animations. Eleven tiles gather; the twelfth arrives alone at `--i:36` after the payoff lands,
+because a complete rectangle says "this is all of it" and there is always one more phone in the
+room. The plate then straddles the dark→paper seam on the `album.tsx` idiom, so the album arrives
+out of the event and is set down on the desk.
+
+**Rising tides, not one polished page.** `CinemaChapter` is the missing inverse of `PaperChapter`:
+the system could only go light-inside-dark, which is a real reason the paper pages read flat. It
+transplants the ink-slab footer's token recipe and adds the three traps the footer never hit
+(`--shadow-float` must be the INVISIBLE value, never `none`, or Tailwind's composed box-shadow list
+is invalidated and takes the ring with it; `--card-foreground` must travel with `--card` or a Card
+is ink-on-ink; `--secondary`/`--accent` derive from the gallery pair rather than copying `.dark`'s
+literals so they cannot drift), pinned by a source contract test because every one fails silently
+and looks correct on the cinema pages you develop on. `PaperHero` makes the ruled H1 ramp mechanical
+instead of copy-pasted (adopted on /about only: sibling agents hold press and careers). `Reveal`
+gained the `rootMargin` passthrough its hook already documented. A separate commit gave every
+marketing surface a token-driven `::selection` colour, which the codebase had never had.
+
+Also: `FAILURE_MODE_LINE` lifted into `marketing-voice.ts` as the lowercase clause only, since
+`llms.ts` parameterises `SITE_NAME` by design and a whole sentence would fork it back; About's copy
+moved into `constants/about.ts` and added to `CLAIM_FILES`, closing a hole where social proof
+written inline on the page was caught by nothing; the ledger's three help slugs pinned; the OG card
+rewired to the h1 it had silently drifted from.
+
+**Verification.** Gates green (typecheck, lint, 1212 tests, build). Measured in-page rather than
+eyeballed: focus ring **17.94:1** inside the dark chapter (it is 1.44:1 without the token
+redeclaration, which is the entire reason the primitive exists), muted text 5.37:1, ledger mechanism
+copy 7.27:1; no horizontal overflow at 1440, 375 or 320; the plate drops to three columns on phones
+with anisotropic vector scaling; the masthead settles to exactly `-0.03em`. ★ **Motion timing was
+NOT verifiable from this session**: a backgrounded browser reports
+`document.visibilityState: "hidden"`, which suspends rAF and IntersectionObserver entirely, so
+nothing scroll-triggered fires. Confirmed as tooling, not code, because the shipped `TextsReveal`
+used on five paper pages and the homepage is equally frozen under it. Composition was verified by
+forcing the settled state; the gather's flight, the settle, the thirteenth photo's pause and the
+name settling are handed to Will for a live look.
+
 ## 2026-08-28 — MILESTONE-8: the exec round
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-8`, `4063f6e`), prod READY + verified at
