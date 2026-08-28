@@ -137,6 +137,13 @@ the higher `utilities` layer (which silently overrode it = no slide, residual ga
 `:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a mouse click doesn't leave a
 chip stuck-expanded after the cursor leaves.
 
+★ **A swept-mask layer needs a STATIC base, or it vanishes when paused.** The organic-shimmer family
+works by animating `mask-position` across a mask wider than the layer, so its resting frame sits fully
+off-layer and shows NOTHING. Anything under the loop-pause contract therefore defaults to invisible
+(offscreen is the default state) and stays invisible under reduced motion, which breaks the arrival
+rule. Split it: an always-on base layer plus the travelling band over it. The footer seam glow is the
+worked example (`.mkt-fglow-base` / `.mkt-fglow-band`, marketing.css).
+
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on
 `transitionend`/`animationend`) and stops infinite loops. Component-level
