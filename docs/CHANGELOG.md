@@ -28,9 +28,11 @@ treats it as the cheap forward bet while the real weight sits on crawlability + 
 **Prod verification at the SHA:** all three text surfaces 200 on partyreel.com, robots showing 15
 UA blocks, SoftwareApplication in the homepage HTML, /pricing serving the stacking copy; the
 subscription webhook E2E on the NEW code (API create→cancel: pro provisioned with `event_slots`
-null → downgraded to free with recompute, ledger untouched); the pass-purchase E2E staged live at
-a real $24 prod checkout for Will's test-card completion, with a ledger watch armed for the
-moment it lands.
+null → downgraded to free with recompute, ledger untouched); the pass-purchase E2E COMPLETED with
+Will's test-card entries: purchase #1 minted the ledger row (initial/$24, a clean 365-day window,
+recompute -> event_pass/75 GB/1 slot) and purchase #2 proved STACKING through the branch old code
+refused (2 rows -> 2 slots/150 GB, the dashboard reading "1 of 2 events used, 0 B / 150 GB").
+Both TEST payments refunded, rows deleted, the profile recomputed back to Free.
 
 ## 2026-08-27 — The pricing round: /pricing rebuilt from zero + the Event Pass economics made true (ADR-0025)
 
