@@ -10,6 +10,15 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-7: the footer round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-7`, `a6dc857`), prod READY + verified at
+the merge SHA: the ink slab spot-checked live on partyreel.com (the slab + redeclared tokens on a
+paper route, the QR-and-pile demo invitation, the columns + badge + legal bar, mobile 375) with a
+clean console. Will's feel pass on the preview approved the round ("It's beautiful"); the Claude
+assistant-link caution banner ships as flagged, with the revisit option logged as a ROADMAP
+one-liner. Round content: the entry below.
+
 ## 2026-08-28 — The footer round: the ink slab (`lp/footer-ink`)
 
 The footer was the last wireframe-grade surface on the marketing site: five flat 13px columns, a
@@ -59,8 +68,7 @@ base lit at 0.62 WHILE PAUSED (`document.hidden` — the split doing its job), t
 plate on hover, the QR server-rendered and pointing at the live demo event, all four columns +
 badge + legal bar, the /404 with zero horizontal scroll and the pile degrading to the plate, and
 mobile 375 (QR hidden, tap path visible, badge one line at 31px, no overflow). Consoles clean.
-Open for Will: the preview feel pass, and the flagged call on Claude's "use caution" banner over
-URL-injected prompts.
+Will's feel pass approved same-day; the round shipped to prod at milestone-7 (above).
 
 ## 2026-08-28 — MILESTONE-6: the nav round
 

@@ -33,7 +33,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
-  explored range for the next pass.
+  explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
+  milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
+  drop to ChatGPT-only if first impressions warrant
+  ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,

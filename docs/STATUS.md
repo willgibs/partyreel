@@ -38,14 +38,19 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**MILESTONE-7 (2026-08-28): prod = the footer round.** `main` @ tag `milestone-7` (`a6dc857`), prod
+READY + verified at the merge SHA: the ink slab live on partyreel.com. Will's feel-pass acceptance:
+"It's beautiful." The Claude assistant-link caution banner ships as flagged (the revisit option is a
+ROADMAP one-liner; `ask-ai.ts` carries the verified vendor behavior).
+
 **The footer round (2026-08-28, merged to `launch-prep` at `dd159b2`; the SECOND Agent-handoff
 integration):** the footer rebuilt as the ink slab by the `lp/footer-ink` Agent — three registers
 (the server-rendered QR on a fanning photo pile, the full-column index with hub-linked titles + the
 derived hiring badge, the `FOOTER_LEGAL` bar with /llms.txt), the seam glow split base+band so a
 paused/reduced-motion arrival stays lit, the `--gallery*` token-redeclaration contrast fixes
 (pinned by `footer-contract.test.ts`), and the browser-verified assistant deep-link row. Mechanics
-verified live on the preview at the SHA; **Will's preview feel pass is the open item** (he approved
-the localhost build; the integrated production build is what ships). Truth:
+verified live on the preview at the SHA; Will's preview feel pass approved same-day and the round
+merged at milestone-7. Truth:
 [`systems/marketing-content.md`](systems/marketing-content.md) +
 [`systems/design-system.md`](systems/design-system.md).
 
@@ -103,7 +108,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-6`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-7`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -140,13 +145,8 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The footer round feel pass** — the ink slab is integrated and live on the preview at
-   `dd159b2`: confirm the localhost look carried through the production build (the fan, the seam
-   glow sweep when the tab is frontmost, both skins, a real-phone scan of the footer QR), and rule
-   the one flagged call: Claude's deep link renders a "use caution before running this prompt"
-   banner over the URL-injected question — keep the link, or drop to ChatGPT-only
-   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified behavior of all three
-   vendors).
+1. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7). Both
+   Agent handoffs are integrated and on prod; no track branches are pending.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
