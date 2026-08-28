@@ -70,10 +70,16 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
   ★ **No CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
   and no mono anywhere (the R6 ruling).
+- **The `(spotlight)` route group** ([layout](../../src/app/(marketing)/(spotlight)/layout.tsx)) — a paper
+  reading body under a CINEMA hero, with a dark overlay nav to match (Will, 2026-08-28: "with the cinema
+  hero, we need to go back to the dark nav"). `/about` is its first member and the other resource pages
+  are candidates. A route GROUP, so URLs are untouched and moving a page in or out is a directory move
+  with no redirect. The nav goes dark by wearing `CINEMA_TOKENS` on the `<header>` itself, because
+  `.dark` may never nest inside `.surface-paper`.
 - **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(paper)/about/gather.tsx)) —
   a (paper) route already ends on the ink footer, so About opens on a `CinemaChapter` hero (the
-  wordmark as plain display text, never the Logo lockup) and BOOKENDS the page in dark, leaving the
-  reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
+  wordmark as plain display text, never the Logo lockup, plus one line and the Start free / How it
+  works pair) and BOOKENDS the page in dark, leaving the reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
   The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as

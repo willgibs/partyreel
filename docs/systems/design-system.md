@@ -57,6 +57,11 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
   `--border` is redeclared to stop. Derive `--secondary`/`--accent` by `color-mix` over the gallery pair
   rather than copying `.dark`'s literals, or the two drift the first time the dark ramp is retuned.
+- **`CINEMA_TOKENS`** (exported from the same file) is the token set on its own, for elements that need
+  the dark ground WITHOUT a chapter's opaque background: the `(spotlight)` layout puts it on the sticky
+  `<header>` so the nav reads dark over a cinema hero. ★ It must go on the `<header>` ITSELF, never a
+  wrapper: `position: sticky` is bounded by the parent's box, so a header-height wrapper would stop the
+  bar sticking the moment the page scrolled. `HeaderShell` takes a `className` for exactly this.
 - **`CinemaChapter`** ([cinema-chapter.tsx](../../src/components/marketing/system/cinema-chapter.tsx), pinned by
   `cinema-chapter-contract.test.ts`) is the reusable form of all of the above: a dark chapter inside a light
   page, the exact inverse of `PaperChapter`. Until it existed the system could only go light-inside-dark,
@@ -72,6 +77,13 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   margin COLLAPSES THROUGH it and escapes as the chapter's own margin, leaving the ground running on past
   the child and the next section's text rendering over it. `/help` avoids the second only because its
   straddle sits inside a section that already has vertical padding.
+- ★ **A chapter's stacked-viewport rule OUTRANKS its children's padding.** `PaperChapter` and
+  `CinemaChapter` both carry `max-lg:[&>section]:py-14` (two section paddings meeting at a cut read as
+  dead space on phones), and that child selector beats a plain `pt-*` on the section itself, so below
+  `lg` a child's own padding is silently a no-op. Right for a chapter's INTERIOR sections, wrong for
+  one that has to clear an overlay header: such a section opts out explicitly with `!` (`/about`'s
+  hero). Symptom is always the same, padding changes that do nothing at one breakpoint and work at
+  another.
 - ★ **Tailwind can emit NOTHING for an arbitrary utility, silently.** `w-[var(--plate,58cqw)]` AND
   `[--plate:58cqw]` both produced no rule at all while every neighbouring class worked, so an element fell
   to shrink-to-fit and collapsed to the width of its own grid gaps with no error anywhere. When an
