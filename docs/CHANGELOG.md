@@ -10,6 +10,50 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-27 — The pricing round: /pricing rebuilt from zero + the Event Pass economics made true (ADR-0025)
+
+Will's brief: "if the pricing page didn't exist yet, what would the ideal version be?" — with Biograph
+as the polish codex ("if I could give you a guidebook of what I mean when I say polish"). Planning
+surfaced two product rulings the page depended on, so the round shipped billing-first
+(`72ad166` → `015df15` → `092634c` on `launch-prep`; the docs/lab commit follows).
+
+**ADR-0025 (Will's rulings, built the same day):** Event Passes STACK (each purchase = a windowed
+`event_passes` ledger row granting +1 event slot + 75 GB for its own year; `profiles.event_slots`
+overrides `tier_limits.max_events` in SQL via coalesce) and Pass→Pro converts as PRORATED CREDIT
+("nothing gets lost, nothing gets banked"): checkout stamps `pass_credit_cents`, the webhook grants it
+as Stripe customer balance (idempotency-keyed), consumes every live pass, clears the chain. Renewal
+chains a new window onto the soonest-expiring active pass. Migration applied + advisors clean (the
+expected deny-all INFO for the new table) + a rolled-back contract check (dup-session refused,
+inverted window refused, consumed-without-reason refused). Pure window math fixture-tested (14 tests);
+provisioning recognizers re-pinned; 1162 total green.
+
+**The page:** eight sections replacing the three-card wireframe — quiet hero (the byte-pinned golden
+line) → paper chapter: the Free/Pro identity pair (Pro = the sheet in INK, a full token inversion; the
+in-card size segmented control replaced three stacked CTAs) + the Event Pass stretch ticket (dashed
+stub rule; the $15 renewal price surfaced on marketing for the first time; stacking + credit lines) →
+the unlock grid (third text tone for the Free floors) → the find-your-size calculator (curated stop
+ladder + video/hosting-again forks over the pure `recommendPlan` brain, 7 tests) → the full comparison
+matrix (sticky plan header at lg, tooltip fine print via the portal rule, dashed/solid divider
+grammar, mobile row-label collapse) → the always-included band → pricing FAQ (`.mkt-acc` + FAQPage
+JSON-LD from one source) → CtaBand. Every number derives from `tiers.ts`/`limits.ts`; ingress stays
+unmarketed (test-enforced); no em-dashes; no invented proof. Will's Biograph-codex notes bound the
+design (weights conservative, third tone sparingly, shadows only where photos stack, chapter rhythm
+independent of tier identity, whisper-gray banding).
+
+**Verified:** the full gate; local DOM-driven interaction pass (the in-app pane's paint-freeze makes
+screenshots lie, so hydration/switcher/calculator/FAQ asserted via events + computed styles); live on
+the preview alias in real Chrome — full-page desktop walk (the screenshot gate), mobile-emulation
+collapse checks (no horizontal scroll), tooltips, and all four checkout branches with a seeded
+mid-term pass: Pro holder buying a pass → the exact 409 toast; a pass holder buying a SECOND pass →
+a real $24 Stripe TEST session (the branch old code refused); pass holder → Pro → session metadata
+carried `pass_credit_cents: 1742`, the wire-exact floor(2400 × 265/365); renewal → a $15 session
+stamped `renewal: "1"`. Seed torn down after. **Deferred to the milestone merge:** webhook E2E on a
+COMPLETED purchase — Stripe delivers to prod's registered endpoint, which still runs `main`'s webhook
+(stated loudly, not silently downgraded). Lab sitting pending: `pricing-plan-cards` +
+`pricing-calculator` (the magic layer wires in after Will's ruling). Rides along: the A35 video-gate
+copy fix, the stale per-file-limits doc drift (PRICING.md + tiers.ts), the stale `#FB4817` accent
+claim in marketing-content.md.
+
 ## 2026-08-27 — The consolidation round + MILESTONE-3 (one boot surface for parallel sessions)
 
 **The repo became the single self-sufficient boot surface for any agent, and prod caught up to the

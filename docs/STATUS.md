@@ -38,13 +38,23 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**The pricing round (2026-08-27, on `launch-prep`, unmerged):** `/pricing` rebuilt from zero
+(Biograph-informed IA: identity pair + pass ticket + unlock grid + find-your-size calculator + full
+comparison matrix + FAQ) AND the Event Pass economics it markets made TRUE first —
+**[ADR-0025](adr/0025-event-pass-economics.md)**: passes STACK (the `event_passes` ledger +
+`profiles.event_slots`) and Pass→Pro converts as PRORATED CREDIT (Stripe customer balance). All four
+checkout branches red-teamed live on the preview (the $17.42 proration verified wire-accurate in
+session metadata). Webhook E2E (a COMPLETED purchase provisioning through the new ledger) waits for
+the milestone merge: Stripe delivers to the endpoint registered for prod, which still runs `main`'s
+webhook. Lab sitting pending (below).
+
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-3`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1143 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1162 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -85,6 +95,11 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
 5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
+6. **The pricing-round sitting:** `/design/c/pricing-plan-cards` (the pair's visual identity: Media
+   burst / Stacked photos / Quiet ink) + `/design/c/pricing-calculator` (Album fill vs the shipped
+   Receipt meter) — the ratified directions wire into /pricing after the ruling.
+7. **Annual Pro pricing numbers** (whenever ready — monthly-only was the ruled scope this round; the
+   toggle slot is reserved, [ROADMAP](ROADMAP.md) "Billing follow-ons").
 
 ## Pre-launch / human-blocked
 

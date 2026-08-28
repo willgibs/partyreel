@@ -29,11 +29,18 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
 ## Where it lives
 
 - App-side limits (client-safe, secret-free): [`tiers.ts`](../../src/lib/constants/tiers.ts) (`MAX_EVENTS`,
-  `MONTHLY_INGRESS_BYTES`, `DEFAULT_STORAGE_CAP_BYTES`, `videosAllowedForTier`, `toBillingTier`).
+  `MONTHLY_INGRESS_BYTES`, `DEFAULT_STORAGE_CAP_BYTES`, `videosAllowedForTier`, `toBillingTier`,
+  `EVENT_PASS_RENEWAL_PRICE_LABEL`).
+- The Event Pass LEDGER (ADR-0025): pure window math in [`billing/passes.ts`](../../src/lib/billing/passes.ts)
+  (`activeNowPasses` / `passChainExpiry` / `passWindowForPurchase` / `passProCreditCents` /
+  `derivePassEntitlement`, fixture-tested); DB access in
+  [`db/queries/event-passes.ts`](../../src/lib/db/queries/event-passes.ts) +
+  [`db/mutations/event-passes.ts`](../../src/lib/db/mutations/event-passes.ts)
+  (`insertPassPurchase` / `consumeLivePassesForProCredit` / `recomputePassEntitlement`).
 - Stripe (server-only): [`stripe/provision.ts`](../../src/lib/stripe/provision.ts) (pure
-  `resolveSubscriptionUpdate` / `resolveEventPassCheckout` / `deliveryCreatedAt`),
+  `resolveSubscriptionUpdate` / `eventPassSession` / `proCreditSession` / `deliveryCreatedAt`),
   [`stripe/entitlement.ts`](../../src/lib/stripe/entitlement.ts) (pure `resolveEntitlement` — the
-  one-plan-at-a-time gate; client-safe, but only ever called server-side),
+  Pro one-at-a-time gate; client-safe, but only ever called server-side),
   [`stripe/plans.ts`](../../src/lib/stripe/plans.ts) (Price-ID↔plan map),
   [`stripe/dashboard.ts`](../../src/lib/stripe/dashboard.ts), [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts);
   routes [`/api/stripe/`](../../src/app/api/stripe) `checkout` / `portal` / `webhook`.
@@ -41,9 +48,10 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
 
 ## Invariants (don't break)
 
-- **The Stripe webhook is the SOLE writer of `tier` / `storage_cap_bytes` / `stripe_subscription_id`** —
-  always via the service-role admin client. Never set tier from the client or the checkout route (checkout
-  only creates/persists `stripe_customer_id` so events map back). *(Cross-cutting landmine.)*
+- **The Stripe webhook (+ the sweeps' `recomputePassEntitlement`) is the SOLE writer of `tier` /
+  `storage_cap_bytes` / `stripe_subscription_id` / `event_slots`** — always via the service-role admin
+  client. Never set tier from the client or the checkout route (checkout only creates/persists
+  `stripe_customer_id` so events map back, and stamps credit metadata). *(Cross-cutting landmine.)*
 - **The webhook MUST read `await req.text()`** for `getStripe().webhooks.constructEvent(body, sig, secret)`
   — `req.json()` mutates the bytes and the signature check fails. Bad/missing signature → 400.
   `runtime="nodejs"` + `dynamic="force-dynamic"`. *(Cross-cutting landmine.)*
@@ -54,27 +62,40 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   mapping lives in `stripe/plans.ts` (reads env via `assertStripeEnv()`), NEVER in `tiers.ts`.
 - `profiles.tier` / `storage_cap_bytes` / `tier_expires_at` / `stripe_event_created_at` are
   service-role/webhook-write-only (never client-writable). → [database-security.md](database-security.md).
-- **ONE PLAN AT A TIME (ADR-0023).** `/api/stripe/checkout` refuses a session whenever the caller already
-  holds a live entitlement, resolved server-side by `resolveEntitlement()` from `profiles` (never the
-  request body). Active Pro → refuse everything, the portal owns upgrades/downgrades/cancellation. Active
-  Event Pass → refuse everything EXCEPT its own renewal. Without this a host could stack a second
-  subscription, or buy a pass that writes `storage_cap_bytes = 75 GB` over their 2 TB while Stripe keeps
-  billing Pro, feeding the over-capacity sweep media that is legitimately inside their paid cap.
+- **ONE PLAN AT A TIME FOR PRO; PASSES STACK (ADR-0023, amended by ADR-0025).** `/api/stripe/checkout`
+  still refuses everything for an active Pro (a second subscription double-bills one cap; the portal owns
+  upgrades/downgrades/cancellation), resolved server-side by `resolveEntitlement()` from `profiles` (never
+  the request body). Event Passes STACK: a second pass purchase is a normal checkout minting another
+  ledger row (+1 event slot, +75 GB for its own year); renewal eligibility reads the LEDGER (an
+  active-now window must exist), not the profile label. The old cap-collapse hazard (a pass write
+  flattening a Pro cap) is gone structurally: pass state recomputes from the ledger and never touches a
+  Pro profile (`.neq("tier","pro")` rides in the recompute's WHERE clause).
+- **The prorated Pass→Pro credit (ADR-0025) is honored in the webhook, idempotently**: balance grant
+  keyed `pass-credit-<sessionId>` (a Stripe idempotency key, so retries never double-grant) → consume all
+  live passes (0 rows on replay) → clear `tier_expires_at`/`event_slots`. Customer balance auto-applies
+  to upcoming invoices and is EXCLUDED from Checkout's own first invoice — the reason it beats an
+  `amount_off` coupon, which silently eats any credit above one invoice's total.
 - **Every entitlement write asserts EXACTLY ONE matched row** (`applyEntitlement` in the webhook route) and
   throws otherwise, so a paid-but-unprovisioned host 5xxs into a Stripe retry instead of a silent 200. There
   is still nothing that reconciles Stripe against `profiles` after the retry window, so the assertion plus
   its Sentry capture IS the reconciliation.
-- **Deliveries are ordered by `profiles.stripe_event_created_at`**, compared IN THE WHERE CLAUSE (atomic
-  under concurrent delivery, not a read-then-write). `<=` for the absolute subscription patch (a replay is a
-  no-op, and two distinct same-second events must not be dropped); `<` for the accumulating Event Pass
-  extension (a replay would gift a second year). Zero matched rows is ambiguous by construction and is
-  disambiguated with a follow-up select: guard declined → 200, no such profile → 5xx. The customer-binding
-  write deliberately leaves NO stamp, because `customer.subscription.created` can carry an earlier
-  `created` than the checkout session that produced it.
+- **Subscription deliveries are ordered by `profiles.stripe_event_created_at`**, compared IN THE WHERE
+  CLAUSE (atomic under concurrent delivery, not a read-then-write): `<=` for the absolute patch (a replay
+  is a no-op, and two distinct same-second events must not be dropped). Zero matched rows is ambiguous by
+  construction and is disambiguated with a follow-up select: guard declined → 200, no such profile → 5xx.
+  The customer-binding write deliberately leaves NO stamp, because `customer.subscription.created` can
+  carry an earlier `created` than the checkout session that produced it. **Pass purchases no longer ride
+  this guard at all** (ADR-0025): their replay-safety is the ledger's unique `stripe_session_id`, and the
+  profile write is a derived-absolute recompute.
+- **Subscription writes null `event_slots` + `tier_expires_at` ALWAYS** — a stale stacked-pass slot count
+  would cap a Pro host inside SQL's `enforce_event_limit` coalesce, and nothing banks behind Pro. The
+  downgrade path then calls `recomputePassEntitlement`, so live UNCREDITED passes resurface as
+  entitlement instead of evaporating.
 
 ## Gotchas (why it's like this — don't revert)
 
-- **Video is Pro-only.** The AUTHORITATIVE gate is `if p_type='video' and tier='free' then raise` at the
+- **Video is a PAID feature (Pro AND Event Pass; the gate is `tier != 'free'`).** The AUTHORITATIVE gate
+  is `if p_type='video' and tier='free' then raise` at the
   TOP of the tier-caps block (right after `v_profile`/`tier_limits()` load — NOT the universal-limits block
   above it, where `v_profile.tier` isn't loaded yet → a silent no-op) in BOTH `create_media` AND
   `create_media_as_host`. `get_upload_context`/`get_host_upload_context` return an advisory `video_blocked`
@@ -90,19 +111,18 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   `storage_cap_bytes=null` → 2 GB default). `plans.ts` is `server-only` (reads env) → don't import it in
   Vitest; test `provision.ts`. Pin `apiVersion` to the installed SDK's bundled version (`stripe@22.2.0` →
   `"2026-05-27.dahlia"`); bump deliberately on SDK upgrade.
-- **Event Pass is a ONE-TIME payment, not a subscription** — checkout uses `mode:"payment"` (from
-  `plan.billing === "one_time"`), so NO `customer.subscription.*` fires; it's provisioned from
-  **`checkout.session.completed`** via `session.metadata.plan_id === "event_pass"`
-  (`resolveEventPassCheckout`). **`tier_expires_at` = `max(session.created, current expiry) + termDays`** —
-  renewal EXTENDS, never resets (ADR-0023; the old `session.created + term` made an early renewal throw away
-  the remaining paid months). Still keyed off `session.created` rather than `now()` so the value is a pure
-  function of the event, but that is NOT replay-safety on its own: this patch accumulates, so replay-safety
-  comes from the strict `<` ordering guard above. Renewal = a cheaper one-time price
-  (`STRIPE_PRICE_EVENT_PASS_RENEWAL`) mapped to the SAME `event_pass` plan; checkout `{ renewal: true }`
-  requires an UNEXPIRED pass (the old "current or recent" gate keyed on `tier_expires_at != null`, which is
-  never cleared, so every past holder kept the discount forever). The purge cron's `sweepExpiredPasses`
-  downgrades lapsed passes, and `resolveEntitlement` reads the TIMESTAMP rather than the label so a host is
-  not blocked from re-buying for the up-to-a-day gap before that cron runs.
+- **Event Pass is a ONE-TIME payment on a LEDGER (ADR-0025)** — checkout uses `mode:"payment"` (from
+  `plan.billing === "one_time"`), so NO `customer.subscription.*` fires; **`checkout.session.completed`**
+  (recognized by `eventPassSession` via `session.metadata.plan_id === "event_pass"`) mints one
+  `event_passes` row (idempotent on `stripe_session_id`; `price_cents` = `session.amount_total`, so promo
+  purchases prorate off the real payment) and `recomputePassEntitlement` derives the profile. Each row
+  owns a `[start_at, expires_at)` WINDOW: an initial purchase stacks a fresh year from the purchase
+  instant; a **renewal** (the cheaper `STRIPE_PRICE_EVENT_PASS_RENEWAL` price, `metadata.renewal="1"`)
+  inserts a row whose window STARTS at the soonest-expiring active pass's expiry — ADR-0023's "extends,
+  never resets", per-window, and an unopened renewal year credits at 100% on a Pro move. Renewal
+  eligibility requires an ACTIVE-NOW window (`activeNowPasses`), read from the ledger at checkout (the
+  old label/timestamp gates are gone). `sweepExpiredPasses` is now a full recompute pass over holders
+  (expiry, 150 GB→75 GB cap shrink into the 45-day grace, renewal windows opening, drift healing).
   → [lifecycle-recovery.md](lifecycle-recovery.md).
 
 ## Stripe MCP runbook (who does what — full cutover in [`../PRICING.md`](../PRICING.md))
