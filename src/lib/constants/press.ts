@@ -162,6 +162,38 @@ export const PRESS_KIT: PressKitAsset[] = [
     note: "1024px square, transparent background.",
     bytes: 57895,
   },
+  {
+    id: "app-icon",
+    file: "/press/partyreel-app-icon.png",
+    format: "png",
+    label: "App icon",
+    note: "512px, the rounded icon as it ships on a home screen.",
+    bytes: 26890,
+  },
+  {
+    id: "share-card",
+    file: "/press/partyreel-share-card.png",
+    format: "png",
+    label: "Share card",
+    note: "1200x630, the banner a link preview shows.",
+    bytes: 45015,
+  },
+  {
+    id: "qr",
+    file: "/press/partyreel-qr.svg",
+    format: "svg",
+    label: "The QR code",
+    note: "Resolves to partyreel.com. Vector, quiet zone included.",
+    bytes: 4576,
+  },
+  {
+    id: "qr-png",
+    file: "/press/partyreel-qr.png",
+    format: "png",
+    label: "The QR code",
+    note: "1024px square, ready for print.",
+    bytes: 23555,
+  },
 ];
 
 /** The bundle of everything in PRESS_KIT. Built by scripts/build-press-kit.mjs and

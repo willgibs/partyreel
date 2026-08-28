@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -25,11 +25,15 @@ import { cn } from "@/lib/utils";
 export function CopyButton({
   value,
   label,
+  display,
   className,
 }: {
   value: string;
-  /** The accessible action name. Two copy buttons on one page need distinct names. */
+  /** The accessible action name. Several copy buttons on one page need distinct names. */
   label: string;
+  /** Visible content. Defaults to the word "Copy"; the ink swatch passes its own hex so
+   *  the VALUE is the button, which is the affordance a designer expects on a colour. */
+  display?: ReactNode;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -82,7 +86,7 @@ export function CopyButton({
             )}
           />
         </span>
-        {copied ? "Copied" : "Copy"}
+        {copied ? "Copied" : (display ?? "Copy")}
       </button>
       <span aria-live="polite" className="sr-only">
         {copied ? `${label}, copied` : ""}

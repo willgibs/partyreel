@@ -1,13 +1,11 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
-import { FooterQr } from "@/components/marketing/chrome/footer-qr";
+import { CopyButton } from "@/components/marketing/press/copy-button";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
-import { marketingImage } from "@/lib/constants/marketing-media";
 import { PRESS_KIT, type PressKitAsset } from "@/lib/constants/press";
-import { BRAND_HEX, SITE_URL } from "@/lib/constants/site";
-import { DEMO_EVENT_URL } from "@/lib/demo";
+import { BRAND_HEX } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,61 +13,54 @@ import { cn } from "@/lib/utils";
  * over the specimen-sheet alternative, "focusing press around the assets and quick hit
  * points"; the explored range is at /design/c/press-identity).
  *
- * ★ THE FRAMES ARE NOT ALL THE SAME KIND OF THING, and that is the whole idea. Three
- * marks, the ink, the type, a working code, two rooms. A contact sheet is everything the
- * roll caught, indexed in one field; six near-identical logo squares would be a downloads
- * table wearing a metaphor. Do not "tidy" this into a uniform grid of marks.
+ * ★ THE FRAMES ARE NOT ALL THE SAME KIND OF THING, and that is the whole idea: artwork,
+ * an app icon, a share card, a working code, the ink, the type. A contact sheet is
+ * everything the roll caught, indexed in one field; eight near-identical logo squares
+ * would be a downloads table wearing a metaphor. Do not "tidy" it into uniform tiles.
+ *
+ * ★ EVERY FRAME IS OURS. The first cut used two stock event photos and Will pulled them
+ * ("just feels weird to say here's a random stock photo"), which was right twice over: a
+ * press page should not hand a publisher media whose rights we do not hold, and the
+ * licence caveat that honesty required read as unfinished. Everything on the sheet is now
+ * Partyreel artwork, which also collapsed a whole provenance block into one clear line.
  *
  * ★ THE 3px GAP IS THE TELL. gap-[var(--gap-gallery)] is the site's ONE media-grid gap,
  * so the sheet reads as a Partyreel album at a glance. A comfortable gap-4 turns it into
  * a card grid and throws away the cheapest identity move on the page.
  *
- * Two mechanics, both documented at their source:
- *  - The sheet EXPOSES: frames land in index order as hard film cuts ([data-mkt-cut]),
- *    not fades, left to right like a sheet being exposed.
- *  - The light-table ISOLATE: pointing at one frame steps the others back
- *    ([data-mkt-isolate] in marketing.css, promoted from the lab in this round).
+ * ★ PLATE BY LEGIBILITY, NEVER BY VARIETY: white behind anything drawn in ink, ink behind
+ * anything drawn in white. The bare mark is a #101010 stroke and was briefly on a
+ * translucent-white plate, which resolves to dark grey on ink and all but erased it.
  *
- * ★ The cut sits on an INNER layer, never on the isolate item. A filling animation
- * outranks every author declaration, so a frame carrying both would be pinned at the
- * cut's final opacity and the dim would silently never apply. See marketing.css.
- *
- * NO STRADDLE HERE, deliberately. The paper-to-ink plane change is already the hard cut,
- * and pulling the grid across the seam would leave half a row of DOWNLOADABLE assets
- * floating on paper: decoration fighting utility on a page whose whole job is "find the
- * file, get the file". A timid straddle is worse than none.
+ * Two mechanics, documented at their source: the sheet EXPOSES (frames land in index
+ * order as hard film cuts, marketing.css [data-mkt-cut]) and the light-table ISOLATE
+ * (pointing at one steps the others back, [data-mkt-isolate]). ★ The cut sits on an INNER
+ * layer, never on the isolate item: a filling animation outranks every author declaration,
+ * so a frame carrying both would be pinned at the cut's final opacity and the dim would
+ * silently never apply.
  */
 
-/** The three marks, each carrying both of its formats. PRESS_KIT stores one row per FILE
- *  (the zip builder needs that); a press page thinks in marks, not files. */
-function pressMarks(): { label: string; files: PressKitAsset[] }[] {
-  const byLabel = new Map<string, { label: string; files: PressKitAsset[] }>();
-  for (const asset of PRESS_KIT) {
-    const found = byLabel.get(asset.label);
-    if (found) found.files.push(asset);
-    else byLabel.set(asset.label, { label: asset.label, files: [asset] });
-  }
-  return [...byLabel.values()];
+/** Group the manifest by label, since a press page thinks in ASSETS while PRESS_KIT
+ *  stores one row per FILE (the zip builder needs the per-file shape). */
+function byLabel(...ids: string[]): PressKitAsset[] {
+  return ids.map((id) => {
+    const found = PRESS_KIT.find((a) => a.id === id);
+    if (!found) throw new Error(`PRESS_KIT is missing "${id}"`);
+    return found;
+  });
 }
-
-/** The two rooms. Deliberately NOT in the kit: their provenance is unverified, and a
- *  press page must not hand a publisher media we cannot grant rights to. */
-const ROOMS = ["wedding-toast", "party-balloons"] as const;
-
-/** A plate per mark, each chosen so THAT mark is legible on it: the dark chip needs
- *  white, the light chip needs ink, and the bare mark is a #101010 stroke, so it needs a
- *  light ground (a translucent-white plate on ink is a dark grey; the mark vanished). */
-const MARK_PLATES = ["bg-white", "bg-[#101010]", "bg-white/70"];
 
 function Frame({
   index,
   plate,
-  caption,
+  label,
+  actions,
   children,
 }: {
   index: number;
   plate: string;
-  caption: ReactNode;
+  label: string;
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -89,200 +80,197 @@ function Frame({
             plate,
           )}
         >
+          {/* Mono earns its place here and almost nowhere else on the sheet: the index is
+              a NUMBER in a column of numbers, so tabular figures keep it aligned. */}
           <span className="absolute top-2 left-2 font-mono text-[10px] tracking-wider text-foreground/55 mix-blend-difference">
             {String(index + 1).padStart(2, "0")}
           </span>
           {children}
         </div>
-        <div className="flex min-h-9 items-center gap-2 bg-foreground/8 px-2.5 py-2 font-mono text-[10px] tracking-wide">
-          {caption}
+        {/* Stacked below sm: at 375px a two-column sheet leaves ~50px of caption
+            beside the chips, which truncated "Mark, dark chip" to "Mark…" and threw
+            away the one thing that says WHICH file you are taking. Label, then actions. */}
+        <div className="flex min-h-11 flex-col items-start gap-1.5 bg-foreground/8 px-3 py-2 sm:flex-row sm:items-center sm:gap-2">
+          <span className="max-w-full truncate text-xs text-muted-foreground">
+            {label}
+          </span>
+          {actions && (
+            <span className="flex gap-1.5 sm:ml-auto">{actions}</span>
+          )}
         </div>
       </div>
     </li>
   );
 }
 
-/** A download in the sheet's own language: on a real contact sheet the frame number IS
- *  how you order the print. --gallery-border is 2.49:1 and decoration only, so a control
- *  boundary here rides --foreground instead. */
-function FrameLink({ href, label }: { href: string; label: string }) {
+/**
+ * A download, styled as a real button rather than a bare word. Will's note on the first
+ * cut: the formats "look like a list of file types" instead of something to press.
+ * --gallery-border is 2.49:1 and decoration only, so the boundary rides --foreground.
+ */
+function DownloadChip({ asset }: { asset: PressKitAsset }) {
   return (
     <a
-      href={href}
+      href={asset.file}
       download
-      className="rounded-[2px] px-1 py-0.5 text-foreground/70 transition-colors duration-150 ease-[var(--ease-emphasis)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      aria-label={`Download ${asset.label}, ${asset.format.toUpperCase()}`}
+      className="inline-flex items-center rounded-action-sm border border-foreground/25 px-2 py-1 text-[11px] font-medium text-foreground/80 transition-[color,border-color,background-color,transform] duration-150 ease-[var(--ease-emphasis)] hover:border-foreground/50 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]"
     >
-      {label}
+      {asset.format.toUpperCase()}
     </a>
   );
 }
 
 export function PressSheet() {
-  const marks = pressMarks();
-  // Never a dead QR (the DemoCtaLink contract): with no demo event configured the code
-  // would encode the marketing site the reader is already on, so it falls back to the
-  // page a journalist would actually want in print.
-  const qrValue = DEMO_EVENT_URL ?? `${SITE_URL}/press`;
+  const [markDark, markDarkPng] = byLabel("mark-dark", "mark-dark-png");
+  const [markLight, markLightPng] = byLabel("mark-light", "mark-light-png");
+  const [markMono, markMonoPng] = byLabel("mark-mono", "mark-mono-png");
+  const [appIcon] = byLabel("app-icon");
+  const [shareCard] = byLabel("share-card");
+  const [qr, qrPng] = byLabel("qr", "qr-png");
 
   return (
     <Reveal>
-      <Container className="py-14 sm:py-20">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b pb-3 font-mono text-[11px] tracking-wide text-muted-foreground">
-          <span className="text-foreground">THE SHEET</span>
-          <span>
-            8 frames. The marks, the ink, the type, a code, two rooms.
-          </span>
+      <Container className="pb-16 sm:pb-24">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b pb-3">
+          <h2 className="text-sm font-medium">The sheet</h2>
+          <p className="text-sm text-muted-foreground">
+            Artwork, an app icon, a share card, a working code, the ink and the
+            type.
+          </p>
         </div>
 
         <ul
           data-mkt-isolate
           className="mt-4 grid grid-cols-2 gap-[var(--gap-gallery)] sm:grid-cols-4"
         >
-          {marks.map((mark, i) => (
-            <Frame
-              key={mark.label}
-              index={i}
-              plate={MARK_PLATES[i]}
-              caption={
-                <>
-                  <span className="truncate text-foreground/50">
-                    {mark.label}
-                  </span>
-                  <span className="ml-auto flex gap-1">
-                    {mark.files.map((file) => (
-                      <FrameLink
-                        key={file.id}
-                        href={file.file}
-                        label={file.format.toUpperCase()}
-                      />
-                    ))}
-                  </span>
-                </>
-              }
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- a static press
-                  asset previewing itself; the downloadable file wants no pipeline. */}
-              <img src={mark.files[0].file} alt="" className="size-[46%]" />
-            </Frame>
-          ))}
+          <Frame
+            index={0}
+            plate="bg-white"
+            label="Mark, dark chip"
+            actions={
+              <>
+                <DownloadChip asset={markDark} />
+                <DownloadChip asset={markDarkPng} />
+              </>
+            }
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a static press asset
+                previewing itself; the downloadable file wants no optimization pipeline. */}
+            <img src={markDark.file} alt="" className="size-[46%]" />
+          </Frame>
 
-          {/* On WHITE, not ink: an ink swatch on an ink sheet reads as a hole in the
-              grid, and the marks are genuinely drawn in #101010 ON white. */}
+          <Frame
+            index={1}
+            plate="bg-[#101010]"
+            label="Mark, light chip"
+            actions={
+              <>
+                <DownloadChip asset={markLight} />
+                <DownloadChip asset={markLightPng} />
+              </>
+            }
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
+            <img src={markLight.file} alt="" className="size-[46%]" />
+          </Frame>
+
+          <Frame
+            index={2}
+            plate="bg-white"
+            label="Bare mark"
+            actions={
+              <>
+                <DownloadChip asset={markMono} />
+                <DownloadChip asset={markMonoPng} />
+              </>
+            }
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- static press asset. */}
+            <img src={markMono.file} alt="" className="size-[46%]" />
+          </Frame>
+
           <Frame
             index={3}
             plate="bg-white"
-            caption={
-              <>
-                <span className="text-foreground/50">Ink</span>
-                <span className="ml-auto text-foreground/70">{BRAND_HEX}</span>
-              </>
-            }
+            label="App icon"
+            actions={<DownloadChip asset={appIcon} />}
           >
-            <span className="flex size-[46%] items-center justify-center bg-[#101010] font-mono text-[10px] tracking-widest text-white/50">
-              {BRAND_HEX}
-            </span>
+            <Image
+              src={appIcon.file}
+              alt=""
+              width={512}
+              height={512}
+              className="size-[54%] rounded-[18%]"
+            />
           </Frame>
 
+          {/* object-contain on an ink plate, NOT cover: the card is 1.9:1 and its
+              content is left-aligned, so a square crop would slice the mark off. No
+              padding either, so it spans the full frame width; the letterbox bands are
+              invisible because the card's own ground is the same ink as the plate. */}
           <Frame
             index={4}
-            plate="bg-white"
-            caption={
-              <>
-                <span className="text-foreground/50">Type</span>
-                <span className="ml-auto text-foreground/70">Urbanist 700</span>
-              </>
-            }
+            plate="bg-[#101010]"
+            label="Share card"
+            actions={<DownloadChip asset={shareCard} />}
           >
-            <span className="font-heading text-6xl text-[#101010]">Aa</span>
+            <Image
+              src={shareCard.file}
+              alt=""
+              fill
+              sizes="(min-width: 640px) 25vw, 50vw"
+              className="object-contain"
+            />
           </Frame>
 
-          {/* The one press asset that works in a journalist's OWN medium: a printed code
-              on a page is the product demonstrating itself. Server-rendered, zero JS. */}
           <Frame
             index={5}
             plate="bg-white"
-            caption={
+            label="The QR code"
+            actions={
               <>
-                <span className="text-foreground/50">A live album</span>
-                <span className="ml-auto text-foreground/70">
-                  Scan or print
-                </span>
+                <DownloadChip asset={qr} />
+                <DownloadChip asset={qrPng} />
               </>
             }
           >
-            <FooterQr value={qrValue} size={96} />
+            <Image
+              src={qr.file}
+              alt=""
+              width={512}
+              height={512}
+              className="size-[62%]"
+            />
           </Frame>
 
-          {ROOMS.map((id, i) => {
-            const image = marketingImage(id);
-            return (
-              <Frame
-                key={id}
-                index={6 + i}
-                plate="bg-black"
-                caption={
-                  <>
-                    <span className="truncate text-foreground/50">
-                      {image.subject}
-                    </span>
-                    <span className="ml-auto shrink-0 text-foreground/70">
-                      On request
-                    </span>
-                  </>
-                }
-              >
-                <Image
-                  src={image.src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 640px) 25vw, 50vw"
-                  className="object-cover"
-                />
-              </Frame>
-            );
-          })}
+          <Frame
+            index={6}
+            plate="bg-white"
+            label="Ink"
+            actions={
+              <CopyButton
+                value={BRAND_HEX}
+                label="Copy the ink hex"
+                display={<span className="font-mono">{BRAND_HEX}</span>}
+                className="border-foreground/25 px-2 py-1 text-[11px] text-foreground/80 hover:border-foreground/50 hover:text-foreground"
+              />
+            }
+          >
+            <span className="size-[46%] bg-[#101010]" />
+          </Frame>
+
+          <Frame index={7} plate="bg-white" label="Type: Urbanist 700">
+            <span className="font-heading text-6xl text-[#101010]">Aa</span>
+          </Frame>
         </ul>
 
-        {/* THE CREDIT LINE. Provenance, not social proof, so it clears the claims fence,
-            and it is the most practically useful thing a press kit can carry: nobody can
-            publish an image whose licence they cannot see. It also states the media gap
-            honestly instead of hiding it. */}
-        <div className="mt-6 border-t pt-4">
-          <p className="font-mono text-[11px] tracking-wide text-foreground">
-            EVERY FRAME, WITH ITS LICENCE
-          </p>
-          <dl className="mt-3 grid gap-x-10 gap-y-2 font-mono text-[11px] text-muted-foreground sm:grid-cols-2">
-            <div className="flex gap-3">
-              <dt className="shrink-0 text-foreground/50">01-05</dt>
-              <dd>Partyreel artwork. Free to use in coverage, unaltered.</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="shrink-0 text-foreground/50">06</dt>
-              <dd>Generated code. Free to print or embed.</dd>
-            </div>
-            {ROOMS.map((id, i) => (
-              <div key={id} className="flex gap-3">
-                <dt className="shrink-0 text-foreground/50">0{7 + i}</dt>
-                <dd>
-                  {tidyLicence(marketingImage(id).credit.license)} Not in the
-                  kit.
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+        <p className="mt-5 max-w-2xl text-sm text-muted-foreground">
+          Everything here is Partyreel artwork, free to use in coverage as it
+          ships. If a file needs editing to work in your layout, write instead
+          and we will make the one you need.
+        </p>
       </Container>
     </Reveal>
   );
-}
-
-/** The manifest's licence strings are deliberately blunt ("unsplash (per lab-pack
- *  comment; provenance unverified)"). Render the same facts as a sentence: the honesty is
- *  the point, the raw punctuation is not. */
-function tidyLicence(licence: string): string {
-  const source = licence.split(" (")[0];
-  const unverified = /unverified/i.test(licence);
-  return `${source.charAt(0).toUpperCase()}${source.slice(1)}${
-    unverified ? ", provenance unverified." : "."
-  }`;
 }
