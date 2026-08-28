@@ -50,34 +50,43 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
-- **`/about`** — THE CONVICTION PAGE (rebuilt 2026-08-28; the IA never recorded its job before, which is
-  why it stayed a scaffold). Copy single-source [`about.ts`](../../src/lib/constants/about.ts), on the
-  content-policy `CLAIM_FILES` list because the page file itself was reachable only by the weaker
-  neutralization fence. Its job: About cannot use team, traction or social proof (the R5 zero-team ruling
-  plus the pre-launch claims fence), which leaves **conviction and checkable truth** — so the six
-  convictions each LINK to the page that proves them, turning "checkable" from a sentence into the
-  page's architecture. Form: paper hero → left-aligned ink argument (ink, not muted: the footer round's
-  lesson) → one `CinemaChapter` holding **the gather** → the convictions ledger → the wordmark close.
+- **`/about`** — THE MISSION PAGE (rebuilt twice, 2026-08-28; the IA never recorded its job before,
+  which is a fair part of why it stayed a scaffold). Copy single-source
+  [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
+  page file itself was reachable only by the weaker neutralization fence. The page was on probation
+  ("if we can't figure it out, I plan on killing the page entirely"); what earns it is the MISSION,
+  told as a story: everyone already carries a camera good enough to shoot the event, and there has
+  never been a way to get everyone's pictures into one place, because every workaround fails a
+  different part of the room. The six convictions then land as the ANSWER to that story rather than a
+  feature list, and each links to the page that proves it (the previous version promised "you can
+  verify each one" and gave the reader nothing to click). Close points at careers, not signup.
   ★ **AFFIRMATIVE ONLY (Will, 2026-08-28):** a planned "where Partyreel is the wrong call" section was
-  cut — "a photographer could also deliver their photos via this platform... I genuinely hope people do
+  cut. "A photographer could also deliver their photos via this platform... I genuinely hope people do
   find ways to use this beyond what we've thought of. **This is about who we are, not who we are not.**"
-  Never enumerate what the product is not for, and never fence a use case; the close carries the openness
-  instead. ★ **No CtaBand, by the footer's own rule** (the footer is the paper lane's one conversion
-  action), and no Press/Careers/Contact link row: it reproduced the footer's Resources column ~200px
-  above the actual footer. No mono anywhere on the page (the R6 ruling; the `01`-`06` numerals are gone
-  because careers and the legal shell already own numbered rows).
-- **The gather** ([`about/gather.tsx`](../../src/app/(marketing)/(paper)/about/gather.tsx)) — the site's
-  second signature beat, and the mirror of the first: home takes a reel APART with `[data-mkt-fly]`
-  INVERTED, About converges twelve photos into one album with the same ratified grammar in its documented
-  default direction. Zero new motion CSS. ★ Vectors are an **authored equal-magnitude compass**, never
-  `k * seat offset`: radial-proportional is right for a BURST but does not gather (the inner middle-row
-  tiles start about one tile-width out and slide in like a carousel), and equal magnitude over equal
-  duration reads as ONE gesture instead of twelve animations. `--i` is authored, not the array index, and
-  must stay a fixed table (`Math.random()` desyncs SSR). Eleven tiles gather and the twelfth arrives alone
-  at `--i:36`, after the payoff line lands: a complete rectangle says "this is all of it", which is a photo
-  album, and there is always one more phone in the room. The dead air is the content. The plate then
-  **straddles the dark→paper seam** on the `album.tsx` idiom (`lg:` only), so the album arrives out of the
-  event and is set down on the desk.
+  Never enumerate what the product is not for, and never fence a use case.
+  ★ **The comparison stays CATEGORY-LEVEL** (the AI-posture ruling): the cross-platform album, the
+  drip-fed thread, the account wall, the per-person rental, never a product name.
+  ★ **The R5 zero-team ruling is RELAXED here** (Will, 2026-08-28): the page carries a first-person
+  origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
+  ★ **No CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
+  and no mono anywhere (the R6 ruling).
+- **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(paper)/about/gather.tsx)) —
+  a (paper) route already ends on the ink footer, so About opens on a `CinemaChapter` hero (the
+  wordmark as plain display text, never the Logo lockup) and BOOKENDS the page in dark, leaving the
+  reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
+  The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
+  of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
+  album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as
+  `album.tsx` and /help do below `lg`.
+  ★ **THE LESSON WORTH KEEPING: the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
+  so its pre-state is INVISIBLE.** Nobody ever saw the scatter, only an empty frame filling in, and
+  Will's read was "almost unnoticeable" — the whole idea was happening in a state that could not be
+  seen. The `.mkt-gather` recipe never touches opacity: the photographs are visible throughout and
+  only position and angle change. Any beat whose CONCEPT is a change of arrangement must not hide its
+  starting arrangement. The scatter is an authored table inside the frame (never `Math.random()`,
+  which desyncs SSR), so the no-JS fallback is prints on a table rather than photographs stranded
+  off-screen. Eleven gather and a twelfth arrives late, because a complete rectangle says "this is all
+  of it" and there is always one more phone in the room.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).

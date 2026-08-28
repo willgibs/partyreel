@@ -10,6 +10,35 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The /about round: the mission page (Agent, `lp/about`)
+
+On `lp/about`, preview verified at `partyreel-git-lp-about-partyreel.vercel.app`. Two passes: the
+entry below is the first, this is where it landed after Will's review. The page had been on probation
+("if we can't figure it out, I plan on killing the page entirely"), and what earns it is the MISSION,
+told as a story rather than asserted: everyone already carries a camera good enough to shoot the
+event, and there has never been a way to get everyone's pictures into one place, because every
+workaround fails a different part of the room. The convictions land as the answer to that story, and
+the page closes on careers. Copy stays category-level, never product names. Will relaxed the R5
+zero-team ruling for this page (a first-person origin plus a join-our-team close) and cut a planned
+"where Partyreel is the wrong call" section outright: "This is about who we are, not who we are not."
+
+**The arc inverted.** A (paper) route already ends on the ink footer, so About opens on a
+`CinemaChapter` hero with the wordmark at display scale and bookends the page in dark, leaving the
+reading body in the middle. The gather carries the cut on its own back, centred on the seam
+(measured landing within 4px of the album's midline), `sm:` and up only — at three columns the album
+is four rows, so phones get the whole album on dark and a plain hard cut, matching `album.tsx`.
+
+★ **The lesson worth keeping:** the first gather reused `[data-mkt-fly]`, which animates opacity 0 to
+1, so its pre-state was INVISIBLE. Nobody ever saw the scatter, only an empty frame filling in, which
+is precisely what Will's "almost unnoticeable" meant. Any beat whose CONCEPT is a change of
+arrangement must not hide its starting arrangement. The `.mkt-gather` recipe never touches opacity.
+
+Three silent bugs found building it, all now recorded in design-system.md: `isolate` on the chapter
+trapped the straddling child's z-index; the straddle's negative margin collapsed through its wrapper
+and escaped as the chapter's margin (fixed with `flow-root`); and `w-[var(--plate,58cqw)]` emitted no
+CSS rule at all, collapsing the album to the width of its own grid gaps. Gates green throughout
+(typecheck, lint, 1212 tests, build); verified at 390 and 1512 with no horizontal overflow.
+
 ## 2026-08-28 — The /about round: the conviction page (Agent, `lp/about`)
 
 On `lp/about` (`052b728` + `2ce2086`), preview READY and verified at

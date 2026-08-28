@@ -65,7 +65,18 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   controls (the page-level `color-scheme: light` still applies), so controls and status UI stay outside a
   chapter. A seam-straddling child carries `surface-paper` ITSELF, which re-aliases the whole light block
   including the `--shadow-float` the chapter zeroes: the attribute that makes it straddle is the one that
-  gives back its elevation.
+  gives back its elevation. ★ Two more traps the straddle itself sets, both silent: the chapter must NOT
+  carry `isolate` (it creates a stacking context and TRAPS the straddling child's z-index, so the next
+  section's background paints over the thing meant to overhang — the footer wants isolate, a chapter never
+  does), and the straddling child's wrapper needs a block formatting context (`flow-root`) or the negative
+  margin COLLAPSES THROUGH it and escapes as the chapter's own margin, leaving the ground running on past
+  the child and the next section's text rendering over it. `/help` avoids the second only because its
+  straddle sits inside a section that already has vertical padding.
+- ★ **Tailwind can emit NOTHING for an arbitrary utility, silently.** `w-[var(--plate,58cqw)]` AND
+  `[--plate:58cqw]` both produced no rule at all while every neighbouring class worked, so an element fell
+  to shrink-to-fit and collapsed to the width of its own grid gaps with no error anywhere. When an
+  arbitrary utility's value does not visibly apply, check for the RULE before debugging the value, and
+  move load-bearing geometry into the stylesheet that owns the component's other CSS.
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
 - The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events
