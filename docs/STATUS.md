@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-08-27
+**Updated:** 2026-08-28
 
 ## The era
 
@@ -38,6 +38,16 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**The contact round (2026-08-28, on `launch-prep`, preview-verified):** /contact rebuilt as the
+connected front door (the required topic-chip router + in-form deflection hints, the page-wide ⌘K
+help palette + embedded search band, the directory tiles, the email rail with copy micro-delight;
+`contact_submissions.topic` structured intake feeding the notify-email tag + `/admin/support`), and
+the **site-wide promise neutralization** (Will's ruling: no human-response, no human-moderation, no
+never-automate language anywhere incl. both legal drafts; the standard reply line "Every note gets a
+reply, usually within a day."; enforced by a wrap-proof content-policy fence). Sitting queue: the
+`contact-topic-router` lab ruling (Icon pills [shipped] vs Segmented tiles). Truth:
+[`systems/marketing-content.md`](systems/marketing-content.md).
+
 **MILESTONE-4 (2026-08-28): prod = the pricing round + the AI-discoverability layer.** `main` @ tag
 `milestone-4` (`62220cb`), prod READY + verified at the merge SHA: /pricing (stacks, wall, toggle),
 /llms.txt + /llms-full.txt live, robots welcoming 14 AI crawlers, SoftwareApplication schema
@@ -64,7 +74,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1173 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1179 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -100,7 +110,8 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 1. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7).
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
-   items and the real-phone QR ticket-scan check).
+   items, the real-phone QR ticket-scan check, and the NEW `contact-topic-router` ruling: Icon pills
+   [shipped] vs Segmented tiles).
 4. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
 5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))

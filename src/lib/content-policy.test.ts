@@ -165,10 +165,23 @@ describe("content policy", () => {
         ...collectSource(join(ROOT, "src/lib/constants")),
       ]),
     ];
-    const found = scanLines(surfaces, (line) => {
-      for (const { why, re } of BANNED) if (re.test(line)) return why;
-      return null;
-    });
+    // Whole-file scan with whitespace COLLAPSED, not a line scan: JSX wraps
+    // prose mid-phrase ("a real\n  person answers" shipped through the line
+    // fence and rendered as the banned phrase on /press, caught live
+    // 2026-08-28). Line precision is traded for wrap-proofing; the match
+    // excerpt localizes the hit well enough.
+    const found: string[] = [];
+    for (const file of surfaces) {
+      const flat = readFileSync(file, "utf8").replace(/\s+/g, " ");
+      for (const { why, re } of BANNED) {
+        const m = re.exec(flat);
+        if (m) {
+          found.push(
+            `${relative(ROOT, file)} [${why}]: "...${flat.slice(Math.max(0, m.index - 30), m.index + m[0].length + 10)}..."`,
+          );
+        }
+      }
+    }
     expect(
       found,
       `Human-promise/automation-absolute language found (the neutralization fence). ` +

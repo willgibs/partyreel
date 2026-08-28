@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Copy, Mail } from "lucide-react";
+import { Check, Clock, Copy, Mail } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
@@ -104,6 +104,19 @@ export function ContactEmailCard() {
           </div>
           <p className="text-sm text-pretty text-muted-foreground">
             Notes land in the same inbox as the form.
+          </p>
+        </div>
+      </div>
+      {/* The standard reply line earns a second seat at the commit point (the
+          hero states it a full scroll away); same wording, never a variant. */}
+      <div className="mt-5 flex items-start gap-4 border-t pt-5">
+        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border text-muted-foreground">
+          <Clock aria-hidden className="size-5" strokeWidth={1.5} />
+        </span>
+        <div className="flex flex-col gap-1.5">
+          <p className="font-heading text-base font-medium">Reply time</p>
+          <p className="text-sm text-pretty text-muted-foreground">
+            Every note gets a reply, usually within a day.
           </p>
         </div>
       </div>

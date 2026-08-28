@@ -82,8 +82,8 @@ export default function PressPage() {
               style={{ "--i": 2 } as CSSProperties}
             >
               Everything you need is on this page: the one-paragraph version,
-              the facts, and the brand marks. If you need more than that, a real
-              person answers.
+              the facts, and the brand marks. If you need more than that, send
+              a note and it gets answered.
             </p>
           </TextsReveal>
         </Container>

@@ -140,23 +140,27 @@ export default function ContactPage() {
       {/* The form chapter: the page's instrument. Form leads on mobile (the
           page's purpose); the rail sits beside it from lg. */}
       <SectionShell reveal="none" className="border-b">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-14">
-          <div className="flex flex-col gap-6 lg:order-1 lg:pt-2">
-            <div className="flex flex-col gap-5">
-              <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
-                Send a note
-              </h2>
-              <p className="text-pretty text-muted-foreground">
-                Pick a topic so it lands in the right place, say what&rsquo;s
-                going on, and that&rsquo;s it.
-              </p>
-            </div>
-            {/* Plain email stays a first-class door; the island renders the
-                address with the copy affordance. */}
-            <ContactEmailCard />
+        {/* Three placed children so MOBILE reads heading -> form -> email
+            (the form right after the intro; the alternative door after the
+            commitment) while lg keeps the asymmetric two-column chapter:
+            header + email card stacked left, the form spanning right. */}
+        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
+          <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
+            <h2 className="font-heading text-2xl tracking-tight sm:text-3xl">
+              Send a note
+            </h2>
+            <p className="text-pretty text-muted-foreground">
+              Pick a topic so it lands in the right place, say what&rsquo;s
+              going on, and that&rsquo;s it.
+            </p>
           </div>
-          <div className="lg:order-2">
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <ContactForm helpSubjects={helpSubjects} />
+          </div>
+          {/* Plain email stays a first-class door; the island renders the
+              address with the copy affordance + the reply row. */}
+          <div className="lg:col-start-1 lg:row-start-2 lg:self-start">
+            <ContactEmailCard />
           </div>
         </div>
       </SectionShell>
@@ -167,7 +171,7 @@ export default function ContactPage() {
         eyebrow="Self-serve"
         heading="Answers, ready now."
         subhead="Search the help center without leaving this page, or start from a common question."
-        className="border-b bg-muted/30"
+        className="border-b bg-muted/40"
       >
         <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-5">
           <HelpSearchTrigger variant="hero" />

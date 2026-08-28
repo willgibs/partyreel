@@ -10,6 +10,51 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — The contact round: the connected front door + the promise neutralization
+
+Will's brief: /contact "genuinely feels like the most bare-bones wireframe contact page possible" —
+rebuild it to the north-star bar with more sections/resources, and **stop guaranteeing a human
+response** anywhere ("let's not make promises we intend to break"). His planning rulings widened the
+second half: neutralize EVERYWHERE — the 9 human-support-reply promises AND the 13 human-moderation
+promises, marketing and legal alike ("the less legal exposure we open ourselves up to, the better...
+I don't want to break our initial legal language if we could've avoided trapping ourselves") — and
+the standard reply line became "Every note gets a reply, usually within a day." (soft speed, no
+"business day" desk-hours framing).
+
+**The neutralization (`6e1020e` + the press catch):** 27 sites recast actor-free across marketing,
+both legal drafts, help content, the nav, the ⌘K empty state, and llms.txt; "People, not machines"
+became `ReportReview` ("Flagged, reviewed, handled."); never-automate absolutes ("never an automatic
+takedown") went with the human claims, since an AI first-gate would break those the day it ships.
+A third content-policy fence enforces the ban — hardened mid-round to scan whitespace-COLLAPSED
+whole files after the live pass caught "a real / person answers" wrapped across JSX lines on /press,
+invisible to every line-based grep (mine and the recon's).
+
+**The rebuild (`4512226` + refinements):** the paper hero (TextsReveal, the promise-clean subhead),
+then the form chapter with the round's creative element: a REQUIRED **topic router** as the first
+field (7 icon chips, single source `constants/contact.ts`; picking one swaps a fastest-path
+deflection hint INSIDE the form — billing → the pricing FAQ, broke → troubleshooting), marketing-
+scale fields, the drawn-check success carrying onward links, the email rail (mono address +
+copy-to-clipboard micro-delight + the reply row); then "Answers, ready now." — the help palette
+mounted PAGE-WIDE (⌘K + an embedded hero search + quick-link chips + a 3-tile directory); then the
+CtaBand close with the demo link. The `?about=<slug>` handoff now pre-picks the topic through an
+exhaustive category map. The rider: `contact_submissions.topic` (nullable CHECK mirroring the app
+enum, parity-tested; applied + contract-checked rolled back), tagged into the notify-email subject
+(`[Plans & billing] ...`) and chipped in `/admin/support` — the structured intake future support
+automation keys on (ROADMAP bucket). Engineering catches: chip selection rides `cn()` off the
+controlled value after one embedded engine provably failed `:has(:checked)` invalidation on React's
+checked flip; two tooling gotchas recorded (dev-served stale Tailwind for new-to-repo utilities;
+pane-frozen style recalc). Lab: the `contact-topic-router` touchpoint (Icon pills vs Segmented
+tiles) awaits the sitting.
+
+**Verified:** locally, the full red-team (real submission → row topic=bug + `sent_emails` claim +
+success card; honeypot fill → success theater, ZERO rows; handoff → subject + billing chip
+pre-picked); on the preview alias at the deploy SHA, the production-paper visual pass (the 2-col
+chapter, ink inversion, hint swap, palette searching on paper skin), the site-wide banned-phrase
+fetch across 7 surfaces (the press wrap was the one catch → fixed), llms.txt's new contact line,
+mobile 375 (no overflow; the DOM re-ordered so the form follows the intro), and a second submission
+through the DEPLOYED action (row topic=press + notify email → Vercel env complete). Both probe rows
+torn down after verification. 1,179 tests green.
+
 ## 2026-08-28 — MILESTONE-4: the pricing round + the AI-discoverability layer
 
 `launch-prep` merged to `main` (`--no-ff`, tag `milestone-4`, `62220cb`; 55 files, +4,162/−624),
