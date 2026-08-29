@@ -16,6 +16,7 @@ import { PricingPlanCardsVariants } from "../../components/pricing-plan-cards-va
 import { PricingCalculatorVariants } from "../../components/pricing-calculator-variants";
 import { ContactIdentityVariants } from "../../components/contact-identity-variants";
 import { PressIdentityVariants } from "../../components/press-identity-variants";
+import { BlogIdentityVariants } from "../../components/blog-identity-variants";
 import { ReelRevealVariants } from "../../components/reel-reveal-variants";
 import { ReelExperienceVariants } from "../../components/reel-experience-variants";
 import { EntryVariants } from "../../components/entry-variants";
@@ -60,6 +61,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "pricing-calculator": PricingCalculatorVariants,
   "contact-identity": ContactIdentityVariants,
   "press-identity": PressIdentityVariants,
+  "blog-identity": BlogIdentityVariants,
   "reel-reveal": ReelRevealVariants,
   "reel-experience": ReelExperienceVariants,
 };

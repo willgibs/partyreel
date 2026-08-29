@@ -158,11 +158,71 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
   captions, labels, and CTA notes are Inter. The content agent's brief lives at
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
-  writing rules; the content-policy tests scan `.md` too so the brief obeys itself). Blog: date-sorted index + client-side tag filter, a client-safe author registry
-  ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards, and a
-  build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
-  that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
-  `draft: true` posts are excluded from listing/sitemap/RSS.
+  writing rules; the content-policy tests scan `.md` too so the brief obeys itself). **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting Room):
+  moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading half rides
+  `PaperChapter`. Shape: the Broadsheet masthead (a SMALL `Blog` h1 + a drawn `[data-mkt-rule]` hairline,
+  a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage) -> the newest
+  post as a 21:9 featured card STRADDLING the cinema->paper cut -> the library. ★ DISTINCTNESS FROM /help
+  is the standing constraint now that both hubs open dark: /help opens on an instrument (centred question,
+  search field, emblem strip), /blog opens asymmetric on the lead story with a media wall beneath. No
+  search field, no emblems, and the tag rail stays words-and-numerals only - an icon column there is the
+  one move that collapses the two surfaces together. The rail is a sticky margin index (counts from the
+  full set, a 2px ink bar for active, never a fill); the library is 4/5 portrait `PostCard`s at 1/2/3
+  columns ([`components/marketing/blog/`](../../src/components/marketing/blog), shared with the post
+  page's "Keep reading"). ★ **The hero exists ONLY in the unfiltered view** — lifting it permanently out
+  of the filtered set renders EMPTY tags, because a hero can own tags no other post has (the derivations
+  + the pin live in [`blog-index.ts`](../../src/lib/content/blog-index.ts)). Filter state rides a
+  shareable `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would deopt the
+  static route; a mount effect is banned by the react-hooks lint). Covers: an optional frontmatter
+  `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the BUILD) over a stable slug-hash fallback
+  in [`blog-covers.ts`](../../src/lib/content/blog-covers.ts) — ★ a pure function of the SLUG alone,
+  because the obvious "walk the post list and hand out unused images" is deterministic but NOT stable
+  and silently re-skins older posts on every publish. The masthead's right side is a subtle
+  RSS `Subscribe` (the feed's only visible entry point; it shipped reachable through nothing but a
+  `<link rel=alternate>`). The byline is one shared component across the card, the featured card and
+  the post header ([`post-meta.tsx`](../../src/components/marketing/blog/post-meta.tsx)) and is
+  **Inter, not mono** — the R6 doctrine applied rather than reflexively obeyed: mono earns numerals
+  that ALIGN in a column, and a byline aligns with nothing, so setting name+date+reading-time in mono
+  read as a timecode and flattened the only human signal on the card. **ONE registered author**
+  (`partyreel-team`) by Will's 2026-08-28 ruling; named individuals are deliberately absent from the
+  registry rather than dormant in it, since a dormant entry is what a content agent picks up by
+  accident. **Pagination** is built and INVISIBLE below `POSTS_PER_PAGE` (12), so today's four posts
+  render with no control at all; it rides `?page=` beside `?tag=` rather than `/blog/page/[n]` routes,
+  which would multiply into tag x page URL space on a four-post blog — ★ `paginate()` CLAMPS, because
+  a stale `?page=` or a filter that shrinks the set under the reader (tag with 40 posts, page 4, pick
+  a tag with 3) must land on a real page instead of an empty grid. The author brief is
+  [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md). **The ARTICLE** ("the print of the
+  frame") opens on the same cover at the same slug-derived crop as the card the reader clicked, so
+  the page reads as the card opening; the frontmatter `description` renders as the visible
+  STANDFIRST (it previously appeared on the card, in metadata, in the feed and in llms.txt,
+  everywhere except in front of the reader). Long-form reading components are shared with /help and
+  live in [`components/marketing/reading/`](../../src/components/marketing/reading) — `ArticleToc`
+  (scroll-spy; the blog opts into its `progress` reading spine, /help does not) and the delegated
+  `HeadingAnchorsDelegate`. The ending is deliberately TWO blocks: chronological neighbours, then
+  related posts with those neighbours excluded (`getRelatedPosts(post, n, exclude)`), because on a
+  small archive the two sets otherwise coincide and repeat a post within one screen. **THE COVER MORPH** (the polish round): the card's photograph grows into the
+  article's plate on navigation, via the **native** View Transitions API
+  ([`cover-morph.tsx`](../../src/components/marketing/blog/cover-morph.tsx)), one delegated island
+  so every card stays a server component. ★ NOT React's `<ViewTransition>`: that needs
+  `experimental.viewTransition`, which swaps the WHOLE app's React runtime from the pinned 19.2.4 to
+  19.3.0-canary (measured with a probe build, not assumed) — a product-wide trade for a blog
+  flourish, and a decision for Will, not a round. Two traps it cost: the delegate must intercept in
+  the CAPTURE phase, because `next/link` preventDefaults on the anchor first and a bubble listener
+  bails on `defaultPrevented` forever (the morph silently does nothing while the page still
+  navigates perfectly); and the delegate, not the server render, must own the
+  `view-transition-name`, because clearing it from an incoming cover is a mutation React will never
+  undo (the `style` prop did not change), so the first morph otherwise disarms every one after it.
+  The `::view-transition-*` rule in marketing.css is NAME-scoped and pinned by the CSS policy test:
+  those pseudo-elements are document-global, exactly like `@keyframes`. Share surfaces
+  are media-led: the OG card is the featured card (cover read off disk and inlined, never fetched —
+  `NEXT_PUBLIC_SITE_URL` resolves to PROD on preview builds) and the feed carries `<enclosure>` art
+  sized by the route. Unchanged: the client-safe author
+  registry ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards,
+  and the build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled
+  `buildBlogRssXml` that takes its site config as a param so it stays out of the env-validating `site.ts`
+  + is unit-tested; it now has a visible subscribe row, having been reachable only via `<link rel=
+  alternate>` since it shipped); `draft: true` posts are excluded from listing/sitemap/RSS. Open
+  follow-ons: the post page's own identity, the OG card ignoring `cover`, and an RSS `<enclosure>`.
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
   (a two-way Vitest mirror: change one side and you must change the other).
 

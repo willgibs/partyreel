@@ -1551,3 +1551,97 @@
     transition-delay: calc(var(--i, 0) * 90ms);
   }
 }
+
+/* ─────────────── Blog-identity round (lab-local, 2026-08-28) ───────────────
+   The lab never loads marketing.css, so two production facts have to be
+   restated here or the directions get judged against the wrong system:
+
+     .lab-cinema    THE CINEMA ROOM. A bare `.dark` resolves to the APP night
+                    (oklch 0.14, globals.css) - three lightness points off the
+                    real marketing stage, which is declared only in
+                    marketing.css's `.dark[data-mkt-skin="cinema"]` (0.11).
+                    Apply BESIDE `dark`, never instead of it: the dark class is
+                    what flips every other token and arms the `dark:` variant.
+
+     [data-lab-plate]  THE COVER ARRIVAL ("the covers develop"), a lab mirror of
+                    chapter 2's 14-skeleton-reveal (.mkt-skel) at its shipped
+                    clocks (400ms, 3px blur): the photo resolves out of a muted
+                    plate instead of popping in as a decoded image. Staggered by
+                    --i so the LEAD plate can be given the highest index and land
+                    last, putting the eye where the reading starts.
+
+   ★ THE PLATE HAS A STATIC BASE, and the beat is @starting-style, NOT a
+   scroll observer. Both halves of that are the same lesson, learned live in
+   this round: the first cut animated the whole plate from opacity 0 gated on
+   [data-inview], which meant 23 of 23 covers sat permanently INVISIBLE
+   wherever no Reveal wrapped them. Same failure class as the footer seam glow
+   (design-system.md: "a swept-mask layer needs a STATIC base, or it vanishes
+   when paused") - if the default state is invisible, every path that does not
+   fire the trigger renders a hole. So: the wrapper paints bg-muted and is
+   always there, only the PHOTO layer develops, and its entrance fires on first
+   paint with no dependency on an observer. If @starting-style never runs, the
+   photo is simply present. Failure mode is "no animation", never "no image".
+
+   House convention held: the final state is the DEFAULT (outside the media
+   query, so a reduced-motion arrival still ARRIVES), and only the transition
+   lives inside no-preference. */
+
+.lab-cinema {
+  --background: oklch(0.11 0 0);
+  color-scheme: dark;
+}
+
+[data-lab-plate] {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* The stage's entrance lines + the masthead rule. Production wires the RATIFIED observer grammar
+   ([data-mkt-reveal] / [data-mkt-rule] flipped by a Reveal island); the lab restates it on
+   @starting-style instead, because DesktopFrame's clipped scroll viewport makes an
+   IntersectionObserver against the page root unreliable - and an observer that does not fire on a
+   REVIEW artifact means Will judges a blank stage. Same defaults-visible contract as the plate. */
+[data-lab-line] {
+  opacity: 1;
+  transform: none;
+}
+[data-lab-rule] {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab-plate] {
+    transition:
+      opacity 400ms ease-in-out,
+      filter 400ms ease-in-out;
+    transition-delay: calc(var(--i, 0) * 60ms);
+
+    @starting-style {
+      opacity: 0;
+      filter: blur(3px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab-line] {
+    transition:
+      opacity 500ms var(--ease-emphasis),
+      transform 500ms var(--ease-emphasis);
+    transition-delay: calc(var(--i, 0) * 70ms);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  [data-lab-rule] {
+    transform-origin: left;
+    transition: transform 700ms var(--ease-in-out-strong);
+
+    @starting-style {
+      transform: scaleX(0);
+    }
+  }
+}

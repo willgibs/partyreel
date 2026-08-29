@@ -26,8 +26,8 @@ import {
 import { cn, formatEventDate } from "@/lib/utils";
 
 import { ArticleFeedback } from "@/components/marketing/help/article-feedback";
-import { ArticleToc } from "@/components/marketing/help/article-toc";
-import { HeadingAnchorsDelegate } from "@/components/marketing/help/heading-anchors";
+import { ArticleToc } from "@/components/marketing/reading/article-toc";
+import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
 import { HelpSearchTrigger } from "@/components/marketing/help/help-palette";
 
 export function generateStaticParams() {

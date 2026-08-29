@@ -26,8 +26,11 @@
    workflow) — bounded by reduced-motion safety and the loop-pause contract:
    every infinite animation carries `data-paused` wiring (use-ambient-pause).
 
-   Dropped on promotion: `[data-mkt-plate]` + `[data-mkt-rule]` (Direction A's
-   grammar; A was rejected "too templated" and nothing ratified uses them).
+   Dropped on promotion: `[data-mkt-plate]` (Direction A's grammar; A was
+   rejected "too templated" and nothing ratified uses it). `[data-mkt-rule]`
+   came BACK with the /blog masthead (2026-08-28) - see its block below; it is
+   the same magazine-furniture hairline, retriggered on @starting-style rather
+   than a scroll observer.
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Chapter 1: the cinematic [data-mkt-*] grammar ─── */
@@ -368,6 +371,11 @@
   --mkt-icon-swap-dur: 250ms;
   --mkt-icon-swap-blur: 2px;
   --mkt-icon-swap-scale: 0.25;
+  /* The blog library's filter beats (the /blog round). The exit is fast and shared by every
+     departing card; the entrants wait for the reorganize to be legible under them. */
+  --mkt-blog-exit-ms: 140ms;
+  --mkt-blog-enter-ms: 220ms;
+  --mkt-blog-enter-delay: 120ms;
   /* 14-skeleton-reveal */
   --mkt-skel-pulse-dur: 1000ms;
   --mkt-skel-pulse-min: 0.5;
@@ -1051,6 +1059,99 @@
   }
 }
 
+/* ── [data-mkt-rule]: the masthead hairline, drawing in from the left. Direction A's magazine
+   furniture, promoted for real when the /blog round ruled the Broadsheet masthead in. Fires on
+   @starting-style like the rest of this page's arrival, so it does not depend on an observer, and
+   the drawn state is the DEFAULT: a rule that defaults to scaleX(0) is an invisible divider on
+   every path that fails to trigger. ── */
+[data-mkt] [data-mkt-rule] {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] [data-mkt-rule] {
+    transition: transform 700ms var(--ease-in-out-strong);
+
+    @starting-style {
+      transform: scaleX(0);
+    }
+  }
+}
+
+/* ── The blog cover develop (the /blog round, 2026-08-28). The 14-skeleton-reveal SENSATION
+   (cross-fade + cross-blur out of a placeholder) without .mkt-skel's two-layer markup or its
+   is-revealed island: a cover is one <Image>, and a whole client component per card to flip a
+   class is not worth it. Rides the SAME --mkt-skel-* clocks so the two can never drift.
+
+   ★ The trigger is @starting-style, deliberately NOT a scroll observer, and the final state sits
+   outside the media query. A cover whose default state is invisible renders a HOLE on every path
+   that fails to fire (this exact hook, observer-gated, blanked 23 of 23 plates in the lab round;
+   same family as the footer seam glow's static-base rule). Failure mode here is "no animation",
+   never "no image". The parent paints the placeholder, so there is nothing to reveal FROM.
+
+   --i staggers the arrival; give the staged lead the highest index so it lands LAST, which puts
+   the eye where the reading starts. ── */
+[data-mkt] [data-mkt-develop] {
+  opacity: 1;
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] [data-mkt-develop] {
+    transition:
+      opacity var(--mkt-skel-reveal-dur) ease-in-out,
+      filter var(--mkt-skel-reveal-dur) ease-in-out;
+    transition-delay: calc(var(--i, 0) * 60ms);
+
+    @starting-style {
+      opacity: 0;
+      filter: blur(var(--mkt-skel-blur));
+    }
+  }
+}
+
+/* ── The blog library filter: TWO BEATS, never one (Will's ruling, 2026-08-28: "a polished motion
+   transition, then cards reorganize"). Animating removal and reflow at the same time is what makes
+   a filter change read cheap: the eye cannot tell what left from what moved.
+
+   Beat 1, here: the cards that no longer match leave TOGETHER. `transition-delay: 0` on every one
+   of them is load-bearing (the [data-review-tile][data-exiting] convention in globals.css) - a
+   stagger would make the departure read as a list unravelling rather than a set being removed.
+   Deliberately no `filter: blur()`: at 140ms a blur costs a paint the beat cannot afford.
+
+   Beat 2 is JS: once the exit clock is spent the set commits and useFlip (now two-axis, since a
+   multi-column grid moves on X as well) inverts the survivors into their new cells. The two live
+   on SEPARATE elements - exit on the card, FLIP on its wrapper - so the FLIP's inline
+   `transition: transform` can never clobber the exit's transition property.
+
+   Beat 3, the entrants: opacity only, and delayed so the reorganize is legible underneath them.
+   No transform, or it would fight the FLIP on a card that is both entering and moving. ── */
+[data-mkt] [data-mkt-exiting] {
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity var(--mkt-blog-exit-ms) ease-out,
+    transform var(--mkt-blog-exit-ms) ease-out;
+  transition-delay: 0ms;
+  pointer-events: none;
+}
+
+[data-mkt] [data-mkt-entering] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] [data-mkt-entering] {
+    transition: opacity var(--mkt-blog-enter-ms) ease-out;
+    transition-delay: var(--mkt-blog-enter-delay);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
 /* ── 11-avatar-group-hover: distance-falloff lift for a horizontal people
    row (the guests-page attribution strip). The island walks the row on
    mouseenter writing --shift/--scale-active per item, and sets the phase's
@@ -1586,4 +1687,24 @@ body:has([data-mkt-skin="cinema"]) {
 body:has([data-mkt-skin="paper"]) {
   background: oklch(0.99 0 0);
   color-scheme: light;
+}
+
+/* ── The blog cover morph (the reading round, 2026-08-28). The index card's photograph grows into
+   the article's plate on navigation, via the NATIVE View Transitions API (cover-morph.tsx explains
+   why not React's <ViewTransition>: that flag swaps the whole app's React build to a canary).
+
+   ★ NAME-SCOPED, and that is the containment contract, not fussiness. `::view-transition-*` are
+   DOCUMENT-GLOBAL pseudo-elements, exactly like @keyframes: this sheet persists app-wide once any
+   marketing route has loaded, so a `::view-transition-group(*)` rule here would silently own every
+   future view transition anywhere in the product. Targeting the one name we create cannot reach
+   anything else.
+
+   Longer than the 300ms UI ceiling on purpose and within the marketing exemption: this is an
+   explanatory reveal (the same photograph, continuing across a cut), not a workflow control. No
+   reduced-motion block is needed because the delegate never STARTS a transition under reduced
+   motion, which is a stronger guarantee than animating at 0.01ms. ── */
+
+::view-transition-group(blog-cover) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }

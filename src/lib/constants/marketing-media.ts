@@ -228,3 +228,9 @@ export function marketingImage(id: string): MarketingImage {
   if (!entry) throw new Error(`Unknown marketing image id: ${id}`);
   return entry;
 }
+
+/** Cheap membership test for schema refinements (blog frontmatter `cover`) — same Map as the
+ *  lookup above, so there is still exactly one id registry. Client-safe like the rest of this file. */
+export function isMarketingImageId(id: string): boolean {
+  return IMAGE_BY_ID.has(id);
+}

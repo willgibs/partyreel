@@ -60,6 +60,20 @@ describe("marketing.css containment policy", () => {
     }
   });
 
+  it("never targets a view-transition pseudo-element with a wildcard", () => {
+    // ::view-transition-* are DOCUMENT-GLOBAL, the same hazard class as @keyframes: this sheet
+    // persists app-wide once any marketing route has loaded, so a wildcard rule here would
+    // silently own every future view transition anywhere in the product. Names only.
+    // Comments stripped first (the --background test's move): the block above this rule NAMES the
+    // anti-pattern in prose, and a guard that cannot tell a rule from a warning about it is a guard
+    // that punishes documentation.
+    const offenders = css
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .filter((line) => /::view-transition[a-z-]*\(\s*\*\s*\)/.test(line));
+    expect(offenders, "scope view-transition rules to a name, never (*)").toEqual([]);
+  });
+
   it("prefixes every keyframes name with mkt-", () => {
     for (const match of css.matchAll(/@keyframes\s+([\w-]+)/g)) {
       expect(match[1].startsWith("mkt-"), match[1]).toBe(true);
