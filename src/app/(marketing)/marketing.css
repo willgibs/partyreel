@@ -1386,6 +1386,32 @@
   margin-bottom: 0;
 }
 
+/* ── THE STRADDLE'S TWIN. The straddle pulls the paper chapter up under the
+   album by a percentage of the stage width; this pushes the chapter's first
+   text back down by the same overhang, so the two are ONE calculation and live
+   together. Retune either and retune both, or the photographs land on the prose
+   (which is what the round's first pass did). No overhang below sm, where the
+   straddle is off and the plain hard cut carries the seam; the value here is
+   then just the chapter's own opening rhythm.
+   It sits on the SECTION rather than the chapter so it reads next to the
+   content it protects, which is why that chapter opts out of the stacked
+   compression (paper-chapter.tsx) instead of out-ranking it with an `!`. ── */
+[data-mkt] .mkt-gather-clear {
+  padding-top: 4rem;
+}
+
+@media (width >= 40rem) {
+  [data-mkt] .mkt-gather-clear {
+    padding-top: 16rem;
+  }
+}
+
+@media (width >= 64rem) {
+  [data-mkt] .mkt-gather-clear {
+    padding-top: 24rem;
+  }
+}
+
 @media (width >= 40rem) {
   [data-mkt] .mkt-gather-plate {
     width: 58cqw;

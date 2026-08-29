@@ -69,18 +69,9 @@ function GlassLayer({ className }: { className?: string }) {
 
 export function HeaderShell({
   overlay = false,
-  className,
   children,
 }: {
   overlay?: boolean;
-  /**
-   * Extra classes for the sticky <header> ITSELF. This exists so a group layout
-   * can hand the bar a token ground (the (spotlight) group gives it
-   * CINEMA_TOKENS so the nav reads dark over a cinema hero). It cannot be a
-   * wrapper div: `position: sticky` is bounded by the parent's box, so a
-   * header-height wrapper would stop it sticking the moment you scroll.
-   */
-  className?: string;
   children: React.ReactNode;
 }) {
   const [inView, setInView] = useState(true);
@@ -102,7 +93,7 @@ export function HeaderShell({
 
   if (!overlay) {
     return (
-      <header className={cn("sticky top-0 isolate z-40", className)}>
+      <header className="sticky top-0 isolate z-40">
         <GlassLayer />
         {children}
       </header>
@@ -115,7 +106,7 @@ export function HeaderShell({
       <div ref={sentinelRef} aria-hidden className="-mb-px h-px w-full" />
       <header
         data-stuck={stuck ? "true" : undefined}
-        className={cn("group/hdr sticky top-0 isolate z-40", className)}
+        className="group/hdr sticky top-0 isolate z-40"
       >
         {/* The glass fades in when the page scrolls, and is FORCED while a nav
             panel is open (a big solid panel under a fully transparent bar reads

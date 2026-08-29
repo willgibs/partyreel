@@ -26,6 +26,14 @@ import { cn } from "@/lib/utils";
  *    child utility): the cut double-stacked two section paddings into a long
  *    quiet stretch on phones (Will's checkpoint note). Desktop keeps the full
  *    rhythm — the straddle needs the room.
+ *    ★ `compressStacked={false}` turns it off, for the one case it gets wrong:
+ *    a chapter whose FIRST section has to clear a large straddling element
+ *    (/about's album overhangs ~395px at desktop). That specificity beats a
+ *    plain `pt-*` on the child, so between sm and lg the clearance would be
+ *    silently replaced by py-14 and the photographs would land on the prose.
+ *    Opting out is the honest fix; an `!` on the child is not (it wins at one
+ *    breakpoint, loses at another, and the symptom is always "padding that
+ *    does nothing here and works there").
  *
  * NO chapter-label slot, on purpose: a floating "On paper" kicker confused
  * its first reader (Will, checkpoint review) — chapters announce through
@@ -45,15 +53,20 @@ import { cn } from "@/lib/utils";
  */
 export function PaperChapter({
   className,
+  compressStacked = true,
   children,
   ...props
-}: React.ComponentProps<"section">) {
+}: React.ComponentProps<"section"> & {
+  /** See the doctrine note: false when a child section must own its own
+   *  vertical padding below lg (clearing a straddling element). */
+  compressStacked?: boolean;
+}) {
   return (
     <section
       data-mkt
       className={cn(
         "surface-paper border-y bg-background text-foreground",
-        "max-lg:[&>section]:py-14",
+        compressStacked && "max-lg:[&>section]:py-14",
         className,
       )}
       {...props}
