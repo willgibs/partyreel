@@ -11,8 +11,10 @@ import {
   buildBlogRssXml,
   getAllPosts,
   getAllTags,
+  getPostNeighbors,
   getRelatedPosts,
 } from "@/lib/content/blog";
+import { coverFor } from "@/lib/content/blog-covers";
 import { escapeXml, readingTime } from "@/lib/content/collection";
 
 const posts = getAllPosts();
@@ -106,6 +108,52 @@ describe("escapeXml", () => {
   });
 });
 
+describe("the article ending", () => {
+  it("neighbours are chronological, and the ends of the archive are one-sided", () => {
+    const all = getAllPosts(); // newest-first
+    const newest = getPostNeighbors(all[0]);
+    const oldest = getPostNeighbors(all[all.length - 1]);
+    expect(newest.newer).toBeNull();
+    expect(newest.older?.slug).toBe(all[1].slug);
+    expect(oldest.older).toBeNull();
+    expect(oldest.newer?.slug).toBe(all[all.length - 2].slug);
+  });
+
+  it("a post that is not in the archive yields no neighbours", () => {
+    expect(getPostNeighbors({ ...posts[0], slug: "ghost" })).toEqual({
+      newer: null,
+      older: null,
+    });
+  });
+
+  it("related posts honour the exclude set", () => {
+    const post = posts[0];
+    const unfiltered = getRelatedPosts(post, 3);
+    expect(unfiltered.length).toBeGreaterThan(0);
+    const excluded = new Set([unfiltered[0].slug]);
+    const filtered = getRelatedPosts(post, 3, excluded);
+    expect(filtered.map((p) => p.slug)).not.toContain(unfiltered[0].slug);
+  });
+
+  it("★ no post can appear twice in one ending, for any post in the archive", () => {
+    // The invariant the whole two-block ending rests on: neighbours render above related posts, and
+    // on a small archive the two sets nearly coincide, so the same article would otherwise show up
+    // twice within one screen. This is the page's exact composition, asserted.
+    for (const post of getAllPosts()) {
+      const { newer, older } = getPostNeighbors(post);
+      const shown = new Set(
+        [newer?.slug, older?.slug].filter(Boolean) as string[],
+      );
+      const related = getRelatedPosts(post, 2, shown);
+      const ending = [...shown, ...related.map((p) => p.slug)];
+      expect(new Set(ending).size, `${post.slug} repeats a post`).toBe(
+        ending.length,
+      );
+      expect(ending, `${post.slug} links to itself`).not.toContain(post.slug);
+    }
+  });
+});
+
 describe("buildBlogRssXml", () => {
   const TEST_SITE = {
     url: "https://partyreel.com",
@@ -137,6 +185,23 @@ describe("buildBlogRssXml", () => {
     expect(xml).toContain("<dc:creator>Partyreel Team</dc:creator>");
     // pubDate is RFC-822 (e.g. "... 2026 ... GMT").
     expect(xml).toMatch(/<pubDate>[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} 2026/);
+  });
+
+  it("emits an enclosure only when the cover size is known", () => {
+    const withSizes = buildBlogRssXml(
+      [fixture],
+      TEST_SITE,
+      new Map([[coverFor(fixture.slug).src, 12345]]),
+    );
+    expect(withSizes).toContain('length="12345"');
+    expect(withSizes).toContain('type="image/jpeg"');
+    expect(withSizes).toContain(`<enclosure url="https://partyreel.com`);
+    // No size map, or a size that could not be stat'd: a valid item with no enclosure, never a
+    // fabricated length.
+    expect(buildBlogRssXml([fixture], TEST_SITE)).not.toContain("<enclosure");
+    expect(buildBlogRssXml([fixture], TEST_SITE, new Map())).not.toContain(
+      "<enclosure",
+    );
   });
 
   it("emits one item per real post", () => {

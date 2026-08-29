@@ -88,14 +88,42 @@ export function getAllTags(): string[] {
 }
 
 // Same-tag posts first (then recency) for "Related posts".
-export function getRelatedPosts(post: BlogPost, limit = 3): BlogPost[] {
-  const others = getAllPosts().filter((p) => p.slug !== post.slug);
+//
+// `exclude` is what keeps the article's ending honest: chronological neighbours are shown ABOVE
+// related posts, and on a small archive the two sets are nearly identical, so without it the same
+// post appears twice within one screen. The page passes the neighbours it already rendered.
+export function getRelatedPosts(
+  post: BlogPost,
+  limit = 3,
+  exclude: ReadonlySet<string> = new Set(),
+): BlogPost[] {
+  const others = getAllPosts().filter(
+    (p) => p.slug !== post.slug && !exclude.has(p.slug),
+  );
   const sharesTag = (p: BlogPost) =>
     p.frontmatter.tags.some((t) => post.frontmatter.tags.includes(t));
   return [
     ...others.filter(sharesTag),
     ...others.filter((p) => !sharesTag(p)),
   ].slice(0, limit);
+}
+
+/**
+ * The article's chronological neighbours. `getAllPosts()` is already newest-first, so "newer" is
+ * the previous index and "older" the next. Both are null at the ends of the archive, and both are
+ * null for a single-post blog, which the page renders as simply no nav rather than a dead control.
+ */
+export function getPostNeighbors(post: BlogPost): {
+  newer: BlogPost | null;
+  older: BlogPost | null;
+} {
+  const all = getAllPosts();
+  const at = all.findIndex((p) => p.slug === post.slug);
+  if (at === -1) return { newer: null, older: null };
+  return {
+    newer: at > 0 ? all[at - 1] : null,
+    older: at < all.length - 1 ? all[at + 1] : null,
+  };
 }
 
 // Light, serializable metadata for the client tag-filter (NO bodies — they stay on the
@@ -155,9 +183,39 @@ function rfc822(date: string): string {
 // route supplies the real SITE_* constants; the test supplies literals.
 export type RssSiteConfig = { url: string; name: string; description: string };
 
+/**
+ * Cover byte sizes, keyed by the site-relative src. RSS 2.0 requires `length` on an enclosure, and
+ * only the caller can stat a file, so the ROUTE reads sizes off disk and passes them in - the same
+ * parameter-injection that keeps this builder pure and unit-testable on literals. A src with no
+ * known size emits no enclosure at all rather than a lie like length="0".
+ */
+export type RssCoverSizes = ReadonlyMap<string, number>;
+
+const MIME_BY_EXT: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
+
+function enclosureFor(
+  post: BlogPost,
+  site: RssSiteConfig,
+  sizes: RssCoverSizes | undefined,
+): string {
+  if (!sizes) return "";
+  const cover = coverFor(post.slug, post.frontmatter.cover);
+  const bytes = sizes.get(cover.src);
+  const type = MIME_BY_EXT[cover.src.split(".").pop()?.toLowerCase() ?? ""];
+  if (!bytes || !type) return "";
+  return `
+      <enclosure url="${escapeXml(`${site.url}${cover.src}`)}" length="${bytes}" type="${type}" />`;
+}
+
 export function buildBlogRssXml(
   posts: BlogPost[],
   site: RssSiteConfig,
+  coverSizes?: RssCoverSizes,
 ): string {
   const items = posts
     .map((post) => {
@@ -168,7 +226,7 @@ export function buildBlogRssXml(
       <link>${escapeXml(url)}</link>
       <guid isPermaLink="true">${escapeXml(url)}</guid>
       <pubDate>${rfc822(post.frontmatter.date)}</pubDate>
-      <dc:creator>${escapeXml(getAuthor(post.frontmatter.author).name)}</dc:creator>
+      <dc:creator>${escapeXml(getAuthor(post.frontmatter.author).name)}</dc:creator>${enclosureFor(post, site, coverSizes)}
     </item>`;
     })
     .join("\n");

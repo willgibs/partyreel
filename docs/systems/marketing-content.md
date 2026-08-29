@@ -132,7 +132,19 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   which would multiply into tag x page URL space on a four-post blog — ★ `paginate()` CLAMPS, because
   a stale `?page=` or a filter that shrinks the set under the reader (tag with 40 posts, page 4, pick
   a tag with 3) must land on a real page instead of an empty grid. The author brief is
-  [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md). Unchanged: the client-safe author
+  [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md). **The ARTICLE** ("the print of the
+  frame") opens on the same cover at the same slug-derived crop as the card the reader clicked, so
+  the page reads as the card opening; the frontmatter `description` renders as the visible
+  STANDFIRST (it previously appeared on the card, in metadata, in the feed and in llms.txt,
+  everywhere except in front of the reader). Long-form reading components are shared with /help and
+  live in [`components/marketing/reading/`](../../src/components/marketing/reading) — `ArticleToc`
+  (scroll-spy; the blog opts into its `progress` reading spine, /help does not) and the delegated
+  `HeadingAnchorsDelegate`. The ending is deliberately TWO blocks: chronological neighbours, then
+  related posts with those neighbours excluded (`getRelatedPosts(post, n, exclude)`), because on a
+  small archive the two sets otherwise coincide and repeat a post within one screen. Share surfaces
+  are media-led: the OG card is the featured card (cover read off disk and inlined, never fetched —
+  `NEXT_PUBLIC_SITE_URL` resolves to PROD on preview builds) and the feed carries `<enclosure>` art
+  sized by the route. Unchanged: the client-safe author
   registry ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards,
   and the build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled
   `buildBlogRssXml` that takes its site config as a param so it stays out of the env-validating `site.ts`

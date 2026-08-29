@@ -26,7 +26,7 @@ tags:
 | Field | Required | Notes |
 | --- | --- | --- |
 | `title` | yes | **45-75 characters, hard cap 80** (the build fails past it). This is a layout contract: the featured card sets the newest title at display size and reads best at about three full lines, and library cards read best at two. Both clamp, so a longer title ships visibly cut rather than breaking the grid. Front-load the specific words; the card gives you no subtitle. |
-| `description` | yes | Max 160 chars (enforced). It is the standfirst on the featured card, the RSS description, and the meta description. Write it to stand alone. |
+| `description` | yes | Max 160 characters. ★ It is not just metadata: it renders as the **visible standfirst** under the article's title, and as the card blurb on the index. Write it as the line that makes someone read the piece, in the same voice as the body. |
 | `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. Newest post becomes the staged hero on `/blog`. |
 | `author` | no | Leave it out. `partyreel-team` is the universal byline for now (Will's ruling, 2026-08-28) and it is the only registered id, so the default is always correct. Named authors are a registry change in `src/lib/content/authors.ts`, not a frontmatter choice. |
 | `cover` | **no, but prefer it** | A media id from `MARKETING_IMAGES` (`src/lib/constants/marketing-media.ts`). See below. |
