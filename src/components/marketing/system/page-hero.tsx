@@ -101,11 +101,14 @@ export function PageHero({
           {eyebrow && <Eyebrow {...mark()}>{eyebrow}</Eyebrow>}
           {/* ONE h1 per page, and it is here. SectionShell's `as` prop carries
               the same rule for sections; both exist because /contact once
-              shipped with no h1 at all. */}
-          <h1
-            {...mark()}
-            className={cn("font-heading", HERO_SCALE[scale].heading)}
-          >
+              shipped with no h1 at all.
+              ★ LCP RULE: the H1 never carries a reveal-hidden state, and it
+              does not consume a stagger seat. It is the page's LCP element on
+              a type-led hero, so gating it behind an in-view callback plus a
+              transition delays the largest paint for nothing. The slots around
+              it do the arriving; the home hero's ratified shape, and the same
+              note sits on qr-hero, attribution-hero and album-link-hero. */}
+          <h1 className={cn("font-heading", HERO_SCALE[scale].heading)}>
             {heading}
           </h1>
           {subhead && (

@@ -30,6 +30,15 @@ describe("the page hero lockup", () => {
     expect(code).not.toMatch(/<h2\b/);
   });
 
+  it("never puts a reveal-hidden state on the h1 (the LCP rule)", () => {
+    // The h1 is the LCP element on a type-led hero, so an in-view gate plus a
+    // transition delays the largest paint for nothing. The slots around it do
+    // the arriving. Same note on qr-hero, attribution-hero, album-link-hero.
+    const h1 = code.slice(code.indexOf("<h1"), code.indexOf("</h1>"));
+    expect(h1).not.toContain("mark()");
+    expect(h1).not.toContain("data-mkt-reveal");
+  });
+
   it("keeps one shared gap for every scale", () => {
     // The grammar is the shared part (Will, 2026-08-28: "share grammar, page
     // picks scale"). A per-scale gap would re-open the drift this closes.
