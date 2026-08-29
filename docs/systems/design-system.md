@@ -172,8 +172,11 @@ looser under the masthead than one with a "y". The box rhythm is identical; the 
 And an **optical side bearing** (`leadIn`), which is a different kind of correction and is gated
 separately: the vertical trim is about the LINE BOX and holds at any alignment, while `leadIn` pulls a
 flush-left masthead back onto its column edge and therefore applies ONLY at `align="left"`. Folded into
-the heading class it drags a CENTRED masthead off centre by half its value (measured on /press: 3.6px),
-which reads as "the hero is slightly wrong" and nothing more.
+the heading class it drags a CENTRED masthead off centre by half its value, which reads as "the hero is
+slightly wrong" and nothing more — /about shipped exactly that from milestone-9 until 2026-08-29, 3.6px
+left of centre, and nobody spotted it until /press took the same step. Both mastheads are centred, so
+`leadIn` has no consumer today; it is kept gated rather than deleted so the next flush-left one does not
+rediscover the problem and invent a magic number.
 
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts

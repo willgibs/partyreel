@@ -88,9 +88,15 @@ const HERO_SCALE: Record<
      * optical SIDE BEARING: at 160px a capital carries visible space inside
      * its own glyph box, so a flush-left masthead hangs right of the column it
      * should align to. On a CENTRED heading the same value is simply wrong —
-     * there is no edge to align to, and it drags the whole line off centre
-     * (measured on /press before the gate: 3.6px, since centring splits the
-     * margin between the two sides).
+     * there is no edge to align to, and it drags the whole line off centre by
+     * half its value, since centring splits the margin between the two sides.
+     * It was unconditional until 2026-08-29, which is why /about's centred
+     * wordmark shipped 3.6px left of centre from milestone-9 until the gate.
+     *
+     * It has NO consumer today (both mastheads are centred). Kept because the
+     * correction is real and the next flush-left one will need it; without it
+     * written down here, that page discovers a hanging masthead and invents a
+     * magic number for it.
      */
     leadIn: "[margin-inline-start:-0.045em]",
   },

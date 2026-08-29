@@ -55,9 +55,10 @@ the sequence. It had already moved `/press` into `(cinema)` with a `PaperChapter
 there was no architecture to settle; the design merged unchanged. Will's note was the work: the h1
 takes `PageHero`'s **`display` step** (the masthead tier /about uses) and the tracking squeeze is now
 standard for that step rather than an /about beat, with a **one-or-two-word contract** on it. Doing it
-properly split the step's left side-bearing out as `leadIn`, gated on `align="left"` (it drags a
-centred masthead 3.6px off centre), and closed an LCP hole, since `.mkt-line` paints an h1 at
-`opacity: 0` until hydration. **Three branches still with Will**; `lp/blog-redesign` and
+properly split the step's left side-bearing out as `leadIn`, gated on `align="left"` — which fixed a
+shipped bug too, since /about's masthead is centred and had been sitting 3.6px left of centre on prod
+since milestone-9 — and closed an LCP hole, since `.mkt-line` paints an h1 at `opacity: 0` until
+hydration. **Three branches still with Will**; `lp/blog-redesign` and
 `lp/careers-identity` both still carry hand-rolled `TextsReveal` heroes and get the same `PageHero`
 treatment at `lg` when they land. `lp/careers-identity` will conflict in `marketing.css` (the isolate
 block) and in `marketing-content.md`.

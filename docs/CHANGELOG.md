@@ -28,7 +28,9 @@ carrying a fourth hand-rolled `TextsReveal` hero, so it became `PageHero` at `sc
 "Media" at 160px on a desktop and 52px on a phone, with the optical trim and the squeeze arriving
 from the step instead of the page. Two things came out of doing it properly. The display step's
 `[margin-inline-start:-0.045em]` is a LEFT side-bearing correction and is simply wrong on a centred
-heading (measured, it pushed the masthead 3.6px off centre), so it is now gated on `align="left"`.
+heading, so it is now gated on `align="left"`. That gate turned out to fix a shipped bug as well as
+prevent one: /about's masthead is centred too, so it had been sitting 3.6px left of centre on
+partyreel.com since milestone-9, unnoticed until /press took the same step.
 And `.mkt-line` paints an h1 at `opacity: 0` until hydration, which gates the page's largest paint;
 `PageHero` renders its h1 unmarked, so the move closed an LCP hole as a side effect. The step's
 contract is now written and pinned: one or two words, because `whitespace-nowrap` is load-bearing
