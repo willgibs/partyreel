@@ -163,7 +163,14 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   General Application's honesty lives in its DATA (no team at all, type "Always open", its own
   action label), because with a single real role a second container read as inconsistency rather than
   distinction. The close points at **/contact**, not the product: the footer carries a product CTA
-  immediately below. Headings deliberately avoid the word "build" (it had run three of four). Copy
+  immediately below. ★ The HEADINGS have to tell the story alone, because people skim them and read nothing
+  else: they run join our team → most of these photos are never seen again → so we gather all of it
+  in one place → and turn the best of it into a film → our core philosophy → we're hiring. Two traps
+  live-caught there: a bare "Most of it is never seen again" under a hiring headline read as though
+  our new HIRES vanish (the subject is now an explicit noun, never a pronoun), and the beats open
+  with "So" and "And" so three captions read as one story. Headings also avoid the word "build" (it
+  had run three of four). Listings are individual CARDS on the house gray plate (`bg-muted/50`, the
+  contact form's surface), so a role reads as an object rather than a table row. Copy
   single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
   entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
   being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.

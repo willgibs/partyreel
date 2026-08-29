@@ -14,17 +14,20 @@ import {
  * THE OPEN ROLES LIST - the page's destination, and the piece that has to
  * survive the next five listings without changing shape.
  *
- * ! ONE ROW DESIGN FOR EVERY ENTRY (Will, 2026-08-28). The first pass gave the
- *   General Application its own muted card so it could not be mistaken for a
- *   vacancy. With exactly one real role on the page that backfired: "having two
- *   different designs for the General Application versus specific roles, but
- *   only having one specific role listed, makes the two total roles feel like
- *   they have conflicting designs." A second container only reads as
- *   distinction once there is a pattern to stand apart from. So the catch-all
- *   is now the same row, and the honesty lives in its DATA instead: its type is
- *   "Always open" rather than "Full-time", it states no team fact, and its
- *   action says Introduce yourself rather than View role. Do not reintroduce a
- *   separate card unless there are several named roles above it.
+ * ! ONE CARD DESIGN FOR EVERY ENTRY (Will, 2026-08-28). An early pass gave the
+ *   General Application its OWN treatment so it could not be mistaken for a
+ *   vacancy, and with exactly one real role that backfired: "having two
+ *   different designs... makes the two total roles feel like they have
+ *   conflicting designs." A second container only reads as distinction once
+ *   there is a pattern to stand apart from. So every entry is the same card and
+ *   the honesty lives in its DATA instead: the catch-all's type is "Always open"
+ *   rather than "Full-time", it states no team at all, and its action says
+ *   Introduce yourself rather than View role. Do not reintroduce a separate
+ *   treatment unless there are several named roles above it.
+ *
+ * The card surface is the house's light gray plate (`bg-muted/50` + hairline),
+ * the same one the contact form's stationery note uses, so a listing reads as
+ * an object you can pick up rather than a row in a table.
  *
  * Adding a listing is one entry in careers.ts. The empty state (zero named
  * roles) is real, not theoretical: the heading and the copy both change and the
@@ -36,8 +39,8 @@ export function RoleListings() {
   const entries = [...OPEN_ROLES, ...(GENERAL_APPLICATION ? [GENERAL_APPLICATION] : [])];
 
   return (
-    <div className="mx-auto max-w-3xl border-b">
-      <Reveal className="flex flex-col">
+    <div className="mx-auto max-w-3xl">
+      <Reveal className="flex flex-col gap-4">
         {entries.map((role, index) => (
           <RoleRow key={role.slug} role={role} index={index} />
         ))}
@@ -72,11 +75,11 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
         cta: `role-${role.slug}`,
         location: "careers-listings",
       })}
-      className="mkt-learn group grid gap-x-8 gap-y-4 border-t py-9 transition-colors duration-150 hover:border-foreground/40 sm:grid-cols-[auto_1fr_auto] sm:items-baseline sm:gap-x-10"
+      className="mkt-learn group grid gap-x-8 gap-y-4 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color,transform] duration-150 hover:border-foreground/25 hover:bg-muted active:scale-[0.995] sm:grid-cols-[auto_1fr_auto] sm:items-baseline sm:gap-x-10 sm:p-7"
     >
       {/* Frame numbers, matching the contact sheet's. One numbering system on
           the page instead of two unrelated ones. */}
-      <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums sm:pt-2">
+      <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums sm:pt-2.5">
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="flex min-w-0 flex-col gap-2">

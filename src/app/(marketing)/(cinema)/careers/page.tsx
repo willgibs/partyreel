@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 /**
  * THE CAREERS HUB (the photographic rebuild).
  *
- *   CINEMA  the contact sheet + "We're hiring."
+ *   CINEMA  the contact sheet + "Join our team"
  *   PAPER   the roll -> the selects -> the reel, how we work, open roles, close
  *   INK     the footer
  *
@@ -123,7 +123,7 @@ export default function CareersPage() {
             because everything above this now demonstrates it. */}
         <SectionShell
           eyebrow="How we work"
-          heading="Three things we hold to."
+          heading="Our core philosophy"
           align="left"
         >
           <Reveal className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-3">
@@ -154,8 +154,8 @@ export default function CareersPage() {
           eyebrow="Open roles"
           heading={
             OPEN_ROLES.length > 0
-              ? "Come and take one."
-              : "Nothing open right now."
+              ? "We're hiring"
+              : "Nothing open right now"
           }
           subhead={
             OPEN_ROLES.length > 0

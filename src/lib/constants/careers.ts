@@ -132,7 +132,7 @@ export const CAREERS_INTRO = {
   eyebrow: "Careers",
   // Ruled plain and confident: the photography carries the hero, so the words
   // do not have to. It only works while the contact sheet is genuinely good.
-  headline: "We're hiring.",
+  headline: "Join our team",
   subhead:
     "Partyreel gathers every photo and video from an event with one QR code. We are a small team that cares a great deal about how that feels.",
   cta: "See open roles",
@@ -145,22 +145,35 @@ export type StoryBeat = { eyebrow: string; title: string; body: string };
  * "why it matters" prose, which was the product pitch restated for the third
  * time on a page whose reader had already seen it twice. Each beat is a
  * caption for a real media composition; the media makes the point.
+ *
+ * ! THE HEADINGS MUST TELL THE STORY ON THEIR OWN, because people skim
+ *   headings and read nothing else. Read alone they now run: join our team ->
+ *   most of these photos are never seen again -> so we gather all of it in one
+ *   place -> and turn the best of it into a film -> our core philosophy ->
+ *   we're hiring. Problem, solution, payoff, values, ask.
+ *
+ * ! Two traps this fixes, both live-caught by Will. A bare "Most of it is never
+ *   seen again." directly under a hiring headline read as though our new hires
+ *   vanish, so the subject is now an explicit NOUN ("these photos") rather than
+ *   a pronoun. And the beats open with "So" and "And" on purpose: the connective
+ *   tissue is what turns three captions into one story instead of three
+ *   unrelated statements with no context building between them.
  */
 export const CAREERS_STORY: StoryBeat[] = [
   {
     eyebrow: "The roll",
-    title: "Most of it is never seen again.",
-    body: "Every event produces hundreds of photos across dozens of phones. A handful get shared. The rest sit in camera rolls nobody opens.",
+    title: "Most of these photos are never seen again.",
+    body: "A single event fills dozens of camera rolls. A handful of shots get shared around, and the rest quietly disappear. Fixing that is the whole job.",
   },
   {
     eyebrow: "The selects",
-    title: "One album, made by everyone there.",
-    body: "One QR code gathers all of it in one place, and the host decides what stays.",
+    title: "So we gather all of it in one place.",
+    body: "One QR code, no app and no account. Every guest's photos land in the same album, and the host decides what stays.",
   },
   {
     eyebrow: "The reel",
-    title: "And then it becomes a film.",
-    body: "The best of the album, cut to something worth sending. That is the part we are hiring for.",
+    title: "And turn the best of it into a film.",
+    body: "The whole event, cut down to something worth sending. That is the surface we are hiring for.",
   },
 ];
 
