@@ -43,12 +43,23 @@ anything shared.
 (`lp/about`, `lp/blog-redesign`, `lp/careers-identity`, `lp/glow-doctrine`, `lp/press-kit`); Will
 hands them over one at a time as they are ready, and the Orchestrator's job on each is to adopt what
 is genuinely better and synthesize the rest onto the shared system (rising tides, not a stack of
-one-offs). **`lp/about` merged** at `launch-prep` (the design unchanged; the route moved into the
-`(cinema)` group and `(spotlight)`/`CinemaChapter` came out, `PageHero` born, /about's h1 restored).
-Will's ruling from that round, now doctrine: **every utility page takes the cinema-hero / paper-body
-/ ink-footer rhythm by joining the `(cinema)` group** — legal, privacy and contact included as they
-are reworked. Truth: [`systems/marketing-content.md`](systems/marketing-content.md) +
-[`systems/design-system.md`](systems/design-system.md). Four branches still with Will.
+one-offs). **`lp/about` merged and shipped at milestone-9** (the design unchanged; the route moved
+into the `(cinema)` group and `(spotlight)`/`CinemaChapter` came out, `PageHero` born, /about's h1
+restored). Will's ruling from that round, now doctrine: **every utility page takes the cinema-hero /
+paper-body / ink-footer rhythm by joining the `(cinema)` group** — legal, privacy and contact
+included as they are reworked. Truth: [`systems/marketing-content.md`](systems/marketing-content.md)
++ [`systems/design-system.md`](systems/design-system.md). Four branches still with Will; the next is
+queued behind this merge.
+
+**MILESTONE-9 (2026-08-28): prod = the /about round.** `main` @ tag `milestone-9` (`279c8d6`), prod
+READY + verified at the merge SHA. Will's preview acceptance: "Looks fantastic." Verified on partyreel.com: one `h1`
+("Partyreel", 160px, the optical trim applied) painting at opacity 1 with no reveal mark, so the LCP
+rule holds in the shipped markup; `data-mkt-skin="cinema"` with `theme-color: #040404` and near-black
+body, so both overscroll edges match the dark hero and the ink footer; `--popover` dark again, which
+is the white-dropdown regression closed; the seam landing EXACTLY on the album's midline at 1440 and
+the album entirely on the dark with 116px of clearance at 375; no horizontal overflow either width;
+both analytics scripts served; console clean. The test profile's `pr-no-track` flag is still set on
+the prod origin, so this pass added nothing to the analytics baseline.
 
 **MILESTONE-8 (2026-08-28): prod = the exec round.** `main` @ tag `milestone-8` (`4063f6e`), prod
 READY + verified at the merge SHA: partyreel.com serves both analytics scripts with `view` + `event`
@@ -145,7 +156,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-8`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-9`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).

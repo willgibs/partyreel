@@ -10,6 +10,27 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — MILESTONE-9: the /about round
+
+`main` @ tag `milestone-9` (`279c8d6`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, lint, 1212 tests, build with /about static). Will's preview acceptance:
+"Looks fantastic. Please merge to main."
+
+Prod = the rebuilt /about (wordmark masthead, the gather across the seam, the convictions ledger,
+the careers close) plus the system work the integration produced: the utility-page rhythm as the
+`(cinema)` group rather than a fourth skin, the shared `PageHero` lockup, /about's h1 restored and
+kept off the reveal-hidden state, `PaperChapter`'s `compressStacked` opt-out, and the marketing
+`::selection` colour on every marketing surface. Verified at the merge SHA on
+partyreel.com: one h1 painting unmarked (the LCP rule holds in the shipped markup), skin `cinema`
+with `theme-color: #040404`, `--popover` dark so the nav panels are our standard dark dropdowns, the
+seam exactly on the album's midline at 1440, the album entirely on the dark with 116px clearance at
+375, no horizontal overflow at either width, both analytics scripts served, console clean. The test
+profile's `pr-no-track` flag stayed set, so the pass added nothing to the analytics baseline.
+
+The first branch of the agent-merge sequence to reach partyreel.com; four remain with Will.
+
+---
+
 ## 2026-08-28 — Integrating `lp/about`: the utility-page rhythm becomes the (cinema) group
 
 The first Agent branch of the merge sequence, and the one that set the pattern for the four behind
