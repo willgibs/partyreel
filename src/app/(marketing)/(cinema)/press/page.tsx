@@ -172,9 +172,17 @@ export default function PressPage() {
           id="words"
           heading="Words"
           note="Quote any of it, whole or in part. No permission needed."
+          aside={
+            <Link
+              href="/contact"
+              className={cn("text-sm font-medium", INLINE_LINK)}
+            >
+              Send a message
+            </Link>
+          }
           className="border-t"
         >
-          <div className="flex max-w-2xl flex-col lg:ml-auto">
+          <div className="flex max-w-3xl flex-col lg:ml-auto">
             <div className="flex items-baseline justify-between gap-4">
               <Eyebrow>The boilerplate</Eyebrow>
               <CopyButton
@@ -222,6 +230,14 @@ export default function PressPage() {
           id="facts"
           heading="Fact sheet"
           note="The checkable version, for a box-out or a copy desk."
+          aside={
+            <Link
+              href="/how-it-works"
+              className={cn("text-sm font-medium", INLINE_LINK)}
+            >
+              How it works
+            </Link>
+          }
           className="border-t"
         >
           {/* ★ THE SHARED RIGHT EDGE. Every section's content ends at the same right
@@ -276,17 +292,9 @@ export default function PressPage() {
               Interviews, higher-resolution assets, or a walkthrough of the
               product. Every note gets a reply, usually within a day.
             </p>
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className={cn("text-base font-medium", INLINE_LINK)}
-              >
-                {SUPPORT_EMAIL}
-              </a>
-              <Button asChild variant="outline">
-                <Link href="/contact">Send a note</Link>
-              </Button>
-            </div>
+            <Button asChild size="lg" className="mt-2 h-11 px-6 text-base">
+              <Link href="/contact">Send a message</Link>
+            </Button>
           </Container>
         </section>
       </PaperChapter>
