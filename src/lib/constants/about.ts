@@ -55,7 +55,7 @@ export const ABOUT_HERO = {
   // One line under the masthead, because a wordmark alone reads as a cover
   // rather than a page. It states the premise the story then earns.
   subhead:
-    "Every guest is already a photographer. We are building the one place all of it can land.",
+    "Everybody at your event is already shooting it. We are building the one place it all lands.",
   secondaryLabel: "How it works",
   secondaryHref: "/how-it-works",
 } as const;
@@ -70,9 +70,9 @@ export const ABOUT_STORY = {
   eyebrow: "Our mission",
   heading: "Everyone is a photographer. Nothing collects it.",
   paragraphs: [
-    "Every person at your event is carrying a camera good enough to shoot it. That part solved itself years ago. The same few hours get photographed from every angle in the room, and between all those phones there is a better record of the event than anyone walked away with.",
-    "Getting it into one place is where it breaks, and it breaks somewhere different every time. The shared album opens for half the room. The group chat drips photos out one at a time. The cloud folder wants an account, so the guests whose photos you want most are the first to quit. Rented cameras charge by the table. Somewhere in there everyone gives up, and the rest of the photos are never seen.",
-    "We kept running into this at our own events, and there was never a version that worked for everyone who was there. So we built one: a single code, any phone, nothing to install and no account to make, with every photo and video landing in the same album at the size it was taken.",
+    "Look around at your next event. Everyone is holding a camera, and every one of them is pointed somewhere you are not. Between all those phones is a better record of the whole thing than you could ever get on your own.",
+    "Then you try to collect it, and it falls apart somewhere new every time. The shared album opens for half the room. The group chat drips photos out one at a time. The cloud folder wants an account, so the people whose photos you want most never bother. Everyone quits somewhere in the middle, and the rest is never seen.",
+    "We ran into this at our own events, over and over, and kept thinking there has to be a better way to do this. So we built it: one code, any phone, nothing to install and no account to make, and every photo and video lands in the same album at the size it was taken.",
   ],
 } as const;
 

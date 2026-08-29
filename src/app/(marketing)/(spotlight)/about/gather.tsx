@@ -100,10 +100,10 @@ export function Gather() {
         data-inview={inView ? "true" : "false"}
         data-on={inView ? "true" : undefined}
         aria-hidden
-        className="surface-paper relative z-10 sm:-mb-[30%]"
+        className="mkt-gather-straddle surface-paper relative z-10"
       >
         <div className="[container-type:inline-size] relative w-full overflow-hidden">
-          <div className="relative aspect-[1180/1700] sm:aspect-[1180/700]">
+          <div className="mkt-gather-stage relative">
             {/* THE PLATE: visible and empty at rest, so the frame reads as an
                 album waiting rather than as blank space. */}
             {/* No card behind the grid: empty, it is a big blank rectangle

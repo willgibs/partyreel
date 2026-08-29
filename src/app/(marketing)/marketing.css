@@ -1371,10 +1371,36 @@
   --scatter: 0.5;
 }
 
+/* The frame the scatter lives in. Its height must clear the ROTATED bounding
+   box of the outermost tiles, not their square height: a 169px tile at 11deg
+   spans ~197px, so ~28px of every corner tile sits outside the square the
+   authored offsets were reasoned about, and the top row clipped. */
+[data-mkt] .mkt-gather-stage {
+  aspect-ratio: 1180 / 1700;
+}
+
+/* No straddle on phones: at three columns the album is FOUR rows, so half of it
+   over the paper would need ~300px of clearance (album.tsx and /help gate their
+   straddles the same way). */
+[data-mkt] .mkt-gather-straddle {
+  margin-bottom: 0;
+}
+
 @media (width >= 40rem) {
   [data-mkt] .mkt-gather-plate {
     width: 58cqw;
     --scatter: 1;
+  }
+  [data-mkt] .mkt-gather-stage {
+    aspect-ratio: 1180 / 790;
+  }
+  /* ★ 33.47% is not a taste value: the album is centred in the stage, so its
+     midline is the stage's, and the overhang below it is half the stage height
+     expressed against the stage WIDTH (395 / 1180). A percentage margin tracks
+     the aspect-locked height at every viewport where a px value could not.
+     Retune it and the aspect above TOGETHER or the seam slides off the album. */
+  [data-mkt] .mkt-gather-straddle {
+    margin-bottom: -33.47%;
   }
 }
 

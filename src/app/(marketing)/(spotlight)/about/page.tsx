@@ -95,21 +95,21 @@ export default function AboutPage() {
             under the nav. The compression is right for a chapter's INTERIOR
             sections and wrong for one that has to clear an overlay header. */}
         <section className="-mt-[var(--mkt-header-h)] pt-28! pb-16 sm:pt-40! sm:pb-20 lg:pt-44">
-          <Reveal className="flex flex-col items-center gap-6 text-center">
+          <Reveal className="flex flex-col items-center text-center">
             <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
               {ABOUT_HERO.eyebrow}
             </Eyebrow>
             <p
               data-mkt-reveal
               style={{ "--i": 1 } as CSSProperties}
-              className="mkt-name [margin-inline-start:-0.045em] py-[0.08em] font-heading text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap"
+              className="mkt-name [margin-inline-start:-0.045em] mt-1 py-[0.08em] font-heading text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap"
             >
               {ABOUT_HERO.wordmark}
             </p>
             <p
               data-mkt-reveal
               style={{ "--i": 2 } as CSSProperties}
-              className="max-w-xl text-lg text-pretty text-muted-foreground"
+              className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground"
             >
               {ABOUT_HERO.subhead}
             </p>
@@ -119,7 +119,7 @@ export default function AboutPage() {
             <div
               data-mkt-reveal
               style={{ "--i": 3 } as CSSProperties}
-              className="mt-2 flex flex-col items-center gap-3 sm:flex-row"
+              className="mt-8 flex flex-col items-center gap-3 sm:flex-row"
             >
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link
