@@ -10,7 +10,7 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 import { CAREERS_STORY } from "@/lib/constants/careers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
-import { ContactSheet } from "./contact-sheet";
+import { ContactSheet, SHEET_FRAMES } from "./contact-sheet";
 
 /**
  * THE ARGUMENT: the roll -> the selects -> the reel.
@@ -38,18 +38,37 @@ import { ContactSheet } from "./contact-sheet";
  *     marketing chunks is untouched.
  */
 
-/** The frames the host kept. Indices into SHEET_FRAMES, shared with the hero so
- *  the same photographs survive the cut both times the sheet appears. */
-export const SELECT_INDICES = [1, 4, 6, 9];
-
-const ALBUM_TILES = [
-  "wedding-golden",
+/**
+ * THE FRAMES THE HOST KEPT - the single source of narrative truth. The roll
+ * circles exactly these, and the album leads with exactly these, so the four
+ * photographs that survive the cut are demonstrably the same four that show up
+ * in the album a screen later. Change this list and both follow.
+ */
+const KEPT_FRAMES = [
   "party-balloons",
-  "wedding-toast",
-  "festival-crowd",
   "reception-table",
   "wedding-petals",
-];
+  "festival-lights",
+] as const;
+
+/** Derived, never hand-numbered: a literal index list silently rots the moment
+ *  SHEET_FRAMES is reordered, and nothing would fail. */
+export const ROLL_SELECTS = KEPT_FRAMES.map((id) =>
+  SHEET_FRAMES.indexOf(id as (typeof SHEET_FRAMES)[number]),
+);
+
+/**
+ * ! THE HERO'S MARKS ARE POSITIONAL AND SEPARATE, on purpose. The hero repeats
+ *   the roll three times, so selecting by ID there would circle each keeper
+ *   three times over. These indices are also deliberately LOW in the sheet:
+ *   marks in the top row sit under the overlay header and the scrim's top fade,
+ *   which hid them (Will's catch). Index 18+ clears row one at every breakpoint
+ *   the sheet uses (5, 7 and 9 columns).
+ */
+export const HERO_SELECTS = [20, 25, 31];
+
+/** Leads with the keepers, then two more the host also kept. */
+const ALBUM_TILES = [...KEPT_FRAMES, "wedding-golden", "wedding-toast"];
 
 export function CareersStory() {
   const [roll, selects, reel] = CAREERS_STORY;
@@ -82,7 +101,7 @@ export function CareersStory() {
           <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
             <ContactSheet
               variant="roll"
-              selects={SELECT_INDICES}
+              selects={ROLL_SELECTS}
               columns="grid-cols-4 sm:grid-cols-6"
               className="ring-1 ring-border"
             />

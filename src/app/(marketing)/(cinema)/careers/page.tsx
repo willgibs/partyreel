@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { ContactSheet } from "@/components/marketing/sections/careers/contact-sheet";
 import {
   CareersStory,
-  SELECT_INDICES,
+  HERO_SELECTS,
 } from "@/components/marketing/sections/careers/careers-story";
 import { RoleListings } from "@/components/marketing/sections/careers/role-listings";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
@@ -65,11 +65,19 @@ export default function CareersPage() {
 
       {/* THE PROOF SHEET. The marks draw themselves in on arrival: the page
           performs a curation pass in front of you, which is the one beat this
-          rare surface spends its delight budget on. */}
-      <section className="relative overflow-hidden">
+          rare surface spends its delight budget on.
+
+          ! The section is pulled UP under the chrome (the same move home's
+            cinema hero makes). The cinema header is an overlay that starts
+            transparent, so without this the sheet began below it and left a
+            hard horizontal seam across the top of the page. Now the sheet runs
+            behind the nav and the scrim's top stop fades it out there instead.
+            The Container adds the header height back so the type keeps its
+            intended breathing room. */}
+      <section className="relative -mt-[var(--mkt-header-h,4rem)] overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <ContactSheet
-            selects={SELECT_INDICES}
+            selects={HERO_SELECTS}
             columns="grid-cols-5 sm:grid-cols-7 lg:grid-cols-9"
             repeat={3}
             className="size-full [&>figure]:aspect-auto"
@@ -79,7 +87,7 @@ export default function CareersPage() {
           aria-hidden
           className="mkt-careers-scrim pointer-events-none absolute inset-0"
         />
-        <Container className="relative flex flex-col items-center gap-6 py-28 text-center sm:py-36">
+        <Container className="relative flex flex-col items-center gap-6 pt-[calc(var(--mkt-header-h,4rem)+7rem)] pb-28 text-center sm:pt-[calc(var(--mkt-header-h,4rem)+9rem)] sm:pb-36">
           <TextsReveal className="flex flex-col items-center gap-6">
             <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
               {CAREERS_INTRO.eyebrow}

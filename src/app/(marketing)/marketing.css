@@ -1563,8 +1563,9 @@
     ),
     linear-gradient(
       to bottom,
-      color-mix(in oklab, var(--background) 76%, transparent) 0%,
-      color-mix(in oklab, var(--background) 14%, transparent) 22%,
+      var(--background) 0%,
+      color-mix(in oklab, var(--background) 82%, transparent) 7%,
+      color-mix(in oklab, var(--background) 14%, transparent) 26%,
       color-mix(in oklab, var(--background) 14%, transparent) 70%,
       color-mix(in oklab, var(--background) 90%, transparent) 100%
     );

@@ -153,7 +153,15 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   ([`contact-sheet.tsx`](../../src/components/marketing/sections/careers/contact-sheet.tsx)): real
   manifest frames butted tight, mono frame numbers, and a few circled as selects whose stroke DRAWS
   itself in on arrival, because marking the selects is the product's core act performed above the
-  fold. Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
+  fold. The section is pulled UP under the overlay chrome (`-mt-[var(--mkt-header-h)]`, home's cinema-hero
+  move) so the sheet runs behind the nav and the scrim's top stop fades it out there: starting below
+  the header left a hard seam across the top of the page. ★ The hero's marks are POSITIONAL and low
+  in the sheet (index 18+ clears row one at all three column counts) because marks in the top row sit
+  under that chrome; the roll's marks are DERIVED from the kept-frame ids instead, so the four
+  photographs circled there are provably the four that lead the album a screen later, and a reorder
+  of the frame list cannot silently rot them. The two lists are separate on purpose: the hero repeats
+  the roll three times, so id-based selection would circle every keeper three times over.
+  Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
   the footer the fanning pile), per the media doctrine in
   [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
   ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
@@ -164,10 +172,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   action label), because with a single real role a second container read as inconsistency rather than
   distinction. The close points at **/contact**, not the product: the footer carries a product CTA
   immediately below. ★ The HEADINGS have to tell the story alone, because people skim them and read nothing
-  else: they run join our team → most of these photos are never seen again → so we gather all of it
-  in one place → and turn the best of it into a film → our core philosophy → we're hiring. Two traps
+  else: they run join our team → we hated missing out on photos → so we gather all of them in one
+  place → and turn the best of them into a film → our core philosophy → we're hiring. Two traps
   live-caught there: a bare "Most of it is never seen again" under a hiring headline read as though
-  our new HIRES vanish (the subject is now an explicit noun, never a pronoun), and the beats open
+  our new HIRES vanish (the heading is now first-person and unmistakably about photos), and the beats open
   with "So" and "And" so three captions read as one story. Headings also avoid the word "build" (it
   had run three of four). Listings are individual CARDS on the house gray plate (`bg-muted/50`, the
   contact form's surface), so a role reads as an object rather than a table row. Copy
