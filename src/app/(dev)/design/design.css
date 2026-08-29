@@ -1774,6 +1774,106 @@
   mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
 }
 
+/* ── HALO: an object with light coming from BEHIND it (get-pro-button, ported).
+
+   Added after Will's review: the CTA specimen was rendering the recipe through
+   `throw`, whose mask is OPAQUE at the origin, so on a pill the light sat
+   entirely behind an opaque button and all you could see was a 20-30px sliver
+   at the edge. The recipe does the exact opposite and says why: it masks its
+   own centre CLEAR so the colour reads as atmosphere creeping in from the rim,
+   and its note warns that sizing the ellipse past the edge clips the opaque end
+   of the ramp and leaves the whole wash near-invisible. So the ellipse stays at
+   46%, deliberately smaller than the object.
+
+   This is a real doctrine finding, not just a fix. A halo has a nameable lamp
+   and a real vector (from behind the object, outward), so it does NOT fail law
+   2 the way I claimed a "rim" does. What decides the CTA case is law 1 instead:
+   in the hero there IS something behind the button (the media wall), and in the
+   chrome there is nothing. Same verdict, arrived at honestly.
+
+   TWO DELIBERATE DEVIATIONS from the recipe, both stated on the board:
+   no turbulence (the recipe has none; at pill size the displacement reads as
+   noise), and NO hue-rotate. The recipe drifts `filter: hue-rotate(-360deg)`,
+   which by construction generates hues outside the ratified five, so animating
+   it would be a palette leak in the round whose whole premise is palette
+   discipline. The orbit below carries the movement instead. ── */
+[data-glw][data-glw-shape="halo"] {
+  --glw-core: 46%;
+  --glw-core-blur: 150%;
+  -webkit-mask-image: radial-gradient(
+    ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
+    transparent var(--glw-core),
+    #000 calc(var(--glw-core) + var(--glw-core-blur))
+  );
+  mask-image: radial-gradient(
+    ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
+    transparent var(--glw-core),
+    #000 calc(var(--glw-core) + var(--glw-core-blur))
+  );
+}
+
+/* No turbulence at this size, per the note above: just the soft blur that turns
+   the blobs into atmosphere. */
+[data-glw-shape="halo"] [data-glw-field] {
+  inset: 0;
+  filter: blur(var(--glw-blur));
+}
+
+/* Each wash is its own background layer, blown up past the box so the blobs
+   sweep corner to corner as they travel the rim. */
+[data-glw-shape="halo"] [data-glw-base],
+[data-glw-shape="halo"] [data-glw-band] {
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c4) 85%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c5) 78%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c1) 78%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c2) 72%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c3) 72%, transparent),
+      transparent 62%
+    );
+  background-repeat: no-repeat;
+  background-size: 180% 180%;
+}
+
+/* The base holds the ring lit while paused and under reduced motion (law 4);
+   the band is the same field travelling a lap. */
+[data-glw-shape="halo"] [data-glw-base] {
+  background-position:
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    50% 50%;
+}
+[data-glw-shape="halo"] [data-glw-band] {
+  background-position:
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    0% 0%,
+    50% 0%;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
 /* THE WARP WRAPPER. A filter applies BEFORE a mask on a single element, so the
    turbulence has to sit on a parent for the band's masked edge to undulate
    rather than rule a straight line. --glw-blur is declared HERE, on the
@@ -1831,9 +1931,15 @@
   opacity: var(--glw-strength);
 }
 
-/* ── Drive A: the shipped mechanic. Static field, travelling window. ── */
-[data-glw-drive="mask"] [data-glw-band],
-[data-glw-drive="scalar"] [data-glw-band] {
+/* ── Drive A: the shipped mechanic. Static field, travelling window.
+
+   ★ NOT ON A BLOOM. A bloom is a swell, not a travelling window, so windowing
+   it through a 280%-wide comet leaves a narrow diagonal sliver of the field
+   parked off-centre, which is indistinguishable from "nothing happened". The
+   :not() is the whole reason the QR and publish beats read as broken. ── */
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="mask"] [data-glw-band],
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]
+  [data-glw-band] {
   -webkit-mask-image: linear-gradient(
     100deg,
     transparent 0%,
@@ -2161,6 +2267,10 @@
   [data-glw-drive="transform"] [data-glw-band] {
     animation: glw-drift-x var(--glw-dur) linear infinite;
   }
+  /* The halo's washes travel the perimeter instead of crossing the box. */
+  [data-glw-shape="halo"] [data-glw-band] {
+    animation: glw-orbit var(--glw-dur) ease-in-out infinite;
+  }
   /* Phase-locked to the band: same duration, same clock, same play state. */
   [data-glw-edge] {
     animation: glw-mask-xy var(--glw-dur) linear infinite;
@@ -2170,7 +2280,13 @@
     animation-play-state: paused;
   }
   /* The one-shot. Decays TO the base, never to zero, so the lamp stays lit
-     after the moment has passed. Re-key the element to replay it. */
+     after the moment has passed. Re-key the element to replay it. Until it is
+     ARMED (scrolled into view, or fired by hand) the band simply rests at the
+     base, so an offscreen bloom is not spent on nobody. */
+  [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-band],
+  [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-edge] {
+    animation: none;
+  }
   [data-glw-shape="bloom"] [data-glw-band] {
     animation: glw-bloom 1400ms var(--dir-ease, cubic-bezier(0.23, 1, 0.32, 1))
       both;
@@ -2213,6 +2329,45 @@
   }
 }
 
+/* A full lap of the rim: each wash advances two ring stops per keyframe, so
+   colour hugs and travels the perimeter while the mask keeps the middle clean.
+   background-position only, so it stays off the layout and paint path. */
+@keyframes glw-orbit {
+  0%,
+  100% {
+    background-position:
+      100% 0%,
+      100% 100%,
+      0% 100%,
+      0% 0%,
+      50% 0%;
+  }
+  25% {
+    background-position:
+      100% 100%,
+      0% 100%,
+      0% 0%,
+      100% 0%,
+      100% 50%;
+  }
+  50% {
+    background-position:
+      0% 100%,
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      50% 100%;
+  }
+  75% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      0% 100%,
+      0% 50%;
+  }
+}
+
 @keyframes glw-bloom {
   0% {
     opacity: 0;
@@ -2249,5 +2404,79 @@
   [data-glw-band],
   [data-glw-edge] {
     display: none;
+  }
+}
+
+/* ── The skeleton reveal (transitions.dev 14-skeleton-reveal), lab-local.
+
+   Will's note on the awaiting-media specimen: one lamp over the grid is the
+   elegant answer, and the cards want real skeletons under it. marketing.css
+   already carries this recipe as .mkt-skel-*, but that sheet never loads on
+   /design, so this is the same mechanic under the glw- namespace.
+
+   Cross-FADE plus cross-BLUR, not a swap: the blur is what stops the two
+   states reading as two objects overlapping (the emil note on masking an
+   imperfect transition). The pulse rides the BONES rather than the skeleton
+   itself, so the skeleton's own opacity stays free for the reveal. ── */
+.glw-skel {
+  position: relative;
+  overflow: hidden;
+}
+.glw-skel-skeleton,
+.glw-skel-content {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 420ms ease-in-out,
+    filter 420ms ease-in-out;
+}
+.glw-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+}
+.glw-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(3px);
+}
+.glw-skel[data-revealed="true"] .glw-skel-skeleton {
+  opacity: 0;
+  filter: blur(3px);
+}
+.glw-skel[data-revealed="true"] .glw-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Per-card delay, so an album fills rather than flashing all at once. Capped
+   the way the gallery entrance caps its own stagger: a deep grid must not
+   queue forever. */
+.glw-skel[data-revealed="true"] .glw-skel-skeleton,
+.glw-skel[data-revealed="true"] .glw-skel-content {
+  transition-delay: min(calc(var(--glw-skel-i, 0) * 55ms), 900ms);
+}
+
+.glw-skel-bone {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--foreground) 9%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glw-skel-skeleton[data-pulsing="true"] .glw-skel-bone {
+    animation: glw-skel-pulse 1400ms ease-in-out infinite;
+  }
+  .glw-skel-skeleton[data-paused="true"] .glw-skel-bone {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes glw-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }

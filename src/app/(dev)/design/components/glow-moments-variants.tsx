@@ -382,41 +382,71 @@ function useFrameRate(active: boolean) {
 
 const TILE_COUNT = 30;
 
+/** The album that fills, for the reveal specimen. */
+const FILL_IDS = [
+  "wedding-golden",
+  "concert-confetti",
+  "party-balloons",
+  "reception-table",
+  "festival-lights",
+  "wedding-toast",
+  "party-dj",
+  "wedding-petals",
+  "festival-crowd",
+  "wedding-arch",
+  "reception-hall",
+  "wedding-rings",
+] as const;
+
 function AwaitingMedia() {
   const [mode, setMode] = useState<"off" | "mask" | "transform" | "single">(
-    "off",
+    "single",
   );
+  const [revealed, setRevealed] = useState(false);
   const fps = useFrameRate(mode !== "off");
 
   return (
     <Moment
       n="04"
-      title="Awaiting media, and what it costs"
-      verdict="work"
-      verdictLabel="Single band only"
+      title="Awaiting media, and what it fills into"
+      verdict="ship"
+      verdictLabel="One lamp, with skeletons"
       lede={
-        <p>
-          The recipe&rsquo;s native purpose, and the specimen that decides the
-          engine&rsquo;s real cost. A turbulence displacement plus a blur is
-          re-evaluated every frame over a region 3.24 times the element&rsquo;s
-          area, so thirty independent lamps is thirty of those. The third option
-          is one lamp for the whole grid, which is also the more honest reading
-          of law 2: a loading album is one room, not thirty.
-        </p>
+        <>
+          <p>
+            One lamp over the whole grid is the elegant answer and also the more
+            honest reading of law 2: an album that is filling is one room, not
+            thirty. It is the cheap one too. A turbulence displacement plus a
+            blur is re-evaluated every frame over a region 3.24 times the
+            element&rsquo;s area, so thirty independent lamps is thirty of
+            those.
+          </p>
+          <p className="mt-2">
+            The cards underneath are the recipe&rsquo;s own skeleton reveal:
+            cross-fade AND cross-blur, staggered so the album fills rather than
+            flashing. The blur is what stops the two states reading as two
+            objects overlapping. Press Fill to watch the photos land under the
+            light.
+          </p>
+        </>
       }
       lamp="the photographs on their way"
       direction="diagonally across the album"
       colour="fallback five (nothing has decoded yet, so there is nothing to sample)"
-      law="Law 1 is the weakest here, which is why it is a work verdict"
+      law="Law 1 is weakest here, which is what the single lamp answers"
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={() => setRevealed((r) => !r)}>
+            {revealed ? "Reset" : "Fill the album"}
+          </Button>
+          <span className="mx-1 h-4 w-px bg-border" />
           {(
             [
-              ["off", "Off"],
+              ["single", "One lamp over the grid"],
               ["mask", `${TILE_COUNT} lamps, mask drive`],
               ["transform", `${TILE_COUNT} lamps, transform drive`],
-              ["single", "One lamp over the grid"],
+              ["off", "Off"],
             ] as const
           ).map(([m, label]) => (
             <button
@@ -434,7 +464,7 @@ function AwaitingMedia() {
               {label}
             </button>
           ))}
-          <span className="ml-2 font-mono text-xs text-muted-foreground">
+          <span className="ml-1 font-mono text-xs text-muted-foreground">
             {fps === null ? "idle" : `${fps} fps`}
           </span>
         </div>
@@ -447,30 +477,53 @@ function AwaitingMedia() {
             />
           )}
           <div className="relative grid grid-cols-6 gap-[var(--gap-gallery)]">
-            {Array.from({ length: TILE_COUNT }, (_, i) => (
-              <div
-                key={i}
-                className="relative isolate aspect-[4/5] overflow-hidden"
-                style={{
-                  borderRadius: "var(--radius-tile)",
-                  background: "oklch(0.21 0 0)",
-                }}
-              >
-                {(mode === "mask" || mode === "transform") && (
-                  <Glow
-                    shape="sweep"
-                    drive={mode}
-                    vars={{ "--glw-scale": "0.6", "--glw-dur": "3s" }}
-                  />
-                )}
-              </div>
-            ))}
+            {Array.from({ length: TILE_COUNT }, (_, i) => {
+              const img = marketingImage(FILL_IDS[i % FILL_IDS.length]);
+              return (
+                <div
+                  key={i}
+                  className="glw-skel relative isolate aspect-[4/5]"
+                  data-revealed={revealed ? "true" : "false"}
+                  style={
+                    {
+                      borderRadius: "var(--radius-tile)",
+                      background: "oklch(0.19 0 0)",
+                      "--glw-skel-i": i,
+                    } as React.CSSProperties
+                  }
+                >
+                  <div
+                    className="glw-skel-skeleton"
+                    data-pulsing={revealed ? "false" : "true"}
+                  >
+                    <span className="glw-skel-bone" />
+                  </div>
+                  <div className="glw-skel-content">
+                    <Image
+                      src={img.src}
+                      alt=""
+                      fill
+                      sizes="140px"
+                      className="object-cover"
+                    />
+                  </div>
+                  {(mode === "mask" || mode === "transform") && (
+                    <Glow
+                      shape="sweep"
+                      drive={mode}
+                      vars={{ "--glw-scale": "0.6", "--glw-dur": "3s" }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </Ground>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Read the number under CPU throttling, not on a desktop at rest. The
-          guest device for this product is a mid-range Android phone, and the
-          measured figures for all three modes are in the handoff report.
+          Read the frame counter under CPU throttling, not on a desktop at rest.
+          The guest device for this product is a mid-range Android phone, and a
+          background tab throttles the counter to nothing, so it needs a
+          foreground window.
         </p>
       </div>
     </Moment>
@@ -605,19 +658,27 @@ function QrPlate() {
         on="slab"
         className="relative isolate flex min-h-64 items-center justify-center"
       >
-        <div className="relative">
-          <Glow
-            shape="bloom"
-            drive="mask"
-            runId={copied}
-            vars={{
-              "--glw-from-x": "50%",
-              "--glw-from-y": "50%",
-              "--glw-reach": "150%",
-              "--glw-strength": "0.85",
-              "--glw-base": "0.18",
-            }}
-          />
+        <div className="relative isolate">
+          {/* The light needs room OUTSIDE the object it comes from. Pinned to
+              the plate's own box (what this did first) every pixel of it sat
+              behind an opaque white plate, which is why the beat read as
+              broken. It also keeps the spill clear of the modules and the
+              quiet zone: scannability is a contract, not a style. */}
+          <div className="absolute -inset-24 isolate -z-10">
+            <Glow
+              shape="bloom"
+              drive="mask"
+              runId={copied}
+              vars={{
+                "--glw-from-x": "50%",
+                "--glw-from-y": "50%",
+                "--glw-reach": "78%",
+                "--glw-strength": "0.95",
+                "--glw-base": "0.1",
+                "--glw-blur": "26px",
+              }}
+            />
+          </div>
           {/* A stand-in plate: the point here is the light, not the modules. */}
           <div
             className="relative grid size-36 grid-cols-8 gap-0.5 rounded-lg p-3"
@@ -653,7 +714,10 @@ function QrPlate() {
 
 function PublishBeat() {
   const [runId, setRunId] = useState(0);
-  const frame = marketingImage("festival-lights");
+  // A colour-rich frame on purpose: festival-lights is a near-black night shot,
+  // which samples to almost nothing and makes a specimen about sampling
+  // impossible to read at frame size.
+  const frame = marketingImage("concert-confetti");
   const sampled = useSampledPalette(frame.src);
   return (
     <Moment
@@ -684,20 +748,26 @@ function PublishBeat() {
             on="cinema"
             className="relative isolate flex min-h-64 items-center justify-center p-6"
           >
-            <div className="relative">
-              <Glow
-                shape="bloom"
-                drive="mask"
-                runId={runId}
-                colors={sampled ?? undefined}
-                vars={{
-                  "--glw-from-x": "50%",
-                  "--glw-from-y": "50%",
-                  "--glw-reach": "160%",
-                  "--glw-strength": "0.9",
-                  "--glw-base": "0.2",
-                }}
-              />
+            <div className="relative isolate">
+              {/* The light needs room OUTSIDE the object it comes from. Pinned
+                  to the frame's own box (what this did first) every pixel sat
+                  behind an opaque frame, which is why the beat read as dead. */}
+              <div className="absolute -inset-20 isolate -z-10">
+                <Glow
+                  shape="bloom"
+                  drive="mask"
+                  runId={runId}
+                  colors={sampled ?? undefined}
+                  vars={{
+                    "--glw-from-x": "50%",
+                    "--glw-from-y": "50%",
+                    "--glw-reach": "80%",
+                    "--glw-strength": "0.95",
+                    "--glw-base": "0.12",
+                    "--glw-blur": "24px",
+                  }}
+                />
+              </div>
               <div className="relative aspect-[9/16] w-28 overflow-hidden rounded-lg border border-border">
                 <Image
                   src={frame.src}
@@ -710,14 +780,20 @@ function PublishBeat() {
             </div>
           </Ground>
         </Spec>
-        <Spec name="Today" note="A flat violet breathing on the frame.">
+        <Spec
+          name="Today"
+          note="The shipped beat: a flat violet breathing on the frame. It replays with Publish too, so the two are compared moving, not one moving against one still."
+        >
           <Ground
             on="cinema"
             className="relative flex min-h-64 items-center justify-center p-6"
           >
+            {/* Keyed on the same runId so Publish replays BOTH sides. Comparing
+                a live beat against a frozen screenshot is not a comparison. */}
             <div
+              key={runId}
+              data-rxp-pubglow
               className="relative aspect-[9/16] w-28 overflow-hidden rounded-lg border border-border"
-              style={{ boxShadow: "0 0 40px 6px oklch(0.62 0.2 300 / 0.5)" }}
             >
               <Image
                 src={frame.src}
@@ -753,25 +829,31 @@ function CtaQuestion() {
       lede={
         <>
           <p>
-            You asked to see the get-pro-button rim, so here it is, with the
-            finding beside it. Start free renders at least three times on every
-            marketing page across 33 call sites: the header, fourteen CtaBands,
-            and the footer. That is the high-frequency tier the craft standard
-            says never to add theater to, and a rim also has no direction, which
-            fails law 2 on its own.
+            The first pass of this rendered the recipe through the wrong shape
+            and you caught it: its mask is opaque at the origin, so the light
+            sat behind an opaque pill and all that showed was a sliver at the
+            edge. This is the real mechanic now, ported as its own shape.
           </p>
           <p className="mt-2">
-            One CTA passes: the hero button, sitting over the media wall, once
-            per page. There the lamp is the wall, not the button, and the button
-            is simply standing in the light. That is a different thing from a
-            glowing button, and it is the version worth having.
+            Which also corrects my argument. I claimed a rim fails law 2 for
+            having no direction. That was wrong: a halo is an object backlit
+            from behind, which is a nameable vector. What actually decides the
+            case is law 1. In the hero there IS something behind the button, the
+            media wall, and in the chrome there is nothing at all, so the light
+            has no source and is decoration by definition. Same verdict, honest
+            reasoning.
+          </p>
+          <p className="mt-2">
+            The frequency finding stands on its own: Start free renders at least
+            three times on every marketing page across 33 call sites, which is
+            the tier the craft standard says never to add theater to.
           </p>
         </>
       }
-      lamp="the media wall behind it (never the button itself)"
-      direction="from the wall, past the button"
-      colour="sampled from the wall"
-      law="Fails law 2 as a rim; passes laws 1 and 2 as a lit object"
+      lamp="in the hero, the media wall behind it. In the chrome, nothing."
+      direction="from behind the object, outward"
+      colour="fallback five on the chrome pill; sampled from the wall in the hero"
+      law="Fails law 1 in the chrome (no lamp); passes in the hero"
     >
       <div className="grid gap-6 sm:grid-cols-3">
         <Spec
@@ -782,23 +864,21 @@ function CtaQuestion() {
             on="slab"
             className="flex min-h-40 items-center justify-center"
           >
-            {/* The wash creeps in AROUND the pill and never over the label:
-                the recipe masks its own centre clear for exactly this reason,
-                and painting across the text would argue against this option
-                for the wrong reason. */}
-            <span className="relative isolate inline-flex p-3">
-              <span className="absolute inset-0 isolate overflow-hidden rounded-full">
+            {/* `halo`, not `throw`. This first rendered through `throw`, whose
+                mask is OPAQUE at the origin, so the light sat entirely behind
+                an opaque pill and all that showed was a sliver at the edge.
+                The recipe masks its centre CLEAR for exactly this reason. */}
+            <span className="relative isolate inline-flex p-5">
+              <span className="absolute inset-0 isolate">
                 <Glow
-                  shape="throw"
-                  drive="mask"
+                  shape="halo"
                   vars={{
                     "--glw-from-x": "50%",
                     "--glw-from-y": "50%",
-                    "--glw-reach": "130%",
-                    "--glw-scale": "0.4",
-                    "--glw-blur": "9px",
-                    "--glw-strength": "0.85",
-                    "--glw-base": "0.75",
+                    "--glw-blur": "7px",
+                    "--glw-strength": "0.7",
+                    "--glw-base": "0.55",
+                    "--glw-dur": "5s",
                   }}
                 />
               </span>
@@ -830,11 +910,26 @@ function CtaQuestion() {
                 cols={3}
               />
             </div>
-            <div className="absolute inset-x-0 bottom-0 isolate h-24">
+            {/* The wall needs its own ramp into the room, exactly as the hero
+                has one. Without it the wall ends on a hard cut and the light
+                below reads as a stripe under a border rather than as spill off
+                a screen: the border was the first thing Will saw here. */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+              style={{
+                background:
+                  "linear-gradient(to top, oklch(0.11 0 0), transparent)",
+              }}
+            />
+            <div className="absolute inset-x-0 bottom-0 isolate h-28">
               <Glow
                 shape="seam"
                 drive="mask"
-                vars={{ "--glw-from-y": "0%", "--glw-strength": "0.5" }}
+                vars={{
+                  "--glw-from-y": "0%",
+                  "--glw-strength": "0.55",
+                  "--glw-h": "100%",
+                }}
               />
             </div>
             <Button size="lg" className="relative mb-6">

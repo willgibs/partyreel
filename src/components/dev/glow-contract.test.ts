@@ -52,19 +52,40 @@ describe("the spill primitive", () => {
     expect(glowCode).toContain('data-paused={paused ? "true" : "false"}');
   });
 
-  it("always renders the base beside the band", () => {
-    // ★ THE INVISIBLE BUG (design-system.md, generalised). A swept layer rests
-    // fully off-layer, so a band without a base shows NOTHING whenever it is
-    // paused - which is its default state below the fold, and its
+  it("always renders the base beside the band, UNCONDITIONALLY", () => {
+    // ★ THE PIN THAT WAS TOO WEAK. The first version of this checked only that
+    // both strings appear in the source, which passed while the band was
+    // actually behind `{(!oneShot || inView) && ...}` and therefore absent at
+    // runtime for every one-shot. That is invariant 2 broken in the one place
+    // a source-text pin was supposed to protect.
+    //
+    // A swept layer rests fully off-layer, so a band without a base shows
+    // NOTHING whenever it is paused: its default state below the fold, and its
     // reduced-motion state, since the global guard forces
-    // animation-iteration-count: 1. The base is how a reduced-motion arrival
-    // still arrives.
+    // animation-iteration-count: 1.
     expect(glowCode).toContain("<div data-glw-base />");
-    expect(glowCode).toContain("data-glw-band");
+    expect(glowCode).toContain("<div data-glw-band />");
     const baseAt = glowCode.indexOf("data-glw-base");
     const bandAt = glowCode.indexOf("data-glw-band");
-    expect(baseAt).toBeGreaterThan(-1);
     expect(bandAt).toBeGreaterThan(baseAt);
+    // Neither layer may sit behind a conditional or a ternary.
+    for (const layer of ["data-glw-base", "data-glw-band"]) {
+      const line = glowCode
+        .split("\n")
+        .find((l) => l.includes(layer) && l.includes("<div"));
+      expect(line, layer).toBeTruthy();
+      expect(line!.trim(), `${layer} is conditionally rendered`).toMatch(
+        /^<div data-glw-(base|band) \/>$/,
+      );
+    }
+  });
+
+  it("arms a one-shot by attribute rather than by mounting it", () => {
+    // A user-triggered bloom must not depend on an IntersectionObserver having
+    // fired, and the resting light must be present from first paint.
+    expect(glowCode).toMatch(/const armed =/);
+    expect(glowCode).toContain("data-glw-armed");
+    expect(glowCode).toMatch(/runId > 0/);
   });
 
   it("accepts no className", () => {

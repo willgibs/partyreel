@@ -3,7 +3,12 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-import { Glow, GlowFilter, type GlowVars } from "@/components/dev/glow";
+import {
+  Glow,
+  GlowFilter,
+  type GlowShape,
+  type GlowVars,
+} from "@/components/dev/glow";
 import {
   alphaAtAaFloor,
   effectiveAlpha,
@@ -337,7 +342,7 @@ function ExperimentStage({
 }
 
 const SHAPES: {
-  shape: "seam" | "throw" | "sweep" | "bloom";
+  shape: GlowShape;
   name: string;
   note: string;
   lamp: string;
@@ -371,9 +376,16 @@ const SHAPES: {
     lamp: "a moment that just happened",
     direction: "outward, once",
   },
+  {
+    shape: "halo",
+    name: "Halo",
+    note: "An object lit from BEHIND, which is the get-pro-button mechanic ported: the mask clears its own centre so colour creeps in from the rim and the object stays clean.",
+    lamp: "whatever is behind the object",
+    direction: "from behind, outward",
+  },
 ];
 
-const SHAPE_VARS: Record<string, GlowVars> = {
+const SHAPE_VARS: Partial<Record<GlowShape, GlowVars>> = {
   // A seam lights the top third of what it meets, never the whole box.
   seam: { "--glw-h": "42%", "--glw-strength": "0.55", "--glw-base": "0.55" },
   // Thrown up from the bottom edge, like a card overhanging a dark field.
@@ -393,6 +405,12 @@ const SHAPE_VARS: Record<string, GlowVars> = {
     "--glw-strength": "0.85",
     "--glw-base": "0.25",
   },
+  halo: {
+    "--glw-blur": "10px",
+    "--glw-strength": "0.7",
+    "--glw-base": "0.55",
+    "--glw-dur": "5s",
+  },
 };
 
 function Shapes() {
@@ -400,7 +418,7 @@ function Shapes() {
   return (
     <Section
       n="03"
-      title="Four shapes, one engine"
+      title="Five shapes, one engine"
       lede="Each on production's real ground, beside its unlit control. The lab's own mock sheet uses a pure-white card and the app's 0.14 night; the cinema room is 0.11 and the ink slab is 0.155, so every stage here redeclares the real tokens."
     >
       <div className="flex flex-col gap-8">

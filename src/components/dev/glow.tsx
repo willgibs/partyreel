@@ -34,7 +34,7 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * document order and that is unstable under portals and reconciliation.
  */
 
-export type GlowShape = "seam" | "throw" | "sweep" | "bloom";
+export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo";
 export type GlowDrive = "mask" | "transform" | "scalar";
 
 /** The tunable engine knobs. Typed so a typo is a compile error, not a no-op. */
@@ -46,6 +46,8 @@ export type GlowVars = Partial<
     | "--glw-blur"
     | "--glw-scale"
     | "--glw-h"
+    | "--glw-core"
+    | "--glw-core-blur"
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
@@ -103,6 +105,13 @@ export function Glow({
 
   const ref = oneShot ? arrival.ref : ambient.ref;
   const paused = oneShot ? false : ambient.paused;
+  // A one-shot is ARMED by arrival, never GATED by it. Gating the band's
+  // existence on inView (what this did first) breaks invariant 2 at runtime
+  // while the source still mentions both layers, and it also makes a
+  // user-triggered replay depend on an observer that may never have fired.
+  // The attribute holds the animation instead, so the light is present and
+  // resting from first paint and a runId change always replays it.
+  const armed = !oneShot || arrival.inView || runId > 0;
   const style = { ...colorVars(colors), ...(vars as CSSProperties) };
 
   return (
@@ -112,6 +121,7 @@ export function Glow({
       data-glw-shape={shape}
       data-glw-drive={drive}
       data-paused={paused ? "true" : "false"}
+      data-glw-armed={oneShot ? (armed ? "true" : "false") : undefined}
       style={style}
       aria-hidden
     >
@@ -121,7 +131,7 @@ export function Glow({
           everywhere else (no animationend listeners). */}
       <div data-glw-field key={oneShot ? runId : undefined}>
         <div data-glw-base />
-        {(!oneShot || arrival.inView) && <div data-glw-band />}
+        <div data-glw-band />
       </div>
       {edge && (
         <>
