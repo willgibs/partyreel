@@ -45,7 +45,9 @@ failure mode a committed artifact has.
 Adopted whole: `[data-mkt-isolate]`, the light-table dim where pointing at one frame steps the others
 back, written generic in the shared grammar rather than page-local. Synthesized: the ink comes from
 `BRAND_HEX` rather than three hard-coded `#101010`s, and the download chip's class string is one
-constant instead of two verbatim copies. Added: a guard pinning the downloadable QR to the site URL,
+constant instead of two verbatim copies, and `/llms.txt` finally says "Press" too — the branch's own
+doc claimed the rename reached everywhere and the crawler surface was the one place it had not. Added:
+a guard pinning the downloadable QR to the site URL,
 which is the one kit asset whose CONTENT can be wrong while the file is perfectly valid (the CRC guard
 only proves the zip matches the disk, not that the disk is right). Removed: `PRESS_BOILERPLATE_LINE`,
 a third boilerplate length with no consumer anywhere; the paragraph and the one-liner both ship.
