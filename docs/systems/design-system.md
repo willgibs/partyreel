@@ -101,11 +101,13 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   finds NOTHING while the rule is present and working. An earlier version of this doc recorded
   "Tailwind can emit nothing for an arbitrary utility, silently" from exactly that mistake; re-tested
   2026-08-28 against a clean production build, every arbitrary utility emitted correctly. Two things
-  that ARE real and produce the same symptom: the dev server can serve a **stale CSS chunk** for a
-  newly added file (its dev chunk URLs are not content-hashed, so the browser reuses its cache — bust
-  the `<link>` href or hard-reload before debugging), and `text-*` needs `text-[length:...]` for a
-  `clamp()` because v4 cannot tell a size from a color. Load-bearing geometry still belongs in the
-  stylesheet that owns the component's other CSS, for readability, not because utilities are unreliable.
+  that ARE real and produce the same symptom: a **stale dev CSS chunk** (Turbopack's chunk URLs are not
+  content-hashed and it reuses filenames ACROSS worktrees, so a browser — or a second browser on the
+  same port — can serve you another tree's stylesheet; the mechanism and the fix are in
+  [testing-verification.md](testing-verification.md), and it has now cost two rounds), and `text-*`
+  needing `text-[length:...]` for a `clamp()` because v4 cannot tell a size from a color. Load-bearing
+  geometry still belongs in the stylesheet that owns the component's other CSS, for readability, not
+  because utilities are unreliable.
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
 - The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events
@@ -147,18 +149,31 @@ scale.** Compose it rather than hand-rolling a hero; four agents wrote four hero
 is the drift it closes. The heading is always an `<h1>` (the /contact bug class; `SectionShell`'s `as`
 carries the same rule for sections).
 
-A **display exemption** exists once: `/about`'s wordmark, the `display` step at
-`clamp(3.25rem, 12vw, 10rem)` — a 160px string, and a recorded decision rather than a stray arbitrary
-value. Do not "fix" it back down toward 72px. Two things it needs and a normal H1 does not: `text-[length:...]`
-(v4 must be told whether a `clamp()` in `text-*` is a size or a color), and an **asymmetric optical trim**.
-A normal heading's box is about its ink; a display line's is not, and it is wrong in OPPOSITE directions at
-each end. Measured with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em
-under), `leading-[0.85]` + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
-0.094em ABOVE the descender, so one honest `gap-6` reads ~44px over the name and ~9px under it. The step
-therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across the clamp) and deliberately never
-its bottom — trimming both ends symmetrically is the intuitive move and it tightens the end already tight.
-Keep `py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the descender, and the negative
-margin removes the distance from LAYOUT while the glyph keeps its room.
+The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
+decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's
+"Partyreel" and /press's "Media" take it. ★ **ONE OR TWO WORDS ONLY** (Will's contract, 2026-08-29):
+`whitespace-nowrap` is load-bearing under a 12vw clamp, and the trim below is reasoned about a single
+line, so a longer title belongs at `xl`. ★ The tracking squeeze (`.mkt-name`) belongs to the STEP, not
+to the page that first used it: any masthead at this size arrives set slightly open and closes to the
+heading face's own `-0.03em`.
+
+Three things it needs that a normal H1 does not. **`text-[length:...]`** — v4 must be told whether a
+`clamp()` in `text-*` is a size or a color. An **asymmetric optical trim**: a normal heading's box is
+about its ink, a display line's is not, and it is wrong in OPPOSITE directions at each end. Measured
+with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em under),
+`leading-[0.85]` + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
+0.094em ABOVE the descender, so one honest `gap-6` reads ~44px over the name and ~9px under it. The
+step therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across the clamp) and
+deliberately never its bottom — trimming both ends symmetrically is the intuitive move and it tightens
+the end already tight. Keep `py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the
+descender, and the negative margin removes the distance from LAYOUT while the glyph keeps its room.
+(A consequence worth expecting rather than "fixing": a title with NO descender, like "Media", reads
+looser under the masthead than one with a "y". The box rhythm is identical; the ink differs.)
+And an **optical side bearing** (`leadIn`), which is a different kind of correction and is gated
+separately: the vertical trim is about the LINE BOX and holds at any alignment, while `leadIn` pulls a
+flush-left masthead back onto its column edge and therefore applies ONLY at `align="left"`. Folded into
+the heading class it drags a CENTRED masthead off centre by half its value (measured on /press: 3.6px),
+which reads as "the hero is slightly wrong" and nothing more.
 
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
@@ -252,11 +267,11 @@ natively with no `:has()` involved. The standing `:focus-within` objection (a mo
 state on) is contextual, not absolute: on the press sheet's light table, a clicked frame staying
 picked is the wanted behaviour, whereas on `[data-reveal-chip]` it was not.
 
-★ **Focus states do not paint while `document.hasFocus()` is false**, and `matches(':focus')` returns
-false with them, even though `document.activeElement` is correct. Any `:focus-*` styling is therefore
-unverifiable from a backgrounded/headless browser seat: an `!important` `a:focus{outline}` control
-refuses to paint too. Hand that check to a human rather than "fixing" working CSS
-([testing-verification.md](testing-verification.md)).
+★ **`position: sticky` on a grid item is a silent no-op without `self-start`.** A grid item stretches
+to its row's height by default, so it already spans the whole scroll range and has nothing left to
+stick through. `PressSection`'s pinned column is the worked example (`lg:sticky lg:top-… lg:self-start`);
+its offset rides `--mkt-header-h` rather than a hardcoded rem so a retuned header cannot strand it
+under the bar.
 
 **Reduced motion:** a global guard in globals.css clamps animation/transition durations to
 `0.01ms` (NEVER `0`: radix exit-unmount and the lightbox settle wait on

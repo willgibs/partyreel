@@ -1,15 +1,14 @@
 import { ArrowDown } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { CopyButton } from "@/components/marketing/press/copy-button";
 import { PressSection } from "@/components/marketing/press/press-section";
 import { PressSheet } from "@/components/marketing/press/press-sheet";
-import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -45,6 +44,10 @@ export const metadata: Metadata = {
  * ★ THE SHAPE: dark hero, then everything else on paper, then the always-dark footer. The
  * sheet OPENS the paper body rather than riding in the dark with the hero, so the body
  * reads as one continuous paper surface instead of two dark blocks with a gap.
+ *
+ * ★ THE HERO IS THE SHARED LOCKUP (PageHero) at its display step, not a page-local stack.
+ * Scale, optical trim and the tracking squeeze all come from the step; this file supplies
+ * only the four slots and the chapter's clearance.
  *
  * ★ THE BODY IS A STICKY TWO-COLUMN SPINE: Assets / Words / Fact sheet pinned on the left,
  * their content on the right. It replaced a narrow centered reading column that left the
@@ -82,6 +85,11 @@ function factHref(label: string, value: string): string | null {
  * but it can read as "I am not helping you" on a page whose close offers help),
  * "Take it from here." (invites the writer to run with the story; a shade clever),
  * "Yours to use." (clearest, least warm).
+ *
+ * ★ ONE OR TWO WORDS, now that the hero takes the lockup's display step: that step is
+ * `whitespace-nowrap` under a 12vw clamp and its optical trim is reasoned about a single
+ * line (page-hero.tsx). A longer title is not wrong, it just belongs at `scale="xl"` —
+ * change both together, never the title alone.
  */
 const PAGE_TITLE = "Media";
 
@@ -107,38 +115,37 @@ export default function PressPage() {
         ]}
       />
 
-      {/* The overlay header sits over this, so the top padding clears it (the /help hero
-          idiom) rather than the header reserving space. */}
-      <section>
-        <Container className="flex flex-col items-center pt-24 pb-20 text-center sm:pt-28 sm:pb-24">
-          <TextsReveal className="flex flex-col items-center gap-6">
-            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
-              Press
-            </Eyebrow>
-            <h1
-              className="mkt-line mx-auto max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ "--i": 1 } as CSSProperties}
+      {/* THE MASTHEAD. The shared lockup at its display step, the same one /about
+          takes (Will's ruling, 2026-08-29): a one-word title set as a masthead, with
+          the optical trim and the tracking squeeze arriving from the STEP rather than
+          being hand-rolled here. The round shipped its own eyebrow/h1/standfirst stack,
+          which is the fourth such stack on this lane and is what page-hero.tsx exists to
+          end; it also left the h1 on `.mkt-line`, i.e. at opacity 0 until hydration,
+          which gates the page's largest paint.
+          The negative top margin slides the hero UNDER the overlay header (a sticky
+          header still takes its 64px of flow) so the room starts at the very top of the
+          page; the top padding then clears the bar again. cinema-hero.tsx's mechanism,
+          shared with /about. */}
+      <PageHero
+        className="-mt-[var(--mkt-header-h)] pt-28 pb-20 sm:pt-36 sm:pb-24"
+        scale="display"
+        eyebrow="Press"
+        heading={PAGE_TITLE}
+        subhead={
+          <>
+            The boilerplate, the fact sheet, and the brand files, ready to quote
+            and ready to publish. Anything else, write to{" "}
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className={cn("text-foreground", INLINE_LINK)}
             >
-              {PAGE_TITLE}
-            </h1>
-            <p
-              className="mkt-line mx-auto max-w-xl text-lg text-pretty text-muted-foreground"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              The boilerplate, the fact sheet, and the brand files, ready to
-              quote and ready to publish. Anything else, write to{" "}
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className={cn("text-foreground", INLINE_LINK)}
-              >
-                {SUPPORT_EMAIL}
-              </a>
-              .
-            </p>
-          </TextsReveal>
-          {/* Outside TextsReveal: .mkt-line forces display:block and would break this
-              flex row (the standing marketing.css landmine). */}
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              {SUPPORT_EMAIL}
+            </a>
+            .
+          </>
+        }
+        actions={
+          <>
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <a href={PRESS_KIT_ZIP} download>
                 Download kit
@@ -157,9 +164,9 @@ export default function PressPage() {
             >
               <Link href="/contact">Contact</Link>
             </Button>
-          </div>
-        </Container>
-      </section>
+          </>
+        }
+      />
 
       <PaperChapter>
         <PressSection

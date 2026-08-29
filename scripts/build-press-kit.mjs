@@ -3,7 +3,7 @@
  * Rebuilds public/press/partyreel-press-kit.zip from the PRESS_KIT manifest.
  *
  * Why a committed artifact and not a route handler (2026-08-28, the press-kit round): the zip
- * is six static files that change only when the brand does, so a CDN-served file beats any
+ * is a handful of static files that change only when the brand does, so a CDN-served file beats any
  * runtime code. And ADR-0018 ruled AGAINST hand-rolled zip encoders (streaming ZIP64 has silent
  * correctness failure modes that only surface in specific extractors), confining a zip library
  * to the isolated Worker package. So: no encoder, no dependency, no route. The system `zip`
@@ -19,7 +19,7 @@
  *   -X  drop extra file attributes. NOT cosmetic: every file in public/press/ carries macOS
  *       extended attributes, and without -X the archive gains __MACOSX/._* members that the
  *       drift guard would (correctly) reject.
- *   -j  junk paths, so the archive is flat and a journalist gets six files, not nested dirs.
+ *   -j  junk paths, so the archive is flat and a journalist gets loose files, not nested dirs.
  *
  * Not byte-reproducible across runs: -X does not strip mtimes. The guard compares names, sizes
  * and CRCs, never bytes, so that is fine. Do not add a byte-identity assertion.

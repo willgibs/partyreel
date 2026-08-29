@@ -1505,8 +1505,6 @@
    Deliberate details, all load-bearing:
    - @media (hover: hover) so a touch TAP can never leave the sheet stuck dimmed
      (the .mkt-stack precedent in marketing.css).
-   - :focus-visible, never :focus-within: a mouse click inside a frame would
-     otherwise pin the dim state on (the [data-reveal-chip] gotcha).
    - 140ms in / 220ms out. Exits are usually faster than entrances; a skimmed row
      is the design system's stated exception, because a slow un-dim reads sticky.
    - The dim lives ONLY inside the transition block's selector, so the resting

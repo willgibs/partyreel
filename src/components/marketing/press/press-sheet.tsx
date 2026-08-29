@@ -28,8 +28,9 @@ import { cn } from "@/lib/utils";
  * a card grid and throws away the cheapest identity move on the page.
  *
  * ★ PLATE BY LEGIBILITY, NEVER BY VARIETY: white behind anything drawn in ink, ink behind
- * anything drawn in white. The bare mark is a #101010 stroke and was briefly on a
+ * anything drawn in white. The bare mark is a BRAND_HEX stroke and was briefly on a
  * translucent-white plate, which resolves to dark grey on ink and all but erased it.
+ * The two grounds are literal colours, not theme utilities — see PLATE_PAPER below.
  *
  * Two mechanics, documented at their source: the sheet EXPOSES (frames land in index
  * order as hard film cuts, marketing.css [data-mkt-cut]) and the light-table ISOLATE
@@ -49,22 +50,37 @@ function byLabel(...ids: string[]): PressKitAsset[] {
   });
 }
 
+/**
+ * The two plate grounds, as literal colours rather than theme utilities. A plate is the
+ * ARTWORK's own ground (each mark is drawn either on white or on the ink) and must not
+ * follow a token flip: `bg-background` would put the paper page's #fcfcfc behind a mark
+ * cut for white. The ink is BRAND_HEX, so the plates, the swatch and its copy button
+ * cannot drift from each other or from the mark files.
+ */
+const PLATE_PAPER = "#ffffff";
+
+/** One chip: a download, or the pointer to the type family. Two callers carried this
+ *  ~300-character string verbatim, which is one edit away from a mismatched pair. */
+const CHIP =
+  "inline-flex items-center rounded-action-sm border border-foreground/25 px-2 py-1 text-[11px] font-medium text-foreground/80 transition-[color,border-color,background-color,transform] duration-150 ease-[var(--ease-emphasis)] hover:border-foreground/50 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]";
+
 function Frame({
   index,
   plate,
-  onDark = false,
   label,
   actions,
   children,
 }: {
   index: number;
+  /** A plate ground colour: PLATE_PAPER or BRAND_HEX. */
   plate: string;
-  /** True when the plate is ink, so the frame index flips to a light tone. */
-  onDark?: boolean;
   label: string;
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  // Derived, never passed: the index tone follows the plate, so the two cannot be set
+  // out of step (a light index on a white plate is invisible and nothing errors).
+  const onDark = plate === BRAND_HEX;
   return (
     <li
       data-mkt-isolate-item
@@ -77,10 +93,8 @@ function Frame({
         className="flex flex-col"
       >
         <div
-          className={cn(
-            "relative flex aspect-square items-center justify-center",
-            plate,
-          )}
+          style={{ background: plate }}
+          className="relative flex aspect-square items-center justify-center"
         >
           {/* Mono earns its place here and almost nowhere else on the sheet: the index is
               a NUMBER in a column of numbers, so tabular figures keep it aligned.
@@ -126,7 +140,7 @@ function DownloadChip({ asset }: { asset: PressKitAsset }) {
       href={asset.file}
       download
       aria-label={`Download ${asset.label}, ${asset.format.toUpperCase()}`}
-      className="inline-flex items-center rounded-action-sm border border-foreground/25 px-2 py-1 text-[11px] font-medium text-foreground/80 transition-[color,border-color,background-color,transform] duration-150 ease-[var(--ease-emphasis)] hover:border-foreground/50 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]"
+      className={CHIP}
     >
       {asset.format.toUpperCase()}
     </a>
@@ -156,7 +170,7 @@ export function PressSheet() {
       >
         <Frame
           index={0}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="Mark, dark chip"
           actions={
             <>
@@ -172,8 +186,7 @@ export function PressSheet() {
 
         <Frame
           index={1}
-          plate="bg-[#101010]"
-          onDark
+          plate={BRAND_HEX}
           label="Mark, light chip"
           actions={
             <>
@@ -188,7 +201,7 @@ export function PressSheet() {
 
         <Frame
           index={2}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="Bare mark"
           actions={
             <>
@@ -203,7 +216,7 @@ export function PressSheet() {
 
         <Frame
           index={3}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="App icon"
           actions={<DownloadChip asset={appIcon} />}
         >
@@ -222,8 +235,7 @@ export function PressSheet() {
               invisible because the card's own ground is the same ink as the plate. */}
         <Frame
           index={4}
-          plate="bg-[#101010]"
-          onDark
+          plate={BRAND_HEX}
           label="Share card"
           actions={<DownloadChip asset={shareCard} />}
         >
@@ -238,7 +250,7 @@ export function PressSheet() {
 
         <Frame
           index={5}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="The QR code"
           actions={
             <>
@@ -258,7 +270,7 @@ export function PressSheet() {
 
         <Frame
           index={6}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="Ink"
           actions={
             <CopyButton
@@ -269,7 +281,7 @@ export function PressSheet() {
             />
           }
         >
-          <span className="size-[46%] bg-[#101010]" />
+          <span className="size-[46%]" style={{ background: BRAND_HEX }} />
         </Frame>
 
         {/* The one frame that is not a file: a designer laying out a piece needs the FACE,
@@ -277,20 +289,22 @@ export function PressSheet() {
             rather than shipping font binaries in a press kit. */}
         <Frame
           index={7}
-          plate="bg-white"
+          plate={PLATE_PAPER}
           label="Type: Urbanist 700"
           actions={
             <a
               href="https://fonts.google.com/specimen/Urbanist"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center rounded-action-sm border border-foreground/25 px-2 py-1 text-[11px] font-medium text-foreground/80 transition-[color,border-color,background-color,transform] duration-150 ease-[var(--ease-emphasis)] hover:border-foreground/50 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]"
+              className={CHIP}
             >
               Get it
             </a>
           }
         >
-          <span className="font-heading text-6xl text-[#101010]">Aa</span>
+          <span className="font-heading text-6xl" style={{ color: BRAND_HEX }}>
+            Aa
+          </span>
         </Frame>
       </ul>
 

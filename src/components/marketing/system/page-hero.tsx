@@ -46,22 +46,59 @@ import { Reveal } from "./reveal";
  * clipped by an `overflow-hidden` ancestor is the failure it prevents); the
  * negative margin removes the distance from LAYOUT while the glyph keeps its
  * room.
+ *
+ * ★ The display step carries TWO optical corrections and they are NOT the same
+ * kind of thing. The vertical trim is about the LINE BOX, so it holds at any
+ * alignment. The horizontal one (`leadIn`) is about a glyph's SIDE BEARING
+ * against a column edge, so it only means anything when there IS an edge to
+ * align to: it is gated on `align="left"` rather than baked into the heading
+ * class, which is what /press caught when it took this step centred.
  */
 
+export type HeroScale = "display" | "xl" | "lg";
+
 /** The heading + its optical trim, per step. Add a step, do not inline one. */
-const HERO_SCALE = {
-  /** A page whose title IS the page (an About page is a title page). */
+const HERO_SCALE: Record<
+  HeroScale,
+  {
+    heading: string;
+    /** Applied ONLY when align="left". See the display step for why. */
+    leadIn?: string;
+  }
+> = {
+  /**
+   * A page whose title IS the page (an About page is a title page).
+   *
+   * ★ ONE OR TWO WORDS (Will's contract, 2026-08-29). `whitespace-nowrap` is
+   * load-bearing under a 12vw clamp, and the trim below is reasoned about a
+   * SINGLE line's cap and descender, so a title long enough to want a second
+   * line has outgrown this step and belongs at `xl`. /about's "Partyreel" and
+   * /press's "Media" are what it is for.
+   *
+   * ★ THE TRACKING SQUEEZE BELONGS TO THE STEP, not to /about. `.mkt-name`
+   * (marketing.css) opens the tracking and closes it to the heading face's own
+   * -0.03em when the lockup comes into view: any masthead at this size arrives
+   * that way. Ruled 2026-08-29 when /press took this step.
+   */
   display: {
     heading:
-      "mkt-name [margin-inline-start:-0.045em] -mt-[0.12em] py-[0.08em] text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap",
+      "mkt-name -mt-[0.12em] py-[0.08em] text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap",
+    /**
+     * ★ LEFT-ALIGNED ONLY, and never folded back into `heading`. This is the
+     * optical SIDE BEARING: at 160px a capital carries visible space inside
+     * its own glyph box, so a flush-left masthead hangs right of the column it
+     * should align to. On a CENTRED heading the same value is simply wrong —
+     * there is no edge to align to, and it drags the whole line off centre
+     * (measured on /press before the gate: 3.6px, since centring splits the
+     * margin between the two sides).
+     */
+    leadIn: "[margin-inline-start:-0.045em]",
   },
   /** The cinema register (the home hero's ramp). */
   xl: { heading: "text-5xl sm:text-6xl md:text-7xl lg:text-8xl" },
   /** The standard page ramp, shared with /help and the six feature heroes. */
   lg: { heading: "text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl" },
-} as const;
-
-export type HeroScale = keyof typeof HERO_SCALE;
+};
 
 export function PageHero({
   scale = "lg",
@@ -108,7 +145,13 @@ export function PageHero({
               transition delays the largest paint for nothing. The slots around
               it do the arriving; the home hero's ratified shape, and the same
               note sits on qr-hero, attribution-hero and album-link-hero. */}
-          <h1 className={cn("font-heading", HERO_SCALE[scale].heading)}>
+          <h1
+            className={cn(
+              "font-heading",
+              HERO_SCALE[scale].heading,
+              align === "left" && HERO_SCALE[scale].leadIn,
+            )}
+          >
             {heading}
           </h1>
           {subhead && (

@@ -69,4 +69,26 @@ describe("the page hero lockup", () => {
   it("keeps every scale in the table rather than inline", () => {
     for (const step of ["display:", "xl:", "lg:"]) expect(code).toContain(step);
   });
+
+  it("keeps the side bearing out of the heading class, gated on align", () => {
+    // The vertical trim holds at any alignment; the horizontal one only means
+    // something against a column edge. Folded into `heading` it drags a CENTRED
+    // masthead off centre by half its value, which reads as "the hero is
+    // slightly wrong" and nothing more. /press found it at 3.6px.
+    const table = code.slice(code.indexOf("const HERO_SCALE"));
+    const displayHeading = table.slice(
+      table.indexOf("display:"),
+      table.indexOf("leadIn:"),
+    );
+    expect(displayHeading).not.toContain("margin-inline-start");
+    expect(code).toMatch(/align === "left" && HERO_SCALE\[scale\]\.leadIn/);
+  });
+
+  it("keeps the tracking squeeze on the display step itself", () => {
+    // `.mkt-name` belongs to the STEP, not to /about (Will, 2026-08-29): a page
+    // taking `display` gets the masthead entrance without knowing the recipe
+    // exists. It composes with the reveal because it animates a different
+    // property (letter-spacing, not opacity or transform).
+    expect(code).toMatch(/display:\s*\{\s*heading:\s*\n?\s*"mkt-name /);
+  });
 });
