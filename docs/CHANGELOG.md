@@ -66,7 +66,22 @@ underneath it, and the two are now one blind spot in `testing-verification.md`. 
 "focus states do not paint while `document.hasFocus()` is false" lesson moved there with it.
 
 Gate green throughout: typecheck, lint, 1222 tests, build with /press static.
-VERIFICATION_LINE
+Verified on the `launch-prep` alias at `d212f55`: HTTP 200, exactly one `<h1>` ("Media") carrying the
+trim and NO reveal mark in the shipped markup, 160px at 1440 and 52px at 375, centred to 0.00px with
+no `margin-inline-start` present anywhere; `data-mkt-skin="cinema"`, `theme-color: #040404`, body
+`lab(1.20)`, and the nav panel at **15.06:1** (`--popover` rgb(29,29,29) on rgb(242,242,242)), so the
+milestone-9 dropdown regression stays closed; hero heading 17.79:1 and subhead 7.71:1 on the cinema
+ground. All ten kit assets and the zip serve 200, and the zip downloaded from the preview is
+BYTE-IDENTICAL to the committed artifact, extracts to 10 members, passes an integrity test, and its QR
+re-encodes to `https://partyreel.com` with the 4-module quiet zone intact. Sheet 4 columns at 1440 and
+2 at 375 with the rebate even (3px padding === 3px gap); all three spine sections terminate at the same
+right edge (1328); `#assets` / `#words` / `#facts` all land clear of the header; three copy buttons with
+distinct accessible names and live regions; mono in the fact sheet holds one value ("2026"); no
+horizontal overflow at 1440, 768 or 375; console clean. /about re-measured on the same build: masthead
+now centred to 0.00px against production's -3.6px, with the gather's seam geometry byte-identical
+between the two. `pr-no-track` was set on the origin throughout, so the pass added nothing to the
+analytics baseline. Motion feel and reduced motion are Will's look (this seat reports
+`document.hidden`, so transitions never advance).
 
 ---
 
