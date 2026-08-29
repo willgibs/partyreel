@@ -119,10 +119,16 @@ edge and the narrower ones start further right, so the gap between a pinned head
 grows with the viewport while the reading measure stays put. Verified live: sheet, words and fact sheet
 all terminate at the same pixel, with left edges at 485 / 757 / 661.
 
-**Open:** Will's feel pass on the built page. Also blocked at handoff: `/design` 404s on every agent branch
-preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
-localhost until that var is set unscoped for Preview (proposed, not applied: config is the
-Orchestrator's).
+**Closing pass.** Words and the fact sheet share one measure, since 672 against 768 read as a mistake
+at the seam rather than a distinction; both pinned columns gained a pointer under the note (/contact
+and /how-it-works, matching the kit download under Assets); and the close dropped the address that sat
+three rows above it in the fact sheet, leaving one action. Will's keyboard pass came back clean:
+tabbing dims the sheet correctly page-wide and reaches the right copy buttons, which closes the one
+check that was never verifiable from an agent seat (Chrome does not paint focus states without
+document focus).
+
+**Open:** nothing. The `DESIGN_PREVIEW_KEY` blocker named earlier in this entry was fixed mid-round
+(an unscoped `preview` row) and verified live: 200 with the key, 404 without.
 
 ## 2026-08-28 — MILESTONE-8: the exec round
 
