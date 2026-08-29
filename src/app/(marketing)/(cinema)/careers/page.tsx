@@ -161,11 +161,17 @@ export default function CareersPage() {
                 style={{ "--i": index } as CSSProperties}
                 className="flex flex-col gap-2 border-t pt-5"
               >
-                {/* The numeral keeps a box the ellipse can take the shape of.
-                    A lighter stroke than the sheet's: `non-scaling-stroke` means
-                    2.2px renders the same on a 40px box as on a 160px frame, and
-                    at this size that reads as a printed badge, not a pencil. */}
-                <span className="relative inline-flex h-6 w-9 items-center justify-center self-start">
+                {/* ! THE BOX IS DELIBERATELY LOOSE around the numeral, and that
+                    is the whole difference between a pencil mark and a UI chip.
+                    A snug box was tried first and read as a badge: the ellipse
+                    became a container FOR the number instead of something drawn
+                    AROUND it, and at that size the mark's -6 degree tilt is
+                    invisible. Roughly three times the numeral's width gives the
+                    stroke room to sit off it. The lighter stroke is the second
+                    half: `non-scaling-stroke` renders 2.2px the same on a 48px
+                    box as on a 160px frame, which is four times the weight for
+                    the size. */}
+                <span className="relative inline-flex h-8 w-12 items-center justify-center self-start">
                   <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
                     {String(index + 1).padStart(2, "0")}
                   </span>
