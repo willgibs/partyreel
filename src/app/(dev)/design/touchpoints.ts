@@ -571,7 +571,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     title: "The spill doctrine",
     surface: "shared",
     note: "The light system proposed as a doctrine plus an engine: four laws, four shapes, and what a colour wash costs in legibility",
-    variants: ["Seam", "Throw", "Sweep", "Bloom"],
+    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo"],
     decisionNote:
       "AWAITING A RULING, on two things. (1) The doctrine: light is never a material, always spill from a lit thing, with scarcity DERIVED from one lamp per view rather than budgeted as a quota. (2) Whether to promote the engine and its five-hue palette to globals.css and :root, which is the one-way door in this work, since it deletes the test fence that currently scopes colour literals to --mkt-confetti-N. Section 02 is the falsifiable half: if the sampled and fixed palettes look the same, law 3 is wrong.",
   },
@@ -583,9 +583,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    note: "Nine moments argued against the doctrine, with the CTA rim and the loading grid answered rather than left open",
+    note: "Twelve moments argued against the doctrine: nine placements, then three that make the light respond to a value, a pointer, or a second object",
     decisionNote:
-      "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, and the QR plate. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light.",
+      "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, the QR plate, and awaiting-media as ONE lamp over the grid with the recipe's skeleton reveal under it. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light. Moments 10 to 12 are newer and rougher on purpose: they make the light respond to a value, a pointer, or a second object, and the scan-through is the one I would most like to be told to keep working on.",
     variants: [
       "Hero underlight",
       "Locked door",
@@ -596,6 +596,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "Publish beat",
       "CTA rim",
       "Paper probe",
+      "Upload as light",
+      "Pointer lamp",
+      "Scan-through",
     ],
   },
 ];
