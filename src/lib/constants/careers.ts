@@ -121,47 +121,67 @@ export function getJob(slug: string): JobOpening | undefined {
 }
 
 // ── Company copy for the hub ─────────────────────────────────────────────────
-// General and short, on purpose. The hub's job is context plus the listings;
-// the description lives on the role page.
+// Short on purpose. The page argues in PHOTOGRAPHS now, not prose: the three
+// story beats below are captions for real media, not paragraphs that happen to
+// sit beside it. If a line here grows past two sentences, the page is drifting
+// back toward the generic version Will rejected twice.
 
-// ! WATCH THE WORD "BUILD" (Will, 2026-08-28). The first pass ran "Come build
-// the album...", "Come build with us." and "See what you'd be building." as
-// three of its four headings, plus "tell us what you'd love to build" in the
-// catch-all. The page now says it once, in the catch-all, where it is doing
-// real work. Vary the verb before adding another heading here.
+// ! WATCH THE WORD "BUILD". An earlier pass ran it through three of four
+// headings plus the catch-all. Vary the verb before adding a heading.
 export const CAREERS_INTRO = {
   eyebrow: "Careers",
-  headline: "Come make something people keep.",
+  // Ruled plain and confident: the photography carries the hero, so the words
+  // do not have to. It only works while the contact sheet is genuinely good.
+  headline: "We're hiring.",
   subhead:
-    "Partyreel gathers every photo and video from an event with one QR code, then hands it back as an album worth keeping. We are a small team that cares a great deal about how that feels.",
+    "Partyreel gathers every photo and video from an event with one QR code. We are a small team that cares a great deal about how that feels.",
   cta: "See open roles",
 };
 
-export const CAREERS_MISSION = {
-  heading: "A small team, an outsized problem",
-  paragraphs: [
-    "The best photos from any event are the candid ones your friends take, and they are exactly the ones that scatter across a dozen camera rolls and disappear. Partyreel gathers all of it in one place, lets the host decide what stays, and turns the best of it into a reel worth keeping.",
-    "No app, no account, no friction. We move fast, we keep the surface small, and we care more about craft than almost anything. If that sounds like your kind of work, we would love to hear from you.",
-  ],
-};
+export type StoryBeat = { eyebrow: string; title: string; body: string };
+
+/**
+ * THE ARGUMENT: the roll, the selects, the reel. This replaces the old
+ * "why it matters" prose, which was the product pitch restated for the third
+ * time on a page whose reader had already seen it twice. Each beat is a
+ * caption for a real media composition; the media makes the point.
+ */
+export const CAREERS_STORY: StoryBeat[] = [
+  {
+    eyebrow: "The roll",
+    title: "Most of it is never seen again.",
+    body: "Every event produces hundreds of photos across dozens of phones. A handful get shared. The rest sit in camera rolls nobody opens.",
+  },
+  {
+    eyebrow: "The selects",
+    title: "One album, made by everyone there.",
+    body: "One QR code gathers all of it in one place, and the host decides what stays.",
+  },
+  {
+    eyebrow: "The reel",
+    title: "And then it becomes a film.",
+    body: "The best of the album, cut to something worth sending. That is the part we are hiring for.",
+  },
+];
 
 export type WorkPrinciple = { title: string; body: string };
 
+/**
+ * Three, not four. "Media is the hero" was retired because this page now
+ * DEMONSTRATES it rather than claiming it, which was the whole problem with
+ * the values-list version. One sentence each; these are not paragraphs.
+ */
 export const HOW_WE_WORK: WorkPrinciple[] = [
   {
     title: "Craft is the product",
-    body: "The distance between fine and delightful is a hundred small decisions. We make them deliberately, and we make them again when we get them wrong.",
-  },
-  {
-    title: "Media is the hero",
-    body: "The interface gets out of the way so the photos and videos shine. Restraint is a feature, and the work is making the product disappear.",
+    body: "The distance between fine and delightful is a hundred small decisions, and we make them deliberately.",
   },
   {
     title: "It has to work at the party",
-    body: "Borrowed phones, patchy venue wifi, guests who will never install anything. Real conditions are the spec, not the edge case.",
+    body: "Borrowed phones, patchy venue wifi, guests who will never install anything. Real conditions are the spec.",
   },
   {
     title: "You own your surface",
-    body: "One person carries an area from the first sketch to the thing people use. We give context rather than instructions, and we assume the best of each other.",
+    body: "One person carries an area from the first sketch to the thing people use. Context rather than instructions.",
   },
 ];

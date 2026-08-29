@@ -36,7 +36,7 @@ export function RoleListings() {
   const entries = [...OPEN_ROLES, ...(GENERAL_APPLICATION ? [GENERAL_APPLICATION] : [])];
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl border-b">
       <Reveal className="flex flex-col">
         {entries.map((role, index) => (
           <RoleRow key={role.slug} role={role} index={index} />
@@ -72,10 +72,15 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
         cta: `role-${role.slug}`,
         location: "careers-listings",
       })}
-      className="mkt-learn group grid gap-x-8 gap-y-3 border-t py-7 transition-colors duration-150 first:border-t-0 hover:border-foreground/40 sm:grid-cols-[1fr_auto] sm:items-baseline"
+      className="mkt-learn group grid gap-x-8 gap-y-4 border-t py-9 transition-colors duration-150 hover:border-foreground/40 sm:grid-cols-[auto_1fr_auto] sm:items-baseline sm:gap-x-10"
     >
+      {/* Frame numbers, matching the contact sheet's. One numbering system on
+          the page instead of two unrelated ones. */}
+      <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums sm:pt-2">
+        {String(index + 1).padStart(2, "0")}
+      </span>
       <div className="flex min-w-0 flex-col gap-2">
-        <h3 className="font-heading text-xl transition-colors duration-150 sm:text-2xl">
+        <h3 className="font-heading text-2xl transition-colors duration-150 sm:text-3xl">
           {role.title}
         </h3>
         <p className="max-w-md text-sm text-pretty text-muted-foreground">

@@ -135,6 +135,39 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`careers.ts`](../../src/lib/constants/careers.ts), which is a content-policy `CLAIM_FILES` entry;
   its `offer` block (incl. "Competitive compensation") is KEPT by Will's ruling, the posting being
   meant to spark a conversation rather than close a hire.
+- **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — in the **(cinema)** group (URL
+  unchanged; every consumer addresses it by path). Shape: dark hero → ONE paper chapter carrying the
+  whole body → the ink footer. ★ **One cut, not stripes**: an earlier pass alternated per section and
+  Will's read was that it "feels overwhelming when it's every section on a shorter page", which is
+  also the ratified chapter doctrine (a cut introduces a concept group, "never stripe alternation").
+  ★ **THE PAGE ARGUES IN PHOTOGRAPHS.** Two prototypes were rejected as generic and the cause was
+  content, not layout: both were claims about ourselves ("why it matters" restated the product pitch,
+  "how we work" was a values list) on a page whose reader had already met the pitch twice. The middle
+  is now **the roll → the selects → the reel**
+  ([`careers-story.tsx`](../../src/components/marketing/sections/careers/careers-story.tsx)): the
+  contact sheet with everything but four frames dimmed to near-nothing (the dimming IS the argument),
+  then the survivors gathered into the album chrome, then the real rendered loop via
+  `InlineReelPlayer` (the PLAYER, not the engine, so the sanctioned-import boundary holds). Roughly
+  forty words carry all three. Do not reintroduce a paragraph section to explain a beat.
+  The hero is the **contact sheet**
+  ([`contact-sheet.tsx`](../../src/components/marketing/sections/careers/contact-sheet.tsx)): real
+  manifest frames butted tight, mono frame numbers, and a few circled as selects whose stroke DRAWS
+  itself in on arrival, because marking the selects is the product's core act performed above the
+  fold. Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
+  the footer the fanning pile), per the media doctrine in
+  [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
+  ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
+  ★ The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
+  uniform 0.8 dim on hero frames is what lets the type win without crushing the images the page
+  exists to show. Listings use ONE row design for every entry with contact-sheet frame numbers; the
+  General Application's honesty lives in its DATA (no team at all, type "Always open", its own
+  action label), because with a single real role a second container read as inconsistency rather than
+  distinction. The close points at **/contact**, not the product: the footer carries a product CTA
+  immediately below. Headings deliberately avoid the word "build" (it had run three of four). Copy
+  single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
+  entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
+  being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
+  `/careers/[slug]` is DEFERRED at wireframe grade by ruling, so the hub is intentionally ahead of it.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
