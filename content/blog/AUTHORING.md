@@ -25,7 +25,7 @@ tags:
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `title` | yes | Sentence case. It renders over a photograph on the index card, so keep it under ~70 characters or it wraps to four lines in a card. |
+| `title` | yes | **45-75 characters, hard cap 80** (the build fails past it). This is a layout contract: the featured card sets the newest title at display size and reads best at about three full lines, and library cards read best at two. Both clamp, so a longer title ships visibly cut rather than breaking the grid. Front-load the specific words; the card gives you no subtitle. |
 | `description` | yes | Max 160 chars (enforced). It is the standfirst on the featured card, the RSS description, and the meta description. Write it to stand alone. |
 | `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. Newest post becomes the staged hero on `/blog`. |
 | `author` | no | Leave it out. `partyreel-team` is the universal byline for now (Will's ruling, 2026-08-28) and it is the only registered id, so the default is always correct. Named authors are a registry change in `src/lib/content/authors.ts`, not a frontmatter choice. |

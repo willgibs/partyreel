@@ -53,6 +53,31 @@ describe("blog content integrity", () => {
   });
 });
 
+describe("title layout contract", () => {
+  it("every shipped title fits the card rhythm", () => {
+    // The cards clamp, so this can never break the page - it guards the RHYTHM Will ruled on
+    // (featured ~3 lines, library cards 2), which clamping would silently destroy instead.
+    for (const post of getAllPosts()) {
+      expect(
+        post.frontmatter.title.length,
+        `${post.slug} title is ${post.frontmatter.title.length} chars`,
+      ).toBeLessThanOrEqual(80);
+    }
+  });
+
+  it("rejects an over-long title at the schema, with a message that says why", () => {
+    const result = blogFrontmatterSchema.safeParse({
+      title: "x".repeat(81),
+      description: "A description",
+      date: "2026-05-31",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toContain("80 characters");
+    }
+  });
+});
+
 describe("authors registry", () => {
   it("resolves the universal author and falls back for anything else", () => {
     // ONE registered author by ruling (2026-08-28); see authors.ts. The contract that matters is

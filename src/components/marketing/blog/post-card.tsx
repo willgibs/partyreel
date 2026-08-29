@@ -74,8 +74,29 @@ export function PostCard({
         className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-70 motion-reduce:transition-none"
       />
 
+      {/* TAGS, top-left (Will, 2026-08-28). They sit in the corner the bottom-weighted scrim
+          leaves nearly clear, so each chip carries its own ground: a translucent plate with a
+          backdrop blur, which is the ONE place the elevation contract sanctions blur (a surface
+          over media). Capped at two so a many-tagged post cannot crowd the frame, and lowercase to
+          match the browse rail rather than shouting in caps at 10px. */}
+      {post.tags.length > 0 && (
+        <span className="absolute inset-x-0 top-0 flex flex-wrap gap-1 p-4 sm:p-5">
+          {post.tags.slice(0, 2).map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-black/35 px-2 py-0.5 text-[10px] tracking-wide text-white/90 backdrop-blur-[2px]"
+            >
+              {tag}
+            </span>
+          ))}
+        </span>
+      )}
+
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-4 sm:p-5">
-        <span className="font-heading text-base leading-tight text-balance text-white sm:text-lg">
+        {/* line-clamp-2 is the layout GUARANTEE behind the 80-char schema cap: the schema stops a
+            long title at authoring time, this stops one that slipped through from ever pushing the
+            byline out of the card. Two lines is the rhythm the wall reads on. */}
+        <span className="line-clamp-2 font-heading text-base leading-tight text-balance text-white sm:text-lg">
           {post.title}
         </span>
         <PostMeta post={post} />

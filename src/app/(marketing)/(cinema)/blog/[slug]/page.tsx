@@ -133,7 +133,12 @@ export default async function BlogPostPage({
               </h1>
               {/* The shared byline, so the article header, the library card and "Keep reading"
                   are one design (and one place to change). Inter, not mono, per the ruling. */}
-              <PostMeta post={listItem} tone="paper" className="mt-4 text-sm" />
+              <PostMeta
+                post={listItem}
+                tone="paper"
+                readingTime
+                className="mt-4 text-sm"
+              />
             </header>
 
             {/* The cover STRADDLES the cut, the index's move applied to the article: the photograph

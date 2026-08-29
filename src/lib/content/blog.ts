@@ -23,7 +23,21 @@ import {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const blogFrontmatterSchema = z.object({
-  title: z.string().min(1),
+  /**
+   * ★ CAPPED AT 80 (Will, 2026-08-28). This is a LAYOUT contract, not a style preference: the index
+   * is built on cards whose titles are meant to fill their measure evenly, and the page reads the
+   * way it does because the featured title lands at ~3 lines and library cards at 2. Shipped titles
+   * run 47-72, so 80 is the ceiling that keeps that rhythm without cramping an author. The cards
+   * ALSO line-clamp, so an over-long title can never break the layout, but failing the build here
+   * means the content agent finds out at authoring time instead of shipping a silently cut title.
+   */
+  title: z
+    .string()
+    .min(1)
+    .max(
+      80,
+      "title must be 80 characters or fewer (aim 45-75): blog cards clamp to 2 lines and the featured card to 3, so a longer title ships visibly truncated",
+    ),
   description: z.string().min(1).max(160),
   /** Published date — drives sort order, the byline, and RSS pubDate. */
   date: z.string().regex(ISO_DATE, "date must be YYYY-MM-DD"),

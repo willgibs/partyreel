@@ -18,10 +18,17 @@ import { cn } from "@/lib/utils";
 export function PostMeta({
   post,
   tone = "media",
+  readingTime = false,
   className,
 }: {
   post: BlogListItem;
   tone?: "media" | "paper";
+  /**
+   * Reading time is OPT-IN and off on cards (Will, 2026-08-28). It answers "am I about to commit to
+   * this?", which is a question you ask on the article, not while scanning a wall of covers; on a
+   * card it was a third fact competing with the two that actually identify the post.
+   */
+  readingTime?: boolean;
   className?: string;
 }) {
   const onMedia = tone === "media";
@@ -38,8 +45,12 @@ export function PostMeta({
       </span>
       <Dot onMedia={onMedia} />
       <time dateTime={post.date}>{post.dateLabel}</time>
-      <Dot onMedia={onMedia} />
-      <span>{post.readingTime}</span>
+      {readingTime && (
+        <>
+          <Dot onMedia={onMedia} />
+          <span>{post.readingTime}</span>
+        </>
+      )}
     </p>
   );
 }
