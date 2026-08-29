@@ -48,8 +48,19 @@ into the `(cinema)` group and `(spotlight)`/`CinemaChapter` came out, `PageHero`
 restored). Will's ruling from that round, now doctrine: **every utility page takes the cinema-hero /
 paper-body / ink-footer rhythm by joining the `(cinema)` group** — legal, privacy and contact
 included as they are reworked. Truth: [`systems/marketing-content.md`](systems/marketing-content.md)
-+ [`systems/design-system.md`](systems/design-system.md). Four branches still with Will; the next is
-queued behind this merge.
++ [`systems/design-system.md`](systems/design-system.md).
+
+**`lp/press-kit` merged into `launch-prep` 2026-08-29** (`be52bee` + `5aab0f1`), the second branch of
+the sequence. It had already moved `/press` into `(cinema)` with a `PaperChapter` body on its own, so
+there was no architecture to settle; the design merged unchanged. Will's note was the work: the h1
+takes `PageHero`'s **`display` step** (the masthead tier /about uses) and the tracking squeeze is now
+standard for that step rather than an /about beat, with a **one-or-two-word contract** on it. Doing it
+properly split the step's left side-bearing out as `leadIn`, gated on `align="left"` (it drags a
+centred masthead 3.6px off centre), and closed an LCP hole, since `.mkt-line` paints an h1 at
+`opacity: 0` until hydration. **Three branches still with Will**; `lp/blog-redesign` and
+`lp/careers-identity` both still carry hand-rolled `TextsReveal` heroes and get the same `PageHero`
+treatment at `lg` when they land. `lp/careers-identity` will conflict in `marketing.css` (the isolate
+block) and in `marketing-content.md`.
 
 **MILESTONE-9 (2026-08-28): prod = the /about round.** `main` @ tag `milestone-9` (`279c8d6`), prod
 READY + verified at the merge SHA. Will's preview acceptance: "Looks fantastic." Verified on partyreel.com: one `h1`
@@ -160,7 +171,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1212 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1221 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -194,11 +205,11 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 ## Will's open decision queue
 
 1. **The next agent branch to hand over** (`lp/blog-redesign`, `lp/careers-identity`,
-   `lp/glow-doctrine`, `lp/press-kit` — Will is still working the remaining four). `lp/about` is
-   merged and on the preview awaiting his feel pass. Note for whoever integrates the next one:
-   `lp/press-kit` edits `(paper)/about/page.tsx`, which this merge deleted, so expect a
-   modify/delete conflict there (its edit is a link fix, re-apply at the new path);
-   `lp/careers-identity` will conflict in `marketing.css` and `marketing-content.md`.
+   `lp/glow-doctrine` — Will is still working the remaining three). `lp/about` shipped at
+   milestone-9; `lp/press-kit` is merged and on the `launch-prep` preview awaiting his feel pass.
+   Notes for whoever integrates the next one: `lp/careers-identity` will conflict in `marketing.css`
+   (the `[data-mkt-isolate]` block landed near its additions) and in `marketing-content.md`; blog and
+   careers both still carry hand-rolled `TextsReveal` heroes and should take `PageHero` at `lg`.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
