@@ -58,7 +58,7 @@ ghost the /about round chased and half-diagnosed as a stale dev CSS chunk; this 
 underneath it, and the two are now one blind spot in `testing-verification.md`. The branch's
 "focus states do not paint while `document.hasFocus()` is false" lesson moved there with it.
 
-Gate green throughout: typecheck, lint, 1221 tests, build with /press static.
+Gate green throughout: typecheck, lint, 1222 tests, build with /press static.
 VERIFICATION_LINE
 
 ---
