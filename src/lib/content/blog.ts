@@ -1,7 +1,10 @@
 import { cache } from "react";
 import { z } from "zod";
 
+import { isMarketingImageId } from "@/lib/constants/marketing-media";
 import { formatEventDate } from "@/lib/utils";
+
+import { type BlogCover, coverFor } from "./blog-covers";
 
 import { AUTHOR_IDS, DEFAULT_AUTHOR_ID, getAuthor } from "./authors";
 import {
@@ -27,6 +30,20 @@ export const blogFrontmatterSchema = z.object({
   updated: z.string().regex(ISO_DATE, "updated must be YYYY-MM-DD").optional(),
   author: z.enum(AUTHOR_IDS).default(DEFAULT_AUTHOR_ID),
   tags: z.array(z.string()).default([]),
+  /**
+   * Optional art direction: a `MARKETING_IMAGES` id. Omit it and `coverFor` derives a stable one
+   * from the slug, so no post is ever artless. Validated against the manifest here so a typo fails
+   * the BUILD (the same contract `author: z.enum(AUTHOR_IDS)` already sets) instead of throwing at
+   * render; the message names the legal ids because a bare ZodError at module scope surfaces in
+   * three unrelated places at once (the loader test, the llms test, and sitemap.ts).
+   */
+  cover: z
+    .string()
+    .refine(isMarketingImageId, {
+      message:
+        "cover must be a marketing media id (see MARKETING_IMAGES in src/lib/constants/marketing-media.ts)",
+    })
+    .optional(),
   /** WIP posts: kept out of the listing, sitemap, and feed. */
   draft: z.boolean().default(false),
 });
@@ -82,23 +99,32 @@ export type BlogListItem = {
   authorRole: string;
   readingTime: string;
   tags: string[];
+  /** Resolved server-side (explicit frontmatter cover, else the slug-derived fallback) so the
+      client filter island never touches the resolver or the manifest. */
+  cover: BlogCover;
 };
 
+/** One post -> its card metadata. Exported so the post page's "Keep reading" renders the SAME
+ *  PostCard the index does: extracting the card and then leaving related posts as bare text rows
+ *  would show the same article as a photograph on one surface and a link on the next. */
+export function toListItem(post: BlogPost): BlogListItem {
+  const author = getAuthor(post.frontmatter.author);
+  return {
+    slug: post.slug,
+    title: post.frontmatter.title,
+    description: post.frontmatter.description,
+    date: post.frontmatter.date,
+    dateLabel: formatEventDate(post.frontmatter.date),
+    authorName: author.name,
+    authorRole: author.role,
+    readingTime: readingTime(post.body),
+    tags: post.frontmatter.tags,
+    cover: coverFor(post.slug, post.frontmatter.cover),
+  };
+}
+
 export function getPostListItems(): BlogListItem[] {
-  return getAllPosts().map((post) => {
-    const author = getAuthor(post.frontmatter.author);
-    return {
-      slug: post.slug,
-      title: post.frontmatter.title,
-      description: post.frontmatter.description,
-      date: post.frontmatter.date,
-      dateLabel: formatEventDate(post.frontmatter.date),
-      authorName: author.name,
-      authorRole: author.role,
-      readingTime: readingTime(post.body),
-      tags: post.frontmatter.tags,
-    };
-  });
+  return getAllPosts().map(toListItem);
 }
 
 // ── RSS 2.0 feed ────────────────────────────────────────────────────────────────

@@ -99,11 +99,33 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
   captions, labels, and CTA notes are Inter. The content agent's brief lives at
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
-  writing rules; the content-policy tests scan `.md` too so the brief obeys itself). Blog: date-sorted index + client-side tag filter, a client-safe author registry
-  ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards, and a
-  build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled `buildBlogRssXml`
-  that takes its site config as a param so it stays out of the env-validating `site.ts` + is unit-tested);
-  `draft: true` posts are excluded from listing/sitemap/RSS.
+  writing rules; the content-policy tests scan `.md` too so the brief obeys itself). **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting Room):
+  moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading half rides
+  `PaperChapter`. Shape: the Broadsheet masthead (a SMALL `Blog` h1 + a drawn `[data-mkt-rule]` hairline,
+  a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage) -> the newest
+  post as a 21:9 featured card STRADDLING the cinema->paper cut -> the library. ★ DISTINCTNESS FROM /help
+  is the standing constraint now that both hubs open dark: /help opens on an instrument (centred question,
+  search field, emblem strip), /blog opens asymmetric on the lead story with a media wall beneath. No
+  search field, no emblems, and the tag rail stays words-and-numerals only - an icon column there is the
+  one move that collapses the two surfaces together. The rail is a sticky margin index (counts from the
+  full set, a 2px ink bar for active, never a fill); the library is 4/5 portrait `PostCard`s at 1/2/3
+  columns ([`components/marketing/blog/`](../../src/components/marketing/blog), shared with the post
+  page's "Keep reading"). ★ **The hero exists ONLY in the unfiltered view** — lifting it permanently out
+  of the filtered set renders EMPTY tags, because a hero can own tags no other post has (the derivations
+  + the pin live in [`blog-index.ts`](../../src/lib/content/blog-index.ts)). Filter state rides a
+  shareable `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would deopt the
+  static route; a mount effect is banned by the react-hooks lint). Covers: an optional frontmatter
+  `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the BUILD) over a stable slug-hash fallback
+  in [`blog-covers.ts`](../../src/lib/content/blog-covers.ts) — ★ a pure function of the SLUG alone,
+  because the obvious "walk the post list and hand out unused images" is deterministic but NOT stable
+  and silently re-skins older posts on every publish. The author brief is
+  [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md). Unchanged: the client-safe author
+  registry ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards,
+  and the build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled
+  `buildBlogRssXml` that takes its site config as a param so it stays out of the env-validating `site.ts`
+  + is unit-tested; it now has a visible subscribe row, having been reachable only via `<link rel=
+  alternate>` since it shipped); `draft: true` posts are excluded from listing/sitemap/RSS. Open
+  follow-ons: the post page's own identity, the OG card ignoring `cover`, and an RSS `<enclosure>`.
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
   (a two-way Vitest mirror: change one side and you must change the other).
 

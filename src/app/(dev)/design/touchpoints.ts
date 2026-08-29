@@ -455,6 +455,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "The Reading Table",
       "The Cutting Room",
     ],
+    decision: 4,
+    decisionNote:
+      "COMPOSITE on V4 (Will, 2026-08-28): \"Let's Frankenstein this thing. I like the cutting room as the primary direction. However, I love broadsheet's small 'notes' title and underline above the featured blog card... should say 'Blog' instead of 'Notes'. I'd like the cutting room's tags to be sticky on the left as you scroll. Rather than library cards stretching the full width of its column, let's do two to three columns of cards in the library (desktop, width depending). Very media-forward cards... When a tag is selected, there should be a polished motion transition, then cards reorganize.\" Wired the same day: the Broadsheet masthead (a small h1 + the drawn rule, a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage), the Cutting Room letterbox kept for the FEATURED card only (21:9 - a 16:9 hero measured 684px against an 820px fold), the library as 4/5 portrait cards at 1/2/3 columns, and the margin index made sticky. The filter became the two-beat grammar (exit together, then a two-axis FLIP reorganize) and useFlip was generalized to X+Y to carry it.",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

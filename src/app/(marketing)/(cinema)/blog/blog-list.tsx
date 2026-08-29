@@ -1,0 +1,398 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
+
+import { PostCard } from "@/components/marketing/blog/post-card";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
+import { Container } from "@/components/shared/container";
+import type { BlogListItem } from "@/lib/content/blog";
+import { normalizeTag, splitLibrary, tagCounts } from "@/lib/content/blog-index";
+import { readCssMs } from "@/lib/shared/read-css-ms";
+import { useFlip } from "@/lib/shared/use-flip";
+import { cn } from "@/lib/utils";
+
+/**
+ * THE BLOG INDEX (the composite Will ruled on 2026-08-28, from the four /design/c/blog-identity
+ * directions): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
+ * page intro (reading "Blog", his word), the margin index made STICKY, and the library as a two-
+ * to-three column wall of media-forward cards instead of full-width slabs.
+ *
+ * WHY THIS IS ONE CLIENT ISLAND rather than a server page with a client list: the ruled hero rule
+ * couples the two halves. The staged lead exists ONLY in the unfiltered view (see blog-index.ts for
+ * why an always-lifted hero renders empty tags), so picking a tag has to collapse something that
+ * lives on the cinema stage while the grid below reflows. Splitting that across a server/client
+ * boundary would need a side-channel just to hide the hero. Client components still server-render
+ * into the initial HTML, so the LCP cover and every title ship in the document either way.
+ *
+ * Distinctness from /help is the round's hard constraint (both hubs now open on the dark stage):
+ * /help opens with a centered question and an instrument row, this opens asymmetric on the lead
+ * story with a media wall beneath. No search field, no emblems, and the rail is words and numerals
+ * only - an icon column here is the one move that would pull it back toward /help's emblem strip.
+ */
+
+/** Rendered in the unfiltered view only. The FLIP is keyed on this too, so the grid inverts
+ *  correctly when the lead's slot appears or disappears. */
+const ALL = "__all__";
+
+/**
+ * The `?tag=` in the address bar, as an external store.
+ *
+ * NEVER `useSearchParams`: on this static route it would demand a Suspense boundary or deopt the
+ * page (the /contact + motion-tuner precedent). And never a mount effect that setStates either -
+ * the repo's react-hooks lint bans setState-in-effect, and rightly: the URL is an external system,
+ * which is exactly what useSyncExternalStore is for. The server snapshot is null, so SSR and the
+ * hydrating render both produce the unfiltered view and React corrects on the client pass with no
+ * mismatch (the usePrefersReducedMotion pattern).
+ */
+function subscribeToUrl(onChange: () => void) {
+  window.addEventListener("popstate", onChange);
+  return () => window.removeEventListener("popstate", onChange);
+}
+
+function useUrlTag(): string | null {
+  return useSyncExternalStore(
+    subscribeToUrl,
+    () => new URLSearchParams(window.location.search).get("tag"),
+    () => null,
+  );
+}
+
+export function BlogList({ posts }: { posts: BlogListItem[] }) {
+  const tags = useMemo(() => tagCounts(posts), [posts]);
+
+  // Tri-state: `undefined` = the reader has not touched the rail, so the URL decides; `null` = they
+  // explicitly chose Everything, which must beat an inbound ?tag=. A plain `string | null` cannot
+  // tell "untouched" from "cleared".
+  const [override, setOverride] = useState<string | null | undefined>(
+    undefined,
+  );
+  const urlTag = normalizeTag(useUrlTag(), posts);
+  const active = override !== undefined ? override : urlTag;
+
+  /** Slugs mid-exit. Non-empty means beat 1 is running and the set has NOT committed yet. */
+  const [exiting, setExiting] = useState<readonly string[]>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scopeRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => () => clearTimeout(timer.current ?? undefined), []);
+
+  const { lead, library } = splitLibrary(posts, active);
+
+  const select = useCallback(
+    (tag: string | null) => {
+      if (tag === active) return;
+      clearTimeout(timer.current ?? undefined);
+
+      const nextSlugs = new Set(
+        splitLibrary(posts, tag).library.map((post) => post.slug),
+      );
+      const current = splitLibrary(posts, active);
+      const leaving = [
+        // The staged lead leaves too whenever we move into a filtered view.
+        ...(current.lead && !nextSlugs.has(current.lead.slug)
+          ? [current.lead.slug]
+          : []),
+        ...current.library
+          .filter((post) => !nextSlugs.has(post.slug))
+          .map((post) => post.slug),
+      ];
+
+      const commit = () => {
+        setExiting([]);
+        setOverride(tag);
+        // replaceState, not push: a filter is a view of one page, and a chip row that stacks a
+        // history entry per click turns Back into an unusable undo log.
+        const url = new URL(window.location.href);
+        if (tag) url.searchParams.set("tag", tag);
+        else url.searchParams.delete("tag");
+        window.history.replaceState(null, "", url);
+      };
+
+      // Nothing to remove (a superset) means there is no beat 1 to wait for.
+      if (leaving.length === 0) {
+        commit();
+        return;
+      }
+      setExiting(leaving);
+      timer.current = setTimeout(
+        commit,
+        readCssMs("--mkt-blog-exit-ms", 140, scopeRef.current),
+      );
+    },
+    [active, posts],
+  );
+
+  const isExiting = (slug: string) => exiting.includes(slug);
+
+  return (
+    <div ref={scopeRef}>
+      {/* ── The cinema stage: masthead, then the featured card. ─────────────────────────── */}
+      <section className="pt-14 pb-0 sm:pt-20">
+        <Container>
+          {/* THE MASTHEAD (Broadsheet's, ruled in): a small title and a drawn rule, not a display
+              headline. This is a deliberate departure from the site-wide H1 ladder (4xl->7xl):
+              Will's call was that the page intro stays light so the featured article owns the
+              stage. `Blog` is still the h1 - it is what the page IS, and it keeps the article
+              title semantically subordinate. */}
+          <div className="flex items-baseline justify-between gap-4">
+            <h1 className="font-heading text-lg sm:text-xl">Blog</h1>
+            <p className="text-[11px] text-muted-foreground sm:text-xs">
+              Field notes from building Partyreel
+            </p>
+          </div>
+          <span
+            data-mkt-rule
+            aria-hidden
+            className="mt-3 block h-px w-full bg-foreground/25"
+          />
+
+          {/* The featured card STRADDLES the cinema->paper cut on negative margin (the ratified
+              move: /help's emblem strip, the home album). Real layout, never a translate, so the
+              article arrives out of the night into the daylight the library reads in. */}
+          {lead && (
+            <div
+              data-mkt-exiting={isExiting(lead.slug) ? "" : undefined}
+              className="relative z-10 mt-8 -mb-16 sm:-mb-20"
+            >
+              <FeaturedCard post={lead} />
+            </div>
+          )}
+        </Container>
+      </section>
+
+      {/* ── The paper chapter: the rail and the library. ────────────────────────────────── */}
+      <PaperChapter className="border-t-0">
+        <section className="pb-16 lg:pt-24 lg:pb-20">
+          {/* STRADDLE CLEARANCE. A fixed height, deliberately NOT top padding on the section:
+              PaperChapter force-compresses a direct child section's `py` to py-14 below lg
+              (`max-lg:[&>section]:py-14`, higher specificity than a child utility), which silently
+              ate the clearance and let the featured card land ON the rail on phones. A height on an
+              inner element is outside that selector's reach. */}
+          <div aria-hidden className="h-[4.5rem]" />
+          <Container>
+            <div className="grid gap-8 lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-12">
+              <TagRail
+                tags={tags}
+                total={posts.length}
+                active={active}
+                onSelect={select}
+              />
+
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline justify-between gap-3 border-b pb-3">
+                  <h2 className="font-heading text-xl sm:text-2xl">
+                    {active ? `Everything tagged ${active}` : "The library"}
+                  </h2>
+                  <p
+                    aria-live="polite"
+                    className="font-mono text-[11px] text-muted-foreground tabular-nums"
+                  >
+                    {library.length} of {posts.length}
+                  </p>
+                </div>
+
+                <LibraryGrid
+                  library={library}
+                  orderKey={active ?? ALL}
+                  isExiting={isExiting}
+                />
+              </div>
+            </div>
+          </Container>
+        </section>
+      </PaperChapter>
+    </div>
+  );
+}
+
+/**
+ * The grid. The FLIP registers on the WRAPPER while the exit/enter hooks sit on the card inside it,
+ * so the FLIP's inline `transition: transform` can never clobber the exit's transition property.
+ */
+function LibraryGrid({
+  library,
+  orderKey,
+  isExiting,
+}: {
+  library: BlogListItem[];
+  orderKey: string;
+  isExiting: (slug: string) => boolean;
+}) {
+  const register = useFlip(orderKey);
+
+  return (
+    <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {library.map((post, index) => (
+        <li key={post.slug} ref={register(post.slug)} className="min-w-0">
+          <div
+            data-mkt-entering
+            data-mkt-exiting={isExiting(post.slug) ? "" : undefined}
+          >
+            <PostCard post={post} index={index} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * THE MARGIN INDEX, sticky at lg+ (Will's ruling). A ruled ledger in the body margin: words and
+ * numerals only, counts from the FULL set so a chip's number is a promise about what it will show.
+ * Active state is a 2px ink bar in the gutter, never a fill - a filled pill would make the control
+ * the loudest object on a page whose subject is photographs.
+ *
+ * Below lg it becomes a horizontal snap scroller (the proven /help phone pattern) rather than a
+ * wrapping hedge, which is what a freeform tag list turns into once the content agent's real
+ * articles land.
+ */
+function TagRail({
+  tags,
+  total,
+  active,
+  onSelect,
+}: {
+  tags: { label: string; count: number }[];
+  total: number;
+  active: string | null;
+  onSelect: (tag: string | null) => void;
+}) {
+  return (
+    <nav
+      aria-label="Filter posts by tag"
+      // min-w-0 is load-bearing, not tidiness: a grid item defaults to min-width:auto, so the
+      // horizontal tag scroller below could not clip and stretched the whole page to 763px at a
+      // 375px viewport (a body-level horizontal scrollbar on every phone).
+      className="min-w-0 lg:sticky lg:top-[calc(var(--mkt-header-h,4rem)+1.5rem)] lg:self-start"
+    >
+      <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        Browse
+      </p>
+      <div className="mt-3 flex gap-x-4 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:gap-x-0 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
+        <RailRow
+          label="Everything"
+          count={total}
+          active={active === null}
+          onClick={() => onSelect(null)}
+        />
+        {tags.map((tag) => (
+          <RailRow
+            key={tag.label}
+            label={tag.label}
+            count={tag.count}
+            active={active === tag.label}
+            onClick={() => onSelect(tag.label)}
+          />
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function RailRow({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "relative flex shrink-0 snap-start items-baseline justify-between gap-3 py-1.5 text-left text-[13px] whitespace-nowrap",
+        "transition-colors duration-150 lg:w-full lg:border-t lg:pl-3 lg:first:border-t-0",
+        active
+          ? "font-medium text-foreground"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-1 bottom-1 left-0 hidden w-0.5 bg-foreground transition-opacity duration-150 lg:block",
+          active ? "opacity-100" : "opacity-0",
+        )}
+      />
+      {label}
+      <span className="font-mono text-[10px] text-muted-foreground/70 tabular-nums">
+        {count}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * The staged lead. Same grammar as PostCard (cover, scrim, type over the photograph) at feature
+ * scale with the standfirst, and the highest develop index so its plate resolves LAST - the eye
+ * lands where the reading starts.
+ */
+function FeaturedCard({ post }: { post: BlogListItem }) {
+  return (
+    <Link
+      href={`/blog/${post.slug}`}
+      // 21:9 on desktop, the Cutting Room's signature letterbox: at container width a 16:9 hero
+      // measured 684px against an 820px viewport, so the fold held the masthead and nothing else.
+      // The crop is also the one aspect no other marketing surface uses (frames run 4:3, 16:9, 1:1,
+      // 4/5, 16:10), and it plays against the library's portrait cards instead of echoing them.
+      className="group relative block aspect-4/5 overflow-hidden bg-muted transition-transform duration-200 ease-emphasis active:scale-[0.995] sm:aspect-21/9 motion-reduce:transition-none"
+    >
+      <span
+        data-mkt-develop
+        className="absolute inset-0"
+        style={{ "--i": 6 } as CSSProperties}
+      >
+        <Image
+          src={post.cover.src}
+          alt=""
+          fill
+          sizes="(max-width: 1280px) 100vw, 1200px"
+          priority
+          className="object-cover transition-transform duration-500 ease-emphasis group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          style={{ objectPosition: post.cover.objectPosition }}
+        />
+      </span>
+      <span
+        aria-hidden
+        className="absolute inset-0 bg-linear-to-t from-black/90 via-black/45 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-85 motion-reduce:transition-none"
+      />
+      <span className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-5 sm:p-8">
+        <span className="text-[11px] font-medium tracking-[0.14em] text-white/70 uppercase">
+          Latest
+        </span>
+        <span className="max-w-2xl font-heading text-2xl leading-tight text-balance text-white sm:text-3xl md:text-4xl">
+          {post.title}
+        </span>
+        <span className="hidden max-w-xl text-sm text-pretty text-white/75 sm:block">
+          {post.description}
+        </span>
+        <span className="mt-1 flex flex-wrap items-baseline gap-x-2 text-[11px] text-white/70">
+          <span className="font-medium text-white/90">{post.authorName}</span>
+          <span className="font-mono tracking-wide tabular-nums">
+            {post.dateLabel}
+          </span>
+          <span aria-hidden>&middot;</span>
+          <span className="font-mono tracking-wide tabular-nums">
+            {post.readingTime}
+          </span>
+        </span>
+      </span>
+    </Link>
+  );
+}

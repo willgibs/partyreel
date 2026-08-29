@@ -6,7 +6,7 @@ import { HelpPaletteProvider } from "@/components/marketing/help/help-palette";
  * Help layout (R6): mounts the ONE search-palette island over the index + every
  * article, and serializes the search index ONCE here (10-15KB at library scale;
  * the pages themselves must never pass it again). No <main>, no Container, no
- * wrappers — the (paper) group layout owns the chrome and this must not add a
+ * wrappers — the (cinema) group layout owns the chrome and this must not add a
  * second layout box around it.
  */
 export default function HelpLayout({

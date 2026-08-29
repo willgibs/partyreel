@@ -152,6 +152,18 @@ the higher `utilities` layer (which silently overrode it = no slide, residual ga
 `:hover` / `:focus-visible` / `:has(:focus-visible)` — NOT `:focus-within`, so a mouse click doesn't leave a
 chip stuck-expanded after the cursor leaves.
 
+★ **THE ARRIVAL-DEFAULT CONTRACT (generalized 2026-08-28, the /blog round): the VISIBLE state is the
+default; the hidden state belongs to the trigger, never to the element at rest.** The swept-mask rule
+below is one instance. The blog round produced two more in one sitting: plates animating from
+`opacity: 0` gated on `[data-inview]` left **23 of 23 covers permanently invisible** wherever no
+`Reveal` wrapped them, and an observer-gated hairline is an invisible divider on every path that
+fails to trip. So a cover plate paints a static muted base and only the PHOTO develops over it, and
+arrival hooks that must not depend on scroll (`[data-mkt-develop]`, `[data-mkt-rule]`,
+`[data-mkt-entering]`, marketing.css) fire on **`@starting-style`** instead of an observer. Failure
+mode becomes "no animation", never "no content". Reach for the observer grammar
+(`[data-mkt-reveal]` + `Reveal`) when the beat is genuinely about scroll position; reach for
+`@starting-style` when it is about arrival.
+
 ★ **A swept-mask layer needs a STATIC base, or it vanishes when paused.** The organic-shimmer family
 works by animating `mask-position` across a mask wider than the layer, so its resting frame sits fully
 off-layer and shows NOTHING. Anything under the loop-pause contract therefore defaults to invisible
@@ -228,8 +240,22 @@ reduced-motion-safe, and var-tunable. The motion-defining picks were ratified in
   `--tune-section-swap-ms`; the lab's blur variant was REJECTED). Hardware-accelerated, reduced-motion = fade.
 - **C=FLIP** (`useFlip`, [`use-flip.ts`](../../src/lib/shared/use-flip.ts)) — when the urgency order flips
   (the review queue clears), the sections slide to their new positions via a hand-rolled First-Last-Invert-Play
-  (translateY, `--tune-reorder-ms`, `--ease-in-out-strong`); reduced motion = instant. Chosen over framer-motion's
-  `layout` (cleaner, off the main thread, no dependency — `motion` was dropped).
+  (`--tune-reorder-ms`, `--ease-in-out-strong`); reduced motion = instant. Chosen over framer-motion's
+  `layout` (cleaner, off the main thread, no dependency — `motion` was dropped). **Two-axis since the /blog
+  round**: it inverts X as well as Y, so a filtered multi-column grid reorganizes correctly and nothing needs
+  the second, unextracted FLIP inside `use-sortable-grid.ts`; `dx` is 0 for any full-width stack, so the event
+  feed is unchanged. ★ It also PRUNES prev rects for unmounted keys each pass — without that, a node that
+  leaves a filtered set keeps a stale rect and, on returning, flies in from wherever it sat under a different
+  filter. The prune cannot live in the ref cleanup: `register(key)` returns a fresh closure per render, so
+  React detaches every node on every render and dropping prev on null would disable the FLIP outright.
+- **The two-beat set change (the /blog filter, ruled 2026-08-28): removal and reflow are never the same
+  beat.** Departing items leave TOGETHER (`transition-delay: 0` on all of them) on a short clock, and only
+  once that is spent does the set commit and the FLIP reorganize the survivors; entrants fade in on a delay
+  so the reorganize stays legible underneath them. Animating removal and reflow at once is what makes a
+  filter read cheap: the eye cannot separate what left from what moved. The exit and the FLIP must sit on
+  SEPARATE elements (exit on the item, FLIP on its wrapper) or the FLIP's inline `transition: transform`
+  clobbers the exit's transition property. Hooks: `[data-mkt-exiting]` / `[data-mkt-entering]` +
+  `--mkt-blog-*` (marketing.css).
 - `[data-review-tile][data-exiting]` — the bulk-action REMOVAL EXIT (opacity→0 / `scale(0.9)`,
   `--tune-review-exit-ms`, `transition-delay:0` so the acted set leaves TOGETHER). The inline review opts OUT
   of the `[data-review-tile]` open cascade (no entrance theater on an always-present surface; the cascade hook
