@@ -1711,26 +1711,35 @@
   }
 }
 
-/* ── THE ROLE EMBLEM MORPH (careers). The listing card's emblem grows into the
-   role page's avatar, via the NATIVE View Transitions API (role-morph.tsx
-   explains why not React's <ViewTransition>: that flag swaps the whole app's
-   React build to a canary).
+/* ── ★ THE SAME MARK, OFF THE SHEET (the philosophy row; Will 2026-08-29, "give
+   it the page's vocabulary"). Two things change when the mark leaves a
+   photograph, and both are why this is a VARIANT rather than a second drawing.
 
-   ★ NAME-SCOPED, and that is the containment contract, not fussiness.
-   `::view-transition-*` are DOCUMENT-GLOBAL pseudo-elements, exactly like
-   @keyframes: this sheet persists app-wide once any marketing route has loaded,
-   so a `::view-transition-group(*)` rule here would silently own every future
-   view transition anywhere in the product. Targeting the one name we create
-   cannot reach anything else.
+   (1) THE INK. The base color is the gallery's near-white, which is right over a
+   frame and INVISIBLE on paper, so this one inherits the surface's own
+   foreground instead.
 
-   Past the 300ms UI ceiling on purpose and inside the marketing exemption: this
-   is an explanatory reveal (the same mark, continuing across a cut), not a
-   workflow control. No reduced-motion block is needed because the delegate
-   never STARTS a transition under reduced motion, which is a stronger
-   guarantee than animating at 0.01ms. ── */
-::view-transition-group(role-emblem) {
-  animation-duration: 380ms;
-  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+   (2) THE CLOCK. The hero's marks ride a page-LOAD delay, which is correct above
+   the fold and wrong three screens down, where the draw would finish long before
+   anyone scrolled to it. This one waits for its Reveal ancestor.
+
+   ★ Written to the ARRIVAL-DEFAULT contract (the blog round's lesson): the DRAWN
+   state stays the default outside the media query, and only no-preference sets
+   the undrawn start. A mark whose section never trips the observer is a mark
+   that skipped its animation, never one that vanished. ── */
+[data-mkt] .mkt-select-mark[data-on-reveal] {
+  color: color-mix(in oklab, var(--foreground) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-select-mark[data-on-reveal] ellipse {
+    stroke-dashoffset: 230;
+    animation: none;
+  }
+  [data-mkt] [data-inview="true"] .mkt-select-mark[data-on-reveal] ellipse {
+    animation: mkt-select-draw 900ms var(--ease-emphasis) both;
+    animation-delay: calc(var(--mark-i, 0) * 90ms);
+  }
 }
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───
@@ -1782,22 +1791,35 @@ body:has([data-mkt-skin="paper"]) {
   color-scheme: light;
 }
 
-/* ── The blog cover morph (the reading round, 2026-08-28). The index card's photograph grows into
-   the article's plate on navigation, via the NATIVE View Transitions API (cover-morph.tsx explains
-   why not React's <ViewTransition>: that flag swaps the whole app's React build to a canary).
+/* ── THE MORPH TIMINGS. Two morphs, one mechanism
+   (system/morph-delegate.tsx): a clicked card's plate grows into the
+   destination page's plate via the NATIVE View Transitions API. The delegate
+   explains why not React's <ViewTransition> - that flag swaps the whole app's
+   React build to a canary, which a marketing round does not get to decide.
 
-   ★ NAME-SCOPED, and that is the containment contract, not fussiness. `::view-transition-*` are
-   DOCUMENT-GLOBAL pseudo-elements, exactly like @keyframes: this sheet persists app-wide once any
-   marketing route has loaded, so a `::view-transition-group(*)` rule here would silently own every
-   future view transition anywhere in the product. Targeting the one name we create cannot reach
-   anything else.
+   ★ NAME-SCOPED, and that is the containment contract, not fussiness.
+   `::view-transition-*` are DOCUMENT-GLOBAL pseudo-elements, exactly like
+   @keyframes: this sheet persists app-wide once any marketing route has loaded,
+   so a `::view-transition-group(*)` rule here would silently own every future
+   view transition anywhere in the product. Targeting only the names we create
+   cannot reach anything else. ★ The binding between a name here and the `name`
+   its delegate passes is pinned by marketing-css-policy.test.ts, because a
+   rename touching one side drops the timing with no visible error.
 
-   Longer than the 300ms UI ceiling on purpose and within the marketing exemption: this is an
-   explanatory reveal (the same photograph, continuing across a cut), not a workflow control. No
-   reduced-motion block is needed because the delegate never STARTS a transition under reduced
-   motion, which is a stronger guarantee than animating at 0.01ms. ── */
+   Past the 300ms UI ceiling on purpose and inside the marketing exemption: both
+   are explanatory reveals (the same object, continuing across a cut), not
+   workflow controls. Neither needs a reduced-motion block, because the delegate
+   never STARTS a transition under reduced motion, which is a stronger guarantee
+   than animating at 0.01ms.
 
+   The two clocks differ by travel, not by taste: a blog cover crosses most of
+   the viewport and grows to a full-bleed plate, while a role emblem moves a
+   short way and stays small, so the same speed would read as a drag on it. ── */
 ::view-transition-group(blog-cover) {
   animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+::view-transition-group(role-emblem) {
+  animation-duration: 380ms;
   animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
