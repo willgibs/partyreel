@@ -1537,13 +1537,7 @@
 [data-mkt] ::selection {
   background: color-mix(in oklab, var(--foreground) 14%, transparent);
   color: var(--foreground);
-/* ── THE CAREERS HERO SCRIM (the careers round). The marks wall behind the hero
-   has to READ (it is the page's one visual device) while the type stays fully
-   legible, so the scrim is a POOL over the copy rather than a blanket over the
-   grid: an early blanket at 0.92 flat made the wall invisible and wasted the
-   device entirely. Colour is a color-mix over --background, never a literal, so
-   it resolves to whatever the chapter's own surface is (the ruled cinema room
-   here) and can never drift away from the skin block below. ── */
+}
 
 /* ── THE CAREERS HERO (the photographic rebuild).
    The scrim sits over a PHOTOGRAPHIC contact sheet now, not the dim DOM art it
@@ -1604,6 +1598,28 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+
+/* ── THE ROLE EMBLEM MORPH (careers). The listing card's emblem grows into the
+   role page's avatar, via the NATIVE View Transitions API (role-morph.tsx
+   explains why not React's <ViewTransition>: that flag swaps the whole app's
+   React build to a canary).
+
+   ★ NAME-SCOPED, and that is the containment contract, not fussiness.
+   `::view-transition-*` are DOCUMENT-GLOBAL pseudo-elements, exactly like
+   @keyframes: this sheet persists app-wide once any marketing route has loaded,
+   so a `::view-transition-group(*)` rule here would silently own every future
+   view transition anywhere in the product. Targeting the one name we create
+   cannot reach anything else.
+
+   Past the 300ms UI ceiling on purpose and inside the marketing exemption: this
+   is an explanatory reveal (the same mark, continuing across a cut), not a
+   workflow control. No reduced-motion block is needed because the delegate
+   never STARTS a transition under reduced motion, which is a stronger
+   guarantee than animating at 0.01ms. ── */
+::view-transition-group(role-emblem) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───

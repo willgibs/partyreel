@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { RoleEmblem } from "@/components/marketing/sections/careers/role-emblem";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
@@ -88,7 +89,14 @@ export default async function RolePage({
               <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
               All roles
             </Link>
-            <h1 className="mt-6 max-w-3xl font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+            {/* The avatar. It is the same emblem the listing card carried, and
+                the view transition morphs one into the other, so arriving here
+                feels like following a thing rather than loading a page. */}
+            <RoleEmblem slug={job.slug} size="header" target className="mt-9" />
+            <div className="mt-6">
+              <Eyebrow>{job.catchAll ? "Always open" : "Open role"}</Eyebrow>
+            </div>
+            <h1 className="mt-3 max-w-3xl font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
               {job.title}
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
@@ -146,12 +154,12 @@ export default async function RolePage({
                   <RoleList
                     heading="What we're looking for"
                     items={job.requirements}
-                    className={job.responsibilities.length > 0 ? "mt-14" : ""}
+                    className={job.responsibilities.length > 0 ? "mt-16" : ""}
                   />
                 )}
 
                 {job.offer && job.offer.length > 0 && (
-                  <div className="mt-14">
+                  <div className="mt-16">
                     <SectionTitle>What we offer</SectionTitle>
                     {/* The page's one accent moment: green checks read as
                         "included" (a real state color, per the achromatic-

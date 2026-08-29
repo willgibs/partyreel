@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+
+import { RoleEmblem } from "./role-emblem";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { trackAttrs } from "@/lib/analytics/events";
 import {
@@ -78,6 +80,9 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
         cta: `role-${role.slug}`,
         location: "careers-listings",
       })}
+      // The morph hook. The delegate names this card's emblem on click, so it
+      // travels into the role page's header instead of the two pages cutting.
+      data-role-morph=""
       // The hover is the card being PICKED UP off the desk: the gray plate goes
       // to white card stock and the hairline firms up. No shadow, because the
       // elevation contract keeps that for the floating layer only, and a
@@ -86,6 +91,7 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
     >
       <div className="flex min-w-0 flex-col gap-2.5">
         <div className="flex items-center gap-3">
+          <RoleEmblem slug={role.slug} className="-my-1 mr-1" />
           {/* Inter, not mono. The index is a quiet ordinal here, and the R6
               ruling keeps mono for tabular alignment rather than decoration. */}
           <span className="text-xs font-medium tabular-nums text-muted-foreground/70">

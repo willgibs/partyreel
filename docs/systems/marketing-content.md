@@ -191,7 +191,17 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
   **`/careers/[slug]` is a SPEC SHEET** (ruled 2026-08-29): dark title block → a paper document
   (reading column beside a sticky spec rail, the same two-column family help articles and the legal
-  shell use) → the application chapter on its own gray band. ★ It carries NO hero media on purpose.
+  shell use) → the application chapter on its own gray band. Each role carries an **EMBLEM** ([`role-emblem.tsx`](../../src/components/marketing/sections/careers/role-emblem.tsx)):
+  an achromatic SVG plate (a film reel, an empty slide mount, the album grid) shown on its listing
+  card and again as the avatar above its title, which the two pages **MORPH between** via the native
+  View Transitions API ([`role-morph.tsx`](../../src/components/marketing/sections/careers/role-morph.tsx),
+  mounted from a careers-scoped layout so the listener stays off every other route). ★ Same mechanism
+  as the blog round's cover morph, developed in parallel: when both land, the two delegates should
+  collapse into one parameterised component. ★ NOT React's `<ViewTransition>` - that flag swaps the
+  whole app's React runtime to a canary, which a marketing round does not get to decide. The CSS is
+  NAME-SCOPED because `::view-transition-*` are document-global like `@keyframes`. Emblems map by
+  slug with a deterministic integer-hash fallback, so a new listing is never emblem-less and server
+  and hydration agree. ★ It carries NO PHOTOGRAPHIC hero media on purpose.
   The hub argues in photographs; this page is where somebody decides and wants information density,
   and a contact-sheet frame borrowed as a header was considered and dropped because an image
   unrelated to the actual role reads as decoration. The restraint straight after a photographic hub
