@@ -10,6 +10,71 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-29 — the /blog round (merged to `launch-prep`, not yet on `main`)
+
+`launch-prep` @ `60353c5` (merge `17f5b1a`, synthesis `7372292`, red-team fix `60353c5`), preview
+READY and verified at the SHA. Awaiting Will's review before any milestone merge.
+
+/blog was the last marketing surface on its route-completeness scaffold: a centred hero, a pill row,
+card boxes, and no photography at all on a media product. The branch rebuilt it on Will's V4
+composite (Cutting Room + the Broadsheet masthead) and gave the post page an identity. It reached the
+cinema/paper architecture independently, so there was nothing to overrule and the round's work was
+synthesis, doc repair, and red-teaming.
+
+**Adopted as built.** The small `Blog` h1 over a drawn hairline (Will's ruling, a deliberate
+departure from the 4xl-7xl ladder so the featured card owns the stage), the newest post as a 21:9
+card straddling the cinema->paper cut, the sticky margin index, the 4/5 portrait library at 1/2/3
+columns, the two-beat filter, slug-pure covers, the clamping paginator, and the native View
+Transitions cover morph. Two calls the branch made correctly and kept: it refused React's
+`<ViewTransition>` after a probe build showed the flag swaps the whole app's React runtime to a
+canary, and it generalized the existing `useFlip` rather than adding a third FLIP.
+
+**Synthesis.** The reading spine had been built into the shared `ArticleToc` and then switched OFF
+for /help, so one component would have shipped two behaviours on the two pages built from it; Will
+ruled both surfaces take it, and they now share an `ARTICLE_BODY_ID` so the spine measures the
+ARTICLE, never the page. `--mkt-blog-*` became `--mkt-set-*`, because the selectors were already
+page-neutral and only the clock names said "blog". The index masthead is recorded in
+`design-system.md` as the third H1 register, the display step's inverse, with Will's quote so nobody
+restores it to the ladder.
+
+**Doc claims corrected in place.** The blog paragraph closed with "Open follow-ons" listing three
+items the branch's own later commits had shipped; `ArticleToc` still promised "/help renders exactly
+as it did before this prop existed"; and the whole blog section was welded onto the END of the /help
+bullet as one ~40-line paragraph, now its own bullet split index / hero rule / covers / article /
+morph / plumbing.
+
+**Red-team findings, both fixed.** (1) The exit beat ran under REDUCED MOTION: the rule cites the
+review queue's `[data-review-tile][data-exiting]` convention by name but took only half of it, so a
+reduced-motion reader got a 140ms opacity+scale on every departing card. Caught by walking the
+SHIPPED CSSOM rather than reading source; now the rule sits inside `no-preference` and the island
+commits the set immediately, matching both halves of the precedent. (2) `useFlip` had NO tests on
+either side of the merge, despite being shared with the ADMIN event feed. Four pins added, three of
+which genuinely fail against the pre-branch implementation: two-axis invert
+(`translateY(-40px)` -> `translate(-300px, -40px)`), a full-width stack still resolving `dx` to
+exactly 0 (the actual event-feed regression guard), and the unmounted-key prune
+(`translateY(840px)` -> no invert, the "cards flying in from nowhere" bug made concrete).
+
+**Verified on the launch-prep preview.** One `<h1>` reading `Blog` at 20px, unmarked and
+`opacity: 1` (the LCP rule). Featured card 21:9 at 1440/768 and 4:5 at 375, straddling the paper by
+80px (64px at 375) with the rail always clearing it. Library 3/2/1 columns of exact 4:5 cards; no
+horizontal overflow at 375, 768 or 1440. Filtering keeps SURVIVING cards on their same DOM nodes, so
+covers do not re-develop on every tag click. Hostile URLs all land on real content: `?tag=nonsense`
+and `?tag=<script>` normalize, `?page=abc|99|-1|0` clamp, and `?tag=weddings&page=7` resolves to one
+real post. The cover morph fired card->article and again article->article, each with exactly ONE
+named plate, and after both the target was still armed (the `restoreTarget` bug it exists to
+prevent). Reading spine fills 0 -> 1 monotonically on BOTH /blog and /help and completes at the end
+of the article body, not the page. Every arrival hook confirmed against the shipped CSSOM to keep its
+resting state outside `prefers-reduced-motion`. Feed valid with four `<enclosure>`s carrying real
+byte lengths; OG cards 200; full JSON-LD stack; all five blog URLs in the sitemap. Admin dashboard
+re-checked: four feed sections all full-width at identical `left`, so the two-axis change is provably
+inert there, filters work, console clean.
+
+★ Not verified live: an urgency REORDER on the event feed, because the test event is empty and has
+no review queue to clear. The two-axis change is inert there by measurement (`dx` is always 0) and
+pinned by test, but the reorder animation itself was not observed on this pass.
+
+---
+
 ## 2026-08-29 — MILESTONE-10: the /press round
 
 `main` @ tag `milestone-10` (`b08903f`), `--no-ff` merge of `launch-prep`, gate re-run green on the

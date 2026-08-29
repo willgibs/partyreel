@@ -42,12 +42,25 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
-  **pick ONE hero entrance for `PageHero`** (it uses the chapter-1 rise, while /help, /contact, /blog
-  and /careers all arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line`
-  forces `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
-  `opacity: 0` rest state is why those four pages gate their own h1's paint. Its own round once the
-  blog and careers branches land, never inside a merge)
+  **settle `PageHero`: one hero entrance, then sweep the twelve hand-rolled copies onto it** (Will,
+  2026-08-29 — one round, after careers lands, never inside a merge). Two halves of the same
+  question. (a) ENTRANCE: `PageHero` uses the chapter-1 rise while /help, /contact and /careers
+  arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line` forces
+  `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
+  `opacity: 0` rest state is why those pages gate their own h1's paint. (b) ADOPTION: only /about and
+  /press compose it, while TWELVE pages hand-copy its exact lockup inline (`<Reveal>` + `Eyebrow` +
+  the identical `text-4xl…lg:text-7xl` h1 + subhead + a two-Button row) and have already drifted to
+  `gap-5` against its `gap-6`. The sweep is blocked on (a): those twelve differ in entrance
+  (`data-mkt-reveal` vs `data-mkt-cut`, and /features/curation deliberately keeps its h1 static), so
+  `PageHero` needs an entrance prop before any of them can move. ★ `PageHero` owns ONLY the plain
+  type lockup — it must never absorb a hero with media, a form, or its own object (/blog's index
+  masthead, /help's instrument row, the home hero all stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
+- **Collapse the THREE FLIP implementations to one** (found in the /blog merge, 2026-08-29): the
+  shared [`use-flip.ts`](../src/lib/shared/use-flip.ts) (event feed + blog library, now two-axis and
+  covered by `use-flip.test.tsx`), a stale lab-local copy under `(dev)/design/event-feed/`, and a
+  third inlined in `use-sortable-grid.ts`. Only the shared one got the two-axis + prune work, so the
+  other two are now behind it. Behaviour-neutral consolidation; its own small round.
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,

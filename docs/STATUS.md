@@ -61,10 +61,16 @@ since milestone-9 — and closed an LCP hole, since `.mkt-line` paints an h1 at 
 hydration. Will's last note before the merge became a rule: **at the display step the H1 matches its
 NAV LABEL** (a 160px "Media" under a footer link reading "Press" is a non-sequitur), so the H1 is
 "Press" and the descriptor moved into a "Media assets" eyebrow.
-**Three branches still with Will**; `lp/blog-redesign` and
-`lp/careers-identity` both still carry hand-rolled `TextsReveal` heroes and get the same `PageHero`
-treatment at `lg` when they land. `lp/careers-identity` will conflict in `marketing.css` (the isolate
-block) and in `marketing-content.md`.
+**`lp/blog-redesign` merged into `launch-prep` 2026-08-29** (`17f5b1a` + synthesis `7372292`,
+`60353c5`), NOT yet on `main`: /blog rebuilt on Will's V4 composite, and the post page given an
+identity. It arrived at the cinema/paper architecture on its own, so the round's work was synthesis
+(the reading spine extended to /help, the set-change clocks de-named from "blog", the index-masthead
+register recorded) plus a red-team fix and the first tests `useFlip` has ever had.
+**Two branches still with Will.** `lp/careers-identity` still carries a hand-rolled `TextsReveal`
+hero and will conflict in `marketing.css` (the isolate block, and now the set-change block) and in
+`marketing-content.md`. ★ The old note that blog "should take `PageHero` at `lg`" was WRONG and is
+retired: Will ruled a small index masthead for /blog, and `PageHero` owns only the plain type lockup
+(see [`design-system.md`](systems/design-system.md) for the three H1 registers).
 
 **MILESTONE-10 (2026-08-29): prod = the /press round.** `main` @ tag `milestone-10` (`b08903f`), prod
 READY + verified at the merge SHA. Will's acceptance: "It all looks fantastic." Verified on
@@ -221,12 +227,13 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The next agent branch to hand over** (`lp/blog-redesign`, `lp/careers-identity`,
-   `lp/glow-doctrine` — Will is still working the remaining three). `lp/about` shipped at
-   milestone-9 and `lp/press-kit` at milestone-10.
+1. **Review /blog on the launch-prep preview, then the next branch to hand over**
+   (`lp/careers-identity`, `lp/glow-doctrine` — Will is still working the remaining two). `lp/about`
+   shipped at milestone-9, `lp/press-kit` at milestone-10; `lp/blog-redesign` is merged into
+   `launch-prep` and awaiting Will's look before any milestone merge.
    Notes for whoever integrates the next one: `lp/careers-identity` will conflict in `marketing.css`
-   (the `[data-mkt-isolate]` block landed near its additions) and in `marketing-content.md`; blog and
-   careers both still carry hand-rolled `TextsReveal` heroes and should take `PageHero` at `lg`.
+   (the `[data-mkt-isolate]` block, and the new set-change block) and in `marketing-content.md`, and
+   still carries a hand-rolled `TextsReveal` hero.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
