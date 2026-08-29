@@ -183,6 +183,10 @@ export function SelectMark({
 }) {
   return (
     <span
+      // Its OWN aria-hidden, not the sheet's. Inside the proof sheet it was
+      // covered by the aria-hidden root; standalone on the philosophy row it was
+      // an unnamed <svg> with nothing above it, which some readers announce.
+      aria-hidden
       className="mkt-select-mark absolute inset-0"
       {...(onReveal ? { "data-on-reveal": "" } : {})}
       style={{ "--mark-i": index } as CSSProperties}

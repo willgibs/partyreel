@@ -41,7 +41,10 @@ import {
  */
 export function RoleListings() {
   const hasRoles = OPEN_ROLES.length > 0;
-  const entries = [...OPEN_ROLES, ...(GENERAL_APPLICATION ? [GENERAL_APPLICATION] : [])];
+  const entries = [
+    ...OPEN_ROLES,
+    ...(GENERAL_APPLICATION ? [GENERAL_APPLICATION] : []),
+  ];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -56,8 +59,8 @@ export function RoleListings() {
           data-mkt-reveal
           style={{ "--i": entries.length } as CSSProperties}
         >
-          No named roles are open at the moment. We are still glad to meet people
-          who care about this kind of work.
+          No named roles are open at the moment. We are still glad to meet
+          people who care about this kind of work.
         </p>
       )}
     </div>
@@ -87,14 +90,19 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
       // to white card stock and the hairline firms up. No shadow, because the
       // elevation contract keeps that for the floating layer only, and a
       // surface here is hairline-led.
-      className="mkt-learn group grid gap-x-8 gap-y-5 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color] duration-200 ease-emphasis hover:border-foreground/30 hover:bg-card sm:grid-cols-[1fr_auto] sm:items-end sm:gap-x-10 sm:p-7"
+      // The house focus treatment, which this card was missing: without it a
+      // keyboard visitor got the BROWSER's default hairline ring, while the blog
+      // cards, the pricing plans and the help chips all draw the ring token. On
+      // paper (not over a photograph), so it takes the ring form rather than
+      // /blog's inset white outline.
+      className="mkt-learn group grid gap-x-8 gap-y-5 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color] duration-200 ease-emphasis hover:border-foreground/30 hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none sm:grid-cols-[1fr_auto] sm:items-end sm:gap-x-10 sm:p-7"
     >
       <div className="flex min-w-0 flex-col gap-2.5">
         <div className="flex items-center gap-3">
           <RoleEmblem slug={role.slug} className="-my-1 mr-1" />
           {/* Inter, not mono. The index is a quiet ordinal here, and the R6
               ruling keeps mono for tabular alignment rather than decoration. */}
-          <span className="text-xs font-medium tabular-nums text-muted-foreground/70">
+          <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
             {String(index + 1).padStart(2, "0")}
           </span>
           <span aria-hidden className="h-px flex-1 bg-border" />
