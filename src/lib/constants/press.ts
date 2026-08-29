@@ -35,14 +35,6 @@ export const PRESS_BOILERPLATE_SHORT =
   "Partyreel turns every guest's phone into the event's camera: guests scan one QR code, their photos and videos land in one live album at full quality, and the event can end as a highlight reel.";
 
 /**
- * The ~20-word descriptor for a directory entry, a caption, or a conference program.
- * Leads with the name (directories need that) and its second clause rhymes with the
- * ruled SITE_THESIS on purpose, so the shortest and biggest things we say match.
- */
-export const PRESS_BOILERPLATE_LINE =
-  "Partyreel: one QR code turns every guest's phone into the event's camera, and one album holds the whole event.";
-
-/**
  * The fact sheet, ordered by what a reporter reaches for first rather than by logic.
  * Prices are DERIVED from tiers.ts so they cannot drift from the billing truth.
  * No storage ladder here: the claims fence in content-policy.test.ts bans the backstop

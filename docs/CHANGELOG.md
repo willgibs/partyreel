@@ -45,7 +45,10 @@ failure mode a committed artifact has.
 Adopted whole: `[data-mkt-isolate]`, the light-table dim where pointing at one frame steps the others
 back, written generic in the shared grammar rather than page-local. Synthesized: the ink comes from
 `BRAND_HEX` rather than three hard-coded `#101010`s, and the download chip's class string is one
-constant instead of two verbatim copies.
+constant instead of two verbatim copies. Added: a guard pinning the downloadable QR to the site URL,
+which is the one kit asset whose CONTENT can be wrong while the file is perfectly valid (the CRC guard
+only proves the zip matches the disk, not that the disk is right). Removed: `PRESS_BOILERPLATE_LINE`,
+a third boilerplate length with no consumer anywhere; the paragraph and the one-liner both ship.
 
 **Doc claims corrected before they landed.** The branch's docs described three superseded versions of
 its own page (the sheet riding inside the hero chapter, a `max-w-3xl` shared measure, `CinemaChapter`
