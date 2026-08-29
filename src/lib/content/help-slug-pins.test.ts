@@ -6,8 +6,8 @@ import { getAllSlugs } from "./help";
  * Slugs referenced as PLAIN LITERALS in client components (which must never
  * import this node-only module) get pinned here so a help-article rename can't
  * silently strand them. Current referrers: the nav's Resources featured card
- * (chrome/mega-panel.tsx), the guests page's GoDeeper, and the legal privacy
- * draft's data pointer.
+ * (chrome/mega-panel.tsx), the guests page's GoDeeper, the legal privacy
+ * draft's data pointer, and /about's convictions ledger.
  */
 describe("help slugs referenced by literal", () => {
   it("the Resources featured article exists", () => {
@@ -17,5 +17,17 @@ describe("help slugs referenced by literal", () => {
   it("the R5 seed articles exist (guests GoDeeper + the legal data pointer)", () => {
     expect(getAllSlugs()).toContain("profiles-guest-lists-and-following");
     expect(getAllSlugs()).toContain("your-data-and-deleting-your-account");
+  });
+
+  it("/about's convictions ledger destinations exist", () => {
+    // The ledger's whole premise is that every conviction links to where you
+    // check it, so a dead row does not just 404, it falsifies the page.
+    for (const slug of [
+      "how-long-media-is-kept",
+      "reporting-and-safety",
+      "download-photos-videos-and-albums",
+    ]) {
+      expect(getAllSlugs()).toContain(slug);
+    }
   });
 });

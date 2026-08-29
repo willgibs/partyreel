@@ -72,6 +72,11 @@ const CLAIM_FILES = [
   // The footer's assistant row: its question ships to third-party assistants
   // and is user-facing copy on every page, so it answers to the same fence.
   "src/lib/constants/ask-ai.ts",
+  // /about's copy single-source. The claims fence runs over MDX + this list, so
+  // before the copy moved here the About PAGE was reachable only by the weaker
+  // neutralization fence: social proof written inline on it was caught by
+  // nothing at all.
+  "src/lib/constants/about.ts",
 ].map((f) => join(ROOT, f));
 
 function scanLines(
