@@ -2,6 +2,7 @@ import { readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { crc32 } from "node:zlib";
 
+import qrcode from "qrcode-generator";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -114,6 +115,47 @@ describe("the committed press-kit zip", () => {
         `${name} is STALE: rerun scripts/build-press-kit.mjs`,
       ).toBe(crc32(source) >>> 0);
     }
+  });
+});
+
+describe("the downloadable QR", () => {
+  it("still encodes the site URL, with its quiet zone", () => {
+    // The one kit asset whose CONTENT can be wrong while the file is perfectly valid:
+    // a domain change, or a rebuild the script never got, ships a printable code
+    // pointing somewhere else, and the CRC guard above would happily pass it. So
+    // regenerate from constants/site.ts (source-read, same reason as the fact-sheet
+    // pin below) and compare the path data. Parameters mirror footer-qr.tsx exactly,
+    // which is the whole point: what a journalist prints and what the page renders
+    // must be the same code.
+    const site = readFileSync(join(ROOT, "src/lib/constants/site.ts"), "utf8");
+    const url =
+      /SITE_URL_FALLBACK\s*=\s*"([^"]+)"/.exec(site)?.[1] ??
+      /"(https:\/\/[^"]*partyreel\.com)"/.exec(site)?.[1];
+    expect(url, "no site URL found in constants/site.ts").toBeTruthy();
+
+    const QUIET_ZONE = 4;
+    const qr = qrcode(0, "M");
+    qr.addData(url!);
+    qr.make();
+    const count = qr.getModuleCount();
+    let d = "";
+    for (let row = 0; row < count; row++) {
+      for (let col = 0; col < count; col++) {
+        if (qr.isDark(row, col))
+          d += `M${col + QUIET_ZONE},${row + QUIET_ZONE}h1v1h-1z`;
+      }
+    }
+
+    const svg = readFileSync(abs("/press/partyreel-qr.svg"), "utf8");
+    expect(
+      / d="([^"]+)"/.exec(svg)?.[1],
+      "the press QR is STALE: rerun scripts/build-press-qr.mjs",
+    ).toBe(d);
+    // A code with no quiet zone is unscannable the moment it lands on a coloured
+    // page, and that failure only shows up in print.
+    expect(svg).toContain(
+      `viewBox="0 0 ${count + QUIET_ZONE * 2} ${count + QUIET_ZONE * 2}"`,
+    );
   });
 });
 
