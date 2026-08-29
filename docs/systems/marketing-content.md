@@ -183,7 +183,10 @@ variety: white behind ink-drawn artwork, ink behind white-drawn artwork. Every s
 one rhythm (a mixed left/full-bleed/narrow page read as jarring), with prose left-aligned inside its
 centered column, and every section's content ends at ONE SHARED RIGHT EDGE: the narrower ones start
 further right (`lg:ml-auto` against a width cap) rather than widening, so the gap between a pinned
-heading and its answer grows with the viewport while the reading measure does not. Eyebrow "Press",
+heading and its answer grows with the viewport while the reading measure does not. Words and the fact
+sheet share ONE measure (`max-w-3xl`): at 672 against 768 the seam between them read as a mistake
+rather than a distinction. Each pinned column carries a pointer under its note (the kit download,
+then /contact, then /how-it-works), so a section says what it is and where to go next from it. Eyebrow "Press",
 H1 "Media" (hoisted to a constant in the page; a taste call Will has turned twice). The kit is
 manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` +
 `scripts/build-press-qr.mjs` + the committed zip, guarded by `press-kit.test.ts`), so the pre-launch
