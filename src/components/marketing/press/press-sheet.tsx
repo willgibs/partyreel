@@ -146,12 +146,13 @@ export function PressSheet() {
       {/* ★ THE REBATE. On the ink ground the 3px --gap-gallery read on its own; on paper,
           white plates against a near-white page made the grid dissolve. The list paints
           --border so the gaps become hairlines: how frames sit in the rebate of real film.
-          The OUTER edge is a 1px border, not another 3px band, which read heavy on paper
-          (Will). The internal gap stays --gap-gallery: that 3px is the album tell and is
-          the one measurement here not to negotiate. */}
+          ★ The outer inset and the inner gap are the SAME token on purpose. A 1px border
+          against 3px gaps read as an uneven frame (Will); a rebate is even all round or it
+          is not a rebate. Change one and change the other, and keep both on
+          --gap-gallery — that 3px is the album tell. */}
       <ul
         data-mkt-isolate
-        className="grid grid-cols-2 gap-[var(--gap-gallery)] overflow-hidden rounded-tile border bg-border sm:grid-cols-4"
+        className="grid grid-cols-2 gap-[var(--gap-gallery)] rounded-tile bg-border p-[var(--gap-gallery)] sm:grid-cols-4"
       >
         <Frame
           index={0}
@@ -293,7 +294,9 @@ export function PressSheet() {
         </Frame>
       </ul>
 
-      <p className="mt-5 max-w-2xl text-sm text-pretty text-muted-foreground">
+      {/* A footnote, not a paragraph: it qualifies the grid above rather than competing
+          with it, so it sits a step down in both size and tone. */}
+      <p className="mt-5 max-w-2xl text-xs text-pretty text-muted-foreground/75">
         Everything here is Partyreel artwork, free to use in coverage as it
         ships. If a file needs editing to work in your layout, write instead and
         we will make the one you need.

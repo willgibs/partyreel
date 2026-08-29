@@ -81,7 +81,7 @@ function factHref(label: string, value: string): string | null {
  * "Take it from here." (invites the writer to run with the story; a shade clever),
  * "Yours to use." (clearest, least warm).
  */
-const PAGE_TITLE = "All yours.";
+const PAGE_TITLE = "Media";
 
 const INLINE_LINK =
   "underline decoration-current/30 underline-offset-4 transition-colors duration-150 hover:decoration-current";
@@ -174,7 +174,7 @@ export default function PressPage() {
           note="Quote any of it, whole or in part. No permission needed."
           className="border-t"
         >
-          <div className="flex max-w-2xl flex-col">
+          <div className="flex max-w-2xl flex-col lg:ml-auto">
             <div className="flex items-baseline justify-between gap-4">
               <Eyebrow>The boilerplate</Eyebrow>
               <CopyButton
@@ -224,9 +224,12 @@ export default function PressPage() {
           note="The checkable version, for a box-out or a copy desk."
           className="border-t"
         >
-          {/* No width clamp: this is a TABLE, not prose. Capped at max-w-3xl the values
-              re-wrapped to two lines while ~300px of the column sat empty. */}
-          <dl className="divide-y divide-border border-t">
+          {/* ★ THE SHARED RIGHT EDGE. Every section's content ends at the same right
+              margin; the narrower ones simply START further right (`lg:ml-auto` against a
+              width cap). Widening the content to fill the column instead would trade the
+              reading measure for width the eye does not want, and the point of the spine
+              is the growing gap between a pinned heading and its answer. */}
+          <dl className="divide-y divide-border border-t lg:ml-auto lg:max-w-3xl">
             {PRESS_FACTS.map(({ label, value }) => {
               const href = factHref(label, value);
               return (
