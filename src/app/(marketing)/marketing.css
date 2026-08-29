@@ -1123,6 +1123,10 @@
    of them is load-bearing (the [data-review-tile][data-exiting] convention in globals.css) - a
    stagger would make the departure read as a list unravelling rather than a set being removed.
    Deliberately no `filter: blur()`: at 140ms a blur costs a paint the beat cannot afford.
+   ★ The whole beat is inside no-preference, and the island ALSO skips it under reduced motion
+   (committing the set immediately rather than waiting out a clock nothing is animating). That is
+   both halves of the same precedent: the review queue guards the CSS and never sets [data-exiting]
+   at all. Guarding only the CSS would leave a reduced-motion reader a 140ms pause for nothing.
 
    Beat 2 is JS: once the exit clock is spent the set commits and useFlip (two-axis, since a
    multi-column grid moves on X as well) inverts the survivors into their new cells. The two live
@@ -1131,14 +1135,16 @@
 
    Beat 3, the entrants: opacity only, and delayed so the reorganize is legible underneath them.
    No transform, or it would fight the FLIP on a card that is both entering and moving. ── */
-[data-mkt] [data-mkt-exiting] {
-  opacity: 0;
-  transform: scale(0.97);
-  transition:
-    opacity var(--mkt-set-exit-ms) ease-out,
-    transform var(--mkt-set-exit-ms) ease-out;
-  transition-delay: 0ms;
-  pointer-events: none;
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] [data-mkt-exiting] {
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--mkt-set-exit-ms) ease-out,
+      transform var(--mkt-set-exit-ms) ease-out;
+    transition-delay: 0ms;
+    pointer-events: none;
+  }
 }
 
 [data-mkt] [data-mkt-entering] {

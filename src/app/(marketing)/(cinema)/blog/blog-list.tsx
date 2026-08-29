@@ -151,8 +151,12 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
         }
       };
 
-      // A superset (nothing removed) has no beat 1 to wait for.
-      if (leaving.length === 0) {
+      // A superset (nothing removed) has no beat 1 to wait for. Neither does reduced
+      // motion: the exit is animation-only, so waiting out its clock there would be a
+      // dead pause before the set changes. The review queue sets the same precedent -
+      // it never writes [data-exiting] under reduce, it just commits.
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (leaving.length === 0 || reduce) {
         commit();
         return;
       }
