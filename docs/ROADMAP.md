@@ -35,7 +35,13 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
   explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
   milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
-  drop to ChatGPT-only if first impressions warrant
+  drop to ChatGPT-only if first impressions warrant; **move the remaining `(paper)` pages onto the
+  cinema rhythm** (Will's 2026-08-28 ruling covers legal, privacy and contact too — blog/careers/press
+  arrive via their own branches, so this is the leftover trio, and `(paper)` retires when the last one
+  moves); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
+  `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
+  `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
+  behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a

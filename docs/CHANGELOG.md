@@ -10,6 +10,52 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — Integrating `lp/about`: the utility-page rhythm becomes the (cinema) group
+
+The first Agent branch of the merge sequence, and the one that set the pattern for the four behind
+it. The design merged unchanged (wordmark masthead, the gather carrying the cut, paper reading body,
+ink footer). What changed is which side of the system it is built from.
+
+**The route moved to `(cinema)`, and `(spotlight)` came out.** The branch reached the picture from
+the paper side: a fourth route group whose sticky header wore `CINEMA_TOKENS`, a hand-assembled
+21-entry `--gallery*` set. We already reach it from the cinema side on /help and all six feature
+pages (open on the room, ride ONE `PaperChapter`, close on the ink slab), and blog, careers and press
+each did the same on their own branches. The measurement that closed the question: a hand-assembled
+dark is always one token behind, and this one omitted `--popover`, so the in-flow desktop nav panels
+painted `--foreground` white `lab(96.52)` on `--popover` white `lab(99.65)` — all seven primary nav
+titles at **~1.07:1**. That is the white dropdown Will rejected, and joining the group fixes it for
+free along with the dark overscroll and the `#040404` browser chrome (the branch pinned `#fcfcfc`
+under a black hero and a black footer). `CinemaChapter`, its contract test, `(spotlight)`'s layout
+and not-found, and the `HeaderShell` className passthrough all came out with it.
+
+**`PageHero`, and /about's h1 back.** The wordmark had shipped as a `<p>`, leaving the page with no
+h1 at all — the same bug `SectionShell`'s `as` prop exists to prevent after /contact. On Will's
+ruling for the identity pages ("share grammar, page picks scale") the hero became a shared lockup
+with a `scale` step, so press, careers and blog compose it instead of hand-rolling a fourth hero.
+Its interesting half is the display step's OPTICAL TRIM: measured with canvas TextMetrics, a display
+line's box overstates its ink above the cap and understates it below the descender, so one honest
+`gap-6` reads ~44px over the name and ~9px under it. The step trims its top only (`-mt-[0.12em]`,
+in `em` so it holds across the clamp) and deliberately never its bottom. Verified in-browser at
+eyebrow-to-cap 22px and descender-to-subhead 9px, which preserves the approved rhythm while putting
+the page back on the lane's grammar.
+
+**Two traps disarmed, one lesson corrected.** `PaperChapter` gained `compressStacked` — its
+`max-lg:[&>section]:py-14` out-ranks a child's `pt-*`, so the album's clearance would have been
+silently replaced by `py-14` between sm and lg and the photographs would have landed on the prose;
+the clearance itself moved into `marketing.css` as `.mkt-gather-clear`, beside the straddle
+percentage it is derived from. And the round's recorded lesson that "Tailwind can emit NOTHING for an
+arbitrary utility, silently" did not reproduce: re-tested against a clean production build, every
+arbitrary utility emitted correctly. The original diagnosis came from grepping for raw class text
+when Tailwind escapes `[`, `]` and `.` in selectors. The real, reproducible gotcha underneath it is
+that the dev server serves a **stale CSS chunk** for a newly added file (dev chunk URLs are not
+content-hashed), which produces the identical symptom. `design-system.md` now says so.
+
+Also: the identity-language ban now scans /about's copy single-source (the hole the round found and
+left open), `FAILURE_MODE_LINE`'s comment matches reality, and the gather's dead `data-inview`
+attribute is gone. Gate green throughout: typecheck, lint, 1211 tests, build with /about static.
+
+---
+
 ## 2026-08-28 — The /about round: the mission page (Agent, `lp/about`)
 
 On `lp/about`, preview verified at `partyreel-git-lp-about-partyreel.vercel.app`. Two passes: the
@@ -64,7 +110,7 @@ ratified grammar in its documented default direction, which was unused anywhere.
 CSS. Vectors are an authored equal-magnitude compass, not `k * seat`: radial vectors are right for a
 burst but do not gather (inner middle-row tiles would start one tile-width out and slide in like a
 carousel), and equal magnitude over equal duration reads as one gesture instead of twelve
-animations. Eleven tiles gather; the twelfth arrives alone at `--i:36` after the payoff lands,
+animations. Eleven tiles gather; the twelfth arrives alone at `--i:29` after the payoff lands,
 because a complete rectangle says "this is all of it" and there is always one more phone in the
 room. The plate then straddles the dark→paper seam on the `album.tsx` idiom, so the album arrives
 out of the event and is set down on the desk.
@@ -76,9 +122,10 @@ transplants the ink-slab footer's token recipe and adds the three traps the foot
 is invalidated and takes the ring with it; `--card-foreground` must travel with `--card` or a Card
 is ink-on-ink; `--secondary`/`--accent` derive from the gallery pair rather than copying `.dark`'s
 literals so they cannot drift), pinned by a source contract test because every one fails silently
-and looks correct on the cinema pages you develop on. `PaperHero` makes the ruled H1 ramp mechanical
-instead of copy-pasted (adopted on /about only: sibling agents hold press and careers). `Reveal`
-gained the `rootMargin` passthrough its hook already documented. A separate commit gave every
+and looks correct on the cinema pages you develop on. (A `PaperHero` primitive was extracted for the
+ruled H1 ramp and then deleted again later in the same branch when the page changed grounds; the
+idea returned at integration as `PageHero`.) `Reveal` gained the `rootMargin` passthrough its hook
+already documented. A separate commit gave every
 marketing surface a token-driven `::selection` colour, which the codebase had never had.
 
 Also: `FAILURE_MODE_LINE` lifted into `marketing-voice.ts` as the lowercase clause only, since

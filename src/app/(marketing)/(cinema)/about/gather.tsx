@@ -97,7 +97,6 @@ export function Gather() {
     <div className="mx-auto flow-root w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
       <div
         ref={ref}
-        data-inview={inView ? "true" : "false"}
         data-on={inView ? "true" : undefined}
         aria-hidden
         className="mkt-gather-straddle surface-paper relative z-10"

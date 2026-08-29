@@ -1,9 +1,18 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  ABOUT_CAREERS,
+  ABOUT_CONVICTIONS,
+  ABOUT_HERO,
+  ABOUT_LEDGER,
+  ABOUT_META,
+  ABOUT_STORY,
+} from "./about";
 import { MARKETING_CTA } from "./marketing-nav";
 import {
   DECOMPOSITION_FACTS,
   DEMO_CTA_LABEL,
+  FAILURE_MODE_LINE,
   GOLDEN_LINES,
   SECTION_HEADERS,
   SITE_SUBHEAD,
@@ -56,7 +65,10 @@ describe("the marketing voice single-source", () => {
     for (const [key, entry] of Object.entries(SECTION_HEADERS)) {
       expect(entry.line.trim().length, key).toBeGreaterThan(0);
       if (entry.status === "provisional") {
-        expect(entry.note?.trim().length, `${key} needs its note`).toBeGreaterThan(0);
+        expect(
+          entry.note?.trim().length,
+          `${key} needs its note`,
+        ).toBeGreaterThan(0);
       }
     }
   });
@@ -67,6 +79,10 @@ describe("the marketing voice single-source", () => {
   });
 
   it("no ruled copy uses banned identity language", () => {
+    // The list is hand-maintained, which is a real weakness: the /about round
+    // found "night" shipped on that page precisely because the page's copy was
+    // written inline and reached by nothing here. Every copy SINGLE-SOURCE
+    // belongs on this list. Add the next one when you add the next page.
     const all = [
       ...Object.values(GOLDEN_LINES),
       SITE_THESIS,
@@ -74,6 +90,15 @@ describe("the marketing voice single-source", () => {
       ...Object.values(SECTION_HEADERS).map((h) => h.line),
       ...DECOMPOSITION_FACTS,
       DEMO_CTA_LABEL,
+      FAILURE_MODE_LINE,
+      ...Object.values(ABOUT_META),
+      ...Object.values(ABOUT_HERO),
+      ABOUT_STORY.eyebrow,
+      ABOUT_STORY.heading,
+      ...ABOUT_STORY.paragraphs,
+      ...Object.values(ABOUT_LEDGER),
+      ...ABOUT_CONVICTIONS.flatMap((c) => [c.title, c.body, c.linkLabel]),
+      ...Object.values(ABOUT_CAREERS),
     ];
     for (const line of all) {
       expect(/\bnight\b/i.test(line), line).toBe(false);

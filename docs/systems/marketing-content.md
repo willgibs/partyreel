@@ -72,17 +72,23 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
   ★ **No CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
   and no mono anywhere (the R6 ruling).
-- **The `(spotlight)` route group** ([layout](../../src/app/(marketing)/(spotlight)/layout.tsx)) — a paper
-  reading body under a CINEMA hero, with a dark overlay nav to match (Will, 2026-08-28: "with the cinema
-  hero, we need to go back to the dark nav"). `/about` is its first member and the other resource pages
-  are candidates. A route GROUP, so URLs are untouched and moving a page in or out is a directory move
-  with no redirect. The nav goes dark by wearing `CINEMA_TOKENS` on the `<header>` itself, because
-  `.dark` may never nest inside `.surface-paper`.
-- **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(paper)/about/gather.tsx)) —
-  a (paper) route already ends on the ink footer, so About opens on a `CinemaChapter` hero (the
-  wordmark as plain display text, never the Logo lockup, plus one line and the Start free / How it
-  works pair; its spacing is authored per pair, not a uniform gap, because the masthead's negative
-  leading and optical padding make a shared gap read far looser than the site's usual eyebrow offset) and BOOKENDS the page in dark, leaving the reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
+- ★ **THE UTILITY-PAGE RHYTHM (Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
+  EVERY utility page** — the identity pages (about, blog, careers, press) and, as they are reworked,
+  legal, privacy and contact too. "With the cinema hero, we need to go back to the dark nav to match."
+  **The paper/cinema split is per-CHAPTER, not per-page.** A page takes the rhythm by JOINING THE
+  `(cinema)` GROUP and wrapping its reading body in ONE `PaperChapter` — which is exactly what /help and
+  all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
+  dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
+  do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
+  `(paper)` survives only until the remaining pages have moved.
+  ★ **Do NOT build this from the paper side.** The /about round first shipped it as a `(spotlight)`
+  group whose sticky header wore a hand-assembled `--gallery*` set, and that set is always one token
+  behind: it omitted `--popover`, so the in-flow nav panels rendered white-on-white at ~1.07:1. The
+  measurement and the rule live in [design-system.md](design-system.md).
+- **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(cinema)/about/gather.tsx)) —
+  About opens on the cinema room and BOOKENDS the page in dark against the ink footer, leaving the
+  reading body in the middle (the wordmark as the page's h1 at the lockup's `display` step, never the
+  Logo lockup, plus one line and the Start free / How it works pair).
   The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as

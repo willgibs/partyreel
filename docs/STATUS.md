@@ -39,6 +39,17 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
+**The agent-merge sequence (opened 2026-08-28).** Five Agent branches built in parallel
+(`lp/about`, `lp/blog-redesign`, `lp/careers-identity`, `lp/glow-doctrine`, `lp/press-kit`); Will
+hands them over one at a time as they are ready, and the Orchestrator's job on each is to adopt what
+is genuinely better and synthesize the rest onto the shared system (rising tides, not a stack of
+one-offs). **`lp/about` merged** at `launch-prep` (the design unchanged; the route moved into the
+`(cinema)` group and `(spotlight)`/`CinemaChapter` came out, `PageHero` born, /about's h1 restored).
+Will's ruling from that round, now doctrine: **every utility page takes the cinema-hero / paper-body
+/ ink-footer rhythm by joining the `(cinema)` group** — legal, privacy and contact included as they
+are reworked. Truth: [`systems/marketing-content.md`](systems/marketing-content.md) +
+[`systems/design-system.md`](systems/design-system.md). Four branches still with Will.
+
 **MILESTONE-8 (2026-08-28): prod = the exec round.** `main` @ tag `milestone-8` (`4063f6e`), prod
 READY + verified at the merge SHA: partyreel.com serves both analytics scripts with `view` + `event`
 beacons POSTing 200 live, and the first prod pageviews read back through the re-authorized P3 Vercel
@@ -171,9 +182,12 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The next program goal** (continue marketing under rising-tides, or open R4/R5/R6/R7). No track
-   branches are pending; agent previews + the prod analytics baseline are now live infrastructure
-   for whatever comes next.
+1. **The next agent branch to hand over** (`lp/blog-redesign`, `lp/careers-identity`,
+   `lp/glow-doctrine`, `lp/press-kit` — Will is still working the remaining four). `lp/about` is
+   merged and on the preview awaiting his feel pass. Note for whoever integrates the next one:
+   `lp/press-kit` edits `(paper)/about/page.tsx`, which this merge deleted, so expect a
+   modify/delete conflict there (its edit is a link fix, re-apply at the new path);
+   `lp/careers-identity` will conflict in `marketing.css` and `marketing-content.md`.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:

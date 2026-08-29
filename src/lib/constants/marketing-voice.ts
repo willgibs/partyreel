@@ -87,8 +87,13 @@ export const DECOMPOSITION_FACTS = [
 export const DEMO_CTA_LABEL = "Try the live demo, no signup.";
 
 /**
- * The site's sharpest sentence, and until now it lived only in /llms.txt, where
- * no human reads it. /about's argument closes on it.
+ * The site's sharpest sentence. It lives in /llms.txt, where no human reads it;
+ * it is here so a human-facing surface can spend it without forking the line.
+ * /about was to be the first, and its second rebuild reworded the idea into the
+ * story instead, so llms.ts is still the only consumer. Kept because this is
+ * the golden-copy home and the line is ruled (it is on the identity-language
+ * scan in marketing-voice.test.ts): the next page that wants it takes it from
+ * here rather than retyping it.
  *
  * ★ The LOWERCASE CLAUSE only, never the whole sentence: llms.ts writes the
  * verdict half as "This is the failure mode ${SITE_NAME} was built against.",
