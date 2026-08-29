@@ -139,7 +139,7 @@ export const PRIMARY_NAV: NavItem[] = [
         description: "Notes on hosting and sharing.",
       },
       {
-        label: "Press & brand",
+        label: "Press",
         href: "/press",
         description: "Logos, facts, and who to ask.",
       },
@@ -231,7 +231,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "Help center", href: "/help" },
       { label: "Blog", href: "/blog" },
-      { label: "Press & brand", href: "/press" },
+      { label: "Press", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
     // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no

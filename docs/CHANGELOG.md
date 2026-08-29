@@ -10,6 +10,101 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-29 — Integrating `lp/press-kit`: the masthead step, and the kit as a system
+
+The second branch of the merge sequence, and the first that needed no architectural argument: it had
+already moved `/press` out of `(paper)` into `(cinema)` with a `PaperChapter` body, and written down
+why. A dark hero must be paired with a dark nav; the header skin is chosen by the group layout and a
+page cannot override it from inside; so the hero's ground decides the route group. That is the /about
+conclusion reached independently from the other side, and it is now the SINGLE statement of the rule
+in `marketing-content.md`, which had accumulated three overlapping ones.
+
+The design merged unchanged: the contact sheet on the album's 3px gap with its hairline rebate, the
+sticky Assets / Words / Fact sheet spine, the one shared right edge, the semantic section pointers.
+
+**The hero moved onto the lockup.** Will's note was to take the h1 to the masthead step /about uses,
+and to make the tracking squeeze standard for that step rather than an /about beat. `/press` was
+carrying a fourth hand-rolled `TextsReveal` hero, so it became `PageHero` at `scale="display"`:
+"Media" at 160px on a desktop and 52px on a phone, with the optical trim and the squeeze arriving
+from the step instead of the page. Two things came out of doing it properly. The display step's
+`[margin-inline-start:-0.045em]` is a LEFT side-bearing correction and is simply wrong on a centred
+heading (measured, it pushed the masthead 3.6px off centre), so it is now gated on `align="left"`.
+And `.mkt-line` paints an h1 at `opacity: 0` until hydration, which gates the page's largest paint;
+`PageHero` renders its h1 unmarked, so the move closed an LCP hole as a side effect. The step's
+contract is now written and pinned: one or two words, because `whitespace-nowrap` is load-bearing
+under a `12vw` clamp.
+
+**The kit is a system, not a page.** `PRESS_KIT` is the one manifest, `scripts/build-press-kit.mjs`
+zips exactly its rows, and `press-kit.test.ts` parses the committed archive's central directory back
+and CRC-checks every member against the files on disk. The pre-launch logo swap is therefore: replace
+the files, edit the rows, rerun the script. A stale kit cannot ship silently, which is the one real
+failure mode a committed artifact has.
+
+Adopted whole: `[data-mkt-isolate]`, the light-table dim where pointing at one frame steps the others
+back, written generic in the shared grammar rather than page-local. Synthesized: the ink comes from
+`BRAND_HEX` rather than three hard-coded `#101010`s, and the download chip's class string is one
+constant instead of two verbatim copies.
+
+**Doc claims corrected before they landed.** The branch's docs described three superseded versions of
+its own page (the sheet riding inside the hero chapter, a `max-w-3xl` shared measure, `CinemaChapter`
+adopted verbatim), plus a warning that /about still had a light nav over a dark hero, which
+milestone-9 had already fixed. Its `design.css` isolate comment argued both sides of `:focus-within`
+in one block. All corrected in place rather than appended to.
+
+**The find worth promoting.** Turbopack reuses chunk filenames, so a dev server started on a port a
+sibling worktree has used serves that worktree's cached CSS and JS. It cost this round two hours and
+presented as "the class is in the DOM, the breakpoint matches, and no rule exists". That is the same
+ghost the /about round chased and half-diagnosed as a stale dev CSS chunk; this is the mechanism
+underneath it, and the two are now one blind spot in `testing-verification.md`. The branch's
+"focus states do not paint while `document.hasFocus()` is false" lesson moved there with it.
+
+Gate green throughout: typecheck, lint, TESTCOUNT tests, build with /press static.
+VERIFICATION_LINE
+
+---
+
+## 2026-08-28 — The press round: `/press` as the contact sheet (Agent, `lp/press-kit`)
+
+`/press` was the last wireframe-grade page on the marketing site: five centred reading columns,
+`reveal="none"` on every section, a hero copy-pasted from /careers, and no metaphor while every other
+elevated surface here is a physical object. Will's brief scoped it to the press and brand kit,
+required both directions prototyped, and set the governing constraint: **the logo changes before
+launch, so build the working system, never a shrine to the current glyph.**
+
+**Ruled:** direction 1, the contact sheet (`/design/c/press-identity`), for "focusing press around the
+assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines". The
+ruling carried a scope cut that held through every later pass: clear space, minimum size and misuse
+plates are brand-book material and are OUT of the page entirely. Only the two usage points that are
+press business ship, as quick hits beside the copy they govern.
+
+**What shipped.** Eight numbered frames on the album's 3px gap, deliberately NOT all the same kind of
+thing (artwork, an app icon, the share card, a working QR, the ink, the type) — a uniform grid of
+marks is a downloads table wearing a metaphor. Every frame is ours: the first cut used two stock event
+photos and Will pulled them ("just feels weird to say here's a random stock photo"), which was right
+twice over, since a press page must not hand a publisher media whose rights we do not hold, and losing
+them collapsed a whole provenance block into one line. Plus the boilerplate in three lengths with copy
+buttons, a 12-row fact sheet with prices derived from `tiers.ts`, and the kit as a manifest, two build
+scripts and a committed zip.
+
+**Five defects the read turned up**, all fixed in copy: the page promised a wordmark that does not
+exist AND named the wrong face; it published `#101010` as the brand ink when that hex is really the
+ink inside the mark SVGs; it invited publishers to lift media from the live demo album, granting
+rights over real event media; it drifted off the byte-pinned reply line; and its `/contact?about=press`
+link was dead, because `?about=` is allowlisted against help-article slugs, not contact topics.
+
+**Two motion findings**, both now in `design-system.md`: a filling animation outranks every author
+declaration, so an entrance and a hover state can never share an element (the cut pinned `opacity: 1`
+and the light-table dim silently never applied, with the selector matching the whole time); and
+`:has(:focus-visible)` matches in `element.matches()` without repainting in Chromium, so the keyboard
+twin is `:focus-within`, whose usual objection (a click pins the state on) is the wanted behaviour on
+a light table.
+
+Verified on the branch preview: the kit downloads byte-identical to the committed artifact and passes
+an integrity check, the isolate dims siblings to 0.5, 4 columns at 1440 and 2 at 375 with the 3px gap
+intact and zero horizontal overflow at either.
+
+---
+
 ## 2026-08-28 — MILESTONE-9: the /about round
 
 `main` @ tag `milestone-9` (`279c8d6`), `--no-ff` merge of `launch-prep`, gate re-run green on the
