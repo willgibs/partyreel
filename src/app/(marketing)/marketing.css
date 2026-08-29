@@ -354,6 +354,15 @@
   --mkt-opentilt-tilt-y: -14deg;
   --mkt-opentilt-lift: 70px;
   --mkt-opentilt-perspective: 900px;
+  /* the gather (about): strewn prints drawing together into one album. Long by
+     UI standards on purpose — the travel is real distance, and marketing is the
+     one surface allowed past the 300ms ceiling. */
+  --mkt-gather-ms: 700ms;
+  --mkt-gather-stagger: 50ms;
+  /* the name settles (about/close): the masthead's opening tracking. The REST
+     value is not a token on purpose, see the recipe. */
+  --mkt-name-open: 0.022em;
+  --mkt-name-ms: 760ms;
 }
 
 /* ── 18-texts-reveal: staggered blurred rise for stacked lines; the exit is a
@@ -1322,6 +1331,170 @@
     -webkit-mask-position: -50% 0;
     mask-position: -50% 0;
   }
+}
+
+/* ── THE GATHER (about): photographs lie strewn like prints dropped on a table,
+   then draw together into one album.
+
+   ★ WHY THIS IS NOT [data-mkt-fly]. The fly grammar animates opacity 0 → 1, so
+   its pre-state is INVISIBLE: a viewer never sees the scatter, only an empty
+   frame that fills in. The first build of this beat used it and Will's read was
+   exactly that — "almost unnoticeable" — because the whole idea ("scattered
+   becomes whole") was happening in a state nobody could see. Opacity is
+   therefore untouched here. The photos are visible the entire time; only their
+   position and angle change, which is the one thing the concept is about.
+
+   Uses the STANDALONE `translate` and `rotate` properties, not `transform`, so
+   the two carry independent clocks and neither can clobber the other (the same
+   reason the home decomposition's per-tile tilt survives its burst). Note the
+   house gotcha: `transform: none` will NOT clear either of them.
+
+   ARRIVAL, both directions: the gathered state sits OUTSIDE the media query, so
+   reduced motion gets the assembled album with nothing written. Without JS the
+   pre-state persists and the photos simply stay scattered — which is a real
+   composition (prints on a table, the album waiting), not a broken one. That is
+   the whole reason the scatter is authored to sit inside the frame. ── */
+[data-mkt] .mkt-gather {
+  translate: 0 0;
+  rotate: 0deg;
+}
+
+/* The album's geometry lives here rather than in utilities: `w-[var(--plate)]`
+   and `[--plate:58cqw]` both emitted NO rule at all through the arbitrary-value
+   path, so the plate silently fell to shrink-to-fit and collapsed to the width
+   of its own grid gaps (9px). Nothing errors when that happens, which is why it
+   belongs in the same file as the recipe it serves. --scatter multiplies the
+   authored offsets: a phone has three columns and far less room around the
+   grid, so the pile compresses rather than flying off-frame. */
+[data-mkt] .mkt-gather-plate {
+  width: 88cqw;
+  --scatter: 0.5;
+}
+
+/* The frame the scatter lives in. Its height must clear the ROTATED bounding
+   box of the outermost tiles, not their square height: a 169px tile at 11deg
+   spans ~197px, so ~28px of every corner tile sits outside the square the
+   authored offsets were reasoned about, and the top row clipped. */
+[data-mkt] .mkt-gather-stage {
+  aspect-ratio: 1180 / 1700;
+}
+
+/* No straddle on phones: at three columns the album is FOUR rows, so half of it
+   over the paper would need ~300px of clearance (album.tsx and /help gate their
+   straddles the same way). */
+[data-mkt] .mkt-gather-straddle {
+  margin-bottom: 0;
+}
+
+/* ── THE STRADDLE'S TWIN. The straddle pulls the paper chapter up under the
+   album by a percentage of the stage width; this pushes the chapter's first
+   text back down by the same overhang, so the two are ONE calculation and live
+   together. Retune either and retune both, or the photographs land on the prose
+   (which is what the round's first pass did). No overhang below sm, where the
+   straddle is off and the plain hard cut carries the seam; the value here is
+   then just the chapter's own opening rhythm.
+   It sits on the SECTION rather than the chapter so it reads next to the
+   content it protects, which is why that chapter opts out of the stacked
+   compression (paper-chapter.tsx) instead of out-ranking it with an `!`. ── */
+[data-mkt] .mkt-gather-clear {
+  padding-top: 4rem;
+}
+
+@media (width >= 40rem) {
+  [data-mkt] .mkt-gather-clear {
+    padding-top: 16rem;
+  }
+}
+
+@media (width >= 64rem) {
+  [data-mkt] .mkt-gather-clear {
+    padding-top: 24rem;
+  }
+}
+
+@media (width >= 40rem) {
+  [data-mkt] .mkt-gather-plate {
+    width: 58cqw;
+    --scatter: 1;
+  }
+  [data-mkt] .mkt-gather-stage {
+    aspect-ratio: 1180 / 790;
+  }
+  /* ★ 33.47% is not a taste value: the album is centred in the stage, so its
+     midline is the stage's, and the overhang below it is half the stage height
+     expressed against the stage WIDTH (395 / 1180). A percentage margin tracks
+     the aspect-locked height at every viewport where a px value could not.
+     Retune it and the aspect above TOGETHER or the seam slides off the album. */
+  [data-mkt] .mkt-gather-straddle {
+    margin-bottom: -33.47%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-gather {
+    translate: var(--gx, 0) var(--gy, 0);
+    rotate: var(--gr, 0deg);
+    transition:
+      translate var(--mkt-gather-ms) var(--ease-emphasis),
+      rotate var(--mkt-gather-ms) var(--ease-emphasis);
+    transition-delay: calc(var(--i, 0) * var(--mkt-gather-stagger));
+  }
+  /* 0-3-0, so it outranks the pre-state regardless of source order. */
+  [data-mkt] [data-on="true"] .mkt-gather {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+
+/* ── THE NAME SETTLES (about/close): a masthead arrives set slightly open and
+   closes to the heading face's own tracking. Tracking is the most typographic
+   move available, which is why it is the one motion beat a type-led page spends.
+
+   ★ THE REST STATE IS THE DEFAULT, and that is the whole design. -0.03em mirrors
+   the `font-heading` utility's own letter-spacing, so REDUCED MOTION and a
+   crawler get the correct wordmark with nothing written at all: arrival is
+   guaranteed by ABSENCE rather than by winning a specificity race. Retune this
+   value and font-heading together if the brand face is ever repointed.
+
+   The no-JS / failed-hydration case degrades to the OPEN tracking rather than
+   the rest state (Reveal server-renders data-inview="false", which is
+   indistinguishable from "hydrated but not yet scrolled to"). Measured, that is
+   +0.052em across nine glyphs, about 12% wider: a wordmark set a touch loose,
+   which nobody reads as broken. That bound is the whole reason this beat is
+   TRACKING and not translation. The rejected first draft slid two half-word
+   spans apart, and its no-JS failure was "party" and "reel" stranded 51px apart
+   forever, which is not a degradation but a broken masthead.
+
+   The reflow direction is the safe one too: the OPEN state is the wider one, so
+   a clamped masthead is sized for the state that has to fit, and a centred line
+   with no siblings simply re-centres as it closes. ── */
+[data-mkt] .mkt-name {
+  letter-spacing: -0.03em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-mkt] .mkt-name {
+    letter-spacing: var(--mkt-name-open);
+    transition: letter-spacing var(--mkt-name-ms) var(--ease-emphasis);
+  }
+  [data-mkt] [data-inview="true"] .mkt-name {
+    letter-spacing: -0.03em;
+  }
+}
+
+/* ── THE SELECTION COLOUR. The site had none, so every marketing surface fell
+   back to the browser's saturated system blue: on a zero-chroma paper page that
+   is the loudest colour that will ever appear, and on the cinema ground it is
+   close to illegible against the near-black ground. Selecting text is a primary
+   interaction on a type-led page, since it is the page people quote from.
+
+   Token-driven rather than literal, so it inverts by construction: a chapter
+   redeclares --foreground, and the selection follows it onto the dark ground
+   with no second rule. Scoped to [data-mkt] so it cannot leak into the app
+   (this file persists app-wide once any marketing route has loaded). ── */
+[data-mkt] ::selection {
+  background: color-mix(in oklab, var(--foreground) 14%, transparent);
+  color: var(--foreground);
 }
 
 /* ─── Chapter 3: the skin block (the ONE sanctioned place for surface colors) ───

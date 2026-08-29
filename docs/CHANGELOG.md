@@ -10,10 +10,166 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-28 — Integrating `lp/about`: the utility-page rhythm becomes the (cinema) group
+
+The first Agent branch of the merge sequence, and the one that set the pattern for the four behind
+it. The design merged unchanged (wordmark masthead, the gather carrying the cut, paper reading body,
+ink footer). What changed is which side of the system it is built from.
+
+**The route moved to `(cinema)`, and `(spotlight)` came out.** The branch reached the picture from
+the paper side: a fourth route group whose sticky header wore `CINEMA_TOKENS`, a hand-assembled
+21-entry `--gallery*` set. We already reach it from the cinema side on /help and all six feature
+pages (open on the room, ride ONE `PaperChapter`, close on the ink slab), and blog, careers and press
+each did the same on their own branches. The measurement that closed the question: a hand-assembled
+dark is always one token behind, and this one omitted `--popover`, so the in-flow desktop nav panels
+painted `--foreground` white `lab(96.52)` on `--popover` white `lab(99.65)` — all seven primary nav
+titles at **~1.07:1**. That is the white dropdown Will rejected, and joining the group fixes it for
+free along with the dark overscroll and the `#040404` browser chrome (the branch pinned `#fcfcfc`
+under a black hero and a black footer). `CinemaChapter`, its contract test, `(spotlight)`'s layout
+and not-found, and the `HeaderShell` className passthrough all came out with it.
+
+**`PageHero`, and /about's h1 back.** The wordmark had shipped as a `<p>`, leaving the page with no
+h1 at all — the same bug `SectionShell`'s `as` prop exists to prevent after /contact. On Will's
+ruling for the identity pages ("share grammar, page picks scale") the hero became a shared lockup
+with a `scale` step, so press, careers and blog compose it instead of hand-rolling a fourth hero.
+Its interesting half is the display step's OPTICAL TRIM: measured with canvas TextMetrics, a display
+line's box overstates its ink above the cap and understates it below the descender, so one honest
+`gap-6` reads ~44px over the name and ~9px under it. The step trims its top only (`-mt-[0.12em]`,
+in `em` so it holds across the clamp) and deliberately never its bottom. Verified in-browser at
+eyebrow-to-cap 22px and descender-to-subhead 9px, which preserves the approved rhythm while putting
+the page back on the lane's grammar.
+
+**Two traps disarmed, one lesson corrected.** `PaperChapter` gained `compressStacked` — its
+`max-lg:[&>section]:py-14` out-ranks a child's `pt-*`, so the album's clearance would have been
+silently replaced by `py-14` between sm and lg and the photographs would have landed on the prose;
+the clearance itself moved into `marketing.css` as `.mkt-gather-clear`, beside the straddle
+percentage it is derived from. And the round's recorded lesson that "Tailwind can emit NOTHING for an
+arbitrary utility, silently" did not reproduce: re-tested against a clean production build, every
+arbitrary utility emitted correctly. The original diagnosis came from grepping for raw class text
+when Tailwind escapes `[`, `]` and `.` in selectors. The real, reproducible gotcha underneath it is
+that the dev server serves a **stale CSS chunk** for a newly added file (dev chunk URLs are not
+content-hashed), which produces the identical symptom. `design-system.md` now says so.
+
+Also: the identity-language ban now scans /about's copy single-source (the hole the round found and
+left open), `FAILURE_MODE_LINE`'s comment matches reality, and the gather's dead `data-inview`
+attribute is gone. Gate green throughout: typecheck, lint, 1212 tests, build with /about static.
+
+One more caught in the live pass and fixed on top: the lockup had marked the h1 for the staggered
+entrance, which gates the page's LARGEST paint behind an IntersectionObserver callback. The house
+rule is the opposite and is written on four heroes already; the h1 renders unmarked now and is
+pinned that way. Verified in the cleanest possible form, a backgrounded tab where the observer never
+fires at all: the h1 paints while the three slots around it correctly wait.
+
+---
+
+## 2026-08-28 — The /about round: the mission page (Agent, `lp/about`)
+
+On `lp/about`, preview verified at `partyreel-git-lp-about-partyreel.vercel.app`. Two passes: the
+entry below is the first, this is where it landed after Will's review. The page had been on probation
+("if we can't figure it out, I plan on killing the page entirely"), and what earns it is the MISSION,
+told as a story rather than asserted: everyone already carries a camera good enough to shoot the
+event, and there has never been a way to get everyone's pictures into one place, because every
+workaround fails a different part of the room. The convictions land as the answer to that story, and
+the page closes on careers. Copy stays category-level, never product names. Will relaxed the R5
+zero-team ruling for this page (a first-person origin plus a join-our-team close) and cut a planned
+"where Partyreel is the wrong call" section outright: "This is about who we are, not who we are not."
+
+**The arc inverted.** A (paper) route already ends on the ink footer, so About opens on a
+`CinemaChapter` hero with the wordmark at display scale and bookends the page in dark, leaving the
+reading body in the middle. The gather carries the cut on its own back, centred on the seam
+(measured landing within 4px of the album's midline), `sm:` and up only — at three columns the album
+is four rows, so phones get the whole album on dark and a plain hard cut, matching `album.tsx`.
+
+★ **The lesson worth keeping:** the first gather reused `[data-mkt-fly]`, which animates opacity 0 to
+1, so its pre-state was INVISIBLE. Nobody ever saw the scatter, only an empty frame filling in, which
+is precisely what Will's "almost unnoticeable" meant. Any beat whose CONCEPT is a change of
+arrangement must not hide its starting arrangement. The `.mkt-gather` recipe never touches opacity.
+
+Three silent bugs found building it, all now recorded in design-system.md: `isolate` on the chapter
+trapped the straddling child's z-index; the straddle's negative margin collapsed through its wrapper
+and escaped as the chapter's margin (fixed with `flow-root`); and `w-[var(--plate,58cqw)]` emitted no
+CSS rule at all, collapsing the album to the width of its own grid gaps. Gates green throughout
+(typecheck, lint, 1212 tests, build); verified at 390 and 1512 with no horizontal overflow.
+
+## 2026-08-28 — The /about round: the conviction page (Agent, `lp/about`)
+
+On `lp/about` (`052b728` + `2ce2086`), preview READY and verified at
+`partyreel-git-lp-about-partyreel.vercel.app`. `/about` was a scaffold from the R5 route build-out:
+four centred blocks, zero media, zero frames, one motion beat, no type peak between 20px and 72px,
+and every section at `reveal="none"`. It also carried four live bugs, all fixed: **"night" as
+identity language** (banned by the ruled voice, but the pin only scans `marketing-voice.ts`'s
+exports so /about slipped through), a near-duplicate fork of `PRESS_BOILERPLATE`, a promise that
+"you can verify each one on your first event" with nothing to click, and a link row reproducing the
+footer's Resources column ~200px above the footer.
+
+**The thesis.** About cannot use team, traction or social proof (the R5 zero-team ruling plus the
+pre-launch claims fence), which leaves conviction and checkable truth. So the six convictions each
+LINK to the page that proves them: the promise became the architecture rather than a sentence.
+Will's ruling this round cut a planned "where Partyreel is the wrong call" section: "a photographer
+could also deliver their photos via this platform... I genuinely hope people do find ways to use
+this beyond what we've thought of. **This is about who we are, not who we are not.**" The close
+carries that openness instead, which is the page's last line.
+
+**The gather** is the site's second signature beat and the mirror of the first. Home takes a reel
+APART with `[data-mkt-fly]` inverted; About converges twelve photos into one album with the same
+ratified grammar in its documented default direction, which was unused anywhere. Zero new motion
+CSS. Vectors are an authored equal-magnitude compass, not `k * seat`: radial vectors are right for a
+burst but do not gather (inner middle-row tiles would start one tile-width out and slide in like a
+carousel), and equal magnitude over equal duration reads as one gesture instead of twelve
+animations. Eleven tiles gather; the twelfth arrives alone at `--i:29` after the payoff lands,
+because a complete rectangle says "this is all of it" and there is always one more phone in the
+room. The plate then straddles the dark→paper seam on the `album.tsx` idiom, so the album arrives
+out of the event and is set down on the desk.
+
+**Rising tides, not one polished page.** `CinemaChapter` is the missing inverse of `PaperChapter`:
+the system could only go light-inside-dark, which is a real reason the paper pages read flat. It
+transplants the ink-slab footer's token recipe and adds the three traps the footer never hit
+(`--shadow-float` must be the INVISIBLE value, never `none`, or Tailwind's composed box-shadow list
+is invalidated and takes the ring with it; `--card-foreground` must travel with `--card` or a Card
+is ink-on-ink; `--secondary`/`--accent` derive from the gallery pair rather than copying `.dark`'s
+literals so they cannot drift), pinned by a source contract test because every one fails silently
+and looks correct on the cinema pages you develop on. (A `PaperHero` primitive was extracted for the
+ruled H1 ramp and then deleted again later in the same branch when the page changed grounds; the
+idea returned at integration as `PageHero`.) `Reveal` gained the `rootMargin` passthrough its hook
+already documented. A separate commit gave every
+marketing surface a token-driven `::selection` colour, which the codebase had never had.
+
+Also: `FAILURE_MODE_LINE` lifted into `marketing-voice.ts` as the lowercase clause only, since
+`llms.ts` parameterises `SITE_NAME` by design and a whole sentence would fork it back; About's copy
+moved into `constants/about.ts` and added to `CLAIM_FILES`, closing a hole where social proof
+written inline on the page was caught by nothing; the ledger's three help slugs pinned; the OG card
+rewired to the h1 it had silently drifted from.
+
+**Verification.** Gates green (typecheck, lint, 1212 tests, build). Measured in-page rather than
+eyeballed: focus ring **17.94:1** inside the dark chapter (it is 1.44:1 without the token
+redeclaration, which is the entire reason the primitive exists), muted text 5.37:1, ledger mechanism
+copy 7.27:1; no horizontal overflow at 1440, 375 or 320; the plate drops to three columns on phones
+with anisotropic vector scaling; the masthead settles to exactly `-0.03em`. ★ **Motion timing was
+NOT verifiable from this session**: a backgrounded browser reports
+`document.visibilityState: "hidden"`, which suspends rAF and IntersectionObserver entirely, so
+nothing scroll-triggered fires. Confirmed as tooling, not code, because the shipped `TextsReveal`
+used on five paper pages and the homepage is equally frozen under it. Composition was verified by
+forcing the settled state; the gather's flight, the settle, the thirteenth photo's pause and the
+name settling are handed to Will for a live look.
+
+## 2026-08-28 — MILESTONE-8: the exec round
+
+`launch-prep` merged to `main` (`--no-ff`, tag `milestone-8`, `4063f6e`), prod READY + verified at
+the merge SHA: both analytics scripts live on partyreel.com with `view`/`event` beacons POSTing 200,
+the first prod pageviews confirmed through the re-authorized P3 Vercel MCP same-hour (1 visitor /
+4 pageviews — the verification session), the `pr-no-track` opt-out set in the test profile on the
+prod origin, console clean. Speed Insights `vitals` 503s on prod as well, so that gate is the Hobby
+plan itself, not the environment (silent to the page; it activates at the Pro cutover). Post-milestone
+hygiene: the merged `lp/footer-ink` + `lp/nav-interaction` remotes deleted, and the dashboard-side
+ignored-build-step command PATCHed to null (verified) so `scripts/vercel-ignore-build.mjs` is the
+single source of the branch gate. Will's approval: "All approved and ready for you to close"; his
+PostHog pricing research (1M/mo free, then $50/M vs Vercel ~$30/M, PostHog cheaper past ~15M/mo) is
+folded into the ROADMAP vendor item for the pre-launch cost-vs-features call. Round content: the
+entry below.
+
 ## 2026-08-28 — The exec round: agent-branch previews + marketing analytics
 
-On `launch-prep` (`9ae0bf2` + `6d0ebe0`), verified on the preview; the milestone-8 merge takes it to
-prod. **(1) The Vercel branch gate moved into the repo**: `vercel.json` `ignoreCommand` →
+On `launch-prep` (`9ae0bf2` + `6d0ebe0`), verified on the preview; merged at milestone-8 (above). **(1) The Vercel branch gate moved into the repo**: `vercel.json` `ignoreCommand` →
 `scripts/vercel-ignore-build.mjs` (build `main` / `launch-prep` / `lp/*`; a ref-less manual deploy
 always builds; everything else skips). Every Agent push now auto-deploys a review preview at
 `partyreel-git-lp-<track>-partyreel.vercel.app`, closing the nav-round gap where Will could not see a

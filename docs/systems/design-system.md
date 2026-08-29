@@ -48,6 +48,64 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   `--brand: var(--primary)` already resolved to ink back at `:root` and inherits down resolved. The ink
   footer is the worked example ([marketing-footer.tsx](../../src/components/marketing/chrome/marketing-footer.tsx),
   pinned by `footer-contract.test.ts`).
+  Three more the footer never hit, found building `CinemaChapter` (2026-08-28): **`--shadow-float` must be
+  zeroed to the INVISIBLE value `0 0 0 0 oklch(0 0 0 / 0)`, never `none`** (Tailwind composes `--tw-shadow`
+  into a comma-separated `box-shadow` beside the ring/inset slots, and a `none` in that list invalidates the
+  whole declaration, taking any ring on the element with it — `.dark` says exactly this at its own
+  declaration); **`--card-foreground` travels WITH `--card`** (shadcn `Card` is `bg-card
+  text-card-foreground`, so half-redeclaring makes a Card ink-on-ink, i.e. invisible rather than merely
+  wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
+  `--border` is redeclared to stop. Derive `--secondary`/`--accent` by `color-mix` over the gallery pair
+  rather than copying `.dark`'s literals, or the two drift the first time the dark ramp is retuned.
+- ★ **A hand-assembled dark set is for a LEAF, never a page's chrome — and the measurement that closed
+  the question.** The ink footer's redeclaration works because the footer is a leaf: it knows every token
+  its own children read. Scale that to page chrome and it fails, because such a set is always one token
+  behind whatever a descendant asks for next. The /about round tried it (a `(spotlight)` group whose
+  sticky header wore a 21-entry `--gallery*` set) and the set omitted `--popover` on the reasonable
+  assumption that popovers portal out of the subtree. Radix ones do; **the marketing desktop nav panels
+  render IN FLOW inside the header**, so they painted `--foreground` white `lab(96.52)` on `--popover`
+  white `lab(99.65)`: all seven primary nav titles at **~1.07:1**, measured live. Nothing in the code
+  looked wrong, and on a cinema page the identical markup is correct. So: a page that wants dark chrome
+  JOINS THE `(cinema)` GROUP, where `.dark` flips the whole block and nothing can be left behind. Never
+  re-derive the group from the paper side.
+- ★ **Two silent traps a seam-straddling child sets** (the /help + /about idiom, worth knowing wherever a
+  visual is pulled across a chapter cut with a negative margin). The chapter must NOT carry `isolate`: it
+  creates a stacking context and TRAPS the straddling child's z-index, so the next section's background
+  paints over the thing meant to overhang (the footer wants `isolate`; a chapter never does). And the
+  straddling child's wrapper needs a block formatting context (`flow-root`) or the negative margin
+  COLLAPSES THROUGH it and escapes as the ancestor's own margin, leaving the ground running on past the
+  child and the next section's text rendering over it. `/help` avoids the second only because its straddle
+  sits inside a section that already has vertical padding. A straddling child also carries `surface-paper`
+  ITSELF, which re-aliases the whole light block including `--shadow-float`: the attribute that makes it
+  straddle is the one that gives back its elevation.
+- ★ **A rotated tile needs more frame than its size suggests.** A square's bounding box grows with
+  rotation (`side x (cos t + sin t)`), so a 169px tile at 11deg spans ~197px: scatter offsets authored
+  against the unrotated height sit ~28px further out than the arithmetic says, and clip against an
+  `overflow-hidden` frame. Size a stage from the ROTATED extent, and where a frame's height and a
+  seam's offset are derived from each other (the /about gather), keep both in one place so retuning
+  one cannot silently strand the other.
+- ★ **A chapter's stacked-viewport rule OUTRANKS its children's padding.** `PaperChapter` carries
+  `max-lg:[&>section]:py-14` (two section paddings meeting at a cut read as dead space on phones), and
+  that child selector beats a plain `pt-*` on the section itself, so below `lg` a child's own padding is
+  silently a no-op. Right for a chapter's INTERIOR sections, wrong for one that must clear a large
+  straddling element: that chapter passes **`compressStacked={false}`** and its sections own their
+  padding. Do NOT reach for `!` here — an `!` wins at one breakpoint and loses at another, which is the
+  symptom itself (`/about`'s hero carried `pt-28!`/`sm:pt-40!`, and the `!` on `sm:pt-40` silently beat
+  the un-`!`'d `lg:pt-44` at every width above 1024px).
+- ★ **Where a frame's height and a seam's offset are derived from each other, keep both in one place.**
+  /about's gather is the worked example: `.mkt-gather-straddle`'s percentage and its twin
+  `.mkt-gather-clear` are ONE calculation and sit together in marketing.css, so retuning one cannot
+  strand the other. They were two magic numbers in two files and that is how the album landed on the prose.
+- ★ **Before believing "Tailwind emitted no rule", check your grep.** Tailwind escapes `[`, `]` and `.`
+  in generated selectors, so `py-[0.08em]` ships as `.py-\[0\.08em\]` and a search for the raw class text
+  finds NOTHING while the rule is present and working. An earlier version of this doc recorded
+  "Tailwind can emit nothing for an arbitrary utility, silently" from exactly that mistake; re-tested
+  2026-08-28 against a clean production build, every arbitrary utility emitted correctly. Two things
+  that ARE real and produce the same symptom: the dev server can serve a **stale CSS chunk** for a
+  newly added file (its dev chunk URLs are not content-hashed, so the browser reuses its cache — bust
+  the `<link>` href or hard-reload before debugging), and `text-*` needs `text-[length:...]` for a
+  `clamp()` because v4 cannot tell a size from a color. Load-bearing geometry still belongs in the
+  stylesheet that owns the component's other CSS, for readability, not because utilities are unreliable.
 - `BRAND_HEX` (`src/lib/constants/site.ts`) is ink `#101010` for OG/satori; the real logo/OG design
   pass is Phase 6.
 - The QR preset corner tints (e.g. the legacy coral) are INTENTIONAL exceptions: existing events
@@ -81,6 +139,26 @@ Exemptions by the ruling's own latitude: the HOME hero keeps its unique display 
 was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
 utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
 keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+**The hero lockup owns all of this** ([`page-hero.tsx`](../../src/components/marketing/system/page-hero.tsx),
+pinned by `page-hero-contract.test.ts`): eyebrow / heading / subhead / actions on one shared `gap-6`
+grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the cinema register, `display`
+the exemption below. Will's ruling for the identity pages, 2026-08-28: **share grammar, page picks
+scale.** Compose it rather than hand-rolling a hero; four agents wrote four heroes in one week and that
+is the drift it closes. The heading is always an `<h1>` (the /contact bug class; `SectionShell`'s `as`
+carries the same rule for sections).
+
+A **display exemption** exists once: `/about`'s wordmark, the `display` step at
+`clamp(3.25rem, 12vw, 10rem)` — a 160px string, and a recorded decision rather than a stray arbitrary
+value. Do not "fix" it back down toward 72px. Two things it needs and a normal H1 does not: `text-[length:...]`
+(v4 must be told whether a `clamp()` in `text-*` is a size or a color), and an **asymmetric optical trim**.
+A normal heading's box is about its ink; a display line's is not, and it is wrong in OPPOSITE directions at
+each end. Measured with canvas TextMetrics (Urbanist bold: cap 0.75em over the baseline, descender 0.25em
+under), `leading-[0.85]` + `py-[0.08em]` put the box top 0.125em ABOVE the cap while the box bottom lands
+0.094em ABOVE the descender, so one honest `gap-6` reads ~44px over the name and ~9px under it. The step
+therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across the clamp) and deliberately never
+its bottom — trimming both ends symmetrically is the intuitive move and it tightens the end already tight.
+Keep `py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the descender, and the negative
+margin removes the distance from LAYOUT while the glyph keeps its room.
 
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts

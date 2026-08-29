@@ -5,6 +5,13 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 type RevealProps = React.ComponentProps<"div"> & {
   /** IntersectionObserver threshold (default 0.2, the lab-ratified trip point). */
   threshold?: number;
+  /**
+   * IntersectionObserver rootMargin, passed straight through. Use a negative
+   * bottom inset (e.g. "0px 0px -10% 0px") when a beat should start while its
+   * section is still entering, so a long one is not stranded below the fold for
+   * a fast scroller.
+   */
+  rootMargin?: string;
 };
 
 /**
@@ -16,11 +23,12 @@ type RevealProps = React.ComponentProps<"div"> & {
  */
 export function Reveal({
   threshold = 0.2,
+  rootMargin,
   className,
   children,
   ...props
 }: RevealProps) {
-  const { ref, inView } = useInViewOnce<HTMLDivElement>(threshold);
+  const { ref, inView } = useInViewOnce<HTMLDivElement>(threshold, rootMargin);
   return (
     <div
       ref={ref}

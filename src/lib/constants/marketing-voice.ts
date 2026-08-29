@@ -85,3 +85,22 @@ export const DECOMPOSITION_FACTS = [
 
 /** The recurring demo CTA line (DemoCtaLink renders it everywhere the demo is offered). */
 export const DEMO_CTA_LABEL = "Try the live demo, no signup.";
+
+/**
+ * The site's sharpest sentence. It lives in /llms.txt, where no human reads it;
+ * it is here so a human-facing surface can spend it without forking the line.
+ * /about was to be the first, and its second rebuild reworded the idea into the
+ * story instead, so llms.ts is still the only consumer. Kept because this is
+ * the golden-copy home and the line is ruled (it is on the identity-language
+ * scan in marketing-voice.test.ts): the next page that wants it takes it from
+ * here rather than retyping it.
+ *
+ * ★ The LOWERCASE CLAUSE only, never the whole sentence: llms.ts writes the
+ * verdict half as "This is the failure mode ${SITE_NAME} was built against.",
+ * and SITE_NAME is a PARAMETER there by explicit design ("pure builders must
+ * stay unit-testable without one"). Hardcoding the name into this constant
+ * would fork it back, and llms.test.ts could not catch the divergence because
+ * its fixture is literally "Partyreel". Both consumers add their own framing.
+ */
+export const FAILURE_MODE_LINE =
+  "compression ruins quality, media scatters across threads, and nothing is collected";

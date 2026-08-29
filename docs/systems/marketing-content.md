@@ -50,6 +50,58 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
+- **`/about`** — THE MISSION PAGE (rebuilt twice, 2026-08-28; the IA never recorded its job before,
+  which is a fair part of why it stayed a scaffold). Copy single-source
+  [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
+  page file itself was reachable only by the weaker neutralization fence. The page was on probation
+  ("if we can't figure it out, I plan on killing the page entirely"); what earns it is the MISSION,
+  told as a story in the ruled arc (Will, 2026-08-28): here is the OPPORTUNITY (everyone at the event
+  is already shooting it, from angles you will never get), here is the problem we kept hitting (it
+  falls apart somewhere new every time), there has to be a better way, so we built it. Copy that
+  opens on exposition instead of a scene reads as rambling here, and a fourth parallel failure turns
+  the rhythm into a list. The six convictions then land as the ANSWER to that story rather than a
+  feature list, and each links to the page that proves it (the previous version promised "you can
+  verify each one" and gave the reader nothing to click). Close points at careers, not signup.
+  ★ **AFFIRMATIVE ONLY (Will, 2026-08-28):** a planned "where Partyreel is the wrong call" section was
+  cut. "A photographer could also deliver their photos via this platform... I genuinely hope people do
+  find ways to use this beyond what we've thought of. **This is about who we are, not who we are not.**"
+  Never enumerate what the product is not for, and never fence a use case.
+  ★ **The comparison stays CATEGORY-LEVEL** (the AI-posture ruling): the cross-platform album, the
+  drip-fed thread, the account wall, the per-person rental, never a product name.
+  ★ **The R5 zero-team ruling is RELAXED here** (Will, 2026-08-28): the page carries a first-person
+  origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
+  ★ **No CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
+  and no mono anywhere (the R6 ruling).
+- ★ **THE UTILITY-PAGE RHYTHM (Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
+  EVERY utility page** — the identity pages (about, blog, careers, press) and, as they are reworked,
+  legal, privacy and contact too. "With the cinema hero, we need to go back to the dark nav to match."
+  **The paper/cinema split is per-CHAPTER, not per-page.** A page takes the rhythm by JOINING THE
+  `(cinema)` GROUP and wrapping its reading body in ONE `PaperChapter` — which is exactly what /help and
+  all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
+  dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
+  do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
+  `(paper)` survives only until the remaining pages have moved.
+  ★ **Do NOT build this from the paper side.** The /about round first shipped it as a `(spotlight)`
+  group whose sticky header wore a hand-assembled `--gallery*` set, and that set is always one token
+  behind: it omitted `--popover`, so the in-flow nav panels rendered white-on-white at ~1.07:1. The
+  measurement and the rule live in [design-system.md](design-system.md).
+- **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(cinema)/about/gather.tsx)) —
+  About opens on the cinema room and BOOKENDS the page in dark against the ink footer, leaving the
+  reading body in the middle (the wordmark as the page's h1 at the lockup's `display` step, never the
+  Logo lockup, plus one line and the Start free / How it works pair).
+  The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
+  of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
+  album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as
+  `album.tsx` and /help do below `lg`.
+  ★ **THE LESSON WORTH KEEPING: the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
+  so its pre-state is INVISIBLE.** Nobody ever saw the scatter, only an empty frame filling in, and
+  Will's read was "almost unnoticeable" — the whole idea was happening in a state that could not be
+  seen. The `.mkt-gather` recipe never touches opacity: the photographs are visible throughout and
+  only position and angle change. Any beat whose CONCEPT is a change of arrangement must not hide its
+  starting arrangement. The scatter is an authored table inside the frame (never `Math.random()`,
+  which desyncs SSR), so the no-JS fallback is prints on a table rather than photographs stranded
+  off-screen. Eleven gather and a twelfth arrives late, because a complete rectangle says "this is all
+  of it" and there is always one more phone in the room.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
