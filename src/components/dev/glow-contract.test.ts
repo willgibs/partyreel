@@ -158,6 +158,36 @@ describe("the spill engine CSS", () => {
     expect(engineCode).toMatch(/\[data-glw\]\s*\{[^}]*isolation:\s*isolate/);
   });
 
+  it("lets an ancestor drive the lamp's position", () => {
+    // A custom property declared ON an element always beats the same property
+    // inherited from an ancestor, so plain `--glw-from-x: 50%` defaults here
+    // silently shadow any wrapper trying to move the lamp: pointer tracking,
+    // a measured position, or a section setting the register for everything
+    // inside it. Reading through a second name is what keeps those possible,
+    // and it looks exactly like an indirection worth deleting.
+    expect(engineCode).toMatch(/--glw-from-x:\s*var\(--glw-origin-x,/);
+    expect(engineCode).toMatch(/--glw-from-y:\s*var\(--glw-origin-y,/);
+  });
+
+  it("keeps the scalar drive at the same specificity as the shared mask block", () => {
+    // The bloom guard turned the shared block into four attribute selectors.
+    // A bare [data-glw-drive="scalar"] override is two, loses, and the band
+    // parks at the shared mask-position while --glw-t updates and changes
+    // nothing at all. Both selectors must carry the same :not() so source
+    // order decides.
+    const scalarOverride = engineCode.slice(
+      engineCode.indexOf("mask-position: calc(150%"),
+    );
+    expect(scalarOverride.length).toBeGreaterThan(0);
+    const before = engineCode.slice(
+      0,
+      engineCode.indexOf("mask-position: calc(150%"),
+    );
+    const selector = before.slice(before.lastIndexOf("[data-glw]"));
+    expect(selector).toContain(':not([data-glw-shape="bloom"])');
+    expect(selector).toContain('[data-glw-drive="scalar"]');
+  });
+
   it("carries the forced-colors, print and no-mask fallbacks", () => {
     // A purely decorative colour layer is exactly where these belong, and the
     // repo has no other instance of any of them.

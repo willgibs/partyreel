@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Camera, Check, Copy, Lock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
+
 import { Glow, GlowFilter } from "@/components/dev/glow";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
 import { Button } from "@/components/ui/button";
@@ -88,6 +90,9 @@ export function GlowMomentsVariants() {
       <PublishBeat />
       <CtaQuestion />
       <PaperProbe />
+      <UploadAsLight />
+      <PointerLamp />
+      <ScanThrough />
       <Catalogue />
     </div>
   );
@@ -1035,6 +1040,380 @@ function PaperProbe() {
   );
 }
 
+/* ── 10 ─────────────────────────────────────────────────────────────────────
+   The three below are NEW this round. Each demonstrates something the engine
+   can already do that no placement was using: light bound to a value rather
+   than a clock, light that follows a pointer, and light that travels between
+   two objects. They are mechanics first and proposals second, which is why
+   they sit after the nine argued placements.                                */
+
+function UploadAsLight() {
+  const [progress, setProgress] = useState(0);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running) return;
+    // A deliberately uneven climb: a real upload is not a metronome, and a
+    // perfectly linear demo hides whether the light survives a stall.
+    const steps = [0.08, 0.22, 0.31, 0.55, 0.62, 0.79, 0.93, 1];
+    let i = 0;
+    const id = setInterval(() => {
+      setProgress(steps[i]);
+      i += 1;
+      if (i >= steps.length) {
+        clearInterval(id);
+        setRunning(false);
+      }
+    }, 620);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const start = () => {
+    setProgress(0);
+    setRunning(true);
+  };
+
+  return (
+    <Moment
+      n="10"
+      title="The upload, as light"
+      verdict="work"
+      verdictLabel="New mechanic, wants a real device pass"
+      lede={
+        <>
+          <p>
+            The engine has a third drive that no placement was using: no clock
+            at all. `--glw-t` is a registered custom property, so JS writes a
+            TARGET and CSS owns the tween, which is the same shape as the
+            measured nav indicator and useFlip. Here the target is upload
+            progress, so the comet&rsquo;s position along the tile IS how far
+            the photo has got. The light stops meaning atmosphere and starts
+            meaning something.
+          </p>
+          <p className="mt-2">
+            Why it might be better than a bar: a progress bar is a second object
+            asking to be read, on a surface whose whole job is the photograph. A
+            guest uploading at a party is not studying a percentage. Because the
+            value is tweened rather than snapped, a stalled upload still drifts
+            instead of freezing, which reads as working rather than stuck.
+          </p>
+        </>
+      }
+      lamp="the photo arriving"
+      direction="across the tile, in step with the bytes"
+      colour="sampled from the photo being uploaded (the client already has it)"
+      law="Law 1, and it is the one case where the light is a signal"
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button size="sm" onClick={start} disabled={running}>
+            {running ? "Uploading" : "Upload a photo"}
+          </Button>
+          <span className="font-mono text-xs text-muted-foreground">
+            {Math.round(progress * 100)}%
+          </span>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Spec
+            name="Progress as light"
+            note="The comet position is the upload. No second object to read."
+          >
+            <Ground on="cinema" className="flex justify-center p-6">
+              <div className="relative isolate w-40 overflow-hidden rounded-lg">
+                <div className="relative aspect-[4/5]">
+                  <Image
+                    src={marketingImage("wedding-toast").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                    style={{ opacity: 0.35 + progress * 0.65 }}
+                  />
+                </div>
+                <Glow
+                  shape="sweep"
+                  drive="scalar"
+                  vars={{
+                    "--glw-t": String(progress),
+                    "--glw-scale": "1.1",
+                    "--glw-strength": "0.9",
+                    "--glw-base": "0.3",
+                  }}
+                />
+              </div>
+            </Ground>
+          </Spec>
+          <Spec
+            name="A conventional bar"
+            note="The control. Legible, and one more thing on the screen."
+          >
+            <Ground on="cinema" className="flex justify-center p-6">
+              <div className="relative w-40 overflow-hidden rounded-lg">
+                <div className="relative aspect-[4/5]">
+                  <Image
+                    src={marketingImage("wedding-toast").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                    style={{ opacity: 0.35 + progress * 0.65 }}
+                  />
+                </div>
+                <div className="absolute inset-x-2 bottom-2 h-1 overflow-hidden rounded-full bg-white/25">
+                  <div
+                    className="h-full rounded-full bg-white transition-[width] duration-300"
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                </div>
+              </div>
+            </Ground>
+          </Spec>
+        </div>
+      </div>
+    </Moment>
+  );
+}
+
+/* ── 11 ─────────────────────────────────────────────────────────────────── */
+
+function PointerLamp() {
+  const wrap = useRef<HTMLDivElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const sampled = useSampledPalette(
+    WALL_IDS.map((id) => marketingImage(id).src),
+  );
+
+  // The tilt-card pattern: track on a flat outer wrapper that is never itself
+  // transformed, mouse only, and write CSS vars rather than React state so a
+  // pointer move never costs a render.
+  const track = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = wrap.current;
+    if (!el || reduced || e.pointerType !== "mouse") return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty(
+      "--glw-origin-x",
+      `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`,
+    );
+    el.style.setProperty(
+      "--glw-origin-y",
+      `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`,
+    );
+  };
+
+  return (
+    <Moment
+      n="11"
+      title="The lamp follows you"
+      verdict="work"
+      verdictLabel="New mechanic, needs a taste ruling"
+      lede={
+        <>
+          <p>
+            Law 2 says every spill declares where it comes from, and so far that
+            has always been a fixed value. It does not have to be. Here the
+            origin follows the pointer across the wall, so the light behaves
+            like something in the room with you rather than a texture printed on
+            the page. Move your cursor over the photographs.
+          </p>
+          <p className="mt-2">
+            The honest risk: this is decoration that responds to input, which is
+            the most seductive kind and the easiest to overuse. It earns its
+            place on a hero and nowhere else, and it is mouse-only by
+            construction, so it costs a phone nothing.
+          </p>
+        </>
+      }
+      lamp="the wall, lit where you are looking"
+      direction="outward from the pointer"
+      colour="sampled from the wall"
+      law="Law 2, with the vector made live"
+    >
+      <div
+        ref={wrap}
+        onPointerMove={track}
+        className="relative isolate overflow-hidden rounded-2xl"
+        style={
+          {
+            // --glw-origin-*, not --glw-from-*: the engine declares the latter
+            // on [data-glw] itself, and a declaration on the element always
+            // beats one inherited from an ancestor, so setting it here would be
+            // silently shadowed and the lamp would never move.
+            "--glw-origin-x": "50%",
+            "--glw-origin-y": "50%",
+          } as React.CSSProperties
+        }
+      >
+        <Ground on="cinema" className="relative isolate rounded-none p-0">
+          <div className="relative opacity-80">
+            <PhotoWall cols={4} />
+          </div>
+          <div className="absolute inset-0 isolate">
+            <Glow
+              shape="throw"
+              drive="mask"
+              colors={sampled ?? undefined}
+              vars={{
+                "--glw-reach": "42%",
+                "--glw-strength": "0.75",
+                "--glw-base": "0.5",
+                "--glw-blur": "30px",
+                "--glw-dur": "16s",
+              }}
+            />
+          </div>
+        </Ground>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Reduced motion and touch both fall back to a fixed centre lamp, which is
+        the same still image everyone else sees.
+      </p>
+    </Moment>
+  );
+}
+
+/* ── 12 ─────────────────────────────────────────────────────────────────── */
+
+function ScanThrough() {
+  const [runId, setRunId] = useState(0);
+  const sampled = useSampledPalette(marketingImage("party-balloons").src);
+
+  return (
+    <Moment
+      n="12"
+      title="The scan-through"
+      verdict="work"
+      verdictLabel="The most speculative, and the most ours"
+      lede={
+        <>
+          <p>
+            The one idea here that is about the product rather than the surface.
+            A QR code is the only object Partyreel makes whose entire purpose is
+            to move something from one screen to another, and every diagram we
+            draw of it is two static objects with a caption between them. If
+            light is our material, the handoff is the thing it should carry: the
+            code lights, something travels, the phone answers.
+          </p>
+          <p className="mt-2">
+            It is the most speculative specimen on this board and the one I
+            would most like to be told to keep working on. It also has an
+            obvious home beyond the marketing page: this is the /features/qr
+            story, and it is what the empty demo ticket in the footer is
+            gesturing at.
+          </p>
+        </>
+      }
+      lamp="the code, then the phone that answers it"
+      direction="left to right, from the code to the screen"
+      colour="sampled from the album on the other side"
+      law="Law 1 twice, with the travel between them"
+    >
+      <div className="flex flex-col gap-4">
+        <Ground
+          on="slab"
+          className="relative isolate flex items-center justify-between gap-6 px-10 py-12"
+        >
+          {/* The code. */}
+          <div className="relative isolate shrink-0">
+            <div className="absolute -inset-16 isolate -z-10">
+              <Glow
+                shape="bloom"
+                drive="mask"
+                runId={runId}
+                colors={sampled ?? undefined}
+                vars={{
+                  "--glw-from-x": "50%",
+                  "--glw-from-y": "50%",
+                  "--glw-reach": "70%",
+                  "--glw-strength": "0.9",
+                  "--glw-base": "0.08",
+                  "--glw-blur": "22px",
+                }}
+              />
+            </div>
+            <div
+              className="relative grid size-24 grid-cols-7 gap-0.5 rounded-md p-2"
+              style={{ background: "oklch(0.99 0 0)" }}
+            >
+              {Array.from({ length: 49 }, (_, i) => (
+                <span
+                  key={i}
+                  className="aspect-square rounded-[1px]"
+                  style={{
+                    background:
+                      (i * 5) % 4 < 2 ? "oklch(0.13 0 0)" : "transparent",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* The channel the light crosses. */}
+          <div className="relative isolate h-24 flex-1 overflow-hidden">
+            <Glow
+              key={runId}
+              shape="sweep"
+              drive="transform"
+              colors={sampled ?? undefined}
+              vars={{
+                "--glw-scale": "1.2",
+                "--glw-dur": "1.6s",
+                "--glw-strength": "0.85",
+                "--glw-base": "0.12",
+              }}
+            />
+          </div>
+
+          {/* The phone that answers. */}
+          <div className="relative isolate shrink-0">
+            <div className="absolute -inset-14 isolate -z-10">
+              <Glow
+                shape="bloom"
+                drive="mask"
+                runId={runId}
+                colors={sampled ?? undefined}
+                vars={{
+                  "--glw-from-x": "50%",
+                  "--glw-from-y": "50%",
+                  "--glw-reach": "72%",
+                  "--glw-strength": "0.85",
+                  "--glw-base": "0.1",
+                  "--glw-blur": "20px",
+                }}
+              />
+            </div>
+            <div
+              className="relative aspect-[9/19] w-24 overflow-hidden rounded-[1.1rem] border-2"
+              style={{ borderColor: "oklch(0.35 0 0)" }}
+            >
+              <Image
+                src={marketingImage("party-balloons").src}
+                alt=""
+                fill
+                sizes="96px"
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </Ground>
+        <Button
+          size="sm"
+          className="w-fit"
+          onClick={() => setRunId((r) => r + 1)}
+        >
+          Scan the code
+        </Button>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Known gap, stated rather than hidden: the travel is three coordinated
+          layers, not one light crossing a measured distance. The real version
+          measures both objects and moves one fixed layer between them, the way
+          the reveal measures its flight. Worth building properly only if the
+          idea survives your look.
+        </p>
+      </div>
+    </Moment>
+  );
+}
+
 /* ── The field the board did not build ───────────────────────────────────── */
 
 const CATALOGUE: { name: string; where: string; why: string }[] = [
@@ -1077,7 +1456,7 @@ const REJECTED: { name: string; why: string }[] = [
 function Catalogue() {
   return (
     <Section
-      n="10"
+      n="13"
       title="The rest of the field"
       lede="Documented rather than built, so the ruling has the whole picture without me spending the round on it."
     >

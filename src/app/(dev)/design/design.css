@@ -1721,9 +1721,21 @@
   /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
      the surface, or a 40px pill and a 1440px hero share an overhang. */
   --glw-scale: 1;
-  /* Law 2. Where the lamp is, in the layer's own box. */
-  --glw-from-x: 50%;
-  --glw-from-y: 0%;
+  /* Law 2. Where the lamp is, in the layer's own box.
+
+     ★ INDIRECTED THROUGH --glw-origin-* ON PURPOSE. A custom property declared
+     ON an element always beats the same property inherited from an ancestor, so
+     while these were plain defaults here, NOTHING outside the glow could move
+     the lamp: a wrapper setting --glw-from-y was silently shadowed by this
+     block and the light stayed pinned at the top edge. That kills every
+     external driver worth having (a pointer, a measured position, a section
+     setting the register for everything inside it). Reading through a second
+     name fixes it in one line and changes no use site, because a var() inside a
+     custom property is substituted at the element that DECLARES it, which is
+     this one. Direct --glw-from-* via `vars` still wins, which is what the
+     primitive passes. */
+  --glw-from-x: var(--glw-origin-x, 50%);
+  --glw-from-y: var(--glw-origin-y, 0%);
   --glw-reach: 90%;
   /* Comet thickness inside the travelling window. */
   --glw-span: 26%;
@@ -1993,8 +2005,18 @@
   will-change: transform;
 }
 
-/* ── Drive C: no clock. JS writes a target, CSS owns the tween. ── */
-[data-glw-drive="scalar"] [data-glw-band] {
+/* ── Drive C: no clock. JS writes a target, CSS owns the tween.
+
+   ★ THE :not() ABOVE HAS TO BE REPEATED HERE. The shared mask block carries
+   `[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]`, which is
+   four attribute selectors; a bare `[data-glw-drive="scalar"]` override is two,
+   loses on specificity, and the band silently parks at the shared block's
+   `mask-position: 50% 0` while --glw-t updates correctly and changes nothing.
+   Matching the selector exactly puts both at equal specificity so source order
+   decides, which is what the original code relied on before the bloom guard
+   was added. Caught by reading the computed mask-position, never by eye. ── */
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]
+  [data-glw-band] {
   -webkit-mask-position: calc(150% - var(--glw-t) * 200%) 0;
   mask-position: calc(150% - var(--glw-t) * 200%) 0;
   transition: --glw-t 420ms var(--dir-ease, cubic-bezier(0.23, 1, 0.32, 1));
