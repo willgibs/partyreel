@@ -50,18 +50,34 @@ paper-body / ink-footer rhythm by joining the `(cinema)` group** — legal, priv
 included as they are reworked. Truth: [`systems/marketing-content.md`](systems/marketing-content.md)
 + [`systems/design-system.md`](systems/design-system.md).
 
-**`lp/press-kit` merged into `launch-prep` 2026-08-29** (`be52bee` + `5aab0f1`), the second branch of
-the sequence. It had already moved `/press` into `(cinema)` with a `PaperChapter` body on its own, so
+**`lp/press-kit` merged and shipped at milestone-10**, the second branch of the sequence. It had
+already moved `/press` into `(cinema)` with a `PaperChapter` body on its own, so
 there was no architecture to settle; the design merged unchanged. Will's note was the work: the h1
 takes `PageHero`'s **`display` step** (the masthead tier /about uses) and the tracking squeeze is now
 standard for that step rather than an /about beat, with a **one-or-two-word contract** on it. Doing it
 properly split the step's left side-bearing out as `leadIn`, gated on `align="left"` — which fixed a
 shipped bug too, since /about's masthead is centred and had been sitting 3.6px left of centre on prod
 since milestone-9 — and closed an LCP hole, since `.mkt-line` paints an h1 at `opacity: 0` until
-hydration. **Three branches still with Will**; `lp/blog-redesign` and
+hydration. Will's last note before the merge became a rule: **at the display step the H1 matches its
+NAV LABEL** (a 160px "Media" under a footer link reading "Press" is a non-sequitur), so the H1 is
+"Press" and the descriptor moved into a "Media assets" eyebrow.
+**Three branches still with Will**; `lp/blog-redesign` and
 `lp/careers-identity` both still carry hand-rolled `TextsReveal` heroes and get the same `PageHero`
 treatment at `lg` when they land. `lp/careers-identity` will conflict in `marketing.css` (the isolate
 block) and in `marketing-content.md`.
+
+**MILESTONE-10 (2026-08-29): prod = the /press round.** `main` @ tag `milestone-10` (`b08903f`), prod
+READY + verified at the merge SHA. Will's acceptance: "It all looks fantastic." Verified on
+partyreel.com: one `h1` reading "Press" at 160px under a "Media assets" eyebrow, painting unmarked and
+with no `margin-inline-start`, centred to 0.00px; skin `cinema` with `theme-color: #040404`; nav panel
+15.06:1 and hero 17.79:1; all ten kit assets 200 and the zip downloaded from prod byte-identical to
+the committed artifact, its QR re-encoding to `https://partyreel.com`; sheet 4/2 columns with an even
+3px rebate; three spine sections on one right edge; deep links clearing the header; no overflow at
+1440 or 375; console clean. **/about re-verified on the same build: masthead centred to 0.00px against
+3.6px off centre on milestone-9** — the side-bearing gate fixed a page it was not aimed at.
+★ The Browser-pane origin carried no `pr-no-track` for its first prod load (the Chrome profile did);
+no insights request appears for it, so at most one pageview, and the flag was set before any further
+checks.
 
 **MILESTONE-9 (2026-08-28): prod = the /about round.** `main` @ tag `milestone-9` (`279c8d6`), prod
 READY + verified at the merge SHA. Will's preview acceptance: "Looks fantastic." Verified on partyreel.com: one `h1`
@@ -168,7 +184,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-9`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-10`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -207,7 +223,7 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 1. **The next agent branch to hand over** (`lp/blog-redesign`, `lp/careers-identity`,
    `lp/glow-doctrine` — Will is still working the remaining three). `lp/about` shipped at
-   milestone-9; `lp/press-kit` is merged and on the `launch-prep` preview awaiting his feel pass.
+   milestone-9 and `lp/press-kit` at milestone-10.
    Notes for whoever integrates the next one: `lp/careers-identity` will conflict in `marketing.css`
    (the `[data-mkt-isolate]` block landed near its additions) and in `marketing-content.md`; blog and
    careers both still carry hand-rolled `TextsReveal` heroes and should take `PageHero` at `lg`.

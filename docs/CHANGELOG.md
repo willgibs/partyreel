@@ -10,6 +10,45 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-29 — MILESTONE-10: the /press round
+
+`main` @ tag `milestone-10` (`b08903f`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, lint, 1222 tests, build with /press static). Will's acceptance: "It all looks
+fantastic."
+
+One change landed between the preview pass and the merge, and it became a RULE. Arriving at the page
+from the footer's "Press" link, a 160px "Media" read as a non-sequitur: at the display step the H1 is
+the loudest promise on the page, so it has to be the word the reader just clicked. H1 "Press", eyebrow
+"Media assets" — the descriptor moved up to the eyebrow, which carries no word limit. Recorded in
+design-system.md and marketing-content.md as **at `scale="display"`, the H1 matches its NAV LABEL**,
+which saves blog and careers the same landing.
+
+Prod = /press as the contact sheet (the kit as a photographic proof sheet on the album's 3px gap, the
+sticky Assets / Words / Fact sheet spine, the boilerplate with copy buttons, the 12-row fact sheet)
+plus the system work the integration produced: `PageHero`'s display step as the masthead TIER rather
+than /about's one-off, its tracking squeeze and one-or-two-word contract, the left side-bearing split
+out as a gated `leadIn`, and the LCP rule reaching a second page.
+
+Verified on partyreel.com at the merge SHA: HTTP 200, exactly one `<h1>` reading "Press" at 160px
+under a "Media assets" eyebrow, painting at `opacity: 1` with NO reveal mark in the shipped markup and
+NO `margin-inline-start` anywhere, centred to 0.00px; `<title>`, breadcrumb, nav, footer, /contact and
+/llms.txt all reading "Press" alongside it. `data-mkt-skin="cinema"`, `theme-color: #040404`, body
+`lab(1.20)`; nav panel **15.06:1** (`--popover` rgb(29,29,29) on rgb(242,242,242)) and the hero
+17.79:1. All ten kit assets serve 200 and the zip downloaded FROM PROD is byte-identical to the
+committed artifact, extracts to 10 members, and its QR re-encodes to `https://partyreel.com`. Sheet 4
+columns at 1440 and 2 at 375, rebate even (3px padding === 3px gap), all six frame images loaded, all
+three spine sections ending at 1328, `#assets`/`#words`/`#facts` landing clear of the header, no
+horizontal overflow at either width, console clean. **/about re-verified on the same build: its
+masthead is centred to 0.00px, against `-7.2px` / 3.6px off centre on milestone-9** — the side-bearing
+gate fixed a page it was not aimed at.
+
+★ Honest note on the analytics baseline: the Browser-pane origin had no `pr-no-track` flag for its
+first prod load (the Chrome test profile did). No `/_vercel/insights` request appears in either the
+resource timings or the network log for it, so at most one pageview; the flag was set before any
+further checks, and a reload with it set fired no beacon, which also re-confirms the opt-out on prod.
+
+The second Agent branch to reach partyreel.com; three remain with Will.
+
 ## 2026-08-29 — Integrating `lp/press-kit`: the masthead step, and the kit as a system
 
 The second branch of the merge sequence, and the first that needed no architectural argument: it had
