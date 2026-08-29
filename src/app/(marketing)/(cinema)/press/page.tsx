@@ -1,8 +1,10 @@
+import { ArrowDown } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { CopyButton } from "@/components/marketing/press/copy-button";
 import { PressSection } from "@/components/marketing/press/press-section";
 import { PressSheet } from "@/components/marketing/press/press-sheet";
@@ -86,6 +88,15 @@ const PAGE_TITLE = "Media";
 const INLINE_LINK =
   "underline decoration-current/30 underline-offset-4 transition-colors duration-150 hover:decoration-current";
 
+/** The pointer under a pinned heading. Icons are semantic, not decorative: the two that
+ *  NAVIGATE carry the house learn-more chevron (its arms spread into an arrow on hover,
+ *  keyed off the .mkt-learn ancestor), and the one that DOWNLOADS carries the same down
+ *  arrow as the hero's kit button, so a glyph means the same thing everywhere here. */
+const SECTION_LINK = cn(
+  "mkt-learn inline-flex items-center gap-1.5 text-sm font-medium",
+  INLINE_LINK,
+);
+
 export default function PressPage() {
   return (
     <>
@@ -156,11 +167,8 @@ export default function PressPage() {
           heading="Assets"
           note="Artwork, an app icon, the share card, and a code that resolves to partyreel.com."
           aside={
-            <a
-              href={PRESS_KIT_ZIP}
-              download
-              className={cn("text-sm font-medium", INLINE_LINK)}
-            >
+            <a href={PRESS_KIT_ZIP} download className={SECTION_LINK}>
+              <ArrowDown aria-hidden className="size-3.5 shrink-0" />
               Download all ({formatKitBytes(PRESS_KIT_BYTES)})
             </a>
           }
@@ -173,16 +181,14 @@ export default function PressPage() {
           heading="Words"
           note="Quote any of it, whole or in part. No permission needed."
           aside={
-            <Link
-              href="/contact"
-              className={cn("text-sm font-medium", INLINE_LINK)}
-            >
-              Send a message
+            <Link href="/contact" className={SECTION_LINK}>
+              Ask a question
+              <LearnChevron />
             </Link>
           }
           className="border-t"
         >
-          <div className="flex max-w-3xl flex-col lg:ml-auto">
+          <div className="flex max-w-2xl flex-col lg:ml-auto">
             <div className="flex items-baseline justify-between gap-4">
               <Eyebrow>The boilerplate</Eyebrow>
               <CopyButton
@@ -231,11 +237,9 @@ export default function PressPage() {
           heading="Fact sheet"
           note="The checkable version, for a box-out or a copy desk."
           aside={
-            <Link
-              href="/how-it-works"
-              className={cn("text-sm font-medium", INLINE_LINK)}
-            >
+            <Link href="/how-it-works" className={SECTION_LINK}>
               How it works
+              <LearnChevron />
             </Link>
           }
           className="border-t"
@@ -245,7 +249,7 @@ export default function PressPage() {
               width cap). Widening the content to fill the column instead would trade the
               reading measure for width the eye does not want, and the point of the spine
               is the growing gap between a pinned heading and its answer. */}
-          <dl className="divide-y divide-border border-t lg:ml-auto lg:max-w-3xl">
+          <dl className="divide-y divide-border border-t lg:ml-auto lg:max-w-2xl">
             {PRESS_FACTS.map(({ label, value }) => {
               const href = factHref(label, value);
               return (
