@@ -99,6 +99,17 @@ presented as "the arbitrary grid-cols class is in the DOM, `lg` matches, and no 
 hydration mismatch where the client rendered `Copy` while the server rendered the hex. Both were
 correct code against a stale bundle. Verify on the deployed preview, or on a port no sibling has used.
 
+**Refinement pass three.** The page is called **Press** everywhere now, the "& brand" dropped from
+the header panel, footer column, /about links, /contact directory, title, breadcrumb, eyebrow and OG
+card. The H1 is hoisted to a named constant with its rejected alternates recorded beside it, because it
+is a taste call that should be one line to turn: "Take what you need" had the right concision and the
+wrong verb, since "need" rations and a press kit means the opposite. The sheet frame lost weight (a 1px
+outer border instead of a second 3px band, caption bars moved from a tuned foreground/8 alpha onto
+--muted), the fact sheet got a real two-column split with a gutter and no width clamp (it is a table,
+not prose), "Download all (245 KB)" took parentheses, and the close asks "Need anything else?". Added
+unprompted: the type frame now points at the open-source family, since a designer laying out a piece
+needs the face and shipping font binaries in a press kit would be the wrong way to hand it over.
+
 **Open:** Will's feel pass on the built page. Also blocked at handoff: `/design` 404s on every agent branch
 preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
 localhost until that var is set unscoped for Preview (proposed, not applied: config is the

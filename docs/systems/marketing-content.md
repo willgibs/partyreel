@@ -167,7 +167,9 @@ a dark hero. `/press` moved groups for exactly this reason (the route path is un
 chrome is). ⚠️ `/about` currently takes the (paper) + `CinemaChapter` route and so still has a light
 nav over its dark hero: worth reconciling when that track next lands.
 
-**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The kit as a photographic proof sheet: eight
+**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** The page is titled **"Press"** everywhere
+(header panel, footer column, /about links, /contact directory, title, breadcrumb, eyebrow, OG card):
+the old "Press & brand" combo was two labels for one page and "brand" did no work a reporter needed. The kit as a photographic proof sheet: eight
 numbered frames on the 3px `--gap-gallery` album grid, riding INSIDE the hero chapter because the
 assets are what a reporter came for and belong above the words. ★ The frames are deliberately NOT all
 the same kind of thing (artwork, an app icon, the share card, a working QR, the ink, the type) — a

@@ -224,7 +224,9 @@ export default function PressPage() {
           note="The checkable version, for a box-out or a copy desk."
           className="border-t"
         >
-          <dl className="max-w-3xl divide-y divide-border border-t">
+          {/* No width clamp: this is a TABLE, not prose. Capped at max-w-3xl the values
+              re-wrapped to two lines while ~300px of the column sat empty. */}
+          <dl className="divide-y divide-border border-t">
             {PRESS_FACTS.map(({ label, value }) => {
               const href = factHref(label, value);
               return (
