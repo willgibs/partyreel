@@ -55,9 +55,11 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
   page file itself was reachable only by the weaker neutralization fence. The page was on probation
   ("if we can't figure it out, I plan on killing the page entirely"); what earns it is the MISSION,
-  told as a story: everyone already carries a camera good enough to shoot the event, and there has
-  never been a way to get everyone's pictures into one place, because every workaround fails a
-  different part of the room. The six convictions then land as the ANSWER to that story rather than a
+  told as a story in the ruled arc (Will, 2026-08-28): here is the OPPORTUNITY (everyone at the event
+  is already shooting it, from angles you will never get), here is the problem we kept hitting (it
+  falls apart somewhere new every time), there has to be a better way, so we built it. Copy that
+  opens on exposition instead of a scene reads as rambling here, and a fourth parallel failure turns
+  the rhythm into a list. The six convictions then land as the ANSWER to that story rather than a
   feature list, and each links to the page that proves it (the previous version promised "you can
   verify each one" and gave the reader nothing to click). Close points at careers, not signup.
   ★ **AFFIRMATIVE ONLY (Will, 2026-08-28):** a planned "where Partyreel is the wrong call" section was
@@ -79,7 +81,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(paper)/about/gather.tsx)) —
   a (paper) route already ends on the ink footer, so About opens on a `CinemaChapter` hero (the
   wordmark as plain display text, never the Logo lockup, plus one line and the Start free / How it
-  works pair) and BOOKENDS the page in dark, leaving the reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
+  works pair; its spacing is authored per pair, not a uniform gap, because the masthead's negative
+  leading and optical padding make a shared gap read far looser than the site's usual eyebrow offset) and BOOKENDS the page in dark, leaving the reading body in the middle. Will flagged the treatment as a candidate for the other resource pages.
   The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as

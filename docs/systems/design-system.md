@@ -57,7 +57,7 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   wrong), same for `--muted`/`--muted-foreground`; and `--input` paints the same near-white hairline
   `--border` is redeclared to stop. Derive `--secondary`/`--accent` by `color-mix` over the gallery pair
   rather than copying `.dark`'s literals, or the two drift the first time the dark ramp is retuned.
-- **`CINEMA_TOKENS`** (exported from the same file) is the token set on its own, for elements that need
+- **`CINEMA_TOKENS`** (exported from cinema-chapter.tsx) is the token set on its own, for elements that need
   the dark ground WITHOUT a chapter's opaque background: the `(spotlight)` layout puts it on the sticky
   `<header>` so the nav reads dark over a cinema hero. ★ It must go on the `<header>` ITSELF, never a
   wrapper: `position: sticky` is bounded by the parent's box, so a header-height wrapper would stop the
@@ -77,6 +77,12 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   margin COLLAPSES THROUGH it and escapes as the chapter's own margin, leaving the ground running on past
   the child and the next section's text rendering over it. `/help` avoids the second only because its
   straddle sits inside a section that already has vertical padding.
+- ★ **A rotated tile needs more frame than its size suggests.** A square's bounding box grows with
+  rotation (`side x (cos t + sin t)`), so a 169px tile at 11deg spans ~197px: scatter offsets authored
+  against the unrotated height sit ~28px further out than the arithmetic says, and clip against an
+  `overflow-hidden` frame. Size a stage from the ROTATED extent, and where a frame's height and a
+  seam's offset are derived from each other (the /about gather), keep both in one place so retuning
+  one cannot silently strand the other.
 - ★ **A chapter's stacked-viewport rule OUTRANKS its children's padding.** `PaperChapter` and
   `CinemaChapter` both carry `max-lg:[&>section]:py-14` (two section paddings meeting at a cut read as
   dead space on phones), and that child selector beats a plain `pt-*` on the section itself, so below
