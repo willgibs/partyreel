@@ -27,14 +27,25 @@ const BY_SLUG: Record<string, RoleEmblemKind> = {
   general: "open",
 };
 
-const KINDS: RoleEmblemKind[] = ["reel", "open", "grid"];
+/**
+ * ★ NEUTRAL kinds only, which is what makes the fallback SAFE (tightened at the
+ * careers merge, 2026-08-29). The hash originally drew from all three, so a
+ * listing nobody had written an emblem for could inherit `reel` (the graphics
+ * role's own mark) or `open` (the empty slide mount, which literally means "the
+ * catch-all"). An emblem that asserts the wrong thing is worse than a generic
+ * one. The album plate claims nothing, so it is the only member today; when the
+ * family grows, add its neutral plates here and the hash starts doing real work
+ * again. Pinned by role-emblem.test.ts.
+ */
+const NEUTRAL_KINDS: RoleEmblemKind[] = ["grid"];
 
 /** Deterministic fallback (integer ops only: this renders on the server and
- *  again at hydration, and must agree bit for bit). */
+ *  again at hydration, and must agree bit for bit - never Math.random()). */
 function fallbackKind(slug: string): RoleEmblemKind {
   let h = 0;
-  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) % 9973;
-  return KINDS[h % KINDS.length];
+  for (let i = 0; i < slug.length; i++)
+    h = (h * 31 + slug.charCodeAt(i)) % 9973;
+  return NEUTRAL_KINDS[h % NEUTRAL_KINDS.length];
 }
 
 export function roleEmblemKind(slug: string): RoleEmblemKind {
@@ -49,7 +60,13 @@ function Art({ kind }: { kind: RoleEmblemKind }) {
       // wordmark's shape and this must not read as the logo.
       return (
         <>
-          <circle cx="48" cy="48" r="34" stroke="currentColor" strokeWidth="2" />
+          <circle
+            cx="48"
+            cy="48"
+            r="34"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
           <circle
             cx="48"
             cy="48"

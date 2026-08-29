@@ -44,9 +44,10 @@ export const SHEET_FRAMES = [
   "wedding-rings",
 ] as const;
 
-/** Frames that paint with the page. The rest lazy-load: a photographic hero is
- *  far heavier than DOM art and this is the LCP surface. */
-const EAGER_FRAMES = 6;
+/** How many frames get a PRELOAD (`priority`), not merely an eager fetch. Kept
+ *  small on purpose: a preload link per frame would fight the LCP element for
+ *  the same early bandwidth, which is the opposite of what it is for. */
+const PRIORITY_FRAMES = 6;
 
 type ContactSheetProps = {
   /** Frame indices circled as selects. Empty = an unmarked roll. */
@@ -78,6 +79,9 @@ export function ContactSheet({
   const selected = new Set(selects);
   const isRoll = variant === "roll";
   const frames = Array.from({ length: repeat }, () => SHEET_FRAMES).flat();
+  // One pass covers every UNIQUE image; the repeats then paint from cache.
+  const eagerFrames =
+    variant === "hero" ? SHEET_FRAMES.length : PRIORITY_FRAMES;
 
   return (
     <div
@@ -97,8 +101,18 @@ export function ContactSheet({
               alt=""
               fill
               sizes="(min-width: 640px) 17vw, 25vw"
-              loading={i < EAGER_FRAMES ? "eager" : "lazy"}
-              priority={variant === "hero" && i < EAGER_FRAMES}
+              // ★ NOTHING IN THE HERO IS LAZY (fixed at the careers merge,
+              // 2026-08-29). The hero fills the first screen, so ALL of its
+              // cells are above the fold, and `loading="lazy"` on an in-viewport
+              // image delays its paint by design - the wrong lever for "this is
+              // the LCP surface", which was the reasoning it shipped with.
+              // Measured live: 12 unique images, 6 eager, and the other 6 spread
+              // across 18 cells, so half the sheet assembled in front of the
+              // reader. Because the roll REPEATS, covering the unique pass costs
+              // exactly six more small requests (Next serves ~245px variants
+              // here). The roll variant keeps lazy: it is a screen down.
+              loading={i < eagerFrames ? "eager" : "lazy"}
+              priority={variant === "hero" && i < PRIORITY_FRAMES}
               // The roll's argument is carried by the DIMMING: an unselected
               // frame is one nobody ever sees again. Grayscale + a hard opacity
               // drop, so the few selects read as the only living images.
@@ -113,10 +127,13 @@ export function ContactSheet({
               // A slow breath on a few frames, so the sheet is alive without
               // the whole block drifting (which would echo home's wall).
               {...(variant === "hero" && i % 5 === 2
-                ? { "data-mkt-shot": "", style: { "--shot-i": i } as CSSProperties }
+                ? {
+                    "data-mkt-shot": "",
+                    style: { "--shot-i": i } as CSSProperties,
+                  }
                 : {})}
             />
-            <span className="absolute top-1 left-1.5 font-mono text-[10px] tabular-nums text-white/45 mix-blend-plus-lighter">
+            <span className="absolute top-1 left-1.5 font-mono text-[10px] text-white/45 tabular-nums mix-blend-plus-lighter">
               {String(i + 1).padStart(2, "0")}
             </span>
             {isSelect && <SelectMark index={i} />}
@@ -128,30 +145,65 @@ export function ContactSheet({
 }
 
 /**
- * The editor's mark. An SVG ellipse whose stroke DRAWS itself in on arrival
- * (the success-check recipe's stroke-draw mechanic, re-tokened here): the page
- * performs a curation pass in front of you. Careers is a rare surface, so the
- * animate-by-frequency discipline sanctions a real beat; the marks are the one
- * place this page spends it.
+ * THE EDITOR'S MARK, and the page's signature gesture. An SVG ellipse whose
+ * stroke DRAWS itself in (the success-check recipe's stroke-draw mechanic,
+ * re-tokened here): the page performs a curation pass in front of you. Careers
+ * is a rare surface, so the animate-by-frequency discipline sanctions a real
+ * beat; the marks are the one place this page spends it.
+ *
+ * ★ EXPORTED because it is the page's VOCABULARY, not the sheet's decoration
+ * (Will, 2026-08-29, on the philosophy row: "give it the page's vocabulary").
+ * It circles frames in the hero, frames in the roll, and the philosophy indices
+ * a screen later, so one gesture repeats at three scales instead of that row
+ * carrying a bare ordinal like any other startup's values grid.
  *
  * `--mark-i` staggers them so they land one after another rather than together.
- * Reduced motion renders them already drawn (globals.css clamps the duration,
- * and the CSS keeps the final state outside the media query).
+ * Reduced motion renders them already drawn (the final state sits OUTSIDE the
+ * media query, so the mark's meaning never depends on the animation).
  */
-function SelectMark({ index }: { index: number }) {
+export function SelectMark({
+  index,
+  strokeWidth = 2.2,
+  onReveal = false,
+}: {
+  index: number;
+  /**
+   * The stroke is `non-scaling`, so it renders at this many CSS px whatever the
+   * box is. A sheet frame is ~160px wide and wants 2.2; a 40px numeral box at
+   * the same weight reads as a printed badge rather than a pencil, so the small
+   * usage passes a lighter one.
+   */
+  strokeWidth?: number;
+  /**
+   * Draw when the mark's SECTION arrives rather than on the page-load clock.
+   * The hero is above the fold, so a load delay is exactly right there; a mark
+   * three screens down on that same clock finishes long before anyone sees it.
+   */
+  onReveal?: boolean;
+}) {
   return (
     <span
       className="mkt-select-mark absolute inset-0"
+      {...(onReveal ? { "data-on-reveal": "" } : {})}
       style={{ "--mark-i": index } as CSSProperties}
     >
-      <svg viewBox="0 0 100 75" className="size-full" fill="none" preserveAspectRatio="none">
+      {/* preserveAspectRatio="none": the ellipse takes the shape of whatever box
+          it is given, which is what lets one mark circle a 4:3 frame and a
+          near-square numeral without a second drawing. The skewed rotation that
+          falls out of the non-uniform scale is welcome, not a defect. */}
+      <svg
+        viewBox="0 0 100 75"
+        className="size-full"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <ellipse
           cx="50"
           cy="37.5"
           rx="41"
           ry="30"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth={strokeWidth}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
           transform="rotate(-6 50 37.5)"

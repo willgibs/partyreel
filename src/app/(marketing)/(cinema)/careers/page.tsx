@@ -3,7 +3,10 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { ContactSheet } from "@/components/marketing/sections/careers/contact-sheet";
+import {
+  ContactSheet,
+  SelectMark,
+} from "@/components/marketing/sections/careers/contact-sheet";
 import {
   CareersStory,
   HERO_SELECTS,
@@ -91,8 +94,15 @@ export default function CareersPage() {
             <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
               {CAREERS_INTRO.eyebrow}
             </Eyebrow>
+            {/* THE SITE LADDER, not a ramp of its own (Will, 2026-08-29). The
+                round shipped this at 5xl/6xl/7xl - PageHero's cinema `xl` step
+                with its top removed - which landed identically to every other
+                page at desktop and one step louder below it. His ruling: "let's
+                normalize the site ladder so that we don't have one unique size
+                ramp for a utility page." A photographic hero earns its presence
+                from the sheet behind the words, not from a private type step. */}
             <h1
-              className="mkt-line font-heading text-5xl text-balance sm:text-6xl md:text-7xl"
+              className="mkt-line font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ "--i": 1 } as CSSProperties}
             >
               {CAREERS_INTRO.headline}
@@ -127,7 +137,17 @@ export default function CareersPage() {
         <CareersStory />
 
         {/* Three lines, not four paragraphs. "Media is the hero" was retired
-            because everything above this now demonstrates it. */}
+            because everything above this now demonstrates it.
+
+            ! THE INDICES ARE CIRCLED, in the page's own hand (Will, 2026-08-29:
+              "give it the page's vocabulary"). This was the one beat arguing in
+              PROSE on a page whose whole thesis is that it argues in
+              photographs, and a bare 01/02/03 under a hairline is the values
+              grid any startup could publish. The mark is the sheet's own
+              SelectMark, not a new device, so one gesture now repeats at three
+              scales: frames in the hero, frames in the roll, indices here. It is
+              also true rather than decorative - there were four principles and
+              three survived the cut, so these ARE the selects. */}
         <SectionShell
           eyebrow="How we work"
           heading="Our core philosophy"
@@ -141,8 +161,15 @@ export default function CareersPage() {
                 style={{ "--i": index } as CSSProperties}
                 className="flex flex-col gap-2 border-t pt-5"
               >
-                <span className="text-xs font-medium tabular-nums text-muted-foreground/70">
-                  {String(index + 1).padStart(2, "0")}
+                {/* The numeral keeps a box the ellipse can take the shape of.
+                    A lighter stroke than the sheet's: `non-scaling-stroke` means
+                    2.2px renders the same on a 40px box as on a 160px frame, and
+                    at this size that reads as a printed badge, not a pencil. */}
+                <span className="relative inline-flex h-6 w-9 items-center justify-center self-start">
+                  <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <SelectMark index={index} strokeWidth={1.25} onReveal />
                 </span>
                 <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
                 <p className="text-sm text-pretty text-muted-foreground">
@@ -160,9 +187,7 @@ export default function CareersPage() {
           id="open-roles"
           eyebrow="Open roles"
           heading={
-            OPEN_ROLES.length > 0
-              ? "We're hiring"
-              : "Nothing open right now"
+            OPEN_ROLES.length > 0 ? "We're hiring" : "Nothing open right now"
           }
           subhead={
             OPEN_ROLES.length > 0
