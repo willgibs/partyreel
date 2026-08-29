@@ -450,6 +450,8 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. One mechanic was promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe. The page also briefly borrowed the concurrent lp/about CinemaChapter, then dropped it when it moved into the (cinema) route group instead, which is where it shipped.',
+  },
+  {
     // Careers-identity lab round (the careers round, 2026-08-28). Today's
     // /careers is a template instance: it shares its hero AND its numbered-
     // principles grid with /about (whose comment calls the shape "the careers
