@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
 
-// Catches notFound() thrown inside a CINEMA route (a bad /events/[slug]). Lives
+// Catches notFound() thrown inside a CINEMA route (a bad /events/[slug], /help/[slug], or /blog/[slug]). Lives
 // at the GROUP level because the slimmed (marketing) layout renders no chrome:
 // a boundary there would paint a bare, skinless 404. Here the cinema layout
 // still wraps it, so the 404 renders dark with a single header/footer (adding

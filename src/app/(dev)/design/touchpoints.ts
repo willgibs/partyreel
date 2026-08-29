@@ -36,6 +36,7 @@ export type TouchpointId =
   | "pricing-calculator"
   | "contact-identity"
   | "press-identity"
+  | "blog-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -449,6 +450,34 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. One mechanic was promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe. The page also briefly borrowed the concurrent lp/about CinemaChapter, then dropped it when it moved into the (cinema) route group instead, which is where it shipped.',
+  },
+  {
+    // The blog round (2026-08-28): /blog is the last marketing surface still
+    // on its route-completeness scaffold (centered hero, pill row, card boxes,
+    // and NO photography on a media product). Will ruled the move into the
+    // (cinema) group, an optional per-post `cover` with a deterministic
+    // fallback, and freeform tags with a redesigned rail; his brief for the
+    // shape was "a bespoke header/hero article, with a polished library
+    // beneath that can be filtered as needed". That makes DISTINCTNESS FROM
+    // /help the round's hard constraint (both hubs now open on the dark
+    // stage), so every direction opens on the lead STORY rather than on an
+    // instrument. V4 was added after a fresh-eyes pass found the first three
+    // each carry a structural flaw: V1 restates /help's index sheet, V2 is the
+    // most exposed to a 12-image manifest, and V3's fanning stack already
+    // ships in the footer of every page.
+    id: "blog-identity",
+    title: "Blog identity",
+    surface: "marketing",
+    note: "The index from zero: a type-led broadsheet, a photographic contact sheet, a desk of physical objects, or a letterboxed edit track",
+    variants: [
+      "The Broadsheet",
+      "The Contact Sheet",
+      "The Reading Table",
+      "The Cutting Room",
+    ],
+    decision: 4,
+    decisionNote:
+      "COMPOSITE on V4 (Will, 2026-08-28): \"Let's Frankenstein this thing. I like the cutting room as the primary direction. However, I love broadsheet's small 'notes' title and underline above the featured blog card... should say 'Blog' instead of 'Notes'. I'd like the cutting room's tags to be sticky on the left as you scroll. Rather than library cards stretching the full width of its column, let's do two to three columns of cards in the library (desktop, width depending). Very media-forward cards... When a tag is selected, there should be a polished motion transition, then cards reorganize.\" Wired the same day: the Broadsheet masthead (a small h1 + the drawn rule, a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage), the Cutting Room letterbox kept for the FEATURED card only (21:9 - a 16:9 hero measured 684px against an 820px fold), the library as 4/5 portrait cards at 1/2/3 columns, and the margin index made sticky. The filter became the two-beat grammar (exit together, then a two-axis FLIP reorganize) and useFlip was generalized to X+Y to carry it.",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

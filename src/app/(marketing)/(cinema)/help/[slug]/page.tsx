@@ -26,8 +26,11 @@ import {
 import { cn, formatEventDate } from "@/lib/utils";
 
 import { ArticleFeedback } from "@/components/marketing/help/article-feedback";
-import { ArticleToc } from "@/components/marketing/help/article-toc";
-import { HeadingAnchorsDelegate } from "@/components/marketing/help/heading-anchors";
+import {
+  ARTICLE_BODY_ID,
+  ArticleToc,
+} from "@/components/marketing/reading/article-toc";
+import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
 import { HelpSearchTrigger } from "@/components/marketing/help/help-palette";
 
 export function generateStaticParams() {
@@ -217,7 +220,10 @@ export default async function HelpArticlePage({
             {/* prose-headings:font-heading pulls the article's h2/h3 onto the
                 house heading face (Urbanist) so long-form matches the chrome;
                 the prose SCALE itself is untouched (the ruling keeps it). */}
-            <article className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading">
+            <article
+              id={ARTICLE_BODY_ID}
+              className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
+            >
               {content}
             </article>
             {/* One delegated island upgrades every heading's copy-link anchor. */}
@@ -297,7 +303,14 @@ export default async function HelpArticlePage({
                 <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
                 </p>
-                <ArticleToc headings={headings} />
+                {/* The reading spine, shared with the blog article (Will, 2026-08-29):
+                    both long-form surfaces are built from this component, so they run
+                    one behaviour. The target is the BODY, never the page - the feedback
+                    block and the footer below it must not count as reading. */}
+                <ArticleToc
+                  headings={headings}
+                  progress={{ targetId: ARTICLE_BODY_ID }}
+                />
               </nav>
             </aside>
           )}
