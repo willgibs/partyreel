@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
-import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -82,10 +81,16 @@ export default function AboutPage() {
         ]}
       />
 
-      {/* THE TITLE PAGE. The wordmark as plain display text (never the Logo
-          lockup) at the page's largest scale, because an About page IS a title
-          page: the header carries no argument and the story does the work.
-          One Reveal drives both lines — the eyebrow rises on the standard
+      {/* THE TITLE PAGE. The wordmark as the page's h1 at the largest step of
+          the shared lockup, because an About page IS a title page: the header
+          carries no argument and the story does the work. It is display TYPE,
+          never the Logo lockup.
+          The round shipped it as a <p>, which left the page with no h1 at all;
+          it is a heading again here. Nothing about the type changes, and the
+          lockup's `display` step carries the optical trim that lets the shared
+          gap measure ink to ink under a 160px line (see page-hero.tsx) — the
+          hero-spacing note Will raised.
+          One Reveal drives the stack: the eyebrow rises on the standard
           grammar while the wordmark's tracking closes from open to the heading
           face's own -0.03em (the .mkt-name recipe). Different properties, so
           the two entrances compose instead of fighting. */}
@@ -98,33 +103,17 @@ export default function AboutPage() {
           own ground there is no wrapper to fight. That also revives `lg:pt-44`,
           which the `!` on sm:pt-40 had been silently beating at every width
           above 1024px. */}
-      <section className="-mt-[var(--mkt-header-h)] pt-28 pb-16 sm:pt-40 sm:pb-20 lg:pt-44">
-        <Reveal className="flex flex-col items-center text-center">
-          <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-            {ABOUT_HERO.eyebrow}
-          </Eyebrow>
-          <p
-            data-mkt-reveal
-            style={{ "--i": 1 } as CSSProperties}
-            className="mkt-name [margin-inline-start:-0.045em] mt-1 py-[0.08em] font-heading text-[length:clamp(3.25rem,12vw,10rem)] leading-[0.85] whitespace-nowrap"
-          >
-            {ABOUT_HERO.wordmark}
-          </p>
-          <p
-            data-mkt-reveal
-            style={{ "--i": 2 } as CSSProperties}
-            className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground"
-          >
-            {ABOUT_HERO.subhead}
-          </p>
-          {/* h-11 px-6 text-base is the site's hero CTA size, shared verbatim
-                with cinema-hero and CtaBand: this is the one control pair the
-                page carries, so it matches the others exactly. */}
-          <div
-            data-mkt-reveal
-            style={{ "--i": 3 } as CSSProperties}
-            className="mt-8 flex flex-col items-center gap-3 sm:flex-row"
-          >
+      <PageHero
+        className="-mt-[var(--mkt-header-h)] pt-28 pb-16 sm:pt-40 sm:pb-20 lg:pt-44"
+        scale="display"
+        eyebrow={ABOUT_HERO.eyebrow}
+        heading={ABOUT_HERO.wordmark}
+        subhead={ABOUT_HERO.subhead}
+        actions={
+          // h-11 px-6 text-base is the site's hero CTA size, shared verbatim
+          // with cinema-hero and CtaBand: this is the one control pair the page
+          // carries, so it matches the others exactly.
+          <>
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link
                 href={MARKETING_CTA.href}
@@ -146,9 +135,9 @@ export default function AboutPage() {
                 {ABOUT_HERO.secondaryLabel}
               </Link>
             </Button>
-          </div>
-        </Reveal>
-      </section>
+          </>
+        }
+      />
 
       {/* The gather straddles the cut: its negative bottom margin pulls the
           paper chapter up under itself, so the album's midline lands on the
