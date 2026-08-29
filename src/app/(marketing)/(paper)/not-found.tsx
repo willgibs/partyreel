@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 
 import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
 
-// Catches notFound() thrown inside a PAPER route (a bad careers [slug] — help
-// moved to (cinema) in R6 and blog followed in the 2026-08-28 blog round, so
-// careers is the last [slug] this boundary serves; it still must not be
-// deleted). Group-owned twin of (cinema)/not-found.tsx: the paper layout wraps
-// it, so a reading-surface 404 stays a theme-following paper page with a single
-// header/footer (no chrome here or it double-stacks; a (marketing)-level
-// boundary would render skinless now that the group layouts own the chrome).
+// Catches notFound() thrown inside a PAPER route. ★ It now serves NO [slug] at
+// all: help left in R6, blog in the blog round, careers in the careers round, so
+// (paper) holds only the static trio (contact, privacy, terms) until those move
+// too. It still must not be deleted - a static page can call notFound(), and
+// without this boundary that render falls through to the ROOT one, which brings
+// its own chrome and double-stacks (the original live-caught gotcha). Group-owned
+// twin of (cinema)/not-found.tsx: the paper layout wraps it, so a 404 here stays
+// a theme-following paper page with a single header/footer. Add no chrome; a
+// (marketing)-level boundary would render skinless, since the group layouts own it.
+
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false, follow: false },

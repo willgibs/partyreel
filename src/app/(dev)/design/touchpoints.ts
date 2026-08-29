@@ -37,6 +37,7 @@ export type TouchpointId =
   | "contact-identity"
   | "press-identity"
   | "blog-identity"
+  | "careers-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -478,6 +479,36 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 4,
     decisionNote:
       "COMPOSITE on V4 (Will, 2026-08-28): \"Let's Frankenstein this thing. I like the cutting room as the primary direction. However, I love broadsheet's small 'notes' title and underline above the featured blog card... should say 'Blog' instead of 'Notes'. I'd like the cutting room's tags to be sticky on the left as you scroll. Rather than library cards stretching the full width of its column, let's do two to three columns of cards in the library (desktop, width depending). Very media-forward cards... When a tag is selected, there should be a polished motion transition, then cards reorganize.\" Wired the same day: the Broadsheet masthead (a small h1 + the drawn rule, a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage), the Cutting Room letterbox kept for the FEATURED card only (21:9 - a 16:9 hero measured 684px against an 820px fold), the library as 4/5 portrait cards at 1/2/3 columns, and the margin index made sticky. The filter became the two-beat grammar (exit together, then a two-axis FLIP reorganize) and useFlip was generalized to X+Y to carry it.",
+  },
+  {
+    // Careers-identity lab round (the careers round, 2026-08-28). Today's
+    // /careers is a template instance: it shares its hero AND its numbered-
+    // principles grid with /about (whose comment calls the shape "the careers
+    // idiom"), invents a team album that does not exist, restates the product
+    // pitch four times before the job appears, and buries the reel engine one
+    // click deep. Ruled before prototyping: cinema-led with paper chapters, no
+    // JobPosting JSON-LD while the listing is placeholder, the small-team hook
+    // KEPT (headcount and founder identity stay off the site), and copy leads,
+    // so each direction carries its own rewritten voice and one ruling settles
+    // layout and words together.
+    //
+    // Two directions were dropped BEFORE build, with reasons, so they are not
+    // re-proposed: THE CALL SHEET (a call sheet persuades by being full of
+    // facts we are forbidden from publishing, and it is mono-native against the
+    // R6 mono ruling) and THE WORK SAMPLE (its centrepiece was the live style
+    // switcher, already /reel's ruled flagship signature, and it would drag the
+    // engine into a marketing chunk that style-switcher-island.tsx exists to
+    // keep it out of). The proof survives as a LINK to /reel#styles.
+    id: "careers-identity",
+    title: "Careers identity",
+    surface: "marketing",
+    note: "The careers page from zero: an album of the build, an annotated handoff, or one role in one room",
+    variants: ["The contact sheet", "The handoff", "One room"],
+    // No `decision`: ALL THREE WERE REJECTED (Will, 2026-08-28), which is the
+    // most useful thing this entry records. Kept as the standing warning about
+    // what a careers page is not.
+    decisionNote:
+      "ALL THREE REJECTED (Will, 2026-08-28): 'a total back to the drawing board.' The directions were three costumes over the wrong CONTENT. (1) Engine internals do not belong on a careers page: 'why in the world am I reading about Reel CSS rendering on the careers page... this will all be handled during interviews' and 'we don't need to pour our heart out about the internal workings of our app.' D was 'the most visually engaging version but doesn't feel like a careers page at all', and its H1 (built from our own details-nobody-notices value) was 'laughably one of the least incentivizing things I could read as a prospect'. (2) E exposed 'the full state of our app to anybody online... never seen a careers page like this.' (3) C 'feels closer to an actual career listing than a careers page' and we are 'definitely not centering the entire careers page around a single role' (the General Application is ongoing and more listings are coming). Also ruled: stop dwelling on pre-launch, 'we're building this for launch.' SALVAGED into the shipped page: D's header, re-aimed off the reel engine onto global Partyreel concepts ('the subtle technical art kind of makes it feel cool in a developer this is cool work way versus repeating more images'), and C's metric row, which was then CUT with him for lack of honest content (no social proof exists, hiring facts read as boring). Shipped instead: a standard hub, hero -> company -> how we work -> a scalable listings section -> close.",
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

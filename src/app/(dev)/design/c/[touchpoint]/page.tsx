@@ -17,6 +17,7 @@ import { PricingCalculatorVariants } from "../../components/pricing-calculator-v
 import { ContactIdentityVariants } from "../../components/contact-identity-variants";
 import { PressIdentityVariants } from "../../components/press-identity-variants";
 import { BlogIdentityVariants } from "../../components/blog-identity-variants";
+import { CareersIdentityVariants } from "../../components/careers-identity-variants";
 import { ReelRevealVariants } from "../../components/reel-reveal-variants";
 import { ReelExperienceVariants } from "../../components/reel-experience-variants";
 import { EntryVariants } from "../../components/entry-variants";
@@ -62,6 +63,7 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "contact-identity": ContactIdentityVariants,
   "press-identity": PressIdentityVariants,
   "blog-identity": BlogIdentityVariants,
+  "careers-identity": CareersIdentityVariants,
   "reel-reveal": ReelRevealVariants,
   "reel-experience": ReelExperienceVariants,
 };

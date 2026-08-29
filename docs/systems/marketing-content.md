@@ -110,6 +110,110 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   off-screen. Eleven gather and a twelfth arrives late, because a complete rectangle says "this is all
   of it" and there is always one more phone in the room.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
+- **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — moved into the **(cinema)** group
+  (URL unchanged; every consumer addresses it by path). The arc is the home rhythm: dark hero → PAPER
+  (why we are building it + how we work) → dark **open roles** → CtaBand. The hero's one device is the
+  **marks wall** ([`careers-marks.tsx`](../../src/components/marketing/sections/careers/careers-marks.tsx)):
+  hand-built achromatic DOM art of the GLOBAL product loop (scan, phone, album, choose, reel, share,
+  keep, download) on the existing `[data-mkt-wall]` drift, under the `.mkt-careers-scrim` pool. ★ The
+  marks are DRAWN FROM SOLID BLOCKS and tuned at ~54px, because hairlines disappear at wall size; the
+  per-tile opacity cycle is coprime with the mark sequence so a fixed pattern stops reading as
+  wallpaper. Listings live in one scalable section
+  ([`role-listings.tsx`](../../src/components/marketing/sections/careers/role-listings.tsx)): real
+  vacancies render as rows from `OPEN_ROLES`, and the **General Application is permanent and
+  first-class** on its own muted plate labelled "Always open", never a peer vacancy card (the site must
+  never appear to advertise a job it does not have, the same invariant `IS_HIRING` protects for the
+  footer badge). The empty state (zero named roles) is built, not theoretical. **★ WHAT THIS PAGE IS
+  DELIBERATELY NOT** (Will's verdict on the first rebuild, do not walk back): not a tour of the
+  product's internals ("this will all be handled during interviews" — an engine-internals draft was
+  rejected outright), not centred on one role, not a pre-launch confessional, and not self-deprecating
+  in the header. The role page mirrors the cut (dark identity + facts + an apply jump → paper document
+  and form) and keeps the ARTICLE H1 exemption at `lg:text-6xl`; **no `JobPosting` JSON-LD while the
+  listing is placeholder copy**. The application form is the contact round's instrument treatment, with
+  the work link promoted (optional on purpose: the same form serves the General Application) and a
+  specific note prompt instead of a blank cover-letter box. Copy single-source:
+  [`careers.ts`](../../src/lib/constants/careers.ts), which is a content-policy `CLAIM_FILES` entry;
+  its `offer` block (incl. "Competitive compensation") is KEPT by Will's ruling, the posting being
+  meant to spark a conversation rather than close a hire.
+- **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — in the **(cinema)** group (URL
+  unchanged; every consumer addresses it by path). Shape: dark hero → ONE paper chapter carrying the
+  whole body → the ink footer. ★ **One cut, not stripes**: an earlier pass alternated per section and
+  Will's read was that it "feels overwhelming when it's every section on a shorter page", which is
+  also the ratified chapter doctrine (a cut introduces a concept group, "never stripe alternation").
+  ★ **THE PAGE ARGUES IN PHOTOGRAPHS.** Two prototypes were rejected as generic and the cause was
+  content, not layout: both were claims about ourselves ("why it matters" restated the product pitch,
+  "how we work" was a values list) on a page whose reader had already met the pitch twice. The middle
+  is now **the roll → the selects → the reel**
+  ([`careers-story.tsx`](../../src/components/marketing/sections/careers/careers-story.tsx)): the
+  contact sheet with everything but four frames dimmed to near-nothing (the dimming IS the argument),
+  then the survivors gathered into the album chrome, then the real rendered loop via
+  `InlineReelPlayer` (the PLAYER, not the engine, so the sanctioned-import boundary holds). Roughly
+  forty words carry all three. Do not reintroduce a paragraph section to explain a beat.
+  The hero is the **contact sheet**
+  ([`contact-sheet.tsx`](../../src/components/marketing/sections/careers/contact-sheet.tsx)): real
+  manifest frames butted tight, mono frame numbers, and a few circled as selects whose stroke DRAWS
+  itself in on arrival, because marking the selects is the product's core act performed above the
+  fold. The section is pulled UP under the overlay chrome (`-mt-[var(--mkt-header-h)]`, home's cinema-hero
+  move) so the sheet runs behind the nav and the scrim's top stop fades it out there: starting below
+  the header left a hard seam across the top of the page. ★ The hero's marks are POSITIONAL and low
+  in the sheet (index 18+ clears row one at all three column counts) because marks in the top row sit
+  under that chrome; the roll's marks are DERIVED from the kept-frame ids instead, so the four
+  photographs circled there are provably the four that lead the album a screen later, and a reorder
+  of the frame list cannot silently rot them. The two lists are separate on purpose: the hero repeats
+  the roll three times, so id-based selection would circle every keeper three times over.
+  Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
+  the footer the fanning pile), per the media doctrine in
+  [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
+  ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
+  The transparent-until-scrolled header this page introduced is now the pattern for any full-bleed
+  hero: see the glass-crossfade note in [design-system.md](design-system.md).
+  ★ The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
+  uniform 0.8 dim on hero frames is what lets the type win without crushing the images the page
+  exists to show. Listings use ONE row design for every entry with contact-sheet frame numbers; the
+  General Application's honesty lives in its DATA (no team at all, type "Always open", its own
+  action label), because with a single real role a second container read as inconsistency rather than
+  distinction. The close points at **/contact**, not the product: the footer carries a product CTA
+  immediately below. ★ The HEADINGS have to tell the story alone, because people skim them and read nothing
+  else: they run join our team → the best content gets lost in camera rolls → so we gather all of it in
+  one place → and turn the best into a highlight reel → our core philosophy → we're hiring. Two traps
+  live-caught there: a bare "Most of it is never seen again" under a hiring headline read as though
+  our new HIRES vanish (the heading now names the photos and where they are lost), and the beats open
+  with "So" and "And" so three captions read as one story. Headings also avoid the word "build" (it
+  had run three of four). Listings are individual CARDS on the house gray plate (`bg-muted/50`, the
+  contact form's surface) that go to white card stock on hover, like a print picked up off the desk;
+  the index and the facts share one ruled line across the card top, which is what gives it structure
+  rather than three stacked text blocks. The close is a small FOLLOW-UP inside the roles section
+  (smaller than a role title, tucked under the cards) rather than a CtaBand, whose heading scale
+  shouted over the list it was meant to trail. ★ Mono is confined to the contact sheet's frame
+  NUMERALS; the role and philosophy indices are Inter (the R6 ruling, applied 2026-08-29). Copy
+  single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
+  entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
+  being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
+  **`/careers/[slug]` is a SPEC SHEET** (ruled 2026-08-29): dark title block → a paper document
+  (reading column beside a sticky spec rail, the same two-column family help articles and the legal
+  shell use) → the application chapter on its own gray band. Each role carries an **EMBLEM** ([`role-emblem.tsx`](../../src/components/marketing/sections/careers/role-emblem.tsx)):
+  an achromatic SVG plate (a film reel, an empty slide mount, the album grid) shown on its listing
+  card and again as the avatar above its title, which the two pages **MORPH between** via the native
+  View Transitions API ([`role-morph.tsx`](../../src/components/marketing/sections/careers/role-morph.tsx),
+  mounted from a careers-scoped layout so the listener stays off every other route). ★ Same mechanism
+  as the blog round's cover morph, developed in parallel: when both land, the two delegates should
+  collapse into one parameterised component. ★ NOT React's `<ViewTransition>` - that flag swaps the
+  whole app's React runtime to a canary, which a marketing round does not get to decide. The CSS is
+  NAME-SCOPED because `::view-transition-*` are document-global like `@keyframes`. Emblems map by
+  slug with a deterministic integer-hash fallback, so a new listing is never emblem-less and server
+  and hydration agree. ★ It carries NO PHOTOGRAPHIC hero media on purpose.
+  The hub argues in photographs; this page is where somebody decides and wants information density,
+  and a contact-sheet frame borrowed as a header was considered and dropped because an image
+  unrelated to the actual role reads as decoration. The restraint straight after a photographic hub
+  is the point. Facts render as labelled pairs in the rail (a slashed inline run reads as a caption;
+  a spec wants terms you can scan down), list items are ruled rows rather than dot-bullets, and the
+  offer block keeps the green checks but takes a different SHAPE from the lists so three sections do
+  not read as one column. ★ `lg:self-stretch` on the rail is load-bearing (the help ToC's lesson:
+  `lg:items-start` otherwise collapses the aside and sticky gets zero travel), and the rail is
+  `order-first` on mobile so the facts precede the prose. The application chapter wraps the form in
+  context (what we need / what you do not need / what happens next) beside it, and INVERTS the
+  contact figure/ground: a white card on the gray band, because here the band is the separator.
+- **`/contact`** (rebuilt, the contact round 2026-08-28) — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).
   Contact's first field is a REQUIRED **topic Select** (single source

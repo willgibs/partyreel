@@ -89,6 +89,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
     liar, and "clicks" land on nothing because the tool's view is off. Verify visibility via computed style on
     the element + ancestors (not the screenshot), and for the interaction itself hand the human the 10-second
     look (the S5 anon-confirm modal was verified this way). Don't "fix" working UI chasing the dimmed frame.
+    The careers round hit the same liar in a third costume: frames came back with the page's TEXT LAYER
+    missing entirely (also all-black and all-white frames) while `elementsFromPoint`, `getComputedStyle`
+    and `getBoundingClientRect` all agreed the type was painted, opaque and topmost. Forcing a repaint
+    (any style write) or simply taking a SECOND screenshot returns the true frame, so never treat one
+    screenshot as evidence that something is absent.
 
 ## Long-lived-session tests (the presign-roll soak)
 
@@ -109,21 +114,34 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
 
 ## Dev-server CSS (localhost only)
 
-- ★ **`next dev` can serve STALE Tailwind CSS, and the mechanism is that TURBOPACK REUSES CHUNK
-  FILENAMES.** Dev chunk URLs are not content-hashed (`[root-of-the-server]__0l0bs12._.css`), so any
-  browser holding that URL in cache — including one that last saw it from a DIFFERENT WORKTREE on the
-  same port — happily serves you another tree's stylesheet, or a truncated one. It has now cost three
-  rounds. The symptoms are all "correct code against a stale bundle": a brand-new utility with no
-  effect (2026-08-28, `lg:grid-cols-[1fr_1.6fr]` + `min-h-36`; every class that "worked" pre-existed
-  elsewhere in the repo, which is what makes it invisible), "the class is in the DOM, the breakpoint
-  matches, and no rule exists" (the press round, two hours), and a hydration mismatch where client and
-  server disagree. Reproduced head-on 2026-08-29: two browsers on ONE dev server, one showing the h1 at
-  160px and the other at 16px off a 172-rule stylesheet.
-  **The fixes, cheapest first:** rewrite each `<link rel=stylesheet>` href with a unique query param
-  (forces a fresh URL, no restart needed, and it works mid-session); or use a port no sibling worktree
-  has used; or verify on the preview deploy. **The 5-second ground truth** is the build, not the dev
-  server: `grep -r "<value>" .next/static/chunks/*.css`. A new-to-the-repo utility that has no effect
-  in dev is NOT proof the class is wrong — never rewrite working classes chasing dev.
+- ★ **`next dev` can serve STALE Tailwind CSS, and there are TWO causes. The first is that TURBOPACK
+  REUSES CHUNK FILENAMES.** Dev chunk URLs are not content-hashed
+  (`[root-of-the-server]__0l0bs12._.css`), so any browser holding that URL in cache — including one
+  that last saw it from a DIFFERENT WORKTREE on the same port — happily serves you another tree's
+  stylesheet, or a truncated one. It has now cost four rounds. The symptoms are all "correct code
+  against a stale bundle": a brand-new utility with no effect (2026-08-28,
+  `lg:grid-cols-[1fr_1.6fr]` + `min-h-36`; every class that "worked" pre-existed elsewhere in the
+  repo, which is what makes it invisible), "the class is in the DOM, the breakpoint matches, and no
+  rule exists" (the press round, two hours), a hydration mismatch, and — the careers round —
+  `w-[52%]` computing to `0px` while a `grid-cols-[repeat(auto-fill,…)]` collapsed to one full-width
+  column. It reaches the SERVED PAGE too, not just CSS: the same round had correct markup in
+  `curl` while the browser rendered the previous layout, fixed instantly by a `?v=2` on the URL.
+  **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
+  so an orphan can keep winning the port and serve a bundle compiled before your files existed,
+  which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page
+  that renders with NO stylesheet at all, because the prerendered HTML references chunk hashes the
+  running server no longer has (they 404/500).
+  **The fixes, cheapest first:** add a unique query param to the URL (or to each
+  `<link rel=stylesheet>` href) — a fresh URL, no restart, works mid-session; confirm exactly ONE
+  server owns the port (`ps aux | grep "[n]ext-server"` and
+  `lsof -nP -iTCP -sTCP:LISTEN | grep 3000`, else `pkill -f next-server` and start one); use a port
+  no sibling worktree has used; or verify on the preview deploy. **Never run `pnpm build` while any
+  server is up** — it rewrites `.next` underneath it and produces the same stale-hash 404s.
+  **The 5-second ground truth** is the build, not the dev server:
+  `grep -r "<value>" .next/static/chunks/*.css` (CSS escapes `%` as `\%` and `/` as `\/`, so grep
+  the escaped form or you will "prove" a class is missing when it is there). A new-to-the-repo
+  utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
+  chasing dev.
 
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the
