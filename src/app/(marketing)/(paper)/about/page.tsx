@@ -158,7 +158,7 @@ export default function AboutPage() {
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {[
-              { label: "Press & brand", href: "/press" },
+              { label: "Press", href: "/press" },
               { label: "Careers", href: "/careers" },
               { label: "Contact", href: "/contact" },
             ].map((link) => (

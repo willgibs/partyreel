@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
  */
 
 export const PRESS_COPY = {
-  eyebrow: "Press & brand",
+  eyebrow: "Press",
   h1: "Take what you need.",
   standfirst:
     "The boilerplate, the fact sheet, and the brand files, ready to quote and ready to publish. Anything else, write to help@partyreel.com.",

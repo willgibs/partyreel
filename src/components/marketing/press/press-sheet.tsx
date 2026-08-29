@@ -102,7 +102,7 @@ function Frame({
         {/* Stacked below sm: at 375px a two-column sheet leaves ~50px of caption
             beside the chips, which truncated "Mark, dark chip" to "Mark…" and threw
             away the one thing that says WHICH file you are taking. Label, then actions. */}
-        <div className="flex min-h-11 flex-col items-start gap-1.5 bg-foreground/8 px-3 py-2 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex min-h-11 flex-col items-start gap-1.5 bg-muted px-3 py-2 sm:flex-row sm:items-center sm:gap-2">
           <span className="max-w-full truncate text-xs text-muted-foreground">
             {label}
           </span>
@@ -145,12 +145,13 @@ export function PressSheet() {
     <Reveal>
       {/* ★ THE REBATE. On the ink ground the 3px --gap-gallery read on its own; on paper,
           white plates against a near-white page made the grid dissolve. The list paints
-          --border and pads itself by the same 3px, so every gap becomes a hairline and
-          the sheet gets a defined outer edge, which is exactly how frames sit in the
-          rebate of real film. Keep the padding and the gap the same value. */}
+          --border so the gaps become hairlines: how frames sit in the rebate of real film.
+          The OUTER edge is a 1px border, not another 3px band, which read heavy on paper
+          (Will). The internal gap stays --gap-gallery: that 3px is the album tell and is
+          the one measurement here not to negotiate. */}
       <ul
         data-mkt-isolate
-        className="grid grid-cols-2 gap-[var(--gap-gallery)] rounded-tile bg-border p-[var(--gap-gallery)] sm:grid-cols-4"
+        className="grid grid-cols-2 gap-[var(--gap-gallery)] overflow-hidden rounded-tile border bg-border sm:grid-cols-4"
       >
         <Frame
           index={0}
@@ -270,7 +271,24 @@ export function PressSheet() {
           <span className="size-[46%] bg-[#101010]" />
         </Frame>
 
-        <Frame index={7} plate="bg-white" label="Type: Urbanist 700">
+        {/* The one frame that is not a file: a designer laying out a piece needs the FACE,
+            and the honest way to hand that over is a pointer to the open-source family
+            rather than shipping font binaries in a press kit. */}
+        <Frame
+          index={7}
+          plate="bg-white"
+          label="Type: Urbanist 700"
+          actions={
+            <a
+              href="https://fonts.google.com/specimen/Urbanist"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-action-sm border border-foreground/25 px-2 py-1 text-[11px] font-medium text-foreground/80 transition-[color,border-color,background-color,transform] duration-150 ease-[var(--ease-emphasis)] hover:border-foreground/50 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]"
+            >
+              Get it
+            </a>
+          }
+        >
           <span className="font-heading text-6xl text-[#101010]">Aa</span>
         </Frame>
       </ul>

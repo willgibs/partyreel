@@ -23,7 +23,7 @@ import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Press & brand",
+  title: "Press",
   description:
     "The Partyreel press kit: brand marks, an app icon, a share card and a QR code, plus the boilerplate in two lengths and a fact sheet. Ready to quote, ready to publish.",
   alternates: { canonical: "/press" },
@@ -69,6 +69,20 @@ function factHref(label: string, value: string): string | null {
   return null;
 }
 
+/**
+ * The page title. Hoisted because it is a TASTE CALL Will may want to keep turning, and
+ * it should be one line to change rather than a hunt through the JSX.
+ *
+ * "Take what you need" was the first cut; the note on it was that the concision is right
+ * but the words are not quite there. "Need" rations, which is the opposite of what a
+ * press kit means, so this is the generous form of the same sentence. Alternates
+ * considered and left on the table: "Help yourself." (warmest, and the host's own line,
+ * but it can read as "I am not helping you" on a page whose close offers help),
+ * "Take it from here." (invites the writer to run with the story; a shade clever),
+ * "Yours to use." (clearest, least warm).
+ */
+const PAGE_TITLE = "All yours.";
+
 const INLINE_LINK =
   "underline decoration-current/30 underline-offset-4 transition-colors duration-150 hover:decoration-current";
 
@@ -78,7 +92,7 @@ export default function PressPage() {
       <BreadcrumbJsonLd
         items={[
           { name: "Home", href: "/" },
-          { name: "Press & brand", href: "/press" },
+          { name: "Press", href: "/press" },
         ]}
       />
 
@@ -88,13 +102,13 @@ export default function PressPage() {
         <Container className="flex flex-col items-center pt-24 pb-20 text-center sm:pt-28 sm:pb-24">
           <TextsReveal className="flex flex-col items-center gap-6">
             <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
-              Press &amp; brand
+              Press
             </Eyebrow>
             <h1
               className="mkt-line mx-auto max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ "--i": 1 } as CSSProperties}
             >
-              Take what you need.
+              {PAGE_TITLE}
             </h1>
             <p
               className="mkt-line mx-auto max-w-xl text-lg text-pretty text-muted-foreground"
@@ -147,7 +161,7 @@ export default function PressPage() {
               download
               className={cn("text-sm font-medium", INLINE_LINK)}
             >
-              Download all, {formatKitBytes(PRESS_KIT_BYTES)}
+              Download all ({formatKitBytes(PRESS_KIT_BYTES)})
             </a>
           }
         >
@@ -214,11 +228,15 @@ export default function PressPage() {
             {PRESS_FACTS.map(({ label, value }) => {
               const href = factHref(label, value);
               return (
+                // A real two-column split with a gutter down the middle, rather than the
+                // value hugging a fixed-width label. The values then read as their own
+                // column on the right, which is how a spec sheet is scanned: labels down
+                // one edge, answers down the other (Will).
                 <div
                   key={label}
-                  className="flex flex-col gap-1 py-3.5 sm:flex-row sm:items-baseline sm:gap-8"
+                  className="grid gap-1 py-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.9fr)] sm:items-baseline sm:gap-12"
                 >
-                  <dt className="w-36 shrink-0 text-sm font-medium">{label}</dt>
+                  <dt className="text-sm font-medium">{label}</dt>
                   <dd
                     className={cn(
                       "text-sm text-pretty text-muted-foreground",
@@ -247,7 +265,7 @@ export default function PressPage() {
         <section className="border-t py-20 sm:py-24">
           <Container className="flex flex-col items-center gap-5 text-center">
             <h2 className="max-w-2xl font-heading text-2xl text-balance sm:text-3xl">
-              Need something that is not here?
+              Need anything else?
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">
               Interviews, higher-resolution assets, or a walkthrough of the
