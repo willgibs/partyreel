@@ -35,6 +35,7 @@ export type TouchpointId =
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
+  | "press-identity"
   | "reel-reveal"
   | "reel-experience";
 
@@ -429,6 +430,25 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 2,
     decisionNote:
       "COMPOSITE on V2 (Will, 2026-08-28): 'I like the V2 desk layout most for the form section, as it feels very structured, but I'd like to use the V1 note design and the v2 form itself to jazz up the visual design.' Wired same-day: the desk structure + facts rows, the note's stamp + letterhead on the card, the Polaroid spread DROPPED ('so it doesn't feel too busy'), the seven open chips collapsed to a clean dropdown ('takes a ton of room'), and the card on the Biograph gray panel with white fields (his biograph.com/contact reference). V3's numbered-index grammar was grafted onto the self-serve directory.",
+  },
+  {
+    // The /press redesign (2026-08-28). The page is the last wireframe-grade
+    // surface on the marketing site and has no metaphor, while every elevated
+    // surface here is a physical object. Two full page-chapter directions,
+    // rendering IDENTICAL content from constants/press.ts + PRESS_KIT so the
+    // ruling is about identity alone. Will's constraint: the logo changes
+    // before launch, so this round builds the SYSTEM (a manifest, a rebuildable
+    // kit zip, rules written against the mark's own box), never a shrine to the
+    // current glyph. `decision` stays unset until Will rules V1 vs V2 (a hybrid
+    // of V1's sheet with V2's register is an expected outcome).
+    id: "press-identity",
+    title: "Press identity",
+    surface: "marketing",
+    note: "Two directions for the press kit, same content and IA throughout: the assets as a photographic contact sheet on ink, or as a type-foundry specimen sheet on paper",
+    variants: ["The contact sheet", "The specimen sheet"],
+    decision: 1,
+    decisionNote:
+      'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. One mechanic was promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe. The page also briefly borrowed the concurrent lp/about CinemaChapter, then dropped it when it moved into the (cinema) route group instead, which is where it shipped.',
   },
   {
     // Reel reveal-moment lab round (2026-07-03): the beat where a host who just

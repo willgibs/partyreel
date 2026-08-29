@@ -163,7 +163,7 @@ ${helpLinks}
 ## Company
 
 - [About](${url("/about")}): Why ${SITE_NAME} exists.
-- [Press and brand](${url("/press")}): The boilerplate, the fact sheet, and brand marks.
+- [Press](${url("/press")}): The boilerplate, the fact sheet, and the brand files.
 - [Blog](${url("/blog")}): Notes on event photography and the product.
 ${blogLinks}
 - [Privacy policy](${url("/privacy")})

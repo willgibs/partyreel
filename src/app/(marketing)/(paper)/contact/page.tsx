@@ -72,8 +72,8 @@ const DIRECTORY: {
     linkLabel: "Browse the guides",
   },
   {
-    title: "Press & brand",
-    body: "The boilerplate, the fact sheet, and brand marks, ready to take.",
+    title: "Press",
+    body: "The boilerplate, the fact sheet, and brand files, ready to take.",
     href: "/press",
     linkLabel: "Open the press kit",
   },

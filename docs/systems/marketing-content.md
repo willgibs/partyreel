@@ -75,16 +75,23 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - ★ **THE UTILITY-PAGE RHYTHM (Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
   EVERY utility page** — the identity pages (about, blog, careers, press) and, as they are reworked,
   legal, privacy and contact too. "With the cinema hero, we need to go back to the dark nav to match."
+  The dark ground BOOKENDS these pages rather than interrupting them: a short utility page has too few
+  sections to alternate chapters the way the long marketing pages do.
   **The paper/cinema split is per-CHAPTER, not per-page.** A page takes the rhythm by JOINING THE
   `(cinema)` GROUP and wrapping its reading body in ONE `PaperChapter` — which is exactly what /help and
   all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
   dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
   `(paper)` survives only until the remaining pages have moved.
-  ★ **Do NOT build this from the paper side.** The /about round first shipped it as a `(spotlight)`
+  ★ **A DARK HERO DECIDES THE ROUTE GROUP**, because a dark hero must be paired with a dark nav (Will)
+  and the header skin is chosen by the GROUP LAYOUT, which a page cannot override from inside. That one
+  sentence is the whole rule: the ground your hero wants is not a page-level choice.
+  ★ **Do NOT build it from the paper side.** The /about round first shipped it as a `(spotlight)`
   group whose sticky header wore a hand-assembled `--gallery*` set, and that set is always one token
   behind: it omitted `--popover`, so the in-flow nav panels rendered white-on-white at ~1.07:1. The
   measurement and the rule live in [design-system.md](design-system.md).
+  ★ **Do NOT drop a dark chapter into the MIDDLE of one of these pages** either. The register for a
+  set-apart block inside a paper body is `bg-muted/40` with `border-y` (the /contact panel surface).
 - **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(cinema)/about/gather.tsx)) —
   About opens on the cinema room and BOOKENDS the page in dark against the ink footer, leaving the
   reading body in the middle (the wordmark as the page's h1 at the lockup's `display` step, never the
@@ -204,6 +211,46 @@ comparison content stays CATEGORY-level, never rival brand names; the honest whe
 is deliberate credibility, don't "fix" it into pure praise. The press boilerplate + fact sheet live
 in [`constants/press.ts`](../../src/lib/constants/press.ts) (one quotable home: /press + the llms
 builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
+
+**`/press` = THE CONTACT SHEET (ruled 2026-08-28).** In `(cinema)` on the utility-page rhythm above:
+masthead hero, then ONE `PaperChapter` carrying the whole body. The page is titled **"Press"**
+everywhere (header panel, footer column, /contact directory, title, breadcrumb, H1, OG card): the old
+"Press & brand" combo was two labels for one page and "brand" did no work a reporter needed. Hero =
+the shared `PageHero` at `scale="display"`, eyebrow "Media assets" over H1 "Press" (both hoisted to
+constants in the page; a taste call Will has turned three times).
+★ **AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL** (Will, 2026-08-29, arriving from the footer's
+"Press" link). A 160px masthead is the loudest promise on the page, so it has to be the word the reader
+just clicked; a link reading Press over a masthead reading "Media" lands as a non-sequitur. Anything
+more specific belongs in the EYEBROW, which carries no word limit (the H1 does: see page-hero.tsx).
+
+**The sheet** is the kit as a photographic proof sheet: eight numbered frames on the 3px
+`--gap-gallery` album grid, opening the paper body rather than riding in the dark with the hero, so
+the body reads as one continuous surface. ★ The frames are deliberately NOT all the same kind of thing
+(artwork, an app icon, the share card, a working QR, the ink, the type) — a uniform grid of marks is a
+downloads table wearing a metaphor; do not "tidy" it. ★ EVERY FRAME IS OURS: the first cut used two
+stock event photos and Will pulled them ("just feels weird to say here's a random stock photo"), which
+was right twice, since a press page must not hand a publisher media whose rights we do not hold.
+★ Plate by LEGIBILITY, not variety: white behind ink-drawn artwork, ink behind white-drawn artwork,
+and the two grounds are LITERAL colours (`PLATE_PAPER` / `BRAND_HEX`), never theme utilities — a plate
+is the artwork's own ground and must not follow a token flip. ★ THE REBATE: the grid paints `--border`
+and insets itself by the same `--gap-gallery`, so every gap is a hairline; outer inset and inner gap
+are one value or it stops reading as a rebate.
+
+**The body is a sticky two-column spine**: Assets / Words / Fact sheet pinned left, their content on
+the right, each one a deep-link target. Every section's content ends at ONE SHARED RIGHT EDGE and the
+narrower ones simply START further right (`lg:ml-auto` against a width cap) rather than widening, so
+the gap between a pinned heading and its answer grows with the viewport while the reading measure does
+not. Words and the fact sheet share one `max-w-2xl`. Each pinned column carries a pointer under its
+note (the kit download, then /contact, then /how-it-works), and the glyph follows the ACTION rather
+than variety: navigation takes `LearnChevron`, a download takes the hero's down arrow. The close is
+centred, so the spine resolves before the cut to the footer. ★ NO BRAND-GUIDELINES SECTION, by ruling —
+clear space / minimum size / misuse are brand-book material; only the two press-business usage points
+(quoting needs no permission, how to write the name) ship, as quick hits beside the copy they govern.
+
+The kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` + `scripts/build-press-qr.mjs`
++ the committed zip, guarded by `press-kit.test.ts`, which parses the archive back and CRC-checks
+every member against the files on disk), so the pre-launch logo change is a files-and-rows edit with
+no component work. Explored range + the ruling: `/design/c/press-identity`.
 
 **The promise-neutralization doctrine (Will, 2026-08-28):** published copy commits to OUTCOMES (a
 reply, a review, host control), never to WHO or WHAT delivers them — no "a real person answers", no

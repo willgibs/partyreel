@@ -27,9 +27,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
   article's contact path — swap that article's deletion section when it ships); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
-  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** (does the R6 mono ruling extend
-  to press facts / legal status lines / GoDeeper captions — Will rules); `/press` grows into the
-  partnerships/ambassador kit; post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
+  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
+  settled on `/press` 2026-08-28: mono holds data only, Inter for every label and descriptor);
+  `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
@@ -41,7 +41,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   moves); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
-  behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge)
+  behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
+  **pick ONE hero entrance for `PageHero`** (it uses the chapter-1 rise, while /help, /contact, /blog
+  and /careers all arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line`
+  forces `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
+  `opacity: 0` rest state is why those four pages gate their own h1's paint. Its own round once the
+  blog and careers branches land, never inside a merge)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a

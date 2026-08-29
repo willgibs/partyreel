@@ -51,6 +51,12 @@ site, these are the ways the *test tooling* misreports, so a working change look
   `cloneNode` (no running transition) resolved the end state correctly. For a state-driven restyle on a
   transitioning element: clone-probe, or drive real Chrome. Motion FEEL and
   `prefers-reduced-motion` (not emulable here) are never tooling-judgeable — those are the human's session.
+- **Focus states do not paint while `document.hasFocus()` is false**, and `matches(':focus')` returns
+  false with them, even though `document.activeElement` is correct. Any `:focus-*` styling is therefore
+  unverifiable from a backgrounded seat: an `!important` `a:focus{outline}` control refuses to paint
+  too, which is the check that proves it is the seat and not the CSS. Hand a keyboard pass to the human
+  rather than "fixing" working CSS. (Found on the press sheet's light table, whose keyboard twin is
+  `:focus-within` — see [design-system.md](design-system.md).)
 - **Browser downloads land in an iCloud dir, and the network panel can lie about them.** In Will's Chrome,
   downloads save to `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/` — NOT `~/Downloads`
   (confirmed 2026-08-06; a "missing" export zip was sitting there). For the export Worker specifically, the
@@ -103,13 +109,21 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
 
 ## Dev-server CSS (localhost only)
 
-- **`next dev` can serve STALE Tailwind CSS that's missing newly-introduced utilities** — resistant to
-  server restarts AND an `.next` wipe in the observed case (2026-08-28: a brand-new
-  `lg:grid-cols-[1fr_1.6fr]` + `min-h-36` never reached the browser; every class that "worked"
-  pre-existed elsewhere in the repo, which is what makes this trap invisible). `pnpm build` emitted them
-  correctly (`grep -r "<value>" .next/static/chunks/*.css` is the 5-second ground-truth check). So: a
-  new-to-the-repo utility that has no effect in dev is NOT proof the class is wrong — check the build
-  CSS, then verify on the preview deploy. Don't rewrite working classes chasing dev.
+- ★ **`next dev` can serve STALE Tailwind CSS, and the mechanism is that TURBOPACK REUSES CHUNK
+  FILENAMES.** Dev chunk URLs are not content-hashed (`[root-of-the-server]__0l0bs12._.css`), so any
+  browser holding that URL in cache — including one that last saw it from a DIFFERENT WORKTREE on the
+  same port — happily serves you another tree's stylesheet, or a truncated one. It has now cost three
+  rounds. The symptoms are all "correct code against a stale bundle": a brand-new utility with no
+  effect (2026-08-28, `lg:grid-cols-[1fr_1.6fr]` + `min-h-36`; every class that "worked" pre-existed
+  elsewhere in the repo, which is what makes it invisible), "the class is in the DOM, the breakpoint
+  matches, and no rule exists" (the press round, two hours), and a hydration mismatch where client and
+  server disagree. Reproduced head-on 2026-08-29: two browsers on ONE dev server, one showing the h1 at
+  160px and the other at 16px off a 172-rule stylesheet.
+  **The fixes, cheapest first:** rewrite each `<link rel=stylesheet>` href with a unique query param
+  (forces a fresh URL, no restart needed, and it works mid-session); or use a port no sibling worktree
+  has used; or verify on the preview deploy. **The 5-second ground truth** is the build, not the dev
+  server: `grep -r "<value>" .next/static/chunks/*.css`. A new-to-the-repo utility that has no effect
+  in dev is NOT proof the class is wrong — never rewrite working classes chasing dev.
 
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the
@@ -132,6 +146,7 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   Supabase/R2/Stripe allow-list, so sign-in, upload, email round-trips, and checkout fail there BY DESIGN —
   the policy home is CLAUDE.md "Local dev vs. live testing"; red-team those flows on the launch-prep alias.
   (2) They build with the UNSCOPED preview env: `NEXT_PUBLIC_SITE_URL` inlines to the prod URL (absolute
-  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is absent (the `/design` gate is
-  unreachable). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
+  QR/share/OG links point at partyreel.com) and `DESIGN_PREVIEW_KEY` is now present (an UNSCOPED `preview`
+  row was added 2026-08-28 alongside the `@launch-prep` one, so `/design` opens on any `lp/*` alias with
+  `?key=`; verified 200 with the key and 404 without). (3) Each alias is a FRESH origin — no stored `theme` in localStorage, so system-theme
   behavior can differ from the long-lived launch-prep origin (the stored-theme trap above).

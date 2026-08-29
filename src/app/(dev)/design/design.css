@@ -1136,13 +1136,18 @@
 /* The loop-pause mirror: use-ambient-pause writes data-paused on the stage (or
    the loop element itself) and every ambient animation freezes in place. */
 [data-paused="true"]
-  :is([data-mkt-shot], [data-mkt-pulse], [data-mkt-marquee], [data-mkt-progress]),
-:is(
+  :is(
     [data-mkt-shot],
     [data-mkt-pulse],
     [data-mkt-marquee],
     [data-mkt-progress]
-  )[data-paused="true"] {
+  ),
+:is(
+  [data-mkt-shot],
+  [data-mkt-pulse],
+  [data-mkt-marquee],
+  [data-mkt-progress]
+)[data-paused="true"] {
   animation-play-state: paused;
 }
 
@@ -1167,9 +1172,7 @@
   --mkt-drop-shadow:
     0 1px 2px 0 color-mix(in oklab, var(--foreground) 12%, transparent),
     0 4px 20px 0 color-mix(in oklab, var(--foreground) 14%, transparent);
-  --mkt-drop-shadow-off:
-    0 1px 2px 0 transparent,
-    0 4px 20px 0 transparent;
+  --mkt-drop-shadow-off: 0 1px 2px 0 transparent, 0 4px 20px 0 transparent;
   --mkt-drop-lift-scale: 1.05;
   --mkt-drop-lift-dur: 200ms;
   --mkt-drop-tilt-max: 10;
@@ -1316,8 +1319,8 @@
 [data-mkt-pilezone][data-landing] {
   animation-name: mkt-pile-down, mkt-pile-up;
   animation-duration: var(--mkt-drop-down-dur), var(--mkt-drop-up-dur);
-  animation-timing-function: var(--mkt-drop-settle-ease),
-    var(--mkt-drop-settle-ease);
+  animation-timing-function:
+    var(--mkt-drop-settle-ease), var(--mkt-drop-settle-ease);
   animation-delay: 0ms, var(--mkt-drop-down-dur);
   animation-fill-mode: forwards, forwards;
   will-change: transform;
@@ -1483,4 +1486,68 @@
   height: 100%;
   z-index: 2;
   pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE PRESS IDENTITY ROUND (2026-08-28, lab-local)
+
+   Two directions for /press. V1 (the contact sheet) needs one interaction the
+   house sheet does not carry yet; V2 (the specimen sheet) needs a stagger on an
+   existing hook. Everything else reuses [data-mkt-cut] / [data-mkt-rule].
+
+     [data-press-sheet]  THE LIGHT-TABLE ISOLATE. Hover or keyboard-focus one
+                         frame and the REST of the sheet steps back, instead of
+                         the hovered frame growing. That is what you physically
+                         do at a light table: isolate a frame. Replaces the
+                         crop-mark-brackets idea, which was invisible on mobile,
+                         on first paint, and in a screenshot.
+
+   Deliberate details, all load-bearing:
+   - @media (hover: hover) so a touch TAP can never leave the sheet stuck dimmed
+     (the .mkt-stack precedent in marketing.css).
+   - 140ms in / 220ms out. Exits are usually faster than entrances; a skimmed row
+     is the design system's stated exception, because a slow un-dim reads sticky.
+   - The dim lives ONLY inside the transition block's selector, so the resting
+     state is full opacity: reduced motion and no-hover devices see every frame
+     at full strength, which is the correct final state.
+   - The keyboard twin is :focus-within on the SHEET, and it took three tries.
+     :focus-visible on the frame is dead code (the frame is an <li> and never
+     takes focus). :has(:focus-visible) then matched in element.matches() but the
+     dim never applied: Chromium does not invalidate a :has() ancestor on a
+     focus-visible change the way it does on :hover, so the rule was live in the
+     stylesheet, matching, and inert. :focus-within propagates natively with no
+     :has() involved, so it just works. The usual :focus-within objection (a
+     mouse click pins the state on) is not a bug HERE: on a light table, clicking
+     a frame and having it stay picked is the behaviour you want.
+   - ★ THE ENTRANCE ANIMATION CANNOT LIVE ON THE SAME ELEMENT. mkt-cut runs with
+     animation-fill-mode: both, and a filling animation beats every author-normal
+     declaration in the cascade, so a frame carrying both the cut and this rule
+     stays pinned at the cut's final opacity:1 and the dim silently never applies.
+     The direction puts the cut on an inner layer for exactly this reason.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+[data-press-frame] {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  [data-press-sheet] [data-press-frame] {
+    transition: opacity 220ms var(--dir-ease);
+  }
+  [data-press-sheet]:has([data-press-frame]:hover)
+    [data-press-frame]:not(:hover),
+  [data-press-sheet]:focus-within [data-press-frame]:not(:focus-within) {
+    opacity: 0.5;
+    transition-duration: 140ms;
+  }
+}
+
+/* V2's only motion: the FURNITURE moves, the type never does. [data-mkt-rule]
+   already draws a hairline in from the left, but with no stagger slot, so the
+   register's rules would all land at once. --i is applied as a delay here rather
+   than inline so the reduced-motion case (no transition at all) stays clean. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-press-register] [data-mkt-rule] {
+    transition-delay: calc(var(--i, 0) * 90ms);
+  }
 }
