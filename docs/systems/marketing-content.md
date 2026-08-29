@@ -214,11 +214,14 @@ builders). Follow-ons: the ROADMAP "AI-SEO content arc" bucket.
 
 **`/press` = THE CONTACT SHEET (ruled 2026-08-28).** In `(cinema)` on the utility-page rhythm above:
 masthead hero, then ONE `PaperChapter` carrying the whole body. The page is titled **"Press"**
-everywhere (header panel, footer column, /contact directory, title, breadcrumb, eyebrow, OG card):
-the old "Press & brand" combo was two labels for one page and "brand" did no work a reporter needed.
-Hero = the shared `PageHero` at `scale="display"`, eyebrow "Press" over H1 "Media" (hoisted to a
-constant in the page; a taste call Will has turned twice, and now bound to the step's one-or-two-word
-contract).
+everywhere (header panel, footer column, /contact directory, title, breadcrumb, H1, OG card): the old
+"Press & brand" combo was two labels for one page and "brand" did no work a reporter needed. Hero =
+the shared `PageHero` at `scale="display"`, eyebrow "Media assets" over H1 "Press" (both hoisted to
+constants in the page; a taste call Will has turned three times).
+★ **AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL** (Will, 2026-08-29, arriving from the footer's
+"Press" link). A 160px masthead is the loudest promise on the page, so it has to be the word the reader
+just clicked; a link reading Press over a masthead reading "Media" lands as a non-sequitur. Anything
+more specific belongs in the EYEBROW, which carries no word limit (the H1 does: see page-hero.tsx).
 
 **The sheet** is the kit as a photographic proof sheet: eight numbered frames on the 3px
 `--gap-gallery` album grid, opening the paper body rather than riding in the dark with the hero, so

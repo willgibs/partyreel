@@ -75,23 +75,29 @@ function factHref(label: string, value: string): string | null {
 }
 
 /**
- * The page title. Hoisted because it is a TASTE CALL Will may want to keep turning, and
+ * The masthead pair. Hoisted because it is a TASTE CALL Will has turned three times, and
  * it should be one line to change rather than a hunt through the JSX.
  *
- * "Take what you need" was the first cut; the note on it was that the concision is right
- * but the words are not quite there. "Need" rations, which is the opposite of what a
- * press kit means, so this is the generous form of the same sentence. Alternates
- * considered and left on the table: "Help yourself." (warmest, and the host's own line,
- * but it can read as "I am not helping you" on a page whose close offers help),
- * "Take it from here." (invites the writer to run with the story; a shade clever),
- * "Yours to use." (clearest, least warm).
+ * ★ THE TITLE ANSWERS THE LINK THAT SENT YOU (Will, 2026-08-29, arriving from the footer's
+ * "Press" link): at 160px the H1 is the loudest promise on the page, so it has to be the
+ * word the reader just clicked. It read as a non-sequitur when the link said Press and the
+ * masthead said "Media". The DESCRIPTOR moved up into the eyebrow instead, where a second
+ * word costs nothing. Rule for the next display-step page: the H1 matches its nav label,
+ * and anything more specific goes in the eyebrow.
  *
- * ★ ONE OR TWO WORDS, now that the hero takes the lockup's display step: that step is
- * `whitespace-nowrap` under a 12vw clamp and its optical trim is reasoned about a single
- * line (page-hero.tsx). A longer title is not wrong, it just belongs at `scale="xl"` —
- * change both together, never the title alone.
+ * The turns before this one, so nobody re-walks them: "Take what you need" (right concision,
+ * wrong verb — "need" rations, which is the opposite of what a press kit means), then
+ * "Media" (concise, but see above). Alternates left on the table: "Help yourself." (warmest,
+ * and the host's own line, but it can read as "I am not helping you" on a page whose close
+ * offers help), "Take it from here." (a shade clever), "Yours to use." (clearest, least warm).
+ *
+ * ★ ONE OR TWO WORDS for the TITLE, since the hero takes the lockup's display step: that
+ * step is `whitespace-nowrap` under a 12vw clamp and its optical trim is reasoned about a
+ * single line (page-hero.tsx). A longer title is not wrong, it just belongs at `scale="xl"` —
+ * change both together, never the title alone. The EYEBROW has no such limit.
  */
-const PAGE_TITLE = "Media";
+const PAGE_TITLE = "Press";
+const PAGE_EYEBROW = "Media assets";
 
 const INLINE_LINK =
   "underline decoration-current/30 underline-offset-4 transition-colors duration-150 hover:decoration-current";
@@ -129,7 +135,7 @@ export default function PressPage() {
       <PageHero
         className="-mt-[var(--mkt-header-h)] pt-28 pb-20 sm:pt-36 sm:pb-24"
         scale="display"
-        eyebrow="Press"
+        eyebrow={PAGE_EYEBROW}
         heading={PAGE_TITLE}
         subhead={
           <>

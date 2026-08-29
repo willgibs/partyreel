@@ -25,7 +25,7 @@ sticky Assets / Words / Fact sheet spine, the one shared right edge, the semanti
 **The hero moved onto the lockup.** Will's note was to take the h1 to the masthead step /about uses,
 and to make the tracking squeeze standard for that step rather than an /about beat. `/press` was
 carrying a fourth hand-rolled `TextsReveal` hero, so it became `PageHero` at `scale="display"`:
-"Media" at 160px on a desktop and 52px on a phone, with the optical trim and the squeeze arriving
+"Press" at 160px on a desktop and 52px on a phone, with the optical trim and the squeeze arriving
 from the step instead of the page. Two things came out of doing it properly. The display step's
 `[margin-inline-start:-0.045em]` is a LEFT side-bearing correction and is simply wrong on a centred
 heading, so it is now gated on `align="left"`. That gate turned out to fix a shipped bug as well as
@@ -66,7 +66,7 @@ underneath it, and the two are now one blind spot in `testing-verification.md`. 
 "focus states do not paint while `document.hasFocus()` is false" lesson moved there with it.
 
 Gate green throughout: typecheck, lint, 1222 tests, build with /press static.
-Verified on the `launch-prep` alias at `d212f55`: HTTP 200, exactly one `<h1>` ("Media") carrying the
+Verified on the `launch-prep` alias at `d212f55`: HTTP 200, exactly one `<h1>` carrying the
 trim and NO reveal mark in the shipped markup, 160px at 1440 and 52px at 375, centred to 0.00px with
 no `margin-inline-start` present anywhere; `data-mkt-skin="cinema"`, `theme-color: #040404`, body
 `lab(1.20)`, and the nav panel at **15.06:1** (`--popover` rgb(29,29,29) on rgb(242,242,242)), so the

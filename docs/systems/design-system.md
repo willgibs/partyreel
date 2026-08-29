@@ -151,7 +151,9 @@ carries the same rule for sections).
 
 The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
 decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's
-"Partyreel" and /press's "Media" take it. ★ **ONE OR TWO WORDS ONLY** (Will's contract, 2026-08-29):
+"Partyreel" and /press's "Press" take it. ★ **ONE OR TWO WORDS ONLY** (Will's contract, 2026-08-29),
+and at this size ★ **the H1 matches its NAV LABEL** — a masthead is the loudest promise on the page,
+so it must be the word the reader just clicked; anything more specific goes in the eyebrow. Both:
 `whitespace-nowrap` is load-bearing under a 12vw clamp, and the trim below is reasoned about a single
 line, so a longer title belongs at `xl`. ★ The tracking squeeze (`.mkt-name`) belongs to the STEP, not
 to the page that first used it: any masthead at this size arrives set slightly open and closes to the
@@ -167,7 +169,7 @@ step therefore trims its TOP only (`-mt-[0.12em]`, in `em` so it holds across th
 deliberately never its bottom — trimming both ends symmetrically is the intuitive move and it tightens
 the end already tight. Keep `py-[0.08em]`: it is what stops an `overflow-hidden` ancestor clipping the
 descender, and the negative margin removes the distance from LAYOUT while the glyph keeps its room.
-(A consequence worth expecting rather than "fixing": a title with NO descender, like "Media", reads
+(A consequence worth expecting rather than "fixing": a title with NO descender, like "Press", reads
 looser under the masthead than one with a "y". The box rhythm is identical; the ink differs.)
 And an **optical side bearing** (`leadIn`), which is a different kind of correction and is gated
 separately: the vertical trim is about the LINE BOX and holds at any alignment, while `leadIn` pulls a
