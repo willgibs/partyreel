@@ -118,7 +118,20 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the BUILD) over a stable slug-hash fallback
   in [`blog-covers.ts`](../../src/lib/content/blog-covers.ts) — ★ a pure function of the SLUG alone,
   because the obvious "walk the post list and hand out unused images" is deterministic but NOT stable
-  and silently re-skins older posts on every publish. The author brief is
+  and silently re-skins older posts on every publish. The masthead's right side is a subtle
+  RSS `Subscribe` (the feed's only visible entry point; it shipped reachable through nothing but a
+  `<link rel=alternate>`). The byline is one shared component across the card, the featured card and
+  the post header ([`post-meta.tsx`](../../src/components/marketing/blog/post-meta.tsx)) and is
+  **Inter, not mono** — the R6 doctrine applied rather than reflexively obeyed: mono earns numerals
+  that ALIGN in a column, and a byline aligns with nothing, so setting name+date+reading-time in mono
+  read as a timecode and flattened the only human signal on the card. **ONE registered author**
+  (`partyreel-team`) by Will's 2026-08-28 ruling; named individuals are deliberately absent from the
+  registry rather than dormant in it, since a dormant entry is what a content agent picks up by
+  accident. **Pagination** is built and INVISIBLE below `POSTS_PER_PAGE` (12), so today's four posts
+  render with no control at all; it rides `?page=` beside `?tag=` rather than `/blog/page/[n]` routes,
+  which would multiply into tag x page URL space on a four-post blog — ★ `paginate()` CLAMPS, because
+  a stale `?page=` or a filter that shrinks the set under the reader (tag with 40 posts, page 4, pick
+  a tag with 3) must land on a real page instead of an empty grid. The author brief is
   [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md). Unchanged: the client-safe author
   registry ([`authors.ts`](../../src/lib/content/authors.ts)), Article JSON-LD, per-post `next/og` cards,
   and the build-static **RSS 2.0 feed** (`/blog/feed.xml`, `dynamic="force-static"`, hand-rolled

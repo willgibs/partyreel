@@ -65,7 +65,7 @@ const POSTS: LabPost[] = [
     description:
       "A shared album is wonderful. A reel is the thing people rewatch and send to each other. Here's the feature that gives Partyreel its name.",
     dateLabel: "May 31, 2026",
-    author: "Will Gibson",
+    author: "Partyreel Team",
     readingTime: "6 min read",
     tags: ["product", "highlight-reel"],
   },
@@ -95,7 +95,7 @@ const POSTS: LabPost[] = [
     description:
       "The candid shots your friends take are the ones worth keeping, and the ones that scatter and vanish. Here's the problem we set out to fix.",
     dateLabel: "May 22, 2026",
-    author: "Will Gibson",
+    author: "Partyreel Team",
     readingTime: "4 min read",
     tags: ["story", "behind-the-scenes"],
   },
@@ -125,7 +125,7 @@ const POSTS: LabPost[] = [
     description:
       "Ten days, six people, one shared roll. How to run a group trip album so nobody is chasing AirDrops at the airport.",
     dateLabel: "May 9, 2026",
-    author: "Will Gibson",
+    author: "Partyreel Team",
     readingTime: "8 min read",
     tags: ["trips", "how-to"],
   },
@@ -135,7 +135,7 @@ const POSTS: LabPost[] = [
     description:
       "Most photo apps start with the app. We started with the thing on the table, because that is where a guest actually decides.",
     dateLabel: "May 4, 2026",
-    author: "Will Gibson",
+    author: "Partyreel Team",
     readingTime: "5 min read",
     tags: ["story", "behind-the-scenes"],
   },

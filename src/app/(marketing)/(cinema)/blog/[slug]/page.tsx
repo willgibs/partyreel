@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
 import { PostCard } from "@/components/marketing/blog/post-card";
+import { PostMeta } from "@/components/marketing/blog/post-meta";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import { CtaBand } from "@/components/marketing/system/cta-band";
@@ -21,8 +22,7 @@ import {
   toListItem,
 } from "@/lib/content/blog";
 import { coverFor } from "@/lib/content/blog-covers";
-import { extractHeadings, readingTime } from "@/lib/content/collection";
-import { formatEventDate } from "@/lib/utils";
+import { extractHeadings } from "@/lib/content/collection";
 
 export function generateStaticParams() {
   return getAllBlogSlugs().map((slug) => ({ slug }));
@@ -69,6 +69,8 @@ export default async function BlogPostPage({
   const headings = extractHeadings(post.body);
   const related = getRelatedPosts(post).map(toListItem);
   const cover = coverFor(slug, post.frontmatter.cover);
+  // The article as card metadata: one shared byline shape across every blog surface.
+  const listItem = toListItem(post);
 
   // Same render path as the help article (compileMDX + shared mdxComponents + prose-help).
   // Frontmatter already stripped → no parseFrontmatter; blockJS stays on.
@@ -129,23 +131,9 @@ export default async function BlogPostPage({
               <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                 {post.frontmatter.title}
               </h1>
-              <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-sm">
-                <span className="font-medium text-foreground">
-                  {author.name}
-                </span>
-                <time
-                  dateTime={post.frontmatter.date}
-                  className="font-mono text-xs tracking-wide text-muted-foreground tabular-nums"
-                >
-                  {formatEventDate(post.frontmatter.date)}
-                </time>
-                <span aria-hidden className="text-muted-foreground">
-                  &middot;
-                </span>
-                <span className="font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
-                  {readingTime(post.body)}
-                </span>
-              </p>
+              {/* The shared byline, so the article header, the library card and "Keep reading"
+                  are one design (and one place to change). Inter, not mono, per the ruling. */}
+              <PostMeta post={listItem} tone="paper" className="mt-4 text-sm" />
             </header>
 
             {/* The cover STRADDLES the cut, the index's move applied to the article: the photograph

@@ -1,4 +1,3 @@
-import { Rss } from "lucide-react";
 import type { Metadata } from "next";
 
 import { BlogJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
@@ -51,18 +50,6 @@ export default function BlogIndexPage() {
         heading="Start your first event free"
         subhead="Create an event, share the QR, and watch the photos roll in. No app or account for your guests."
       />
-
-      {/* The feed has existed since the blog shipped and has never had a visible way in: it was
-          reachable only through the <link rel="alternate"> in metadata. One quiet row. */}
-      <div className="flex justify-center pb-16 sm:pb-20">
-        <a
-          href="/blog/feed.xml"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
-        >
-          <Rss className="size-3.5" aria-hidden />
-          Subscribe by RSS
-        </a>
-      </div>
     </>
   );
 }

@@ -54,12 +54,14 @@ describe("blog content integrity", () => {
 });
 
 describe("authors registry", () => {
-  it("has a default + named authors and falls back", () => {
+  it("resolves the universal author and falls back for anything else", () => {
+    // ONE registered author by ruling (2026-08-28); see authors.ts. The contract that matters is
+    // the fallback: an unknown id must resolve, never throw, so a stale frontmatter value can
+    // never take a page down.
     expect(DEFAULT_AUTHOR_ID).toBe("partyreel-team");
-    expect(getAuthor("will-gibson").name).toBe("Will Gibson");
     expect(getAuthor("partyreel-team").name).toBe("Partyreel Team");
-    // Unknown id → default author (never throws).
     expect(getAuthor("nobody").name).toBe("Partyreel Team");
+    expect(getAuthor("will-gibson").name).toBe("Partyreel Team");
   });
 });
 
@@ -91,7 +93,7 @@ describe("buildBlogRssXml", () => {
       title: "Tom & Jerry's <party>",
       description: "A description",
       date: "2026-05-31",
-      author: "will-gibson",
+      author: "partyreel-team",
       tags: ["parties"],
       draft: false,
     },
@@ -107,7 +109,7 @@ describe("buildBlogRssXml", () => {
     expect(xml).toContain("Tom &amp; Jerry&apos;s &lt;party&gt;");
     expect(xml).not.toContain("Tom & Jerry's <party>");
     expect(xml).toContain("https://partyreel.com/blog/test-post");
-    expect(xml).toContain("<dc:creator>Will Gibson</dc:creator>");
+    expect(xml).toContain("<dc:creator>Partyreel Team</dc:creator>");
     // pubDate is RFC-822 (e.g. "... 2026 ... GMT").
     expect(xml).toMatch(/<pubDate>[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} 2026/);
   });

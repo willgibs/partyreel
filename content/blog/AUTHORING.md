@@ -28,7 +28,7 @@ tags:
 | `title` | yes | Sentence case. It renders over a photograph on the index card, so keep it under ~70 characters or it wraps to four lines in a card. |
 | `description` | yes | Max 160 chars (enforced). It is the standfirst on the featured card, the RSS description, and the meta description. Write it to stand alone. |
 | `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. Newest post becomes the staged hero on `/blog`. |
-| `author` | no | `partyreel-team` (default) or `will-gibson`. Named people front the personal, first-person posts. |
+| `author` | no | Leave it out. `partyreel-team` is the universal byline for now (Will's ruling, 2026-08-28) and it is the only registered id, so the default is always correct. Named authors are a registry change in `src/lib/content/authors.ts`, not a frontmatter choice. |
 | `cover` | **no, but prefer it** | A media id from `MARKETING_IMAGES` (`src/lib/constants/marketing-media.ts`). See below. |
 | `tags` | no | Freeform, lowercase, hyphenated. They drive the index's filter rail. |
 | `updated` | no | `YYYY-MM-DD`. Sets `dateModified` in the Article JSON-LD. |
