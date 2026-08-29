@@ -371,11 +371,13 @@
   --mkt-icon-swap-dur: 250ms;
   --mkt-icon-swap-blur: 2px;
   --mkt-icon-swap-scale: 0.25;
-  /* The blog library's filter beats (the /blog round). The exit is fast and shared by every
-     departing card; the entrants wait for the reorganize to be legible under them. */
-  --mkt-blog-exit-ms: 140ms;
-  --mkt-blog-enter-ms: 220ms;
-  --mkt-blog-enter-delay: 120ms;
+  /* THE SET-CHANGE BEATS (the /blog round, generalized on merge). Any filtered/paged collection,
+     not the blog's alone: the selectors below are [data-mkt-exiting] / [data-mkt-entering], so the
+     clocks must not be named for one page. The exit is fast and shared by every departing item;
+     the entrants wait for the reorganize to be legible under them. */
+  --mkt-set-exit-ms: 140ms;
+  --mkt-set-enter-ms: 220ms;
+  --mkt-set-enter-delay: 120ms;
   /* 14-skeleton-reveal */
   --mkt-skel-pulse-dur: 1000ms;
   --mkt-skel-pulse-min: 0.5;
@@ -1111,16 +1113,18 @@
   }
 }
 
-/* ── The blog library filter: TWO BEATS, never one (Will's ruling, 2026-08-28: "a polished motion
-   transition, then cards reorganize"). Animating removal and reflow at the same time is what makes
-   a filter change read cheap: the eye cannot tell what left from what moved.
+/* ── THE TWO-BEAT SET CHANGE: removal and reflow are never one beat (Will's ruling, 2026-08-28:
+   "a polished motion transition, then cards reorganize"). Animating removal and reflow at the same
+   time is what makes a filter change read cheap: the eye cannot tell what left from what moved.
+   Written for the /blog library and deliberately page-neutral — any filtered or paged collection
+   takes it by rendering the two hooks.
 
    Beat 1, here: the cards that no longer match leave TOGETHER. `transition-delay: 0` on every one
    of them is load-bearing (the [data-review-tile][data-exiting] convention in globals.css) - a
    stagger would make the departure read as a list unravelling rather than a set being removed.
    Deliberately no `filter: blur()`: at 140ms a blur costs a paint the beat cannot afford.
 
-   Beat 2 is JS: once the exit clock is spent the set commits and useFlip (now two-axis, since a
+   Beat 2 is JS: once the exit clock is spent the set commits and useFlip (two-axis, since a
    multi-column grid moves on X as well) inverts the survivors into their new cells. The two live
    on SEPARATE elements - exit on the card, FLIP on its wrapper - so the FLIP's inline
    `transition: transform` can never clobber the exit's transition property.
@@ -1131,8 +1135,8 @@
   opacity: 0;
   transform: scale(0.97);
   transition:
-    opacity var(--mkt-blog-exit-ms) ease-out,
-    transform var(--mkt-blog-exit-ms) ease-out;
+    opacity var(--mkt-set-exit-ms) ease-out,
+    transform var(--mkt-set-exit-ms) ease-out;
   transition-delay: 0ms;
   pointer-events: none;
 }
@@ -1143,8 +1147,8 @@
 
 @media (prefers-reduced-motion: no-preference) {
   [data-mkt] [data-mkt-entering] {
-    transition: opacity var(--mkt-blog-enter-ms) ease-out;
-    transition-delay: var(--mkt-blog-enter-delay);
+    transition: opacity var(--mkt-set-enter-ms) ease-out;
+    transition-delay: var(--mkt-set-enter-delay);
 
     @starting-style {
       opacity: 0;

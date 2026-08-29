@@ -16,11 +16,13 @@ import { cn } from "@/lib/utils";
  * --mkt-header-h off documentElement (it's declared on [data-mkt], the
  * readCssMs lesson).
  *
- * `progress` (opt-in, the blog uses it) turns the rail into a READING SPINE: the
- * hairline fills as you move through the body. It earns its place on a surface
- * the frequency rule would otherwise keep plain because position in a long read
- * is real information, not decoration. Off by default, so /help renders exactly
- * as it did before this prop existed.
+ * `progress` turns the rail into a READING SPINE: the hairline fills as you move
+ * through the body. Position in a long read is real information, not decoration,
+ * which is what earns it past the frequency rule. BOTH reading surfaces take it
+ * (Will, 2026-08-29): it arrived blog-only in that round, and shipping one
+ * behaviour on one of two pages built from the same component is the drift this
+ * component exists to prevent. It stays a PROP rather than always-on because it
+ * needs a measurable body, and the caller is what knows the body's id.
  *
  * ★ NOT `animation-timeline: scroll()`. It is the obvious CSS-only answer and it
  * is unsupported in Firefox, where the spine would simply never fill — a bar
@@ -29,6 +31,12 @@ import { cn } from "@/lib/utils";
  * ONE element (never a var on a shared ancestor: inherited custom properties
  * recalculate every descendant, the drawer-swipe lesson in design-system.md).
  */
+/**
+ * The id both reading pages put on their <article>, and the `progress` target. Shared so the two
+ * cannot drift onto different ids and silently lose the spine on one of them.
+ */
+export const ARTICLE_BODY_ID = "article-body";
+
 export function ArticleToc({
   headings,
   progress,
@@ -99,7 +107,10 @@ export function ArticleToc({
       // the length, and still completes at the end of the article rather than the end of the page
       // (the CTA band and footer must never count as reading).
       const line = window.innerHeight * 0.4;
-      const fraction = Math.min(Math.max((line - rect.top) / rect.height, 0), 1);
+      const fraction = Math.min(
+        Math.max((line - rect.top) / rect.height, 0),
+        1,
+      );
       rail.style.setProperty("--toc-progress", String(fraction));
     };
 

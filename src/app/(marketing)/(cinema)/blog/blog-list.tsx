@@ -134,7 +134,8 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
         const url = new URL(window.location.href);
         if (next.tag) url.searchParams.set("tag", next.tag);
         else url.searchParams.delete("tag");
-        if (after.page.page > 1) url.searchParams.set("page", String(after.page.page));
+        if (after.page.page > 1)
+          url.searchParams.set("page", String(after.page.page));
         else url.searchParams.delete("page");
         window.history.replaceState(null, "", url);
         // Paging keeps the reader in the library; without this a click on "2" leaves them staring
@@ -158,7 +159,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
       setExiting(leaving);
       timer.current = setTimeout(
         commit,
-        readCssMs("--mkt-blog-exit-ms", 140, scopeRef.current),
+        readCssMs("--mkt-set-exit-ms", 140, scopeRef.current),
       );
     },
     [current, resolve, view.tag],
@@ -257,7 +258,9 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                 <Pager
                   page={page.page}
                   pageCount={page.pageCount}
-                  onGo={(n) => go({ tag: view.tag, page: n }, { scrollToLibrary: true })}
+                  onGo={(n) =>
+                    go({ tag: view.tag, page: n }, { scrollToLibrary: true })
+                  }
                 />
               </div>
             </div>
@@ -425,7 +428,7 @@ function TagRail({
       <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
         Browse
       </p>
-      <div className="mt-3 flex gap-x-4 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:gap-x-0 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
+      <div className="mt-3 flex [scrollbar-width:none] gap-x-4 overflow-x-auto pb-1 lg:flex-col lg:gap-x-0 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
         <RailRow
           label="Everything"
           count={total}
@@ -503,7 +506,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
       // measured 684px against an 820px viewport, so the fold held the masthead and nothing else.
       // The crop is also the one aspect no other marketing surface uses (frames run 4:3, 16:9, 1:1,
       // 4/5, 16:10), and it plays against the library's portrait cards instead of echoing them.
-      className="group relative block aspect-4/5 overflow-hidden bg-muted transition-transform duration-200 ease-emphasis active:scale-[0.995] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white sm:aspect-21/9 motion-reduce:transition-none"
+      className="group relative block aspect-4/5 overflow-hidden bg-muted transition-transform duration-200 ease-emphasis focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white active:scale-[0.995] motion-reduce:transition-none sm:aspect-21/9"
     >
       <span
         data-mkt-develop

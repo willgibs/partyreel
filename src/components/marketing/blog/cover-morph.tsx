@@ -35,7 +35,9 @@ const NAV_TIMEOUT_MS = 700;
 
 /** Strip the name from EVERY plate. See restoreTarget for why this has to be indiscriminate. */
 function clearAll() {
-  for (const el of document.querySelectorAll<HTMLElement>("[data-cover-plate]")) {
+  for (const el of document.querySelectorAll<HTMLElement>(
+    "[data-cover-plate]",
+  )) {
     el.style.removeProperty("view-transition-name");
   }
 }
@@ -62,7 +64,6 @@ export function CoverMorphDelegate() {
   const router = useRouter();
   const pathname = usePathname();
   const settle = useRef<(() => void) | null>(null);
-  const named = useRef<HTMLElement | null>(null);
 
   // The route committed. Name the incoming cover FIRST, then release the transition — the browser
   // snapshots the new DOM the moment the callback settles, so the target has to be named before
@@ -79,7 +80,13 @@ export function CoverMorphDelegate() {
     function onClick(event: MouseEvent) {
       if (event.defaultPrevented) return;
       // Left click only, and never steal a deliberate new-tab/window/download click.
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
         return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       // Read the API at CALL time, never captured at effect setup: a stale closure would miss a
@@ -115,7 +122,6 @@ export function CoverMorphDelegate() {
       event.stopPropagation();
       clearAll();
       plate.style.setProperty("view-transition-name", MORPH_NAME);
-      named.current = plate;
 
       const transition = start.call(
         document,

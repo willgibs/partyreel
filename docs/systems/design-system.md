@@ -180,6 +180,18 @@ left of centre, and nobody spotted it until /press took the same step. Both mast
 `leadIn` has no consumer today; it is kept gated rather than deleted so the next flush-left one does not
 rediscover the problem and invent a magic number.
 
+★ **THE THIRD REGISTER — the INDEX MASTHEAD, and it is the display step's inverse** (ruled by Will
+2026-08-28 for /blog, from the Broadsheet direction: "I love broadsheet's small 'notes' title and
+underline above the featured blog card... should say 'Blog'"). Where `display` is for a page whose
+TITLE is the subject, this is for a page whose CONTENT is: the h1 recedes to a label
+(`text-lg sm:text-xl`) above a drawn `[data-mkt-rule]` hairline, and the lead item owns the stage.
+/blog's `Blog` sits at 18px while the featured card's h2 runs to `lg:text-6xl`. That inversion is
+DELIBERATE — do not "restore" it to the ladder. The small one keeps the h1 because it is what the
+page IS, it never collapses under a filter the way the featured card does, and it holds the document
+outline stable in every view. It is deliberately NOT in `PageHero`: that component owns the
+eyebrow/heading/subhead/actions lockup, and this is a different one (title + rule + a trailing
+link). One page uses it; if a second index wants it, THAT is when it gets extracted.
+
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
 where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a

@@ -11,7 +11,10 @@ import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
-import { ArticleToc } from "@/components/marketing/reading/article-toc";
+import {
+  ARTICLE_BODY_ID,
+  ArticleToc,
+} from "@/components/marketing/reading/article-toc";
 import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -28,9 +31,6 @@ import {
 import { coverFor } from "@/lib/content/blog-covers";
 import { extractHeadings } from "@/lib/content/collection";
 import { cn, formatEventDate } from "@/lib/utils";
-
-/** The article body's id: the reading spine measures its scroll extent. */
-const BODY_ID = "article-body";
 
 export function generateStaticParams() {
   return getAllBlogSlugs().map((slug) => ({ slug }));
@@ -100,7 +100,8 @@ export default async function BlogPostPage({
 
   // An `updated` that merely restates the publish date is noise; only a real revision is news.
   const updated =
-    post.frontmatter.updated && post.frontmatter.updated !== post.frontmatter.date
+    post.frontmatter.updated &&
+    post.frontmatter.updated !== post.frontmatter.date
       ? post.frontmatter.updated
       : null;
 
@@ -165,7 +166,12 @@ export default async function BlogPostPage({
                 {post.frontmatter.description}
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <PostMeta post={listItem} tone="paper" readingTime className="text-sm" />
+                <PostMeta
+                  post={listItem}
+                  tone="paper"
+                  readingTime
+                  className="text-sm"
+                />
                 {updated && (
                   <span className="text-xs text-muted-foreground/70">
                     Updated {formatEventDate(updated)}
@@ -188,7 +194,9 @@ export default async function BlogPostPage({
                 data-mkt-develop
                 data-cover-plate="target"
                 className="absolute inset-0"
-                style={{ viewTransitionName: "blog-cover" } as React.CSSProperties}
+                style={
+                  { viewTransitionName: "blog-cover" } as React.CSSProperties
+                }
               >
                 <Image
                   src={cover.src}
@@ -244,7 +252,7 @@ export default async function BlogPostPage({
                     ink -> body 16px) instead of a cliff from display type straight to body copy.
                     Scoped to the first child so it can never catch a second paragraph. */}
                 <article
-                  id={BODY_ID}
+                  id={ARTICLE_BODY_ID}
                   className="prose max-w-none prose-help prose-headings:font-heading [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
                 >
                   {content}
@@ -310,7 +318,7 @@ export default async function BlogPostPage({
                     </p>
                     <ArticleToc
                       headings={headings}
-                      progress={{ targetId: BODY_ID }}
+                      progress={{ targetId: ARTICLE_BODY_ID }}
                     />
                   </nav>
                 </aside>
@@ -329,7 +337,13 @@ export default async function BlogPostPage({
 }
 
 /** A tag, linking back to the index rail's filtered view. The loop the index opened, closed. */
-function TagChip({ tag, tone = "media" }: { tag: string; tone?: "media" | "paper" }) {
+function TagChip({
+  tag,
+  tone = "media",
+}: {
+  tag: string;
+  tone?: "media" | "paper";
+}) {
   return (
     <Link
       href={`/blog?tag=${encodeURIComponent(tag)}`}

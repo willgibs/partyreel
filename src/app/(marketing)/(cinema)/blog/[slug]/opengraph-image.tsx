@@ -77,8 +77,8 @@ export default async function BlogOgImage({
         }}
       >
         {cover && (
-          // eslint-disable-next-line @next/next/no-img-element -- satori renders raw <img>; there
-          // is no next/image inside an ImageResponse.
+          // A raw <img> is correct here and needs no eslint-disable: satori renders its own
+          // element tree, and there is no next/image inside an ImageResponse.
           <img
             src={cover}
             alt=""
