@@ -61,16 +61,32 @@ since milestone-9 — and closed an LCP hole, since `.mkt-line` paints an h1 at 
 hydration. Will's last note before the merge became a rule: **at the display step the H1 matches its
 NAV LABEL** (a 160px "Media" under a footer link reading "Press" is a non-sequitur), so the H1 is
 "Press" and the descriptor moved into a "Media assets" eyebrow.
-**`lp/blog-redesign` merged into `launch-prep` 2026-08-29** (`17f5b1a` + synthesis `7372292`,
-`60353c5`), NOT yet on `main`: /blog rebuilt on Will's V4 composite, and the post page given an
-identity. It arrived at the cinema/paper architecture on its own, so the round's work was synthesis
-(the reading spine extended to /help, the set-change clocks de-named from "blog", the index-masthead
-register recorded) plus a red-team fix and the first tests `useFlip` has ever had.
+**`lp/blog-redesign` merged and shipped at milestone-11**, the third branch of the sequence: /blog
+rebuilt on Will's V4 composite, and the post page given an identity. It arrived at the cinema/paper
+architecture on its own, so the round's work was synthesis (the reading spine extended to /help so
+one shared component runs ONE behaviour, the set-change clocks de-named from "blog" since the
+selectors were already page-neutral, the index-masthead recorded as the third H1 register) plus two
+red-team findings: the exit beat ran under reduced motion (the rule cited the review queue's
+convention but took only half of it), and `useFlip` had NO tests despite being shared with the admin
+event feed.
 **Two branches still with Will.** `lp/careers-identity` still carries a hand-rolled `TextsReveal`
 hero and will conflict in `marketing.css` (the isolate block, and now the set-change block) and in
 `marketing-content.md`. ★ The old note that blog "should take `PageHero` at `lg`" was WRONG and is
 retired: Will ruled a small index masthead for /blog, and `PageHero` owns only the plain type lockup
 (see [`design-system.md`](systems/design-system.md) for the three H1 registers).
+
+**MILESTONE-11 (2026-08-29): prod = the /blog round.** `main` @ tag `milestone-11` (`95ca799`), prod
+READY + verified at the merge SHA. Will's acceptance: "It looks great." Verified on partyreel.com:
+all ten blog URLs 200; one `<h1>` reading `Blog` at 20px, unmarked and `opacity: 1`; the 21:9
+featured card straddling the paper by 80px with the library sharing its right edge; 3/2/1 columns and
+no overflow at 1440/768/375; the two-beat filter keeping survivors on their same DOM nodes (so covers
+do not re-develop); the cover morph firing twice with exactly one named plate each and the target
+still armed after; the reading spine live on BOTH /blog and /help; the reduced-motion contract
+re-checked against the shipped CSSOM; /about and /press re-measured unregressed. Two false alarms
+resolved to test-tool artifacts, not faults: a blank card grid (unfocused-window repaint) and a spine
+reading 0 (rAF suspended in a hidden tab). Full narrative + the one thing NOT verified live (an
+urgency reorder on the event feed, since the test event has no review queue):
+[CHANGELOG](CHANGELOG.md).
 
 **MILESTONE-10 (2026-08-29): prod = the /press round.** `main` @ tag `milestone-10` (`b08903f`), prod
 READY + verified at the merge SHA. Will's acceptance: "It all looks fantastic." Verified on
@@ -190,11 +206,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-10`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-11`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1222 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1253 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -227,13 +243,13 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **Review /blog on the launch-prep preview, then the next branch to hand over**
-   (`lp/careers-identity`, `lp/glow-doctrine` — Will is still working the remaining two). `lp/about`
-   shipped at milestone-9, `lp/press-kit` at milestone-10; `lp/blog-redesign` is merged into
-   `launch-prep` and awaiting Will's look before any milestone merge.
+1. **The next agent branch to hand over** (`lp/careers-identity`, `lp/glow-doctrine` — Will is
+   still working the remaining two). `lp/about` shipped at milestone-9, `lp/press-kit` at
+   milestone-10, `lp/blog-redesign` at milestone-11.
    Notes for whoever integrates the next one: `lp/careers-identity` will conflict in `marketing.css`
    (the `[data-mkt-isolate]` block, and the new set-change block) and in `marketing-content.md`, and
-   still carries a hand-rolled `TextsReveal` hero.
+   still carries a hand-rolled `TextsReveal` hero — it takes `PageHero` at `lg` only if its headline
+   suits the plain type lockup; `PageHero` never absorbs a bespoke or media hero.
 2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
 3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:

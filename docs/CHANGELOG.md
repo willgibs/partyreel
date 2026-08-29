@@ -10,10 +10,11 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-08-29 — the /blog round (merged to `launch-prep`, not yet on `main`)
+## 2026-08-29 — MILESTONE-11: the /blog round
 
-`launch-prep` @ `60353c5` (merge `17f5b1a`, synthesis `7372292`, red-team fix `60353c5`), preview
-READY and verified at the SHA. Awaiting Will's review before any milestone merge.
+`main` @ tag `milestone-11` (`95ca799`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, lint, 1253 tests, build with /blog, /blog/[slug] and /blog/feed.xml static).
+Prod READY + verified at the merge SHA. Will's acceptance: "It looks great."
 
 /blog was the last marketing surface on its route-completeness scaffold: a centred hero, a pill row,
 card boxes, and no photography at all on a media product. The branch rebuilt it on Will's V4
@@ -72,6 +73,25 @@ inert there, filters work, console clean.
 ★ Not verified live: an urgency REORDER on the event feed, because the test event is empty and has
 no review queue to clear. The two-axis change is inert there by measurement (`dx` is always 0) and
 pinned by test, but the reorder animation itself was not observed on this pass.
+
+**Re-verified on partyreel.com at the merge SHA.** All ten blog URLs 200. One `<h1>` reading `Blog`
+at 20px, unmarked and `opacity: 1`; rule drawn; skin `cinema`; `theme-color: #040404`. Featured card
+21:9 with the 80px straddle, library at 3 columns sharing the card's right edge, rail `sticky` with
+`align-self: flex-start`, no overflow. At 375: 4:5 hero, 1 column, rail as a horizontal scroller,
+64px straddle with the card clearing the rail; the article's plate 4:3 and clearing the prose. The
+two-beat filter ran (an early read caught it MID-BEAT, which is itself the proof), and survivors kept
+their same DOM nodes, so covers do not re-develop. The cover morph fired twice, card->article then
+article->article, each with exactly ONE named plate and the target still armed after. Reading spine
+confirmed on BOTH surfaces: 1 at 45% of a blog article, 0.75 at 35% of a help article, 0 at top. The
+reduced-motion contract re-checked against the SHIPPED prod CSSOM: every arrival hook keeps its
+resting state outside the query and the exit beat is fully guarded. Feed valid with four enclosures;
+sitemap 5 blog URLs; llms.txt 5. /about and /press re-measured unregressed at 1440 (160px,
+`margin-inline-start: 0px`, off-centre 0.00). Console clean.
+
+★ A blank card grid in one screenshot was a repaint artifact of an unfocused window, and a spine
+reading 0 was rAF suspension in a hidden tab (`document.hidden: true`). Both resolved to correct
+values once a frame was forced; neither was a product fault. Same family as the /press round's
+lazy-image false alarm, and the reason the geometry was checked by hand before either was believed.
 
 ---
 
