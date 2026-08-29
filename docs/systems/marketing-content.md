@@ -181,7 +181,11 @@ misuse are brand-book material; only the two press-business usage points (quotin
 how to write the name) ship, as quick hits beside the copy they govern. ★ Plate by LEGIBILITY, not
 variety: white behind ink-drawn artwork, ink behind white-drawn artwork. Every section is centered on
 one rhythm (a mixed left/full-bleed/narrow page read as jarring), with prose left-aligned inside its
-centered column. The kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` +
+centered column, and every section's content ends at ONE SHARED RIGHT EDGE: the narrower ones start
+further right (`lg:ml-auto` against a width cap) rather than widening, so the gap between a pinned
+heading and its answer grows with the viewport while the reading measure does not. Eyebrow "Press",
+H1 "Media" (hoisted to a constant in the page; a taste call Will has turned twice). The kit is
+manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` +
 `scripts/build-press-qr.mjs` + the committed zip, guarded by `press-kit.test.ts`), so the pre-launch
 logo change is a files-and-rows edit with no component work. Explored range + the ruling:
 `/design/c/press-identity`.

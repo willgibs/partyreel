@@ -110,6 +110,15 @@ not prose), "Download all (245 KB)" took parentheses, and the close asks "Need a
 unprompted: the type frame now points at the open-source family, since a designer laying out a piece
 needs the face and shipping font binaries in a press kit would be the wrong way to hand it over.
 
+**Final pass.** H1 "Media" under the "Press" eyebrow. The sheet's rebate is even again: a 1px border
+against 3px gaps read as an uneven frame, and the outer inset and inner gap are now the same token so
+they cannot drift apart. The footnote under the grid steps down in size and tone. And the correction
+that mattered: unclamping the fact sheet the round before had answered the wrong question, since the
+ask was never to widen the content but to MOVE it. Every section's content now ends at one shared right
+edge and the narrower ones start further right, so the gap between a pinned heading and its answer
+grows with the viewport while the reading measure stays put. Verified live: sheet, words and fact sheet
+all terminate at the same pixel, with left edges at 485 / 757 / 661.
+
 **Open:** Will's feel pass on the built page. Also blocked at handoff: `/design` 404s on every agent branch
 preview because `DESIGN_PREVIEW_KEY` is scoped to `launch-prep`, so the lab is reviewable only on
 localhost until that var is set unscoped for Preview (proposed, not applied: config is the
