@@ -69,8 +69,18 @@ selectors were already page-neutral, the index-masthead recorded as the third H1
 red-team findings: the exit beat ran under reduced motion (the rule cited the review queue's
 convention but took only half of it), and `useFlip` had NO tests despite being shared with the admin
 event feed.
-**`lp/careers-identity` is MERGED into `launch-prep`** (the fourth branch of the sequence), awaiting
-Will's sign-off for its milestone merge. **One branch still with Will: `lp/glow-doctrine`**, which
+**`lp/careers-identity` is MERGED into `launch-prep`** (`9b206a1`, the fourth branch of the
+sequence), preview-verified, awaiting Will's sign-off for its milestone merge. /careers went from a
+template instance to a page that argues in photographs; it reached `(cinema)` on its own, so the
+round's work was Will's three rulings (the h1 back on the site ladder, the philosophy indices circled
+in the page's own hand, the two morph delegates collapsed into one), two measured fixes (the hero was
+lazy-loading half of itself ABOVE THE FOLD; the emblem fallback could hand an unwritten role a mark
+that claims something), the seven tests the round shipped none of, two a11y gaps found by
+keyboard-driving the preview, and a doc repair. It also carried a real rising tide of its own: the
+overlay header's glass wash, retuned off Will's note and now 300/220 on the symmetric S for EVERY
+marketing page. ★ Its `marketing-content.md` AUTO-MERGED into a broken state with no conflict, which
+is the transferable lesson: a clean merge report on a doc means the text reconciled, not the facts.
+Full narrative: [CHANGELOG](CHANGELOG.md). **One branch still with Will: `lp/glow-doctrine`**, which
 nothing merged so far has touched.
 
 **MILESTONE-11 (2026-08-29): prod = the /blog round.** `main` @ tag `milestone-11` (`95ca799`), prod

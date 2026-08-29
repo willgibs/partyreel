@@ -112,6 +112,16 @@ site, these are the ways the *test tooling* misreports, so a working change look
   does not follow you to a page that round never touched. Confirm on the deployed preview
   (production build, extension-free): a clean console there closes it.
 
+- ★ **AN OCCLUDED TAB NEVER DELIVERS THE FIRST IntersectionObserver CALLBACK** (careers merge,
+  2026-08-29). With `document.hidden === true`, anything revealed ON ARRIVAL stays at its hidden rest
+  state forever: the careers hero's h1 read `opacity: 0` with `.is-shown` absent, minutes after load,
+  on a page that renders perfectly for a human. This is the NASTIEST of the family, because it is
+  indistinguishable from the arrival-default bug the blog round exists to prevent, and the honest
+  reading of the measurement is "the H1 never paints." **One scroll disproves it** (a scroll forces a
+  delivery, and `.is-shown` lands immediately). Reveals further down the page fire normally, because
+  scrolling to them IS the nudge - so the symptom is oddly selective, which makes it more convincing,
+  not less. Sibling of the suspended-rAF trap; check `document.hidden` before believing either.
+
 - **`read_console_messages` returns an ACCUMULATED buffer, not the current page's.** Reading it right
   after navigating to a second origin returns the FIRST origin's errors, which reads as "the bug
   followed me to prod." Same round, same fifteen minutes. Check the URLs inside the messages before
