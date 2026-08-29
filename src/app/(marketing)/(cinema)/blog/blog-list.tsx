@@ -13,6 +13,7 @@ import {
   type CSSProperties,
 } from "react";
 
+import { CoverMorphDelegate } from "@/components/marketing/blog/cover-morph";
 import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -168,6 +169,8 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
 
   return (
     <div ref={scopeRef}>
+      {/* One island for every card on the page. */}
+      <CoverMorphDelegate />
       {/* ── The cinema stage: masthead, then the featured card. ─────────────────────────── */}
       <section className="pt-14 pb-0 sm:pt-20">
         <Container>
@@ -495,6 +498,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
+      data-cover-morph=""
       // 21:9 on desktop, the Cutting Room's signature letterbox: at container width a 16:9 hero
       // measured 684px against an 820px viewport, so the fold held the masthead and nothing else.
       // The crop is also the one aspect no other marketing surface uses (frames run 4:3, 16:9, 1:1,
@@ -503,6 +507,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
     >
       <span
         data-mkt-develop
+        data-cover-plate=""
         className="absolute inset-0"
         style={{ "--i": 6 } as CSSProperties}
       >

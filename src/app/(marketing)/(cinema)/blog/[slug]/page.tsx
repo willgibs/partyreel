@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
+import { CoverMorphDelegate } from "@/components/marketing/blog/cover-morph";
 import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
@@ -113,6 +114,8 @@ export default async function BlogPostPage({
 
   return (
     <>
+      {/* Mounted here too, so a "Keep reading" card morphs into the next article. */}
+      <CoverMorphDelegate />
       <BreadcrumbJsonLd
         items={[
           { name: "Home", href: "/" },
@@ -173,8 +176,20 @@ export default async function BlogPostPage({
 
             {/* The plate STRADDLES the cut: the photograph carries the reader out of the night into
                 the daylight they read in. Same image, same crop as the card they clicked. */}
-            <div className="relative z-10 mt-10 -mb-16 aspect-4/5 overflow-hidden bg-muted sm:-mb-20 sm:aspect-video">
-              <span data-mkt-develop className="absolute inset-0">
+            {/* 4/3 on phones, not the index card's 4/5: the card's portrait crop earns its height
+                in a grid, but here it is art the reader has to scroll PAST to reach the writing,
+                and 4/5 at 375px put ~190px of extra photograph between the byline and the lead. */}
+            <div className="relative z-10 mt-10 -mb-16 aspect-4/3 overflow-hidden bg-muted sm:-mb-20 sm:aspect-video">
+              {/* Pre-named as the morph TARGET: the incoming document is one this code never
+                  touches before it exists, so the name has to be server-rendered. The delegate
+                  clears it from every plate before naming a clicked card, so it can never collide
+                  on an article-to-article hop. */}
+              <span
+                data-mkt-develop
+                data-cover-plate="target"
+                className="absolute inset-0"
+                style={{ viewTransitionName: "blog-cover" } as React.CSSProperties}
+              >
                 <Image
                   src={cover.src}
                   alt=""
@@ -224,9 +239,13 @@ export default async function BlogPostPage({
 
                 {/* prose-headings:font-heading pulls the post's h2/h3 onto the house heading face;
                     the prose SCALE itself is untouched. */}
+                {/* THE LEAD-IN: the opening paragraph sets one step above the body, which gives
+                    the reader a type ramp down into the piece (standfirst 20px muted -> lead 18px
+                    ink -> body 16px) instead of a cliff from display type straight to body copy.
+                    Scoped to the first child so it can never catch a second paragraph. */}
                 <article
                   id={BODY_ID}
-                  className="prose max-w-none prose-help prose-headings:font-heading"
+                  className="prose max-w-none prose-help prose-headings:font-heading [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
                 >
                   {content}
                 </article>

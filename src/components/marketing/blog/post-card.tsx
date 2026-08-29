@@ -41,6 +41,9 @@ export function PostCard({
   return (
     <Link
       href={`/blog/${post.slug}`}
+      // The morph opt-in: CoverMorphDelegate reads these, so the card itself stays a server
+      // component and ships no JS (the HeadingAnchorsDelegate pattern).
+      data-cover-morph=""
       className={cn(
         "group relative block aspect-4/5 overflow-hidden bg-muted",
         // The focus ring is WHITE and offset inward, not the token ring: `outline-ring` resolves
@@ -53,6 +56,7 @@ export function PostCard({
     >
       <span
         data-mkt-develop
+        data-cover-plate=""
         className="absolute inset-0"
         style={{ "--i": index } as CSSProperties}
       >

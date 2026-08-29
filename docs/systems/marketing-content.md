@@ -141,7 +141,20 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   (scroll-spy; the blog opts into its `progress` reading spine, /help does not) and the delegated
   `HeadingAnchorsDelegate`. The ending is deliberately TWO blocks: chronological neighbours, then
   related posts with those neighbours excluded (`getRelatedPosts(post, n, exclude)`), because on a
-  small archive the two sets otherwise coincide and repeat a post within one screen. Share surfaces
+  small archive the two sets otherwise coincide and repeat a post within one screen. **THE COVER MORPH** (the polish round): the card's photograph grows into the
+  article's plate on navigation, via the **native** View Transitions API
+  ([`cover-morph.tsx`](../../src/components/marketing/blog/cover-morph.tsx)), one delegated island
+  so every card stays a server component. ★ NOT React's `<ViewTransition>`: that needs
+  `experimental.viewTransition`, which swaps the WHOLE app's React runtime from the pinned 19.2.4 to
+  19.3.0-canary (measured with a probe build, not assumed) — a product-wide trade for a blog
+  flourish, and a decision for Will, not a round. Two traps it cost: the delegate must intercept in
+  the CAPTURE phase, because `next/link` preventDefaults on the anchor first and a bubble listener
+  bails on `defaultPrevented` forever (the morph silently does nothing while the page still
+  navigates perfectly); and the delegate, not the server render, must own the
+  `view-transition-name`, because clearing it from an incoming cover is a mutation React will never
+  undo (the `style` prop did not change), so the first morph otherwise disarms every one after it.
+  The `::view-transition-*` rule in marketing.css is NAME-scoped and pinned by the CSS policy test:
+  those pseudo-elements are document-global, exactly like `@keyframes`. Share surfaces
   are media-led: the OG card is the featured card (cover read off disk and inlined, never fetched —
   `NEXT_PUBLIC_SITE_URL` resolves to PROD on preview builds) and the feed carries `<enclosure>` art
   sized by the route. Unchanged: the client-safe author

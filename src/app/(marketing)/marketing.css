@@ -1473,3 +1473,23 @@ body:has([data-mkt-skin="paper"]) {
   background: oklch(0.99 0 0);
   color-scheme: light;
 }
+
+/* ── The blog cover morph (the reading round, 2026-08-28). The index card's photograph grows into
+   the article's plate on navigation, via the NATIVE View Transitions API (cover-morph.tsx explains
+   why not React's <ViewTransition>: that flag swaps the whole app's React build to a canary).
+
+   ★ NAME-SCOPED, and that is the containment contract, not fussiness. `::view-transition-*` are
+   DOCUMENT-GLOBAL pseudo-elements, exactly like @keyframes: this sheet persists app-wide once any
+   marketing route has loaded, so a `::view-transition-group(*)` rule here would silently own every
+   future view transition anywhere in the product. Targeting the one name we create cannot reach
+   anything else.
+
+   Longer than the 300ms UI ceiling on purpose and within the marketing exemption: this is an
+   explanatory reveal (the same photograph, continuing across a cut), not a workflow control. No
+   reduced-motion block is needed because the delegate never STARTS a transition under reduced
+   motion, which is a stronger guarantee than animating at 0.01ms. ── */
+
+::view-transition-group(blog-cover) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
