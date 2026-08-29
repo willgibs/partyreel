@@ -93,7 +93,29 @@ site, these are the ways the *test tooling* misreports, so a working change look
     missing entirely (also all-black and all-white frames) while `elementsFromPoint`, `getComputedStyle`
     and `getBoundingClientRect` all agreed the type was painted, opaque and topmost. Forcing a repaint
     (any style write) or simply taking a SECOND screenshot returns the true frame, so never treat one
-    screenshot as evidence that something is absent.
+    screenshot as evidence that something is absent. ★ A FOURTH costume, the careers MERGE
+    (2026-08-29): the second screenshot trick stops working entirely once the pane is HIDDEN
+    (`innerWidth` reads 0 and every capture comes back black) and `resize_window` silently no-ops on
+    the Chrome side while reporting success. DOM reads stay honest in both. When neither browser will
+    paint, stop fighting them and verify geometry + computed style by hand, then look at the
+    DEPLOYED preview, where both have always worked.
+
+- ★ **A BROWSER EXTENSION IN THE CHROME PROFILE MANUFACTURES A HYDRATION MISMATCH** (careers merge,
+  2026-08-29, ~15 minutes). The dev overlay reported "1 Issue" on every marketing page, and React's
+  report pointed at `GlassLayer`'s `className` with a `+`/`-` pair — which reads as a real SSR/client
+  divergence on SHARED CHROME, on a file the round had just edited. It was neither. The actual
+  mismatch was `cz-shortcut-listen="true"` injected on `<body>` by an extension (React's own message
+  lists this cause last, and it is easy to skim past), and once ANY mismatch occurs React prints the
+  surrounding subtree with markers on nodes that never differed. **The 10-second disproof**: compare
+  the curl'd server HTML against the live `element.className`. Byte-identical means the diff is
+  display noise. It reproduced on /pricing too, which is the other tell — a fault in one round's file
+  does not follow you to a page that round never touched. Confirm on the deployed preview
+  (production build, extension-free): a clean console there closes it.
+
+- **`read_console_messages` returns an ACCUMULATED buffer, not the current page's.** Reading it right
+  after navigating to a second origin returns the FIRST origin's errors, which reads as "the bug
+  followed me to prod." Same round, same fifteen minutes. Check the URLs inside the messages before
+  believing what page they came from.
 
 ## Long-lived-session tests (the presign-roll soak)
 

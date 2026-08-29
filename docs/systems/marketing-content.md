@@ -109,32 +109,6 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   which desyncs SSR), so the no-JS fallback is prints on a table rather than photographs stranded
   off-screen. Eleven gather and a twelfth arrives late, because a complete rectangle says "this is all
   of it" and there is always one more phone in the room.
-- **`/contact`** (rebuilt, the contact round 2026-08-28) + **`/careers`** — forms → deny-all
-- **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — moved into the **(cinema)** group
-  (URL unchanged; every consumer addresses it by path). The arc is the home rhythm: dark hero → PAPER
-  (why we are building it + how we work) → dark **open roles** → CtaBand. The hero's one device is the
-  **marks wall** ([`careers-marks.tsx`](../../src/components/marketing/sections/careers/careers-marks.tsx)):
-  hand-built achromatic DOM art of the GLOBAL product loop (scan, phone, album, choose, reel, share,
-  keep, download) on the existing `[data-mkt-wall]` drift, under the `.mkt-careers-scrim` pool. ★ The
-  marks are DRAWN FROM SOLID BLOCKS and tuned at ~54px, because hairlines disappear at wall size; the
-  per-tile opacity cycle is coprime with the mark sequence so a fixed pattern stops reading as
-  wallpaper. Listings live in one scalable section
-  ([`role-listings.tsx`](../../src/components/marketing/sections/careers/role-listings.tsx)): real
-  vacancies render as rows from `OPEN_ROLES`, and the **General Application is permanent and
-  first-class** on its own muted plate labelled "Always open", never a peer vacancy card (the site must
-  never appear to advertise a job it does not have, the same invariant `IS_HIRING` protects for the
-  footer badge). The empty state (zero named roles) is built, not theoretical. **★ WHAT THIS PAGE IS
-  DELIBERATELY NOT** (Will's verdict on the first rebuild, do not walk back): not a tour of the
-  product's internals ("this will all be handled during interviews" — an engine-internals draft was
-  rejected outright), not centred on one role, not a pre-launch confessional, and not self-deprecating
-  in the header. The role page mirrors the cut (dark identity + facts + an apply jump → paper document
-  and form) and keeps the ARTICLE H1 exemption at `lg:text-6xl`; **no `JobPosting` JSON-LD while the
-  listing is placeholder copy**. The application form is the contact round's instrument treatment, with
-  the work link promoted (optional on purpose: the same form serves the General Application) and a
-  specific note prompt instead of a blank cover-letter box. Copy single-source:
-  [`careers.ts`](../../src/lib/constants/careers.ts), which is a content-policy `CLAIM_FILES` entry;
-  its `offer` block (incl. "Competitive compensation") is KEPT by Will's ruling, the posting being
-  meant to spark a conversation rather than close a hire.
 - **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — in the **(cinema)** group (URL
   unchanged; every consumer addresses it by path). Shape: dark hero → ONE paper chapter carrying the
   whole body → the ink footer. ★ **One cut, not stripes**: an earlier pass alternated per section and
@@ -165,8 +139,17 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   the footer the fanning pile), per the media doctrine in
   [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
   ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
-  The transparent-until-scrolled header this page introduced is now the pattern for any full-bleed
-  hero: see the glass-crossfade note in [design-system.md](design-system.md).
+  ★ **Nothing in the hero is lazy** (fixed at the merge): the sheet fills the first screen, so every
+  one of its cells is above the fold, and half of them were `loading="lazy"` on the reasoning that
+  this is the LCP surface, which is the wrong lever. Because the roll REPEATS, covering the unique
+  pass costs six more small requests; `priority` stays at six, since a preload per frame would fight
+  the LCP element for the same bandwidth.
+  ★ The h1 takes the **site ladder**, not a ramp of its own (Will, 2026-08-29: "let's normalize the
+  site ladder so that we don't have one unique size ramp for a utility page"). The round shipped it
+  one step louder below `lg`; a photographic hero earns presence from the sheet, not a private step.
+  This hero is what EXPOSED the roughness in the overlay header's glass wash (the pattern itself
+  predates it, on home's cinema hero); the fix is now the recommendation for any full-bleed hero, in
+  the glass-crossfade note in [design-system.md](design-system.md).
   ★ The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
   uniform 0.8 dim on hero frames is what lets the type win without crushing the images the page
   exists to show. Listings use ONE row design for every entry with contact-sheet frame numbers; the
@@ -185,9 +168,18 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   rather than three stacked text blocks. The close is a small FOLLOW-UP inside the roles section
   (smaller than a role title, tucked under the cards) rather than a CtaBand, whose heading scale
   shouted over the list it was meant to trail. ★ Mono is confined to the contact sheet's frame
-  NUMERALS; the role and philosophy indices are Inter (the R6 ruling, applied 2026-08-29). Copy
-  single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
-  entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
+  NUMERALS; the role and philosophy indices are Inter (the R6 ruling, applied 2026-08-29).
+  ★ **The philosophy indices are CIRCLED by the sheet's own `SelectMark`** (Will, 2026-08-29: "give
+  it the page's vocabulary"). That row was the one beat arguing in prose on a page that argues in
+  photographs, and a bare 01/02/03 under a hairline is any startup's values grid; the mark is not a
+  new device, so one gesture repeats at three scales (hero frames, roll frames, indices), and it is
+  true rather than decorative, since three principles survived a cut from four. Off the sheet it
+  takes the SURFACE's ink (the base colour is the gallery's near-white, invisible on paper) and draws
+  on its section's Reveal rather than the page-load clock a mark three screens down would waste.
+  Copy single-source for the listings and the hub:
+  [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES` entry (the role
+  page's apply-chapter notes are inline prose, like /contact's and /press's, and are covered by the
+  neutralization fence that scans all of `(marketing)`); its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
   being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
   **`/careers/[slug]` is a SPEC SHEET** (ruled 2026-08-29): dark title block → a paper document
   (reading column beside a sticky spec rail, the same two-column family help articles and the legal
@@ -195,13 +187,18 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   an achromatic SVG plate (a film reel, an empty slide mount, the album grid) shown on its listing
   card and again as the avatar above its title, which the two pages **MORPH between** via the native
   View Transitions API ([`role-morph.tsx`](../../src/components/marketing/sections/careers/role-morph.tsx),
-  mounted from a careers-scoped layout so the listener stays off every other route). ★ Same mechanism
-  as the blog round's cover morph, developed in parallel: when both land, the two delegates should
-  collapse into one parameterised component. ★ NOT React's `<ViewTransition>` - that flag swaps the
-  whole app's React runtime to a canary, which a marketing round does not get to decide. The CSS is
-  NAME-SCOPED because `::view-transition-*` are document-global like `@keyframes`. Emblems map by
-  slug with a deterministic integer-hash fallback, so a new listing is never emblem-less and server
-  and hydration agree. ★ It carries NO PHOTOGRAPHIC hero media on purpose.
+  mounted from a careers-scoped layout so the listener stays off every other route). ★ The morph
+  itself is the SHARED
+  [`morph-delegate.tsx`](../../src/components/marketing/system/morph-delegate.tsx), collapsed at the
+  merge with the blog's cover morph, which was built in parallel and differed in three strings; a
+  third morph is a config object, not a fourth copy. ★ NOT React's `<ViewTransition>` - that flag
+  swaps the whole app's React runtime to a canary, which a marketing round does not get to decide.
+  The CSS is NAME-SCOPED because `::view-transition-*` are document-global like `@keyframes`, and the
+  binding between a `name` and its rule is pinned by `marketing-css-policy.test.ts` (renaming one
+  side alone drops the timing with no error). Emblems map by slug with a deterministic integer-hash
+  fallback, so a new listing is never emblem-less and server and hydration agree; ★ that fallback
+  draws only from NEUTRAL kinds, because an unwritten role inheriting `reel` (the graphics role's
+  mark) or `open` ("not a real vacancy") asserts something false. ★ It carries NO PHOTOGRAPHIC hero media on purpose.
   The hub argues in photographs; this page is where somebody decides and wants information density,
   and a contact-sheet frame borrowed as a header was considered and dropped because an image
   unrelated to the actual role reads as decoration. The restraint straight after a photographic hub
@@ -309,9 +306,11 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     2026-08-29) and the delegated `HeadingAnchorsDelegate`. Both pages mark their body with the
     shared `ARTICLE_BODY_ID` so the spine measures the ARTICLE, never the page.
   - **THE COVER MORPH**: the card's photograph grows into the article's plate on navigation, via the
-    **native** View Transitions API
-    ([`cover-morph.tsx`](../../src/components/marketing/blog/cover-morph.tsx)), one delegated island
-    so every card stays a server component. ★ NOT React's `<ViewTransition>`: that needs
+    **native** View Transitions API. The mechanism moved to the SHARED
+    [`morph-delegate.tsx`](../../src/components/marketing/system/morph-delegate.tsx) at the careers
+    merge (the careers round had rebuilt it line for line in parallel);
+    [`cover-morph.tsx`](../../src/components/marketing/blog/cover-morph.tsx) is now three strings of
+    configuration. One delegated island, so every card stays a server component. ★ NOT React's `<ViewTransition>`: that needs
     `experimental.viewTransition`, which swaps the WHOLE app's React runtime from the pinned 19.2.4
     to 19.3.0-canary (measured with a probe build, not assumed) — a product-wide trade for a blog
     flourish, and a decision for Will, not a round. Two traps it cost: the delegate must intercept in
@@ -457,7 +456,12 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   `(marketing)/layout.tsx`, which ALREADY renders header/footer → the chrome **double-stacks**. The fix is a
   [`(marketing)/not-found.tsx`](../../src/app/(marketing)/not-found.tsx) boundary that renders ONLY the
   centered content (lost-visitor copy single-sourced in
-  [`marketing-not-found.tsx`](../../src/components/marketing/marketing-not-found.tsx)). By audience: root
+  [`marketing-not-found.tsx`](../../src/components/marketing/marketing-not-found.tsx)). ★ Since the
+  careers round the marketing pair is LOPSIDED: `(cinema)` catches every dynamic marketing route
+  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only the static
+  trio. Do not delete the paper one for having no slug: a static page can call `notFound()`, and
+  without the boundary that render falls through to the ROOT one and double-stacks the chrome.
+  By audience: root
   (unmatched URL, brings its own chrome), marketing (bad `[slug]`, no chrome), guest (dead/expired event link
   → reassure + a "What is Partyreel?" CTA + the demo, minimal `Logo` header), host (inside the authed
   `AppShell`), admin (inside the MFA-gated `AdminShell`). All five → single chrome, 404 status + `noindex`.

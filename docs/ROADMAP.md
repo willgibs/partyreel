@@ -47,7 +47,13 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   question. (a) ENTRANCE: `PageHero` uses the chapter-1 rise while /help, /contact and /careers
   arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line` forces
   `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
-  `opacity: 0` rest state is why those pages gate their own h1's paint. (b) ADOPTION: only /about and
+  `opacity: 0` rest state is why those pages gate their own h1's paint. ★ That last part is a REAL
+  BUG the sweep closes, on **4 of 22 marketing h1s** (pricing, /help index, /contact, /careers): the
+  h1 ships at `opacity: 0` and paints only after hydration plus an observer, which is exactly the LCP
+  hole `PageHero` already forbids. ★ And /careers is confirmed to QUALIFY (checked at its merge,
+  2026-08-29) — its hero is a plain eyebrow/h1/subhead/actions lockup, with the contact sheet a
+  BACKGROUND sibling rather than part of it — so the old "careers still hand-rolls, so the sweep is
+  blocked" framing is retired; only (a) blocks it. (b) ADOPTION: only /about and
   /press compose it, while TWELVE pages hand-copy its exact lockup inline (`<Reveal>` + `Eyebrow` +
   the identical `text-4xl…lg:text-7xl` h1 + subhead + a two-Button row) and have already drifted to
   `gap-5` against its `gap-6`. The sweep is blocked on (a): those twelve differ in entrance
@@ -56,6 +62,19 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   type lockup — it must never absorb a hero with media, a form, or its own object (/blog's index
   masthead, /help's instrument row, the home hero all stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
+- **A mobile pass of its own** (Will, 2026-08-29): "we'll already need to make mobile tweaks in the
+  future. Right now, I've really been reviewing desktop only." Every marketing round to date has been
+  judged at desktop and merely checked for breakage at 375, so the phone is un-tuned by accretion
+  rather than by any single decision. One round over the whole marketing site, not per page.
+- **The sticky-offset split** (found in the careers merge, 2026-08-29): reading rails use `top-24`
+  (96px — /help/[slug], the legal shell, the careers role page) while index rails use
+  `calc(var(--mkt-header-h) + 1.5rem)` (88px — /blog, /press, the /help index). Both are consistent
+  WITHIN their family, so neither is a bug; it is one number that should come from the same knob.
+- **The reply line, hand-copied on seven surfaces** (found in the careers merge): "Every note gets a
+  reply, usually within a day." lives inline on /press, /help, /contact (×3) and now /careers, plus a
+  `REPLY_LINE` const in the contact lab. The content-policy test already NAMES it as the standard
+  line, which is the tell that it wants one home.
+
 - **Collapse the THREE FLIP implementations to one** (found in the /blog merge, 2026-08-29): the
   shared [`use-flip.ts`](../src/lib/shared/use-flip.ts) (event feed + blog library, now two-axis and
   covered by `use-flip.test.tsx`), a stale lab-local copy under `(dev)/design/event-feed/`, and a
