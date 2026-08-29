@@ -52,7 +52,13 @@ content-hashed), which produces the identical symptom. `design-system.md` now sa
 
 Also: the identity-language ban now scans /about's copy single-source (the hole the round found and
 left open), `FAILURE_MODE_LINE`'s comment matches reality, and the gather's dead `data-inview`
-attribute is gone. Gate green throughout: typecheck, lint, 1211 tests, build with /about static.
+attribute is gone. Gate green throughout: typecheck, lint, 1212 tests, build with /about static.
+
+One more caught in the live pass and fixed on top: the lockup had marked the h1 for the staggered
+entrance, which gates the page's LARGEST paint behind an IntersectionObserver callback. The house
+rule is the opposite and is written on four heroes already; the h1 renders unmarked now and is
+pinned that way. Verified in the cleanest possible form, a backgrounded tab where the observer never
+fires at all: the h1 paints while the three slots around it correctly wait.
 
 ---
 
