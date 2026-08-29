@@ -186,7 +186,10 @@ further right (`lg:ml-auto` against a width cap) rather than widening, so the ga
 heading and its answer grows with the viewport while the reading measure does not. Words and the fact
 sheet share ONE measure (`max-w-3xl`): at 672 against 768 the seam between them read as a mistake
 rather than a distinction. Each pinned column carries a pointer under its note (the kit download,
-then /contact, then /how-it-works), so a section says what it is and where to go next from it. Eyebrow "Press",
+then /contact, then /how-it-works), so a section says what it is and where to go next from it; the
+glyph follows the ACTION, not variety, so navigation takes `LearnChevron` and a download takes the
+hero's down arrow. ★ The H1's `max-w-3xl` is a type clamp, not a content measure: do not sweep it
+along when retuning the body columns. Eyebrow "Press",
 H1 "Media" (hoisted to a constant in the page; a taste call Will has turned twice). The kit is
 manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` +
 `scripts/build-press-qr.mjs` + the committed zip, guarded by `press-kit.test.ts`), so the pre-launch

@@ -127,8 +127,14 @@ tabbing dims the sheet correctly page-wide and reaches the right copy buttons, w
 check that was never verifiable from an agent seat (Chrome does not paint focus states without
 document focus).
 
+Final tweaks: semantic icons on the three section pointers (the two that navigate take the ratified
+learn-more chevron, the one that downloads takes the hero's down arrow, so a glyph means one thing
+throughout), "Ask a question" on the Words pointer so it stops colliding with the closing button, and
+both body columns stepped back to `max-w-2xl`. ★ The H1's own `max-w-3xl` is a TYPE clamp, not a
+content measure: a blind width sweep would have narrowed the headline with them.
+
 **Open:** nothing. The `DESIGN_PREVIEW_KEY` blocker named earlier in this entry was fixed mid-round
-(an unscoped `preview` row) and verified live: 200 with the key, 404 without.
+(an unscoped `preview` row) and verified live: 200 with the key, 404 without. Ready for integration.
 
 ## 2026-08-28 — MILESTONE-8: the exec round
 
