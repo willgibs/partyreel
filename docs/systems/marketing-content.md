@@ -189,7 +189,20 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
   entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
   being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
-  `/careers/[slug]` is DEFERRED at wireframe grade by ruling, so the hub is intentionally ahead of it.
+  **`/careers/[slug]` is a SPEC SHEET** (ruled 2026-08-29): dark title block → a paper document
+  (reading column beside a sticky spec rail, the same two-column family help articles and the legal
+  shell use) → the application chapter on its own gray band. ★ It carries NO hero media on purpose.
+  The hub argues in photographs; this page is where somebody decides and wants information density,
+  and a contact-sheet frame borrowed as a header was considered and dropped because an image
+  unrelated to the actual role reads as decoration. The restraint straight after a photographic hub
+  is the point. Facts render as labelled pairs in the rail (a slashed inline run reads as a caption;
+  a spec wants terms you can scan down), list items are ruled rows rather than dot-bullets, and the
+  offer block keeps the green checks but takes a different SHAPE from the lists so three sections do
+  not read as one column. ★ `lg:self-stretch` on the rail is load-bearing (the help ToC's lesson:
+  `lg:items-start` otherwise collapses the aside and sticky gets zero travel), and the rail is
+  `order-first` on mobile so the facts precede the prose. The application chapter wraps the form in
+  context (what we need / what you do not need / what happens next) beside it, and INVERTS the
+  contact figure/ground: a white card on the gray band, because here the band is the separator.
 - **`/contact`** (rebuilt, the contact round 2026-08-28) — forms → deny-all
   `contact_submissions` / `job_applications` via a Server Action + the service-role admin client;
   best-effort Resend notify via `sendOnce` (ADR-0005; [`careers.ts`](../../src/lib/constants/careers.ts)).

@@ -27,8 +27,11 @@ import { submitApplication } from "../actions";
  * THE APPLICATION FORM (the careers round, 2026-08-28).
  *
  * Dressed as an instrument rather than a bare field stack, following the
- * contact round's ruling: the card sits on the muted panel and every field is
- * explicitly `bg-background` so white reads against the gray.
+ * contact round's ruling. The figure/ground is INVERTED from /contact on
+ * purpose: there the gray card sits on white paper, here a white card sits on
+ * the gray application band, because on this page the band is what separates
+ * the application chapter from the description above it. Fields keep their
+ * explicit `bg-background` either way.
  *
  * FIELD ORDER IS THE REAL CHANGE. Work samples are the signal for the roles we
  * are actually hiring for, so "Work" moves directly under the email and gets a
@@ -84,7 +87,7 @@ export function ApplicationForm({
       // The drawn check = the 10-success-check recipe (marketing.css ch. 2):
       // data-state="in" fires on mount, the inline dasharray (24 = path length
       // + 1) scopes the draw, success green is the sanctioned state accent.
-      <div className="flex flex-col items-start gap-3 rounded-sm border bg-muted/50 p-6 sm:p-7">
+      <div className="flex flex-col items-start gap-3 rounded-sm border bg-card p-6 sm:p-7">
         <span className="mkt-check text-success" data-state="in" aria-hidden>
           <svg
             width="28"
@@ -114,7 +117,7 @@ export function ApplicationForm({
   }
 
   return (
-    <div className="rounded-sm border bg-muted/50 p-6 sm:p-7">
+    <div className="rounded-sm border bg-card p-6 sm:p-7">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

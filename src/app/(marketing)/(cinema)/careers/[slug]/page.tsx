@@ -8,7 +8,8 @@ import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
-import { getJob, JOB_SLUGS } from "@/lib/constants/careers";
+import { trackAttrs } from "@/lib/analytics/events";
+import { getJob, JOB_SLUGS, type JobOpening } from "@/lib/constants/careers";
 
 import { ApplicationForm } from "./application-form";
 
@@ -32,23 +33,29 @@ export async function generateMetadata({
 }
 
 /**
- * THE ROLE PAGE (rebuilt, the careers round 2026-08-28).
+ * THE ROLE PAGE - a SPEC SHEET (ruled 2026-08-29).
  *
- *   dark header (identity + the facts + an apply jump) -> PAPER (the
- *   description and the form).
+ *   CINEMA  the title block
+ *   PAPER   the document: a reading column beside a sticky spec rail
+ *   PAPER   the application chapter, on its own gray band
+ *   INK     the footer
  *
- * The chapter cut carries the meaning: the room introduces the role, then the
- * job turns the page to paper, because a listing and an application ARE
- * documents (the same move /pricing ruled for the money). It also gives the
- * form a light, high-contrast surface without a nested `.dark`.
+ * ! DELIBERATELY NO HERO MEDIA. The hub argues in photographs; this page is
+ *   where somebody DECIDES, and it wants information density instead. A
+ *   candidate-facing frame borrowed from the contact sheet was considered and
+ *   dropped: an image unrelated to the actual role reads as decoration ("may
+ *   feel weird on the page"). The restraint directly after a photographic hub
+ *   is the point, not an omission.
  *
- * NO JobPosting JSON-LD, deliberately: Will's ruling is that the listing is
- * real intent but placeholder copy, and machine-readable structured data would
- * publish a vacancy commitment we are not ready to make (Google also penalises
- * stale and expired postings). It goes in when the listing is final.
+ * The two-column shape is the house's paper-document family, shared with help
+ * articles and the legal shell, so the reading surfaces feel like one thing.
+ * ★ `lg:self-stretch` on the rail is LOAD-BEARING: the row's `lg:items-start`
+ *   otherwise collapses the aside to its content height and sticky gets zero
+ *   travel, so the rail never tracks (live-caught on the help ToC).
  *
- * H1 keeps the ARTICLE exemption from the marketing type ladder: long titles
- * stop at lg:text-6xl rather than the 7xl a standard marketing page reaches.
+ * NO JobPosting JSON-LD while the listing is placeholder copy (Will's ruling):
+ * machine-readable structured data would publish a vacancy commitment we are
+ * not ready to make, and stale postings are penalised.
  */
 export default async function RolePage({
   params,
@@ -58,8 +65,6 @@ export default async function RolePage({
   const { slug } = await params;
   const job = getJob(slug);
   if (!job) notFound();
-
-  const facts = [job.team, job.type, job.location].filter(Boolean);
 
   return (
     <>
@@ -71,12 +76,11 @@ export default async function RolePage({
         ]}
       />
 
-      {/* The room: who the role is, and a door straight to the form for anyone
-          who arrived already convinced (a shared link should not force a scroll
-          through the whole description before it offers an action). */}
+      {/* The title block. A shared link should offer an action before it asks
+          for a scroll, so Apply sits up here as well as in the rail. */}
       <section className="border-b border-foreground/10">
         <Container className="py-14 sm:py-20">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-5xl">
             <Link
               href="/careers"
               className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -84,78 +88,129 @@ export default async function RolePage({
               <ArrowLeft className="size-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
               All roles
             </Link>
-            <h1 className="mt-6 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 max-w-3xl font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
               {job.title}
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
               {job.summary}
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Button asChild className="h-10 px-5">
-                <Link href="#apply">Apply</Link>
-              </Button>
-              {facts.length > 0 && (
-                <span className="flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-                  {facts.map((fact, i) => (
-                    <span key={fact} className="flex items-center gap-2.5">
-                      {i > 0 && (
-                        <span aria-hidden className="text-foreground/20">
-                          /
-                        </span>
-                      )}
-                      {fact}
-                    </span>
-                  ))}
-                </span>
-              )}
-            </div>
+            <Button asChild className="mt-8 h-10 px-5">
+              <Link
+                href="#apply"
+                {...trackAttrs("cta_click", {
+                  cta: `apply-${job.slug}`,
+                  location: "role-header",
+                })}
+              >
+                Apply
+              </Link>
+            </Button>
           </div>
         </Container>
       </section>
 
-      {/* The document. */}
       <PaperChapter>
-        <section className="scroll-mt-[calc(var(--mkt-header-h)+1rem)] py-16 sm:py-20">
+        <section className="py-16 sm:py-20">
           <Container>
-            <div className="mx-auto max-w-3xl">
-              {job.responsibilities.length > 0 && (
-                <RoleList heading="What you'll do" items={job.responsibilities} />
-              )}
-              {job.requirements.length > 0 && (
-                <RoleList
-                  heading="What we're looking for"
-                  items={job.requirements}
-                  first={job.responsibilities.length === 0}
-                />
-              )}
-
-              {job.offer && job.offer.length > 0 && (
-                <div className="mt-12 rounded-sm border bg-muted/40 p-6 sm:p-7">
-                  <Eyebrow>What we offer</Eyebrow>
-                  {/* The page's one accent moment: green checks read as
-                      "included" (a real state color, per the achromatic-plus-
-                      accents ruling). */}
-                  <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2.5 text-sm text-muted-foreground">
-                    {job.offer.map((item) => (
-                      <li key={item} className="flex items-center gap-2">
-                        <Check className="size-4 text-success" aria-hidden />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+            <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
+              {/* The rail carries the spec and keeps Apply in reach. It leads
+                  on mobile (order-first) because the facts are what a skimmer
+                  wants before the prose, and it only turns into a sticky
+                  column once there is a column to stick inside. */}
+              <aside className="order-first shrink-0 lg:order-last lg:w-60 lg:self-stretch">
+                <div className="lg:sticky lg:top-24">
+                  <SpecList job={job} />
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="mt-6 hidden h-10 w-full px-5 lg:inline-flex"
+                  >
+                    <Link
+                      href="#apply"
+                      {...trackAttrs("cta_click", {
+                        cta: `apply-${job.slug}`,
+                        location: "role-rail",
+                      })}
+                    >
+                      Apply
+                    </Link>
+                  </Button>
                 </div>
-              )}
+              </aside>
 
-              <div id="apply" className="mt-14 scroll-mt-[calc(var(--mkt-header-h)+1rem)] border-t pt-10">
-                <h2 className="font-heading text-2xl">Apply</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Send a link to something you made, and a line about why this
-                  one. We read every application.
-                </p>
-                <div className="mt-7">
-                  <ApplicationForm roleSlug={job.slug} roleTitle={job.title} />
-                </div>
+              <div className="min-w-0 max-w-2xl flex-1">
+                {job.responsibilities.length > 0 && (
+                  <RoleList heading="What you'll do" items={job.responsibilities} />
+                )}
+                {job.requirements.length > 0 && (
+                  <RoleList
+                    heading="What we're looking for"
+                    items={job.requirements}
+                    className={job.responsibilities.length > 0 ? "mt-14" : ""}
+                  />
+                )}
+
+                {job.offer && job.offer.length > 0 && (
+                  <div className="mt-14">
+                    <SectionTitle>What we offer</SectionTitle>
+                    {/* The page's one accent moment: green checks read as
+                        "included" (a real state color, per the achromatic-
+                        plus-accents ruling). A different SHAPE from the ruled
+                        lists above on purpose, so three sections in a row do
+                        not read as one long undifferentiated column. */}
+                    <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                      {job.offer.map((item) => (
+                        <li
+                          key={item}
+                          className="flex items-center gap-2.5 rounded-sm border bg-muted/40 px-4 py-3 text-sm"
+                        >
+                          <Check className="size-4 shrink-0 text-success" aria-hidden />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
+            </div>
+          </Container>
+        </section>
+
+        {/* THE APPLICATION CHAPTER. Its own band so it reads as a separate
+            room rather than the tail of the description, with the context a
+            candidate wants at the moment of applying sitting beside the form
+            instead of buried above it. The desk structure is the contact
+            round's ruling; the figure/ground is inverted here (white card on
+            the gray band rather than a gray card on paper) because this band
+            IS the separator. */}
+        <section
+          id="apply"
+          className="scroll-mt-[calc(var(--mkt-header-h)+1rem)] border-t bg-muted/40 py-16 sm:py-20"
+        >
+          <Container>
+            <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16">
+              <div className="flex flex-col gap-5 lg:pt-1">
+                <div>
+                  <Eyebrow>Apply</Eyebrow>
+                  <h2 className="mt-3 font-heading text-2xl text-balance sm:text-3xl">
+                    {job.catchAll
+                      ? "Tell us what you'd want to own."
+                      : `Applying for ${job.title}.`}
+                  </h2>
+                </div>
+                <dl className="flex flex-col divide-y border-y text-sm">
+                  <ApplyNote term="What we need">
+                    A link to something you made, and a line about why this one.
+                  </ApplyNote>
+                  <ApplyNote term="What you don't need">
+                    No resume, no cover letter, and no degree.
+                  </ApplyNote>
+                  <ApplyNote term="What happens next">
+                    We read every application.
+                  </ApplyNote>
+                </dl>
+              </div>
+              <ApplicationForm roleSlug={job.slug} roleTitle={job.title} />
             </div>
           </Container>
         </section>
@@ -164,26 +219,77 @@ export default async function RolePage({
   );
 }
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="font-heading text-xl sm:text-2xl">{children}</h2>;
+}
+
+/** The spec, as labelled pairs. A slashed inline run reads as a caption; a
+ *  spec sheet wants terms and values you can scan down. */
+function SpecList({ job }: { job: JobOpening }) {
+  const rows = [
+    { term: "Team", value: job.team },
+    { term: "Type", value: job.type },
+    { term: "Location", value: job.location },
+  ].filter((row) => Boolean(row.value));
+
+  return (
+    <>
+      <Eyebrow>The role</Eyebrow>
+      <dl className="mt-4 flex flex-col divide-y border-y">
+        {rows.map(({ term, value }) => (
+          <div key={term} className="flex items-baseline gap-4 py-3">
+            <dt className="w-20 shrink-0 text-xs text-muted-foreground">
+              {term}
+            </dt>
+            <dd className="text-sm">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
+  );
+}
+
+function ApplyNote({
+  term,
+  children,
+}: {
+  term: string;
+  children: React.ReactNode;
+}) {
+  // STACKED, never a two-column row: this list lives in a 20rem rail, where a
+  // fixed label column left the values a ~150px gutter and every answer wrapped
+  // to three ragged lines.
+  return (
+    <div className="flex flex-col gap-1.5 py-4">
+      <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+        {term}
+      </dt>
+      <dd className="text-[15px] leading-relaxed text-pretty">{children}</dd>
+    </div>
+  );
+}
+
+/** Ruled rows, not dot-bullets: a spec sheet's items are entries in a document,
+ *  and a hairline per row gives the column a rhythm you can scan. */
 function RoleList({
   heading,
   items,
-  first = false,
+  className,
 }: {
   heading: string;
   items: string[];
-  first?: boolean;
+  className?: string;
 }) {
   return (
-    <div className={first ? "" : "mt-12 first:mt-0"}>
-      <h2 className="font-heading text-xl sm:text-2xl">{heading}</h2>
-      <ul className="mt-5 flex flex-col gap-3">
+    <div className={className}>
+      <SectionTitle>{heading}</SectionTitle>
+      <ul className="mt-5 flex flex-col divide-y border-y">
         {items.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground"
+            className="py-4 text-[15px] leading-relaxed text-pretty text-muted-foreground"
           >
-            <span className="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-foreground/40" />
-            <span>{item}</span>
+            {item}
           </li>
         ))}
       </ul>
