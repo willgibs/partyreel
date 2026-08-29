@@ -10,7 +10,6 @@ import {
 } from "@/components/marketing/sections/careers/careers-story";
 import { RoleListings } from "@/components/marketing/sections/careers/role-listings";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
-import { CtaBand } from "@/components/marketing/system/cta-band";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -142,7 +141,7 @@ export default function CareersPage() {
                 style={{ "--i": index } as CSSProperties}
                 className="flex flex-col gap-2 border-t pt-5"
               >
-                <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums">
+                <span className="text-xs font-medium tabular-nums text-muted-foreground/70">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <h3 className="font-heading text-lg sm:text-xl">{title}</h3>
@@ -167,22 +166,48 @@ export default function CareersPage() {
           }
           subhead={
             OPEN_ROLES.length > 0
-              ? "Every application gets read. If nothing here is yours, the last entry is always open."
+              ? "Every application gets read. If nothing specific fits, we'd still love to hear from you."
               : "Every application gets read, and the door below is always open."
           }
         >
           <div className="mt-14">
             <RoleListings />
           </div>
-        </SectionShell>
 
-        {/* Points at /contact, not the product: the footer carries a product
-            CTA immediately below this, and two in a row is a wall. */}
-        <CtaBand
-          heading="Not sure yet?"
-          subhead="Ask anything before you apply. Every note gets a reply, usually within a day."
-          primary={{ label: "Get in touch", href: "/contact" }}
-        />
+          {/* The close is a FOLLOW-UP to the list, not another band. It used to
+              be a full CtaBand, whose heading scale (3xl→5xl) shouted louder
+              than the roles it was meant to trail and pushed a screen of air
+              between them. It sits inside this section now, tucked under the
+              cards and smaller than a role title, so it reads as the last line
+              of the listing rather than a new pitch. It points at /contact
+              because the footer's product CTA is immediately below. */}
+          <Reveal className="mx-auto mt-10 flex max-w-3xl flex-col items-start gap-4 border-t pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              data-mkt-reveal
+              style={{ "--i": 0 } as CSSProperties}
+              className="flex flex-col gap-1"
+            >
+              <h3 className="font-heading text-lg">Not sure yet?</h3>
+              <p className="text-sm text-pretty text-muted-foreground">
+                Ask anything before you apply. Every note gets a reply, usually
+                within a day.
+              </p>
+            </div>
+            <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
+              <Button asChild variant="outline" className="h-10 px-5">
+                <Link
+                  href="/contact"
+                  {...trackAttrs("cta_click", {
+                    cta: "get-in-touch",
+                    location: "careers-close",
+                  })}
+                >
+                  Get in touch
+                </Link>
+              </Button>
+            </div>
+          </Reveal>
+        </SectionShell>
       </PaperChapter>
     </>
   );

@@ -113,7 +113,18 @@ export function HeaderShell({
             disconnected over the hero wall). Scoped to the nav trigger on
             purpose: the old `[data-state=open]` also matched the mobile
             trigger, which needs nothing since its menu covers the screen. */}
-        <GlassLayer className="opacity-0 transition-opacity duration-200 ease-emphasis group-has-[[data-slot=navigation-menu-trigger][data-state=open]]/hdr:opacity-100 group-data-[stuck=true]/hdr:opacity-100 motion-reduce:transition-none" />
+        {/* ★ THE CURVE, NOT THE DURATION, was what made this read as a snap
+            (Will, 2026-08-29, on the transparent careers hero: "feels instant
+            right now and is too visually rough"). It ran 200ms on
+            --ease-emphasis, and that curve (0.23,1,0.32,1) delivers ~90% of the
+            change inside the first third, so a full-width background wash
+            effectively landed in ~60ms and then crept. A wash is a CROSSFADE,
+            not an entrance, so it wants the symmetric S: --ease-in-out-strong
+            eases in and out of the change instead of front-loading it.
+            Asymmetric by state, which is what keeps the house's exits-faster
+            rule: the longer clock rides the OPEN state, so opening takes 300ms
+            and closing falls back to the base 220ms. */}
+        <GlassLayer className="opacity-0 transition-opacity duration-[220ms] ease-in-out-strong group-has-[[data-slot=navigation-menu-trigger][data-state=open]]/hdr:opacity-100 group-has-[[data-slot=navigation-menu-trigger][data-state=open]]/hdr:duration-300 group-data-[stuck=true]/hdr:opacity-100 motion-reduce:transition-none" />
         {children}
       </header>
     </>

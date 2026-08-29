@@ -27,7 +27,10 @@ import {
  *
  * The card surface is the house's light gray plate (`bg-muted/50` + hairline),
  * the same one the contact form's stationery note uses, so a listing reads as
- * an object you can pick up rather than a row in a table.
+ * an object you can pick up rather than a row in a table - and on hover it
+ * literally does, going to white card stock with a firmer hairline. The index
+ * and the facts share one ruled line across the top, which is what gives the
+ * card a structure instead of three stacked text blocks.
  *
  * Adding a listing is one entry in careers.ts. The empty state (zero named
  * roles) is real, not theoretical: the heading and the copy both change and the
@@ -75,39 +78,42 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
         cta: `role-${role.slug}`,
         location: "careers-listings",
       })}
-      className="mkt-learn group grid gap-x-8 gap-y-4 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color,transform] duration-150 hover:border-foreground/25 hover:bg-muted active:scale-[0.995] sm:grid-cols-[auto_1fr_auto] sm:items-baseline sm:gap-x-10 sm:p-7"
+      // The hover is the card being PICKED UP off the desk: the gray plate goes
+      // to white card stock and the hairline firms up. No shadow, because the
+      // elevation contract keeps that for the floating layer only, and a
+      // surface here is hairline-led.
+      className="mkt-learn group grid gap-x-8 gap-y-5 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color] duration-200 ease-emphasis hover:border-foreground/30 hover:bg-card sm:grid-cols-[1fr_auto] sm:items-end sm:gap-x-10 sm:p-7"
     >
-      {/* Frame numbers, matching the contact sheet's. One numbering system on
-          the page instead of two unrelated ones. */}
-      <span className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums sm:pt-2.5">
-        {String(index + 1).padStart(2, "0")}
-      </span>
-      <div className="flex min-w-0 flex-col gap-2">
-        <h3 className="font-heading text-2xl transition-colors duration-150 sm:text-3xl">
-          {role.title}
-        </h3>
+      <div className="flex min-w-0 flex-col gap-2.5">
+        <div className="flex items-center gap-3">
+          {/* Inter, not mono. The index is a quiet ordinal here, and the R6
+              ruling keeps mono for tabular alignment rather than decoration. */}
+          <span className="text-xs font-medium tabular-nums text-muted-foreground/70">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span aria-hidden className="h-px flex-1 bg-border" />
+          <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {facts.map((fact, i) => (
+              <span key={fact} className="flex items-center gap-2">
+                {i > 0 && (
+                  <span aria-hidden className="text-foreground/25">
+                    /
+                  </span>
+                )}
+                {fact}
+              </span>
+            ))}
+          </span>
+        </div>
+        <h3 className="font-heading text-xl sm:text-2xl">{role.title}</h3>
         <p className="max-w-md text-sm text-pretty text-muted-foreground">
           {role.hook}
         </p>
       </div>
-      <div className="flex flex-col gap-2.5 sm:items-end">
-        <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:justify-end">
-          {facts.map((fact, i) => (
-            <span key={fact} className="flex items-center gap-2">
-              {i > 0 && (
-                <span aria-hidden className="text-foreground/25">
-                  /
-                </span>
-              )}
-              {fact}
-            </span>
-          ))}
-        </span>
-        <span className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-          {role.catchAll ? "Introduce yourself" : "View role"}
-          <LearnChevron />
-        </span>
-      </div>
+      <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+        {role.catchAll ? "Introduce yourself" : "View role"}
+        <LearnChevron />
+      </span>
     </Link>
   );
 }

@@ -149,29 +149,29 @@ export type StoryBeat = { eyebrow: string; title: string; body: string };
  * ! THE HEADINGS MUST TELL THE STORY ON THEIR OWN, because people skim
  *   headings and read nothing else. Read alone they now run: join our team ->
  *   most of these photos are never seen again -> so we gather all of it in one
- *   place -> and turn the best of them into a film -> our core philosophy ->
+ *   place -> and turn the best into a highlight reel -> our core philosophy ->
  *   we're hiring. Problem, solution, payoff, values, ask.
  *
  * ! Two traps this fixes, both live-caught by Will. A bare "Most of it is never
  *   seen again." directly under a hiring headline read as though our new hires
- *   vanish, so the heading is now first-person and unmistakably about PHOTOS. And the beats open with "So" and "And" on purpose: the connective
+ *   vanish, so the heading names the PHOTOS and the place they are lost. And the beats open with "So" and "And" on purpose: the connective
  *   tissue is what turns three captions into one story instead of three
  *   unrelated statements with no context building between them.
  */
 export const CAREERS_STORY: StoryBeat[] = [
   {
     eyebrow: "The problem",
-    title: "We hated missing out on photos.",
+    title: "The best content gets lost in camera rolls.",
     body: "A single event fills dozens of camera rolls. A handful of shots get shared around, and the rest quietly disappear. Fixing that is the whole job.",
   },
   {
     eyebrow: "The solution",
-    title: "So we gather all of them in one place.",
+    title: "So we gather all of it in one place.",
     body: "One QR code, no app and no account. Every guest's photos land in the same album, and the host decides what stays.",
   },
   {
     eyebrow: "The highlights",
-    title: "And turn the best of them into a film.",
+    title: "And turn the best into a highlight reel.",
     body: "The whole event, cut down to something worth sending. That is the surface we are hiring for.",
   },
 ];

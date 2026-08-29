@@ -165,6 +165,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   the footer the fanning pile), per the media doctrine in
   [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
   ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
+  The transparent-until-scrolled header this page introduced is now the pattern for any full-bleed
+  hero: see the glass-crossfade note in [design-system.md](design-system.md).
   ★ The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
   uniform 0.8 dim on hero frames is what lets the type win without crushing the images the page
   exists to show. Listings use ONE row design for every entry with contact-sheet frame numbers; the
@@ -172,13 +174,18 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   action label), because with a single real role a second container read as inconsistency rather than
   distinction. The close points at **/contact**, not the product: the footer carries a product CTA
   immediately below. ★ The HEADINGS have to tell the story alone, because people skim them and read nothing
-  else: they run join our team → we hated missing out on photos → so we gather all of them in one
-  place → and turn the best of them into a film → our core philosophy → we're hiring. Two traps
+  else: they run join our team → the best content gets lost in camera rolls → so we gather all of it in
+  one place → and turn the best into a highlight reel → our core philosophy → we're hiring. Two traps
   live-caught there: a bare "Most of it is never seen again" under a hiring headline read as though
-  our new HIRES vanish (the heading is now first-person and unmistakably about photos), and the beats open
+  our new HIRES vanish (the heading now names the photos and where they are lost), and the beats open
   with "So" and "And" so three captions read as one story. Headings also avoid the word "build" (it
   had run three of four). Listings are individual CARDS on the house gray plate (`bg-muted/50`, the
-  contact form's surface), so a role reads as an object rather than a table row. Copy
+  contact form's surface) that go to white card stock on hover, like a print picked up off the desk;
+  the index and the facts share one ruled line across the card top, which is what gives it structure
+  rather than three stacked text blocks. The close is a small FOLLOW-UP inside the roles section
+  (smaller than a role title, tucked under the cards) rather than a CtaBand, whose heading scale
+  shouted over the list it was meant to trail. ★ Mono is confined to the contact sheet's frame
+  NUMERALS; the role and philosophy indices are Inter (the R6 ruling, applied 2026-08-29). Copy
   single-source: [`careers.ts`](../../src/lib/constants/careers.ts), a content-policy `CLAIM_FILES`
   entry; its `offer` block including "Competitive compensation" is KEPT by Will's ruling, the posting
   being meant to spark a conversation. **No `JobPosting` JSON-LD** while the listing is placeholder.
