@@ -194,6 +194,44 @@ describe("the spill engine CSS", () => {
     expect(selector).toContain('[data-glw-drive="scalar"]');
   });
 
+  it("gives every lobe its own clock, so the beam never reads as one pulse", () => {
+    // The first port breathed a single global opacity, which is the most
+    // literal and least alive reading of "pulse" available (and pulse is their
+    // VARIANT name, not an instruction). Aliveness comes from each lobe
+    // drifting its own width, height and opacity on a duration that never
+    // resyncs with its neighbours.
+    const durations = [
+      ...engineCode.matchAll(
+        /glw-b(\d) (\d+(?:\.\d+)?)s ease-in-out infinite/g,
+      ),
+    ].map((m) => Number(m[2]));
+    expect(durations.length).toBeGreaterThanOrEqual(5);
+    expect(new Set(durations).size).toBe(durations.length);
+    // Every lobe animates all three of its own properties.
+    for (let n = 1; n <= durations.length; n++) {
+      const kf = engineCode.slice(engineCode.indexOf(`@keyframes glw-b${n} `));
+      expect(kf, `lobe ${n}`).toMatch(new RegExp(`--glw-b${n}w:`));
+      expect(kf, `lobe ${n}`).toMatch(new RegExp(`--glw-b${n}h:`));
+      expect(kf, `lobe ${n}`).toMatch(new RegExp(`--glw-b${n}o:`));
+    }
+  });
+
+  it("paints the ring, glow and bloom from the SAME lobes", () => {
+    // Three unrelated blob stacks is what made the first port read as three
+    // washes rather than one light. They share one background and differ only
+    // by --glw-beam-k.
+    expect(engineCode).toMatch(
+      /\[data-glw-shape="beam"\] \[data-glw-edge-ring\],\s*\[data-glw-shape="beam"\] \[data-glw-edge-inner\],\s*\[data-glw-shape="beam"\] \[data-glw-edge-bloom\]\s*\{\s*background:/,
+    );
+    for (const k of [
+      "--glw-beam-k: 1;",
+      "--glw-beam-k: 1.18;",
+      "--glw-beam-k: 1.7;",
+    ]) {
+      expect(engineCode).toContain(k);
+    }
+  });
+
   it("renders only its edge on a beam", () => {
     // Both spill layers were painting under every beam: the colour field at
     // inset -40px (which escapes, because a beam sets overflow visible) and the
@@ -232,22 +270,23 @@ describe("the spill engine CSS", () => {
     expect(engineCode).toMatch(
       /\[data-glw-shape="beam"\] \[data-glw-edge-ring\]\s*\{[^}]*opacity:\s*var\(--glw-beam-ring/,
     );
-    // And the wobble's brightness/saturate live on the element too, not only
-    // inside their keyframe (the get-pro-button trap).
+    // Saturation lives on the elements, not only inside a keyframe (the
+    // get-pro-button trap). And explicitly NOT brightness: our five are
+    // low-chroma and light, so a brightness multiplier clips every channel at
+    // once and the hue turns white. That was the second cheap-imitation bug.
     expect(engineCode).toMatch(
-      /\[data-glw-hue="wobble"\] \[data-glw-edge\]\s*\{[^}]*filter:\s*brightness/,
+      /\[data-glw-shape="beam"\] \[data-glw-edge-ring\]\s*\{[^}]*filter:[^}]*saturate/,
     );
-  });
-
-  it("bounds the beam's hue movement instead of rotating the wheel", () => {
-    // get-pro-button drifts a full hue-rotate(-360deg), which generates hues
-    // outside the ratified five. Plus or minus 30 keeps the set ours.
-    const wobble = engineCode.slice(
-      engineCode.indexOf("@keyframes glw-beam-hue"),
+    expect(engineCode).toMatch(
+      /\[data-glw-shape="beam"\] \[data-glw-edge-bloom\]\s*\{[^}]*filter:[^}]*saturate/,
     );
-    expect(wobble).toContain("hue-rotate(-30deg)");
-    expect(wobble).toContain("hue-rotate(30deg)");
-    expect(engineCode).not.toContain("hue-rotate(-360deg)");
+    const beamFilters = [
+      ...engineCode.matchAll(
+        /\[data-glw-shape="beam"\] \[data-glw-edge-[a-z]+\]\s*\{[^}]*filter:([^;]*);/g,
+      ),
+    ].map((m) => m[1]);
+    expect(beamFilters.length).toBeGreaterThanOrEqual(3);
+    for (const f of beamFilters) expect(f).not.toContain("brightness");
   });
 
   it("carries the forced-colors, print and no-mask fallbacks", () => {

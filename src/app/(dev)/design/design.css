@@ -2775,66 +2775,12 @@
   filter: blur(24px);
 }
 
-/* Opt-in hue movement. A BOUNDED wobble, not a rotation: get-pro-button drifts
-   a full hue-rotate(-360deg), which by construction generates hues outside the
-   ratified five and was rejected on those grounds. Plus or minus 30 degrees
-   keeps the set recognisably ours. Brightness and saturate are declared on the
-   element as well as in the keyframe, so reduced motion does not revert to an
-   unfiltered layer. */
-[data-glw-hue="wobble"] [data-glw-edge] {
-  filter: brightness(1.3) saturate(1.2);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  [data-glw-shape="beam"] [data-glw-edge-inner],
-  [data-glw-shape="beam"] [data-glw-edge-bloom] {
-    animation: glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite;
-  }
   /* Only the bloom scales. Breathing the wrapper would drag the 1px ring off
      the border, which is the one layer that has to stay exactly on the edge. */
-  [data-glw-shape="beam"] [data-glw-edge-bloom] {
-    animation:
-      glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite,
-      glw-beam-breathe var(--glw-beam-dur) ease-in-out infinite;
-  }
   [data-glw][data-paused="true"] [data-glw-edge-inner],
   [data-glw][data-paused="true"] [data-glw-edge-bloom] {
     animation-play-state: paused;
-  }
-  [data-glw-hue="wobble"] [data-glw-edge] {
-    animation:
-      glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite,
-      glw-beam-hue 9s ease-in-out infinite;
-  }
-}
-
-@keyframes glw-beam-pulse {
-  0%,
-  100% {
-    opacity: calc(var(--glw-beam-strength) * 0.62);
-  }
-  50% {
-    opacity: var(--glw-beam-strength);
-  }
-}
-
-@keyframes glw-beam-breathe {
-  0%,
-  100% {
-    scale: 0.985;
-  }
-  50% {
-    scale: 1.025;
-  }
-}
-
-@keyframes glw-beam-hue {
-  0%,
-  100% {
-    filter: hue-rotate(-30deg) brightness(1.3) saturate(1.2);
-  }
-  50% {
-    filter: hue-rotate(30deg) brightness(1.3) saturate(1.2);
   }
 }
 
@@ -2888,4 +2834,313 @@
       color-mix(in oklab, var(--foreground) var(--lit-air), transparent),
     inset 0 1px 0
       color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
+}
+
+/* ─────────────── THE BEAM'S LIGHT FIELD (rebuilt 2026-08-28)
+
+   ★ THE FIRST PORT WAS A CHEAP IMITATION, and Will named it exactly: it had
+   the right LAYER STACK and the wrong PAINT. Two mistakes, both mine:
+
+   1. It reused organic-shimmer's edge blobs, which are small, low-alpha and
+      sit over a NEUTRAL base wash. That base is what greyed the whole thing
+      out. The reference has no neutral under its colour at all.
+   2. "Pulse" is the name of their VARIANT (pulse vs rotate), not an
+      instruction to pulse opacity. I built a single global opacity breath,
+      which is the most literal and least alive reading available.
+
+   What actually makes it alive, read off their CSS: every lobe carries its OWN
+   animated width, height and opacity. They drive those from a JS rAF loop; we
+   do it with one CSS clock per lobe at mutually non-resonant durations, which
+   gets the same continuous, never-resyncing drift and handles reduced motion
+   natively instead of needing a guard.
+
+   The other half is shape. A lobe HUGS THE EDGE IT SITS ON: wide and thin on
+   the horizontal edges, narrow and tall on the vertical ones, and its CENTRE
+   sits just OUTSIDE the box so only the outer arc enters. Put the centre ON
+   the edge and half of every lobe bleeds into the card's interior, which is
+   both less like the reference and worse for the muted text the inner variant
+   already threatens. And the ring,
+   the inner glow and the bloom paint the SAME lobes at three scales
+   (--glw-beam-k), so the whole thing reads as one light rendered three ways
+   rather than three unrelated washes. ── */
+
+@property --glw-b1w {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b1h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b1o {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b2w {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b2h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b2o {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b3w {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b3h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b3o {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b4w {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b4h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b4o {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b5w {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b5h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --glw-b5o {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+/* ★ SATURATE, DO NOT BRIGHTEN. The reference pushes brightness(1.9) on its
+   layers, and copying that washed ours to plain white. The reason is a real
+   collision between two palettes: their blobs are near-saturated sRGB like
+   rgb(255,50,100), whose low channels have room to be multiplied, while OUR
+   ratified five are deliberately low-chroma and light (oklch L 0.72, C ~0.15),
+   so every channel clips at once and the hue disappears. Saturation lifts
+   chroma without touching the ceiling, which is the same intent by the only
+   route our palette allows. Declared on the elements so reduced motion never
+   reverts to an unfiltered layer. */
+[data-glw-shape="beam"] [data-glw-edge-ring] {
+  --glw-beam-k: 1;
+  filter: saturate(1.55);
+}
+[data-glw-shape="beam"] [data-glw-edge-inner] {
+  --glw-beam-k: 1.18;
+  filter: blur(6px) saturate(1.9);
+}
+[data-glw-shape="beam"] [data-glw-edge-bloom] {
+  --glw-beam-k: 1.7;
+  filter: blur(22px) saturate(2);
+}
+
+[data-glw-shape="beam"] [data-glw-edge-ring],
+[data-glw-shape="beam"] [data-glw-edge-inner],
+[data-glw-shape="beam"] [data-glw-edge-bloom] {
+  background:
+    radial-gradient(
+      ellipse calc(80px * var(--glw-b1w) * var(--glw-beam-k) * var(--glw-scale))
+        calc(19px * var(--glw-b1h) * var(--glw-beam-k) * var(--glw-scale)) at
+        27% -6%,
+      color-mix(
+        in oklab,
+        var(--glw-c1) calc(var(--glw-b1o) * 90%),
+        transparent
+      ),
+      transparent
+    ),
+    radial-gradient(
+      ellipse calc(74px * var(--glw-b2w) * var(--glw-beam-k) * var(--glw-scale))
+        calc(13px * var(--glw-b2h) * var(--glw-beam-k) * var(--glw-scale)) at
+        73% -5%,
+      color-mix(
+        in oklab,
+        var(--glw-c2) calc(var(--glw-b2o) * 90%),
+        transparent
+      ),
+      transparent
+    ),
+    radial-gradient(
+      ellipse calc(16px * var(--glw-b3w) * var(--glw-beam-k) * var(--glw-scale))
+        calc(46px * var(--glw-b3h) * var(--glw-beam-k) * var(--glw-scale)) at
+        104% 33%,
+      color-mix(
+        in oklab,
+        var(--glw-c3) calc(var(--glw-b3o) * 90%),
+        transparent
+      ),
+      transparent
+    ),
+    radial-gradient(
+      ellipse calc(92px * var(--glw-b4w) * var(--glw-beam-k) * var(--glw-scale))
+        calc(20px * var(--glw-b4h) * var(--glw-beam-k) * var(--glw-scale)) at
+        58% 106%,
+      color-mix(
+        in oklab,
+        var(--glw-c4) calc(var(--glw-b4o) * 90%),
+        transparent
+      ),
+      transparent
+    ),
+    radial-gradient(
+      ellipse calc(15px * var(--glw-b5w) * var(--glw-beam-k) * var(--glw-scale))
+        calc(42px * var(--glw-b5h) * var(--glw-beam-k) * var(--glw-scale))
+        at -4% 64%,
+      color-mix(
+        in oklab,
+        var(--glw-c5) calc(var(--glw-b5o) * 90%),
+        transparent
+      ),
+      transparent
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-shape="beam"] [data-glw-edge] {
+    animation:
+      glw-b1 6.5s ease-in-out infinite,
+      glw-b2 8.1s ease-in-out infinite,
+      glw-b3 9.7s ease-in-out infinite,
+      glw-b4 11.3s ease-in-out infinite,
+      glw-b5 13.1s ease-in-out infinite;
+  }
+}
+
+@keyframes glw-b1 {
+  0% {
+    --glw-b1w: 0.72;
+    --glw-b1h: 1.36;
+    --glw-b1o: 0.45;
+  }
+  38% {
+    --glw-b1w: 1.28;
+    --glw-b1h: 0.68;
+    --glw-b1o: 1;
+  }
+  71% {
+    --glw-b1w: 1;
+    --glw-b1h: 1.36;
+    --glw-b1o: 0.72;
+  }
+  100% {
+    --glw-b1w: 0.72;
+    --glw-b1h: 1.36;
+    --glw-b1o: 0.45;
+  }
+}
+@keyframes glw-b2 {
+  0% {
+    --glw-b2w: 0.8;
+    --glw-b2h: 1.22;
+    --glw-b2o: 0.55;
+  }
+  38% {
+    --glw-b2w: 1.34;
+    --glw-b2h: 0.78;
+    --glw-b2o: 1;
+  }
+  71% {
+    --glw-b2w: 1.07;
+    --glw-b2h: 1.22;
+    --glw-b2o: 0.78;
+  }
+  100% {
+    --glw-b2w: 0.8;
+    --glw-b2h: 1.22;
+    --glw-b2o: 0.55;
+  }
+}
+@keyframes glw-b3 {
+  0% {
+    --glw-b3w: 0.72;
+    --glw-b3h: 1.22;
+    --glw-b3o: 0.45;
+  }
+  38% {
+    --glw-b3w: 1.28;
+    --glw-b3h: 0.78;
+    --glw-b3o: 1;
+  }
+  71% {
+    --glw-b3w: 1;
+    --glw-b3h: 1.22;
+    --glw-b3o: 0.72;
+  }
+  100% {
+    --glw-b3w: 0.72;
+    --glw-b3h: 1.22;
+    --glw-b3o: 0.45;
+  }
+}
+@keyframes glw-b4 {
+  0% {
+    --glw-b4w: 0.8;
+    --glw-b4h: 1.36;
+    --glw-b4o: 0.55;
+  }
+  38% {
+    --glw-b4w: 1.34;
+    --glw-b4h: 0.68;
+    --glw-b4o: 1;
+  }
+  71% {
+    --glw-b4w: 1.07;
+    --glw-b4h: 1.36;
+    --glw-b4o: 0.78;
+  }
+  100% {
+    --glw-b4w: 0.8;
+    --glw-b4h: 1.36;
+    --glw-b4o: 0.55;
+  }
+}
+@keyframes glw-b5 {
+  0% {
+    --glw-b5w: 0.72;
+    --glw-b5h: 1.22;
+    --glw-b5o: 0.45;
+  }
+  38% {
+    --glw-b5w: 1.28;
+    --glw-b5h: 0.78;
+    --glw-b5o: 1;
+  }
+  71% {
+    --glw-b5w: 1;
+    --glw-b5h: 1.22;
+    --glw-b5o: 0.72;
+  }
+  100% {
+    --glw-b5w: 0.72;
+    --glw-b5h: 1.22;
+    --glw-b5o: 0.45;
+  }
 }

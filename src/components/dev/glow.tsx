@@ -88,12 +88,6 @@ type GlowProps = {
    * is literally the only difference between the two in the CSS.
    */
   beam?: GlowBeam;
-  /**
-   * BEAM only, opt-in. A BOUNDED plus/minus 30 degree hue wobble. Deliberately
-   * not the full rotation get-pro-button uses, which generates hues outside the
-   * ratified five.
-   */
-  hueWobble?: boolean;
 };
 
 function colorVars(colors?: readonly string[]): CSSProperties {
@@ -113,7 +107,6 @@ export function Glow({
   vars,
   runId = 0,
   beam,
-  hueWobble = false,
 }: GlowProps) {
   const oneShot = shape === "bloom";
   // Both hooks are called unconditionally (rules of hooks); only the one this
@@ -143,7 +136,6 @@ export function Glow({
       data-glw-shape={shape}
       data-glw-drive={drive}
       data-glw-beam={shape === "beam" ? (beam ?? "inner") : undefined}
-      data-glw-hue={hueWobble ? "wobble" : undefined}
       data-paused={paused ? "true" : "false"}
       data-glw-armed={oneShot ? (armed ? "true" : "false") : undefined}
       style={style}
