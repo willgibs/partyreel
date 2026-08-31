@@ -27,7 +27,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `--mkt-confetti-N`, so PROGRAM.md's second hard gate wants an ADR). First task once ruled: collapse
   `--mkt-confetti-1..5` onto the promoted tokens so there is one palette home. Unmeasured and carried
   forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
-  and the buttons; a background tab throttles rAF to zero, so it needs a foreground window).
+  and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
+  BEAM half of this round no longer needs porting: border-beam is vendored at
+  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12, so its wiring task is
+  just choosing surfaces. It carries its own open ruling, though: **which palette**, theirs verbatim
+  or our five raised to effect-grade chroma in the same nine slots. If theirs wins it is a named
+  exception, and the follow-on question is whether their palette should replace ours globally.
 - **The `/design` lab gate on a preview is captured at BUILD time, so a branch whose newest
   deployment predates the env var 404s until it is pushed again.** `DESIGN_PREVIEW_KEY` IS set on
   the unscoped Preview target (so the lab is reachable on `lp/*` aliases; the `lp/blog-redesign`
