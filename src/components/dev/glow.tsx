@@ -34,10 +34,7 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * document order and that is unstable under portals and reconciliation.
  */
 
-export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo" | "beam";
-
-/** Whether a beam's glow is clipped to the object or escapes behind it. */
-export type GlowBeam = "inner" | "outside";
+export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo";
 export type GlowDrive = "mask" | "transform" | "scalar";
 
 /** The tunable engine knobs. Typed so a typo is a compile error, not a no-op. */
@@ -51,8 +48,6 @@ export type GlowVars = Partial<
     | "--glw-h"
     | "--glw-core"
     | "--glw-core-blur"
-    | "--glw-beam-strength"
-    | "--glw-beam-dur"
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
@@ -82,12 +77,6 @@ type GlowProps = {
   vars?: GlowVars;
   /** Replay key for `bloom`: change it and the one-shot runs again. */
   runId?: number;
-  /**
-   * BEAM only. "inner" clips the glow to the object (cleaner on flat UI);
-   * "outside" lets it escape behind the object (depth). Will's framing, and it
-   * is literally the only difference between the two in the CSS.
-   */
-  beam?: GlowBeam;
 };
 
 function colorVars(colors?: readonly string[]): CSSProperties {
@@ -106,7 +95,6 @@ export function Glow({
   colors,
   vars,
   runId = 0,
-  beam,
 }: GlowProps) {
   const oneShot = shape === "bloom";
   // Both hooks are called unconditionally (rules of hooks); only the one this
@@ -124,9 +112,6 @@ export function Glow({
   // The attribute holds the animation instead, so the light is present and
   // resting from first paint and a runId change always replays it.
   const armed = !oneShot || arrival.inView || runId > 0;
-  // A beam IS its edge layers, so it never has to ask for them. Leaving this to
-  // the `edge` prop meant a beam could be mounted with nothing to see.
-  const showEdge = edge || shape === "beam";
   const style = { ...colorVars(colors), ...(vars as CSSProperties) };
 
   return (
@@ -135,7 +120,6 @@ export function Glow({
       data-glw
       data-glw-shape={shape}
       data-glw-drive={drive}
-      data-glw-beam={shape === "beam" ? (beam ?? "inner") : undefined}
       data-paused={paused ? "true" : "false"}
       data-glw-armed={oneShot ? (armed ? "true" : "false") : undefined}
       style={style}
@@ -149,11 +133,11 @@ export function Glow({
         <div data-glw-base />
         <div data-glw-band />
       </div>
-      {showEdge && (
+      {edge && (
         <>
           {/* Our deviation from the recipe: a faint always-on ring under the
               travelling comet, so the edge survives the paused and
-              reduced-motion states the recipe's beam does not. */}
+              reduced-motion states the recipe leaves dark. */}
           <div data-glw-edge-rest />
           <div data-glw-edge key={oneShot ? runId : undefined}>
             <div data-glw-edge-bloom />

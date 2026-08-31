@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Glow, GlowFilter } from "@/components/dev/glow";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
+import { BorderBeam } from "@/components/vendor/border-beam";
 import { Button } from "@/components/ui/button";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
@@ -1695,6 +1696,9 @@ function ScanThrough() {
    product has no AI-agent UI, so our equivalent of their Working card and
    composer are the moments where something is genuinely live.                */
 
+/** The open question from doctrine section 04, asked again on real surfaces. */
+type BeamPalette = "colorful" | "partyreel";
+
 type BeamSurface = {
   id: string;
   name: string;
@@ -1762,6 +1766,7 @@ function BeamSurfaces() {
     palette: true,
   });
   const toggle = (id: string) => setLive((v) => ({ ...v, [id]: !v[id] }));
+  const [palette, setPalette] = useState<BeamPalette>("colorful");
 
   return (
     <Moment
@@ -1772,10 +1777,11 @@ function BeamSurfaces() {
       lede={
         <>
           <p>
-            The border-beam port, on our surfaces rather than theirs. Pulse
-            only, colourful, strength 0.7, which are your picks. Every one of
+            border-beam itself, vendored exactly, on our surfaces rather than
+            theirs. Pulse only, strength 0.7, which are your picks. Every one of
             these is a state you can name, and every one switches off when the
-            state ends. Toggle each to see the object without it.
+            state ends: the toggle drives the library&rsquo;s own active prop,
+            so the object stays put and the light leaves it.
           </p>
           <p className="mt-2">
             Get Pro is the exception rather than the rule: the one object
@@ -1786,9 +1792,35 @@ function BeamSurfaces() {
       }
       lamp="the object itself, while it is the live subject"
       direction="outward from its own border"
-      colour="fallback five here; sampled wherever the object holds media"
+      colour="theirs or ours, switched above; never sampled, because a beam has no media to sample"
       law="The four beam laws"
     >
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
+        <p className="mr-1 text-xs text-muted-foreground">
+          Palette, all five at once:
+        </p>
+        {(
+          [
+            ["colorful", "Theirs"],
+            ["partyreel", "Ours"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setPalette(id)}
+            aria-pressed={palette === id}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-150",
+              palette === id
+                ? "border-foreground bg-foreground text-background"
+                : "border-border hover:bg-muted",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="grid gap-6 sm:grid-cols-2">
         {BEAM_SURFACES.map((sfc) => (
           <Spec
@@ -1807,7 +1839,11 @@ function BeamSurfaces() {
               on="slab"
               className="flex min-h-52 items-center justify-center overflow-visible p-6"
             >
-              <BeamSurfaceStage surface={sfc} live={live[sfc.id]} />
+              <BeamSurfaceStage
+                surface={sfc}
+                live={live[sfc.id]}
+                palette={palette}
+              />
             </Ground>
             <button
               type="button"
@@ -1842,27 +1878,38 @@ function BeamSurfaces() {
 function BeamSurfaceStage({
   surface,
   live,
+  palette,
 }: {
   surface: BeamSurface;
   live: boolean;
+  palette: BeamPalette;
 }) {
-  const beamVars = {
-    "--glw-radius": surface.id === "pro" ? "18px" : "14px",
-    "--glw-beam-strength": "0.7",
-  } as const;
-
-  const beam = live ? (
-    <Glow shape="beam" beam={surface.beam} vars={beamVars} />
-  ) : null;
+  // `active` is the library's own state gate, and it is a better expression of
+  // beam law 3 than unmounting the glow: the object stays put and the light
+  // fades out of it, which is what ending a state actually looks like.
+  const wrap = (children: React.ReactNode) => (
+    <BorderBeam
+      size={surface.beam === "inner" ? "pulse-inner" : "pulse-outside"}
+      colorVariant={palette}
+      strength={0.7}
+      // The QR plate is the one surface on white. The library carries a real
+      // light theme (its own opacities and saturation), which is precisely the
+      // thing every hand-port of mine had to fake.
+      theme={surface.id === "qr" ? "light" : "dark"}
+      borderRadius={surface.id === "pro" ? 18 : 14}
+      active={live}
+    >
+      {children}
+    </BorderBeam>
+  );
 
   if (surface.id === "pro") {
-    return (
+    return wrap(
       <div
         data-lit=""
         className="relative isolate w-56 overflow-visible rounded-[18px] p-5"
         style={{ background: "oklch(0.21 0 0)" }}
       >
-        {beam}
         <div className="relative">
           <p className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
             Pro
@@ -1878,17 +1925,16 @@ function BeamSurfaceStage({
             Get Pro
           </span>
         </div>
-      </div>
+      </div>,
     );
   }
 
   if (surface.id === "qr") {
-    return (
+    return wrap(
       <div
         className="relative isolate overflow-visible rounded-[14px] p-3"
         style={{ background: "oklch(0.99 0 0)" }}
       >
-        {beam}
         <div className="relative grid size-28 grid-cols-8 gap-0.5">
           {Array.from({ length: 64 }, (_, i) => (
             <span
@@ -1900,12 +1946,12 @@ function BeamSurfaceStage({
             />
           ))}
         </div>
-      </div>
+      </div>,
     );
   }
 
   if (surface.id === "upload") {
-    return (
+    return wrap(
       <div
         className="relative isolate w-36 overflow-hidden rounded-[14px]"
         style={{ background: "oklch(0.19 0 0)" }}
@@ -1920,24 +1966,22 @@ function BeamSurfaceStage({
             style={{ opacity: live ? 0.62 : 1 }}
           />
         </div>
-        {beam}
         {live && (
           <div className="absolute inset-x-2 bottom-2 h-0.5 overflow-hidden rounded-full bg-white/20">
             <div className="h-full w-2/3 rounded-full bg-white/90" />
           </div>
         )}
-      </div>
+      </div>,
     );
   }
 
   if (surface.id === "palette") {
-    return (
+    return wrap(
       <div
         data-lit=""
         className="relative isolate w-64 overflow-visible rounded-[14px] p-3"
         style={{ background: "oklch(0.21 0 0)" }}
       >
-        {beam}
         <div className="relative">
           <p className="text-sm text-muted-foreground">
             Search help{live ? "" : "..."}
@@ -1951,18 +1995,17 @@ function BeamSurfaceStage({
             ))}
           </div>
         </div>
-      </div>
+      </div>,
     );
   }
 
   // render
-  return (
+  return wrap(
     <div
       data-lit=""
       className="relative isolate w-60 overflow-visible rounded-[14px] p-4"
       style={{ background: "oklch(0.21 0 0)" }}
     >
-      {beam}
       <div className="relative">
         <p className="text-sm text-muted-foreground">
           {live ? "Rendering your reel..." : "Reel ready"}
@@ -1986,7 +2029,7 @@ function BeamSurfaceStage({
           )}
         </ul>
       </div>
-    </div>
+    </div>,
   );
 }
 

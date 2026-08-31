@@ -80,12 +80,6 @@ describe("the spill primitive", () => {
     }
   });
 
-  it("gives a beam its edge layers without asking", () => {
-    // A beam IS its ring and glows, so leaving them behind the `edge` prop
-    // meant a beam could mount with nothing to see.
-    expect(glowCode).toMatch(/const showEdge = edge \|\| shape === "beam"/);
-  });
-
   it("arms a one-shot by attribute rather than by mounting it", () => {
     // A user-triggered bloom must not depend on an IntersectionObserver having
     // fired, and the resting light must be present from first paint.
@@ -155,10 +149,10 @@ describe("the spill engine CSS", () => {
     expect(prePos).toBe(stdPos);
   });
 
-  it("isolates, so the edge beam cannot paint over the lit content", () => {
+  it("isolates, so the edge layers cannot paint over the lit content", () => {
     // Without `isolation`, [data-glw] is position:absolute at z-index auto and
     // creates no stacking context, so [data-glw-edge]'s z-index: 1 competes at
-    // the PARENT's level and lands the beam on top of the very content the
+    // the PARENT's level and lands the ring on top of the very content the
     // light is meant to sit behind. It reads as "too strong" and sends you
     // tuning opacity instead of fixing the stack.
     expect(engineCode).toMatch(/\[data-glw\]\s*\{[^}]*isolation:\s*isolate/);
@@ -192,104 +186,6 @@ describe("the spill engine CSS", () => {
     const selector = before.slice(before.lastIndexOf("[data-glw]"));
     expect(selector).toContain(':not([data-glw-shape="bloom"])');
     expect(selector).toContain('[data-glw-drive="scalar"]');
-  });
-
-  it("carries the reference's whole oscillator set, not a single pulse", () => {
-    // Twice this shipped as an imitation because I inferred the effect instead
-    // of reading it. The source says the motion "used to run as ~15 per-instance
-    // CSS @property keyframe animations": three size/drift regions (w, h, x, y),
-    // four quadrant opacities, a global height, and a hue revolution. Anything
-    // less and it reads as one pulse, which is exactly what Will kept seeing.
-    for (const r of [1, 2, 3]) {
-      for (const axis of ["w", "h", "x", "y"]) {
-        expect(engineCode, `region ${r}${axis}`).toContain(
-          `@keyframes glw-b${axis}${r}`,
-        );
-      }
-    }
-    for (const q of ["tl", "tr", "bl", "br"]) {
-      expect(engineCode, `quadrant ${q}`).toContain(`@keyframes glw-bop-${q}`);
-    }
-    expect(engineCode).toContain("@keyframes glw-bgh");
-    expect(engineCode).toContain("@keyframes glw-bhue");
-  });
-
-  it("drifts the lobes, which is what makes light look like it moves", () => {
-    // The drift is plus or minus 33px in the reference. Static lobes were the
-    // single biggest reason the first two ports looked dead.
-    const drift = [
-      ...engineCode.matchAll(/@keyframes glw-b[xy][123] \{[^}]*\}[^}]*\}/g),
-    ];
-    expect(drift.length).toBe(6);
-    expect(engineCode).toMatch(/--glw-bx1: -33(\.0+)?px/);
-  });
-
-  it("desyncs the quadrant fades with real phase offsets", () => {
-    // Identical oscillators with no delay resync and read as one blink.
-    const delays = [
-      ...engineCode.matchAll(
-        /glw-bop-[a-z]{2} [\d.]+s ease-in-out -([\d.]+)s/g,
-      ),
-    ].map((m) => m[1]);
-    expect(delays.length).toBeGreaterThanOrEqual(3);
-    expect(new Set(delays).size).toBe(delays.length);
-  });
-
-  it("renders only its edge on a beam", () => {
-    // Both spill layers were painting under every beam: the colour field at
-    // inset -40px (which escapes, because a beam sets overflow visible) and the
-    // sweep's resting ring at inset 20px (a second rounded rectangle inside
-    // every card, and colour over the QR's modules). A beam is its edge.
-    expect(engineCode).toMatch(
-      /\[data-glw-shape="beam"\] \[data-glw-field\][\s\S]{0,120}?display:\s*none/,
-    );
-    expect(engineCode).toMatch(
-      /\[data-glw-edge-rest\][\s\S]{0,120}?display:\s*none/,
-    );
-  });
-
-  it("makes a beam's inner/outside difference exactly one property", () => {
-    // The entire distinction Will described (inner is cleaner on flat UI,
-    // outside adds depth) is whether the glow layers are clipped to the object
-    // or released behind it. If the clip-path ever goes missing from inner,
-    // the two variants silently become the same thing.
-    expect(engineCode).toMatch(
-      /\[data-glw-beam="inner"\][\s\S]{0,300}?clip-path:\s*inset\(0 round/,
-    );
-    expect(engineCode).toMatch(
-      /\[data-glw-beam="outside"\] \[data-glw-edge-inner\][\s\S]{0,200}?clip-path:\s*none/,
-    );
-  });
-
-  it("keeps a beam lit when nothing is moving", () => {
-    // Law 4 still binds. The pulse only animates opacity, and the RESTING
-    // opacity is declared on the element, so the global reduced-motion guard
-    // reverts to a lit ring rather than an invisible one.
-    // The layers that BREATHE carry their resting opacity on the element; the
-    // ring carries its own, steady, so it stays a crisp hairline either way.
-    expect(engineCode).toMatch(
-      /\[data-glw-shape="beam"\] \[data-glw-edge-bloom\]\s*\{[^}]*opacity:\s*var\(--glw-beam-strength\)/,
-    );
-    expect(engineCode).toMatch(
-      /\[data-glw-shape="beam"\] \[data-glw-edge-ring\]\s*\{[^}]*opacity:\s*var\(--glw-beam-ring/,
-    );
-    // Saturation lives on the elements, not only inside a keyframe (the
-    // get-pro-button trap). And explicitly NOT brightness: our five are
-    // low-chroma and light, so a brightness multiplier clips every channel at
-    // once and the hue turns white. That was the second cheap-imitation bug.
-    expect(engineCode).toMatch(
-      /\[data-glw-shape="beam"\] \[data-glw-edge-ring\]\s*\{[^}]*filter:[^}]*saturate/,
-    );
-    expect(engineCode).toMatch(
-      /\[data-glw-shape="beam"\] \[data-glw-edge-bloom\]\s*\{[^}]*filter:[^}]*saturate/,
-    );
-    const beamFilters = [
-      ...engineCode.matchAll(
-        /\[data-glw-shape="beam"\] \[data-glw-edge-[a-z]+\]\s*\{[^}]*filter:([^;]*);/g,
-      ),
-    ].map((m) => m[1]);
-    expect(beamFilters.length).toBeGreaterThanOrEqual(3);
-    for (const f of beamFilters) expect(f).not.toContain("brightness");
   });
 
   it("carries the forced-colors, print and no-mask fallbacks", () => {

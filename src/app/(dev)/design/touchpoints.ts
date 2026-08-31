@@ -570,10 +570,10 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    note: "Two light systems on one engine: spill from a lit thing, and a beam on an object that IS the live thing",
-    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Beam"],
+    note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
+    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Palette A/B"],
     decisionNote:
-      "RULED so far (Will, 2026-08-28): law 3 (sampled where there is media, the ratified five where there is not), the engine cleared for promotion to globals.css off these examples, and lights-on over lights-off on the whole-page test. The doctrine then grew a sibling for the border-beam port: SPILL is light from a lit thing falling on its surroundings, BEAM is an object lit at its own edge because it IS the live subject, a state that ends when the state does, with one named exception for a premium object at rest. Still open: which scan-through handoff to build properly, whether the elevation contract takes a carve-out for the lit-surface inset cues, and the frame cost that needs a foreground window.",
+      "RULED so far (Will, 2026-08-28): law 3 (sampled where there is media, the ratified five where there is not), the engine cleared for promotion to globals.css off these examples, and lights-on over lights-off on the whole-page test. The doctrine then grew a sibling for the border-beam port: SPILL is light from a lit thing falling on its surroundings, BEAM is an object lit at its own edge because it IS the live subject, a state that ends when the state does, with one named exception for a premium object at rest. Still open: the palette (section 04 puts border-beam's own colours beside ours in the same nine slots, and moment 12 switches all five surfaces at once, so the call can be made by looking), which scan-through handoff to build properly, whether the elevation contract takes a carve-out for the lit-surface inset cues, and the frame cost that needs a foreground window.",
   },
   {
     // The placement half of the same round. Every specimen names its lamp, its

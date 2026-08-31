@@ -16,6 +16,7 @@ import {
   worstCaseGround,
 } from "@/components/dev/glow-contrast";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
+import { BorderBeam } from "@/components/vendor/border-beam";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
@@ -479,13 +480,6 @@ const SHAPES: {
     direction: "outward, once",
   },
   {
-    shape: "beam",
-    name: "Beam",
-    note: "An object lit at its OWN edge because it is the live subject. Ported from border-beam: a 1px ring, an inner glow, and outside only, a larger bloom behind. Pulse, never rotate.",
-    lamp: "the object itself, while it is working",
-    direction: "outward from its own border",
-  },
-  {
     shape: "halo",
     name: "Halo",
     note: "An object lit from BEHIND, which is the get-pro-button mechanic ported: the mask clears its own centre so colour creeps in from the rim and the object stays clean.",
@@ -514,10 +508,6 @@ const SHAPE_VARS: Partial<Record<GlowShape, GlowVars>> = {
     "--glw-strength": "0.85",
     "--glw-base": "0.25",
   },
-  beam: {
-    "--glw-radius": "16px",
-    "--glw-beam-strength": "0.7",
-  },
   halo: {
     "--glw-blur": "14px",
     "--glw-strength": "0.7",
@@ -535,7 +525,7 @@ function Shapes() {
   return (
     <Section
       n="03"
-      title="Six shapes, one engine"
+      title="Five shapes, one engine"
       lede="Each on production's real ground, beside its unlit control. The lab's own mock sheet uses a pure-white card and the app's 0.14 night; the cinema room is 0.11 and the ink slab is 0.155, so every stage here redeclares the real tokens."
     >
       <div className="flex flex-col gap-8">
@@ -634,11 +624,12 @@ function BeamLaws() {
             an object lit at its own edge because it IS the live subject.
           </p>
           <p className="mt-2">
-            The engine treats it as a variant rather than a second system: it
-            reuses the same ring, inner glow and bloom the organic-shimmer edge
-            beam already had. Only the driver changes. A comet travelling the
-            border is an EVENT; opacity and scale breathing is a STATE, and that
-            distinction is the doctrine in one line.
+            A comet travelling the border is an EVENT; a border breathing in
+            place is a STATE, and that distinction is the doctrine in one line.
+            The beam itself is no longer ours: it is border-beam, vendored
+            exactly, after three hand-ports of mine missed it in the same
+            direction each time. What is still open is its colour, which is what
+            the two columns below are for.
           </p>
         </>
       }
@@ -660,34 +651,36 @@ function BeamLaws() {
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <Spec
-          name="Pulse inner"
-          note="The glow is clipped to the object, so nothing leaves the shape. Cleaner on flat UI, which is why it is the default."
+          name="Theirs, exactly"
+          note="colorVariant colorful. Nine gradient lobes at near-saturated sRGB, which is the palette the effect was tuned around."
         >
-          <Ground
-            on="slab"
-            className="flex min-h-48 items-center justify-center"
-          >
-            <BeamCard beam="inner" />
-          </Ground>
+          <BeamAB palette="colorful" />
         </Spec>
         <Spec
-          name="Pulse outside"
-          note="The same glow released to sit behind the object at -10px and -30px. Depth, where depth is wanted."
+          name="Ours, same geometry"
+          note="colorVariant partyreel. Our five hues in the same nine slots, at the same positions and sizes, so colour is the only variable."
         >
-          <Ground
-            on="slab"
-            className="flex min-h-48 items-center justify-center overflow-visible"
-          >
-            <BeamCard beam="outside" />
-          </Ground>
+          <BeamAB palette="partyreel" />
         </Spec>
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Both at colourful and strength 0.7. The difference between them is one
-        CSS property: the inner variant carries a clip-path and the outside one
-        does not. Rotate is deliberately not built, per Will: one movement, not
-        two.
-      </p>
+      <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            The one question this board is asking.
+          </span>{" "}
+          Their nine lobes sit near the sRGB gamut edge; our ratified five ship
+          at oklch chroma 0.14 to 0.17, because everywhere else in the product
+          the chrome is achromatic and the media is the colour. Substituting
+          ours straight in is what washed out three attempts, so the partyreel
+          column raises them to the chroma this effect uses and holds the hue
+          exactly. Every position and size is copied from theirs.
+        </p>
+        <p className="mt-2">
+          If theirs wins it becomes a named exception, and the open question
+          becomes whether their palette should replace ours globally. If ours
+          wins we retune to it and the exception never has to exist.
+        </p>
+      </div>
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">
@@ -717,26 +710,64 @@ function BeamLaws() {
   );
 }
 
+/**
+ * One palette, both pulse variants. Inner and outside are the library's own
+ * sizes; the only prop that differs between the two columns of section 04 is
+ * `colorVariant`, which is the whole point of the comparison.
+ */
+function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <p className="mb-2 font-mono text-[11px] text-muted-foreground">
+          pulse-inner
+        </p>
+        <Ground on="slab" className="flex min-h-44 items-center justify-center">
+          <BeamCard palette={palette} size="pulse-inner" />
+        </Ground>
+      </div>
+      <div>
+        <p className="mb-2 font-mono text-[11px] text-muted-foreground">
+          pulse-outside
+        </p>
+        <Ground
+          on="slab"
+          className="flex min-h-44 items-center justify-center overflow-visible"
+        >
+          <BeamCard palette={palette} size="pulse-outside" />
+        </Ground>
+      </div>
+    </div>
+  );
+}
+
 /** A stand-in card, so the beam is judged on an object rather than a swatch. */
 function BeamCard({
-  beam,
+  palette,
+  size,
   lit = true,
 }: {
-  beam: "inner" | "outside";
+  palette: "colorful" | "partyreel";
+  size: "pulse-inner" | "pulse-outside";
   lit?: boolean;
 }) {
   return (
-    <div
-      className="relative isolate w-64 overflow-visible rounded-2xl p-5"
-      data-lit={lit ? "" : undefined}
-      style={{ background: "oklch(0.21 0 0)" }}
+    // strength 0.7 and theme dark are Will's picks, held constant across both
+    // columns. borderRadius is passed rather than auto-detected: the library
+    // reads the first child's computed radius, and Ground's clipping made that
+    // read 0 on the outside variant.
+    <BorderBeam
+      size={size}
+      colorVariant={palette}
+      strength={0.7}
+      theme="dark"
+      borderRadius={16}
     >
-      <Glow
-        shape="beam"
-        beam={beam}
-        vars={{ "--glw-radius": "16px", "--glw-beam-strength": "0.7" }}
-      />
-      <div className="relative">
+      <div
+        className="relative isolate w-64 rounded-2xl p-5"
+        data-lit={lit ? "" : undefined}
+        style={{ background: "oklch(0.21 0 0)" }}
+      >
         <p className="text-sm text-muted-foreground">Working...</p>
         <ul className="mt-3 flex flex-col gap-2.5">
           {["Rendering your reel", "Fitting the cuts", "Writing the file"].map(
@@ -752,7 +783,7 @@ function BeamCard({
           )}
         </ul>
       </div>
-    </div>
+    </BorderBeam>
   );
 }
 
