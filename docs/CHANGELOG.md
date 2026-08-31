@@ -10,10 +10,104 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-08-29 — the /blog round (merged to `launch-prep`, not yet on `main`)
+## 2026-08-29 — the /careers round (merged to `launch-prep`, awaiting its milestone)
 
-`launch-prep` @ `60353c5` (merge `17f5b1a`, synthesis `7372292`, red-team fix `60353c5`), preview
-READY and verified at the SHA. Awaiting Will's review before any milestone merge.
+`launch-prep` @ `9b206a1`, `--no-ff` merge of `lp/careers-identity` (`cdce1c6`) plus four synthesis
+commits. Preview READY + verified at the SHA on the launch-prep alias. Gate green at every commit:
+typecheck, 0 lint errors, **1260 tests** (1253 before), `/careers` static and `/careers/[slug]` SSG
+for both slugs.
+
+The fourth branch of the agent-merge sequence, and the one that took the most rejections to get
+right: all three lab directions were rejected outright ("a total back to the drawing board"), then
+two rebuild prototypes were rejected as generic. The cause was content, not layout, both times: they
+were claims about ourselves on a page whose reader had already met the pitch twice. What worked was
+removing the prose and letting the one thing nobody else can publish carry the argument, so the page
+now opens on a photographic contact sheet and argues in **the roll -> the selects -> the reel**.
+Will's framing on handover: "It's not perfect, but definitely a big improvement on what exists now."
+
+Like blog and press before it, the branch reached `(cinema)` on its own, so there was no architecture
+to settle. It also carried a genuine rising tide of its own: **the overlay header's glass wash**, on
+Will's note that it "feels instant right now and is too visually rough." The branch diagnosed it
+correctly as the CURVE, not the duration (`--ease-emphasis` delivers ~90% of a change in its first
+third, so a full-width wash landed in ~60ms and then crept), and moved it to the symmetric S with the
+longer clock on the OPEN state. Every marketing page gets it; verified on the shipped CSS at 300ms in
+/ 220ms out on `cubic-bezier(0.77,0,0.175,1)`.
+
+**Will's three rulings this round.** (1) The h1 rejoins the **site ladder** - the branch shipped a
+ramp of its own, identical at desktop and one step louder below: "let's normalize the site ladder so
+that we don't have one unique size ramp for a utility page." (2) The **philosophy row takes the
+page's vocabulary** - it was the one beat arguing in prose on a page that argues in photographs, so
+its indices are now circled by the sheet's own `SelectMark`. (3) The two **morph delegates collapse
+now**, not later.
+
+**The morph collapse** was the round's rising tide. `role-morph.tsx` and the blog's
+`cover-morph.tsx` were built a week apart by two agents, reached the same mechanism and the same four
+guards, and differed in three strings; the careers author explicitly left the call to the integrator
+("keeping them separate is a merge decision, not a design one"). One `MorphDelegate` now takes
+`{ name, linkAttr, plateAttr }`, both consumers are configured wrappers that no longer need their own
+`"use client"`, and the two CSS blocks became one with the duration difference explained (travel, not
+taste). ★ The `name` and its `::view-transition-group(...)` rule are ONE FACT IN TWO FILES, so the
+css policy test now pins the two sets equal in both directions - renaming one side alone used to drop
+the morph's timing with no error anywhere.
+
+**Two things measured, not guessed.** The hero was lazy-loading half of itself ABOVE THE FOLD: 36
+cells over 12 unique images, 6 eager, the other 6 spread across 18 cells, so the sheet visibly
+assembled (captured twice). The comment reasoned "this is the LCP surface" and reached the wrong
+lever. Because the roll repeats, covering the unique pass cost six more small requests; verified on
+the shipped build as 12 unique / 12 eager / 0 never-eager. And the emblem fallback hashed across all
+three marks, so an unwritten role could inherit `reel` (the graphics role's) or `open` ("not a real
+vacancy") - proven concrete by the new test, which reports "founding-engineer" resolving to `open`.
+
+**Tests: the round shipped none across ~2,900 lines.** Seven added, on the invariants whose comments
+PROMISE they cannot rot while nothing enforced it, each verified to fail on its own drift:
+`ROLL_SELECTS` collapsing to `-1` when a kept frame leaves the sheet (indexOf's own silent hole);
+`HERO_SELECTS` slipping back into the header-covered top row; `roleEmblemKind` handing an unmapped
+role a mark that claims something; plus the CSS-to-delegate name binding.
+
+**Two a11y gaps found by keyboard-driving the preview, not by reading it.** The role card had no
+focus treatment at all, falling through to the browser's default hairline while every sibling card in
+the system draws the ring token; and `SelectMark` relied on the proof sheet's `aria-hidden` root,
+which evaporated the moment it was reused standalone.
+
+★ **`marketing-content.md` AUTO-MERGED INTO A BROKEN STATE, with no conflict and no warning** - the
+round's most useful lesson. The branch had rebased onto a pre-blog `launch-prep`, so both sides
+re-anchored and git kept everything: a decapitated `/contact + /careers` bullet ending mid-sentence,
+then a whole STALE `/careers` bullet describing the REJECTED first rebuild (linking a file that does
+not exist, and asserting the General Application gets its own plate, which Will had overruled three
+commits later), then the real bullets. A clean merge report on a doc means the TEXT reconciled, not
+that the FACTS did.
+
+**Verified on the launch-prep alias.** Both morphs after the collapse: `/blog` card -> article then
+the article -> article "Keep reading" hop, and `/careers` card -> role -> back -> other role, each
+reporting exactly one named plate at start and the target re-armed after. Reduced motion forced at the
+API the delegate reads: 0 transitions started, the navigation still completed, the emblem visible at
+80px; and on the shipped CSSOM the marks sit DRAWN outside the media query with only the undrawn
+start inside `no-preference`. The h1 at 72px/36px matching /pricing, /how-it-works and /help
+character for character. The philosophy marks drawing on their section's arrival (caught undrawn at
+230, then drawn). The role card ringing at 2px of the ring token under real keyboard focus. The
+application form end to end: the validation arm, the honeypot (client sees "Application received",
+the table stays at ZERO rows), and an honest submit writing exactly one row with `links` null.
+`/careers/nonsense` on the cinema 404 with `theme-color: #040404`. One h1, no heading-level skips,
+every decorative alt empty. Sitemap 3 careers URLs, llms.txt, feed 4 items, no `JobPosting` JSON-LD.
+Console clean.
+
+★ **NOT verified: a desktop screenshot of the finished page.** Both browsers failed in the same
+session and in opposite ways - Chrome reported resizes as successful while staying at 500px
+(`outerWidth` 284 against `innerWidth` 500), and the Browser pane honoured 1440 but returned black
+frames with animations suspended. Desktop GEOMETRY is measured (h1 72px, 9-column sheet, 3-column
+philosophy row, no overflow) and the marks render identically at any width, so the gap is the
+composition at 1440, which is exactly what Will reviews. Two new blind spots came out of it, both
+recorded: a browser EXTENSION in the Chrome profile manufactures a hydration mismatch that React then
+attributes to unrelated sibling nodes, and an occluded tab never delivers the FIRST
+IntersectionObserver callback, so an arrival reveal reads as permanently invisible until one scroll.
+
+---
+
+## 2026-08-29 — MILESTONE-11: the /blog round
+
+`main` @ tag `milestone-11` (`95ca799`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, lint, 1253 tests, build with /blog, /blog/[slug] and /blog/feed.xml static).
+Prod READY + verified at the merge SHA. Will's acceptance: "It looks great."
 
 /blog was the last marketing surface on its route-completeness scaffold: a centred hero, a pill row,
 card boxes, and no photography at all on a media product. The branch rebuilt it on Will's V4
@@ -72,6 +166,25 @@ inert there, filters work, console clean.
 ★ Not verified live: an urgency REORDER on the event feed, because the test event is empty and has
 no review queue to clear. The two-axis change is inert there by measurement (`dx` is always 0) and
 pinned by test, but the reorder animation itself was not observed on this pass.
+
+**Re-verified on partyreel.com at the merge SHA.** All ten blog URLs 200. One `<h1>` reading `Blog`
+at 20px, unmarked and `opacity: 1`; rule drawn; skin `cinema`; `theme-color: #040404`. Featured card
+21:9 with the 80px straddle, library at 3 columns sharing the card's right edge, rail `sticky` with
+`align-self: flex-start`, no overflow. At 375: 4:5 hero, 1 column, rail as a horizontal scroller,
+64px straddle with the card clearing the rail; the article's plate 4:3 and clearing the prose. The
+two-beat filter ran (an early read caught it MID-BEAT, which is itself the proof), and survivors kept
+their same DOM nodes, so covers do not re-develop. The cover morph fired twice, card->article then
+article->article, each with exactly ONE named plate and the target still armed after. Reading spine
+confirmed on BOTH surfaces: 1 at 45% of a blog article, 0.75 at 35% of a help article, 0 at top. The
+reduced-motion contract re-checked against the SHIPPED prod CSSOM: every arrival hook keeps its
+resting state outside the query and the exit beat is fully guarded. Feed valid with four enclosures;
+sitemap 5 blog URLs; llms.txt 5. /about and /press re-measured unregressed at 1440 (160px,
+`margin-inline-start: 0px`, off-centre 0.00). Console clean.
+
+★ A blank card grid in one screenshot was a repaint artifact of an unfocused window, and a spine
+reading 0 was rAF suspension in a hidden tab (`document.hidden: true`). Both resolved to correct
+values once a frame was forced; neither was a product fault. Same family as the /press round's
+lazy-image false alarm, and the reason the geometry was checked by hand before either was believed.
 
 ---
 

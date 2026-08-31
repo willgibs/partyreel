@@ -234,6 +234,15 @@ Three curves in `@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entra
 primitives. Current timings: dialog 200/150 · dropdown/popover 175/120 · tooltip 150/100 (+
 `skipDelayDuration` 300) · sheet 300/200 on the drawer curve · **marketing nav 200/130 with a 100ms
 hover intent** (its clocks are `--mkt-dropdown-*` / `--mkt-nav-*`, [marketing-content.md](marketing-content.md)).
+★ **A BACKGROUND WASH IS A CROSSFADE, NOT AN ENTRANCE** (2026-08-29). The overlay header's glass
+layer ran 200ms on `--ease-emphasis` and read as an instant, rough snap when a nav panel opened over
+a transparent bar ("feels instant right now and is too visually rough"). The duration was not the
+problem: `--ease-emphasis` (0.23,1,0.32,1) delivers ~90% of the change inside the first third, so a
+full-width wash effectively landed in ~60ms and then crept. Large ambient surfaces want the
+symmetric S (`--ease-in-out-strong`), which eases in AND out of the change instead of front-loading
+it. Timing stays asymmetric per the house rule by riding the OPEN state: enter 300ms, exit 220ms.
+The same reasoning applies to any full-bleed hero adopting the transparent-until-scrolled header.
+
 **★ THE FLOATING-LAYER CONTRACT** (named 2026-08-28 when the nav turned out to be the one menu
 outside it): every floating surface ships `rounded-float` + `shadow-float` + an origin-AWARE
 `transform-origin` + `fade-in-0`/`fade-out-0` beside its zoom + one house clock on `--ease-emphasis`.

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -13,6 +13,17 @@ const css = readFileSync(
   join(process.cwd(), "src/app/(marketing)/marketing.css"),
   "utf8",
 );
+
+/** Every .tsx under components/marketing, for the CSS-to-delegate name check. */
+function marketingSources(
+  dir = join(process.cwd(), "src/components/marketing"),
+): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return marketingSources(full);
+    return entry.name.endsWith(".tsx") ? [full] : [];
+  });
+}
 
 /** Selector lines only: everything before a `{`, ignoring comments and declarations. */
 function selectorLines(): string[] {
@@ -71,7 +82,39 @@ describe("marketing.css containment policy", () => {
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
       .filter((line) => /::view-transition[a-z-]*\(\s*\*\s*\)/.test(line));
-    expect(offenders, "scope view-transition rules to a name, never (*)").toEqual([]);
+    expect(
+      offenders,
+      "scope view-transition rules to a name, never (*)",
+    ).toEqual([]);
+  });
+
+  it("names every view-transition rule after a live MorphDelegate", () => {
+    // The other half of the name-scoping contract. Scoping to a NAME (above)
+    // stops a rule owning transitions it should not; this stops the opposite
+    // failure, a rule owning nothing at all. The delegate's `name` prop and the
+    // pseudo-element's argument are ONE FACT IN TWO FILES, and renaming either
+    // side alone costs the morph its timing with no error anywhere: the
+    // transition still runs, just on the browser's default clock. Checked in
+    // both directions, so a deleted morph cannot leave dead CSS behind either.
+    const named = new Set(
+      [
+        ...css
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .matchAll(/::view-transition-[a-z-]+\(\s*([\w-]+)\s*\)/g),
+      ].map((m) => m[1]),
+    );
+    const configured = new Set(
+      marketingSources()
+        .map((file) => readFileSync(file, "utf8"))
+        .filter((src) => src.includes("<MorphDelegate"))
+        .flatMap((src) =>
+          [...src.matchAll(/name="([\w-]+)"/g)].map((m) => m[1]),
+        ),
+    );
+    expect(
+      [...named].sort(),
+      "every ::view-transition name needs a MorphDelegate passing it, and vice versa",
+    ).toEqual([...configured].sort());
   });
 
   it("prefixes every keyframes name with mkt-", () => {

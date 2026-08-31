@@ -89,6 +89,43 @@ site, these are the ways the *test tooling* misreports, so a working change look
     liar, and "clicks" land on nothing because the tool's view is off. Verify visibility via computed style on
     the element + ancestors (not the screenshot), and for the interaction itself hand the human the 10-second
     look (the S5 anon-confirm modal was verified this way). Don't "fix" working UI chasing the dimmed frame.
+    The careers round hit the same liar in a third costume: frames came back with the page's TEXT LAYER
+    missing entirely (also all-black and all-white frames) while `elementsFromPoint`, `getComputedStyle`
+    and `getBoundingClientRect` all agreed the type was painted, opaque and topmost. Forcing a repaint
+    (any style write) or simply taking a SECOND screenshot returns the true frame, so never treat one
+    screenshot as evidence that something is absent. ★ A FOURTH costume, the careers MERGE
+    (2026-08-29): the second screenshot trick stops working entirely once the pane is HIDDEN
+    (`innerWidth` reads 0 and every capture comes back black) and `resize_window` silently no-ops on
+    the Chrome side while reporting success. DOM reads stay honest in both. When neither browser will
+    paint, stop fighting them and verify geometry + computed style by hand, then look at the
+    DEPLOYED preview, where both have always worked.
+
+- ★ **A BROWSER EXTENSION IN THE CHROME PROFILE MANUFACTURES A HYDRATION MISMATCH** (careers merge,
+  2026-08-29, ~15 minutes). The dev overlay reported "1 Issue" on every marketing page, and React's
+  report pointed at `GlassLayer`'s `className` with a `+`/`-` pair — which reads as a real SSR/client
+  divergence on SHARED CHROME, on a file the round had just edited. It was neither. The actual
+  mismatch was `cz-shortcut-listen="true"` injected on `<body>` by an extension (React's own message
+  lists this cause last, and it is easy to skim past), and once ANY mismatch occurs React prints the
+  surrounding subtree with markers on nodes that never differed. **The 10-second disproof**: compare
+  the curl'd server HTML against the live `element.className`. Byte-identical means the diff is
+  display noise. It reproduced on /pricing too, which is the other tell — a fault in one round's file
+  does not follow you to a page that round never touched. Confirm on the deployed preview
+  (production build, extension-free): a clean console there closes it.
+
+- ★ **AN OCCLUDED TAB NEVER DELIVERS THE FIRST IntersectionObserver CALLBACK** (careers merge,
+  2026-08-29). With `document.hidden === true`, anything revealed ON ARRIVAL stays at its hidden rest
+  state forever: the careers hero's h1 read `opacity: 0` with `.is-shown` absent, minutes after load,
+  on a page that renders perfectly for a human. This is the NASTIEST of the family, because it is
+  indistinguishable from the arrival-default bug the blog round exists to prevent, and the honest
+  reading of the measurement is "the H1 never paints." **One scroll disproves it** (a scroll forces a
+  delivery, and `.is-shown` lands immediately). Reveals further down the page fire normally, because
+  scrolling to them IS the nudge - so the symptom is oddly selective, which makes it more convincing,
+  not less. Sibling of the suspended-rAF trap; check `document.hidden` before believing either.
+
+- **`read_console_messages` returns an ACCUMULATED buffer, not the current page's.** Reading it right
+  after navigating to a second origin returns the FIRST origin's errors, which reads as "the bug
+  followed me to prod." Same round, same fifteen minutes. Check the URLs inside the messages before
+  believing what page they came from.
 
 ## Long-lived-session tests (the presign-roll soak)
 
@@ -109,21 +146,34 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
 
 ## Dev-server CSS (localhost only)
 
-- ★ **`next dev` can serve STALE Tailwind CSS, and the mechanism is that TURBOPACK REUSES CHUNK
-  FILENAMES.** Dev chunk URLs are not content-hashed (`[root-of-the-server]__0l0bs12._.css`), so any
-  browser holding that URL in cache — including one that last saw it from a DIFFERENT WORKTREE on the
-  same port — happily serves you another tree's stylesheet, or a truncated one. It has now cost three
-  rounds. The symptoms are all "correct code against a stale bundle": a brand-new utility with no
-  effect (2026-08-28, `lg:grid-cols-[1fr_1.6fr]` + `min-h-36`; every class that "worked" pre-existed
-  elsewhere in the repo, which is what makes it invisible), "the class is in the DOM, the breakpoint
-  matches, and no rule exists" (the press round, two hours), and a hydration mismatch where client and
-  server disagree. Reproduced head-on 2026-08-29: two browsers on ONE dev server, one showing the h1 at
-  160px and the other at 16px off a 172-rule stylesheet.
-  **The fixes, cheapest first:** rewrite each `<link rel=stylesheet>` href with a unique query param
-  (forces a fresh URL, no restart needed, and it works mid-session); or use a port no sibling worktree
-  has used; or verify on the preview deploy. **The 5-second ground truth** is the build, not the dev
-  server: `grep -r "<value>" .next/static/chunks/*.css`. A new-to-the-repo utility that has no effect
-  in dev is NOT proof the class is wrong — never rewrite working classes chasing dev.
+- ★ **`next dev` can serve STALE Tailwind CSS, and there are TWO causes. The first is that TURBOPACK
+  REUSES CHUNK FILENAMES.** Dev chunk URLs are not content-hashed
+  (`[root-of-the-server]__0l0bs12._.css`), so any browser holding that URL in cache — including one
+  that last saw it from a DIFFERENT WORKTREE on the same port — happily serves you another tree's
+  stylesheet, or a truncated one. It has now cost four rounds. The symptoms are all "correct code
+  against a stale bundle": a brand-new utility with no effect (2026-08-28,
+  `lg:grid-cols-[1fr_1.6fr]` + `min-h-36`; every class that "worked" pre-existed elsewhere in the
+  repo, which is what makes it invisible), "the class is in the DOM, the breakpoint matches, and no
+  rule exists" (the press round, two hours), a hydration mismatch, and — the careers round —
+  `w-[52%]` computing to `0px` while a `grid-cols-[repeat(auto-fill,…)]` collapsed to one full-width
+  column. It reaches the SERVED PAGE too, not just CSS: the same round had correct markup in
+  `curl` while the browser rendered the previous layout, fixed instantly by a `?v=2` on the URL.
+  **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
+  so an orphan can keep winning the port and serve a bundle compiled before your files existed,
+  which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page
+  that renders with NO stylesheet at all, because the prerendered HTML references chunk hashes the
+  running server no longer has (they 404/500).
+  **The fixes, cheapest first:** add a unique query param to the URL (or to each
+  `<link rel=stylesheet>` href) — a fresh URL, no restart, works mid-session; confirm exactly ONE
+  server owns the port (`ps aux | grep "[n]ext-server"` and
+  `lsof -nP -iTCP -sTCP:LISTEN | grep 3000`, else `pkill -f next-server` and start one); use a port
+  no sibling worktree has used; or verify on the preview deploy. **Never run `pnpm build` while any
+  server is up** — it rewrites `.next` underneath it and produces the same stale-hash 404s.
+  **The 5-second ground truth** is the build, not the dev server:
+  `grep -r "<value>" .next/static/chunks/*.css` (CSS escapes `%` as `\%` and `/` as `\/`, so grep
+  the escaped form or you will "prove" a class is missing when it is there). A new-to-the-repo
+  utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
+  chasing dev.
 
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the
