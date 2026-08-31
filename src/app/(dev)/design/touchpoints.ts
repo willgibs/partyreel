@@ -570,10 +570,10 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    note: "The light system proposed as a doctrine plus an engine: four laws, five shapes, and what a colour wash costs in legibility",
-    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo"],
+    note: "Two light systems on one engine: spill from a lit thing, and a beam on an object that IS the live thing",
+    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Beam"],
     decisionNote:
-      "AWAITING A RULING, on two things. (1) The doctrine: light is never a material, always spill from a lit thing, with scarcity DERIVED from one lamp per view rather than budgeted as a quota. (2) Whether to promote the engine and its five-hue palette to globals.css and :root, which is the one-way door in this work, since it deletes the test fence that currently scopes colour literals to --mkt-confetti-N. Section 02 is the falsifiable half: if the sampled and fixed palettes look the same, law 3 is wrong.",
+      "RULED so far (Will, 2026-08-28): law 3 (sampled where there is media, the ratified five where there is not), the engine cleared for promotion to globals.css off these examples, and lights-on over lights-off on the whole-page test. The doctrine then grew a sibling for the border-beam port: SPILL is light from a lit thing falling on its surroundings, BEAM is an object lit at its own edge because it IS the live subject, a state that ends when the state does, with one named exception for a premium object at rest. Still open: which scan-through handoff to build properly, whether the elevation contract takes a carve-out for the lit-surface inset cues, and the frame cost that needs a foreground window.",
   },
   {
     // The placement half of the same round. Every specimen names its lamp, its
@@ -583,7 +583,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    note: "Twelve moments argued against the doctrine, then the whole page they compose into",
+    note: "Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into",
     decisionNote:
       "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, the QR plate, and awaiting-media as ONE lamp over the grid with the recipe's skeleton reveal under it. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light. Will's review (2026-08-28) approved 01, 02, 03, 05, 07, 12 outright and 04, 06, 08, 09, 10 after fixes; the pointer lamp was KILLED as too loud on too common a surface. Still open: which of the three scan-through handoffs to build properly, and where the quiet halo button is allowed to live.",
     variants: [
@@ -598,6 +598,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "Paper probe",
       "Upload as light",
       "Scan-through",
+      "Where a beam is allowed",
       "The whole page",
     ],
   },
