@@ -70,15 +70,20 @@ export function Ground({
   on = "cinema",
   className,
   style,
+  ref,
   children,
 }: {
   on?: GroundName;
   className?: string;
   style?: CSSProperties;
+  // React 19 takes `ref` as an ordinary prop on a function component, so no
+  // forwardRef: the scan-through measures this stage to fly a light across it.
+  ref?: React.Ref<HTMLDivElement>;
   children: ReactNode;
 }) {
   return (
     <div
+      ref={ref}
       style={{ ...groundVars(on), ...style }}
       className={cn(
         "relative isolate overflow-hidden rounded-2xl bg-background text-foreground",

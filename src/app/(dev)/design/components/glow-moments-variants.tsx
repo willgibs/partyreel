@@ -1273,9 +1273,40 @@ function PointerLamp() {
 
 /* ── 12 ─────────────────────────────────────────────────────────────────── */
 
+type Flight = {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  size: number;
+};
+
 function ScanThrough() {
   const [runId, setRunId] = useState(0);
+  const [flight, setFlight] = useState<Flight | null>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const codeRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
   const sampled = useSampledPalette(marketingImage("party-balloons").src);
+
+  // Measured at click, not at mount: the stage is responsive, and a distance
+  // captured once would be wrong the moment the pane resizes.
+  const scan = () => {
+    const s = stage.current?.getBoundingClientRect();
+    const a = codeRef.current?.getBoundingClientRect();
+    const b = phoneRef.current?.getBoundingClientRect();
+    if (!s || !a || !b) return;
+    const from = { x: a.left + a.width / 2, y: a.top + a.height / 2 };
+    const to = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    setFlight({
+      x: from.x - s.left,
+      y: from.y - s.top,
+      dx: to.x - from.x,
+      dy: to.y - from.y,
+      size: Math.round(Math.min(a.width, a.height) * 1.6),
+    });
+    setRunId((r) => r + 1);
+  };
 
   return (
     <Moment
@@ -1309,11 +1340,12 @@ function ScanThrough() {
     >
       <div className="flex flex-col gap-4">
         <Ground
+          ref={stage}
           on="slab"
           className="relative isolate flex items-center justify-between gap-6 px-10 py-12"
         >
           {/* The code. */}
-          <div className="relative isolate shrink-0">
+          <div ref={codeRef} className="relative isolate shrink-0">
             <div className="absolute -inset-16 isolate -z-10">
               <Glow
                 shape="bloom"
@@ -1347,24 +1379,48 @@ function ScanThrough() {
             </div>
           </div>
 
-          {/* The channel the light crosses. */}
-          <div className="relative isolate h-24 flex-1 overflow-hidden">
-            <Glow
+          {/* THE MEASURED FLIGHT. The first pass faked this with a fixed
+              channel between the two objects, which only works because the
+              layout happens to put them side by side. This measures both and
+              moves ONE light the real distance, so the same code would work
+              if the phone sat below the code, or across a stacked mobile
+              layout. JS owns the measurement, CSS owns the tween. */}
+          {flight && (
+            <div
               key={runId}
-              shape="sweep"
-              drive="transform"
-              colors={sampled ?? undefined}
-              vars={{
-                "--glw-scale": "1.2",
-                "--glw-dur": "1.6s",
-                "--glw-strength": "0.85",
-                "--glw-base": "0.12",
-              }}
-            />
-          </div>
+              data-glw-fly
+              className="pointer-events-none isolate"
+              style={
+                {
+                  left: flight.x,
+                  top: flight.y,
+                  width: flight.size,
+                  height: flight.size,
+                  marginLeft: -flight.size / 2,
+                  marginTop: -flight.size / 2,
+                  "--glw-fly-dx": `${flight.dx}px`,
+                  "--glw-fly-dy": `${flight.dy}px`,
+                } as React.CSSProperties
+              }
+            >
+              <Glow
+                shape="throw"
+                drive="mask"
+                colors={sampled ?? undefined}
+                vars={{
+                  "--glw-from-x": "50%",
+                  "--glw-from-y": "50%",
+                  "--glw-reach": "60%",
+                  "--glw-strength": "0.95",
+                  "--glw-base": "0.85",
+                  "--glw-blur": "16px",
+                }}
+              />
+            </div>
+          )}
 
           {/* The phone that answers. */}
-          <div className="relative isolate shrink-0">
+          <div ref={phoneRef} className="relative isolate shrink-0">
             <div className="absolute -inset-14 isolate -z-10">
               <Glow
                 shape="bloom"
@@ -1395,19 +1451,15 @@ function ScanThrough() {
             </div>
           </div>
         </Ground>
-        <Button
-          size="sm"
-          className="w-fit"
-          onClick={() => setRunId((r) => r + 1)}
-        >
+        <Button size="sm" className="w-fit" onClick={scan}>
           Scan the code
         </Button>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Known gap, stated rather than hidden: the travel is three coordinated
-          layers, not one light crossing a measured distance. The real version
-          measures both objects and moves one fixed layer between them, the way
-          the reveal measures its flight. Worth building properly only if the
-          idea survives your look.
+          The travel is measured rather than faked: the stage reads both objects
+          at click and moves ONE light the real distance between them, the way
+          the reveal measures its flight. So the same code holds if the phone
+          moves below the code on a narrow screen, which a fixed channel between
+          two columns would not.
         </p>
       </div>
     </Moment>

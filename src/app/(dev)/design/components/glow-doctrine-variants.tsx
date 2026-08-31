@@ -406,10 +406,14 @@ const SHAPE_VARS: Partial<Record<GlowShape, GlowVars>> = {
     "--glw-base": "0.25",
   },
   halo: {
-    "--glw-blur": "10px",
+    "--glw-blur": "14px",
     "--glw-strength": "0.7",
     "--glw-base": "0.55",
     "--glw-dur": "5s",
+    // Tighter core on a wide stage: the default 46% ellipse is tuned for a box
+    // roughly the size of the object it backlights.
+    "--glw-core": "18%",
+    "--glw-core-blur": "60%",
   },
 };
 
@@ -433,6 +437,17 @@ function Shapes() {
                   runId={runId}
                   vars={SHAPE_VARS[s.shape]}
                 />
+                {/* A halo is light from BEHIND something, so it only reads with
+                    something in front of it. On an empty stage the cleared
+                    centre has nothing to clear around and the whole thing looks
+                    like a plain wash, which is the mechanic misrepresented. */}
+                {s.shape === "halo" && (
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="rounded-[0.9rem] bg-foreground px-5 py-2.5 text-sm font-medium text-background">
+                      Start free
+                    </span>
+                  </span>
+                )}
                 <span className="absolute bottom-2 left-3 font-mono text-[10px] text-muted-foreground">
                   lit
                 </span>

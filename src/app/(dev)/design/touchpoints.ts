@@ -570,7 +570,7 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    note: "The light system proposed as a doctrine plus an engine: four laws, four shapes, and what a colour wash costs in legibility",
+    note: "The light system proposed as a doctrine plus an engine: four laws, five shapes, and what a colour wash costs in legibility",
     variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo"],
     decisionNote:
       "AWAITING A RULING, on two things. (1) The doctrine: light is never a material, always spill from a lit thing, with scarcity DERIVED from one lamp per view rather than budgeted as a quota. (2) Whether to promote the engine and its five-hue palette to globals.css and :root, which is the one-way door in this work, since it deletes the test fence that currently scopes colour literals to --mkt-confetti-N. Section 02 is the falsifiable half: if the sampled and fixed palettes look the same, law 3 is wrong.",

@@ -2505,3 +2505,49 @@
     opacity: 0.45;
   }
 }
+
+/* ── The measured flight: ONE light crossing a real distance.
+
+   The scan-through's first pass faked the handoff with three coordinated
+   layers (a bloom, a channel, a bloom) and said so on the board. This is the
+   honest version: JS measures both objects, writes the delta, and CSS moves a
+   single light from one to the other. Same division of labour as the measured
+   nav indicator and useFlip: JS owns the measurement, CSS owns the tween.
+
+   translate only, so it stays on the compositor. Reduced motion never opts in,
+   which leaves the light resting at the source, and both ends carry their own
+   always-on base, so the objects stay lit either way (law 4). ── */
+[data-glw-fly] {
+  position: absolute;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-fly] {
+    /* ★ ease-IN-OUT, not the house ease-out. A light crossing from one object
+       to another is MOVEMENT on screen, not an entrance, and the design system
+       splits those deliberately. On the ease-out curve the light covered 77% of
+       the distance in the first quarter of its time and then crawled, which
+       reads as shot-out-and-loitering rather than a handoff. Measured, not
+       guessed: the animation was sampled at 0/25/50/75/100% by forcing negative
+       animation-delay, because a hidden document never advances a real one. */
+    animation: glw-fly var(--glw-fly-dur, 1100ms) var(--ease-in-out-strong) both;
+  }
+}
+
+@keyframes glw-fly {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    translate: var(--glw-fly-dx, 0) var(--glw-fly-dy, 0);
+    opacity: 0;
+  }
+}
