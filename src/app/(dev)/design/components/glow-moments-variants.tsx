@@ -93,6 +93,7 @@ export function GlowMomentsVariants() {
       <UploadAsLight />
       <PointerLamp />
       <ScanThrough />
+      <WholePage />
       <Catalogue />
     </div>
   );
@@ -1466,6 +1467,252 @@ function ScanThrough() {
   );
 }
 
+/* ── 13 ─────────────────────────────────────────────────────────────────── */
+
+/**
+ * THE SYNTHESIS. Every other specimen is a lamp in isolation, which is exactly
+ * the condition under which a light system looks good and then falls apart in
+ * situ. Law 2 says one lamp per view, and nothing on this board tested that
+ * claim against an actual scroll until now.
+ *
+ * Three lamps across a whole page, in the places the board recommends, with a
+ * single switch. The point of the switch is that it is the same page: if the
+ * lit column only wins because it is livelier, that is worth knowing before we
+ * spend the identity on it.
+ */
+/**
+ * A lamp counts as IN VIEW once a quarter of it is showing. Below that it is a
+ * tail entering or leaving at a scroll boundary, which is unavoidable on a
+ * continuous page and reads as a doorway rather than a second room.
+ */
+const IN_VIEW_FRACTION = 0.25;
+
+function WholePage() {
+  const [lit, setLit] = useState(true);
+  const [inView, setInView] = useState(0);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // The specimen measures its own claim rather than asserting it. Scrolling is
+  // the only way to test law 2, so the count has to move with the scroll.
+  const countLamps = () => {
+    const sc = scroller.current;
+    if (!sc) return;
+    const win = sc.getBoundingClientRect();
+    const n = [...sc.querySelectorAll("[data-glw]")].filter((el) => {
+      const r = el.getBoundingClientRect();
+      const overlap = Math.min(r.bottom, win.bottom) - Math.max(r.top, win.top);
+      return r.height > 0 && overlap / r.height > IN_VIEW_FRACTION;
+    }).length;
+    setInView(n);
+  };
+  const sampled = useSampledPalette(
+    WALL_IDS.map((id) => marketingImage(id).src),
+  );
+  const cardColors = useSampledPalette(marketingImage("reception-table").src);
+
+  return (
+    <Moment
+      n="13"
+      title="The whole page"
+      verdict="ship"
+      verdictLabel="The scarcity test"
+      lede={
+        <>
+          <p>
+            Every specimen above is a lamp on its own, which is the condition
+            under which any light system looks good. This is the same three
+            recommended lamps down one scroll: the hero underlight, the album
+            card where it crosses the chapter cut, and the footer seam that
+            already ships. Between them are sections with no light at all, which
+            is most of the page and is the point.
+          </p>
+          <p className="mt-2">
+            Scroll it. If more than one lamp is ever in view at once, scarcity
+            is not holding and the doctrine needs a real quota rather than a
+            rule about rooms. Switch it off and on: the honest question is not
+            whether the lit version is livelier, it is whether it looks like the
+            same company being more itself.
+          </p>
+        </>
+      }
+      lamp="three across a page, never two in a view"
+      direction="each declares its own"
+      colour="sampled at the hero and the card, fallback five at the footer"
+      law="Law 2, which is the only law a single specimen cannot test"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button size="sm" onClick={() => setLit((v) => !v)}>
+            {lit ? "Lights off" : "Lights on"}
+          </Button>
+          <span
+            className={cn(
+              "font-mono text-xs",
+              inView > 1 ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {inView} lamp{inView === 1 ? "" : "s"} in view
+            {inView > 1 ? " (law 2 is not holding here)" : ""}
+          </span>
+        </div>
+
+        <div
+          ref={scroller}
+          onScroll={countLamps}
+          className="h-[34rem] overflow-y-auto rounded-2xl border border-border"
+        >
+          {/* 1. THE HERO. Lamp one. */}
+          <Ground on="cinema" className="rounded-none p-0">
+            <div className="relative">
+              <PhotoWall cols={4} />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+                style={{
+                  background:
+                    "linear-gradient(to top, oklch(0.11 0 0), transparent)",
+                }}
+              />
+            </div>
+            <div className="relative isolate px-8 pt-10 pb-14">
+              {lit && (
+                <Glow
+                  shape="seam"
+                  drive="mask"
+                  colors={sampled ?? undefined}
+                  vars={{
+                    "--glw-blur": "24px",
+                    "--glw-strength": "0.5",
+                    "--glw-h": "150px",
+                  }}
+                />
+              )}
+              <div className="relative">
+                <p data-dir-display className="text-3xl leading-tight">
+                  Everyone was holding a camera.
+                </p>
+                <p className="mt-3 max-w-md text-[15px] text-muted-foreground">
+                  Guests scan the code and their photos land in one album. No
+                  app, no account.
+                </p>
+              </div>
+            </div>
+          </Ground>
+
+          {/* 2. NO LAMP. Most of a page looks like this, on purpose. */}
+          <Ground on="cinema" className="rounded-none px-8 py-14">
+            <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+              How it works
+            </p>
+            <div className="mt-5 grid gap-6 sm:grid-cols-3">
+              {[
+                ["Share one code", "A QR on the table, or a link in the chat."],
+                ["Guests upload", "From their own phones, in seconds."],
+                ["You curate", "Hide, sort, and publish the reel."],
+              ].map(([h, b]) => (
+                <div key={h}>
+                  <p className="text-sm font-medium">{h}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+                </div>
+              ))}
+            </div>
+          </Ground>
+
+          {/* 3. THE CHAPTER CUT. Lamp two rides the card, never the seam. */}
+          <div className="px-0" style={{ background: "oklch(0.99 0 0)" }}>
+            <div className="px-8 pt-14 pb-24">
+              <p
+                data-dir-display
+                className="text-2xl"
+                style={{ color: "oklch(0.13 0 0)" }}
+              >
+                The morning after.
+              </p>
+              <p
+                className="mt-2 max-w-sm text-[15px]"
+                style={{ color: "oklch(0.45 0 0)" }}
+              >
+                Everything everyone shot, already in one place.
+              </p>
+            </div>
+          </div>
+          <Ground on="cinema" className="relative rounded-none pb-16">
+            <div className="relative -mt-16 px-8">
+              <div className="relative isolate">
+                {lit && (
+                  <div className="absolute -inset-x-10 -top-6 -bottom-16 isolate -z-10 overflow-hidden">
+                    <Glow
+                      shape="throw"
+                      drive="mask"
+                      colors={cardColors ?? undefined}
+                      vars={{
+                        "--glw-from-x": "50%",
+                        "--glw-from-y": "40%",
+                        "--glw-reach": "100%",
+                        "--glw-strength": "0.55",
+                        "--glw-base": "0.5",
+                        "--glw-blur": "26px",
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="relative overflow-hidden rounded-xl border border-border">
+                  <div className="relative aspect-[16/9]">
+                    <Image
+                      src={marketingImage("reception-table").src}
+                      alt=""
+                      fill
+                      sizes="620px"
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Ground>
+
+          {/* 4. NO LAMP AGAIN. */}
+          <Ground on="cinema" className="rounded-none px-8 py-16">
+            <p className="max-w-lg text-lg text-muted-foreground">
+              A long stretch of ordinary page, which is what most of a site is
+              and what a light system has to be able to leave alone.
+            </p>
+          </Ground>
+
+          {/* 5. THE FOOTER. Lamp three, already shipped. */}
+          <Ground
+            on="slab"
+            className="relative isolate rounded-none px-8 pt-16 pb-12"
+          >
+            {lit && (
+              <>
+                <Glow
+                  shape="seam"
+                  drive="mask"
+                  vars={{ "--glw-blur": "16px" }}
+                />
+                <div data-glw-seamline />
+              </>
+            )}
+            <p className="relative font-heading text-2xl">
+              The whole event, in one album.
+            </p>
+            <p className="relative mt-2 max-w-sm text-[15px] text-muted-foreground">
+              Muted copy at the slab&rsquo;s real token value, where the
+              footer&rsquo;s first line sits.
+            </p>
+          </Ground>
+        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          The chapter cut here carries NO light of its own. The card crossing it
+          does. That distinction is the whole of your bespoke note: pin a lamp
+          to the object and a page has three, pin it to the seam and a page has
+          one per section forever.
+        </p>
+      </div>
+    </Moment>
+  );
+}
+
 /* ── The field the board did not build ───────────────────────────────────── */
 
 const CATALOGUE: { name: string; where: string; why: string }[] = [
@@ -1508,7 +1755,7 @@ const REJECTED: { name: string; why: string }[] = [
 function Catalogue() {
   return (
     <Section
-      n="13"
+      n="14"
       title="The rest of the field"
       lede="Documented rather than built, so the ruling has the whole picture without me spending the round on it."
     >

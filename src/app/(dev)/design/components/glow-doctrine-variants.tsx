@@ -120,6 +120,7 @@ export function GlowDoctrineVariants() {
       {/* One turbulence field for the whole page. SVG ids are document-global,
           so this is rendered by the BOARD and never by the effect. */}
       <GlowFilter />
+      <StartHere />
       <Thesis />
       <Laws />
       <Experiment />
@@ -128,6 +129,65 @@ export function GlowDoctrineVariants() {
       <States />
       <ContrastInstrument />
       <Calibration />
+    </div>
+  );
+}
+
+/** The review needs a way in that is not "read fourteen sections". */
+function StartHere() {
+  const path: { n: string; where: string; why: string }[] = [
+    {
+      n: "1",
+      where: "Section 02 on this board",
+      why: "The one falsifiable question: the same lamp sampled from the photographs, beside the same lamp on the fixed five. If they look the same, law 3 is wrong and this gets simpler.",
+    },
+    {
+      n: "2",
+      where: "Moment 13 on the placements board",
+      why: "The whole page with a lights switch. It is the only specimen that tests scarcity, and it is the closest thing here to your would-this-hold-up-next-to-the-homepage bar.",
+    },
+    {
+      n: "3",
+      where: "Moments 01 and 02",
+      why: "The two I would ship first: the hero underlight, and the locked door where light behind a closed door is literally true.",
+    },
+    {
+      n: "4",
+      where: "Section 06 here, then moment 08",
+      why: "The two places I am arguing AGAINST something: what a wash costs in legibility, and why the CTA halo is a reject in the chrome and an allow in the hero.",
+    },
+  ];
+  return (
+    <div className="rounded-2xl border border-border p-5">
+      <h2 className="font-heading text-base font-semibold">
+        If you have ten minutes
+      </h2>
+      <ol className="mt-3 flex flex-col gap-2.5">
+        {path.map((s) => (
+          <li key={s.n} className="grid grid-cols-[1.25rem_1fr] gap-x-2">
+            <span className="font-mono text-xs text-muted-foreground">
+              {s.n}
+            </span>
+            <span>
+              <span className="text-sm font-medium">{s.where}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                {s.why}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
+        <span className="font-medium text-foreground">
+          Two decisions need you, and one thing is still unmeasured.
+        </span>{" "}
+        The doctrine itself, and whether to promote the engine and its five hues
+        to globals.css and :root (the one-way door: it deletes the test fence
+        that scopes colour literals to --mkt-confetti-N, so it wants an ADR
+        rather than a quiet landing). Unmeasured: the frame cost of the three
+        sweep drives on moment 04, which needs a foreground window because a
+        background tab throttles the counter to nothing.
+      </p>
     </div>
   );
 }
@@ -167,7 +227,27 @@ function Laws() {
     <Section
       n="01"
       title="The four laws"
-      lede="Scarcity is derived, not budgeted: one lamp per view. A room has one dominant source, and a second spill on a page is the same lamp seen from somewhere else. That is the rule you asked for, stated as a fact about rooms instead of a quota someone has to police."
+      lede={
+        <>
+          <p>
+            Scarcity is derived, not budgeted: one lamp per view. A room has one
+            dominant source, and a second spill on a page is the same lamp seen
+            from somewhere else. That is the rule you asked for, stated as a
+            fact about rooms instead of a quota someone has to police.
+          </p>
+          <p className="mt-2">
+            <span className="text-foreground">
+              Amended after the placements board tested it.
+            </span>{" "}
+            Moment 13 puts the three recommended lamps on one scroll and counts
+            what is in view, and it caught two of them sharing a view at 40 and
+            62 percent. So the rule needs a distance rather than a count: lamps
+            want roughly a viewport of unlit page between them, and a tail under
+            a quarter visible is a doorway, not a second room. I would rather
+            hand you the version my own specimen falsified than the tidy one.
+          </p>
+        </>
+      }
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {LAWS.map((law) => (
@@ -669,12 +749,15 @@ function States() {
       <div className="rounded-2xl border border-border p-4 text-sm leading-relaxed text-pretty text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">
-            Verified separately, because they cannot be shown side by side:
+            Reduced motion is verified, not assumed.
           </span>{" "}
-          reduced motion (emulate it and every stage above should still arrive
-          lit, with nothing moving), forced-colors (the engine sets display
-          none, so the surface simply loses its light), print (the same), and
-          the filter host unmounting.
+          Injecting the exact globals.css guard (duration 0.01ms,
+          iteration-count 1) leaves every lamp fully lit with nothing moving:
+          base at 0.62, the band parked at its declared position rather than off
+          layer. That is law 4&rsquo;s entire claim, and it is the one I had
+          only argued from the source until now. Forced-colors and print drop
+          the light out entirely by design, since a decorative colour layer is
+          the first thing that should go in either.
         </p>
         <p className="mt-2">
           <span className="font-medium text-foreground">
@@ -803,13 +886,26 @@ function ContrastInstrument() {
           doctrine can allow a lamp near a heading and not near a caption.
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
-          These are modelled upper bounds: the model ignores each blob&rsquo;s
-          own radial falloff and the 16px blur, both of which only reduce what a
-          text run meets. At the shipped footer&rsquo;s geometry the model puts
-          its first text line at alpha {footerModel.toFixed(3)}, past the
-          slab&rsquo;s floor, while the real footer plainly reads fine. The
-          measured value from the live page is in the handoff report; treat the
-          table as a ceiling, not a measurement.
+          <span className="text-foreground">
+            Read this table as a ceiling, never as a measurement.
+          </span>{" "}
+          It stacks peak-stop times layer-opacity times mask-coverage and still
+          ignores each blob&rsquo;s own radial falloff and the 16px blur, both
+          of which only ever REDUCE what a text run meets. At the shipped
+          footer&rsquo;s geometry it puts the first text line at alpha{" "}
+          {footerModel.toFixed(3)}, past the slab&rsquo;s floor, while the real
+          footer plainly reads fine, so the true value is below the ceiling by a
+          margin this model cannot tell you.
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          I could not close that gap from here: reading the actually painted
+          pixel needs a foreground browser, which is the same limit that stops
+          the frame counter on the placements board. So the number to trust is
+          the CEILING, and the honest use of it is as a budget. It says a lamp
+          may sit near a heading and not near a caption, and it says the ink
+          slab has roughly a tenth of full strength to spend before muted text
+          is at risk. Whether the shipped footer looks right is a two-second
+          human judgement you can make on the calibration below.
         </p>
       </div>
     </Section>
