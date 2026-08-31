@@ -80,6 +80,12 @@ describe("the spill primitive", () => {
     }
   });
 
+  it("gives a beam its edge layers without asking", () => {
+    // A beam IS its ring and glows, so leaving them behind the `edge` prop
+    // meant a beam could mount with nothing to see.
+    expect(glowCode).toMatch(/const showEdge = edge \|\| shape === "beam"/);
+  });
+
   it("arms a one-shot by attribute rather than by mounting it", () => {
     // A user-triggered bloom must not depend on an IntersectionObserver having
     // fired, and the resting light must be present from first paint.
@@ -186,6 +192,49 @@ describe("the spill engine CSS", () => {
     const selector = before.slice(before.lastIndexOf("[data-glw]"));
     expect(selector).toContain(':not([data-glw-shape="bloom"])');
     expect(selector).toContain('[data-glw-drive="scalar"]');
+  });
+
+  it("makes a beam's inner/outside difference exactly one property", () => {
+    // The entire distinction Will described (inner is cleaner on flat UI,
+    // outside adds depth) is whether the glow layers are clipped to the object
+    // or released behind it. If the clip-path ever goes missing from inner,
+    // the two variants silently become the same thing.
+    expect(engineCode).toMatch(
+      /\[data-glw-beam="inner"\][\s\S]{0,300}?clip-path:\s*inset\(0 round/,
+    );
+    expect(engineCode).toMatch(
+      /\[data-glw-beam="outside"\] \[data-glw-edge-inner\][\s\S]{0,200}?clip-path:\s*none/,
+    );
+  });
+
+  it("keeps a beam lit when nothing is moving", () => {
+    // Law 4 still binds. The pulse only animates opacity, and the RESTING
+    // opacity is declared on the element, so the global reduced-motion guard
+    // reverts to a lit ring rather than an invisible one.
+    // The layers that BREATHE carry their resting opacity on the element; the
+    // ring carries its own, steady, so it stays a crisp hairline either way.
+    expect(engineCode).toMatch(
+      /\[data-glw-shape="beam"\] \[data-glw-edge-bloom\]\s*\{[^}]*opacity:\s*var\(--glw-beam-strength\)/,
+    );
+    expect(engineCode).toMatch(
+      /\[data-glw-shape="beam"\] \[data-glw-edge-ring\]\s*\{[^}]*opacity:\s*var\(--glw-beam-ring/,
+    );
+    // And the wobble's brightness/saturate live on the element too, not only
+    // inside their keyframe (the get-pro-button trap).
+    expect(engineCode).toMatch(
+      /\[data-glw-hue="wobble"\] \[data-glw-edge\]\s*\{[^}]*filter:\s*brightness/,
+    );
+  });
+
+  it("bounds the beam's hue movement instead of rotating the wheel", () => {
+    // get-pro-button drifts a full hue-rotate(-360deg), which generates hues
+    // outside the ratified five. Plus or minus 30 keeps the set ours.
+    const wobble = engineCode.slice(
+      engineCode.indexOf("@keyframes glw-beam-hue"),
+    );
+    expect(wobble).toContain("hue-rotate(-30deg)");
+    expect(wobble).toContain("hue-rotate(30deg)");
+    expect(engineCode).not.toContain("hue-rotate(-360deg)");
   });
 
   it("carries the forced-colors, print and no-mask fallbacks", () => {

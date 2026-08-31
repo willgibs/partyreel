@@ -125,6 +125,8 @@ export function GlowDoctrineVariants() {
       <Laws />
       <Experiment />
       <Shapes />
+      <BeamLaws />
+      <LitSurface />
       <Register />
       <States />
       <ContrastInstrument />
@@ -477,6 +479,13 @@ const SHAPES: {
     direction: "outward, once",
   },
   {
+    shape: "beam",
+    name: "Beam",
+    note: "An object lit at its OWN edge because it is the live subject. Ported from border-beam: a 1px ring, an inner glow, and outside only, a larger bloom behind. Pulse, never rotate.",
+    lamp: "the object itself, while it is working",
+    direction: "outward from its own border",
+  },
+  {
     shape: "halo",
     name: "Halo",
     note: "An object lit from BEHIND, which is the get-pro-button mechanic ported: the mask clears its own centre so colour creeps in from the rim and the object stays clean.",
@@ -505,6 +514,10 @@ const SHAPE_VARS: Partial<Record<GlowShape, GlowVars>> = {
     "--glw-strength": "0.85",
     "--glw-base": "0.25",
   },
+  beam: {
+    "--glw-radius": "16px",
+    "--glw-beam-strength": "0.7",
+  },
   halo: {
     "--glw-blur": "14px",
     "--glw-strength": "0.7",
@@ -522,7 +535,7 @@ function Shapes() {
   return (
     <Section
       n="03"
-      title="Five shapes, one engine"
+      title="Six shapes, one engine"
       lede="Each on production's real ground, beside its unlit control. The lab's own mock sheet uses a pure-white card and the app's 0.14 night; the cinema room is 0.11 and the ink slab is 0.155, so every stage here redeclares the real tokens."
     >
       <div className="flex flex-col gap-8">
@@ -581,6 +594,288 @@ function Shapes() {
 }
 
 /** Section 04: one slider beats three fixed columns for a register ruling. */
+const BEAM_LAWS: { n: string; rule: string; why: string }[] = [
+  {
+    n: "1",
+    rule: "A beam marks the object that is currently the LIVE SUBJECT.",
+    why: "Working, awaiting, uploading, publishing, live. If you cannot say what it is doing, it is not a subject.",
+  },
+  {
+    n: "2",
+    rule: "One subject per view.",
+    why: "The same scarcity as spill, for the same reason: two subjects is no subject.",
+  },
+  {
+    n: "3",
+    rule: "It ends when the state ends.",
+    why: "A beam is a state, never a decoration. This is the whole difference between a live object and a pretty border.",
+  },
+  {
+    n: "4",
+    rule: "One standing exception: a premium object at rest.",
+    why: "Named so it stays an exception rather than a precedent. The reference implementation is Get Pro on the pricing page, whose card already carries stacked photographs.",
+  },
+];
+
+function BeamLaws() {
+  return (
+    <Section
+      n="04"
+      title="Spill and beam"
+      lede={
+        <>
+          <p>
+            A border beam has no external lamp, so it fails law 1 as written. I
+            would rather grow the doctrine than quietly bend a law to fit
+            something I wanted to use, so it gains a sibling:
+          </p>
+          <p className="mt-2 text-foreground">
+            SPILL is light from a lit thing falling on its surroundings. BEAM is
+            an object lit at its own edge because it IS the live subject.
+          </p>
+          <p className="mt-2">
+            The engine treats it as a variant rather than a second system: it
+            reuses the same ring, inner glow and bloom the organic-shimmer edge
+            beam already had. Only the driver changes. A comet travelling the
+            border is an EVENT; opacity and scale breathing is a STATE, and that
+            distinction is the doctrine in one line.
+          </p>
+        </>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        {BEAM_LAWS.map((l) => (
+          <div key={l.n} className="rounded-2xl border border-border p-4">
+            <p className="font-mono text-xs text-muted-foreground">
+              Beam law {l.n}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed font-medium text-pretty">
+              {l.rule}
+            </p>
+            <p className="mt-1.5 text-xs leading-relaxed text-pretty text-muted-foreground">
+              {l.why}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Spec
+          name="Pulse inner"
+          note="The glow is clipped to the object, so nothing leaves the shape. Cleaner on flat UI, which is why it is the default."
+        >
+          <Ground
+            on="slab"
+            className="flex min-h-48 items-center justify-center"
+          >
+            <BeamCard beam="inner" />
+          </Ground>
+        </Spec>
+        <Spec
+          name="Pulse outside"
+          note="The same glow released to sit behind the object at -10px and -30px. Depth, where depth is wanted."
+        >
+          <Ground
+            on="slab"
+            className="flex min-h-48 items-center justify-center overflow-visible"
+          >
+            <BeamCard beam="outside" />
+          </Ground>
+        </Spec>
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        Both at colourful and strength 0.7. The difference between them is one
+        CSS property: the inner variant carries a clip-path and the outside one
+        does not. Rotate is deliberately not built, per Will: one movement, not
+        two.
+      </p>
+      <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            The inner variant costs more legibility than any spill did, and it
+            is worth knowing before this spreads.
+          </span>{" "}
+          Spill always sat outside or behind its object. An inner beam puts glow
+          INSIDE the card, where the text is. On our dark card the AA floor
+          arrives at effective alpha 0.05, roughly half the ink slab&rsquo;s
+          0.115, because a lighter ground starts with less headroom. At strength
+          0.7 the modelled ceiling puts muted text at 2.92:1 and body text at
+          9.49:1.
+        </p>
+        <p className="mt-2">
+          Same caveat as the spill table: that is a CEILING, and the blur only
+          reduces it. But the rule it implies is real and worth stating.{" "}
+          <span className="text-foreground">
+            A beamed card&rsquo;s padding is doing accessibility work.
+          </span>{" "}
+          The glow lives at the border, so body copy is never at risk and muted
+          captions must not sit in the lit zone. If a caption has to go near the
+          edge, use the outside variant, where the glow is behind the object
+          rather than over its contents.
+        </p>
+      </div>
+    </Section>
+  );
+}
+
+/** A stand-in card, so the beam is judged on an object rather than a swatch. */
+function BeamCard({
+  beam,
+  lit = true,
+}: {
+  beam: "inner" | "outside";
+  lit?: boolean;
+}) {
+  return (
+    <div
+      className="relative isolate w-64 overflow-visible rounded-2xl p-5"
+      data-lit={lit ? "" : undefined}
+      style={{ background: "oklch(0.21 0 0)" }}
+    >
+      <Glow
+        shape="beam"
+        beam={beam}
+        vars={{ "--glw-radius": "16px", "--glw-beam-strength": "0.7" }}
+      />
+      <div className="relative">
+        <p className="text-sm text-muted-foreground">Working...</p>
+        <ul className="mt-3 flex flex-col gap-2.5">
+          {["Rendering your reel", "Fitting the cuts", "Writing the file"].map(
+            (t) => (
+              <li key={t} className="flex items-center gap-2.5 text-sm">
+                <span
+                  aria-hidden
+                  className="size-3.5 shrink-0 rounded-full border border-dashed border-muted-foreground/50"
+                />
+                {t}
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+const LIT_CUES: { name: string; value: string; does: string }[] = [
+  {
+    name: "Hairline",
+    value: "inset 0 0 0 1px",
+    does: "An inset ring instead of a border. It adds nothing to the box, and it reads as the edge of a solid object rather than a stroke drawn around a div.",
+  },
+  {
+    name: "Air",
+    value: "inset 0 0 50px at ~3%",
+    does: "A large, very faint inner glow. This is the one that stops a surface reading as a flat filled rectangle, and I think it is most of what polish means here.",
+  },
+  {
+    name: "Lip",
+    value: "inset 0 1px 0 at ~6%",
+    does: "A highlight on the top edge only: the object is lit from above.",
+  },
+];
+
+function LitSurface() {
+  return (
+    <Section
+      n="05"
+      title="The lit surface"
+      lede={
+        <>
+          <p>
+            Will&rsquo;s note was that he liked the component design UNDERNEATH
+            the beam, and then the useful correction: that is not a licence to
+            beam everything. So this is the part that survives with the beam
+            switched off. Three achromatic, static cues, no motion at all,
+            measured off their card and pills. Available to any action or
+            state-based component, beam or not.
+          </p>
+          <p className="mt-2">
+            Dark grounds only for now. The lip is a light-catching highlight, so
+            on paper it is invisible and the honest equivalent is a soft bottom
+            edge instead. Same lesson the spill register learned: a ground
+            changes what light means.
+          </p>
+        </>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-3">
+        {LIT_CUES.map((c) => (
+          <div key={c.name} className="rounded-2xl border border-border p-4">
+            <p className="text-sm font-medium">{c.name}</p>
+            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+              {c.value}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-pretty text-muted-foreground">
+              {c.does}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Spec name="Dressed" note="The three cues, no beam, no motion.">
+          <Ground
+            on="slab"
+            className="flex min-h-44 items-center justify-center"
+          >
+            <LitDemo lit />
+          </Ground>
+        </Spec>
+        <Spec name="Today" note="The same card and controls as they ship now.">
+          <Ground
+            on="slab"
+            className="flex min-h-44 items-center justify-center"
+          >
+            <LitDemo />
+          </Ground>
+        </Spec>
+      </div>
+      <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            This needs one line ruled in the elevation contract.
+          </span>{" "}
+          It currently reads &ldquo;Dark: NO shadows anywhere&rdquo;. The
+          argument for a carve-out is that these are MATERIAL rather than
+          elevation: they describe the surface itself, not its height above
+          another one, which makes them a refinement of the contract&rsquo;s own
+          borders-plus-lighter-is-closer clause rather than a reversal. There is
+          already precedent in the reel publish beat, which is an inset shadow
+          in dark. Lab-local until you rule.
+        </p>
+      </div>
+    </Section>
+  );
+}
+
+function LitDemo({ lit = false }: { lit?: boolean }) {
+  return (
+    <div
+      className="w-60 rounded-2xl p-4"
+      data-lit={lit ? "" : undefined}
+      style={{ background: "oklch(0.21 0 0)" }}
+    >
+      <p className="text-sm">Share this event</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Anyone with the code can add photos.
+      </p>
+      <div className="mt-3 flex gap-2">
+        {["Copy link", "Download"].map((t) => (
+          <span
+            key={t}
+            data-lit={lit ? "control" : undefined}
+            className="rounded-full px-3 py-1.5 text-xs"
+            style={{
+              background: lit ? "oklch(1 0 0 / 0.04)" : "oklch(1 0 0 / 0.06)",
+            }}
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Register() {
   const [strength, setStrength] = useState(0.62);
   const [scale, setScale] = useState(1);
@@ -596,7 +891,7 @@ function Register() {
 
   return (
     <Section
-      n="04"
+      n="06"
       title="The register"
       lede="The shipped footer runs base and band at 0.62, which is the calibration everything else is judged against. Scale exists because the recipe's geometry is pixel-tuned for a 142px tile: without it a 40px pill and a 1440px hero would share an overhang."
     >
@@ -726,7 +1021,7 @@ const STATE_ROWS: { name: string; note: string }[] = [
 function States() {
   return (
     <Section
-      n="05"
+      n="07"
       title="The states this has to survive"
       lede="A swept layer rests fully off-layer, so a band without a base shows nothing whenever it is paused, and the global reduced-motion guard forces animation-iteration-count to 1. Base plus band is load-bearing, not layering."
     >
@@ -829,7 +1124,7 @@ function ContrastInstrument() {
 
   return (
     <Section
-      n="06"
+      n="08"
       title="What the wash costs in legibility"
       lede="footer-contract.test.ts pins the ink slab's token redeclarations as source text, not as measured ratios, so a wash that lifts the ground passes every test in the repo while eating the headroom those pins exist to protect. This computes it."
     >
@@ -935,7 +1230,7 @@ function ContrastInstrument() {
 function Calibration() {
   return (
     <Section
-      n="07"
+      n="09"
       title="Calibration: the one glow already ruled beautiful"
       lede="The shipped seam glow is the reference. The left stage is the engine reproducing it from the same values; the right is the same surface with no light at all, which is what the slab looked like before the footer round."
     >

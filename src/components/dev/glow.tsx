@@ -34,7 +34,10 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * document order and that is unstable under portals and reconciliation.
  */
 
-export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo";
+export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo" | "beam";
+
+/** Whether a beam's glow is clipped to the object or escapes behind it. */
+export type GlowBeam = "inner" | "outside";
 export type GlowDrive = "mask" | "transform" | "scalar";
 
 /** The tunable engine knobs. Typed so a typo is a compile error, not a no-op. */
@@ -48,6 +51,8 @@ export type GlowVars = Partial<
     | "--glw-h"
     | "--glw-core"
     | "--glw-core-blur"
+    | "--glw-beam-strength"
+    | "--glw-beam-dur"
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
@@ -77,6 +82,18 @@ type GlowProps = {
   vars?: GlowVars;
   /** Replay key for `bloom`: change it and the one-shot runs again. */
   runId?: number;
+  /**
+   * BEAM only. "inner" clips the glow to the object (cleaner on flat UI);
+   * "outside" lets it escape behind the object (depth). Will's framing, and it
+   * is literally the only difference between the two in the CSS.
+   */
+  beam?: GlowBeam;
+  /**
+   * BEAM only, opt-in. A BOUNDED plus/minus 30 degree hue wobble. Deliberately
+   * not the full rotation get-pro-button uses, which generates hues outside the
+   * ratified five.
+   */
+  hueWobble?: boolean;
 };
 
 function colorVars(colors?: readonly string[]): CSSProperties {
@@ -95,6 +112,8 @@ export function Glow({
   colors,
   vars,
   runId = 0,
+  beam,
+  hueWobble = false,
 }: GlowProps) {
   const oneShot = shape === "bloom";
   // Both hooks are called unconditionally (rules of hooks); only the one this
@@ -112,6 +131,9 @@ export function Glow({
   // The attribute holds the animation instead, so the light is present and
   // resting from first paint and a runId change always replays it.
   const armed = !oneShot || arrival.inView || runId > 0;
+  // A beam IS its edge layers, so it never has to ask for them. Leaving this to
+  // the `edge` prop meant a beam could be mounted with nothing to see.
+  const showEdge = edge || shape === "beam";
   const style = { ...colorVars(colors), ...(vars as CSSProperties) };
 
   return (
@@ -120,6 +142,8 @@ export function Glow({
       data-glw
       data-glw-shape={shape}
       data-glw-drive={drive}
+      data-glw-beam={shape === "beam" ? (beam ?? "inner") : undefined}
+      data-glw-hue={hueWobble ? "wobble" : undefined}
       data-paused={paused ? "true" : "false"}
       data-glw-armed={oneShot ? (armed ? "true" : "false") : undefined}
       style={style}
@@ -133,7 +157,7 @@ export function Glow({
         <div data-glw-base />
         <div data-glw-band />
       </div>
-      {edge && (
+      {showEdge && (
         <>
           {/* Our deviation from the recipe: a faint always-on ring under the
               travelling comet, so the edge survives the paused and

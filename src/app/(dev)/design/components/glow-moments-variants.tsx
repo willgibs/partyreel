@@ -90,6 +90,7 @@ export function GlowMomentsVariants() {
       <PaperProbe />
       <UploadAsLight />
       <ScanThrough />
+      <BeamSurfaces />
       <WholePage />
       <Catalogue />
     </div>
@@ -1689,6 +1690,306 @@ function ScanThrough() {
   );
 }
 
+/* ── 12: the beam surfaces ────────────────────────────────────────────────
+   Will chose all four, plus any other ideas, each reviewable on its own. Our
+   product has no AI-agent UI, so our equivalent of their Working card and
+   composer are the moments where something is genuinely live.                */
+
+type BeamSurface = {
+  id: string;
+  name: string;
+  law: string;
+  note: string;
+  beam: "inner" | "outside";
+  verdict: VerdictKind;
+  verdictLabel: string;
+};
+
+const BEAM_SURFACES: BeamSurface[] = [
+  {
+    id: "pro",
+    name: "Get Pro on /pricing",
+    law: "Beam law 4, the premium-at-rest exception",
+    note: "The reference implementation for the premium button, and the one object licensed to beam while doing nothing. Outside, because the card wants the depth and the beam is the reason you look at this card first.",
+    beam: "outside",
+    verdict: "ship",
+    verdictLabel: "The reference implementation",
+  },
+  {
+    id: "render",
+    name: "The reel while it renders",
+    law: "Beam law 1, and the purest reading of it",
+    note: "Our truest Working card: the on-device engine has a real progress and a real duration, once per event, at the host's biggest moment. It beams while it works and stops when it finishes, which is beam-as-state with nothing left over.",
+    beam: "inner",
+    verdict: "ship",
+    verdictLabel: "Ship",
+  },
+  {
+    id: "upload",
+    name: "Upload in progress",
+    law: "Beam law 1, paired with moment 10",
+    note: "The object's own edge, so it does not compete with the bar you asked for. The light says the tile is live; the bar says how far.",
+    beam: "inner",
+    verdict: "ship",
+    verdictLabel: "Ship with the bar",
+  },
+  {
+    id: "qr",
+    name: "The QR plate once live",
+    law: "Beam law 1, as a resting state",
+    note: "The natural upgrade to the ignite-and-stay-lit you approved in moment 06. The bloom is the moment of handing it over; the beam is the code reporting that it stays live.",
+    beam: "outside",
+    verdict: "work",
+    verdictLabel: "Beam or bloom, not both",
+  },
+  {
+    id: "palette",
+    name: "The help palette while searching",
+    law: "Beam law 1, and the closest thing we have to their composer",
+    note: "My addition. Their demo you responded to is a composer awaiting input, and the command palette is the one surface we have that is exactly that. It beams while focused and stops the moment you leave.",
+    beam: "inner",
+    verdict: "work",
+    verdictLabel: "New, wants your eye",
+  },
+];
+
+function BeamSurfaces() {
+  const [live, setLive] = useState<Record<string, boolean>>({
+    pro: true,
+    render: true,
+    upload: true,
+    qr: true,
+    palette: true,
+  });
+  const toggle = (id: string) => setLive((v) => ({ ...v, [id]: !v[id] }));
+
+  return (
+    <Moment
+      n="12"
+      title="Where a beam is allowed"
+      verdict="work"
+      verdictLabel="Five surfaces, review each"
+      lede={
+        <>
+          <p>
+            The border-beam port, on our surfaces rather than theirs. Pulse
+            only, colourful, strength 0.7, which are your picks. Every one of
+            these is a state you can name, and every one switches off when the
+            state ends. Toggle each to see the object without it.
+          </p>
+          <p className="mt-2">
+            Get Pro is the exception rather than the rule: the one object
+            licensed to beam at rest, named on the doctrine board so it stays an
+            exception instead of becoming a precedent.
+          </p>
+        </>
+      }
+      lamp="the object itself, while it is the live subject"
+      direction="outward from its own border"
+      colour="fallback five here; sampled wherever the object holds media"
+      law="The four beam laws"
+    >
+      <div className="grid gap-6 sm:grid-cols-2">
+        {BEAM_SURFACES.map((sfc) => (
+          <Spec
+            key={sfc.id}
+            name={sfc.name}
+            note={
+              <>
+                <span className="mr-1.5 inline-flex align-middle">
+                  <Verdict kind={sfc.verdict}>{sfc.verdictLabel}</Verdict>
+                </span>
+                {sfc.note} <span className="text-foreground">{sfc.law}.</span>
+              </>
+            }
+          >
+            <Ground
+              on="slab"
+              className="flex min-h-52 items-center justify-center overflow-visible p-6"
+            >
+              <BeamSurfaceStage surface={sfc} live={live[sfc.id]} />
+            </Ground>
+            <button
+              type="button"
+              onClick={() => toggle(sfc.id)}
+              className="w-fit rounded-full border border-border px-3 py-1 text-xs font-medium transition-colors duration-150 hover:bg-muted"
+            >
+              {live[sfc.id] ? "End the state" : "Make it live"}
+            </button>
+          </Spec>
+        ))}
+      </div>
+      <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            The one I am least sure about is the QR.
+          </span>{" "}
+          Moment 06 already gives it a resting glow on share, and a beam on top
+          of that is two treatments telling you the same thing. My instinct is
+          the bloom stays for the handoff and the beam replaces the resting
+          glow, never both at once, but that is a call worth making by looking.
+        </p>
+        <p className="mt-2">
+          Catalogued rather than built: the guest gate while it verifies a
+          password, and the review queue at the moment it reaches zero. Both are
+          real states, both would need their own moment.
+        </p>
+      </div>
+    </Moment>
+  );
+}
+
+function BeamSurfaceStage({
+  surface,
+  live,
+}: {
+  surface: BeamSurface;
+  live: boolean;
+}) {
+  const beamVars = {
+    "--glw-radius": surface.id === "pro" ? "18px" : "14px",
+    "--glw-beam-strength": "0.7",
+  } as const;
+
+  const beam = live ? (
+    <Glow shape="beam" beam={surface.beam} vars={beamVars} />
+  ) : null;
+
+  if (surface.id === "pro") {
+    return (
+      <div
+        data-lit=""
+        className="relative isolate w-56 overflow-visible rounded-[18px] p-5"
+        style={{ background: "oklch(0.21 0 0)" }}
+      >
+        {beam}
+        <div className="relative">
+          <p className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
+            Pro
+          </p>
+          <p className="mt-1.5 font-heading text-2xl">$90</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Per year, two months free.
+          </p>
+          <span
+            data-lit="control"
+            className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Get Pro
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (surface.id === "qr") {
+    return (
+      <div
+        className="relative isolate overflow-visible rounded-[14px] p-3"
+        style={{ background: "oklch(0.99 0 0)" }}
+      >
+        {beam}
+        <div className="relative grid size-28 grid-cols-8 gap-0.5">
+          {Array.from({ length: 64 }, (_, i) => (
+            <span
+              key={i}
+              className="aspect-square rounded-[1px]"
+              style={{
+                background: (i * 7) % 5 < 2 ? "oklch(0.13 0 0)" : "transparent",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (surface.id === "upload") {
+    return (
+      <div
+        className="relative isolate w-36 overflow-hidden rounded-[14px]"
+        style={{ background: "oklch(0.19 0 0)" }}
+      >
+        <div className="relative aspect-[4/5]">
+          <Image
+            src={marketingImage("wedding-toast").src}
+            alt=""
+            fill
+            sizes="144px"
+            className="object-cover"
+            style={{ opacity: live ? 0.62 : 1 }}
+          />
+        </div>
+        {beam}
+        {live && (
+          <div className="absolute inset-x-2 bottom-2 h-0.5 overflow-hidden rounded-full bg-white/20">
+            <div className="h-full w-2/3 rounded-full bg-white/90" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (surface.id === "palette") {
+    return (
+      <div
+        data-lit=""
+        className="relative isolate w-64 overflow-visible rounded-[14px] p-3"
+        style={{ background: "oklch(0.21 0 0)" }}
+      >
+        {beam}
+        <div className="relative">
+          <p className="text-sm text-muted-foreground">
+            Search help{live ? "" : "..."}
+            {live && <span className="ml-0.5">|</span>}
+          </p>
+          <div className="mt-3 flex flex-col gap-2">
+            {["Add photos to an event", "Change who can upload"].map((t) => (
+              <p key={t} className="text-xs text-muted-foreground">
+                {t}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // render
+  return (
+    <div
+      data-lit=""
+      className="relative isolate w-60 overflow-visible rounded-[14px] p-4"
+      style={{ background: "oklch(0.21 0 0)" }}
+    >
+      {beam}
+      <div className="relative">
+        <p className="text-sm text-muted-foreground">
+          {live ? "Rendering your reel..." : "Reel ready"}
+        </p>
+        <ul className="mt-3 flex flex-col gap-2.5">
+          {["Fitting the cuts", "Colour and titles", "Writing the file"].map(
+            (t) => (
+              <li key={t} className="flex items-center gap-2.5 text-sm">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "size-3.5 shrink-0 rounded-full border",
+                    live
+                      ? "border-dashed border-muted-foreground/50"
+                      : "border-success/70 bg-success/25",
+                  )}
+                />
+                {t}
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 /* ── 13 ─────────────────────────────────────────────────────────────────── */
 
 /**
@@ -1734,7 +2035,7 @@ function WholePage() {
 
   return (
     <Moment
-      n="12"
+      n="13"
       title="The whole page"
       verdict="ship"
       verdictLabel="The scarcity test"
@@ -1977,7 +2278,7 @@ const REJECTED: { name: string; why: string }[] = [
 function Catalogue() {
   return (
     <Section
-      n="13"
+      n="14"
       title="The rest of the field"
       lede="Documented rather than built, so the ruling has the whole picture without me spending the round on it."
     >

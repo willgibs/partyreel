@@ -2307,8 +2307,12 @@
   [data-glw-shape="halo"] [data-glw-band] {
     animation: glw-orbit var(--glw-dur) ease-in-out infinite;
   }
-  /* Phase-locked to the band: same duration, same clock, same play state. */
-  [data-glw-edge] {
+  /* Phase-locked to the band: same duration, same clock, same play state.
+     ★ NOT on a beam. A beam has no comet to phase-lock to, and leaving this
+     unscoped meant the beam inherited the sweep's clock: harmless only because
+     the beam nulls the mask this animates, which is exactly the kind of quiet
+     wrongness that turns into a real bug the moment someone reuses the mask. */
+  [data-glw]:not([data-glw-shape="beam"]) [data-glw-edge] {
     animation: glw-mask-xy var(--glw-dur) linear infinite;
   }
   [data-glw][data-paused="true"] [data-glw-band],
@@ -2642,4 +2646,224 @@
     transition: opacity 420ms var(--ease-emphasis);
     transition-delay: calc(var(--glw-mod-i, 0) * 26ms);
   }
+}
+
+/* ─────────────── BEAM: an object lit at its own edge (lab-local, 2026-08-28)
+
+   Ported from border-beam (beam.jakubantalik.com, Jakub Antalik), the way the
+   transitions.dev recipes were: the MECHANIC re-derived in our tokens, not the
+   package. Will's picks: pulse only (never rotate), colorful, strength 0.7.
+
+   ── WHY THIS IS A VARIANT AND NOT A SECOND ENGINE ──
+   Read off their live site, the whole effect is three layers on a host: a 1px
+   ring on the border, an inner glow, and (outside only) a larger blurred bloom.
+   That is exactly the organic-shimmer edge beam this file already carries, so
+   the beam REUSES [data-glw-edge] / -ring / -inner / -bloom and changes only
+   the driver and the geometry. The difference is what moves it: a comet mask
+   travelling the border is an EVENT; opacity and scale breathing is a STATE.
+
+   ── THE DOCTRINE ──
+   A beam has no external lamp, so it fails law 1 as written. Rather than bend
+   law 1, the doctrine gains a sibling: SPILL is light from a lit thing falling
+   on its surroundings, BEAM is an object lit at its own edge because it IS the
+   live subject. It is a state, it ends when the state ends, and there is one
+   standing exception for a premium object at rest (Get Pro).
+
+   ── INNER vs OUTSIDE ──
+   Literally whether the glow is clipped to the object or allowed to escape
+   behind it. Inner clips both glow layers with clip-path so nothing leaves the
+   shape, which is what makes it read clean on flat UI. Outside releases them to
+   -10px and -30px behind the object, which is what gives it depth.
+   ★ Outside needs overflow: visible on the beam AND on whatever contains it.
+   ── */
+
+@property --glw-pulse {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+[data-glw][data-glw-shape="beam"] {
+  --glw-beam-strength: 0.7;
+  --glw-beam-dur: 4s;
+  /* The object's own edge is the shape, so there is no falloff mask and
+     nothing to clip at the container level. */
+  overflow: visible;
+  border-radius: var(--glw-radius, 12px);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* The whole border is lit, so the comet window that shapes a sweep is removed
+   here. Resting opacity is declared ON the element, never only in a keyframe:
+   under the global reduced-motion guard an element reverts to its unanimated
+   style, and law 4 says the ring must still be lit when nothing is moving. */
+[data-glw-shape="beam"] [data-glw-edge] {
+  inset: 0;
+  z-index: 0;
+  /* ★ The wrapper does NOT dim the whole beam. The ring is the crisp
+     definition and the glow is what breathes; dimming both together (the first
+     pass) left the 1px stroke at whatever the pulse happened to be, so it never
+     read as a coloured hairline at all. Their implementation keeps a separate
+     stroke opacity for exactly this reason. */
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+[data-glw-shape="beam"] [data-glw-edge-ring] {
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--glw-radius, 12px);
+  /* Steady, and declared on the element so reduced motion keeps it. */
+  opacity: var(--glw-beam-ring, 0.92);
+}
+
+/* The belt masks that shape a comet's glow are wrong for a beam: the light
+   belongs to the whole border, not a passing segment. */
+[data-glw-shape="beam"] [data-glw-edge-inner],
+[data-glw-shape="beam"] [data-glw-edge-bloom] {
+  -webkit-mask-image: none;
+  mask-image: none;
+  box-shadow: none;
+  /* The breathing layers. Resting value on the element, never only in the
+     keyframe, so the reduced-motion revert lands on a lit beam (law 4). */
+  opacity: var(--glw-beam-strength);
+}
+
+[data-glw-beam="inner"] [data-glw-edge-inner],
+[data-glw-beam="inner"] [data-glw-edge-bloom] {
+  inset: 0;
+  border-radius: var(--glw-radius, 12px);
+  /* The whole point of the inner variant: nothing leaves the object. */
+  clip-path: inset(0 round var(--glw-radius, 12px));
+}
+
+[data-glw-beam="outside"] [data-glw-edge-inner] {
+  inset: -10px;
+  border-radius: calc(var(--glw-radius, 12px) + 10px);
+  clip-path: none;
+  filter: blur(10px);
+}
+
+[data-glw-beam="outside"] [data-glw-edge-bloom] {
+  inset: -30px;
+  border-radius: calc(var(--glw-radius, 12px) + 30px);
+  clip-path: none;
+  filter: blur(24px);
+}
+
+/* Opt-in hue movement. A BOUNDED wobble, not a rotation: get-pro-button drifts
+   a full hue-rotate(-360deg), which by construction generates hues outside the
+   ratified five and was rejected on those grounds. Plus or minus 30 degrees
+   keeps the set recognisably ours. Brightness and saturate are declared on the
+   element as well as in the keyframe, so reduced motion does not revert to an
+   unfiltered layer. */
+[data-glw-hue="wobble"] [data-glw-edge] {
+  filter: brightness(1.3) saturate(1.2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-shape="beam"] [data-glw-edge-inner],
+  [data-glw-shape="beam"] [data-glw-edge-bloom] {
+    animation: glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite;
+  }
+  /* Only the bloom scales. Breathing the wrapper would drag the 1px ring off
+     the border, which is the one layer that has to stay exactly on the edge. */
+  [data-glw-shape="beam"] [data-glw-edge-bloom] {
+    animation:
+      glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite,
+      glw-beam-breathe var(--glw-beam-dur) ease-in-out infinite;
+  }
+  [data-glw][data-paused="true"] [data-glw-edge-inner],
+  [data-glw][data-paused="true"] [data-glw-edge-bloom] {
+    animation-play-state: paused;
+  }
+  [data-glw-hue="wobble"] [data-glw-edge] {
+    animation:
+      glw-beam-pulse var(--glw-beam-dur) ease-in-out infinite,
+      glw-beam-hue 9s ease-in-out infinite;
+  }
+}
+
+@keyframes glw-beam-pulse {
+  0%,
+  100% {
+    opacity: calc(var(--glw-beam-strength) * 0.62);
+  }
+  50% {
+    opacity: var(--glw-beam-strength);
+  }
+}
+
+@keyframes glw-beam-breathe {
+  0%,
+  100% {
+    scale: 0.985;
+  }
+  50% {
+    scale: 1.025;
+  }
+}
+
+@keyframes glw-beam-hue {
+  0%,
+  100% {
+    filter: hue-rotate(-30deg) brightness(1.3) saturate(1.2);
+  }
+  50% {
+    filter: hue-rotate(30deg) brightness(1.3) saturate(1.2);
+  }
+}
+
+/* ─────────────── THE LIT SURFACE (lab-local)
+
+   Will's clarification: the beam must NOT go on everything, but the component
+   design UNDERNEATH it is good design for action and state-based components.
+   These are the three cues measured off their card and pills, and they are the
+   part that survives without the beam: achromatic, static, no motion at all.
+   You notice their absence more than their presence.
+
+     hairline   an inset ring instead of a border. It adds nothing to the box
+                and reads as the edge of a solid object rather than a stroke
+                drawn around a div.
+     air        a large, very faint inner glow. This is the one that stops a
+                surface reading as a flat filled rectangle.
+     lip        a 1px highlight on the TOP edge only: lit from above.
+
+   ★ DARK GROUNDS ONLY for now. The lip is a light-catching highlight, so on
+   paper it is invisible and the honest paper equivalent is a soft bottom edge
+   instead. Same lesson the spill register learned: a ground changes what light
+   means. Scoped rather than faked.
+
+   ── AGAINST THE ELEVATION CONTRACT? ──
+   design-system.md reads "Dark: NO shadows anywhere". The argument for a
+   carve-out is that these are MATERIAL, not elevation: they describe the
+   surface itself rather than its height above another one, which is a
+   refinement of the contract's own "borders + lighter-is-closer" clause. There
+   is precedent in [data-rxp-pubglow], already an inset shadow in dark. Will
+   rules; this is lab-local until he does. ── */
+[data-lit] {
+  --lit-hairline: 12%;
+  --lit-air: 3%;
+  --lit-lip: 6%;
+  box-shadow:
+    inset 0 0 0 1px
+      color-mix(in oklab, var(--foreground) var(--lit-hairline), transparent),
+    inset 0 0 50px
+      color-mix(in oklab, var(--foreground) var(--lit-air), transparent),
+    inset 0 1px 0
+      color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
+}
+
+/* Small controls take a tighter air radius, or the 50px glow swamps a 32px
+   pill and reads as a wash rather than as material. */
+[data-lit="control"] {
+  box-shadow:
+    inset 0 0 0 1px
+      color-mix(in oklab, var(--foreground) var(--lit-hairline), transparent),
+    inset 0 0 12px
+      color-mix(in oklab, var(--foreground) var(--lit-air), transparent),
+    inset 0 1px 0
+      color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
 }
