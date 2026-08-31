@@ -2698,6 +2698,28 @@
    here. Resting opacity is declared ON the element, never only in a keyframe:
    under the global reduced-motion guard an element reverts to its unanimated
    style, and law 4 says the ring must still be lit when nothing is moving. */
+/* ★ A BEAM RENDERS ONLY ITS EDGE. Two layers belong to spill and were still
+   painting underneath every beam:
+
+     [data-glw-field]      the spill colour field (base + band) at inset -40px.
+                           With overflow visible on the beam it escaped in every
+                           direction, which is the enormous diffuse wash that
+                           made the specimens look broken, inner variants
+                           included.
+     [data-glw-edge-rest]  the sweep's always-on resting ring at inset 20px,
+                           which drew a second rounded rectangle INSIDE every
+                           card, and on the QR plate laid colour over the
+                           modules themselves.
+
+   Hidden here rather than skipped in the JSX on purpose: the contract pin says
+   the base and the band are rendered unconditionally, and moving that
+   conditional up a level would leave the pin passing while meaning nothing. A
+   beam has no swept layer to protect, so CSS is the honest place to say so. */
+[data-glw-shape="beam"] [data-glw-field],
+[data-glw-shape="beam"] [data-glw-edge-rest] {
+  display: none;
+}
+
 [data-glw-shape="beam"] [data-glw-edge] {
   inset: 0;
   z-index: 0;

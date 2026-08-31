@@ -194,6 +194,19 @@ describe("the spill engine CSS", () => {
     expect(selector).toContain('[data-glw-drive="scalar"]');
   });
 
+  it("renders only its edge on a beam", () => {
+    // Both spill layers were painting under every beam: the colour field at
+    // inset -40px (which escapes, because a beam sets overflow visible) and the
+    // sweep's resting ring at inset 20px (a second rounded rectangle inside
+    // every card, and colour over the QR's modules). A beam is its edge.
+    expect(engineCode).toMatch(
+      /\[data-glw-shape="beam"\] \[data-glw-field\][\s\S]{0,120}?display:\s*none/,
+    );
+    expect(engineCode).toMatch(
+      /\[data-glw-edge-rest\][\s\S]{0,120}?display:\s*none/,
+    );
+  });
+
   it("makes a beam's inner/outside difference exactly one property", () => {
     // The entire distinction Will described (inner is cleaner on flat UI,
     // outside adds depth) is whether the glow layers are clipped to the object
