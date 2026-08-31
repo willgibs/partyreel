@@ -66,8 +66,8 @@ const LAWS: { n: string; name: string; rule: string; kills: string }[] = [
   },
   {
     n: "3",
-    name: "Colour of the lit thing",
-    rule: "Where real media exists the spill takes its colour from that media. Where none exists, the ratified five. Never a house token, never a state colour.",
+    name: "Colour of the lit thing (RULED)",
+    rule: "Where real media exists the spill takes its colour from that media. Where none exists, the ratified five. Never a house token, never a state colour. Will ruled 2026-08-28: sampled is consistently better where there is media, and the fixed five are the right global fallback where there is not, which is exactly what the footer is.",
     kills:
       "The glow becoming a second brand palette. Amber storage warnings, violet reel glows.",
   },
@@ -177,17 +177,27 @@ function StartHere() {
           </li>
         ))}
       </ol>
-      <p className="mt-4 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
-        <span className="font-medium text-foreground">
-          Two decisions need you, and one thing is still unmeasured.
-        </span>{" "}
-        The doctrine itself, and whether to promote the engine and its five hues
-        to globals.css and :root (the one-way door: it deletes the test fence
-        that scopes colour literals to --mkt-confetti-N, so it wants an ADR
-        rather than a quiet landing). Unmeasured: the frame cost of the three
-        sweep drives on moment 04, which needs a foreground window because a
-        background tab throttles the counter to nothing.
-      </p>
+      <div className="mt-4 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            Settled in the first review (2026-08-28).
+          </span>{" "}
+          Law 3 is ruled: sampled where there is media, the fixed five where
+          there is none. The engine is cleared for promotion to globals.css and
+          :root off these examples, which is the one-way door this round was
+          holding. Lights on beats lights off on the whole-page test. Eleven of
+          the twelve placements are approved, some after fixes; the pointer lamp
+          is dead.
+        </p>
+        <p className="mt-2">
+          <span className="font-medium text-foreground">Still open.</span> Which
+          of the three scan-through handoffs to build properly (my preference is
+          the first), where the quiet halo button is allowed to live, and the
+          frame cost of the three sweep drives on moment 04, which needs a
+          foreground window because a background tab throttles the counter to
+          nothing.
+        </p>
+      </div>
     </div>
   );
 }
@@ -307,8 +317,18 @@ function Experiment() {
             differ.
           </p>
           <p className="mt-2 text-foreground">
-            If these look the same, law 3 is wrong and a fixed palette is right.
-            Change the lit photograph and watch whether the light follows it.
+            ANSWERED (Will, 2026-08-28): sampled wins consistently wherever
+            there is media to sample, and the fixed five hold up well as the
+            fallback for surfaces with none, which is what the footer is. Law 3
+            stands, and it now has a second clause: the fallback is not a lesser
+            version, it is the correct choice in the absence of a lit thing.
+          </p>
+          <p className="mt-2">
+            One caveat the paper probe turned up afterwards: a sampled palette
+            is only as good as its spread. A single-quadrant photograph
+            composites to mud, so the sampler now forces at least a fifth of the
+            wheel between hues, and paper gets a lighter register than dark
+            grounds do.
           </p>
         </>
       }
