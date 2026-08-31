@@ -1767,6 +1767,9 @@ function BeamSurfaces() {
   });
   const toggle = (id: string) => setLive((v) => ({ ...v, [id]: !v[id] }));
   const [palette, setPalette] = useState<BeamPalette>("colorful");
+  const anyLive = Object.values(live).some(Boolean);
+  const setAll = (v: boolean) =>
+    setLive(Object.fromEntries(BEAM_SURFACES.map((s) => [s.id, v])));
 
   return (
     <Moment
@@ -1788,6 +1791,12 @@ function BeamSurfaces() {
             licensed to beam at rest, named on the doctrine board so it stays an
             exception instead of becoming a precedent.
           </p>
+          <p className="mt-2">
+            Worth saying out loud, because the grid below breaks it: beam law 2
+            is one subject per view, and this shows five at once so the surfaces
+            can be compared. A real page never would. Moment 13 is where
+            scarcity is actually tested.
+          </p>
         </>
       }
       lamp="the object itself, while it is the live subject"
@@ -1796,9 +1805,7 @@ function BeamSurfaces() {
       law="The four beam laws"
     >
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
-        <p className="mr-1 text-xs text-muted-foreground">
-          Palette, all five at once:
-        </p>
+        <p className="mr-1 text-xs text-muted-foreground">Palette:</p>
         {(
           [
             ["colorful", "Theirs"],
@@ -1820,6 +1827,14 @@ function BeamSurfaces() {
             {label}
           </button>
         ))}
+        <span aria-hidden className="mx-1 h-4 w-px bg-border" />
+        <button
+          type="button"
+          onClick={() => setAll(!anyLive)}
+          className="rounded-full border border-border px-3 py-1 text-xs font-medium transition-colors duration-150 hover:bg-muted"
+        >
+          {anyLive ? "All at rest" : "All live"}
+        </button>
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         {BEAM_SURFACES.map((sfc) => (

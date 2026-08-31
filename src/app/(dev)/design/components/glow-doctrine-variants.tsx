@@ -141,22 +141,22 @@ function StartHere() {
   const path: { n: string; where: string; why: string }[] = [
     {
       n: "1",
+      where: "Section 04 here, then moment 12",
+      why: "The live ruling: border-beam's own colours beside ours, same nine lobes, same positions, same sizes, then the same switch over five real surfaces. This is the only thing on either board still waiting on you.",
+    },
+    {
+      n: "2",
       where: "Section 02 on this board",
       why: "The one falsifiable question: the same lamp sampled from the photographs, beside the same lamp on the fixed five. If they look the same, law 3 is wrong and this gets simpler.",
     },
     {
-      n: "2",
+      n: "3",
       where: "Moment 13 on the placements board",
       why: "The whole page with a lights switch. It is the only specimen that tests scarcity, and it is the closest thing here to your would-this-hold-up-next-to-the-homepage bar.",
     },
     {
-      n: "3",
-      where: "Moments 01 and 02",
-      why: "The two I would ship first: the hero underlight, and the locked door where light behind a closed door is literally true.",
-    },
-    {
       n: "4",
-      where: "Section 06 here, then moment 08",
+      where: "Section 08 here, then moment 08",
       why: "The two places I am arguing AGAINST something: what a wash costs in legibility, and why the CTA halo is a reject in the chrome and an allow in the hero.",
     },
   ];
@@ -188,17 +188,17 @@ function StartHere() {
           Law 3 is ruled: sampled where there is media, the fixed five where
           there is none. The engine is cleared for promotion to globals.css and
           :root off these examples, which is the one-way door this round was
-          holding. Lights on beats lights off on the whole-page test. Eleven of
-          the twelve placements are approved, some after fixes; the pointer lamp
-          is dead.
+          holding. Lights on beats lights off on the whole-page test. Of the
+          thirteen placements that survived, seven are cleared to ship and six
+          still want an eye; the pointer lamp is dead.
         </p>
         <p className="mt-2">
-          <span className="font-medium text-foreground">Still open.</span> Which
-          of the three scan-through handoffs to build properly (my preference is
-          the first), where the quiet halo button is allowed to live, and the
-          frame cost of the three sweep drives on moment 04, which needs a
-          foreground window because a background tab throttles the counter to
-          nothing.
+          <span className="font-medium text-foreground">Still open.</span> The
+          palette above all (section 04), then which of the three scan-through
+          handoffs to build properly (my preference is the first), where the
+          quiet halo button is allowed to live, and the frame cost of the three
+          sweep drives on moment 04, which needs a foreground window because a
+          background tab throttles the counter to nothing.
         </p>
       </div>
     </div>
@@ -583,7 +583,7 @@ function Shapes() {
   );
 }
 
-/** Section 04: one slider beats three fixed columns for a register ruling. */
+/** Section 04: the doctrine's sibling, and the palette question it left open. */
 const BEAM_LAWS: { n: string; rule: string; why: string }[] = [
   {
     n: "1",
@@ -676,9 +676,26 @@ function BeamLaws() {
           exactly. Every position and size is copied from theirs.
         </p>
         <p className="mt-2">
-          If theirs wins it becomes a named exception, and the open question
-          becomes whether their palette should replace ours globally. If ours
-          wins we retune to it and the exception never has to exist.
+          <span className="font-medium text-foreground">
+            The columns are the same instant of the same motion, not two lucky
+            frames.
+          </span>{" "}
+          The library drives all eighteen oscillators plus the hue revolution
+          from a single shared loop keyed to absolute page time, and its driver
+          never sees the palette, so two instances of the same size are in phase
+          by construction. Whatever differs between left and right is colour.
+        </p>
+        <p className="mt-2">
+          <span className="font-medium text-foreground">
+            One thing to weigh that no retune fixes.
+          </span>{" "}
+          Theirs is eight distinct hues across nine lobes. Ours is five, because
+          our set has no teal and no magenta, so green and violet each have to
+          serve more than one slot. Even at matched chroma ours is a less varied
+          field, and if that variety is a real part of why the effect feels
+          alive, the honest answer is theirs as a named exception rather than a
+          retune of ours. If ours holds up anyway, the exception never has to
+          exist.
         </p>
       </div>
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
@@ -722,7 +739,12 @@ function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
         <p className="mb-2 font-mono text-[11px] text-muted-foreground">
           pulse-inner
         </p>
-        <Ground on="slab" className="flex min-h-44 items-center justify-center">
+        {/* Both stages are min-h-56 so the four cells read as one grid, and
+            because the outside variant NEEDS it: measured on the preview, its
+            bloom is 191px around a 152px card, so a min-h-44 stage left it
+            escaping 7px top and bottom onto the page behind. Same ground
+            colour, so no seam, but the falloff was landing off the stage. */}
+        <Ground on="slab" className="flex min-h-56 items-center justify-center">
           <BeamCard palette={palette} size="pulse-inner" />
         </Ground>
       </div>
@@ -732,7 +754,7 @@ function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
         </p>
         <Ground
           on="slab"
-          className="flex min-h-44 items-center justify-center overflow-visible"
+          className="flex min-h-56 items-center justify-center overflow-visible"
         >
           <BeamCard palette={palette} size="pulse-outside" />
         </Ground>
@@ -907,6 +929,7 @@ function LitDemo({ lit = false }: { lit?: boolean }) {
   );
 }
 
+/** Section 06: one slider beats three fixed columns for a register ruling. */
 function Register() {
   const [strength, setStrength] = useState(0.62);
   const [scale, setScale] = useState(1);

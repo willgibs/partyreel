@@ -3,7 +3,10 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { colorPalettes } from "@/components/vendor/border-beam/styles";
+import {
+  colorPalettes,
+  getPulseDriverConfig,
+} from "@/components/vendor/border-beam/styles";
 
 // Guards for the VENDORED border-beam package (src/components/vendor/border-beam).
 //
@@ -64,6 +67,43 @@ describe("the vendored border-beam package", () => {
       expect(lobe.size, `lobe ${i} resized`).toBe(theirs[i].size);
       expect(lobe.color, `lobe ${i} is not ours`).not.toBe(theirs[i].color);
     });
+  });
+
+  it("keeps the two palettes in phase, which is what makes the A/B honest", () => {
+    // Doctrine section 04 tells Will the columns are the same instant of the
+    // same motion, so any difference he sees is colour. That claim rests on two
+    // properties of the driver: it takes no colorVariant, and every oscillator
+    // phase comes from absolute page time rather than a per-instance start. If
+    // either changed, the two columns would drift apart and the board would be
+    // asserting something false about a comparison it exists to serve.
+    const cfg = (id: string) =>
+      getPulseDriverConfig("pulse-inner", "dark", 1.96, 30, false, id);
+
+    const a = cfg("aaa");
+    const b = cfg("bbb");
+    expect(a).not.toBeNull();
+    expect(a!.oscillators).toHaveLength(b!.oscillators.length);
+    a!.oscillators.forEach((osc, i) => {
+      const other = b!.oscillators[i];
+      // Same period and same delay => same phase at any given timestamp. The
+      // prop names differ only by the instance id, which is the point.
+      expect(osc.period, `oscillator ${i} period`).toBe(other.period);
+      expect(osc.delay, `oscillator ${i} delay`).toBe(other.delay);
+      expect(osc.a).toBe(other.a);
+      expect(osc.b).toBe(other.b);
+    });
+    expect(a!.hue?.period).toBe(b!.hue?.period);
+  });
+
+  it("counts the hues the board claims each palette carries", () => {
+    // Section 04 states the numbers (theirs eight distinct hues across nine
+    // lobes, ours five) and draws a real conclusion from the gap: ours is a
+    // less varied field no retune can fix. A stated number is a claim, and a
+    // claim about the code belongs under test.
+    const distinct = (v: "colorful" | "partyreel") =>
+      new Set(colorPalettes[v].border.map((l) => l.color)).size;
+    expect(distinct("colorful")).toBe(8);
+    expect(distinct("partyreel")).toBe(5);
   });
 
   it("ships our hues at a chroma this effect can actually show", () => {
