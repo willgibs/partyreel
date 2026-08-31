@@ -1643,6 +1643,9 @@
     @starting-style {
       transform: scaleX(0);
     }
+  }
+}
+
 /* ─────────────── SPILL: the light engine (lab-local, 2026-08-28) ───────────────
 
    The doctrine round for the glow Will asked to make core to the visual design.
