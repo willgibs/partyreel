@@ -10,12 +10,13 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-08-29 — the /careers round (merged to `launch-prep`, awaiting its milestone)
+## 2026-08-29 — MILESTONE-12: the /careers round
 
-`launch-prep` @ `9b206a1`, `--no-ff` merge of `lp/careers-identity` (`cdce1c6`) plus four synthesis
-commits. Preview READY + verified at the SHA on the launch-prep alias. Gate green at every commit:
-typecheck, 0 lint errors, **1260 tests** (1253 before), `/careers` static and `/careers/[slug]` SSG
-for both slugs.
+`main` @ tag `milestone-12` (`6ecb55a`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, 0 lint errors, **1260 tests** — 1253 before — and a build with `/careers`
+static and `/careers/[slug]` SSG for both slugs). Prod READY + verified at the merge SHA. Will's
+acceptance: "You nailed the philosophy row on desktop. Feels very on-brand compared to the branched
+version." (He also flagged that he will revisit both page designs.)
 
 The fourth branch of the agent-merge sequence, and the one that took the most rejections to get
 right: all three lab directions were rejected outright ("a total back to the drawing board"), then
@@ -77,7 +78,8 @@ not exist, and asserting the General Application gets its own plate, which Will 
 commits later), then the real bullets. A clean merge report on a doc means the TEXT reconciled, not
 that the FACTS did.
 
-**Verified on the launch-prep alias.** Both morphs after the collapse: `/blog` card -> article then
+**Verified on partyreel.com at the merge SHA** (and, before it, on the launch-prep alias). Both
+morphs after the collapse: `/blog` card -> article then
 the article -> article "Keep reading" hop, and `/careers` card -> role -> back -> other role, each
 reporting exactly one named plate at start and the target re-armed after. Reduced motion forced at the
 API the delegate reads: 0 transitions started, the navigation still completed, the emblem visible at
@@ -91,15 +93,26 @@ the table stays at ZERO rows), and an honest submit writing exactly one row with
 every decorative alt empty. Sitemap 3 careers URLs, llms.txt, feed 4 items, no `JobPosting` JSON-LD.
 Console clean.
 
-★ **NOT verified: a desktop screenshot of the finished page.** Both browsers failed in the same
-session and in opposite ways - Chrome reported resizes as successful while staying at 500px
-(`outerWidth` 284 against `innerWidth` 500), and the Browser pane honoured 1440 but returned black
-frames with animations suspended. Desktop GEOMETRY is measured (h1 72px, 9-column sheet, 3-column
-philosophy row, no overflow) and the marks render identically at any width, so the gap is the
-composition at 1440, which is exactly what Will reviews. Two new blind spots came out of it, both
-recorded: a browser EXTENSION in the Chrome profile manufactures a hydration mismatch that React then
-attributes to unrelated sibling nodes, and an occluded tab never delivers the FIRST
-IntersectionObserver callback, so an arrival reveal reads as permanently invisible until one scroll.
+**On prod, at 1440:** the h1 at 72px matching /pricing and /how-it-works character for character;
+the sheet at 12 unique images / 12 eager / 0 never-eager; the three philosophy marks at 48x32 evenly
+spaced across the three columns at x = 112 / 533 / 955, `aria-hidden`, on the paper ink; the role
+page's h1 at 60px (the article exemption) with the rail at 240px, `align-self: stretch` and
+`position: sticky`; the emblem at 96px; no horizontal overflow; console clean. Reduced motion forced
+at the API the delegate reads, on prod: 0 transitions started, the navigation still completed, the
+emblem visible at 96px. The shipped prod CSS carries the marks DRAWN outside any media query with
+only the undrawn start inside `no-preference`, zero `::view-transition-group(*)` wildcards, and the
+glass at 300ms open. `pr-no-track` was already set on the Chrome profile and was set on the pane's
+origin from a `/robots.txt` load before any page view.
+
+★ **The desktop screenshot took three attempts across two browsers**, and the reason is worth
+keeping: both failed in the same session in opposite ways - Chrome reported resizes as successful
+while staying at 500px (`outerWidth` 284 against `innerWidth` 500), and the Browser pane honoured
+1440 but returned black frames with animations suspended. Will reviewed the preview himself in the
+gap, which is what closed it. Two new blind spots came out of it, both recorded: a browser EXTENSION
+in the Chrome profile manufactures a hydration mismatch that React then attributes to unrelated
+sibling nodes, and ★ an occluded tab never delivers the FIRST IntersectionObserver callback, so an
+arrival reveal reads as permanently invisible until one scroll - indistinguishable from the
+arrival-default bug the blog round exists to prevent.
 
 ---
 

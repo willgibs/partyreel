@@ -69,8 +69,8 @@ selectors were already page-neutral, the index-masthead recorded as the third H1
 red-team findings: the exit beat ran under reduced motion (the rule cited the review queue's
 convention but took only half of it), and `useFlip` had NO tests despite being shared with the admin
 event feed.
-**`lp/careers-identity` is MERGED into `launch-prep`** (`9b206a1`, the fourth branch of the
-sequence), preview-verified, awaiting Will's sign-off for its milestone merge. /careers went from a
+**`lp/careers-identity` merged and shipped at milestone-12**, the fourth branch of the sequence.
+/careers went from a
 template instance to a page that argues in photographs; it reached `(cinema)` on its own, so the
 round's work was Will's three rulings (the h1 back on the site ladder, the philosophy indices circled
 in the page's own hand, the two morph delegates collapsed into one), two measured fixes (the hero was
@@ -82,6 +82,24 @@ marketing page. ★ Its `marketing-content.md` AUTO-MERGED into a broken state w
 is the transferable lesson: a clean merge report on a doc means the text reconciled, not the facts.
 Full narrative: [CHANGELOG](CHANGELOG.md). **One branch still with Will: `lp/glow-doctrine`**, which
 nothing merged so far has touched.
+
+**MILESTONE-12 (2026-08-29): prod = the /careers round.** `main` @ tag `milestone-12` (`6ecb55a`),
+prod READY + verified at the merge SHA. Will's acceptance: "You nailed the philosophy row on desktop.
+Feels very on-brand compared to the branched version" (with a note that he will revisit both page
+designs). Verified on partyreel.com at 1440: the h1 at 72px matching /pricing and /how-it-works
+character for character, so the site ladder has no exceptions again; the contact sheet at 12 unique
+images / 12 eager / 0 never-eager (it was lazy-loading half of itself above the fold); the three
+philosophy marks at 48x32 evenly spaced at x = 112 / 533 / 955, aria-hidden, on the paper ink; the
+role page's h1 at 60px with the rail at 240px, `align-self: stretch`, `position: sticky`; the emblem
+at 96px; no overflow; console clean. BOTH morphs re-verified after the collapse (`/blog` card ->
+article -> "Keep reading" hop, `/careers` card -> role -> back -> other role), each reporting exactly
+one named plate at start and the target re-armed. Reduced motion forced on prod: 0 transitions
+started, the navigation still completed. `/careers/nonsense` on the cinema 404 with
+`theme-color: #040404`; sitemap 3 careers URLs; no `JobPosting` JSON-LD. ★ The transferable lesson is
+the doc one: `marketing-content.md` AUTO-MERGED into a broken state with NO conflict (a decapitated
+bullet, then a whole stale one describing the rejected first rebuild and linking a file that does not
+exist). A clean merge report on a doc means the text reconciled, not the facts. Full narrative:
+[CHANGELOG](CHANGELOG.md).
 
 **MILESTONE-11 (2026-08-29): prod = the /blog round.** `main` @ tag `milestone-11` (`95ca799`), prod
 READY + verified at the merge SHA. Will's acceptance: "It looks great." Verified on partyreel.com:
@@ -252,20 +270,23 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 ## Will's open decision queue
 
 1. **The next agent branch to hand over** (`lp/glow-doctrine` — the last one). `lp/about` shipped at
-   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11, and
-   `lp/careers-identity` is merged into `launch-prep` awaiting its own.
+   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11,
+   `lp/careers-identity` at milestone-12.
    ★ The standing careers merge-order warning turned out to be
    WRONG on the point it was most confident about: `marketing.css` did NOT conflict (the branch had
    rebased past both blocks). What it missed was `marketing-content.md`, which AUTO-merged into a
    broken state — a decapitated bullet plus a whole stale one. **Read an auto-merged doc, do not
    trust a clean merge report on it.**
-2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
-3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
+2. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
+   revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
+   defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
+3. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
+4. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-4. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
+5. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
+6. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
