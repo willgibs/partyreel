@@ -4,8 +4,6 @@ import Image from "next/image";
 import { Camera, Check, Copy, Lock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
-
 import { Glow, GlowFilter } from "@/components/dev/glow";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
 import { Button } from "@/components/ui/button";
@@ -91,7 +89,6 @@ export function GlowMomentsVariants() {
       <CtaQuestion />
       <PaperProbe />
       <UploadAsLight />
-      <PointerLamp />
       <ScanThrough />
       <WholePage />
       <Catalogue />
@@ -493,7 +490,11 @@ function AwaitingMedia() {
                   style={
                     {
                       borderRadius: "var(--radius-tile)",
-                      background: "oklch(0.19 0 0)",
+                      // Will's note: a solid card blocks the lamp and reads
+                      // harsh against it. Translucent, so the light passes
+                      // THROUGH the album that is still arriving, which is also
+                      // the more honest picture of what is happening.
+                      background: "oklch(0.19 0 0 / 0.45)",
                       "--glw-skel-i": i,
                     } as React.CSSProperties
                   }
@@ -640,79 +641,121 @@ function StraddleStage({
 
 function QrPlate() {
   const [copied, setCopied] = useState(0);
+  const [live, setLive] = useState(0);
+
   return (
     <Moment
       n="06"
       title="The QR plate switching on"
       verdict="ship"
-      verdictLabel="Ship"
+      verdictLabel="Ship the second one"
       lede={
-        <p>
-          The only object in the product aimed at another person&rsquo;s phone,
-          and the host&rsquo;s highest-stakes action. A bloom outward from under
-          the plate on copy or share reads as the code switching on. The light
-          stays strictly outside the plate and never touches the modules or the
-          quiet zone, because scannability is a contract, not a style.
-        </p>
+        <>
+          <p>
+            The only object in the product aimed at another person&rsquo;s
+            phone, and the host&rsquo;s highest-stakes action. The light stays
+            strictly outside the plate and never touches the modules or the
+            quiet zone, because scannability is a contract, not a style.
+          </p>
+          <p className="mt-2">
+            Your instinct that there was a more polished version was right, and
+            the reason is a state rather than a strength. The first one FLASHES:
+            it blooms and decays back to almost nothing, so all it tells you is
+            that a click registered, which the button already said. The second
+            one ignites and then STAYS lit at a low resting glow. That is the
+            code reporting that it is live, which is a thing worth knowing and
+            worth looking at while you carry your phone to the table.
+          </p>
+        </>
       }
       lamp="the code, at the moment it is handed over"
       direction="outward from under the plate"
       colour="fallback five (the plate is not a photograph)"
-      law="Law 1, once per share"
+      law="Law 1, once per share, and it earns a resting state"
     >
-      <Ground
-        on="slab"
-        className="relative isolate flex min-h-64 items-center justify-center"
-      >
-        <div className="relative isolate">
-          {/* The light needs room OUTSIDE the object it comes from. Pinned to
-              the plate's own box (what this did first) every pixel of it sat
-              behind an opaque white plate, which is why the beat read as
-              broken. It also keeps the spill clear of the modules and the
-              quiet zone: scannability is a contract, not a style. */}
-          <div className="absolute -inset-24 isolate -z-10">
-            <Glow
-              shape="bloom"
-              drive="mask"
-              runId={copied}
-              vars={{
-                "--glw-from-x": "50%",
-                "--glw-from-y": "50%",
-                "--glw-reach": "78%",
-                "--glw-strength": "0.95",
-                "--glw-base": "0.1",
-                "--glw-blur": "26px",
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Spec
+          name="Ignite, then stay lit (recommended)"
+          note="Blooms on the share and settles to a resting glow. The code is now live, and it looks it."
+        >
+          <QrStage runId={live} resting onFire={() => setLive((c) => c + 1)} />
+        </Spec>
+        <Spec
+          name="Flash and decay"
+          note="What you approved. Confirms the click and then says nothing."
+        >
+          <QrStage runId={copied} onFire={() => setCopied((c) => c + 1)} />
+        </Spec>
+      </div>
+    </Moment>
+  );
+}
+
+function QrStage({
+  runId,
+  resting = false,
+  onFire,
+}: {
+  runId: number;
+  resting?: boolean;
+  onFire: () => void;
+}) {
+  const fired = runId > 0;
+  return (
+    <Ground
+      on="slab"
+      className="relative isolate flex min-h-64 items-center justify-center"
+    >
+      <div className="relative isolate">
+        {/* The light needs room OUTSIDE the object it comes from, and it stays
+            clear of the modules and the quiet zone. */}
+        <div className="absolute -inset-24 isolate -z-10">
+          <Glow
+            shape="bloom"
+            drive="mask"
+            runId={runId}
+            vars={{
+              "--glw-from-x": "50%",
+              "--glw-from-y": "50%",
+              "--glw-reach": "78%",
+              "--glw-strength": "0.95",
+              // The whole difference between the two: what it decays TO.
+              "--glw-base": resting && fired ? "0.34" : "0.1",
+              "--glw-blur": "26px",
+            }}
+          />
+        </div>
+        <div
+          className="relative grid size-36 grid-cols-8 gap-0.5 rounded-lg p-3 transition-shadow duration-500"
+          style={{
+            background: "oklch(0.99 0 0)",
+            boxShadow:
+              resting && fired
+                ? "0 0 0 1px oklch(1 0 0 / 0.12)"
+                : "0 0 0 1px oklch(1 0 0 / 0)",
+          }}
+        >
+          {Array.from({ length: 64 }, (_, i) => (
+            <span
+              key={i}
+              className="aspect-square rounded-[1px]"
+              style={{
+                background: (i * 7) % 5 < 2 ? "oklch(0.13 0 0)" : "transparent",
               }}
             />
-          </div>
-          {/* A stand-in plate: the point here is the light, not the modules. */}
-          <div
-            className="relative grid size-36 grid-cols-8 gap-0.5 rounded-lg p-3"
-            style={{ background: "oklch(0.99 0 0)" }}
-          >
-            {Array.from({ length: 64 }, (_, i) => (
-              <span
-                key={i}
-                className="aspect-square rounded-[1px]"
-                style={{
-                  background:
-                    (i * 7) % 5 < 2 ? "oklch(0.13 0 0)" : "transparent",
-                }}
-              />
-            ))}
-          </div>
+          ))}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="absolute bottom-5"
-          onClick={() => setCopied((c) => c + 1)}
-        >
-          {copied > 0 ? <Check /> : <Copy />}
-          {copied > 0 ? "Link copied" : "Copy link"}
-        </Button>
-      </Ground>
-    </Moment>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="absolute bottom-5"
+        onClick={onFire}
+      >
+        {fired ? <Check /> : <Copy />}
+        {fired ? "Link copied" : "Copy link"}
+      </Button>
+    </Ground>
   );
 }
 
@@ -830,24 +873,30 @@ function CtaQuestion() {
     <Moment
       n="08"
       title="The CTA rim, answered"
-      verdict="reject"
-      verdictLabel="Reject in the chrome, allow in the hero"
+      verdict="work"
+      verdictLabel="Bug fixed; the quiet variant is the one to rule on"
       lede={
         <>
           <p>
-            The first pass of this rendered the recipe through the wrong shape
-            and you caught it: its mask is opaque at the origin, so the light
-            sat behind an opaque pill and all that showed was a sliver at the
-            edge. This is the real mechanic now, ported as its own shape.
+            You were right to ask. What you reviewed WAS broken: the wash was
+            rendering in a padded box around the button instead of on the pill
+            itself, so it read as a soft rectangle floating behind a capsule.
+            The recipe puts its wash ON the pill with the pill&rsquo;s own
+            radius and clips it there. Fixed, and it now hugs the capsule.
+          </p>
+          <p className="mt-2">
+            The other half of your question: your reference is the recipe on a
+            DARK pill, which is why it reads as a subtle premium object rather
+            than a white primary. That variant is built here as its own
+            specimen, and I think it is the one worth having. It leaves the
+            white primary alone to do its blunt job.
           </p>
           <p className="mt-2">
             Which also corrects my argument. I claimed a rim fails law 2 for
             having no direction. That was wrong: a halo is an object backlit
-            from behind, which is a nameable vector. What actually decides the
-            case is law 1. In the hero there IS something behind the button, the
-            media wall, and in the chrome there is nothing at all, so the light
-            has no source and is decoration by definition. Same verdict, honest
-            reasoning.
+            from behind, which is a nameable vector. Law 1 decides it instead,
+            and it is the reason the note under these specimens is about WHERE
+            the quiet variant can go rather than whether it is pretty.
           </p>
           <p className="mt-2">
             The frequency finding stands on its own: Start free renders at least
@@ -861,34 +910,69 @@ function CtaQuestion() {
       colour="fallback five on the chrome pill; sampled from the wall in the hero"
       law="Fails law 1 in the chrome (no lamp); passes in the hero"
     >
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2">
         <Spec
-          name="Rim on the chrome CTA"
-          note="What the recipe does. Three of these per page, on every page."
+          name="The quiet variant (what your reference actually is)"
+          note="A dark pill with the colour at its rim. transitions.dev shows the recipe on their dark theme, which is why it reads as a subtle premium object rather than a white primary. This is the one worth having."
         >
           <Ground
             on="slab"
             className="flex min-h-40 items-center justify-center"
           >
-            {/* `halo`, not `throw`. This first rendered through `throw`, whose
-                mask is OPAQUE at the origin, so the light sat entirely behind
-                an opaque pill and all that showed was a sliver at the edge.
-                The recipe masks its centre CLEAR for exactly this reason. */}
-            <span className="relative isolate inline-flex p-5">
-              <span className="absolute inset-0 isolate">
-                <Glow
-                  shape="halo"
-                  vars={{
-                    "--glw-from-x": "50%",
-                    "--glw-from-y": "50%",
-                    "--glw-blur": "7px",
-                    "--glw-strength": "0.7",
-                    "--glw-base": "0.55",
-                    "--glw-dur": "5s",
-                  }}
-                />
+            <span
+              className="relative isolate inline-flex overflow-hidden rounded-full"
+              style={
+                {
+                  background: "oklch(0.24 0 0)",
+                  boxShadow: "inset 0 0 0 1px oklch(1 0 0 / 0.08)",
+                  "--glw-radius": "9999px",
+                } as React.CSSProperties
+              }
+            >
+              <Glow
+                shape="halo"
+                vars={{
+                  "--glw-blur": "8px",
+                  "--glw-strength": "0.95",
+                  "--glw-base": "0.8",
+                  "--glw-core": "36%",
+                  "--glw-dur": "5s",
+                  "--glw-radius": "9999px",
+                }}
+              />
+              <span className="relative px-6 py-2.5 text-sm font-medium text-[oklch(0.97_0_0)]">
+                Get Pro
               </span>
-              <Button size="lg" className="relative">
+            </span>
+          </Ground>
+        </Spec>
+        <Spec
+          name="The same mechanic on the white primary"
+          note="Fixed since your review: the wash now lives ON the pill, clipped by its own radius, instead of floating behind it as a rectangle. Correct, and it costs the primary its bluntness."
+        >
+          <Ground
+            on="slab"
+            className="flex min-h-40 items-center justify-center"
+          >
+            <span
+              className="relative isolate inline-flex overflow-hidden rounded-full bg-primary"
+              style={{ "--glw-radius": "9999px" } as React.CSSProperties}
+            >
+              <Glow
+                shape="halo"
+                vars={{
+                  "--glw-blur": "6px",
+                  "--glw-strength": "0.8",
+                  "--glw-base": "0.65",
+                  "--glw-core": "40%",
+                  "--glw-dur": "5s",
+                  "--glw-radius": "9999px",
+                }}
+              />
+              <Button
+                size="lg"
+                className="relative rounded-full bg-transparent px-6"
+              >
                 Start free
               </Button>
             </span>
@@ -916,10 +1000,6 @@ function CtaQuestion() {
                 cols={3}
               />
             </div>
-            {/* The wall needs its own ramp into the room, exactly as the hero
-                has one. Without it the wall ends on a hard cut and the light
-                below reads as a stripe under a border rather than as spill off
-                a screen: the border was the first thing Will saw here. */}
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
               style={{
@@ -944,6 +1024,26 @@ function CtaQuestion() {
           </Ground>
         </Spec>
       </div>
+      <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            Where the quiet variant legitimately lives, since you asked.
+          </span>{" "}
+          Not the primary CTA: that is 33 call sites and at least three per
+          page, the tier the craft standard says never to add theater to. It
+          earns its place on a button that is RARE and that has something behind
+          it. Two real candidates: the Pro upgrade button on the pricing page,
+          whose card already carries stacked photographs, and the share control
+          in the reel Studio, which sits against a canvas playing real frames.
+        </p>
+        <p className="mt-2">
+          <span className="text-foreground">The honest caveat.</span> On a
+          button with genuinely nothing behind it, this is decoration by law 1,
+          however nice it looks. I would rather write that down than let it in
+          quietly, because the whole point of naming the lamp is that it is
+          answerable.
+        </p>
+      </div>
     </Moment>
   );
 }
@@ -952,7 +1052,10 @@ function CtaQuestion() {
 
 function PaperProbe() {
   const img = marketingImage("wedding-arch");
-  const sampled = useSampledPalette(img.src);
+  // The PAPER register, not the dark one. Over near-white a mid-light wash
+  // darkens what it covers and reads as stain; this sits near the paper's own
+  // lightness so it reads as light.
+  const sampled = useSampledPalette(img.src, "paper");
   return (
     <Moment
       n="09"
@@ -960,16 +1063,25 @@ function PaperProbe() {
       verdict="work"
       verdictLabel="Better than expected, and worth a look"
       lede={
-        <p>
-          You expected this to be a dark-surface device, and by eye it probably
-          is. The measurement disagrees in one specific way, and it is worth
-          knowing: muted text on paper does not cross 4.5:1 until the wash
-          composites at alpha 0.47, against 0.115 on the ink slab. A mid-light
-          wash lifts a near-black ground straight toward muted grey, while on
-          near-white paper it has much further to travel. Paper is four times
-          more forgiving. Dark is where it looks best and where it is most
-          fragile.
-        </p>
+        <>
+          <p>
+            Polished since your note, and the diagnosis was worth having. The
+            first version sampled a foliage-and-white-dress photograph into five
+            hues between 34 and 158 degrees, all in one quadrant, which
+            composites to mud. Two things were wrong: the sampler let five
+            neighbours count as a spread (now a fifth of the wheel apart
+            minimum), and the spill used the DARK register on white.
+          </p>
+          <p className="mt-2">
+            On a dark ground light ADDS. Over near-white the same mid-light wash
+            DARKENS what it covers, which is why it read as stain rather than
+            light. Paper now has its own register: lighter, calmer, broader and
+            fainter. The measurement still says paper is four times more
+            forgiving on contrast (muted text crosses 4.5:1 at alpha 0.47
+            against 0.115 on the slab), so dark remains where it looks best and
+            where it is most fragile.
+          </p>
+        </>
       }
       lamp="the press page's one real photograph"
       direction="outward from the image"
@@ -984,11 +1096,15 @@ function PaperProbe() {
               drive="mask"
               colors={sampled ?? undefined}
               vars={{
-                "--glw-from-x": "78%",
-                "--glw-from-y": "38%",
-                "--glw-reach": "85%",
-                "--glw-strength": "0.5",
-                "--glw-base": "0.45",
+                // Lower strength AND a wider reach than the dark grounds use:
+                // paper wants a broad, faint field, not a concentrated one.
+                // A tight bright wash on white reads as a smudge.
+                "--glw-from-x": "76%",
+                "--glw-from-y": "34%",
+                "--glw-reach": "120%",
+                "--glw-strength": "0.32",
+                "--glw-base": "0.3",
+                "--glw-blur": "34px",
               }}
             />
             <div className="relative flex items-start gap-6">
@@ -1078,8 +1194,8 @@ function UploadAsLight() {
     <Moment
       n="10"
       title="The upload, as light"
-      verdict="work"
-      verdictLabel="New mechanic, wants a real device pass"
+      verdict="ship"
+      verdictLabel="Light plus bar"
       lede={
         <>
           <p>
@@ -1092,11 +1208,15 @@ function UploadAsLight() {
             meaning something.
           </p>
           <p className="mt-2">
-            Why it might be better than a bar: a progress bar is a second object
-            asking to be read, on a surface whose whole job is the photograph. A
-            guest uploading at a party is not studying a percentage. Because the
-            value is tweened rather than snapped, a stalled upload still drifts
-            instead of freezing, which reads as working rather than stuck.
+            Will&rsquo;s ruling, and it is the right one: keep both. The light
+            carries the feeling and the bar carries the fact, because ninety
+            percent and a hundred are nearly indistinguishable as light alone,
+            and a large file on a slow connection is exactly when a guest needs
+            to know the difference. The bar gets to be thinner than it would be
+            on its own, since it is now the precision under the light rather
+            than the only signal. Because the value is tweened rather than
+            snapped, a stalled upload still drifts instead of freezing, which
+            reads as working rather than stuck.
           </p>
         </>
       }
@@ -1114,10 +1234,47 @@ function UploadAsLight() {
             {Math.round(progress * 100)}%
           </span>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-3">
           <Spec
-            name="Progress as light"
-            note="The comet position is the upload. No second object to read."
+            name="Both (recommended)"
+            note="The light carries the feeling, the bar carries the fact. Ninety percent and a hundred are indistinguishable as light alone, which on a slow upload is exactly when a guest needs to know."
+          >
+            <Ground on="cinema" className="flex justify-center p-6">
+              <div className="relative isolate w-40 overflow-hidden rounded-lg">
+                <div className="relative aspect-[4/5]">
+                  <Image
+                    src={marketingImage("wedding-toast").src}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                    style={{ opacity: 0.35 + progress * 0.65 }}
+                  />
+                </div>
+                <Glow
+                  shape="sweep"
+                  drive="scalar"
+                  vars={{
+                    "--glw-t": String(progress),
+                    "--glw-scale": "1.1",
+                    "--glw-strength": "0.9",
+                    "--glw-base": "0.3",
+                  }}
+                />
+                {/* Quieter than the control's bar on purpose: it is the
+                    precision under the light, not the headline. */}
+                <div className="absolute inset-x-2 bottom-2 h-0.5 overflow-hidden rounded-full bg-white/20">
+                  <div
+                    className="h-full rounded-full bg-white/90 transition-[width] duration-300"
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                </div>
+              </div>
+            </Ground>
+          </Spec>
+          <Spec
+            name="Light alone"
+            note="Beautiful, and imprecise near the end. This is the version your note is about."
           >
             <Ground on="cinema" className="flex justify-center p-6">
               <div className="relative isolate w-40 overflow-hidden rounded-lg">
@@ -1175,103 +1332,6 @@ function UploadAsLight() {
   );
 }
 
-/* ── 11 ─────────────────────────────────────────────────────────────────── */
-
-function PointerLamp() {
-  const wrap = useRef<HTMLDivElement>(null);
-  const reduced = usePrefersReducedMotion();
-  const sampled = useSampledPalette(
-    WALL_IDS.map((id) => marketingImage(id).src),
-  );
-
-  // The tilt-card pattern: track on a flat outer wrapper that is never itself
-  // transformed, mouse only, and write CSS vars rather than React state so a
-  // pointer move never costs a render.
-  const track = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = wrap.current;
-    if (!el || reduced || e.pointerType !== "mouse") return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty(
-      "--glw-origin-x",
-      `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`,
-    );
-    el.style.setProperty(
-      "--glw-origin-y",
-      `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`,
-    );
-  };
-
-  return (
-    <Moment
-      n="11"
-      title="The lamp follows you"
-      verdict="work"
-      verdictLabel="New mechanic, needs a taste ruling"
-      lede={
-        <>
-          <p>
-            Law 2 says every spill declares where it comes from, and so far that
-            has always been a fixed value. It does not have to be. Here the
-            origin follows the pointer across the wall, so the light behaves
-            like something in the room with you rather than a texture printed on
-            the page. Move your cursor over the photographs.
-          </p>
-          <p className="mt-2">
-            The honest risk: this is decoration that responds to input, which is
-            the most seductive kind and the easiest to overuse. It earns its
-            place on a hero and nowhere else, and it is mouse-only by
-            construction, so it costs a phone nothing.
-          </p>
-        </>
-      }
-      lamp="the wall, lit where you are looking"
-      direction="outward from the pointer"
-      colour="sampled from the wall"
-      law="Law 2, with the vector made live"
-    >
-      <div
-        ref={wrap}
-        onPointerMove={track}
-        className="relative isolate overflow-hidden rounded-2xl"
-        style={
-          {
-            // --glw-origin-*, not --glw-from-*: the engine declares the latter
-            // on [data-glw] itself, and a declaration on the element always
-            // beats one inherited from an ancestor, so setting it here would be
-            // silently shadowed and the lamp would never move.
-            "--glw-origin-x": "50%",
-            "--glw-origin-y": "50%",
-          } as React.CSSProperties
-        }
-      >
-        <Ground on="cinema" className="relative isolate rounded-none p-0">
-          <div className="relative opacity-80">
-            <PhotoWall cols={4} />
-          </div>
-          <div className="absolute inset-0 isolate">
-            <Glow
-              shape="throw"
-              drive="mask"
-              colors={sampled ?? undefined}
-              vars={{
-                "--glw-reach": "42%",
-                "--glw-strength": "0.75",
-                "--glw-base": "0.5",
-                "--glw-blur": "30px",
-                "--glw-dur": "16s",
-              }}
-            />
-          </div>
-        </Ground>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Reduced motion and touch both fall back to a fixed centre lamp, which is
-        the same still image everyone else sees.
-      </p>
-    </Moment>
-  );
-}
-
 /* ── 12 ─────────────────────────────────────────────────────────────────── */
 
 type Flight = {
@@ -1282,9 +1342,43 @@ type Flight = {
   size: number;
 };
 
+const QR_CELLS = 49;
+/** Which cells are ink, and therefore which can become photographs. */
+const QR_INK = Array.from({ length: QR_CELLS }, (_, i) => (i * 5) % 4 < 2);
+const MOD_PHOTOS = [
+  "wedding-golden",
+  "concert-confetti",
+  "party-balloons",
+  "wedding-toast",
+  "festival-lights",
+  "reception-table",
+] as const;
+
+type Handoff = "beam" | "pour" | "become";
+
+const HANDOFFS: { id: Handoff; name: string; note: string }[] = [
+  {
+    id: "become",
+    name: "The code becomes the album",
+    note: "The modules resolve into the photographs they stand for, then the plate goes to the phone. Says the code IS the album, which is the actual product claim.",
+  },
+  {
+    id: "pour",
+    name: "The album pours",
+    note: "Photographs leave the code and land in the phone. The most literal reading of scan-and-your-photos-go-here, and the easiest to understand cold.",
+  },
+  {
+    id: "beam",
+    name: "The beam",
+    note: "What I built first: one measured light crossing the gap. Correct, and it says the least.",
+  },
+];
+
 function ScanThrough() {
+  const [dir, setDir] = useState<Handoff>("become");
   const [runId, setRunId] = useState(0);
   const [flight, setFlight] = useState<Flight | null>(null);
+  const [resolved, setResolved] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
   const codeRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
@@ -1306,40 +1400,73 @@ function ScanThrough() {
       dy: to.y - from.y,
       size: Math.round(Math.min(a.width, a.height) * 1.6),
     });
+    setResolved(false);
     setRunId((r) => r + 1);
+    if (dir === "become") {
+      // Let the modules resolve first, then send the plate.
+      window.setTimeout(() => setResolved(true), 120);
+    }
   };
+
+  const flyVars = flight
+    ? ({
+        "--glw-fly-dx": `${flight.dx}px`,
+        "--glw-fly-dy": `${flight.dy}px`,
+      } as React.CSSProperties)
+    : {};
 
   return (
     <Moment
-      n="12"
+      n="11"
       title="The scan-through"
       verdict="work"
-      verdictLabel="The most speculative, and the most ours"
+      verdictLabel="Three directions, none ruled"
       lede={
         <>
           <p>
             The one idea here that is about the product rather than the surface.
             A QR code is the only object Partyreel makes whose entire purpose is
             to move something from one screen to another, and every diagram we
-            draw of it is two static objects with a caption between them. If
-            light is our material, the handoff is the thing it should carry: the
-            code lights, something travels, the phone answers.
+            draw of it is two static objects with a caption between them.
           </p>
           <p className="mt-2">
-            It is the most speculative specimen on this board and the one I
-            would most like to be told to keep working on. It also has an
-            obvious home beyond the marketing page: this is the /features/qr
-            story, and it is what the empty demo ticket in the footer is
-            gesturing at.
+            You were right that the beam says too little. The concept is worth
+            far more than my first execution of it, so here are three, and the
+            two new ones move the ALBUM rather than a glow. That is the
+            difference between showing that something happened and showing what
+            it was.
           </p>
         </>
       }
       lamp="the code, then the phone that answers it"
-      direction="left to right, from the code to the screen"
+      direction="from the code to the screen"
       colour="sampled from the album on the other side"
-      law="Law 1 twice, with the travel between them"
+      law="Law 1 twice, with the handoff between them"
     >
       <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {HANDOFFS.map((h) => (
+            <button
+              key={h.id}
+              type="button"
+              onClick={() => {
+                setDir(h.id);
+                setResolved(false);
+                setFlight(null);
+              }}
+              aria-pressed={dir === h.id}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-150",
+                dir === h.id
+                  ? "border-transparent bg-foreground text-background"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {h.name}
+            </button>
+          ))}
+        </div>
+
         <Ground
           ref={stage}
           on="slab"
@@ -1367,26 +1494,48 @@ function ScanThrough() {
               className="relative grid size-24 grid-cols-7 gap-0.5 rounded-md p-2"
               style={{ background: "oklch(0.99 0 0)" }}
             >
-              {Array.from({ length: 49 }, (_, i) => (
-                <span
-                  key={i}
-                  className="aspect-square rounded-[1px]"
-                  style={{
-                    background:
-                      (i * 5) % 4 < 2 ? "oklch(0.13 0 0)" : "transparent",
-                  }}
-                />
-              ))}
+              {Array.from({ length: QR_CELLS }, (_, i) => {
+                const ink = QR_INK[i];
+                const canResolve = dir === "become" && ink;
+                return (
+                  <span
+                    key={i}
+                    data-glw-mod={canResolve ? "" : undefined}
+                    data-resolved={canResolve && resolved ? "true" : undefined}
+                    className="aspect-square rounded-[1px]"
+                    style={
+                      {
+                        background: ink ? "oklch(0.13 0 0)" : "transparent",
+                        "--glw-mod-i": i % 12,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {canResolve && (
+                      <>
+                        <span
+                          data-glw-mod-ink
+                          style={{ background: "oklch(0.13 0 0)" }}
+                        />
+                        <Image
+                          data-glw-mod-photo
+                          src={
+                            marketingImage(MOD_PHOTOS[i % MOD_PHOTOS.length])
+                              .src
+                          }
+                          alt=""
+                          fill
+                          sizes="12px"
+                        />
+                      </>
+                    )}
+                  </span>
+                );
+              })}
             </div>
           </div>
 
-          {/* THE MEASURED FLIGHT. The first pass faked this with a fixed
-              channel between the two objects, which only works because the
-              layout happens to put them side by side. This measures both and
-              moves ONE light the real distance, so the same code would work
-              if the phone sat below the code, or across a stacked mobile
-              layout. JS owns the measurement, CSS owns the tween. */}
-          {flight && (
+          {/* What crosses the gap, per direction. */}
+          {flight && dir === "beam" && (
             <div
               key={runId}
               data-glw-fly
@@ -1399,8 +1548,7 @@ function ScanThrough() {
                   height: flight.size,
                   marginLeft: -flight.size / 2,
                   marginTop: -flight.size / 2,
-                  "--glw-fly-dx": `${flight.dx}px`,
-                  "--glw-fly-dy": `${flight.dy}px`,
+                  ...flyVars,
                 } as React.CSSProperties
               }
             >
@@ -1417,6 +1565,73 @@ function ScanThrough() {
                   "--glw-blur": "16px",
                 }}
               />
+            </div>
+          )}
+
+          {flight && dir === "pour" && (
+            <>
+              {MOD_PHOTOS.map((id, i) => (
+                <div
+                  key={`${runId}-${id}`}
+                  data-glw-tile
+                  className="pointer-events-none overflow-hidden rounded-[3px]"
+                  style={
+                    {
+                      left: flight.x,
+                      top: flight.y,
+                      width: 46,
+                      height: 58,
+                      marginLeft: -23,
+                      marginTop: -29,
+                      "--glw-tile-i": i,
+                      ...flyVars,
+                    } as React.CSSProperties
+                  }
+                >
+                  <Image
+                    src={marketingImage(id).src}
+                    alt=""
+                    fill
+                    sizes="46px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </>
+          )}
+
+          {flight && dir === "become" && (
+            <div
+              key={runId}
+              data-glw-tile
+              className="pointer-events-none overflow-hidden rounded-md"
+              style={
+                {
+                  left: flight.x,
+                  top: flight.y,
+                  width: 96,
+                  height: 96,
+                  marginLeft: -48,
+                  marginTop: -48,
+                  "--glw-fly-dur": "1400ms",
+                  "--glw-tile-i": 3,
+                  ...flyVars,
+                } as React.CSSProperties
+              }
+            >
+              <div className="grid h-full w-full grid-cols-3 gap-px">
+                {MOD_PHOTOS.slice(0, 6).map((id) => (
+                  <div key={id} className="relative overflow-hidden">
+                    <Image
+                      src={marketingImage(id).src}
+                      alt=""
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -1452,15 +1667,22 @@ function ScanThrough() {
             </div>
           </div>
         </Ground>
-        <Button size="sm" className="w-fit" onClick={scan}>
-          Scan the code
-        </Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button size="sm" onClick={scan}>
+            Scan the code
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {HANDOFFS.find((h) => h.id === dir)?.note}
+          </span>
+        </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          The travel is measured rather than faked: the stage reads both objects
-          at click and moves ONE light the real distance between them, the way
-          the reveal measures its flight. So the same code holds if the phone
-          moves below the code on a narrow screen, which a fixed channel between
-          two columns would not.
+          All three measure the real distance between the two objects at click
+          rather than assuming a layout, so any of them survives the phone
+          moving below the code on a narrow screen. My preference is the first:
+          it is the only one that makes a claim rather than a demonstration, and
+          the modules resolving into photographs is the single frame I would put
+          on the QR feature page.
         </p>
       </div>
     </Moment>
@@ -1512,7 +1734,7 @@ function WholePage() {
 
   return (
     <Moment
-      n="13"
+      n="12"
       title="The whole page"
       verdict="ship"
       verdictLabel="The scarcity test"
@@ -1755,7 +1977,7 @@ const REJECTED: { name: string; why: string }[] = [
 function Catalogue() {
   return (
     <Section
-      n="14"
+      n="13"
       title="The rest of the field"
       lede="Documented rather than built, so the ruling has the whole picture without me spending the round on it."
     >

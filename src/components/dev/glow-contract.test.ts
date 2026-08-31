@@ -284,9 +284,37 @@ describe("spill sampling (law 3)", () => {
     for (let i = 0; i < hues.length; i++) {
       for (let j = i + 1; j < hues.length; j++) {
         const d = Math.abs(hues[i].hue - hues[j].hue);
-        expect(Math.min(d, 360 - d)).toBeGreaterThanOrEqual(25);
+        expect(Math.min(d, 360 - d)).toBeGreaterThanOrEqual(40);
       }
     }
+  });
+
+  it("never lets five hues share one quadrant", () => {
+    // The real failure Will caught: a foliage photograph sampled to
+    // 34/68/97/130/158, five neighbours that composite to mud on paper. A
+    // green-and-yellow image must still yield a SPREAD, not a cluster.
+    const greens: [number, number, number][] = [
+      [60, 140, 50],
+      [90, 160, 40],
+      [140, 170, 40],
+      [40, 130, 70],
+      [110, 150, 45],
+    ];
+    const hues = pickSpillHues(pixels(greens), 5);
+    expect(hues).toHaveLength(5);
+    const sorted = hues.map((h) => h.hue).sort((a, b) => a - b);
+    const arc = sorted[sorted.length - 1] - sorted[0];
+    expect(arc).toBeGreaterThan(180);
+  });
+
+  it("carries a lighter, calmer register for paper", () => {
+    // On a dark ground light ADDS; over near-white the same wash darkens and
+    // reads as stain. The paper register sits near the paper's own lightness.
+    const hues = pickSpillHues(pixels([[200, 40, 40]]));
+    const dark = huesToSpillColors(hues, "dark");
+    const paper = huesToSpillColors(hues, "paper");
+    expect(dark[0]).toMatch(/^oklch\(0\.72 0\.15 /);
+    expect(paper[0]).toMatch(/^oklch\(0\.88 0\.08 /);
   });
 
   it("ignores near-black, near-white and grey pixels", () => {
@@ -305,10 +333,13 @@ describe("spill sampling (law 3)", () => {
 
   it("always returns five inputs, even from a near-monochrome image", () => {
     // A single-hue photograph is legitimate; the engine must never receive a
-    // short array, or every caller has to branch.
+    // short array, or every caller has to branch. The filler now fans AROUND
+    // the wheel rather than crowding the one hue that was found.
     const hues = pickSpillHues(pixels([[200, 40, 40]]), 5);
     expect(hues).toHaveLength(5);
     expect(huesToSpillColors(hues)).toHaveLength(5);
+    const sorted = hues.map((h) => h.hue).sort((a, b) => a - b);
+    expect(sorted[sorted.length - 1] - sorted[0]).toBeGreaterThan(180);
   });
 
   it("normalises every sampled colour into the atmosphere register", () => {

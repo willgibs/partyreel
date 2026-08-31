@@ -583,9 +583,9 @@ export const TOUCHPOINTS: Touchpoint[] = [
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    note: "Twelve moments argued against the doctrine: nine placements, then three that make the light respond to a value, a pointer, or a second object",
+    note: "Twelve moments argued against the doctrine, then the whole page they compose into",
     decisionNote:
-      "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, the QR plate, and awaiting-media as ONE lamp over the grid with the recipe's skeleton reveal under it. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light. Moments 10 to 12 are newer and rougher on purpose: they make the light respond to a value, a pointer, or a second object, and the scan-through is the one I would most like to be told to keep working on.",
+      "Recommended to ship: the hero underlight (the flagship, and the only candidate that forces the whole doctrine into existence to work), the locked door, the album straddle pinned to the CARD and never the chapter, the QR plate, and awaiting-media as ONE lamp over the grid with the recipe's skeleton reveal under it. Answered rather than left open: the CTA rim is a reject in the chrome (33 call sites, at least three per page, which is the high-frequency tier) and an allow in the hero, where the lamp is the wall and the button is simply standing in the light. Will's review (2026-08-28) approved 01, 02, 03, 05, 07, 12 outright and 04, 06, 08, 09, 10 after fixes; the pointer lamp was KILLED as too loud on too common a surface. Still open: which of the three scan-through handoffs to build properly, and where the quiet halo button is allowed to live.",
     variants: [
       "Hero underlight",
       "Locked door",
@@ -597,8 +597,8 @@ export const TOUCHPOINTS: Touchpoint[] = [
       "CTA rim",
       "Paper probe",
       "Upload as light",
-      "Pointer lamp",
       "Scan-through",
+      "The whole page",
     ],
   },
 ];

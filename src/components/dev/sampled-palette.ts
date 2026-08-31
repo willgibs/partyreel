@@ -24,6 +24,9 @@ import { useEffect, useState } from "react";
  * view. No dependency: OKLCH conversion is ~20 lines of published matrix math.
  */
 
+/** A fifth of the wheel: enough that five hues cannot share one quadrant. */
+const MIN_HUE_SEPARATION = 45;
+
 /** sRGB (0-255) -> OKLCH. The standard Björn Ottosson transform. */
 export function srgbToOklch(
   r: number,
@@ -49,9 +52,24 @@ export function srgbToOklch(
   return { l: L, c, h };
 }
 
-/** The register every spill colour is normalised into (the ratified five sit here). */
-const SPILL_L = 0.72;
-const SPILL_C = 0.15;
+/**
+ * THE REGISTER a sampled hue is normalised into. Two of them, because a ground
+ * changes what "light" means.
+ *
+ * On a dark ground, light ADDS: a mid-light wash lifts the surface and reads
+ * luminous. On near-white paper the same wash DARKENS what it covers, and a
+ * warm mid-light cast over white does not read as light at all, it reads as
+ * stain. Will caught this on the paper probe, where a foliage photo sampled to
+ * five hues between 34 and 158 degrees and the card looked dirty rather than
+ * lit. The fix is not less colour, it is a lighter, calmer register that sits
+ * near the paper's own lightness.
+ */
+export const SPILL_REGISTER = {
+  dark: { l: 0.72, c: 0.15 },
+  paper: { l: 0.88, c: 0.08 },
+} as const;
+
+export type SpillRegister = keyof typeof SPILL_REGISTER;
 
 /**
  * Pick `count` well-separated hues out of raw RGBA pixels, weighted by how much
@@ -62,6 +80,7 @@ const SPILL_C = 0.15;
 export function pickSpillHues(
   pixels: Uint8ClampedArray,
   count = 5,
+  minSeparation = MIN_HUE_SEPARATION,
 ): { hue: number; weight: number }[] {
   // 24 buckets = 15 degrees each: fine enough to keep teal and green apart,
   // coarse enough that noise in one leaf does not become a "colour".
@@ -93,26 +112,36 @@ export function pickSpillHues(
   const out: { hue: number; weight: number }[] = [];
   for (const cand of ranked) {
     if (out.length >= count) break;
-    // Keep the set legible as a spread of light rather than five shades of the
-    // same hue: reject anything within 25 degrees of one already taken.
+    // Keep the set a spread of light rather than five neighbours. 25 degrees
+    // was too lax: a foliage photograph returned 34/68/97/130/158, five hues
+    // inside one quadrant, which composites to mud. A fifth of the wheel forces
+    // the set to actually span.
     const tooClose = out.some((o) => {
       const d = Math.abs(o.hue - cand.hue);
-      return Math.min(d, 360 - d) < 25;
+      return Math.min(d, 360 - d) < minSeparation;
     });
     if (!tooClose) out.push({ hue: cand.hue, weight: cand.w });
   }
-  // A monochrome photograph legitimately yields fewer than `count` hues. Fan
-  // the last one out rather than returning a short array, so the engine always
-  // gets five inputs and the caller never branches.
-  while (out.length > 0 && out.length < count) {
-    const last = out[out.length - 1];
-    out.push({ hue: (last.hue + 34) % 360, weight: last.weight * 0.6 });
+  // A monochrome photograph legitimately yields fewer than `count` hues, and a
+  // strict separation makes that more common. Fan the remainder out AROUND the
+  // wheel rather than crowding the last one, so a single-hue image still
+  // produces a spread instead of five neighbours.
+  const step = 360 / count;
+  for (let i = out.length; out.length > 0 && out.length < count; i++) {
+    out.push({
+      hue: (out[0].hue + step * i) % 360,
+      weight: out[0].weight * 0.5,
+    });
   }
   return out;
 }
 
-export function huesToSpillColors(hues: { hue: number }[]): string[] {
-  return hues.map((h) => `oklch(${SPILL_L} ${SPILL_C} ${h.hue.toFixed(1)})`);
+export function huesToSpillColors(
+  hues: { hue: number }[],
+  register: SpillRegister = "dark",
+): string[] {
+  const { l, c } = SPILL_REGISTER[register];
+  return hues.map((h) => `oklch(${l} ${c} ${h.hue.toFixed(1)})`);
 }
 
 /**
@@ -129,6 +158,7 @@ export function huesToSpillColors(hues: { hue: number }[]): string[] {
  */
 export function useSampledPalette(
   src: string | readonly string[] | null,
+  register: SpillRegister = "dark",
 ): string[] | null {
   // Keyed by the src that produced it, so switching lamps DERIVES null during
   // render instead of resetting state inside the effect (the repo's
@@ -164,7 +194,10 @@ export function useSampledPalette(
           ctx.drawImage(img, i * CELL, 0, CELL, CELL);
         });
         const data = ctx.getImageData(0, 0, canvas.width, CELL).data;
-        setState({ key, colors: huesToSpillColors(pickSpillHues(data, 5)) });
+        setState({
+          key,
+          colors: huesToSpillColors(pickSpillHues(data, 5), register),
+        });
       })
       .catch(() => {
         // A decode failure is not an error state for a decorative layer: the
@@ -173,7 +206,7 @@ export function useSampledPalette(
     return () => {
       cancelled = true;
     };
-  }, [key]);
+  }, [key, register]);
 
   return state && state.key === key ? state.colors : null;
 }
