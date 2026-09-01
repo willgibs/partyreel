@@ -1719,7 +1719,8 @@
      comet over it. The footer ships both at 0.62; that is the calibration. */
   --glw-base: 0.62;
   --glw-strength: 0.62;
-  --glw-dur: 11s;
+  /* 8s ruled by Will on the register (2026-08-31), down from 11s. */
+  --glw-dur: 8s;
   --glw-blur: 16px;
   /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
      the surface, or a 40px pill and a 1440px hero share an overhang. */
@@ -2698,7 +2699,9 @@
    its own: the blur radius was the only thing that had to change with size. */
 [data-lit],
 [data-lit="control"] {
-  --lit-hairline: 12%;
+  /* 9% not 12%: Will asked for slightly more subtle after the blur came
+     out, and with nothing else in the box the hairline was carrying it alone. */
+  --lit-hairline: 9%;
   --lit-lip: 6%;
   box-shadow:
     inset 0 0 0 1px

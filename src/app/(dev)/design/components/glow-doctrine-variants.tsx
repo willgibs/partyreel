@@ -142,7 +142,7 @@ function StartHere() {
     {
       n: "1",
       where: "Section 04 here, then moment 12",
-      why: "The corner. You caught a 16px ring drawn around a 3.6px card, which was mine: the specimens were rounded like the reference library on a system that rounds surfaces sharp. Both columns are now internally correct, and the question is which object is right.",
+      why: "Both rulings landed: our palette, and the rounder corner. The corner one grew into a system change that gets its own round, and these specimens are wired to inherit it. Nothing on either board is waiting on you now.",
     },
     {
       n: "2",
@@ -194,11 +194,11 @@ function StartHere() {
           the first two because the beam arrived and did their job better.
         </p>
         <p className="mt-2">
-          <span className="font-medium text-foreground">Still open.</span> The
-          corner above all (section 04), then which of the QR plate&rsquo;s
-          three readings to keep (moment 12), and the frame cost of the three
-          sweep drives on moment 04, which needs a foreground window because a
-          background tab throttles the counter to nothing.
+          <span className="font-medium text-foreground">Still open.</span> Only
+          two things, neither blocking. The rounding round this board triggered,
+          which restyles the product and wants its own preview; and the frame
+          cost of the three sweep drives on moment 04, which needs a foreground
+          window because a background tab throttles the counter to nothing.
         </p>
       </div>
     </div>
@@ -689,8 +689,8 @@ function BeamLaws() {
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">
-            The palette is ruled: ours, globally. This is now asking about the
-            corner instead.
+            Both questions are now ruled. Palette: ours, globally. Corner: the
+            rounder one, and not only here.
           </span>{" "}
           You caught the ring and the card reading as two different shapes, and
           the cause was mine. These cards were rounded like the reference
@@ -720,9 +720,22 @@ function BeamLaws() {
           effect was built for. So the beam&rsquo;s natural home in this system
           is an action, not a surface, which is the same conclusion you reached
           from the other direction when you said the CTA rim work was superseded
-          by carrying the beam onto premium buttons. What the left column asks
-          is whether a chromatic ring still reads on a 3.6px corner, or whether
-          beamed surfaces need a named exception the way Get Pro does.
+          by carrying the beam onto premium buttons.
+        </p>
+        <p className="mt-2">
+          <span className="font-medium text-foreground">
+            Ruled, and deliberately NOT applied here.
+          </span>{" "}
+          You picked the right column and asked for that rounding across the
+          system rather than on these components. That is a real change and not
+          a one-line one: the whole rounded-* scale derives from --radius by
+          multiplication, so setting it to 16px gives lg 16px but 2xl 28.8px and
+          4xl 41.6px, across 445 uses in 140 files, and it collapses the
+          sharp-surface / round-action contrast that currently signals
+          pressable. It gets its own round with a preview of real pages. These
+          specimens stay on today&rsquo;s tokens on purpose, because they now
+          READ their tokens rather than carrying literals: when the rounding
+          lands, every one of them inherits it without being touched.
         </p>
       </div>
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
@@ -976,7 +989,9 @@ function LitDemo({ lit = false }: { lit?: boolean }) {
 function Register() {
   const [strength, setStrength] = useState(0.62);
   const [scale, setScale] = useState(1);
-  const [dur, setDur] = useState(11);
+  // 8s is Will's ruling (2026-08-31) and now the engine default too, so the
+  // slider opens on the shipped value rather than one step away from it.
+  const [dur, setDur] = useState(8);
   const [ground, setGround] = useState<GroundName>("slab");
 
   const vars: GlowVars = {

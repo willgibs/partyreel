@@ -1213,36 +1213,41 @@ function UploadAsLight() {
     <Moment
       n="10"
       title="The upload, as light"
-      verdict="ship"
-      verdictLabel="Light plus bar"
+      verdict="reject"
+      verdictLabel="Light rejected: opacity and bar only"
       lede={
         <>
-          <p>
-            The engine has a third drive that no placement was using: no clock
-            at all. `--glw-t` is a registered custom property, so JS writes a
-            TARGET and CSS owns the tween, which is the same shape as the
-            measured nav indicator and useFlip. Here the target is upload
-            progress, so the comet&rsquo;s position along the tile IS how far
-            the photo has got. The light stops meaning atmosphere and starts
-            meaning something.
+          <p className="rounded-2xl border border-border p-3 text-foreground">
+            <span className="font-medium">Ruled (Will, 2026-08-31):</span> no
+            light here. The opacity climb and the bar carry the upload on their
+            own, and the sweep &ldquo;feels very forced&rdquo; on top of them.
+            The third specimen is what ships. I had this listed as
+            light-plus-bar off an earlier note, so the correction is his, and
+            the specimens stay because a version you have seen and turned down
+            stays turned down.
           </p>
           <p className="mt-2">
-            Will&rsquo;s ruling, and it is the right one: keep both. The light
-            carries the feeling and the bar carries the fact, because ninety
-            percent and a hundred are nearly indistinguishable as light alone,
-            and a large file on a slow connection is exactly when a guest needs
-            to know the difference. The bar gets to be thinner than it would be
-            on its own, since it is now the precision under the light rather
-            than the only signal. Because the value is tweened rather than
-            snapped, a stalled upload still drifts instead of freezing, which
-            reads as working rather than stuck.
+            Worth keeping the reason legible, because it is the sharpest
+            statement of scarcity on this board: the light was not wrong here,
+            it was REDUNDANT. Two signals were already saying the same thing
+            precisely, and a third saying it beautifully is the exact move the
+            doctrine exists to prevent. A placement has to be the only thing
+            that can say what it says.
+          </p>
+          <p className="mt-2">
+            One consequence to carry forward. The engine&rsquo;s third drive (no
+            clock at all: JS writes a target to `--glw-t` and CSS owns the
+            tween, the same shape as the measured nav indicator and useFlip) had
+            this as its only placement. The technique is still exercised on
+            moment 04&rsquo;s drive comparison, but it now ships nowhere, and
+            that is the honest status.
           </p>
         </>
       }
-      lamp="the photo arriving"
+      lamp="the photo arriving (rejected: the opacity climb already is the lamp)"
       direction="across the tile, in step with the bytes"
       colour="sampled from the photo being uploaded (the client already has it)"
-      law="Law 1, and it is the one case where the light is a signal"
+      law="Failed scarcity, not law 1: the signal was already taken"
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -1255,8 +1260,8 @@ function UploadAsLight() {
         </div>
         <div className="grid gap-6 sm:grid-cols-3">
           <Spec
-            name="Both (recommended)"
-            note="The light carries the feeling, the bar carries the fact. Ninety percent and a hundred are indistinguishable as light alone, which on a slow upload is exactly when a guest needs to know."
+            name="Both (rejected)"
+            note="What I recommended. The light carries the feeling and the bar carries the fact, which is a real argument right up until you notice the opacity climb was already carrying the feeling."
           >
             <Ground on="cinema" className="flex justify-center p-6">
               <div className="relative isolate w-40 overflow-hidden rounded-lg">
@@ -1292,8 +1297,8 @@ function UploadAsLight() {
             </Ground>
           </Spec>
           <Spec
-            name="Light alone"
-            note="Beautiful, and imprecise near the end. This is the version your note is about."
+            name="Light alone (rejected)"
+            note="Beautiful, and imprecise near the end: ninety percent and a hundred are indistinguishable as light, which on a slow upload is exactly when a guest needs to know."
           >
             <Ground on="cinema" className="flex justify-center p-6">
               <div className="relative isolate w-40 overflow-hidden rounded-lg">
@@ -1321,8 +1326,8 @@ function UploadAsLight() {
             </Ground>
           </Spec>
           <Spec
-            name="A conventional bar"
-            note="The control. Legible, and one more thing on the screen."
+            name="Opacity and bar (ships)"
+            note="What was the control, and is now the answer. The photo resolving as it arrives IS the feeling, and the bar is the fact. Nothing here needs light."
           >
             <Ground on="cinema" className="flex justify-center p-6">
               <div className="relative w-40 overflow-hidden rounded-lg">
@@ -1729,7 +1734,11 @@ function ScanThrough() {
  */
 type BeamPalette = "colorful" | "partyreel";
 
-/** The QR plate's three readings of "this code is live". */
+/**
+ * The QR plate's three readings of "this code is live".
+ * RULED (Will, 2026-08-31): "shimmer", our own light. The beam reads too
+ * faintly against a white plate, and the switch stays as the record.
+ */
 type QrMode = "beam" | "shimmer" | "both";
 
 type BeamSurface = {
@@ -1765,10 +1774,10 @@ const BEAM_SURFACES: BeamSurface[] = [
     id: "qr",
     name: "The QR plate once live",
     law: "Beam law 1, as a resting state",
-    note: "You wanted the plate to feel as live as it is. Three readings of that below: the beam alone, our own light under it alone, and both. Moment 06's bloom stays the handoff either way; this is the resting state after it.",
+    note: "RULED: our own light, not the beam. On a white plate the beam is very hard to notice, which is the one thing a liveness signal cannot be. All three readings stay on the switch as the record. Moment 06's bloom is still the handoff; this is the resting state after it.",
     beam: "outside",
-    verdict: "work",
-    verdictLabel: "Three readings, pick one",
+    verdict: "reject",
+    verdictLabel: "Beam rejected: our light instead",
   },
   {
     id: "palette",
@@ -1791,7 +1800,9 @@ function BeamSurfaces() {
   });
   const toggle = (id: string) => setLive((v) => ({ ...v, [id]: !v[id] }));
   const [palette, setPalette] = useState<BeamPalette>("partyreel");
-  const [qrMode, setQrMode] = useState<QrMode>("beam");
+  // RULED (Will, 2026-08-31): our own light. The beam is very hard to notice on
+  // a white plate, and a liveness signal that is hard to notice is not one.
+  const [qrMode, setQrMode] = useState<QrMode>("shimmer");
   const anyLive = Object.values(live).some(Boolean);
   const setAll = (v: boolean) =>
     setLive(Object.fromEntries(BEAM_SURFACES.map((s) => [s.id, v])));
@@ -1801,7 +1812,7 @@ function BeamSurfaces() {
       n="12"
       title="Where a beam is allowed"
       verdict="work"
-      verdictLabel="Four surfaces, corners open"
+      verdictLabel="Three beamed, one ruled to our own light"
       lede={
         <>
           <p>
@@ -1886,8 +1897,8 @@ function BeamSurfaces() {
               <div className="flex flex-wrap items-center gap-2">
                 {(
                   [
-                    ["beam", "Beam only"],
                     ["shimmer", "Our light only"],
+                    ["beam", "Beam only"],
                     ["both", "Both"],
                   ] as const
                 ).map(([id, label]) => (

@@ -20,6 +20,22 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
+  that amount of rounding carried into our design system. Not just these components only."). He picked
+  the 16px column over our sharp surfaces. Deliberately NOT applied in the glow round, because it is
+  not a one-line token change and it restyles the whole product. **What the next agent should not have
+  to rediscover:** (1) the `rounded-sm..4xl` scale is DERIVED from `--radius` by multiplication (md
+  0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so `--radius: 1rem` yields lg 16px but 2xl
+  28.8px and 4xl 41.6px — the card he liked is `rounded-2xl`, so the literal reading overshoots what he
+  actually approved; (2) blast radius is **445 uses across 140 files** (`rounded-lg` 138, `rounded-md`
+  110, `rounded-xl` 96, `rounded-2xl` 91); (3) the design system's stated rationale is that the
+  sharp-surface / round-action CONTRAST is what signals "pressable", and surfaces at 16px collapse it,
+  so the round has to decide what replaces that affordance (rounder actions? a different cue?);
+  (4) `--radius-tile` (3px) exists because tight-gap grids open corner holes, and `--radius-float`
+  (8px) because sharp reads broken on floating elements — both are separate tokens and may not want to
+  move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
+  commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
+  whatever lands here for free.
 - **The spill wiring round** (the glow doctrine's second half; the lab boards are `glow-doctrine` +
   `glow-moments`, engine in `design.css` behind the `glw-` prefix). Blocked on Will's ruling on the
   doctrine AND on promoting the engine plus its five-hue palette to `globals.css`/`:root` (a one-way
@@ -29,12 +45,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
   and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
   BEAM half of this round no longer needs porting: border-beam is vendored at
-  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. The palette question is
-  CLOSED (Will, 2026-08-31): ours, globally; theirs reviewed side by side and not adopted. What is
-  still open is the **corner** — the effect is authored for 16px+ and this system rounds surfaces to
-  2-4px, so section 04 puts our tokens against the library's default on the same card, and a plausible
-  outcome is that the beam is only ever allowed on actions. Also open: which of the QR plate's three
-  readings to keep (beam, our own light, or both).
+  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. Both of its questions are
+  CLOSED (Will, 2026-08-31): the palette is ours globally (theirs reviewed side by side, not adopted),
+  and the corner is the rounder one, which grew into the rounding round above. Beam surfaces that ship:
+  Get Pro at rest, the reel while it renders, the help palette while focused. The QR plate takes our
+  own light instead (the beam reads too faintly on a white plate), and the upload takes NO light at all
+  (the opacity climb and the bar already say it; the sweep read as forced).
 - **The QR-to-album handoff wants its own ground-up visual-design round.** Killed off the glow board
   (Will, 2026-08-31) rather than inherited from it: the three scan-through directions there were
   argued from a glow doctrine, and the idea deserves to be designed from the product claim instead.
