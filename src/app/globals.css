@@ -1776,8 +1776,25 @@
   mask-size: 280% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  -webkit-mask-position: 50% 0;
-  mask-position: 50% 0;
+  /* ★ THE RESTING POSITION IS OFF-LAYER, AND IT USED TO BE THE WORST CASE
+     (fixed round 1, 2026-09-01). This declared `50% 0`, which is not a park at
+     all: with mask-size 280% the comet's white peak lands at exactly 50% of the
+     box, dead centre at full --glw-strength. The animation's own endpoints are
+     150% (peak at -130%) and -50% (peak at +230%), both off-layer, so the
+     declared base was the precise MIDPOINT of the sweep -- maximum exposure.
+
+     Nobody with prefers-reduced-motion has ever seen this lamp any other way,
+     because the animation lives in the no-preference block below and reduced
+     motion never opts in. The comment on that block asserted "comet parked",
+     which is the tell: a claim the CSS did not implement. Law 4 says the base
+     is how a reduced-motion arrival still ARRIVES -- base lit, band away --
+     and the band at full strength was that law inverted.
+
+     150% is the animation's own from-keyframe, so no-preference is unchanged
+     down to the frame: the animation overrides this from its first tick. Only
+     the reduced-motion and animation-never-started states move. */
+  -webkit-mask-position: 150% 0;
+  mask-position: 150% 0;
 }
 
 /* ── Drive B: the comet IS the object, moved on the compositor. The colour
@@ -2076,8 +2093,10 @@
   pointer-events: none;
 }
 
-/* ── Motion. Final states are already correct above (base lit, comet parked),
-   so everything here is additive and reduced motion simply never opts in. ── */
+/* ── Motion. Everything here is additive and reduced motion never opts in, so
+   the states declared ABOVE are what a reduced-motion visitor gets, forever.
+   That is why the band's resting mask-position had to be the animation's own
+   from-keyframe rather than the middle of its travel (see the note there). ── */
 @media (prefers-reduced-motion: no-preference) {
   [data-glw-drive="mask"] [data-glw-band] {
     animation: glw-mask-x var(--glw-dur) linear infinite;

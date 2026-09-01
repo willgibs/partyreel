@@ -277,6 +277,34 @@ describe("the spill engine CSS", () => {
     expect(mine.length).toBeGreaterThan(0);
   });
 
+  it("rests the comet where its own animation starts", () => {
+    // ★ Law 4's reduced-motion half, as a number. The animation lives inside
+    // @media (prefers-reduced-motion: no-preference), so whatever the band
+    // DECLARES is what a reduced-motion visitor sees permanently. That resting
+    // value must be the from-keyframe (off-layer), never a point inside the
+    // travel. It shipped as `50% 0` for two rounds, which with mask-size 280%
+    // puts the comet's peak at dead centre of the box at full strength -- the
+    // exact midpoint of the sweep, i.e. the worst case, forever, for the
+    // visitors who opted out of motion.
+    const from = engineCode.match(
+      /@keyframes glw-mask-x\s*\{\s*from\s*\{[\s\S]*?[^-]mask-position:\s*([^;]+);/,
+    );
+    expect(from, "glw-mask-x from-keyframe not found").not.toBeNull();
+    // Anchored on `mask-size: 280% 100%`, which is unique to the band's own
+    // declaring block. Anchoring on the SELECTOR does not work: the declaring
+    // rule is a four-part :not() compound split over five lines, and the naive
+    // `[data-glw-drive="mask"] [data-glw-band]` matches the ANIMATION rule in
+    // the no-preference block instead, which declares no position at all and
+    // would have made this pin unfindable rather than wrong.
+    const anchor = engineCode.indexOf("mask-size: 280% 100%");
+    expect(anchor, "band mask-size anchor not found").toBeGreaterThan(-1);
+    const rest = /[^-]mask-position:\s*([^;]+);/.exec(
+      engineCode.slice(anchor, anchor + 400),
+    );
+    expect(rest, "resting mask-position not found").not.toBeNull();
+    expect(rest![1].trim()).toBe(from![1].trim());
+  });
+
   it("has exactly one filter host, and the footer is now on it", () => {
     expect(engineCode).toContain("url(#glw-warp)");
     // This pin used to read `not.toContain`, because the footer ran its own
