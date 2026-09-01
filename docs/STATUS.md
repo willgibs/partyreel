@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-08-29
+**Updated:** 2026-09-01
 
 ## The era
 
@@ -299,22 +299,23 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The glow doctrine's four open rulings** (the agent-merge sequence is CLOSED: `lp/about` shipped at
-   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11,
-   `lp/careers-identity` at milestone-12, `lp/glow-doctrine` merged to `launch-prep` 2026-08-31 and
-   not yet shipped to `main`). Each is in [ROADMAP](ROADMAP.md) with the evidence:
-   (a) **the beam's chroma register** — the record says "our palette, globally", but the code adopted
-   our five HUES at effect-grade chroma, not our token values, and a test pins that the tokens may NOT
-   be used. That is a second saturated register inside a zero-chroma identity, and it is the thing in
-   the round most likely to have been approved without being seen. Worth trying first: the Get Pro card
-   already carries real event photographs and is same-origin, so letting the beam SAMPLE them would
-   dissolve the question and put BEAM under the same law 3 as SPILL.
+1. **The light system's remaining rulings.** Round 0 shipped the engine + the lamp set to
+   `launch-prep` (2026-09-01) and closed two of the four:
+   ~~(a) the beam's chroma register~~ **CLOSED by evidence** — it is not a second palette. The values
+   are our own five hues through `oklchToSrgb` at effect-grade chroma, hue held exactly: a DERIVED
+   register of the lamp set, now named in [design-system.md](systems/design-system.md) and pinned by
+   test. It cannot be tokenised (the vendored file regex-parses `rgb()` strings).
+   ~~(d) the footer's cadence~~ **DEFERRED CLEANLY** — the footer passes `--glw-dur: 11s`, so round 0
+   is a provably invisible swap. **Still wants a ruling:** the real footer at 8s vs 11s, side by side,
+   nothing else moving. Ask for it whenever.
    (b) **the lit surface**, which amends "Dark: NO shadows anywhere" and is already on the Get Pro
    specimen; recommend its own round, the way the corner became the rounding round.
    (c) **the publish beat's violet**, unruled, where a ratified state colour meets law 3's ban on them.
-   (d) **the footer's cadence** at promotion: engine 8s against the shipped 11s.
-2. **When to ship `launch-prep` to `main`.** The glow merge changes no production byte, so a milestone
-   is optional here in a way it was not for the four page rounds.
+   (e) NEW — **the root 404's footer now lights.** The engine went global, so the seam that used to
+   render flat there (no `marketing.css`) is lit like every other page. Deliberate and captured
+   before/after; recommend keeping it, one `:not()` reverts it.
+2. **When to ship `launch-prep` to `main`.** Round 0 IS a production change (the light system + the
+   404), unlike the milestone-13 merge, so this one wants a milestone when Will is ready to look.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

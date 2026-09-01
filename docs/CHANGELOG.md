@@ -10,6 +10,83 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — Round 0: the light system in production, and the footer retired onto it
+
+`launch-prep` (`9572d55`, `b9621f2`, `44acf10`, `58157db`, `abe7c34`). Gate green at every commit;
+1301 → **1305 tests**. Verified live on the `launch-prep` alias at `44acf10`, against **production as
+the reference** (prod still runs the old footer until the next milestone merge, so it is a live
+before-state that needs no stored baseline).
+
+**The first wiring round, and it was not optional-adjacent.** The shipped footer glow WAS the engine's
+mechanic, so the site was carrying two engines painting one light. Round 0 promotes the engine into
+`globals.css` (unlayered) and retires `FooterGlow` onto it.
+
+**The light system, not just the machinery.** Will ruled globals.css directly (skip the staging: "the
+app will also be pulling from this") and asked for one consistent colour library for spill and beam.
+The five hues were duplicated in three places, so `--lamp-1..5` lands in `globals.css` beside
+`--gallery-*`, values unchanged, and `--mkt-confetti-*` becomes an alias. The rule that ships with it:
+**the lamp set is LIGHT, never UI** — enforced structurally (the block is deliberately not in `@theme`,
+so no `bg-lamp-1` utility can exist) and by a fence requiring every CSS reference to land in a gradient.
+
+**Equivalence proved by computed style, not by eye.** No test guards it and an 11s loop never
+screenshots twice the same, so the proof is a `getComputedStyle` diff of all five nodes, prod vs
+preview. **Six differences, every one explained:** the filter-id rename, `animation-name`, `isolation`
+(no z-indexed children while `edge={false}`), two animation-phase artifacts, and the seamline's
+resolved `bottom` (it re-parented from the glow to the footer, and renders at the identical screen
+y=349). Nothing else moved. The two `background-image` values are byte-identical, which is also the
+proof that the `--lamp-*` aliasing resolves to the same colours; `--mkt-confetti-*` and `--lamp-*`
+compute to the same five `lab()` strings live. A frozen-phase pixel A/B (`mask-position: 95% 0` pinned
+on both) is indistinguishable.
+
+★ **The delta nobody had caught.** `[data-glw-field]` overhangs 40px on all four sides; the shipped
+footer's warp is `-40px -40px 0 -40px`. The field box is the coordinate space for the five ellipses, so
+the engine's 290px field rendered every `90%`/`85%` vertical extent **16% larger** than the footer's
+250px. Which means **the lab's seam specimen and the live footer were never the same lamp**, and every
+seam ruling before today was taken on a field 16% taller than production's. Fixed with a per-shape rule
+(the halo already sets its own field inset), and confirmed live: the warp measures 250px.
+
+★ **One deliberate visual change: the root 404 gains a lit seam.** `not-found.tsx` renders
+`MarketingFooter` outside `(marketing)`, so `marketing.css` never loaded there and every `.mkt-fglow`
+selector failed to match. The engine is in `globals.css`, which loads everywhere. The old file called
+the flat 404 "correct", but that was a side effect described after the fact, not a ruling. Captured
+before/after for Will; a lit seam matching every other page is the better answer.
+
+**The beam's chroma register, closed by evidence.** The merge flagged it as a second palette recorded
+as "ours". It is not: the values are our own five hues through `glow-contrast.ts`'s `oklchToSrgb`,
+raised to effect-grade chroma with hue held exactly — a DERIVED register. It cannot be tokenised
+either, because `styles.ts` regex-parses `rgb()` strings to compute alpha variants. Now pinned by test
+(every beam colour's OKLCH hue within 12° of the five).
+
+★★ **Four guards found unable to fail, and the class fixed.** The engine's `/^\s{2}animation:/gm`
+matched **zero** declarations (four-space indentation), so the arrival-default contract was unguarded
+from the day it was written. Worse, **the lamp fence I wrote for this round had the same disease**: its
+property capture was `(--?[a-zA-Z]…)`, which requires a leading hyphen, so `color: var(--lamp-1)` — the
+exact thing it exists to catch — walked straight through. Found by injecting the violation and watching
+it pass. With the border-beam mark count and the em-dash walk from the merge, that is four, so the
+sweep pins every scan-derived loop in `marketing-css-policy`, `content-policy` and
+`guest-reel-contract`. (A correction to my own measurement: I counted loops-vs-pins across eight files
+and concluded eight needed fixing; most iterate literal arrays that cannot silently empty. Three did.)
+
+**The doctrine left the lab with its engine.** The laws lived only inside a 1,405-line lab TSX, which
+is exactly the "bible" that reads as obligation to a new agent. They are now one section in
+[`design-system.md`](systems/design-system.md); the board keeps the decision record and says so.
+`design.css` 2725 → **1894 lines (-31%)**, which starts the lab distillation for free.
+
+**Measured cost:** homepage CSS 312,228 → 330,766 B raw, **+1,865 B gzipped**, for the whole engine
+(halo, bloom, edge beam, all three drives) going global net of the 155 deleted marketing lines.
+
+**Noted, not a blocker:** Lightning CSS resolves the engine's `@supports not (mask-image: …)` fallback
+against browserslist, finds it statically false, and drops it. The rule is real in source and dead in
+the build, which is correct given the targets but means the comment claims a protection that does not
+ship.
+
+Also live-verified: the pause contract still flips (in view `false`, offscreen `true`,
+`animation-play-state: paused`); `forced-colors` and `@media print` are in the served CSS (the repo's
+first production rules of each); all nine marketing routes 200; the `/design` gate holds; both lab
+boards render 13 lamps with halo bands `orbit-free`, so the merge's specificity fix is holding live.
+
+---
+
 ## 2026-09-01 — MILESTONE-13: the glow doctrine on prod (adopt only, wire nothing)
 
 `main` @ tag `milestone-13` (`f3e6cbb`), `--no-ff` merge of `launch-prep`, gate re-run green on the
