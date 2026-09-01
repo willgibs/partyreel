@@ -6,39 +6,33 @@ import { Glow } from "@/components/shared/glow";
 import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
 
 /**
- * THE SCREEN'S LIGHT. The reel player is a screen, and a screen in a dark room
- * is the most literal emitting object on the whole page: law 1 (name the lamp)
- * is satisfied by the object itself. The light is thrown from BEHIND it and
- * only the part that escapes past the player's edges is visible, because the
- * player is opaque -- which is exactly what light behind a screen looks like.
+ * THE SCREEN'S LIGHT, THROWN DOWN ONTO THE FLOOR. The reel player is a screen
+ * in a dark room, the most literal emitting object on the page, so law 1 is
+ * answered by the object itself. Its light falls DOWN out of its bottom edge
+ * onto the dark beneath it, where the style strip and the pointer sit in the
+ * pool: the projector-on-the-floor image, and the same mechanic the film strip
+ * and the footer use -- a seam anchored on a real edge.
  *
  * Colour is sampled from the poster the player shows (law 3), read off the
  * live <img> next/image renders, so it costs no bytes.
  *
- * GEOMETRY, because the reverted rounds were all geometry, and the first cut
- * of this file got it wrong in the same way. The box is 96px larger than the
- * player on every side, and the mask must reach transparent PAST the player's
- * edge but BEFORE the box's edge -- light that dies inside its own box has no
- * drawn edge (law 4); light that reaches the box edge is a rectangle.
+ * ★ WHY NOT A GLOW ALL THE WAY AROUND, since that was the first cut. A `throw`
+ * is opaque at its origin and fades outward, so by the time its light clears
+ * an OPAQUE object's edge the mask is already down to ~20% and the ring is
+ * nearly invisible -- measured on the preview, and derivable: the ramp's
+ * stops are fractions of `--glw-reach`, which is a fraction of the box's FULL
+ * dimension, so a centred throw in a box the object mostly fills has spent
+ * its ramp before the object ends. The `halo` is the inverse ramp, but it is
+ * designed to be clipped INSIDE the object it backlights (a pill with text),
+ * which an opaque screen makes invisible. Neither shape is a backlight for an
+ * opaque object; a seam under it is, and it is already ratified twice.
  *
- * ★ --glw-reach IS A FRACTION OF THE BOX'S FULL DIMENSION, NOT ITS HALF. The
- * mask is `radial-gradient(ellipse R R at 50% 50%, ... transparent 78%)`, and
- * a percentage radius in a radial gradient is measured against the gradient
- * box's WIDTH (rx) and HEIGHT (ry). So the ramp ends at 0.78 x reach x width
- * from the centre. At 115% that is ~0.9 of the full width -- nearly twice the
- * half-width -- so the whole box was lit and rendered as a faint rectangle
- * with vertical edges, visible on the deployed preview even in the paused
- * state. At 58% the ramp ends ~50px inside the box horizontally and ~35px
- * vertically, and ~85-100px outside the player: a glow with room to die.
- * The lab's throw preset uses 95% because its origin sits ON an edge, where
- * a large reach fades across the whole box from one side; a CENTRED origin
- * needs about half that. The box has NO overflow-hidden, nor does the wrapper.
- *
- * ★ WHY THIS SURFACE MAY BE LIT AT ALL. The reel sat one viewport from the
- * event-card lamps and was ruled out on scarcity. Those lamps are gone (the
- * cards went media-forward), so the chapter's opening section is free to be
- * the chapter's light -- and the next lamp down the page is the footer,
- * several viewports away.
+ * The side fade on the box is the film strip's lesson: a seam's five ellipses
+ * still carry opacity at the field's left and right extremes, so a box that
+ * ends on screen ends the light on a vertical cut. The strip solved it by
+ * going full-bleed; a screen's light should stay the screen's width, so this
+ * box fades its own sides instead. The mask is on the WRAPPER, never on the
+ * lamp (the engine owns the lamp's masks). No overflow-hidden anywhere.
  */
 export function ReelScreenLamp({ children }: { children: ReactNode }) {
   const host = useRef<HTMLDivElement | null>(null);
@@ -46,23 +40,22 @@ export function ReelScreenLamp({ children }: { children: ReactNode }) {
 
   return (
     <div ref={host} className="relative isolate">
-      <div aria-hidden className="pointer-events-none absolute -inset-24 -z-10">
+      {children}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-x-16 top-full -z-10 h-[240px] [mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]"
+      >
         <Glow
-          shape="throw"
+          shape="seam"
           drive="mask"
           colors={colors ?? undefined}
           vars={{
-            "--glw-from-x": "50%",
-            "--glw-from-y": "50%",
-            "--glw-reach": "58%",
-            "--glw-base": "0.55",
-            "--glw-strength": "0.45",
-            "--glw-blur": "32px",
             "--glw-dur": "11s",
+            "--glw-h": "220px",
+            "--glw-strength": "0.5",
           }}
         />
       </div>
-      {children}
     </div>
   );
 }

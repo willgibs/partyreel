@@ -22,9 +22,10 @@ import { LearnMoreLink } from "../shared/learn-more-link";
  * carries the chapter's opening weight (design-system.md, "Chapters"): the
  * page's own comment says "lights down for the reel". The device here is a
  * room going dark and a screen coming up. Much more air above, the heading a
- * tier up, and the player presented as the subject: lit from behind by its
- * own poster's colours (reel-screen-lamp.tsx), with the style chips pulled
- * back beneath it as a quiet caption strip rather than a control row above.
+ * tier up, and the player presented as the subject, throwing its own poster's
+ * colours down onto the floor beneath it (reel-screen-lamp.tsx), where the
+ * style chips sit in the pool as a quiet caption strip rather than a control
+ * row above.
  *
  * Bespoke on purpose. The pacing principle says a chapter's first section
  * should feel bolder than a body section but must NOT share a template with
@@ -79,10 +80,10 @@ export function ReelTeaser() {
           className="mx-auto mt-14 max-w-3xl"
           style={{ "--i": 3 } as CSSProperties}
         >
-          {/* The screen, lit from behind by its own poster. The lamp wraps the
-              player as a sibling of it, never inside it: the player is
-              overflow-hidden, and a lamp inside a clipping ancestor is the
-              hard-edged rectangle that got a whole round reverted. */}
+          {/* The screen, throwing its poster's light onto the floor below it.
+              The lamp wraps the player as a sibling of it, never inside it:
+              the player is overflow-hidden, and a lamp inside a clipping
+              ancestor is the hard-edged rectangle that got a round reverted. */}
           <ReelScreenLamp>
             <InlineReelPlayer reelId={INLINE_REEL_ID} />
           </ReelScreenLamp>
