@@ -279,28 +279,35 @@ function Doorbell() {
           product&rsquo;s actual miracle and it currently has zero ceremony by
           design: doorbell tiles carry a zero stagger index so they land
           immediately, while a whole marketing section simulates the same moment
-          with flying tiles and a toast. One lap of the edge beam around the
-          gallery says &ldquo;something came in from outside&rdquo;, and the
-          bloom is sampled from the photo that actually arrived.
+          with flying tiles and a toast. The bloom is sampled from the photo
+          that actually arrived, and it reaches past the container so the whole
+          grid registers that something came in from outside.
         </p>
       }
       lamp="the tile that just merged in"
-      direction="outward from the new tile, then once around the container"
+      direction="outward from the new tile, past the container"
       colour="sampled from the arriving photograph"
       law="Law 1, and law 4 (a bloom decays to the base)"
     >
       <div className="flex flex-col gap-4">
         <Ground on="cinema" className="relative isolate p-4">
+          {/* ★ NO `edge` HERE, DELIBERATELY. The edge beam's 1px ring is a
+              crisp rounded stroke, and on a gallery that carries no border a
+              stroke appearing IS a border appearing: Will read the lap as
+              chrome rather than as light, which inverts the doctrine. The
+              bloom's own spill carries the arrival instead, reaching further so
+              it still crosses the container. Light, with nothing border-shaped
+              left behind. */}
           <Glow
             shape="bloom"
             drive="mask"
-            edge
             runId={runId}
             colors={sampled ?? undefined}
             vars={{
               "--glw-from-x": "18%",
               "--glw-from-y": "28%",
-              "--glw-radius": "16px",
+              "--glw-reach": "135%",
+              "--glw-strength": "0.9",
               "--glw-scale": "1.6",
             }}
           />
@@ -875,11 +882,21 @@ function CtaQuestion() {
     <Moment
       n="08"
       title="The CTA rim, answered"
-      verdict="work"
-      verdictLabel="Bug fixed; the quiet variant is the one to rule on"
+      verdict="reject"
+      verdictLabel="Killed: the beam took this job"
       lede={
         <>
-          <p>
+          <p className="rounded-2xl border border-border p-3 text-foreground">
+            <span className="font-medium">Killed (Will, 2026-08-31).</span> Not
+            because it was wrong, but because border-beam arrived and does this
+            job better on the object that actually wanted it: a premium button.
+            The specimens stay because a placement you have seen and turned down
+            stays turned down, and because the argument below is still the
+            reason the doctrine says what it says about law 1 and law 2. The
+            halo mechanic itself survives too, with a new home on the QR plate
+            in moment 12.
+          </p>
+          <p className="mt-2">
             You were right to ask. What you reviewed WAS broken: the wash was
             rendering in a padded box around the button instead of on the pill
             itself, so it read as a soft rectangle floating behind a capsule.
@@ -1421,11 +1438,20 @@ function ScanThrough() {
     <Moment
       n="11"
       title="The scan-through"
-      verdict="work"
-      verdictLabel="Three directions, none ruled"
+      verdict="reject"
+      verdictLabel="Killed here: its own round, ground-up"
       lede={
         <>
-          <p>
+          <p className="rounded-2xl border border-border p-3 text-foreground">
+            <span className="font-medium">Killed here (Will, 2026-08-31).</span>{" "}
+            The QR-to-album handoff deserves a visual-design round of its own,
+            started from the ground up rather than inherited from a glow board.
+            One thing is explicitly KEPT rather than killed: the pour. It is a
+            working technique looking for the right moment, parked here on
+            purpose rather than forced onto a surface that did not ask for it,
+            so it is ready the day a real dump moment turns up.
+          </p>
+          <p className="mt-2">
             The one idea here that is about the product rather than the surface.
             A QR code is the only object Partyreel makes whose entire purpose is
             to move something from one screen to another, and every diagram we
@@ -1576,7 +1602,7 @@ function ScanThrough() {
                 <div
                   key={`${runId}-${id}`}
                   data-glw-tile
-                  className="pointer-events-none overflow-hidden rounded-[3px]"
+                  className="pointer-events-none overflow-hidden rounded-[var(--radius-tile)]"
                   style={
                     {
                       left: flight.x,
@@ -1696,8 +1722,15 @@ function ScanThrough() {
    product has no AI-agent UI, so our equivalent of their Working card and
    composer are the moments where something is genuinely live.                */
 
-/** The open question from doctrine section 04, asked again on real surfaces. */
+/**
+ * RULED (Will, 2026-08-31): ours, globally. Theirs is not adopted. The switch
+ * stays because the comparison is the record of how the call was made, and a
+ * ruling you can still see is worth more than one you have to take on trust.
+ */
 type BeamPalette = "colorful" | "partyreel";
+
+/** The QR plate's three readings of "this code is live". */
+type QrMode = "beam" | "shimmer" | "both";
 
 type BeamSurface = {
   id: string;
@@ -1729,22 +1762,13 @@ const BEAM_SURFACES: BeamSurface[] = [
     verdictLabel: "Ship",
   },
   {
-    id: "upload",
-    name: "Upload in progress",
-    law: "Beam law 1, paired with moment 10",
-    note: "The object's own edge, so it does not compete with the bar you asked for. The light says the tile is live; the bar says how far.",
-    beam: "inner",
-    verdict: "ship",
-    verdictLabel: "Ship with the bar",
-  },
-  {
     id: "qr",
     name: "The QR plate once live",
     law: "Beam law 1, as a resting state",
-    note: "The natural upgrade to the ignite-and-stay-lit you approved in moment 06. The bloom is the moment of handing it over; the beam is the code reporting that it stays live.",
+    note: "You wanted the plate to feel as live as it is. Three readings of that below: the beam alone, our own light under it alone, and both. Moment 06's bloom stays the handoff either way; this is the resting state after it.",
     beam: "outside",
     verdict: "work",
-    verdictLabel: "Beam or bloom, not both",
+    verdictLabel: "Three readings, pick one",
   },
   {
     id: "palette",
@@ -1766,7 +1790,8 @@ function BeamSurfaces() {
     palette: true,
   });
   const toggle = (id: string) => setLive((v) => ({ ...v, [id]: !v[id] }));
-  const [palette, setPalette] = useState<BeamPalette>("colorful");
+  const [palette, setPalette] = useState<BeamPalette>("partyreel");
+  const [qrMode, setQrMode] = useState<QrMode>("beam");
   const anyLive = Object.values(live).some(Boolean);
   const setAll = (v: boolean) =>
     setLive(Object.fromEntries(BEAM_SURFACES.map((s) => [s.id, v])));
@@ -1776,7 +1801,7 @@ function BeamSurfaces() {
       n="12"
       title="Where a beam is allowed"
       verdict="work"
-      verdictLabel="Five surfaces, review each"
+      verdictLabel="Four surfaces, corners open"
       lede={
         <>
           <p>
@@ -1793,9 +1818,14 @@ function BeamSurfaces() {
           </p>
           <p className="mt-2">
             Worth saying out loud, because the grid below breaks it: beam law 2
-            is one subject per view, and this shows five at once so the surfaces
+            is one subject per view, and this shows four at once so the surfaces
             can be compared. A real page never would. Moment 13 is where
             scarcity is actually tested.
+          </p>
+          <p className="mt-2">
+            Upload in progress is gone from this set, on your call: the staged
+            opacity and the progress bar already carry it, and a grid of lit
+            tiles is exactly the overwhelm beam law 2 exists to prevent.
           </p>
         </>
       }
@@ -1805,11 +1835,13 @@ function BeamSurfaces() {
       law="The four beam laws"
     >
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
-        <p className="mr-1 text-xs text-muted-foreground">Palette:</p>
+        <p className="mr-1 text-xs text-muted-foreground">
+          Palette <span className="text-foreground">(ruled: ours)</span>:
+        </p>
         {(
           [
-            ["colorful", "Theirs"],
             ["partyreel", "Ours"],
+            ["colorful", "Theirs"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -1850,6 +1882,32 @@ function BeamSurfaces() {
               </>
             }
           >
+            {sfc.id === "qr" && (
+              <div className="flex flex-wrap items-center gap-2">
+                {(
+                  [
+                    ["beam", "Beam only"],
+                    ["shimmer", "Our light only"],
+                    ["both", "Both"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setQrMode(id)}
+                    aria-pressed={qrMode === id}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-150",
+                      qrMode === id
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:bg-muted",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <Ground
               on="slab"
               className="flex min-h-52 items-center justify-center overflow-visible p-6"
@@ -1858,6 +1916,7 @@ function BeamSurfaces() {
                 surface={sfc}
                 live={live[sfc.id]}
                 palette={palette}
+                qrMode={qrMode}
               />
             </Ground>
             <button
@@ -1873,12 +1932,17 @@ function BeamSurfaces() {
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">
-            The one I am least sure about is the QR.
+            Every radius here now comes from a token, and that is a fix rather
+            than a detail.
           </span>{" "}
-          Moment 06 already gives it a resting glow on share, and a beam on top
-          of that is two treatments telling you the same thing. My instinct is
-          the bloom stays for the handoff and the beam replaces the resting
-          glow, never both at once, but that is a call worth making by looking.
+          You caught the ring and the card reading as two different shapes. The
+          cause was mine: these specimens were rounded like the reference
+          library while being handed its 16px radius, on a system whose surfaces
+          are sharp. The beam now reads each object&rsquo;s own radius, so the
+          Get Pro pill rounds like an action, the palette like the floating
+          layer it is, and the cards like cards. Section 04 on the doctrine
+          board asks the question this exposed: whether a chromatic ring
+          survives on a 3px corner at all.
         </p>
         <p className="mt-2">
           Catalogued rather than built: the guest gate while it verifies a
@@ -1894,11 +1958,22 @@ function BeamSurfaceStage({
   surface,
   live,
   palette,
+  qrMode,
 }: {
   surface: BeamSurface;
   live: boolean;
   palette: BeamPalette;
+  qrMode: QrMode;
 }) {
+  // ★ NO borderRadius PROP, AND NO ARBITRARY RADII BELOW. Will caught the beam
+  // ring and the card reading as two different shapes, and the cause was mine:
+  // these specimens were rounded like the reference library (14 and 18px) while
+  // being handed borderRadius={16}, on top of a system whose surfaces are SHARP
+  // (--radius 2px, the shipped Card 2.8px, rounded-2xl 3.6px). Omitting the prop
+  // lets the library read the child's own computed radius, so the ring is
+  // whatever the object is and the nested layers follow from it. Every object
+  // below now carries a real token: surfaces rounded-2xl, the command palette
+  // rounded-float (it is the floating layer), the Get Pro pill an action.
   // `active` is the library's own state gate, and it is a better expression of
   // beam law 3 than unmounting the glow: the object stays put and the light
   // fades out of it, which is what ending a state actually looks like.
@@ -1911,7 +1986,6 @@ function BeamSurfaceStage({
       // light theme (its own opacities and saturation), which is precisely the
       // thing every hand-port of mine had to fake.
       theme={surface.id === "qr" ? "light" : "dark"}
-      borderRadius={surface.id === "pro" ? 18 : 14}
       active={live}
     >
       {children}
@@ -1922,7 +1996,7 @@ function BeamSurfaceStage({
     return wrap(
       <div
         data-lit=""
-        className="relative isolate w-56 overflow-visible rounded-[18px] p-5"
+        className="relative isolate w-56 overflow-visible rounded-2xl p-5"
         style={{ background: "oklch(0.21 0 0)" }}
       >
         <div className="relative">
@@ -1933,9 +2007,12 @@ function BeamSurfaceStage({
           <p className="mt-1 text-xs text-muted-foreground">
             Per year, two months free.
           </p>
+          {/* An ACTION, so it rounds like one. This is also the shape the beam
+              was designed around, which is the argument for carrying it onto
+              premium buttons now that the CTA rim is dead. */}
           <span
             data-lit="control"
-            className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+            className="mt-4 inline-flex rounded-[var(--radius-action-sm)] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             Get Pro
           </span>
@@ -1945,9 +2022,12 @@ function BeamSurfaceStage({
   }
 
   if (surface.id === "qr") {
-    return wrap(
+    // Three readings of the same claim, because a plate that is live can say so
+    // with a border, with light under it, or with both. The plate itself is
+    // identical in all three; only what surrounds it changes.
+    const plate = (
       <div
-        className="relative isolate overflow-visible rounded-[14px] p-3"
+        className="relative isolate overflow-visible rounded-2xl p-3"
         style={{ background: "oklch(0.99 0 0)" }}
       >
         <div className="relative grid size-28 grid-cols-8 gap-0.5">
@@ -1961,40 +2041,40 @@ function BeamSurfaceStage({
             />
           ))}
         </div>
-      </div>,
+      </div>
     );
-  }
-
-  if (surface.id === "upload") {
-    return wrap(
-      <div
-        className="relative isolate w-36 overflow-hidden rounded-[14px]"
-        style={{ background: "oklch(0.19 0 0)" }}
-      >
-        <div className="relative aspect-[4/5]">
-          <Image
-            src={marketingImage("wedding-toast").src}
-            alt=""
-            fill
-            sizes="144px"
-            className="object-cover"
-            style={{ opacity: live ? 0.62 : 1 }}
-          />
-        </div>
+    // Our own glow, from BEHIND an opaque plate, which is the halo. It never
+    // touches the modules or the quiet zone: scannability is a contract.
+    const shimmer = (
+      <div className="relative isolate">
         {live && (
-          <div className="absolute inset-x-2 bottom-2 h-0.5 overflow-hidden rounded-full bg-white/20">
-            <div className="h-full w-2/3 rounded-full bg-white/90" />
+          <div className="absolute -inset-10 -z-10">
+            <Glow
+              shape="halo"
+              drive="mask"
+              vars={{
+                "--glw-blur": "18px",
+                "--glw-strength": "0.55",
+                "--glw-base": "0.5",
+                "--glw-dur": "5s",
+                "--glw-core": "26%",
+                "--glw-core-blur": "70%",
+              }}
+            />
           </div>
         )}
-      </div>,
+        {plate}
+      </div>
     );
+    if (qrMode === "shimmer") return shimmer;
+    return wrap(qrMode === "both" ? shimmer : plate);
   }
 
   if (surface.id === "palette") {
     return wrap(
       <div
         data-lit=""
-        className="relative isolate w-64 overflow-visible rounded-[14px] p-3"
+        className="relative isolate w-64 overflow-visible rounded-[var(--radius-float)] p-3"
         style={{ background: "oklch(0.21 0 0)" }}
       >
         <div className="relative">
@@ -2002,7 +2082,10 @@ function BeamSurfaceStage({
             Search help{live ? "" : "..."}
             {live && <span className="ml-0.5">|</span>}
           </p>
-          <div className="mt-3 flex flex-col gap-2">
+          {/* Will's note: the input and the results are two regions, and a
+              focused palette wants the seam stated. Hairline only, no inset. */}
+          <div className="mt-2.5 h-px bg-border" />
+          <div className="mt-2.5 flex flex-col gap-2">
             {["Add photos to an event", "Change who can upload"].map((t) => (
               <p key={t} className="text-xs text-muted-foreground">
                 {t}
@@ -2018,7 +2101,7 @@ function BeamSurfaceStage({
   return wrap(
     <div
       data-lit=""
-      className="relative isolate w-60 overflow-visible rounded-[14px] p-4"
+      className="relative isolate w-60 overflow-visible rounded-xl p-4"
       style={{ background: "oklch(0.21 0 0)" }}
     >
       <div className="relative">

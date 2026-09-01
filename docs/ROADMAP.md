@@ -29,10 +29,18 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
   and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
   BEAM half of this round no longer needs porting: border-beam is vendored at
-  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12, so its wiring task is
-  just choosing surfaces. It carries its own open ruling, though: **which palette**, theirs verbatim
-  or our five raised to effect-grade chroma in the same nine slots. If theirs wins it is a named
-  exception, and the follow-on question is whether their palette should replace ours globally.
+  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. The palette question is
+  CLOSED (Will, 2026-08-31): ours, globally; theirs reviewed side by side and not adopted. What is
+  still open is the **corner** — the effect is authored for 16px+ and this system rounds surfaces to
+  2-4px, so section 04 puts our tokens against the library's default on the same card, and a plausible
+  outcome is that the beam is only ever allowed on actions. Also open: which of the QR plate's three
+  readings to keep (beam, our own light, or both).
+- **The QR-to-album handoff wants its own ground-up visual-design round.** Killed off the glow board
+  (Will, 2026-08-31) rather than inherited from it: the three scan-through directions there were
+  argued from a glow doctrine, and the idea deserves to be designed from the product claim instead.
+  One asset is KEPT and parked rather than killed: the **pour** (photographs leaving one object and
+  landing in another), built and working in moment 11, waiting for a real "photos dump here" moment
+  rather than being forced onto a surface that did not ask for it.
 - **The `/design` lab gate on a preview is captured at BUILD time, so a branch whose newest
   deployment predates the env var 404s until it is pushed again.** `DESIGN_PREVIEW_KEY` IS set on
   the unscoped Preview target (so the lab is reachable on `lp/*` aliases; the `lp/blog-redesign`

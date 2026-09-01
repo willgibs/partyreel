@@ -1815,14 +1815,34 @@
 [data-glw][data-glw-shape="halo"] {
   --glw-core: 46%;
   --glw-core-blur: 150%;
+  /* ★ SMOOTHSTEP, NOT A STRAIGHT RAMP. Two stops put a tangent kink at each end
+     of the fade, and the eye reads a kink as a hard ring: that is the "very
+     rigid" edge Will caught, and the long straight middle is where 8-bit alpha
+     quantises into the visible arcs beside it. These stops trace an ease-in-out
+     so the curve leaves and arrives flat, and no two consecutive steps sit far
+     enough apart to band. Keep them if you retune --glw-core. */
   -webkit-mask-image: radial-gradient(
     ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
     transparent var(--glw-core),
+    rgba(0, 0, 0, 0.03) calc(var(--glw-core) + var(--glw-core-blur) * 0.15),
+    rgba(0, 0, 0, 0.11) calc(var(--glw-core) + var(--glw-core-blur) * 0.3),
+    rgba(0, 0, 0, 0.26) calc(var(--glw-core) + var(--glw-core-blur) * 0.45),
+    rgba(0, 0, 0, 0.5) calc(var(--glw-core) + var(--glw-core-blur) * 0.58),
+    rgba(0, 0, 0, 0.74) calc(var(--glw-core) + var(--glw-core-blur) * 0.71),
+    rgba(0, 0, 0, 0.89) calc(var(--glw-core) + var(--glw-core-blur) * 0.82),
+    rgba(0, 0, 0, 0.97) calc(var(--glw-core) + var(--glw-core-blur) * 0.91),
     #000 calc(var(--glw-core) + var(--glw-core-blur))
   );
   mask-image: radial-gradient(
     ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
     transparent var(--glw-core),
+    rgba(0, 0, 0, 0.03) calc(var(--glw-core) + var(--glw-core-blur) * 0.15),
+    rgba(0, 0, 0, 0.11) calc(var(--glw-core) + var(--glw-core-blur) * 0.3),
+    rgba(0, 0, 0, 0.26) calc(var(--glw-core) + var(--glw-core-blur) * 0.45),
+    rgba(0, 0, 0, 0.5) calc(var(--glw-core) + var(--glw-core-blur) * 0.58),
+    rgba(0, 0, 0, 0.74) calc(var(--glw-core) + var(--glw-core-blur) * 0.71),
+    rgba(0, 0, 0, 0.89) calc(var(--glw-core) + var(--glw-core-blur) * 0.82),
+    rgba(0, 0, 0, 0.97) calc(var(--glw-core) + var(--glw-core-blur) * 0.91),
     #000 calc(var(--glw-core) + var(--glw-core-blur))
   );
 }
@@ -2654,10 +2674,11 @@
 
      hairline   an inset ring instead of a border. It adds nothing to the box
                 and reads as the edge of a solid object rather than a stroke
-                drawn around a div.
-     air        a large, very faint inner glow. This is the one that stops a
-                surface reading as a flat filled rectangle.
+                drawn around a div. This is the one Will kept: it is what makes
+                a card pop off whatever sits behind it.
      lip        a 1px highlight on the TOP edge only: lit from above.
+     (air)      REMOVED. A large faint inner glow, and the only cue that was
+                blurred rather than flat. Will ruled it unnecessary.
 
    ★ DARK GROUNDS ONLY for now. The lip is a light-catching highlight, so on
    paper it is invisible and the honest paper equivalent is a soft bottom edge
@@ -2671,27 +2692,17 @@
    refinement of the contract's own "borders + lighter-is-closer" clause. There
    is precedent in [data-rxp-pubglow], already an inset shadow in dark. Will
    rules; this is lab-local until he does. ── */
-[data-lit] {
+/* ★ THE AIR CUE IS GONE (Will, 2026-08-31). It was the one doing blurred
+   opacity layering rather than stating an edge, and flat reads better. What is
+   left is two flat cues, which is also why `control` no longer needs a rule of
+   its own: the blur radius was the only thing that had to change with size. */
+[data-lit],
+[data-lit="control"] {
   --lit-hairline: 12%;
-  --lit-air: 3%;
   --lit-lip: 6%;
   box-shadow:
     inset 0 0 0 1px
       color-mix(in oklab, var(--foreground) var(--lit-hairline), transparent),
-    inset 0 0 50px
-      color-mix(in oklab, var(--foreground) var(--lit-air), transparent),
-    inset 0 1px 0
-      color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
-}
-
-/* Small controls take a tighter air radius, or the 50px glow swamps a 32px
-   pill and reads as a wash rather than as material. */
-[data-lit="control"] {
-  box-shadow:
-    inset 0 0 0 1px
-      color-mix(in oklab, var(--foreground) var(--lit-hairline), transparent),
-    inset 0 0 12px
-      color-mix(in oklab, var(--foreground) var(--lit-air), transparent),
     inset 0 1px 0
       color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
 }

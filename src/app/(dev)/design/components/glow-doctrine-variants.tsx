@@ -142,7 +142,7 @@ function StartHere() {
     {
       n: "1",
       where: "Section 04 here, then moment 12",
-      why: "The live ruling: border-beam's own colours beside ours, same nine lobes, same positions, same sizes, then the same switch over five real surfaces. This is the only thing on either board still waiting on you.",
+      why: "The corner. You caught a 16px ring drawn around a 3.6px card, which was mine: the specimens were rounded like the reference library on a system that rounds surfaces sharp. Both columns are now internally correct, and the question is which object is right.",
     },
     {
       n: "2",
@@ -187,16 +187,16 @@ function StartHere() {
           </span>{" "}
           Law 3 is ruled: sampled where there is media, the fixed five where
           there is none. The engine is cleared for promotion to globals.css and
-          :root off these examples, which is the one-way door this round was
-          holding. Lights on beats lights off on the whole-page test. Of the
-          thirteen placements that survived, seven are cleared to ship and six
-          still want an eye; the pointer lamp is dead.
+          :root off these examples. Lights on beats lights off on the whole-page
+          test. The palette is ruled too: OURS, globally, with
+          border-beam&rsquo;s own colours not adopted. Ten placements are
+          cleared; the pointer lamp, the CTA rim and the scan-through are dead,
+          the first two because the beam arrived and did their job better.
         </p>
         <p className="mt-2">
           <span className="font-medium text-foreground">Still open.</span> The
-          palette above all (section 04), then which of the three scan-through
-          handoffs to build properly (my preference is the first), where the
-          quiet halo button is allowed to live, and the frame cost of the three
+          corner above all (section 04), then which of the QR plate&rsquo;s
+          three readings to keep (moment 12), and the frame cost of the three
           sweep drives on moment 04, which needs a foreground window because a
           background tab throttles the counter to nothing.
         </p>
@@ -509,14 +509,14 @@ const SHAPE_VARS: Partial<Record<GlowShape, GlowVars>> = {
     "--glw-base": "0.25",
   },
   halo: {
-    "--glw-blur": "14px",
-    "--glw-strength": "0.7",
-    "--glw-base": "0.55",
+    // Moment 08's measured values: this specimen now uses the same structure
+    // (wash on a dark pill, clipped by its radius), so it should use the same
+    // numbers rather than a second set tuned against a stage it no longer fills.
+    "--glw-blur": "8px",
+    "--glw-strength": "0.95",
+    "--glw-base": "0.8",
+    "--glw-core": "36%",
     "--glw-dur": "5s",
-    // Tighter core on a wide stage: the default 46% ellipse is tuned for a box
-    // roughly the size of the object it backlights.
-    "--glw-core": "18%",
-    "--glw-core-blur": "60%",
   },
 };
 
@@ -533,21 +533,44 @@ function Shapes() {
           <Spec key={s.shape} name={s.name} note={s.note}>
             <div className="grid grid-cols-2 gap-3">
               <Ground on="slab" className="relative isolate aspect-[16/9]">
-                <Glow
-                  shape={s.shape}
-                  drive="mask"
-                  edge={s.shape === "sweep"}
-                  runId={runId}
-                  vars={SHAPE_VARS[s.shape]}
-                />
-                {/* A halo is light from BEHIND something, so it only reads with
-                    something in front of it. On an empty stage the cleared
-                    centre has nothing to clear around and the whole thing looks
-                    like a plain wash, which is the mechanic misrepresented. */}
+                {/* ★ A HALO IS SIZED BY ITS OBJECT, NOT BY ITS STAGE. Mounted
+                    as a child of the Ground it filled the whole 16/9 box, so
+                    its mask ramp spanned ~500px and read as a big soft
+                    rectangle with visible arcs in it: the same misframing that
+                    broke the CTA halo earlier in this round, back again in the
+                    section that documents the shape rather than the placement.
+                    The recipe puts the wash ON the object. So every other shape
+                    still lights the stage, and the halo lights the pill. */}
+                {s.shape !== "halo" && (
+                  <Glow
+                    shape={s.shape}
+                    drive="mask"
+                    edge={s.shape === "sweep"}
+                    runId={runId}
+                    vars={SHAPE_VARS[s.shape]}
+                  />
+                )}
                 {s.shape === "halo" && (
                   <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="rounded-[0.9rem] bg-foreground px-5 py-2.5 text-sm font-medium text-background">
-                      Start free
+                    {/* The structure moment 08 arrived at, which is the recipe's:
+                        the wash lives ON the pill, clipped by the pill's own
+                        radius, with the label above it. A dark pill, because a
+                        light wash over a white primary has no headroom to show
+                        in (moment 08 measured that). */}
+                    <span
+                      className="relative isolate inline-flex overflow-hidden rounded-[var(--radius-action)]"
+                      style={
+                        {
+                          background: "oklch(0.24 0 0)",
+                          boxShadow: "inset 0 0 0 1px oklch(1 0 0 / 0.08)",
+                          "--glw-radius": "var(--radius-action)",
+                        } as React.CSSProperties
+                      }
+                    >
+                      <Glow shape="halo" runId={runId} vars={SHAPE_VARS.halo} />
+                      <span className="relative px-6 py-2.5 text-sm font-medium text-[oklch(0.97_0_0)]">
+                        Start free
+                      </span>
                     </span>
                   </span>
                 )}
@@ -628,8 +651,8 @@ function BeamLaws() {
             place is a STATE, and that distinction is the doctrine in one line.
             The beam itself is no longer ours: it is border-beam, vendored
             exactly, after three hand-ports of mine missed it in the same
-            direction each time. What is still open is its colour, which is what
-            the two columns below are for.
+            direction each time. Its colour is settled (ours, globally). What
+            the two columns below ask is the corner.
           </p>
         </>
       }
@@ -651,29 +674,33 @@ function BeamLaws() {
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <Spec
-          name="Theirs, exactly"
-          note="colorVariant colorful. Nine gradient lobes at near-saturated sRGB, which is the palette the effect was tuned around."
+          name="Our rounding (rounded-2xl, 3.6px)"
+          note="The card rounded the way this system rounds a surface. The beam reads the object's own radius, so the ring is concentric with it at every corner."
         >
-          <BeamAB palette="colorful" />
+          <BeamAB radius="ours" />
         </Spec>
         <Spec
-          name="Ours, same geometry"
-          note="colorVariant partyreel. Our five hues in the same nine slots, at the same positions and sizes, so colour is the only variable."
+          name="The library's rounding (16px)"
+          note="The same card at the radius the reference is built around, which in our system is what an ACTION rounds to, not a surface."
         >
-          <BeamAB palette="partyreel" />
+          <BeamAB radius="theirs" />
         </Spec>
       </div>
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">
-            The one question this board is asking.
+            The palette is ruled: ours, globally. This is now asking about the
+            corner instead.
           </span>{" "}
-          Their nine lobes sit near the sRGB gamut edge; our ratified five ship
-          at oklch chroma 0.14 to 0.17, because everywhere else in the product
-          the chrome is achromatic and the media is the colour. Substituting
-          ours straight in is what washed out three attempts, so the partyreel
-          column raises them to the chroma this effect uses and holds the hue
-          exactly. Every position and size is copied from theirs.
+          You caught the ring and the card reading as two different shapes, and
+          the cause was mine. These cards were rounded like the reference
+          library and handed its 16px radius, on a system that rounds surfaces
+          SHARP: --radius is 2px, the shipped Card 2.8px, rounded-2xl 3.6px. A
+          16px ring around a 3.6px card is two radii, and the nested rule this
+          system already states (inner equals outer minus gap) was never in
+          play. The beam now reads the object&rsquo;s own radius, so both
+          columns are internally correct and the question is which object is
+          right.
         </p>
         <p className="mt-2">
           <span className="font-medium text-foreground">
@@ -687,15 +714,15 @@ function BeamLaws() {
         </p>
         <p className="mt-2">
           <span className="font-medium text-foreground">
-            One thing to weigh that no retune fixes.
+            Which reframes where a beam belongs.
           </span>{" "}
-          Theirs is eight distinct hues across nine lobes. Ours is five, because
-          our set has no teal and no magenta, so green and violet each have to
-          serve more than one slot. Even at matched chroma ours is a less varied
-          field, and if that variety is a real part of why the effect feels
-          alive, the honest answer is theirs as a named exception rather than a
-          retune of ours. If ours holds up anyway, the exception never has to
-          exist.
+          Actions are the one layer we round to 16px, and 16px is what this
+          effect was built for. So the beam&rsquo;s natural home in this system
+          is an action, not a surface, which is the same conclusion you reached
+          from the other direction when you said the CTA rim work was superseded
+          by carrying the beam onto premium buttons. What the left column asks
+          is whether a chromatic ring still reads on a 3.6px corner, or whether
+          beamed surfaces need a named exception the way Get Pro does.
         </p>
       </div>
       <div className="rounded-2xl border border-border p-4 text-xs leading-relaxed text-muted-foreground">
@@ -728,11 +755,11 @@ function BeamLaws() {
 }
 
 /**
- * One palette, both pulse variants. Inner and outside are the library's own
- * sizes; the only prop that differs between the two columns of section 04 is
- * `colorVariant`, which is the whole point of the comparison.
+ * One rounding, both pulse variants. The palette is settled, so the single
+ * variable across section 04's two columns is now the corner: `radius` is
+ * either our token for that layer or the library's own 16px default.
  */
-function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
+function BeamAB({ radius }: { radius: "ours" | "theirs" }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -745,7 +772,7 @@ function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
             escaping 7px top and bottom onto the page behind. Same ground
             colour, so no seam, but the falloff was landing off the stage. */}
         <Ground on="slab" className="flex min-h-56 items-center justify-center">
-          <BeamCard palette={palette} size="pulse-inner" />
+          <BeamCard radius={radius} size="pulse-inner" />
         </Ground>
       </div>
       <div>
@@ -756,7 +783,7 @@ function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
           on="slab"
           className="flex min-h-56 items-center justify-center overflow-visible"
         >
-          <BeamCard palette={palette} size="pulse-outside" />
+          <BeamCard radius={radius} size="pulse-outside" />
         </Ground>
       </div>
     </div>
@@ -765,28 +792,33 @@ function BeamAB({ palette }: { palette: "colorful" | "partyreel" }) {
 
 /** A stand-in card, so the beam is judged on an object rather than a swatch. */
 function BeamCard({
-  palette,
+  radius,
   size,
   lit = true,
 }: {
-  palette: "colorful" | "partyreel";
+  radius: "ours" | "theirs";
   size: "pulse-inner" | "pulse-outside";
   lit?: boolean;
 }) {
   return (
-    // strength 0.7 and theme dark are Will's picks, held constant across both
-    // columns. borderRadius is passed rather than auto-detected: the library
-    // reads the first child's computed radius, and Ground's clipping made that
-    // read 0 on the outside variant.
+    // ★ NO borderRadius PROP. Omitting it makes the library read the child's own
+    // computed radius, which is the whole fix: the ring is whatever the object
+    // is, and the nested layers follow from that. Passing a literal is what put
+    // a 16px ring around a 3.6px card and made the two read as different shapes.
+    // strength 0.7, theme dark and our palette are settled and held constant, so
+    // the corner is the only variable between the columns.
     <BorderBeam
       size={size}
-      colorVariant={palette}
+      colorVariant="partyreel"
       strength={0.7}
       theme="dark"
-      borderRadius={16}
     >
       <div
-        className="relative isolate w-64 rounded-2xl p-5"
+        className={cn(
+          "relative isolate w-64 p-5",
+          // Our surface token (3.6px) against the library's default (16px).
+          radius === "ours" ? "rounded-2xl" : "rounded-[16px]",
+        )}
         data-lit={lit ? "" : undefined}
         style={{ background: "oklch(0.21 0 0)" }}
       >
@@ -816,14 +848,14 @@ const LIT_CUES: { name: string; value: string; does: string }[] = [
     does: "An inset ring instead of a border. It adds nothing to the box, and it reads as the edge of a solid object rather than a stroke drawn around a div.",
   },
   {
-    name: "Air",
-    value: "inset 0 0 50px at ~3%",
-    does: "A large, very faint inner glow. This is the one that stops a surface reading as a flat filled rectangle, and I think it is most of what polish means here.",
-  },
-  {
     name: "Lip",
     value: "inset 0 1px 0 at ~6%",
-    does: "A highlight on the top edge only: the object is lit from above.",
+    does: "A highlight on the top edge only: the object is lit from above. Flat, 1px, no blur.",
+  },
+  {
+    name: "Air (removed)",
+    value: "was inset 0 0 50px at ~3%",
+    does: "A large, very faint inner glow. I claimed this was most of what polish means here; Will ruled it unnecessary, and he is right. It was the only cue doing blurred opacity layering rather than stating an edge, and flat reads better.",
   },
 ];
 
@@ -834,19 +866,27 @@ function LitSurface() {
       title="The lit surface"
       lede={
         <>
-          <p>
-            Will&rsquo;s note was that he liked the component design UNDERNEATH
-            the beam, and then the useful correction: that is not a licence to
-            beam everything. So this is the part that survives with the beam
-            switched off. Three achromatic, static cues, no motion at all,
-            measured off their card and pills. Available to any action or
-            state-based component, beam or not.
+          <p className="rounded-2xl border border-border p-3 text-foreground">
+            <span className="font-medium">I had this wrong.</span> When you said
+            you liked the component design underneath the beam, you meant
+            component design in GENERAL: layout, spacing, type sizing, how the
+            features are worked in. That is what you mean by polish, and it is
+            not a doctrine question at all. It is how every component should be
+            built, and it belongs in the work rather than on a board.
           </p>
           <p className="mt-2">
-            Dark grounds only for now. The lip is a light-catching highlight, so
-            on paper it is invisible and the honest equivalent is a soft bottom
-            edge instead. Same lesson the spill register learned: a ground
-            changes what light means.
+            What survives is the narrower thing that turned out to be true
+            anyway: a card wants visual distinctness from whatever sits behind
+            it, media gallery or more UI, and today&rsquo;s card does not pop
+            over another surface the way a dressed one does. The hairline is
+            what does that work.
+          </p>
+          <p className="mt-2">
+            Trimmed on your call: the inner blur is gone. It was the one cue
+            doing layered opacity rather than stating an edge, and flat reads
+            better. Hairline and the 1px lip remain, and neither is blurred.
+            Dark grounds only for now, because the lip is a light-catching
+            highlight and on paper the honest equivalent is a soft bottom edge.
           </p>
         </>
       }
@@ -865,7 +905,10 @@ function LitSurface() {
         ))}
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
-        <Spec name="Dressed" note="The three cues, no beam, no motion.">
+        <Spec
+          name="Dressed"
+          note="Hairline and lip, no blur, no beam, no motion."
+        >
           <Ground
             on="slab"
             className="flex min-h-44 items-center justify-center"

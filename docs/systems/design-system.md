@@ -208,7 +208,18 @@ grandfathered pending Will's ruling on a sweep (→ ROADMAP).
 | Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements) |
 
 Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the
-system's DELIBERATE exception to it. The legacy `rounded-sm..4xl` scale stays mapped off `--radius`
+system's DELIBERATE exception to it.
+
+★ **Anything drawn AROUND an object takes the object's radius, never a literal.** A ring, glow or
+bloom at offset N gets `object radius + N`, which is the same nested rule read outward. This is not
+theoretical: the border-beam round shipped a 16px chromatic ring around a `rounded-2xl` (3.6px) card
+because the specimen was rounded like the vendored library and then handed the library's own
+`borderRadius`, and it read as two different shapes the moment colour landed in a corner. `BorderBeam`
+auto-detects its child's computed radius when the prop is OMITTED, which is the correct call, and
+[`border-beam-vendor.test.ts`](../../src/components/dev/border-beam-vendor.test.ts) pins that no lab
+specimen passes one. The corollary is worth knowing before reaching for that effect: it is authored
+for 16px+ corners, and 16px is what this system rounds an ACTION to, so **a beam's natural layer here
+is an action, not a surface**. The legacy `rounded-sm..4xl` scale stays mapped off `--radius`
 (all "sharp family") — `rounded-xl` is now tiny, so floating panels must use `rounded-float`, never
 `rounded-xl`. Measurements ride Tailwind's 4px grid + the 0.4-height radius ratio (the system's
 math).

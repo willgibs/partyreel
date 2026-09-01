@@ -69,6 +69,40 @@ describe("the vendored border-beam package", () => {
     });
   });
 
+  it("never hands the beam a hard-coded radius", () => {
+    // The bug Will caught: a 16px chromatic ring drawn around a 3.6px card,
+    // because the specimens were rounded like the reference library and then
+    // handed its literal radius. Omitting `borderRadius` makes the library read
+    // the child's own computed radius, so the ring is whatever the object is
+    // and the nested layers follow. The ONE legitimate literal is section 04's
+    // right-hand column, which exists to show the library's own 16px against
+    // our tokens, and it lives in a className rather than in this prop.
+    const boards = [
+      "src/app/(dev)/design/components/glow-doctrine-variants.tsx",
+      "src/app/(dev)/design/components/glow-moments-variants.tsx",
+    ];
+    for (const rel of boards) {
+      // Comments stripped first: these files EXPLAIN the bug, and a pin that
+      // trips on its own explanation teaches the next agent to delete the
+      // explanation rather than keep the fix.
+      const src = readFileSync(join(process.cwd(), rel), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "");
+      const literals = [...src.matchAll(/borderRadius=\{[^}]*\}/g)].map(
+        (m) => m[0],
+      );
+      expect(literals, `${rel} passes a radius to BorderBeam`).toEqual([]);
+      // And no specimen invents one in a class either: every radius on these
+      // boards comes from a token, so `rounded-[14px]` and friends are out.
+      // `rounded-[1px]` is a QR module, not a surface, and `rounded-[16px]` is
+      // the named comparison column.
+      const arbitrary = [...src.matchAll(/rounded-\[(\d+)px\]/g)]
+        .map((m) => m[1])
+        .filter((px) => px !== "1" && px !== "16");
+      expect(arbitrary, `${rel} has off-token radii`).toEqual([]);
+    }
+  });
+
   it("keeps the two palettes in phase, which is what makes the A/B honest", () => {
     // Doctrine section 04 tells Will the columns are the same instant of the
     // same motion, so any difference he sees is colour. That claim rests on two
