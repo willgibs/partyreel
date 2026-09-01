@@ -8,7 +8,7 @@ import {
   GlowFilter,
   type GlowShape,
   type GlowVars,
-} from "@/components/dev/glow";
+} from "@/components/shared/glow";
 import {
   alphaAtAaFloor,
   effectiveAlpha,

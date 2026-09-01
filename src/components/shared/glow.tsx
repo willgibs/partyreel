@@ -1,14 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-
-import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
-import { useInViewOnce } from "@/lib/shared/use-in-view-once";
-
 /**
- * SPILL: the light primitive (lab-local, the doctrine round 2026-08-28).
+ * SPILL: the light primitive (promoted to production, round 0, 2026-09-01).
  *
- * The engine's CSS lives in design.css; this owns the JS-side invariants BY
+ * The engine's CSS lives in globals.css; this owns the JS-side invariants BY
  * CONSTRUCTION, so a consumer cannot forget them. Three of those are non
  * obvious enough that they are the reason this component exists at all:
  *
@@ -33,6 +28,11 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * gets exactly one turbulence field, because duplicate SVG ids resolve by
  * document order and that is unstable under portals and reconciliation.
  */
+
+import type { CSSProperties } from "react";
+
+import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
+import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 
 export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo";
 export type GlowDrive = "mask" | "transform" | "scalar";
@@ -71,7 +71,15 @@ type GlowProps = {
   edge?: boolean;
   /**
    * Law 3. Five colours sampled from the media this lamp is lighting. Omit on
-   * surfaces with no media and the engine falls back to the ratified five.
+   * surfaces with no media and the engine falls back to the house lamp set
+   * (--lamp-1..5, globals.css). Lands inline, so it outranks both the engine's
+   * defaults and any ancestor that retuned --lamp-* for its subtree.
+   *
+   * ★ SAMPLING DOES NOT WORK ON REAL USER MEDIA YET. useSampledPalette sets no
+   * crossOrigin, so an R2-presigned photo taints the canvas, getImageData
+   * throws, and the catch silently hands back the fallback: no error, no
+   * failing test, just generic-looking light. Fix that before wiring this to
+   * guest media (see sampled-palette.ts's header for the two options).
    */
   colors?: readonly string[];
   vars?: GlowVars;

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Camera, Check, Copy, Lock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Glow, GlowFilter } from "@/components/dev/glow";
+import { Glow, GlowFilter } from "@/components/shared/glow";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
 import { Button } from "@/components/ui/button";
