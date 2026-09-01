@@ -1952,8 +1952,9 @@ function BeamSurfaces() {
           are sharp. The beam now reads each object&rsquo;s own radius, so the
           Get Pro pill rounds like an action, the palette like the floating
           layer it is, and the cards like cards. Section 04 on the doctrine
-          board asks the question this exposed: whether a chromatic ring
-          survives on a 3px corner at all.
+          board carried the question this exposed, and you answered it: the
+          rounder corner, system-wide. That is its own round, and because these
+          all read tokens now, they inherit it without being touched.
         </p>
         <p className="mt-2">
           Catalogued rather than built: the guest gate while it verifies a
