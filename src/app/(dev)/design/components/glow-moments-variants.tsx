@@ -271,8 +271,8 @@ function Doorbell() {
     <Moment
       n="03"
       title="The doorbell arrival"
-      verdict="work"
-      verdictLabel="Wants a real device pass"
+      verdict="ship"
+      verdictLabel="Ship, after a real device pass"
       lede={
         <p>
           Someone else&rsquo;s photo just landed in your album. This is the
@@ -782,7 +782,7 @@ function PublishBeat() {
       n="07"
       title="The publish beat, rebuilt"
       verdict="work"
-      verdictLabel="Needs a ruling on the violet"
+      verdictLabel="Open: the violet is a state colour"
       lede={
         <p>
           The best lamp in the product: a real canvas playing real frames, once
@@ -1079,8 +1079,8 @@ function PaperProbe() {
     <Moment
       n="09"
       title="The paper probe"
-      verdict="work"
-      verdictLabel="Better than expected, and worth a look"
+      verdict="ship"
+      verdictLabel="Ship, in the paper register"
       lede={
         <>
           <p>
@@ -1177,11 +1177,12 @@ function PaperProbe() {
 }
 
 /* ── 10 ─────────────────────────────────────────────────────────────────────
-   The three below are NEW this round. Each demonstrates something the engine
+   The two below are NEW this round. Each demonstrates something the engine
    can already do that no placement was using: light bound to a value rather
-   than a clock, light that follows a pointer, and light that travels between
-   two objects. They are mechanics first and proposals second, which is why
-   they sit after the nine argued placements.                                */
+   than a clock, and light that travels between two objects. (A third, light
+   that follows a pointer, was built and then killed, so it is gone rather than
+   kept as a reject specimen.) They are mechanics first and proposals second,
+   which is why they sit after the nine argued placements.                    */
 
 function UploadAsLight() {
   const [progress, setProgress] = useState(0);
@@ -1356,7 +1357,7 @@ function UploadAsLight() {
   );
 }
 
-/* ── 12 ─────────────────────────────────────────────────────────────────── */
+/* ── 11 ─────────────────────────────────────────────────────────────────── */
 
 type Flight = {
   x: number;
@@ -1765,10 +1766,10 @@ const BEAM_SURFACES: BeamSurface[] = [
     id: "render",
     name: "The reel while it renders",
     law: "Beam law 1, and the purest reading of it",
-    note: "Our truest Working card: the on-device engine has a real progress and a real duration, once per event, at the host's biggest moment. It beams while it works and stops when it finishes, which is beam-as-state with nothing left over.",
+    note: "Our truest Working card: the on-device engine has a real progress and a real duration, once per event, at the host's biggest moment. It beams while it works and stops when it finishes, which is beam-as-state with nothing left over. PARKED at the merge (2026-08-31), not rejected: today's reel-stitching-dialog is a minimal stand-in rather than the finished reel-render surface, and it is bg-popover (near-white in a light session) carrying a generic spinner. Judging this beam against that measures the stub. It rides the reel-render surface's own round, where the ground is chosen as part of the design instead of retrofitted.",
     beam: "inner",
-    verdict: "ship",
-    verdictLabel: "Ship",
+    verdict: "work",
+    verdictLabel: "Parked for the reel-render round",
   },
   {
     id: "qr",
@@ -1783,10 +1784,10 @@ const BEAM_SURFACES: BeamSurface[] = [
     id: "palette",
     name: "The help palette while searching",
     law: "Beam law 1, and the closest thing we have to their composer",
-    note: "My addition. Their demo you responded to is a composer awaiting input, and the command palette is the one surface we have that is exactly that. It beams while focused and stops the moment you leave.",
+    note: "My addition. Their demo you responded to is a composer awaiting input, and the command palette is the one surface we have that is exactly that. It beams while focused and stops the moment you leave. DROPPED from the beam list at the merge (2026-08-31): this specimen is a dark card, but production forces surface-paper on the palette so it is near-white in EVERY session, which is the exact ground that got the QR plate's beam rejected two rows up. It is also 8px rounded-float on a library authored for 16px and above, and a surface rather than an action. The palette can still be lit, by spill in the paper register. Whether a focused command palette should instead BE a cinema surface is a real question, and it has to be argued from what a palette should be, never from what the beam needs.",
     beam: "inner",
-    verdict: "work",
-    verdictLabel: "New, wants your eye",
+    verdict: "reject",
+    verdictLabel: "Beam dropped: paper ground",
   },
 ];
 
@@ -1812,7 +1813,7 @@ function BeamSurfaces() {
       n="12"
       title="Where a beam is allowed"
       verdict="work"
-      verdictLabel="Three beamed, one ruled to our own light"
+      verdictLabel="One beams; the ground ruled out the other two"
       lede={
         <>
           <p>

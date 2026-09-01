@@ -1983,9 +1983,22 @@
    ★ NOT ON A BLOOM. A bloom is a swell, not a travelling window, so windowing
    it through a 280%-wide comet leaves a narrow diagonal sliver of the field
    parked off-centre, which is indistinguishable from "nothing happened". The
-   :not() is the whole reason the QR and publish beats read as broken. ── */
-[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="mask"] [data-glw-band],
-[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]
+   :not() is the whole reason the QR and publish beats read as broken.
+
+   ★ NOT ON A HALO EITHER (fixed at the glow merge, 2026-08-31). A halo orbits;
+   it does not sweep, which is why the halo block above sets mask-image: none.
+   That override was DEAD: it is (0,2,0) and this block is (0,4,0) AND later in
+   source order, so it lost twice and every halo specimen rendered the comet
+   mask instead of the orbit. Same :not() trap this comment already warns about
+   for bloom, and the same fix. Rulings taken on a halo specimen before this
+   date were taken on a lamp that was not doing what its own source said. ── */
+[data-glw]:not([data-glw-shape="bloom"]):not(
+    [data-glw-shape="halo"]
+  )[data-glw-drive="mask"]
+  [data-glw-band],
+[data-glw]:not([data-glw-shape="bloom"]):not(
+    [data-glw-shape="halo"]
+  )[data-glw-drive="scalar"]
   [data-glw-band] {
   -webkit-mask-image: linear-gradient(
     100deg,
@@ -2442,7 +2455,8 @@
 
 /* ── The states the doctrine has to survive. A purely decorative colour layer
    is exactly where these belong, and the repo currently has NO forced-colors
-   or print rule anywhere (logged to ROADMAP). ── */
+   or print rule on any PRODUCTION surface; the block just below is the repo's
+   first of each (logged to ROADMAP). ── */
 @media (forced-colors: active) {
   [data-glw] {
     display: none;

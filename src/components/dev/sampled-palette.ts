@@ -145,6 +145,27 @@ export function huesToSpillColors(
 }
 
 /**
+ * ★★ SAME-ORIGIN ONLY, AND THAT EXCLUDES OUR REAL MEDIA (recorded at the glow
+ * merge, 2026-08-31). This draws the image to a canvas and calls getImageData,
+ * and it sets no crossOrigin. Every guest photo and video is presigned against
+ * *.r2.cloudflarestorage.com (src/lib/r2/client.ts), a DIFFERENT ORIGIN, so the
+ * canvas taints, getImageData throws SecurityError, and the catch below returns
+ * the fallback five. That failure is SILENT by construction: no console error,
+ * no failing test, no tell beyond "the colours look generic", which means law 3
+ * would quietly stop being true on exactly the surfaces that have real media.
+ * The lab never caught it because every specimen samples marketingImage(...),
+ * which Next serves same-origin.
+ *
+ * So before ANY placement lights real user media, one of these has to land:
+ *   (a) img.crossOrigin = "anonymous" + an R2 CORS rule for the site origin
+ *       (Orchestrator-only: wrangler r2 bucket cors set), accepting that the
+ *       browser then refetches the full-size photo on a CORS-partitioned cache
+ *       just to read 32x32 of it; or
+ *   (b) BETTER: extract the palette server-side once at upload/derivative time
+ *       and store it on the media row. No CORS, no double fetch, works for
+ *       video posters, and computed once instead of on every view.
+ * Marketing surfaces are unaffected and sample correctly today.
+ *
  * Sample same-origin media into a spill palette. Returns null until it resolves
  * (callers fall back to the ratified five, which is law 3's no-media branch, so
  * there is never an unlit frame).

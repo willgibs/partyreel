@@ -1349,7 +1349,7 @@ function Calibration() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Spec
           name="The engine, at the footer's values"
-          note="210px layer, base and band at 0.62, 11s, 16px blur, fallback five."
+          note="210px layer, base and band at 0.62, 16px blur, fallback five. NOTE the cadence: this specimen runs the engine register at 8s, while the shipped footer runs 11s. Promotion has to settle which one the footer keeps, because retiring FooterGlow onto the engine re-times a ratified live surface by 27 percent if nobody passes the var."
         >
           <FooterMock lit />
         </Spec>

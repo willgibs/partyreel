@@ -532,15 +532,31 @@ decision record, `/design/boom` probe). Perf baselines: [`../perf/v1-baseline.md
 - `vitest.setup.ts` mocks sonner globally; `vi.unmock("sonner")` is the per-file escape hatch.
 - shadcn `src/components/ui/*` files are semicolon-free (generator style); app code uses
   semicolons. Don't reformat either direction.
+- ★ **The lab and production are BOTH provisional, and the arrow points both ways.** A lab specimen is
+  often an early prototype of FUTURE UI, and a shipped surface is sometimes itself a minimal stand-in
+  that has not been designed yet. So a mismatch between a specimen and the production surface it names
+  does NOT establish that the specimen is wrong: **a minimal production surface is not evidence against
+  a specimen.** When a proposal does not fit its surface there are three answers, and collapsing the
+  middle one into "reject" is the easy mistake (it was made twice during the glow merge, 2026-08-31):
+  (1) the PLACEMENT is wrong, so re-assign it to whatever the surface's own properties call for;
+  (2) the SURFACE is provisional and will grow into it, so park the placement and design the two
+  together in that surface's own round; (3) the SURFACE should change on its own merits, which is its
+  own design round, argued from what the surface should be and NEVER from what the effect needs.
+  Which of the three applies is usually roadmap knowledge rather than something readable from the code,
+  so ask rather than infer, and record the answer beside the placement.
 - **`src/components/vendor/*` is third-party source copied in verbatim, and is NOT ours to restyle.**
-  Prettier (`.prettierignore`), eslint (a `files:` override), and the em-dash policy (the `SKIP`
-  regex) all deliberately look away, so the usual gate would NOT catch an edit there. The em-dash
+  Prettier (`.prettierignore`) and the em-dash policy (the `SKIP` regex) look away entirely; eslint
+  does NOT, it lints the folder fully minus exactly two rules (`react-hooks/set-state-in-effect` and
+  `@typescript-eslint/no-unused-vars`, both of which BorderBeam genuinely trips, so the override is
+  load-bearing rather than cosmetic). The net is that the usual gate would not catch a restyle there. The em-dash
   exemption is the subtle one: that scanner reads every template literal as user-facing copy, which
   is right for our code and wrong for a CSS-in-JS package, where an em-dash inside a `/* */` CSS
   comment never reaches a user. Because all three look away,
   [`border-beam-vendor.test.ts`](../../src/components/dev/border-beam-vendor.test.ts) pins what is
-  left: the licence notice in every file, the count of marked deviations, and the palette parity the
-  A/B depends on. Compose ON a vendored package from your own file; never edit it in place, and mark
+  left: the licence notice in every file, an EXACT count of marked deviations (it shipped as a floor,
+  `>= 2` against an actual 11, so it could not fail; corrected at the merge), and the palette parity
+  the A/B depends on. Two `react-hooks/set-state-in-effect` sites inside `BorderBeam.tsx` are known,
+  accepted, and NOT gate-verified, which the rounds that place the beam should know. Compose ON a vendored package from your own file; never edit it in place, and mark
   any unavoidable deviation `PARTYREEL:`. First instance: border-beam v1.4.0 (MIT), vendored after
   three hand-ports missed, each substituting our low-chroma five into a palette tuned at the sRGB
   gamut edge and then compensating with filters.

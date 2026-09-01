@@ -37,11 +37,24 @@ describe("the vendored border-beam package", () => {
     }
   });
 
-  it("marks every deviation from upstream, and has only the two", () => {
+  it("marks every deviation from upstream", () => {
     // The value of vendoring is that this IS upstream, so any edit has to
-    // announce itself. Two are expected: the "use client" directive Next 16
-    // needs, and the extra palette. If a third appears, either it is marked and
-    // this number moves deliberately, or someone restyled the package.
+    // announce itself.
+    //
+    // ★ THIS IS AN EXACT PIN, NOT A FLOOR (fixed at the glow merge,
+    // 2026-08-31). It read toBeGreaterThanOrEqual(2) against an actual 11, so
+    // it passed no matter what anyone did to the folder, under a name that
+    // promised the opposite. Prettier and the em-dash scanner are both told to
+    // look away here, so this file is the whole integrity story for ~3,000
+    // lines of third-party code and it has to be able to fail.
+    //
+    // The 11 is 4 file headers (BorderBeam, pulseDriver, styles, types; each
+    // names the deviations) + 7 in-body sites: the palette at styles.ts:222,
+    // the union member at types.ts:49, the "use client" note at
+    // BorderBeam.tsx:21, and four *Base rename-and-respread edits at
+    // styles.ts:340/486/550/649 (load-bearing under strict TS: indexing a
+    // 4-key object with a 5-member union is TS7053, so do not revert them).
+    // Moving this number is fine; moving it WITHOUT reading the diff is not.
     const marks = readdirSync(DIR)
       .filter((f) => /\.tsx?$/.test(f))
       .flatMap((f) =>
@@ -51,7 +64,10 @@ describe("the vendored border-beam package", () => {
       );
     // Each of the five files carries the header, which names both deviations.
     const inBody = marks.filter((f) => f !== "index.ts");
-    expect(inBody.length).toBeGreaterThanOrEqual(2);
+    expect(
+      inBody.length,
+      "a vendored file gained or lost a PARTYREEL: mark",
+    ).toBe(11);
   });
 
   it("varies only colour between the two palettes under test", () => {

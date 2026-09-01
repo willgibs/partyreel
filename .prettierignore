@@ -24,6 +24,7 @@ src/components/ui
 
 # Vendored third-party source, copied in verbatim under its own licence. The point of
 # vendoring is having the exact upstream file: reformatting it destroys the diff against
-# upstream and blurs the line between their code and our two marked deviations. Compose
-# on top of these in your own files, same rule as the shadcn primitives above.
+# upstream and blurs the line between their code and our marked deviations (two in intent,
+# seven in-body sites, all tagged PARTYREEL: and pinned by border-beam-vendor.test.ts).
+# Compose on top of these in your own files, same rule as the shadcn primitives above.
 src/components/vendor

@@ -19,9 +19,12 @@ doctrine for the footer's organic-shimmer glow, plus the vendored beam that grew
 effect from computed styles and screenshots, substituting our low-chroma five into a palette tuned at
 the sRGB gamut edge, then compensating with filters until it read neon. Will's call was to copy it
 exactly, so border-beam v1.4.0 (MIT) now lives verbatim in `src/components/vendor/border-beam` with
-two marked deviations: a `"use client"` directive and a fifth palette entry so the colour question
-could be answered by looking. Prettier, eslint and the em-dash policy all deliberately skip the
-folder, so `border-beam-vendor.test.ts` pins what those guards no longer cover.
+two deviations in intent: a `"use client"` directive and a fifth palette entry so the colour question
+could be answered by looking. Those land as seven marked in-body sites, because a fifth member on the
+colour union makes four `*Base` rename-and-respread edits in `styles.ts` load-bearing under strict TS.
+Prettier and the em-dash policy skip the folder outright; eslint still lints it, minus two rules. So
+`border-beam-vendor.test.ts` pins what is left, and at the merge its headline assertion was corrected
+from a floor (`>= 2` against an actual 11, which could never fail) to an exact pin.
 
 **Ruled by Will (2026-08-31): our palette, globally.** Theirs was reviewed side by side, in phase and
 in the same nine lobes, and not adopted.
@@ -34,9 +37,17 @@ read its child's computed radius, so every layer derives from the object: measur
 board, our column emits 3.6 / 13.6 / 33.6 and the library's 16 / 26 / 46, both concentric. The
 durable output is a rule in [`design-system.md`](systems/design-system.md): anything drawn around an
 object takes the object's radius, never a literal, and since 16px is what this system rounds an
-ACTION to, a beam's natural layer here is an action rather than a surface. Still open for Will.
+ACTION to, a beam's natural layer here is an action rather than a surface. Will then RULED the rounder
+column and asked for it system-wide, which is why it left as its own round rather than riding out here
+(commits `e2d060c`, `64c7a5d`): the `rounded-*` scale is derived from `--radius` by multiplication, so
+the literal reading overshoots what he approved, across 288 shipping uses in 140 files.
 
-**The halo was misframed rather than rough.** Mounted as a child of a 16/9 stage it filled the stage,
+**The halo was misframed rather than rough**, and one thing about it was not caught until the merge:
+its `mask-image: none` override was DEAD. At specificity (0,2,0) it lost to the shared band rule at
+(0,4,0), which is also later in source order, so every halo specimen rendered the travelling comet mask
+instead of the orbit it documents. Fixed at the merge with the same `:not()` the file already uses for
+`bloom`. Rulings taken on a halo specimen before 2026-08-31 were taken on a lamp that was not doing
+what its own source said, which includes the QR plate's resting halo. Mounted as a child of a 16/9 stage it filled the stage,
 so its mask ramp spanned ~441px, or 1.7 pixels per 8-bit alpha level, which is exactly where a ramp
 resolves into visible arcs. It now sits on a pill with the structure moment 08 already proved: 166px
 and 0.65 px per level, measured on the preview, with the two-stop ramp replaced by a nine-stop
