@@ -73,11 +73,27 @@ export function EventTypeCard({
           className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-70 motion-reduce:transition-none"
         />
 
+        {/* THE COPY SCRIM -- measured, not assumed. On the deployed preview the
+            main scrim alone left the Conferences title at a median 3.65:1
+            against the white tablecloth under it (worst 2.1:1), and Parties at
+            a borderline 4.5:1, read per-pixel off the rendered image with the
+            gradient's alpha applied. Same answer the hero reached for its
+            mobile copy (cinema-hero.tsx): one extra short ramp that puts ink
+            behind the copy block ONLY, so the photograph above stays bright
+            and the main scrim keeps lifting on hover. This one does not lift. */}
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-[55%] bg-linear-to-t from-black/75 to-transparent"
+        />
+
         <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-5">
           <span className="font-heading text-lg leading-tight text-white sm:text-xl">
             {title}
           </span>
-          <span className="text-sm leading-relaxed text-white/80">
+          {/* white/85, not /80: the teaser is the smaller face over the
+              lighter part of the ramp, and a translucent white is a lower
+              contrast than the measurement's pure-white assumption. */}
+          <span className="text-sm leading-relaxed text-white/85">
             {teaser}
           </span>
         </span>
