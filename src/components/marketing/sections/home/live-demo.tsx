@@ -13,7 +13,12 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
- * LOUD (the loud/quiet map): the ratified Direction-C phase machine re-skinned
+ * LOUD (the loud/quiet map) and, since round 2, CHAPTER 1's CLOSING ANCHOR in
+ * the pacing arc (design-system.md "Chapters"): the one section that wraps
+ * the chapter's ideas into a single visual, landing after two quieter
+ * sections rather than escalating into the paper cut.
+ *
+ * The ratified Direction-C phase machine re-skinned
  * to the always-dark cinema room (the live-direction lab reference), acting
  * out the core loop: QR pulses, the scan beam sweeps, tiles FLY from the
  * phone into the album, live toasts pop, the reel card lands, counters tick.
@@ -96,10 +101,18 @@ export function LiveDemo() {
 
   return (
     <SectionShell
-      align="left"
       eyebrow="Live demo"
       heading={SECTION_HEADERS.liveDemo.line}
       subhead={SUBHEAD}
+      /* CHAPTER 1's CLOSING ANCHOR (Will, round 2): "it does a good job as a
+         visual anchor for the first chapter, wrapping all the ideas together in
+         one." It used to sit left-aligned at the body tier and land straight
+         before the paper cut, reading as one more escalation. Now it follows
+         two quieter sections, arrives centred with the heading a tier up and
+         real air above, and reads as the chapter's conclusion. Standard rise,
+         not the cut: the cut is how a chapter OPENS. */
+      scale="lg"
+      className="pt-28 sm:pt-36"
     >
       <div ref={ref} className="mx-auto mt-10 max-w-4xl">
         {/* The stage: the core loop, acted out. data-paused freezes the QR

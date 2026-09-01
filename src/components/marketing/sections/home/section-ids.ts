@@ -1,7 +1,10 @@
 /**
  * THE RATIFIED HOME ORDER (Will, 2026-08-25: the IA's album section split into
  * album + curation, pricing moved after the reel; 2026-08-26 chapter ruling:
- * privacy moves up beside curation so the paper chapter is contiguous). This
+ * privacy moves up beside curation so the paper chapter is contiguous;
+ * 2026-09-01 chapter-pacing ruling: two quieter guest-side sections land above
+ * the live demo so chapter 1 winds down before its anchor instead of
+ * escalating into the paper cut). This
  * module is deliberately PURE (no component imports) so the Vitest pin can
  * hold the sequence without dragging the section tree's env-reading imports
  * (lib/demo.ts) into the test runner; index.ts derives its component pairing
@@ -13,6 +16,8 @@ export const HOME_SECTION_IDS = [
   "trust-strip",
   "decomposition",
   "film-strip",
+  "no-app",
+  "full-quality",
   "live-demo",
   "album",
   "curation",
@@ -32,7 +37,7 @@ export type HomeSectionId = (typeof HOME_SECTION_IDS)[number];
  * the host's desk (light: the album that arrived, deciding, trust). The page
  * renders CONSECUTIVE paper ids inside one <PaperChapter> — the theme switch
  * is a chapter CUT introducing a concept group, never stripe alternation, so
- * the shape here is 5 dark, 3 paper, 5 dark. cinema-hero and cinema-close are
+ * the shape here is 7 dark, 3 paper, 5 dark. cinema-hero and cinema-close are
  * bookends by doctrine (the page opens and closes in the cinema; the test
  * pins it).
  */
@@ -43,6 +48,8 @@ export const HOME_SECTION_SURFACE: Record<HomeSectionId, HomeSurface> = {
   "trust-strip": "cinema",
   decomposition: "cinema",
   "film-strip": "cinema",
+  "no-app": "cinema",
+  "full-quality": "cinema",
   "live-demo": "cinema",
   album: "paper",
   curation: "paper",

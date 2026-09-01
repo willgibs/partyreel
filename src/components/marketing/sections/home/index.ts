@@ -8,7 +8,9 @@ import { Decomposition } from "./decomposition";
 import { EventsTeaser } from "./events-teaser";
 import { Faq } from "./faq";
 import { FilmStrip } from "./film-strip";
+import { FullQuality } from "./full-quality";
 import { LiveDemo } from "./live-demo";
+import { NoApp } from "./no-app";
 import { PricingTeaser } from "./pricing-teaser";
 import { Privacy } from "./privacy";
 import { ReelTeaser } from "./reel-teaser";
@@ -27,6 +29,8 @@ export const HOME_SECTION_COMPONENTS: Record<HomeSectionId, ComponentType> = {
   "trust-strip": TrustStrip,
   decomposition: Decomposition,
   "film-strip": FilmStrip,
+  "no-app": NoApp,
+  "full-quality": FullQuality,
   "live-demo": LiveDemo,
   album: Album,
   curation: Curation,

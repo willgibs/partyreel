@@ -48,10 +48,20 @@ export const SECTION_HEADERS: Record<
     line: "Scan, upload, done. No app to install.",
     status: "ruled",
   },
+  noApp: {
+    line: "Nothing to install. Nothing to sign up for.",
+    status: "provisional",
+    note: "Round 2 (2026-09-01): the guest-side wind-down Will asked for above the live demo. Draft line; his ruling pending.",
+  },
+  fullQuality: {
+    line: "Everything they shoot, at the size they shot it.",
+    status: "provisional",
+    note: "Round 2 (2026-09-01): the second wind-down section, full-quality originals and video. Draft line; his ruling pending.",
+  },
   liveDemo: {
     line: "Watch your album fill up.",
     status: "provisional",
-    note: "Will entertains other ideas here.",
+    note: "Will entertains other ideas here. Since round 2 this section is chapter 1's closing ANCHOR, centred at the lg heading tier.",
   },
   album: {
     line: "Every photo comes to you first.",
