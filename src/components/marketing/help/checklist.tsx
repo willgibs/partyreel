@@ -134,7 +134,9 @@ export function Check({
         {children && (
           <span
             className={cn(
-              "mt-1 block text-sm leading-6 text-muted-foreground transition-opacity duration-150 [&>:first-child]:mt-0 [&>:last-child]:mb-0",
+              // The body sits outside the prose scope (not-prose on the list), so
+              // inline links restyle here or they read as plain text.
+              "mt-1 block text-sm leading-6 text-muted-foreground transition-opacity duration-150 [&>:first-child]:mt-0 [&>:last-child]:mb-0 [&_a]:font-medium [&_a]:text-foreground [&_a]:underline [&_a]:decoration-border [&_a]:underline-offset-4 hover:[&_a]:decoration-foreground",
               checked && "opacity-60",
             )}
           >
