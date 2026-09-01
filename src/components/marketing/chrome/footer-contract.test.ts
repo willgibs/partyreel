@@ -71,15 +71,34 @@ describe("the ink-slab footer contract", () => {
     expect(stripComments(qr)).not.toContain('"use client"');
   });
 
-  it("the seam glow owns the loop-pause contract", () => {
-    // The sweep is infinite, and marketing.css requires every infinite animation
-    // to carry data-paused wiring. It matters more here than anywhere: the
-    // footer is below the fold on every page, so the default state is paused and
-    // the animation only runs while someone is actually looking at it.
+  it("the seam glow owns the loop-pause contract, through the primitive", () => {
+    // The sweep is infinite, and the house rule is that every infinite
+    // animation carries data-paused wiring. It matters more here than anywhere:
+    // the footer is below the fold on every page, so the default state is
+    // paused and the animation only runs while someone is actually looking.
+    //
+    // Retired onto the SPILL engine at round 0, so the wiring is no longer in
+    // this file: Glow carries it BY CONSTRUCTION. Assert the delegation rather
+    // than the old inline hook, and assert the primitive still honours it, or
+    // this test passes on a footer that quietly stopped pausing.
     const glow = stripComments(
       read("src/components/marketing/chrome/footer-glow.tsx"),
     );
-    expect(glow).toContain("useAmbientPause");
-    expect(glow).toContain("data-paused");
+    expect(glow).toContain("<Glow ");
+    expect(glow).not.toContain("useAmbientPause");
+    const primitive = stripComments(read("src/components/shared/glow.tsx"));
+    expect(primitive).toContain("useAmbientPause");
+    expect(primitive).toContain('data-paused={paused ? "true" : "false"}');
+  });
+
+  it("passes the shipped 11s cadence rather than taking the 8s register", () => {
+    // The engine's ruled register is 8s; this surface ships 11s. Retiring the
+    // footer onto the engine without the override would silently re-time
+    // ratified live chrome by 27%, inside a change whose whole point is that
+    // nothing moves. Delete this pin only together with a cadence ruling.
+    const glow = stripComments(
+      read("src/components/marketing/chrome/footer-glow.tsx"),
+    );
+    expect(glow).toMatch(/"--glw-dur":\s*"11s"/);
   });
 });

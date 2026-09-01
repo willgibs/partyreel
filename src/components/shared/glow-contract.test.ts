@@ -250,10 +250,21 @@ describe("the spill engine CSS", () => {
     expect(mine.length).toBeGreaterThan(0);
   });
 
-  it("uses a filter id nothing else in the repo claims", () => {
+  it("has exactly one filter host, and the footer is now on it", () => {
     expect(engineCode).toContain("url(#glw-warp)");
+    // This pin used to read `not.toContain`, because the footer ran its own
+    // byte-identical copy of the turbulence under a different id. Retiring it
+    // onto the engine is what round 0 was for: two engines painting one light
+    // was the actual defect. What still has to hold is SINGULARITY, so assert
+    // the id is declared exactly once in the repo (GlowFilter) and that the
+    // old hand-rolled host is gone rather than merely renamed.
+    const declaredIn = ["src/components/shared/glow.tsx"];
+    expect(read(declaredIn[0])).toContain('id="glw-warp"');
     expect(
       read("src/components/marketing/chrome/footer-glow.tsx"),
-    ).not.toContain("glw-warp");
+    ).not.toContain("<filter");
+    expect(read("src/app/(marketing)/marketing.css")).not.toContain(
+      "mkt-fglow",
+    );
   });
 });
