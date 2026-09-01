@@ -8,6 +8,7 @@ import {
   getSearchIndex,
   getStartHereArticles,
   HELP_CATEGORIES,
+  HELP_DESCRIPTION_MAX,
   HELP_QUICK_LINKS,
   helpFrontmatterSchema,
   resolveAudience,
@@ -33,7 +34,9 @@ describe("help content integrity", () => {
       );
       expect(article.frontmatter.title.trim()).not.toBe("");
       expect(article.frontmatter.description.trim()).not.toBe("");
-      expect(article.frontmatter.description.length).toBeLessThanOrEqual(160);
+      expect(article.frontmatter.description.length).toBeLessThanOrEqual(
+        HELP_DESCRIPTION_MAX,
+      );
       expect(categorySlugs).toContain(article.frontmatter.category);
       expect(Number.isInteger(article.frontmatter.order)).toBe(true);
       expect(article.frontmatter.updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
