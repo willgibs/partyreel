@@ -57,3 +57,87 @@ describe("PaperChapter doctrine", () => {
     expect(source).not.toContain("data-mkt-skin");
   });
 });
+
+/**
+ * THE LAMP SET IS LIGHT, NEVER UI (ruled 2026-09-01, at the light-system
+ * promotion). The identity is achromatic and media-forward; --lamp-1..5 exist
+ * so the LIGHT in a room can carry colour while the room does not. The failure
+ * this prevents is gradual and plausible-looking: a `color: var(--lamp-1)` on
+ * one "accent" label, then a border, then a badge, and the achromatic ruling is
+ * gone with nobody having decided to reverse it.
+ *
+ * Two mechanisms, deliberately different in kind:
+ *   1. STRUCTURAL — the block is not in `@theme`, so Tailwind generates no
+ *      `bg-lamp-1` / `text-lamp-1` utility and the tokens are unreachable from
+ *      a className. The absence IS the guard; the test below pins the absence.
+ *   2. THIS TEST — in CSS, a --lamp-* reference may only land in a gradient
+ *      (`background` / `background-image`) or in another custom property that
+ *      re-exports it (--mkt-confetti-*, the engine's --glw-c*). A `color:`,
+ *      `border-color:`, `fill:` or flat `background-color:` fails here.
+ */
+describe("the lamp set is light, never UI", () => {
+  const marketing = readFileSync(
+    join(process.cwd(), "src/app/(marketing)/marketing.css"),
+    "utf8",
+  );
+  const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
+  // property: <anything containing var(--lamp-N)>, bounded by ; { }
+  // ★ THE PROPERTY GROUP IS `-{0,2}`, NOT `--?`. `--?` means "a hyphen, then an
+  // optional hyphen", so it REQUIRES a leading hyphen and matched ONLY custom
+  // properties: `color: var(--lamp-1)` sailed straight through the guard whose
+  // entire job is to catch it. Caught by deliberately injecting the violation
+  // (2026-09-01); the test below still passed. Never trust a fence you have not
+  // watched fail.
+  const USE =
+    /(?:^|[;{}])\s*(-{0,2}[a-zA-Z][\w-]*)\s*:([^;{}]*var\(--lamp-[^;{}]*)/g;
+  const ALLOWED = new Set(["background", "background-image"]);
+
+  it("declares the five exactly once, in globals.css, outside @theme", () => {
+    for (let n = 1; n <= 5; n++) {
+      const decl = new RegExp(`^\\s*--lamp-${n}:`, "gm");
+      expect(
+        strip(globals).match(decl)?.length,
+        `--lamp-${n} declarations`,
+      ).toBe(1);
+      expect(strip(marketing)).not.toMatch(decl);
+    }
+    // Not in @theme: an @theme entry would emit bg-lamp-N / text-lamp-N
+    // utilities, which is exactly the reach this rule denies. Brace-matched,
+    // NOT sliced to the next known directive: @custom-variant sits ABOVE
+    // @theme in this file, so an index-to-index slice silently returns "" and
+    // the assertion below passes against nothing.
+    const start = globals.indexOf("@theme inline {");
+    expect(start, "@theme inline block not found").toBeGreaterThan(-1);
+    let depth = 0;
+    let end = start;
+    for (let i = globals.indexOf("{", start); i < globals.length; i++) {
+      if (globals[i] === "{") depth++;
+      else if (globals[i] === "}" && --depth === 0) {
+        end = i;
+        break;
+      }
+    }
+    const theme = globals.slice(start, end);
+    expect(theme.length, "the @theme slice is empty").toBeGreaterThan(1000);
+    expect(theme).not.toContain("--lamp-");
+  });
+
+  it("uses them only in gradients or in a re-exporting custom property", () => {
+    const offenders: string[] = [];
+    let seen = 0;
+    for (const css of [strip(globals), strip(marketing)]) {
+      for (const m of css.matchAll(USE)) {
+        seen++;
+        const prop = m[1];
+        if (prop.startsWith("--") || ALLOWED.has(prop)) continue;
+        offenders.push(`${prop}: ${m[2].trim().slice(0, 60)}`);
+      }
+    }
+    // A guard that matches nothing passes silently. Pin that it looked.
+    expect(seen, "no --lamp-* uses found at all").toBeGreaterThanOrEqual(5);
+    expect(
+      offenders,
+      `--lamp-* is LIGHT, never UI. Reached from a non-gradient property:\n${offenders.join("\n")}`,
+    ).toEqual([]);
+  });
+});
