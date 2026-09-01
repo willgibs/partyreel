@@ -10,6 +10,47 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-31 — the glow round: border-beam vendored, and the corner system it exposed
+
+`lp/glow-doctrine`, preview-verified. Two lab boards (`glow-doctrine`, `glow-moments`) proposing a
+doctrine for the footer's organic-shimmer glow, plus the vendored beam that grew out of it.
+
+**The beam was vendored, not ported.** Three hand-ports missed the same way each time: inferring the
+effect from computed styles and screenshots, substituting our low-chroma five into a palette tuned at
+the sRGB gamut edge, then compensating with filters until it read neon. Will's call was to copy it
+exactly, so border-beam v1.4.0 (MIT) now lives verbatim in `src/components/vendor/border-beam` with
+two marked deviations: a `"use client"` directive and a fifth palette entry so the colour question
+could be answered by looking. Prettier, eslint and the em-dash policy all deliberately skip the
+folder, so `border-beam-vendor.test.ts` pins what those guards no longer cover.
+
+**Ruled by Will (2026-08-31): our palette, globally.** Theirs was reviewed side by side, in phase and
+in the same nine lobes, and not adopted.
+
+**The corner bug was the useful finding.** He flagged the ring and the card reading as two different
+shapes. The cause was the lab's, not the library's: specimens rounded like the reference (arbitrary
+14 and 18px) and handed its own `borderRadius={16}`, on a system that rounds surfaces sharp
+(`--radius` 2px, the shipped `Card` 2.8px, `rounded-2xl` 3.6px). Omitting the prop makes the library
+read its child's computed radius, so every layer derives from the object: measured on the running
+board, our column emits 3.6 / 13.6 / 33.6 and the library's 16 / 26 / 46, both concentric. The
+durable output is a rule in [`design-system.md`](systems/design-system.md): anything drawn around an
+object takes the object's radius, never a literal, and since 16px is what this system rounds an
+ACTION to, a beam's natural layer here is an action rather than a surface. Still open for Will.
+
+**The halo was misframed rather than rough.** Mounted as a child of a 16/9 stage it filled the stage,
+so its mask ramp spanned ~441px, or 1.7 pixels per 8-bit alpha level, which is exactly where a ramp
+resolves into visible arcs. It now sits on a pill with the structure moment 08 already proved: 166px
+and 0.65 px per level, measured on the preview, with the two-stop ramp replaced by a nine-stop
+smoothstep because a two-stop gradient puts a tangent kink at each end of the fade.
+
+Also from the review: the doorbell's lap dropped its crisp 1px ring (on a gallery with no border, a
+rounded stroke IS a border, and it read as chrome appearing); the CTA rim and the scan-through were
+killed in place with numbering intact, the pour explicitly kept and parked; moment 12 lost
+upload-in-progress and gained the QR plate's three readings on a switch; and the lit surface lost its
+inner blur, leaving two flat cues. Section 05 also records that the round misread Will's original
+note: he meant component design in general, not three named cues.
+
+---
+
 ## 2026-08-29 — MILESTONE-12: the /careers round
 
 `main` @ tag `milestone-12` (`6ecb55a`), `--no-ff` merge of `launch-prep`, gate re-run green on the
