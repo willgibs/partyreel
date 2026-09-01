@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { CardGrid } from "@/components/marketing/system/card-grid";
-import { EventCard } from "@/components/marketing/sections/home/event-card-glow";
+import { EventTypeCard } from "@/components/marketing/sections/home/event-type-card";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { EVENT_TYPES } from "@/lib/constants/events";
@@ -10,16 +10,21 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { LearnMoreLink } from "../shared/learn-more-link";
 
 /**
- * QUIET (the loud/quiet map): the four event-type cards over manifest stills,
- * each linking its /events/[slug] landing page (the internal-SEO job).
+ * QUIET-MEDIUM (the loud/quiet map): the four event-type cards over manifest
+ * stills, each linking its /events/[slug] landing page (the internal-SEO job).
  *
- * ★ THE FLOURISH HERE IS LIGHT, NOT MOTION (Will, round 1b). The card-tilt
- * recipe used to run here; both halves of it are gone. A 3D tilt and a
- * cursor-tracking glare are each attractive alone, but either one would have to
- * be adopted site-wide to read as identity rather than as a one-off, and the
- * glare in particular competes with the spill it now sits beside: two different
- * light models on one card, one of them chasing the pointer. The underlight
- * replaces both, and it is the SAME mechanic as the film strip and the footer.
+ * ★ MEDIA-FORWARD, UNLIT, UNTILTED (Will, round 2). The card is the
+ * photograph: full-bleed image, copy bottom-left over a dark scrim, the blog
+ * post-card's anatomy adopted whole (event-type-card.tsx). The light this row
+ * carried for two versions is gone by ruling -- four spills followed 765px
+ * later by the Pro card's beam put two light events inside one viewport, and
+ * scarcity is a distance. The tilt and its cursor glare went one version
+ * earlier for the same family of reason: a device has to be site-wide to read
+ * as identity, and neither complemented the light it sat beside.
+ *
+ * In the chapter arc this is a SUPPORTING section: visually interesting on its
+ * own, quieter than the reel that opens the chapter above it, and a step down
+ * toward pricing, the FAQ and the close.
  */
 
 // Representative stills per type. KNOWN MANIFEST GAP: the bootstrap 12 have no
@@ -54,7 +59,7 @@ export function EventsTeaser() {
       >
         <CardGrid columns={4}>
           {EVENT_TYPES.map(({ slug, navLabel, teaser }, i) => (
-            <EventCard
+            <EventTypeCard
               key={slug}
               href={`/events/${slug}`}
               src={marketingImage(EVENT_STILLS[slug] ?? "wedding-golden").src}
