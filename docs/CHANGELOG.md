@@ -10,6 +10,69 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-08-31 — the glow doctrine MERGED to `launch-prep` (adopt only, wire nothing)
+
+`launch-prep` @ `2bf18dc` (merge `a87d09b`, `--no-ff`). The fifth and last branch of the agent-merge
+sequence, and the only one that proposed a system rather than a page. Merged **adopt-only on Will's
+ruling**: the branch touched zero production bytes and the merge kept it that way, so every placement
+becomes its own paced round rather than arriving as a wave of effects.
+
+**Reviewed by 64 agents across six dimensions, then every problem-claim handed to an adversarial
+verifier told to refute it.** Five were refuted outright, including all three "the docs merged into a
+broken state" claims: that failure mode, which bit the blog and careers rounds, did not recur. Nothing
+above `medium` survived verification. Two of the Orchestrator's own findings were corrected by the
+verifiers, one of them wrong in its mechanism (the halo, below).
+
+**What was fixed at the merge, all of it outliving the round.** Two guards that could not fail:
+`border-beam-vendor.test.ts` asserted a floor of 2 against an actual 11 under a name promising "has
+only the two", which mattered because prettier and the em-dash scanner both skip that folder, so it
+was the entire integrity story for ~3,000 lines of third-party code; and the em-dash `SKIP` regex was
+unanchored and matched against an absolute path, so any directory named `vendor` escaped the copy
+policy and a checkout under a `vendor` path would have skipped every file silently. Both now fail on
+drift, the first verified against a simulated twelfth mark.
+
+**One rule that never applied.** The halo's `mask-image: none` is (0,2,0) and the shared band rule is
+(0,4,0) and later in source order, so it lost twice: every halo specimen rendered the travelling comet
+mask instead of the orbit it documents. It is the same `:not()` trap the file already warns about for
+`bloom`. Stated plainly because it has consequences: rulings taken on a halo specimen before this date
+were taken on a lamp that was not doing what its own source said, and that includes the QR plate's
+resting halo.
+
+**A record that claimed more closure than it had.** `touchpoints.ts` said "nothing on this board is
+waiting" while three things were (the publish beat's violet, the help-palette beam, the lit-surface
+carve-out); the rounding blast radius paired a with-lab use count with a without-lab file count (445
+across 140, where shipping code is 288 across 140); the one-way door was described backwards, since
+promotion does not delete the `marketing-css-policy` fence but escapes into `globals.css` where there
+is none, making the fence extension a precondition rather than a casualty; "eslint deliberately skips
+the vendor folder" was false; the vendor headers said two deviations where seven sites are marked,
+four load-bearing under strict TS; and the calibration caption claimed 11s beside an 8s specimen.
+
+**The rising tide the round exposed: the ground picks the sibling.** Two of the three beam surfaces
+were specified on dark specimens they do not have in production, the help palette being forced
+`surface-paper` in every session, which is the exact ground that got the QR plate's beam rejected. The
+system already answered this twice over (an off-black skin exists one line away in
+`portalSkinProps("cinema")`, and `SPILL_REGISTER.paper` exists precisely because Will caught sampled
+light making a paper card look dirty rather than lit), so the durable output is a rule for the doctrine
+round: **ink takes the BEAM, paper takes SPILL in the paper register.** The reel-render beam is PARKED
+rather than rejected, because today's stitching dialog is a minimal stand-in and judging a beam against
+it measures the stub rather than the surface. That distinction generalised into a three-way test now in
+[`design-system.md`](systems/design-system.md): a minimal production surface is not evidence against a
+lab specimen.
+
+**Logged for the wiring round, none of it merge-blocking.** Law 3 cannot fire on real user media (no
+`crossOrigin` and R2 is a different origin, so the canvas taints and the `.catch()` silently returns
+the fallback five, on four ship-listed placements); the footer re-times 11s to 8s unless promotion
+passes the var; the beam's palette is our hues at raised chroma rather than our tokens, with a test
+pinning that the tokens may NOT be used, which wants an explicit ruling; the lit surface amends "Dark:
+NO shadows anywhere" and wants its own round; plus the promotion mechanics and five engine defects that
+only matter once it ships.
+
+Gate green on the merged tree: typecheck clean, 0 lint errors (1 pre-existing warning), **1301 tests**,
+build ok. **Containment proven from the build output rather than asserted:** the 45 KB engine CSS chunk
+is referenced by exactly eleven route manifests and every one is under `(dev)/design`.
+
+---
+
 ## 2026-08-31 — the glow round: border-beam vendored, and the corner system it exposed
 
 `lp/glow-doctrine`, preview-verified. Two lab boards (`glow-doctrine`, `glow-moments`) proposing a
