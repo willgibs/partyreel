@@ -1,6 +1,6 @@
 "use client";
 
-import { Glow, GlowFilter } from "@/components/shared/glow";
+import { Glow } from "@/components/shared/glow";
 
 /**
  * THE SEAM GLOW: light spilling into the ink slab from the page above.
@@ -19,8 +19,9 @@ import { Glow, GlowFilter } from "@/components/shared/glow";
  * comet at 280% width, the same turbulence seed. The ONE override is the
  * cadence: the engine's ruled register is 8s and this surface ships 11s, so it
  * is passed explicitly rather than silently re-timing ratified live chrome by
- * 27%. Which of the two the footer should keep is its own ruling, taken on an
- * A/B of the real footer with nothing else moving.
+ * 27%. Round 1 gave the home page two more lamps, all three at 11s, so the
+ * open ruling is no longer "the footer alone with nothing else moving" but the
+ * SYSTEM's register: the whole page at 11s against the whole page at 8s.
  *
  * Colour comes from --lamp-* (globals.css) via the engine's own defaults, so
  * no `colors` prop: the footer's light is the house light. That is also why
@@ -45,10 +46,6 @@ export function FooterGlow() {
           reads --foreground, which this footer remaps to --gallery-foreground
           (see marketing-footer.tsx), so the computed colour is unchanged. */}
       <div data-glw-seamline aria-hidden />
-      {/* The turbulence field. Rendered once, and only here: the footer is
-          still the single consumer. The second one hoists this to the root
-          layout (see GlowFilter). */}
-      <GlowFilter />
     </>
   );
 }

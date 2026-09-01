@@ -3,12 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-import {
-  Glow,
-  GlowFilter,
-  type GlowShape,
-  type GlowVars,
-} from "@/components/shared/glow";
+import { Glow, type GlowShape, type GlowVars } from "@/components/shared/glow";
 import {
   alphaAtAaFloor,
   effectiveAlpha,
@@ -143,9 +138,9 @@ const LAMP_CHOICES = [
 export function GlowDoctrineVariants() {
   return (
     <div className="flex flex-col gap-12 pt-6">
-      {/* One turbulence field for the whole page. SVG ids are document-global,
-          so this is rendered by the BOARD and never by the effect. */}
-      <GlowFilter />
+      {/* The turbulence field is mounted in the ROOT layout as of round 1, so
+          the board no longer hosts one: two #glw-warp filters on a page is the
+          document-global-id failure the primitive exists to prevent. */}
       <StartHere />
       <Thesis />
       <Laws />

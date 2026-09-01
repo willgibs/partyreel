@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -19,12 +19,45 @@ import { describe, expect, it } from "vitest";
  */
 
 const ROOT = process.cwd();
+/** Every file under a directory, recursively. Used by the singleton pins, which
+ *  must scan the WHOLE tree: a second filter host anywhere is the defect. */
+const walk = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.name === "node_modules"
+      ? []
+      : e.isDirectory()
+        ? walk(join(dir, e.name))
+        : [join(dir, e.name)],
+  );
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 const glowSrc = read("src/components/shared/glow.tsx");
 const glowCode = stripComments(glowSrc);
+const filterSrc = read("src/components/shared/glow-filter.tsx");
+
+/**
+ * ★ SLICE BOUNDS ARE ASSERTED, NEVER TRUSTED (round 1, 2026-09-01). Two pins
+ * below used to slice `indexOf(A)` -> `indexOf("export function GlowFilter(")`.
+ * When round 1 moved GlowFilter into its own module that second index became
+ * -1, and `slice(start, -1)` does not throw: it quietly returns everything but
+ * the last character, so both pins kept passing over the WRONG text. Same class
+ * as the four guards the round-0 sweep found unable to fail, and it appeared
+ * here as a SIDE EFFECT of an unrelated refactor, which is exactly why the
+ * bound has to be checked rather than assumed.
+ */
+const declBody = (src: string, from: string) => {
+  const a = src.indexOf(from);
+  expect(a, `slice start not found: ${from}`).toBeGreaterThan(-1);
+  // The next TOP-LEVEL export after the marker, or EOF when it is the last one.
+  // Searched from `a`, never from 0: searching the whole string would find an
+  // export ABOVE the marker and silently invert the range.
+  const b = src.indexOf("\nexport ", a + from.length);
+  const body = src.slice(a, b === -1 ? src.length : b);
+  expect(body.length, `empty slice for ${from}`).toBeGreaterThan(200);
+  return body;
+};
 const globalsCss = read("src/app/globals.css");
 // The engine block only: everything appended under the SPILL banner, which the
 // promotion put at the END of globals.css, so this slice runs banner -> EOF.
@@ -87,10 +120,7 @@ describe("the spill primitive", () => {
   });
 
   it("accepts no className", () => {
-    const glowFn = glowCode.slice(
-      glowCode.indexOf("export function Glow("),
-      glowCode.indexOf("export function GlowFilter("),
-    );
+    const glowFn = declBody(glowCode, "export function Glow(");
     // Tailwind's filter/mask utilities live in the utilities layer, which
     // outranks everything the engine declares. One `blur-sm` from a caller
     // replaces `filter: url(#glw-warp) blur(...)` wholesale and the turbulence
@@ -99,17 +129,14 @@ describe("the spill primitive", () => {
     expect(glowFn).not.toMatch(/\bclassName\b/);
     // GlowFilter is exempt: it positions a zero-size <svg>, and carries none
     // of the engine's filter or mask properties.
-    expect(glowCode).toMatch(/GlowFilter[\s\S]*className="absolute"/);
+    expect(stripComments(filterSrc)).toMatch(/className="absolute"/);
   });
 
   it("never renders the filter host itself", () => {
     // SVG ids are document-global; duplicates resolve by document order, which
     // is unstable under reconciliation and portals. Exactly one GlowFilter per
     // document, owned by the page, never by the effect.
-    const glowFn = glowCode.slice(
-      glowCode.indexOf("export function Glow("),
-      glowCode.indexOf("export function GlowFilter("),
-    );
+    const glowFn = declBody(glowCode, "export function Glow(");
     expect(glowFn).not.toContain("feTurbulence");
     expect(glowFn).not.toContain("<filter");
   });
@@ -258,13 +285,76 @@ describe("the spill engine CSS", () => {
     // was the actual defect. What still has to hold is SINGULARITY, so assert
     // the id is declared exactly once in the repo (GlowFilter) and that the
     // old hand-rolled host is gone rather than merely renamed.
-    const declaredIn = ["src/components/shared/glow.tsx"];
-    expect(read(declaredIn[0])).toContain('id="glw-warp"');
+    expect(filterSrc).toContain('id="glw-warp"');
     expect(
       read("src/components/marketing/chrome/footer-glow.tsx"),
     ).not.toContain("<filter");
     expect(read("src/app/(marketing)/marketing.css")).not.toContain(
       "mkt-fglow",
     );
+  });
+});
+
+/**
+ * THE SINGLETON, AS OF ROUND 1 (2026-09-01). The footer stopped being the only
+ * consumer, so the host moved to the root layout. Three failures are silent
+ * enough to need pins: a second host reappearing (duplicate document-global
+ * ids, resolved by document order, unstable under portals); the host going
+ * missing entirely (every lamp left holding a dangling url(#glw-warp)); and
+ * the module quietly becoming a client component, which would put glow.tsx's
+ * hooks on every route in the app to render a static svg.
+ */
+describe("the turbulence field is a document singleton", () => {
+  // Test files excluded, and not as a convenience: THIS file quotes both the
+  // filter id and the <GlowFilter /> tag in its own assertions, so scanning
+  // itself would report the guard as a second declaration site.
+  const sources = walk(join(ROOT, "src")).filter(
+    (f) =>
+      (f.endsWith(".tsx") || f.endsWith(".ts")) &&
+      !/\.test\.tsx?$/.test(f) &&
+      !f.endsWith("vitest.setup.ts"),
+  );
+
+  it("declares the filter in exactly one module", () => {
+    const declaring = sources.filter((f) =>
+      readFileSync(f, "utf8").includes('id="glw-warp"'),
+    );
+    expect(sources.length, "no sources scanned").toBeGreaterThan(100);
+    expect(declaring.map((f) => f.slice(ROOT.length + 1))).toEqual([
+      "src/components/shared/glow-filter.tsx",
+    ]);
+  });
+
+  it("mounts it exactly once, in the root layout", () => {
+    const mounting = sources.filter((f) =>
+      /<GlowFilter\s*\/>/.test(readFileSync(f, "utf8")),
+    );
+    expect(mounting.map((f) => f.slice(ROOT.length + 1))).toEqual([
+      "src/app/layout.tsx",
+    ]);
+  });
+
+  it("has no knob the engine does not read", () => {
+    // ★ THE --glw-span CLASS (removed round 1). That key sat in GlowVars for a
+    // whole round after the engine stopped declaring it: it typechecked, it
+    // autocompleted, and setting it did nothing at all. A knob that tunes
+    // nothing is worse than a missing one, because the caller believes it
+    // worked and goes looking elsewhere for the reason it did not.
+    const varsType = declBody(glowCode, "export type GlowVars");
+    const keys = [...varsType.matchAll(/"(--glw-[\w-]+)"/g)].map((m) => m[1]);
+    expect(keys.length, "no GlowVars keys parsed").toBeGreaterThan(8);
+    const dead = keys.filter((k) => !engineCode.includes(k));
+    expect(dead, `GlowVars keys the engine never reads: ${dead}`).toEqual([]);
+  });
+
+  it("keeps the host a server component", () => {
+    // No directive and no hook call: the whole point of splitting it out of
+    // glow.tsx. A `use client` here is ~2KB of glow machinery on /admin.
+    // ★ Comments stripped FIRST: glow-filter.tsx's own docstring explains why
+    // it has no "use client", so the raw source contains the literal and a
+    // naive check fails on the very comment documenting the rule it enforces.
+    const code = stripComments(filterSrc);
+    expect(code).not.toContain('"use client"');
+    expect(code).not.toMatch(/\buse[A-Z]\w*\(/);
   });
 });

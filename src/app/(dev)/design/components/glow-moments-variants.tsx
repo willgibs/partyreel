@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Camera, Check, Copy, Lock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Glow, GlowFilter } from "@/components/shared/glow";
+import { Glow } from "@/components/shared/glow";
 import { useSampledPalette } from "@/components/dev/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,10 @@ function Moment({
 export function GlowMomentsVariants() {
   return (
     <div className="flex flex-col gap-12 pt-6">
-      <GlowFilter />
+      {/* No <GlowFilter> here since round 1: it is mounted in the ROOT layout,
+          which the lab sits inside, so a board-level host would put TWO
+          #glw-warp filters on this page — the duplicate-id condition the
+          primitive warns about, arriving as a side effect of fixing it. */}
       <HeroUnderlight />
       <LockedDoor />
       <Doorbell />

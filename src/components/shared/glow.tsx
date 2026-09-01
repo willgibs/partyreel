@@ -24,9 +24,12 @@
  *    element is absolutely positioned to inset 0, so the CALLER's own wrapper
  *    is what positions it, and tuning happens through `vars`.
  *
- * The filter host is deliberately NOT rendered here (see GlowFilter): one page
- * gets exactly one turbulence field, because duplicate SVG ids resolve by
- * document order and that is unstable under portals and reconciliation.
+ * The filter host is deliberately NOT rendered here, and as of round 1 it is
+ * not rendered by any consumer either: <GlowFilter> lives in glow-filter.tsx
+ * and is mounted ONCE in the root layout. One page gets exactly one turbulence
+ * field, because duplicate SVG ids resolve by document order and that is
+ * unstable under portals and reconciliation. Add a lamp anywhere; the host is
+ * already there.
  */
 
 import type { CSSProperties } from "react";
@@ -51,7 +54,6 @@ export type GlowVars = Partial<
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
-    | "--glw-span"
     | "--glw-radius"
     | "--glw-t",
     string
@@ -155,45 +157,5 @@ export function Glow({
         </>
       )}
     </div>
-  );
-}
-
-/**
- * The turbulence field that waves every spill on the page. Render EXACTLY ONE
- * per document: SVG ids are document-global, duplicates resolve by document
- * order (unstable under React reconciliation and portals), and if the node
- * that owns it unmounts, every other consumer is left holding a dangling
- * `filter: url(#glw-warp)`. In production this belongs in the root layout;
- * in the lab each board renders it once at the top.
- *
- * Values are the footer's, verbatim: they are already ruled beautiful, so they
- * are the calibration for everything the doctrine round proposes.
- */
-export function GlowFilter() {
-  return (
-    <svg
-      width="0"
-      height="0"
-      className="absolute"
-      aria-hidden
-      focusable="false"
-    >
-      <filter id="glw-warp" x="-40%" y="-40%" width="180%" height="180%">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.009 0.015"
-          numOctaves="2"
-          seed="7"
-          result="n"
-        />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="n"
-          scale="30"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </svg>
   );
 }
