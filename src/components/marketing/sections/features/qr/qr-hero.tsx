@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
+import { Glow } from "@/components/shared/glow";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -28,6 +29,23 @@ import { cn } from "@/lib/utils";
  * like paint swatches. When the demo event is configured the code encodes its
  * REAL join URL (scan the hero, land in the demo); otherwise it renders a
  * decorative partyreel.com/e/demo value and the caption drops the scan claim.
+ *
+ * THE PLATE SWITCHES ON (lab moment 06, ruled "ship the second one"; wired at
+ * the feature-pages round, 2026-09-01). The code is this page's lamp: light
+ * comes from under the plate, outward, and stays strictly OUTSIDE it, never
+ * touching the modules or the quiet zone, because scannability is a contract.
+ * It ignites as the hero arrives (the bloom is ARMED by the primitive's own
+ * arrival observer) and then STAYS lit at a low resting glow: the code
+ * reporting that it is live, which is the reading the lab preferred over a
+ * flash that decays to nothing. Colour is the house five, by law 3's no-media
+ * branch: a QR is ink on white, not a photograph. Ground: the cinema room, so
+ * the rejection of the plate's BEAM (which was about a near-white ground in
+ * production) does not apply to this SPILL on a dark hero. One lamp here, the
+ * footer seam at the bottom, nothing between.
+ *
+ * This hero stays bespoke rather than composing PageHero: it is the one
+ * feature hero whose object sits BESIDE the lockup rather than under it, and
+ * PageHero owns only the plain type lockup by contract.
  */
 
 // Decorative fallback ONLY (never linked): keeps the hero honest-looking when
@@ -75,7 +93,9 @@ export function QrHero() {
   });
 
   return (
-    <section className="overflow-hidden pt-14 pb-16 sm:pt-20 sm:pb-20">
+    /* overflow-x-clip, never overflow-hidden: the plate's light needs room
+       outside the object, and the field around it must not be boxed. */
+    <section className="overflow-x-clip pt-14 pb-16 sm:pt-20 sm:pb-20">
       <Container>
         <Reveal className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="flex max-w-2xl flex-col items-start gap-5 lg:col-span-7">
@@ -112,16 +132,50 @@ export function QrHero() {
                   ran back UNDER the plate, slicing its own left caps. It sits
                   in FLOW beside the plate instead, where nothing can bury it. */}
               <div className="flex items-center gap-4 sm:gap-6">
-                <div
-                  {...cut(2)}
-                  className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
-                >
-                  <div className="w-fit rounded-xl bg-white p-4">
-                    <StyledQr
-                      value={QR_VALUE}
-                      size={208}
-                      style={resolveQrPreset(HERO_PRESET)}
+                {/* The plate and its light. `isolate` so the lamp's -z-10
+                    lands under the plate and nowhere else; the field sits
+                    OUTSIDE the plate (-inset-32) because the light comes from
+                    under it and the quiet zone stays clear. The entrance cut
+                    lives on the plate, the light on its own layer: an
+                    entrance and a lit state never share an element.
+                    ★ REACH IS A FRACTION OF THE FULL BOX (the reel treatment's
+                    lesson): a radial mask's percentage radius is measured
+                    against the field's whole dimension, and its transparent
+                    stop sits at 78% of that radius, so the lab's 78% on a
+                    field this size put the fade OUTSIDE the box and the light
+                    rendered as a rounded square. 60% on a -inset-32 field
+                    keeps the whole falloff inside it, measured live. */}
+                <div className="relative isolate">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -inset-32 -z-10"
+                  >
+                    <Glow
+                      shape="bloom"
+                      drive="mask"
+                      vars={{
+                        "--glw-from-x": "50%",
+                        "--glw-from-y": "50%",
+                        "--glw-reach": "60%",
+                        "--glw-strength": "0.95",
+                        // What the ignition decays TO: the resting glow that
+                        // says the code is live (the lab's second specimen).
+                        "--glw-base": "0.34",
+                        "--glw-blur": "26px",
+                      }}
                     />
+                  </div>
+                  <div
+                    {...cut(2)}
+                    className="w-fit rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
+                  >
+                    <div className="w-fit rounded-xl bg-white p-4">
+                      <StyledQr
+                        value={QR_VALUE}
+                        size={208}
+                        style={resolveQrPreset(HERO_PRESET)}
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -13,10 +13,15 @@ import { CtaBand } from "@/components/marketing/system/cta-band";
 import { featurePage } from "@/lib/constants/feature-pages";
 
 // THE LIVE ALBUM page (expansion Phase B, T1): the media-maximal cinema page.
-// Chapter arc: hero arrivals stream -> full-quality FactBand -> live-during
-// (all dark) -> the spec sheet + keeping (ONE paper chapter) -> related + FAQ +
-// CTA back in the dark. Registry copy renders via featurePage; hard numbers
-// derive from lib/media/limits.ts inside the sections.
+// Chapter arc (re-paced at the feature-pages round, 2026-09-01, on the
+// attention-arc principle in design-system.md "Chapters"): chapter 1 opens on
+// the arrivals stream throwing its own sampled light, supports through
+// live-during (a media split) and winds down on the quiet numbers of the
+// FactBand before the paper cut; chapter 2 (ONE paper chapter) opens on the
+// spec sheet a tier up on the hard cut and closes quiet on keeping; chapter 3
+// opens on the photographic doors and winds down through the FAQ to the CTA.
+// Registry copy renders via featurePage; hard numbers derive from
+// lib/media/limits.ts inside the sections.
 const page = featurePage("album");
 
 export const metadata: Metadata = {
@@ -52,8 +57,8 @@ export default function AlbumFeaturePage() {
         ]}
       />
       <ArrivalsHero />
-      <QualitySection />
       <LiveSection />
+      <QualitySection />
       <AlbumSpecChapter />
       <RelatedFeatures slugs={["qr", "curation", "sharing"]} />
       <FeatureFaq items={FAQ_ITEMS}>

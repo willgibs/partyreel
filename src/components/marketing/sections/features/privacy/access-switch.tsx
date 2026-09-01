@@ -59,6 +59,12 @@ export function AccessSwitch() {
       eyebrow="Visibility"
       heading="Three ways to share, one switch."
       subhead="Every event answers one question: who can see the album. Try each answer below, exactly as the control works in the app."
+      /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up
+         and real air, on the standard rise rather than the cut. The quietest
+         page on the site opens its desk firmly, not loudly; the three sections
+         after it ramp down to the moderation close. */
+      scale="lg"
+      className="pt-28 sm:pt-36"
     >
       {/* The switch, its hint, and its preview are ONE device, so they arrive
           together on slot 3 (SectionShell's header spends 0-2); the plan note

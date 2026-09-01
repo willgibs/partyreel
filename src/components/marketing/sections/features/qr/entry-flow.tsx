@@ -18,11 +18,13 @@ const UPLOADING_IDS = ["wedding-toast", "party-balloons", "reception-table"];
  */
 
 export function EntryFlow() {
-  // R4 body choreography: the cards used to CUT (the cinema register) under a
-  // header that RISES, so one section spoke in two motion voices. They join the
-  // header's rise with --i continuing after its eyebrow/heading/subhead (0-2).
-  const rise = (i: number) => ({
-    "data-mkt-reveal": "",
+  // ONE motion voice per section (R4): the header and the three frames share
+  // the register. Since the feature-pages round that register is the CUT,
+  // because this is the close chapter's OPENER: the first dark section after
+  // the paper, a tier up with real air, so the lights come back down on the
+  // guest's phone; the doors, FAQ and CTA ramp down after it.
+  const cut = (i: number) => ({
+    "data-mkt-cut": "",
     style: { "--i": i + 3 } as CSSProperties,
   });
 
@@ -31,6 +33,9 @@ export function EntryFlow() {
       eyebrow="After the scan"
       heading="What a guest sees."
       subhead="Camera roll to album in under a minute, and nothing to install on the way."
+      scale="lg"
+      reveal="cinema"
+      className="pt-28 sm:pt-36"
     >
       <Reveal className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3">
         {/* 01 · The welcome. R4 / review B10: this card used to stop a third of
@@ -38,7 +43,7 @@ export function EntryFlow() {
             resting state now — byline avatar, the default primary label ("View
             the gallery") and the browse-out ("Just browsing") — all strings the
             shipped entry modal actually renders. */}
-        <div {...rise(0)} className="flex flex-col gap-3">
+        <div {...cut(0)} className="flex flex-col gap-3">
           <StepLabel n="01" label="The welcome" />
           <div className="flex flex-1 flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -64,7 +69,7 @@ export function EntryFlow() {
         </div>
 
         {/* 02 · The promise. */}
-        <div {...rise(1)} className="flex flex-col gap-3">
+        <div {...cut(1)} className="flex flex-col gap-3">
           <StepLabel n="02" label="The promise" />
           <div className="flex flex-1 flex-col gap-3.5 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
@@ -79,7 +84,7 @@ export function EntryFlow() {
         </div>
 
         {/* 03 · The upload. */}
-        <div {...rise(2)} className="flex flex-col gap-3">
+        <div {...cut(2)} className="flex flex-col gap-3">
           <StepLabel n="03" label="The upload" />
           <div className="flex flex-1 flex-col gap-3 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <span className="flex h-9 items-center justify-center gap-1.5 rounded-md border border-dashed text-sm font-medium text-muted-foreground">

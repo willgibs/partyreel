@@ -7,8 +7,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
-import { Reveal } from "@/components/marketing/system/reveal";
-import { Container } from "@/components/shared/container";
+import { PageHero } from "@/components/marketing/system/page-hero";
+import { ScreenLamp } from "@/components/marketing/system/screen-lamp";
 import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -17,15 +17,28 @@ import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
- * /features/album hero: the stub grammar over THE ARRIVALS STREAM, the album's
- * own calmer cousin of the home live-demo (same [data-mkt-fly]/[data-mkt-toast]
- * vocabulary, no QR/phone stage): a masonry album visibly FILLING, one tile at
- * a time, with attribution chips landing on the shots and arrival toasts in the
- * corner. The fill interval gates on useAmbientPause (it starts when the stage
- * is actually seen, halts off-screen/hidden, resumes where it left off), reduced
- * motion jumps straight to the full album, and Replay clears data-on so the
- * whole stream re-runs. Fixtures are manifest images + the Maya & Jay demo
- * family's art-directed display names, no real PII.
+ * /features/album hero: the shared PageHero lockup over THE ARRIVALS STREAM,
+ * the album's own calmer cousin of the home live-demo (same
+ * [data-mkt-fly]/[data-mkt-toast] vocabulary, no QR/phone stage): a masonry
+ * album visibly FILLING, one tile at a time, with attribution chips landing on
+ * the shots and arrival toasts in the corner. The fill interval gates on
+ * useAmbientPause (it starts when the stage is actually seen, halts
+ * off-screen/hidden, resumes where it left off), reduced motion jumps straight
+ * to the full album, and Replay clears data-on so the whole stream re-runs.
+ * Fixtures are manifest images + the Maya & Jay demo family's art-directed
+ * display names, no real PII.
+ *
+ * THE PAGE'S LAMP (the feature-pages round, 2026-09-01). The filling album is a
+ * lit screen in a dark room, so it throws its own light down onto the section
+ * beneath it (system/screen-lamp.tsx): the colour is SAMPLED from the tiles the
+ * visitor is watching land, which is law 3 in production on this page. One
+ * lamp here, the footer seam at the bottom, nothing between: scarcity is a
+ * distance. The page opens on its own light; the whole chapter after it ramps
+ * down (live during the event, then the quiet numbers) toward the paper cut.
+ *
+ * ★ The H1 is STATIC (no cut) on every feature hero: it is the LCP element, and
+ * a post-hydration re-cut read as a flash. This file cut its own h1 until the
+ * sweep; PageHero cannot, by contract.
  */
 
 const LAND_EVERY_MS = 420;
@@ -91,45 +104,34 @@ export function ArrivalsHero() {
     return () => clearInterval(t);
   }, [paused, reduced, runId]);
 
-  const cut = (i: number) => ({
-    "data-mkt-cut": "",
-    style: { "--i": i } as CSSProperties,
-  });
-
   return (
-    <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
-      <Container>
-        <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-          <FeatureHeroEyebrow {...cut(0)} label={page.navLabel} />
-          <h1
-            {...cut(1)}
-            className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
+    <PageHero
+      entrance="cut"
+      eyebrow={<FeatureHeroEyebrow label={page.navLabel} />}
+      heading={page.h1}
+      subhead={page.heroSub}
+      actions={
+        <>
+          <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-11 px-6 text-base"
           >
-            {page.h1}
-          </h1>
-          <p
-            {...cut(2)}
-            className="max-w-2xl text-lg text-pretty text-muted-foreground"
-          >
-            {page.heroSub}
-          </p>
-          <div {...cut(3)} className="mt-2 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="h-11 px-6 text-base">
-              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 px-6 text-base"
-            >
-              <Link href="/how-it-works">See how it works</Link>
-            </Button>
-          </div>
-        </Reveal>
-
-        {/* The arrivals stream. */}
-        <div ref={stageRef} className="mx-auto mt-12 max-w-3xl sm:mt-16">
+            <Link href="/how-it-works">See how it works</Link>
+          </Button>
+        </>
+      }
+      /* overflow-x-clip, not overflow-hidden: the lamp's full-bleed field hangs
+         BELOW this section and must not be clipped (screen-lamp.tsx). */
+      className="overflow-x-clip pt-14 pb-10 sm:pt-20 sm:pb-14"
+    >
+      {/* The arrivals stream, and the light it throws. */}
+      <div ref={stageRef} className="mx-auto mt-12 max-w-3xl sm:mt-16">
+        <ScreenLamp>
           <BrowserFrame label="partyreel.com/a/maya-and-jay">
             <div className="relative">
               <div className="flex gap-1.5">
@@ -195,36 +197,37 @@ export function ArrivalsHero() {
               </div>
             </div>
           </BrowserFrame>
+        </ScreenLamp>
 
-          {/* The status row: how full the album is (mono fact register) +
-              Replay, kept OFF the media so no shot ever sits under a control. */}
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <p
-              className="font-mono text-[13px] text-muted-foreground tabular-nums"
-              aria-hidden
-            >
-              {landed >= TILES.length
-                ? `${TILES.length} in · still open for more`
-                : `${landed} of ${TILES.length} in · filling live`}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                // Reset via the handler (never inside an effect): data-on
-                // drops off every tile and the clock re-keys for a clean run.
-                setLanded(0);
-                setRunId((n) => n + 1);
-              }}
-              // Press feedback idiom: 0.97-0.99 with an explicit property (the
-              // old 0.95 sat outside the house band and read like a bounce).
-              className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-[0.97] motion-reduce:active:scale-100"
-            >
-              <RotateCcw className="size-3.5" />
-              Replay
-            </button>
-          </div>
+        {/* The status row: how full the album is (mono fact register) +
+            Replay, kept OFF the media so no shot ever sits under a control.
+            `relative` so it paints OVER the lamp's field, not under it. */}
+        <div className="relative mt-3 flex items-center justify-between gap-3">
+          <p
+            className="font-mono text-[13px] text-muted-foreground tabular-nums"
+            aria-hidden
+          >
+            {landed >= TILES.length
+              ? `${TILES.length} in · still open for more`
+              : `${landed} of ${TILES.length} in · filling live`}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              // Reset via the handler (never inside an effect): data-on
+              // drops off every tile and the clock re-keys for a clean run.
+              setLanded(0);
+              setRunId((n) => n + 1);
+            }}
+            // Press feedback idiom: 0.97-0.99 with an explicit property (the
+            // old 0.95 sat outside the house band and read like a bounce).
+            className="flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium text-muted-foreground transition-transform duration-150 active:scale-[0.97] motion-reduce:active:scale-100"
+          >
+            <RotateCcw className="size-3.5" />
+            Replay
+          </button>
         </div>
-      </Container>
-    </section>
+      </div>
+    </PageHero>
   );
 }

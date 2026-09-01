@@ -24,17 +24,29 @@ export function GuestListSection() {
   });
 
   return (
-    // R4 / review B15: the chapter read thin — a ~180px card adrift in a ~470px
+    // R4 / review B15: the chapter read thin: a ~180px card adrift in a ~470px
     // white section. The card carries its governing setting now (and the comb),
     // and the section runs one rhythm step tighter so paper reads dense and
     // confident like the album/curation chapters.
+    //
+    // THE PAPER CHAPTER'S OPENER (the feature-pages round): THE STRADDLE. The
+    // guest list is the one object on this page that belongs to BOTH sides of
+    // the cut (it is made in the dark, of the people who were there, and read
+    // on the desk the morning after), so at lg+ the card overhangs the cinema
+    // -> paper seam, half on the event's dark field, half on the paper. The
+    // home album's device, worn by a different object: a card of names, not
+    // a browser frame. NEGATIVE MARGIN, not translate (the layout box must
+    // really move); relative + z so it paints over the dark it overhangs;
+    // shadow-float is paper's real elevation, which reads as a card laid on
+    // the desk. Below lg the split stacks and the plain hard cut carries the
+    // seam, exactly as home's album does.
     <SectionShell className="py-16 sm:py-20">
       <MediaSplit
         className="lg:items-start"
         media={
           <Reveal
             data-mkt-reveal
-            className="mx-auto w-full max-w-md"
+            className="relative z-10 mx-auto w-full max-w-md lg:-mt-40"
             style={{ "--i": 0 } as CSSProperties}
           >
             <GuestListCard names={GUESTS} />

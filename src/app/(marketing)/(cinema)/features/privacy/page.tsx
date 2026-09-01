@@ -10,12 +10,12 @@ import { NeverRidesAlong } from "@/components/marketing/sections/features/privac
 import { ReportReview } from "@/components/marketing/sections/features/privacy/report-review";
 import { PRIVACY_FAQ } from "@/components/marketing/sections/features/privacy/privacy-faq";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
+import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
@@ -53,53 +53,31 @@ export default function PrivacyFeaturePage() {
       />
       <FaqPageJsonLd items={PRIVACY_FAQ} />
 
-      {/* The short dark hero: registry grammar, deliberately no media. */}
-      <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
-        <Container>
-          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            {/* ONE ruled eyebrow, not two stacked labels: the parent link and
-                the page name read as a single breadcrumb line. */}
-            <Eyebrow {...cut(0)}>
-              <Link
-                href="/features"
-                className="transition-colors duration-150 hover:text-foreground"
-              >
-                Features
-              </Link>
-              <span aria-hidden className="px-1.5 text-muted-foreground/50">
-                ·
-              </span>
-              {page.navLabel}
-            </Eyebrow>
-            {/* The H1 stays STATIC (no cut): the six-page family rule after
-                R4 — the hero's headline is the LCP-adjacent anchor and the
-                post-hydration re-cut read as a flash. Secondary elements
-                keep the register. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
-              {page.h1}
-            </h1>
-            <p
-              {...cut(1)}
-              className="max-w-2xl text-lg text-pretty text-muted-foreground"
+      {/* The short dark hero on the shared lockup (the PageHero sweep):
+          deliberately no stage and no lamp. The site's quietest page opens
+          quiet; the access switch on paper is its one moving part. */}
+      <PageHero
+        entrance="cut"
+        eyebrow={<FeatureHeroEyebrow label={page.navLabel} />}
+        heading={page.h1}
+        subhead={page.heroSub}
+        actions={
+          <>
+            <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 px-6 text-base"
             >
-              {page.heroSub}
-            </p>
-            <div {...cut(2)} className="mt-2 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-11 px-6 text-base">
-                <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
-                <Link href="/features/curation">How curation works</Link>
-              </Button>
-            </div>
-          </Reveal>
-        </Container>
-      </section>
+              <Link href="/features/curation">How curation works</Link>
+            </Button>
+          </>
+        }
+        className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14"
+      />
 
       {/* THE PAPER CHAPTER: trust is read at a desk, so the whole argument
           lives on one paper plane (the chapter doctrine's hard cut). */}

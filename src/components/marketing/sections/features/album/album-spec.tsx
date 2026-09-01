@@ -41,6 +41,14 @@ export function WhatLandsSection() {
       eyebrow="The spec sheet"
       heading="What lands in your album."
       subhead="The fine print, without the squinting: who gets credited, what fits, and what your guests never have to do."
+      /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up
+         and the hard cut, with real air above, so the document lands on the
+         desk with weight after the dark; the keeping section below it stays
+         at the body tier. PaperChapter's stacked-viewport rule trims the air
+         below lg, which is the intended phone behaviour. */
+      scale="lg"
+      reveal="cinema"
+      className="pt-28 sm:pt-36"
     >
       {/* R4 body choreography: --i continues after the SectionShell header's
           eyebrow/heading/subhead slots (0-2) so header and body read as one

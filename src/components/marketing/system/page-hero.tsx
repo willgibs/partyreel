@@ -106,29 +106,63 @@ const HERO_SCALE: Record<
   lg: { heading: "text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl" },
 };
 
+/**
+ * THE ONE HERO ENTRANCE, SETTLED (the feature-pages round, 2026-09-01; Will's
+ * ask of 2026-08-29 was "one hero entrance, then sweep the hand-rolled copies
+ * onto it"). Two registers, and they are the two the site already had:
+ *
+ *  - "rise": the standard `[data-mkt-reveal]` staggered rise. The identity
+ *    pages (/about, /press) arrive this way.
+ *  - "cut": the `[data-mkt-cut]` hard film cut. Every CINEMA-group page hero
+ *    that hand-rolled the lockup used this (the six feature pages, the hub,
+ *    /how-it-works, /events), and it is the register their chapters open on.
+ *
+ * The texts-reveal blur-rise (`.mkt-line`) is deliberately NOT a third value:
+ * its rest state is `opacity: 0`, which is the LCP hole this component
+ * forbids, and `.mkt-line` forces `display:block` on whatever carries it.
+ * The four pages still on it (/pricing, /help, /contact, /careers) are the
+ * bespoke identity heroes and keep their own handling until their revisit.
+ *
+ * Either way the H1 never moves (the LCP rule below), so switching registers
+ * changes what the slots AROUND the title do and nothing else.
+ */
+export type HeroEntrance = "rise" | "cut";
+
 export function PageHero({
   scale = "lg",
   align = "center",
+  entrance = "rise",
   eyebrow,
   heading,
   subhead,
   actions,
   className,
+  children,
   ...props
 }: Omit<React.ComponentProps<"section">, "title"> & {
   scale?: HeroScale;
   align?: "center" | "left";
+  entrance?: HeroEntrance;
   eyebrow?: ReactNode;
   heading: ReactNode;
   subhead?: ReactNode;
   actions?: ReactNode;
+  /**
+   * THE STAGE: whatever the page puts under its lockup (the album filling, the
+   * attribution wall, the link frame), rendered inside the same Container
+   * after the type. The hero still owns ONLY the lockup; the page owns the
+   * object, its entrance and its lamp. It exists so a page with a stage does
+   * not have to hand-roll the lockup to get the two side by side, which is
+   * how the six feature heroes drifted apart in the first place.
+   */
+  children?: ReactNode;
 }) {
   // One entrance clock for the whole lockup: each slot takes the next stagger
   // seat, so a hero without an eyebrow does not leave an empty beat.
   let line = 0;
   const mark = () =>
     ({
-      "data-mkt-reveal": "",
+      ...(entrance === "cut" ? { "data-mkt-cut": "" } : { "data-mkt-reveal": "" }),
       style: { "--i": line++ } as CSSProperties,
     }) as const;
 
@@ -185,6 +219,7 @@ export function PageHero({
             </div>
           )}
         </Reveal>
+        {children}
       </Container>
     </section>
   );
