@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 /**
  * LAW 3, made real: the spill takes its colour FROM the media it is lighting.
  *
- * The doctrine round's central experiment is whether that matters. Today the
- * glow is the one place on the site where colour is INVENTED rather than
- * photographed, which makes it an exception to the ratified identity ("media
- * is the colour") dressed up as an expression of it. Sampling makes it an
- * argument for the identity instead.
+ * The doctrine round's central experiment was whether that matters. It shipped
+ * at round 1: before it, the glow was the one place on the site where colour
+ * was INVENTED rather than photographed, which made it an exception to the
+ * ratified identity ("media is the colour") dressed up as an expression of it.
+ * Sampling makes it an argument for the identity instead.
  *
  * ── WHY THE SAMPLE IS HUE-ONLY ──
  * We keep the photograph's HUES and discard its lightness and chroma, pinning
@@ -156,14 +156,27 @@ export function huesToSpillColors(
  * The lab never caught it because every specimen samples marketingImage(...),
  * which Next serves same-origin.
  *
- * So before ANY placement lights real user media, one of these has to land:
- *   (a) img.crossOrigin = "anonymous" + an R2 CORS rule for the site origin
- *       (Orchestrator-only: wrangler r2 bucket cors set), accepting that the
- *       browser then refetches the full-size photo on a CORS-partitioned cache
- *       just to read 32x32 of it; or
- *   (b) BETTER: extract the palette server-side once at upload/derivative time
- *       and store it on the media row. No CORS, no double fetch, works for
- *       video posters, and computed once instead of on every view.
+ * ★ AND THE FIX IS MUCH SMALLER THAN THIS FILE USED TO CLAIM (round 1,
+ * 2026-09-01). The note here, and the ROADMAP, both listed the R2 CORS rule as
+ * work still to do. It is already live and already proven in production: the
+ * reel's canvas engine CORS-fetches presigned R2 media, decodes it, draws it
+ * and reads the canvas back on every export -- strictly more than this hook
+ * needs -- via decodeImage() in src/lib/reel/engine/assets.ts. A tainted canvas
+ * would throw at encode time, and it does not.
+ *
+ * So the guest-media unblock is: swap the loader for that same decodeImage and
+ * point it at previewUrl (the ~16KB client-generated WebP already presigned for
+ * every row, which is what the tiles serve and what covers video posters too).
+ * Reuse it rather than setting crossOrigin by hand -- its `cache: "no-store"`
+ * is load-bearing, because a plain <img> tile fetches the same URL with no
+ * Origin, R2 answers without ACAO and without Vary: Origin, and a later CORS
+ * fetch reads the poisoned entry (see uploads-and-r2.md).
+ *
+ * Storing a palette on the media row is still possible but is now the EXPENSIVE
+ * option, not the better one: no server-side image decode exists anywhere in
+ * this stack, media has no palette column, and the insert path is a locked-down
+ * SECURITY DEFINER RPC whose signature would have to change.
+ *
  * Marketing surfaces are unaffected and sample correctly today.
  *
  * Sample same-origin media into a spill palette. Returns null until it resolves
@@ -176,6 +189,51 @@ export function huesToSpillColors(
  * answer. Every source is drawn into one small canvas as a strip, so "the
  * wall's colour" is a single read over all of it rather than an average of
  * separate reads.
+ */
+/**
+ * The shared sample: draw every source into one 32px strip and read it back.
+ *
+ * A STRIP, not an average of separate reads: a wall of photographs is ONE lamp,
+ * so its hues come from all of it at once, weighted by how much chroma each
+ * tile actually contributes. Averaging per-image palettes would give a tile in
+ * the corner the same vote as the one filling the frame.
+ */
+function paletteFromImages(
+  images: CanvasImageSource[],
+  register: SpillRegister,
+): string[] | null {
+  const CELL = 32;
+  const canvas = document.createElement("canvas");
+  canvas.width = CELL * images.length;
+  canvas.height = CELL;
+  const ctx = canvas.getContext("2d", { willReadFrequently: false });
+  if (!ctx) return null;
+  images.forEach((img, i) => {
+    ctx.drawImage(img, i * CELL, 0, CELL, CELL);
+  });
+  const data = ctx.getImageData(0, 0, canvas.width, CELL).data;
+  return huesToSpillColors(pickSpillHues(data, 5), register);
+}
+
+/** Run work off the critical path, with a fallback where rIC is unavailable. */
+function whenIdle(fn: () => void): () => void {
+  if (typeof requestIdleCallback === "function") {
+    const id = requestIdleCallback(fn, { timeout: 1200 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(fn, 200);
+  return () => clearTimeout(id);
+}
+
+/**
+ * Sample from URLs. The LAB's form: a board has no rendered <img> to read, only
+ * marketingImage(...) strings, so it fetches its own copies.
+ *
+ * ★ PRODUCTION SHOULD USE useSampledPaletteFromDom INSTEAD. On a real page the
+ * images are already in the DOM and already decoded, and this form re-fetches
+ * the ORIGINALS: next/image serves /_next/image?url=..., a different URL, so
+ * nothing here is a cache hit. On the home page's wall that is ~1.05 MB of
+ * full-resolution JPEG requested purely to read 32x32 of each.
  */
 export function useSampledPalette(
   src: string | readonly string[] | null,
@@ -205,24 +263,13 @@ export function useSampledPalette(
     )
       .then((images) => {
         if (cancelled) return;
-        const CELL = 32;
-        const canvas = document.createElement("canvas");
-        canvas.width = CELL * images.length;
-        canvas.height = CELL;
-        const ctx = canvas.getContext("2d", { willReadFrequently: false });
-        if (!ctx) return;
-        images.forEach((img, i) => {
-          ctx.drawImage(img, i * CELL, 0, CELL, CELL);
-        });
-        const data = ctx.getImageData(0, 0, canvas.width, CELL).data;
-        setState({
-          key,
-          colors: huesToSpillColors(pickSpillHues(data, 5), register),
-        });
+        const colors = paletteFromImages(images, register);
+        if (colors) setState({ key, colors });
       })
       .catch(() => {
         // A decode failure is not an error state for a decorative layer: the
-        // fallback palette is already correct.
+        // fallback palette is already correct. See the CROSS-ORIGIN note in
+        // this file's header for the one failure this silence hides.
       });
     return () => {
       cancelled = true;
@@ -230,4 +277,93 @@ export function useSampledPalette(
   }, [key, register]);
 
   return state && state.key === key ? state.colors : null;
+}
+
+/**
+ * Sample from the DOM: read the <img> elements the page has ALREADY painted.
+ *
+ * This is the production form, and the difference is not a micro-optimisation.
+ * drawImage() on a live HTMLImageElement reuses the bitmap the browser already
+ * decoded, so a lamp costs ZERO new bytes, ZERO new requests and ZERO extra
+ * decodes. The URL form above costs a megabyte on the home page's wall.
+ *
+ * It is also more honest about law 3. The light becomes the colour of what the
+ * visitor is actually looking at, rather than of a list of ids that happens to
+ * be nearby in the source.
+ *
+ * ★ NEVER CALLS img.decode(). A wall mixes eager and lazy tiles; decode() on a
+ * `loading="lazy"` element forces the fetch it was deliberately deferring, so
+ * the lamp would undo the page's own loading strategy to colour itself. Only
+ * already-complete images are read, and incomplete ones are awaited with a
+ * one-shot `load` listener instead.
+ *
+ * ★ DOES NOT SOLVE THE R2 TAINT. Same-origin by construction for next/image
+ * output (/_next/image is always same-origin), which is a real robustness gain
+ * over passing URLs. But a guest photo rendered straight from a presigned R2
+ * URL still taints the canvas exactly as before, so this does not close the
+ * guest-media prerequisite. See the CROSS-ORIGIN note in the header.
+ */
+export function useSampledPaletteFromDom(
+  ref: { current: HTMLElement | null },
+  opts: {
+    /** Read at most this many images (the wall samples its eager run). */
+    limit?: number;
+    register?: SpillRegister;
+    /** Skip entirely below this viewport width, canvas work included. */
+    minWidth?: number;
+  } = {},
+): string[] | null {
+  const { limit, register = "dark", minWidth } = opts;
+  const [colors, setColors] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    const host = ref.current;
+    if (!host) return;
+    // Read at EFFECT time, never during render: a render-time matchMedia is a
+    // hydration mismatch waiting to happen.
+    if (minWidth && !window.matchMedia(`(min-width: ${minWidth}px)`).matches) {
+      return;
+    }
+
+    let cancelled = false;
+    const imgs = [...host.querySelectorAll("img")].slice(
+      0,
+      limit ?? Number.POSITIVE_INFINITY,
+    );
+    if (!imgs.length) return;
+
+    let cancelIdle: (() => void) | null = null;
+    const sample = () => {
+      if (cancelled) return;
+      const ready = imgs.filter((i) => i.complete && i.naturalWidth > 0);
+      if (!ready.length) return;
+      try {
+        const next = paletteFromImages(ready, register);
+        if (next && !cancelled) setColors(next);
+      } catch {
+        // Tainted canvas or a dead 2d context: the fallback five are already
+        // correct, and the lamp is lit either way.
+      }
+    };
+    const schedule = () => {
+      cancelIdle?.();
+      cancelIdle = whenIdle(sample);
+    };
+
+    schedule();
+    // Anything still loading re-runs the sample once it lands, so a wall whose
+    // eager tiles have not painted yet still ends up sampled rather than stuck
+    // on the fallback.
+    const pending = imgs.filter((i) => !i.complete);
+    for (const img of pending)
+      img.addEventListener("load", schedule, { once: true });
+
+    return () => {
+      cancelled = true;
+      cancelIdle?.();
+      for (const img of pending) img.removeEventListener("load", schedule);
+    };
+  }, [ref, limit, register, minWidth]);
+
+  return colors;
 }

@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { srgbToOklch } from "./sampled-palette";
+import { srgbToOklch } from "@/lib/shared/sampled-palette";
 
 import {
   colorPalettes,
@@ -203,7 +203,9 @@ describe("the vendored border-beam package", () => {
       // hue does drift a few degrees, and the failure worth catching is a
       // SIXTH hue appearing, not a two-degree rounding difference.
       const nearest = Math.min(
-        ...LAMP_HUES.map((L) => Math.min(Math.abs(h - L), 360 - Math.abs(h - L))),
+        ...LAMP_HUES.map((L) =>
+          Math.min(Math.abs(h - L), 360 - Math.abs(h - L)),
+        ),
       );
       if (nearest > 12) strays.push(`${c} -> hue ${h.toFixed(1)}deg`);
     }

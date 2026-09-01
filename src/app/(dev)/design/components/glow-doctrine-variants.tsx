@@ -10,7 +10,7 @@ import {
   seamCoverage,
   worstCaseGround,
 } from "@/components/dev/glow-contrast";
-import { useSampledPalette } from "@/components/dev/sampled-palette";
+import { useSampledPalette } from "@/lib/shared/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
