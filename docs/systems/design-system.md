@@ -114,6 +114,70 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   keep their chosen rendering, scanners locate corners by shape, and the share studio (ROADMAP)
   redesigns presets wholesale. No longer tied to any UI token.
 
+## Chapters: the attention arc
+
+> Will's ruling, 2026-09-01, made while reviewing the homepage's light. Recorded close to his own
+> words because they are the clearest statement of it, and because the first attempt to build it
+> proposed a component, which is exactly wrong.
+
+Marketing pages already alternate **cinema** (dark) and **paper** chapters to group sections and break
+the monotony of an all-dark or all-paper page. The chapter idea goes one step further, and it is a
+**pacing principle, not a component**:
+
+> Chapters can start visually strong to keep the visual attention and encourage further exploration,
+> then follow up with supporting informative sections that should be interesting within themselves but
+> ramp down from the big visual design until the next chapter intro or another big visual within that
+> chapter.
+
+So a chapter is an **attention arc**. It opens strong, to recapture attention that the previous
+chapter's quiet tail may have started to lose. It ramps down through supporting sections that stay
+interesting but stop shouting and carry the information. Then the next chapter opens bold and the cycle
+restarts. That is what paces the visual-forward sections (a hero, a live demo, the reel) against the
+information-dense ones (curation, privacy, FAQ) so a page keeps visual interest and clear communication
+without ever being monotonous *or* overwhelming.
+
+**The first section of each chapter carries more weight than a body section, and it stays BESPOKE.**
+The goal is not formalised chapter intros. Give every opener the same device and the page reads as
+templated one level up, which kills the freshness each chapter is supposed to bring. The devices are a
+**vocabulary** to draw from, and a page should **vary the device between its chapters**:
+
+- the heading a tier up (`SectionShell scale="lg"`, the ladder's one empty slot: 36/48/60)
+- the hard film-cut entrance (`reveal="cinema"` / `data-mkt-cut`) instead of the soft rise
+- materially more air above the opener than a body section gets
+- an object that physically crosses the chapter cut (the home album's straddle)
+- a drawn rule (`[data-mkt-rule]`, the masthead hairline)
+- a lit subject (the reel player, a screen in a dark room)
+- a full-bleed frame or strip
+
+**Scope.** Core marketing pages with enough body sections to justify chapters: home, the feature
+pages, the event pages, how-it-works. **Not** the resource and utility pages (help, blog, press,
+contact, about, careers, legal), which have no room to alternate chapters in the body and keep the
+cinema hero → paper body → cinema close rhythm, each designed bespoke. The checkable line: **the arc
+applies where a chapter holds several distinct sections; where the chapter IS the page's body (an
+article, a form, a reading surface) it does not.** The "two devices at one cut would be noise" ruling
+still stands: an opener that already carries a straddling object does not also take a second device.
+
+**Two worked examples, both on the homepage (Will's own):**
+
+- *Chapter 3, the payoff, is the model.* The reel section is visual-forward and recaptures the
+  attention curation and privacy may have started to lose while conveying real information; events and
+  pricing follow, less bold but still visually interesting; the FAQ and the CTA close simple. If this
+  were not the last chapter, that quiet tail would be followed by a fresh opener catching attention
+  again — a perfect mid-page example.
+- *Chapter 1, the event, was the defect.* The hero grabs attention; the trust strip balances it and
+  hits key ideas; the decomposition is a beautiful visual that is less bold than the hero and
+  introduces the idea. But the chapter then **escalated** — the live demo, the loudest non-hero section
+  on the page, landed immediately before the paper cut, so the next chapter had no quiet to open
+  against. The fix (round 2) was two quieter guest-side sections above the live demo, and the live demo
+  reworked as the chapter's closing **anchor**: a chapter can end on a strong visual that wraps its
+  ideas together, as long as the sections before it have ramped down.
+
+The home arc as ruled: **chapter 1** opens on the hero, supports through the trust strip, the
+decomposition and the film strip, winds down through the two guest-side sections, and closes on the
+live-demo anchor · **chapter 2** (paper) opens on the album's straddle and covers the album and the
+host experience · **chapter 3** opens on the reel, supports through events and pricing, and closes on
+the FAQ, the CTA and the tail.
+
 ## Light: SPILL, BEAM, and the lamp set
 
 > Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The lab boards
@@ -279,8 +343,7 @@ stay Inter" rule; app page + card titles now use the heading face):
 marketing page H1s ramp `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` (the 72px class on desktop).
 Exemptions by the ruling's own latitude: the HOME hero keeps its unique display ramp (5xl→8xl), `/reel`
 was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
-utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
-keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. The marketing **h2 ladder** has three real tiers, and they should be named rather than inferred: **24/30** (`text-2xl sm:text-3xl`) is the bespoke paper-prose section (/about's story, /press's sections, the 2026-08-25 careers ruling); **30/36/48** is `SectionShell`'s default body section (~70 sites); **36/48/60** is `SectionShell scale="lg"`, the one slot nothing else occupied, for a chapter's opener or closing anchor (the "Chapters" section above). Below `lg` that top tier equals the page h1's size, so on a phone a section's weight comes from its entrance and its air, not its type.
 **The hero lockup owns all of this** ([`page-hero.tsx`](../../src/components/marketing/system/page-hero.tsx),
 pinned by `page-hero-contract.test.ts`): eyebrow / heading / subhead / actions on one shared `gap-6`
 grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the cinema register, `display`

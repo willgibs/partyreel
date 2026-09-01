@@ -22,12 +22,14 @@ import {
  * runner without NEXT_PUBLIC_* vars.
  */
 describe("the home section order", () => {
-  it("pins the ratified 13-id sequence", () => {
+  it("pins the ratified 15-id sequence", () => {
     expect([...HOME_SECTION_IDS]).toEqual([
       "cinema-hero",
       "trust-strip",
       "decomposition",
       "film-strip",
+      "no-app",
+      "full-quality",
       "live-demo",
       "album",
       "curation",
@@ -59,12 +61,14 @@ describe("the home section order", () => {
 });
 
 describe("the home chapter map", () => {
-  it("pins the ratified surface per section (5 dark, 3 paper, 5 dark)", () => {
+  it("pins the ratified surface per section (7 dark, 3 paper, 5 dark)", () => {
     expect(HOME_SECTION_SURFACE).toEqual({
       "cinema-hero": "cinema",
       "trust-strip": "cinema",
       decomposition: "cinema",
       "film-strip": "cinema",
+      "no-app": "cinema",
+      "full-quality": "cinema",
       "live-demo": "cinema",
       album: "paper",
       curation: "paper",

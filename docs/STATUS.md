@@ -96,8 +96,16 @@ the integration rounds.
 
 **The wiring sequence Will ruled (2026-09-01): every Glow integration round across marketing and app
 first, THEN the lab review** (keep what earns a place in a streamlined design-system library, wipe the
-stale rest). Position: **R0 the engine ✅ · R1 the home page ✅** (both on `launch-prep`, unmerged) →
-R2 the guest surfaces → R3 the Get Pro beam + the lit surface → R4 the publish beat → the lab review.
+stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2 chapter pacing ✅ (opener A/B pending Will)**
+(all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
+guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
+
+**Round 2 (2026-09-01)** turned the chapter idea into a recorded PACING PRINCIPLE (a chapter is an
+attention arc; each opener bespoke; core marketing pages only) and re-paced the home page against it:
+two quiet guest-side sections wind chapter 1 down before the live demo, now its centred closing anchor;
+the event cards went media-forward and lost their light (measured legibility, fixed twice); and the
+payoff chapter's opener is deployed as two bespoke treatments on `lp/reel-a` / `lp/reel-b` for Will's
+ruling. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
 
 **Round 1 (2026-09-01)** put the first new light on the site: the hero underlight and the album
 straddle, both **sampling their own photographs**, so law 3 is real in production rather than a claim.
@@ -305,6 +313,15 @@ Action secrets; the prune crons + shared `PRUNE_API_SECRET`. (All Vercel-side it
 the P3 project during the 2026-08-05 hosting migration — the list still holds.)
 
 ## Will's open decision queue
+
+**Round 2 rulings pending (2026-09-01):** (i) **the payoff opener — A or B.** `lp/reel-a` "lights
+down" (the screen throws its light onto the floor) vs `lp/reel-b` "the marquee" (the style names as a
+display-scale title strip); one variable apart, both on the hard cut. (ii) **Two provisional headers**
+— `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality` "Everything they shoot, at
+the size they shot it." (iii) **The album opener** — judge on screen against the new arc whether the
+straddle alone already reads as the paper chapter opening, or wants its own bespoke treatment.
+(iv) The events copy's legibility over the borrowed conference still: improved twice by scrim (median 5.6:1; the brightest 5% of pixels under the heading at 4.27:1), and the
+real fix is the manifest fill.
 
 1. **The light system's remaining rulings.** Rounds 0 and 1 are both on `launch-prep` (2026-09-01) and
    three of the five are closed:

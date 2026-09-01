@@ -245,6 +245,46 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
  * scope, so a live tuner change lands on the next mount (a reload, not a drag).
  */
 export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
+  // ── Rounding (staged for the radius round, 2026-09-01) ──
+  // Will drags the surface radius on REAL pages instead of judging a token
+  // table. --radius is the base every rounded-* utility derives from
+  // (globals.css: md 0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so
+  // one knob restyles every sharp-family surface at once; --radius-float and
+  // --radius-tile are separate tokens by design (menus/toasts; media grids)
+  // and get their own knobs so the round can decide whether they move with
+  // the surfaces or stay put. The baked defaults are 0.125rem / 0.5rem / 3px;
+  // the tuner writes px, same computed values. Not --mkt-*, so tunerScope
+  // puts these on <html>, where an inline value outranks the :root token.
+  {
+    kind: "range",
+    cssVar: "--radius",
+    label: "Surface radius",
+    min: 0,
+    max: 24,
+    step: 1,
+    unit: "px",
+    default: 2,
+  },
+  {
+    kind: "range",
+    cssVar: "--radius-float",
+    label: "Floating-layer radius",
+    min: 0,
+    max: 24,
+    step: 1,
+    unit: "px",
+    default: 8,
+  },
+  {
+    kind: "range",
+    cssVar: "--radius-tile",
+    label: "Media-tile radius",
+    min: 0,
+    max: 12,
+    step: 1,
+    unit: "px",
+    default: 3,
+  },
   {
     kind: "range",
     cssVar: "--mkt-reveal-ms",

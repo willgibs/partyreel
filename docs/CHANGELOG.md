@@ -10,6 +10,70 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light
+
+`launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`) plus two review branches
+(`lp/reel-a` @ `bf2727b`, `lp/reel-b` @ `33adfd6`). Gate green at every commit; 1316 tests. Verified
+on the deployed aliases with the Chrome MCP; **nothing was verified on localhost**, by ruling.
+
+**The round's idea is a pacing principle, and it was corrected twice before anything was built.** The
+first plan proposed a `SectionShell` prop stamped across ~13 chapter openers, which would have traded
+section-level monotony for chapter-level monotony. Will's restatement, now recorded in
+[design-system.md](systems/design-system.md) close to his words: a chapter is an **attention arc** —
+open strong, ramp down through supporting sections that stay interesting but stop shouting, and let the
+next chapter open bold. Each opener stays bespoke; the devices are a vocabulary, varied between the
+chapters of one page. Scoped to core marketing pages with multi-section chapters; never the resource
+and utility pages.
+
+**What shipped on `launch-prep`:**
+
+- **Event cards media-forward, unlit, untilted.** The blog post-card anatomy adopted whole: image
+  fill, bottom-weighted scrim that lifts on hover, white type bottom-left. The third version of this
+  card's light had *worked* and was still pulled, for a reason about the page rather than the card:
+  four spills followed 765px later by the Pro card's beam put two light events inside one viewport.
+  Scarcity is a distance. **Legibility was measured, not eyeballed** — per pixel off the rendered image
+  with the gradient's alpha applied — and the first cut failed: the Conferences title sat at a median
+  **3.65:1** over its white tablecloth. A second short scrim behind the copy block only (the hero's
+  own device for its mobile copy) took it to 5.06 median; a step darker again (85%, 60% of the card) took it to **median 5.6:1**, with the
+  brightest 5% of pixels under the heading at **4.27:1** — still just under AA on that one card. It stops
+  there on purpose: a third darkening would bury every card's photograph to serve one borrowed
+  placeholder still, and the real fix is the manifest fill (logged). The teaser is white/85, because a translucent white is a lower contrast than the
+  measurement's pure-white assumption.
+- **Chapter 1 winds down before its anchor.** It used to escalate: the live demo, the loudest non-hero
+  section, landed straight before the paper cut. Two quiet guest-side sections (`no-app`,
+  `full-quality`, in the privacy section's register, provisional headers per the `SECTION_HEADERS`
+  contract) now sit above it, and the live demo is reworked as the chapter's closing **anchor**: centred,
+  heading a tier up, real air, the standard rise rather than the cut. The pinned home order goes 13 →
+  15 ids; the chapter map 7 dark / 3 paper / 5 dark.
+- **`SectionShell scale="lg"`**, the one empty slot in the h2 ladder (36/48/60), and the ladder itself
+  written down for the first time: 24/30 bespoke paper prose · 30/36/48 body section · 36/48/60
+  opener/anchor.
+- **Three radius knobs on the marketing tuner** (`--radius`, `--radius-float`, `--radius-tile`) so the
+  rounding round is ruled on real pages behind `?key=` — verified live on the panel.
+
+**What is deployed for a ruling, not merged:** two bespoke treatments of the payoff chapter's opener,
+one variable apart. **A, "lights down"** (`lp/reel-a`): more air, the heading a tier up, the player as
+the subject throwing its own poster's sampled colour down onto the floor beneath it (a seam on the
+player's bottom edge; measured live: box top 0px from the player's edge, hue 172° sampled from the
+poster), the style chips pulled back beneath it. **B, "the marquee"** (`lp/reel-b`): the fourteen style
+names run full-bleed at display scale as the title strip, the playing style lit, the player revealed
+beneath. Both use the hard film cut. Will picks; the winner lands on `launch-prep`.
+
+★ **A's first two cuts were wrong in kind, and the maths is now in the file.** A centred `throw` behind
+an opaque screen renders as a rectangle at high reach and as nothing at the corrected reach, because a
+radial gradient's percentage radius is a fraction of the box's *full* dimension and the ramp is spent
+before the object ends; the `halo` is the inverse ramp but is built to be clipped *inside* its object,
+which an opaque screen makes invisible. Neither shape backlights an opaque object. The screen throws its
+light **down** instead — the mechanic the film strip and the footer already use. One mechanic for every
+underlight on the site, including the payoff's.
+
+★ **The tooling findings this round, all recorded in
+[testing-verification.md](systems/testing-verification.md):** the Chrome MCP's tab is a *background*
+tab, so ambient-pause lamps read paused, lazy images below the fold never load (force `eager` before
+measuring), an unbounded `img.decode()` hangs the evaluate for 45s, chained `setTimeout`s hit Chrome's
+intensive throttling and make a two-second script take minutes, a screenshot after a scroll jump can be
+a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
+
 ## 2026-09-01 — Round 1: the home page's light, and the first colour taken from a photograph
 
 `launch-prep` (`f6cfd07`, `8a2c181`, `01424e6`, `b6d7650`). Gate green at every commit;
