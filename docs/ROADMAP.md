@@ -251,25 +251,17 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
-  **settle `PageHero`: one hero entrance, then sweep the twelve hand-rolled copies onto it** (Will,
-  2026-08-29 — one round, after careers lands, never inside a merge). Two halves of the same
-  question. (a) ENTRANCE: `PageHero` uses the chapter-1 rise while /help, /contact and /careers
-  arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line` forces
-  `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
-  `opacity: 0` rest state is why those pages gate their own h1's paint. ★ That last part is a REAL
-  BUG the sweep closes, on **4 of 22 marketing h1s** (pricing, /help index, /contact, /careers): the
-  h1 ships at `opacity: 0` and paints only after hydration plus an observer, which is exactly the LCP
-  hole `PageHero` already forbids. ★ And /careers is confirmed to QUALIFY (checked at its merge,
-  2026-08-29) — its hero is a plain eyebrow/h1/subhead/actions lockup, with the contact sheet a
-  BACKGROUND sibling rather than part of it — so the old "careers still hand-rolls, so the sweep is
-  blocked" framing is retired; only (a) blocks it. (b) ADOPTION: only /about and
-  /press compose it, while TWELVE pages hand-copy its exact lockup inline (`<Reveal>` + `Eyebrow` +
-  the identical `text-4xl…lg:text-7xl` h1 + subhead + a two-Button row) and have already drifted to
-  `gap-5` against its `gap-6`. The sweep is blocked on (a): those twelve differ in entrance
-  (`data-mkt-reveal` vs `data-mkt-cut`, and /features/curation deliberately keeps its h1 static), so
-  `PageHero` needs an entrance prop before any of them can move. ★ `PageHero` owns ONLY the plain
-  type lockup — it must never absorb a hero with media, a form, or its own object (/blog's index
-  masthead, /help's instrument row, the home hero all stay bespoke by design)
+  **the `PageHero` sweep, the remaining half** (Will, 2026-08-29; the cut family swept at the
+  feature-pages round, 2026-09-01: `entrance` is `rise | cut`, and the six feature pages, the hub,
+  /how-it-works and /events compose it, so ten of the twelve hand-rolled copies are gone). What is
+  left is the blur-rise quartet: /pricing, the /help index, /contact and /careers arrive on the
+  texts-reveal `.mkt-line`, whose `opacity: 0` rest state is a REAL LCP BUG (the h1 paints only after
+  hydration plus an observer), and `.mkt-line` forces `display:block`, so a blur-rise lockup needs
+  its own handling for the actions row. Either give those four the cut (one line each) or keep the
+  blur-rise and lift its gate off the h1; Will's call, since three of the four are identity pages he
+  has said he will revisit. ★ `PageHero` owns ONLY the plain type lockup plus a stage slot for what
+  sits under it; it must never absorb a hero whose object sits beside the lockup or a form (/qr,
+  /blog's index masthead, /help's instrument row, the home hero all stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 - **A mobile pass of its own** (Will, 2026-08-29): "we'll already need to make mobile tweaks in the
   future. Right now, I've really been reviewing desktop only." Every marketing round to date has been

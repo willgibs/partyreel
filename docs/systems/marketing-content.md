@@ -39,6 +39,25 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **home** + **`/features`** (copy in [`features.ts`](../../src/lib/constants/features.ts), feeding the home
   teaser too; layout via `FeatureSpotlight` + the `FEATURE_PRESENTATION` map in
   [`features-layout.ts`](../../src/lib/constants/features-layout.ts)).
+- **THE FEATURE FAMILY (the feature-pages round, 2026-09-01: the hub + six pages lifted onto the
+  home page's grammar).** Identity single-source: [`feature-pages.ts`](../../src/lib/constants/feature-pages.ts).
+  The hub is a DIRECTORY of **photographic doors** ([`feature-door.tsx`](../../src/components/marketing/sections/features/shared/feature-door.tsx),
+  the ruled media-forward card anatomy from the home event cards, each door carrying its feature's
+  own photograph plus the chip its surface draws: the live dot, the approved check, the name chip,
+  the lock, the play badge; the QR door is the one made object, the real renderer on a white plate,
+  rendered ABOVE the scrims because a scrim over white greys it). The reel leads full-width on its
+  poster. The same doors are every page's closing band ([`related-features.tsx`](../../src/components/marketing/sections/features/shared/related-features.tsx)),
+  so the site has ONE picture of each feature. Every page's hero composes `PageHero` on the cut
+  (the H1 static, [design-system.md](design-system.md)); the album, guests and sharing heroes put
+  their object in the stage slot under a `ScreenLamp` (the page's one lamp, sampled from its own
+  frame), the QR plate switches on in its own bespoke hero, and curation and privacy open plain on
+  purpose. **Each page is a three-chapter attention arc** (design-system.md "Chapters"): a cinema
+  chapter that opens on the lamp and ramps down (the album re-paced hero → live → the quiet
+  numbers), ONE paper chapter whose opener is bespoke per page (the print stock STRADDLES the cut
+  on /qr, the guest-list card straddles on /guests, the spec sheet / downloads / queue / access
+  switch open a tier up on the cut elsewhere), and a close chapter that opens on the doors band and
+  winds down through the FAQ to the CtaBand. ★ The doors band takes `opener={false}` on a page whose
+  close already opens on its own beat (/qr's entry flow): two openers back to back are noise.
 - **`/events`** — a full landing hub + 4 umbrella pages (weddings/parties/conferences/trips) off ONE
   `[slug]` template; copy in [`events.ts`](../../src/lib/constants/events.ts) (`EVENT_TYPE*` — named to
   avoid colliding with the real `events` domain; + the `EVENTS_HUB` block); distinct hero + "Built for X"

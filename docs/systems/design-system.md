@@ -276,13 +276,28 @@ reduced-motion visitor sees permanently. It shipped declaring `50% 0` for two ro
 of the sweep, i.e. the worst case, forever, for the people who asked for less motion. Fixed at round 1
 and pinned by test.
 
-### The three shipped lamps
+### The shipped lamps
 
 | Lamp | Where | Shape | Colour |
 | --- | --- | --- | --- |
 | **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
 | **The hero underlight** | [cinema-hero.tsx](../../src/components/marketing/sections/home/cinema-hero.tsx) | `seam` | **sampled** from the wall's eager tiles |
-| **The album straddle** | [album-glow.tsx](../../src/components/marketing/sections/home/album-glow.tsx), `lg` only | `throw` | **sampled** from the card's eight tiles |
+| **The film strip** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx) | `seam` | **sampled** from the strip's frames |
+| **The feature heroes** (album, guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the arrivals stream, the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
+| **The QR plate switching on** | [qr-hero.tsx](../../src/components/marketing/sections/features/qr/qr-hero.tsx) (lab moment 06, "the second one") | `bloom` armed on arrival, resting at `--glw-base: 0.34` | the house five (a code is ink on white, law 3's no-media branch) |
+
+★ **`ScreenLamp` is the ONE underlight as a component** (the feature-pages round, 2026-09-01): a lit
+object throws its own sampled light down off its bottom edge, full-bleed, as a sibling of the object
+(never inside a clipping frame). Neither `throw` nor `halo` can backlight an opaque object, so every
+underlight on the site is this mechanic; a new one is a `<ScreenLamp>` around the object, not a fourth
+file. Its section must be `overflow-x-clip`, never `overflow-hidden`, or the field hanging below is
+cut off. Scarcity on a feature page is one lamp in the hero and the footer seam, nothing between; the
+curation and privacy pages carry NO lamp on purpose (restraint is their identity), and so does the
+doors band (a row of lit cards is the every-section-gets-a-version failure).
+★ **A radial mask's reach is a fraction of the FULL field** (found twice now: the reel treatment and
+the QR plate). The transparent stop sits at 78% of that radius, so a lab `--glw-reach: 78%` on a field
+the size of its object puts the fade outside the box and the light renders as a rounded square. Size
+the field generously (`-inset-32` on the plate) and keep reach where the falloff completes inside it.
 
 All three ship at `--glw-dur: 11s` against the engine's ruled 8s. With three lamps the open ruling is no
 longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
@@ -350,7 +365,15 @@ grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the ci
 the exemption below. Will's ruling for the identity pages, 2026-08-28: **share grammar, page picks
 scale.** Compose it rather than hand-rolling a hero; four agents wrote four heroes in one week and that
 is the drift it closes. The heading is always an `<h1>` (the /contact bug class; `SectionShell`'s `as`
-carries the same rule for sections).
+carries the same rule for sections). **The one hero entrance is settled (2026-09-01): `entrance` is
+`rise` (the standard stagger, the identity pages) or `cut` (the hard film cut, every cinema-family
+hero: the six feature pages, the hub, /how-it-works, /events), and the H1 never moves either way.**
+`children` is the STAGE slot, rendered inside the same Container under the lockup, so a page with an
+object (the album filling, the attribution wall, the link frame) composes the lockup and owns its
+object, its entrance and its lamp; `PageHero` still owns only the type. The texts-reveal blur-rise is
+deliberately not a third entrance (its rest state is `opacity: 0`, the LCP hole), so /pricing, /help,
+/contact and /careers keep their bespoke heroes until their own revisit. The QR hero is the one
+feature hero that stays hand-rolled: its object sits BESIDE the lockup, not under it.
 
 The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
 decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's

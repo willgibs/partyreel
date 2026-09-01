@@ -10,6 +10,41 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — The feature pages round (Agent handoff, `lp/marketing-feature-pages`)
+
+An autonomous Agent round on Will's brief: "attempt a redesign across all of our marketing feature
+pages", with the design lab's light doctrine and the home page's chapter pacing as the current peak,
+under rising tides. Built and verified on the worktree dev server (Chrome MCP at 1440, the Browser
+pane at 375; every reveal forced by hand, since both tabs run in the background) and on the branch
+preview. Gate green at every commit; 1316 tests.
+
+**What it is, in one line: the hub and the six feature pages now open, light and pace the way the home
+page does, on shared pieces instead of six hand-rolled copies.**
+
+- **`PageHero` settles the one hero entrance** (`entrance: "rise" | "cut"`) and grows a stage slot.
+  The six feature heroes, the hub, /how-it-works and /events compose it; the album hero had been
+  cutting its own h1 after hydration against the family rule, which the sweep closes by contract.
+- **`ScreenLamp`**, the one underlight mechanic as a component: a lit object throws its own sampled
+  light down off its bottom edge, full-bleed. The album's arrivals stream, the guests' attribution
+  wall and the sharing page's link frame are now lamps, each the colour of its own photographs
+  (measured live on /features/album: hues 53 and 308, not the house set). The QR plate switches on
+  (lab moment 06's second specimen: ignite on arrival, rest lit), with its field sized so the falloff
+  completes inside it. Curation, privacy and the doors carry no lamp, by the scarcity ruling.
+- **`FeatureDoor`**, the ruled media-forward card as the feature directory: the hub's seven doors and
+  every page's sibling band are photographs with each surface's own chip. The hub's hand-drawn motifs
+  went with it. The sibling band is now the close chapter's opener (three doors on the hard cut, with
+  air), so the FAQ and CTA have something to ramp down from.
+- **Each page as an attention arc**, bespoke per page: the album re-paced (hero → live → the quiet
+  numbers → paper); the print stock straddles the cut on /qr and the guest-list card on /guests; the
+  spec sheet, downloads, queue and access switch open their paper chapters a tier up; /qr's entry
+  flow opens its close, so its doors drop to the body register.
+
+★ A radial mask's reach is a fraction of the full field: the lab's 78% on the plate rendered as a
+rounded square until the field grew and reach dropped to 60%. ★ Both browser tools run as background
+tabs here: IntersectionObserver never fires, so every reveal must be forced before a screenshot, and
+the Chrome window will not resize below ~500px, so the phone pass ran in the Browser pane with the
+mobile preset and DOM measurements (no page overflows at 375).
+
 ## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light
 
 `launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`) plus two review branches
