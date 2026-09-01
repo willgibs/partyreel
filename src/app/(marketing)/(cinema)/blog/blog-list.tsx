@@ -20,10 +20,16 @@ import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import type { BlogListItem } from "@/lib/content/blog";
 import {
+  BLOG_LIBRARY_LINE,
+  type BlogTagId,
+  getBlogTag,
+} from "@/lib/content/blog-tags";
+import {
   normalizeTag,
   pageNumbers,
   paginate,
   splitLibrary,
+  type TagCount,
   tagCounts,
 } from "@/lib/content/blog-index";
 import { readCssMs } from "@/lib/shared/read-css-ms";
@@ -76,7 +82,7 @@ function useUrlParam(key: string): string | null {
 }
 
 /** What is on screen for a given (tag, page): the staged lead plus the visible slice. */
-type View = { tag: string | null; page: number };
+type View = { tag: BlogTagId | null; page: number };
 
 export function BlogList({ posts }: { posts: BlogListItem[] }) {
   const tags = useMemo(() => tagCounts(posts), [posts]);
@@ -171,6 +177,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
 
   const isExiting = (slug: string) => exiting.includes(slug);
   const { lead, page } = current;
+  const activeTag = view.tag ? getBlogTag(view.tag) : null;
 
   return (
     <div ref={scopeRef}>
@@ -239,17 +246,36 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                 ref={libraryRef}
                 className="min-w-0 scroll-mt-[calc(var(--mkt-header-h,4rem)+1.5rem)]"
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-3 border-b pb-3">
-                  <h2 className="font-heading text-xl sm:text-2xl">
-                    {view.tag ? `Everything tagged ${view.tag}` : "The library"}
-                  </h2>
+                {/* THE HEADING LOCKUP: the tag's LABEL over its one-line description, and the
+                    unfiltered view carries a line too. A constant block height is load-bearing:
+                    if picking a tag added a line here, every card below would shift and the
+                    two-axis FLIP would animate the shift as a jolt. The description is keyed on
+                    the view so it re-mounts and takes the shared set-change enter beat with the
+                    cards, and it sits OUTSIDE the aria-live readout so a keyed re-mount never
+                    double-announces. line-clamp-2 + a two-line floor on phones, where an 80-char
+                    line can wrap once. */}
+                <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
+                  <div className="min-w-0">
+                    <h2 className="font-heading text-xl sm:text-2xl">
+                      {activeTag ? activeTag.label : "The library"}
+                    </h2>
+                    <p
+                      key={view.tag ?? ALL}
+                      data-mkt-entering
+                      className="mt-1 line-clamp-2 min-h-[2lh] text-sm text-pretty text-muted-foreground sm:min-h-0"
+                    >
+                      {activeTag ? activeTag.description : BLOG_LIBRARY_LINE}
+                    </p>
+                  </div>
                   <p
                     aria-live="polite"
                     className="text-xs text-muted-foreground tabular-nums"
                   >
                     {page.pageCount > 1
                       ? `Showing ${page.from}–${page.to} of ${page.total}`
-                      : `${page.total} ${page.total === 1 ? "post" : "posts"}`}
+                      : page.total === 1
+                        ? "One post"
+                        : `${page.total} posts`}
                   </p>
                 </div>
 
@@ -294,12 +320,25 @@ function LibraryGrid({
   return (
     <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((post, index) => (
-        <li key={post.slug} ref={register(post.slug)} className="min-w-0">
+        <li
+          key={post.slug}
+          ref={register(post.slug)}
+          // A lone survivor (a one-post tag) would sit in the corner of a two-column grid; let it
+          // take the row at sm, and a single cell again once the wall is three wide.
+          className={cn(
+            "min-w-0",
+            items.length === 1 && "sm:col-span-2 xl:col-span-1",
+          )}
+        >
           <div
             data-mkt-entering
             data-mkt-exiting={isExiting(post.slug) ? "" : undefined}
           >
-            <PostCard post={post} index={index} />
+            {/* ★ The develop stagger is CAPPED at 5: the staged lead holds --i: 6 so that it
+                lands LAST (the eye lands where the reading starts). Uncapped, a twelve-card page
+                would land its last six cards after the hero and inverts that, and every filter or
+                page change would replay a second-long muted hole in the bottom row. */}
+            <PostCard post={post} index={Math.min(index, 5)} />
           </div>
         </li>
       ))}
@@ -308,8 +347,8 @@ function LibraryGrid({
 }
 
 /**
- * Pagination, built ahead of need (Will's call) and INVISIBLE until an archive overflows: at
- * today's four posts `pageCount` is 1 and this renders nothing at all. Numerals are Inter with
+ * Pagination, built ahead of need (Will's call) and INVISIBLE until a set overflows: a tag with
+ * twelve posts or fewer renders no control at all. Numerals are Inter with
  * tabular-nums rather than mono, matching the byline decision - mono is for numerals that align in
  * a column, and these are a control, not a table.
  */
@@ -328,6 +367,9 @@ function Pager({
   return (
     <nav
       aria-label="Pagination"
+      // The control appears the moment a set overflows (pick Everything from a short tag): the
+      // shared enter beat fades it in with the cards instead of letting it pop.
+      data-mkt-entering
       className="mt-10 flex items-center justify-center gap-1 border-t pt-6"
     >
       <PagerStep
@@ -402,7 +444,9 @@ function PagerStep({
 
 /**
  * THE MARGIN INDEX, sticky at lg+ (Will's ruling). A ruled ledger in the body margin: words and
- * numerals only, counts from the FULL set so a chip's number is a promise about what it will show.
+ * numerals only (the registry LABEL, never an icon; an icon column is the one move that collapses
+ * this into /help's emblem strip), counts from the FULL set so a row's number is a promise about
+ * what it will show, in REGISTRY order so the rail never reshuffles as posts land.
  * Active state is a 2px ink bar in the gutter, never a fill - a filled pill would make the control
  * the loudest object on a page whose subject is photographs.
  *
@@ -416,10 +460,10 @@ function TagRail({
   active,
   onSelect,
 }: {
-  tags: { label: string; count: number }[];
+  tags: TagCount[];
   total: number;
-  active: string | null;
-  onSelect: (tag: string | null) => void;
+  active: BlogTagId | null;
+  onSelect: (tag: BlogTagId | null) => void;
 }) {
   return (
     <nav
@@ -441,11 +485,11 @@ function TagRail({
         />
         {tags.map((tag) => (
           <RailRow
-            key={tag.label}
+            key={tag.id}
             label={tag.label}
             count={tag.count}
-            active={active === tag.label}
-            onClick={() => onSelect(tag.label)}
+            active={active === tag.id}
+            onClick={() => onSelect(tag.id)}
           />
         ))}
       </div>
@@ -464,8 +508,22 @@ function RailRow({
   active: boolean;
   onClick: () => void;
 }) {
+  // Below lg the rail is a horizontal snap scroller, and a ?tag= deep link can select a row that
+  // sits off-screen to the right. A ref callback (not an effect: no setState, and it runs on mount
+  // and on every re-render where `active` flips) nudges the active row into view. `inline:
+  // "nearest"` is a no-op on the lg column, where the row is already in the viewport.
+  const reveal = useCallback(
+    (node: HTMLButtonElement | null) => {
+      if (node && active) {
+        node.scrollIntoView({ inline: "nearest", block: "nearest" });
+      }
+    },
+    [active],
+  );
+
   return (
     <button
+      ref={reveal}
       type="button"
       onClick={onClick}
       aria-pressed={active}

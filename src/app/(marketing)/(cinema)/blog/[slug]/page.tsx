@@ -29,6 +29,7 @@ import {
   toListItem,
 } from "@/lib/content/blog";
 import { coverFor } from "@/lib/content/blog-covers";
+import { type BlogTagId, getBlogTag } from "@/lib/content/blog-tags";
 import { extractHeadings } from "@/lib/content/collection";
 import { cn, formatEventDate } from "@/lib/utils";
 
@@ -58,7 +59,7 @@ export async function generateMetadata({
       publishedTime: post.frontmatter.date,
       modifiedTime: post.frontmatter.updated ?? post.frontmatter.date,
       authors: [getAuthor(post.frontmatter.author).name],
-      tags: post.frontmatter.tags.length ? post.frontmatter.tags : undefined,
+      tags: post.frontmatter.tags.map((tag) => getBlogTag(tag).label),
     },
   };
 }
@@ -341,7 +342,7 @@ function TagChip({
   tag,
   tone = "media",
 }: {
-  tag: string;
+  tag: BlogTagId;
   tone?: "media" | "paper";
 }) {
   return (
@@ -354,7 +355,7 @@ function TagChip({
           : "border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
       )}
     >
-      {tag}
+      {getBlogTag(tag).label}
     </Link>
   );
 }

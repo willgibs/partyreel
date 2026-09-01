@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BlogListItem } from "./blog";
+import { BLOG_TAGS, type BlogTagId } from "./blog-tags";
 import {
   normalizeTag,
   pageNumbers,
@@ -10,7 +11,7 @@ import {
   tagCounts,
 } from "./blog-index";
 
-function post(slug: string, tags: string[]): BlogListItem {
+function post(slug: string, tags: BlogTagId[]): BlogListItem {
   return {
     slug,
     title: slug,
@@ -33,24 +34,40 @@ function post(slug: string, tags: string[]): BlogListItem {
   };
 }
 
-// The real shape that motivated the hero rule: the NEWEST post owns two tags nobody else has.
+// The real shape that motivated the hero rule: the NEWEST post owns tags nobody else has
+// (`product` + `compared` here), so lifting it out of the filtered set would render those rows
+// empty. `parties` is deliberately absent: a registered tag with no posts must not reach the rail.
 const POSTS = [
-  post("introducing-the-highlight-reel", ["product", "highlight-reel"]),
-  post("stop-losing-group-photos", ["parties", "how-to"]),
-  post("wedding-photo-qr", ["weddings", "how-to"]),
-  post("best-photos-elsewhere", ["story", "behind-the-scenes"]),
+  post("highlight-reel-renders-on-your-phone", ["product", "compared"]),
+  post("qr-code-for-wedding-photos", ["weddings", "how-to"]),
+  post("group-trip-photo-sharing", ["how-to"]),
+  post("conference-photo-sharing-no-app", ["corporate"]),
 ];
 
 describe("blog index derivations", () => {
-  it("counts tags across the full set, most-used first", () => {
+  it("counts tags across the full set, in registry order, carrying the registry copy", () => {
     const counts = tagCounts(POSTS);
-    expect(counts[0]).toEqual({ label: "how-to", count: 2 });
-    expect(counts.map((c) => c.label)).toContain("product");
+    expect(counts.map((c) => c.id)).toEqual([
+      "weddings",
+      "corporate",
+      "how-to",
+      "compared",
+      "product",
+    ]);
+    expect(counts.find((c) => c.id === "how-to")).toMatchObject({
+      id: "how-to",
+      label: "How-to",
+      kind: "purpose",
+      count: 2,
+    });
+    expect(counts.find((c) => c.id === "how-to")?.description).toBeTruthy();
+    // A registered tag with no posts is not offered.
+    expect(counts.map((c) => c.id)).not.toContain("parties");
   });
 
   it("stages a lead only in the unfiltered view", () => {
     const all = splitLibrary(POSTS, null);
-    expect(all.lead?.slug).toBe("introducing-the-highlight-reel");
+    expect(all.lead?.slug).toBe("highlight-reel-renders-on-your-phone");
     expect(all.library).toHaveLength(3);
 
     const filtered = splitLibrary(POSTS, "how-to");
@@ -60,25 +77,35 @@ describe("blog index derivations", () => {
 
   it("★ every tag the rail offers yields rows, count-exact", () => {
     // The invariant. Under a "hoist the hero out of the filtered set" design, `product` and
-    // `highlight-reel` would each render an empty library while their article sat in the hero.
-    for (const { label, count } of tagCounts(POSTS)) {
-      const { lead, library } = splitLibrary(POSTS, label);
-      expect(lead, label).toBeNull();
-      expect(library.length, label).toBe(count);
-      expect(library.length, label).toBeGreaterThan(0);
+    // `compared` would each render an empty library while their article sat in the hero.
+    const offered = tagCounts(POSTS);
+    for (const { id, count } of offered) {
+      const { lead, library } = splitLibrary(POSTS, id);
+      expect(lead, id).toBeNull();
+      expect(library.length, id).toBe(count);
+      expect(library.length, id).toBeGreaterThan(0);
+    }
+    // And the converse, over the REGISTRY: a tag the rail does not offer has no rows, so the
+    // only way a registered tag could ever show an empty grid is through the URL, which
+    // normalizeTag closes below.
+    for (const tag of BLOG_TAGS) {
+      const rows = splitLibrary(POSTS, tag.id).library.length;
+      expect(offered.some((c) => c.id === tag.id), tag.id).toBe(rows > 0);
     }
   });
 
   it("returns the ex-lead to the library when its own tag is picked", () => {
     const { library } = splitLibrary(POSTS, "product");
     expect(library.map((p) => p.slug)).toEqual([
-      "introducing-the-highlight-reel",
+      "highlight-reel-renders-on-your-phone",
     ]);
   });
 
-  it("normalizes an unknown or absent ?tag= back to the unfiltered view", () => {
+  it("normalizes an unknown, empty, or absent ?tag= back to the unfiltered view", () => {
     expect(normalizeTag("how-to", POSTS)).toBe("how-to");
     expect(normalizeTag("no-such-tag", POSTS)).toBeNull();
+    // Registered but with zero posts in this set: also the unfiltered view, never an empty grid.
+    expect(normalizeTag("parties", POSTS)).toBeNull();
     expect(normalizeTag(null, POSTS)).toBeNull();
     expect(normalizeTag("", POSTS)).toBeNull();
   });
@@ -93,7 +120,7 @@ describe("pagination", () => {
   const items = Array.from({ length: 37 }, (_, i) => i + 1);
 
   it("is invisible below the threshold", () => {
-    // Today's blog is four posts: the control must not exist yet.
+    // A short filtered set (or the four-post blog this shipped on) must render no control.
     const p = paginate([1, 2, 3], 1);
     expect(p.pageCount).toBe(1);
     expect(pageNumbers(p.page, p.pageCount)).toEqual([]);

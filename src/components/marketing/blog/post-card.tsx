@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import type { BlogListItem } from "@/lib/content/blog";
+import { getBlogTag } from "@/lib/content/blog-tags";
 import { cn } from "@/lib/utils";
 
 import { PostMeta } from "./post-meta";
@@ -81,8 +82,8 @@ export function PostCard({
       {/* TAGS, top-left (Will, 2026-08-28). They sit in the corner the bottom-weighted scrim
           leaves nearly clear, so each chip carries its own ground: a translucent plate with a
           backdrop blur, which is the ONE place the elevation contract sanctions blur (a surface
-          over media). Capped at two so a many-tagged post cannot crowd the frame, and lowercase to
-          match the browse rail rather than shouting in caps at 10px. */}
+          over media). Capped at two (the schema caps a post at two, so nothing is ever hidden) and
+          set in the registry LABEL, matching the browse rail rather than shouting in caps at 10px. */}
       {post.tags.length > 0 && (
         <span className="absolute inset-x-0 top-0 flex flex-wrap gap-1 p-4 sm:p-5">
           {post.tags.slice(0, 2).map((tag) => (
@@ -90,7 +91,7 @@ export function PostCard({
               key={tag}
               className="rounded-full bg-black/35 px-2 py-0.5 text-[10px] tracking-wide text-white/90 backdrop-blur-[2px]"
             >
-              {tag}
+              {getBlogTag(tag).label}
             </span>
           ))}
         </span>

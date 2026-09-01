@@ -15,6 +15,7 @@ import {
   getRelatedPosts,
 } from "@/lib/content/blog";
 import { coverFor } from "@/lib/content/blog-covers";
+import { BLOG_TAG_IDS, audienceTags } from "@/lib/content/blog-tags";
 import { escapeXml, readingTime } from "@/lib/content/collection";
 
 const posts = getAllPosts();
@@ -38,6 +39,29 @@ describe("blog content integrity", () => {
       expect(AUTHOR_IDS).toContain(post.frontmatter.author);
       expect(post.body.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it("carries one or two REGISTERED tags, at most one audience", () => {
+    for (const post of posts) {
+      const { tags } = post.frontmatter;
+      expect(tags.length, post.slug).toBeGreaterThanOrEqual(1);
+      expect(tags.length, post.slug).toBeLessThanOrEqual(2);
+      for (const tag of tags) expect(BLOG_TAG_IDS, post.slug).toContain(tag);
+      expect(audienceTags(tags).length, post.slug).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("rejects an unregistered, repeated, third, or double-audience tag at the schema", () => {
+    const base = { title: "A title", description: "A description", date: "2026-05-31" };
+    const bad = (tags: string[]) =>
+      blogFrontmatterSchema.safeParse({ ...base, tags }).success;
+    expect(bad(["highlight-reel"])).toBe(false);
+    expect(bad([])).toBe(false);
+    expect(bad(["how-to", "how-to"])).toBe(false);
+    expect(bad(["weddings", "how-to", "product"])).toBe(false);
+    expect(bad(["weddings", "parties"])).toBe(false);
+    expect(bad(["weddings", "how-to"])).toBe(true);
+    expect(bad(["how-to"])).toBe(true);
   });
 
   it("has unique slugs", () => {
@@ -222,6 +246,63 @@ describe("getAllTags / getRelatedPosts", () => {
       const related = getRelatedPosts(posts[0], 3);
       expect(related.length).toBeLessThanOrEqual(3);
       expect(related.some((p) => p.slug === posts[0].slug)).toBe(false);
+    }
+  });
+});
+
+describe("the faq field", () => {
+  const base = { title: "A title", description: "A description", date: "2026-05-31", tags: ["how-to"] };
+  const parse = (faq: unknown) => blogFrontmatterSchema.safeParse({ ...base, faq });
+
+  it("accepts one to eight plain-text items and rejects the edges", () => {
+    const item = { q: "Do guests need an app?", a: "No. They scan and upload from the browser." };
+    expect(parse([item]).success).toBe(true);
+    expect(parse(Array.from({ length: 8 }, () => item)).success).toBe(true);
+    expect(parse([]).success).toBe(false);
+    expect(parse(Array.from({ length: 9 }, () => item)).success).toBe(false);
+    expect(parse([{ q: item.q, a: "x".repeat(401) }]).success).toBe(false);
+  });
+
+  it("rejects markup in an answer: it ships verbatim into FAQPage JSON-LD", () => {
+    const result = parse([{ q: "How big?", a: "Up to <UploadSize /> per file." }]);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toContain("plain text");
+    }
+  });
+
+  it("★ carries no typed number: a FAQ answer is the one place a cap can only be typed", () => {
+    // The spec components cannot reach a frontmatter string, so any figure here would be a
+    // hand-typed copy of a product constant, which is exactly the drift they exist to prevent.
+    // Answers point at /pricing instead of quoting caps.
+    const NUMBER = /\$\d|\b\d+(\.\d+)? ?(GB|TB|MB|seconds?|days?|styles?)\b/i;
+    for (const post of posts) {
+      for (const { q, a } of post.frontmatter.faq ?? []) {
+        expect(q, `${post.slug}: ${q}`).not.toMatch(NUMBER);
+        expect(a, `${post.slug}: ${a}`).not.toMatch(NUMBER);
+      }
+    }
+  });
+});
+
+describe("related posts spread across the archive", () => {
+  it("no post is recommended in more than five endings", () => {
+    // The same-tag-first scorer this replaced funnelled every audience's endings to its two
+    // newest posts. Bound it: across every article's two-block ending, no single post may be
+    // the recommendation more than five times (on a small archive every post is a neighbour of
+    // two others, which is the floor this leaves room for).
+    const seen = new Map<string, number>();
+    for (const post of getAllPosts()) {
+      const { newer, older } = getPostNeighbors(post);
+      const shown = new Set(
+        [newer?.slug, older?.slug].filter(Boolean) as string[],
+      );
+      for (const related of getRelatedPosts(post, 2, shown)) {
+        seen.set(related.slug, (seen.get(related.slug) ?? 0) + 1);
+      }
+    }
+    for (const [slug, count] of seen) {
+      expect(count, `${slug} is recommended ${count} times`).toBeLessThanOrEqual(5);
     }
   });
 });
