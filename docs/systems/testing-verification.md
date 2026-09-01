@@ -112,7 +112,13 @@ site, these are the ways the *test tooling* misreports, so a working change look
     screenshot as evidence that something is absent. ★ A FOURTH costume, the careers MERGE
     (2026-08-29): the second screenshot trick stops working entirely once the pane is HIDDEN
     (`innerWidth` reads 0 and every capture comes back black) and `resize_window` silently no-ops on
-    the Chrome side while reporting success. DOM reads stay honest in both. When neither browser will
+    the Chrome side while reporting success. It ALSO no-ops for the Chrome MCP whenever the tab is a
+    background tab, which is its normal state (`innerWidth` never changes). To measure a narrow
+    layout anyway, append a same-origin `<iframe>` at the width you need and read its
+    `contentDocument.documentElement.scrollWidth` against `clientWidth`; to reproduce Windows, where
+    `100vw` includes a classic scrollbar, inject `::-webkit-scrollbar{width:17px}` into the iframe,
+    which forces classic scrollbars even on macOS Chrome. That is how the sideways-scroll defect was
+    found, and how the fix was verified (2026-09-01). DOM reads stay honest in both. When neither browser will
     paint, stop fighting them and verify geometry + computed style by hand, then look at the
     DEPLOYED preview, where both have always worked.
 

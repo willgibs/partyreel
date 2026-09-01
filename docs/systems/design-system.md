@@ -147,7 +147,10 @@ templated one level up, which kills the freshness each chapter is supposed to br
 - an object that physically crosses the chapter cut (the home album's straddle)
 - a drawn rule (`[data-mkt-rule]`, the masthead hairline)
 - a lit subject (the reel player, a screen in a dark room)
-- a full-bleed frame or strip
+- a full-bleed frame or strip (break out of the container with `w-screen -translate-x-1/2`; it is
+  safe because the cinema and paper skin wrappers clip the x axis at the viewport, so nothing ever
+  scrolls sideways. That clip must stay ON THE WRAPPER: on `body` it propagates to the viewport,
+  which treats `clip` as visible. Measured 2026-09-01; the why lives on the cinema layout's class)
 
 **Scope.** Core marketing pages with enough body sections to justify chapters: home, the feature
 pages, the event pages, how-it-works. **Not** the resource and utility pages (help, blog, press,

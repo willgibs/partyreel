@@ -39,6 +39,17 @@ and utility pages.
   there on purpose: a third darkening would bury every card's photograph to serve one borrowed
   placeholder still, and the real fix is the manifest fill (logged). The teaser is white/85, because a translucent white is a lower contrast than the
   measurement's pure-white assumption.
+- **The page never scrolls sideways** (6518dda, then 7a189ae). Measured inside same-origin iframes,
+  because the Chrome MCP window would not resize: every marketing alias was 4px wider than a 375
+  viewport (the Pro card's beam bloom, which reaches 30px past the card by design) and 8px wider at
+  1440 under a classic 17px scrollbar (the `w-screen` breakout: 100vw includes the scrollbar on
+  Windows, so the film-strip lamp had shipped a wobble there); treatment A's screen lamp added 48px at
+  375. The first fix, `overflow-x: clip` on `body`, computed as clip and changed nothing: body's
+  overflow propagates to the viewport, and the viewport treats clip as visible (the page still
+  scrolled 48px). The clip now sits on the cinema and paper skin wrappers, where it holds on every
+  alias: at 375 and at 1440 with the scrollbar, the document is exactly viewport-wide, a forced
+  sideways scroll lands at 0, and the sticky header still sits at 0 after scrolling. `clip`, not
+  `hidden`: no scroll container, so the header and the album straddle are untouched.
 - **Chapter 1 winds down before its anchor.** It used to escalate: the live demo, the loudest non-hero
   section, landed straight before the paper cut. Two quiet guest-side sections (`no-app`,
   `full-quality`, in the privacy section's register, provisional headers per the `SECTION_HEADERS`
