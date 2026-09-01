@@ -16,7 +16,6 @@ import {
 import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Container } from "@/components/shared/container";
-import { Glow } from "@/components/shared/glow";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { track } from "@/lib/analytics/web";
@@ -26,7 +25,6 @@ import {
 } from "@/lib/constants/marketing-media";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
-import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
@@ -141,15 +139,6 @@ export function CinemaHero() {
   const [wordIndex, setWordIndex] = useState(0);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const wallRef = useRef<HTMLDivElement | null>(null);
-
-  // THE UNDERLIGHT'S COLOUR (law 3). The lamp is the WALL, not one tile in it,
-  // so the sample reads across the above-the-fold run rather than picking a
-  // favourite. WALL_EAGER, not all 24: those are the tiles actually on screen,
-  // and the light should be the colour of what the visitor can see. Read off
-  // the live <img> elements, so it costs no bytes and no requests -- passing
-  // the srcs instead would refetch ~1 MB of originals (see sampled-palette).
-  const wallColors = useSampledPaletteFromDom(wallRef, { limit: WALL_EAGER });
 
   // Post-hydration + full-motion only (SSR/no-JS/reduced ship poster only).
   const showVideo = mounted && !reduced;
@@ -187,7 +176,6 @@ export function CinemaHero() {
           viewport and drifts slowly; the doubled sequence covers the travel. */}
       <div className="absolute inset-x-0 -top-[6%] -bottom-[10%]" aria-hidden>
         <div
-          ref={wallRef}
           data-mkt-wall
           className="grid h-[130%] w-full grid-flow-dense auto-rows-[minmax(0,1fr)] grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5"
         >
@@ -258,41 +246,8 @@ export function CinemaHero() {
         </div>
       </div>
 
-      {/* THE HERO UNDERLIGHT (lab moment 01, "ship first"). Lamp: the wall of
-          photographs above. Direction: down, out of a lit screen. Colour:
-          sampled from the wall's own tiles, which is what makes this the
-          placement that proves law 3 -- a fixed palette under real photographs
-          reads as a gradient sitting below photos rather than light coming off
-          them.
-
-          ★ THE LAB SPECIMEN HAS A BOUNDARY THIS SURFACE DOES NOT. HeroStage is
-          a wall, a ramp, and a separate copy room beneath it. Here the wall is
-          full-bleed to the section's bottom edge and the copy sits ON it, so
-          there is no wall/copy edge anywhere in the DOM. The seam is anchored
-          to the top of this block instead: the section is justify-end, so this
-          IS where the wall stops being the subject, and the scrim has already
-          crushed the tiles toward ink by the time it starts.
-
-          ★ PLACED AFTER THE WALL WRAPPER, NOT INSIDE IT. Nothing here creates a
-          stacking context, so these siblings paint in DOM order. Inside the
-          wrapper the lamp would sit under all four scrims -- flat black/35, the
-          to-t ramp, the vignette, and the mobile ramp -- which multiply to
-          roughly an eighth at this depth. You would then raise --glw-strength
-          to compensate and the paused and reduced-motion states would be eight
-          times too hot.
-
-          ★ Container carries `relative` for a reason that is easy to delete by
-          accident: it is a static div, and Glow is absolutely positioned, so
-          without it the light paints OVER the H1 rather than behind it. Law 4
-          says spill sits behind content; this one class is what enforces it. */}
-      <div className="relative isolate">
-        <Glow
-          shape="seam"
-          drive="mask"
-          colors={wallColors ?? undefined}
-          vars={{ "--glw-blur": "24px", "--glw-strength": "0.5" }}
-        />
-        <Container className="relative pt-28 pb-14 sm:pb-20">
+      <div className="relative">
+        <Container className="pt-28 pb-14 sm:pb-20">
           {/* white/75, up from white/60 (R4/A12): the wide tracking already
               thins this line, and over a live media wall 60% lost it. */}
           <p className="text-xs font-medium tracking-[0.22em] text-white/75 uppercase">
