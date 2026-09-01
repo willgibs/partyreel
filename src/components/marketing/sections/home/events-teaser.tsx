@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { CardGrid } from "@/components/marketing/system/card-grid";
+import { EventCardLamp } from "@/components/marketing/sections/home/event-card-glow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { TiltCard } from "@/components/marketing/system/tilt-card";
@@ -62,10 +63,8 @@ export function EventsTeaser() {
             // through EVERY wrapper here (the shared .mkt-tilt-card class also
             // serves non-grid consumers, so it must not be made 100% globally).
             return (
-              <div
+              <EventCardLamp
                 key={slug}
-                data-mkt-reveal
-                className="h-full"
                 style={{ "--i": i + 3 } as CSSProperties}
               >
                 <TiltCard className="h-full rounded-xl [&>.mkt-tilt-card]:h-full">
@@ -93,7 +92,7 @@ export function EventsTeaser() {
                     </div>
                   </Link>
                 </TiltCard>
-              </div>
+              </EventCardLamp>
             );
           })}
         </CardGrid>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { Conveyor } from "@/components/marketing/system/conveyor";
+import { FilmStripLamp } from "@/components/marketing/sections/home/film-strip-glow";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -49,11 +50,11 @@ export function FilmStrip() {
     >
       {/* Negative margins bleed the strip through the Container gutter so the
           conveyor reads edge-to-edge, the cinema framing. */}
-      <div className="-mx-4 mt-12 sm:-mx-6 lg:-mx-8">
+      <FilmStripLamp>
         <Conveyor copyClassName="gap-0 pr-0">
           <FilmStripRow />
         </Conveyor>
-      </div>
+      </FilmStripLamp>
 
       <Reveal className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-3">
         {SCENES.map((s, i) => (
