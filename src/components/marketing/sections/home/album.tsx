@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import { AlbumStraddleLamp } from "@/components/marketing/sections/home/album-glow";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
@@ -90,30 +91,38 @@ function AlbumVisual() {
        reads as a print laid on the desk. Below lg the split stacks and the
        plain hard cut carries the seam. */
     <div aria-hidden className="relative z-10 lg:-mt-40">
-      <BrowserFrame
-        className="lg:shadow-[var(--shadow-float)]"
-        label="partyreel.com/a/maya-and-jay"
-      >
-        <div className="grid grid-cols-4 gap-2">
-          {ALBUM_TILE_IDS.map((id) => {
-            const m = marketingImage(id);
-            return (
-              <div
-                key={id}
-                className="relative aspect-square overflow-hidden rounded-lg"
-              >
-                <Image
-                  src={m.src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 170px, 25vw"
-                  className="object-cover"
-                />
-              </div>
-            );
-          })}
-        </div>
-      </BrowserFrame>
+      {/* THE STRADDLE LAMP (lab moment 05). See album-glow.tsx for why the
+          throw is biased UP and clipped at the cut. shadow-float and the spill
+          do not fight: the shadow's visible work is downward on paper, where it
+          makes the card read as a print on the desk, and the light's is upward
+          on the dark, where a dark drop shadow contributes nothing. They divide
+          by ground rather than by tuning. */}
+      <AlbumStraddleLamp>
+        <BrowserFrame
+          className="lg:shadow-[var(--shadow-float)]"
+          label="partyreel.com/a/maya-and-jay"
+        >
+          <div className="grid grid-cols-4 gap-2">
+            {ALBUM_TILE_IDS.map((id) => {
+              const m = marketingImage(id);
+              return (
+                <div
+                  key={id}
+                  className="relative aspect-square overflow-hidden rounded-lg"
+                >
+                  <Image
+                    src={m.src}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 170px, 25vw"
+                    className="object-cover"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </BrowserFrame>
+      </AlbumStraddleLamp>
     </div>
   );
 }

@@ -32,7 +32,7 @@
  * already there.
  */
 
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { useInViewOnce } from "@/lib/shared/use-in-view-once";
@@ -122,6 +122,28 @@ export function Glow({
   // The attribute holds the animation instead, so the light is present and
   // resting from first paint and a runId change always replays it.
   const armed = !oneShot || arrival.inView || runId > 0;
+
+  // ★ THE MISSING-HOST TRIPWIRE, and the measurement that justifies its shape
+  // (round 1, 2026-09-01). Measured in Chrome: when `filter: url(#glw-warp)`
+  // points at a filter that is NOT in the document, the element still paints --
+  // but the WHOLE chain is dropped, blur() included, so the five ellipses land
+  // as hard-edged colour blobs. Verified twice, by renaming the id and by
+  // removing the host node; identical either way. So a missing host is not a
+  // blank element, it is a visibly WRONG one, and nothing is logged.
+  //
+  // Which makes this a quality tripwire rather than a crash guard, and dev-only
+  // is the right scope: in production the page still renders, just badly, and a
+  // console error would not help the visitor.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (document.getElementById("glw-warp")) return;
+    console.error(
+      "[Glow] #glw-warp is not in the document. The lamp will render with NO " +
+        "warp and NO blur (Chrome drops the whole filter chain), i.e. hard-" +
+        "edged colour blobs. GlowFilter is mounted in the root layout; check " +
+        "it was not removed.",
+    );
+  }, []);
   const style = { ...colorVars(colors), ...(vars as CSSProperties) };
 
   return (
