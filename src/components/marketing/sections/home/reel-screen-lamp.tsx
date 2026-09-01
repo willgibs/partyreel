@@ -15,13 +15,24 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * Colour is sampled from the poster the player shows (law 3), read off the
  * live <img> next/image renders, so it costs no bytes.
  *
- * GEOMETRY, because the reverted rounds were all geometry. The box is 96px
- * larger than the player on every side and the reach is set so the mask
- * reaches transparent PAST the player's edge but BEFORE the box's edge: with
- * `--glw-reach` 115%, the ramp ends ~46px outside the player horizontally and
- * ~64px vertically, and ~30-50px inside the box. Light that dies inside its
- * own box has no drawn edge (law 4); light that reaches the box edge is a
- * rectangle. The box has NO overflow-hidden, and neither does the wrapper.
+ * GEOMETRY, because the reverted rounds were all geometry, and the first cut
+ * of this file got it wrong in the same way. The box is 96px larger than the
+ * player on every side, and the mask must reach transparent PAST the player's
+ * edge but BEFORE the box's edge -- light that dies inside its own box has no
+ * drawn edge (law 4); light that reaches the box edge is a rectangle.
+ *
+ * ★ --glw-reach IS A FRACTION OF THE BOX'S FULL DIMENSION, NOT ITS HALF. The
+ * mask is `radial-gradient(ellipse R R at 50% 50%, ... transparent 78%)`, and
+ * a percentage radius in a radial gradient is measured against the gradient
+ * box's WIDTH (rx) and HEIGHT (ry). So the ramp ends at 0.78 x reach x width
+ * from the centre. At 115% that is ~0.9 of the full width -- nearly twice the
+ * half-width -- so the whole box was lit and rendered as a faint rectangle
+ * with vertical edges, visible on the deployed preview even in the paused
+ * state. At 58% the ramp ends ~50px inside the box horizontally and ~35px
+ * vertically, and ~85-100px outside the player: a glow with room to die.
+ * The lab's throw preset uses 95% because its origin sits ON an edge, where
+ * a large reach fades across the whole box from one side; a CENTRED origin
+ * needs about half that. The box has NO overflow-hidden, nor does the wrapper.
  *
  * ★ WHY THIS SURFACE MAY BE LIT AT ALL. The reel sat one viewport from the
  * event-card lamps and was ruled out on scarcity. Those lamps are gone (the
@@ -43,7 +54,7 @@ export function ReelScreenLamp({ children }: { children: ReactNode }) {
           vars={{
             "--glw-from-x": "50%",
             "--glw-from-y": "50%",
-            "--glw-reach": "115%",
+            "--glw-reach": "58%",
             "--glw-base": "0.55",
             "--glw-strength": "0.45",
             "--glw-blur": "32px",
