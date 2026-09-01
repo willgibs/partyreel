@@ -45,6 +45,13 @@ page does, on shared pieces instead of six hand-rolled copies.**
   overhangs the cut by 79px, the QR plate rests at base 0.34 with its field inside the section, the
   album lamp's first three hues are orange, gold and blue (sampled), no page overflows.
 
+- **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
+  a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
+  each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.
+  The blur-rise trio (/help, /contact, /careers) carries the same hole as a CLASS, which the scan
+  cannot see, and stays Will's call (ROADMAP). `screen-lamp.test.ts` and `feature-door.test.ts` pin
+  the new pieces; the hero contract test grows the two-entrance and stage rules. 1316 → 1330 tests.
+
 ★ A radial mask's reach is a fraction of the full field: the lab's 78% on the plate rendered as a
 rounded square until the field grew and reach dropped to 60%. ★ Both browser tools run as background
 tabs here: IntersectionObserver never fires, so every reveal must be forced before a screenshot, and
