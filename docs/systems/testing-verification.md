@@ -26,6 +26,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
 ## Chrome MCP blind spots
 
 - ★ **The Chrome MCP's tab is usually a BACKGROUND tab (`document.hidden === true`), and that changes
+  ★ A fourth costume (the blog-library round, 2026-09-01): in the Browser pane the tab can report
+  `document.visibilityState === "hidden"` even after `tabs_select`, and a hidden document records NO
+  paint timing at all: `PerformanceObserver` for `largest-contentful-paint` / `first-contentful-paint`
+  returns zero entries, not a slow number. An LCP read from the pane is therefore meaningless; measure
+  vitals from a foreground Chrome tab.
   what the page does, not just what you see** (round 2, 2026-09-01). Three consequences, all of which
   read as product bugs and are not: (1) every `useAmbientPause` consumer reports `data-paused="true"`,
   so lamps sit on their base and marquees freeze; (2) `loading="lazy"` images below the fold **never
