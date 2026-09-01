@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
 import { AlbumLinkHero } from "@/components/marketing/sections/features/sharing/album-link-hero";
 import { DownloadsSection } from "@/components/marketing/sections/features/sharing/downloads-section";
 import { OneLink } from "@/components/marketing/sections/features/sharing/one-link";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
-import {
-  SHARING_FAQ,
-  SharingFaq,
-} from "@/components/marketing/sections/features/sharing/sharing-faq";
+import { SHARING_FAQ } from "@/components/marketing/sections/features/sharing/sharing-faq";
 import { WhoGetsWhat } from "@/components/marketing/sections/features/sharing/who-gets-what";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
@@ -45,7 +44,6 @@ export default function SharingFeaturePage() {
           { name: page.navLabel, href: "/features/sharing" },
         ]}
       />
-      <FaqPageJsonLd items={SHARING_FAQ} />
 
       {/* The hero on the shared lockup (the PageHero sweep) over the
           album-as-link artifact, which is THE PAGE'S LAMP: an album open on a
@@ -99,7 +97,16 @@ export default function SharingFeaturePage() {
       </PaperChapter>
 
       <RelatedFeatures slugs={["album", "privacy", "reel"]} />
-      <SharingFaq />
+      <FeatureFaq items={SHARING_FAQ}>
+        <GoDeeper
+          links={[
+            {
+              href: "/help/download-photos-videos-and-albums",
+              label: "Download your photos and videos",
+            },
+          ]}
+        />
+      </FeatureFaq>
       <CtaBand
         className="border-t"
         heading="Collect it all, hand it all back."

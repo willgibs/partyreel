@@ -57,7 +57,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   on /qr, the guest-list card straddles on /guests, the spec sheet / downloads / queue / access
   switch open a tier up on the cut elsewhere), and a close chapter that opens on the doors band and
   winds down through the FAQ to the CtaBand. ★ The doors band takes `opener={false}` on a page whose
-  close already opens on its own beat (/qr's entry flow): two openers back to back are noise.
+  close already opens on its own beat (/qr's entry flow): two openers back to back are noise. The
+  FAQ band and the GoDeeper row are ONE pair for all six pages
+  ([`shared/feature-faq.tsx`](../../src/components/marketing/sections/features/shared/feature-faq.tsx)
+  emits the FAQPage JSON-LD itself; each page's `*-faq.ts` is data only).
 - **`/events`** — a full landing hub + 4 umbrella pages (weddings/parties/conferences/trips) off ONE
   `[slug]` template; copy in [`events.ts`](../../src/lib/constants/events.ts) (`EVENT_TYPE*` — named to
   avoid colliding with the real `events` domain; + the `EVENTS_HUB` block); distinct hero + "Built for X"

@@ -235,8 +235,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
   the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
   article's contact path — swap that article's deletion section when it ships); faq-accordion
-  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
-  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
   settled on `/press` 2026-08-28: mono holds data only, Inter for every label and descriptor);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);

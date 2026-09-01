@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
-import { FaqAccordion } from "@/components/marketing/faq-accordion";
-import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { AccessSwitch } from "@/components/marketing/sections/features/privacy/access-switch";
 import { MediaLives } from "@/components/marketing/sections/features/privacy/media-lives";
 import { NeverRidesAlong } from "@/components/marketing/sections/features/privacy/never-rides-along";
 import { ReportReview } from "@/components/marketing/sections/features/privacy/report-review";
 import { PRIVACY_FAQ } from "@/components/marketing/sections/features/privacy/privacy-faq";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
-import { Reveal } from "@/components/marketing/system/reveal";
-import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
@@ -37,11 +34,6 @@ export const metadata: Metadata = {
  * every claim stays inside the verified trust facts and nothing overclaims.
  */
 export default function PrivacyFeaturePage() {
-  const cut = (i: number) => ({
-    "data-mkt-cut": "",
-    style: { "--i": i } as CSSProperties,
-  });
-
   return (
     <>
       <BreadcrumbJsonLd
@@ -51,7 +43,6 @@ export default function PrivacyFeaturePage() {
           { name: page.navLabel, href: "/features/privacy" },
         ]}
       />
-      <FaqPageJsonLd items={PRIVACY_FAQ} />
 
       {/* The short dark hero on the shared lockup (the PageHero sweep):
           deliberately no stage and no lamp. The site's quietest page opens
@@ -92,15 +83,9 @@ export default function PrivacyFeaturePage() {
           chapter's bottom hairline owns the cut, so no border-t here. */}
       <RelatedFeatures slugs={["curation", "sharing", "guests"]} />
 
-      <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
-        {/* The list arrives on the slot after the header's lines, instead of
-            popping in finished under an animated heading. */}
-        <Reveal>
-          <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <FaqAccordion items={PRIVACY_FAQ} />
-          </div>
-        </Reveal>
-      </SectionShell>
+      {/* The shared FAQ band; the GoDeeper rows for this page live in the
+          moderation close above, so none here. */}
+      <FeatureFaq items={PRIVACY_FAQ} />
 
       <CtaBand
         heading="Start your first event free."

@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { BulkTools } from "@/components/marketing/sections/features/curation/bulk-tools";
-import {
-  CURATION_FAQ,
-  CurationFaq,
-} from "@/components/marketing/sections/features/curation/curation-faq";
+import { CURATION_FAQ } from "@/components/marketing/sections/features/curation/curation-faq";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { Reversibility } from "@/components/marketing/sections/features/curation/reversibility";
 import { ReviewModes } from "@/components/marketing/sections/features/curation/review-modes";
 import { ReviewQueueDemo } from "@/components/marketing/sections/features/curation/review-queue-demo";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -44,7 +43,6 @@ export default function CurationFeaturePage() {
           { name: page.navLabel, href: "/features/curation" },
         ]}
       />
-      <FaqPageJsonLd items={CURATION_FAQ} />
 
       {/* The short dark hero on the shared lockup (the PageHero sweep): the
           cinema cut around a STATIC h1, contextual secondary to the album
@@ -86,7 +84,16 @@ export default function CurationFeaturePage() {
           The chapter's own bottom hairline owns the cut back to the cinema,
           so no border-t anywhere in the close. */}
       <RelatedFeatures slugs={["album", "sharing", "privacy"]} />
-      <CurationFaq />
+      <FeatureFaq items={CURATION_FAQ}>
+        <GoDeeper
+          links={[
+            {
+              href: "/help/moderate-and-curate-your-album",
+              label: "Curate what shows up in your album",
+            },
+          ]}
+        />
+      </FeatureFaq>
       <CtaBand
         heading="Your album, your call."
         subhead="Start your first event free. Let it fill live, or hold every upload for your approval."
