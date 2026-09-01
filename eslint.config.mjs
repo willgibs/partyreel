@@ -70,7 +70,9 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    plugins: { partyreel: { rules: { "no-swallowed-db-error": noSwallowedDbError } } },
+    plugins: {
+      partyreel: { rules: { "no-swallowed-db-error": noSwallowedDbError } },
+    },
     rules: {
       "partyreel/no-swallowed-db-error": "error",
       // Treat a leading underscore as "intentionally unused" — lets documented
@@ -84,6 +86,21 @@ const eslintConfig = defineConfig([
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+    },
+  },
+  // Vendored third-party source. `src/components/vendor/**` holds packages copied
+  // in verbatim under their own licence, with a standing instruction not to
+  // restyle them: the whole value of vendoring border-beam was getting the
+  // exact thing instead of our approximation of it. Linting code you have
+  // contracted not to edit only produces noise, or worse, tempts an edit. Rules
+  // that would flag OUR bugs (an effect calling setState, an unused local) are
+  // upstream's call here. Anything we build ON one of these lives outside this
+  // folder and is linted normally.
+  {
+    files: ["src/components/vendor/**"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
   // Override default ignores of eslint-config-next.

@@ -175,6 +175,16 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
   chasing dev.
 
+- **The Preview MCP starts the dev server in the SHARED git root, not your worktree.** `preview_start`
+  resolves the project by git common dir, which every worktree shares, so from `../partyreel-wt/<track>`
+  it runs `pnpm dev` in `/Users/gibby/local/ai/partyreel` (the Orchestrator's checkout) and serves
+  THAT branch. The tell is a 404 on a route you just wrote, or a page missing your change; confirm with
+  the first line of `preview_logs`, which prints the cwd. Verifying against it is worse than not
+  verifying, because it looks like a pass. **From a worktree, run `pnpm dev -p <unused port>` via Bash
+  instead** (the one standing exception to "never use Bash for dev servers": the managed path cannot
+  reach your tree), then drive it with `navigate` / `read_page` / `javascript_tool` as usual, and pick a
+  port no sibling worktree owns (the orphaned-server trap above).
+
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the
   `.surface-paper` re-light, so a PaperChapter (and the whole `(paper)` route group) shows dark tokens

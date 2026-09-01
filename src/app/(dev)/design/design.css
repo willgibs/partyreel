@@ -1645,3 +1645,1067 @@
     }
   }
 }
+
+/* ─────────────── SPILL: the light engine (lab-local, 2026-08-28) ───────────────
+
+   The doctrine round for the glow Will asked to make core to the visual design.
+   Source mechanics: transitions-pro `organic-shimmer` (already half-adopted as
+   the footer seam glow, marketing.css) and `get-pro-button` (the rim wash).
+
+   ── WHY IT LIVES HERE AND NOT IN globals.css ──
+   The destination IS the house layer, but the repo's own ratified sequence runs
+   lab -> ruling -> promotion: see the globals.css header above the [data-rvl-*]
+   grammar, "Promoted out of the design lab after Will ruled ... and ratified it
+   AS-BUILT at T2". Landing a five-hue palette on :root also deletes the test
+   fence that currently keeps colour literals scoped to --mkt-confetti-N
+   (marketing-css-policy.test.ts). So the engine is complete and real here, and
+   promotion is the first task of the wiring round.
+
+   ── THE FOUR LAWS THIS ENCODES ──
+   1 SOURCE    every instance names its lamp (the caller positions the field).
+   2 DIRECTION --glw-from-x/y is required, not decorative: the container mask is
+               origin-anchored, so a spill always has a vector. There is no
+               "even rim" mode on purpose.
+   3 COLOUR    --glw-c1..c5 are INPUTS. The palette below is only the fallback
+               for surfaces with no media; a lamp with real photographs
+               overrides them inline from sampled pixels.
+   4 FALLOFF   base + band, always. A swept layer rests off-layer, so a band-only
+               glow is invisible whenever it is paused, which is its default
+               state below the fold AND its reduced-motion state (the global
+               guard forces animation-iteration-count: 1). The base is how a
+               reduced-motion arrival still ARRIVES. This is the star note in
+               design-system.md, generalised.
+
+   ── TWO DRIVES, MEASURED AGAINST EACH OTHER ──
+   [data-glw-drive="mask"]      the footer's shipped mechanic: a static colour
+                                field windowed by a travelling mask. Faithful,
+                                but mask-position is not compositor-driven, so
+                                it repaints the masked layer every frame.
+   [data-glw-drive="transform"] the comet itself is the travelling object, moved
+                                with `translate` (compositor-only). Slightly
+                                different in character (the colour travels with
+                                the window rather than the window passing over a
+                                fixed field) and far cheaper at scale.
+   [data-glw-drive="scalar"]    no clock at all: --glw-t is a registered number
+                                that JS sets as a TARGET and CSS tweens. Upload
+                                progress, pointer, scroll velocity. Main-thread
+                                by nature (custom-property animation is not
+                                composited), which is fine for one input-driven
+                                lamp and wrong for thirty.
+
+   Specimen 4 on the moments board measures the first two. ── */
+
+/* The scalar phase. Registered so calc() can interpolate it; without the
+   registration a browser treats it as a token string and the transition
+   snaps. Safari gained @property at 16.4 — older engines drop the moving
+   layer and keep the base lit, which is exactly law 4's fallback. */
+@property --glw-t {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+[data-glw] {
+  /* Law 3's FALLBACK palette (no media to sample). Deliberately the same five
+     values as --mkt-confetti-1..5 so the ruling is made on the ratified set
+     and not on a second palette invented in the lab. */
+  --glw-c1: oklch(0.72 0.17 25);
+  --glw-c2: oklch(0.8 0.15 85);
+  --glw-c3: oklch(0.72 0.14 155);
+  --glw-c4: oklch(0.7 0.14 255);
+  --glw-c5: oklch(0.68 0.16 305);
+
+  /* Register. --glw-base is the resting light, --glw-strength the travelling
+     comet over it. The footer ships both at 0.62; that is the calibration. */
+  --glw-base: 0.62;
+  --glw-strength: 0.62;
+  /* 8s ruled by Will on the register (2026-08-31), down from 11s. */
+  --glw-dur: 8s;
+  --glw-blur: 16px;
+  /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
+     the surface, or a 40px pill and a 1440px hero share an overhang. */
+  --glw-scale: 1;
+  /* Law 2. Where the lamp is, in the layer's own box.
+
+     ★ INDIRECTED THROUGH --glw-origin-* ON PURPOSE. A custom property declared
+     ON an element always beats the same property inherited from an ancestor, so
+     while these were plain defaults here, NOTHING outside the glow could move
+     the lamp: a wrapper setting --glw-from-y was silently shadowed by this
+     block and the light stayed pinned at the top edge. That kills every
+     external driver worth having (a pointer, a measured position, a section
+     setting the register for everything inside it). Reading through a second
+     name fixes it in one line and changes no use site, because a var() inside a
+     custom property is substituted at the element that DECLARES it, which is
+     this one. Direct --glw-from-* via `vars` still wins, which is what the
+     primitive passes. */
+  --glw-from-x: var(--glw-origin-x, 50%);
+  --glw-from-y: var(--glw-origin-y, 0%);
+  --glw-reach: 90%;
+  /* Comet thickness inside the travelling window. */
+  --glw-span: 26%;
+  /* ★ A SEAM IS A BAND, NOT A FILL. The shipped footer pins its layer to 210px
+     regardless of how tall the footer is, and generalising that away (letting
+     the layer be inset: 0 of whatever contains it) is what turns spill into a
+     wash sitting on the copy. Caught by eye in the lab, not by any test. */
+  --glw-h: 210px;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* ★ LAW 4 IS A STACKING RULE TOO. Without `isolation`, this element is
+     position:absolute with z-index auto, so it creates NO stacking context and
+     the edge beam's own `z-index: 1` competes at the PARENT's level, landing
+     the beam on top of the content the light is supposed to sit behind. The
+     symptom is a lit photo looking washed out rather than lit, which reads as
+     "the effect is too strong" and sends you tuning opacity instead of fixing
+     the stack. Caught on the doorbell specimen. */
+  isolation: isolate;
+  /* Law 4: falloff from the lamp outward. Origin-anchored, so the same rule
+     serves a seam (50% 0%), a card throwing down (50% 100%) and a plate
+     throwing outward (50% 50%). */
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--glw-reach) var(--glw-reach) at var(--glw-from-x)
+      var(--glw-from-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--glw-reach) var(--glw-reach) at var(--glw-from-x)
+      var(--glw-from-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 78%
+  );
+}
+
+/* A seam is a boundary, not a point source: the falloff runs perpendicular to
+   the edge rather than radially, which is the one shape that wants a linear
+   ramp. The footer's own mask, generalised. */
+[data-glw][data-glw-shape="seam"] {
+  inset: 0 0 auto 0;
+  height: var(--glw-h);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
+}
+
+/* ── HALO: an object with light coming from BEHIND it (get-pro-button, ported).
+
+   Added after Will's review: the CTA specimen was rendering the recipe through
+   `throw`, whose mask is OPAQUE at the origin, so on a pill the light sat
+   entirely behind an opaque button and all you could see was a 20-30px sliver
+   at the edge. The recipe does the exact opposite and says why: it masks its
+   own centre CLEAR so the colour reads as atmosphere creeping in from the rim,
+   and its note warns that sizing the ellipse past the edge clips the opaque end
+   of the ramp and leaves the whole wash near-invisible. So the ellipse stays at
+   46%, deliberately smaller than the object.
+
+   This is a real doctrine finding, not just a fix. A halo has a nameable lamp
+   and a real vector (from behind the object, outward), so it does NOT fail law
+   2 the way I claimed a "rim" does. What decides the CTA case is law 1 instead:
+   in the hero there IS something behind the button (the media wall), and in the
+   chrome there is nothing. Same verdict, arrived at honestly.
+
+   TWO DELIBERATE DEVIATIONS from the recipe, both stated on the board:
+   no turbulence (the recipe has none; at pill size the displacement reads as
+   noise), and NO hue-rotate. The recipe drifts `filter: hue-rotate(-360deg)`,
+   which by construction generates hues outside the ratified five, so animating
+   it would be a palette leak in the round whose whole premise is palette
+   discipline. The orbit below carries the movement instead. ── */
+[data-glw][data-glw-shape="halo"] {
+  --glw-core: 46%;
+  --glw-core-blur: 150%;
+  /* ★ SMOOTHSTEP, NOT A STRAIGHT RAMP. Two stops put a tangent kink at each end
+     of the fade, and the eye reads a kink as a hard ring: that is the "very
+     rigid" edge Will caught, and the long straight middle is where 8-bit alpha
+     quantises into the visible arcs beside it. These stops trace an ease-in-out
+     so the curve leaves and arrives flat, and no two consecutive steps sit far
+     enough apart to band. Keep them if you retune --glw-core. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
+    transparent var(--glw-core),
+    rgba(0, 0, 0, 0.03) calc(var(--glw-core) + var(--glw-core-blur) * 0.15),
+    rgba(0, 0, 0, 0.11) calc(var(--glw-core) + var(--glw-core-blur) * 0.3),
+    rgba(0, 0, 0, 0.26) calc(var(--glw-core) + var(--glw-core-blur) * 0.45),
+    rgba(0, 0, 0, 0.5) calc(var(--glw-core) + var(--glw-core-blur) * 0.58),
+    rgba(0, 0, 0, 0.74) calc(var(--glw-core) + var(--glw-core-blur) * 0.71),
+    rgba(0, 0, 0, 0.89) calc(var(--glw-core) + var(--glw-core-blur) * 0.82),
+    rgba(0, 0, 0, 0.97) calc(var(--glw-core) + var(--glw-core-blur) * 0.91),
+    #000 calc(var(--glw-core) + var(--glw-core-blur))
+  );
+  mask-image: radial-gradient(
+    ellipse 46% 46% at var(--glw-from-x) var(--glw-from-y),
+    transparent var(--glw-core),
+    rgba(0, 0, 0, 0.03) calc(var(--glw-core) + var(--glw-core-blur) * 0.15),
+    rgba(0, 0, 0, 0.11) calc(var(--glw-core) + var(--glw-core-blur) * 0.3),
+    rgba(0, 0, 0, 0.26) calc(var(--glw-core) + var(--glw-core-blur) * 0.45),
+    rgba(0, 0, 0, 0.5) calc(var(--glw-core) + var(--glw-core-blur) * 0.58),
+    rgba(0, 0, 0, 0.74) calc(var(--glw-core) + var(--glw-core-blur) * 0.71),
+    rgba(0, 0, 0, 0.89) calc(var(--glw-core) + var(--glw-core-blur) * 0.82),
+    rgba(0, 0, 0, 0.97) calc(var(--glw-core) + var(--glw-core-blur) * 0.91),
+    #000 calc(var(--glw-core) + var(--glw-core-blur))
+  );
+}
+
+/* ★ A HALO IS CLIPPED TO THE OBJECT IT BACKLIGHTS. The recipe's wash is a
+   ::before ON the pill with `border-radius: inherit`, inside a pill that sets
+   `overflow: hidden`, so the colour hugs the capsule. Rendered instead in a
+   padded box AROUND the object it reads as a soft RECTANGLE floating behind a
+   button, which is what Will caught in review: nothing like the reference.
+   The radius has to come from the caller, since only the caller knows the
+   object's shape. */
+[data-glw][data-glw-shape="halo"] {
+  border-radius: var(--glw-radius, inherit);
+}
+
+/* No turbulence at this size, per the note above: just the soft blur that turns
+   the blobs into atmosphere. */
+[data-glw-shape="halo"] [data-glw-field] {
+  inset: 0;
+  filter: blur(var(--glw-blur));
+}
+
+/* Each wash is its own background layer, blown up past the box so the blobs
+   sweep corner to corner as they travel the rim. */
+[data-glw-shape="halo"] [data-glw-base],
+[data-glw-shape="halo"] [data-glw-band] {
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c4) 85%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c5) 78%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c1) 78%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c2) 72%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklab, var(--glw-c3) 72%, transparent),
+      transparent 62%
+    );
+  background-repeat: no-repeat;
+  background-size: 180% 180%;
+}
+
+/* The base holds the ring lit while paused and under reduced motion (law 4);
+   the band is the same field travelling a lap. */
+[data-glw-shape="halo"] [data-glw-base] {
+  background-position:
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    50% 50%;
+}
+[data-glw-shape="halo"] [data-glw-band] {
+  background-position:
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    0% 0%,
+    50% 0%;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* THE WARP WRAPPER. A filter applies BEFORE a mask on a single element, so the
+   turbulence has to sit on a parent for the band's masked edge to undulate
+   rather than rule a straight line. --glw-blur is declared HERE, on the
+   element, never only inside a keyframe: under the global reduced-motion guard
+   (animation-iteration-count: 1, no fill-mode) an element reverts to its
+   unanimated style, and a keyframe-only blur would leave hard-edged colour
+   blobs. That is exactly how get-pro-button's recipe is written, and it is the
+   one thing not to copy from it. */
+[data-glw-field] {
+  position: absolute;
+  inset: calc(-40px * var(--glw-scale));
+  filter: url(#glw-warp) blur(var(--glw-blur));
+}
+
+/* The colour field. Five soft ellipses along the lamp's axis, consumed through
+   color-mix so a sampled palette drops in without touching a stop. */
+[data-glw-base],
+[data-glw-band] {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 42% 90% at 14% var(--glw-from-y),
+      color-mix(in oklab, var(--glw-c4) 62%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 36% 85% at 38% var(--glw-from-y),
+      color-mix(in oklab, var(--glw-c5) 58%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 40% 90% at 60% var(--glw-from-y),
+      color-mix(in oklab, var(--glw-c1) 52%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 34% 85% at 80% var(--glw-from-y),
+      color-mix(in oklab, var(--glw-c2) 52%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 38% 90% at 96% var(--glw-from-y),
+      color-mix(in oklab, var(--glw-c3) 48%, transparent),
+      transparent 72%
+    );
+}
+
+/* Law 4: the resting light. Always on, never animated, never paused. */
+[data-glw-base] {
+  opacity: var(--glw-base);
+}
+
+[data-glw-band] {
+  opacity: var(--glw-strength);
+}
+
+/* ── Drive A: the shipped mechanic. Static field, travelling window.
+
+   ★ NOT ON A BLOOM. A bloom is a swell, not a travelling window, so windowing
+   it through a 280%-wide comet leaves a narrow diagonal sliver of the field
+   parked off-centre, which is indistinguishable from "nothing happened". The
+   :not() is the whole reason the QR and publish beats read as broken. ── */
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="mask"] [data-glw-band],
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]
+  [data-glw-band] {
+  -webkit-mask-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 24%,
+    rgba(255, 255, 255, 0.25) 36%,
+    rgba(255, 255, 255, 0.7) 44%,
+    white 50%,
+    rgba(255, 255, 255, 0.7) 56%,
+    rgba(255, 255, 255, 0.25) 64%,
+    transparent 76%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 24%,
+    rgba(255, 255, 255, 0.25) 36%,
+    rgba(255, 255, 255, 0.7) 44%,
+    white 50%,
+    rgba(255, 255, 255, 0.7) 56%,
+    rgba(255, 255, 255, 0.25) 64%,
+    transparent 76%,
+    transparent 100%
+  );
+  -webkit-mask-size: 280% 100%;
+  mask-size: 280% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 0;
+  mask-position: 50% 0;
+}
+
+/* ── Drive B: the comet IS the object, moved on the compositor. The colour
+   travels with the window instead of a window passing over a fixed field, so
+   it reads slightly more like a light source going by and slightly less like
+   a shimmer. Both are on the board; this one is the cheap one. ── */
+[data-glw-drive="transform"] [data-glw-band] {
+  inset: 0 -90%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 30%,
+    color-mix(in oklab, var(--glw-c4) 40%, transparent) 38%,
+    color-mix(in oklab, var(--glw-c5) 55%, transparent) 44%,
+    color-mix(in oklab, var(--glw-c1) 62%, transparent) 50%,
+    color-mix(in oklab, var(--glw-c2) 55%, transparent) 56%,
+    color-mix(in oklab, var(--glw-c3) 40%, transparent) 62%,
+    transparent 70%,
+    transparent 100%
+  );
+  will-change: transform;
+}
+
+/* ── Drive C: no clock. JS writes a target, CSS owns the tween.
+
+   ★ THE :not() ABOVE HAS TO BE REPEATED HERE. The shared mask block carries
+   `[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]`, which is
+   four attribute selectors; a bare `[data-glw-drive="scalar"]` override is two,
+   loses on specificity, and the band silently parks at the shared block's
+   `mask-position: 50% 0` while --glw-t updates correctly and changes nothing.
+   Matching the selector exactly puts both at equal specificity so source order
+   decides, which is what the original code relied on before the bloom guard
+   was added. Caught by reading the computed mask-position, never by eye. ── */
+[data-glw]:not([data-glw-shape="bloom"])[data-glw-drive="scalar"]
+  [data-glw-band] {
+  -webkit-mask-position: calc(150% - var(--glw-t) * 200%) 0;
+  mask-position: calc(150% - var(--glw-t) * 200%) 0;
+  transition: --glw-t 420ms var(--dir-ease, cubic-bezier(0.23, 1, 0.32, 1));
+}
+
+/* ── The seam hairline: the edge the light appears to leak through. ── */
+[data-glw-seamline] {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--foreground) 20%, transparent) 25%,
+    color-mix(in oklab, var(--foreground) 34%, transparent) 50%,
+    color-mix(in oklab, var(--foreground) 20%, transparent) 75%,
+    transparent
+  );
+}
+
+/* ── THE EDGE BEAM: the half of organic-shimmer we never adopted. A ring, an
+   inner glow and a heavy bloom, all shaped by ONE comet window phase-locked to
+   the band's clock, so the border lights up exactly where the band is passing.
+   Deliberate deviation from the recipe: ours sits over a faint always-on ring,
+   because the recipe's edge beam has no base and would vanish under law 4's
+   paused and reduced-motion states. Stated on the board, not hidden. ── */
+[data-glw-edge] {
+  position: absolute;
+  inset: calc(-20px * var(--glw-scale));
+  z-index: 1;
+  opacity: var(--glw-strength);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 22%,
+    rgba(255, 255, 255, 0.06) 30%,
+    rgba(255, 255, 255, 0.18) 38%,
+    rgba(255, 255, 255, 0.45) 45%,
+    white 50%,
+    rgba(255, 255, 255, 0.5) 55%,
+    transparent 62%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 22%,
+    rgba(255, 255, 255, 0.06) 30%,
+    rgba(255, 255, 255, 0.18) 38%,
+    rgba(255, 255, 255, 0.45) 45%,
+    white 50%,
+    rgba(255, 255, 255, 0.5) 55%,
+    transparent 62%,
+    transparent 100%
+  );
+  -webkit-mask-size: 280% 280%;
+  mask-size: 280% 280%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 100% 100%;
+  mask-position: 100% 100%;
+}
+
+[data-glw-edge-ring],
+[data-glw-edge-inner],
+[data-glw-edge-bloom] {
+  position: absolute;
+  inset: calc(20px * var(--glw-scale));
+  border-radius: var(--glw-radius, 12px);
+  pointer-events: none;
+}
+
+/* The 1px stroke: colour blobs painted into a ring via the padding-box XOR
+   trick, over a faint neutral so the stroke never disappears between blobs. */
+[data-glw-edge-ring] {
+  padding: calc(1px * var(--glw-scale));
+  background:
+    radial-gradient(
+      ellipse 30% 17% at 33% -7%,
+      color-mix(in oklab, var(--glw-c1) 62%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 25% 15% at 12% -5%,
+      color-mix(in oklab, var(--glw-c4) 48%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 17% 30% at 2% 68%,
+      color-mix(in oklab, var(--glw-c3) 55%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 76% 13% at 74% 100%,
+      color-mix(in oklab, var(--glw-c5) 58%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 31% 13% at 94% 0%,
+      color-mix(in oklab, var(--glw-c2) 65%, transparent),
+      transparent
+    ),
+    linear-gradient(
+      color-mix(in oklab, var(--foreground) 20%, transparent),
+      color-mix(in oklab, var(--foreground) 20%, transparent)
+    );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+/* Inner glow: the same blobs softened and belt-masked so they melt together
+   along the border instead of reading as lumps. */
+[data-glw-edge-inner] {
+  background:
+    radial-gradient(
+      ellipse 27% 15% at 33% -7%,
+      color-mix(in oklab, var(--glw-c1) 34%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 23% 13% at 12% -5%,
+      color-mix(in oklab, var(--glw-c4) 28%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 15% 27% at 2% 68%,
+      color-mix(in oklab, var(--glw-c3) 30%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 73% 12% at 74% 100%,
+      color-mix(in oklab, var(--glw-c5) 32%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 29% 12% at 94% 0%,
+      color-mix(in oklab, var(--glw-c2) 35%, transparent),
+      transparent
+    );
+  filter: blur(calc(2px * var(--glw-scale)));
+  -webkit-mask-image:
+    linear-gradient(
+      white,
+      transparent calc(44px * var(--glw-scale)),
+      transparent calc(100% - 44px * var(--glw-scale)),
+      white
+    ),
+    linear-gradient(
+      to right,
+      white,
+      transparent calc(44px * var(--glw-scale)),
+      transparent calc(100% - 44px * var(--glw-scale)),
+      white
+    );
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(
+      white,
+      transparent calc(44px * var(--glw-scale)),
+      transparent calc(100% - 44px * var(--glw-scale)),
+      white
+    ),
+    linear-gradient(
+      to right,
+      white,
+      transparent calc(44px * var(--glw-scale)),
+      transparent calc(100% - 44px * var(--glw-scale)),
+      white
+    );
+  mask-composite: add;
+}
+
+/* Bloom: the big organic spill pouring off the stroke. Not ring-clipped, so
+   the blur can radiate outward. */
+[data-glw-edge-bloom] {
+  background:
+    radial-gradient(
+      ellipse 39% 22% at 33% -7%,
+      color-mix(in oklab, var(--glw-c1) 40%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 33% 19% at 12% -5%,
+      color-mix(in oklab, var(--glw-c4) 34%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 22% 39% at 2% 68%,
+      color-mix(in oklab, var(--glw-c3) 38%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 99% 18% at 74% 100%,
+      color-mix(in oklab, var(--glw-c5) 40%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 41% 18% at 94% 0%,
+      color-mix(in oklab, var(--glw-c2) 44%, transparent),
+      transparent
+    );
+  filter: blur(calc(var(--glw-blur) * var(--glw-scale)));
+  -webkit-mask-image:
+    linear-gradient(
+      white,
+      transparent calc(26px * var(--glw-scale)),
+      transparent calc(100% - 26px * var(--glw-scale)),
+      white
+    ),
+    linear-gradient(
+      to right,
+      white,
+      transparent calc(26px * var(--glw-scale)),
+      transparent calc(100% - 26px * var(--glw-scale)),
+      white
+    );
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(
+      white,
+      transparent calc(26px * var(--glw-scale)),
+      transparent calc(100% - 26px * var(--glw-scale)),
+      white
+    ),
+    linear-gradient(
+      to right,
+      white,
+      transparent calc(26px * var(--glw-scale)),
+      transparent calc(100% - 26px * var(--glw-scale)),
+      white
+    );
+  mask-composite: add;
+}
+
+/* The always-on ring under the comet (our deviation, see the edge-beam note). */
+[data-glw-edge-rest] {
+  position: absolute;
+  inset: calc(20px * var(--glw-scale));
+  border-radius: var(--glw-radius, 12px);
+  padding: calc(1px * var(--glw-scale));
+  opacity: calc(var(--glw-base) * 0.45);
+  background: linear-gradient(
+    color-mix(in oklab, var(--foreground) 26%, transparent),
+    color-mix(in oklab, var(--foreground) 26%, transparent)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── Motion. Final states are already correct above (base lit, comet parked),
+   so everything here is additive and reduced motion simply never opts in. ── */
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-drive="mask"] [data-glw-band] {
+    animation: glw-mask-x var(--glw-dur) linear infinite;
+  }
+  [data-glw-drive="transform"] [data-glw-band] {
+    animation: glw-drift-x var(--glw-dur) linear infinite;
+  }
+  /* The halo's washes travel the perimeter instead of crossing the box. */
+  [data-glw-shape="halo"] [data-glw-band] {
+    animation: glw-orbit var(--glw-dur) ease-in-out infinite;
+  }
+  /* Phase-locked to the band: same duration, same clock, same play state. */
+  [data-glw] [data-glw-edge] {
+    animation: glw-mask-xy var(--glw-dur) linear infinite;
+  }
+  [data-glw][data-paused="true"] [data-glw-band],
+  [data-glw][data-paused="true"] [data-glw-edge] {
+    animation-play-state: paused;
+  }
+  /* The one-shot. Decays TO the base, never to zero, so the lamp stays lit
+     after the moment has passed. Re-key the element to replay it. Until it is
+     ARMED (scrolled into view, or fired by hand) the band simply rests at the
+     base, so an offscreen bloom is not spent on nobody. */
+  [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-band],
+  [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-edge] {
+    animation: none;
+  }
+  [data-glw-shape="bloom"] [data-glw-band] {
+    animation: glw-bloom 1400ms var(--dir-ease, cubic-bezier(0.23, 1, 0.32, 1))
+      both;
+  }
+  [data-glw-shape="bloom"] [data-glw-edge] {
+    animation: glw-mask-xy 1400ms
+      var(--dir-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
+  }
+}
+
+@keyframes glw-mask-x {
+  from {
+    -webkit-mask-position: 150% 0;
+    mask-position: 150% 0;
+  }
+  to {
+    -webkit-mask-position: -50% 0;
+    mask-position: -50% 0;
+  }
+}
+
+@keyframes glw-mask-xy {
+  from {
+    -webkit-mask-position: 100% 100%;
+    mask-position: 100% 100%;
+  }
+  to {
+    -webkit-mask-position: 0% 0%;
+    mask-position: 0% 0%;
+  }
+}
+
+/* translate only: no layout, no paint, straight to the compositor. */
+@keyframes glw-drift-x {
+  from {
+    translate: 32% 0;
+  }
+  to {
+    translate: -32% 0;
+  }
+}
+
+/* A full lap of the rim: each wash advances two ring stops per keyframe, so
+   colour hugs and travels the perimeter while the mask keeps the middle clean.
+   background-position only, so it stays off the layout and paint path. */
+@keyframes glw-orbit {
+  0%,
+  100% {
+    background-position:
+      100% 0%,
+      100% 100%,
+      0% 100%,
+      0% 0%,
+      50% 0%;
+  }
+  25% {
+    background-position:
+      100% 100%,
+      0% 100%,
+      0% 0%,
+      100% 0%,
+      100% 50%;
+  }
+  50% {
+    background-position:
+      0% 100%,
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      50% 100%;
+  }
+  75% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      0% 100%,
+      0% 50%;
+  }
+}
+
+@keyframes glw-bloom {
+  0% {
+    opacity: 0;
+    scale: 0.94;
+  }
+  22% {
+    opacity: var(--glw-strength);
+    scale: 1;
+  }
+  100% {
+    opacity: var(--glw-base);
+    scale: 1.04;
+  }
+}
+
+/* ── The states the doctrine has to survive. A purely decorative colour layer
+   is exactly where these belong, and the repo currently has NO forced-colors
+   or print rule anywhere (logged to ROADMAP). ── */
+@media (forced-colors: active) {
+  [data-glw] {
+    display: none;
+  }
+}
+
+@media print {
+  [data-glw] {
+    display: none;
+  }
+}
+
+/* No masking support means no window to travel: keep the lamp lit and still,
+   rather than showing an unmasked colour slab over the whole surface. */
+@supports not (mask-image: linear-gradient(#000, transparent)) {
+  [data-glw-band],
+  [data-glw-edge] {
+    display: none;
+  }
+}
+
+/* ── The skeleton reveal (transitions.dev 14-skeleton-reveal), lab-local.
+
+   Will's note on the awaiting-media specimen: one lamp over the grid is the
+   elegant answer, and the cards want real skeletons under it. marketing.css
+   already carries this recipe as .mkt-skel-*, but that sheet never loads on
+   /design, so this is the same mechanic under the glw- namespace.
+
+   Cross-FADE plus cross-BLUR, not a swap: the blur is what stops the two
+   states reading as two objects overlapping (the emil note on masking an
+   imperfect transition). The pulse rides the BONES rather than the skeleton
+   itself, so the skeleton's own opacity stays free for the reveal. ── */
+.glw-skel {
+  position: relative;
+  overflow: hidden;
+}
+.glw-skel-skeleton,
+.glw-skel-content {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 420ms ease-in-out,
+    filter 420ms ease-in-out;
+}
+.glw-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+}
+.glw-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(3px);
+}
+.glw-skel[data-revealed="true"] .glw-skel-skeleton {
+  opacity: 0;
+  filter: blur(3px);
+}
+.glw-skel[data-revealed="true"] .glw-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Per-card delay, so an album fills rather than flashing all at once. Capped
+   the way the gallery entrance caps its own stagger: a deep grid must not
+   queue forever. */
+.glw-skel[data-revealed="true"] .glw-skel-skeleton,
+.glw-skel[data-revealed="true"] .glw-skel-content {
+  transition-delay: min(calc(var(--glw-skel-i, 0) * 55ms), 900ms);
+}
+
+/* Deliberately faint: the bone is a placeholder UNDER a lamp, not a solid card
+   in front of one. At 9% it fought the light and read harsh; the point of a
+   skeleton here is that the album is still arriving, so the light should pass
+   through it. */
+.glw-skel-bone {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glw-skel-skeleton[data-pulsing="true"] .glw-skel-bone {
+    animation: glw-skel-pulse 1400ms ease-in-out infinite;
+  }
+  .glw-skel-skeleton[data-paused="true"] .glw-skel-bone {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes glw-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ── The measured flight: ONE light crossing a real distance.
+
+   The scan-through's first pass faked the handoff with three coordinated
+   layers (a bloom, a channel, a bloom) and said so on the board. This is the
+   honest version: JS measures both objects, writes the delta, and CSS moves a
+   single light from one to the other. Same division of labour as the measured
+   nav indicator and useFlip: JS owns the measurement, CSS owns the tween.
+
+   translate only, so it stays on the compositor. Reduced motion never opts in,
+   which leaves the light resting at the source, and both ends carry their own
+   always-on base, so the objects stay lit either way (law 4). ── */
+[data-glw-fly] {
+  position: absolute;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-fly] {
+    /* ★ ease-IN-OUT, not the house ease-out. A light crossing from one object
+       to another is MOVEMENT on screen, not an entrance, and the design system
+       splits those deliberately. On the ease-out curve the light covered 77% of
+       the distance in the first quarter of its time and then crawled, which
+       reads as shot-out-and-loitering rather than a handoff. Measured, not
+       guessed: the animation was sampled at 0/25/50/75/100% by forcing negative
+       animation-delay, because a hidden document never advances a real one. */
+    animation: glw-fly var(--glw-fly-dur, 1100ms) var(--ease-in-out-strong) both;
+  }
+}
+
+@keyframes glw-fly {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    translate: var(--glw-fly-dx, 0) var(--glw-fly-dy, 0);
+    opacity: 0;
+  }
+}
+
+/* ── The QR handoff, direction B and C: things other than light crossing the
+   gap. Will's note on the scan-through was that the CONCEPT (one glance and you
+   understand the product) is worth a lot more than the beam I built for it, so
+   these move the album itself rather than a glow.
+
+   Both read --glw-fly-dx / --glw-fly-dy, measured by JS exactly as the light
+   flight does, and both are transform + opacity only. ── */
+[data-glw-tile] {
+  position: absolute;
+  translate: 0 0;
+  scale: 1;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-tile] {
+    animation: glw-tilefly var(--glw-fly-dur, 1200ms) var(--ease-in-out-strong)
+      both;
+    animation-delay: calc(var(--glw-tile-i, 0) * 90ms);
+  }
+}
+
+/* Leaves the code at full size, arrives phone-sized. The scale is what sells
+   it: the album is not sliding across, it is going INTO something. */
+@keyframes glw-tilefly {
+  0% {
+    translate: 0 0;
+    scale: 0.5;
+    opacity: 0;
+  }
+  16% {
+    scale: 1;
+    opacity: 1;
+  }
+  84% {
+    opacity: 1;
+  }
+  100% {
+    translate: var(--glw-fly-dx, 0) var(--glw-fly-dy, 0);
+    scale: 0.34;
+    opacity: 0;
+  }
+}
+
+/* Direction C: a code module turning into the photograph it stands for. The
+   crossfade is per-cell and staggered, so the plate reads as RESOLVING rather
+   than swapping. */
+[data-glw-mod] {
+  position: relative;
+  overflow: hidden;
+}
+[data-glw-mod-photo] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  object-fit: cover;
+}
+[data-glw-mod][data-resolved="true"] [data-glw-mod-photo] {
+  opacity: 1;
+}
+[data-glw-mod][data-resolved="true"] [data-glw-mod-ink] {
+  opacity: 0;
+}
+[data-glw-mod-ink] {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-glw-mod-photo],
+  [data-glw-mod-ink] {
+    transition: opacity 420ms var(--ease-emphasis);
+    transition-delay: calc(var(--glw-mod-i, 0) * 26ms);
+  }
+}
+
+/* ─────────────── THE LIT SURFACE (lab-local)
+
+   Will's clarification: the beam must NOT go on everything, but the component
+   design UNDERNEATH it is good design for action and state-based components.
+   These are the three cues measured off their card and pills, and they are the
+   part that survives without the beam: achromatic, static, no motion at all.
+   You notice their absence more than their presence.
+
+     hairline   an inset ring instead of a border. It adds nothing to the box
+                and reads as the edge of a solid object rather than a stroke
+                drawn around a div. This is the one Will kept: it is what makes
+                a card pop off whatever sits behind it.
+     lip        a 1px highlight on the TOP edge only: lit from above.
+     (air)      REMOVED. A large faint inner glow, and the only cue that was
+                blurred rather than flat. Will ruled it unnecessary.
+
+   ★ DARK GROUNDS ONLY for now. The lip is a light-catching highlight, so on
+   paper it is invisible and the honest paper equivalent is a soft bottom edge
+   instead. Same lesson the spill register learned: a ground changes what light
+   means. Scoped rather than faked.
+
+   ── AGAINST THE ELEVATION CONTRACT? ──
+   design-system.md reads "Dark: NO shadows anywhere". The argument for a
+   carve-out is that these are MATERIAL, not elevation: they describe the
+   surface itself rather than its height above another one, which is a
+   refinement of the contract's own "borders + lighter-is-closer" clause. There
+   is precedent in [data-rxp-pubglow], already an inset shadow in dark. Will
+   rules; this is lab-local until he does. ── */
+/* ★ THE AIR CUE IS GONE (Will, 2026-08-31). It was the one doing blurred
+   opacity layering rather than stating an edge, and flat reads better. What is
+   left is two flat cues, which is also why `control` no longer needs a rule of
+   its own: the blur radius was the only thing that had to change with size. */
+[data-lit],
+[data-lit="control"] {
+  /* 9% not 12%: Will asked for slightly more subtle after the blur came
+     out, and with nothing else in the box the hairline was carrying it alone. */
+  --lit-hairline: 9%;
+  --lit-lip: 6%;
+  box-shadow:
+    inset 0 0 0 1px
+      color-mix(in oklab, var(--foreground) var(--lit-hairline), transparent),
+    inset 0 1px 0
+      color-mix(in oklab, var(--foreground) var(--lit-lip), transparent);
+}

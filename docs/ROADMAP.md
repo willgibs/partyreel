@@ -20,6 +20,59 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
+  that amount of rounding carried into our design system. Not just these components only."). He picked
+  the 16px column over our sharp surfaces. Deliberately NOT applied in the glow round, because it is
+  not a one-line token change and it restyles the whole product. **What the next agent should not have
+  to rediscover:** (1) the `rounded-sm..4xl` scale is DERIVED from `--radius` by multiplication (md
+  0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so `--radius: 1rem` yields lg 16px but 2xl
+  28.8px and 4xl 41.6px — the card he liked is `rounded-2xl`, so the literal reading overshoots what he
+  actually approved; (2) blast radius is **445 uses across 140 files** (`rounded-lg` 138, `rounded-md`
+  110, `rounded-xl` 96, `rounded-2xl` 91); (3) the design system's stated rationale is that the
+  sharp-surface / round-action CONTRAST is what signals "pressable", and surfaces at 16px collapse it,
+  so the round has to decide what replaces that affordance (rounder actions? a different cue?);
+  (4) `--radius-tile` (3px) exists because tight-gap grids open corner holes, and `--radius-float`
+  (8px) because sharp reads broken on floating elements — both are separate tokens and may not want to
+  move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
+  commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
+  whatever lands here for free.
+- **The spill wiring round** (the glow doctrine's second half; the lab boards are `glow-doctrine` +
+  `glow-moments`, engine in `design.css` behind the `glw-` prefix). Blocked on Will's ruling on the
+  doctrine AND on promoting the engine plus its five-hue palette to `globals.css`/`:root` (a one-way
+  door: it deletes the `marketing-css-policy.test.ts` fence that scopes colour literals to
+  `--mkt-confetti-N`, so PROGRAM.md's second hard gate wants an ADR). First task once ruled: collapse
+  `--mkt-confetti-1..5` onto the promoted tokens so there is one palette home. Unmeasured and carried
+  forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
+  and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
+  BEAM half of this round no longer needs porting: border-beam is vendored at
+  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. Both of its questions are
+  CLOSED (Will, 2026-08-31): the palette is ours globally (theirs reviewed side by side, not adopted),
+  and the corner is the rounder one, which grew into the rounding round above. Beam surfaces that ship:
+  Get Pro at rest, the reel while it renders, the help palette while focused. The QR plate takes our
+  own light instead (the beam reads too faintly on a white plate), and the upload takes NO light at all
+  (the opacity climb and the bar already say it; the sweep read as forced).
+- **The QR-to-album handoff wants its own ground-up visual-design round.** Killed off the glow board
+  (Will, 2026-08-31) rather than inherited from it: the three scan-through directions there were
+  argued from a glow doctrine, and the idea deserves to be designed from the product claim instead.
+  One asset is KEPT and parked rather than killed: the **pour** (photographs leaving one object and
+  landing in another), built and working in moment 11, waiting for a real "photos dump here" moment
+  rather than being forced onto a surface that did not ask for it.
+- **The `/design` lab gate on a preview is captured at BUILD time, so a branch whose newest
+  deployment predates the env var 404s until it is pushed again.** `DESIGN_PREVIEW_KEY` IS set on
+  the unscoped Preview target (so the lab is reachable on `lp/*` aliases; the `lp/blog-redesign`
+  agent corrected the stale doc claim 2026-08-28). What is not obvious, and cost this agent a wrong
+  finding: an already-built deployment never picks it up. Proven on one branch at one moment with
+  one key: `lp/glow-doctrine`'s FIRST deployment still 404s on `/design` at its immutable URL while
+  its latest serves the lab fine. `lp/about` is the remaining stale alias and will fix itself on its
+  next push. Nothing to do here beyond knowing it: if `/design` 404s on an `lp/*` alias, push again
+  before concluding anything about the env.
+- **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
+  production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
+  `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
+  definition wins, so any `/design` visit shadows the production definitions for the rest of the
+  session. Worth a uniqueness pin across the three sheets. (2) The repo has NO `forced-colors` and no
+  `@media print` rule anywhere; the spill engine is the first thing to carry either.
+
 - **Elevation-program deferred queue (marketing).** Logged at
   R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
   [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);

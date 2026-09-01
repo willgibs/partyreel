@@ -8,6 +8,8 @@ import { HostEventVariants } from "../../components/host-event-variants";
 import { HostEventPageVariants } from "../../components/host-event-page-variants";
 import { HostEventBuildVariants } from "../../components/host-event-build-variants";
 import { GalleryActionsVariants } from "../../components/gallery-actions-variants";
+import { GlowDoctrineVariants } from "../../components/glow-doctrine-variants";
+import { GlowMomentsVariants } from "../../components/glow-moments-variants";
 import { MarketingIdentityVariants } from "../../components/marketing-identity-variants";
 import { MarketingVoiceBoards } from "../../components/marketing-voice-boards";
 import { MarketingDecompositionVariants } from "../../components/marketing-decomposition-variants";
@@ -66,6 +68,8 @@ const VARIANTS: Record<TouchpointId, React.ComponentType> = {
   "careers-identity": CareersIdentityVariants,
   "reel-reveal": ReelRevealVariants,
   "reel-experience": ReelExperienceVariants,
+  "glow-doctrine": GlowDoctrineVariants,
+  "glow-moments": GlowMomentsVariants,
 };
 
 // One UX touchpoint, its 2-3 explorations side by side on the locked system.

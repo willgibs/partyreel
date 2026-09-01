@@ -21,3 +21,9 @@ src/components/ui
 # JSX components; keep prettier off it so inline components + frontmatter stay as written.
 *.md
 *.mdx
+
+# Vendored third-party source, copied in verbatim under its own licence. The point of
+# vendoring is having the exact upstream file: reformatting it destroys the diff against
+# upstream and blurs the line between their code and our two marked deviations. Compose
+# on top of these in your own files, same rule as the shadcn primitives above.
+src/components/vendor

@@ -18,6 +18,13 @@ import { describe, expect, it } from "vitest";
 // We flag both the literal em-dash AND the `&mdash;` HTML entity (email bodies are HTML).
 // `*.test.ts` is skipped (this file names the character to define the policy) as is the
 // generated db/types.ts.
+//
+// `components/vendor/` is skipped too, and the reason is worth stating: this scanner reads
+// every template literal as user-facing copy, which is right for our code and wrong for a
+// vendored CSS-in-JS package, where an em-dash inside a `/* … */` CSS comment sits inside a
+// template literal and never reaches a user. The policy is about OUR copy; vendored source
+// is third-party text we are contractually not to restyle. If a vendored package ever does
+// render user-facing strings, wrap it rather than editing it, and the wrapper gets scanned.
 
 const FORBIDDEN = ["—", "&mdash;"];
 const SRC = join(process.cwd(), "src");
@@ -25,7 +32,7 @@ const SRC = join(process.cwd(), "src");
 const SCAN_DIRS = ["app", "components", "lib"];
 const SCAN_FILES: string[] = [];
 
-const SKIP = /\.test\.tsx?$|[/\\]types\.ts$/;
+const SKIP = /\.test\.tsx?$|[/\\]types\.ts$|[/\\]vendor[/\\]/;
 
 function collectFiles(dir: string): string[] {
   const out: string[] = [];
