@@ -12,14 +12,29 @@ import {
 } from "@/lib/reel/engine/style-registry";
 
 import { InlineReelPlayer } from "../shared/inline-reel-player";
+import { ReelScreenLamp } from "./reel-screen-lamp";
 import { LearnMoreLink } from "../shared/learn-more-link";
 
 /**
- * MEDIUM (the loud/quiet map): the style-name filmstrip on the Conveyor at
- * small scale + an inline poster-first play of the LANDSCAPE manifest reel,
- * routing the interested visitor onward. STYLE_CATALOG is the engine's PURE
- * metadata module (style-registry), the one sanctioned engine import on
- * marketing surfaces; no engine runtime rides these chunks.
+ * THE PAYOFF CHAPTER OPENS HERE -- treatment A, "lights down".
+ *
+ * This section is the first of the home page's closing cinema chapter, so it
+ * carries the chapter's opening weight (design-system.md, "Chapters"): the
+ * page's own comment says "lights down for the reel". The device here is a
+ * room going dark and a screen coming up. Much more air above, the heading a
+ * tier up, and the player presented as the subject: lit from behind by its
+ * own poster's colours (reel-screen-lamp.tsx), with the style chips pulled
+ * back beneath it as a quiet caption strip rather than a control row above.
+ *
+ * Bespoke on purpose. The pacing principle says a chapter's first section
+ * should feel bolder than a body section but must NOT share a template with
+ * the other openers. The devices shared with any other opener are only the
+ * vocabulary ones: the heading a tier up (SectionShell scale="lg") and the
+ * hard film-cut entrance.
+ *
+ * STYLE_CATALOG is the engine's PURE metadata module (style-registry), the one
+ * sanctioned engine import on marketing surfaces; no engine runtime rides
+ * these chunks.
  */
 
 const INLINE_REEL_ID = "hero-candidate-02";
@@ -46,23 +61,50 @@ export function ReelTeaser() {
       eyebrow="The reel"
       heading={SECTION_HEADERS.reel.line}
       subhead={SUBHEAD}
+      /* The chapter opener's two vocabulary items: the heading a tier up, and
+         the hard cut instead of the rise. The extra air above is the third --
+         a chapter needs room to arrive in, where a body section does not. */
+      scale="lg"
+      reveal="cinema"
       /* TEMPO (R4/A32): the pointer at the end of this section is a bridge to
          /reel, so the section gives back part of its bottom padding. */
-      className="pb-10 sm:pb-12"
+      className="pt-32 pb-10 sm:pt-44 sm:pb-12"
     >
       {/* ONE CHOREOGRAPHY (R4): chips, player, caption and pointer used to pop
           in flat under a revealed header. They now continue the header's
           cascade (slots 0-2) under ONE observer at a tightened 70ms step. */}
       <Reveal style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}>
-        {/* EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
+        <div
+          data-mkt-reveal
+          className="mx-auto mt-14 max-w-3xl"
+          style={{ "--i": 3 } as CSSProperties}
+        >
+          {/* The screen, lit from behind by its own poster. The lamp wraps the
+              player as a sibling of it, never inside it: the player is
+              overflow-hidden, and a lamp inside a clipping ancestor is the
+              hard-edged rectangle that got a whole round reverted. */}
+          <ReelScreenLamp>
+            <InlineReelPlayer reelId={INLINE_REEL_ID} />
+          </ReelScreenLamp>
+          <MonoCaption className="mt-4 text-center">
+            A real render · {styleLabel} ·{" "}
+            {formatDuration(reel.durationSeconds)}
+          </MonoCaption>
+        </div>
+
+        {/* THE STYLE STRIP, PULLED BACK BENEATH THE SCREEN (treatment A): the same
+            chip row that used to sit above the player as a control strip now
+            reads as a caption under it, so the screen is the subject and the
+            fourteen names are what it can become.
+            EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
             at both gutters, which read as a broken container rather than a
             conveyor, and nothing tied the names to the reel underneath. The
             mask ramps the row out at both edges (alpha machinery, the
             sanctioned #000 literal), and the ONE filled chip is the style this
             render actually used — the same fact the caption states in words. */}
-        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
+        <div data-mkt-reveal style={{ "--i": 4 } as CSSProperties}>
           <Conveyor
-            className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)]"
+            className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)] opacity-80"
             copyClassName="gap-2 pr-2"
           >
             {chips.map((style, i) => (
@@ -78,18 +120,6 @@ export function ReelTeaser() {
               </span>
             ))}
           </Conveyor>
-        </div>
-
-        <div
-          data-mkt-reveal
-          className="mx-auto mt-10 max-w-3xl"
-          style={{ "--i": 4 } as CSSProperties}
-        >
-          <InlineReelPlayer reelId={INLINE_REEL_ID} />
-          <MonoCaption className="mt-3 text-center">
-            A real render · {styleLabel} ·{" "}
-            {formatDuration(reel.durationSeconds)}
-          </MonoCaption>
         </div>
 
         <div
