@@ -27,6 +27,10 @@ import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { mustQuery } from "@/lib/db/must-query";
 import { recomputePassEntitlement } from "@/lib/db/mutations/event-passes";
 import {
+  OVER_CAP_GRACE_DAYS,
+  OVER_CAP_REMINDER_DAYS,
+} from "@/lib/lifecycle/over-cap";
+import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
   orphanBreakerEmail,
@@ -77,10 +81,8 @@ const ORPHAN_MIN_AGE_HOURS = 24;
 const ORPHAN_PAGE_CAP = 20;
 const MEDIA_PREFIX = "events/";
 
-// Over-capacity grace: a lapsed account over its cap gets this long to upgrade/remove
-// before auto-reduce; we email a reminder this many days before the deadline.
-const OVER_CAP_GRACE_DAYS = 45;
-const OVER_CAP_REMINDER_DAYS = 7;
+// Over-capacity grace numbers live in lib/lifecycle/over-cap.ts (single-sourced so the
+// marketing spec components can cite them without importing this route).
 // Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
 // tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.
 const FREE_CAP_BYTES = 2 * 1024 ** 3;

@@ -14,6 +14,7 @@ import {
   TERABYTE,
   clampReelSeconds,
   effectiveStorageCap,
+  formatCapacity,
   friendlyCapacity,
   isSettingLocked,
   monthlyIngressCap,
@@ -233,5 +234,19 @@ describe("friendlyCapacity", () => {
     expect(friendlyCapacity(100 * GIGABYTE).photos).toBeGreaterThan(
       twoGb.photos,
     );
+  });
+});
+
+describe("formatCapacity", () => {
+  it("renders photos only when video is off (the Free tier's photos-only truth)", () => {
+    expect(formatCapacity(planById("free").storageBytes, { video: false })).toBe(
+      "512 photos",
+    );
+  });
+  it("switches from minutes to hours at 90 minutes, with en-US thousands separators", () => {
+    expect(formatCapacity(planById("event_pass").storageBytes)).toBe(
+      "19,200 photos or 9 hours of video",
+    );
+    expect(formatCapacity(GIGABYTE)).toBe("256 photos or 7 minutes of video");
   });
 });
