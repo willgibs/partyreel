@@ -23,7 +23,22 @@ export default function CinemaLayout({
       // light session the hero h1 rendered near-black on the cinema room (the
       // body-edge finding's sibling gap; caught in the c5 verification pass).
       // Resolving color AT the wrapper picks up the .dark tokens instead.
-      className="dark flex min-h-0 flex-1 flex-col text-foreground"
+      //
+      // overflow-x-clip: THE PAGE NEVER SCROLLS SIDEWAYS. Full-bleed breakouts
+      // (`w-screen -translate-x-1/2`: the film-strip lamp, the reel marquee)
+      // are 100vw wide, and on any OS with a classic scrollbar 100vw is the
+      // viewport PLUS the scrollbar, so they overhang by half a scrollbar and
+      // the document grew a horizontal wobble (measured 2026-09-01: +8px at
+      // 1440 under a 17px scrollbar; +4px at 375 from the Pro card's beam
+      // bloom, which reaches 30px past the card by design; +48px from the
+      // reel's screen lamp). It lives on THIS wrapper, not on body: an
+      // overflow value on body propagates to the viewport, and the viewport
+      // treats `clip` as visible (measured: body computed `clip` and the page
+      // still scrolled 48px). `clip`, never `hidden`: clip makes no scroll
+      // container, so the sticky header and the album straddle are untouched.
+      // Do not fix this per lamp with an overflow-hidden wrapper; that clips
+      // the falloff (the round-1 defect). The paper wrapper carries the same.
+      className="dark flex min-h-0 flex-1 flex-col overflow-x-clip text-foreground"
       data-mkt
       data-mkt-skin="cinema"
     >

@@ -18,7 +18,9 @@ export default function PaperLayout({
 }) {
   return (
     <div
-      className="surface-paper flex min-h-0 flex-1 flex-col bg-background text-foreground"
+      // overflow-x-clip: the page never scrolls sideways; the why (and why it
+      // cannot live on body) is on the cinema wrapper's matching class.
+      className="surface-paper flex min-h-0 flex-1 flex-col overflow-x-clip bg-background text-foreground"
       data-mkt
       data-mkt-skin="paper"
     >

@@ -367,19 +367,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* THE PAGE NEVER SCROLLS SIDEWAYS (measured 2026-09-01). Full-bleed breakouts
-       (`w-screen -translate-x-1/2`: the film-strip lamp, the reel marquee) are
-       100vw wide, and on any OS with a classic scrollbar 100vw is the viewport
-       PLUS the scrollbar, so they overhang by half a scrollbar and the whole
-       document grows a horizontal wobble: +8px at 1440 with a 17px scrollbar, on
-       every marketing alias. A lamp box that reaches past a phone's edge does
-       the same (+48px at 375 on the reel's screen lamp). `clip`, NOT `hidden`:
-       clip creates no scroll container, so position: sticky (the marketing
-       header) and the album straddle keep working, and the value propagates to
-       the viewport instead of turning body into a scroller. Set here, once, for
-       every route group. Do NOT fix this per lamp with an overflow-hidden
-       wrapper: that clips the falloff, which was the round-1 defect. */
-    overflow-x: clip;
   }
   html {
     @apply font-sans;
