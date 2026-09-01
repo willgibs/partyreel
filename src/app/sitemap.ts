@@ -71,7 +71,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       path: `/blog/${post.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.6,
-      lastModified: new Date(post.frontmatter.date),
+      // A revision is news to a crawler; the publish date is the floor (the help precedent).
+      lastModified: new Date(post.frontmatter.updated ?? post.frontmatter.date),
     })),
   ];
   return entries.map(
