@@ -83,7 +83,10 @@ export function EventTypeCard({
             and the main scrim keeps lifting on hover. This one does not lift.
             Re-measured after the first cut (75%, 55%): Conferences' title
             median rose to 5.06:1 but its 5th percentile sat at 3.85:1, so the
-            ramp is a step darker and a little taller. The conference still is
+            ramp is a step darker and a little taller: re-measured at 85%/60%,
+            median 5.6:1 and the brightest 5% of pixels at 4.27:1 -- still a
+            hair under AA on that card, and left there on purpose, because a
+            third darkening buries every card to serve one image. The conference still is
             a borrowed placeholder (see events-teaser.tsx); the scrim is sized
             for the real photograph that replaces it, not tuned to this one. */}
         <span
