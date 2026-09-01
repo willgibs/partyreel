@@ -84,6 +84,28 @@ describe("the page hero lockup", () => {
     expect(code).toMatch(/align === "left" && HERO_SCALE\[scale\]\.leadIn/);
   });
 
+  it("offers exactly two entrances, and neither is the blur-rise", () => {
+    // The one-hero-entrance ruling (2026-09-01): rise for the identity pages,
+    // cut for the cinema family. The texts-reveal blur-rise (`.mkt-line`)
+    // rests at opacity 0, which is the LCP hole above, so it is not a value.
+    expect(code).toMatch(/type HeroEntrance = "rise" \| "cut"/);
+    expect(code).not.toContain("mkt-line");
+    expect(code).toContain('"data-mkt-cut"');
+    expect(code).toContain('"data-mkt-reveal"');
+  });
+
+  it("renders the stage AFTER the lockup, inside the same Container", () => {
+    // A page's object arrives under the type, never beside it: the QR hero is
+    // bespoke for exactly that reason. The slot sits after the Reveal so the
+    // stage's own island (a lamp, a fill clock) is not gated on the lockup's
+    // observer.
+    const reveal = code.indexOf("</Reveal>");
+    const stage = code.indexOf("{children}");
+    const container = code.indexOf("</Container>");
+    expect(stage).toBeGreaterThan(reveal);
+    expect(stage).toBeLessThan(container);
+  });
+
   it("keeps the tracking squeeze on the display step itself", () => {
     // `.mkt-name` belongs to the STEP, not to /about (Will, 2026-08-29): a page
     // taking `display` gets the masthead entrance without knowing the recipe
