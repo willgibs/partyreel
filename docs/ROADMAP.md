@@ -20,6 +20,17 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
+  problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
+  UNLIT by ruling meanwhile: the wall is the ground, not a source.
+- **The album chapter's opener** — assess on screen against the round-2 arc whether the straddle
+  already reads as the paper chapter opening; `SECTION_HEADERS.album`'s note ("wants more distinctness
+  from the live demo before it") predates the pacing principle and may now be answered by the wind-down.
+- **The events manifest fill** — the conference and trip stills are borrowed. Over the conference
+  placeholder's white tablecloth the card copy needed a second scrim and still sits at 4.27:1 at the
+  brightest 5% of pixels under the heading (median 5.6:1; measured 2026-09-01). The real photographs
+  are the real fix; do not darken the scrim a third time for this one image.
+
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
   the 16px column over our sharp surfaces. Deliberately NOT applied in the glow round, because it is
@@ -37,7 +48,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (4) `--radius-tile` (3px) exists because tight-gap grids open corner holes, and `--radius-float`
   (8px) because sharp reads broken on floating elements — both are separate tokens and may not want to
   move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
-  commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
+  commit. ✅ **Staged at round 2 (2026-09-01):** three knobs on the marketing motion tuner (`--radius`,
+  `--radius-float`, `--radius-tile`, behind `?key=` on every cinema page), so the ruling is taken by
+  dragging the real surfaces; verified live on the panel. Ruled to run AFTER the library round, before
+  branching agents. Everything on the glow boards reads its token rather than a literal, so the lab inherits
   whatever lands here for free.
 - **The design lab taxes production CSS, and nobody had measured it** (found verifying milestone-13,
   2026-09-01). Tailwind v4 generates its utility layer from a scan of the source tree, and
