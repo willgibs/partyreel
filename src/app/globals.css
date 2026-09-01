@@ -2242,3 +2242,30 @@
     display: none;
   }
 }
+
+/* PRINT: help articles (the help-catalog round, 2026-09-01). The day-of
+   checklist is the guide a host prints at 7am, so the article page marks its
+   screen chrome with data-print-hide and the paper-only address with
+   data-print-url; nothing else in the app carries a print rule. Attribute
+   hooks, not classes, so the rule stays inert everywhere the page does not
+   opt in. The marketing chrome (header/footer) hides through the same hook
+   set on the article page's wrappers. */
+@media print {
+  [data-print-hide],
+  body:has([data-print-article]) header,
+  body:has([data-print-article]) footer {
+    display: none !important;
+  }
+  [data-print-url] {
+    display: block !important;
+    margin-top: 0.5rem;
+  }
+  [data-print-article] {
+    color: #111 !important;
+    background: #fff !important;
+  }
+  [data-print-article] a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}

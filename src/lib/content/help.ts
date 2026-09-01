@@ -6,6 +6,7 @@ import {
   Rocket,
   Share2,
   ShieldCheck,
+  UserRound,
   Users,
   Wrench,
   type LucideIcon,
@@ -66,9 +67,12 @@ export const HELP_CATEGORIES = [
     feature: { href: "/features/qr", label: "The QR code" },
   },
   {
+    // Retitled "For guests" (the help-catalog round, 2026-09-01): the one
+    // guest-voiced lane inside the host's lifecycle spine. The slug stays
+    // (contact's CATEGORY_TOPIC, the emblem, and #anchors key on it).
     slug: "guest-experience",
-    title: "Guest experience",
-    blurb: "Joining, uploading, and browsing: no app, no account.",
+    title: "For guests",
+    blurb: "Joining, adding your photos, and browsing: no app, no account.",
     icon: Users,
     feature: { href: "/features/guests", label: "Guests & profiles" },
   },
@@ -104,6 +108,17 @@ export const HELP_CATEGORIES = [
     feature: { href: "/pricing", label: "Pricing" },
   },
   {
+    // The tenth category (2026-09-01): sign-in, your name and photo, the
+    // profile handle, following, and the emails Partyreel sends had no home
+    // in the nine lifecycle categories. Hosts AND guests share one account,
+    // so it sits with the account-admin tail (billing, privacy), not up front.
+    slug: "account-and-profile",
+    title: "Account & profile",
+    blurb: "Sign-in, your name and photo, your profile, and notifications.",
+    icon: UserRound,
+    feature: { href: "/features/guests", label: "Guests & profiles" },
+  },
+  {
     slug: "privacy-and-safety",
     title: "Privacy & safety",
     blurb: "Who can see your media, how long it's kept, and your data.",
@@ -134,6 +149,9 @@ const CATEGORY_SLUGS = HELP_CATEGORIES.map((c) => c.slug) as [
   ...HelpCategorySlug[],
 ];
 
+export const HELP_AUDIENCES = ["host", "guest", "both"] as const;
+export type HelpAudience = (typeof HELP_AUDIENCES)[number];
+
 export function getCategory(slug: HelpCategorySlug): HelpCategory {
   // Non-null: `slug` is a HelpCategorySlug, so it always resolves.
   return HELP_CATEGORIES.find((c) => c.slug === slug)!;
@@ -152,11 +170,37 @@ export const helpFrontmatterSchema = z.object({
   updated: z.string().min(1),
   /** Extra search hints beyond title/description. */
   keywords: z.array(z.string()).default([]),
+  /**
+   * Who the article addresses. Optional: the default derives from the category
+   * (`resolveAudience`), so only the exceptions set it. Drives the article
+   * meta tag, the palette's "Guest" tail, and the guest end-matter pointer.
+   */
+  audience: z.enum(HELP_AUDIENCES).optional(),
+  /** "Applies to" plan badges in the In-short card's footer. Empty = every plan. */
+  plans: z.array(z.enum(["free", "pro", "event_pass"])).default([]),
+  /** The one action under the short answer ("Open your dashboard"). */
+  action: z
+    .object({ label: z.string().min(1), href: z.string().min(1) })
+    .optional(),
 });
 
 export type HelpFrontmatter = z.infer<typeof helpFrontmatterSchema>;
 
 export type HelpArticle = CollectionEntry<HelpFrontmatter>;
+
+/**
+ * The audience an article speaks to, with the category as the default: the
+ * guest lane is guest-voiced, troubleshooting answers both, everything else
+ * addresses the host. Frontmatter `audience` overrides for the exceptions.
+ */
+export function resolveAudience(article: {
+  frontmatter: Pick<HelpFrontmatter, "audience" | "category">;
+}): HelpAudience {
+  if (article.frontmatter.audience) return article.frontmatter.audience;
+  if (article.frontmatter.category === "guest-experience") return "guest";
+  if (article.frontmatter.category === "troubleshooting") return "both";
+  return "host";
+}
 
 const categoryOrder = new Map(HELP_CATEGORIES.map((c, i) => [c.slug, i]));
 
@@ -218,6 +262,11 @@ export function scoreRelated(
 
 // Scored related articles; ties break on the canonical index order so results are
 // deterministic. Under-filling is intentional (never pad with unrelated articles).
+// Two rules since the catalog grew past 50 (2026-09-01): the prev/next
+// siblings are excluded (the pagination cards already show them, and at 5-8
+// articles per category Related was duplicating them), and a candidate needs
+// at least ONE shared keyword (score ≥ 2): same-category alone is not
+// relatedness once a category holds eight guides.
 export function getRelatedArticles(
   article: HelpArticle,
   limit = 3,
@@ -226,19 +275,27 @@ export function getRelatedArticles(
     category: article.frontmatter.category,
     keywords: article.frontmatter.keywords,
   };
-  return getAllArticles()
+  const all = getAllArticles();
+  const siblings = all.filter(
+    (a) => a.frontmatter.category === article.frontmatter.category,
+  );
+  const at = siblings.findIndex((a) => a.slug === article.slug);
+  const neighbors = new Set(
+    [siblings[at - 1]?.slug, siblings[at + 1]?.slug].filter(Boolean),
+  );
+  return all
     .map((candidate, index) => ({
       candidate,
       index,
       score:
-        candidate.slug === article.slug
+        candidate.slug === article.slug || neighbors.has(candidate.slug)
           ? 0
           : scoreRelated(self, {
               category: candidate.frontmatter.category,
               keywords: candidate.frontmatter.keywords,
             }),
     }))
-    .filter((entry) => entry.score > 0)
+    .filter((entry) => entry.score >= 2)
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .slice(0, limit)
     .map((entry) => entry.candidate);
@@ -255,6 +312,7 @@ export type HelpSearchItem = {
   description: string;
   category: HelpCategorySlug;
   categoryTitle: string;
+  audience: HelpAudience;
   keywords: string[];
   headings: { id: string; text: string }[];
 };
@@ -266,9 +324,15 @@ export function getSearchIndex(): HelpSearchItem[] {
     description: article.frontmatter.description,
     category: article.frontmatter.category,
     categoryTitle: getCategory(article.frontmatter.category).title,
+    audience: resolveAudience(article),
     keywords: article.frontmatter.keywords,
     headings: extractHeadings(article.body),
   }));
+}
+
+/** The category chips the palette offers when a query matches nothing. */
+export function getCategoryChips(): { slug: HelpCategorySlug; title: string }[] {
+  return HELP_CATEGORIES.map((c) => ({ slug: c.slug, title: c.title }));
 }
 
 // ── Curated index surfaces (R6) ────────────────────────────────────────────────

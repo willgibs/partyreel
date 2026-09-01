@@ -10,6 +10,7 @@ import {
   HELP_CATEGORIES,
   HELP_QUICK_LINKS,
   helpFrontmatterSchema,
+  resolveAudience,
   scoreRelated,
   slugify,
   START_HERE_SLUGS,
@@ -50,6 +51,73 @@ describe("help content integrity", () => {
       expect(
         articles.some((article) => article.frontmatter.category === slug),
       ).toBe(true);
+    }
+  });
+
+  // ── The help-catalog round (2026-09-01): the catalog's own contracts ──────
+  it("audience derives from the category unless set; plans and action default", () => {
+    for (const article of articles) {
+      expect(["host", "guest", "both"]).toContain(resolveAudience(article));
+      expect(Array.isArray(article.frontmatter.plans)).toBe(true);
+      if (article.frontmatter.action) {
+        expect(article.frontmatter.action.href.startsWith("/")).toBe(true);
+      }
+    }
+    const guestLane = articles.find(
+      (a) => a.frontmatter.category === "guest-experience" && !a.frontmatter.audience,
+    );
+    if (guestLane) expect(resolveAudience(guestLane)).toBe("guest");
+  });
+
+  it("## headings are plain text and never sit inside a Callout", () => {
+    for (const article of articles) {
+      let inCallout = false;
+      for (const line of article.body.split("\n")) {
+        if (/^\s*<Callout/.test(line)) inCallout = true;
+        if (/^\s*<\/Callout>/.test(line)) inCallout = false;
+        const heading = /^##\s+(.+?)\s*$/.exec(line);
+        if (!heading) continue;
+        expect(inCallout, `${article.slug}: "## ${heading[1]}" is inside a Callout`).toBe(false);
+        expect(
+          /[*_`<\[]/.test(heading[1]),
+          `${article.slug}: "## ${heading[1]}" carries formatting`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("every internal help link resolves (slug, section anchor, or category)", () => {
+    const bySlug = new Map(articles.map((a) => [a.slug, a]));
+    const categories = new Set<string>(categorySlugs);
+    let checked = 0;
+    for (const article of articles) {
+      for (const match of article.body.matchAll(/\]\(\/help(?:\/([a-z0-9-]+))?(?:#([a-z0-9-]+))?\)/g)) {
+        checked += 1;
+        const [, slug, anchor] = match;
+        if (slug) {
+          const target = bySlug.get(slug);
+          expect(target, `${article.slug} links /help/${slug}`).toBeDefined();
+          if (anchor && target) {
+            expect(
+              extractHeadings(target.body).some((h) => h.id === anchor),
+              `${article.slug} links /help/${slug}#${anchor}`,
+            ).toBe(true);
+          }
+        } else if (anchor) {
+          expect(categories.has(anchor), `${article.slug} links /help#${anchor}`).toBe(true);
+        }
+      }
+    }
+    // Pinned for non-emptiness: a regex that matches nothing proves nothing.
+    expect(checked).toBeGreaterThan(20);
+  });
+
+  it("no article carries a JS-expression placeholder (blockJS would strip it)", () => {
+    for (const article of articles) {
+      expect(
+        /\{[a-zA-Z]+\}/.test(article.body),
+        `${article.slug} has a {placeholder}`,
+      ).toBe(false);
     }
   });
 });

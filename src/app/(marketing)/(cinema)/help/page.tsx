@@ -43,6 +43,7 @@ const STRIP_LABELS: Record<string, string> = {
   "sharing-and-downloads": "Sharing",
   "highlight-reel": "Reel",
   "plans-and-billing": "Plans",
+  "account-and-profile": "Account",
   "privacy-and-safety": "Privacy",
   troubleshooting: "Fixes",
 };
@@ -118,6 +119,18 @@ export default function HelpIndexPage() {
                 </Link>
               ))}
             </div>
+            {/* The guest fast lane: most people who land here from a phone just
+                scanned a QR code and are not hosts. One muted line, one link,
+                in the quick-link register (never a new component). */}
+            <p
+              className="mkt-line text-sm text-muted-foreground"
+              style={{ "--i": 5 } as CSSProperties}
+            >
+              Just scanned a QR code?{" "}
+              <LearnMoreLink href="#guest-experience" className="text-foreground">
+                Start with the guest guides
+              </LearnMoreLink>
+            </p>
 
             {/* THE EMBLEM STRIP: the nine categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
@@ -128,16 +141,20 @@ export default function HelpIndexPage() {
             <nav
               aria-label="Browse by category"
               className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
-              style={{ "--i": 5 } as CSSProperties}
+              style={{ "--i": 6 } as CSSProperties}
             >
               <div className="overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-9">
+                {/* Ten cells since the account category (2026-09-01). The 84px
+                    floor is the PHONE snap width only: on the grid it must
+                    release (sm:min-w-0), or 10 x 84 overflows the 768px nav
+                    and the desktop strip grows a scrollbar. */}
+                <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-10">
                   {groups.map(({ category }, i) => (
                     <a
                       key={category.slug}
                       href={`#${category.slug}`}
                       className={cn(
-                        "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60",
+                        "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60 sm:min-w-0",
                         i > 0 && "border-l",
                       )}
                     >
@@ -265,7 +282,15 @@ export default function HelpIndexPage() {
 
           <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border bg-border ring-1 ring-foreground/5 lg:grid-cols-2">
             {groups.map(({ category, articles }, groupIndex) => {
-              const wide = category.slug === "troubleshooting";
+              // Two wide panes keep the two-column sheet's rows even at ten
+              // categories (9 regular + 1 wide left an orphan cell): the
+              // guest lane opens wide, troubleshooting closes wide. Any pane
+              // holding 7+ guides splits its list in two so the sheet stays
+              // scannable at desktop widths.
+              const wide =
+                category.slug === "troubleshooting" ||
+                category.slug === "guest-experience";
+              const columns = wide || articles.length >= 7;
               return (
                 <div
                   key={category.slug}
@@ -299,7 +324,7 @@ export default function HelpIndexPage() {
                     {category.blurb}
                   </p>
 
-                  <ul className={cn("mt-4", wide && "sm:columns-2 sm:gap-10")}>
+                  <ul className={cn("mt-4", columns && "sm:columns-2 sm:gap-10")}>
                     {articles.map((article, articleIndex) => (
                       <li
                         key={article.slug}

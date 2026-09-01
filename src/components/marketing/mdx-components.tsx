@@ -1,4 +1,11 @@
-import { Check, Info, Lightbulb, Link2, TriangleAlert } from "lucide-react";
+import {
+  Check as CheckIcon,
+  ChevronRight,
+  Info,
+  Lightbulb,
+  Link2,
+  TriangleAlert,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Children,
@@ -12,12 +19,28 @@ import {
 import Image from "next/image";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import { Check, Checklist } from "@/components/marketing/help/checklist";
 import { Kbd } from "@/components/shared/kbd";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
-import { planById } from "@/lib/constants/tiers";
-import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import {
+  EVENT_PASS_RENEWAL_PRICE_LABEL,
+  MAX_EVENTS,
+  MAX_REEL_SECONDS,
+  planById,
+  plansForTier,
+  TIER_NAMES,
+  type Tier,
+} from "@/lib/constants/tiers";
+import { TEASER_LIMIT } from "@/lib/events/gallery-access";
+import { UNLOCK_TTL_SECONDS } from "@/lib/events/unlock-token";
+import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
 import { cn, formatBytes } from "@/lib/utils";
+import { MIN_PASSWORD_LENGTH } from "@/lib/validation/auth";
+import { EVENT_PASSWORD_MIN_LENGTH } from "@/lib/validation/event";
 
 // Components available to every MDX article (help now, blog later). next-mdx-remote v6
 // strips {expressions} (blockJS, on by default) but PRESERVES JSX components — so the
@@ -39,6 +62,110 @@ export const EventPassStorage = () => (
 );
 export const EventPassPrice = () => <>{planById("event_pass").priceLabel}</>;
 export const ProPrice = () => <>{planById("pro_100").priceLabel}</>;
+
+// The help-catalog round (2026-09-01) widened the family so no marketed limit,
+// price, or lifecycle window is ever typed into an article. Each reads ONE
+// constant; the content-policy fence stays the guard against literals.
+/** "100 GB, 500 GB, or 2 TB": the Pro storage sizes, from the plan list. */
+export const ProPlans = () => {
+  const sizes = plansForTier("pro").map((p) => formatBytes(p.storageBytes));
+  const last = sizes.pop();
+  return (
+    <>
+      {sizes.join(", ")}, or {last}
+    </>
+  );
+};
+export const EventPassRenewalPrice = () => (
+  <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
+);
+/** "30 seconds" / "60 seconds" for a tier. */
+export const ReelSeconds = ({ tier = "free" }: { tier?: Tier }) => (
+  <>{MAX_REEL_SECONDS[tier]} seconds</>
+);
+export const RecoveryDays = () => <>{RECENTLY_DELETED_WINDOW_DAYS} days</>;
+/** "one event" / "unlimited events" for a tier. */
+export const MaxEvents = ({ tier = "free" }: { tier?: Tier }) => {
+  const max = MAX_EVENTS[tier];
+  if (max === null) return <>unlimited events</>;
+  return <>{max === 1 ? "one event" : `${max} events`}</>;
+};
+export const UploadCapFloor = () => <>{formatBytes(MIN_UPLOAD_CAP_BYTES)}</>;
+/** "about 6 months": the free-tier inactivity window, from the day count. */
+export const InactivityMonths = () => (
+  <>about {Math.round(INACTIVE_DAYS / 30)} months</>
+);
+/** "about a year": the Event Pass term. */
+export const EventPassTerm = () => {
+  const days = planById("event_pass").termDays ?? 365;
+  return <>{days >= 360 && days <= 370 ? "about a year" : `${days} days`}</>;
+};
+/** The EVENT (album) password floor. */
+export const PasswordMinLength = () => <>{EVENT_PASSWORD_MIN_LENGTH}</>;
+/** The ACCOUNT password floor (a different rule from the album password). */
+export const AccountPasswordMinLength = () => <>{MIN_PASSWORD_LENGTH}</>;
+/** "12 hours": how long a guest's password unlock lasts. */
+export const UnlockHours = () => <>{Math.round(UNLOCK_TTL_SECONDS / 3600)} hours</>;
+export const TeaserCount = () => <>{TEASER_LIMIT}</>;
+export const OverCapGraceDays = () => <>{OVER_CAP_GRACE_DAYS} days</>;
+/** The tier name as marketed ("Pro", "Event Pass"). */
+export const TierName = ({ tier = "pro" }: { tier?: Tier }) => (
+  <>{TIER_NAMES[tier]}</>
+);
+
+// ── PlanBadge: the quiet entitlement pill ──────────────────────────────────────
+// An OUTLINE pill with no fill and no glyph, so it never reads as UiLabel's
+// filled "quoted control" chip. One per section at most; the In-short card's
+// "Applies to" line carries the entitlement once, this is the inline reminder.
+type BadgeTier = Tier | "paid";
+
+const BADGE_LABEL: Record<BadgeTier, string> = {
+  free: TIER_NAMES.free,
+  pro: TIER_NAMES.pro,
+  event_pass: TIER_NAMES.event_pass,
+  paid: `${TIER_NAMES.pro} & ${TIER_NAMES.event_pass}`,
+};
+
+export function PlanBadge({ tier = "paid" }: { tier?: BadgeTier }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-foreground/30 px-2 py-px align-baseline text-[0.8em] leading-5 font-medium whitespace-nowrap text-foreground">
+      {BADGE_LABEL[tier]}
+    </span>
+  );
+}
+
+// ── Path: "where to find it" ──────────────────────────────────────────────────
+// The first-five-seconds question of any how-to, answered as a breadcrumb row
+// of chips. Authored as plain text with › between segments
+// (<Path>Dashboard › Your event › Settings</Path>); children are flattened
+// through toText first because a bolded segment arrives as an array. Reading
+// furniture on a high-frequency surface: no motion.
+export function Path({ children }: { children: ReactNode }) {
+  const segments = toText(children)
+    .split("›")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return (
+    <ol
+      aria-label="Where to find it"
+      className="not-prose my-4 flex flex-wrap items-center gap-1.5 text-sm"
+    >
+      {segments.map((segment, i) => (
+        <li key={`${segment}-${i}`} className="flex items-center gap-1.5">
+          {i > 0 && (
+            <ChevronRight
+              aria-hidden
+              className="size-3.5 text-muted-foreground"
+            />
+          )}
+          <span className="rounded-md border bg-card px-2 py-1 font-medium text-foreground">
+            {segment}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 // ── Callout — the main richness add for long-form ───────────────────────────────
 // Grayscale + brand only (the destructive token is the one system "alert" color);
@@ -177,7 +304,7 @@ function HeadingAnchor({ id }: { id: string }) {
     >
       <span className="mkt-icon-swap" data-state="a" aria-hidden>
         <Link2 className="mkt-icon size-4" data-icon="a" />
-        <Check className="mkt-icon size-4 text-success" data-icon="b" />
+        <CheckIcon className="mkt-icon size-4 text-success" data-icon="b" />
       </span>
     </a>
   );
@@ -284,9 +411,27 @@ export const mdxComponents = {
   Step,
   Kbd,
   UiLabel,
+  PlanBadge,
+  Path,
+  Checklist,
+  Check,
   UploadSize,
   FreeStorage,
   EventPassStorage,
   EventPassPrice,
   ProPrice,
+  ProPlans,
+  EventPassRenewalPrice,
+  ReelSeconds,
+  RecoveryDays,
+  MaxEvents,
+  UploadCapFloor,
+  InactivityMonths,
+  EventPassTerm,
+  PasswordMinLength,
+  AccountPasswordMinLength,
+  UnlockHours,
+  TeaserCount,
+  OverCapGraceDays,
+  TierName,
 };

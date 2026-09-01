@@ -75,10 +75,12 @@ export type UpdateEventValues = z.output<typeof updateEventSchema>;
 
 // Album password (set / change). The DB RPC (set_event_password) re-checks tier +
 // length (defense-in-depth); this is the shared client + action shape.
+/** Exported so the help center's spec inline renders the real floor. */
+export const EVENT_PASSWORD_MIN_LENGTH = 4;
 export const eventPasswordSchema = z.object({
   password: z
     .string()
-    .min(4, "Use at least 4 characters.")
+    .min(EVENT_PASSWORD_MIN_LENGTH, "Use at least 4 characters.")
     .max(128, "Keep the password under 128 characters."),
 });
 export type EventPasswordValues = z.output<typeof eventPasswordSchema>;

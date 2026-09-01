@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { mdxComponents } from "@/components/marketing/mdx-components";
+import { mdxComponents, PlanBadge } from "@/components/marketing/mdx-components";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { CategoryEmblem } from "@/components/marketing/help/help-emblems";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -21,6 +21,7 @@ import {
   getArticle,
   getCategory,
   getRelatedArticles,
+  resolveAudience,
   type HelpArticle,
 } from "@/lib/content/help";
 import { cn, formatEventDate } from "@/lib/utils";
@@ -85,6 +86,27 @@ export default async function HelpArticlePage({
   const prev = at > 0 ? siblings[at - 1] : null;
   const next = at >= 0 && at < siblings.length - 1 ? siblings[at + 1] : null;
 
+  // The audience tag renders only when it says something the category badge
+  // does not: a guest article outside the guest lane, a host article inside
+  // it, or a both-sides article anywhere. The default case stays quiet so the
+  // stage keeps its one chip.
+  const audience = resolveAudience(article);
+  const categoryDefault =
+    category.slug === "guest-experience"
+      ? "guest"
+      : category.slug === "troubleshooting"
+        ? "both"
+        : "host";
+  const audienceLabel =
+    audience === categoryDefault
+      ? null
+      : audience === "guest"
+        ? "For guests"
+        : audience === "both"
+          ? "Hosts & guests"
+          : "For hosts";
+  const plans = article.frontmatter.plans;
+
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
   // container. Frontmatter is already stripped (gray-matter), so no parseFrontmatter.
   // blockJS stays on (v6 default) — articles are first-party but we still keep raw JS
@@ -133,7 +155,10 @@ export default async function HelpArticlePage({
               </span>
             </span>
             <div className="max-w-2xl min-w-0">
-              <div className="flex items-center justify-between gap-4">
+              <div
+                className="flex items-center justify-between gap-4"
+                data-print-hide
+              >
                 <Link
                   href="/help"
                   className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -153,7 +178,7 @@ export default async function HelpArticlePage({
                   digits (the mono ruling). The badge is the way back to this
                   category's pane on the index — a paper chip on the stage. */}
               <header className="mt-8">
-                <span className="surface-paper inline-flex">
+                <span className="surface-paper inline-flex items-center gap-2">
                   <Link href={`/help#${category.slug}`} className="inline-flex">
                     <Badge
                       variant="secondary"
@@ -162,10 +187,18 @@ export default async function HelpArticlePage({
                       {category.title}
                     </Badge>
                   </Link>
+                  {audienceLabel && (
+                    <Badge variant="outline">{audienceLabel}</Badge>
+                  )}
                 </span>
                 <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                   {article.frontmatter.title}
                 </h1>
+                {/* Paper only: the article's address, so a printed guide can
+                    be found again (print CSS reveals it; hidden on screen). */}
+                <p className="hidden text-sm text-muted-foreground" data-print-url>
+                  partyreel.com/help/{slug}
+                </p>
                 <p className="mt-4 text-sm text-muted-foreground tabular-nums">
                   Updated {formatEventDate(article.frontmatter.updated)}{" "}
                   &middot; {readingTime(article.body)}
@@ -183,6 +216,31 @@ export default async function HelpArticlePage({
                   <p className="mt-1.5 leading-7 text-pretty text-foreground">
                     {article.frontmatter.description}
                   </p>
+                  {/* The card's footer: the one action (the door back into the
+                      product) and the "Applies to" plan line. Both are
+                      optional frontmatter; most articles render neither. */}
+                  {(article.frontmatter.action || plans.length > 0) && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t pt-3.5">
+                      {article.frontmatter.action ? (
+                        <LearnMoreLink
+                          href={article.frontmatter.action.href}
+                          className="text-foreground"
+                        >
+                          {article.frontmatter.action.label}
+                        </LearnMoreLink>
+                      ) : (
+                        <span />
+                      )}
+                      {plans.length > 0 && (
+                        <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          Applies to
+                          {plans.map((tier) => (
+                            <PlanBadge key={tier} tier={tier} />
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -201,6 +259,7 @@ export default async function HelpArticlePage({
               <nav
                 aria-label="On this page"
                 className="flex flex-wrap items-center gap-2 lg:hidden"
+                data-print-hide
               >
                 <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page
@@ -222,6 +281,7 @@ export default async function HelpArticlePage({
                 the prose SCALE itself is untouched (the ruling keeps it). */}
             <article
               id={ARTICLE_BODY_ID}
+              data-print-article
               className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
             >
               {content}
@@ -229,12 +289,20 @@ export default async function HelpArticlePage({
             {/* One delegated island upgrades every heading's copy-link anchor. */}
             <HeadingAnchorsDelegate />
 
-            <ArticleFeedback slug={slug} />
+            <div data-print-hide>
+              <ArticleFeedback
+                slug={slug}
+                next={
+                  next ? { slug: next.slug, title: next.frontmatter.title } : null
+                }
+              />
+            </div>
 
             {(prev || next) && (
               <nav
                 aria-label={`More in ${category.title}`}
                 className="mt-10 grid gap-3 sm:grid-cols-2"
+                data-print-hide
               >
                 {prev ? (
                   <PaginationCard direction="prev" article={prev} />
@@ -246,7 +314,7 @@ export default async function HelpArticlePage({
             )}
 
             {related.length > 0 && (
-              <section className="mt-12 border-t pt-10">
+              <section className="mt-12 border-t pt-10" data-print-hide>
                 <h2 className="font-heading text-xl tracking-tight">
                   Related articles
                 </h2>
@@ -266,20 +334,34 @@ export default async function HelpArticlePage({
             )}
 
             {/* The ladder points UP too (the de-silo ruling): each category
-                maps to one marketing rung. */}
-            {category.feature && (
-              <p className="mt-10 text-sm text-muted-foreground">
-                Want the bigger picture?{" "}
-                <LearnMoreLink
-                  href={category.feature.href}
-                  className="text-foreground"
-                >
-                  {category.feature.label}
+                maps to one marketing rung. A GUEST article ends on the host
+                rung instead: the reader just used the product as a guest, and
+                "hosting your own" is the growth loop stated once, quietly. */}
+            {audience === "guest" ? (
+              <p className="mt-10 text-sm text-muted-foreground" data-print-hide>
+                Hosting your own event?{" "}
+                <LearnMoreLink href="/how-it-works" className="text-foreground">
+                  See how Partyreel works
                 </LearnMoreLink>
               </p>
+            ) : (
+              category.feature && (
+                <p className="mt-10 text-sm text-muted-foreground" data-print-hide>
+                  Want the bigger picture?{" "}
+                  <LearnMoreLink
+                    href={category.feature.href}
+                    className="text-foreground"
+                  >
+                    {category.feature.label}
+                  </LearnMoreLink>
+                </p>
+              )
             )}
 
-            <section className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center">
+            <section
+              className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center"
+              data-print-hide
+            >
               <h2 className="font-heading text-xl tracking-tight">
                 Still need help?
               </h2>
@@ -298,7 +380,10 @@ export default async function HelpArticlePage({
               room — the ToC never tracked (Will's catch). Stretching restores
               the full-column runway for sticky top-24. */}
           {headings.length >= 2 && (
-            <aside className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch">
+            <aside
+              className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch"
+              data-print-hide
+            >
               <nav aria-label="On this page" className="sticky top-24">
                 <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                   On this page

@@ -54,6 +54,7 @@ import { captureError } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey, reelOutputKey } from "@/lib/r2/keys";
 import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
 import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
@@ -77,9 +78,9 @@ const ORPHAN_MIN_AGE_HOURS = 24;
 const ORPHAN_PAGE_CAP = 20;
 const MEDIA_PREFIX = "events/";
 
-// Over-capacity grace: a lapsed account over its cap gets this long to upgrade/remove
-// before auto-reduce; we email a reminder this many days before the deadline.
-const OVER_CAP_GRACE_DAYS = 45;
+// Over-capacity grace: OVER_CAP_GRACE_DAYS (lib/lifecycle/over-capacity.ts, shared with
+// the help center's spec inline) is how long a lapsed account over its cap has before
+// auto-reduce; we email a reminder this many days before the deadline.
 const OVER_CAP_REMINDER_DAYS = 7;
 // Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
 // tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.

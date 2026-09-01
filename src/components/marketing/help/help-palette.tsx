@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 // pull node:fs into the client bundle.
 
 type QuickLink = { label: string; href: string };
+type CategoryChip = { slug: string; title: string };
 
 type PaletteContextValue = { open: () => void };
 
@@ -80,15 +81,20 @@ type PaletteOption = {
   /** Section deep-link, only when a heading was the sole reason for the match. */
   anchor: { id: string; text: string } | null;
   categoryTitle: string | null;
+  /** "Guest" when the article speaks to guests (the tail's second word). */
+  audienceTail: string | null;
 };
 
 export function HelpPaletteProvider({
   index,
   quickLinks,
+  categories = [],
   children,
 }: {
   index: HelpSearchItem[];
   quickLinks: readonly QuickLink[];
+  /** The category chips the empty state offers (the index page's panes). */
+  categories?: readonly CategoryChip[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -123,6 +129,7 @@ export function HelpPaletteProvider({
         label: link.label,
         anchor: null,
         categoryTitle: null,
+        audienceTail: null,
       }));
     }
     return [
@@ -136,6 +143,13 @@ export function HelpPaletteProvider({
         label: result.item.title,
         anchor: result.anchor,
         categoryTitle: result.item.categoryTitle,
+        // The guest lane's own title already says "For guests"; the tail
+        // marks guest-voiced articles that live elsewhere.
+        audienceTail:
+          result.item.audience === "guest" &&
+          result.item.category !== "guest-experience"
+            ? "Guest"
+            : null,
       })),
       ...pages.map<PaletteOption>((page) => ({
         kind: "page",
@@ -144,6 +158,7 @@ export function HelpPaletteProvider({
         label: page.label,
         anchor: null,
         categoryTitle: null,
+        audienceTail: null,
       })),
     ];
   }, [hasQuery, quickLinks, results, pages]);
@@ -338,9 +353,29 @@ export function HelpPaletteProvider({
                 <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
                   <MissingFrameStrip label="0" />
                   <p className="text-sm text-muted-foreground">
-                    No matches for &ldquo;{query}&rdquo;. Try fewer words, or
-                    send us a note.
+                    No matches for &ldquo;{query}&rdquo;. Try fewer words, browse
+                    a shelf, or send us a note.
                   </p>
+                  {/* The empty state lands somewhere: the ten category panes
+                      as chips, so a miss becomes a browse instead of a wall. */}
+                  {categories.length > 0 && (
+                    <ul className="flex flex-wrap justify-center gap-1.5">
+                      {categories.map((category) => (
+                        <li key={category.slug}>
+                          <Link
+                            href={`/help#${category.slug}`}
+                            onClick={() => {
+                              navigatingRef.current = true;
+                              close();
+                            }}
+                            className="inline-flex rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
+                          >
+                            {category.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <Link
                     href="/contact"
                     onClick={() => {
@@ -416,6 +451,9 @@ export function HelpPaletteProvider({
                     {option.categoryTitle && (
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {option.categoryTitle}
+                        {option.audienceTail && (
+                          <> &middot; {option.audienceTail}</>
+                        )}
                       </span>
                     )}
                   </Link>
