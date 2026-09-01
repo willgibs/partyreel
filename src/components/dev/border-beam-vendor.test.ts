@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { srgbToOklch } from "./sampled-palette";
+
 import {
   colorPalettes,
   getPulseDriverConfig,
@@ -167,6 +169,48 @@ describe("the vendored border-beam package", () => {
       const [r, g, b] = l.color.match(/\d+/g)!.map(Number);
       return Math.max(r, g, b) - Math.min(r, g, b);
     });
+    expect(chan.length, "no partyreel border lobes found").toBe(9);
     for (const spread of chan) expect(spread).toBeGreaterThan(150);
+  });
+
+  it("is a DERIVED register of the lamp set, not a second palette", () => {
+    // The open question this closes: the beam looked like it had introduced a
+    // rogue chroma register recorded as "our palette". It had not. These values
+    // are our own five hues run through glow-contrast.ts's oklchToSrgb and
+    // raised to effect-grade chroma, with HUE HELD EXACTLY. That makes it the
+    // LIVE register of the lamp set (design-system.md), and the test above is
+    // its other half: that one pins the raised chroma, this one pins that the
+    // raise did not move the hue.
+    //
+    // It has to live here as literal rgb() rather than var(--lamp-N): styles.ts
+    // regex-parses these strings to derive alpha and attenuation variants
+    // (withAlpha / attenuate), so a token would produce silently broken
+    // gradients. A test is the only thing that can hold the two in sync.
+    const LAMP_HUES = [25, 85, 155, 255, 305];
+    const every = [
+      ...colorPalettes.partyreel.border.map((l) => l.color),
+      colorPalettes.partyreel.spike.primary,
+      colorPalettes.partyreel.spike.secondary,
+      colorPalettes.partyreel.spikeLt.primary,
+      colorPalettes.partyreel.spikeLt.secondary,
+    ];
+    expect(every.length, "no partyreel colours found").toBe(13);
+    const strays: string[] = [];
+    for (const c of every) {
+      const [r, g, b] = c.match(/\d+/g)!.slice(0, 3).map(Number);
+      const { h } = srgbToOklch(r, g, b);
+      // Tolerance is wide on purpose: a gamut-edge sRGB projection of an oklch
+      // hue does drift a few degrees, and the failure worth catching is a
+      // SIXTH hue appearing, not a two-degree rounding difference.
+      const nearest = Math.min(
+        ...LAMP_HUES.map((L) => Math.min(Math.abs(h - L), 360 - Math.abs(h - L))),
+      );
+      if (nearest > 12) strays.push(`${c} -> hue ${h.toFixed(1)}deg`);
+    }
+    expect(
+      strays,
+      `The beam's LIVE register must stay the lamp set's five hues (25/85/155/255/305). ` +
+        `Off-hue colours are a second palette, which is the thing the light system exists to prevent:\n${strays.join("\n")}`,
+    ).toEqual([]);
   });
 });

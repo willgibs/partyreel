@@ -39,16 +39,29 @@ import {
  * doctrine problem before it is an engineering one, so this board proposes the
  * doctrine and the engine; the moments board argues the placements.
  *
- * The engine is lab-local on purpose (see the design.css banner): the repo's
- * ratified sequence is lab, then ruling, then promotion into globals.css.
+ * ★ THE RULES NO LONGER LIVE HERE. Promoted at round 0 (2026-09-01) along with
+ * the engine: the four SPILL laws, the four BEAM laws, the NEVER list, the
+ * LampCard's four questions and the lamp set's three registers are now in
+ * docs/systems/design-system.md ("Light: SPILL, BEAM, and the lamp set"), which
+ * is the one home and the thing to cite. What stays here is the DECISION
+ * RECORD: the specimens, the arguments, and the verdicts that produced them.
+ *
+ * The constants below are kept in sync by hand and are the board's copy, not
+ * the source of truth. If they disagree with design-system.md, the doc wins.
+ *
+ * The engine itself moved to globals.css (unlayered) and the primitive to
+ * components/shared/glow.tsx.
  */
 
+// The board's A/B needs the fallback five explicitly, but it must not be a
+// fourth copy of the values: read the shipped tokens so a retune of the lamp
+// set shows up here instead of silently diverging from what production paints.
 const FALLBACK_PALETTE = [
-  "oklch(0.72 0.17 25)",
-  "oklch(0.8 0.15 85)",
-  "oklch(0.72 0.14 155)",
-  "oklch(0.7 0.14 255)",
-  "oklch(0.68 0.16 305)",
+  "var(--lamp-1)",
+  "var(--lamp-2)",
+  "var(--lamp-3)",
+  "var(--lamp-4)",
+  "var(--lamp-5)",
 ];
 
 const LAWS: { n: string; name: string; rule: string; kills: string }[] = [
