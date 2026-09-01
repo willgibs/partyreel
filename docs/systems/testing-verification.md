@@ -112,6 +112,17 @@ site, these are the ways the *test tooling* misreports, so a working change look
   does not follow you to a page that round never touched. Confirm on the deployed preview
   (production build, extension-free): a clean console there closes it.
 
+- ★ **A HIDDEN PANE CAN ALSO SCREENSHOT SOLID BLACK, on a page that is rendering perfectly** (glow
+  merge, 2026-08-31). Same `document.hidden === true` root cause as the entries above, one more costume:
+  on a dark surface the forced single frame can come back as a uniform fill of the body background, so
+  it looks like the page failed to render rather than like the capture failed. **Do not diagnose from
+  the image.** Ask the DOM instead, which settles it in one call: read `document.visibilityState`, then
+  `document.elementFromPoint(innerWidth/2, innerHeight/2)` plus the target's `getBoundingClientRect()`,
+  `color` and `opacity`. If elementFromPoint returns the element you scrolled to, with a real colour and
+  opacity 1, the page is fine and the capture is not. ★ Rule the OTHER cause out first, because it looks
+  identical and it is your own bug: a scroll past `document.documentElement.scrollHeight` also yields an
+  empty frame. Check `scrollY` against `scrollHeight - innerHeight` before blaming the pane; both were
+  true in the same session here, and the overshoot was the one worth fixing.
 - ★ **AN OCCLUDED TAB NEVER DELIVERS THE FIRST IntersectionObserver CALLBACK** (careers merge,
   2026-08-29). With `document.hidden === true`, anything revealed ON ARRIVAL stays at its hidden rest
   state forever: the careers hero's h1 read `opacity: 0` with `.is-shown` absent, minutes after load,
