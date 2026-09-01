@@ -80,10 +80,15 @@ export function EventTypeCard({
             gradient's alpha applied. Same answer the hero reached for its
             mobile copy (cinema-hero.tsx): one extra short ramp that puts ink
             behind the copy block ONLY, so the photograph above stays bright
-            and the main scrim keeps lifting on hover. This one does not lift. */}
+            and the main scrim keeps lifting on hover. This one does not lift.
+            Re-measured after the first cut (75%, 55%): Conferences' title
+            median rose to 5.06:1 but its 5th percentile sat at 3.85:1, so the
+            ramp is a step darker and a little taller. The conference still is
+            a borrowed placeholder (see events-teaser.tsx); the scrim is sized
+            for the real photograph that replaces it, not tuned to this one. */}
         <span
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-[55%] bg-linear-to-t from-black/75 to-transparent"
+          className="absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-black/85 to-transparent"
         />
 
         <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-5">
