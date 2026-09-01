@@ -1,4 +1,4 @@
-import { Check, Info, Lightbulb, Link2, TriangleAlert } from "lucide-react";
+import { Info, Lightbulb, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import {
   Children,
@@ -12,6 +12,10 @@ import {
 import Image from "next/image";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import {
+  HeadingAnchor,
+  HEADING_SCROLL_MT,
+} from "@/components/marketing/reading/heading-anchor";
 import { Kbd } from "@/components/shared/kbd";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
@@ -157,31 +161,8 @@ function toText(node: ReactNode): string {
   return "";
 }
 
-// The scroll margin rides --mkt-header-h (the one chrome-height knob; same calc as
-// SectionShell) so a TOC/anchor jump clears the sticky header even if its height is
-// ever retuned (the old hardcoded scroll-mt-24 silently coupled to h-16).
-const HEADING_SCROLL_MT = "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
-
-// The copy-link affordance (R6): server-rendered markup only — a real anchor
-// (no-JS still jumps) that the ONE HeadingAnchorsDelegate island upgrades to
-// copy-the-deep-link + the icon-swap check (the 09-icon-swap recipe). Trailing
-// inline so it never disturbs heading wrap; opacity-revealed on heading hover
-// or its own focus.
-function HeadingAnchor({ id }: { id: string }) {
-  return (
-    <a
-      href={`#${id}`}
-      data-anchor-copy={id}
-      aria-label="Copy link to this section"
-      className="ml-2 inline-flex rounded-md align-baseline text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
-    >
-      <span className="mkt-icon-swap" data-state="a" aria-hidden>
-        <Link2 className="mkt-icon size-4" data-icon="a" />
-        <Check className="mkt-icon size-4 text-success" data-icon="b" />
-      </span>
-    </a>
-  );
-}
+// HeadingAnchor + HEADING_SCROLL_MT live in reading/heading-anchor.tsx since
+// the legal round: the legal shell is not MDX and emits the same markup.
 
 function H2({ children }: { children?: ReactNode }) {
   const id = slugify(toText(children));

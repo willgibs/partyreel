@@ -14,6 +14,7 @@ import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import { PasswordGate } from "@/components/guest/password-gate";
+import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
@@ -499,6 +500,10 @@ function WelcomeStep({
             Just browsing
           </Button>
         )}
+        {/* The acceptance line rides the door every guest passes once (the
+            legal round's ruling); links open in a new tab so the sheet the
+            guest is standing in survives the tap. */}
+        <LegalConsentLine newTab className="mt-2 text-center" />
       </div>
     </div>
   );
