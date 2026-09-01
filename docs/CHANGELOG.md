@@ -10,6 +10,39 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — MILESTONE-13: the glow doctrine on prod (adopt only, wire nothing)
+
+`main` @ tag `milestone-13` (`f3e6cbb`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree: typecheck clean, 0 lint errors (1 pre-existing warning in `contact-form.tsx`),
+**1301 tests**, build ok.
+
+★ **This milestone changes no production byte, deliberately**, which makes it unlike the four page
+rounds before it. `main` gains the doctrine, the engine and the vendored beam as TOOLS; every placement
+becomes its own paced round. Verified as a diff rather than asserted: nothing outside `docs/`,
+`(dev)/design/`, `components/dev/`, `components/vendor/` and three guard configs. Shipped now so
+`launch-prep` is free to start the integration rounds.
+
+**The agent-merge sequence closes here.** `lp/about` at milestone-9, `lp/press-kit` at 10,
+`lp/blog-redesign` at 11, `lp/careers-identity` at 12, `lp/glow-doctrine` at 13. All five remotes,
+worktrees and local branches are cleaned up (~5.6 GB of stale worktrees reclaimed).
+
+**Verified on partyreel.com at the merge SHA.** All nine marketing routes 200, byte-identical to the
+pre-merge capture. The `/design` gate holds in production (404 without the key, 200 with it). Zero
+`data-glw` in the CSS of `/`, `/pricing`, `/careers` or `/help`, so the engine does not ship; the
+shipped footer glow is unchanged, at exactly 23 `mkt-fglow` occurrences before AND after.
+
+★ **One honest correction to "no production byte changed."** It is true of the SOURCE (verified as a
+diff) and true of BEHAVIOUR (nothing renders differently), but not literally true of what is served:
+prod's shared CSS grew **2,752 bytes uncompressed**, and a content diff against the previous production
+deployment shows exactly why. **26 selectors added, 0 removed, and every one is a Tailwind utility**
+(`-inset-14`, `accent-current`, `-bottom-16` and friends) that appears ONLY in `(dev)/design` source.
+Tailwind v4 generates utilities from a scan of the tree, the lab is in that tree, so ~4,000 lines of new
+lab TSX taxed every production page's stylesheet with dead classes no production element uses. Nothing
+is broken and the effect is tiny, but the mechanism is worth knowing: **the design lab has a standing,
+if small, cost on production CSS**, and it grows every time the lab does. Logged to ROADMAP.
+
+---
+
 ## 2026-08-31 — the glow doctrine MERGED to `launch-prep` (adopt only, wire nothing)
 
 `launch-prep` @ `2bf18dc` (merge `a87d09b`, `--no-ff`). The fifth and last branch of the agent-merge

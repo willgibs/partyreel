@@ -88,7 +88,11 @@ from a lit thing) and its sibling BEAM (an object lit because it IS the live sub
 six-item never-list, 13 argued placements, the engine behind them, and `border-beam` v1.4.0 vendored
 under MIT. **Merged ADOPT-ONLY on Will's ruling: the branch touched zero production bytes and the
 merge kept it that way**, so every placement becomes its own paced round instead of arriving as a wave
-of effects. Not yet shipped to `main`.
+of effects. **Shipped at MILESTONE-13** (`main` @ tag `milestone-13`, `f3e6cbb`, 2026-09-01), which is
+unlike the four page milestones before it: it changes no production byte, so prod gained TOOLS rather
+than a surface. The agent-merge sequence CLOSES here, and all five branches, remotes, worktrees and
+local branches are cleaned up (~5.6 GB of stale worktrees reclaimed). `launch-prep` is now free for
+the integration rounds.
 
 What the merge is holding for the rounds that follow, all recorded in
 [ROADMAP](ROADMAP.md): (1) **the first integration round is the FOOTER**, because the engine IS

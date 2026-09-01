@@ -39,6 +39,18 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
   commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
   whatever lands here for free.
+- **The design lab taxes production CSS, and nobody had measured it** (found verifying milestone-13,
+  2026-09-01). Tailwind v4 generates its utility layer from a scan of the source tree, and
+  `src/app/(dev)/design/` is in that tree, so a utility used ONLY by a lab specimen is still emitted into
+  the shared stylesheet every production page loads. Measured by diffing the homepage CSS of two
+  production deployments across the glow merge: **+2,752 bytes uncompressed, 26 selectors added and 0
+  removed, every one of them lab-only** (`-inset-14`, `accent-current`, `-bottom-16` and friends, each
+  with zero occurrences in production source). Small today and entirely dead weight (no production
+  element uses them), but it is a standing cost that grows every time the lab does, and the lab is now
+  the largest thing in the repo. Options, cheapest first: scope Tailwind's content globs to exclude
+  `(dev)`, which is one config line and needs checking against how the lab loads its own CSS; or accept
+  it and pin the number so a future jump is visible. Worth doing before the lab grows again, and worth
+  a line in [`perf/v1-baseline.md`](perf/v1-baseline.md) either way.
 - **The beam's chroma register wants an explicit ruling** (surfaced at the glow merge, 2026-08-31, and
   the most consequential thing in that round nobody wrote down). The record everywhere says "the palette
   is ours, globally". What the code adopted is our five HUES at effect-grade chroma, saturated sRGB
