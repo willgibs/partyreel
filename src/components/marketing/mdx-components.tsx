@@ -160,7 +160,8 @@ function toText(node: ReactNode): string {
 // The scroll margin rides --mkt-header-h (the one chrome-height knob; same calc as
 // SectionShell) so a TOC/anchor jump clears the sticky header even if its height is
 // ever retuned (the old hardcoded scroll-mt-24 silently coupled to h-16).
-const HEADING_SCROLL_MT = "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
+export const HEADING_SCROLL_MT =
+  "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
 
 // The copy-link affordance (R6): server-rendered markup only — a real anchor
 // (no-JS still jumps) that the ONE HeadingAnchorsDelegate island upgrades to

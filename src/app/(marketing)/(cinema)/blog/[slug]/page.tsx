@@ -6,10 +6,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
+import {
+  ARTICLE_FAQ_HEADING,
+  ARTICLE_FAQ_ID,
+  ArticleFaq,
+} from "@/components/marketing/blog/article-faq";
 import { CoverMorphDelegate } from "@/components/marketing/blog/cover-morph";
 import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
-import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
+import {
+  ArticleJsonLd,
+  BreadcrumbJsonLd,
+  FaqPageJsonLd,
+} from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import {
   ARTICLE_BODY_ID,
@@ -91,7 +100,14 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const author = getAuthor(post.frontmatter.author);
-  const headings = extractHeadings(post.body);
+  const faq = post.frontmatter.faq ?? null;
+  // extractHeadings parses the MDX body, so the Questions section (rendered from frontmatter,
+  // outside the body) is invisible to it; append it by hand so the ToC and the scroll-spy can
+  // deep-link #questions like any other section. Only when the post carries one.
+  const headings = [
+    ...extractHeadings(post.body),
+    ...(faq ? [{ id: ARTICLE_FAQ_ID, text: ARTICLE_FAQ_HEADING }] : []),
+  ];
   const cover = coverFor(slug, post.frontmatter.cover);
   const listItem = toListItem(post);
 
@@ -133,6 +149,10 @@ export default async function BlogPostPage({
         datePublished={post.frontmatter.date}
         dateModified={post.frontmatter.updated ?? post.frontmatter.date}
       />
+      {/* FAQPage carries the same items the Questions section prints, verbatim. Not a Google
+          rich result any more (withdrawn for non-authority sites in 2023): this is on-page Q&A
+          plus structured data for assistant retrieval. */}
+      {faq && <FaqPageJsonLd items={faq} />}
 
       {/* ── The stage. pt-14/pt-20 is the cinema convention, not styling drift: the overlay header
              is transparent and hairline-less at scroll top, so the page's own top padding is the
@@ -261,6 +281,10 @@ export default async function BlogPostPage({
                 {/* One delegated island upgrades every heading's copy-link anchor. The shared MDX
                     components already emit the markup; the blog just never mounted the upgrade. */}
                 <HeadingAnchorsDelegate />
+
+                {/* Outside the <article>: the reading spine measures the piece, and the FAQ is
+                    an appendix to it, like "Keep reading". */}
+                {faq && <ArticleFaq items={faq} />}
 
                 {post.frontmatter.tags.length > 0 && (
                   <div className="mt-12 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-6">
