@@ -38,10 +38,13 @@ describe("blog covers", () => {
   it("is STABLE when new posts are published", () => {
     // The regression this whole module is shaped around: resolve a set, then "publish" more posts
     // and re-resolve the originals. Nothing about the originals may move.
+    // Three live slugs plus one RETIRED one (the placeholder library's; it now redirects):
+    // a deleted post's slug must keep resolving to the same art too, since the redirect
+    // target's card and the old share cards can still be side by side in a feed reader.
     const published = [
-      "best-photos-are-on-everyone-elses-phone",
-      "wedding-photo-qr-guests-will-use",
-      "stop-losing-group-photos-to-the-group-chat",
+      "wedding-photos-photographer-cant-be-there-for",
+      "qr-code-for-wedding-photos",
+      "group-chat-party-photos",
       "introducing-the-highlight-reel",
     ];
     const before = published.map((slug) => coverFor(slug));

@@ -11,10 +11,14 @@ import {
   buildBlogRssXml,
   getAllPosts,
   getAllTags,
+  getAllBlogSlugs,
+  getPostListItems,
   getPostNeighbors,
   getRelatedPosts,
 } from "@/lib/content/blog";
 import { coverFor } from "@/lib/content/blog-covers";
+import { paginate, splitLibrary } from "@/lib/content/blog-index";
+import { BLOG_REDIRECTS } from "@/lib/content/blog-redirects";
 import { BLOG_TAG_IDS, audienceTags } from "@/lib/content/blog-tags";
 import { escapeXml, readingTime } from "@/lib/content/collection";
 
@@ -303,6 +307,88 @@ describe("related posts spread across the archive", () => {
     }
     for (const [slug, count] of seen) {
       expect(count, `${slug} is recommended ${count} times`).toBeLessThanOrEqual(5);
+    }
+  });
+});
+
+describe("covers on the wall", () => {
+  const items = getPostListItems();
+
+  it("★ no photograph repeats beside itself, in any view, on any page", () => {
+    // The wall is 1 / 2 / 3 columns, so a card's neighbours are i+1 (the row), i+2 (one row
+    // down at sm) and i+3 (one row down at xl). Checked for the unfiltered library AND every
+    // tag filter, on every page: a chronological-only check missed a collision under the
+    // corporate filter, where three posts sit in one row.
+    const views: (string | null)[] = [null, ...BLOG_TAG_IDS];
+    for (const tag of views) {
+      const { library } = splitLibrary(items, tag as never);
+      const pageCount = paginate(library, 1).pageCount;
+      for (let page = 1; page <= pageCount; page++) {
+        const covers = paginate(library, page).items.map((p) => p.cover.imageId);
+        for (let i = 0; i < covers.length; i++) {
+          for (const step of [1, 2, 3]) {
+            if (i + step < covers.length) {
+              expect(
+                covers[i] === covers[i + step],
+                `${tag ?? "all"} page ${page}: cards ${i} and ${i + step} both use ${covers[i]}`,
+              ).toBe(false);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it("the staged hero is a landscape photograph", () => {
+    // The featured card is 21:9 and the article plate 16:9; the manifest's one portrait
+    // image crops to a band in both (and in the OG card, which ignores object-position).
+    const hero = items[0];
+    expect(hero.cover.width, hero.slug).toBeGreaterThan(hero.cover.height);
+  });
+});
+
+describe("no typed product number in a body", () => {
+  it("★ every marketed figure reaches a post through a spec component", () => {
+    // Strip JSX tags (the components ARE the sanctioned numbers), then look for the shapes a
+    // hand-typed figure takes: a price, a byte size, or one of the lifecycle/limit numbers
+    // sitting next to its unit. The unit window is what keeps "47 messages" legal.
+    const SIZE_OR_PRICE = /\$\d|\b\d+(\.\d+)? ?(GB|TB|MB)\b/i;
+    const LIMIT_NEAR_UNIT =
+      /\b(10|14|30|45|60|180|365|2000)\b(?=[^\n]{0,20}\b(day|second|item|photo|event)s?\b)/i;
+    for (const post of posts) {
+      const prose = post.body.replace(/<[^>]+>/g, "");
+      for (const [i, line] of prose.split("\n").entries()) {
+        expect(line, `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`).not.toMatch(
+          SIZE_OR_PRICE,
+        );
+        expect(line, `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`).not.toMatch(
+          LIMIT_NEAR_UNIT,
+        );
+      }
+    }
+  });
+});
+
+describe("the feed at library scale", () => {
+  it("carries one enclosure per item when every cover can be measured", () => {
+    const sizes = new Map(
+      posts.map((p) => [coverFor(p.slug, p.frontmatter.cover).src, 1000]),
+    );
+    const xml = buildBlogRssXml(
+      posts,
+      { url: "https://partyreel.com", name: "Partyreel", description: "x" },
+      sizes,
+    );
+    expect((xml.match(/<enclosure /g) ?? []).length).toBe(posts.length);
+  });
+});
+
+describe("retired slugs", () => {
+  it("every redirect lands on a live post, and no retired slug is still live", () => {
+    const live = new Set(getAllBlogSlugs());
+    for (const { from, to } of BLOG_REDIRECTS) {
+      expect(live.has(to), `${from} -> ${to} (target is not a live post)`).toBe(true);
+      expect(live.has(from), `${from} is still a live post`).toBe(false);
     }
   });
 });

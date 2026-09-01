@@ -80,7 +80,11 @@ Available inside every article (`src/components/marketing/mdx-components.tsx`):
   numeral rail; use for any "do this, then this" flow instead of a bare `1.`
   list when steps have bodies).
 - Spec inlines: `<UploadSize />`, `<FreeStorage />`, `<EventPassStorage />`,
-  `<EventPassPrice />`, `<ProPrice />`. Extend this family for new numbers.
+  `<EventPassPrice />`, `<ProPrice />`, plus the wider family the blog library
+  added (`<PlanStorage id>`, `<PlanPrice id>`, `<ReelSeconds tier>`,
+  `<ReelStyleCount />`, `<RecoveryWindowDays />`, `<InactiveDays />`,
+  `<CapacityEstimate plan>` and the rest; the full table is in
+  `../blog/AUTHORING.md`). Extend this family for new numbers.
 - `<Kbd>` for literal keys ("Press <Kbd>Enter</Kbd>").
 - `<UiLabel>` for quoted app strings.
 - `<AlbumShowcase label="..." caption="...">` (and the Figure variants that
