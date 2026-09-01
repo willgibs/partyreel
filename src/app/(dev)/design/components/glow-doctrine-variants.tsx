@@ -53,15 +53,27 @@ import {
  * components/shared/glow.tsx.
  */
 
-// The board's A/B needs the fallback five explicitly, but it must not be a
-// fourth copy of the values: read the shipped tokens so a retune of the lamp
-// set shows up here instead of silently diverging from what production paints.
+// ★ THESE MUST STAY LITERAL, and the reason is worth stating because the
+// instinct to de-duplicate them onto --lamp-* is correct everywhere else.
+// This array does NOT feed a `colors` prop: it feeds worstCaseGround() and
+// alphaAtAaFloor() in glow-contrast.ts, which are numeric colour MATH that
+// parseOklch()es each entry. Hand it "var(--lamp-1)" and parseOklch returns
+// null, worstCaseGround returns null, and the board's contrast table silently
+// reports floor 1 and every ratio undefined instead of floor 0.13 - wrong
+// numbers with no error, on the instrument whose whole job is telling you
+// whether the light is legible. I made exactly that edit at round 0 and caught
+// it in the live pass; measured, the delta is 0.13 -> 1.
+//
+// Same shape as the vendored beam palette (styles.ts), which also cannot take
+// a var() because it regex-parses rgb() strings. The general rule: a JS
+// consumer that PARSES colour needs literals; only CSS can take the token.
+// If the lamp set is ever retuned, update these five to match by hand.
 const FALLBACK_PALETTE = [
-  "var(--lamp-1)",
-  "var(--lamp-2)",
-  "var(--lamp-3)",
-  "var(--lamp-4)",
-  "var(--lamp-5)",
+  "oklch(0.72 0.17 25)",
+  "oklch(0.8 0.15 85)",
+  "oklch(0.72 0.14 155)",
+  "oklch(0.7 0.14 255)",
+  "oklch(0.68 0.16 305)",
 ];
 
 const LAWS: { n: string; name: string; rule: string; kills: string }[] = [
