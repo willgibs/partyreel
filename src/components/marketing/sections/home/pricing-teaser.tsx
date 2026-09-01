@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 import { planById, plansForTier } from "@/lib/constants/tiers";
-import { formatBytes } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 
 import { PricePop } from "./price-pop";
 import { ProCardBeam } from "./pro-card-beam";
@@ -62,30 +62,38 @@ export function PricingTeaser() {
           {cards.map((card, i) => {
             const body = (
               <div
-                className={
-                  card.popular
-                    ? "relative h-full rounded-xl border bg-card p-6 text-center"
-                    : "h-full rounded-xl border bg-card p-6 text-center"
-                }
+                className={cn(
+                  "flex h-full flex-col rounded-xl border p-6 text-center",
+                  // ★ LIGHTER IS CLOSER. The premium card is RAISED by surface,
+                  // not by a shadow: the elevation contract forbids dark
+                  // shadows on dark, so depth here is a lift in the plane. The
+                  // beam then marks it; the surface makes it sit forward first,
+                  // so the card still reads as premium with the beam paused.
+                  card.popular ? "relative bg-foreground/[0.045]" : "bg-card",
+                )}
               >
                 {card.popular && (
                   <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-background px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                     Most popular
                   </span>
                 )}
-                <div className="font-heading text-sm font-medium">
+                {/* The plan NAME is an eyebrow, not a heading: on a card whose
+                    whole job is the number, a same-weight name competes with
+                    the price for first read. This is the register the lab's
+                    ratified Pro card uses. */}
+                <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
                   {card.name}
-                </div>
+                </p>
                 {/* The ratified price register (/pricing, 2026-08-27): money in
-                    the DISPLAY face with tabular numerals, never mono -- mono
-                    on a price reads devtool. The teaser had drifted back to
+                    the DISPLAY face with tabular numerals, never mono -- mono on
+                    a price reads devtool. The teaser had drifted back to
                     font-mono; corrected at round 1b. */}
-                <div className="mt-2 font-heading text-2xl font-medium tracking-tight tabular-nums">
+                <div className="mt-3 font-heading text-3xl font-medium tracking-tight tabular-nums">
                   <PricePop label={card.price} />
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-auto pt-3 text-xs leading-relaxed text-muted-foreground">
                   {card.note}
-                </div>
+                </p>
               </div>
             );
             return (

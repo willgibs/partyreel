@@ -1,9 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { CardGrid } from "@/components/marketing/system/card-grid";
-import { EventCardLamp } from "@/components/marketing/sections/home/event-card-glow";
+import { EventCard } from "@/components/marketing/sections/home/event-card-glow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { EVENT_TYPES } from "@/lib/constants/events";
@@ -55,50 +53,16 @@ export function EventsTeaser() {
         style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}
       >
         <CardGrid columns={4}>
-          {EVENT_TYPES.map(({ slug, navLabel, teaser }, i) => {
-            const still = marketingImage(
-              EVENT_STILLS[slug] ?? "wedding-golden",
-            );
-            // EQUAL BOTTOM EDGE (R4/A7): grid items stretch, but the tilt's
-            // inner .mkt-tilt-card is a plain block, so a 2-line teaser card
-            // stopped short of its 3-line neighbours. Height is threaded
-            // through EVERY wrapper here (the shared .mkt-tilt-card class also
-            // serves non-grid consumers, so it must not be made 100% globally).
-            return (
-              <EventCardLamp
-                key={slug}
-                style={{ "--i": i + 3 } as CSSProperties}
-              >
-                {/* The house press idiom (R4): explicit transition
-                      properties, never `all`. TiltCard was removed at round 1b
-                      (Will): the 3D tilt and its cursor-tracking glare are both
-                      fine effects in isolation, but each would have to become a
-                      site-wide pattern to belong, and neither complements the
-                      spill/beam identity -- the glare in particular competes
-                      with the very light it sits next to. */}
-                <Link
-                  href={`/events/${slug}`}
-                  className="flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-transform duration-150 ease-emphasis active:scale-[0.99]"
-                >
-                  <div className="relative aspect-[4/3]">
-                    <Image
-                      src={still.src}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1 p-5">
-                    <h3 className="font-heading text-lg sm:text-xl">
-                      {navLabel}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{teaser}</p>
-                  </div>
-                </Link>
-              </EventCardLamp>
-            );
-          })}
+          {EVENT_TYPES.map(({ slug, navLabel, teaser }, i) => (
+            <EventCard
+              key={slug}
+              href={`/events/${slug}`}
+              src={marketingImage(EVENT_STILLS[slug] ?? "wedding-golden").src}
+              title={navLabel}
+              teaser={teaser}
+              style={{ "--i": i + 3 } as CSSProperties}
+            />
+          ))}
         </CardGrid>
         <div
           data-mkt-reveal
