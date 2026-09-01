@@ -6,7 +6,6 @@ import { CardGrid } from "@/components/marketing/system/card-grid";
 import { EventCardLamp } from "@/components/marketing/sections/home/event-card-glow";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { TiltCard } from "@/components/marketing/system/tilt-card";
 import { EVENT_TYPES } from "@/lib/constants/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
@@ -14,12 +13,15 @@ import { LearnMoreLink } from "../shared/learn-more-link";
 
 /**
  * QUIET (the loud/quiet map): the four event-type cards over manifest stills,
- * each linking its /events/[slug] landing page (the internal-SEO job). The
- * card-tilt recipe is the one allowed flourish here (hover feedback, not a
- * mechanic). TiltCard is applied directly (not CardGrid's tilt prop) so the
- * card radius reaches .mkt-tilt-card via border-radius:inherit and the glare
- * clips to the rounded corners; CardGrid's tilt wrapper takes no className,
- * a threading gap flagged for the orchestrator.
+ * each linking its /events/[slug] landing page (the internal-SEO job).
+ *
+ * ★ THE FLOURISH HERE IS LIGHT, NOT MOTION (Will, round 1b). The card-tilt
+ * recipe used to run here; both halves of it are gone. A 3D tilt and a
+ * cursor-tracking glare are each attractive alone, but either one would have to
+ * be adopted site-wide to read as identity rather than as a one-off, and the
+ * glare in particular competes with the spill it now sits beside: two different
+ * light models on one card, one of them chasing the pointer. The underlight
+ * replaces both, and it is the SAME mechanic as the film strip and the footer.
  */
 
 // Representative stills per type. KNOWN MANIFEST GAP: the bootstrap 12 have no
@@ -67,31 +69,33 @@ export function EventsTeaser() {
                 key={slug}
                 style={{ "--i": i + 3 } as CSSProperties}
               >
-                <TiltCard className="h-full rounded-xl [&>.mkt-tilt-card]:h-full">
-                  {/* The house press idiom (R4): the tilt is a MOUSE-only
-                      affordance, so on a phone these tiles had no feedback at
-                      all. Explicit transition properties, never `all`. */}
-                  <Link
-                    href={`/events/${slug}`}
-                    className="flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-transform duration-150 ease-emphasis active:scale-[0.99]"
-                  >
-                    <div className="relative aspect-[4/3]">
-                      <Image
-                        src={still.src}
-                        alt=""
-                        fill
-                        sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 p-5">
-                      <h3 className="font-heading text-lg sm:text-xl">
-                        {navLabel}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{teaser}</p>
-                    </div>
-                  </Link>
-                </TiltCard>
+                {/* The house press idiom (R4): explicit transition
+                      properties, never `all`. TiltCard was removed at round 1b
+                      (Will): the 3D tilt and its cursor-tracking glare are both
+                      fine effects in isolation, but each would have to become a
+                      site-wide pattern to belong, and neither complements the
+                      spill/beam identity -- the glare in particular competes
+                      with the very light it sits next to. */}
+                <Link
+                  href={`/events/${slug}`}
+                  className="flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-transform duration-150 ease-emphasis active:scale-[0.99]"
+                >
+                  <div className="relative aspect-[4/3]">
+                    <Image
+                      src={still.src}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 p-5">
+                    <h3 className="font-heading text-lg sm:text-xl">
+                      {navLabel}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{teaser}</p>
+                  </div>
+                </Link>
               </EventCardLamp>
             );
           })}

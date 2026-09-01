@@ -64,7 +64,7 @@ export function FilmStrip() {
             className="rounded-xl border bg-card/60 p-6"
             style={{ "--i": i } as CSSProperties}
           >
-            <p className="font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
               {s.scene}
             </p>
             <h3 className="mt-2 font-heading text-2xl">{s.title}</h3>

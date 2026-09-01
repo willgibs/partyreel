@@ -307,7 +307,7 @@ function LiveCounters({ phase, reduced }: { phase: Phase; reduced: boolean }) {
   const shown = counting && reduced ? COUNTER_TARGETS : counts;
 
   return (
-    <p className="font-mono text-[13px] text-muted-foreground tabular-nums">
+    <p className="text-[13px] text-muted-foreground tabular-nums">
       {shown.photos} photos · {shown.guests} guests · 1 reel
     </p>
   );

@@ -54,26 +54,26 @@ export function EventCardLamp({
       className="relative isolate h-full"
       style={style}
     >
-      {/* ★ THE BOX IS SIZED SO THE FALLOFF DIES INSIDE IT, not so that it frames
-          the region I want lit. Those are different numbers, and confusing them
-          is what put a visible rectangle under the first version: the mask is
-          still partly opaque where the box stops, so the box edge becomes a
-          drawn edge. With reach 0.55 the ramp reaches transparent at about 43%
-          of the box's half-dimension, so 48px of side inset and 160px below the
-          card leave clear margin on every side. NO overflow-hidden here, ever. */}
+      {/* ★ A SEAM AT THE CARD'S BOTTOM EDGE, NOT A THROW FROM ITS MIDDLE
+          (Will, round 1b). The throw put a distinct point source emanating from
+          each card's centre-bottom, which read as four little spotlights and
+          fought the ratified hero underlight -- a wide, even, quiet band. A
+          seam is that band: opaque at its own top edge, fading straight down.
+          `top-full` puts that edge exactly ON the card's bottom edge, which is
+          the same real-boundary condition the film strip and the footer use.
+          One mechanic for every underlight on the site. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-x-12 top-1/2 -bottom-40 -z-10"
+        className="pointer-events-none absolute inset-x-0 top-full -z-10 h-[130px]"
       >
         <Glow
-          shape="throw"
+          shape="seam"
           drive="mask"
           colors={colors ?? undefined}
           vars={{
-            "--glw-from-x": "50%",
-            "--glw-from-y": "22%",
-            "--glw-reach": "55%",
             "--glw-dur": "11s",
+            "--glw-base": "0.45",
+            "--glw-strength": "0.35",
           }}
         />
       </div>
