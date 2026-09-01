@@ -12,8 +12,8 @@ included where recorded; the full original prose lives in git history. The found
 
 ## 2026-09-01 — Round 0: the light system in production, and the footer retired onto it
 
-`launch-prep` (`9572d55`, `b9621f2`, `44acf10`, `58157db`, `abe7c34`). Gate green at every commit;
-1301 → **1305 tests**. Verified live on the `launch-prep` alias at `44acf10`, against **production as
+`launch-prep` (`9572d55`, `b9621f2`, `44acf10`, `58157db`, `abe7c34`, `1b552b1`). Gate green at every commit;
+1301 → **1307 tests**. Verified live on the `launch-prep` alias at `44acf10`, against **production as
 the reference** (prod still runs the old footer until the next milestone merge, so it is a live
 before-state that needs no stored baseline).
 
@@ -71,6 +71,16 @@ and concluded eight needed fixing; most iterate literal arrays that cannot silen
 is exactly the "bible" that reads as obligation to a new agent. They are now one section in
 [`design-system.md`](systems/design-system.md); the board keeps the decision record and says so.
 `design.css` 2725 → **1894 lines (-31%)**, which starts the lab distillation for free.
+
+★ **One regression I shipped and caught in the live pass.** De-duplicating the palette, I re-pointed
+the doctrine board's `FALLBACK_PALETTE` from literals to `var(--lamp-N)`. That array does not feed a
+`colors` prop: it feeds `worstCaseGround()`, which parses colour NUMERICALLY. Measured, the board's
+contrast floor went `0.13 → 1` and every ratio to `undefined`, because `parseOklch` returned null and
+the report came back null. Wrong numbers, no error, on the one instrument whose job is saying whether
+light is legible. Reverted, with the rule recorded where the same instinct will recur: **a JS consumer
+that PARSES colour needs literals; only CSS can take the token** (the vendored beam palette is the same
+shape). Two guards added so the necessary duplication is safe: the board's five must equal `--lamp-*`
+value for value, and `worstCaseGround` must return non-null for them.
 
 **Measured cost:** homepage CSS 312,228 → 330,766 B raw, **+1,865 B gzipped**, for the whole engine
 (halo, bloom, edge beam, all three drives) going global net of the 155 deleted marketing lines.
