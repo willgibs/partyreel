@@ -94,6 +94,22 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   against browserslist, finds it statically false, and drops the block. Correct given the targets, but
   the source comment claims a protection that does not ship. Either accept and say so in the comment,
   or drop the rule. Same question likely applies to other `@supports not` blocks.
+- **The hero's warm-up: built, measured, and pulled** (round 1, 2026-09-01). A sampled lamp paints on
+  the house five and takes the photographs' hues a beat later, which on the home hero is above the
+  fold. The proposed delight was to register `--glw-c1..5` with `@property` as `<color>` and transition
+  them, so the lamp arrives neutral and warms into the wall's colour: "the lamp cannot be the colour of
+  the wall until the wall has been read". It WORKS -- the registration takes (an unrelated probe reports
+  the `initial-value` rather than an empty string) and the transition binds to all five.
+  ★ **Pulled anyway, and the reason generalises: I never established the problem it solves is real.**
+  The Browser pane runs hidden, so `document.hidden` is true, images never load, rAF is throttled to
+  zero and transitions do not advance -- so the colour pop it hides was never actually observed being
+  objectionable. Adding a mechanism to production because it *ought* to help is the same move that
+  broke the contrast instrument at round 0. It also introduced a real if benign new state: measured, a
+  frozen transition leaves the computed value at the OLD palette (`transition: none` applies the new
+  one instantly, which is how it was isolated), so a background-tab visitor keeps the lamp set until
+  focus. That fails toward the lit fallback, i.e. law 4's correct no-media branch, so it is safe -- but
+  it is a cost with an unproven benefit. **Pick this back up the moment Will can say whether the swap
+  reads as a bug on a visible screen.** One commit either way.
 - **The lit surface (`[data-lit]`) wants its own round**, the way the corner became the rounding round.
   Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
   it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
