@@ -186,6 +186,19 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
   chasing dev.
 
+- ★ **`rm -rf .next/cache` is NOT enough, and the tell is a stylesheet that is TRUNCATED rather than
+  stale** (round 1, 2026-09-01). Turbopack's dev output lives in **`.next/dev/`**, which the `cache`
+  wipe does not touch, so a restart can serve a chunk that is minutes old (check its mtime — it will
+  look fresh) and still be missing part of your CSS. The symptom here was surgical: everything in
+  `globals.css` up to ~line 1026 was present in the served chunk and the entire spill engine from
+  ~line 1387 was absent, so `[data-glw]` computed `position: static` and both lamps -- including the
+  SHIPPED footer one -- silently rendered as unstyled divs. It reads exactly like a CSS syntax error
+  you just introduced. **Rule it out in 30 seconds before touching source:** the production build is
+  ground truth (`grep -c data-glw` in `.next/static/chunks/*.css` — it was there, 96 selectors), and
+  the source's own brace balance is checkable in a few lines of python. Then `rm -rf .next` (the whole
+  directory, not `cache`) and restart; it came back immediately. Cost ~20 minutes of hunting a
+  non-existent parse error in a file the build was compiling correctly.
+
 - **The Preview MCP starts the dev server in the SHARED git root, not your worktree.** `preview_start`
   resolves the project by git common dir, which every worktree shares, so from `../partyreel-wt/<track>`
   it runs `pnpm dev` in `/Users/gibby/local/ai/partyreel` (the Orchestrator's checkout) and serves

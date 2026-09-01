@@ -196,9 +196,62 @@ caller's own wrapper positions it, and tuning goes through `vars`. The `[data-re
 band-only glow is invisible whenever it is paused, which is its default state below the fold AND its
 reduced-motion state. The base is how a reduced-motion arrival still ARRIVES.
 
-The one shipped lamp today is the footer seam ([footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx)),
-which passes a single override, `--glw-dur: 11s`, against the engine's ruled 8s register. Which one
-the footer keeps is an open ruling.
+`GlowFilter` (its own **server** component, [glow-filter.tsx](../../src/components/shared/glow-filter.tsx))
+is mounted **once, in the root layout**. Root and not `(marketing)`, because `not-found.tsx` renders the
+marketing footer outside that group. Never mount a second: SVG ids are document-global.
+
+★ **A missing host is a quality failure, not a crash** (measured in Chrome at round 1, twice: renaming
+the filter id, and deleting the host node). A dangling `filter: url(#glw-warp)` does **not** blank the
+element. The whole chain is dropped, `blur()` included, so the five ellipses land as hard-edged colour
+blobs: visibly wrong, and completely silent. `Glow` carries a dev-only console guard for it.
+
+★ **The band rests where its animation starts (`150% 0`), never mid-travel.** The animation lives inside
+`@media (prefers-reduced-motion: no-preference)`, so whatever the band *declares* is what a
+reduced-motion visitor sees permanently. It shipped declaring `50% 0` for two rounds, which with
+`mask-size: 280%` puts the comet's peak at dead centre of the box at full strength: the exact midpoint
+of the sweep, i.e. the worst case, forever, for the people who asked for less motion. Fixed at round 1
+and pinned by test.
+
+### The three shipped lamps
+
+| Lamp | Where | Shape | Colour |
+| --- | --- | --- | --- |
+| **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
+| **The hero underlight** | [cinema-hero.tsx](../../src/components/marketing/sections/home/cinema-hero.tsx) | `seam` | **sampled** from the wall's eager tiles |
+| **The album straddle** | [album-glow.tsx](../../src/components/marketing/sections/home/album-glow.tsx), `lg` only | `throw` | **sampled** from the card's eight tiles |
+
+All three ship at `--glw-dur: 11s` against the engine's ruled 8s. With three lamps the open ruling is no
+longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
+11s against the whole page at 8s.
+
+★ **Sample from the DOM, never from URLs, in production.** `useSampledPaletteFromDom(ref)` reads the
+`<img>` elements the page has already painted, so `drawImage` reuses the decoded bitmap: zero bytes,
+zero requests, zero extra decodes. The URL form (`useSampledPalette`) is the LAB's, because a board has
+no rendered image to read; on the home page's wall it would refetch **1,101,641 bytes** of originals,
+since `next/image` serves a different URL and nothing is a cache hit. It also never calls `img.decode()`
+— that would force a `loading="lazy"` tile to fetch, so the lamp would undo the page's own loading
+strategy in order to colour itself.
+
+★ **Two placement rules the home page paid for, both cheap to break by accident.** (1) A lamp goes
+**after** the scrims it lights through, never inside them: nothing in the hero creates a stacking
+context, so children paint in DOM order and a lamp under four scrims arrives at about an eighth
+strength. (2) The caller's content wrapper needs an explicit `relative` — `Container` is a static div,
+and an absolutely-positioned `Glow` otherwise paints **over** the H1. Both failures look like "the
+effect is too strong" and send you tuning opacity instead of fixing the stack.
+
+★ **A lamp that crosses a chapter cut is clipped at the cut.** Light stopping dead there is doctrine, not
+containment: `PaperChapter`'s rule is that cuts are hard (hairline + plane change, no gradients), so a
+bleed would soften the edge the chapter system rests on. It also keeps one lamp on one register instead
+of needing the dark register above and the paper register below.
+
+★ **A lab specimen can be geometrically inverted from the surface it names.** Moment 05's stage puts
+paper above and dark below; production is the opposite, so its insets would have thrown dark-register
+light onto near-white paper. Its stated *argument* ("the card casts onto the dark field it overhangs")
+survived intact and only the geometry flipped — which is the useful distinction when a specimen and its
+surface disagree. Its "overhangs the cut by 160px" was also wrong: the real number is **63px**
+(`-mt-40` is 10rem, `SectionShell` puts back 6rem of padding, `PaperChapter`'s border another 1px).
+Same family as the seam field-inset finding at round 0: a specimen that was not rendering what its own
+source claimed.
 
 
 ## Type: the heading face + the tiered scale

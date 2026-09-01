@@ -10,6 +10,85 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — Round 1: the home page's light, and the first colour taken from a photograph
+
+`launch-prep` (`f6cfd07`, `8a2c181`, `01424e6`, `b6d7650`). Gate green at every commit;
+1307 → **1319 tests**. Verified live on the `launch-prep` alias at `b6d7650`, with **production as the
+before-state** (prod still runs milestone-13, which has no `[data-glw]` at all).
+
+**Round 0 shipped the machinery and the site still had exactly one lamp: the same footer seam it had
+before.** This is the round where light appears somewhere new. Will ruled the target (the home page,
+lab moments 01 and 05, judged by 13's scarcity test) and the sequence that follows: all Glow
+integration rounds across marketing and app FIRST, then the lab review.
+
+**Law 3 stopped being a claim.** Measured live: the hero's `--glw-c1/3/5` resolve to hues 52.6 / 354.7
+/ 185.9 and the album's to 53.4 / 186.0 / 113.4. Neither is the lamp set (25 / 85 / 155 / 255 / 305),
+and they differ from each other because they are reading different photographs. The footer stays on the
+house set, correctly: it has no media to sample.
+
+**The sampler learned to read the DOM, and that was worth ~1 MB.** `useSampledPalette` takes URLs
+because a lab board has no rendered `<img>`. On the home page that refetches the ORIGINALS — `next/image`
+serves a different URL, so nothing is a cache hit — which measures **1,101,641 bytes** of full-resolution
+JPEG to read 32×32 of each, on the page whose own header comment spells out an LCP contract. The new
+`useSampledPaletteFromDom` reads the elements the page already painted, reusing decoded bitmaps.
+Verified live: **0 raw-original fetches**, and the wall's 6-eager loading strategy untouched. It never
+calls `img.decode()`, which would force a `loading="lazy"` tile to fetch — the lamp would undo the
+page's own loading strategy to colour itself.
+
+★ **The album specimen was upside down, and its headline number was wrong.** The lab stage puts paper
+above and dark below and throws downward; production's arc runs cinema → paper and `lg:-mt-40` hangs the
+card UP into the dark, so copying those insets would have thrown dark-register light onto near-white
+paper — the exact "dirty rather than lit" failure `SPILL_REGISTER.paper` exists to fix. The bias is
+mirrored and the specimen's own argument ("the card casts onto the dark field it overhangs") survives
+intact. Its "overhangs the cut by 160px" was also wrong: **the real overhang is 63px** (`-mt-40` is
+10rem, `SectionShell` puts back 6rem, `PaperChapter`'s border 1px). The board read the margin and
+ignored what the section gives back. The clip is expressed from those same terms and lands on the cut
+with **0px of error**, measured live.
+
+★ **The comet's resting position was the worst case, not a park.** The band declared
+`mask-position: 50% 0` outside the `no-preference` block. With `mask-size: 280%` that puts the comet's
+peak at dead centre of the box at full strength — the exact midpoint of a sweep whose own endpoints
+(150% → peak −130%, −50% → peak +230%) are both off-layer. Since the animation lives inside
+`no-preference`, every visitor who asked for less motion has been getting the peak of the travel,
+permanently, on the one lamp we shipped. The tell was in the source: the block's comment read "comet
+parked", a claim the CSS did not implement. Fixed to the animation's own from-keyframe (so nothing
+changes for anyone else), and verified on the SHIPPED sheet: the band's unconditional declaration is
+`150% 0` and every `animation` sits inside `no-preference`.
+
+★ **A missing filter host is a quality failure, not a crash — measured rather than assumed.** The
+singleton hoist (to the root layout, because `not-found.tsx` renders the footer outside `(marketing)`)
+owed a live check. Done twice, by renaming the filter id and by deleting the host node: Chrome does NOT
+blank the element, it drops the whole filter chain including `blur()`, so the five ellipses land as
+hard-edged colour blobs. Visibly wrong and completely silent, so `Glow` gained a dev-only guard.
+`GlowFilter` became its own **server** component: left in the client `glow.tsx` it would have put the
+glow hooks on every route in the app to render a static `<svg>`. All three prior mounts removed —
+including both lab boards, which sit inside the root layout and would otherwise have put **two**
+`#glw-warp` filters on every board page, the exact failure the fix was for.
+
+★ **A refactor silently broke two guards.** Two pins sliced `indexOf(...)` → `indexOf("export function
+GlowFilter(")`; moving `GlowFilter` out made that −1, and `slice(start, -1)` does not throw — it returns
+everything but the last character, so both kept passing over the wrong text. Same class as the four
+unable-to-fail guards the round-0 sweep found, except created by an unrelated refactor rather than
+written wrong. Bounds are now asserted and searched forward from the start index.
+
+**Verified live at `b6d7650`:** 1 filter host and no duplicate ids on both the home page and the root
+404 (which proves the hoist target, being outside `(marketing)`); 3 lamps at 1440 with gaps of **3.06
+and 5.77 viewports**, so scarcity holds with room; at 375 the album lamp has **no box at all**
+(`hidden lg:block` — no straddle, no lamp, law 1 applied honestly) leaving hero and footer 13 viewports
+apart; no horizontal overflow at either width; `forced-colors`, `print` and `no-preference` all present
+in the shipped CSSOM; console clean. **Cost against production (rounds 0+1 combined): +1,888 B CSS and
++2,824 B JS, gzipped.** Round 1's own CSS delta is ~23 B — it added no selectors.
+
+**Not measurable in this pass, and not claimed:** LCP timing and the frame cost of three filtered layers
+on one page. The Browser pane runs hidden, so `document.hidden` is true, Chrome records no paint timing
+at all (FCP and LCP both report 0) and rAF is throttled. Carried forward rather than guessed.
+
+**Twelve new pins, every one watched to fail** before being trusted — six injections against the home
+lamps (dropping `Container`'s `relative`, moving the lamp under the scrims, dropping the `colors` prop,
+flipping the album's throw back down, client-ifying `album.tsx`, lighting a third section) and four
+against the singleton, plus the resting-position pin and the `GlowVars`-key pin that would have caught
+`--glw-span`. All red on injection, all green on restore.
+
 ## 2026-09-01 — Round 0: the light system in production, and the footer retired onto it
 
 `launch-prep` (`9572d55`, `b9621f2`, `44acf10`, `58157db`, `abe7c34`, `1b552b1`). Gate green at every commit;

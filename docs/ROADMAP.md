@@ -65,6 +65,22 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   git history hold the rest. Pre-launch. Round 0 started it for free (the doctrine's LAWS moved to
   `design-system.md` and the engine left `design.css`, -31%); the pattern to repeat is "when something
   is ratified, the rule leaves the lab with it".
+  ★★★ **SEQUENCED BY WILL (2026-09-01): this runs AFTER the Glow integration rounds, not before.**
+  "Let's go through all of our rounds of integrating the new Glow branches' work across marketing and
+  app. Once complete, we'll review everything still remaining in the lab, pull anything still remaining
+  that may benefit the streamlined design system library, and effectively wipe everything that's left
+  stale." Distilling first would freeze boards whose placements have not shipped yet, against the very
+  pattern above. The integration order: **R1 the home page ✅ (2026-09-01)** → R2 the guest surfaces
+  (doorbell arrival, locked door, awaiting-media; blocked on one ruling, since `/e/[token]` follows the
+  visitor's own theme and all three were argued on cinema, plus the sampling loader swap) → R3 the Get
+  Pro beam + the lit surface, which are entangled (three of four beam specimens already wear
+  `[data-lit]`) → R4 the publish beat's violet. **Then** the lab review.
+  ★ Two lab-fidelity findings to carry INTO that review, both the same class: moment 05's specimen is
+  vertically INVERTED from the surface it names (paper above / dark below, where production is the
+  opposite) and claims a 160px overhang where the real one is 63px; and moment 09's lamp does not
+  exist at all, since /press has no real photograph left to sample ("every frame is ours"), so its ship
+  verdict needs re-arguing or dropping. A specimen that does not model its own surface launders a guess
+  into a ruling.
 - **`marketing-css-policy.test.ts` rule 3 is a bad system, not a good rule** (the round-0 rules audit,
   2026-09-01). Its `selectorLines()` treats ANY line ending in `,` as a selector, so multi-line CSS
   values are misparsed and a legitimate ` * ` inside `calc()` reads as a universal selector. It has
@@ -132,25 +148,31 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   hook's `.catch()` silently returns the fallback five. No console error, no failing test, no visual
   tell beyond "the colours look generic". Every lab specimen samples `marketingImage(...)`, which is
   same-origin, which is why the lab never caught it. Four ship-listed placements depend on sampling
-  (the doorbell arrival, the album straddle, the publish beat, the paper probe), so all four are blocked
-  on one of: (a) `crossOrigin="anonymous"` plus an R2 CORS rule for the site origin, accepting a
-  CORS-partitioned refetch of a full-size photo to read 32x32 of it; or (b) better, extract the palette
-  SERVER-SIDE once at upload/derivative time and store it on the media row (no CORS, no double fetch,
-  works for video posters, computed once instead of per view). Marketing placements are unaffected:
-  those images are same-origin and sample correctly today.
-  **Still owed from the promotion** (deliberately deferred, not forgotten): `GlowFilter` is
-  consumer-mounted in `FooterGlow` because the footer is still the only consumer, so round 0 added no
-  nodes outside it. The round that adds a SECOND consumer hoists it to the root layout, and owes the
-  live check first: if a browser renders NOTHING for an absent `url(#...)` rather than rendering
-  unfiltered, the singleton needs a runtime guard instead of a comment. `sampled-palette.ts` and
-  `glow-contrast.ts` stay in `components/dev/` until Law 3 ships (below). **The footer's cadence is
-  still open**: it passes `--glw-dur: 11s` against the engine's ruled 8s, so the A/B on the real
-  footer with nothing else moving is a ruling Will has not taken yet.
+  (the doorbell arrival, the album straddle, the publish beat, the paper probe). ★ **CORRECTED AT ROUND
+  1: the blocker is much smaller than this said, and the album straddle was never blocked at all** (its
+  card is marketing media, and it shipped). The R2 CORS rule listed as prerequisite work is ALREADY LIVE
+  and already proven in production — the reel's canvas engine CORS-fetches presigned R2 media, decodes
+  it and reads the canvas back on every export (`decodeImage` in `src/lib/reel/engine/assets.ts`), which
+  is strictly more than this hook needs. So the unblock is a **loader swap** to that same `decodeImage`
+  pointed at `previewUrl` (the ~16KB WebP already presigned for every row, which also covers video
+  posters); reuse it rather than hand-setting `crossOrigin`, because its `cache: "no-store"` is
+  load-bearing against R2's ACAO-less cache poisoning. The server-side-palette option is now the
+  EXPENSIVE one, not the better one: no server-side image decode exists in this stack, `media` has no
+  palette column, and the insert path is a locked-down SECURITY DEFINER RPC. Marketing placements are
+  unaffected and sample correctly today.
+  ✅ **The promotion's owed items closed at ROUND 1**: `GlowFilter` is now a server component mounted
+  once in the root layout, and the live check it owed is answered — a dangling `url(#glw-warp)` does
+  NOT blank the element, it drops the whole filter chain (`blur()` included), so a missing host is a
+  visible quality failure rather than a crash. Dev-only console guard shipped. `sampled-palette.ts`
+  moved to `lib/shared/`; `glow-contrast.ts` stays in `components/dev/` (it is the lab's measuring
+  instrument, not a shipped dependency). **The cadence ruling is still open but its SHAPE changed**:
+  all three lamps ship at 11s, so the honest A/B is no longer "the footer alone with nothing else
+  moving" but the whole home page at 11s vs 8s.
   **Engine defects still open** (the vacuous animation guard was fixed at round 0): `effectiveAlpha`
   models one layer while its own docstring defines the worst case as base and band together, so the
-  reported contrast ceiling is optimistic; reduced motion parks the band mid-sweep at full strength, which
-  is the model's own worst case (parking it at `mask-position: 150% 0` inside the `no-preference` block is
-  the one-line answer, and leaves Will's ruled 0.62 alone); a bloom's band sits lit while unarmed and
+  reported contrast ceiling is optimistic; ~~reduced motion parks the band mid-sweep at full strength~~
+  **FIXED at round 1** (the declared rest is now the animation's own `150% 0` from-keyframe, pinned by
+  test; nothing changes for no-preference visitors); a bloom's band sits lit while unarmed and
   snaps to 0 as it arms; `useInViewOnce(0.35)` is an element-area threshold, so a lamp taller than about
   2.86 viewports can never arm; and `BorderBeam` reads the OS colour scheme directly rather than
   `next-themes`, so any wrapper must pass `resolvedTheme` (never `theme`, which can be `"system"`).

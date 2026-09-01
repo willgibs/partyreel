@@ -94,18 +94,25 @@ than a surface. The agent-merge sequence CLOSES here, and all five branches, rem
 local branches are cleaned up (~5.6 GB of stale worktrees reclaimed). `launch-prep` is now free for
 the integration rounds.
 
-What the merge is holding for the rounds that follow, all recorded in
-[ROADMAP](ROADMAP.md): (1) **the first integration round is the FOOTER**, because the engine IS
-`FooterGlow` generalized (byte-identical turbulence filter, same 210px / 0.62 / 16px), so promotion
-either retires it or the site ships two engines painting one light; its success criterion is that
-nothing changes visually, and it opens by settling the engine's 8s register against the footer's
-shipped 11s. (2) **Law 3 cannot fire on real user media** (no `crossOrigin`, and R2 is a different
-origin, so the canvas taints and the failure is silent), which blocks four ship-listed placements and
-is why the sequence starts on marketing. (3) **Two identity-level amendments are riding unruled**: the
-beam adopted our five HUES at raised chroma rather than our token values, with a test pinning that the
-tokens may not be used, and the lit surface amends "Dark: NO shadows anywhere". (4) **The ground picks
-the sibling** (ink takes the beam, paper takes spill in the paper register), which came out of two beam
-surfaces being specified on grounds they do not have.
+**The wiring sequence Will ruled (2026-09-01): every Glow integration round across marketing and app
+first, THEN the lab review** (keep what earns a place in a streamlined design-system library, wipe the
+stale rest). Position: **R0 the engine ✅ · R1 the home page ✅** (both on `launch-prep`, unmerged) →
+R2 the guest surfaces → R3 the Get Pro beam + the lit surface → R4 the publish beat → the lab review.
+
+**Round 1 (2026-09-01)** put the first new light on the site: the hero underlight and the album
+straddle, both **sampling their own photographs**, so law 3 is real in production rather than a claim.
+`GlowFilter` became a root-layout singleton, and the engine's reduced-motion state was fixed (the band
+had been resting at the MIDPOINT of its sweep at full strength, permanently, for anyone who asked for
+less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
+inverted from its own production surface and overstates the overhang by 2.5x, and moment 09's lamp does
+not exist at all. Full narrative: [CHANGELOG](CHANGELOG.md).
+
+Still open from the merge, all recorded in [ROADMAP](ROADMAP.md): **Law 3 on real GUEST media** — the
+canvas taints on presigned R2 URLs, but the fix is far smaller than logged (the R2 CORS rule is already
+live and proven by the shipping reel encoder, so it is a loader swap); **the lit surface** amends "Dark:
+NO shadows anywhere"; and **the ground picks the sibling** (ink takes the beam, paper takes spill in the
+paper register), which came out of two beam surfaces being specified on grounds they do not have and now
+blocks R2 the same way.
 
 ★ Two transferable lessons from this round. **A guard whose name promises more than its assertion is
 worse than no guard**: two here could not fail, and one of them was the only thing watching ~3,000
@@ -266,7 +273,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1253 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1319 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -299,23 +306,30 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The light system's remaining rulings.** Round 0 shipped the engine + the lamp set to
-   `launch-prep` (2026-09-01) and closed two of the four:
+1. **The light system's remaining rulings.** Rounds 0 and 1 are both on `launch-prep` (2026-09-01) and
+   three of the five are closed:
    ~~(a) the beam's chroma register~~ **CLOSED by evidence** — it is not a second palette. The values
    are our own five hues through `oklchToSrgb` at effect-grade chroma, hue held exactly: a DERIVED
    register of the lamp set, now named in [design-system.md](systems/design-system.md) and pinned by
    test. It cannot be tokenised (the vendored file regex-parses `rgb()` strings).
-   ~~(d) the footer's cadence~~ **DEFERRED CLEANLY** — the footer passes `--glw-dur: 11s`, so round 0
-   is a provably invisible swap. **Still wants a ruling:** the real footer at 8s vs 11s, side by side,
-   nothing else moving. Ask for it whenever.
+   ~~(e) the root 404's lit seam~~ **RULED: keep it lit** (Will, 2026-09-01), with a reason that is
+   doctrine rather than a one-off — *a 404 that feels alive keeps a visitor exploring, while a flat one
+   makes giving up feel fine.*
+   (d) **the cadence, and its SHAPE changed at round 1.** All three lamps ship at `--glw-dur: 11s`
+   against the engine's ruled 8s, so the question is no longer "the footer alone with nothing else
+   moving" but the **system's register**: the whole home page at 11s against the whole page at 8s.
+   Ask for it whenever.
    (b) **the lit surface**, which amends "Dark: NO shadows anywhere" and is already on the Get Pro
-   specimen; recommend its own round, the way the corner became the rounding round.
+   specimen; it and the Get Pro beam are entangled (three of four beam specimens wear `[data-lit]`), so
+   they want one round.
    (c) **the publish beat's violet**, unruled, where a ratified state colour meets law 3's ban on them.
-   (e) NEW — **the root 404's footer now lights.** The engine went global, so the seam that used to
-   render flat there (no `marketing.css`) is lit like every other page. Deliberate and captured
-   before/after; recommend keeping it, one `:not()` reverts it.
-2. **When to ship `launch-prep` to `main`.** Round 0 IS a production change (the light system + the
-   404), unlike the milestone-13 merge, so this one wants a milestone when Will is ready to look.
+   (f) NEW, and it blocks the next round — **the guest surfaces follow the VISITOR's theme.**
+   `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
+   skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
+   dropped the help palette. Needs a ruling before R2 can be built.
+2. **When to ship `launch-prep` to `main`.** Rounds 0 AND 1 are now unmerged, which is the policy's
+   ~2-round ceiling. Both are real production changes (the light system, the lit 404, and the home
+   page's two new lamps), so this wants a milestone when Will is ready to look.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
