@@ -6,7 +6,7 @@ layout, the component vocabulary); this file is about the CONTENT. It never
 renders (the loader reads only `.mdx`), but the content-policy tests scan it
 too, so it obeys the rules it teaches.
 
-The catalog was written fresh in the help-catalog round (2026-09-01): 54
+The catalog was written fresh in the help-catalog round (2026-09-01): 59
 articles across ten categories, every one checked against the shipped app.
 When the product and an article disagree, the product is right: fix the
 article and set `updated`.
@@ -120,7 +120,7 @@ Available inside every article (`src/components/marketing/mdx-components.tsx`):
 - `<UiLabel>` for quoted app strings; `<Kbd>` for literal keys.
 - Spec inlines, each reading one constant: `<UploadSize />`,
   `<FreeStorage />`, `<EventPassStorage />`, `<EventPassPrice />`,
-  `<ProPrice />`, `<ProPlans />`, `<EventPassRenewalPrice />`,
+  `<ProPrice />`, `<FreePrice />`, `<ProPlans />`, `<EventPassRenewalPrice />`,
   `<ReelSeconds tier="free" />`, `<RecoveryDays />`,
   `<MaxEvents tier="free" />`, `<UploadCapFloor />`, `<InactivityMonths />`,
   `<EventPassTerm />`, `<PasswordMinLength />`, `<UnlockHours />`,

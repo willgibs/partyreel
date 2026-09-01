@@ -1,0 +1,56 @@
+---
+title: "\"This event is full\" and other messages guests might see"
+description: "Every message a guest can meet on an event page, what it means, and the fix: the full album, uploads closed, photos only, the password gate and its retry pause, a dead link, and a network limit."
+category: troubleshooting
+order: 4
+updated: "2026-09-01"
+keywords:
+  - error message
+  - event is full
+  - uploads closed
+  - photos only
+  - password didn't work
+  - too many tries
+  - event link didn't work
+  - private event
+---
+
+Partyreel's messages are written to be understood on the spot, but it helps to know what's behind each one and who can fix it.
+
+## About uploading
+
+| Message | Meaning | Fix |
+| --- | --- | --- |
+| <UiLabel>This album is full right now. The host needs to free up space.</UiLabel> | The host's plan is out of storage. | The host deletes something or upgrades; uploads resume at once. |
+| <UiLabel>This album has hit its upload limit for the month.</UiLabel> | The plan's monthly upload allowance is used up, which takes extraordinary volume. | Wait for the month to turn, or the host upgrades. |
+| <UiLabel>This event accepts photos only.</UiLabel> | The event is on a plan without video. | Send a photo instead. |
+| <UiLabel>This event isn't accepting uploads right now.</UiLabel> | The host turned uploads off. | Browse; ask the host if it's a mistake. |
+| <UiLabel>Files for this event are capped at</UiLabel> a size the message names | The host set a per-file limit. | A shorter clip or a smaller export. |
+| <UiLabel>Your upload session has expired. Refresh and rejoin.</UiLabel> | Your guest session aged out. | Reload the page and try again. |
+
+Connection and file-type messages are in [an upload won't finish](/help/an-upload-wont-finish).
+
+## The password gate
+
+- <UiLabel>That password didn't work. Give it another try.</UiLabel> Check the invitation; passwords are case-sensitive.
+- After five wrong tries in a row, a short pause with a countdown. Wait it out; nothing is locked for good.
+- A correct password keeps the album open on that device for about <UnlockHours />. After that it asks again.
+- <UiLabel>This event is locked. Enter the event password to upload.</UiLabel> You reached an upload without unlocking first, usually from an old tab. Reload and enter the password.
+
+Don't have the password? It's the host's; ask them. Partyreel can't share it.
+
+## The email gate
+
+<UiLabel>See all the photos</UiLabel> with an email field means the host asks guests to confirm an email before seeing the full album. See [why an event asks for your email](/help/why-an-event-asks-for-your-email). If the code doesn't come, [the email code didn't arrive](/help/the-email-code-didnt-arrive).
+
+## Private, gone, or wrong
+
+- <UiLabel>This event is private</UiLabel>: the host has closed the album to everyone but themselves, often temporarily. Check back, or ask them.
+- <UiLabel>This event link didn't work</UiLabel>: the link is mistyped, the event was deleted, or a custom link was changed. Ask the host for a fresh one. See [the QR won't scan, or the link won't open](/help/the-qr-wont-scan-or-the-link-wont-open).
+- <UiLabel>Too many joins from this network right now. Please try again in a bit.</UiLabel>: a rare limit on unusual traffic from one network. It clears on its own.
+
+<Callout type="info" title="What the messages never say">
+
+A guest is never told what plan the host is on. "Photos only" and "full" describe the event, not the account behind it.
+
+</Callout>

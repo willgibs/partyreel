@@ -126,11 +126,11 @@ export function buildLlmsTxt(site: LlmsSite): string {
   const SITE_NAME = site.name;
   const SUPPORT_EMAIL = site.supportEmail;
   const url = (path: string) => `${site.url}${path}`;
+  // Title + link only (the help-catalog round, 2026-09-01): at 59 articles the
+  // annotated form blew the file's 16k budget. /llms-full.txt keeps the
+  // descriptions; this file is the map, that one is the territory.
   const helpLinks = getAllArticles()
-    .map(
-      (a) =>
-        `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)}): ${a.frontmatter.description}`,
-    )
+    .map((a) => `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)})`)
     .join("\n");
   const featureLinks = FEATURE_PAGES.map(
     (f) =>

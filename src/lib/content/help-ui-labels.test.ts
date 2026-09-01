@@ -26,6 +26,10 @@ function walk(dir: string): string[] {
 
 function normalize(text: string): string {
   return text
+    // JSX's explicit space token and the typographic apostrophe both read as
+    // their plain forms on screen, so both sides compare in plain form.
+    .replace(/\{" "\}/g, " ")
+    .replace(/’/g, "'")
     .replace(/&rsquo;|&#39;|&apos;/g, "'")
     .replace(/&ldquo;|&rdquo;|&quot;/g, '"')
     .replace(/&amp;/g, "&")
@@ -39,9 +43,13 @@ describe("every <UiLabel> quotes a shipped app string", () => {
   // Pinned for non-emptiness (the policy-test lesson): an empty walk would
   // make every label "missing" or, worse, every label pass.
   expect(files.length).toBeGreaterThan(300);
-  const corpus = normalize(
-    files.map((file) => readFileSync(file, "utf8")).join("\n"),
-  );
+  const raw = files.map((file) => readFileSync(file, "utf8")).join("\n");
+  // Two views of the same source. The RAW view keeps attributes, because many
+  // labels live in aria-label/title props. The TEXT view drops tags, because a
+  // label that spans a wrapper element ("Reason <span>(optional)</span>") is
+  // one string on screen. A label may match either.
+  const corpus = normalize(raw);
+  const corpusText = normalize(raw.replace(/<[^>]+>/g, " "));
 
   const articles = getAllArticles();
   expect(articles.length).toBeGreaterThan(0);
@@ -57,7 +65,7 @@ describe("every <UiLabel> quotes a shipped app string", () => {
           0,
         );
         expect(
-          corpus.includes(label),
+          corpus.includes(label) || corpusText.includes(label),
           `"${label}" (in ${article.slug}) is not a shipped app string`,
         ).toBe(true);
       }

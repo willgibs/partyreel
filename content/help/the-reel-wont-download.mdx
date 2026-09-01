@@ -1,0 +1,46 @@
+---
+title: The reel won't download
+description: "The video is made on your device: it needs a modern browser and an open tab. No Download button means the browser cannot encode. A guest may need the host to download once first."
+category: troubleshooting
+order: 7
+updated: "2026-09-01"
+audience: both
+keywords:
+  - reel download
+  - download failed
+  - video export
+  - modern browser
+  - encoding
+  - reel not available
+  - ask the host
+---
+
+The reel's video isn't fetched from a server; your browser builds it, frame by frame, when you ask. That makes it fast and free, and it means the few things that can stop it are all on the device in your hand.
+
+## There's no Download button
+
+The Studio shows this instead: <UiLabel>Video export needs a modern browser. Your reel still plays here, and any modern phone or desktop browser can download it.</UiLabel> The browser can't encode video. Try the current version of Safari, Chrome, Edge, or Firefox on a phone or computer from the last few years; an in-app browser (a link opened inside a messaging or social app) is the usual culprit, so open the page in the real browser instead. The reel plays regardless.
+
+## It started, then stopped
+
+Closing the progress dialog, switching apps for a long time, or the tab going to the background can cancel the encode. Keep the tab open and in front until the file saves; it usually takes a few seconds, longer on an older phone or for a 60-second reel. Then tap <UiLabel>Download video</UiLabel> again.
+
+## It downloaded but nothing was saved online
+
+The toast says the video downloaded but the online copy didn't store. Your file is fine; the next download just re-creates it. Nothing to fix.
+
+## For guests: "not available on this device yet"
+
+A guest's <UiLabel>Download</UiLabel> uses the host's stored copy when there is one, or builds the video on the guest's device. When neither is possible, the message reads <UiLabel>This video isn't available on this device yet. Ask the host to download the reel once, then yours will be ready here.</UiLabel> The host tapping <UiLabel>Download video</UiLabel> once stores a copy that any guest can then get, on any device.
+
+Two other guest messages: a network download limit (<UiLabel>Too many downloads from this network right now.</UiLabel>, with a wait time, which clears on its own) and a device that failed mid-build (<UiLabel>Couldn't make the video on this device.</UiLabel>, so try another browser or ask the host).
+
+## The download is the old cut
+
+The stored copy refreshes whenever the host downloads after a change. If a guest's file is missing the newest edits, the host downloads once more.
+
+<Callout type="info" title="Where the file goes">
+
+Phones save it to Files or Downloads rather than the camera roll on some systems. Search for the event's name; the file ends in `-reel.mp4`.
+
+</Callout>

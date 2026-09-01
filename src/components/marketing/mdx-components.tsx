@@ -60,6 +60,7 @@ export const FreeStorage = () => (
 export const EventPassStorage = () => (
   <>{formatBytes(planById("event_pass").storageBytes)}</>
 );
+export const FreePrice = () => <>{planById("free").priceLabel}</>;
 export const EventPassPrice = () => <>{planById("event_pass").priceLabel}</>;
 export const ProPrice = () => <>{planById("pro_100").priceLabel}</>;
 
@@ -418,6 +419,7 @@ export const mdxComponents = {
   UploadSize,
   FreeStorage,
   EventPassStorage,
+  FreePrice,
   EventPassPrice,
   ProPrice,
   ProPlans,

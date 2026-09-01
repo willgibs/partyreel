@@ -157,12 +157,16 @@ export function getCategory(slug: HelpCategorySlug): HelpCategory {
   return HELP_CATEGORIES.find((c) => c.slug === slug)!;
 }
 
-// Frontmatter contract. `description` doubles as the meta description + card copy, so
-// it's capped at a search-snippet-friendly length. `.parse()` (not safeParse) is
-// intentional — a bad article should break the build loudly.
+// Frontmatter contract. `description` is the article's "In short" lead FIRST and
+// the meta description second: two crisp sentences, which is about 200 chars
+// (raised from 160 in the help-catalog round, 2026-09-01, after the answer-first
+// leads kept landing at 180-200; search snippets simply truncate past ~160, and
+// the lead losing its second sentence was the worse trade). `.parse()` (not
+// safeParse) is intentional — a bad article should break the build loudly.
+export const HELP_DESCRIPTION_MAX = 200;
 export const helpFrontmatterSchema = z.object({
   title: z.string().min(1),
-  description: z.string().min(1).max(160),
+  description: z.string().min(1).max(HELP_DESCRIPTION_MAX),
   category: z.enum(CATEGORY_SLUGS),
   /** Sort weight WITHIN a category (lower first). */
   order: z.number().int().default(0),
@@ -340,11 +344,15 @@ export function getCategoryChips(): { slug: HelpCategorySlug; title: string }[] 
 // Vitest existence test can catch a renamed slug — the old page-local POPULAR_SLUGS
 // array silently dropped a card on rename. Order is render order.
 
-/** The "Start here" trio on /help. */
+/**
+ * The "Start here" trio on /help (retuned for the 2026-09-01 catalog): the
+ * loop, the first event, and the day-of checklist, which is the one guide a
+ * first-time host actually works through.
+ */
 export const START_HERE_SLUGS = [
   "how-partyreel-works",
   "create-your-first-event",
-  "the-highlight-reel",
+  "day-of-checklist-for-hosts",
 ] as const;
 
 export function getStartHereArticles(): HelpArticle[] {
@@ -359,8 +367,11 @@ export function getStartHereArticles(): HelpArticle[] {
  * with, one deliberately guest-voiced (the guest fast-lane). Labels PROVISIONAL.
  */
 export const HELP_QUICK_LINKS = [
-  { label: "What's on the free plan?", href: "/help/storage-plans-and-limits" },
-  { label: "How do guests join?", href: "/help/how-guests-join-and-upload" },
+  { label: "What's on the free plan?", href: "/help/what-the-free-plan-includes" },
+  {
+    label: "Why is it asking for my email?",
+    href: "/help/why-an-event-asks-for-your-email",
+  },
   {
     label: "Download everything",
     href: "/help/download-photos-videos-and-albums",
@@ -378,27 +389,27 @@ export function getHelpFacts(): { label: string; value: string; href: string }[]
     {
       label: "Max upload size",
       value: formatBytes(MAX_UPLOAD_BYTES),
-      href: "/help/how-guests-join-and-upload",
+      href: "/help/what-you-can-upload",
     },
     {
       label: "Free storage",
       value: formatBytes(planById("free").storageBytes),
-      href: "/help/storage-plans-and-limits",
+      href: "/help/what-the-free-plan-includes",
     },
     {
       label: "Recovery window",
       value: `${RECENTLY_DELETED_WINDOW_DAYS} days`,
-      href: "/help/moderate-and-curate-your-album",
+      href: "/help/hide-remove-and-restore",
     },
     {
       label: "Reel, free / paid",
       value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
-      href: "/help/the-highlight-reel",
+      href: "/help/download-the-reel-as-a-video",
     },
     {
       label: "Event Pass storage",
       value: formatBytes(planById("event_pass").storageBytes),
-      href: "/help/pro-vs-event-pass",
+      href: "/help/how-long-an-event-pass-lasts",
     },
   ];
 }

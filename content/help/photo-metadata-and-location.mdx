@@ -1,0 +1,45 @@
+---
+title: Photo metadata and location data
+description: "Phone photos carry hidden GPS and device details. Partyreel strips them in the browser before upload for JPEG, PNG, WebP, MP4, and MOV, without touching the image. HEIC, AVIF, and WebM upload as is."
+category: privacy-and-safety
+order: 3
+updated: "2026-09-01"
+audience: both
+keywords:
+  - metadata
+  - EXIF
+  - GPS
+  - location data
+  - HEIC
+  - strip
+  - orientation
+  - privacy
+---
+
+Every phone photo carries a hidden record: where it was taken, on what device, sometimes with what settings. Because Partyreel serves originals byte for byte, that record would otherwise travel with every download. So it's removed first, on the phone, before anything is sent.
+
+## What's stripped
+
+For JPEG, PNG, and WebP photos and MP4 and MOV videos, the upload step removes the location and device metadata: GPS coordinates, camera and phone model, the embedded notes and tags most apps write. It's a byte-level cut, not a re-save, so the picture itself is untouched, at full quality, and the color profile is kept. Orientation is preserved so nothing ends up sideways.
+
+Because it happens in the browser before upload, the file Partyreel stores never had the data, which also means the backup copies are clean.
+
+## What isn't
+
+Three formats upload exactly as they are: **HEIC and HEIF** (the iPhone's default photo format), **AVIF**, and **WebM** video. Their structure makes blanking the metadata risky, and a corrupted photo is worse than the metadata. In practice, the iPhone camera's HEIC files often carry location; if that matters for a particular photo, the iPhone's share sheet has an option to remove location when you export, and a screenshot or a JPEG export is metadata-free.
+
+The safe way to describe it is the one Partyreel uses: GPS location metadata is stripped from uploads. Not "every file", and not a guarantee about formats it can't safely edit.
+
+## Downloads
+
+What you download is what was stored, so a downloaded JPEG carries no location, and a downloaded HEIC carries whatever it arrived with.
+
+## Nothing is analyzed
+
+Partyreel doesn't read the metadata before removing it, doesn't run face recognition, and doesn't scan photo content. What it does keep, per upload, is in [your data and deleting your account](/help/your-data-and-deleting-your-account).
+
+<Callout type="info" title="For hosts">
+
+This applies to your own uploads too, including a photographer's batch you add yourself. Anything you'd want kept, like camera settings for a portfolio, is gone from the stored copy; keep your own originals.
+
+</Callout>
