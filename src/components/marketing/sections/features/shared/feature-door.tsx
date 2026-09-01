@@ -269,9 +269,11 @@ export function FeatureDoor({
 
         {!art && <QrPlateArt />}
 
-        {/* The signature chip, where the app draws its tile chips. */}
+        {/* The signature chip, where the app draws its tile chips. Decorative:
+            hidden from the link's accessible name, which stays the door's
+            title + line. */}
         {(signature || reel) && (
-          <span className="absolute top-3 left-3">
+          <span aria-hidden className="absolute top-3 left-3">
             {reel ? (
               <Chip>
                 <Play className="size-3 fill-white" />

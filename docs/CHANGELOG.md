@@ -38,6 +38,12 @@ page does, on shared pieces instead of six hand-rolled copies.**
   numbers → paper); the print stock straddles the cut on /qr and the guest-list card on /guests; the
   spec sheet, downloads, queue and access switch open their paper chapters a tier up; /qr's entry
   flow opens its close, so its doors drop to the body register.
+- **One FAQ band and one GoDeeper row for all six pages** (`shared/`): curation, sharing and privacy
+  drop their near-copies and their second FAQPage JSON-LD emission; the ROADMAP's unification
+  one-liner closes. `launch-prep`'s sideways-scroll clip (the skin wrappers) merged in mid-round,
+  which is the clip the full-bleed lamps rely on. Verified on the branch alias: the guest card
+  overhangs the cut by 79px, the QR plate rests at base 0.34 with its field inside the section, the
+  album lamp's first three hues are orange, gold and blue (sampled), no page overflows.
 
 ★ A radial mask's reach is a fraction of the full field: the lab's 78% on the plate rendered as a
 rounded square until the field grew and reach dropped to 60%. ★ Both browser tools run as background
