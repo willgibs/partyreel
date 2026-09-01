@@ -1,0 +1,192 @@
+/*
+ * Vendored from border-beam v1.4.0 (MIT) — https://github.com/Jakubantalik/Libraries
+ *
+ * MIT License. Copyright (c) 2026 Jakub Antalik. Full text in ./LICENSE.
+ * The notice is retained here because MIT requires it in copies of the source;
+ * user-facing credit belongs on the attributions page, not in the UI.
+ *
+ * ── WHY THIS IS VENDORED RATHER THAN REIMPLEMENTED ──
+ * Three hand-ports of this effect were attempted and all three missed, in the
+ * same direction each time: inferring the effect from computed styles and
+ * screenshots, substituting our low-chroma five for its saturated palette, then
+ * compensating with saturate() until it read as neon. The motion alone is
+ * seventeen desynced oscillators plus a hue revolution (eighteen drivers in
+ * all). This is a UI package with no runtime dependencies; copying it exactly
+ * is both cheaper and more honest than approximating it.
+ *
+ * ★ DO NOT RESTYLE THESE FILES. Every deviation from upstream is marked
+ * `PARTYREEL:`. There are TWO deviations in intent, across SEVEN in-body marked
+ * sites plus this header in each file (11 marks in all, pinned exactly by
+ * border-beam-vendor.test.ts):
+ *   1. a "use client" directive, which Next 16 needs;
+ *   2. one extra colorPalettes entry, so our own hues can be A/B'd against
+ *      theirs from a single prop. That entry is what forces the other four
+ *      marked sites: adding a fifth member to the colour union means the four
+ *      `*Base`-rename-and-respread edits in styles.ts (340/486/550/649) are
+ *      LOAD-BEARING under strict TS, since indexing a 4-key map with a 5-member
+ *      union is TS7053. Do not "simplify" them back; the build fails.
+ * A future upstream bump re-applies exactly those. Nothing else here is ours.
+ */
+import type { CSSProperties, ReactNode, HTMLAttributes } from 'react';
+
+/**
+ * Size/type preset for the border beam effect
+ *
+ * Rotate family (traveling/spinning beam):
+ * - 'sm': Small button-sized with compact glow
+ * - 'md': Medium card-sized with full border glow
+ * - 'line': Bottom-only traveling glow with breathe and spike animations
+ *
+ * Pulse family (breathing glow, no rotation):
+ * - 'pulse-outside': Glow blooms OUTWARD beyond the element (uncropped halo)
+ * - 'pulse-inner': Glow breathes contained within the element's border
+ */
+export type BorderBeamSize = 'sm' | 'md' | 'line' | 'pulse-outside' | 'pulse-inner';
+
+/**
+ * Theme mode for adapting beam colors to background
+ */
+export type BorderBeamTheme = 'dark' | 'light' | 'auto';
+
+/**
+ * Color variant for the beam effect
+ * - 'colorful': Full rainbow spectrum (default)
+ * - 'mono': Monochromatic grayscale
+ * - 'ocean': Blue and purple tones
+ * - 'sunset': Warm orange, yellow, and red tones
+ */
+// PARTYREEL: 'partyreel' added to the union. See the palette note in styles.ts.
+export type BorderBeamColorVariant = 'colorful' | 'mono' | 'ocean' | 'sunset' | 'partyreel';
+
+/**
+ * Configuration for a size preset
+ */
+export interface SizeConfig {
+  borderRadius: number;
+  borderWidth: number;
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Theme color configuration
+ */
+export interface ThemeColors {
+  strokeOpacity: number;
+  innerOpacity: number;
+  bloomOpacity: number;
+  innerShadow: string;
+  saturation: number;
+  /** Optional per-type default brightness (used by pulse types). Falls back to 1.3. */
+  brightness?: number;
+  /**
+   * Optional opacity of the 1px hairline border that frames the element.
+   * Used by 'pulse-outside' so the colored stroke rides a subtle outline,
+   * matching the v5 prototype. Falls back to 0 (no hairline).
+   */
+  hairlineOpacity?: number;
+}
+
+/**
+ * Props for the BorderBeam component
+ */
+export interface BorderBeamProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+  /** Content to wrap with the border beam effect */
+  children: ReactNode;
+
+  /**
+   * Size/type preset
+   * Rotate family: 'sm' (compact), 'md' (full border, default), 'line' (bottom traveling).
+   * Pulse family: 'pulse-outside' (outward bloom), 'pulse-inner' (contained breathe).
+   * @default 'md'
+   */
+  size?: BorderBeamSize;
+
+  /**
+   * Color variant for the beam effect
+   * - 'colorful': Full rainbow spectrum (default)
+   * - 'mono': Monochromatic grayscale
+   * - 'ocean': Blue and purple tones
+   * - 'sunset': Warm orange, yellow, and red tones
+   * @default 'colorful'
+   */
+  colorVariant?: BorderBeamColorVariant;
+
+  /**
+   * Theme mode - adapts beam/glow colors for dark or light backgrounds
+   * 'auto' detects system preference via prefers-color-scheme
+   * @default 'dark'
+   */
+  theme?: BorderBeamTheme;
+
+  /**
+   * Disable the hue-shift animation for static colors (e.g., monochrome)
+   * @default false
+   */
+  staticColors?: boolean;
+
+  /**
+   * Rotation/travel duration in seconds
+   * @default 1.96 for border, 2.4 for line
+   */
+  duration?: number;
+
+  /**
+   * Whether the animation is active
+   * @default true
+   */
+  active?: boolean;
+
+  /**
+   * Custom border radius in pixels. When omitted, the component
+   * auto-detects the border-radius of the first child element.
+   * Falls back to the size preset default if detection fails.
+   */
+  borderRadius?: number;
+
+  /**
+   * Brightness multiplier for the glow effect.
+   * Falls back to the type's preset default (1.3 for most types).
+   * @default 1.3
+   */
+  brightness?: number;
+
+  /**
+   * Saturation multiplier for the glow effect
+   * @default 1.2 for dark, varies for light
+   */
+  saturation?: number;
+
+  /**
+   * Hue rotation range in degrees for the hue-shift animation
+   * @default 30
+   */
+  hueRange?: number;
+
+  /**
+   * Overall strength/opacity of the effect (0-1).
+   * Only affects the beam, glow, and bloom layers -- not the children.
+   * @default 1
+   */
+  strength?: number;
+
+  /**
+   * Additional class name for the container
+   */
+  className?: string;
+
+  /**
+   * Additional inline styles for the container
+   */
+  style?: CSSProperties;
+
+  /**
+   * Callback when fade-in animation completes
+   */
+  onActivate?: () => void;
+
+  /**
+   * Callback when fade-out animation completes
+   */
+  onDeactivate?: () => void;
+}

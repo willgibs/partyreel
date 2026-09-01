@@ -20,6 +20,156 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
+  that amount of rounding carried into our design system. Not just these components only."). He picked
+  the 16px column over our sharp surfaces. Deliberately NOT applied in the glow round, because it is
+  not a one-line token change and it restyles the whole product. **What the next agent should not have
+  to rediscover:** (1) the `rounded-sm..4xl` scale is DERIVED from `--radius` by multiplication (md
+  0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so `--radius: 1rem` yields lg 16px but 2xl
+  28.8px and 4xl 41.6px — the card he liked is `rounded-2xl`, so the literal reading overshoots what he
+  actually approved; (2) blast radius is **288 uses across 140 files** in shipping code (`rounded-lg` 94,
+  `rounded-md` 80, `rounded-xl` 60, `rounded-2xl` 44), plus a further 157 uses in 40 `(dev)` lab
+  files that never ship (the glow round wrote "445 across 140", which paired the with-lab use count
+  with the without-lab file count, and the lab half is self-inflating: this round's own specimens took
+  lab `rounded-2xl` from 13 to 47); (3) the design system's stated rationale is that the
+  sharp-surface / round-action CONTRAST is what signals "pressable", and surfaces at 16px collapse it,
+  so the round has to decide what replaces that affordance (rounder actions? a different cue?);
+  (4) `--radius-tile` (3px) exists because tight-gap grids open corner holes, and `--radius-float`
+  (8px) because sharp reads broken on floating elements — both are separate tokens and may not want to
+  move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
+  commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
+  whatever lands here for free.
+- **The beam's chroma register wants an explicit ruling** (surfaced at the glow merge, 2026-08-31, and
+  the most consequential thing in that round nobody wrote down). The record everywhere says "the palette
+  is ours, globally". What the code adopted is our five HUES at effect-grade chroma, saturated sRGB
+  primaries like `rgb(253, 0, 37)` and `rgb(154, 14, 239)`, NOT our ratified token values, and
+  `border-beam-vendor.test.ts` pins a channel spread above 150 explicitly so that "a future let-us-just-
+  use-the-token-values edit fails here". Four of our five ratified values score 144 / 112 / 148 / 107 and
+  would fail that pin. So a zero-chroma identity quietly gained a second, saturated register on a
+  permanently-animated card. The engineering reason is real (low-chroma colours wash out in gradients
+  built at the gamut edge, which is what sank three hand-ports), but it is not what was ruled.
+  ★ **Try this before ratifying anything:** the Get Pro card's identity is literally "Stacked photos"
+  (Will, 2026-08-27), it carries real event photographs via `marketingImage()`, and marketing images are
+  same-origin, so `useSampledPalette` works there TODAY. Letting the beam sample the photographs stacked
+  on the card would dissolve the question entirely: no second register to ratify, BEAM under the same law
+  3 as SPILL instead of two colour rules, and the premium card lit by the colour of the product's own
+  media, on the one surface that sells it. The honest risk is that the beam drives a nine-lobe gradient
+  tuned for specific hue relationships and the board already notes our five are "a less varied field no
+  retune can fix", so arbitrary sampled hues may read muddier than either fixed palette. Look at it on
+  the board. If it does not hold, ratify the raised register as a NAMED, effect-only tier scoped to the
+  beam and documented in `design-system.md`, rather than leaving it recorded as "our palette".
+- **The lit surface (`[data-lit]`) wants its own round**, the way the corner became the rounding round.
+  Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
+  it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
+  [`design-system.md`](systems/design-system.md), and it is already applied to three of four moment-12
+  specimens including the flagship Get Pro card, while the board and `design.css` both still say
+  "lab-local until you rule". If adopted its production surface is every dark card in the app, which is
+  why it should not ride inside a round about light. ★ Do NOT un-apply `data-lit` from the specimens to
+  re-judge them on today's card: those are bare divs with no ring, so removing the 9% hairline puts them
+  further from the shipped `Card`, not closer.
+- **The spill wiring round** (the glow doctrine's second half; the lab boards are `glow-doctrine` +
+  `glow-moments`, engine in `design.css` behind the `glw-` prefix). The doctrine is RULED; what remains
+  blocking is the ADR for promoting the engine plus its five-hue palette to `globals.css`/`:root`.
+  ★ That one-way door is NOT what the glow round wrote. It does not "delete the
+  `marketing-css-policy.test.ts` fence": that fence reads exactly one file (`marketing.css`) and never
+  looks at `globals.css`, so promotion would not trip it at all. The real risk is the opposite and
+  worse, which is why the ADR still stands: chromatic literals would land in a file with NO colour
+  fence whatsoever. So **extending the fence to cover `globals.css` is a PRECONDITION of promotion**,
+  not a casualty of it. First task once ruled: collapse `--mkt-confetti-1..5` onto the promoted tokens
+  so there is one palette home (they must move to `globals :root`, since `marketing.css` is barred
+  from declaring on `:root`). Note the shipped `.mkt-fglow*` footer glow is the SAME mechanic as
+  `shape="seam" drive="mask"`, so promotion either retires it onto the engine or the site ships two
+  engines painting one light. Unmeasured and carried
+  forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
+  and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
+  BEAM half of this round no longer needs porting: border-beam is vendored at
+  `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. Both of its questions are
+  CLOSED (Will, 2026-08-31): the palette is ours globally (theirs reviewed side by side, not adopted),
+  and the corner is the rounder one, which grew into the rounding round above. Beam surfaces that ship:
+  Get Pro at rest, the reel while it renders, the help palette while focused. The QR plate takes our
+  own light instead (the beam reads too faintly on a white plate), and the upload takes NO light at all
+  (the opacity climb and the bar already say it; the sweep read as forced).
+  ★ **THE GROUND PICKS THE SIBLING** (found at the merge, 2026-08-31). Two of those three beam surfaces
+  were specified against DARK lab specimens and do not have that ground in production, which is the
+  exact condition that got the QR plate's beam rejected. The help palette is forced `surface-paper`
+  (`help-palette.tsx`, the R6 forced-light rule) so it is near-white in EVERY session, and it is 8px
+  `rounded-float` on a library authored for 16px+; the reel stitching dialog is `bg-popover`, near-white
+  in any light-theme session. The system already answers this three ways and the ship list picked the
+  wrong one twice: an off-black surface already exists one line away (`portalSkinProps("cinema")`);
+  near-white surfaces do not need to become black to be lit, because `SPILL_REGISTER.paper` exists
+  precisely because Will caught sampled light making a paper card look dirty rather than lit. So the
+  rule, worth promoting into `design-system.md` with the doctrine: **ink takes the BEAM, paper takes
+  SPILL in the paper register.** That is the sibling structure resolving by ground, not a workaround.
+  Drop the help palette from the beam list (light it with paper-register spill, or ask separately
+  whether a focused command palette wants to be a cinema surface, argued from what a palette should be
+  and never from what the beam needs). The reel dialog is different: today's `reel-stitching-dialog.tsx`
+  is a MINIMAL STAND-IN, not the finished reel-render experience (Will, 2026-08-31), so its current
+  spinner-plus-bar signal set measures the stub rather than the surface. Park that beam and design it
+  WITH the reel-render round. ★ General lesson: a minimal production surface is not evidence against a
+  lab specimen; see the three-way test in `design-system.md`.
+  ★★ **PREREQUISITE nobody logged: law 3 cannot fire on real user media.** `useSampledPalette`
+  (`src/components/dev/sampled-palette.ts`) does `new Image()` with NO `crossOrigin`, then
+  `ctx.getImageData()`. Our media is presigned against `*.r2.cloudflarestorage.com`
+  (`src/lib/r2/client.ts`), a DIFFERENT ORIGIN, so the canvas taints, `getImageData` throws, and the
+  hook's `.catch()` silently returns the fallback five. No console error, no failing test, no visual
+  tell beyond "the colours look generic". Every lab specimen samples `marketingImage(...)`, which is
+  same-origin, which is why the lab never caught it. Four ship-listed placements depend on sampling
+  (the doorbell arrival, the album straddle, the publish beat, the paper probe), so all four are blocked
+  on one of: (a) `crossOrigin="anonymous"` plus an R2 CORS rule for the site origin, accepting a
+  CORS-partitioned refetch of a full-size photo to read 32x32 of it; or (b) better, extract the palette
+  SERVER-SIDE once at upload/derivative time and store it on the media row (no CORS, no double fetch,
+  works for video posters, computed once instead of per view). Marketing placements are unaffected:
+  those images are same-origin and sample correctly today.
+  **ROUND 0 IS THE FOOTER, and its success criterion is that nothing changes visually.** `FooterGlow` is
+  the engine already shipping: byte-identical turbulence filter (`fractalNoise`, `0.009 0.015`,
+  `numOctaves 2`, `seed 7`, `scale 30`), same 210px / 0.62 / 16px, same base+band split, same
+  `useAmbientPause`. The one difference is cadence, engine `8s` against the shipped footer's `11s`, so
+  retiring the footer onto the engine re-times a ratified live surface by 27 percent unless the var is
+  passed. Settle that first, with a live look at the real footer.
+  **Promotion mechanics, so round 0 does not rediscover them:** land the engine UNLAYERED (the
+  `[data-rvl-*]` precedent, because inside `@layer base` one caller utility can replace
+  `filter: url(#glw-warp)`, which is the exact failure the no-className invariant exists to prevent);
+  move the engine block only and leave the lab-only companions (`.glw-skel*`, `[data-glw-fly]`,
+  `[data-glw-tile]`, `[data-glw-mod]`, `[data-lit]`) behind; render `GlowFilter` exactly once in the root
+  layout, after a live check of what a browser does with an absent `url(#...)` reference (if the answer is
+  "render nothing" the singleton needs a runtime guard, not a comment); relocate `glow.tsx` to
+  `components/shared/` and the two libs to `lib/`; re-anchor `glow-contract.test.ts`'s slice boundary and
+  its hardcoded paths; and promote the four laws, the never-list and the SPILL/BEAM sibling into
+  `design-system.md`, since today the doctrine lives ONLY inside a 1,405-line lab TSX, which is the
+  concrete route by which "an effect on every section" comes back.
+  **Engine defects to confirm and fix at promotion** (none matter while lab-local): `glow-contract.test.ts`
+  matches ZERO animation declarations because `/^\s{2}animation:/gm` cannot match the 4-space indentation
+  actually used, which makes the test guarding the arrival-default contract vacuous; `effectiveAlpha`
+  models one layer while its own docstring defines the worst case as base and band together, so the
+  reported contrast ceiling is optimistic; reduced motion parks the band mid-sweep at full strength, which
+  is the model's own worst case (parking it at `mask-position: 150% 0` inside the `no-preference` block is
+  the one-line answer, and leaves Will's ruled 0.62 alone); a bloom's band sits lit while unarmed and
+  snaps to 0 as it arms; `useInViewOnce(0.35)` is an element-area threshold, so a lamp taller than about
+  2.86 viewports can never arm; and `BorderBeam` reads the OS colour scheme directly rather than
+  `next-themes`, so any wrapper must pass `resolvedTheme` (never `theme`, which can be `"system"`).
+- **The QR-to-album handoff wants its own ground-up visual-design round.** Killed off the glow board
+  (Will, 2026-08-31) rather than inherited from it: the three scan-through directions there were
+  argued from a glow doctrine, and the idea deserves to be designed from the product claim instead.
+  One asset is KEPT and parked rather than killed: the **pour** (photographs leaving one object and
+  landing in another), built and working in moment 11, waiting for a real "photos dump here" moment
+  rather than being forced onto a surface that did not ask for it.
+- **The `/design` lab gate on a preview is captured at BUILD time, so a branch whose newest
+  deployment predates the env var 404s until it is pushed again.** `DESIGN_PREVIEW_KEY` IS set on
+  the unscoped Preview target (so the lab is reachable on `lp/*` aliases; the `lp/blog-redesign`
+  agent corrected the stale doc claim 2026-08-28). What is not obvious, and cost this agent a wrong
+  finding: an already-built deployment never picks it up. Proven on one branch at one moment with
+  one key: `lp/glow-doctrine`'s FIRST deployment still 404s on `/design` at its immutable URL while
+  its latest serves the lab fine. `lp/about` is the remaining stale alias and will fix itself on its
+  next push. Nothing to do here beyond knowing it: if `/design` 404s on an `lp/*` alias, push again
+  before concluding anything about the env.
+- **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
+  production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
+  `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
+  definition wins, so any `/design` visit shadows the production definitions for the rest of the
+  session. Worth a uniqueness pin across the three sheets. (2) The repo has NO `forced-colors` and no
+  `@media print` rule on any production surface; the spill engine is the first thing in the repo to
+  carry either, so the pattern to copy now exists.
+
 - **Elevation-program deferred queue (marketing).** Logged at
   R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
   [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);

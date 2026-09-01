@@ -112,6 +112,17 @@ site, these are the ways the *test tooling* misreports, so a working change look
   does not follow you to a page that round never touched. Confirm on the deployed preview
   (production build, extension-free): a clean console there closes it.
 
+- ★ **A HIDDEN PANE CAN ALSO SCREENSHOT SOLID BLACK, on a page that is rendering perfectly** (glow
+  merge, 2026-08-31). Same `document.hidden === true` root cause as the entries above, one more costume:
+  on a dark surface the forced single frame can come back as a uniform fill of the body background, so
+  it looks like the page failed to render rather than like the capture failed. **Do not diagnose from
+  the image.** Ask the DOM instead, which settles it in one call: read `document.visibilityState`, then
+  `document.elementFromPoint(innerWidth/2, innerHeight/2)` plus the target's `getBoundingClientRect()`,
+  `color` and `opacity`. If elementFromPoint returns the element you scrolled to, with a real colour and
+  opacity 1, the page is fine and the capture is not. ★ Rule the OTHER cause out first, because it looks
+  identical and it is your own bug: a scroll past `document.documentElement.scrollHeight` also yields an
+  empty frame. Check `scrollY` against `scrollHeight - innerHeight` before blaming the pane; both were
+  true in the same session here, and the overshoot was the one worth fixing.
 - ★ **AN OCCLUDED TAB NEVER DELIVERS THE FIRST IntersectionObserver CALLBACK** (careers merge,
   2026-08-29). With `document.hidden === true`, anything revealed ON ARRIVAL stays at its hidden rest
   state forever: the careers hero's h1 read `opacity: 0` with `.is-shown` absent, minutes after load,
@@ -174,6 +185,16 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   the escaped form or you will "prove" a class is missing when it is there). A new-to-the-repo
   utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
   chasing dev.
+
+- **The Preview MCP starts the dev server in the SHARED git root, not your worktree.** `preview_start`
+  resolves the project by git common dir, which every worktree shares, so from `../partyreel-wt/<track>`
+  it runs `pnpm dev` in `/Users/gibby/local/ai/partyreel` (the Orchestrator's checkout) and serves
+  THAT branch. The tell is a 404 on a route you just wrote, or a page missing your change; confirm with
+  the first line of `preview_logs`, which prints the cwd. Verifying against it is worse than not
+  verifying, because it looks like a pass. **From a worktree, run `pnpm dev -p <unused port>` via Bash
+  instead** (the one standing exception to "never use Bash for dev servers": the managed path cannot
+  reach your tree), then drive it with `navigate` / `read_page` / `javascript_tool` as usual, and pick a
+  port no sibling worktree owns (the orphaned-server trap above).
 
 - **`next dev` can render paper surfaces DARK under a dark session theme.** With `html.dark` present
   (system-dark + no stored theme), Turbopack's dev CSS ordering lets the dark token block beat the

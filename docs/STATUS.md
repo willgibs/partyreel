@@ -39,7 +39,7 @@ anything shared.
 (PROGRAM.md born, this file rewritten, era reframe across docs, branch/worktree debris removed) and
 **milestone-3** capped it: prod = the full marketing identity build + consolidation.
 
-**The agent-merge sequence (opened 2026-08-28).** Five Agent branches built in parallel
+**The agent-merge sequence (opened 2026-08-28, all five merged 2026-08-31).** Five Agent branches built in parallel
 (`lp/about`, `lp/blog-redesign`, `lp/careers-identity`, `lp/glow-doctrine`, `lp/press-kit`); Will
 hands them over one at a time as they are ready, and the Orchestrator's job on each is to adopt what
 is genuinely better and synthesize the rest onto the shared system (rising tides, not a stack of
@@ -69,8 +69,8 @@ selectors were already page-neutral, the index-masthead recorded as the third H1
 red-team findings: the exit beat ran under reduced motion (the rule cited the review queue's
 convention but took only half of it), and `useFlip` had NO tests despite being shared with the admin
 event feed.
-**`lp/careers-identity` is MERGED into `launch-prep`** (`9b206a1`, the fourth branch of the
-sequence), preview-verified, awaiting Will's sign-off for its milestone merge. /careers went from a
+**`lp/careers-identity` merged and shipped at milestone-12**, the fourth branch of the sequence.
+/careers went from a
 template instance to a page that argues in photographs; it reached `(cinema)` on its own, so the
 round's work was Will's three rulings (the h1 back on the site ladder, the philosophy indices circled
 in the page's own hand, the two morph delegates collapsed into one), two measured fixes (the hero was
@@ -80,8 +80,52 @@ keyboard-driving the preview, and a doc repair. It also carried a real rising ti
 overlay header's glass wash, retuned off Will's note and now 300/220 on the symmetric S for EVERY
 marketing page. ★ Its `marketing-content.md` AUTO-MERGED into a broken state with no conflict, which
 is the transferable lesson: a clean merge report on a doc means the text reconciled, not the facts.
-Full narrative: [CHANGELOG](CHANGELOG.md). **One branch still with Will: `lp/glow-doctrine`**, which
-nothing merged so far has touched.
+Full narrative: [CHANGELOG](CHANGELOG.md).
+
+**`lp/glow-doctrine` merged into `launch-prep` 2026-08-31 (`2bf18dc`), closing the sequence.** The
+fifth and last branch, and the only one proposing a SYSTEM rather than a page: SPILL (light falling
+from a lit thing) and its sibling BEAM (an object lit because it IS the live subject), 4 + 4 laws, a
+six-item never-list, 13 argued placements, the engine behind them, and `border-beam` v1.4.0 vendored
+under MIT. **Merged ADOPT-ONLY on Will's ruling: the branch touched zero production bytes and the
+merge kept it that way**, so every placement becomes its own paced round instead of arriving as a wave
+of effects. Not yet shipped to `main`.
+
+What the merge is holding for the rounds that follow, all recorded in
+[ROADMAP](ROADMAP.md): (1) **the first integration round is the FOOTER**, because the engine IS
+`FooterGlow` generalized (byte-identical turbulence filter, same 210px / 0.62 / 16px), so promotion
+either retires it or the site ships two engines painting one light; its success criterion is that
+nothing changes visually, and it opens by settling the engine's 8s register against the footer's
+shipped 11s. (2) **Law 3 cannot fire on real user media** (no `crossOrigin`, and R2 is a different
+origin, so the canvas taints and the failure is silent), which blocks four ship-listed placements and
+is why the sequence starts on marketing. (3) **Two identity-level amendments are riding unruled**: the
+beam adopted our five HUES at raised chroma rather than our token values, with a test pinning that the
+tokens may not be used, and the lit surface amends "Dark: NO shadows anywhere". (4) **The ground picks
+the sibling** (ink takes the beam, paper takes spill in the paper register), which came out of two beam
+surfaces being specified on grounds they do not have.
+
+★ Two transferable lessons from this round. **A guard whose name promises more than its assertion is
+worse than no guard**: two here could not fail, and one of them was the only thing watching ~3,000
+lines of vendored code. And **the lab and production are BOTH provisional** (three-way test now in
+[`systems/design-system.md`](systems/design-system.md)): a minimal production surface is not evidence
+against a lab specimen, which the Orchestrator got wrong twice before Will corrected it.
+
+**MILESTONE-12 (2026-08-29): prod = the /careers round.** `main` @ tag `milestone-12` (`6ecb55a`),
+prod READY + verified at the merge SHA. Will's acceptance: "You nailed the philosophy row on desktop.
+Feels very on-brand compared to the branched version" (with a note that he will revisit both page
+designs). Verified on partyreel.com at 1440: the h1 at 72px matching /pricing and /how-it-works
+character for character, so the site ladder has no exceptions again; the contact sheet at 12 unique
+images / 12 eager / 0 never-eager (it was lazy-loading half of itself above the fold); the three
+philosophy marks at 48x32 evenly spaced at x = 112 / 533 / 955, aria-hidden, on the paper ink; the
+role page's h1 at 60px with the rail at 240px, `align-self: stretch`, `position: sticky`; the emblem
+at 96px; no overflow; console clean. BOTH morphs re-verified after the collapse (`/blog` card ->
+article -> "Keep reading" hop, `/careers` card -> role -> back -> other role), each reporting exactly
+one named plate at start and the target re-armed. Reduced motion forced on prod: 0 transitions
+started, the navigation still completed. `/careers/nonsense` on the cinema 404 with
+`theme-color: #040404`; sitemap 3 careers URLs; no `JobPosting` JSON-LD. ★ The transferable lesson is
+the doc one: `marketing-content.md` AUTO-MERGED into a broken state with NO conflict (a decapitated
+bullet, then a whole stale one describing the rejected first rebuild and linking a file that does not
+exist). A clean merge report on a doc means the text reconciled, not the facts. Full narrative:
+[CHANGELOG](CHANGELOG.md).
 
 **MILESTONE-11 (2026-08-29): prod = the /blog round.** `main` @ tag `milestone-11` (`95ca799`), prod
 READY + verified at the merge SHA. Will's acceptance: "It looks great." Verified on partyreel.com:
@@ -251,21 +295,32 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The next agent branch to hand over** (`lp/glow-doctrine` — the last one). `lp/about` shipped at
-   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11, and
-   `lp/careers-identity` is merged into `launch-prep` awaiting its own.
-   ★ The standing careers merge-order warning turned out to be
-   WRONG on the point it was most confident about: `marketing.css` did NOT conflict (the branch had
-   rebased past both blocks). What it missed was `marketing-content.md`, which AUTO-merged into a
-   broken state — a decapitated bullet plus a whole stale one. **Read an auto-merged doc, do not
-   trust a clean merge report on it.**
-2. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
-3. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
+1. **The glow doctrine's four open rulings** (the agent-merge sequence is CLOSED: `lp/about` shipped at
+   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11,
+   `lp/careers-identity` at milestone-12, `lp/glow-doctrine` merged to `launch-prep` 2026-08-31 and
+   not yet shipped to `main`). Each is in [ROADMAP](ROADMAP.md) with the evidence:
+   (a) **the beam's chroma register** — the record says "our palette, globally", but the code adopted
+   our five HUES at effect-grade chroma, not our token values, and a test pins that the tokens may NOT
+   be used. That is a second saturated register inside a zero-chroma identity, and it is the thing in
+   the round most likely to have been approved without being seen. Worth trying first: the Get Pro card
+   already carries real event photographs and is same-origin, so letting the beam SAMPLE them would
+   dissolve the question and put BEAM under the same law 3 as SPILL.
+   (b) **the lit surface**, which amends "Dark: NO shadows anywhere" and is already on the Get Pro
+   specimen; recommend its own round, the way the corner became the rounding round.
+   (c) **the publish beat's violet**, unruled, where a ratified state colour meets law 3's ban on them.
+   (d) **the footer's cadence** at promotion: engine 8s against the shipped 11s.
+2. **When to ship `launch-prep` to `main`.** The glow merge changes no production byte, so a milestone
+   is optional here in a way it was not for the four page rounds.
+3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
+   revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
+   defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
+4. **Marketing batch-1 media contact sheet** — the 4 Unsplash items need a per-batch OK.
+5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-4. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
+6. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
    lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-5. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
+7. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
    and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)

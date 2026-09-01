@@ -18,6 +18,13 @@ import { describe, expect, it } from "vitest";
 // We flag both the literal em-dash AND the `&mdash;` HTML entity (email bodies are HTML).
 // `*.test.ts` is skipped (this file names the character to define the policy) as is the
 // generated db/types.ts.
+//
+// `components/vendor/` is skipped too, and the reason is worth stating: this scanner reads
+// every template literal as user-facing copy, which is right for our code and wrong for a
+// vendored CSS-in-JS package, where an em-dash inside a `/* … */` CSS comment sits inside a
+// template literal and never reaches a user. The policy is about OUR copy; vendored source
+// is third-party text we are contractually not to restyle. If a vendored package ever does
+// render user-facing strings, wrap it rather than editing it, and the wrapper gets scanned.
 
 const FORBIDDEN = ["—", "&mdash;"];
 const SRC = join(process.cwd(), "src");
@@ -25,14 +32,23 @@ const SRC = join(process.cwd(), "src");
 const SCAN_DIRS = ["app", "components", "lib"];
 const SCAN_FILES: string[] = [];
 
-const SKIP = /\.test\.tsx?$|[/\\]types\.ts$/;
+// ★ MATCHED AGAINST A SRC-RELATIVE PATH, never the absolute one (anchored at the
+// glow merge, 2026-08-31). Unanchored, `[/\\]vendor[/\\]` exempted ANY directory
+// named vendor under app/components/lib, so a future src/app/(marketing)/vendor/
+// would have escaped the policy on real user-facing copy; worse, an absolute match
+// meant a checkout living under any path with a `vendor` segment silently skipped
+// EVERY file, with nothing asserting that the scan found anything at all. Both
+// holes are closed: the path is relative, the vendor clause is anchored to the one
+// folder it is for, and the test below asserts a non-empty file list.
+const SKIP = /\.test\.tsx?$|(?:^|[/\\])types\.ts$|^components[/\\]vendor[/\\]/;
 
 function collectFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) out.push(...collectFiles(full));
-    else if (/\.tsx?$/.test(entry.name) && !SKIP.test(full)) out.push(full);
+    else if (/\.tsx?$/.test(entry.name) && !SKIP.test(relative(SRC, full)))
+      out.push(full);
   }
   return out;
 }
@@ -72,6 +88,9 @@ describe("no-em-dash copy policy", () => {
       ...SCAN_DIRS.flatMap((d) => collectFiles(join(SRC, d))),
       ...SCAN_FILES.map((f) => join(SRC, f)),
     ];
+    // A guard that scans nothing passes silently. Pin that the walk found the
+    // tree: the SKIP regex above is the one thing that could empty this list.
+    expect(files.length, "the scan found no files").toBeGreaterThan(500);
     const found = files.flatMap((file) =>
       offenders(file).map((hit) => `src/${relative(SRC, file)}: "${hit}"`),
     );

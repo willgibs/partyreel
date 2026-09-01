@@ -39,7 +39,9 @@ export type TouchpointId =
   | "blog-identity"
   | "careers-identity"
   | "reel-reveal"
-  | "reel-experience";
+  | "reel-experience"
+  | "glow-doctrine"
+  | "glow-moments";
 
 /** Which product surface a touchpoint prototypes - the sidebar's grouping.
  *  "marketing" was reserved from the lab refresh until the marketing-identity
@@ -552,6 +554,53 @@ export const TOUCHPOINTS: Touchpoint[] = [
     decision: 1,
     decisionNote:
       "V1 Marquee (ADR-0023): richer + feed-native, a clear create action for the host, and the most beautiful guest arrival. Composite: V1 IS the feed section (poster card, labeled control rows, engine-thumb style rail); deeper editing GRADUATES to a Reel Studio destination (V2's room, entered from the card, never forced inline); the reel is still BORN by an explicit Create act, which is what the ratified reveal triggers on. Re-opened for the production build: the quick-add signal (most-liked is unreliable when likes are sparse, so blend likes + recency + per-guest coverage + media mix behind an honest label, never random)",
+  },
+  {
+    // THE SPILL DOCTRINE (the glow round, 2026-08-28). Will asked for the
+    // footer's organic-shimmer seam glow to become core to the visual design
+    // "without forcing it everywhere". That is a doctrine problem before it is
+    // an engineering one: an unbounded glow undoes the ratified zero-chroma
+    // identity, and the first framing I tried ("an edge where media is,
+    // arrives, or is about to") disqualified nothing in a media product. This
+    // board proposes SPILL (light is never a material, always spill from a lit
+    // thing), its four laws, the engine, and the measurements. Concepts only:
+    // the engine is lab-local in design.css, and promotion into globals.css is
+    // a separate ruling because it deletes the test fence that currently keeps
+    // colour literals scoped to --mkt-confetti-N.
+    id: "glow-doctrine",
+    title: "The spill doctrine",
+    surface: "shared",
+    note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
+    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Corner A/B"],
+    decisionNote:
+      'MOSTLY SETTLED (Will, 2026-08-28 + 08-31). One item on this board is still OPEN and the round recorded it as closed: the LIT SURFACE carve-out. Its cue set was ruled (hairline + lip at 9%, air blur gone), but the doc contract it amends was not: [data-lit] adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule, and it is already applied to three of four moment-12 specimens including the Get Pro card, while the board and design.css both still say "lab-local until you rule". It wants its own round the way the corner became the rounding round, because if adopted its production surface is every dark card in the app. Do NOT un-apply data-lit from the specimens to re-judge them: those are bare divs with no ring, so removing the 9% hairline puts them further from the shipped Card, not closer. Everything else here IS settled. Law 3 (sampled where there is media, the ratified five where there is not); the engine cleared for promotion to globals.css; lights-on over lights-off; the PALETTE ours globally, with border-beam\'s own colours reviewed side by side and not adopted; the CORNER the rounder one, which grew into its own rounding round rather than riding out here (the rounded-* scale is derived from --radius by multiplication, so the literal reading overshoots what was approved, across 445 uses in 140 files). Also ruled: the register at 8s, and the lit surface trimmed to hairline + lip at 9%, with the air blur gone. Section 05 records that the round misread Will\'s original note: he meant component design in general, not three named cues. The doctrine\'s sibling stands: SPILL is light from a lit thing falling on its surroundings, BEAM is an object lit at its own edge because it IS the live subject. Carried forward, not blocking: the frame cost of the three sweep drives, which needs a foreground window.',
+  },
+  {
+    // The placement half of the same round. Every specimen names its lamp, its
+    // direction, its colour source and the law that admits it, and carries a
+    // verdict. The rejects are BUILT rather than described on purpose: a
+    // placement you have seen and turned down stays turned down.
+    id: "glow-moments",
+    title: "Spill placements",
+    surface: "shared",
+    note: "Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into",
+    decisionNote:
+      "REVIEWED (Will, 2026-08-31), and merged 2026-08-31 with TWO items the record wrongly listed as closed. (1) THE PUBLISH BEAT'S VIOLET is unruled: moment 07 still says \"needs a ruling on the violet\", and the constraint is real, since violet is a ratified STATE colour for reel curation and law 3 forbids a state colour, so the sampled spill has to stay outside the frame while violet stays on the controls, or a state colour has quietly become decoration. (2) THE HELP-PALETTE BEAM is listed as shipping while its own specimen still reads \"New, wants your eye\", and it should come OFF the beam list: production forces surface-paper on that palette so it is near-white in every session, which is the exact ground that got the QR plate's beam rejected. The rule that falls out is worth more than the placement: the ground picks the sibling, ink takes the beam and paper takes spill in the paper register. Same correction retires the reel-render beam from this list, not as a reject but because today's stitching dialog is a minimal stand-in rather than the finished reel-render surface, so it rides that surface's own round. SHIPS: the hero underlight, the locked door, the doorbell arrival (its lap softened to light, since a 1px rounded stroke read as chrome on a gallery with no border), awaiting-media, the album straddle, the QR plate switching on, the publish beat's sampled spill, the paper probe, the whole-page scarcity test, and three beam surfaces (Get Pro at rest, the reel while it renders, the help palette while focused). RULED TO SOMETHING ELSE: the QR plate takes our own light rather than the beam (the beam reads too faintly on a white plate); the upload takes NO light at all (the opacity climb plus the bar already say it, and the sweep read as forced), which leaves the engine's scalar drive exercised but unplaced. KILLED: the pointer lamp, the CTA rim (border-beam does that job better on premium buttons), and the scan-through (its own ground-up round; the POUR is kept and parked as a working technique with no placement).",
+    variants: [
+      "Hero underlight",
+      "Locked door",
+      "Doorbell arrival",
+      "Awaiting media",
+      "Album straddle",
+      "QR plate",
+      "Publish beat",
+      "CTA rim",
+      "Paper probe",
+      "Upload as light",
+      "Scan-through",
+      "Where a beam is allowed",
+      "The whole page",
+    ],
   },
 ];
 

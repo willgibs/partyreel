@@ -10,12 +10,128 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-08-29 — the /careers round (merged to `launch-prep`, awaiting its milestone)
+## 2026-08-31 — the glow doctrine MERGED to `launch-prep` (adopt only, wire nothing)
 
-`launch-prep` @ `9b206a1`, `--no-ff` merge of `lp/careers-identity` (`cdce1c6`) plus four synthesis
-commits. Preview READY + verified at the SHA on the launch-prep alias. Gate green at every commit:
-typecheck, 0 lint errors, **1260 tests** (1253 before), `/careers` static and `/careers/[slug]` SSG
-for both slugs.
+`launch-prep` @ `2bf18dc` (merge `a87d09b`, `--no-ff`). The fifth and last branch of the agent-merge
+sequence, and the only one that proposed a system rather than a page. Merged **adopt-only on Will's
+ruling**: the branch touched zero production bytes and the merge kept it that way, so every placement
+becomes its own paced round rather than arriving as a wave of effects.
+
+**Reviewed by 64 agents across six dimensions, then every problem-claim handed to an adversarial
+verifier told to refute it.** Five were refuted outright, including all three "the docs merged into a
+broken state" claims: that failure mode, which bit the blog and careers rounds, did not recur. Nothing
+above `medium` survived verification. Two of the Orchestrator's own findings were corrected by the
+verifiers, one of them wrong in its mechanism (the halo, below).
+
+**What was fixed at the merge, all of it outliving the round.** Two guards that could not fail:
+`border-beam-vendor.test.ts` asserted a floor of 2 against an actual 11 under a name promising "has
+only the two", which mattered because prettier and the em-dash scanner both skip that folder, so it
+was the entire integrity story for ~3,000 lines of third-party code; and the em-dash `SKIP` regex was
+unanchored and matched against an absolute path, so any directory named `vendor` escaped the copy
+policy and a checkout under a `vendor` path would have skipped every file silently. Both now fail on
+drift, the first verified against a simulated twelfth mark.
+
+**One rule that never applied.** The halo's `mask-image: none` is (0,2,0) and the shared band rule is
+(0,4,0) and later in source order, so it lost twice: every halo specimen rendered the travelling comet
+mask instead of the orbit it documents. It is the same `:not()` trap the file already warns about for
+`bloom`. Stated plainly because it has consequences: rulings taken on a halo specimen before this date
+were taken on a lamp that was not doing what its own source said, and that includes the QR plate's
+resting halo.
+
+**A record that claimed more closure than it had.** `touchpoints.ts` said "nothing on this board is
+waiting" while three things were (the publish beat's violet, the help-palette beam, the lit-surface
+carve-out); the rounding blast radius paired a with-lab use count with a without-lab file count (445
+across 140, where shipping code is 288 across 140); the one-way door was described backwards, since
+promotion does not delete the `marketing-css-policy` fence but escapes into `globals.css` where there
+is none, making the fence extension a precondition rather than a casualty; "eslint deliberately skips
+the vendor folder" was false; the vendor headers said two deviations where seven sites are marked,
+four load-bearing under strict TS; and the calibration caption claimed 11s beside an 8s specimen.
+
+**The rising tide the round exposed: the ground picks the sibling.** Two of the three beam surfaces
+were specified on dark specimens they do not have in production, the help palette being forced
+`surface-paper` in every session, which is the exact ground that got the QR plate's beam rejected. The
+system already answered this twice over (an off-black skin exists one line away in
+`portalSkinProps("cinema")`, and `SPILL_REGISTER.paper` exists precisely because Will caught sampled
+light making a paper card look dirty rather than lit), so the durable output is a rule for the doctrine
+round: **ink takes the BEAM, paper takes SPILL in the paper register.** The reel-render beam is PARKED
+rather than rejected, because today's stitching dialog is a minimal stand-in and judging a beam against
+it measures the stub rather than the surface. That distinction generalised into a three-way test now in
+[`design-system.md`](systems/design-system.md): a minimal production surface is not evidence against a
+lab specimen.
+
+**Logged for the wiring round, none of it merge-blocking.** Law 3 cannot fire on real user media (no
+`crossOrigin` and R2 is a different origin, so the canvas taints and the `.catch()` silently returns
+the fallback five, on four ship-listed placements); the footer re-times 11s to 8s unless promotion
+passes the var; the beam's palette is our hues at raised chroma rather than our tokens, with a test
+pinning that the tokens may NOT be used, which wants an explicit ruling; the lit surface amends "Dark:
+NO shadows anywhere" and wants its own round; plus the promotion mechanics and five engine defects that
+only matter once it ships.
+
+Gate green on the merged tree: typecheck clean, 0 lint errors (1 pre-existing warning), **1301 tests**,
+build ok. **Containment proven from the build output rather than asserted:** the 45 KB engine CSS chunk
+is referenced by exactly eleven route manifests and every one is under `(dev)/design`.
+
+---
+
+## 2026-08-31 — the glow round: border-beam vendored, and the corner system it exposed
+
+`lp/glow-doctrine`, preview-verified. Two lab boards (`glow-doctrine`, `glow-moments`) proposing a
+doctrine for the footer's organic-shimmer glow, plus the vendored beam that grew out of it.
+
+**The beam was vendored, not ported.** Three hand-ports missed the same way each time: inferring the
+effect from computed styles and screenshots, substituting our low-chroma five into a palette tuned at
+the sRGB gamut edge, then compensating with filters until it read neon. Will's call was to copy it
+exactly, so border-beam v1.4.0 (MIT) now lives verbatim in `src/components/vendor/border-beam` with
+two deviations in intent: a `"use client"` directive and a fifth palette entry so the colour question
+could be answered by looking. Those land as seven marked in-body sites, because a fifth member on the
+colour union makes four `*Base` rename-and-respread edits in `styles.ts` load-bearing under strict TS.
+Prettier and the em-dash policy skip the folder outright; eslint still lints it, minus two rules. So
+`border-beam-vendor.test.ts` pins what is left, and at the merge its headline assertion was corrected
+from a floor (`>= 2` against an actual 11, which could never fail) to an exact pin.
+
+**Ruled by Will (2026-08-31): our palette, globally.** Theirs was reviewed side by side, in phase and
+in the same nine lobes, and not adopted.
+
+**The corner bug was the useful finding.** He flagged the ring and the card reading as two different
+shapes. The cause was the lab's, not the library's: specimens rounded like the reference (arbitrary
+14 and 18px) and handed its own `borderRadius={16}`, on a system that rounds surfaces sharp
+(`--radius` 2px, the shipped `Card` 2.8px, `rounded-2xl` 3.6px). Omitting the prop makes the library
+read its child's computed radius, so every layer derives from the object: measured on the running
+board, our column emits 3.6 / 13.6 / 33.6 and the library's 16 / 26 / 46, both concentric. The
+durable output is a rule in [`design-system.md`](systems/design-system.md): anything drawn around an
+object takes the object's radius, never a literal, and since 16px is what this system rounds an
+ACTION to, a beam's natural layer here is an action rather than a surface. Will then RULED the rounder
+column and asked for it system-wide, which is why it left as its own round rather than riding out here
+(commits `e2d060c`, `64c7a5d`): the `rounded-*` scale is derived from `--radius` by multiplication, so
+the literal reading overshoots what he approved, across 288 shipping uses in 140 files.
+
+**The halo was misframed rather than rough**, and one thing about it was not caught until the merge:
+its `mask-image: none` override was DEAD. At specificity (0,2,0) it lost to the shared band rule at
+(0,4,0), which is also later in source order, so every halo specimen rendered the travelling comet mask
+instead of the orbit it documents. Fixed at the merge with the same `:not()` the file already uses for
+`bloom`. Rulings taken on a halo specimen before 2026-08-31 were taken on a lamp that was not doing
+what its own source said, which includes the QR plate's resting halo. Mounted as a child of a 16/9 stage it filled the stage,
+so its mask ramp spanned ~441px, or 1.7 pixels per 8-bit alpha level, which is exactly where a ramp
+resolves into visible arcs. It now sits on a pill with the structure moment 08 already proved: 166px
+and 0.65 px per level, measured on the preview, with the two-stop ramp replaced by a nine-stop
+smoothstep because a two-stop gradient puts a tangent kink at each end of the fade.
+
+Also from the review: the doorbell's lap dropped its crisp 1px ring (on a gallery with no border, a
+rounded stroke IS a border, and it read as chrome appearing); the CTA rim and the scan-through were
+killed in place with numbering intact, the pour explicitly kept and parked; moment 12 lost
+upload-in-progress and gained the QR plate's three readings on a switch; and the lit surface lost its
+inner blur, leaving two flat cues. Section 05 also records that the round misread Will's original
+note: he meant component design in general, not three named cues.
+
+---
+
+## 2026-08-29 — MILESTONE-12: the /careers round
+
+`main` @ tag `milestone-12` (`6ecb55a`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree (typecheck, 0 lint errors, **1260 tests** — 1253 before — and a build with `/careers`
+static and `/careers/[slug]` SSG for both slugs). Prod READY + verified at the merge SHA. Will's
+acceptance: "You nailed the philosophy row on desktop. Feels very on-brand compared to the branched
+version." (He also flagged that he will revisit both page designs.)
 
 The fourth branch of the agent-merge sequence, and the one that took the most rejections to get
 right: all three lab directions were rejected outright ("a total back to the drawing board"), then
@@ -77,7 +193,8 @@ not exist, and asserting the General Application gets its own plate, which Will 
 commits later), then the real bullets. A clean merge report on a doc means the TEXT reconciled, not
 that the FACTS did.
 
-**Verified on the launch-prep alias.** Both morphs after the collapse: `/blog` card -> article then
+**Verified on partyreel.com at the merge SHA** (and, before it, on the launch-prep alias). Both
+morphs after the collapse: `/blog` card -> article then
 the article -> article "Keep reading" hop, and `/careers` card -> role -> back -> other role, each
 reporting exactly one named plate at start and the target re-armed after. Reduced motion forced at the
 API the delegate reads: 0 transitions started, the navigation still completed, the emblem visible at
@@ -91,15 +208,26 @@ the table stays at ZERO rows), and an honest submit writing exactly one row with
 every decorative alt empty. Sitemap 3 careers URLs, llms.txt, feed 4 items, no `JobPosting` JSON-LD.
 Console clean.
 
-★ **NOT verified: a desktop screenshot of the finished page.** Both browsers failed in the same
-session and in opposite ways - Chrome reported resizes as successful while staying at 500px
-(`outerWidth` 284 against `innerWidth` 500), and the Browser pane honoured 1440 but returned black
-frames with animations suspended. Desktop GEOMETRY is measured (h1 72px, 9-column sheet, 3-column
-philosophy row, no overflow) and the marks render identically at any width, so the gap is the
-composition at 1440, which is exactly what Will reviews. Two new blind spots came out of it, both
-recorded: a browser EXTENSION in the Chrome profile manufactures a hydration mismatch that React then
-attributes to unrelated sibling nodes, and an occluded tab never delivers the FIRST
-IntersectionObserver callback, so an arrival reveal reads as permanently invisible until one scroll.
+**On prod, at 1440:** the h1 at 72px matching /pricing and /how-it-works character for character;
+the sheet at 12 unique images / 12 eager / 0 never-eager; the three philosophy marks at 48x32 evenly
+spaced across the three columns at x = 112 / 533 / 955, `aria-hidden`, on the paper ink; the role
+page's h1 at 60px (the article exemption) with the rail at 240px, `align-self: stretch` and
+`position: sticky`; the emblem at 96px; no horizontal overflow; console clean. Reduced motion forced
+at the API the delegate reads, on prod: 0 transitions started, the navigation still completed, the
+emblem visible at 96px. The shipped prod CSS carries the marks DRAWN outside any media query with
+only the undrawn start inside `no-preference`, zero `::view-transition-group(*)` wildcards, and the
+glass at 300ms open. `pr-no-track` was already set on the Chrome profile and was set on the pane's
+origin from a `/robots.txt` load before any page view.
+
+★ **The desktop screenshot took three attempts across two browsers**, and the reason is worth
+keeping: both failed in the same session in opposite ways - Chrome reported resizes as successful
+while staying at 500px (`outerWidth` 284 against `innerWidth` 500), and the Browser pane honoured
+1440 but returned black frames with animations suspended. Will reviewed the preview himself in the
+gap, which is what closed it. Two new blind spots came out of it, both recorded: a browser EXTENSION
+in the Chrome profile manufactures a hydration mismatch that React then attributes to unrelated
+sibling nodes, and ★ an occluded tab never delivers the FIRST IntersectionObserver callback, so an
+arrival reveal reads as permanently invisible until one scroll - indistinguishable from the
+arrival-default bug the blog round exists to prevent.
 
 ---
 
