@@ -216,11 +216,20 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   carry either, so the pattern to copy now exists.
 
 - **Elevation-program deferred queue (marketing).** Logged at
-  R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
-  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);
+  R5/R6 settlement (2026-08-27): the **help catalog** shipped on `lp/help-catalog` (2026-09-01; the brief is
+  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md)) and left these one-liners: the `Checklist`
+  component's persistence/draw is Will's preview call (revert the day-of article to `Steps` if it fails);
+  in-app contextual deep links into help (the settings page → its article, the Studio → the reel guides);
+  research-found product gaps that the catalog documents honestly rather than fixes — the
+  `Video uploads are available on the Pro plan.` wrapper string omits the Event Pass, `?upgraded=1` is set
+  by checkout and never read (no post-purchase confirmation), the settings selector says "Public" while the
+  event header chip says "Open", `restoreEventAction.mediaStillRemoved` is never surfaced, the ops-only
+  "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
+  event-level Report, and `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit;
   the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
   the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
-  article's contact path — swap that article's deletion section when it ships); faq-accordion
+  article's contact path — swap the "Deleting your account" section of
+  `your-data-and-deleting-your-account` when it ships); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
   `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
   settled on `/press` 2026-08-28: mono holds data only, Inter for every label and descriptor);
