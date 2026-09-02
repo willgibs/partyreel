@@ -3,8 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
+import { AccountDeleteCard } from "@/components/app/account-delete-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
+import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
 import {
   UnblockButton,
   UnfollowButton,
@@ -20,6 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import {
+  countMyLiveEvents,
+  isOnNewsletterList,
+} from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
 import {
@@ -28,6 +34,7 @@ import {
   getMyFollowCounts,
   getMyFollowing,
   getMyProfileSlug,
+  getNotificationPrefs,
 } from "@/lib/db/queries/social";
 import { withAvatarUrls, type ProfileCardItem } from "@/lib/social/cards";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -94,6 +101,9 @@ export default async function AccountPage({
     followCounts,
     blocks,
     siteUrl,
+    notificationPrefs,
+    onNewsletterList,
+    liveEventCount,
   ] = await Promise.all([
     getProfile(),
     hasPassword(),
@@ -106,6 +116,9 @@ export default async function AccountPage({
     getMyFollowCounts(),
     getMyBlocks(),
     getSiteUrl(),
+    getNotificationPrefs(),
+    isOnNewsletterList(),
+    countMyLiveEvents(),
   ]);
   if (!profile) redirect("/login");
 
@@ -259,6 +272,30 @@ export default async function AccountPage({
           />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email preferences</CardTitle>
+          <CardDescription>
+            What Partyreel may email you about. Your guests never hear from us.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotificationPrefsForm
+            prefs={notificationPrefs}
+            onNewsletterList={onNewsletterList}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Last on the page on purpose: the danger zone is somewhere you arrive
+          deliberately, never somewhere you land on the way to something else. */}
+      <AccountDeleteCard
+        eventCount={liveEventCount}
+        hasPassword={passwordSet}
+        hasPlan={tier !== "free"}
+        email={profile.email}
+      />
     </div>
   );
 }

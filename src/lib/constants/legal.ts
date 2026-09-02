@@ -48,8 +48,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "How Partyreel collects, uses, stores and deletes your information, what your guests can see, and the choices and rights you have.",
     ogKicker:
       "What we keep, where it lives, who can see it, and how deletion works.",
-    version: "1.0",
-    lastUpdated: "2026-09-01",
+    // 1.1 (2026-09-02): account deletion became self-serve and immediate, so
+    // the "write to support" choice and the newsletter removal both changed.
+    version: "1.1",
+    lastUpdated: "2026-09-02",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -62,8 +64,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "The agreement for hosting events and contributing media on Partyreel: your content, plans and billing, retention, acceptable use, and how disputes are handled.",
     ogKicker:
       "Your content, plans and billing, retention, and the rules of the room.",
-    version: "1.0",
-    lastUpdated: "2026-09-01",
+    // 1.1 (2026-09-02): Ending things is now self-serve, and a deletion
+    // cancels an active plan at that moment rather than at period end.
+    version: "1.1",
+    lastUpdated: "2026-09-02",
     status: "pending-review",
     effectiveDate: null,
   },

@@ -313,9 +313,11 @@ export const TERMS_SECTIONS: LegalSection[] = [
           <strong className="text-foreground">Pro.</strong> You can cancel at
           any time through the billing portal. Cancellation stops future
           charges; your plan continues until the end of the period you have paid
-          for, and then your account returns to the free tier. Pro payments,
-          monthly or yearly, are not refundable, in whole or in part, except
-          where the law requires otherwise.
+          for, and then your account returns to the free tier. Deleting your
+          account instead cancels the plan at that moment rather than at the end
+          of the period, because there is no account left to keep on it. Pro
+          payments, monthly or yearly, are not refundable, in whole or in part,
+          except where the law requires otherwise.
         </>,
         <>
           <strong className="text-foreground">Event Pass.</strong> A pass is
@@ -458,20 +460,27 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "ending-things",
     title: "Ending things",
     summary:
-      "Leave any time. We can close accounts that break the rules. Either way, download first, because deletion is real.",
+      "Close your account yourself, any time, in a couple of taps. We can close accounts that break the rules. Either way, download first, because deletion is real.",
     blocks: [
+      // Self-serve since 2026-09-02, and the plan now goes WITH the account
+      // (Will's ruling: an active plan is auto-cancelled at the request), so
+      // the old "cancelling is separate" sentence would have been wrong.
       p(
         <>
           <strong className="text-foreground">By you.</strong> You can delete
-          any event at any time, and you can ask us to delete your account
-          through the {CONTACT_PAGE} using the email on your account (see{" "}
+          any event at any time, and you can delete your account yourself from
+          your account settings, confirming with your password or a code we
+          email you (see{" "}
           <LegalLink href="/help/your-data-and-deleting-your-account">
             your data and deleting your account
           </LegalLink>
-          ). Deleting an account deletes the events you host, with their media;
-          your uploads to other people&rsquo;s events stay in their albums
-          unless you delete them first. Cancelling a paid plan is separate from
-          deleting an account and is described under Refunds and cancellation.
+          ). Deleting an account cancels any paid plan as part of the same step
+          and deletes the events you host, with their media; your uploads to
+          other people&rsquo;s events stay in their albums unless you delete
+          them first. Deletion is immediate and permanent, and an account cannot
+          be restored. Cancelling a plan without closing your account is
+          separate and is described under Refunds and cancellation. If you
+          cannot sign in, write to us through the {CONTACT_PAGE}.
         </>,
       ),
       p(
