@@ -177,11 +177,19 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       {
         // Shipped in milestone-0 (client-side strip, backfilled); named here per
         // the T2.5 IA's missing-features batch (the "unused ammunition").
+        //
+        // ★ THE RULED SHORT FORM (Will, 2026-09-02): the clause "for the common
+        // formats" rides EVERY shortened version of this claim, because HEIC,
+        // HEIF and AVIF images and WebM video are stored exactly as the device
+        // sends them. The title lost its "never" for the same reason (it stood
+        // as an absolute the uploader cannot keep). The long form, naming the
+        // formats, is the privacy policy's own paragraph (the "metadata"
+        // section of constants/legal-privacy.tsx). Do not drop the clause.
         icon: MapPinOff,
-        title: "Location data never leaves the phone",
-        body: "EXIF and GPS metadata are stripped in the browser before a photo ever uploads.",
+        title: "Location data stays on the phone",
+        body: "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
         longBody:
-          "Phones stamp every photo with where it was taken. Partyreel strips that EXIF and GPS metadata in the guest's browser, before the file ever uploads, so nobody's home address rides along with the album.",
+          "Phones stamp every photo with where it was taken. For the common formats, JPEG, PNG and WebP images and MP4 and MOV video, Partyreel removes that location metadata in the guest's browser before the file ever uploads, so nobody's home address rides along with the album. A few formats, HEIC, HEIF, AVIF and WebM, are stored exactly as the device sends them.",
       },
       {
         icon: ShieldCheck,
