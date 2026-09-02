@@ -10,6 +10,7 @@ import {
   seamCoverage,
   worstCaseGround,
 } from "@/components/dev/glow-contrast";
+import { LAMP_SET as FALLBACK_PALETTE } from "@/components/dev/lamp-set";
 import { useSampledPalette } from "@/lib/shared/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -48,28 +49,8 @@ import {
  * components/shared/glow.tsx.
  */
 
-// ★ THESE MUST STAY LITERAL, and the reason is worth stating because the
-// instinct to de-duplicate them onto --lamp-* is correct everywhere else.
-// This array does NOT feed a `colors` prop: it feeds worstCaseGround() and
-// alphaAtAaFloor() in glow-contrast.ts, which are numeric colour MATH that
-// parseOklch()es each entry. Hand it "var(--lamp-1)" and parseOklch returns
-// null, worstCaseGround returns null, and the board's contrast table silently
-// reports floor 1 and every ratio undefined instead of floor 0.13 - wrong
-// numbers with no error, on the instrument whose whole job is telling you
-// whether the light is legible. I made exactly that edit at round 0 and caught
-// it in the live pass; measured, the delta is 0.13 -> 1.
-//
-// Same shape as the vendored beam palette (styles.ts), which also cannot take
-// a var() because it regex-parses rgb() strings. The general rule: a JS
-// consumer that PARSES colour needs literals; only CSS can take the token.
-// If the lamp set is ever retuned, update these five to match by hand.
-const FALLBACK_PALETTE = [
-  "oklch(0.72 0.17 25)",
-  "oklch(0.8 0.15 85)",
-  "oklch(0.72 0.14 155)",
-  "oklch(0.7 0.14 255)",
-  "oklch(0.68 0.16 305)",
-];
+// FALLBACK_PALETTE is the shipped lamp set as literals, from lamp-set.ts beside
+// the contrast instrument (why literals and not var(--lamp-*): its header).
 
 const LAWS: { n: string; name: string; rule: string; kills: string }[] = [
   {

@@ -14,6 +14,7 @@ import {
   seamCoverage,
   worstCaseGround,
 } from "./glow-contrast";
+import { LAMP_SET } from "./lamp-set";
 
 /**
  * The numbers the doctrine board reports have to be right, or the board is a
@@ -138,11 +139,11 @@ describe("the ink slab's headroom", () => {
  * ★ THE LAMP SET HAS TWO HOMES BY NECESSITY, SO PIN THEM TOGETHER.
  *
  * CSS reads --lamp-1..5 from globals.css. The contrast instrument cannot: it
- * parses colour numerically, so it needs literals. Same for the vendored beam
- * palette. That is a real constraint, not sloppiness, but it means a retune of
- * the lamp set can silently leave the board reporting contrast for the OLD
- * five, on the instrument whose whole job is telling you whether light is
- * legible.
+ * parses colour numerically, so it needs literals (LAMP_SET in lamp-set.ts,
+ * which the doctrine board imports). Same for the vendored beam palette. That
+ * is a real constraint, not sloppiness, but it means a retune of the lamp set
+ * can silently leave a board reporting contrast for the OLD five, on the
+ * instrument whose whole job is telling you whether light is legible.
  *
  * The failure mode is worse than drift. Hand parseOklch a "var(--lamp-1)" and
  * it returns null, worstCaseGround returns null, and the board renders floor 1
@@ -151,16 +152,9 @@ describe("the ink slab's headroom", () => {
  * palette, and caught it only in the live pass. This test is what should have
  * caught it.
  */
-describe("the board's fallback palette tracks the shipped lamp set", () => {
+describe("the lamp set module tracks the shipped --lamp-* five", () => {
   const globals = readFileSync(
     join(process.cwd(), "src/app/globals.css"),
-    "utf8",
-  );
-  const board = readFileSync(
-    join(
-      process.cwd(),
-      "src/app/(dev)/design/components/glow-doctrine-variants.tsx",
-    ),
     "utf8",
   );
 
@@ -171,30 +165,23 @@ describe("the board's fallback palette tracks the shipped lamp set", () => {
     });
     expect(shipped.filter(Boolean).length, "--lamp-* not found").toBe(5);
 
-    const block = board.slice(board.indexOf("const FALLBACK_PALETTE = ["));
-    const listed = [
-      ...block.slice(0, block.indexOf("]")).matchAll(/"([^"]+)"/g),
-    ].map((m) => m[1]);
-    expect(listed.length, "FALLBACK_PALETTE not found").toBe(5);
+    const listed = [...LAMP_SET];
+    expect(listed.length, "LAMP_SET must hold five lamps").toBe(5);
 
     expect(
       listed,
-      "The board's fallback five drifted from --lamp-* in globals.css. They are " +
+      "LAMP_SET (lamp-set.ts) drifted from --lamp-* in globals.css. They are " +
         "duplicated on purpose (the contrast math parses colour and cannot take " +
         "a var()), so a retune has to update both by hand.",
     ).toEqual(shipped);
   });
 
   it("stays parseable, so the contrast table cannot go silently blank", () => {
-    const block = board.slice(board.indexOf("const FALLBACK_PALETTE = ["));
-    const listed = [
-      ...block.slice(0, block.indexOf("]")).matchAll(/"([^"]+)"/g),
-    ].map((m) => m[1]);
     const report = worstCaseGround(
       "oklch(0.14 0 0)",
       "oklch(0.62 0 0)",
       "oklch(0.62 0 0)",
-      listed,
+      LAMP_SET,
       0.62,
     );
     expect(
