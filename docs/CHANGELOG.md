@@ -44,7 +44,9 @@ continuing you agree to our Terms and Privacy Policy", both links in a new tab.
   Pending counsel review · Effective on launch" line and the `[ENTITY NAME]` / `[ADDRESS]` fill-ins
   as ruled; /terms with 24 sections and 38 anchors; the logged-out login page's consent line with both
   links; the help hub at 59 articles; an article reading "After a downgrade you get 45 days" from the
-  shared component, with the chip ToC, the print-aware body and pagination.
+  shared component, with the chip ToC, the print-aware body and pagination. The gated guest door on prod,
+  as a signed-out guest with the browser's remembered guest session cleared, opens its entry sheet on
+  arrival with the consent line and both legal links in a new tab.
 - **Narrow widths.** Through a same-origin iframe at 375 under a classic 17px scrollbar, the home,
   /blog, /privacy and a help article are exactly viewport-wide (358/358) and a forced sideways
   scroll lands at 0. Console clean on every page visited.
