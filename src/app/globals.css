@@ -2181,11 +2181,30 @@
   }
 }
 
-/* No masking support means no window to travel: keep the lamp lit and still,
-   rather than showing an unmasked colour slab over the whole surface. */
+/* ★ THE NO-MASK FALLBACK, SETTLED (round 2, 2026-09-02), on two counts.
+
+   FIRST, IT IS NOT COMPILED AWAY. Measured in the production build:
+   Lightning CSS keeps the block and rewrites the condition to
+   `not ((-webkit-mask-image: ...) or (mask-image: ...))` while prefixing. That
+   rewrite is stricter than what is written here and it is the RIGHT test:
+   every mask in this engine ships the -webkit- pair (pinned by
+   glow-contract.test.ts), so an engine that has only the prefixed property
+   masks perfectly well and must not be sent down the fallback. Read the source
+   condition as the compiled one, and do not "fix" it by hand -- writing the
+   `or` here would double-prefix.
+
+   SECOND, IT USED TO HIDE THE WRONG LAYERS. It hid the band and the edge and
+   said it was keeping "the lamp lit and still, rather than showing an unmasked
+   colour slab". But the FALLOFF is a mask too: [data-glw]'s own origin-anchored
+   radial (and a seam's linear ramp, and a halo's mask, which is the one that
+   CLEARS the centre so the object it backlights is not painted over). With
+   masking gone, hiding the band leaves exactly the unmasked field the comment
+   promised to prevent, halo included. There is no "lit and still" to keep: law
+   4 says spill fades with distance and never draws an edge, and an unmasked
+   field draws one at the box. So the whole lamp goes, the same degradation
+   forced-colors and print already take two rules up. */
 @supports not (mask-image: linear-gradient(#000, transparent)) {
-  [data-glw-band],
-  [data-glw-edge] {
+  [data-glw] {
     display: none;
   }
 }

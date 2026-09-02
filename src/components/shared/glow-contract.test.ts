@@ -236,6 +236,38 @@ describe("the spill engine CSS", () => {
     expect(engineCode).toMatch(/@supports not \(mask-image/);
   });
 
+  it("hides the WHOLE lamp where masking is unsupported", () => {
+    // ★ The guard used to hide the band and the edge and claim it was keeping
+    // the lamp "lit and still, rather than showing an unmasked colour slab".
+    // The FALLOFF is a mask too -- [data-glw]'s own radial, a seam's linear
+    // ramp, and a halo's mask, which is the one that CLEARS the centre so the
+    // backlit object is not painted over. Without masking, hiding only the
+    // moving parts leaves exactly the unmasked field the guard exists to
+    // prevent. There is no lit-and-still state to keep, so the lamp goes.
+    const at = engineCode.indexOf("@supports not (mask-image");
+    expect(at, "the no-mask fallback is gone").toBeGreaterThan(-1);
+    const open = engineCode.indexOf("{", at);
+    const close = engineCode.indexOf("\n}", at);
+    expect(open, "no-mask fallback has no block").toBeGreaterThan(at);
+    expect(close, "no-mask fallback is unterminated").toBeGreaterThan(open);
+    const body = engineCode.slice(open, close);
+    expect(body).toMatch(/\[data-glw\]\s*\{/);
+    expect(
+      body,
+      "hiding only the moving layers leaves the field",
+    ).not.toContain("[data-glw-band]");
+
+    // The condition names ONLY the unprefixed property, on purpose. Lightning
+    // CSS prefixes it at build time into
+    // `not ((-webkit-mask-image: ...) or (mask-image: ...))`, which is the test
+    // we actually want (every mask here ships the -webkit- pair, so a prefixed-
+    // only engine masks fine and must not take the fallback). Measured in the
+    // production build: the block is NOT compiled away. Writing the `or` by
+    // hand would double-prefix.
+    const condition = engineCode.slice(at, open);
+    expect(condition).not.toContain("-webkit-mask-image");
+  });
+
   it("keeps every animation inside the no-preference block", () => {
     // House convention: FINAL states sit outside the media queries (a
     // reduced-motion jump still arrives), motion lives inside no-preference.
