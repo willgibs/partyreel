@@ -378,8 +378,8 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **Everything through the library round is on prod (MILESTONE-17, 2026-09-02).** `launch-prep` and
-   `main` agree at `42c5cd2`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
+2. **Everything through wave 1 is on prod (MILESTONE-18, 2026-09-02).** `launch-prep` and `main`
+   agree at `225716c`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
    `7a189ae`, 16 commits ahead and 41 behind; its code lane is clean and its four doc edits are
    reconciled at integration). Every track's claim and handoff lives in [`docs/tracks/`](tracks).
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
@@ -403,10 +403,13 @@ manifest fill.
    run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
    (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
    round in the Launch checkpoint's human order.
-8. **The account-required unfurl line** (from `product-truth`, on prod at the next milestone): it now
+8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
    reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
    rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.
-9. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
+9. **The purchase toast, a ten-second look:** open `/dashboard?upgraded=1` as the Pro host on prod or
+   the alias; one toast should say "You're on Pro." and the flag should vanish from the URL. The
+   browser tooling could only see it indirectly (a background tab throttles hydration).
+10. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
    suite ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
