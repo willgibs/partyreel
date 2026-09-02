@@ -107,11 +107,16 @@ the event cards went media-forward and lost their light (measured legibility, fi
 payoff chapter's opener is deployed as two bespoke treatments on `lp/reel-a` / `lp/reel-b` for Will's
 ruling. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
 
-**Round 1 (2026-09-01)** put the first new light on the site: the hero underlight and the album
-straddle, both **sampling their own photographs**, so law 3 is real in production rather than a claim.
-`GlowFilter` became a root-layout singleton, and the engine's reduced-motion state was fixed (the band
-had been resting at the MIDPOINT of its sweep at full strength, permanently, for anyone who asked for
-less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
+**Round 1 (2026-09-01)** put the first new light on the site, in two passes. The first lit the hero and
+the album straddle; both drew a visible rectangle (verified in the wrong browser, and placed where no
+source sits above the ground) and were **pulled the same day** on Will's call. The second chose its
+surfaces from a screenshot survey of the whole page: the **film strip's backlight**, a seam off the
+strip's own bottom edge sampling its eight frames (approved: "the lamp acting as almost a backlight"),
+and the **Pro card's beam** from the lab's reference implementation; the card tilt and cursor glare
+were retired, and the event cards' own light was tried three ways and dropped for scarcity at round 2.
+What stayed from the first pass: `GlowFilter` as a root-layout singleton, the DOM sampler, the dev-only
+missing-host guard, and the engine's reduced-motion fix (the band had been resting at the MIDPOINT of
+its sweep at full strength, permanently, for anyone who asked for less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
 inverted from its own production surface and overstates the overhang by 2.5x, and moment 09's lamp does
 not exist at all. Full narrative: [CHANGELOG](CHANGELOG.md).
 
@@ -277,11 +282,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-11`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-13`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1319 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1316 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -344,9 +349,10 @@ real fix is the manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **When to ship `launch-prep` to `main`.** Rounds 0 AND 1 are now unmerged, which is the policy's
-   ~2-round ceiling. Both are real production changes (the light system, the lit 404, and the home
-   page's two new lamps), so this wants a milestone when Will is ready to look.
+2. **When to ship `launch-prep` to `main`.** Rounds 0, 1 AND 2 are now unmerged, one past the
+   policy's ~2-round ceiling. All three are real production changes (the light system, the lit 404,
+   the film strip's backlight, the re-paced home page, the sideways-scroll fix), so a milestone is due
+   the moment the reel ruling lands, with the winning treatment riding along.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

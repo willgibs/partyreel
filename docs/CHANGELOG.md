@@ -12,8 +12,9 @@ included where recorded; the full original prose lives in git history. The found
 
 ## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light
 
-`launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`) plus two review branches
-(`lp/reel-a` @ `bf2727b`, `lp/reel-b` @ `33adfd6`). Gate green at every commit; 1316 tests. Verified
+`launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`, `e1372f8`, `6518dda`,
+`7a189ae`, `0cdd480`) plus two review branches (`lp/reel-a` @ `7d7d345`, `lp/reel-b` @ `ee10e04`, each
+its treatment on top of the same `launch-prep` base). Gate green at every commit; 1316 tests. Verified
 on the deployed aliases with the Chrome MCP; **nothing was verified on localhost**, by ruling.
 
 **The round's idea is a pacing principle, and it was corrected twice before anything was built.** The
@@ -85,6 +86,55 @@ measuring), an unbounded `img.decode()` hangs the evaluate for 45s, chained `set
 intensive throttling and make a two-second script take minutes, a screenshot after a scroll jump can be
 a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
 
+## 2026-09-01 — Round 1, second pass: both lamps pulled, and the light moved to the film strip and the Pro card
+
+`launch-prep` (`bd6892f`, `1faaad4`, `bbb0430`, `42ba717`, `732b2e4`). Gate green at every commit.
+Verified on the deployed `launch-prep` alias with the Chrome MCP, after the first pass had been verified
+in the in-app Browser pane, which renders the marketing pages black; that is the tooling root cause of
+shipping two lamps nobody had actually seen.
+
+**Will pulled both first-pass lamps, and was right on every count.** The hero lamp put a straight-edged
+band of haze across a wall of moving photographs: the hero is already the loudest, most media-forward
+surface on the site, and there is no source above the band because the wall IS the ground. The album
+lamp was wedged into a 63px gap between two visuals that are already tight, where it could barely be
+read even when it rendered correctly. Both drew a visible rectangle, law 4's one explicit prohibition,
+written into the doctrine that same round. ★ **The placements were wrong before the rendering was
+wrong**: no amount of tuning makes a lamp correct on a surface with no lamp above it, or in a slot too
+tight to read. What stayed, because it is verified and independent of placement: the root-layout filter
+singleton, the reduced-motion fix, the DOM sampler, the dev-only missing-host guard, and the doc
+corrections. The hero's colour warm-up (registered `--glw-c1..5` transitioning from the house set to
+the sampled set) was built, measured, and pulled unproven; it is logged in the ROADMAP.
+
+**The redo chose surfaces from a screenshot survey of all thirteen home sections, not from a lab
+specimen.** Measured, the page is ZONES rather than sections: the decomposition, the film strip and the
+live demo all sit within one viewport of each other, so at most one can carry a lamp; the reel teaser
+and the event cards likewise. Will picked the film strip and the event cards. **The film strip takes
+light off its own bottom edge**: the sprocket rail stops and black begins, which is the real-boundary
+condition the footer seam has always quietly depended on, and the three SCENE cards 48px below are
+positioned to catch it. It samples the strip's eight frames. ★ **Both first attempts still drew
+edges, and the reason generalises**: each glow box was sized to the region to be lit rather than to
+where the falloff dies, which are different numbers. The strip lamp is therefore full-bleed, so its
+side edges are off-screen the way the footer's always were.
+
+**Will's review of that pass, and the four changes it produced.** The film strip was approved as-is
+("the lamp acting as almost a backlight... alive without being overwhelming"). (1) The event lamps
+became seams, one mechanic for every underlight on the site. (2) **The card tilt and the cursor-tracking
+glare were retired**, both halves: "a nice touch by itself, this would need to be applied globally to
+become part of our visual identity, but it does not complement our rainbow glow/spill/beam at all"; the
+sharper reason is that the glare is a second light model on the same card, chasing the pointer, six
+inches from a lamp saying the light comes from the photograph. The press affordance stays. (3) **The
+Pro card takes the beam**, lab moment 12's reference implementation, which the first pass had not
+reached for ("despite us having built almost the perfect pro pricing card with a beam effect in the
+lab... it wasn't even considered"). Beam, not spill: it marks the live subject. (4) A focus pass on the
+pricing cards, which were "stale card headings and fully achromatic".
+
+**The event cards' light was then moved INSIDE the card** ("the glow would be the background of the
+bottom part of each event card, so it visually bleeds from the image above within the card itself"): a
+seam hanging below the card read as a detached coloured slab, and contained, the same light read as the
+photograph continuing into the card's own body. ★ That made the card's own `overflow-hidden` the one
+place in the system where a clipping ancestor is correct, because the clip IS the card. Round 2 then
+dropped that light altogether, for scarcity against the Pro beam one viewport below (recorded above).
+
 ## 2026-09-01 — Round 1: the home page's light, and the first colour taken from a photograph
 
 `launch-prep` (`f6cfd07`, `8a2c181`, `01424e6`, `b6d7650`). Gate green at every commit;
@@ -145,6 +195,9 @@ GlowFilter(")`; moving `GlowFilter` out made that −1, and `slice(start, -1)` d
 everything but the last character, so both kept passing over the wrong text. Same class as the four
 unable-to-fail guards the round-0 sweep found, except created by an unrelated refactor rather than
 written wrong. Bounds are now asserted and searched forward from the start index.
+
+★ **Superseded the same day.** Both lamps below were pulled in `bd6892f` (the second-pass entry
+above); the machinery, the reduced-motion fix, the DOM sampler and the guard stayed.
 
 **Verified live at `b6d7650`:** 1 filter host and no duplicate ids on both the home page and the root
 404 (which proves the hoist target, being outside `(marketing)`); 3 lamps at 1440 with gaps of **3.06

@@ -279,15 +279,22 @@ reduced-motion visitor sees permanently. It shipped declaring `50% 0` for two ro
 of the sweep, i.e. the worst case, forever, for the people who asked for less motion. Fixed at round 1
 and pinned by test.
 
-### The three shipped lamps
+### The shipped light
 
-| Lamp | Where | Shape | Colour |
+| Light | Where | Shape | Colour |
 | --- | --- | --- | --- |
 | **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
-| **The hero underlight** | [cinema-hero.tsx](../../src/components/marketing/sections/home/cinema-hero.tsx) | `seam` | **sampled** from the wall's eager tiles |
-| **The album straddle** | [album-glow.tsx](../../src/components/marketing/sections/home/album-glow.tsx), `lg` only | `throw` | **sampled** from the card's eight tiles |
+| **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
+| **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
 
-All three ship at `--glw-dur: 11s` against the engine's ruled 8s. With three lamps the open ruling is no
+Two seams and one beam, 4128px apart on the home page (4.6 viewports at 1440): scarcity as a distance.
+The hero and the album straddle were lit at round 1 and pulled the same day (the wall is the ground,
+not a source; the straddle's slot is 63px), and the event cards' own light was tried three ways and
+dropped for scarcity against the beam. Treatment A of the reel opener adds a seam under the reel
+player ([reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx))
+on `lp/reel-a`, pending Will's ruling.
+
+Both seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the open ruling is no
 longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
 11s against the whole page at 8s.
 
