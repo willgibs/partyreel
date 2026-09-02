@@ -119,9 +119,16 @@ describe("the legal single-source", () => {
   });
 
   it("status lines read as intended in both states", () => {
-    expect(legalStatusLine(LEGAL_DOCUMENTS.privacy)).toBe(
-      "Version 1.0 · Pending counsel review · Effective on launch",
-    );
+    // Both cases are CONSTRUCTED, so this pins the function rather than the
+    // shipped status: reading the live meta for the pending case made the
+    // launch flip fail here, on a document that had done nothing wrong.
+    expect(
+      legalStatusLine({
+        ...LEGAL_DOCUMENTS.privacy,
+        status: "pending-review",
+        effectiveDate: null,
+      }),
+    ).toBe("Version 1.0 · Pending counsel review · Effective on launch");
     expect(
       legalStatusLine({
         ...LEGAL_DOCUMENTS.privacy,
