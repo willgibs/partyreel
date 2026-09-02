@@ -11,6 +11,36 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — MILESTONE-17: prod = the operating model for parallel tracks and the library round
+
+`main` @ tag `milestone-17` (`42c5cd2`; `launch-prep` `37e143b` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree (an empty diff), the
+gate green on it (1513 tests, 244 static pages, each step on its own exit code), prod READY at the
+merge SHA within three minutes. The round itself is the entry below this one.
+
+**The preview walk before the merge (`fadb6f5` and `37e143b`, the launch-prep alias, the key in
+the URL):** the fifteen kept lab routes 200 (`/design`, the six library pages, `/design/record`, the
+four sandbox boards, motion, stream-probe, reel-parity; `/design/boom` 500 into the error boundary);
+`/design`, `/design/marketing`, `/design/record` and a board 404 bare and with a wrong key; the seven
+retired paths 404 (`/design/system`, `/design/demo`, `/design/event-feed`, `/design/gate-check`, two
+distilled board ids, the sample pack); `/api/design-gate` 200 keyed, 404 bare, 404 wrong. In the
+browser: `/design/marketing` renders its eight sections and 32 specimens on the cinema skin with a
+clean console (DemoTicket present, so the preview carries the demo event; no `data-lit` anywhere on
+the page); the sidebar reads Reference 6 / Sandbox 4 / Lab 4 and the landing's four jump cards resolve;
+`/design/record` shows 4 open and 26 ruled; the spill-placements board still wears its lit surface from
+its own sheet (four `[data-lit]`, the inset hairline computed) with 21 engine mounts and 30 skeleton
+tiles; the decomposition board renders inside `[data-mkt]` with its DesktopFrame at 560px from the
+lab's own stylesheet; the home with the key mounts the motion tuner after a 200 from
+`/api/design-gate` and never calls the old route. One finding, fixed in `37e143b`: the display-scale
+hero specimen clipped, because that step is single-line by contract (one or two words) and the
+specimen gave it a sentence.
+
+**Prod at `42c5cd2`:** the home, /blog, /help, /pricing, /privacy, /terms, /features and the
+`Test Wedding` door 200; the purge cron 401 without its secret; the lab and the gate route behave as on
+the preview; the retired paths 404. The home's main stylesheet on the wire: **38,287 brotli bytes,
+against 42,402 at milestone-16** (265,358 raw against 304,277); the other two chunks unchanged. The
+lab's own sheet (8,674 brotli) loads only under `/design`.
+
 ## 2026-09-02 — Round 3, parts A and B: the operating model for parallel tracks, and the library round
 
 On `launch-prep` (`ece2a8a` through `000ecd6`), the first two workstreams of the round-3 plan (the
