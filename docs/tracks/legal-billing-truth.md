@@ -1,7 +1,7 @@
 ---
 track: legal-billing-truth
 status: open
-cut: "ae2e7cd"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
+cut: "efe8118"
 preview: false
 owns:
   - docs/PRICING.md
@@ -11,6 +11,7 @@ owns:
   - src/components/marketing/jsonld.tsx
   - content/blog/scanned-a-qr-code-where-your-photos-go.mdx
   - src/lib/env-example-parity.test.ts
+  - src/app/legal-print.test.ts
 reads:
   - src/lib/env.ts
   - src/lib/constants/legal.ts
