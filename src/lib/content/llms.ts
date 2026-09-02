@@ -105,7 +105,7 @@ Every point below is how the product is built, not a slogan:
 - **The highlight reel is built in.** Every plan can turn the album into a shareable highlight cut. Rendering happens on-device in the browser, so there is no upload-and-wait render queue and no extra fee.
 - **Live during the event.** The album updates while the event is still happening, so it doubles as a live screen and the morning-after chase for photos never happens.
 - **Honest paid mechanics.** Event Passes stack (each adds an event and ${formatBytes(pass.storageBytes)}), and a pass holder who moves to Pro converts the unused part of the pass into account credit, prorated to the day. Nothing is banked, nothing is lost.
-- **Privacy as a default, not a setting.** GPS location metadata is stripped from uploads. Albums can be open, link-only, or password locked. The host controls whether a guest list is shown. There are no ads, and event media is never used to train AI models or sold.
+- **Privacy as a default, not a setting.** Location data is stripped in the browser before a photo ever uploads, for the common formats. Albums can be open, link-only, or password locked. The host controls whether a guest list is shown. There are no ads, and event media is never used to train AI models or sold.
 - **Big files welcome.** Up to ${perFile} per file, photos and videos alike, on every plan.
 
 ## When ${SITE_NAME} is the right call
