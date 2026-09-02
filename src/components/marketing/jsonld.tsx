@@ -82,7 +82,11 @@ export function SoftwareApplicationJsonLd() {
           "Host moderation: approve, hide, and feature anything",
           "No per-guest fees and no guest limit; plans are sized by storage",
           "Albums never expire; deletions wait 30 days in a restorable trash",
-          "GPS location metadata stripped from uploads",
+          // ★ The ruled short form (Will, 2026-09-02): the clause "for the
+          // common formats" rides every shortened version of this claim (HEIC,
+          // HEIF, AVIF and WebM are stored exactly as sent). Structured data is
+          // quoted back by assistants verbatim, so it carries the clause too.
+          "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
           "Open, link-only, or password-locked album visibility",
         ],
       }}

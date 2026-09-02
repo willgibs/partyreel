@@ -184,6 +184,9 @@ commands; the numbers are the built files, not the deployed (brotli) wire bytes.
 | after the cut `3e0dfa7` (26 boards, the screens mirror, the event-feed prototype, the sample pack gone) | 275,472 | 39,143 | 2,803 | 1 (the name quoted in ROADMAP, scanned as a class) |
 | after `@source not` for the lab and docs, with the theme split (`globals.css` + `theme.css`) | 265,358 | 37,790 | 2,664 | 0 |
 
+On the wire (brotli, `curl -H 'Accept-Encoding: br'` against the built chunks): the same stylesheet
+went from 42,402 bytes on prod at milestone-16 to 38,287 at milestone-17.
+
 Selectors: the cut removed 354 and added 7; the scan exclusions removed a further 144 and added 5
 (regrouped rules). Net for the round: **38,919 raw bytes (12.8 percent) and 4,294 gzipped bytes (10.2
 percent) off every production page.** The lab now carries its own sheet, compiled from a scan of the

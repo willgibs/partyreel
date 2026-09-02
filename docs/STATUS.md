@@ -32,7 +32,7 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
-| **Round 3 (A + B): the operating model + the library round** | **✅ on `launch-prep` (2026-09-02)**, the milestone merge follows the preview red-team: track manifests + two guards + the build gate on request; the lab distilled (26 boards to [`decisions/design-record.md`](decisions/design-record.md), `/design/marketing`, `/design/record`, the CSS split: the home's main sheet 304,277 → 265,358 bytes). Part C (the roadmap as tracks + the wave-1 inits) is next. |
+| **Round 3 (A + B): the operating model + the library round** | **✅ milestone-17 (2026-09-02)**: track manifests + two guards + the build gate on request; the lab distilled (26 boards to [`decisions/design-record.md`](decisions/design-record.md), `/design/marketing`, `/design/record`, the CSS split: the home's main sheet 304,277 → 265,358 bytes). Part C (the roadmap as tracks + the wave-1 inits) is next. |
 | R4 Growth (Share Studio) / R4b Social P4 | Profiles+social P1-P3 shipped early (rode milestone-2); Share Studio + the P4 feed not started |
 | R5 Notifications · R6 App polish · R7 Admin · R8 Hardening | not started (content: their [ROADMAP](ROADMAP.md) buckets) |
 
@@ -340,7 +340,7 @@ All backing services run under the dedicated owner account **partyr33l@gmail.com
 
 **Already configured — DO NOT redo:** R2 buckets + creds + CORS + abort-multipart lifecycle rule; the
 apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products/prices + webhook + Billing
-Portal + the 5 env vars; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
+Portal + the 10 Stripe env values; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
 allow-list + `NEXT_PUBLIC_ADMIN_HOST` (break-glass: delete the TOTP factor in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup
 Action secrets; the prune crons + shared `PRUNE_API_SECRET`. (All Vercel-side items were recreated on
@@ -378,8 +378,8 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **Everything through the help catalog is on prod (MILESTONE-16, 2026-09-02).** `launch-prep` is
-   ahead of `main` (`9b61419`) by round 3 parts A and B; the milestone merge follows the preview walk. One track is open: `lp/marketing-feature-pages` (Will's, cut at
+2. **Everything through the library round is on prod (MILESTONE-17, 2026-09-02).** `launch-prep` and
+   `main` agree at `42c5cd2`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
    `7a189ae`, 16 commits ahead and 41 behind; its code lane is clean and its four doc edits are
    reconciled at integration). Every track's claim and handoff lives in [`docs/tracks/`](tracks).
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
@@ -392,10 +392,22 @@ manifest fill.
 6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
    facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
    "Elevation-program deferred queue").
-7. **Tracks:** one open (`lp/marketing-feature-pages`, Will's). The next wave's inits come from the
-   round-3 plan (CI, product truth, legal and billing truth, ops hardening, account deletion, the
-   demo seed), each spawned with a stub manifest in [`docs/tracks/`](tracks); both content Agents of
-   2026-09-01 (legal `lp/legal-docs`, help `lp/help-catalog`) were integrated 2026-09-02.
+7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
+   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
+   one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
+   and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
+   **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) `legal-billing-truth` integrated at `2f98157`, and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
+   Will's sessions or the next window, as slots free. Integration: 1 + 2 together → a
+   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
+   branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
+   run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
+   (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
+   round in the Launch checkpoint's human order.
+8. **The account-required unfurl line** (from `product-truth`, on prod at the next milestone): it now
+   reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
+   rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.
+9. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
+   suite ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
 

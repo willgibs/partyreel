@@ -28,7 +28,8 @@ something a later session can read.
   and pushed before any other work.
 - **handed-off**: the agent has filled Handoff and Record, run the pre-handoff sync and the lane
   check, set `status: handed-off`, and pushed. The chat report is one line.
-- **integrated**: flipped by the Orchestrator inside the merge commit, with `merged: "<sha>"`.
+- **integrated**: flipped by the Orchestrator inside the merge commit, with `merged: "<sha>"` (the
+  branch head that was merged; the merge commit itself is cited in the CHANGELOG).
 
 ## Claims are path prefixes
 
@@ -116,6 +117,27 @@ reads:                  # shared single-sources you depend on: never duplicate, 
 
 Merged into `launch-prep` at `<sha>` (<date>). ...
 ```
+
+## Spawning a track from a stub
+
+When the Orchestrator has committed a stub, the manifest IS the init. The whole prompt for the new
+session:
+
+> You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
+> `docs/tracks/<track>.md` and is your whole init (goal, rulings, owned paths, verification). Boot per
+> `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,
+> setting `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
+
+## The queue (not yet cut; no manifest until their wave opens)
+
+The wave plan is in [`../STATUS.md`](../STATUS.md). These tracks cannot be stubbed yet because their
+claims overlap a live track; they open when it integrates.
+
+| track | after | owns (prefixes) | rulings up front |
+| --- | --- | --- | --- |
+| `marketing-followons` | `lp/marketing-feature-pages` integrates and `legal-billing-truth` lands | `src/app/(marketing)/`, `src/components/marketing/` (except `system/page-hero.tsx` beyond the trio ruling), `src/app/(marketing)/marketing.css`, `src/lib/constants/contact.ts`, `src/app/not-found.tsx` | the blur-rise trio becomes a NAMED third `entrance` register with the h1 visible at paint; the visibility word "Public" on `access-switch.tsx`; Report on `privacy-faq.ts`; the EXIF clause on `never-rides-along.tsx` and `feature-pages.ts`; `/contact` onto cinema with no identity revisit; one reply line; the root 404 tint |
+| `glow-engine-defects` | the library round (shipped) and `legal-billing-truth` | `src/components/shared/glow.tsx`, `src/lib/shared/use-in-view-once.ts`, `src/lib/shared/sampled-palette.ts`, `src/components/dev/glow-contrast.ts`, the engine block of `src/app/globals.css` (by ruling) | none; no placements (those are Will-paced rounds): the unarmed bloom band rests, `useInViewOnce` gains a viewport-relative arming option (default unchanged), the sampler loads `previewUrl` through `decodeImage`, `effectiveAlpha` models base + band, the compiled-away `@supports not` settled, every `BorderBeam` wrapper pins `theme` |
+| `marketing-mobile` | `marketing-followons` | all of `src/app/(marketing)/`, `src/components/marketing/`, `marketing.css`, alone in its wave | none up front, many during; judged on Will's phone, reduced motion and a classic scrollbar included; gating for launch |
 
 ## Previews
 

@@ -98,49 +98,78 @@ custom_slug), `MAX_REEL_SECONDS` (30/60), and the `friendlyCapacity` display hel
 
 ## Stripe setup (Cut 4b)
 
-Most of this is **automated via the Stripe MCP** (the agent creates the products, prices,
-webhook endpoint, and Billing Portal config). The human only pastes the env values the
-agent can't set. **Build in TEST mode; re-create in live + swap keys before launch.**
+The catalog is **automated via the Stripe MCP** (the agent creates the products and prices).
+The two dashboard-only jobs (webhook endpoint, Billing Portal) and the env values are the
+human's. **Built in TEST mode; the live re-creation is the cutover below.**
 
 **Mode caveat (learned 2026-05-29):** the Stripe MCP connector is bound to one mode by its
 key — there's no per-call mode flag. The first connector was **live** (`create_product`
 returned `livemode:true`), so test-mode automation needs a **test-mode connector/key**.
 Always check the mode before creating resources.
 
-**Agent creates via MCP (DONE in test mode 2026-05-29):** the 3 Pro products + recurring
-monthly USD prices — Partyreel Pro 100 GB ($9) `price_1TcTbgPtjqmVkBwk7qfplvly`, 500 GB
-($19) `price_1TcTbtPtjqmVkBwkIT8mPznE`, 2 TB ($39) `price_1TcTbwPtjqmVkBwkHQpJuYOr`.
-(Separate products so the storage shows in Checkout + the portal's plan-switcher.) _Note:
-the MCP can NOT create webhook endpoints or portal configs — those are dashboard tasks
-below._
+**The catalog: 4 products, 8 prices** (agent-created via MCP; the ids below re-verified
+against the test account 2026-09-02). Separate products per storage size so the size shows
+in Checkout and in the portal's plan switcher, and **the yearly price rides the SAME product
+as its monthly sibling** — same-product active prices are what the portal's monthly↔yearly
+switch walks. _Note: the MCP can NOT create webhook endpoints or portal configs; those are
+the dashboard tasks below._
+
+| Product              | Price      | Type      | Test Price ID                    | Env key                           |
+| -------------------- | ---------- | --------- | -------------------------------- | --------------------------------- |
+| Partyreel Pro 100 GB | $9 / mo    | recurring | `price_1TcTbgPtjqmVkBwk7qfplvly` | `STRIPE_PRICE_PRO_100`            |
+| Partyreel Pro 100 GB | $90 / yr   | recurring | `price_1U9FInPtjqmVkBwkKKmtg9LL` | `STRIPE_PRICE_PRO_100_YR`         |
+| Partyreel Pro 500 GB | $19 / mo   | recurring | `price_1TcTbtPtjqmVkBwkIT8mPznE` | `STRIPE_PRICE_PRO_500`            |
+| Partyreel Pro 500 GB | $190 / yr  | recurring | `price_1U9FInPtjqmVkBwkcadWJaH3` | `STRIPE_PRICE_PRO_500_YR`         |
+| Partyreel Pro 2 TB   | $39 / mo   | recurring | `price_1TcTbwPtjqmVkBwkHQpJuYOr` | `STRIPE_PRICE_PRO_2TB`            |
+| Partyreel Pro 2 TB   | $390 / yr  | recurring | `price_1U9FIoPtjqmVkBwkiaviRh0Y` | `STRIPE_PRICE_PRO_2TB_YR`         |
+| Partyreel Event Pass | $24 once   | one-time  | `price_1TcUcDPtjqmVkBwkJCypwyVb` | `STRIPE_PRICE_EVENT_PASS`         |
+| Partyreel Event Pass | $15 renew  | one-time  | `price_1TcVuOPtjqmVkBwkTCXTKOIs` | `STRIPE_PRICE_EVENT_PASS_RENEWAL` |
+
+_The three Pro products are named with an em-dash in Stripe today ("Partyreel Pro — 100 GB"),
+and those names render in Checkout and in the portal: user-facing copy, so the live catalog
+should be created without one (and the test names renamed when convenient)._
 
 **Human does in the Stripe dashboard (test mode):**
 
 - **Webhook endpoint** (Developers/Workbench → Webhooks) → `https://partyreel.com/api/stripe/webhook`,
   events: `checkout.session.completed`, `customer.subscription.created` / `.updated` /
   `.deleted`, `invoice.payment_failed`. Copy the signing secret (`whsec_…`).
-- **Billing Portal** (Settings → Billing → Customer portal): enable payment-method update +
-  subscription cancellation + (optional) plan switching across the 3 Pro products; **Save**.
+- **Billing Portal** (Settings → Billing → Customer portal): payment-method update +
+  subscription cancellation + plan switching across **all six Pro prices** (both intervals on
+  each of the three products), `proration_behavior: always_invoice`; **Save**. Six, not three:
+  the portal is the ONLY route between monthly and yearly (checkout refuses a second
+  subscription for an active Pro), so a portal listing monthly prices alone strands every
+  annual plan the moment someone subscribes.
 
-**Human pastes into `.env.local` + Vercel, then redeploys** (the agent can't set Vercel env
-or read the secret key):
+**The ten env values** (the whole Stripe surface, and therefore the whole cutover). The human
+pastes them into `.env.local` + Vercel, then redeploys; only the first two are secrets, the
+eight price IDs are public ids.
 
-- `STRIPE_SECRET_KEY` — the **test** secret key (Stripe dashboard → API keys; `sk_test_…`).
+- `STRIPE_SECRET_KEY` — the mode's secret key (Stripe dashboard → API keys; `sk_test_…` today).
 - `STRIPE_WEBHOOK_SECRET` — the `whsec_…` from the webhook endpoint above.
-- `STRIPE_PRICE_PRO_100` / `_PRO_500` / `_PRO_2TB` — the 3 price IDs above.
+- `STRIPE_PRICE_PRO_100` / `_500` / `_2TB` — the three monthly Pro prices.
+- `STRIPE_PRICE_PRO_100_YR` / `_500_YR` / `_2TB_YR` — the three annual Pro prices.
+- `STRIPE_PRICE_EVENT_PASS` and `STRIPE_PRICE_EVENT_PASS_RENEWAL` — the two one-time prices.
+
+Only five are hard-asserted at request time (`assertStripeEnv()`: the key, the webhook secret
+and the three monthly Pro prices). The annual trio and the two pass prices are validated
+lazily by `priceIdForPlan()` / `eventPassRenewalPriceId()`, so a missing one breaks exactly
+that checkout instead of the whole app — which also means an unset annual price fails only
+when a host picks yearly. `.env.example` lists all ten (a Vitest parity test keeps it honest).
 
 **Verified in production — test mode (2026-05-29):** a live checkout (Pro 500 GB, card
 `4242 4242 4242 4242`) flipped `tier='pro'` + `storage_cap_bytes=500 GB` via the webhook;
 the portal opened; an immediate `cancel_subscription` downgraded back to Free.
 
-**Cut 4c — Event Pass (wired, test mode):** one-time price
-`price_1TcUcDPtjqmVkBwkJCypwyVb` ($24, `type: one_time`) → set
-`STRIPE_PRICE_EVENT_PASS` in `.env.local` + Vercel. Checkout uses `mode:"payment"`;
-provisioned from `checkout.session.completed` (`metadata.plan_id="event_pass"`) →
-`tier='event_pass'`, 75 GB, `tier_expires_at = session.created + 365 d`; the purge cron's
-expiry sweep downgrades lapsed passes to Free. No new webhook event (it already listens to
-`checkout.session.completed`) and no portal change. (Live cutover: see "Test → Live" — it
-already lists `_EVENT_PASS`.)
+**Event Pass (wired, test mode):** the two one-time prices above. Checkout uses
+`mode:"payment"`, so no `customer.subscription.*` ever fires; provisioning rides
+`checkout.session.completed` (`metadata.plan_id="event_pass"`), which mints an `event_passes`
+LEDGER row (ADR-0025) and recomputes the profile from the ledger: +1 event slot and +75 GB for
+that row's own ~1-year window, stacking with any other live pass. The renewal price carries
+`metadata.renewal="1"` and opens its window at the soonest-expiring active pass's expiry
+(extends, never resets); the daily sweep recomputes holders down as windows lapse. No new
+webhook event (it already listens to `checkout.session.completed`) and no portal change: a
+pass is not a subscription, so the portal never shows one.
 
 ## Test → Live cutover (reference guide)
 
@@ -160,26 +189,32 @@ account) — live mode is inert until the account is activated.
    dashboard in live mode). **Verify first:** `retrieve_balance` → `livemode:true` (or a
    created object's `livemode`). _(The connector has no per-call mode flag — wrong mode =
    resources in the wrong place; this bit us once.)_
-2. **Re-create the 3 Pro products + recurring prices in LIVE** (Stripe MCP `create_product`
-   + `create_price`, or the dashboard): 100 GB $9/mo, 500 GB $19/mo, 2 TB $39/mo. Capture
-   the new **live** `price_…` IDs (they differ from the test IDs above). _(Cut 4c: also the
-   one-time Event Pass price.)_
+2. **Re-create the 4 products + 8 prices in LIVE** (Stripe MCP `create_product` +
+   `create_price`, or the dashboard): the three Pro products each with **both** a monthly and
+   a yearly price (100 GB $9/$90, 500 GB $19/$190, 2 TB $39/$390), and the Event Pass product
+   with **both** one-time prices ($24 purchase, $15 renewal). Capture the eight new **live**
+   `price_…` IDs (they differ from the test IDs above). Put each yearly price on the same
+   product as its monthly sibling, or the portal's monthly↔yearly switch has nothing to walk.
 3. **Create the webhook endpoint in LIVE** (dashboard → Webhooks, live mode) →
    `https://partyreel.com/api/stripe/webhook`, events `checkout.session.completed` +
    `customer.subscription.created`/`.updated`/`.deleted` + `invoice.payment_failed`. Copy
    the **live** signing secret (`whsec_…`). _(MCP can't create webhook endpoints.)_
 4. **Configure the Billing Portal in LIVE** (Settings → Billing → Customer portal, live
-   mode): payment-method update + cancellation + plan switching across the 3 **live** Pro
-   products; Save. _(Per-mode — the test portal config does NOT carry over; MCP can't do
-   this.)_
-5. **Swap the env values** in `.env.local` + **Vercel** → redeploy: `STRIPE_SECRET_KEY` =
-   `sk_live_…`, `STRIPE_WEBHOOK_SECRET` = the **live** `whsec_…`, and
-   `STRIPE_PRICE_PRO_100/_500/_2TB` (+ `_EVENT_PASS`) = the **live** price IDs.
+   mode): payment-method update + cancellation + plan switching across **all six live Pro
+   prices**, `proration_behavior: always_invoice`; Save. _(Per-mode — the test portal config
+   does NOT carry over; MCP can't do this.)_
+5. **Swap the ten env values** in `.env.local` + **Vercel** → redeploy: `STRIPE_SECRET_KEY` =
+   `sk_live_…`, `STRIPE_WEBHOOK_SECRET` = the **live** `whsec_…`, and all eight
+   `STRIPE_PRICE_*` IDs (`_PRO_100/_500/_2TB`, `_PRO_100_YR/_500_YR/_2TB_YR`, `_EVENT_PASS`,
+   `_EVENT_PASS_RENEWAL`) = the **live** price IDs. Ten values, one redeploy: a half-swapped
+   set means the unswapped plan checks out against the wrong mode's price and 500s.
 6. **Smoke-test carefully — real cards charge real money.** Do one real upgrade with a real
    card, confirm `tier='pro'` (Supabase MCP), then cancel/refund. The flow itself is already
-   proven in test mode (identical code), so this is just a keys/resources sanity check.
+   proven in test mode (identical code), so this is just a keys/resources sanity check. Add
+   one **yearly** checkout and one **portal switch** to the pass: the annual prices and the
+   six-price portal have never run against live keys.
 
-**Rollback:** revert the 5 env values to the test ones in Vercel + redeploy. (Live Stripe
+**Rollback:** revert the ten env values to the test ones in Vercel + redeploy. (Live Stripe
 data persists but is unused while keys are test.)
 
 ## Fast-follows — email (Resend) + over-capacity retention + Event Pass renewal
@@ -228,11 +263,11 @@ Will pastes the credentials.**
   ([email-sign-in.tsx](../src/components/auth/email-sign-in.tsx)) has no cooldown — add a 60 s countdown
   so an early re-tap doesn't silently hit the 60 s min-interval.
 
-**Event Pass renewal:** a cheaper **$15 one-time renewal price** (test
-`price_1TcVuOPtjqmVkBwkTCXTKOIs`) on the same Event Pass product → set
-`STRIPE_PRICE_EVENT_PASS_RENEWAL`. Gated to current/recent pass holders; the dashboard
-"Renew Event Pass" button + the 14-day pre-expiry nudge email point at it. Live cutover:
-re-create the $15 price in live + set the env var (add to the cutover checklist above).
+**Event Pass renewal:** a cheaper **$15 one-time renewal price** on the same Event Pass
+product (`STRIPE_PRICE_EVENT_PASS_RENEWAL`; the id is in the catalog table above). Gated to
+holders with an active-now pass window, read from the ledger at checkout; the dashboard "Renew
+Event Pass" button + the 14-day pre-expiry nudge email point at it. It is one of the eight
+prices the cutover re-creates in live.
 
 **Over-capacity retention:** a lapsed account over its cap gets a **45-day grace** (media
 stays fully accessible + warning emails), then **auto-reduce** (largest-first) into the

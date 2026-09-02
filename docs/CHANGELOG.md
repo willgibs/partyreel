@@ -11,6 +11,92 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `legal-billing-truth` integrated (`2f98157`)
+
+Merged into `launch-prep` at `2f98157` (2026-09-02). The launch runbook's billing half stopped lying:
+the Stripe section of `PRICING.md` had described the 2026-05-29 catalog (three products, three
+monthly prices, five env values), so it was rewritten around the catalog as it actually stands, 4
+products and 8 prices with every test Price ID re-verified against the account, ten env values to
+swap, and a portal that must offer all six Pro prices because it is the only route between monthly
+and yearly; `billing-caps.md`'s runbook bullets were corrected in place. `.env.example` had drifted
+from `env.ts` by thirteen keys (the whole Stripe price set included) and now carries all thirty with
+a comment each, pinned both ways by `env-example-parity.test.ts`. The `LEGAL_PARTY` flip was
+rehearsed on a throwaway commit and reverted: it is green, and it needs one line of `legal.test.ts`
+nobody had noticed. `/privacy` and `/terms` gained a print stylesheet (light room, breaks between
+sections, links printing their targets), pinned by `legal-print.test.ts`. The EXIF claim took its
+ruled clause on this track's four sites, including the JSON-LD that feeds assistants.
+At integration the Orchestrator fixed the seventh EXIF site the track found (`src/lib/content/llms.ts`,
+the llms.txt feed) with the same clause. Gate on the merged tree: 1533 tests, 244 static pages.
+
+## 2026-09-02 — Track `ci-workflow` integrated (`192c708`)
+
+Merged into `launch-prep` at `192c708` (2026-09-02). Added `.github/workflows/ci.yml`: the four-step
+gate now runs on GitHub Actions for every push to `launch-prep` and `lp/*` and every pull request to
+`main`, on the pinned toolchain (Node from `.nvmrc`, pnpm 9.14.4, `--frozen-lockfile`), with the pnpm
+store cached and superseded runs of the same ref cancelled. `pnpm typecheck`, `pnpm lint`, `pnpm test`
+and `pnpm build` are four separately named steps, so the red step title is the diagnosis. Measuring the
+build against a genuinely empty environment showed it needs exactly two values,
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, both public by construction and
+therefore repository variables; the other three steps need no environment at all. The build step is
+guarded on those variables and skips with an annotation naming them until they are set, so a red run
+means broken code rather than unfinished setup. The gate was proven in both directions on the branch: a
+deliberately failing test turned a push red at the named `pnpm test` step and the revert turned it green
+again, and both commits stay on the branch as the proof. An agent's break now surfaces on its own push
+instead of inside the Orchestrator's integration window, which is what wider fan-out was waiting on.
+At integration the two repository variables were set from the Vercel project's values and `main` was
+added to the push triggers (milestone merges land without a pull request). Gate on the merged tree:
+1519 tests, 244 static pages.
+
+## 2026-09-02 — Track `product-truth` integrated (`1352bb7`)
+
+The first wave-1 track through the manifest model: stubbed by the Orchestrator, adopted at boot,
+handed off in the manifest (`d752a9b`), integrated in its own window with the lane check, the
+staleness check and the doc-eye pass, the manifest flipped inside the merge. Gate on the merged tree:
+1519 tests, 244 static pages, each step on its own exit code.
+
+Merged into `launch-prep` at `1352bb7` (2026-09-02). The app and guest surfaces stopped saying untrue
+things: eight of the nine gaps the help-catalog research found closed here, the ninth being
+marketing's. The host video refusal named both paid plans, not Pro alone; a completed Stripe Checkout
+finally got a confirmation, read once from `?upgraded=1` then stripped from the URL and worded by the
+server so it never claims a plan the webhook has not written; the event header chip started saying
+"Public" for `visibility = 'open'`, leaving "Open" to mean accepting uploads; `restoreEventAction` got
+its own result type so `mediaStillRemoved` leaves the action rather than dying in it, without widening
+the shared `ActionResult` (the toast reading it is deferred, in an unowned component); the "missing
+ETag" bucket misconfiguration went to the console and left the guest copy they can act on; `tiers.ts`
+stopped citing a retired 5-min / 2-GB video limit; the guest 404 stopped blaming an event for "ending"
+in a product with no end date; the unfurl stopped promising "no account" where one is required; and the
+host's Trash stopped listing a guest's own deletion behind a Restore `restore_media` always refused.
+
+## 2026-09-02 — MILESTONE-17: prod = the operating model for parallel tracks and the library round
+
+`main` @ tag `milestone-17` (`42c5cd2`; `launch-prep` `37e143b` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree (an empty diff), the
+gate green on it (1513 tests, 244 static pages, each step on its own exit code), prod READY at the
+merge SHA within three minutes. The round itself is the entry below this one.
+
+**The preview walk before the merge (`fadb6f5` and `37e143b`, the launch-prep alias, the key in
+the URL):** the fifteen kept lab routes 200 (`/design`, the six library pages, `/design/record`, the
+four sandbox boards, motion, stream-probe, reel-parity; `/design/boom` 500 into the error boundary);
+`/design`, `/design/marketing`, `/design/record` and a board 404 bare and with a wrong key; the seven
+retired paths 404 (`/design/system`, `/design/demo`, `/design/event-feed`, `/design/gate-check`, two
+distilled board ids, the sample pack); `/api/design-gate` 200 keyed, 404 bare, 404 wrong. In the
+browser: `/design/marketing` renders its eight sections and 32 specimens on the cinema skin with a
+clean console (DemoTicket present, so the preview carries the demo event; no `data-lit` anywhere on
+the page); the sidebar reads Reference 6 / Sandbox 4 / Lab 4 and the landing's four jump cards resolve;
+`/design/record` shows 4 open and 26 ruled; the spill-placements board still wears its lit surface from
+its own sheet (four `[data-lit]`, the inset hairline computed) with 21 engine mounts and 30 skeleton
+tiles; the decomposition board renders inside `[data-mkt]` with its DesktopFrame at 560px from the
+lab's own stylesheet; the home with the key mounts the motion tuner after a 200 from
+`/api/design-gate` and never calls the old route. One finding, fixed in `37e143b`: the display-scale
+hero specimen clipped, because that step is single-line by contract (one or two words) and the
+specimen gave it a sentence.
+
+**Prod at `42c5cd2`:** the home, /blog, /help, /pricing, /privacy, /terms, /features and the
+`Test Wedding` door 200; the purge cron 401 without its secret; the lab and the gate route behave as on
+the preview; the retired paths 404. The home's main stylesheet on the wire: **38,287 brotli bytes,
+against 42,402 at milestone-16** (265,358 raw against 304,277); the other two chunks unchanged. The
+lab's own sheet (8,674 brotli) loads only under `/design`.
+
 ## 2026-09-02 — Round 3, parts A and B: the operating model for parallel tracks, and the library round
 
 On `launch-prep` (`ece2a8a` through `000ecd6`), the first two workstreams of the round-3 plan (the

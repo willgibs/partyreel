@@ -64,8 +64,9 @@ a session opened in the repo root.
 > build, then hand off by filling the manifest's Handoff + Record sections, setting
 > `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
-(A bare goal works too — CLAUDE.md "Sessions & roles" routes any undesignated session here — but the
-one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
+(With a committed stub the prompt shrinks to one line, in [`tracks/README.md`](tracks/README.md)
+"Spawning a track from a stub": the manifest is the init. A bare goal works too — CLAUDE.md "Sessions &
+roles" routes any undesignated session here — but the one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
 one, say so: "resume `lp/<track>`".)
 
 **Orchestrator** (repo root, no worktree):

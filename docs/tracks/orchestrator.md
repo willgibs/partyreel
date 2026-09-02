@@ -25,7 +25,9 @@ landed. Agents sync `origin/launch-prep` mid-round only when a line below touche
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
 **This window (round 3, 2026-09-02):** the operating model (this directory, the two guards, the
-registry split, the build-gate policy, the program docs), then the library round on the lab.
+registry split, the build-gate policy, the program docs), then the library round on the lab, then
+wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orchestrator-run agents
+(worktrees under `../partyreel-wt/`); their integration is the next window, CI first and alone.
 
 ## Landed this window
 
@@ -48,3 +50,8 @@ registry split, the build-gate policy, the program docs), then the library round
 - `000ecd6` `src/app/globals.css` gained `@source not` for the lab and `docs/`; its `@theme` block and
   the `dark` variant moved verbatim to `src/app/theme.css`. A lane editing tokens edits VALUES in
   `globals.css` and the MAPPING in `theme.css`; `css-source-policy.test.ts` explains.
+- Wave 1 integrated: `product-truth` (`1352bb7`: the dashboard, the guest door, `visibility-selector.tsx`,
+  `media.ts`, `host-media.ts`, `uploader.ts`), `ci-workflow` (`192c708`: `.github/workflows/ci.yml`; CI
+  now gates every push), `legal-billing-truth` (`2f98157`: `.env.example`, the print block in `globals.css`,
+  `features.ts`, `jsonld.tsx`, the home privacy ledger, `PRICING.md`, `billing-caps.md`). A lane touching
+  any of those syncs this.

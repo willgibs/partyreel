@@ -1,0 +1,113 @@
+# The four-step gate, run by GitHub on every push that could reach an integration.
+#
+# Why this exists (2026-09-02, the parallel-tracks operating model): the gate
+# (`pnpm typecheck && lint && test && build`) was a local ritual, so a track's
+# breakage only surfaced inside the Orchestrator's integration window, on a tree
+# that already mixed several branches. Running it per push turns an agent's own
+# branch red BEFORE the merge, which is the prerequisite for wider fan-out.
+#
+# The toolchain is pinned to the one CLAUDE.md pins: Node from `.nvmrc`, pnpm
+# 9.14.4, `--frozen-lockfile` (so a lockfile that drifted from package.json fails
+# here rather than resolving to something nobody has installed).
+#
+# Each command is its OWN step so a failure names itself in the Actions UI: the
+# red step title is the answer, no log spelunking. Steps stop at the first
+# failure, on purpose (a broken typecheck usually explains the rest).
+#
+# BUILD ENV. `src/lib/env.ts` validates the public schema EAGERLY at import, so
+# `next build` dies collecting page data without these two (measured with an
+# empty environment, 2026-09-02):
+#   NEXT_PUBLIC_SUPABASE_URL              a valid URL
+#   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  a non-empty string
+# Both are public by design (Next inlines them into the client bundle), so they
+# belong in repository VARIABLES, never secrets, and never hard-coded here:
+#   Settings -> Secrets and variables -> Actions -> Variables -> New variable.
+# Nothing else is needed. Every other var in env.ts is `.optional()` with a lazy
+# assert, and the build performs no network calls (it built green on placeholder
+# values). typecheck, lint and test need NO environment at all (also measured),
+# which is why they run unconditionally and the guard only gates the build.
+#
+# Until those two variables exist, the build step SKIPS with a loud annotation
+# rather than failing: a red run must mean broken code, not unfinished setup, or
+# the signal is worthless on day one. Set them and it lights up on the next push.
+
+name: ci
+
+on:
+  push:
+    branches:
+      # main is included because milestone merges land on it by a direct push,
+      # never through a pull request (the track's own deferred note, 2026-09-02).
+      - main
+      - launch-prep
+      - "lp/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+# A newer push to the same ref supersedes the older run: only the tip matters.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # pnpm BEFORE node: `cache: true` caches the pnpm store keyed on
+      # pnpm-lock.yaml, so a clean tree reinstalls from the store, not the
+      # network. package.json has no `packageManager` field, so the version is
+      # named here and must track CLAUDE.md's pin.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.14.4
+          cache: true
+
+      - name: Install Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm typecheck
+        run: pnpm typecheck
+
+      - name: pnpm lint
+        run: pnpm lint
+
+      - name: pnpm test
+        run: pnpm test
+
+      - name: Guard - the build needs two public repository variables
+        id: buildenv
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=pnpm build skipped::Set the repository variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (Settings > Secrets and variables > Actions > Variables) to run the build step. typecheck, lint and test still gate every push."
+          fi
+
+      - name: pnpm build
+        if: steps.buildenv.outputs.ready == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: pnpm build
