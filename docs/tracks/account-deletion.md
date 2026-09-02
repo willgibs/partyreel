@@ -68,8 +68,9 @@ at first" for the Orchestrator's walk.
   lead-in renders glued to the next word). The whole PRERENDERED surface is clean as of `26341a7`,
   checked by scanning every built page for a missing space after an inline tag; the dynamic app
   routes were not scanned, and no lint or test catches it.
-- **Jobs / admin bucket:** `sweepDeletedAccounts` reports its counters in the cron response JSON like
-  every sibling sweep, but has no card on `/admin/jobs` (that path belongs to `lp/ops-hardening`).
+- **Nothing needed for `/admin/jobs`.** Checked against the catalog `lp/ops-hardening` just landed:
+  `src/app/admin/jobs/catalog.ts` enumerates JOBS, not sweeps, so this rides inside the existing
+  `purge_cron` card and its heartbeat. No catalog entry, no `ops_flags` row.
 - **QA bucket:** an operator-triggered deletion is indistinguishable from a self-serve one after the
   fact. A `deletion_requested_by` column would record it; skipped as the larger change, and the
   operator action is Sentry-tagged on failure only.
@@ -79,12 +80,18 @@ at first" for the Orchestrator's walk.
 
 ## Handoff
 
-- Head `26341a7`, pushed; preview `partyreel-git-lp-account-deletion-partyreel.vercel.app`
-  (READY and walked at `a231b28`; `26341a7` is the sync merge plus the entity fix).
-- Synced with `origin/launch-prep` at `4a092ea` (it had moved 9 commits: milestone-18, `demo-seed`,
-  and the docs folds; no source overlap with this lane).
+- Head = the branch tip (`git rev-parse origin/lp/account-deletion`; this commit is the last one),
+  pushed; preview `partyreel-git-lp-account-deletion-partyreel.vercel.app`
+  (READY and walked at `a231b28`, which carries all of the copy; the commits after it are the two
+  sync merges, the entity fix and this manifest).
+- Synced with `origin/launch-prep` TWICE, ending at `d157d15`. The first sync took milestone-18 and
+  `demo-seed`; the second took `lp/ops-hardening`, which matters here because it rewrote
+  `src/app/api/cron/purge/route.ts`, the file the one-line wire below goes into. Re-checked against
+  it: `runSweep` is unchanged, the proposed line still slots in directly after `removed_media`, and
+  the new `admin/jobs` catalog needs nothing (see Deferred). No source overlap with this lane in
+  either sync.
 - Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; the one
-  warning is the pre-existing `contact-form.tsx` React-Compiler notice), test ok (1549), build ok
+  warning is the pre-existing `contact-form.tsx` React-Compiler notice), test ok (1577), build ok
   (244 static pages). CI green on every push (`gh run list --branch lp/account-deletion`).
 - Lane check, `git diff --name-only origin/launch-prep...HEAD`:
 
