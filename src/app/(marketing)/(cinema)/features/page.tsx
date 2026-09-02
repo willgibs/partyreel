@@ -7,7 +7,6 @@ import {
   type DoorSlug,
   FeatureDoor,
 } from "@/components/marketing/sections/features/shared/feature-door";
-import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { PageHero } from "@/components/marketing/system/page-hero";
@@ -88,12 +87,11 @@ export default function FeaturesPage() {
           ~300ms budget instead of drifting to 540ms across seven items. The
           doors land on the hard cut: this is the page's one visual beat, and
           a cut is how a set of photographs arrives in the cinema. */}
-      <SectionShell
-        /* TEMPO: a section that ends on a POINTER is a bridge, not a full stop
-           (the film strip's rule), so it gives back part of its bottom padding
-           before the hard cut to the band. */
-        className="pb-12 sm:pb-14"
-      >
+      {/* Doors, then air, then the band (Will, 2026-09-02, the third cut of
+          this close): no pointer section, no link row. The directory is the
+          page, and the CtaBand is its only close; the section's full padding
+          is the breathing room between them. */}
+      <SectionShell className="py-24 sm:py-28">
         <Reveal className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FeatureDoor
             slug="reel"
@@ -114,26 +112,6 @@ export default function FeaturesPage() {
               style={{ "--i": Math.floor(i / 3) + 1 } as CSSProperties}
             />
           ))}
-        </Reveal>
-        {/* THE BRIDGE (Will, 2026-09-02, after two cuts of a "How it works"
-            section): the two-sided walkthrough and the help center are one
-            trailing link row under the doors, not a section. A second centred
-            lockup between the directory and the CtaBand read as the band's
-            twin however small it was made; a pointer row is a different
-            shape, so the band is the only heading in the close. The concept
-            it used to carry ("two sides, one album") lives in the link's own
-            words. */}
-        <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-          <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-            <LearnMoreLink href="/how-it-works">
-              The full walkthrough, both sides
-            </LearnMoreLink>
-          </div>
-          <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
-            <LearnMoreLink href="/help/how-partyreel-works">
-              How Partyreel works
-            </LearnMoreLink>
-          </div>
         </Reveal>
       </SectionShell>
 
