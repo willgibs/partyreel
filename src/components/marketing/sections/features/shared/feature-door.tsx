@@ -181,7 +181,7 @@ export function doorFor(slug: DoorSlug): {
       href: "/reel",
       title: "The highlight reel",
       line: `${GOLDEN_LINES.reelThesis}.`,
-      long: "The whole event, cut into a minute you can restyle in a tap and send the same night.",
+      long: "The whole event, cut into a minute you can restyle in a tap and send tonight.",
     };
   }
   const page = featurePage(slug);
