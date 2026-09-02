@@ -23,17 +23,29 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   runs milestone merges. It closes every round **succession-ready** (checklist below).
 - **Agents** work in worktrees on their own `lp/<track>`, **self-created at boot** (the Agent boot
   sequence below — Will never pre-creates branches). An Agent needs NO live Orchestrator: it
-  prepares the handoff (push `lp/<track>` + a report naming what it built, its gate results, its
-  branch preview URL (`partyreel-git-lp-<track>-partyreel.vercel.app`), and any proposed
-  migrations/config changes) and stops. Worktree sessions have no out-of-repo memory by
+  prepares the handoff in its manifest `docs/tracks/<track>.md` (the Handoff and Record sections:
+  what it built, the gate results on the synced tree, the lane check, the branch preview URL
+  `partyreel-git-lp-<track>-partyreel.vercel.app`, any proposed migrations/config changes), sets
+  `status: handed-off`, pushes, and stops; the chat report is one line. Worktree sessions have no out-of-repo memory by
   design — the repo is their whole context.
+- **Every track has a manifest** at `docs/tracks/<track>.md` (contract + template:
+  [`tracks/README.md`](tracks/README.md)): its claimed path PREFIXES, what it reads, the rulings it
+  works under, its handoff and its record. The Orchestrator stubs it at spawn or the Agent creates it
+  at boot, committed ALONE and pushed before any other work; `src/lib/track-manifests.test.ts`
+  refuses two live tracks whose claims overlap. Agents never edit CHANGELOG, STATUS, ROADMAP, this
+  file or CLAUDE.md: a track's record and its ROADMAP one-liners live in the manifest and the
+  Orchestrator folds them at integration; a `docs/systems/*.md` line may be refined in place only
+  for a fact inside the track's owned paths, and every such edit is listed in the manifest so it is
+  read by eye at the merge (a clean doc merge reconciles text, not facts).
 - **Orchestrator seat-in (a fresh Orchestrator session):** read [`STATUS.md`](STATUS.md) then this
-  doc; sweep `git branch -r --list 'lp/*'` for unintegrated handoffs; confirm the preview deploy
+  doc; read `docs/tracks/` (a `handed-off` manifest is the signal) and sweep
+  `git branch -r --list 'lp/*'` for branches without one; confirm the preview deploy
   state at the `launch-prep` tip; review Will's open decision queue in STATUS. Everything needed to
   seat lives in the repo.
 - **Succession-ready round close (the Orchestrator's exit checklist):** the record step is done
   (system docs refined in place, CHANGELOG entry, ROADMAP pruned); STATUS is current (round table,
-  live state, decision queue); every track branch is integrated or listed as a pending handoff;
+  live state, decision queue); every track branch is integrated or listed as a pending handoff; `git worktree list` shows only the root and open tracks and
+  `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and the preview deploy is READY there; nothing a
   successor needs lives only in the closing session.
 
@@ -45,9 +57,12 @@ a session opened in the repo root.
 
 **Agent:**
 
-> You are an AGENT on Partyreel's elevation program. Goal: `<goal>`.
-> Boot per `docs/PROGRAM.md` "Agent boot" (self-create your `lp/<track>` branch), then proceed;
-> hand off by pushing + a final report (include your branch preview URL).
+> You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
+> Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
+> `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
+> Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is step 0),
+> build, then hand off by filling the manifest's Handoff + Record sections, setting
+> `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
 (A bare goal works too — CLAUDE.md "Sessions & roles" routes any undesignated session here — but the
 one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
@@ -63,7 +78,9 @@ one, say so: "resume `lp/<track>`".)
 1. `git fetch origin`, then derive a short kebab `<track>` from the goal (e.g. `help-content`),
    keeping it ≤ 36 chars (past that the preview-alias label truncates).
    If `origin/lp/<track>` already exists, that's someone's handoff — pick a fresh variant name;
-   never adopt an existing branch unless Will's prompt said to resume it.
+   never adopt an existing branch unless Will's prompt said to resume it. If
+   `docs/tracks/<track>.md` exists on `origin/launch-prep`, adopt it only if your init named that
+   track (it is your stub); a stub with your derived name but not your goal is someone else's.
 2. **In a worktree** (the normal case — `git rev-parse --git-dir` contains `/worktrees/`): note your
    birth branch (`git branch --show-current`; the app's toggle auto-creates one, often cut from
    `main`), then `git checkout -b lp/<track> origin/launch-prep`. Delete the auto-created birth
