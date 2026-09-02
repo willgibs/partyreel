@@ -52,6 +52,11 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
 - **Media fixtures:** real images/videos live at `/Users/gibby/local/ai/partyreel-test-media`. Seed
   via REAL uploads through the product, never raw DB rows — a `media` row with no R2 object renders
   broken images and poisons later checks.
+- **Reseeding an album from a folder:** `node scripts/seed-demo-event.mjs <folder> [--host <email>]
+  [--name <event>] [--dry-run]` drives that same write path from Node (`mediaObjectKey`, the EXIF
+  strip, a ~640px WebP preview or video poster, an R2-HEAD size, `create_media_as_host`), replaces
+  the event's media on every run, and prints the event's `NEXT_PUBLIC_DEMO_QR_TOKEN`; it defaults to
+  the "Partyreel Demo" event and its host, and needs ffmpeg on PATH.
 
 ## Chrome MCP blind spots
 

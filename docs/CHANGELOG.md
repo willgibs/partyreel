@@ -11,6 +11,49 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `demo-seed` integrated (`ec69d7f`)
+
+Merged into `launch-prep` at `ec69d7f` (2026-09-02). `scripts/seed-demo-event.mjs` turns a folder of
+photos and videos into a demo album by driving the product's own write path from Node: keys from
+`mediaObjectKey`, the shared EXIF/GPS stripper before anything reads a size, a ~640px WebP preview
+per item (photo downscale, video poster at ~0.1s) sized by `preview-size.ts` and PUT to the reserved
+`preview` variant, `file_size_bytes` from an R2 HEAD, and the row from `create_media_as_host`. The
+rows come out indistinguishable from a host batch upload (guest_id null, approved) with the ledger
+and cap meters honest. A re-run replaces the set (R2 objects, then `purge_media_rows`, then the fresh
+upload), the event is reused by name so its `qr_token` survives, and the token is printed for
+`NEXT_PUBLIC_DEMO_QR_TOKEN`. Verified live on a throwaway event: 12 marketing images seeded and
+rendered on the launch-prep alias (presigned previews fetching 200), then replaced by a mixed folder
+of 5 whose video carried a poster and the same `duration_seconds` a real upload of that fixture had
+recorded; `backfill-strip-exif.mjs` called every seeded original clean; an Exif Orientation 6 photo
+recorded 600x900 with a rotated 427x640 preview; a refused upload (video on a free host) deleted its
+own objects; `storage_used_bytes` returned to its exact pre-run value after teardown. The throwaway
+events were deleted the way the purge cron does, and "Partyreel Demo" was never touched.
+Gate on the merged tree: 1533 tests, 244 static pages. The prod run against "Partyreel Demo" waits on
+Will's curated folder (the Launch checkpoint item); the script needs ffmpeg and ffprobe on PATH.
+
+## 2026-09-02 — MILESTONE-18: prod = wave 1 (CI, product truth, legal and billing truth)
+
+`main` @ tag `milestone-18` (`225716c`; `launch-prep` `a7f48a3` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1533 tests, 244 static pages); CI green on the integration pushes; prod READY at the merge SHA. The
+three track entries below are the round.
+
+**The walk before the merge, on the launch-prep alias, signed in as the Pro host through the Google
+account chooser:** the event header chip on the open demo event reads Public beside "Accepting
+uploads", with the word Open nowhere on the page; `/dashboard?upgraded=2` shows nothing. The purchase
+toast on `/dashboard?upgraded=1` was observed indirectly: between two looks the flag had been stripped
+from the URL and the toaster had mounted, which only happens once a toast has fired, but the direct
+capture never caught the text because the Chrome MCP's tab runs in the background and Chrome throttles
+its hydration (a 40-second poll saw the page still un-hydrated). Recorded as the tooling's blind spot,
+with Will asked for the ten-second look. Signed out, by curl: the guest 404 says the host may have
+deleted the event; the account-required door's unfurl says the event asks guests for an email; the
+anonymous demo event keeps "No app, no account".
+
+**Prod at `225716c`:** the home, /blog, /help, /pricing, /privacy, /terms, /features and the `Test
+Wedding` door 200, /dashboard 307 to login signed out; the door's unfurl and the 404 copy as above;
+`/privacy` carries the three print hooks; the home's JSON-LD featureList and `llms.txt` carry the ruled
+EXIF clause.
+
 ## 2026-09-02 — Track `legal-billing-truth` integrated (`2f98157`)
 
 Merged into `launch-prep` at `2f98157` (2026-09-02). The launch runbook's billing half stopped lying:
