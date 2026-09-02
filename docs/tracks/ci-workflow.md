@@ -48,13 +48,15 @@ proof); the run on `launch-prep` after integration.
 ## Handoff
 
 - Head: the tip of `lp/ci-workflow`, which is the commit that filled this manifest; the last content
-  commit under it is `20f60a3`, the `launch-prep` merge. All pushed. `status: handed-off` makes
+  commit under it is `9b2a937`, the second `launch-prep` merge. All pushed. `status: handed-off` makes
   `scripts/vercel-ignore-build.mjs` build the branch
   preview at `partyreel-git-lp-ci-workflow-partyreel.vercel.app`; there is nothing visual to look at,
   the Actions tab is the deliverable.
-- Synced: `launch-prep` HAD moved (2 commits, tip `cd8da95`). Merged, never rebased. One conflict, in
-  `docs/systems/testing-verification.md`: both sides appended a paragraph to the end of "## The gate".
-  Resolved by keeping both, CI first (it is about the gate itself), then the deploy-poll and zsh notes.
+- Synced twice, merged and never rebased, because `launch-prep` moved twice during the round. First at
+  tip `cd8da95` (2 commits), which conflicted in `docs/systems/testing-verification.md`: both sides had
+  appended a paragraph to the end of "## The gate", resolved by keeping both, CI first (it is about the
+  gate itself), then the deploy-poll and zsh notes. Then at tip `82a6711` (10 commits, the
+  `lp/product-truth` integration), which merged clean.
 - Gates on the synced tree, each run to its own log and checked on its own exit code: typecheck ok,
   lint ok (0 errors, the 1 pre-existing react-compiler warning in `contact-form.tsx`), test ok
   (1519 passed, 176 files), build ok (244 static pages, 107 route entries).
@@ -95,7 +97,8 @@ proof); the run on `launch-prep` after integration.
     it. `gh run view 33672961978 --log-failed` prints only that step.
   - `33673346622` green: the revert. Red to green in one push.
   - `33673680608` CANCELLED by `33673698070`: two `workflow_dispatch` runs seconds apart on the same
-    ref proved `cancel-in-progress`. The survivor went green.
+    ref proved `cancel-in-progress`. The survivor went green. Two pushes a minute apart proved it again
+    on the real trigger: `33674674960` cancelled, `33674766812` green.
   - The pnpm store cache is real: run 3 restored a 248 MB store on a lockfile-keyed hit and installed
     1105 packages with `downloaded 0`.
 - Two facts worth keeping: `gh workflow run ci.yml --ref lp/ci-workflow` works even though `ci.yml` is
