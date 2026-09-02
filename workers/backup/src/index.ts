@@ -21,6 +21,7 @@
  * Supabase Storage.) The event-notification subscription is filtered to `--prefix events/`, and the
  * reconciliation sweep lists only `events/`, so avatars never reach this Worker.
  */
+import { jobFinish, jobStart } from "./job-heartbeat";
 import { COPY_PART_BYTES, needsMultipart, partRanges } from "./strategy";
 import {
   PRUNE_DELETE_CAP_PER_RUN,
@@ -131,10 +132,18 @@ async function backupOne(env: Env, key: string): Promise<CopyResult> {
   }
 }
 
-async function reconcile(env: Env): Promise<void> {
+type ReconcileTally = {
+  checked: number;
+  copied: number;
+  failed: number;
+  capped: boolean;
+};
+
+async function reconcileSweep(env: Env): Promise<ReconcileTally> {
   let cursor: string | undefined;
   let checked = 0;
   let copied = 0;
+  let failed = 0;
   for (;;) {
     const listed: R2Objects = await env.PRIMARY.list({
       prefix: MEDIA_PREFIX,
@@ -147,13 +156,15 @@ async function reconcile(env: Env): Promise<void> {
           `reconcile: hit per-run cap (${RECONCILE_MAX_PER_RUN}); next run continues`,
           { checked, copied },
         );
-        return;
+        return { checked, copied, failed, capped: true };
       }
       checked++;
       try {
         if ((await backupOne(env, obj.key)) === "copied") copied++;
       } catch (err) {
-        // Best-effort: log and move on; the next sweep retries this key.
+        // Best-effort: log and move on; the next sweep retries this key. Counted, though: a run
+        // that copied nothing because every key threw must not close as a green `ok`.
+        failed++;
         console.error("reconcile: copy failed", {
           key: obj.key,
           err: String(err),
@@ -163,7 +174,48 @@ async function reconcile(env: Env): Promise<void> {
     if (!listed.truncated) break;
     cursor = listed.cursor;
   }
-  console.log("reconcile: done", { checked, copied });
+  return { checked, copied, failed, capped: false };
+}
+
+/**
+ * The daily backstop, wrapped in its kill switch + heartbeat (admin-portal P8). FAILS OPEN on an
+ * unreachable heartbeat: this is the media backup's safety net, so a missing copy is a durability
+ * risk while a missing log line is only a blind spot. The run happens either way; only the record
+ * of it is lost, and the app's freshness scan will notice the silence.
+ */
+async function reconcile(env: Env): Promise<void> {
+  const gate = await jobStart(env, "backup_reconcile");
+  if (gate.ok && gate.paused) {
+    console.warn("reconcile: paused from /admin/jobs; skipped this run");
+    return;
+  }
+  if (!gate.ok) {
+    console.warn("reconcile: heartbeat unavailable; running unlogged", {
+      err: gate.error,
+    });
+  }
+  const run = gate.ok ? gate.run : null;
+
+  try {
+    const tally = await reconcileSweep(env);
+    console.log("reconcile: done", tally);
+    await jobFinish(env, "backup_reconcile", run, {
+      status: tally.failed > 0 ? "error" : "ok",
+      counts: { ...tally },
+      note:
+        tally.failed > 0
+          ? `${tally.failed} object(s) failed to copy`
+          : undefined,
+    });
+  } catch (err) {
+    // A throw here is the sweep itself failing (a list call, not a single key). Close the row as an
+    // error so /admin/jobs shows a failure rather than a run stuck open forever.
+    console.error("reconcile: run failed", { err: String(err) });
+    await jobFinish(env, "backup_reconcile", run, {
+      status: "error",
+      note: String(err).slice(0, 300),
+    });
+  }
 }
 
 type ConfirmResult =
@@ -220,13 +272,26 @@ async function confirmGone(
  *
  * DB-first ordering: we HEAD the primary only for confirmed-gone items, so there is no per-live-object
  * HEAD (see docs/systems/durability-backups.md "Cost & scaling").
+ *
+ * The heartbeat wrapper is prune() below; this is the sweep, and every exit reports an outcome so a
+ * fail-closed abort is visible on /admin/jobs instead of looking like a run that never happened.
  */
-async function prune(env: Env): Promise<void> {
+type PruneOutcome = {
+  status: "ok" | "error";
+  note?: string;
+  counts: Record<string, number | string | boolean>;
+};
+
+async function pruneSweep(env: Env): Promise<PruneOutcome> {
   if (!env.PRUNE_API_URL || !env.PRUNE_API_SECRET) {
     console.error(
       "prune: PRUNE_API_URL / PRUNE_API_SECRET not set; skipping run",
     );
-    return;
+    return {
+      status: "error",
+      note: "PRUNE_API_URL / PRUNE_API_SECRET not set",
+      counts: {},
+    };
   }
   const mode = env.PRUNE_MODE ?? "dryrun";
   const live = shouldDelete(env.PRUNE_MODE);
@@ -239,7 +304,11 @@ async function prune(env: Env): Promise<void> {
     console.warn(
       "prune: primary empty under events/; skipping (no source to compare against)",
     );
-    return;
+    return {
+      status: "ok",
+      note: "Primary empty under events/, nothing to compare against",
+      counts: { scanned: 0, mode },
+    };
   }
 
   const now = Date.now();
@@ -290,7 +359,15 @@ async function prune(env: Env): Promise<void> {
             `prune: circuit-breaker tripped (${result.reason}); deleted nothing`,
           );
         }
-        return; // fail closed — confirm unavailable or breaker tripped
+        // Fail closed — confirm unavailable or breaker tripped. Reported as an ERROR run so the
+        // abort is visible on /admin/jobs; the app has already raised its own Sentry + email alert.
+        return {
+          status: "error",
+          counts: { scanned, mode, deleted: 0 },
+          note: result?.trip
+            ? `Circuit-breaker tripped: ${result.reason}`
+            : "Confirm endpoint unavailable, deleted nothing",
+        };
       }
       for (const mediaId of result.goneIds) {
         const keys = keysByMediaId.get(mediaId);
@@ -328,7 +405,17 @@ async function prune(env: Env): Promise<void> {
       would_delete_keys: toDelete.length,
       more_remain: moreRemain,
     });
-    return;
+    return {
+      status: "ok",
+      note: "Dry run, deleted nothing",
+      counts: {
+        scanned,
+        mode,
+        gone_media: goneByMediaId.size,
+        would_delete_keys: toDelete.length,
+        more_remain: moreRemain,
+      },
+    };
   }
 
   // Live: delete from BACKUP in <=1000-key chunks. The binding delete() returns void, and a
@@ -356,6 +443,50 @@ async function prune(env: Env): Promise<void> {
     errored,
     more_remain: moreRemain,
   });
+  return {
+    status: errored > 0 ? "error" : "ok",
+    note: errored > 0 ? `${errored} key(s) failed to delete` : undefined,
+    counts: {
+      scanned,
+      mode,
+      gone_media: goneByMediaId.size,
+      deleted,
+      errored,
+      more_remain: moreRemain,
+    },
+  };
+}
+
+/**
+ * The weekly prune, wrapped in its kill switch + heartbeat (admin-portal P8). FAILS CLOSED on an
+ * unreachable heartbeat, unlike the reconcile: this is the only job in the system that deletes from
+ * the last-resort copy, and it already refuses to act on any question it could not get answered. A
+ * skipped prune costs a week of backup growth; a prune run against unknown state could cost the
+ * backup itself.
+ */
+async function prune(env: Env): Promise<void> {
+  const gate = await jobStart(env, "backup_prune");
+  if (!gate.ok) {
+    console.error("prune: heartbeat unavailable; skipping run (fails closed)", {
+      err: gate.error,
+    });
+    return;
+  }
+  if (gate.paused) {
+    console.warn("prune: paused from /admin/jobs; skipped this run");
+    return;
+  }
+
+  try {
+    const outcome = await pruneSweep(env);
+    await jobFinish(env, "backup_prune", gate.run, outcome);
+  } catch (err) {
+    console.error("prune: run failed", { err: String(err) });
+    await jobFinish(env, "backup_prune", gate.run, {
+      status: "error",
+      note: String(err).slice(0, 300),
+    });
+  }
 }
 
 export default {
