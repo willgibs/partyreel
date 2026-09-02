@@ -143,12 +143,16 @@ export default async function MarketingLibraryPage({
           blurb="PageHero at its three scales, on today's props (scale, align, eyebrow, heading, subhead, actions). A page renders one; three here is the specimen."
         >
           <div className="space-y-3">
-            <Spec label="display" hint="scale=display" contentClassName="p-0">
+            <Spec
+              label="display"
+              hint="scale=display · one or two words, by contract"
+              contentClassName="p-0"
+            >
               <PageHero
                 scale="display"
                 eyebrow="Press"
-                heading="The whole event, in one album."
-                subhead="The largest lockup, for the pages that open on a statement."
+                heading="Press kit"
+                subhead="The largest lockup: one or two words by contract, since the step is single-line under its 12vw clamp."
                 className="py-12"
               />
             </Spec>
