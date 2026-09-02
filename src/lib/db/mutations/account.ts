@@ -162,9 +162,7 @@ export async function requestAccountDeletion({
   // so a failure below is captured and reported as a successful request.
   const { error: stampError } = await admin
     .from("profiles")
-    // The typing seam: deletion_requested_at is absent from the generated types
-    // until the orchestrator regenerates them post-apply.
-    .update({ deletion_requested_at: new Date().toISOString() } as never)
+    .update({ deletion_requested_at: new Date().toISOString() })
     .eq("id", userId);
   if (stampError) {
     return {

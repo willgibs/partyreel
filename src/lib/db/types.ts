@@ -828,6 +828,7 @@ export type Database = {
           announcements_seen_at: string | null
           avatar_updated_at: string | null
           created_at: string
+          deletion_requested_at: string | null
           display_name: string | null
           email: string | null
           event_slots: number | null
@@ -851,6 +852,7 @@ export type Database = {
           announcements_seen_at?: string | null
           avatar_updated_at?: string | null
           created_at?: string
+          deletion_requested_at?: string | null
           display_name?: string | null
           email?: string | null
           event_slots?: number | null
@@ -874,6 +876,7 @@ export type Database = {
           announcements_seen_at?: string | null
           avatar_updated_at?: string | null
           created_at?: string
+          deletion_requested_at?: string | null
           display_name?: string | null
           email?: string | null
           event_slots?: number | null

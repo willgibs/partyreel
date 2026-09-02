@@ -376,10 +376,8 @@ export async function sweepDeletedAccounts(
         admin
           .from("profiles")
           .select("id")
-          // The typing seam: deletion_requested_at is absent from the generated
-          // types until the orchestrator regenerates them post-apply, so the
-          // filter rides the untyped `.filter` form like the purge cron's own
-          // legal_hold_at predicate.
+          // The untyped `.filter` form, like the purge cron's own legal_hold_at
+          // predicate (the column is in the generated types since the apply).
           .filter("deletion_requested_at", "not.is", null)
           .order("deletion_requested_at", { ascending: true })
           .limit(ACCOUNT_SWEEP_LIMIT),
@@ -434,8 +432,7 @@ export async function getAccountDeletionState(
   let requestedAt: string | null = null;
   try {
     const row = await mustQuery(
-      // The typing seam again: select the column by name and read it off an
-      // untyped row until types.ts is regenerated post-apply.
+      // Selected by name; the column is in the generated types since the apply.
       admin
         .from("profiles")
         .select("deletion_requested_at")

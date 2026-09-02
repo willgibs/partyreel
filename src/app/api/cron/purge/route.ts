@@ -67,6 +67,7 @@ import {
   RECENTLY_DELETED_WINDOW_DAYS,
   selectForStandbyEviction,
 } from "@/lib/lifecycle/recently-deleted";
+import { sweepDeletedAccounts } from "@/lib/lifecycle/account-deletion";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
@@ -306,6 +307,12 @@ export async function GET(request: Request): Promise<Response> {
     sweepExpiredEvents(admin, now, handled),
   );
   await runSweep("removed_media", () => sweepRemovedMedia(admin, now, handled));
+  // Accounts that asked to be deleted: after removed_media so `handled` is populated, before the
+  // capacity sweeps so they never act on bytes this run is about to reclaim (the account-deletion
+  // track's wire, landed at its integration). Pre-apply it returns { skipped: "not_provisioned" }.
+  await runSweep("deleted_accounts", () =>
+    sweepDeletedAccounts(admin, now, handled),
+  );
   await runSweep("orphans", () => sweepOrphans(admin, now));
   await runSweep("expired_passes", () => sweepExpiredPasses(admin, now));
   await runSweep("over_capacity", () => sweepOverCapacity(admin, now));
