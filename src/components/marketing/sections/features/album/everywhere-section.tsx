@@ -6,6 +6,7 @@ import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
+import { EVERYWHERE } from "./album-copy";
 import { EverywhereStage } from "./everywhere-stage";
 
 /**
@@ -14,8 +15,7 @@ import { EverywhereStage } from "./everywhere-stage";
  * every open album at once (the venue screen, the laptop by the door, every
  * phone), which is the thing a host cannot get from a group chat. Medium
  * register: a media split with the paired stage, two rows of copy, one
- * pointer onward to curation (shaping it while it fills is the next page's
- * story). Chapter 1 then winds down on the quiet numbers.
+ * pointer onward to curation. Chapter 1 then winds down on the quiet numbers.
  */
 export function EverywhereSection() {
   const rise = (i: number) => ({
@@ -45,10 +45,11 @@ export function EverywhereSection() {
           >
             Land once, show up everywhere.
           </h2>
-          <p {...rise(2)} className="max-w-md text-pretty text-muted-foreground">
-            The moment a guest uploads, it appears on every open album: the
-            phones in the room, the laptop by the door, the TV above the bar.
-            Leave it up on any screen and it keeps itself current. No refresh.
+          <p
+            {...rise(2)}
+            className="max-w-lg text-pretty text-muted-foreground"
+          >
+            {EVERYWHERE.body}
           </p>
           <div {...rise(3)}>
             <LearnMoreLink href="/features/curation">

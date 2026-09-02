@@ -1,55 +1,53 @@
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { planById } from "@/lib/constants/tiers";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
-import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
-import { PHOTO_FORMATS_PROSE, VIDEO_FORMATS_PROSE } from "./quality-section";
-
 /**
- * The album page's questions: the long tail a first-time host actually asks
- * (compiled from a fresh reader's list, 2026-09-02), each answered in two
- * sentences with every number derived. Rendered by FeatureFaq and mirrored
- * into FAQPage JSON-LD, so the answers must match what the page says.
+ * The album page's questions, verdict first: a few words and a period, then
+ * one sentence, so the nine answers wrap alike and a skimmer gets the answer
+ * from the first word. The first three are what a visitor landing here first
+ * asks. Numbers derive; the band is held by album-copy.test.ts. Rendered by
+ * FeatureFaq and mirrored into FAQPage JSON-LD.
  */
 const FREE_CAP = formatBytes(planById("free").storageBytes);
 
 export const ALBUM_FAQ: FaqItem[] = [
   {
     q: "Is the album the same link as the QR code?",
-    a: "Yes. Every event has one link; the QR code is that link as a pattern, and it never changes. Pro and Event Pass hosts can add a named link like partyreel.com/e/sarahs-wedding, and the original keeps working.",
+    a: "Yes. One link per event, the code is that link, and it never changes; Pro and Event Pass can add a named one.",
   },
   {
     q: "Do I need an account to host?",
-    a: "Yes, a free one, with an email or Google. Your guests never need one unless you turn on Require accounts, in which case they confirm an email with a one-time code.",
-  },
-  {
-    q: "Can a guest add their name without an account?",
-    a: "No. Names come from a free account, picked once and carried to every event. Without one, uploads show as Anonymous, and a guest who signs in later on the same phone claims what they added.",
+    a: "Yes. A free one, with an email or Google. Guests need nothing unless you require accounts.",
   },
   {
     q: "Do uploads go public before I see them?",
-    a: "Only in Live mode, where you can hide anything with a tap. Turn on Review and every upload waits for your approval; the guest sees “Sent, waiting for host approval” and nothing appears until you say so.",
+    a: "Only in Live mode. Turn on Review and every upload waits for your approval before anyone sees it.",
   },
   {
-    q: "What can guests upload?",
-    a: `Photos as ${PHOTO_FORMATS_PROSE} on every plan, and video as ${VIDEO_FORMATS_PROSE} on Pro and Event Pass. Each file can be up to ${formatBytes(MAX_UPLOAD_BYTES)}, with no compression and no duration cap.`,
+    q: "Can a guest add a name without an account?",
+    a: "No. Names come from a free account. Without one, uploads show as Anonymous until the guest signs in and claims them.",
+  },
+  {
+    q: "Can a guest delete their own upload?",
+    a: "Yes. From their dashboard, and it leaves the album at once. As host you can remove anything.",
   },
   {
     q: "What happens when the album is full?",
-    a: "New uploads pause and the guest sees “This album is full right now. The host needs to free up space.” Nothing already in the album changes; delete something or upgrade and uploads resume.",
+    a: "New uploads pause. Nothing already in the album changes; delete something or upgrade and uploads resume.",
   },
   {
-    q: "What if a guest picks a video on a free event?",
-    a: "Free events collect photos only, so the guest sees “This event accepts photos only.” and the rest of their batch still lands. Video uploads come with Pro and Event Pass.",
+    q: "What can guests upload?",
+    a: `Photos on every plan. Video on Pro and Event Pass, up to ${formatBytes(MAX_UPLOAD_BYTES)} a file, no compression, no duration cap.`,
   },
   {
     q: "Do I keep paying to keep the album?",
-    a: `No. Events have no end date, and ending a Pro plan leaves everything in place; if you are then over the ${FREE_CAP} Free cap, you get ${OVER_CAP_GRACE_DAYS} days to trim before the largest files move to Trash for ${RECENTLY_DELETED_WINDOW_DAYS} days.`,
+    a: `No. Events have no end date. Leave Pro and everything stays; over the ${FREE_CAP} Free cap you get ${OVER_CAP_GRACE_DAYS} days to trim.`,
   },
   {
     q: "Can I put the album on a big screen?",
-    a: "Yes. Open the link in any browser on a laptop or a TV and leave it up; the album updates live as guests add to it, with no refresh.",
+    a: "Yes. Open the link in any browser on a laptop or TV and leave it up; it updates live, no refresh.",
   },
 ];

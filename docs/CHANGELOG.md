@@ -57,6 +57,20 @@ page does, on shared pieces instead of six hand-rolled copies.**
   subhead, the seven door lines rewritten as a set on a new registry field (`directoryLine`, two
   rows at most, width-constrained on the card, held to one length band so they wrap alike), and a
   fresh close ("Start with one event, free.").
+- **`/features/album`, the finish pass before review (2026-09-02).** Will's three notes on the
+  question-driven rebuild: no mono anywhere but tabular alignment (a consumer product, not a devtool),
+  supporting copy punchy and every multi-item list visually balanced, every section finished in its
+  own register. Copy now lives in `album-copy.ts` as SETS held in a measured length band + spread by
+  `album-copy.test.ts` (the hub's `directoryLine` mechanism); the FAQ is verdict-first (a few words,
+  a period, one sentence). Mono swept to the StatBand alone (the GoDeeper caption went to Inter across
+  every feature page). Elevations: the getting-in facts are the phone's INDEX (ruled rows, an ink
+  gutter bar following the screen, hover pins it); the three controls are a settings document with
+  the real switch / select / hidden-tile shapes; the Live|Review photograph MOVES along one rule
+  (Approve all is a real button that sends it on); one lightbox pill cycles its three states with a
+  synced index; four exposures of one album on the 3px rebate (`[data-mkt-isolate]` light table);
+  three equal photographic take-home plates with the icon-swap; one ruled plan strip with storage
+  bars and the guest's refusal drawn as the toast; the lifecycle on one hairline grid closing the desk
+  on a drawn rule. Measured at 1440 and 375: every set's siblings on equal rows, no overflow.
 - **`/features/album`, the second pass, from the host's questions outward (2026-09-02).** Will's
   read of the first pass was exact: the same skeleton with polish, and "a very poor job of covering
   all the questions a host would have". Three fact sheets (the system docs, the host-side code, the

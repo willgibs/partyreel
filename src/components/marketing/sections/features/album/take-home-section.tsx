@@ -1,155 +1,168 @@
-import {
-  Download,
-  Image as ImageIcon,
-  Layers,
-  Play,
-  Video,
-} from "lucide-react";
+import { Check, Download, Play } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
   MARKETING_REELS,
   marketingImage,
 } from "@/lib/constants/marketing-media";
-import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
-import { resolveStyleEntry } from "@/lib/reel/engine/style-registry";
+import { formatBytes } from "@/lib/utils";
+
+import { TAKE_HOME } from "./album-copy";
 
 /**
- * EVERYONE LEAVES WITH EVERYTHING: the three ways the album comes back out,
- * each as the control the app actually draws. Save (the lightbox pill, the
- * original file). Download album (the export dialog's three chips; the item
- * cap is the only limit worth stating, and the byte cap stays unmarketed by
- * the sharing page's precedent). The reel, which lands in the album the
- * moment you publish it and becomes the album's hero once uploads close.
+ * EVERYONE LEAVES WITH EVERYTHING: three EQUAL photographic plates (the door
+ * anatomy, no lamp), each carrying the real control the app draws: the Save
+ * pill on a full-screen shot, the pinned "Download album" button over the
+ * album with the export dialog's own count-and-size line, the reel poster
+ * with its play badge and duration chip. Hover lifts the photograph a touch
+ * and swaps the pill's icon to a check (the icon-swap recipe), so "leaves
+ * with" is felt rather than read. Below lg the plates go 2 + 1, never three
+ * 170px columns.
  */
 
-const EXPORT_CHIPS = [
-  { label: "Everything", Icon: Layers, active: true },
-  { label: "Photos", Icon: ImageIcon, active: false },
-  { label: "Videos", Icon: Video, active: false },
+const ALBUM_TILES = [
+  "wedding-golden",
+  "party-balloons",
+  "reception-table",
+  "wedding-toast",
+  "party-dj",
+  "festival-crowd",
+  "wedding-rings",
+  "reception-hall",
+  "wedding-arch",
 ];
 
-function Card({
+const MB = 1024 * 1024;
+const ALBUM_ITEMS = 228;
+const ALBUM_BYTES = 1338 * MB;
+
+function Plate({
+  index,
   title,
   body,
   children,
 }: {
+  index: number;
   title: string;
   body: string;
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      data-mkt-reveal
+      className="group flex w-full flex-col gap-4 sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+      style={{ "--i": 3 + index } as CSSProperties}
+    >
       <div
         aria-hidden
-        className="flex min-h-[10.5rem] flex-col justify-center rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
+        className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted"
       >
         {children}
       </div>
-      <div className="flex flex-col gap-1 px-1">
+      <div className="flex flex-col gap-1 px-0.5">
         <h3 className="font-heading text-base sm:text-lg">{title}</h3>
-        <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+        <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
+          {body}
+        </p>
       </div>
     </div>
   );
 }
 
+/** The app's white-on-media pill, with the Download → Check icon swap on hover. */
+function Pill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+      <span className="mkt-icon-swap group-hover:[&>.mkt-icon[data-icon=b]]:blur-0 group-hover:[&>.mkt-icon[data-icon=a]]:opacity-0 group-hover:[&>.mkt-icon[data-icon=b]]:opacity-100">
+        <span className="mkt-icon" data-icon="a">
+          <Download className="size-3.5" />
+        </span>
+        <span className="mkt-icon" data-icon="b">
+          <Check className="size-3.5" />
+        </span>
+      </span>
+      {label}
+    </span>
+  );
+}
+
+const LIFT =
+  "object-cover transition-transform duration-500 ease-emphasis group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100";
+
 export function TakeHomeSection() {
   const reel = MARKETING_REELS.find((r) => r.id === "hero-candidate-02");
   if (!reel) throw new Error("Unknown marketing reel id: hero-candidate-02");
-  const styleLabel = resolveStyleEntry(reel.recipe.styleId).label;
+  const [save, all, keep] = TAKE_HOME.plates;
 
   return (
     <SectionShell
       eyebrow="Taking it home"
       heading="Everyone leaves with everything."
-      subhead="The album is the share. Anyone who can open it can save one shot, take the whole thing, and watch the reel."
+      subhead={TAKE_HOME.subhead}
     >
-      <Reveal className="mx-auto mt-12 grid max-w-5xl gap-8 sm:grid-cols-3">
-        <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-          <Card
-            title="Save one, the original"
-            body="Every photo opens full screen. Save hands back the file that was uploaded, at the size it was shot."
-          >
-            <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-lg bg-black">
-              <Image
-                src={marketingImage("wedding-petals").src}
-                alt=""
-                fill
-                sizes="300px"
-                className="object-cover"
-              />
-              <span className="absolute right-2.5 bottom-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-                <Download className="size-3" /> Save
-              </span>
-            </span>
-          </Card>
-        </div>
+      <Reveal className="mx-auto mt-12 flex max-w-5xl flex-wrap justify-center gap-6">
+        <Plate index={0} title={save.title} body={save.body}>
+          <Image
+            src={marketingImage("wedding-petals").src}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 340px, 50vw"
+            className={LIFT}
+          />
+          <span className="absolute right-3 bottom-3">
+            <Pill label="Save" />
+          </span>
+        </Plate>
 
-        <div data-mkt-reveal style={{ "--i": 4 } as CSSProperties}>
-          <Card
-            title="Or take all of it"
-            body={`Download album bundles the originals into one zip: everything, photos only, or videos only, up to ${MAX_EXPORT_ITEMS.toLocaleString("en-US")} items at a time.`}
-          >
-            <p className="text-sm font-medium">Download album</p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {EXPORT_CHIPS.map(({ label, Icon, active }) => (
-                <span
-                  key={label}
-                  className={
-                    active
-                      ? "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium text-foreground ring-1 ring-foreground/40"
-                      : "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium text-muted-foreground"
-                  }
-                >
-                  <Icon className="size-3" />
-                  {label}
-                </span>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
-              <MonoCaption>214 photos · 12 videos</MonoCaption>
-              <span className="inline-flex h-7 items-center gap-1 rounded-lg bg-primary px-2.5 text-[11px] font-medium text-primary-foreground">
-                <Download className="size-3" /> Download
+        <Plate index={1} title={all.title} body={all.body}>
+          <span className="absolute inset-0 grid grid-cols-3 gap-[var(--gap-gallery)] bg-black p-[var(--gap-gallery)]">
+            {ALBUM_TILES.map((id) => (
+              <span
+                key={id}
+                className="relative block overflow-hidden rounded-[2px]"
+              >
+                <Image
+                  src={marketingImage(id).src}
+                  alt=""
+                  fill
+                  sizes="110px"
+                  className={LIFT}
+                />
               </span>
-            </div>
-          </Card>
-        </div>
-
-        <div data-mkt-reveal style={{ "--i": 5 } as CSSProperties}>
-          <Card
-            title="And the reel, when it's ready"
-            body="Publish the highlight reel and it appears in the album for everyone. Once uploads close, it takes the top of the page."
-          >
-            <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-lg bg-black">
-              <Image
-                src={reel.poster}
-                alt=""
-                fill
-                sizes="300px"
-                className="object-cover"
-              />
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex size-10 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
-                  <Play className="ml-0.5 size-4 fill-white text-white" />
-                </span>
-              </span>
-              <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent p-2.5">
-                <span className="block text-[9px] font-medium tracking-[0.14em] text-white/70 uppercase">
-                  The reel
-                </span>
-                <span className="block font-mono text-[10px] text-white/85">
-                  0:47 · {styleLabel} · 18 moments
-                </span>
-              </span>
+            ))}
+          </span>
+          <span className="absolute inset-0 bg-black/35" />
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900 shadow-[var(--shadow-float)]">
+              <Download className="size-3.5" /> Download album
             </span>
-          </Card>
-        </div>
+            <span className="text-[11px] font-medium text-white/85 tabular-nums">
+              {ALBUM_ITEMS} items · {formatBytes(ALBUM_BYTES)}
+            </span>
+          </span>
+        </Plate>
+
+        <Plate index={2} title={keep.title} body={keep.body}>
+          <Image
+            src={reel.poster}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 340px, 50vw"
+            className={LIFT}
+          />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="flex size-11 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
+              <Play className="ml-0.5 size-4 fill-white text-white" />
+            </span>
+          </span>
+          <span className="absolute top-3 left-3 inline-flex h-6 items-center rounded-full bg-black/55 px-2 text-[11px] font-medium text-white tabular-nums">
+            0:47
+          </span>
+        </Plate>
       </Reveal>
       <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>

@@ -185,6 +185,14 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   `w-[52%]` computing to `0px` while a `grid-cols-[repeat(auto-fill,…)]` collapsed to one full-width
   column. It reaches the SERVED PAGE too, not just CSS: the same round had correct markup in
   `curl` while the browser rendered the previous layout, fixed instantly by a `?v=2` on the URL.
+  **It bites the CLIENT JS the same way (2026-09-02, the album finish pass): the Chrome MCP tab kept
+  serving its cached page chunk (`…_src_<hash>._.js`, path-hashed, so the name survived an `.next`
+  wipe + restart) while the server's HTML was fresh, and React reported a hydration mismatch whose
+  `+` (client) lines carried the OLD classes and whose `-` (server) lines carried the NEW ones. Read
+  that diff direction before touching code: `+` client / `-` DOM. `curl` the page + the chunk to
+  prove the server is right, or check the Browser pane (its own cache); then in the tab
+  `fetch(url, {cache: "reload"})` every `/_next/static/chunks/*.js|css` referenced in the HTML and
+  `location.reload()`.**
   **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
   so an orphan can keep winning the port and serve a bundle compiled before your files existed,
   which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page

@@ -421,8 +421,10 @@ link). One page uses it; if a second index wants it, THAT is when it gets extrac
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
 where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
-devtool" — Will). Existing `MonoCaption` surfaces (press facts, legal status lines, GoDeeper rows) are
-grandfathered pending Will's ruling on a sweep (→ ROADMAP).
+devtool" — Will). Restated 2026-09-02 on the album page's finish pass: **"I don't want to use mono
+anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day; the
+remaining `MonoCaption` surfaces (press facts, legal status lines, the feature pages' captions) are
+to be swept the same way, page by page (→ ROADMAP).
 
 ## Rounding: sharp surfaces, round actions
 

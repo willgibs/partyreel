@@ -35,6 +35,34 @@ type ParityEntry = {
 };
 
 const ENTRIES: ParityEntry[] = [
+  {
+    label: "album settings document: the accepting-uploads label",
+    marketingFile:
+      "src/components/marketing/sections/features/album/album-copy.ts",
+    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    literal: "Accepting uploads",
+  },
+  {
+    label: "album settings document: the per-upload cap label",
+    marketingFile:
+      "src/components/marketing/sections/features/album/album-copy.ts",
+    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    literal: "Max size per upload",
+  },
+  {
+    label: "album cap refusal toast title",
+    marketingFile:
+      "src/components/marketing/sections/features/album/how-much-fits.tsx",
+    appFile: "src/components/guest/guest-upload.tsx",
+    literal: "add that photo",
+  },
+  {
+    label: "album accounts-required teaser button",
+    marketingFile:
+      "src/components/marketing/sections/features/album/visibility-frames.tsx",
+    appFile: "src/components/guest/live-gallery.tsx",
+    literal: "See all",
+  },
   // The live album page (/features/album) <-> the guest and host surfaces.
   {
     label: "album entry phone welcome promise",
@@ -67,7 +95,7 @@ const ENTRIES: ParityEntry[] = [
   {
     label: "album your-call close-uploads helper",
     marketingFile:
-      "src/components/marketing/sections/features/album/your-call-section.tsx",
+      "src/components/marketing/sections/features/album/album-copy.ts",
     appFile: "src/components/app/event-settings/uploads-section.tsx",
     literal: "Turn off to freeze the album. Guests can still view it.",
   },
@@ -102,7 +130,7 @@ const ENTRIES: ParityEntry[] = [
   {
     label: "album photos-only refusal, the guest's words",
     marketingFile:
-      "src/components/marketing/sections/features/album/how-much-fits.tsx",
+      "src/components/marketing/sections/features/album/album-copy.ts",
     appFile: "src/app/api/r2/presign-upload/route.ts",
     literal: "This event accepts photos only.",
   },

@@ -2,86 +2,51 @@
 
 import { Camera, Images, ImageUp } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { PhoneShell } from "@/components/marketing/frames";
-import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { DEMO_EVENT_URL } from "@/lib/demo";
-import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
-import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
 /**
  * ONE PHONE, THREE SCREENS: how a guest reaches the album, as the guest sees
  * it. The table card with the real code, the welcome sheet with the app's own
- * strings, and the album with the guest's first upload in flight. The screens
- * crossfade on an ambient clock (a chained timeout on useAmbientPause, so it
- * pauses off-screen and never bursts to catch up); reduced motion pins the
- * welcome screen, which is the one that carries the words.
+ * strings, and the album with the guest's first upload in flight.
  *
- * Quiet on purpose: it sits between the hero's fill and the everywhere pair,
- * both ambient stages, so it has no lamp and a slow beat.
- *
- * The strings are the shipped entry modal's (src/components/guest/entry-modal.tsx),
- * pinned by mock-parity.test.ts.
+ * CONTROLLED since the finish pass (2026-09-02): the stage beside it owns the
+ * clock and the pointer, because the three facts next to the phone ARE these
+ * three screens (the phone's index), and pointing at a fact pins its screen.
+ * The strings are the shipped entry modal's (src/components/guest/
+ * entry-modal.tsx), pinned by mock-parity.test.ts.
  */
 
-const SCREENS = ["The table card", "The welcome", "Adding"] as const;
-const HOLD_MS = 3000;
+export const ENTRY_SCREENS = [
+  "The table card",
+  "The welcome",
+  "Adding",
+] as const;
+export type EntryScreen = 0 | 1 | 2;
+
 const EVENT_NAME = "Maya & Jay's Wedding";
 const QR_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
 
-export function EntryPhone() {
-  const reduced = usePrefersReducedMotion();
-  const { ref, paused } = useAmbientPause<HTMLDivElement>();
-  const [tick, setTick] = useState(0);
-  // Reduced motion is a derivation: the welcome screen, no clock.
-  const screen = reduced ? 1 : tick % SCREENS.length;
-
-  useEffect(() => {
-    if (paused || reduced) return;
-    const id = setTimeout(() => setTick((n) => n + 1), HOLD_MS);
-    return () => clearTimeout(id);
-  }, [paused, reduced, tick]);
-
+export function EntryPhone({ screen }: { screen: EntryScreen }) {
   return (
-    <div ref={ref} className="mx-auto flex w-full max-w-[16.5rem] flex-col items-center gap-4">
-      <PhoneShell screenClassName="p-2.5">
-        <div aria-hidden className="grid">
-          <Screen active={screen === 0}>
-            <TableCard />
-          </Screen>
-          <Screen active={screen === 1}>
-            <Welcome />
-          </Screen>
-          <Screen active={screen === 2}>
-            <Adding />
-          </Screen>
-        </div>
-      </PhoneShell>
-
-      {/* The dots and the caption: which screen this is. */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          {SCREENS.map((name, i) => (
-            <span
-              key={name}
-              className={cn(
-                "size-1.5 rounded-full transition-colors duration-300",
-                i === screen ? "bg-foreground" : "bg-foreground/25",
-              )}
-            />
-          ))}
-        </div>
-        <MonoCaption aria-live="polite">
-          <TextSwap value={`0${screen + 1} · ${SCREENS[screen]}`} />
-        </MonoCaption>
+    <PhoneShell screenClassName="p-2.5" className="mx-auto max-w-[16.5rem]">
+      <div aria-hidden className="grid">
+        <Screen active={screen === 0}>
+          <TableCard />
+        </Screen>
+        <Screen active={screen === 1}>
+          <Welcome />
+        </Screen>
+        <Screen active={screen === 2}>
+          <Adding />
+        </Screen>
       </div>
-    </div>
+    </PhoneShell>
   );
 }
 
@@ -97,7 +62,7 @@ function Screen({
   return (
     <div
       className={cn(
-        "transition-opacity ease-emphasis [grid-area:1/1] [transition-duration:var(--mkt-tabs-dur)] motion-reduce:transition-none",
+        "transition-opacity [transition-duration:var(--mkt-tabs-dur)] ease-emphasis [grid-area:1/1] motion-reduce:transition-none",
         active ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
@@ -109,7 +74,7 @@ function Screen({
 /** Screen 1: the code on the table, as the guest's camera sees it. */
 function TableCard() {
   return (
-    <div className="flex min-h-[19rem] flex-col items-center justify-center gap-3 rounded-[1.25rem] bg-black/50 p-4">
+    <div className="relative flex min-h-[19rem] flex-col items-center justify-center gap-3 rounded-[1.25rem] bg-black/50 p-4">
       <div className="w-full rounded-lg bg-white p-4 text-center text-neutral-900 shadow-[var(--shadow-float)]">
         <div className="mx-auto w-fit">
           <StyledQr
@@ -121,8 +86,8 @@ function TableCard() {
         <p className="mt-3 font-heading text-sm">Scan to add your photos</p>
         <p className="mt-0.5 text-[10px] text-neutral-500">{EVENT_NAME}</p>
       </div>
-      {/* The camera's own scan frame corners. */}
-      <span className="pointer-events-none absolute inset-6 rounded-xl border border-white/40 [mask-image:linear-gradient(#000,#000)]" />
+      {/* The camera's own scan frame. */}
+      <span className="pointer-events-none absolute inset-5 rounded-xl border border-white/30" />
     </div>
   );
 }
