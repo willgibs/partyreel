@@ -103,6 +103,26 @@ URLs 308 to their targets. Two docs corrected in passing: a stale "Pro-gated" li
 guest-flow.md (turning accounts off has been free since 2026-06-21), and the help brief's
 spec-inline pointer.
 
+## 2026-09-02 — MILESTONE-14: prod = the light system, the re-paced home, and the reel's pool
+
+`main` @ tag `milestone-14` (`54bd519`; `launch-prep` `94d38db` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit so the two branches agree). Migrations at parity (none since
+milestone-13), the full gate green on the merged tree (1317 tests), prod READY at the merge SHA.
+Will's acceptance on the launch-prep alias: "This looks way better. It still needs plenty of work
+later, but please go ahead and merge to main."
+
+Verified on partyreel.com at `54bd519` with the Chrome MCP: the section alignment reads centred, LEFT,
+centred, centred through chapter 1's tail and LEFT, centred, LEFT across the paper chapter; the live
+demo's padding 144px above and below; the four event teasers at two lines with their titles 249px from
+the card tops and the focus-ring token present; the reel screen's pool 768px wide over a 768px player,
+its mask computing with all eleven stops and the `-webkit-` twin; the curation mock first in the DOM
+and the album print wholly inside the paper chapter; no sideways scroll at 1440 (1440/1440), nor at
+375 through a same-origin iframe under a classic 17px scrollbar (358/358, a forced sideways scroll
+landing at 0, the reel pool 326 wide over a 326px player); console clean across a full scroll after a
+fresh load. Rounds 0 to 2b are all on prod now: the SPILL engine and the footer seam on it, the lit
+root 404, the film strip's backlight, the Pro card's beam, the media-forward event cards, the chapter
+pacing, the adjacency rule, and the sideways-scroll fix.
+
 ## 2026-09-01 — Round 2, second pass: A ships, and no two sections back to back read alike
 
 `lp/reel-a` (`05f8c51`) merged into `launch-prep` (`f0c8f99`, `--no-ff`) with `launch-prep`'s own
