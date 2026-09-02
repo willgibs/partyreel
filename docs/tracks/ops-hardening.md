@@ -137,6 +137,10 @@ sign-in, so list it under "Look at first": the Orchestrator walks it on the laun
   refusing at the ceiling with the real copy and writing NO `contact_submissions` row and no Resend
   send, after an accepted submission proved `action_attempts.kind` really is generic. The one thing
   local testing could not reach is a `job_runs` row, because the migration is the Orchestrator's.
+- **Verified on the deployed branch preview** (`13acb01`, READY): all four headers present on `/`
+  and on `/contact` over real HTTPS with NO `x-powered-by` anywhere; `/api/internal/job-run` 401s
+  unauthenticated and on a wrong bearer, and `/api/cron/purge` 401s unauthenticated. CI green on the
+  branch tip (run 33681906803).
 - **One bug this round found in its own work**, worth knowing because it is the shape of the window
   this branch ships into: the cron's two EARLY-RETURN paths (paused, switch unreadable) called the
   freshness scan unguarded, so a correctly-skipped run answered 500 against a database without
