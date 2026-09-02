@@ -22,7 +22,7 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `Everything Partyreel does: the live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
+  description: `Everything between the scan and the reel: a live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
   alternates: { canonical: "/features" },
 };
 
@@ -55,8 +55,12 @@ export default function FeaturesPage() {
       <PageHero
         entrance="cut"
         eyebrow="Features"
-        heading="Everything you need, nothing to chase."
-        subhead="One QR code in, one album out. This is everything Partyreel does in between, for your guests and for you."
+        /* The copy rewrite (Will, 2026-09-02): the hub is the page between the
+           two things people already understand, the scan and the reel, so the
+           title says exactly that and the subhead walks the reader through
+           the middle in one breath. */
+        heading="Everything between the scan and the reel."
+        subhead="Guests scan one code and upload from their own phones. You get a live album, the tools to shape it, and a highlight reel at the end. Every piece, one page each."
         actions={
           /* A balanced pair, then the longer demo line on its own row beneath
              (Will, 2026-09-02): a button beside a sentence-length link read
@@ -117,8 +121,8 @@ export default function FeaturesPage() {
 
       <CtaBand
         className="border-t"
-        heading="Start your first event free."
-        subhead="Create the event, put the QR where people can see it, and the album fills itself."
+        heading="Start with one event, free."
+        subhead="Make the event, put the code where people will see it, and the album takes care of the rest."
         demoLink
       />
     </>

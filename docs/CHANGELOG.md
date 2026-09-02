@@ -52,6 +52,10 @@ page does, on shared pieces instead of six hand-rolled copies.**
   works" section is GONE as a section: after two cuts (a body-tier SectionShell, then a 24/30
   lockup) still read as the CtaBand's twin, the walkthrough and help pointers were dropped altogether
   ("feels very clean"): the directory takes a step more padding and goes straight to the CtaBand.
+  Then a full copy rewrite of the hub as one voice: "Everything between the scan and the reel." over
+  a subhead that walks the middle in one breath, the six door lines rewritten as a set on a new
+  registry field (`directoryLine`, held to one length band so they wrap alike), the reel's line
+  with them, and a fresh close ("Start with one event, free.").
 - **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
   a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
   each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.

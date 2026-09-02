@@ -40,7 +40,9 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   teaser too; layout via `FeatureSpotlight` + the `FEATURE_PRESENTATION` map in
   [`features-layout.ts`](../../src/lib/constants/features-layout.ts)).
 - **THE FEATURE FAMILY (the feature-pages round, 2026-09-01: the hub + six pages lifted onto the
-  home page's grammar).** Identity single-source: [`feature-pages.ts`](../../src/lib/constants/feature-pages.ts).
+  home page's grammar).** Identity single-source: [`feature-pages.ts`](../../src/lib/constants/feature-pages.ts)
+  (its `directoryLine` is the hub door's line, written as one set and held in one length band by
+  the registry test so the six doors wrap alike; `heroSub` stays each page's own).
   The hub is a DIRECTORY of **photographic doors** ([`feature-door.tsx`](../../src/components/marketing/sections/features/shared/feature-door.tsx),
   the ruled media-forward card anatomy from the home event cards, each door carrying its feature's
   own photograph plus the chip its surface draws: the live dot, the approved check, the name chip,

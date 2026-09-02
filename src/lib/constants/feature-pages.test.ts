@@ -29,6 +29,16 @@ describe("the feature-pages registry", () => {
       expect(page.navDescription.trim()).not.toBe("");
       expect(page.h1.trim()).not.toBe("");
       expect(page.heroSub.trim()).not.toBe("");
+      expect(page.directoryLine.trim()).not.toBe("");
+    }
+  });
+
+  it("keeps the directory lines in one length band, so the doors wrap alike", () => {
+    // Six doors in a grid read as a set only if their lines land on the same
+    // number of rows; ~85-105 characters is three lines at the door's measure.
+    for (const page of FEATURE_PAGES) {
+      expect(page.directoryLine.length, page.slug).toBeGreaterThanOrEqual(85);
+      expect(page.directoryLine.length, page.slug).toBeLessThanOrEqual(105);
     }
   });
 

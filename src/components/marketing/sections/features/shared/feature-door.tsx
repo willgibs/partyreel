@@ -181,7 +181,7 @@ export function doorFor(slug: DoorSlug): {
       href: "/reel",
       title: "The highlight reel",
       line: `${GOLDEN_LINES.reelThesis}.`,
-      long: "The whole event, cut into a cinematic minute you can restyle instantly and take home.",
+      long: "The whole event, cut into a minute you can restyle in a tap and send the same night.",
     };
   }
   const page = featurePage(slug);
@@ -189,7 +189,7 @@ export function doorFor(slug: DoorSlug): {
     href: `/features/${page.slug}`,
     title: page.navLabel,
     line: page.navDescription,
-    long: page.heroSub,
+    long: page.directoryLine,
   };
 }
 
@@ -203,7 +203,7 @@ export function FeatureDoor({
 }: {
   slug: DoorSlug;
   aspect?: Aspect;
-  /** "short" = the panel one-liner; "long" = the hero subline (the hub). */
+  /** "short" = the panel one-liner; "long" = the directory line (the hub). */
   copy?: "short" | "long";
   priority?: boolean;
   className?: string;
