@@ -207,17 +207,20 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
   event-level Report, `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit, the guest
   404 page says the event "may have ended" (events have no end date) and the open-event unfurl
-  promises "no account" even when the event requires one, and `lifecycle-recovery.md` says a guest's
+  promises "no account" even when the event requires one (keyed on `allow_anonymous_uploads`, the real
+  column), and `lifecycle-recovery.md` says a guest's
   self-deleted upload is excluded from the host's Deleted list while `listRecentlyDeletedMedia`
   applies no such filter (only `restore_media` refuses it; a live check settles which is true);
   **self-serve account DELETION in the app** (supersedes the help article's contact path — swap the
   "Deleting your account" section of `your-data-and-deleting-your-account` AND the privacy policy's
   "Delete your account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy
   promises removal on request within 30 days until one exists; `newsletter_signups` has no delete route
-  and `notification_prefs` has no UI); **the EXIF-strip overclaim** in
-  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx) +
-  `content/help/who-can-see-your-event.mdx` (HEIC/HEIF/AVIF/WebM pass through untouched; the privacy
-  policy says so since 2026-09-01, the marketing + help copy still state the strip unconditionally);
+  and `notification_prefs` has no UI); **the EXIF-strip overclaim** on six sites (`sections/home/privacy.tsx`,
+  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx),
+  `constants/features.ts` twice, `jsonld.tsx`, `feature-pages.ts`) and one blog post, the help article
+  already right (HEIC/HEIF/AVIF/WebM pass through untouched; the privacy policy says so since
+  2026-09-01); ruled 2026-09-02 to the "for the common formats" clause, split between the
+  `legal-billing-truth` and `marketing-followons` tracks;
   **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
@@ -433,7 +436,26 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
-- Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+**The clean launch point** (ruled 2026-09-02, with no date: "launch when everything's done"): every
+published claim is true, every promised path exists, every backend job is operable from `/admin`, and
+the switches below flip in a known order with nothing else pending. The agent-doable half runs as
+tracks ([`tracks/`](tracks); the wave plan in [`STATUS.md`](STATUS.md)): the help catalog's nine gaps
+closed or ruled, the EXIF claim corrected on its six sites, the guest unfurl and 404 true for
+account-required events, self-serve account deletion with an operator trigger, a newsletter removal
+control, the contact and careers limiters failing closed, security headers on, Sentry scrubbing
+capability tokens, every job with a kill switch and a heartbeat on `/admin/jobs`, CI on every push,
+`.env.example` parity, legal pages that print, the `LEGAL_PARTY` flip rehearsed, the blur-rise heroes
+with a visible h1, the root 404 tint, the marketing site at phone widths, the demo event on curated
+media. **The `[human]` switches, in order:** counsel sign-off, the DMCA agent, the `privacy@` and
+`help@` mailboxes → `LEGAL_PARTY` and both documents effective → Stripe live (the 3 products and 8
+prices, the live webhook and portal with six-price switching verified, the 10 env values, one
+real-card smoke) → Vercel Pro (the analytics vendor, the Spend cap, Cloudflare fronting and CSAM
+scanning at the DNS move, the Realtime quota) → secrets Sensitive, leaked-password protection, the
+Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo token repointed,
+`PRUNE_MODE=live` → the program teardown.
+
+- Enable leaked-password protection (HaveIBeenPwned) `[human]` — no longer Pro-gated (checked 2026-09-02),
+  so it can flip any time; the long-standing advisor WARN.
 - Pick the web-analytics vendor at the Vercel Hobby → Pro cutover `[eng+human]` — Hobby collects free
   (pageviews only, hard caps); Pro activates the wired custom-event taxonomy but bills usage. Will's
   pricing research (2026-08-28): PostHog gives 1M events/mo free (likely covering launch traffic
@@ -452,9 +474,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
 - Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
   (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
-- Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
-  (code unchanged); checklist in [`PRICING.md`](PRICING.md).
-- Verify the Stripe Billing Portal permits switching between the three Pro prices `[human]` — now
+- Stripe test → live cutover `[eng+human]` — re-create the 3 products and 8 prices in live (6 recurring:
+  three monthly and three annual Pro; 2 one-time: the event pass and its renewal) + swap the 10 env
+  values (code unchanged); the runbook in [`PRICING.md`](PRICING.md) (the `legal-billing-truth` track
+  corrects it from "5 env vars").
+- Verify the Stripe Billing Portal permits switching between the six Pro prices (monthly and annual) `[human]` — now
   LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
   portal (checkout refuses the second subscription it used to create silently). If the portal's
   product config does not allow the swap, a paying host has no self-serve way to resize.
@@ -499,6 +523,25 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.
+- Self-serve account deletion with its operator path `[eng]` — gating; the `account-deletion` track
+  ([`tracks/account-deletion.md`](tracks/account-deletion.md)).
+- The four QA items that are launch truth, cross-listed from the QA bucket `[eng]` — #42 security
+  headers, #22 Sentry scrubbing capability tokens, #19 limiter observability plus the contact and careers
+  limiters failing closed (the `ops-hardening` track), and the guest unfurl and 404 true for
+  account-required events (the `product-truth` track).
+- CI on every push `[eng]` — the `ci-workflow` track; a program prerequisite for the wider fan-out.
+- The blur-rise heroes' foreground LCP read (the h1 at `opacity: 0` until hydration; the "Now" item)
+  `[eng]` — the `marketing-followons` track, as a named entrance register with the h1 visible at paint.
+- Cloudflare fronting at the DNS move and the Realtime concurrent-connection quota `[human]` —
+  cross-listed from the Vercel / Next.js bucket so they are not forgotten at the cutover.
+- One DB-backup test-restore `[human]` — prove the backup restores before it is the only copy.
+- The `help@partyreel.com` mailbox `[human]` — the help center and the documents name it; confirm the
+  receipt path once it exists.
+- `.env.example` parity with `env.ts`, pinned by a test `[eng]` — the `legal-billing-truth` track.
+- The marketing site tuned at phone widths, judged on Will's phone `[eng+human]` — gating; the
+  `marketing-mobile` track.
+- `SUPABASE_DB_URL` into `.env.local` `[human, 15 minutes]` — unblocks the committed RPC integration
+  suite above.
 
 ## Speculative / longer-horizon backlog
 

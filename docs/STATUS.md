@@ -340,7 +340,7 @@ All backing services run under the dedicated owner account **partyr33l@gmail.com
 
 **Already configured — DO NOT redo:** R2 buckets + creds + CORS + abort-multipart lifecycle rule; the
 apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products/prices + webhook + Billing
-Portal + the 5 env vars; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
+Portal + the 10 Stripe env values; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
 allow-list + `NEXT_PUBLIC_ADMIN_HOST` (break-glass: delete the TOTP factor in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup
 Action secrets; the prune crons + shared `PRUNE_API_SECRET`. (All Vercel-side items were recreated on
@@ -392,10 +392,18 @@ manifest fill.
 6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
    facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
    "Elevation-program deferred queue").
-7. **Tracks:** one open (`lp/marketing-feature-pages`, Will's). The next wave's inits come from the
-   round-3 plan (CI, product truth, legal and billing truth, ops hardening, account deletion, the
-   demo seed), each spawned with a stub manifest in [`docs/tracks/`](tracks); both content Agents of
-   2026-09-01 (legal `lp/legal-docs`, help `lp/help-catalog`) were integrated 2026-09-02.
+7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
+   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks) and ready to spawn** (each stub is the
+   track's whole init; the one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`
+   first, alone, merged the same day; then `product-truth`, `legal-billing-truth` and `ops-hardening`
+   together; `account-deletion` and `demo-seed` as slots free. Integration: 1 + 2 together → a
+   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
+   branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
+   run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
+   (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
+   round in the Launch checkpoint's human order.
+8. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
+   suite ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
 
