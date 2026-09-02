@@ -165,7 +165,15 @@ export default async function EventDetailPage({
     else hostContributed = true;
   }
   const contributorCount = guestContributors.size + (hostContributed ? 1 : 0);
-  // Visibility chip glyph + label (Open / Password / Private).
+  // Visibility chip glyph + label (Public / Password / Private).
+  // ★ The word for `visibility = 'open'` is "Public", never "Open" (Will's ruling,
+  // 2026-09-02: "Public sounds much clearer than open"). "Open" belongs to the
+  // ACCEPTING-UPLOADS state alone, which is the chip rendered right beside this one, and
+  // this label read "Open" while the settings selector called the same row "Public".
+  // The words match VISIBILITY_LABELS in components/app/visibility-selector.tsx and are
+  // re-typed here on purpose: that module is "use client", and an RSC that dots into a
+  // client module throws ("You cannot dot into a client module from a server component").
+  // A server-safe home for the record would let both read one source, see the track handoff.
   const VisibilityIcon =
     event.visibility === "open"
       ? Globe
@@ -174,7 +182,7 @@ export default async function EventDetailPage({
         : Shield;
   const visibilityLabel =
     event.visibility === "open"
-      ? "Open"
+      ? "Public"
       : event.visibility === "password"
         ? "Password"
         : "Private";

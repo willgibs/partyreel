@@ -7,9 +7,13 @@ import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 
-// Tailored 404 for a bad / expired / deleted event link (notFound() in e/[token]/page).
+// Tailored 404 for a link that resolves to nothing (notFound() in e/[token]/page).
 // Real guests hit this from a mistyped or stale QR, so the copy reassures (double-check
-// the link, ask the host) and softly introduces Partyreel (the growth loop). Renders in
+// the link, ask the host) and softly introduces Partyreel (the growth loop).
+// ★ It must never say an event "ended": there is no end date in this product, by design
+// (the anti-abuse core in constants/tiers.ts), so deletion, a typo, or a changed custom
+// slug are the only three ways a link stops resolving. The help article
+// content/help/the-qr-wont-scan-or-the-link-wont-open.mdx quotes this sentence. Renders in
 // (guest)/layout.tsx (narrow mobile column); GuestHeader needs a real qrToken/eventId,
 // which a 404 has none of, so we show a minimal Logo header linking home instead.
 export const metadata: Metadata = {
@@ -30,7 +34,7 @@ export default function GuestNotFound() {
           icon={QrCode}
           eyebrow="Event link"
           title="This event link didn't work"
-          description="The link may be mistyped or the event may have ended. Double-check the QR code or link, or ask the host to resend it."
+          description="The link may be mistyped, or the host may have deleted the event. Double-check the QR code or link, or ask the host to resend it."
           actions={
             <Button asChild size="lg" className="h-11 px-6 text-base">
               <Link href="/">What is Partyreel?</Link>

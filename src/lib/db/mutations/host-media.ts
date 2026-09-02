@@ -169,14 +169,17 @@ function mapHostCheckViolation(message: string): CreateHostMediaResult {
   if (m.includes("longer than")) {
     return { ok: false, code: "too_long", message };
   }
-  // Phase 2 video Pro-gate ("...available on paid plans."). Checked after the size
+  // Phase 2 video paid-gate ("...available on paid plans."). Checked after the size
   // limits, so "paid plan" uniquely identifies the video gate. A backstop — the host
   // presign route's video_blocked flag + the disabled video picker are the front line.
+  // A35: both paid plans get named, never "Pro only" — the gate is videosAllowedForTier
+  // (tier !== "free"), so an Event Pass qualifies. Word-for-word the presign route's
+  // refusal, so the front line and this backstop can never disagree.
   if (m.includes("paid plan")) {
     return {
       ok: false,
       code: "video_not_allowed",
-      message: "Video uploads are available on the Pro plan.",
+      message: "Video uploads come with Pro and the Event Pass.",
     };
   }
   if (m.includes("limit") || m.includes("capacity")) {
