@@ -44,7 +44,7 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   seat lives in the repo.
 - **Succession-ready round close (the Orchestrator's exit checklist):** the record step is done
   (system docs refined in place, CHANGELOG entry, ROADMAP pruned); STATUS is current (round table,
-  live state, decision queue); every track branch is integrated or listed as a pending handoff; `git worktree list` shows only the root and open tracks and
+  live state, decision queue); every track branch is integrated or `handed-off` in its manifest; `git worktree list` shows only the root and open tracks and
   `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and the preview deploy is READY there; nothing a
   successor needs lives only in the closing session.
@@ -60,7 +60,7 @@ a session opened in the repo root.
 > You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
 > Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
 > `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
-> Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is step 0),
+> Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
 > build, then hand off by filling the manifest's Handoff + Record sections, setting
 > `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
@@ -96,10 +96,12 @@ one, say so: "resume `lp/<track>`".)
    `pnpm install --frozen-lockfile`, and copy `.env.local` from the primary checkout before the
    first gate or `pnpm dev` (the env-validating instrumentation hook fails the dev server without
    it). Then read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, and follow
-   CLAUDE.md's working loop. First push: `git push -u origin lp/<track>` — every push auto-deploys your review
-   preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (builds queue one-at-a-time on the
-   Hobby plan; UI-review only — the allow-list-gated flows fail there by design, see CLAUDE.md
-   "Local dev vs. live testing").
+   CLAUDE.md's working loop. First push: `git push -u origin lp/<track>`. Your review preview at
+   `partyreel-git-lp-<track>-partyreel.vercel.app` builds only when your manifest says `preview: true`
+   or `status: handed-off`, or a commit message carries `[preview]`; an open manifest with
+   `preview: false` skips, so builds never queue behind work in progress on the one-at-a-time Hobby
+   plan (proven both ways 2026-09-02). UI-review only — the allow-list-gated flows fail there by
+   design, see CLAUDE.md "Local dev vs. live testing".
 6. **Your manifest, before any other work** (the operating model, 2026-09-02). If the stub exists,
    fill its body; else copy the template from [`tracks/README.md`](tracks/README.md) and fill
    `owns` / `reads` from your init. Commit it alone (`docs(tracks): open <track>`) and push. Then

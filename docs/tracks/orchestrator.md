@@ -16,7 +16,6 @@ owns:
   - docs/decisions/design-record.md
   - docs/perf/v1-baseline.md
 announces:
-  - "the MDX registry split: mdx-components.tsx becomes a composer over mdx/spec-shared.tsx, spec-help.tsx, spec-blog.tsx (lands in the operating-model commits; content lanes add to their own file afterwards)"
   - "the design gate leaves the lab: gate.ts / links.ts / gate-check move to src/lib/design-gate and /api/design-gate (the library round); only the marketing motion tuner and the lab import them"
   - "the lab distillation: src/app/(dev)/design shrinks to the library, the record and four open boards; @source not excludes it from the production CSS scan"
 ---
@@ -32,4 +31,11 @@ registry split, the build-gate policy, the program docs), then the library round
 
 ## Landed this window
 
-- none yet
+- `ece2a8a` this directory and the manifest guard (`src/lib/track-manifests.test.ts`); no production path.
+- `e58dff4` the single-source guard (`src/lib/single-source-policy.test.ts`); no production path.
+- `7284933` the MDX registry split: `src/components/marketing/mdx-components.tsx` is now a composer;
+  the map moved to `src/components/marketing/mdx/spec-shared.tsx`, with `spec-help.tsx` and
+  `spec-blog.tsx` for the content lanes; `content/help/AUTHORING.md` and `content/blog/AUTHORING.md`
+  point at them. A lane adding a spec component syncs this.
+- `8eeff91` the build gate on request (`scripts/vercel-ignore-build.mjs`) and the marketing stub
+  manifest; `3115a6c` `cb38b50` `e45efea` the program docs. No production path.
