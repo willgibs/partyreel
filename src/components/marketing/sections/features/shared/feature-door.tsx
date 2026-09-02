@@ -181,7 +181,7 @@ export function doorFor(slug: DoorSlug): {
       href: "/reel",
       title: "The highlight reel",
       line: `${GOLDEN_LINES.reelThesis}.`,
-      long: "The whole event, cut into a minute you can restyle in a tap and send tonight.",
+      long: "The whole event, cut into a minute. Restyle it in a tap, send it tonight.",
     };
   }
   const page = featurePage(slug);
@@ -302,8 +302,16 @@ export function FeatureDoor({
             {door.title}
             <LearnChevron />
           </span>
-          {/* white/85: the smaller face over the lighter part of the ramp. */}
-          <span className="text-sm leading-relaxed text-white/85">
+          {/* white/85: the smaller face over the lighter part of the ramp.
+              Width-constrained (Will, 2026-09-02): a line that runs the whole
+              card reads as a block; on a measure of ~40 characters it reads
+              as two quick rows. */}
+          <span
+            className={cn(
+              "text-sm leading-relaxed text-white/85",
+              aspect === "wide" ? "max-w-md" : "max-w-[19rem]",
+            )}
+          >
             {copy === "long" ? door.long : door.line}
           </span>
         </span>

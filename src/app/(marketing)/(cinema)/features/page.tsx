@@ -22,7 +22,7 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `Everything between the scan and the reel: a live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
+  description: `The full media kit for any event: a live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
   alternates: { canonical: "/features" },
 };
 
@@ -55,12 +55,11 @@ export default function FeaturesPage() {
       <PageHero
         entrance="cut"
         eyebrow="Features"
-        /* The copy rewrite (Will, 2026-09-02): the hub is the page between the
-           two things people already understand, the scan and the reel, so the
-           title says exactly that and the subhead walks the reader through
-           the middle in one breath. */
-        heading="Everything between the scan and the reel."
-        subhead="Guests scan one code and upload from their own phones. You get a live album, the tools to shape it, and a highlight reel at the end. Every piece, one page each."
+        /* The copy rewrite (Will, 2026-09-02, his own H1). The subhead is one
+           breath and two lines at most on desktop: "people tend not to read
+           most copy on a site, especially not dense blocks". */
+        heading="The full media kit for any event"
+        subhead="Guests scan one code. You get the whole event in one album, and a reel at the end."
         actions={
           /* A balanced pair, then the longer demo line on its own row beneath
              (Will, 2026-09-02): a button beside a sentence-length link read
@@ -122,7 +121,7 @@ export default function FeaturesPage() {
       <CtaBand
         className="border-t"
         heading="Start with one event, free."
-        subhead="Make the event, put the code where people will see it, and the album takes care of the rest."
+        subhead="Make the event, put the code out, and the album takes care of the rest."
         demoLink
       />
     </>
