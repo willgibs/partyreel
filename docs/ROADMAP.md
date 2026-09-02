@@ -20,6 +20,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The root 404's browser tint.** The lit root `not-found` (outside every route group) inherits the root
+  layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
+  `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
+  the milestone-16 red-team, 2026-09-02).
 - **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
   problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
   UNLIT by ruling meanwhile: the wall is the ground, not a source.

@@ -11,6 +11,49 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — MILESTONE-16: prod = the legal round and the help catalog, and the live red-team across the batch
+
+`main` @ tag `milestone-16` (`9b61419`; `launch-prep` `5012e92` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). Migrations at parity, the full gate green on the merged tree
+(1489 tests, 245 static pages, every step on its own exit code), prod READY at the merge SHA. Will:
+"complete any remaining testing on launch prep and then merge to main for the full live red team
+across our recent work." The last preview check before the merge was the gated guest door as a
+signed-out guest (the `Test Wedding` event, email-gated): its entry sheet opens on arrival with "By
+continuing you agree to our Terms and Privacy Policy", both links in a new tab.
+
+**The live red-team on partyreel.com at `9b61419`, rounds 0 to 2b plus the blog, legal and help rounds:**
+
+- **Guards and negatives.** `/api/cron/purge` without its secret: 401 on GET, 405 on POST. A bogus
+  door token, post slug and help slug: 404 each. `/blog?tag=nope` and `?page=999`: 200, collapsing
+  to Everything and clamping to a real page by design. A retired blog slug: 308 to its successor.
+- **Metadata.** The OG images for the home, /privacy, /terms, a post and a help article all 200 as
+  `image/png` at the hashed URLs the pages declare (the unhashed path guesses 404, correctly).
+  `/llms.txt` on the canonical domain: 14,243 characters, 38 help + 8 blog links, the full-count
+  line; `/llms-full.txt`: all 59 help entries. Sitemap: 59 help, 23 blog, the legal pages' `lastmod`
+  from the legal single-source. The blog feed: 23 items. `theme-color` `#040404` on the legal pages.
+- **The home.** Section alignment reads centred, LEFT, centred, centred through chapter 1's tail and
+  LEFT, centred, LEFT across the paper chapter; the film-strip seam full-bleed, the reel pool 768px
+  over a 768px player with its radial mask, the Pro beam present; all four event teasers at two
+  lines; the skin wrapper's `overflow-x-clip` on the served HTML. The lit root 404 renders its one
+  seam over the filter host.
+- **Blog, pricing, curation.** The rail at Everything 23 / Weddings 8 / Parties 4 / Corporate 3 /
+  How-to 12 / Compared 7 / Product 8; a post with `Article` + `FAQPage` JSON-LD, its Questions
+  section, the chip ToC and five copy-link anchors; /pricing's capacity through the shared formatter;
+  /features/curation still rendering its bulk-select bar through the shared mock.
+- **Legal and help.** /privacy on the cinema skin with 17 sections and 29 anchors, the "Version 1.0 ·
+  Pending counsel review · Effective on launch" line and the `[ENTITY NAME]` / `[ADDRESS]` fill-ins
+  as ruled; /terms with 24 sections and 38 anchors; the logged-out login page's consent line with both
+  links; the help hub at 59 articles; an article reading "After a downgrade you get 45 days" from the
+  shared component, with the chip ToC, the print-aware body and pagination.
+- **Narrow widths.** Through a same-origin iframe at 375 under a classic 17px scrollbar, the home,
+  /blog, /privacy and a help article are exactly viewport-wide (358/358) and a forced sideways
+  scroll lands at 0. Console clean on every page visited.
+
+**One finding, logged, not fixed:** the ROOT 404 (a path outside every route group, e.g.
+`/this-page-does-not-exist`) is the lit cinema page but ships the root layout's light `theme-color`
+(`#fcfcfc`), while a 404 inside the cinema group carries `#040404`; a light browser tint over a dark
+page. Pre-existing since the lit-404 round, one line in the ROADMAP.
+
 ## 2026-09-01 — The legal round: Privacy Policy + Terms of Service v1.0 (`lp/legal-docs`, pending integration)
 
 **Merged into `launch-prep` by the Orchestrator at `988aac3` (2026-09-02)**, full gate green on the merged

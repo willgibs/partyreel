@@ -100,6 +100,12 @@ stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
 
+**MILESTONE-16 (2026-09-02): prod = the legal round and the help catalog, red-teamed live.** `main` @
+tag `milestone-16` (`9b61419`), prod READY + red-teamed at the merge SHA across rounds 0 to 2b, the blog,
+legal and help (guards, negatives, metadata, the home's arc and lamps, legal and help surfaces, 375
+under a classic scrollbar, console clean). One finding logged: the root 404's light `theme-color` over
+its dark lit page. Full narrative: [CHANGELOG](CHANGELOG.md).
+
 **The help catalog and the legal round integrated (2026-09-02).** `lp/legal-docs` merged at `988aac3`
 and `lp/help-catalog` at `3cff3a7`, both gates green on the merged trees (1489 tests, 245 static pages
 after the catalog), both verified on the launch-prep alias; four integration decisions inside the
@@ -304,11 +310,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-15`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-16`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1337 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1489 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -371,9 +377,8 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **Rounds 0 to 2b shipped at MILESTONE-14 and the blog library at MILESTONE-15 (2026-09-02).**
-   Next into `launch-prep` for review: the help catalog (`lp/help-catalog`) and the legal round
-   (`lp/legal-docs`), Will's ruling 2026-09-02.
+2. **Everything through the help catalog is on prod (MILESTONE-16, 2026-09-02).** `launch-prep` and
+   `main` agree at `9b61419`; nothing is unmerged. The next round opens a fresh gap.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
