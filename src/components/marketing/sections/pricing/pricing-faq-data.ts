@@ -1,3 +1,4 @@
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
@@ -46,7 +47,7 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Can I cancel Pro anytime?",
-    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a 45-day window to free up space or re-upgrade before anything moves toward the trash.`,
+    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward the trash.`,
   },
   {
     q: "How big can uploads be?",

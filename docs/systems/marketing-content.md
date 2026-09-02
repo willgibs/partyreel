@@ -55,9 +55,22 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   frame), the QR plate switches on in its own bespoke hero, and curation and privacy open plain on
   purpose. The eyebrow is the page's own label alone (the "Features ·" breadcrumb half was ruled
   unbalanced, 2026-09-02).
-  **`/features/album` had its own ground-up round (2026-09-02)** and is the model for the others:
-  the album through the event's own timeline in three arcs. Chapter 1 opens on **the album filling
-  from the top** ([`album/arrivals-stage.tsx`](../../src/components/marketing/sections/features/album/arrivals-stage.tsx)
+  **`/features/album` had its own ground-up round (2026-09-02, twice)** and is the model for the
+  others: designed from a first-time host's QUESTIONS outward (the link vs the QR, hosting accounts,
+  names without accounts, live vs review timing, guest deletion, the total cap and what happens at
+  it, video on Free, who can OPEN the album, downloads, paying to keep it, the bin, the big screen),
+  with light tie-ins to the neighbouring features so a visitor landing here first is never lost.
+  Thirteen beats in three arcs: cinema (the hero, getting in, everywhere, the numbers), ONE paper
+  chapter as the host's desk (your call, names, who can open it, taking it home, how much fits, it
+  stays), the close (doors, nine questions, the band). Every app string is quoted and pinned by
+  `mock-parity.test.ts`; every number derives (`tiers.ts`, `limits.ts`, the lifecycle constants,
+  including the new [`over-capacity.ts`](../../src/lib/lifecycle/over-capacity.ts) the cron now
+  reads too). ★ Facts the page corrected and must keep: Require accounts defaults ON for a new event
+  (never "no account by default"); anonymous is Anonymous (no name field exists); a guest deletes
+  their own upload from their dashboard and it is private to the host; a private page shows no name
+  and no count (the name + count tease is the PASSWORD state); no big-screen mode exists (the album
+  in any browser is the claim); nothing is locked or hidden at lapse. Chapter 1 opens on **the
+  album filling from the top** ([`album/arrivals-stage.tsx`](../../src/components/marketing/sections/features/album/arrivals-stage.tsx)
   over the shared [`album-fill-grid.tsx`](../../src/components/marketing/sections/features/album/album-fill-grid.tsx)
   + [`use-album-fill.ts`](../../src/components/marketing/sections/features/album/use-album-fill.ts)):
   the REAL guest album's arrival grammar quoted (newest-first, arrivals prepended with older tiles

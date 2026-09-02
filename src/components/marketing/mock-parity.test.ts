@@ -35,6 +35,77 @@ type ParityEntry = {
 };
 
 const ENTRIES: ParityEntry[] = [
+  // The live album page (/features/album) <-> the guest and host surfaces.
+  {
+    label: "album entry phone welcome promise",
+    marketingFile:
+      "src/components/marketing/sections/features/album/entry-phone.tsx",
+    appFile: "src/components/guest/entry-modal.tsx",
+    literal: "No app, no account.",
+  },
+  {
+    label: "album entry phone browse-out",
+    marketingFile:
+      "src/components/marketing/sections/features/album/entry-phone.tsx",
+    appFile: "src/components/guest/entry-modal.tsx",
+    literal: "Just browsing",
+  },
+  {
+    label: "album review switch guest toast",
+    marketingFile:
+      "src/components/marketing/sections/features/album/review-switch.tsx",
+    appFile: "src/components/guest/guest-upload.tsx",
+    literal: "Sent, waiting for host approval",
+  },
+  {
+    label: "album review switch bulk-approve button",
+    marketingFile:
+      "src/components/marketing/sections/features/album/review-switch.tsx",
+    appFile: "src/components/app/event-feed/review-actions.tsx",
+    literal: "Approve all",
+  },
+  {
+    label: "album your-call close-uploads helper",
+    marketingFile:
+      "src/components/marketing/sections/features/album/your-call-section.tsx",
+    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    literal: "Turn off to freeze the album. Guests can still view it.",
+  },
+  {
+    label: "album visibility private page title",
+    marketingFile:
+      "src/components/marketing/sections/features/album/visibility-frames.tsx",
+    appFile: "src/app/(guest)/e/[token]/page.tsx",
+    literal: "This event is private",
+  },
+  {
+    label: "album visibility password gate eyebrow",
+    marketingFile:
+      "src/components/marketing/sections/features/album/visibility-frames.tsx",
+    appFile: "src/components/guest/password-gate.tsx",
+    literal: "Almost in",
+  },
+  {
+    label: "album take-home dialog title",
+    marketingFile:
+      "src/components/marketing/sections/features/album/take-home-section.tsx",
+    appFile: "src/components/app/export/export-dialog.tsx",
+    literal: "Download album",
+  },
+  {
+    label: "album cap refusal, the guest's words",
+    marketingFile:
+      "src/components/marketing/sections/features/album/how-much-fits.tsx",
+    appFile: "src/app/api/r2/presign-upload/route.ts",
+    literal: "This album is full right now. The host needs to free up space.",
+  },
+  {
+    label: "album photos-only refusal, the guest's words",
+    marketingFile:
+      "src/components/marketing/sections/features/album/how-much-fits.tsx",
+    appFile: "src/app/api/r2/presign-upload/route.ts",
+    literal: "This event accepts photos only.",
+  },
   // Curation demo (/features/curation) <-> the event feed's review controls.
   {
     label: "curation demo bulk-approve button",

@@ -47,8 +47,8 @@ export function EverywhereSection() {
           </h2>
           <p {...rise(2)} className="max-w-md text-pretty text-muted-foreground">
             The moment a guest uploads, it appears on every open album: the
-            phones in the room, the laptop by the door, the screen above the
-            bar. No refresh.
+            phones in the room, the laptop by the door, the TV above the bar.
+            Leave it up on any screen and it keeps itself current. No refresh.
           </p>
           <div {...rise(3)}>
             <LearnMoreLink href="/features/curation">

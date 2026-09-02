@@ -57,6 +57,10 @@ import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
 import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
+import {
+  OVER_CAP_GRACE_DAYS,
+  OVER_CAP_REMINDER_DAYS,
+} from "@/lib/lifecycle/over-capacity";
 
 // node:crypto + the service-role admin client require the Node runtime; never edge.
 export const runtime = "nodejs";
@@ -79,8 +83,6 @@ const MEDIA_PREFIX = "events/";
 
 // Over-capacity grace: a lapsed account over its cap gets this long to upgrade/remove
 // before auto-reduce; we email a reminder this many days before the deadline.
-const OVER_CAP_GRACE_DAYS = 45;
-const OVER_CAP_REMINDER_DAYS = 7;
 // Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
 // tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.
 const FREE_CAP_BYTES = 2 * 1024 ** 3;

@@ -40,7 +40,7 @@ export const FEATURE_PAGES: FeaturePage[] = [
     navDescription: "Every photo and video, full quality, live.",
     h1: "Every photo, from every guest, in one place.",
     heroSub:
-      "Guests upload from the phone in their pocket, and it lands here live, at full quality. Nothing to install.",
+      "One code in the room. Every phone uploads into the same album, live, at full quality.",
     directoryLine:
       "Every phone in the room, feeding one album while the party is on.",
   },

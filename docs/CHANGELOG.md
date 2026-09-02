@@ -57,6 +57,18 @@ page does, on shared pieces instead of six hand-rolled copies.**
   subhead, the seven door lines rewritten as a set on a new registry field (`directoryLine`, two
   rows at most, width-constrained on the card, held to one length band so they wrap alike), and a
   fresh close ("Start with one event, free.").
+- **`/features/album`, the second pass, from the host's questions outward (2026-09-02).** Will's
+  read of the first pass was exact: the same skeleton with polish, and "a very poor job of covering
+  all the questions a host would have". Three fact sheets (the system docs, the host-side code, the
+  guest-side code) were compiled first and a Plan agent stress-tested the IA against a fresh
+  reader's question list; it caught "no account by default" (backwards: Require accounts defaults
+  ON), a private frame leaking a name and count, and a plans chart opening a cinema chapter. The
+  page is now thirteen beats: getting in (one phone cycling the scan, the welcome and the first
+  upload), everywhere, the numbers, then a paper desk (Live | Review as a switch you flip, names in
+  the lightbox, four states of who can open it, taking it home, how much fits with every number
+  derived, it stays with the grace and idle windows derived), then the doors and nine questions.
+  New: `over-capacity.ts` (the 45-day grace, now shared by the cron and the pricing FAQ), a shared
+  ghost grid, ten mock-parity pins, the night scan over the feature registry.
 - **`/features/album`, the first ground-up page round (2026-09-02).** Will's brief: treat it as a
   total visual and copy redesign and think from the whole product's benefits, not the previous
   sections. The page is now the album through the event's own timeline in three arcs. The hero's

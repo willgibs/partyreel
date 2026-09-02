@@ -1,11 +1,12 @@
 "use client";
 
-import { Camera, Globe, KeyRound, Lock } from "lucide-react";
+import { Globe, KeyRound, Lock } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { VISIBILITY_HINTS } from "@/components/app/visibility-selector";
 import { BrowserFrame } from "@/components/marketing/frames";
+import { GhostBackdrop } from "@/components/marketing/sections/features/shared/ghost-grid";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -294,27 +295,3 @@ function PreviewPanel({
   );
 }
 
-/**
- * The locked-gallery tease behind the gated states, echoing the app's ghost
- * grid (components/guest/ghost-grid.tsx): shape and count, zero pixels. Same
- * 4x2 footprint as the open album so the card never changes height.
- */
-function GhostBackdrop() {
-  return (
-    <div className="grid grid-cols-4 gap-2 self-center [grid-area:1/1]">
-      {Array.from({ length: 8 }, (_, i) => (
-        <div
-          key={i}
-          className="flex aspect-square items-center justify-center rounded-lg border border-border/70 bg-muted/60"
-        >
-          {/* Cameras on the outer columns, where the centered card can't
-              cover them (the app puts one every 4th cell for the same
-              "not a broken grid" read). */}
-          {(i === 3 || i === 4) && (
-            <Camera className="size-4 text-muted-foreground/40" />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
