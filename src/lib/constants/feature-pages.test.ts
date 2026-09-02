@@ -35,10 +35,11 @@ describe("the feature-pages registry", () => {
 
   it("keeps the directory lines in one length band, so the doors wrap alike", () => {
     // Six doors in a grid read as a set only if their lines land on the same
-    // number of rows; ~85-105 characters is three lines at the door's measure.
+    // number of rows. Measured at 1440 (a ~320px door, ~44 characters a line):
+    // 88 characters still fits two lines, so three lines is 92-110.
     for (const page of FEATURE_PAGES) {
-      expect(page.directoryLine.length, page.slug).toBeGreaterThanOrEqual(85);
-      expect(page.directoryLine.length, page.slug).toBeLessThanOrEqual(105);
+      expect(page.directoryLine.length, page.slug).toBeGreaterThanOrEqual(92);
+      expect(page.directoryLine.length, page.slug).toBeLessThanOrEqual(110);
     }
   });
 

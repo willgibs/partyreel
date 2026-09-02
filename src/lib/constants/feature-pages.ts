@@ -41,7 +41,7 @@ export const FEATURE_PAGES: FeaturePage[] = [
     heroSub:
       "Every phone in the room feeds one album, at full quality, while the event is still going.",
     directoryLine:
-      "Every phone in the room feeds one album, at full quality, while the party is still going.",
+      "Every phone in the room feeds one album, at full quality, and it keeps filling while the party is on.",
   },
   {
     slug: "qr",
@@ -51,7 +51,7 @@ export const FEATURE_PAGES: FeaturePage[] = [
     heroSub:
       "Style a code that matches the event, put it where people look, and the uploads start.",
     directoryLine:
-      "A code that matches the event, printed or on a screen. Guests scan it and they are in.",
+      "A code that matches the event, on a screen or in print. Guests scan it and they are in, no app.",
   },
   {
     slug: "curation",
@@ -71,7 +71,7 @@ export const FEATURE_PAGES: FeaturePage[] = [
     heroSub:
       "The album is one link, and every photo and video comes back out at the quality it went in.",
     directoryLine:
-      "One link for the whole album, and every original comes back out at the quality it went in.",
+      "One link carries the whole album, and every photo and video comes back out at the quality it went in.",
   },
   {
     slug: "guests",
