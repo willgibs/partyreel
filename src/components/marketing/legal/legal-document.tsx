@@ -107,8 +107,8 @@ export function LegalDocument({
                   <p className="mt-1.5 text-sm leading-6 text-pretty text-foreground">
                     This is the complete text, pending counsel review before it
                     takes effect. The plain-language summary beside each section
-                    describes how Partyreel works today, and it stays right there
-                    once the formal text is final.
+                    describes how Partyreel works today, and it stays right
+                    there once the formal text is final.
                   </p>
                 </div>
               )}

@@ -520,9 +520,9 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         // deletion is a ROADMAP item.
         <>
           <strong className="text-foreground">Delete your account.</strong> For
-          now, account deletion is handled through support: write to us from
-          the {CONTACT_PAGE} using the email on your account, and we will delete
-          it and confirm. Events you host are deleted with the account; your
+          now, account deletion is handled through support: write to us from the{" "}
+          {CONTACT_PAGE} using the email on your account, and we will delete it
+          and confirm. Events you host are deleted with the account; your
           uploads to other people&rsquo;s events stay in their albums unless you
           delete them first. A self-serve deletion control is planned. Details:{" "}
           <LegalLink href="/help/your-data-and-deleting-your-account">
@@ -539,8 +539,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           them.
         </>,
         <>
-          <strong className="text-foreground">Analytics.</strong> The opt-out
-          is described under <LegalLink href="#cookies">Cookies</LegalLink>.
+          <strong className="text-foreground">Analytics.</strong> The opt-out is
+          described under <LegalLink href="#cookies">Cookies</LegalLink>.
         </>,
         <>
           <strong className="text-foreground">Google.</strong> You can remove

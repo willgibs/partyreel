@@ -354,10 +354,18 @@ real fix is the manifest fill.
 5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-6. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
-   lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-7. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
-   and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
+6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
+   facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
+   "Elevation-program deferred queue").
+7. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md)),
+   ready to spawn via the PROGRAM.md Agent template. (The legal Agent ran 2026-09-01; its handoff is
+   `lp/legal-docs`, below.)
+8. **The `lp/legal-docs` handoff (2026-09-01, awaiting integration):** Privacy Policy + Terms of
+   Service v1.0, both pages moved into `(cinema)` on the new `LegalDocument` shell, the consent line
+   on the guest door. Rulings taken in-session (placeholders for the entity, US-first + GDPR/UK +
+   California, hosts 18+ / guests 13+, Pro non-refundable + 14-day unused-pass refund, [STATE] courts
+   with a class waiver, full DMCA). Nothing left to rule; the three go-live fill-ins are `[human]`
+   launch tasks in [ROADMAP](ROADMAP.md). Preview: `partyreel-git-lp-legal-docs-partyreel.vercel.app`.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
 

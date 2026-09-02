@@ -1,14 +1,6 @@
 import { LegalLink } from "@/components/marketing/legal/legal-link";
 
-import {
-  LEGAL_PARTY,
-  note,
-  ol,
-  p,
-  sub,
-  ul,
-  type LegalSection,
-} from "./legal";
+import { LEGAL_PARTY, note, ol, p, sub, ul, type LegalSection } from "./legal";
 
 /**
  * THE TERMS OF SERVICE (version 1.0, the legal round, 2026-09-01). Formal but
@@ -57,7 +49,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         </>,
       ),
       p(
-        "You must be at least 18 years old to create a host account or buy a plan. You must be at least 13 years old, or older where the law of your country requires it, to join an event as a guest. If you use the Service on behalf of an organisation, you confirm that you are authorised to bind it, and \"you\" includes that organisation.",
+        'You must be at least 18 years old to create a host account or buy a plan. You must be at least 13 years old, or older where the law of your country requires it, to join an event as a guest. If you use the Service on behalf of an organisation, you confirm that you are authorised to bind it, and "you" includes that organisation.',
       ),
       sub("definitions", "Definitions"),
       ul(
@@ -72,9 +64,9 @@ export const TERMS_SECTIONS: LegalSection[] = [
         </>,
         <>
           <strong className="text-foreground">Event</strong> and{" "}
-          <strong className="text-foreground">Album</strong>: an event is what
-          a host creates; its album is the collection of media gathered under
-          that event&rsquo;s link.
+          <strong className="text-foreground">Album</strong>: an event is what a
+          host creates; its album is the collection of media gathered under that
+          event&rsquo;s link.
         </>,
         <>
           <strong className="text-foreground">Content</strong>: photos, videos,
@@ -83,8 +75,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         </>,
         <>
           <strong className="text-foreground">Plan</strong>: the free tier, a
-          Pro subscription or an Event Pass, as described on the{" "}
-          {PRICING_PAGE}.
+          Pro subscription or an Event Pass, as described on the {PRICING_PAGE}.
         </>,
       ),
       p(
@@ -257,8 +248,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ul(
         <>
           <strong className="text-foreground">Free</strong> covers one event
-          with photo uploads, within the storage cap shown on the{" "}
-          {PRICING_PAGE}.
+          with photo uploads, within the storage cap shown on the {PRICING_PAGE}
+          .
         </>,
         <>
           <strong className="text-foreground">Pro</strong> is a subscription,
@@ -294,12 +285,12 @@ export const TERMS_SECTIONS: LegalSection[] = [
           upload in progress is not cut off at the line. When an account reaches
           its cap, new uploads pause until space is freed or the plan grows;
           existing media is untouched. Video uploads and highlight reels above
-          the free length are available on paid plans only. Per-file size
-          limits are shown in the uploader, and hosts may set a lower limit for
-          their event. Some event settings (a password, a custom link) are
-          available on paid plans only; if your plan lapses you keep any such
-          setting you already made but cannot create a new one. The current
-          numbers live on the {PRICING_PAGE} and in{" "}
+          the free length are available on paid plans only. Per-file size limits
+          are shown in the uploader, and hosts may set a lower limit for their
+          event. Some event settings (a password, a custom link) are available
+          on paid plans only; if your plan lapses you keep any such setting you
+          already made but cannot create a new one. The current numbers live on
+          the {PRICING_PAGE} and in{" "}
           <LegalLink href="/help/storage-plans-and-limits">
             storage, plans and limits
           </LegalLink>
@@ -321,10 +312,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
         <>
           <strong className="text-foreground">Pro.</strong> You can cancel at
           any time through the billing portal. Cancellation stops future
-          charges; your plan continues until the end of the period you have
-          paid for, and then your account returns to the free tier. Pro
-          payments, monthly or yearly, are not refundable, in whole or in part,
-          except where the law requires otherwise.
+          charges; your plan continues until the end of the period you have paid
+          for, and then your account returns to the free tier. Pro payments,
+          monthly or yearly, are not refundable, in whole or in part, except
+          where the law requires otherwise.
         </>,
         <>
           <strong className="text-foreground">Event Pass.</strong> A pass is
@@ -337,10 +328,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
           <strong className="text-foreground">Your statutory rights.</strong> If
           you live in a place whose consumer law gives you a right to withdraw
           from a purchase or to a refund that these Terms do not, that right is
-          unaffected. In the European Union and the United Kingdom, by asking
-          us to make a plan available immediately you agree that the
-          withdrawal period ends when the plan is activated, and an Event Pass
-          remains refundable under the 14-day rule above.
+          unaffected. In the European Union and the United Kingdom, by asking us
+          to make a plan available immediately you agree that the withdrawal
+          period ends when the plan is activated, and an Event Pass remains
+          refundable under the 14-day rule above.
         </>,
       ),
       p(
@@ -366,11 +357,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
       p(
         <>
           <strong className="text-foreground">Over-capacity accounts.</strong>{" "}
-          If a paid plan lapses and the account holds more than its new cap,
-          you have a 45-day grace period, with email reminders, to reduce
-          storage or restore a plan. After that we remove items, largest first,
-          until the account is within its cap, passing each through the
-          recovery bin.
+          If a paid plan lapses and the account holds more than its new cap, you
+          have a 45-day grace period, with email reminders, to reduce storage or
+          restore a plan. After that we remove items, largest first, until the
+          account is within its cap, passing each through the recovery bin.
         </>,
       ),
       p(
@@ -386,10 +376,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ),
       p(
         <>
-          <strong className="text-foreground">Event Pass events.</strong> A
-          pass covers its event for about one year from purchase. When a pass
-          lapses, the event is treated as a free-account event and the rules
-          above apply; renewing, or moving to Pro, keeps it longer.
+          <strong className="text-foreground">Event Pass events.</strong> A pass
+          covers its event for about one year from purchase. When a pass lapses,
+          the event is treated as a free-account event and the rules above
+          apply; renewing, or moving to Pro, keeps it longer.
         </>,
       ),
       p(
@@ -487,12 +477,12 @@ export const TERMS_SECTIONS: LegalSection[] = [
       p(
         <>
           <strong className="text-foreground">By us.</strong> We may terminate
-          or suspend your account as described under Moderation and
-          enforcement, or if a paid plan lapses and the account remains over
-          its cap beyond the periods described under Storage and retention. We
-          may also discontinue the Service as a whole, in which case we will
-          give at least 60 days&rsquo; notice by email and a way to download
-          your albums before they are deleted.
+          or suspend your account as described under Moderation and enforcement,
+          or if a paid plan lapses and the account remains over its cap beyond
+          the periods described under Storage and retention. We may also
+          discontinue the Service as a whole, in which case we will give at
+          least 60 days&rsquo; notice by email and a way to download your albums
+          before they are deleted.
         </>,
       ),
       p(
@@ -508,16 +498,19 @@ export const TERMS_SECTIONS: LegalSection[] = [
     blocks: [
       note(
         <>
-          <strong>The Service is provided &ldquo;as is&rdquo; and &ldquo;as
-          available&rdquo;.</strong> To the fullest extent permitted by law,
-          Partyreel disclaims all warranties, express or implied, including
-          implied warranties of merchantability, fitness for a particular
-          purpose, title and non-infringement. We do not warrant that the
-          Service will be uninterrupted, error-free or secure, that content
-          will never be lost, or that it will meet your requirements. You are
-          responsible for keeping your own copies of anything you cannot afford
-          to lose. Some jurisdictions do not allow the exclusion of implied
-          warranties, so some of these exclusions may not apply to you.
+          <strong>
+            The Service is provided &ldquo;as is&rdquo; and &ldquo;as
+            available&rdquo;.
+          </strong>{" "}
+          To the fullest extent permitted by law, Partyreel disclaims all
+          warranties, express or implied, including implied warranties of
+          merchantability, fitness for a particular purpose, title and
+          non-infringement. We do not warrant that the Service will be
+          uninterrupted, error-free or secure, that content will never be lost,
+          or that it will meet your requirements. You are responsible for
+          keeping your own copies of anything you cannot afford to lose. Some
+          jurisdictions do not allow the exclusion of implied warranties, so
+          some of these exclusions may not apply to you.
         </>,
       ),
       p(
@@ -596,12 +589,14 @@ export const TERMS_SECTIONS: LegalSection[] = [
       sub("class-waiver", "Individual claims only"),
       note(
         <>
-          <strong>You and Partyreel agree that each may bring claims against
-          the other only in an individual capacity</strong>, and not as a
-          plaintiff or class member in any purported class, collective or
-          representative proceeding. If this waiver is found unenforceable for
-          a particular claim, it is severed for that claim only and the rest
-          of this section remains in force.
+          <strong>
+            You and Partyreel agree that each may bring claims against the other
+            only in an individual capacity
+          </strong>
+          , and not as a plaintiff or class member in any purported class,
+          collective or representative proceeding. If this waiver is found
+          unenforceable for a particular claim, it is severed for that claim
+          only and the rest of this section remains in force.
         </>,
       ),
     ],
@@ -609,7 +604,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
   {
     id: "general",
     title: "General terms",
-    summary: "The usual housekeeping: the whole agreement, and how notices work.",
+    summary:
+      "The usual housekeeping: the whole agreement, and how notices work.",
     blocks: [
       ul(
         <>
@@ -634,15 +630,15 @@ export const TERMS_SECTIONS: LegalSection[] = [
           assets, and will tell you if we do.
         </>,
         <>
-          <strong className="text-foreground">Force majeure.</strong> Neither
-          of us is liable for delay or failure caused by events beyond our
+          <strong className="text-foreground">Force majeure.</strong> Neither of
+          us is liable for delay or failure caused by events beyond our
           reasonable control, including outages at our providers, except for
           payment obligations.
         </>,
         <>
-          <strong className="text-foreground">Export and sanctions.</strong>{" "}
-          You may not use the Service if you are located in a country subject
-          to comprehensive United States sanctions or are on a United States
+          <strong className="text-foreground">Export and sanctions.</strong> You
+          may not use the Service if you are located in a country subject to
+          comprehensive United States sanctions or are on a United States
           restricted-parties list.
         </>,
         <>

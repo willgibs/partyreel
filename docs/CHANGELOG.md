@@ -8,6 +8,68 @@ Dates are when the work was shipped + verified on partyreel.com (test data is di
 included where recorded; the full original prose lives in git history. The foundational build (Phases
 0–4 + 6) is summarized at the bottom.
 
+
+---
+
+## 2026-09-01 — The legal round: Privacy Policy + Terms of Service v1.0 (`lp/legal-docs`, pending integration)
+
+`lp/legal-docs` (`151b5a1`, `b8e0ccc`, + the record commit), cut from `launch-prep` @ `7a189ae`. Gate
+green at every commit: typecheck, lint, 1339 tests (23 new), `pnpm build`. Preview READY at
+`partyreel-git-lp-legal-docs-partyreel.vercel.app` (b8e0ccc).
+
+**The brief was the R5 plain-language drafts; the research found them incomplete against the product.**
+Undisclosed in the old privacy draft: the per-upload forensic record (raw IP, user agent, client hints,
+coarse geo, device UUID; ADR-0020 had anticipated "a one-paragraph disclosure"), Sentry error reports with
+on-error masked replay (a ROADMAP launch requirement), the EXIF strip's fail-open formats (HEIC/HEIF/AVIF/
+WebM upload untouched, and HEIC is the iPhone default), guests' self-serve upload deletion (shipped,
+unmentioned), public profiles + the host-controlled guest list (ADR-0019), the recovery-bin storage
+budget, and the backup prune still in dry-run (deleted media's backup copy persists past 30 days). The old
+terms claimed account suspension that has no implementation, and the product had no refund policy, age
+rule, DMCA process, dispute clause, rights section or legal entity anywhere.
+
+**Will's rulings (three question rounds, 2026-09-01):** bracketed placeholders for the entity/state/
+address/DMCA agent, filled in one constant at launch · formal but readable · US-first with GDPR/UK and
+California sections · Pro non-refundable with cancel-anytime, Event Pass refundable within 14 days if
+unused · hosts 18+, guests 13+ · informal resolution then the courts of [STATE] with a class waiver, no
+arbitration · the full DMCA notice + counter-notice + repeat-infringer procedure (registration is a $6
+launch task) · full page scope: move to `(cinema)` + upgrade the shell · the consent line on the guest
+door, Stripe consent off · `privacy@partyreel.com` · the pre-launch notice stays, reworded to "complete
+text pending counsel review".
+
+**What shipped:** `lib/constants/legal.ts` (the single-source: meta, placeholders, the typed block
+model, `legalPlainText`, `legalHrefs`); the Privacy Policy (15 sections, 4 tables: purposes + legal
+bases, providers + regions, cookies, the retention schedule) and the Terms (22 sections; the guest→host
+license the product implied but never stated; suspension as a RESERVED right; no prices, `/pricing`
+linked instead); `LegalDocument` (cinema hero at `lg`, the straddling meta card, one `PaperChapter`, the
+three-track centred grid, `ArticleToc` spine, `ChipToc`, anchors, a self-scrolling rail); OG cards for
+both routes; the sitemap on the legal dates; `HeadingAnchor` + `ChipToc` extracted to `reading/` (help
+and blog swapped, byte-identical markup); `LegalConsentLine` on `/login` and the welcome step. Tests: the
+pinned anchor-id arrays, the launch switch (no placeholder once effective, the party named while pending),
+the clean plain-language register, dead-link + anchor + table checks, the shell source pins, the consent
+line (+ a source pin that neither consumer hand-rolls it).
+
+**Verified locally** (Preview MCP, DOM + fetch; the pane was `document.hidden`, so paint and scroll-spy
+were NOT judged there): one h1 per page; 15/22 sections, 14/16 h3s, 15/22 rail entries; skin `cinema`,
+`theme-color #040404`; the chapter computed near-white with ink text; canonical + `article:modified_time`
++ BreadcrumbList; both hashed OG routes 200 `image/png` (~41 KB); 3/8 bracketed placeholders in the
+bodies, none in a summary; sitemap `lastmod` = 2026-09-01 for both; `/contact` still paper; `/help/nonsense`
+404 with one header + one footer on cinema; `/login` consent line intact; at 375px: 22 chips shown, rail
+hidden, no horizontal overflow, tables inside their own scroll wrappers. The demo event runs demo mode
+with no entry modal, so the guest-door line was verified on a real test event (see the live pass).
+**Verified live** on the branch alias (`b8e0ccc`) with the Chrome MCP at 1440: the h1 at 72px, opacity 1
+(the site ladder, no reveal gate); the meta card straddling the cut by exactly 40px (card 384→589, chapter
+top 549) over a chapter computed at lab(98.84); the rail's scroll-spy following a deep jump (`active` =
+"Retention and deletion", spine at 0.62; on /terms `active` = "Disclaimers" with the 22-entry rail scrolling
+within itself at a 779px viewport); 38 copy-link anchors on /terms; both OG routes 200 `image/png`; the 8
+bracketed placeholders on /terms exactly the entity, agent, address and state tokens; zero horizontal
+overflow. The guest-door consent line verified on the Test Wedding event: welcome step → Continue → Just
+browsing → the line, both links `target=_blank rel=noopener`. Not verified: the Chrome window refuses
+widths under ~1440 on this machine, so the phone-width numbers come from the local Browser-pane
+emulation (375px: 22 chips shown, rail hidden, overflow 0, tables inside their scroll wrappers).
+
+★ **Two lessons for the next legal edit.** The fences read comments: the first `pnpm test` failed on the
+header comment that LISTED the banned phrases. And the neutralization fence's `business day` ban meets
+the DMCA statute head-on; "working days" is the recast, with the WHY comment on the paragraph.
 ---
 
 ## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light

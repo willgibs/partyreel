@@ -1,4 +1,7 @@
-import { HeadingAnchor, HEADING_SCROLL_MT } from "@/components/marketing/reading/heading-anchor";
+import {
+  HeadingAnchor,
+  HEADING_SCROLL_MT,
+} from "@/components/marketing/reading/heading-anchor";
 import type { LegalBlock } from "@/lib/constants/legal";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +82,7 @@ export function LegalBlocks({
                               // Mono holds DATA (durations, amounts), never a
                               // label: the R6 ruling.
                               block.columns[c]?.numeric &&
-                                "font-mono text-xs tabular-nums whitespace-nowrap",
+                                "font-mono text-xs whitespace-nowrap tabular-nums",
                             )}
                           >
                             {cell}

@@ -46,7 +46,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     navLabel: "Privacy",
     description:
       "How Partyreel collects, uses, stores and deletes your information, what your guests can see, and the choices and rights you have.",
-    ogKicker: "What we keep, where it lives, who can see it, and how deletion works.",
+    ogKicker:
+      "What we keep, where it lives, who can see it, and how deletion works.",
     version: "1.0",
     lastUpdated: "2026-09-01",
     status: "pending-review",
@@ -59,7 +60,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     navLabel: "Terms",
     description:
       "The agreement for hosting events and contributing media on Partyreel: your content, plans and billing, retention, acceptable use, and how disputes are handled.",
-    ogKicker: "Your content, plans and billing, retention, and the rules of the room.",
+    ogKicker:
+      "Your content, plans and billing, retention, and the rules of the room.",
     version: "1.0",
     lastUpdated: "2026-09-01",
     status: "pending-review",
@@ -103,7 +105,10 @@ export function legalStatusLine(meta: LegalDocMeta): string {
 }
 
 /** The "Read next" foot of each document: the sibling + the help articles that explain the same ground. */
-export const LEGAL_RELATED: Record<LegalDocId, { label: string; href: string }[]> = {
+export const LEGAL_RELATED: Record<
+  LegalDocId,
+  { label: string; href: string }[]
+> = {
   privacy: [
     { label: "Terms of Service", href: "/terms" },
     {
@@ -243,8 +248,9 @@ export function legalHrefs(
       return;
     }
     if (node && typeof node === "object" && "props" in node) {
-      const props = (node as { props: { href?: unknown; children?: ReactNode } })
-        .props;
+      const props = (
+        node as { props: { href?: unknown; children?: ReactNode } }
+      ).props;
       if (typeof props.href === "string") hrefs.add(props.href);
       walk(props.children);
     }
