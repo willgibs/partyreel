@@ -20,7 +20,7 @@ service-role admin client (`server-only`).
   (RSC/route handlers, async), `middleware` (proxy refresh), `admin` (service-role, `server-only`, bypasses RLS).
 - Data access only via [`../../src/lib/db/`](../../src/lib/db) (queries/mutations) — never inline SQL in components.
 - Generated types: [`../../src/lib/db/types.ts`](../../src/lib/db/types.ts) — **do not hand-edit** (`.prettierignore`d so regen stays churn-free).
-- Rate-limiters: [`unlock-rate-limit.ts`](../../src/lib/security/unlock-rate-limit.ts) (album-password unlock) + [`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts) (guest write endpoints; cross-event breadth).
+- Rate-limiters: [`unlock-rate-limit.ts`](../../src/lib/security/unlock-rate-limit.ts) (album-password unlock) + [`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts) (guest write endpoints; cross-event breadth) + [`public-form-limit.ts`](../../src/lib/security/public-form-limit.ts) (the marketing forms; the ONE that fails closed).
 
 ## The advisor model (`get_advisors` — run after EVERY schema change)
 
@@ -203,6 +203,17 @@ The expected, accepted set:
   venue is ONE event → never trips) + a high per-(IP,event) backstop ([`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts)).
   Raw volumetric DoS is the Vercel edge firewall's job (a launch task). The OTP "Enter event" path is still
   PER-IP (Supabase Auth) — venue-OTP volume is a launch consideration.
+- ★ **The public marketing forms are the ONE limiter that fails CLOSED** (`contact` + `careers`, QA #14).
+  Everywhere else the limiter sits behind a capability token or a verified session, so a limiter outage
+  degrades to "the real gate still holds" and the route fails OPEN by design. /contact and /careers have
+  NOTHING behind them: unauthenticated, one service-role insert plus one Resend send per accepted
+  submission, so failing open turns a counter outage into an open pipe to the monthly email quota — and
+  that quota is what the orphan-sweep and prune BREAKER alerts send on, so the drain takes out the
+  alerting with the forms. Neither form is event-shaped, so breadth is disabled and the scope is the bare
+  IP (like `capture`); `action_attempts.kind` is generic, so the two new kinds needed no migration. The
+  gate runs AFTER the honeypot (a bot caught free must not spend a real person's budget on a shared
+  office address) and BEFORE the insert and the send. ★ And the swallow is captured at the swallow point
+  (QA #19): a dead limiter used to look exactly like a healthy one.
 
 ## Workflow (every schema change)
 

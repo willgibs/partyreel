@@ -77,13 +77,24 @@ needs BOTH halves.**
 | --- | --- |
 | Worker error / queue backlog | auto-retries → DLQ; the daily reconciliation backstop |
 | Missed R2 event notification | reconciliation re-copies within 24 h |
-| GitHub DB-backup fails | run fails loudly + post-upload byte-size verify; **but a _persistent_ failure is only as visible as the Actions tab → this is exactly what admin-portal P8 (observability) targets** |
+| GitHub DB-backup fails | run fails loudly + post-upload byte-size verify, and the run's heartbeat closes with `always()` so a failure shows as FAILED on `/admin/jobs` rather than as a silence; a run that stops firing altogether trips the missed-run alert |
 | DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
 | Avatars not in the R2 WORM backup | by design — on Supabase Storage (bytes ride Supabase infra durability, metadata in pg_dump); derivable, so no WORM tier needed |
 | Prune breaker tripped / source looks empty | deletes nothing, alerts (Sentry + deduped email); dry-run + the 36-day lock are independent backstops |
 
-The zero-silent-failure mandate (every backend job must be manageable + health-visible from `/admin`) is
-admin-portal **P8** → [admin-observability.md](admin-observability.md) + [`../ROADMAP.md`](../ROADMAP.md).
+All three pillars now satisfy the zero-silent-failure mandate: the reconcile, the prune and the DB
+backup each carry a kill switch and a heartbeat, and a missing run raises a Sentry event. The model +
+the per-job fail-open/fail-closed postures live in [admin-observability.md](admin-observability.md)
+"Backend jobs".
+
+★ **The two Worker jobs report through the APP, on a URL DERIVED from `PRUNE_API_URL`** (its sibling
+path, [`job-heartbeat.ts`](../../workers/backup/src/job-heartbeat.ts)) — a Worker cannot reach the
+database, and deriving the URL means no new var to deploy, no second secret to rotate, and no way for
+the two endpoints to drift onto different environments. Their postures are OPPOSITE on an unreachable
+heartbeat, on purpose: the **reconcile runs anyway** (a missing backup copy beats a missing log line),
+the **prune skips** (it is the only job that deletes from the last-resort copy, and it already refuses
+to act on any unanswered question). If the endpoints ever stop being siblings, add a `JOB_API_URL` var
+rather than reshaping the derivation.
 
 ## Deletion-aware backup prune (BUILT — ships in dry-run)
 
@@ -122,9 +133,9 @@ copy)** — so it is layered defense-in-depth:
   the breaker, and an empty-primary early-out are three independent guards against **THE LANDMINE: the
   primary is ~0 B right now, so a naive run would delete the ENTIRE backup.**
 
-Cadence: a **weekly** Worker cron (`0 6 * * 1`, after the daily 04:00 purge + 05:00 reconcile). Observability
-ships **alert-only** (breaker trips page); the `/admin` job-runs heartbeat is deferred to admin **P8**
-(→ [`../ROADMAP.md`](../ROADMAP.md)). Flipping to live also removes the pre-launch test-data-reset's
+Cadence: a **weekly** Worker cron (`0 6 * * 1`, after the daily 04:00 purge + 05:00 reconcile). Breaker
+trips page, AND the run now writes a `job_runs` heartbeat visible on `/admin/jobs` (scanned, gone media,
+would-delete count, mode), with its own kill switch. Flipping to live also removes the pre-launch test-data-reset's
 "≥35 d before launch" timing constraint. New shared secret: `PRUNE_API_SECRET` (Worker + Vercel).
 
 ## See also
