@@ -115,7 +115,11 @@ the dashboard and the event page), **grid** (the album layout), **Review**
 
 ## The component vocabulary
 
-Available inside every article (`src/components/marketing/mdx-components.tsx`):
+Available inside every article. The shared vocabulary lives in
+`src/components/marketing/mdx/spec-shared.tsx` (Orchestrator-owned; it grows only by
+promotion at integration). A component only the help center needs goes in
+`src/components/marketing/mdx/spec-help.tsx`, the help lane's own file; never edit
+the shared file or the blog's (`docs/tracks/README.md`).
 
 - `<Callout type="info | tip | warning" title="...">` for the one aside that
   earns it.

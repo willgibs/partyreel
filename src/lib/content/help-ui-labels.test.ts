@@ -14,7 +14,8 @@ import { getAllArticles } from "./help";
  * Scope: every .ts/.tsx under src/ EXCEPT tests, the help pages (which would
  * match their own rendering), and the MDX components (which quote nothing).
  */
-const SKIP = /\.test\.tsx?$|\/help\/|mdx-components\.tsx$/;
+const SKIP =
+  /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$/;
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
