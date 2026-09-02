@@ -10,6 +10,20 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — MILESTONE-15: prod = the blog library
+
+`main` @ tag `milestone-15` (`c46621f`; `launch-prep` `243aace` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). Migrations at parity, the full gate green on the merged tree
+(1337 tests, 155 static pages), prod READY at the merge SHA. Will: "Well done. Please continue."
+
+Verified on partyreel.com at `c46621f` with the Chrome MCP: the library rail reads Everything 23,
+Weddings 8, Parties 4, Corporate 3, How-to 12, Compared 7, Product 8, with the pager live; the sitemap
+carries 23 blog URLs and `/llms.txt` 8; a retired placeholder slug redirects; a post renders its
+Questions section with `Article` + `FAQPage` JSON-LD; /pricing states capacity through the shared
+`formatCapacity` ("19,200 photos or 9 hours of video"); no sideways scroll on any of the three;
+console clean. Still owed before launch: a foreground LCP read of the blog (paint timing is suppressed
+in the hidden tabs both browser tools run in).
+
 ## 2026-09-01 — The blog library: 23 posts, six registered tags, four rising-tide upgrades
 
 **Merged into `launch-prep` by the Orchestrator at `e70d241` (2026-09-02)**, full gate green on the merged

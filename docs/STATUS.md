@@ -100,6 +100,11 @@ stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
 
+**MILESTONE-15 (2026-09-02): prod = the blog library.** `main` @ tag `milestone-15` (`c46621f`), prod
+READY + verified at the merge SHA (the rail's counts, sitemap 23, llms 8, a redirect, Article +
+FAQPage on a post, the shared capacity phrase on /pricing, console clean). Will: "Well done. Please
+continue." Full narrative: [CHANGELOG](CHANGELOG.md).
+
 **MILESTONE-14 (2026-09-02): prod = rounds 0 to 2b.** `main` @ tag `milestone-14` (`54bd519`), prod
 READY + verified at the merge SHA (the light system, the lit 404, the film strip's backlight, the Pro
 beam, the media-forward cards, the re-paced home with the adjacency rule, the reel's pool, the
@@ -293,7 +298,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-14`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-15`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -360,8 +365,9 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **Rounds 0 to 2b shipped at MILESTONE-14 (2026-09-02).** Unmerged now: the blog library, merged
-   into `launch-prep` at `e70d241` for Will's look on the preview, then milestone-15.
+2. **Rounds 0 to 2b shipped at MILESTONE-14 and the blog library at MILESTONE-15 (2026-09-02).**
+   Next into `launch-prep` for review: the help catalog (`lp/help-catalog`) and the legal round
+   (`lp/legal-docs`), Will's ruling 2026-09-02.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
