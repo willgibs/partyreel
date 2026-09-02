@@ -50,8 +50,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "What we keep, where it lives, who can see it, and how deletion works.",
     version: "1.0",
     lastUpdated: "2026-09-01",
-    status: "effective",
-    effectiveDate: "2026-09-15",
+    status: "pending-review",
+    effectiveDate: null,
   },
   terms: {
     id: "terms",
@@ -64,8 +64,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "Your content, plans and billing, retention, and the rules of the room.",
     version: "1.0",
     lastUpdated: "2026-09-01",
-    status: "effective",
-    effectiveDate: "2026-09-15",
+    status: "pending-review",
+    effectiveDate: null,
   },
 };
 
@@ -77,10 +77,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
  * before then, only name it as the channel.
  */
 export const LEGAL_PARTY = {
-  entityName: "Partyreel, Inc.",
-  state: "Delaware",
-  address: "1 Example Street, Suite 100, Wilmington, DE 19801",
-  dmcaAgent: "Partyreel Legal",
+  entityName: "[ENTITY NAME]",
+  state: "[STATE]",
+  address: "[ADDRESS]",
+  dmcaAgent: "[DMCA AGENT]",
   privacyEmail: "privacy@partyreel.com",
 } as const;
 
