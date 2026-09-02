@@ -169,10 +169,17 @@ export function PageHero({
   return (
     <section className={className} {...props}>
       <Container>
+        {/* max-w-3xl on the centred lockup is LOAD-BEARING (Will, 2026-09-02):
+            every hand-rolled hero this replaced clamped its column to 3xl, so
+            a long title broke into two even lines; unclamped, "Everything you
+            need, nothing to chase." ran the full Container in one 72px line
+            and read worse. The clamp is the grammar, not the page. */}
         <Reveal
           className={cn(
             "flex flex-col gap-6",
-            align === "center" ? "items-center text-center" : "items-start",
+            align === "center"
+              ? "mx-auto max-w-3xl items-center text-center"
+              : "items-start",
           )}
         >
           {eyebrow && <Eyebrow {...mark()}>{eyebrow}</Eyebrow>}

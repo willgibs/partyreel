@@ -10,10 +10,11 @@ import {
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
+import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import {
   FEATURE_PAGES,
@@ -60,12 +61,25 @@ export default function FeaturesPage() {
         heading="Everything you need, nothing to chase."
         subhead="One QR code in, one album out. This is everything Partyreel does in between, for your guests and for you."
         actions={
-          <>
-            <Button asChild size="lg" className="h-11 px-6 text-base">
-              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-            </Button>
+          /* A balanced pair, then the longer demo line on its own row beneath
+             (Will, 2026-09-02): a button beside a sentence-length link read
+             lopsided. */
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-11 px-6 text-base"
+              >
+                <Link href="/how-it-works">How it works</Link>
+              </Button>
+            </div>
             <DemoCtaLink />
-          </>
+          </div>
         }
         className="overflow-x-clip pt-14 pb-4 sm:pt-20 sm:pb-6"
       />
@@ -100,33 +114,49 @@ export default function FeaturesPage() {
         </Reveal>
       </SectionShell>
 
-      {/* The two-sided teaser: the one concept the directory can't carry in
+      {/* The two-sided pointer: the one concept the directory can't carry in
           tiles (the product has a guest side and a host side), routing to the
-          walkthrough that interleaves them, then the hub's one GoDeeper rung
-          into the help center. The chapter winds down here on purpose: doors,
-          then a quiet pointer, then the band. */}
-      <SectionShell
-        width="narrow"
-        eyebrow="How it works"
-        heading="Two sides, one album."
-        subhead="Guests scan and shoot. You curate and keep. The walkthrough shows both sides, start to finish."
-      >
-        <Reveal className="mt-8 flex justify-center">
-          <span data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <Button asChild size="lg" variant="outline" className="h-11 px-6">
-              <Link href="/how-it-works">See how it works</Link>
-            </Button>
-          </span>
-        </Reveal>
-        {/* Still by convention: GoDeeper rows are a pointer you find, not a
-            beat that performs (the quiet register). */}
-        <div className="mt-10 flex flex-col items-center gap-2 text-center">
-          <MonoCaption>the exact details live in the help center</MonoCaption>
-          <LearnMoreLink href="/help/how-partyreel-works">
-            How Partyreel works
-          </LearnMoreLink>
-        </div>
-      </SectionShell>
+          walkthrough that interleaves them, plus the hub's one GoDeeper rung
+          into the help center. THE QUIET BEAT of the chapter (Will,
+          2026-09-02): it used to be a full SectionShell with a body-tier
+          heading and an outline button, which sat back to back with the
+          CtaBand as two near-identical designs. It is now a minimal follow-up
+          at the 24/30 prose tier with two chevron links, so the doors above
+          keep the weight and the band below gets its pop back. */}
+      <section className="pt-8 pb-20 sm:pt-10 sm:pb-24">
+        <Container>
+          <Reveal className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
+            <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
+              How it works
+            </Eyebrow>
+            <h2
+              data-mkt-reveal
+              className="font-heading text-2xl text-balance sm:text-3xl"
+              style={{ "--i": 1 } as CSSProperties}
+            >
+              Two sides, one album.
+            </h2>
+            <p
+              data-mkt-reveal
+              className="text-pretty text-muted-foreground"
+              style={{ "--i": 2 } as CSSProperties}
+            >
+              Guests scan and shoot. You curate and keep. The walkthrough shows
+              both sides, start to finish.
+            </p>
+            <div
+              data-mkt-reveal
+              className="mt-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2"
+              style={{ "--i": 3 } as CSSProperties}
+            >
+              <LearnMoreLink href="/how-it-works">See how it works</LearnMoreLink>
+              <LearnMoreLink href="/help/how-partyreel-works">
+                How Partyreel works
+              </LearnMoreLink>
+            </div>
+          </Reveal>
+        </Container>
+      </section>
 
       <CtaBand
         className="border-t"

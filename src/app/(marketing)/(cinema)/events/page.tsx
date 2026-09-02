@@ -51,8 +51,10 @@ export default function EventsHub() {
         heading={EVENTS_HUB.headline}
         subhead={EVENTS_HUB.subhead}
         actions={
-          <>
-            <div className="flex flex-col gap-3 sm:flex-row">
+          /* The pair on one row, the longer demo line beneath (the hub's
+             balance, Will 2026-09-02, applied here by rising tides). */
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
                 <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
               </Button>
@@ -66,7 +68,7 @@ export default function EventsHub() {
               </Button>
             </div>
             <DemoCtaLink />
-          </>
+          </div>
         }
         className="overflow-hidden pt-14 pb-4 sm:pt-20 sm:pb-6"
       />

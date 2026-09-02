@@ -45,6 +45,12 @@ page does, on shared pieces instead of six hand-rolled copies.**
   overhangs the cut by 79px, the QR plate rests at base 0.34 with its field inside the section, the
   album lamp's first three hues are orange, gold and blue (sampled), no page overflows.
 
+- **Per-page round 1, `/features` (Will's notes, 2026-09-02):** the centred `PageHero` lockup clamps
+  to `max-w-3xl` again (the family's width; unclamped, the hub's title ran the full Container in one
+  line), so every swept hero breaks evenly; the hub's actions are a Start free / How it works pair
+  with the demo line centred beneath (the events hub takes the same balance); and the "How it
+  works" beat drops from a body-tier SectionShell to a 24/30 pointer with two chevron links, so it
+  no longer twins the CtaBand two screens in a row.
 - **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
   a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
   each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.
