@@ -491,7 +491,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     id: "your-choices",
     title: "Your choices",
-    summary: "Download everything, delete what is yours, leave whenever.",
+    summary:
+      "Download everything, delete what is yours, and close your account yourself in a couple of taps.",
     blocks: [
       ul(
         <>
@@ -516,27 +517,38 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           any event from your public profile, and stay off an event&rsquo;s
           guest list by not uploading to it while signed in.
         </>,
-        // your-data-and-deleting-your-account.mdx: support-handled; self-serve
-        // deletion is a ROADMAP item.
+        // Self-serve since 2026-09-02: the /account danger zone (request path in
+        // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).
+        // Ruled immediate, no undo, plan auto-cancelled.
         <>
-          <strong className="text-foreground">Delete your account.</strong> For
-          now, account deletion is handled through support: write to us from the{" "}
-          {CONTACT_PAGE} using the email on your account, and we will delete it
-          and confirm. Events you host are deleted with the account; your
-          uploads to other people&rsquo;s events stay in their albums unless you
-          delete them first. A self-serve deletion control is planned. Details:{" "}
+          <strong className="text-foreground">Delete your account.</strong> You
+          can delete it yourself, from your account settings, after confirming
+          with your password or a code we email you. It takes effect at once:
+          any paid plan is cancelled, the events you host are deleted with
+          everything in them, and your name, email address, profile photo and
+          handle are removed from your profile straight away. The remaining
+          records are erased within days. Your uploads to other people&rsquo;s
+          events stay in their albums unless you delete them first. Deletion is
+          permanent, and an account cannot be restored. If you cannot sign in,
+          write to us from the {CONTACT_PAGE} and we will do it for you.
+          Details:{" "}
           <LegalLink href="/help/your-data-and-deleting-your-account">
             your data and deleting your account
           </LegalLink>
           .
         </>,
+        // Account holders got the self-serve control on 2026-09-02 (the
+        // /account email-preferences card); turning it off also deletes the
+        // newsletter row, so the removal promise is kept in one move. The
+        // privacy@ route stays for addresses with no account.
         <>
           <strong className="text-foreground">Marketing email.</strong> The
-          newsletter is opt-in. To stop receiving it, write to {PRIVACY_EMAIL}{" "}
-          and we will remove you within 30 days. Service emails about your
-          account (sign-in codes, storage and deletion warnings) continue while
-          you have an account, because the Service cannot run safely without
-          them.
+          newsletter is opt-in. If you have an account, turn it off in your
+          account settings and your address comes off the list immediately.
+          Otherwise write to {PRIVACY_EMAIL} and we will remove you within 30
+          days. Service emails about your account (sign-in codes, storage and
+          deletion warnings) continue while you have an account, because the
+          Service cannot run safely without them.
         </>,
         <>
           <strong className="text-foreground">Analytics.</strong> The opt-out is
