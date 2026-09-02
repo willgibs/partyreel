@@ -47,7 +47,9 @@ proof); the run on `launch-prep` after integration.
 
 ## Handoff
 
-- Head `20f60a3`, pushed. `status: handed-off` makes `scripts/vercel-ignore-build.mjs` build the branch
+- Head: the tip of `lp/ci-workflow`, which is the commit that filled this manifest; the last content
+  commit under it is `20f60a3`, the `launch-prep` merge. All pushed. `status: handed-off` makes
+  `scripts/vercel-ignore-build.mjs` build the branch
   preview at `partyreel-git-lp-ci-workflow-partyreel.vercel.app`; there is nothing visual to look at,
   the Actions tab is the deliverable.
 - Synced: `launch-prep` HAD moved (2 commits, tip `cd8da95`). Merged, never rebased. One conflict, in
