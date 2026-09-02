@@ -1,7 +1,7 @@
 ---
 track: demo-seed
 status: open
-cut: "ae2e7cd"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
+cut: "26f7e52"
 preview: false
 owns:
   - scripts/seed-demo-event.mjs
