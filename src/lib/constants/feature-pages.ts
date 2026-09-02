@@ -38,9 +38,9 @@ export const FEATURE_PAGES: FeaturePage[] = [
     slug: "album",
     navLabel: "The live album",
     navDescription: "Every photo and video, full quality, live.",
-    h1: "One album, filling itself.",
+    h1: "Every photo, from every guest, in one place.",
     heroSub:
-      "Every phone in the room feeds one album, at full quality, while the event is still going.",
+      "Guests upload from the phone in their pocket, and it lands here live, at full quality. Nothing to install.",
     directoryLine:
       "Every phone in the room, feeding one album while the party is on.",
   },

@@ -89,7 +89,11 @@
 
   [data-mkt-fly] {
     opacity: 0;
-    transform: translate(var(--fly-x, -56px), var(--fly-y, -20px)) scale(0.55);
+    /* --fly-scale (2026-09-02): the live demo's tiles pop from 0.55, the album's
+       arrivals settle from 0.96 (an upload landing is a small rise, not a
+       burst). Every existing consumer keeps the default. */
+    transform: translate(var(--fly-x, -56px), var(--fly-y, -20px))
+      scale(var(--fly-scale, 0.55));
     transition:
       opacity 380ms var(--mkt-ease-pop),
       transform 460ms var(--mkt-ease-pop);

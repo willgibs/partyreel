@@ -57,6 +57,21 @@ page does, on shared pieces instead of six hand-rolled copies.**
   subhead, the seven door lines rewritten as a set on a new registry field (`directoryLine`, two
   rows at most, width-constrained on the card, held to one length band so they wrap alike), and a
   fresh close ("Start with one event, free.").
+- **`/features/album`, the first ground-up page round (2026-09-02).** Will's brief: treat it as a
+  total visual and copy redesign and think from the whole product's benefits, not the previous
+  sections. The page is now the album through the event's own timeline in three arcs. The hero's
+  stage was rebuilt on two product truths the old mock got wrong: the real album is newest-first
+  and PREPENDS arrivals, and the real feedback is a green check plus a live count, not toasts. So
+  the album now fills from the top (older tiles slide down on the shared `useFlip`, the check draws,
+  the count ticks, an in-flight tile shows the real progress strip), from one tick and a pure,
+  unit-tested derivation; a second stage lands the same tile on a laptop and a phone in one commit
+  (the doorbell as a benefit); the spec sheet and keeping cards became one document; the double
+  eyebrow became the page's label alone on all six pages; every copy block is two rows. New:
+  `album-fill-fixtures.ts`, `use-album-fill.ts`, `album-fill-grid.tsx`, `arrivals-stage.tsx`,
+  `everywhere-*.tsx`, `PhoneShell` (the bezel with a children slot), a `--fly-scale` token on the
+  fly recipe so an album arrival settles (0.96) instead of popping (0.55). Deleted:
+  `live-section.tsx`. ★ Neither browser tool can run the clock (both are background tabs, so
+  `useAmbientPause` stays paused); the mechanic is held by the derivation tests and Will's eye.
 - **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
   a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
   each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.

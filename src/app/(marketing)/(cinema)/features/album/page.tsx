@@ -4,24 +4,31 @@ import type { FaqItem } from "@/components/marketing/faq-data";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { AlbumSpecChapter } from "@/components/marketing/sections/features/album/album-spec";
 import { ArrivalsHero } from "@/components/marketing/sections/features/album/arrivals-hero";
+import { EverywhereSection } from "@/components/marketing/sections/features/album/everywhere-section";
+import {
+  PHOTO_FORMATS_PROSE,
+  QualitySection,
+  VIDEO_FORMATS_PROSE,
+} from "@/components/marketing/sections/features/album/quality-section";
 import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
 import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
-import { LiveSection } from "@/components/marketing/sections/features/album/live-section";
-import { QualitySection } from "@/components/marketing/sections/features/album/quality-section";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { featurePage } from "@/lib/constants/feature-pages";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { formatBytes } from "@/lib/utils";
 
-// THE LIVE ALBUM page (expansion Phase B, T1): the media-maximal cinema page.
-// Chapter arc (re-paced at the feature-pages round, 2026-09-01, on the
-// attention-arc principle in design-system.md "Chapters"): chapter 1 opens on
-// the arrivals stream throwing its own sampled light, supports through
-// live-during (a media split) and winds down on the quiet numbers of the
-// FactBand before the paper cut; chapter 2 (ONE paper chapter) opens on the
-// spec sheet a tier up on the hard cut and closes quiet on keeping; chapter 3
-// opens on the photographic doors and winds down through the FAQ to the CTA.
-// Registry copy renders via featurePage; hard numbers derive from
-// lib/media/limits.ts inside the sections.
+// THE LIVE ALBUM page, rebuilt from the ground up (its own round, 2026-09-02).
+// The page is the album through the event's own timeline, in three chapters,
+// each an attention arc (design-system.md "Chapters"):
+//   1 · cinema, while it is happening: the hero (the album filling from the
+//       top, the page's lamp) → land once, show up everywhere (the doorbell as
+//       a benefit) → the quiet numbers (full quality) before the cut;
+//   2 · paper, the morning after: ONE document, what lands and what stays;
+//   3 · cinema, the close: the doors, three questions, the band.
+// One section per benefit, every section with a product-true visual and two
+// rows of copy. Registry copy renders via featurePage; every number derives
+// from lib/media/limits.ts and lib/lifecycle inside the sections.
 const page = featurePage("album");
 
 export const metadata: Metadata = {
@@ -32,17 +39,16 @@ export const metadata: Metadata = {
 
 const FAQ_ITEMS: FaqItem[] = [
   {
-    q: "What file types can guests upload?",
-    // B26 ruling: name BOTH paid plans rather than saying "a paid plan".
-    a: "Photos as JPEG, PNG, WebP, HEIC, HEIF, or AVIF on every plan, and videos as MP4, MOV, or WebM on events hosted with Pro or Event Pass. Each file can be up to 10 GB.",
+    q: "What can guests upload?",
+    a: `Photos as ${PHOTO_FORMATS_PROSE} on every plan, and video as ${VIDEO_FORMATS_PROSE} on Pro and Event Pass. Each file can be up to ${formatBytes(MAX_UPLOAD_BYTES)}.`,
   },
   {
-    q: "Does Partyreel compress photos or videos?",
-    a: "No. Uploads keep their full resolution on the way in, and downloads come back out at the same quality. There is no messaging-app squeeze anywhere in between.",
+    q: "Is anything compressed?",
+    a: "No. Uploads keep their full resolution on the way in, and downloads come back out at the same quality.",
   },
   {
-    q: "Do guests need the app or an account?",
-    a: "There is no app at all; the album runs in the phone's browser. Guests only confirm their email with a one-time code when the host requires accounts, and that single tap doubles as the whole sign-up.",
+    q: "Do guests need an app or an account?",
+    a: "No app; the album runs in the phone's browser. When you require accounts, guests confirm their email with a one-time code, and that tap is the whole sign-up.",
   },
 ];
 
@@ -57,7 +63,7 @@ export default function AlbumFeaturePage() {
         ]}
       />
       <ArrivalsHero />
-      <LiveSection />
+      <EverywhereSection />
       <QualitySection />
       <AlbumSpecChapter />
       <RelatedFeatures slugs={["qr", "curation", "sharing"]} />
@@ -77,8 +83,8 @@ export default function AlbumFeaturePage() {
       </FeatureFaq>
       <CtaBand
         className="border-t"
-        heading="Give the next event one album."
-        subhead="Create the event, share one QR code, and every phone in the room starts filling it."
+        heading="Give the next one an album."
+        subhead="Start free. Share one code and the album fills itself."
         demoLink
       />
     </>

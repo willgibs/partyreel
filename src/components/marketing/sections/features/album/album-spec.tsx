@@ -3,23 +3,74 @@ import type { CSSProperties, ReactNode } from "react";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES, UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 /**
- * /features/album paper chapter: the reading half. Two sections composed by the
- * page inside ONE PaperChapter (the chapter doctrine): the spec sheet of what
- * lands in the album, then the keeping story. Facts derive from
- * lib/media/limits.ts (ceiling + host cap presets) and mirror
- * content/help/how-guests-join-and-upload.mdx / how-long-media-is-kept.mdx.
+ * /features/album's paper chapter: ONE document, "the morning after". The
+ * spec sheet and the old keeping section folded into six one-sentence rows,
+ * because a reader at the desk wants terms to scan down, not two sections to
+ * read. It opens a tier up on the hard cut with real air (the chapter's
+ * opener), and since the chapter IS this document it needs no ramp after it.
+ * Facts derive from lib/media/limits.ts and lib/lifecycle/recently-deleted.ts
+ * and mirror content/help/how-guests-join-and-upload.mdx,
+ * storage-plans-and-limits.mdx and how-long-media-is-kept.mdx.
  */
-
-/** The page's one paper chapter: both reading sections inside a single cut. */
 export function AlbumSpecChapter() {
   return (
     <PaperChapter>
-      <WhatLandsSection />
-      <KeepingSection />
+      <SectionShell
+        eyebrow="The fine print"
+        heading="What lands, and what stays."
+        subhead="Who gets credited, what fits, and how long it stays. No squinting."
+        scale="lg"
+        reveal="cinema"
+        className="pt-28 sm:pt-36"
+      >
+        <Reveal
+          data-mkt-reveal
+          className="mx-auto mt-10 max-w-3xl"
+          style={{ "--i": 3 } as CSSProperties}
+        >
+          <dl className="divide-y rounded-2xl border bg-card">
+            <SpecRow term="Attribution">
+              Signed-in guests pick a display name once and it rides on every
+              shot; where you allow anonymous uploads, those show as Anonymous.
+            </SpecRow>
+            <SpecRow term="Per-file ceiling">
+              Up to {formatBytes(MAX_UPLOAD_BYTES)} per photo or video, with no
+              duration cap. Video uploads come with Pro and Event Pass.
+            </SpecRow>
+            <SpecRow term="Your own cap">
+              Want a tighter rein for one event? Set a lower per-upload limit
+              from the presets:
+              <span className="mt-2.5 flex flex-wrap gap-1.5">
+                {UPLOAD_CAP_PRESETS.map((preset) => (
+                  <span
+                    key={preset.label}
+                    className="rounded-full border px-2.5 py-0.5 font-mono text-[11px] text-muted-foreground"
+                  >
+                    {preset.label}
+                  </span>
+                ))}
+              </span>
+            </SpecRow>
+            <SpecRow term="Nothing to chase">
+              No app and no passwords to invent. When you require accounts, on
+              by default, guests confirm an email with a one-time code.
+            </SpecRow>
+            <SpecRow term="No expiry date">
+              The album stays up until you delete the event. Deleting is your
+              call, never a countdown.
+            </SpecRow>
+            <SpecRow term="The recovery bin">
+              Deleted photos and videos wait {RECENTLY_DELETED_WINDOW_DAYS} days
+              in the bin and restore exactly as they were.
+            </SpecRow>
+          </dl>
+        </Reveal>
+      </SectionShell>
     </PaperChapter>
   );
 }
@@ -32,107 +83,5 @@ function SpecRow({ term, children }: { term: string; children: ReactNode }) {
       </dt>
       <dd className="text-sm leading-relaxed text-pretty">{children}</dd>
     </div>
-  );
-}
-
-export function WhatLandsSection() {
-  return (
-    <SectionShell
-      eyebrow="The spec sheet"
-      heading="What lands in your album."
-      subhead="The fine print, without the squinting: who gets credited, what fits, and what your guests never have to do."
-      /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up
-         and the hard cut, with real air above, so the document lands on the
-         desk with weight after the dark; the keeping section below it stays
-         at the body tier. PaperChapter's stacked-viewport rule trims the air
-         below lg, which is the intended phone behaviour. */
-      scale="lg"
-      reveal="cinema"
-      className="pt-28 sm:pt-36"
-    >
-      {/* R4 body choreography: --i continues after the SectionShell header's
-          eyebrow/heading/subhead slots (0-2) so header and body read as one
-          move rather than two entrances racing each other. */}
-      <Reveal
-        data-mkt-reveal
-        className="mx-auto mt-10 max-w-3xl"
-        style={{ "--i": 3 } as CSSProperties}
-      >
-        <dl className="divide-y rounded-2xl border bg-card">
-          <SpecRow term="Attribution">
-            Signed-in guests pick a display name once, and it travels with every
-            shot they add. Where you allow anonymous uploads, those show as
-            &ldquo;Anonymous&rdquo; in the album.
-          </SpecRow>
-          {/* R4 / review B26: "on every plan" read as if VIDEO were free too.
-              The ceiling really is universal, the video KIND is not, so the
-              qualifier names both paid plans in place. */}
-          <SpecRow term="Per-file ceiling">
-            Up to {formatBytes(MAX_UPLOAD_BYTES)} per photo or video (video
-            uploads on Pro and Event Pass). Size is the only gate; there is no
-            duration cap on video.
-          </SpecRow>
-          <SpecRow term="Your own cap">
-            Prefer a tighter rein for one event? Set a per-upload limit from
-            presets that run all the way down from {UPLOAD_CAP_PRESETS[0].label}
-            :
-            <span className="mt-2.5 flex flex-wrap gap-1.5">
-              {/* The REAL preset ladder the host settings offer (limits.ts). */}
-              {UPLOAD_CAP_PRESETS.map((preset) => (
-                <span
-                  key={preset.label}
-                  className="rounded-full border px-2.5 py-0.5 font-mono text-[11px] text-muted-foreground"
-                >
-                  {preset.label}
-                </span>
-              ))}
-            </span>
-          </SpecRow>
-          <SpecRow term="Nothing to chase">
-            No app to install and no passwords to invent. Guests verify an email
-            with a one-time code only when you require accounts (on by default
-            for new events); otherwise they just upload.
-          </SpecRow>
-        </dl>
-      </Reveal>
-    </SectionShell>
-  );
-}
-
-export function KeepingSection() {
-  return (
-    <SectionShell
-      width="narrow"
-      eyebrow="Keeping it"
-      heading="Albums do not expire."
-      subhead="An event stays up until you decide otherwise, so the album keeps working long after the last dance."
-    >
-      <Reveal className="mx-auto mt-10 grid max-w-2xl gap-4 sm:grid-cols-2">
-        <div
-          data-mkt-reveal
-          className="flex flex-col gap-1.5 rounded-xl border bg-card p-5"
-          style={{ "--i": 3 } as CSSProperties}
-        >
-          <h3 className="font-heading text-lg sm:text-xl">No expiry date</h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            The album never quietly disappears. It stays live until you delete
-            the event, and deleting is always your call, not a countdown.
-          </p>
-        </div>
-        <div
-          data-mkt-reveal
-          className="flex flex-col gap-1.5 rounded-xl border bg-card p-5"
-          style={{ "--i": 4 } as CSSProperties}
-        >
-          <h3 className="font-heading text-lg sm:text-xl">
-            A 30-day safety net
-          </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Deleted photos and videos wait 30 days in the recovery bin before
-            they are gone for good, so a slip of the thumb is not a disaster.
-          </p>
-        </div>
-      </Reveal>
-    </SectionShell>
   );
 }

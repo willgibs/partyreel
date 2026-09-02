@@ -13,10 +13,10 @@ import {
 } from "@/lib/media/limits";
 
 /**
- * /features/album section 2: the FactBand. Every number DERIVES from
- * lib/media/limits.ts (the universal per-file truth: 10 GB is the only gate,
- * both kinds, every plan; no duration cap) so the band can never drift from
- * enforcement. The formats line renders human names for the accepted MIMEs.
+ * /features/album, chapter 1's wind-down: the quiet numbers before the paper
+ * cut. Every figure DERIVES from lib/media/limits.ts (the universal per-file
+ * truth: one ceiling, both kinds, every plan; no duration cap) so the band can
+ * never drift from enforcement. One line of copy, by the reading rule.
  */
 
 /** Human names for the accepted MIME types (photos read as JPEG, not JPG).
@@ -33,15 +33,18 @@ function formatName(mime: string): string {
   return FRIENDLY_FORMAT[mime] ?? (MIME_TO_EXT[mime] ?? mime).toUpperCase();
 }
 
-const PHOTO_FORMATS = ACCEPTED_PHOTO_MIME.map(formatName).join(" · ");
-const VIDEO_FORMATS = ACCEPTED_VIDEO_MIME.map(formatName).join(" · ");
+export const PHOTO_FORMATS = ACCEPTED_PHOTO_MIME.map(formatName).join(" · ");
+export const VIDEO_FORMATS = ACCEPTED_VIDEO_MIME.map(formatName).join(" · ");
+/** The FAQ's comma-joined forms (a middot list reads as a spec, not a sentence). */
+export const PHOTO_FORMATS_PROSE = ACCEPTED_PHOTO_MIME.map(formatName).join(", ");
+export const VIDEO_FORMATS_PROSE = ACCEPTED_VIDEO_MIME.map(formatName).join(", ");
 
 export function QualitySection() {
   return (
     <SectionShell
       eyebrow="Full quality"
-      heading="Full quality in, full quality out."
-      subhead="No messaging-app squeeze, no surprise downscale. The album keeps exactly what the camera made."
+      heading="Nothing gets squeezed."
+      subhead="Originals in, originals out. Photos on every plan, video on Pro and Event Pass."
     >
       <div className="mt-12">
         <StatBand
@@ -56,14 +59,10 @@ export function QualitySection() {
             { value: ACCEPTED_MIME.length, label: "file formats accepted" },
           ]}
         />
-        {/* R4 body choreography: the formats block used to pop in statically
-            under an animated header, so it joins the header's rise with --i
-            continuing after the eyebrow/heading/subhead slots (0-2). The
-            StatBand above owns its own in-view counter and stays out of it. */}
+        {/* The formats, as two labelled rows (a "+" between the kinds once
+            parsed as "AVIF + MP4"); the block joins the header's rise on the
+            slot after its three lines. */}
         <Reveal>
-          {/* R4 / review B29: one run of dot-separated names with a "+" in the
-              middle parsed as "AVIF + MP4". The two kinds get their own labeled
-              rows, so the divider is structural rather than punctuation. */}
           <dl
             data-mkt-reveal
             className="mx-auto mt-10 grid w-fit grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2 font-mono text-xs tracking-wide"
@@ -74,14 +73,6 @@ export function QualitySection() {
             <dt className="text-muted-foreground/60 uppercase">Video</dt>
             <dd className="text-muted-foreground">{VIDEO_FORMATS}</dd>
           </dl>
-          <p
-            data-mkt-reveal
-            className="mx-auto mt-4 max-w-xl text-center text-sm text-pretty text-muted-foreground"
-            style={{ "--i": 4 } as CSSProperties}
-          >
-            Photos on every plan, straight off the phone (HEIC included). Video
-            uploads come with Pro and Event Pass, up to the same ceiling.
-          </p>
         </Reveal>
       </div>
     </SectionShell>

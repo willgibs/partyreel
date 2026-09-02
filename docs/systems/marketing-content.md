@@ -53,7 +53,25 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   (the H1 static, [design-system.md](design-system.md)); the album, guests and sharing heroes put
   their object in the stage slot under a `ScreenLamp` (the page's one lamp, sampled from its own
   frame), the QR plate switches on in its own bespoke hero, and curation and privacy open plain on
-  purpose. **Each page is a three-chapter attention arc** (design-system.md "Chapters"): a cinema
+  purpose. The eyebrow is the page's own label alone (the "Features ·" breadcrumb half was ruled
+  unbalanced, 2026-09-02).
+  **`/features/album` had its own ground-up round (2026-09-02)** and is the model for the others:
+  the album through the event's own timeline in three arcs. Chapter 1 opens on **the album filling
+  from the top** ([`album/arrivals-stage.tsx`](../../src/components/marketing/sections/features/album/arrivals-stage.tsx)
+  over the shared [`album-fill-grid.tsx`](../../src/components/marketing/sections/features/album/album-fill-grid.tsx)
+  + [`use-album-fill.ts`](../../src/components/marketing/sections/features/album/use-album-fill.ts)):
+  the REAL guest album's arrival grammar quoted (newest-first, arrivals prepended with older tiles
+  sliding down on `useFlip`, the ~2.5s green check, the live "N photos & videos from M guests"
+  line, the in-flight progress strip), driven by ONE tick and a pure derivation that the test pins.
+  ★ The FLIP wrapper carries no transform of its own (the entrance lives on the inner element) and
+  its `layoutKey` is the MOUNTED COUNT, never the tick, with the beat held above `--tune-reorder-ms`,
+  or a landing re-runs the layout effect mid-slide and snaps the column. ★ The old "Just added"
+  chip and "Maya added 3" toasts were marketing inventions with no product surface and are gone.
+  Then "Land once, show up everywhere" (the doorbell as a benefit: one `useAlbumFill` feeding a
+  laptop and a `PhoneShell` so the same tile lands on both in one commit), then the quiet numbers.
+  Chapter 2 is ONE document on the cut (what lands, and what stays; the keeping cards folded in).
+  Chapter 3 is the doors, three questions, the band. Every figure derives from `limits.ts` and
+  `recently-deleted.ts`. **Each page is a three-chapter attention arc** (design-system.md "Chapters"): a cinema
   chapter that opens on the lamp and ramps down (the album re-paced hero → live → the quiet
   numbers), ONE paper chapter whose opener is bespoke per page (the print stock STRADDLES the cut
   on /qr, the guest-list card straddles on /guests, the spec sheet / downloads / queue / access
