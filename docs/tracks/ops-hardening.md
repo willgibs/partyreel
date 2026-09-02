@@ -1,7 +1,7 @@
 ---
 track: ops-hardening
 status: open
-cut: "ae2e7cd"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
+cut: "26f7e52"
 preview: false
 owns:
   - src/app/api/cron/purge/route.ts
