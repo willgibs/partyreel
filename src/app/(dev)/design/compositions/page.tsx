@@ -8,7 +8,7 @@ import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import {
   FilterChipsDemo,
   QrPresetPickerDemo,

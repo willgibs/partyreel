@@ -12,10 +12,12 @@ import { serverEnv } from "@/lib/env";
  * key-gated marketing MotionTuner island (marketing-motion-tuner.tsx) is the
  * consumer.
  *
- * Gate parity with gate.ts: dev accepts any key; production requires the
- * timing-safe DESIGN_PREVIEW_KEY match. Anything else is a bare 404, keeping
- * the standing invariant that EVERYTHING under /design is an indistinguishable
- * 404 without the key. Never echoes the secret or the attempt.
+ * Gate parity with src/lib/design-gate/server.ts: dev accepts any key; production
+ * requires the timing-safe DESIGN_PREVIEW_KEY match. Anything else is a bare 404,
+ * keeping the standing invariant that the design gate is an indistinguishable 404
+ * without the key. Never echoes the secret or the attempt. Lives under /api (robots
+ * disallows it) rather than inside the lab so the lab can be reshaped without
+ * moving a production dependency (the library round, 2026-09-02).
  */
 export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get("key");

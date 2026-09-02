@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../mode-shell";
 import { EventFeedLab } from "./event-feed-lab";
 

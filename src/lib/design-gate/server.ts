@@ -6,11 +6,16 @@ import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { serverEnv } from "@/lib/env";
 
 // withDesignKey lives in the client-safe links.ts (this file is server-only);
-// re-exported here so server pages keep their single "./gate" import.
+// re-exported here so server pages keep a single import from this module.
 export { withDesignKey } from "./links";
 
 /**
  * The /design playground gate (V1 identity exploration, program Phase 1).
+ *
+ * Lives in src/lib, not in the lab, because production depends on it: the marketing motion
+ * tuner's probe route (/api/design-gate) mirrors this check, and every lab page imports it.
+ * The lab is a workshop that shrinks and grows; the gate must never move with it (the library
+ * round, 2026-09-02).
  *
  * Pass conditions: local dev is always open; production requires `?key=` to
  * timing-safe-match DESIGN_PREVIEW_KEY. Everything else (no key, wrong key, or

@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { RefHeader, RefSection, Spec, Swatch } from "../reference/reference-ui";
 
 // THE LIVE FOUNDATIONS REFERENCE. Every swatch fills with the REAL CSS var and

@@ -31,7 +31,7 @@ import { LightboxVariants } from "../../components/lightbox-variants";
 import { QrCardVariants } from "../../components/qr-card-variants";
 import { StateVariants } from "../../components/state-variants";
 import { UploadVariants } from "../../components/upload-variants";
-import { requireDesignKey } from "../../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../../mode-shell";
 import {
   getTouchpoint,

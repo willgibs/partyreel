@@ -74,7 +74,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import {
   FormDemo,
   OtpDemo,

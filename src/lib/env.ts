@@ -90,7 +90,7 @@ const serverSchema = z.object({
   // the route fails closed rather than confirm deletions for an unauthenticated caller.
   PRUNE_API_SECRET: z.string().min(1).optional(),
   // Gate key for the V1 identity-exploration playground at /design (the (dev) route group).
-  // Production requires `?key=` to match (timing-safe, see app/(dev)/design/gate.ts); dev mode is
+  // Production requires `?key=` to match (timing-safe, see src/lib/design-gate/server.ts); dev mode is
   // open. `.optional()`: unset in prod means the playground simply 404s everywhere. Not a classic
   // secret (it gates mockups, no data), but kept server-side so the URL can't be derived from the
   // bundle.

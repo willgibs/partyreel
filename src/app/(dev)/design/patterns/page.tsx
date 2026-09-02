@@ -9,7 +9,7 @@ import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Button } from "@/components/ui/button";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { SetNameStepDemo } from "../reference/interactive-demos";
 import { RefHeader, RefSection, Row, Spec } from "../reference/reference-ui";
 

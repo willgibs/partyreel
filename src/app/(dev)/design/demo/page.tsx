@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../mode-shell";
 import { PhoneShell } from "../screens/phone-shell";
 import {

@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { COUNTS, ZONES } from "./catalog";
-import { requireDesignKey, withDesignKey } from "./gate";
+import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
 // THE WORKBENCH LANDING (2026-06-19). The lab is Partyreel's one internal UI
 // tool, with two halves: a LIVE reference of the real shipped UI (synced by

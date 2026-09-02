@@ -8,7 +8,7 @@ import { FlaskConical, Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { type LabZone, type Status, ZONES } from "./catalog";
-import { withDesignKey } from "./links";
+import { withDesignKey } from "@/lib/design-gate/links";
 import { ThemeToggle } from "./theme-toggle";
 
 /**

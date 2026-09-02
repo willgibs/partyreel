@@ -1,4 +1,4 @@
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../mode-shell";
 import { DashboardScreen } from "../screens/dashboard-screen";
 import { EntryModalScreen } from "../screens/entry-modal-screen";
