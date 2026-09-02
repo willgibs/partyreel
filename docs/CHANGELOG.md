@@ -13,14 +13,14 @@ included where recorded; the full original prose lives in git history. The found
 ## 2026-09-01 — The blog library: 23 posts, six registered tags, four rising-tide upgrades
 
 `lp/blog-library` (Agent handoff; the round's commits from `89dded3` to `dc9c08d` plus the docs
-commit, cut from `launch-prep` at `332f8aa`). Gate green at every commit; 1319 → **1336 tests**;
+commit, cut from `launch-prep` at `332f8aa`). Gate green at every commit; 1316 → **1336 tests**;
 production build renders all 23 posts, their OG cards and the feed. Verified on the dev server,
 then on the branch preview (`partyreel-git-lp-blog-library-partyreel.vercel.app`, READY at
 `dc9c08d`): the same rail/filter/pager/article/JSON-LD checks, feed 23/23, sitemap 23, llms 8 +
 full 23, the four 308s, the hero OG card at 200 with a landscape crop, console clean at 1440 and
 375, `pr-no-track` set first. **LCP was NOT measured**: the Browser pane's tab reports
-`visibilityState: hidden`, which suppresses paint timing entirely (a third hidden-pane costume,
-now in testing-verification.md), so the number is left for a foreground Chrome pass.
+`visibilityState: hidden`, which suppresses paint timing entirely (recorded in
+testing-verification.md), so the number is left for a foreground Chrome pass.
 
 **The four placeholder posts the blog shipped with at milestone-11 are gone, replaced by a library
 written under one content plan.** Will's rulings for the round: name incumbents only (Google Photos,
@@ -48,7 +48,7 @@ date) because same-tag-first funnelled every audience's endings to its two newes
 bounds any post to five recommendations. **The FAQ block**: optional plain-text `faq` frontmatter
 renders as an always-open Questions appendix outside the article body (in the ToC as
 `#questions`) and ships verbatim as FAQPage JSON-LD; markup is rejected by schema and typed numbers
-by test. **The spec family** grew by sixteen live-number components (reel seconds, the Trash
+by test. **The spec family** grew by fifteen live-number components (reel seconds, the Trash
 window, inactivity and over-cap days, plan storage and prices, the capacity rule of thumb) so no
 post types a figure, which meant single-sourcing the over-cap grace numbers out of the purge route
 and exporting the capacity constants; a body-scan test now fails a typed size, price, or limit
@@ -70,6 +70,28 @@ system docs (three claims softened: a "reach the room afterwards" promise, "rene
 across every pair peaked at 1.4% (all of it shared link text), every ratified phrase appears
 exactly once, every post links two or more posts, one help article and one marketing rung, every
 hub has three or more inbound links.
+
+**The full pass before review (same day).** Three fresh-context reviewers (a content editor over
+all 23 posts, a docs-versus-code audit, an eight-angle code review) plus a foreground Chrome look at
+the preview. What changed: six titles that clamped at three columns were retitled to fit two lines
+and the brief's title guidance corrected to the measured ~60 characters; the rail's deep-link nudge
+was rewritten to scroll the rail's own `scrollLeft` (the `scrollIntoView` form moved the whole page
+79px on hydration at 375x667); `<` is now escaped at the shared JSON-LD emitter (the right layer
+for the script guard, covering titles and questions too); the FAQ question field got the markup
+guard and a uniqueness refine, and a test reserves the `#questions` anchor; the number fence
+derives its limit list from the constants (it had already drifted past `TEASER_LIMIT`); table
+heads honour GFM column alignment; `formatCapacity` now backs /pricing's `capacityPhrase` (the two
+flipped to hours at different thresholds) and /pricing's two literal "45-day" strings read
+`OVER_CAP_GRACE_DAYS`; the heading scroll-margin moved to an import-free leaf; `getAllTags` and
+`PhotoEstimate` were dropped as synonyms; eight changed files were Prettier-formatted (the format
+script only sees uncommitted files). Content: two branding overclaims on the photographers post,
+an invented ratio, a borrowed endorsement, a "we will not build it" promise and a flat SMS/MMS
+claim were recast; five first-person lines neutralized; four FAQ questions that duplicated a
+marketing FAQ replaced; the photo-booth post given its own claim (the queue) instead of borrowing
+the disposables' keepsake argument; the wedding hub's five "actually"s and the library's
+"genuinely" tic cut back. One reviewer call was rejected on the code: guests CAN delete their own
+uploads (the uploads hub's Trash button, `remove_my_upload`), so the guest explainer keeps saying so
+and the help article that says otherwise is flagged for its next refresh.
 
 **Verified on the dev server, 1440 and 375:** the rail in registry order with counts 8/4/3/12/7/8;
 `?tag=corporate` collapses the hero, shows three cards with the description line and no pager;

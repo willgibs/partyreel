@@ -155,7 +155,10 @@ export function buildLlmsTxt(site: LlmsSite): string {
   // The index lists only the NEWEST posts (the library outgrew the 16k lean budget at 23
   // posts; every line here is title + standfirst + URL); llms-full.txt carries the whole
   // archive. KNOWN_PATHS in the test guards every emitted link either way.
-  const blogLinks = blogLines(getPostListItems().slice(0, LLMS_BLOG_LIMIT), url);
+  const blogLinks = blogLines(
+    getPostListItems().slice(0, LLMS_BLOG_LIMIT),
+    url,
+  );
 
   return `${head(site)}
 ## Product

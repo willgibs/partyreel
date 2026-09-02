@@ -58,6 +58,9 @@ import { cn } from "@/lib/utils";
 /** The FLIP's key for the unfiltered view; see the orderKey note in LibraryGrid. */
 const ALL = "__all__";
 
+/** The staged lead's develop slot. Library cards cap BELOW it so the lead always lands last. */
+const LEAD_DEVELOP_INDEX = 6;
+
 /**
  * The address bar as an external store.
  *
@@ -161,7 +164,9 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
       // motion: the exit is animation-only, so waiting out its clock there would be a
       // dead pause before the set changes. The review queue sets the same precedent -
       // it never writes [data-exiting] under reduce, it just commits.
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       if (leaving.length === 0 || reduce) {
         commit();
         return;
@@ -252,8 +257,8 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                     two-axis FLIP would animate the shift as a jolt. The description is keyed on
                     the view so it re-mounts and takes the shared set-change enter beat with the
                     cards, and it sits OUTSIDE the aria-live readout so a keyed re-mount never
-                    double-announces. line-clamp-2 + a two-line floor on phones, where an 80-char
-                    line can wrap once. */}
+                    double-announces. line-clamp-2 + a two-line floor below lg, where the count
+                    shares the row and an 80-char line can wrap once. */}
                 <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
                   <div className="min-w-0">
                     <h2 className="font-heading text-xl sm:text-2xl">
@@ -262,7 +267,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
                     <p
                       key={view.tag ?? ALL}
                       data-mkt-entering
-                      className="mt-1 line-clamp-2 min-h-[2lh] text-sm text-pretty text-muted-foreground sm:min-h-0"
+                      className="mt-1 line-clamp-2 min-h-[2lh] text-sm text-pretty text-muted-foreground lg:min-h-0"
                     >
                       {activeTag ? activeTag.description : BLOG_LIBRARY_LINE}
                     </p>
@@ -324,21 +329,22 @@ function LibraryGrid({
           key={post.slug}
           ref={register(post.slug)}
           // A lone survivor (a one-post tag) would sit in the corner of a two-column grid; let it
-          // take the row at sm, and a single cell again once the wall is three wide.
-          className={cn(
-            "min-w-0",
-            items.length === 1 && "sm:col-span-2 xl:col-span-1",
-          )}
+          // take the row at sm, and a single cell again once the wall is three wide. `only:` is
+          // true by construction whenever the DOM holds one card, mid-transition included.
+          className="min-w-0 sm:only:col-span-2 xl:only:col-span-1"
         >
           <div
             data-mkt-entering
             data-mkt-exiting={isExiting(post.slug) ? "" : undefined}
           >
-            {/* ★ The develop stagger is CAPPED at 5: the staged lead holds --i: 6 so that it
-                lands LAST (the eye lands where the reading starts). Uncapped, a twelve-card page
-                would land its last six cards after the hero and inverts that, and every filter or
-                page change would replay a second-long muted hole in the bottom row. */}
-            <PostCard post={post} index={Math.min(index, 5)} />
+            {/* ★ The develop stagger is CAPPED below the lead's slot so the lead lands LAST (the
+                eye lands where the reading starts). Uncapped, a twelve-card page would land its
+                last six cards after the hero, and every filter or page change would replay a
+                second-long muted hole in the bottom row. */}
+            <PostCard
+              post={post}
+              index={Math.min(index, LEAD_DEVELOP_INDEX - 1)}
+            />
           </div>
         </li>
       ))}
@@ -451,8 +457,8 @@ function PagerStep({
  * the loudest object on a page whose subject is photographs.
  *
  * Below lg it becomes a horizontal snap scroller (the proven /help phone pattern) rather than a
- * wrapping hedge, which is what a freeform tag list turns into once the content agent's real
- * articles land.
+ * wrapping hedge, which is what six rows plus Everything turn into on a
+ * phone.
  */
 function TagRail({
   tags,
@@ -510,12 +516,21 @@ function RailRow({
 }) {
   // Below lg the rail is a horizontal snap scroller, and a ?tag= deep link can select a row that
   // sits off-screen to the right. A ref callback (not an effect: no setState, and it runs on mount
-  // and on every re-render where `active` flips) nudges the active row into view. `inline:
-  // "nearest"` is a no-op on the lg column, where the row is already in the viewport.
+  // and on every re-render where `active` flips) nudges the RAIL's own scrollLeft, never
+  // scrollIntoView: that scrolls the window too ("block: nearest" is not a vertical no-op), and
+  // on hydration the active row is "Everything", which would yank every /blog load down to the
+  // rail on a short laptop viewport. On the lg column the rail has no overflow, so this is a no-op.
   const reveal = useCallback(
     (node: HTMLButtonElement | null) => {
-      if (node && active) {
-        node.scrollIntoView({ inline: "nearest", block: "nearest" });
+      const rail = node?.parentElement;
+      if (!node || !rail || !active) return;
+      const left = node.offsetLeft;
+      const right = left + node.offsetWidth;
+      if (
+        left < rail.scrollLeft ||
+        right > rail.scrollLeft + rail.clientWidth
+      ) {
+        rail.scrollLeft = Math.max(0, left - 16);
       }
     },
     [active],
@@ -574,7 +589,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
         data-mkt-develop
         data-cover-plate=""
         className="absolute inset-0"
-        style={{ "--i": 6 } as CSSProperties}
+        style={{ "--i": LEAD_DEVELOP_INDEX } as CSSProperties}
       >
         <Image
           src={post.cover.src}

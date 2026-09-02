@@ -41,7 +41,10 @@ describe("the blog tag registry", () => {
   });
 
   it("keeps descriptions to one line (≤ 80 chars), em-dash free, and never 'night'", () => {
-    for (const line of [...BLOG_TAGS.map((t) => t.description), BLOG_LIBRARY_LINE]) {
+    for (const line of [
+      ...BLOG_TAGS.map((t) => t.description),
+      BLOG_LIBRARY_LINE,
+    ]) {
       expect(line.length, line).toBeLessThanOrEqual(80);
       expect(line, line).not.toContain("—");
       expect(line.toLowerCase(), line).not.toMatch(/\bnight\b/);

@@ -18,7 +18,11 @@ export function MatrixMark({
 }) {
   return value ? (
     <>
-      <Check className="inline size-4 text-success" strokeWidth={2} aria-hidden />
+      <Check
+        className="inline size-4 text-success"
+        strokeWidth={2}
+        aria-hidden
+      />
       <span className="sr-only">{label ?? "Included"}</span>
     </>
   ) : (

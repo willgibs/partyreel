@@ -11,6 +11,7 @@ import {
   MAX_REEL_SECONDS,
   planById,
 } from "@/lib/constants/tiers";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { formatBytes } from "@/lib/utils";
 
 /**
@@ -99,8 +100,8 @@ export function PassCard() {
           <p className="mt-auto text-xs text-pretty text-muted-foreground/70">
             No subscription. When the year ends, renew for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} or let it lapse: you drop back to
-            Free with a 45-day window to free up space or upgrade before
-            anything moves toward the trash.
+            Free with a {OVER_CAP_GRACE_DAYS}-day window to free up space or
+            upgrade before anything moves toward the trash.
           </p>
         </div>
       </div>

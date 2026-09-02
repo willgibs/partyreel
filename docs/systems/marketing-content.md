@@ -369,7 +369,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     scans bodies for a typed size, price, or limit-beside-its-unit). GFM tables render with a
     scrolling wrapper, /pricing's header register and a nowrap label column; `<Yes />` / `<No />`
     are the /pricing matrix's own glyphs through the shared `MatrixMark`. Comparison content names
-    INCUMBENTS only (Google Photos, iCloud, WhatsApp, AirDrop, email, Dropbox, disposables, booths),
+    INCUMBENTS only (Google Photos, iCloud, WhatsApp, iMessage, AirDrop, email, Dropbox, disposables,
+    booths),
     hedged; QR-app rivals stay category-level per the 2026-08-28 posture ruling. `/llms.txt` lists
     the newest `LLMS_BLOG_LIMIT` (8) posts (the archive outgrew the 16k lean budget) and
     `/llms-full.txt` all of them. The four placeholder slugs 308 to their successors via

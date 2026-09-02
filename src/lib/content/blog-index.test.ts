@@ -90,7 +90,10 @@ describe("blog index derivations", () => {
     // normalizeTag closes below.
     for (const tag of BLOG_TAGS) {
       const rows = splitLibrary(POSTS, tag.id).library.length;
-      expect(offered.some((c) => c.id === tag.id), tag.id).toBe(rows > 0);
+      expect(
+        offered.some((c) => c.id === tag.id),
+        tag.id,
+      ).toBe(rows > 0);
     }
   });
 
@@ -148,7 +151,9 @@ describe("pagination", () => {
 
   it("survives an empty set", () => {
     const p = paginate([], 1);
-    expect([p.page, p.pageCount, p.from, p.to, p.total]).toEqual([1, 1, 0, 0, 0]);
+    expect([p.page, p.pageCount, p.from, p.to, p.total]).toEqual([
+      1, 1, 0, 0, 0,
+    ]);
     expect(p.items).toEqual([]);
   });
 

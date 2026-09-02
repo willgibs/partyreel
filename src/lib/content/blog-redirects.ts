@@ -10,7 +10,10 @@ export const BLOG_REDIRECTS: readonly { from: string; to: string }[] = [
     from: "stop-losing-group-photos-to-the-group-chat",
     to: "group-chat-party-photos",
   },
-  { from: "wedding-photo-qr-guests-will-use", to: "qr-code-for-wedding-photos" },
+  {
+    from: "wedding-photo-qr-guests-will-use",
+    to: "qr-code-for-wedding-photos",
+  },
   {
     from: "introducing-the-highlight-reel",
     to: "highlight-reel-renders-on-your-phone",

@@ -32,8 +32,9 @@ export const blogFrontmatterSchema = z.object({
   /**
    * ★ CAPPED AT 80 (Will, 2026-08-28). This is a LAYOUT contract, not a style preference: the index
    * is built on cards whose titles are meant to fill their measure evenly, and the page reads the
-   * way it does because the featured title lands at ~3 lines and library cards at 2. Shipped titles
-   * run 47-72, so 80 is the ceiling that keeps that rhythm without cramping an author. The cards
+   * way it does because the featured title lands at ~3 lines and library cards at 2. At three
+   * columns a card fits about 60 characters of ordinary words; 80 is the ceiling that keeps the grid
+   * whole (the card clamps), measured on the wall rather than assumed. The cards
    * ALSO line-clamp, so an over-long title can never break the layout, but failing the build here
    * means the content agent finds out at authoring time instead of shipping a silently cut title.
    */
@@ -42,7 +43,7 @@ export const blogFrontmatterSchema = z.object({
     .min(1)
     .max(
       80,
-      "title must be 80 characters or fewer (aim 45-75): blog cards clamp to 2 lines and the featured card to 3, so a longer title ships visibly truncated",
+      "title must be 80 characters or fewer (aim 45-60): a library card holds two lines at three columns and the featured card three, so a longer title ships visibly truncated",
     ),
   description: z.string().min(1).max(160),
   /** Published date — drives sort order, the byline, and RSS pubDate. */
@@ -60,7 +61,10 @@ export const blogFrontmatterSchema = z.object({
       1,
       "tags must name at least one registered tag (see BLOG_TAGS in src/lib/content/blog-tags.ts)",
     )
-    .max(2, "at most two tags: the card prints two chips and would hide a third")
+    .max(
+      2,
+      "at most two tags: the card prints two chips and would hide a third",
+    )
     .refine((tags) => new Set(tags).size === tags.length, {
       message: "tags must not repeat",
     })
@@ -78,7 +82,14 @@ export const blogFrontmatterSchema = z.object({
   faq: z
     .array(
       z.object({
-        q: z.string().trim().min(1).max(120),
+        q: z
+          .string()
+          .trim()
+          .min(1)
+          .max(120)
+          .refine((q) => !/[<>]/.test(q), {
+            message: "faq questions are plain text (no JSX or HTML)",
+          }),
         a: z
           .string()
           .trim()
@@ -95,6 +106,9 @@ export const blogFrontmatterSchema = z.object({
     )
     .min(1)
     .max(8)
+    .refine((items) => new Set(items.map((i) => i.q)).size === items.length, {
+      message: "faq questions must not repeat",
+    })
     .optional(),
   /**
    * Optional art direction: a `MARKETING_IMAGES` id. Omit it and `coverFor` derives a stable one
@@ -131,14 +145,6 @@ export function getAllBlogSlugs(): string[] {
   return getAllPosts().map((post) => post.slug);
 }
 
-export function getAllTags(): BlogTagId[] {
-  const tags = new Set<BlogTagId>();
-  for (const post of getAllPosts()) {
-    for (const tag of post.frontmatter.tags) tags.add(tag);
-  }
-  return Array.from(tags).sort();
-}
-
 // "Keep reading": scored, not same-tag-first.
 //
 // The first version was "same-tag posts first, then recency". That degenerates on a real archive:
@@ -160,7 +166,7 @@ function relatedScore(a: BlogPost, b: BlogPost): number {
   return score;
 }
 
-function daysApart(a: BlogPost, b: BlogPost): number {
+function msApart(a: BlogPost, b: BlogPost): number {
   return Math.abs(
     Date.parse(a.frontmatter.date) - Date.parse(b.frontmatter.date),
   );
@@ -173,7 +179,7 @@ export function getRelatedPosts(
 ): BlogPost[] {
   return getAllPosts()
     .filter((p) => p.slug !== post.slug && !exclude.has(p.slug))
-    .map((p) => ({ p, score: relatedScore(post, p), gap: daysApart(post, p) }))
+    .map((p) => ({ p, score: relatedScore(post, p), gap: msApart(post, p) }))
     .sort(
       (x, y) =>
         y.score - x.score || x.gap - y.gap || x.p.slug.localeCompare(y.p.slug),

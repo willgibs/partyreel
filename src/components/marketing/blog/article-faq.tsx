@@ -1,10 +1,11 @@
 import type { FaqItem } from "@/components/marketing/faq-data";
-import { HEADING_SCROLL_MT } from "@/components/marketing/mdx-components";
+import { FaqPageJsonLd } from "@/components/marketing/jsonld";
+import {
+  ARTICLE_FAQ_HEADING,
+  ARTICLE_FAQ_ID,
+  HEADING_SCROLL_MT,
+} from "@/components/marketing/reading/heading-contract";
 import { cn } from "@/lib/utils";
-
-/** The FAQ section's anchor; the article page adds it to the ToC when a post carries `faq`. */
-export const ARTICLE_FAQ_ID = "questions";
-export const ARTICLE_FAQ_HEADING = "Questions";
 
 /**
  * THE ARTICLE'S QUESTIONS: an optional Q&A after the body, from the post's frontmatter `faq`.
@@ -20,12 +21,16 @@ export const ARTICLE_FAQ_HEADING = "Questions";
  */
 export function ArticleFaq({ items }: { items: FaqItem[] }) {
   return (
-    <section
-      id={ARTICLE_FAQ_ID}
-      aria-labelledby={`${ARTICLE_FAQ_ID}-heading`}
-      className={cn("not-prose mt-12 border-t pt-8", HEADING_SCROLL_MT)}
-    >
-      <h2 id={`${ARTICLE_FAQ_ID}-heading`} className="font-heading text-xl">
+    <section className="not-prose mt-12 border-t pt-8">
+      {/* The structured data is emitted HERE, from the same array the list prints, so no call site
+          can ever slice or reorder one without the other (the FeatureFaq precedent). */}
+      <FaqPageJsonLd items={items} />
+      {/* The anchor sits on the HEADING, like every body h2 the scroll-spy measures, so the ToC
+          row activates on the same box geometry as the rest of the piece. */}
+      <h2
+        id={ARTICLE_FAQ_ID}
+        className={cn("font-heading text-xl", HEADING_SCROLL_MT)}
+      >
         {ARTICLE_FAQ_HEADING}
       </h2>
       <dl className="mt-4 divide-y">

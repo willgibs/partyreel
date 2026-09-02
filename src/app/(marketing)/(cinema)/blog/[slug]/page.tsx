@@ -6,25 +6,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
-import {
-  ARTICLE_FAQ_HEADING,
-  ARTICLE_FAQ_ID,
-  ArticleFaq,
-} from "@/components/marketing/blog/article-faq";
+import { ArticleFaq } from "@/components/marketing/blog/article-faq";
 import { CoverMorphDelegate } from "@/components/marketing/blog/cover-morph";
 import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
-import {
-  ArticleJsonLd,
-  BreadcrumbJsonLd,
-  FaqPageJsonLd,
-} from "@/components/marketing/jsonld";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import {
   ARTICLE_BODY_ID,
   ArticleToc,
 } from "@/components/marketing/reading/article-toc";
 import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
+import {
+  ARTICLE_FAQ_HEADING,
+  ARTICLE_FAQ_ID,
+} from "@/components/marketing/reading/heading-contract";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
@@ -149,10 +145,6 @@ export default async function BlogPostPage({
         datePublished={post.frontmatter.date}
         dateModified={post.frontmatter.updated ?? post.frontmatter.date}
       />
-      {/* FAQPage carries the same items the Questions section prints, verbatim. Not a Google
-          rich result any more (withdrawn for non-authority sites in 2023): this is on-page Q&A
-          plus structured data for assistant retrieval. */}
-      {faq && <FaqPageJsonLd items={faq} />}
 
       {/* ── The stage. pt-14/pt-20 is the cinema convention, not styling drift: the overlay header
              is transparent and hairline-less at scroll top, so the page's own top padding is the
@@ -283,7 +275,9 @@ export default async function BlogPostPage({
                 <HeadingAnchorsDelegate />
 
                 {/* Outside the <article>: the reading spine measures the piece, and the FAQ is
-                    an appendix to it, like "Keep reading". */}
+                    an appendix to it, like "Keep reading". The section emits its own FAQPage
+                    JSON-LD (verbatim; not a Google rich result since 2023, on-page Q&A plus
+                    retrieval data). */}
                 {faq && <ArticleFaq items={faq} />}
 
                 {post.frontmatter.tags.length > 0 && (

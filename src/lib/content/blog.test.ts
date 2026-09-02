@@ -10,7 +10,6 @@ import {
   blogFrontmatterSchema,
   buildBlogRssXml,
   getAllPosts,
-  getAllTags,
   getAllBlogSlugs,
   getPostListItems,
   getPostNeighbors,
@@ -20,6 +19,14 @@ import { coverFor } from "@/lib/content/blog-covers";
 import { paginate, splitLibrary } from "@/lib/content/blog-index";
 import { BLOG_REDIRECTS } from "@/lib/content/blog-redirects";
 import { BLOG_TAG_IDS, audienceTags } from "@/lib/content/blog-tags";
+import { ARTICLE_FAQ_ID } from "@/components/marketing/reading/heading-contract";
+import { MAX_EVENTS, MAX_REEL_SECONDS } from "@/lib/constants/tiers";
+import { extractHeadings } from "@/lib/content/collection";
+import { TEASER_LIMIT } from "@/lib/events/gallery-access";
+import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { escapeXml, readingTime } from "@/lib/content/collection";
 
 const posts = getAllPosts();
@@ -56,7 +63,11 @@ describe("blog content integrity", () => {
   });
 
   it("rejects an unregistered, repeated, third, or double-audience tag at the schema", () => {
-    const base = { title: "A title", description: "A description", date: "2026-05-31" };
+    const base = {
+      title: "A title",
+      description: "A description",
+      date: "2026-05-31",
+    };
     const bad = (tags: string[]) =>
       blogFrontmatterSchema.safeParse({ ...base, tags }).success;
     expect(bad(["highlight-reel"])).toBe(false);
@@ -238,13 +249,7 @@ describe("buildBlogRssXml", () => {
   });
 });
 
-describe("getAllTags / getRelatedPosts", () => {
-  it("returns sorted unique tags", () => {
-    const tags = getAllTags();
-    expect(tags).toEqual([...tags].sort());
-    expect(new Set(tags).size).toBe(tags.length);
-  });
-
+describe("getRelatedPosts", () => {
   it("related posts exclude self and cap at the limit", () => {
     if (posts.length > 0) {
       const related = getRelatedPosts(posts[0], 3);
@@ -255,23 +260,48 @@ describe("getAllTags / getRelatedPosts", () => {
 });
 
 describe("the faq field", () => {
-  const base = { title: "A title", description: "A description", date: "2026-05-31", tags: ["how-to"] };
-  const parse = (faq: unknown) => blogFrontmatterSchema.safeParse({ ...base, faq });
+  const base = {
+    title: "A title",
+    description: "A description",
+    date: "2026-05-31",
+    tags: ["how-to"],
+  };
+  const parse = (faq: unknown) =>
+    blogFrontmatterSchema.safeParse({ ...base, faq });
 
   it("accepts one to eight plain-text items and rejects the edges", () => {
-    const item = { q: "Do guests need an app?", a: "No. They scan and upload from the browser." };
+    const item = {
+      q: "Do guests need an app?",
+      a: "No. They scan and upload from the browser.",
+    };
+    const distinct = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({ ...item, q: `${item.q} ${i}` }));
     expect(parse([item]).success).toBe(true);
-    expect(parse(Array.from({ length: 8 }, () => item)).success).toBe(true);
+    expect(parse(distinct(8)).success).toBe(true);
     expect(parse([]).success).toBe(false);
-    expect(parse(Array.from({ length: 9 }, () => item)).success).toBe(false);
+    expect(parse(distinct(9)).success).toBe(false);
+    // Questions must not repeat: the renderer keys on them and the JSON-LD lists them.
+    expect(parse([item, item]).success).toBe(false);
     expect(parse([{ q: item.q, a: "x".repeat(401) }]).success).toBe(false);
   });
 
   it("rejects markup in an answer: it ships verbatim into FAQPage JSON-LD", () => {
-    const result = parse([{ q: "How big?", a: "Up to <UploadSize /> per file." }]);
+    const result = parse([
+      { q: "How big?", a: "Up to <UploadSize /> per file." },
+    ]);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toContain("plain text");
+    }
+  });
+
+  it("never collides with a body heading: the Questions anchor is reserved", () => {
+    // The page appends { id: "questions" } to the ToC when a post carries faq; a body `##`
+    // that slugifies to the same id would give the scroll-spy two targets for one row.
+    for (const post of posts) {
+      if (!post.frontmatter.faq) continue;
+      const ids = extractHeadings(post.body).map((h) => h.id);
+      expect(ids, post.slug).not.toContain(ARTICLE_FAQ_ID);
     }
   });
 
@@ -306,7 +336,10 @@ describe("related posts spread across the archive", () => {
       }
     }
     for (const [slug, count] of seen) {
-      expect(count, `${slug} is recommended ${count} times`).toBeLessThanOrEqual(5);
+      expect(
+        count,
+        `${slug} is recommended ${count} times`,
+      ).toBeLessThanOrEqual(5);
     }
   });
 });
@@ -324,7 +357,9 @@ describe("covers on the wall", () => {
       const { library } = splitLibrary(items, tag as never);
       const pageCount = paginate(library, 1).pageCount;
       for (let page = 1; page <= pageCount; page++) {
-        const covers = paginate(library, page).items.map((p) => p.cover.imageId);
+        const covers = paginate(library, page).items.map(
+          (p) => p.cover.imageId,
+        );
         for (let i = 0; i < covers.length; i++) {
           for (const step of [1, 2, 3]) {
             if (i + step < covers.length) {
@@ -353,17 +388,41 @@ describe("no typed product number in a body", () => {
     // hand-typed figure takes: a price, a byte size, or one of the lifecycle/limit numbers
     // sitting next to its unit. The unit window is what keeps "47 messages" legal.
     const SIZE_OR_PRICE = /\$\d|\b\d+(\.\d+)? ?(GB|TB|MB)\b/i;
-    const LIMIT_NEAR_UNIT =
-      /\b(10|14|30|45|60|180|365|2000)\b(?=[^\n]{0,20}\b(day|second|item|photo|event)s?\b)/i;
+    // The limit list is DERIVED from the constants the spec components read, so the fence
+    // follows a retune instead of guarding yesterday's number.
+    const LIMITS = [
+      ...Object.values(MAX_REEL_SECONDS),
+      ...Object.values(MAX_EVENTS).filter((n): n is number => n !== null),
+      RECENTLY_DELETED_WINDOW_DAYS,
+      INACTIVE_DAYS,
+      WARN_BEFORE_DAYS,
+      OVER_CAP_GRACE_DAYS,
+      RENEWAL_NUDGE_DAYS,
+      TEASER_LIMIT,
+    ];
+    // `1` is dropped: a one-event limit is written as a word, and the digit would otherwise match
+    // every numbered list ("1. Create the event").
+    const LIMIT_NEAR_UNIT = new RegExp(
+      `\\b(${[...new Set(LIMITS.filter((n) => n > 1))].join("|")})\\b(?=[^\\n]{0,20}\\b(day|second|item|photo|event)s?\\b)`,
+      "i",
+    );
     for (const post of posts) {
-      const prose = post.body.replace(/<[^>]+>/g, "");
+      // Title and description ship to the card, the OG card, RSS and llms.txt, so they are
+      // fenced with the body (frontmatter cannot reach a component at all).
+      const prose = [
+        post.frontmatter.title,
+        post.frontmatter.description,
+        post.body.replace(/<[^>]+>/g, ""),
+      ].join("\n");
       for (const [i, line] of prose.split("\n").entries()) {
-        expect(line, `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`).not.toMatch(
-          SIZE_OR_PRICE,
-        );
-        expect(line, `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`).not.toMatch(
-          LIMIT_NEAR_UNIT,
-        );
+        expect(
+          line,
+          `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`,
+        ).not.toMatch(SIZE_OR_PRICE);
+        expect(
+          line,
+          `${post.slug}:${i + 1} "${line.trim().slice(0, 80)}"`,
+        ).not.toMatch(LIMIT_NEAR_UNIT);
       }
     }
   });
@@ -387,7 +446,9 @@ describe("retired slugs", () => {
   it("every redirect lands on a live post, and no retired slug is still live", () => {
     const live = new Set(getAllBlogSlugs());
     for (const { from, to } of BLOG_REDIRECTS) {
-      expect(live.has(to), `${from} -> ${to} (target is not a live post)`).toBe(true);
+      expect(live.has(to), `${from} -> ${to} (target is not a live post)`).toBe(
+        true,
+      );
       expect(live.has(from), `${from} is still a live post`).toBe(false);
     }
   });

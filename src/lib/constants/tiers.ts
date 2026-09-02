@@ -405,8 +405,8 @@ export function friendlyCapacity(bytes: number): {
 
 /**
  * The capacity estimate as a sentence fragment ("19,200 photos or 9 hours of video").
- * One formatter for every surface that says it (the blog's <CapacityEstimate />; the
- * pricing calculator can adopt it), so two pages never describe one cap in two ways.
+ * One formatter for every surface that says it (the blog's <CapacityEstimate />, /pricing's
+ * `capacityPhrase`), so two pages never describe one cap in two ways.
  * `video: false` renders photos only, which is what the Free tier gets (photos-only).
  * Locale is pinned: this renders on the server and in tests, and a machine-dependent
  * thousands separator would make llms.txt / snapshot output drift by host.
@@ -418,9 +418,10 @@ export function formatCapacity(
   const { photos, videoMinutes } = friendlyCapacity(bytes);
   const photosText = `${photos.toLocaleString("en-US")} photos`;
   if (!video) return photosText;
+  // Hours from two hours up (the /pricing threshold the site shipped with); minutes below.
   const videoText =
-    videoMinutes >= 90
-      ? `${Math.round(videoMinutes / 60)} hours of video`
-      : `${videoMinutes} minutes of video`;
+    videoMinutes >= 120
+      ? `${Math.round(videoMinutes / 60).toLocaleString("en-US")} hours of video`
+      : `${videoMinutes.toLocaleString("en-US")} minutes of video`;
   return `${photosText} or ${videoText}`;
 }

@@ -11,9 +11,9 @@ import {
  * `blog.ts` cannot cross that boundary.
  *
  * ★ THE HERO RULE, and why it is a rule rather than a layout detail. The obvious shape is "lift the
- * newest post out as the hero, filter the rest" - and it is broken. Tags are freeform and per-post,
- * so a hero can own tags no other post has (today the newest post owns `product` and
- * `highlight-reel` alone). Lift it out permanently and those chips render an EMPTY library while
+ * newest post out as the hero, filter the rest" - and it is broken. Tags are registered but
+ * per-post, so a hero can own tags no other post has (the test fixture's newest post owns
+ * `product` and `compared` alone). Lift it out permanently and those chips render an EMPTY library while
  * the one matching article sits in the hero directly above, which reads as a bug.
  *
  * So the hero exists ONLY in the unfiltered view. Pick a tag and the hero collapses into a pure

@@ -42,7 +42,7 @@ faq:
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `title` | yes | **45-75 characters, hard cap 80** (the build fails past it). A layout contract: the featured card reads best at three lines and library cards at two, and both clamp. Front-load the words a searcher types; the card gives you no subtitle. |
+| `title` | yes | **45-60 characters; hard cap 80** (the build fails past it). A layout contract: a library card holds TWO lines at the three-column width (280px, about 60 characters of ordinary words; a long word costs more), and anything longer ships with an ellipsis. The featured card holds three lines. Measure a borderline title on the wall before merging. Front-load the words a searcher types; the card gives you no subtitle. |
 | `description` | yes | Max 160 characters. It renders as the **visible standfirst** under the title, as the card blurb, as the meta description, and in the feed. The primary query phrase appears once in its first hundred characters, and it never repeats a clause from the title. Same voice as the body. |
 | `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. The newest post is the staged hero on `/blog`. |
 | `cover` | **no, but always set it** | A media id from `MARKETING_IMAGES` (`src/lib/constants/marketing-media.ts`). See Covers. |
@@ -55,8 +55,9 @@ faq:
 ## The tag registry
 
 Six tags, in `src/lib/content/blog-tags.ts`. Three AUDIENCES (who the post is for) and three
-PURPOSES (what kind of piece it is). A post carries one purpose and, when it is written for one
-room, one audience. A group-trip guide carries `how-to` alone.
+PURPOSES (what kind of piece it is). A post carries one or two tags: at most one audience, and a
+purpose (a second purpose is allowed where the piece is both, e.g. a comparison written as a
+guide). A group-trip guide carries `how-to` alone.
 
 | id | kind | label | The library line under the heading |
 | --- | --- | --- | --- |
@@ -87,8 +88,9 @@ plates. Will replaces the whole media set before launch; the ids stay.
 
 ## Writing rules
 
-1. **Own one claim.** Every post has a one-line thesis no other post makes. The five comparison
-   posts, in particular, each carry ONE argument (the roundup, the morning-after scene, the
+1. **Own one claim.** Every post has a one-line thesis no other post makes. The five
+   incumbents-fail posts (the ranking, the group chat, the cloud album, the compression chain,
+   the disposables), in particular, each carry ONE argument (the roundup, the morning-after scene, the
    account wall, the compression chain, keepsake versus coverage) and may not borrow another's.
 2. **No em-dashes.** Anywhere, prose or frontmatter. Recast with a comma, a colon, parentheses, or
    two sentences. Test-enforced over all of `content/`.
@@ -152,15 +154,14 @@ in a unit renders the bare number and you write the unit; a name for a thing ren
 | Component | Renders |
 | --- | --- |
 | `<UploadSize />` | the per-file ceiling, photos and videos alike |
-| `<FreeStorage />`, `<EventPassStorage />` | a plan's storage |
+| `<FreeStorage />`, `<EventPassStorage />` | aliases of `<PlanStorage id>` kept for the help center; new posts use the `id` form |
 | `<PlanStorage id="pro_500" />` | any plan's storage (`free`, `event_pass`, `pro_100`, `pro_500`, `pro_2tb`, `pro_100_yr`, `pro_500_yr`, `pro_2tb_yr`) |
-| `<EventPassPrice />`, `<ProPrice />`, `<PlanPrice id="pro_100_yr" />` | a price label |
+| `<PlanPrice id="pro_100_yr" />` | a price label (`<EventPassPrice />` and `<ProPrice />` are aliases for the help center) |
 | `<EventPassRenewalPrice />` | the one-time renewal price |
 | `<EventLimit tier="free" />` | events a tier may hold (`pro` renders the unlimited word) |
 | `<ReelSeconds tier="free" />` | the reel ceiling in seconds for `free`, `pro`, `event_pass` |
 | `<ReelStyleCount />` | how many reel styles ship |
-| `<CapacityEstimate plan="event_pass" />` | "19,200 photos or 9 hours of video" (photos only where the tier has no video) |
-| `<PhotoEstimate plan="free" />` | the photo count alone |
+| `<CapacityEstimate plan="event_pass" />` | "19,200 photos or 9 hours of video" (photos only where the tier has no video, so `plan="free"` renders the photo count alone) |
 | `<PhotoAverageSize />`, `<VideoMinuteSize />` | the rule-of-thumb sizes behind the estimates |
 | `<RecoveryWindowDays />` | the Trash window |
 | `<InactiveDays />`, `<InactiveWarningDays />` | the free-tier inactivity clock and its warning |

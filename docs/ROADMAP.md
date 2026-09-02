@@ -231,8 +231,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
   milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
   drop to ChatGPT-only if first impressions warrant; **the blog library's follow-ons** (2026-09):
-  promote `?page=` to real `/blog/page/[n]` routes once deep-page indexing matters (the URL-first
-  hydration replay on Back-to-page-2 is the visible cost today); a "Start here" curated strip above the
+  promote `?page=` to real `/blog/page/[n]` routes once deep-page indexing matters (today a cold load
+  of a shared `?tag=`/`?page=` URL paints the unfiltered first page before hydration corrects it); a "Start here" curated strip above the
   rail once the archive passes ~40; the featured card's `Latest` eyebrow becoming the post's purpose
   label (a POV hero should read as an opinion, not a news item; the tag `kind` field is in place); a
   founder-voice origin post NEEDS A RULING first (the zero-team relaxation is /about-only); the

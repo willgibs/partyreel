@@ -13,6 +13,7 @@ import Image from "next/image";
 
 import { BrowserFrame } from "@/components/marketing/frames";
 import { MatrixMark } from "@/components/marketing/matrix-mark";
+import { HEADING_SCROLL_MT } from "@/components/marketing/reading/heading-contract";
 import { Kbd } from "@/components/shared/kbd";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
@@ -50,14 +51,12 @@ import { cn, formatBytes } from "@/lib/utils";
 // ── Inline spec values (single-sourced from limits.ts / tiers.ts) ───────────────
 // The universal per-upload ceiling (photos + videos; size is the only gate).
 export const UploadSize = () => <>{formatBytes(MAX_UPLOAD_BYTES)}</>;
-export const FreeStorage = () => (
-  <>{formatBytes(planById("free").storageBytes)}</>
-);
-export const EventPassStorage = () => (
-  <>{formatBytes(planById("event_pass").storageBytes)}</>
-);
-export const EventPassPrice = () => <>{planById("event_pass").priceLabel}</>;
-export const ProPrice = () => <>{planById("pro_100").priceLabel}</>;
+// The original help-center trio, kept as ALIASES of the generic pair below so the two
+// dialects can never disagree (help articles still use these names).
+export const FreeStorage = () => <PlanStorage id="free" />;
+export const EventPassStorage = () => <PlanStorage id="event_pass" />;
+export const EventPassPrice = () => <PlanPrice id="event_pass" />;
+export const ProPrice = () => <PlanPrice id="pro_100" />;
 
 // ── The wider spec family (the blog library, 2026-09) ───────────────────────────
 // Naming convention: a name ending in a UNIT (Seconds, Days, Size) renders the bare numeral or
@@ -84,20 +83,22 @@ export const PlanStorage = ({ id }: { id: PlanId }) => (
 export const PlanPrice = ({ id }: { id: PlanId }) => (
   <>{planById(id).priceLabel}</>
 );
-export const EventPassRenewalPrice = () => <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>;
+export const EventPassRenewalPrice = () => (
+  <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
+);
 /** The rule-of-thumb sizes behind every capacity estimate ("about 4 MB a photo"). */
 export const PhotoAverageSize = () => <>{formatBytes(AVG_PHOTO_BYTES)}</>;
 export const VideoMinuteSize = () => <>{formatBytes(VIDEO_BYTES_PER_MIN)}</>;
-/** "19,200 photos or 9 hours of video" for a plan; photos only where the tier has no video. */
+/** "19,200 photos or 9 hours of video" for a plan; photos only where the tier has no video
+ *  (so `plan="free"` renders the photo count alone, with no second component to reach for). */
 export const CapacityEstimate = ({ plan }: { plan: PlanId }) => {
   const p = planById(plan);
   return (
-    <>{formatCapacity(p.storageBytes, { video: videosAllowedForTier(p.tier) })}</>
+    <>
+      {formatCapacity(p.storageBytes, { video: videosAllowedForTier(p.tier) })}
+    </>
   );
 };
-export const PhotoEstimate = ({ plan }: { plan: PlanId }) => (
-  <>{formatCapacity(planById(plan).storageBytes, { video: false })}</>
-);
 
 // ── Comparison-table marks: the SAME glyphs as the /pricing matrix (matrix-mark.tsx) ──
 // Anything other than a plain yes/no (Partial, Free only, By default) is written as words.
@@ -115,16 +116,21 @@ export const No = () => <MatrixMark value={false} label="No" />;
 // is for numerals that align in a column; these cells mix words and figures).
 function MdxTable(props: ComponentProps<"table">) {
   return (
-    <div className="my-8 -mx-4 overflow-x-auto px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0">
+    <div className="-mx-4 my-8 [scrollbar-width:thin] overflow-x-auto px-4 sm:mx-0 sm:px-0">
       <table {...props} className="my-0 w-full min-w-[32rem] text-sm" />
     </div>
   );
 }
+// `align` arrives from a GFM `|:---:|` / `|---:|` column; the utility only fills in when the author
+// left a column unaligned, so a right-aligned numeric column keeps its heads over its figures.
 function MdxTh(props: ComponentProps<"th">) {
   return (
     <th
       {...props}
-      className="px-3 py-2 text-left align-bottom text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase first:pl-0 last:pr-0"
+      className={cn(
+        "px-3 py-2 align-bottom text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase first:pl-0 last:pr-0",
+        !props.align && "text-left",
+      )}
     />
   );
 }
@@ -257,8 +263,7 @@ function toText(node: ReactNode): string {
 // The scroll margin rides --mkt-header-h (the one chrome-height knob; same calc as
 // SectionShell) so a TOC/anchor jump clears the sticky header even if its height is
 // ever retuned (the old hardcoded scroll-mt-24 silently coupled to h-16).
-export const HEADING_SCROLL_MT =
-  "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
+// HEADING_SCROLL_MT lives in reading/heading-contract.ts (an import-free leaf the ToC can share).
 
 // The copy-link affordance (R6): server-rendered markup only — a real anchor
 // (no-JS still jumps) that the ONE HeadingAnchorsDelegate island upgrades to
@@ -402,7 +407,6 @@ export const mdxComponents = {
   PhotoAverageSize,
   VideoMinuteSize,
   CapacityEstimate,
-  PhotoEstimate,
   Yes,
   No,
   table: MdxTable,

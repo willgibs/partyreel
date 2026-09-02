@@ -239,9 +239,9 @@ describe("friendlyCapacity", () => {
 
 describe("formatCapacity", () => {
   it("renders photos only when video is off (the Free tier's photos-only truth)", () => {
-    expect(formatCapacity(planById("free").storageBytes, { video: false })).toBe(
-      "512 photos",
-    );
+    expect(
+      formatCapacity(planById("free").storageBytes, { video: false }),
+    ).toBe("512 photos");
   });
   it("switches from minutes to hours at 90 minutes, with en-US thousands separators", () => {
     expect(formatCapacity(planById("event_pass").storageBytes)).toBe(
