@@ -33,6 +33,7 @@ Read the ONE doc whose question matches your task. Don't read everything; load d
 | The whole-picture architecture / data flow? | [`docs/systems/architecture.md`](docs/systems/architecture.md) |
 | How do I verify live? (test-tool blind-spots) | [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md) |
 | Where are we right now? (era, program position, live state, Will's queue) | [`docs/STATUS.md`](docs/STATUS.md) |
+| What is every open track claiming, and what did a track hand off? | [`docs/tracks/`](docs/tracks) — one manifest per `lp/<track>` branch |
 | What program is running + its rules? (roles, gates, protocol depth, init templates) | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 | Why was a decision made? | [`docs/adr/`](docs/adr) — rationale at decision time (a later ADR or change may have superseded it; the system docs are current truth) |
@@ -79,7 +80,12 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
   worktree-toggle cutting from `main`, cleans up the auto-birth branch, and covers a session opened
   in the repo root by creating its own worktree). Orchestrator-spawned tracks live at
   `../partyreel-wt/<track>`. Full build/test/push rights on their own branch; the hard prohibitions
-  are in the Git rules below. Handoff = push `lp/<track>` + a report; no live Orchestrator needed.
+  are in the Git rules below. Handoff = the manifest's Handoff + Record sections filled, `status: handed-off`, pushed; no live
+  Orchestrator needed.
+- **Every track has a manifest**, `docs/tracks/<track>.md`: its claimed path prefixes, rulings,
+  handoff and record ([`docs/tracks/README.md`](docs/tracks/README.md)). Read the directory to see
+  what every open track is working on; the boot sequence creates yours before any other work, and
+  `pnpm test` refuses two live claims that overlap.
 - **The Orchestrator** alone integrates, applies migrations, deploys, and runs milestone merges; it
   closes every round succession-ready. Duties, seat-in, and both init templates:
   [`docs/PROGRAM.md`](docs/PROGRAM.md).

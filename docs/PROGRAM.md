@@ -100,6 +100,29 @@ one, say so: "resume `lp/<track>`".)
    preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (builds queue one-at-a-time on the
    Hobby plan; UI-review only — the allow-list-gated flows fail there by design, see CLAUDE.md
    "Local dev vs. live testing").
+6. **Your manifest, before any other work** (the operating model, 2026-09-02). If the stub exists,
+   fill its body; else copy the template from [`tracks/README.md`](tracks/README.md) and fill
+   `owns` / `reads` from your init. Commit it alone (`docs(tracks): open <track>`) and push. Then
+   run the peer sweep and, for anything you plan to create, the single-source lookup (both in the
+   README); if a peer's claim overlaps yours, stop and say so rather than build. `pnpm test` must
+   be green here: the manifest guard proves your lane is free.
+
+### Sync (merge, never rebase, a pushed branch)
+
+Sync `origin/launch-prep` exactly when: (1) never at boot (you were cut from its tip); (2) before
+handoff, only if it moved (`git fetch --prune && git rev-list --count HEAD..origin/launch-prep`
+greater than 0: `git merge origin/launch-prep`, re-run the gate, record the SHA in Handoff); (3)
+mid-round only when `docs/tracks/orchestrator.md` on `origin/launch-prep` lists a landed change
+touching one of your `reads` or the MDX registries. Syncing minutes after cutting merges your own
+merge-base and gains nothing (it happened twice on 2026-09-01). Conflicts belong to the lane owner
+while its session is alive.
+
+### Handoff
+
+Sync per above; fill the manifest's Handoff (head SHA, preview URL, the gates on the synced tree,
+the lane check `git diff --name-only origin/launch-prep...HEAD` pasted with any exception explained,
+proposed migrations/config changes) and Record (the CHANGELOG paragraph, past tense, at most 12
+lines); set `status: handed-off` (and `preview: true` if Will should look); push; one line in chat.
 
 ## The hard gates (religious — no exceptions)
 
@@ -139,11 +162,25 @@ same session.
   `origin/launch-prep` and cleans up the auto-birth branch; proven live 2026-08-27). The
   Orchestrator creates subagent-track worktrees explicitly:
   `git worktree add ../partyreel-wt/<track> -b lp/<track> launch-prep`.
-- **Integration is single-writer.** Track rebases onto `launch-prep` (the track's own agent resolves
-  its conflicts) → `merge --ff-only` → the FULL gate re-runs on the MERGED tree (a green worktree can
-  lie by omission) → one push per round → confirm the Vercel preview READY at the pushed SHA before
-  any red-team. Contention hotspots (minimize subagent touches): STATUS / CHANGELOG / ROADMAP /
-  `src/lib/env.ts`.
+- **Integration is single-writer, merge-based, and windowed.** Never rebase a pushed branch; every
+  integration is `merge --no-ff` (the branch's own merges of `launch-prep` are merges too). Two
+  integration windows per Orchestrator session (after seat-in, before close) plus on request; a
+  window = fetch with prune, integrate every `handed-off` track OLDEST FIRST (a quick typecheck +
+  test after each merge localises a break; the full four-step gate once on the final tree, each
+  step on its own exit code), ONE push, one preview verify at the pushed SHA before any red-team.
+  The Orchestrator's own cross-cutting change lands last in the window. Per track: read its manifest
+  (must be `handed-off`) → lane check `git diff --name-only launch-prep...origin/lp/<track>` (every
+  line inside `owns`, the manifest, or a listed system doc; anything else is handed back or ruled)
+  → staleness `git rev-list --count origin/lp/<track>..launch-prep` (if the two name-only diffs
+  intersect outside docs and the agent is alive, it syncs first) → `merge --no-ff` with the manifest
+  flipped to `status: integrated` + `merged: "<sha>"` in the same commit → the doc-eye pass over
+  every listed system-doc edit, fact against code → fold Record into CHANGELOG (dated, merge SHA)
+  and Deferred into its ROADMAP buckets, STATUS's round table if it moved → prune: `git worktree
+  remove`, `git branch -d lp/<track>`, `git push origin --delete lp/<track>`. A change touching
+  more than one open lane (a rename, a shared-component sweep, the radius round) is
+  Orchestrator-only, announced in `docs/tracks/orchestrator.md` first, and lands after the affected
+  tracks integrate or are told to sync. Contention hotspots, now fenced by the manifests: STATUS /
+  CHANGELOG / ROADMAP / `src/lib/env.ts` / `src/components/marketing/mdx/spec-shared.tsx`.
 - **DB migrations are global state** (ONE prod Supabase serves prod AND every preview, launch-prep
   and agent `lp/*` aliases alike — preview writes ARE prod writes). Agents write migration FILES only. The Orchestrator applies via the Supabase MCP
   one at a time (re-timestamped; diff-against-live before any `CREATE OR REPLACE`), then
