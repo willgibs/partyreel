@@ -119,8 +119,12 @@ describe("the legal single-source", () => {
   });
 
   it("status lines read as intended in both states", () => {
+    // The version is READ from the document, not pinned: a material change is
+    // supposed to bump it (see LegalDocMeta.version), and a guard that failed
+    // on a legitimate bump would only teach people to edit the test.
+    const { version } = LEGAL_DOCUMENTS.privacy;
     expect(legalStatusLine(LEGAL_DOCUMENTS.privacy)).toBe(
-      "Version 1.0 · Pending counsel review · Effective on launch",
+      `Version ${version} · Pending counsel review · Effective on launch`,
     );
     expect(
       legalStatusLine({
@@ -128,7 +132,7 @@ describe("the legal single-source", () => {
         status: "effective",
         effectiveDate: "2026-10-01",
       }),
-    ).toBe("Version 1.0 · Effective October 1, 2026");
+    ).toBe(`Version ${version} · Effective October 1, 2026`);
   });
 
   it("the sitemap reads the legal dates instead of build time", () => {

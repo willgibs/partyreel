@@ -11,6 +11,12 @@
  * venue rates (runaway-bot guard only); raw volumetric DoS is the Vercel edge firewall's job. The limiter is
  * defense-in-depth (the capability token / verified session is the real gate), so the routes fail OPEN on a
  * limiter error.
+ *
+ * ★ THE PUBLIC MARKETING FORMS ARE THE EXCEPTION, and it is the whole point of them (QA #14). `contact` and
+ * `careers` have NO capability token and NO session behind them: the limiter IS the gate, not a second layer
+ * over one. So those two fail CLOSED on a limiter error, in `public-form-limit.ts`. They are also not
+ * event-shaped, so breadth is meaningless (there is nothing to be broad across) and the scope is the bare IP,
+ * exactly like `capture`.
  */
 
 export type AbuseKind =
@@ -19,7 +25,9 @@ export type AbuseKind =
   | "capture"
   | "export"
   | "reel_render"
-  | "reel_guest_download";
+  | "reel_guest_download"
+  | "contact"
+  | "careers";
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -92,6 +100,27 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: 15,
     scopeWindowMin: 15,
     scopeMax: 100,
+  },
+  // The public /contact form. Unauthenticated and unthrottled until now: every accepted submission is
+  // one service-role insert plus one Resend send, so a few thousand requests drain the monthly email
+  // quota, after which the orphan-sweep and prune BREAKER alerts cannot send either. That is the real
+  // damage, and it is why this one fails closed. No breadth (nothing to be broad across); the scope is
+  // the bare IP. 8 an hour is far past any honest sender, including someone retrying a flaky submit,
+  // and an office NAT sharing one address stays comfortably inside it.
+  contact: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 8,
+  },
+  // The public /careers application form, same shape and same reasoning. Tighter, because applications
+  // are rarer than messages: five from one address in an hour is already unusual, and an applicant who
+  // hits it can come back in the hour or write to the address on the page.
+  careers: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 5,
   },
 };
 

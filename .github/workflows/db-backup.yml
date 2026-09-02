@@ -14,6 +14,15 @@
 #   R2_BACKUP_SECRET_ACCESS_KEY  (do NOT reuse the app's partyreel-only Object token)
 # The R2 account id / S3 endpoint is non-secret config (already in CLAUDE.md), set in `env` below.
 #
+# OPTIONAL, for the /admin/jobs kill switch + heartbeat (admin-portal P8, QA #15):
+#   PRUNE_API_SECRET             the shared internal-jobs bearer (the SAME value as the Vercel env
+#                                var and the backup Worker's secret). Without it this workflow runs
+#                                exactly as before, just unlogged: the heartbeat steps skip cleanly.
+# JOB_API_URL is non-secret config, hardcoded in `env` below the way wrangler.jsonc hardcodes the
+# sibling prune endpoint. The gate FAILS OPEN on an unreachable app: a backup that runs without a
+# heartbeat is only a blind spot, a backup that does not run is a durability risk. The one thing it
+# does obey is an explicit pause from /admin/jobs.
+#
 # Until the secrets exist, every step SKIPS cleanly (no failed-run emails). To enable + verify:
 #   1) add the 3 secrets, 2) Actions tab -> "db-backup" -> Run workflow, 3) confirm a db/ object
 #   landed (`wrangler r2 object get partyreel-backup/db/<file>`), 4) test-restore it into a throwaway
@@ -42,6 +51,8 @@ jobs:
       # Non-secret config: the P3 R2 account's S3 endpoint + the backup bucket.
       R2_ENDPOINT: https://8bd90d2f6a374d6cdff2f379e929b060.r2.cloudflarestorage.com
       R2_BUCKET: partyreel-backup
+      # The app's job heartbeat endpoint (sibling of the Worker's backup-prune confirm URL).
+      JOB_API_URL: https://partyreel.com/api/internal/job-run
       # Opt JS actions (supabase/setup-cli@v1) into Node 24 ahead of GitHub's 2026-06-16 forced
       # cutover (Node 20 is deprecated). Verified working on a manual run before this landed.
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -59,18 +70,57 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install Supabase CLI
+      # The kill switch + heartbeat start. Three outcomes, and only ONE of them stops the backup:
+      #   paused=true  -> an operator switched this job off on /admin/jobs. The app has already
+      #                   logged the skipped run, so we stop here and the job still reports in.
+      #   run_id set   -> the heartbeat is open; the finish step below closes it.
+      #   anything else (no secret, app down, bad response) -> run anyway, unlogged. Not backing up
+      #                   is the bigger risk, and the app's daily freshness scan notices the silence.
+      - name: Job gate — kill switch and heartbeat
+        id: job
         if: steps.guard.outputs.ready == 'true'
+        env:
+          JOB_SECRET: ${{ secrets.PRUNE_API_SECRET }}
+          TRIGGERED_BY: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'schedule' }}
+        run: |
+          set -uo pipefail
+          echo "paused=false" >> "$GITHUB_OUTPUT"
+          echo "run_id=" >> "$GITHUB_OUTPUT"
+          echo "started_at_ms=" >> "$GITHUB_OUTPUT"
+          if [ -z "${JOB_SECRET:-}" ]; then
+            echo "PRUNE_API_SECRET not set — running without a heartbeat."
+            exit 0
+          fi
+          # --fail-with-body would swallow the payload on a 4xx; we only ever read the 2xx body.
+          RESP="$(curl -sS -m 20 -X POST "$JOB_API_URL" \
+            -H 'content-type: application/json' \
+            -H "authorization: Bearer $JOB_SECRET" \
+            -d "{\"phase\":\"start\",\"job\":\"db_backup\",\"triggeredBy\":\"$TRIGGERED_BY\"}" || true)"
+          if [ -z "$RESP" ]; then
+            echo "::warning::Job heartbeat unreachable — running unlogged."
+            exit 0
+          fi
+          PAUSED="$(echo "$RESP" | jq -r '.paused // false')"
+          if [ "$PAUSED" = "true" ]; then
+            echo "::notice::db_backup is paused on /admin/jobs — skipping this run."
+            echo "paused=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "run_id=$(echo "$RESP" | jq -r '.runId // empty')" >> "$GITHUB_OUTPUT"
+          echo "started_at_ms=$(echo "$RESP" | jq -r '.startedAtMs // empty')" >> "$GITHUB_OUTPUT"
+
+      - name: Install Supabase CLI
+        if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
       - name: Install rclone
-        if: steps.guard.outputs.ready == 'true'
+        if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'
         run: sudo apt-get update && sudo apt-get install -y rclone
 
       - name: Dump schema + data
-        if: steps.guard.outputs.ready == 'true'
+        if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
@@ -87,7 +137,7 @@ jobs:
           ls -l "pr-db-$STAMP.tar.gz"
 
       - name: Upload to R2 (rclone)
-        if: steps.guard.outputs.ready == 'true'
+        if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'
         env:
           RCLONE_CONFIG_R2_TYPE: s3
           RCLONE_CONFIG_R2_PROVIDER: Cloudflare
@@ -111,3 +161,31 @@ jobs:
             exit 1
           fi
           echo "Verified $KEY in $R2_BUCKET ($REMOTE_BYTES bytes, IA + 35-day lock)."
+          # Carried into the heartbeat so /admin/jobs shows the dump SIZE, not just a green tick: a
+          # backup that suddenly halves is the interesting failure, and only a number surfaces it.
+          echo "BACKUP_BYTES=$LOCAL_BYTES" >> "$GITHUB_ENV"
+
+      # Closes the heartbeat row whatever happened above (`always()`), so a failed dump shows as a
+      # FAILED run on /admin/jobs rather than as a silence indistinguishable from a job that stopped
+      # firing. Skipped entirely when no row was opened (no secret, or the app was unreachable).
+      - name: Job heartbeat — finish
+        if: always() && steps.job.outputs.run_id != ''
+        env:
+          JOB_SECRET: ${{ secrets.PRUNE_API_SECRET }}
+          RUN_ID: ${{ steps.job.outputs.run_id }}
+          STARTED_AT_MS: ${{ steps.job.outputs.started_at_ms }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -uo pipefail
+          if [ -z "${STARTED_AT_MS:-}" ]; then
+            echo "::warning::No heartbeat start timestamp; leaving the run open."
+            exit 0
+          fi
+          if [ "$JOB_STATUS" = "success" ]; then STATUS=ok; else STATUS=error; fi
+          BYTES="${BACKUP_BYTES:-0}"
+          NOTE="GitHub Actions run ${GITHUB_RUN_ID} (${JOB_STATUS})"
+          curl -sS -m 20 -o /dev/null -X POST "$JOB_API_URL" \
+            -H 'content-type: application/json' \
+            -H "authorization: Bearer $JOB_SECRET" \
+            -d "{\"phase\":\"finish\",\"job\":\"db_backup\",\"runId\":\"$RUN_ID\",\"startedAtMs\":$STARTED_AT_MS,\"status\":\"$STATUS\",\"counts\":{\"dump_bytes\":$BYTES},\"note\":\"$NOTE\"}" \
+            || echo "::warning::Could not close the job heartbeat (the backup result above stands)."

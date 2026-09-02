@@ -4,11 +4,19 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
+import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
+import { DeleteAccountControl } from "./delete-account-control";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +48,7 @@ export default async function AdminAccountDetailPage({
   const { id } = await params;
   const account = await getAccountDetail(id);
   if (!account) notFound();
+  const deletion = await getAccountDeletionState(id);
 
   const { profile } = account;
   const capLabel =
@@ -146,6 +155,53 @@ export default async function AdminAccountDetailPage({
           <Row label="User ID">
             <code className="text-xs">{profile.id}</code>
           </Row>
+        </CardContent>
+      </Card>
+
+      {/* The operator half of self-serve deletion: for the person who writes in
+          from an address they can no longer sign in with, and for a takedown
+          that ends in closing the account. Once requested there is no trigger
+          left to press, only the state, because deletion has no undo. */}
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-base text-destructive">
+            {deletion.requestedAt ? "Deletion in progress" : "Delete account"}
+          </CardTitle>
+          <CardDescription>
+            {deletion.requestedAt
+              ? "The profile is anonymised and the account cannot sign in. The purge cron finishes the hard delete."
+              : "Immediate and permanent, exactly as if the account holder had done it themselves."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {deletion.requestedAt ? (
+            <>
+              <Row label="Requested">
+                <span suppressHydrationWarning>
+                  {new Date(deletion.requestedAt).toLocaleString()}
+                </span>
+              </Row>
+              <Row label="Events left to purge">{deletion.eventCount}</Row>
+              {deletion.heldEventCount > 0 && (
+                <Row label="Blocked by a legal hold">
+                  <Badge variant="secondary">{deletion.heldEventCount}</Badge>
+                </Row>
+              )}
+              {deletion.eventCount === 0 && (
+                <p className="text-muted-foreground">
+                  Nothing left to purge. The next run removes the sign-in
+                  record.
+                </p>
+              )}
+            </>
+          ) : (
+            <DeleteAccountControl
+              userId={profile.id}
+              identifier={profile.email ?? profile.id}
+              eventCount={deletion.eventCount}
+              heldEventCount={deletion.heldEventCount}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

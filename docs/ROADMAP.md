@@ -363,8 +363,17 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
     #47 teardown residue + stale doc claims.
   - **Carried-forward live verification:** #11 the >90-min presign-roll soak + #12 upload retry (fixed
     in code at milestone-1.5, never verified live; the two soak traps are in
-    [`systems/testing-verification.md`](systems/testing-verification.md)).
-
+    [`systems/testing-verification.md`](systems/testing-verification.md)). · **Follow-ons the `ops-hardening` track logged (2026-09-02):** a report-only CSP, then an enforced
+  one (a per-request nonce through the streaming render plus an inventory of every inline style; its own
+  project) · `X-Frame-Options` / CSP `frame-ancestors`, a one-line add once the CSP question is settled ·
+  Session Replay records DOM snapshots and an `href` in them can still carry `/e/<qr_token>` (the replay
+  scrub covers custom frames only; walking every snapshot node is more than it buys) · a dedicated
+  `JOB_API_SECRET` instead of reusing `PRUNE_API_SECRET` as the internal-jobs bearer (cleaner naming; three
+  homes plus a Worker secret plus a GitHub secret is why it was not done). · **From the `account-deletion` track (2026-09-02):** sweep the app routes for the JSX landmine it found
+  on `/privacy` (a text node that contains an HTML entity loses its own leading space, so a bolded lead-in
+  glues to the next word; the prerendered surface is clean as of `26341a7`, the dynamic app routes were not
+  scanned, and no lint or test catches it) · a `deletion_requested_by` column so an operator-triggered
+  deletion is distinguishable from a self-serve one after the fact.
 - **Notification system** — the announcements overhaul · new bell signals (link-activity "new since last
   seen" deltas; billing `past_due` alerts, needs a denormalized flag on `profiles`) · a durable per-item
   feed + real-time push · per-item announcement un-read toggling · **the reel-published guest send** (R3
@@ -556,6 +565,11 @@ Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo 
 - `.env.example` parity with `env.ts`, pinned by a test `[eng]` — the `legal-billing-truth` track.
 - The marketing site tuned at phone widths, judged on Will's phone `[eng+human]` — gating; the
   `marketing-mobile` track.
+- A per-account throttle on the deletion request `[eng]` — beyond Supabase Auth's own OTP limits it is
+  unlimited; it needs a live session plus a password or an emailed code, so the exposure is a borrowed
+  session rather than a stranger, but the throttle is cheap insurance (the `account-deletion` track's note).
+- Submit the apex to the HSTS preload list `[human]` — a one-way door for the domain and every future
+  subdomain (`max-age` already meets the list's requirement; the header ships without `preload` on purpose).
 - `SUPABASE_DB_URL` into `.env.local` `[human, 15 minutes]` — unblocks the committed RPC integration
   suite above.
 

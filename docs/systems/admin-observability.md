@@ -87,10 +87,43 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   health signal, the preserve form (hold + copy-to-preservation-prefix), per-hold audit-logged
   evidence/record exports, two-step hold release, the `forensic_audit_log` trail. Full model + the
   CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
+- **Jobs (P8)** — the backend-job console: every job (the purge cron, the backup Worker's reconcile
+  and prune, the nightly DB-backup Action) with its health, its last runs and what each reported, a
+  per-job kill switch, and Run now where the app can actually start the job. Model + invariants below.
 - **Security** — MFA status.
 
-**P8 (planned):** make EVERY backend job (the cron sweeps, the media-backup Worker + DLQ, the DB backup)
-operable + health-visible from `/admin` with zero silent failures → [durability-backups.md](durability-backups.md) + [`../ROADMAP.md`](../ROADMAP.md).
+## Backend jobs (P8 — zero silent failures)
+
+Every backend job reports through ONE heartbeat table whatever it runs on, because nothing persisted a
+run before this and a job that stopped firing was indistinguishable from a healthy one. The catalog
+([`jobs/catalog.ts`](../../src/app/admin/jobs/catalog.ts)) is the single source for what jobs exist,
+their cadence, their flag key and whether the app can start them; the store is
+[`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts); `job_runs` and the four `ops_flags` rows are
+deny-all, service-role only.
+
+- **A run opens a row and closes it** with a status (`running`/`ok`/`error`/`skipped`), a duration and
+  free-form `counts`, so the console says what a run DID, not just that it happened.
+- **A paused job logs a SKIPPED run** rather than nothing. Pausing is a decision, so it must never read
+  as a fault or trip the missed-run alert.
+- **The kill switches differ in posture, deliberately.** The purge cron fails CLOSED on an unreadable
+  switch (it hard-deletes bytes, and one skipped daily run costs nothing); the backup reconcile and the
+  DB-backup Action fail OPEN (a missing backup is worse than a missing log line); the backup prune fails
+  CLOSED (it is the only job that deletes from the last-resort copy).
+- ★ **The missed-run signal rides the purge cron**, the only scheduled app-side code: at the end of
+  every run it checks EVERY job for a terminal row within 1.5x its own cadence and raises one Sentry
+  `job_missed_run` warning per silent job. The verdict comes from `jobHealth`, the SAME pure function
+  the page renders, so the alert and the console can never drift apart.
+- **Heartbeat writes degrade, health reads do not.** A job must not die because its bookkeeping failed,
+  so the writes swallow and report (the caller raises the warning, since Sentry never enters
+  `src/lib/db/*`). The reads use `mustQuery` and throw, and the page draws a LOUD banner instead of a
+  calm page of empty cards: a health console that renders "nothing to report" when it can read nothing
+  is the exact failure this surface removes.
+- **A job that cannot reach the database** (the Cloudflare Worker, the GitHub Action) reports through
+  [`/api/internal/job-run`](../../src/app/api/internal/job-run/route.ts), authenticated with the shared
+  internal-jobs bearer (`PRUNE_API_SECRET`, reused rather than minting a second secret). That endpoint
+  can PAUSE a job but never START one, so those two get no Run now button: the app has no way to
+  trigger them, and a button that lies is worse than a sentence that explains.
+  → [durability-backups.md](durability-backups.md).
 
 ## Safety (reports / operator review)
 
@@ -116,6 +149,16 @@ rides `onRequestError`; skip routine user rejections (cap/limits/closed). **Neve
 inside `src/lib/db/*`** (capture at the route/action layer). **Never let Sentry touch the Stripe webhook's
 raw body** (capture the already-parsed error/event). PII: `sendDefaultPii:false` + `scrubEvent` strips
 presigned-URL query strings + emails.
+★ **Guest capability tokens are scrubbed from EVERY channel, not just error events**
+([`telemetry-redaction.ts`](../../src/lib/security/telemetry-redaction.ts)). `/e/<qr_token>` puts the
+authorization in the URL PATH, and `beforeSend` only strips query strings and only sees errors, so the
+token used to leave intact on navigation/fetch breadcrumbs, pageload transactions, the `extra` bag and
+the replay's URL list. Three hooks, wired in all three runtimes: `addEventProcessor` (every event type,
+and it runs BEFORE `beforeSend`, which still gets its turn), `beforeBreadcrumb` (catches it before the
+scope buffers it) and the replay's `beforeAddRecordingEvent`. Redaction matches the token SHAPE (32
+lowercase hex, a dash-stripped uuid) as well as the `/e/` route, so it catches fields nobody thought
+about; real UUIDs keep their dashes and are never touched. Add a new capture site and it is covered
+automatically -- do not hand-scrub at call sites.
 
 ## See also
 

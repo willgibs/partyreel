@@ -91,6 +91,37 @@ describe("abuseRateDecision", () => {
     expect(ABUSE_LIMITS.reel_guest_download.breadthMax).toBeGreaterThan(1);
   });
 
+  it("contact + careers: per-IP only, and tight enough to protect the email quota", () => {
+    // These two have no capability token behind them, so the limiter IS the gate (QA #14). They are
+    // not event-shaped either, so breadth must be disabled: there is nothing to be broad across.
+    expect(ABUSE_LIMITS.contact.breadthMax).toBe(Infinity);
+    expect(ABUSE_LIMITS.careers.breadthMax).toBe(Infinity);
+    expect(abuseRateDecision("contact", 9999, 1).allowed).toBe(true);
+
+    // An honest sender, including a couple of retries on a flaky submit, is never touched.
+    expect(abuseRateDecision("contact", 0, 3).allowed).toBe(true);
+    expect(abuseRateDecision("careers", 0, 2).allowed).toBe(true);
+
+    // The quota-drain shape is refused, with the window quoted back.
+    const contact = abuseRateDecision(
+      "contact",
+      0,
+      ABUSE_LIMITS.contact.scopeMax,
+    );
+    expect(contact.allowed).toBe(false);
+    expect(contact.retryAfterSec).toBe(
+      ABUSE_LIMITS.contact.scopeWindowMin * 60,
+    );
+    expect(
+      abuseRateDecision("careers", 0, ABUSE_LIMITS.careers.scopeMax).allowed,
+    ).toBe(false);
+
+    // Applications are rarer than messages, so the careers ceiling sits below contact's.
+    expect(ABUSE_LIMITS.careers.scopeMax).toBeLessThan(
+      ABUSE_LIMITS.contact.scopeMax,
+    );
+  });
+
   it("backstop takes precedence over breadth when both trip", () => {
     const r = abuseRateDecision(
       "join",

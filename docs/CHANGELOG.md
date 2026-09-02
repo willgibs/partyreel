@@ -11,6 +11,117 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `account-deletion` integrated (`244f57e`)
+
+Merged into `launch-prep` at `244f57e` (2026-09-02). Self-serve account deletion shipped end to end.
+The `/account` danger zone deletes an account immediately and permanently: it cancels any Stripe
+subscription FIRST and refuses the whole request if Stripe will not play, so "deleted but still
+billed" is unreachable; then stamps `profiles.deletion_requested_at`, bins every hosted event through
+the existing `softDeleteEvent`, takes the address off `newsletter_signups`, anonymises the profile
+(email, display name, handle, avatar; never an entitlement column, which stays the webhook's) and bans
+the auth user. The re-verification, a password or a fresh emailed code, is enforced inside the server
+action rather than the dialog, because the attack it exists to stop is a borrowed session.
+`sweepDeletedAccounts` finishes the job from the daily purge cron: legal-hold filter, then R2 objects
+including the reel `.mp4`, then `purge_media_rows`, then the event rows, and the `auth.users` row only
+at a `mustCount`-verified zero events, since that FK chain cascades. A forensic hold on any of the
+account's own events outranks the request: the event is skipped whole and the account waits
+anonymised. `/admin/accounts/[id]` gained the same trigger behind admin + AAL2 and a retyped-email
+guard, plus the in-progress state. `/account` also gained an Email preferences card: the four tier-2
+switches, and a marketing switch whose OFF state keeps both halves of the privacy policy's removal
+promise. Privacy and Terms moved to version 1.1 to describe the control that now exists, including
+that a deletion cancels a plan at that moment rather than at period end, and the two help articles
+followed. Two measured facts came out of the round: a GoTrue ban invalidates an already-issued access
+token (the `getUser()` landmine paying off), and Stripe raises `resource_missing` on an already-
+canceled subscription. A third was a bug: an HTML entity eats the leading whitespace of its own JSX
+text node, which had been rendering "Stay out of view.Hide" on `/privacy` since before this round.
+At integration the migration was applied through the Supabase MCP and its header's rolled-back contract
+check ran against prod and aborted with `ROLLBACK_OK` (neither `anon` nor `authenticated` can update
+the column, the service role can stamp it, the partial index is there; the advisors show no delta),
+`types.ts` was regenerated and the one cron line wired (`9be533d`; eleven sweeps now). Walked on the
+launch-prep alias as the Pro host: the Email preferences card (five switches, Product news off) and
+the Delete account card; the dialog names the two events, the plan cancellation, what survives in other
+hosts' albums and the no-restore rule, offers the emailed code for a Google-origin account and keeps the
+delete button disabled until verified (dismissed, not confirmed). `/privacy` and `/terms` read Version
+1.1 with the self-serve wording and no glued words; both help articles carry their new sections. The
+end-to-end deletion had been proven by the track against the real Supabase, R2 and Stripe TEST with
+disposable hosts, including the hold and the cross-tenant survivals; the operator card is host-gated
+and gets its look on `admin.partyreel.com` at the milestone. Gate on the merged tree: 1577 tests, 244
+static pages.
+
+## 2026-09-02 — Track `ops-hardening` integrated (`b0c2ba3`)
+
+Merged into `launch-prep` at `b0c2ba3` (2026-09-02). Every backend job is now operable from `/admin`
+with zero silent failures. One additive migration adds `job_runs` (deny-all, service-role only) and
+four `ops_flags` kill switches; the purge cron, the backup Worker's reconcile and prune, and the
+nightly DB-backup Action each open a run and close it with a status, a duration and their own counts,
+and a paused job logs a SKIPPED run so pausing never reads as a fault. The two jobs that cannot reach
+the database report through a new `/api/internal/job-run` on a URL DERIVED from `PRUNE_API_URL`, so
+nothing new had to be deployed. Their postures are opposite on purpose: the reconcile and the DB
+backup run anyway when the heartbeat is unreachable, the prune and the purge cron refuse. The purge
+cron, the only scheduled app-side code, carries the platform freshness scan and raises one Sentry
+`job_missed_run` per job with no terminal row inside 1.5x its cadence, using the same pure `jobHealth`
+the console renders. `/admin/jobs` shows all four with their last runs, the switches, and Run now for
+the one job the app can honestly start; an unreadable heartbeat draws a loud banner instead of empty
+cards. The public /contact and /careers forms gained the one limiter in the app that fails CLOSED,
+because they have no capability token behind them and each accepted submission spends the Resend quota
+the breaker alerts also send on. `next.config.ts` drops `X-Powered-By` and adds HSTS, nosniff, a
+referrer policy and a Permissions-Policy (no CSP: that is its own round). And guest capability tokens
+are scrubbed from every telemetry channel, not just error events: an event processor, a breadcrumb
+hook and a replay-frame hook in all three runtimes, matching the token shape as well as the `/e/` route.
+At integration the migration was applied through the Supabase MCP (`job_runs` with RLS on and no
+policy, the default writes revoked, two indexes, four switches seeded on; the advisors unchanged in
+kind, `job_runs` joining the deny-all INFO set), `types.ts` regenerated (`d157d15`), the
+`PRUNE_API_SECRET` repository secret set so the nightly backup reports in, and the heartbeat exercised
+on the launch-prep alias: a manual purge run wrote an `ok` row (1.3 s, the freshness scan reporting
+four jobs checked and none missed), the switch turned off made the next run answer `skipped, paused`
+and write a `skipped` row, and the switch went back on. The headers and both refusals verified on the
+alias by curl. `/admin/jobs` is host-gated and gets its visual walk on `admin.partyreel.com` at the
+milestone; the backup Worker redeploys once prod carries the heartbeat route, so its prune never
+fails closed against a 404. Gate on the merged tree: 1561 tests, 244 static pages.
+
+## 2026-09-02 — Track `demo-seed` integrated (`ec69d7f`)
+
+Merged into `launch-prep` at `ec69d7f` (2026-09-02). `scripts/seed-demo-event.mjs` turns a folder of
+photos and videos into a demo album by driving the product's own write path from Node: keys from
+`mediaObjectKey`, the shared EXIF/GPS stripper before anything reads a size, a ~640px WebP preview
+per item (photo downscale, video poster at ~0.1s) sized by `preview-size.ts` and PUT to the reserved
+`preview` variant, `file_size_bytes` from an R2 HEAD, and the row from `create_media_as_host`. The
+rows come out indistinguishable from a host batch upload (guest_id null, approved) with the ledger
+and cap meters honest. A re-run replaces the set (R2 objects, then `purge_media_rows`, then the fresh
+upload), the event is reused by name so its `qr_token` survives, and the token is printed for
+`NEXT_PUBLIC_DEMO_QR_TOKEN`. Verified live on a throwaway event: 12 marketing images seeded and
+rendered on the launch-prep alias (presigned previews fetching 200), then replaced by a mixed folder
+of 5 whose video carried a poster and the same `duration_seconds` a real upload of that fixture had
+recorded; `backfill-strip-exif.mjs` called every seeded original clean; an Exif Orientation 6 photo
+recorded 600x900 with a rotated 427x640 preview; a refused upload (video on a free host) deleted its
+own objects; `storage_used_bytes` returned to its exact pre-run value after teardown. The throwaway
+events were deleted the way the purge cron does, and "Partyreel Demo" was never touched.
+Gate on the merged tree: 1533 tests, 244 static pages. The prod run against "Partyreel Demo" waits on
+Will's curated folder (the Launch checkpoint item); the script needs ffmpeg and ffprobe on PATH.
+
+## 2026-09-02 — MILESTONE-18: prod = wave 1 (CI, product truth, legal and billing truth)
+
+`main` @ tag `milestone-18` (`225716c`; `launch-prep` `a7f48a3` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1533 tests, 244 static pages); CI green on the integration pushes; prod READY at the merge SHA. The
+three track entries below are the round.
+
+**The walk before the merge, on the launch-prep alias, signed in as the Pro host through the Google
+account chooser:** the event header chip on the open demo event reads Public beside "Accepting
+uploads", with the word Open nowhere on the page; `/dashboard?upgraded=2` shows nothing. The purchase
+toast on `/dashboard?upgraded=1` was observed indirectly: between two looks the flag had been stripped
+from the URL and the toaster had mounted, which only happens once a toast has fired, but the direct
+capture never caught the text because the Chrome MCP's tab runs in the background and Chrome throttles
+its hydration (a 40-second poll saw the page still un-hydrated). Recorded as the tooling's blind spot,
+with Will asked for the ten-second look. Signed out, by curl: the guest 404 says the host may have
+deleted the event; the account-required door's unfurl says the event asks guests for an email; the
+anonymous demo event keeps "No app, no account".
+
+**Prod at `225716c`:** the home, /blog, /help, /pricing, /privacy, /terms, /features and the `Test
+Wedding` door 200, /dashboard 307 to login signed out; the door's unfurl and the 404 copy as above;
+`/privacy` carries the three print hooks; the home's JSON-LD featureList and `llms.txt` carry the ruled
+EXIF clause.
+
 ## 2026-09-02 — Track `legal-billing-truth` integrated (`2f98157`)
 
 Merged into `launch-prep` at `2f98157` (2026-09-02). The launch runbook's billing half stopped lying:

@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart3,
   Film,
   Fingerprint,
@@ -28,6 +29,8 @@ export const NAV: NavItem[] = [
   { href: "/admin/reels", label: "Reels", icon: Film },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { href: "/admin/forensics", label: "Forensics", icon: Fingerprint },
+  // The backend-job console (admin-portal P8): heartbeats, kill switches, missed-run health.
+  { href: "/admin/jobs", label: "Jobs", icon: Activity },
   { href: "/admin/security", label: "Security", icon: ShieldCheck },
 ];
 
