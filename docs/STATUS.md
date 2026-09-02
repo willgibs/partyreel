@@ -396,7 +396,7 @@ manifest fill.
    (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
    one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
    and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
-   **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
+   **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) `legal-billing-truth` integrated at `2f98157`, and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
    Will's sessions or the next window, as slots free. Integration: 1 + 2 together → a
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
    branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
