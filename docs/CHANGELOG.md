@@ -341,6 +341,38 @@ measuring), an unbounded `img.decode()` hangs the evaluate for 45s, chained `set
 intensive throttling and make a two-second script take minutes, a screenshot after a scroll jump can be
 a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
 
+## 2026-09-01 — The help catalog: 59 articles, a tenth shelf, and four honesty tests (`lp/help-catalog`, Agent handoff)
+
+**The help center's library was written fresh from the shipped product** (Will's brief: wipe the 15
+seed articles, research the codebase, answer every question a host or guest arrives with; four rounds of
+clarification settled a lifecycle spine with a guest lane inside, warm-and-confident voice, billing owned
+by help, and every article written by the Agent itself). Three research passes mapped the host app, the
+guest flow, and billing/reel/lifecycle with every UI string verbatim; a second fresh-context pass (a
+persona gap audit + a creative/risk review) added the live-screen article, the guest-side password
+messages, three merges, reading orders, and the quieter chrome for the new components. What shipped:
+**ten categories** (the new `account-and-profile` shelf with its emblem, strip cell, and contact topic;
+"Guest experience" retitled "For guests"), **59 articles** (all 15 pinned slugs kept, bodies rewritten),
+the article vocabulary (`PlanBadge`, `Path`, `Checklist`, thirteen spec inlines over real constants,
+`FreePrice`/`AccountPasswordMinLength` among them), the article page's audience tag + In-short footer
+(action + Applies-to) + guest end-matter on the host rung + "Up next" + print rule, the index's tenth pane
+(with the strip-overflow and row-parity fixes ten needed) + guest fast lane + retuned curated lists, the
+palette's empty-state category chips + "Guest" tail, related-articles requiring a shared keyword and
+skipping prev/next, `/llms.txt` help lines trimmed to title + link, and `HELP_DESCRIPTION_MAX` raised to
+200. **Four tests** hold the catalog honest: every article compiles as MDX, every `<UiLabel>` is a shipped
+app string, every internal link and section anchor resolves, all eleven literal-referenced slugs are
+pinned. Honesty flags the research surfaced and the catalog states plainly: metadata strip skips
+HEIC/AVIF/WebM, Report is event-level, no upload cancel, no captions, no co-hosts, no album sort or cover,
+no in-app account deletion or email change, `Manage billing` lives only in the storage-meter popover, the
+reel is silent with video as stills. Verification narrative + the branch preview: the handoff report.
+`guest-flow.md`'s stale "turning it off is Pro-gated" line fixed in place. **A second full pass before
+Will's review** (two accuracy audits against the source, an editorial read, and an eight-angle code
+review) fixed the settings-card order, the guest `Download all` position (above the gallery), HEIC's
+full-size view (Safari only), the hidden-in-reel behavior, the two refusals in Deleted, three
+mislinked cross-references, the reversed name step, a print rule that hid the article's own header,
+duplicate checklist ids, an empty Related section on ten articles, and the house terms (Deleted,
+photo viewer, panel, chips, grid) across the catalog; the strip labels moved onto the category
+registry and the sheet's row parity is computed from the category count.
+
 ## 2026-09-01 — Round 1, second pass: both lamps pulled, and the light moved to the film strip and the Pro card
 
 `launch-prep` (`bd6892f`, `1faaad4`, `bbb0430`, `42ba717`, `732b2e4`). Gate green at every commit.

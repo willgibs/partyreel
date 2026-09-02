@@ -1,4 +1,4 @@
-import { getAllSlugs, getArticle } from "@/lib/content/help";
+import { getAllSlugs, getArticle, getCategory } from "@/lib/content/help";
 import { marketingOgCard, OG_SIZE } from "@/lib/og/marketing-og-card";
 
 // Per-article share card over the shared marketing OG surface (the blog-slug
@@ -18,8 +18,13 @@ export default async function HelpArticleOgImage({
 }) {
   const { slug } = await params;
   const article = getArticle(slug);
+  // The kicker names the category so a shared card says which shelf it is
+  // from ("Help center · Highlight reel"), not just that it is help.
+  const kicker = article
+    ? `Help center · ${getCategory(article.frontmatter.category).title}`
+    : "The Partyreel help center";
   return marketingOgCard({
     heading: article?.frontmatter.title ?? "Help center",
-    kicker: "The Partyreel help center",
+    kicker,
   });
 }

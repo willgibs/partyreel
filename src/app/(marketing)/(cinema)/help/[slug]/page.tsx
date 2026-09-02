@@ -6,7 +6,10 @@ import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { mdxComponents } from "@/components/marketing/mdx-components";
+import {
+  mdxComponents,
+  PlanBadge,
+} from "@/components/marketing/mdx-components";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { CategoryEmblem } from "@/components/marketing/help/help-emblems";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -20,7 +23,9 @@ import {
   getAllSlugs,
   getArticle,
   getCategory,
+  audienceLabel,
   getRelatedArticles,
+  resolveAudience,
   type HelpArticle,
 } from "@/lib/content/help";
 import { cn, formatEventDate } from "@/lib/utils";
@@ -75,7 +80,6 @@ export default async function HelpArticlePage({
 
   const category = getCategory(article.frontmatter.category);
   const headings = extractHeadings(article.body);
-  const related = getRelatedArticles(article);
 
   // Prev/next within the category's shipping order (getAllArticles is already
   // category+order sorted); under-populated ends just render one card.
@@ -85,6 +89,18 @@ export default async function HelpArticlePage({
   const at = siblings.findIndex((a) => a.slug === slug);
   const prev = at > 0 ? siblings[at - 1] : null;
   const next = at >= 0 && at < siblings.length - 1 ? siblings[at + 1] : null;
+  // Related skips what the pagination cards already show.
+  const related = getRelatedArticles(
+    article,
+    3,
+    [prev?.slug, next?.slug].filter((s): s is string => Boolean(s)),
+  );
+
+  // The audience tag renders only when it says something the category chip
+  // does not (help.ts owns that decision, shared with the palette's tail).
+  const audience = resolveAudience(article);
+  const audienceTag = audienceLabel(article);
+  const plans = article.frontmatter.plans;
 
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
   // container. Frontmatter is already stripped (gray-matter), so no parseFrontmatter.
@@ -134,7 +150,10 @@ export default async function HelpArticlePage({
               </span>
             </span>
             <div className="max-w-2xl min-w-0">
-              <div className="flex items-center justify-between gap-4">
+              <div
+                className="flex items-center justify-between gap-4"
+                data-print-hide
+              >
                 <Link
                   href="/help"
                   className="group inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -153,8 +172,8 @@ export default async function HelpArticlePage({
                   the heading face; meta in Inter small muted with tabular
                   digits (the mono ruling). The badge is the way back to this
                   category's pane on the index — a paper chip on the stage. */}
-              <header className="mt-8">
-                <span className="surface-paper inline-flex">
+              <header className="mt-8" data-print-keep>
+                <span className="surface-paper inline-flex items-center gap-2">
                   <Link href={`/help#${category.slug}`} className="inline-flex">
                     <Badge
                       variant="secondary"
@@ -163,10 +182,21 @@ export default async function HelpArticlePage({
                       {category.title}
                     </Badge>
                   </Link>
+                  {audienceTag && (
+                    <Badge variant="outline">{audienceTag}</Badge>
+                  )}
                 </span>
                 <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                   {article.frontmatter.title}
                 </h1>
+                {/* Paper only: the article's address, so a printed guide can
+                    be found again (print CSS reveals it; hidden on screen). */}
+                <p
+                  className="hidden text-sm text-muted-foreground"
+                  data-print-url
+                >
+                  partyreel.com/help/{slug}
+                </p>
                 <p className="mt-4 text-sm text-muted-foreground tabular-nums">
                   Updated {formatEventDate(article.frontmatter.updated)}{" "}
                   &middot; {readingTime(article.body)}
@@ -184,6 +214,31 @@ export default async function HelpArticlePage({
                   <p className="mt-1.5 leading-7 text-pretty text-foreground">
                     {article.frontmatter.description}
                   </p>
+                  {/* The card's footer: the one action (the door back into the
+                      product) and the "Applies to" plan line. Both are
+                      optional frontmatter; most articles render neither. */}
+                  {(article.frontmatter.action || plans.length > 0) && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t pt-3.5">
+                      {article.frontmatter.action ? (
+                        <LearnMoreLink
+                          href={article.frontmatter.action.href}
+                          className="text-foreground"
+                        >
+                          {article.frontmatter.action.label}
+                        </LearnMoreLink>
+                      ) : (
+                        <span />
+                      )}
+                      {plans.length > 0 && (
+                        <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          Applies to
+                          {plans.map((tier) => (
+                            <PlanBadge key={tier} tier={tier} />
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -198,13 +253,16 @@ export default async function HelpArticlePage({
               <div className="max-w-2xl min-w-0">
                 {/* Mobile contents: the zero-JS chip row (the desktop rail is
                 lg-only; an accordion here was deliberately cut). */}
-                <ChipToc headings={headings} />
+                <div data-print-hide>
+                  <ChipToc headings={headings} />
+                </div>
 
                 {/* prose-headings:font-heading pulls the article's h2/h3 onto the
                 house heading face (Urbanist) so long-form matches the chrome;
                 the prose SCALE itself is untouched (the ruling keeps it). */}
                 <article
                   id={ARTICLE_BODY_ID}
+                  data-print-article
                   className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
                 >
                   {content}
@@ -212,12 +270,22 @@ export default async function HelpArticlePage({
                 {/* One delegated island upgrades every heading's copy-link anchor. */}
                 <HeadingAnchorsDelegate />
 
-                <ArticleFeedback slug={slug} />
+                <div data-print-hide>
+                  <ArticleFeedback
+                    slug={slug}
+                    next={
+                      next
+                        ? { slug: next.slug, title: next.frontmatter.title }
+                        : null
+                    }
+                  />
+                </div>
 
                 {(prev || next) && (
                   <nav
                     aria-label={`More in ${category.title}`}
                     className="mt-10 grid gap-3 sm:grid-cols-2"
+                    data-print-hide
                   >
                     {prev ? (
                       <PaginationCard direction="prev" article={prev} />
@@ -229,7 +297,7 @@ export default async function HelpArticlePage({
                 )}
 
                 {related.length > 0 && (
-                  <section className="mt-12 border-t pt-10">
+                  <section className="mt-12 border-t pt-10" data-print-hide>
                     <h2 className="font-heading text-xl tracking-tight">
                       Related articles
                     </h2>
@@ -249,20 +317,43 @@ export default async function HelpArticlePage({
                 )}
 
                 {/* The ladder points UP too (the de-silo ruling): each category
-                maps to one marketing rung. */}
-                {category.feature && (
-                  <p className="mt-10 text-sm text-muted-foreground">
-                    Want the bigger picture?{" "}
+                maps to one marketing rung. A GUEST article ends on the host
+                rung instead: the reader just used the product as a guest, and
+                "hosting your own" is the growth loop stated once, quietly. */}
+                {audience === "guest" ? (
+                  <p
+                    className="mt-10 text-sm text-muted-foreground"
+                    data-print-hide
+                  >
+                    Hosting your own event?{" "}
                     <LearnMoreLink
-                      href={category.feature.href}
+                      href="/how-it-works"
                       className="text-foreground"
                     >
-                      {category.feature.label}
+                      See how Partyreel works
                     </LearnMoreLink>
                   </p>
+                ) : (
+                  category.feature && (
+                    <p
+                      className="mt-10 text-sm text-muted-foreground"
+                      data-print-hide
+                    >
+                      Want the bigger picture?{" "}
+                      <LearnMoreLink
+                        href={category.feature.href}
+                        className="text-foreground"
+                      >
+                        {category.feature.label}
+                      </LearnMoreLink>
+                    </p>
+                  )
                 )}
 
-                <section className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center">
+                <section
+                  className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center"
+                  data-print-hide
+                >
                   <h2 className="font-heading text-xl tracking-tight">
                     Still need help?
                   </h2>
@@ -281,7 +372,10 @@ export default async function HelpArticlePage({
               room — the ToC never tracked (Will's catch). Stretching restores
               the full-column runway for sticky top-24. */}
               {headings.length >= 2 && (
-                <aside className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch">
+                <aside
+                  className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch"
+                  data-print-hide
+                >
                   <nav aria-label="On this page" className="sticky top-24">
                     <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       On this page

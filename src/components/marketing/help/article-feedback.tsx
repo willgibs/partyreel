@@ -12,7 +12,14 @@ import { Button } from "@/components/ui/button";
  * handoff). The drawn check is the 10-success-check recipe, the contact-form
  * precedent.
  */
-export function ArticleFeedback({ slug }: { slug: string }) {
+export function ArticleFeedback({
+  slug,
+  next,
+}: {
+  slug: string;
+  /** The next article in the category: the "Up next" door after a Yes. */
+  next?: { slug: string; title: string } | null;
+}) {
   const [state, setState] = useState<"idle" | "yes" | "no">("idle");
 
   return (
@@ -51,7 +58,21 @@ export function ArticleFeedback({ slug }: { slug: string }) {
               />
             </svg>
           </span>
-          <p className="text-sm text-muted-foreground">Glad it helped.</p>
+          <p className="text-sm text-muted-foreground">
+            Glad it helped.
+            {next && (
+              <>
+                {" "}
+                Up next:{" "}
+                <Link
+                  href={`/help/${next.slug}`}
+                  className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
+                >
+                  {next.title}
+                </Link>
+              </>
+            )}
+          </p>
         </div>
       )}
       {state === "no" && (

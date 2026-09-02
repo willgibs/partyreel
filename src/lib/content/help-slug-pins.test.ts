@@ -3,31 +3,36 @@ import { describe, expect, it } from "vitest";
 import { getAllSlugs } from "./help";
 
 /**
- * Slugs referenced as PLAIN LITERALS in client components (which must never
- * import this node-only module) get pinned here so a help-article rename can't
- * silently strand them. Current referrers: the nav's Resources featured card
- * (chrome/mega-panel.tsx), the guests page's GoDeeper, the legal privacy
- * draft's data pointer, and /about's convictions ledger.
+ * Slugs referenced as PLAIN LITERALS outside this module (client components
+ * that must never import the node-only loader, marketing constants, the legal
+ * drafts) get pinned here so a help-article rename can't silently strand
+ * them. The help-catalog round (2026-09-01) extended the list to EVERY
+ * literal referrer, not just the six it started with; the referrer of each
+ * slug is named so the sweep is mechanical when one has to move.
  */
+const PINNED: Record<string, string> = {
+  "how-partyreel-works":
+    "chrome/mega-panel.tsx, features/page.tsx, how-it-works/spine.tsx",
+  "customize-and-share-your-qr": "features/qr/page.tsx",
+  "how-guests-join-and-upload": "features/album/page.tsx, constants/contact.ts",
+  "storage-plans-and-limits": "features/album/page.tsx",
+  "profiles-guest-lists-and-following": "features/guests/page.tsx",
+  "your-data-and-deleting-your-account":
+    "(paper)/privacy/page.tsx, (paper)/terms/page.tsx",
+  "moderate-and-curate-your-album": "features/curation/curation-faq.tsx",
+  "how-long-media-is-kept":
+    "curation/reversibility.tsx, privacy/report-review.tsx, constants/about.ts",
+  "who-can-see-your-event": "privacy/report-review.tsx",
+  "download-photos-videos-and-albums":
+    "sharing/sharing-faq.tsx, constants/about.ts",
+  "reporting-and-safety": "constants/about.ts",
+};
+
 describe("help slugs referenced by literal", () => {
-  it("the Resources featured article exists", () => {
-    expect(getAllSlugs()).toContain("how-partyreel-works");
-  });
-
-  it("the R5 seed articles exist (guests GoDeeper + the legal data pointer)", () => {
-    expect(getAllSlugs()).toContain("profiles-guest-lists-and-following");
-    expect(getAllSlugs()).toContain("your-data-and-deleting-your-account");
-  });
-
-  it("/about's convictions ledger destinations exist", () => {
-    // The ledger's whole premise is that every conviction links to where you
-    // check it, so a dead row does not just 404, it falsifies the page.
-    for (const slug of [
-      "how-long-media-is-kept",
-      "reporting-and-safety",
-      "download-photos-videos-and-albums",
-    ]) {
-      expect(getAllSlugs()).toContain(slug);
-    }
-  });
+  const slugs = new Set(getAllSlugs());
+  for (const [slug, referrer] of Object.entries(PINNED)) {
+    it(`${slug} exists (linked from ${referrer})`, () => {
+      expect(slugs.has(slug)).toBe(true);
+    });
+  }
 });

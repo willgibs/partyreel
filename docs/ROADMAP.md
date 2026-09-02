@@ -230,13 +230,25 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   carry either, so the pattern to copy now exists.
 
 - **Elevation-program deferred queue (marketing).** Logged at
-  R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
-  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);
-  **self-serve account DELETION in the app** (supersedes the help
-  article's contact path — swap that article's deletion section AND the privacy policy's "Delete your
-  account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy promises removal
-  on request within 30 days until one exists; `newsletter_signups` has no delete route and
-  `notification_prefs` has no UI); **the EXIF-strip overclaim** in
+  R5/R6 settlement (2026-08-27): the **help catalog** shipped on `lp/help-catalog` (2026-09-01; the brief is
+  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md)) and left these one-liners: the `Checklist`
+  component's persistence/draw is Will's preview call (revert the day-of article to `Steps` if it fails);
+  in-app contextual deep links into help (the settings page → its article, the Studio → the reel guides);
+  research-found product gaps that the catalog documents honestly rather than fixes — the
+  `Video uploads are available on the Pro plan.` wrapper string omits the Event Pass, `?upgraded=1` is set
+  by checkout and never read (no post-purchase confirmation), the settings selector says "Public" while the
+  event header chip says "Open", `restoreEventAction.mediaStillRemoved` is never surfaced, the ops-only
+  "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
+  event-level Report, `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit, the guest
+  404 page says the event "may have ended" (events have no end date) and the open-event unfurl
+  promises "no account" even when the event requires one, and `lifecycle-recovery.md` says a guest's
+  self-deleted upload is excluded from the host's Deleted list while `listRecentlyDeletedMedia`
+  applies no such filter (only `restore_media` refuses it; a live check settles which is true);
+  **self-serve account DELETION in the app** (supersedes the help article's contact path — swap the
+  "Deleting your account" section of `your-data-and-deleting-your-account` AND the privacy policy's
+  "Delete your account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy
+  promises removal on request within 30 days until one exists; `newsletter_signups` has no delete route
+  and `notification_prefs` has no UI); **the EXIF-strip overclaim** in
   [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx) +
   `content/help/who-can-see-your-event.mdx` (HEIC/HEIF/AVIF/WebM pass through untouched; the privacy
   policy says so since 2026-09-01, the marketing + help copy still state the strip unconditionally);

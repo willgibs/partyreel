@@ -33,20 +33,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/help" },
 };
 
-// One-word strip labels: the hero's emblem row is an instrument, and
-// instruments read at a glance (full titles live on the panes below).
-const STRIP_LABELS: Record<string, string> = {
-  "getting-started": "Start",
-  "qr-and-invites": "QR",
-  "guest-experience": "Guests",
-  "event-album": "Album",
-  "sharing-and-downloads": "Sharing",
-  "highlight-reel": "Reel",
-  "plans-and-billing": "Plans",
-  "privacy-and-safety": "Privacy",
-  troubleshooting: "Fixes",
-};
-
 // THE INDEX OF EVERYTHING (R6, ruled): the help center as the product's printed
 // index — hairline sheet, numbered categories and rows, DOM-art emblems, the
 // palette as the primary interface. Reveal choreography is deliberately hero-
@@ -56,6 +42,8 @@ const STRIP_LABELS: Record<string, string> = {
 // here is registry-driven from help.ts (curated slugs are test-pinned).
 export default function HelpIndexPage() {
   const groups = getArticlesByCategory();
+  // Panes other than the always-wide troubleshooting closer.
+  const oddRegular = (groups.length - 1) % 2 === 1;
   const startHere = getStartHereArticles();
   const facts = getHelpFacts();
 
@@ -118,6 +106,21 @@ export default function HelpIndexPage() {
                 </Link>
               ))}
             </div>
+            {/* The guest fast lane: most people who land here from a phone just
+                scanned a QR code and are not hosts. One muted line, one link,
+                in the quick-link register (never a new component). */}
+            <p
+              className="mkt-line text-sm text-muted-foreground"
+              style={{ "--i": 5 } as CSSProperties}
+            >
+              Just scanned a QR code?{" "}
+              <LearnMoreLink
+                href="#guest-experience"
+                className="text-foreground"
+              >
+                Start with the guest guides
+              </LearnMoreLink>
+            </p>
 
             {/* THE EMBLEM STRIP: the nine categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
@@ -128,22 +131,29 @@ export default function HelpIndexPage() {
             <nav
               aria-label="Browse by category"
               className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
-              style={{ "--i": 5 } as CSSProperties}
+              style={{ "--i": 6 } as CSSProperties}
             >
-              <div className="overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-9">
+              <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
+                {/* Ten cells since the account category (2026-09-01). The 84px
+                    floor is the PHONE snap width only: on the grid it must
+                    release (sm:min-w-0), or 10 x 84 overflows the 768px nav
+                    and the desktop strip grows a scrollbar. */}
+                <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-10">
                   {groups.map(({ category }, i) => (
                     <a
                       key={category.slug}
                       href={`#${category.slug}`}
                       className={cn(
-                        "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60",
+                        "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60 sm:min-w-0",
                         i > 0 && "border-l",
                       )}
                     >
-                      <CategoryEmblem slug={category.slug} className="scale-90" />
+                      <CategoryEmblem
+                        slug={category.slug}
+                        className="scale-90"
+                      />
                       <span className="text-[11px] leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                        {STRIP_LABELS[category.slug] ?? category.title}
+                        {category.stripLabel}
                       </span>
                     </a>
                   ))}
@@ -158,191 +168,203 @@ export default function HelpIndexPage() {
           forced light inside the cinema page — the ratified chapter grammar
           (pricing precedent). The strip above straddles into its top edge. */}
       <PaperChapter>
-      {/* ── Start here: the guided path, media-led (the elevation layer: real
+        {/* ── Start here: the guided path, media-led (the elevation layer: real
              photo compositions + the float shadow; the sheet below stays
              hairline-flat on purpose — featured vs index). The success-green
              numerals stay the page's accent moment. Top padding clears the
              straddling strip. ────────────────────────────────────────────── */}
-      <section className="pt-24 pb-14 sm:pt-28 sm:pb-16">
-        <Container>
-          <Reveal className="flex flex-col gap-1.5">
-            <h2
-              data-mkt-reveal
-              className="font-heading text-2xl tracking-tight sm:text-3xl"
-            >
-              Start here
-            </h2>
-            <p
-              data-mkt-reveal
-              style={{ "--i": 1 } as CSSProperties}
-              className="text-sm text-muted-foreground"
-            >
-              Three guides that answer most first questions.
-            </p>
-          </Reveal>
-          <Reveal className="mt-6 grid gap-4 sm:grid-cols-3">
-            {startHere.map((article, index) => (
-              <Link
-                key={article.slug}
+        <section className="pt-24 pb-14 sm:pt-28 sm:pb-16">
+          <Container>
+            <Reveal className="flex flex-col gap-1.5">
+              <h2
                 data-mkt-reveal
-                style={{ "--i": index } as CSSProperties}
-                href={`/help/${article.slug}`}
-                className="group mkt-learn flex flex-col overflow-hidden rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 transition-[transform,border-color] duration-200 ease-emphasis hover:-translate-y-0.5 hover:border-foreground/25 active:scale-[0.99] motion-reduce:transition-none"
+                className="font-heading text-2xl tracking-tight sm:text-3xl"
               >
-                <span className="relative flex h-32 items-center justify-center border-b bg-muted/40">
-                  {index === 0 && <MiniAlbumScene />}
-                  {index === 1 && <CreateScene />}
-                  {index === 2 && <ReelScene />}
-                </span>
-                <span className="flex flex-1 flex-col gap-2.5 p-6">
-                  <span className="font-mono text-xs tracking-wider text-success">
-                    {String(index + 1).padStart(2, "0")}
+                Start here
+              </h2>
+              <p
+                data-mkt-reveal
+                style={{ "--i": 1 } as CSSProperties}
+                className="text-sm text-muted-foreground"
+              >
+                Three guides that answer most first questions.
+              </p>
+            </Reveal>
+            <Reveal className="mt-6 grid gap-4 sm:grid-cols-3">
+              {startHere.map((article, index) => (
+                <Link
+                  key={article.slug}
+                  data-mkt-reveal
+                  style={{ "--i": index } as CSSProperties}
+                  href={`/help/${article.slug}`}
+                  className="group mkt-learn flex flex-col overflow-hidden rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 transition-[transform,border-color] duration-200 ease-emphasis hover:-translate-y-0.5 hover:border-foreground/25 active:scale-[0.99] motion-reduce:transition-none"
+                >
+                  <span className="relative flex h-32 items-center justify-center border-b bg-muted/40">
+                    {index === 0 && <MiniAlbumScene />}
+                    {index === 1 && <CreateScene />}
+                    {index === 2 && <ReelScene />}
                   </span>
-                  <h3 className="font-heading text-lg">
-                    {article.frontmatter.title}
-                  </h3>
-                  <span className="flex-1 text-sm text-pretty text-muted-foreground">
-                    {article.frontmatter.description}
+                  <span className="flex flex-1 flex-col gap-2.5 p-6">
+                    <span className="font-mono text-xs tracking-wider text-success">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="font-heading text-lg">
+                      {article.frontmatter.title}
+                    </h3>
+                    <span className="flex-1 text-sm text-pretty text-muted-foreground">
+                      {article.frontmatter.description}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                      Read the guide
+                      <LearnChevron />
+                    </span>
                   </span>
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                    Read the guide
-                    <LearnChevron />
-                  </span>
-                </span>
-              </Link>
-            ))}
-          </Reveal>
-        </Container>
-      </section>
+                </Link>
+              ))}
+            </Reveal>
+          </Container>
+        </section>
 
-      {/* ── The numbers: THE FILMSTRIP — hard limits printed on a strip of
+        {/* ── The numbers: THE FILMSTRIP — hard limits printed on a strip of
              film (perforated edges, framed cells, digits popping in), every
              value from the real constants, every frame a link. ────────────── */}
-      <section className="border-y bg-muted/30">
-        <Container className="py-14 sm:py-16">
-          <Reveal className="flex flex-col gap-1.5">
-            <h2
-              data-mkt-reveal
-              className="font-heading text-2xl tracking-tight sm:text-3xl"
-            >
-              The numbers
-            </h2>
-            <p
-              data-mkt-reveal
-              style={{ "--i": 1 } as CSSProperties}
-              className="text-sm text-muted-foreground"
-            >
-              The limits at a glance, rendered from the product itself.
-            </p>
-          </Reveal>
-          <div className="mt-6">
-            <HelpFactsBand facts={facts} />
-          </div>
-        </Container>
-      </section>
+        <section className="border-y bg-muted/30">
+          <Container className="py-14 sm:py-16">
+            <Reveal className="flex flex-col gap-1.5">
+              <h2
+                data-mkt-reveal
+                className="font-heading text-2xl tracking-tight sm:text-3xl"
+              >
+                The numbers
+              </h2>
+              <p
+                data-mkt-reveal
+                style={{ "--i": 1 } as CSSProperties}
+                className="text-sm text-muted-foreground"
+              >
+                The limits at a glance, rendered from the product itself.
+              </p>
+            </Reveal>
+            <div className="mt-6">
+              <HelpFactsBand facts={facts} />
+            </div>
+          </Container>
+        </section>
 
-      {/* ── The index sheet: every guide, in order (the printed-index layer:
+        {/* ── The index sheet: every guide, in order (the printed-index layer:
              hairline grid, ghost folio numerals at display scale, emblems at
              folio size; deliberately flat next to the elevated trio). ─────── */}
-      <section className="py-16 sm:py-20">
-        <Container>
-          <Reveal className="flex flex-col gap-1.5">
-            <h2
-              data-mkt-reveal
-              className="font-heading text-2xl tracking-tight sm:text-3xl"
-            >
-              Every guide, in order
-            </h2>
-            <p
-              data-mkt-reveal
-              style={{ "--i": 1 } as CSSProperties}
-              className="text-sm text-muted-foreground"
-            >
-              The whole product, indexed. Scan the sheet, or search from
-              anywhere with the palette.
-            </p>
-          </Reveal>
+        <section className="py-16 sm:py-20">
+          <Container>
+            <Reveal className="flex flex-col gap-1.5">
+              <h2
+                data-mkt-reveal
+                className="font-heading text-2xl tracking-tight sm:text-3xl"
+              >
+                Every guide, in order
+              </h2>
+              <p
+                data-mkt-reveal
+                style={{ "--i": 1 } as CSSProperties}
+                className="text-sm text-muted-foreground"
+              >
+                The whole product, indexed. Scan the sheet, or search from
+                anywhere with the palette.
+              </p>
+            </Reveal>
 
-          <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border bg-border ring-1 ring-foreground/5 lg:grid-cols-2">
-            {groups.map(({ category, articles }, groupIndex) => {
-              const wide = category.slug === "troubleshooting";
-              return (
-                <div
-                  key={category.slug}
-                  id={category.slug}
-                  className={cn(
-                    "group relative scroll-mt-[calc(var(--mkt-header-h,4rem)+1.5rem)] bg-card p-7 sm:p-8",
-                    wide && "lg:col-span-2",
-                  )}
-                >
-                  {/* The ghost folio: the category number at print-index scale
-                      (mono per the ruling; decorative ink at 5%). */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute top-3 right-6 font-mono text-6xl leading-none tracking-tight text-foreground/[0.05] tabular-nums select-none sm:text-7xl"
+            <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border bg-border ring-1 ring-foreground/5 lg:grid-cols-2">
+              {groups.map(({ category, articles }, groupIndex) => {
+                // Troubleshooting always closes the sheet wide. The guest lane
+                // opens wide only when the remaining count is odd, which is
+                // what keeps the two-column rows even at ANY category count
+                // (nine left an orphan cell once ten arrived). Any pane holding
+                // 7+ guides splits its list in two so the sheet stays scannable.
+                const wide =
+                  category.slug === "troubleshooting" ||
+                  (category.slug === "guest-experience" && oddRegular);
+                const columns = wide || articles.length >= 7;
+                return (
+                  <div
+                    key={category.slug}
+                    id={category.slug}
+                    className={cn(
+                      "group relative scroll-mt-[calc(var(--mkt-header-h,4rem)+1.5rem)] bg-card p-7 sm:p-8",
+                      wide && "lg:col-span-2",
+                    )}
                   >
-                    {String(groupIndex + 1).padStart(2, "0")}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <CategoryEmblem slug={category.slug} size="lg" />
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                        {articles.length}{" "}
-                        {articles.length === 1 ? "guide" : "guides"}
-                      </p>
-                      <h3 className="mt-0.5 font-heading text-xl sm:text-2xl">
-                        {category.title}
-                      </h3>
+                    {/* The ghost folio: the category number at print-index scale
+                      (mono per the ruling; decorative ink at 5%). */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute top-3 right-6 font-mono text-6xl leading-none tracking-tight text-foreground/[0.05] tabular-nums select-none sm:text-7xl"
+                    >
+                      {String(groupIndex + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <CategoryEmblem slug={category.slug} size="lg" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                          {articles.length}{" "}
+                          {articles.length === 1 ? "guide" : "guides"}
+                        </p>
+                        <h3 className="mt-0.5 font-heading text-xl sm:text-2xl">
+                          {category.title}
+                        </h3>
+                      </div>
                     </div>
-                  </div>
-                  <p className="mt-3 text-sm text-pretty text-muted-foreground">
-                    {category.blurb}
-                  </p>
-
-                  <ul className={cn("mt-4", wide && "sm:columns-2 sm:gap-10")}>
-                    {articles.map((article, articleIndex) => (
-                      <li
-                        key={article.slug}
-                        className={cn(
-                          "border-t break-inside-avoid",
-                          articleIndex === 0 && "border-t-0",
-                        )}
-                      >
-                        <Link
-                          href={`/help/${article.slug}`}
-                          prefetch={false}
-                          className="group/row flex items-center gap-3 py-2.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
-                        >
-                          <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground/50 tabular-nums transition-colors duration-150 group-hover/row:text-success">
-                            {String(articleIndex + 1).padStart(2, "0")}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            {article.frontmatter.title}
-                          </span>
-                          <ArrowRight className="size-3.5 shrink-0 -translate-x-1 text-foreground opacity-0 transition-[opacity,transform] duration-150 group-hover/row:translate-x-0 group-hover/row:opacity-100 motion-reduce:transition-none" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {category.feature && (
-                    <p className="mt-4 border-t pt-3.5 text-xs text-muted-foreground">
-                      On the site:{" "}
-                      <LearnMoreLink
-                        href={category.feature.href}
-                        className="text-xs text-foreground"
-                      >
-                        {category.feature.label}
-                      </LearnMoreLink>
+                    <p className="mt-3 text-sm text-pretty text-muted-foreground">
+                      {category.blurb}
                     </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Container>
-      </section>
 
+                    <ul
+                      className={cn(
+                        "mt-4",
+                        columns && "sm:columns-2 sm:gap-10",
+                      )}
+                    >
+                      {articles.map((article, articleIndex) => (
+                        <li
+                          key={article.slug}
+                          className={cn(
+                            "break-inside-avoid border-t",
+                            articleIndex === 0 && "border-t-0",
+                          )}
+                        >
+                          <Link
+                            href={`/help/${article.slug}`}
+                            prefetch={false}
+                            className="group/row flex items-center gap-3 py-2.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                          >
+                            <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground/50 tabular-nums transition-colors duration-150 group-hover/row:text-success">
+                              {String(articleIndex + 1).padStart(2, "0")}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              {article.frontmatter.title}
+                            </span>
+                            <ArrowRight className="size-3.5 shrink-0 -translate-x-1 text-foreground opacity-0 transition-[opacity,transform] duration-150 group-hover/row:translate-x-0 group-hover/row:opacity-100 motion-reduce:transition-none" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {category.feature && (
+                      <p className="mt-4 border-t pt-3.5 text-xs text-muted-foreground">
+                        On the site:{" "}
+                        <LearnMoreLink
+                          href={category.feature.href}
+                          className="text-xs text-foreground"
+                        >
+                          {category.feature.label}
+                        </LearnMoreLink>
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Container>
+        </section>
       </PaperChapter>
 
       {/* ── The multi-path close: back in the cinema room (the dark bookend;

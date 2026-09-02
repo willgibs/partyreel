@@ -1,0 +1,49 @@
+---
+title: An upload won't finish
+description: "A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time."
+category: troubleshooting
+order: 2
+updated: "2026-09-01"
+keywords:
+  - upload stuck
+  - upload failed
+  - tap to retry
+  - connection dropped
+  - too large
+  - unsupported file
+  - venue wifi
+  - session expired
+---
+
+Uploads go one file at a time, and each one either lands with a green check or turns dim with <UiLabel>Tap to retry</UiLabel>. The message on the toast tells you which of these it is.
+
+## It's stuck or dimmed, no reason given
+
+- <UiLabel>Your connection dropped. Check your signal and try again.</UiLabel> Venue wifi and crowded rooms do this. Tap the tile to retry; one retry usually finishes it. If wifi is hopeless, switch to mobile data.
+- <UiLabel>Something went wrong with that upload. Please try again.</UiLabel> A transient hiccup; retry.
+- **A very large video** uploads in pieces and needs to finish within a couple of hours of starting. Keep the browser open and in front until the check appears; a phone that locks for an hour mid-upload may need to start that file again.
+
+Retrying one file never affects the others, and nothing you picked is lost: it's all still on your phone.
+
+## It was refused
+
+- <UiLabel>That file type isn't supported.</UiLabel> Photos need to be JPEG, PNG, WebP, HEIC, HEIF, or AVIF; videos MP4, MOV, or WebM. See [what you can upload](/help/what-you-can-upload).
+- <UiLabel>This file is larger than the 10 GB maximum.</UiLabel> The universal ceiling. Trim the video.
+- <UiLabel>This file is larger than this event allows.</UiLabel> The host set a smaller per-file cap; the message names it. A shorter clip or a smaller export.
+- <UiLabel>This event accepts photos only.</UiLabel> No video on this event.
+- <UiLabel>This event isn't accepting uploads right now.</UiLabel> The host closed uploads. You can still browse.
+- <UiLabel>This album is full right now. The host needs to free up space.</UiLabel> Nothing you can fix from your side; tell the host.
+- <UiLabel>Your upload session has expired. Refresh and rejoin.</UiLabel> Reload the page and try again; if the event asks for an email or a password, you'll pass that gate once more.
+- <UiLabel>Too many joins from this network right now. Please try again in a bit.</UiLabel> Rare, and it clears on its own in a few minutes.
+
+The full list of messages, including the password gate, is in [messages guests might see](/help/messages-guests-might-see).
+
+## For hosts
+
+Your own uploads follow the same rules, with two differences: a per-file cap you set doesn't apply to you, and a full plan reads <UiLabel>Storage is full for your plan. Free up space or upgrade.</UiLabel> See [what happens when storage fills up](/help/what-happens-when-storage-fills-up). For a photographer's batch, a laptop on wifi is far more reliable than a phone.
+
+<Callout type="tip" title="It landed, but it isn't in the album">
+
+That's a different problem, usually Review. See [a photo is missing from the album](/help/a-photo-is-missing-from-the-album).
+
+</Callout>

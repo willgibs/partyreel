@@ -266,20 +266,44 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +
   `extractHeadings` + `readingTime` + `escapeXml`); [`help.ts`](../../src/lib/content/help.ts) +
   [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help (rebuilt R6, 2026-08-26 — "the index
-  of everything"): a NINE-category lifecycle taxonomy (each category carries a `feature` link up to its
-  marketing rung; a new category must land WITH its first article — the test requires ≥1 per category) +
-  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
+  of everything"; the CATALOG written fresh in the help-catalog round, 2026-09-01): a TEN-category
+  lifecycle taxonomy (set up → invite → guests → album → share → reel → pay → account → trust → fix; each
+  category carries a `feature` link up to its marketing rung; a new category must land WITH its first
+  article, its emblem, its strip label + grid column, and its `CATEGORY_TOPIC` row on /contact — the test
+  requires ≥1 per category and the contact map is exhaustive by type) holding **59 answer-first
+  articles**, every one checked against the shipped app. The guest lane is titled "For guests" (slug
+  `guest-experience`) and `account-and-profile` is the tenth shelf (sign-in, name + photo, the handle,
+  following, notifications). Frontmatter carries an optional `audience` (`host|guest|both`, default derived
+  from the category), `plans` ("Applies to" badges in the In-short card's footer) and `action` (the one
+  door under the short answer); `description` is capped at 200 (`HELP_DESCRIPTION_MAX`, raised from 160 so
+  the lead keeps its second sentence). A ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
   ([`help-palette.tsx`](../../src/components/marketing/help/help-palette.tsx); pure fs-free scorer in
   [`help-search-rank.ts`](../../src/lib/content/help-search-rank.ts) — heading hits deep-link to sections
-  only when they're the sole match reason, plus a static "Pages" tail onward to the site) + the index
+  only when they're the sole match reason, plus a static "Pages" tail onward to the site; the empty state
+  offers the ten category chips and guest-voiced results carry a "Guest" tail) + the index
   sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx),
-  a live-constants "numbers" strip) + answer-first articles (the frontmatter `description` renders as the
-  "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated copy-anchor island; prev/next;
-  an honest feedback row handing misses to `/contact?about=<slug>`, which the static contact page prefills
-  from an allowlist). First-party MDX components
+  a live-constants "numbers" strip, a one-line guest fast lane under the quick links; ★ at ten categories
+  the strip cells need `sm:min-w-0` or the desktop strip scrolls, and the sheet keeps its row parity by
+  making the guest pane wide too; panes with 7+ guides split into two columns) + answer-first articles (the frontmatter
+  `description` renders as the "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated
+  copy-anchor island; prev/next; keyword-scored related — since the catalog round a candidate needs a shared
+  keyword and the prev/next siblings are excluded, or Related duplicated pagination; an audience tag only when it says
+  something the category chip does not; guest articles end on /how-it-works, the growth loop stated once; a
+  Yes in the feedback row offers "Up next"; an honest feedback row handing misses to `/contact?about=<slug>`,
+  which the static contact page prefills from an allowlist; `@media print` on the article page via
+  `data-print-*` hooks, the day-of checklist being the guide a host prints). First-party MDX components
   ([`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx) — `Callout`, `AlbumShowcase`,
-  `Steps`/`Step`, `Kbd`, `UiLabel`, inline spec components reading the `limits.ts`/`tiers.ts` single sources
-  so numbers can't drift; NOTHING client-side may import it, it reaches `node:fs`) + a `prose-help` theme.
+  `Steps`/`Step`, `Kbd`, `UiLabel`, `PlanBadge` (an outline pill, distinct from UiLabel's filled chip),
+  `Path` (where-to-find-it chips), `Checklist`/`Check` (ticks persisted per article in localStorage, the
+  drawn check; [`help/checklist.tsx`](../../src/components/marketing/help/checklist.tsx)), and a spec-inline
+  family reading the `limits.ts`/`tiers.ts`/`lifecycle/*` single sources so numbers can't drift; NOTHING
+  client-side may import it, it reaches `node:fs`) + a `prose-help` theme. ★ Four tests hold the catalog
+  honest: every article COMPILES as MDX (`help-mdx-compile.test.ts`; `blockJS` strips `{placeholder}`
+  braces, so UI strings are quoted in rendered form), every `<UiLabel>` is a shipped app string
+  (`help-ui-labels.test.ts`, whitespace-, tag- and apostrophe-normalized), every internal link and
+  `#section` anchor resolves, and all eleven literal-referenced slugs are pinned. `/llms.txt` lists the
+  articles as title + link only (the annotated form blew its budget at 59); `/llms-full.txt` keeps the
+  descriptions.
   Help lives in the **(cinema) group** since the polish arc (dark overlay nav + dark stages; the reading
   bodies ride `PaperChapter`, the search card / emblem strip / In-short card are `surface-paper` islands,
   the strip and the article's In-short card STRADDLE the cinema→paper cut via negative margin). Shared help
@@ -288,9 +312,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   flex utilities on the same element — center constrained children with `mx-auto`, never a parent
   `justify-center`. ★ The R6 MONO RULING (site-wide type doctrine, full text in
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
-  captions, labels, and CTA notes are Inter. The content agent's brief lives at
-  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
-  writing rules; the content-policy tests scan `.md` too so the brief obeys itself).
+  captions, labels, and CTA notes are Inter. The authoring brief lives at
+  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (the map, the component vocabulary, the
+  three-class numbers doctrine, the writing rules; it names the fences by pointer only, because the
+  content-policy tests scan `.md` too and the brief must obey itself).
 - **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting
   Room). Moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading
   half rides `PaperChapter`. ★ **DISTINCTNESS FROM /help is the standing constraint** now that both

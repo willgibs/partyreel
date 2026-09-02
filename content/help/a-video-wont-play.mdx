@@ -1,0 +1,44 @@
+---
+title: A video won't play
+description: "Videos are stored as uploaded, with no processing step, so playback depends on the viewer's browser. Tap to play (nothing autoplays); if a format won't play, save it and open it in a video app."
+category: troubleshooting
+order: 6
+updated: "2026-09-01"
+keywords:
+  - video won't play
+  - video not playing
+  - black screen
+  - HEVC
+  - MOV
+  - codec
+  - video processing
+---
+
+There's no "processing" state for video on Partyreel: a video is in the album the moment it uploads, as the original file. That's why it plays instantly on most phones, and why occasionally a particular file won't play in a particular browser.
+
+## First, tap it
+
+Videos never autoplay. In the gallery a video shows a still with a play badge; open it and tap the play control. If you see a black frame with controls, it's loaded and waiting for the tap.
+
+## It's the format
+
+Because nothing is converted, the video plays only if the browser can decode it. The common case: iPhones record by default in a format called HEVC (H.265), saved as a MOV file. Safari on any Apple device plays it; Chrome and Firefox on Windows, Android, and older Macs often can't, and show a stuck or black player. The same video works fine when downloaded and opened in a video app, so:
+
+- **Viewers**: tap <UiLabel>Save</UiLabel> in the photo viewer and open the file in your phone's video app, or in a player like VLC on a computer.
+- **Uploaders**: the iPhone's camera settings offer "Most Compatible", which records H.264 and plays everywhere. It's a good default for anything you'll share.
+
+Hosts downloading the album get the original files, which open in any video app regardless of the browser. The accepted formats are in [what you can upload](/help/what-you-can-upload).
+
+## It's the connection
+
+A video streams as it plays, so a weak connection stutters rather than fails. Wait a moment, or download it.
+
+## There's no video at all
+
+Some events accept photos only, and a video you tried to add would have been refused with a message saying so. If a guest says they uploaded a video and it's missing, that's usually why; otherwise see [a photo is missing from the album](/help/a-photo-is-missing-from-the-album).
+
+<Callout type="info" title="In the reel">
+
+The highlight reel shows a video as a still frame rather than playing it, on every plan. See [the highlight reel](/help/the-highlight-reel).
+
+</Callout>

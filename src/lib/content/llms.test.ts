@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { getPostListItems } from "@/lib/content/blog";
-import { LLMS_BLOG_LIMIT } from "@/lib/content/llms";
+import { LLMS_BLOG_LIMIT, LLMS_HELP_PER_SHELF } from "@/lib/content/llms";
 import { getAllArticles } from "@/lib/content/help";
 
 import { buildLlmsFullTxt, buildLlmsTxt } from "./llms";
@@ -91,6 +91,23 @@ describe("buildLlmsTxt", () => {
 
   it("stays lean", () => {
     expect(txt.length).toBeLessThan(16_000);
+  });
+
+  it("lists at most LLMS_HELP_PER_SHELF help articles per shelf (the catalog outgrew the lean budget too)", () => {
+    const articles = getAllArticles();
+    const listed = articles.filter((a) => txt.includes(`/help/${a.slug})`));
+    const perShelf = new Map<string, number>();
+    for (const a of listed) {
+      perShelf.set(
+        a.frontmatter.category,
+        (perShelf.get(a.frontmatter.category) ?? 0) + 1,
+      );
+    }
+    const shelves = new Set(articles.map((a) => a.frontmatter.category));
+    expect(perShelf.size).toBe(shelves.size);
+    for (const n of perShelf.values())
+      expect(n).toBeLessThanOrEqual(LLMS_HELP_PER_SHELF);
+    expect(txt).toContain(`The full help center (${articles.length} articles`);
   });
 
   it("lists only the newest posts (the archive outgrew the lean budget)", () => {

@@ -67,10 +67,13 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
     value: "billing",
     label: "Plans & billing",
     icon: CreditCard,
+    // The help center owns the operational billing answers (upgrades,
+    // storage, receipts); /pricing#faq stays the sales-side FAQ (Will's
+    // ruling, the help-catalog round 2026-09-01).
     hint: {
-      text: "Most plan and billing questions are answered in the pricing FAQ.",
-      href: "/pricing#faq",
-      linkLabel: "Open the pricing FAQ",
+      text: "The plans & billing guides cover upgrades, storage, and receipts.",
+      href: "/help#plans-and-billing",
+      linkLabel: "Open the billing guides",
     },
   },
   {
