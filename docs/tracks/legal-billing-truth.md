@@ -159,9 +159,13 @@ pinned by test meanwhile); `pnpm test` for the parity pin and `legal.test.ts` on
   visible (they are `[data-mkt-reveal]` slots, which print blank without the neutralizer), the
   address line shown, and `a[href="/terms"]::after` computed to `" (partyreel.com/terms)"`. What a
   human still has to judge: margins and where the breaks actually land across ~15 and ~22 sections.
-- **Look at first:** `/privacy` printed; the home privacy ledger and `/features` privacy card (the
-  EXIF clause); `curl -s <preview>/ | grep -o 'Location data is stripped[^"]*'` for the JSON-LD;
-  `docs/PRICING.md` "Stripe setup" (the catalog table is the launch runbook).
+- **Verified on the branch preview** (deploy READY at the synced head): the home privacy ledger, the
+  `/features` privacy card, the blog post's three sites, `/privacy` carrying the three print hooks,
+  and the `SoftwareApplication` JSON-LD parsed out of the home page, whose `featureList` now reads
+  "Location data is stripped in the browser before a photo ever uploads, for the common formats."
+- **Look at first:** `/privacy` printed to PDF (the human step); the home privacy ledger and the
+  `/features` privacy card; `docs/PRICING.md` "Stripe setup", whose catalog table is the runbook the
+  cutover will actually be read from.
 - ADR-0023's line "must permit switching between the three Pro prices" predates the annual round and
   now reads as three; left alone as point-in-time rationale (the current truth is in billing-caps.md).
 
