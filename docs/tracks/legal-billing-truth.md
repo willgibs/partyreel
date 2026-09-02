@@ -86,8 +86,11 @@ pinned by test meanwhile); `pnpm test` for the parity pin and `legal.test.ts` on
   this commit, so this is the first push that builds one).
 - **Cut + sync.** Cut at `efe8118`. By boot time `origin/launch-prep` had moved two docs-only commits
   ahead (`aa5eaf6`, `cd8da95`), so the branch fast-forwarded onto `cd8da95` before its first commit,
-  which is why `git merge-base --is-ancestor origin/launch-prep HEAD` holds. Re-checked at handoff:
-  `git rev-list --count HEAD..origin/launch-prep` = 0, so no merge was needed.
+  which is why `git merge-base --is-ancestor origin/launch-prep HEAD` holds. It moved again minutes
+  after the handoff push (the `product-truth` integration, 10 commits), so the branch was merged
+  (never rebased) onto **`82a6711`** and the full gate re-run on the merged tree. Zero conflicts and
+  zero overlap: their 19 files touch the dashboard, guest and upload surfaces, `tiers.ts` and three
+  docs, none of them this lane's.
 - **Gates on the handoff tree** (each run to its own exit code, never piped): `pnpm typecheck` ok ·
   `pnpm lint` ok · `pnpm test` ok (1533 tests, 178 files) · `pnpm build` ok (244 static pages).
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`), 12 files:
