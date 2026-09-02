@@ -403,9 +403,8 @@ manifest fill.
    wave 1 is complete; `demo-seed`
    was spawned with them and integrated at `ec69d7f` (the script is in; the prod run waits on Will's
    curated folder). Integration: 1 + 2 together → a
-   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
-   branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
-   run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
+   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` stubbed and spawned 2026-09-02 (its prerequisites landed);
+   `marketing-followons` waits on the marketing branch; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
    (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
    round in the Launch checkpoint's human order.
 8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
