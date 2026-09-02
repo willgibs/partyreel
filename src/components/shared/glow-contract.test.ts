@@ -486,3 +486,82 @@ describe("the turbulence field is a document singleton", () => {
     expect(code).not.toMatch(/\buse[A-Z]\w*\(/);
   });
 });
+
+/**
+ * THE BEAM SIBLING'S ONE ENGINE-LEVEL INVARIANT.
+ *
+ * SPILL and BEAM are one doctrine with two mechanisms (design-system.md
+ * "Light"), and the beam has exactly one knob that can go wrong the way an
+ * engine defect goes wrong: silently, on somebody else's machine. `theme`
+ * decides the whole opacity/saturation preset the effect is drawn at, and
+ * `theme="auto"` resolves it from `prefers-color-scheme` -- the visitor's OS,
+ * NOT next-themes and not the chapter the beam is sitting in. Our marketing
+ * chapters force their own ground, so on a forced-dark chapter viewed from a
+ * light-mode OS `auto` picks the light preset and the beam is drawn for a
+ * ground it is not on. Nothing throws, and nobody developing on a dark OS ever
+ * sees it.
+ *
+ * The vendored default happens to be 'dark' today, which is right for the one
+ * production surface and wrong as a thing to rely on: it is upstream's choice,
+ * a version bump can move it, and DO-NOT-RESTYLE means we would not be the ones
+ * to notice. So every call site states its ground.
+ *
+ * Lives here rather than in border-beam-vendor.test.ts because that file guards
+ * the vendored PACKAGE (its licence, its deviations, its palette) and this is a
+ * rule about our call sites; it is also outside this track's claim.
+ */
+describe("every beam states the ground it is drawn for", () => {
+  /** The opening tag at `at`, brace-aware so a `{cond ? a : b}` prop is not cut short. */
+  const openingTag = (src: string, at: number): string | null => {
+    let depth = 0;
+    for (let i = at; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+      else if (ch === ">" && depth === 0) return src.slice(at, i + 1);
+    }
+    return null;
+  };
+
+  // Every call site, production and lab. The vendored package declares the prop
+  // and must not be scanned as a caller; test files are excluded for the same
+  // reason as the singleton pins above (this one quotes `<BorderBeam` itself).
+  const callSites = walk(join(ROOT, "src"))
+    .filter(
+      (f) =>
+        f.endsWith(".tsx") &&
+        !/\.test\.tsx?$/.test(f) &&
+        !f.includes("/vendor/border-beam/"),
+    )
+    .map((f) => ({
+      rel: f.slice(ROOT.length + 1),
+      code: stripComments(readFileSync(f, "utf8")),
+    }))
+    .filter((f) => f.code.includes("<BorderBeam"));
+
+  it("found the call sites at all", () => {
+    // A pin that scans nothing passes forever. The engine's own guards were
+    // caught doing exactly that twice.
+    expect(callSites.map((f) => f.rel).sort()).toEqual([
+      "src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx",
+      "src/app/(dev)/design/sandbox/glow-moments-variants.tsx",
+      "src/components/marketing/sections/home/pro-card-beam.tsx",
+    ]);
+  });
+
+  it("passes theme explicitly, and never 'auto'", () => {
+    for (const { rel, code } of callSites) {
+      let at = code.indexOf("<BorderBeam");
+      expect(at, rel).toBeGreaterThan(-1);
+      while (at !== -1) {
+        const tag = openingTag(code, at);
+        expect(tag, `${rel}: unterminated <BorderBeam tag`).not.toBeNull();
+        expect(tag!, `${rel}: a beam with no theme`).toMatch(/\stheme=/);
+        expect(tag!, `${rel}: a beam on the OS theme`).not.toMatch(
+          /theme=\{?\s*["']auto["']/,
+        );
+        at = code.indexOf("<BorderBeam", at + 1);
+      }
+    }
+  });
+});
