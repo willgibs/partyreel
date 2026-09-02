@@ -36,6 +36,9 @@ name: ci
 on:
   push:
     branches:
+      # main is included because milestone merges land on it by a direct push,
+      # never through a pull request (the track's own deferred note, 2026-09-02).
+      - main
       - launch-prep
       - "lp/**"
   pull_request:
