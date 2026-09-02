@@ -1,0 +1,109 @@
+/*
+  THE THEME (the library round, 2026-09-02): the `dark` variant and the `@theme inline` block,
+  in their own file so that TWO Tailwind entries can share them without sharing a scan.
+  globals.css imports this (the production entry, which excludes the design lab from its
+  scan); src/app/(dev)/design/design.css references it (the lab's own entry, scanning only the
+  lab). A `@reference "globals.css"` from the lab would drag globals' `@source not` along and
+  compile nothing, which is why the split exists (measured with PostCSS before landing).
+  Everything below is unchanged from where it sat in globals.css; the token VALUES still live
+  in globals.css's `@layer base` blocks (`:root`, `.dark`, `.surface-paper`), this file only maps
+  them into Tailwind's theme namespace. css-source-policy.test.ts pins the arrangement.
+*/
+@custom-variant dark (&:is(.dark *):not(.surface-paper *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
+     -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy
+     `tracking-tight` usages are no-ops; re-tuning them is its own deferred pass. */
+  --tracking-tight: 0em;
+
+  /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
+     eng). emphasis = enter/exit ease-out; in-out-strong = on-screen movement;
+     drawer = sheets/drawers (the iOS curve). UI stays under ~300ms; exits run
+     faster than enters. */
+  --ease-emphasis: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Brand = ink (aliased to primary in :root). Kept as a token so any future
+     accent decision is a two-line change, never a sweep. */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+
+  /* State colors — feedback always gets color; brand never does. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-like: var(--like);
+  --color-save: var(--save);
+  --color-save-foreground: var(--save-foreground);
+  --color-reel: var(--reel);
+
+  /* Media-first gallery surface — always dark so photos/videos are the hero. */
+  --color-gallery: var(--gallery);
+  --color-gallery-foreground: var(--gallery-foreground);
+  --color-gallery-muted: var(--gallery-muted);
+  --color-gallery-border: var(--gallery-border);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* The rounding system (see header). The legacy sm..4xl scale stays mapped
+     (everything in it is now "sharp family"); interactive + floating layers
+     use the dedicated tokens. */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-action: var(--radius-action);
+  --radius-action-lg: var(--radius-action-lg);
+  --radius-action-sm: var(--radius-action-sm);
+  --radius-tile: var(--radius-tile);
+  --radius-float: var(--radius-float);
+
+  /* The elevation contract: the one light-mode shadow family (floating layer
+     only); resolves to nothing in dark (lighter-is-closer instead). */
+  --shadow-float: var(--shadow-float);
+
+  /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
+     (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction
+     motion, and a strong curve stutters at the loop point. */
+  --animate-shimmer: shimmer 1.8s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+}

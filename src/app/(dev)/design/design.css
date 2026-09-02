@@ -1,3 +1,17 @@
+/* THE LAB'S OWN TAILWIND ENTRY (the library round, 2026-09-02). globals.css excludes
+   src/app/(dev)/design from the production scan (@source not), so the utilities the lab pages
+   and the sandbox boards use are compiled HERE, scanning only this directory, against the same
+   theme and variants: theme.css is REFERENCED (loaded, never emitted), never globals.css, which
+   would drag its @source not along and compile nothing. A utility a production component uses is
+   already in the production sheet; a utility only a specimen uses lands here, and this sheet
+   loads only under /design. (tw-animate-css and shadcn/tailwind.css are not referenced: their
+   utilities reach the lab through the production components that use them; reference them here
+   if a lab-only use ever appears.) */
+@import "tailwindcss/theme.css" theme(reference);
+@reference "../../theme.css";
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "./";
+
 /*
   THE LAB SHEET: the mono mock tokens, the type layer, the shared motion.
 
