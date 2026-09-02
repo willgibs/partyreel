@@ -1,7 +1,7 @@
 ---
 track: product-truth
 status: open
-cut: "ae2e7cd"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
+cut: "efe8118"
 preview: false
 owns:
   - src/lib/db/mutations/host-media.ts
