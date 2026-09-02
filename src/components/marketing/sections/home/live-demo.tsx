@@ -111,8 +111,12 @@ export function LiveDemo() {
          two quieter sections, arrives centred with the heading a tier up and
          real air above, and reads as the chapter's conclusion. Standard rise,
          not the cut: the cut is how a chapter OPENS. */
+      /* SYMMETRIC AIR (Will's second pass, 2026-09-01: "more bottom padding for
+         breathing room"). The album no longer overhangs into this section, so
+         the chapter ends here on its own: equal air below the stage reads as
+         the exhale, and the cut plus the album's own top pad add the rest. */
       scale="lg"
-      className="pt-28 sm:pt-36"
+      className="py-28 sm:py-36"
     >
       <div ref={ref} className="mx-auto mt-10 max-w-4xl">
         {/* The stage: the core loop, acted out. data-paused freezes the QR

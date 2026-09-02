@@ -40,7 +40,12 @@ export type EventType = {
   /** Singular form for sentence slots ("Every wedding ends with a reel."). */
   singularLabel: string;
   icon: LucideIcon;
-  /** Short line for the home grid + hub cards. */
+  /**
+   * Short line for the home grid + hub cards. Keep every teaser 57-64
+   * characters: the home cards run a ~236px measure at lg, and the four must
+   * wrap to the same line count so their titles share a baseline (Will,
+   * 2026-09-01: the Conferences title sat a full line higher than the rest).
+   */
   teaser: string;
   headline: string;
   subhead: string;
@@ -206,8 +211,7 @@ export const EVENT_TYPES: EventType[] = [
     navLabel: "Conferences",
     singularLabel: "conference",
     icon: Briefcase,
-    teaser:
-      "Talks, booths, and hallway moments from hundreds of attendees in one feed.",
+    teaser: "Talks, booths, and hallway moments, gathered in one feed.",
     headline: "Your whole event, captured by everyone there",
     subhead:
       "Conferences, summits, trade shows, company offsites: turn hundreds of attendees into your content team with a single QR code.",
@@ -273,8 +277,7 @@ export const EVENT_TYPES: EventType[] = [
     navLabel: "Trips",
     singularLabel: "trip",
     icon: Plane,
-    teaser:
-      "Pool everyone's photos from the whole trip instead of chasing them later.",
+    teaser: "Everyone's photos from the whole trip, without the chasing.",
     headline: "One shared album for the whole trip",
     subhead:
       "Group vacations, reunions, retreats, bachelor and bachelorette trips: pool everyone's photos instead of chasing them across five group chats when you get home.",

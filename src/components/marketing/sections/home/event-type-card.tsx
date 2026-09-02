@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { cn } from "@/lib/utils";
+
 /**
  * AN EVENT-TYPE CARD, MEDIA-FORWARD: the photograph IS the card.
  *
@@ -46,15 +48,19 @@ export function EventTypeCard({
     <div data-mkt-reveal className="h-full" style={style}>
       <Link
         href={href}
-        className={
-          "group relative block aspect-4/5 overflow-hidden rounded-xl bg-muted " +
+        className={cn(
+          "group relative block aspect-4/5 overflow-hidden rounded-xl bg-muted",
           // The focus ring is WHITE and offset inward, not the token ring:
           // `outline-ring` lands ~1.4:1 on a dark photograph (the footer round's
           // token-redeclaration trap, in its keyboard form).
-          "focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white" +
+          "focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
           // The house press idiom: explicit transition properties, never `all`.
-          "transition-[transform] duration-200 ease-emphasis active:scale-[0.99] motion-reduce:transition-none"
-        }
+          // ★ cn(), never string concatenation: the first cut joined these with
+          // `+` and no separating space, so the rendered class was
+          // `outline-whitetransition-[transform]` and both the focus ring and
+          // the press transition were silently dead (caught 2026-09-01).
+          "transition-[transform] duration-200 ease-emphasis active:scale-[0.99] motion-reduce:transition-none",
+        )}
       >
         <Image
           src={src}
