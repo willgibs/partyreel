@@ -32,7 +32,7 @@
 import "server-only";
 
 import { softDeleteEvent } from "@/lib/db/mutations/events";
-import { mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import {
   ANONYMISED_PROFILE_PATCH,
   isDeletionSchemaMissing,
@@ -113,7 +113,8 @@ export async function requestAccountDeletion({
       return {
         ok: false,
         code: "not_provisioned",
-        message: "Account deletion isn't available yet. Please try again later.",
+        message:
+          "Account deletion isn't available yet. Please try again later.",
       };
     }
     throw error;
@@ -222,7 +223,11 @@ async function binHostedEvents(
 
   const supabase = await createClient();
   const live = await mustQuery(
-    supabase.from("events").select("id").eq("host_id", userId).is("deleted_at", null),
+    supabase
+      .from("events")
+      .select("id")
+      .eq("host_id", userId)
+      .is("deleted_at", null),
     "binHostedEvents: self",
   );
   let binned = 0;
@@ -239,9 +244,12 @@ async function binHostedEvents(
  * deletion over it would be the worse trade.
  */
 async function banAuthUser(userId: string): Promise<void> {
-  const { error } = await createAdminClient().auth.admin.updateUserById(userId, {
-    ban_duration: DELETION_BAN_DURATION,
-  });
+  const { error } = await createAdminClient().auth.admin.updateUserById(
+    userId,
+    {
+      ban_duration: DELETION_BAN_DURATION,
+    },
+  );
   if (error) {
     captureError("account", error, {
       step: "account_deletion_ban",
@@ -250,13 +258,13 @@ async function banAuthUser(userId: string): Promise<void> {
   }
 }
 
-// ── The newsletter removal ──────────────────────────────────────────────────
+// ── The /account reads ──────────────────────────────────────────────────────
 //
-// `newsletter_signups` is a DENY-ALL table (operator/service-role only), so both
-// the read and the write below go through the admin client after the caller has
-// been authorized. The read lives here rather than in db/queries because this
-// track owns exactly one db module; keeping the pair together beats splitting a
-// two-function feature across a file the track does not own.
+// This is the account surface's ONLY db module, so the few small reads its forms
+// need live here beside the writes they pair with rather than in a queries file.
+// `newsletter_signups` is a DENY-ALL table (operator/service-role only), so its
+// read and its write both go through the admin client, after getUser() has
+// established WHOSE address we are allowed to look at.
 
 /** Delete every signup row for an address. Returns how many rows went. */
 async function deleteNewsletterSignups(
@@ -301,6 +309,28 @@ export async function isOnNewsletterList(): Promise<boolean> {
     "isOnNewsletterList: signups",
   );
   return (rows ?? []).length > 0;
+}
+
+/**
+ * How many live events the signed-in host would lose. Drives the delete card's
+ * consequence line, so the dialog names a real number rather than a vague "your
+ * events". RLS-scoped: the count can only ever be the caller's own.
+ */
+export async function countMyLiveEvents(): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  return mustCount(
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("host_id", user.id)
+      .is("deleted_at", null),
+    "countMyLiveEvents",
+  );
 }
 
 /**

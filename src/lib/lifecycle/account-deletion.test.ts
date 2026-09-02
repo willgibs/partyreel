@@ -161,7 +161,9 @@ describe("the request path's order", () => {
   const abort = requestSrc.indexOf('subscription.status === "failed"');
   const stamp = requestSrc.indexOf("deletion_requested_at: new Date()");
   const bin = requestSrc.indexOf("binHostedEvents(");
-  const newsletter = requestSrc.indexOf("deleteNewsletterSignups(profile.email)");
+  const newsletter = requestSrc.indexOf(
+    "deleteNewsletterSignups(profile.email)",
+  );
   const anonymise = requestSrc.indexOf(".update(ANONYMISED_PROFILE_PATCH)");
   const ban = requestSrc.indexOf("banAuthUser(");
 
