@@ -10,11 +10,9 @@ import {
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import {
   FEATURE_PAGES,
@@ -90,7 +88,12 @@ export default function FeaturesPage() {
           ~300ms budget instead of drifting to 540ms across seven items. The
           doors land on the hard cut: this is the page's one visual beat, and
           a cut is how a set of photographs arrives in the cinema. */}
-      <SectionShell>
+      <SectionShell
+        /* TEMPO: a section that ends on a POINTER is a bridge, not a full stop
+           (the film strip's rule), so it gives back part of its bottom padding
+           before the hard cut to the band. */
+        className="pb-12 sm:pb-14"
+      >
         <Reveal className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FeatureDoor
             slug="reel"
@@ -112,51 +115,27 @@ export default function FeaturesPage() {
             />
           ))}
         </Reveal>
+        {/* THE BRIDGE (Will, 2026-09-02, after two cuts of a "How it works"
+            section): the two-sided walkthrough and the help center are one
+            trailing link row under the doors, not a section. A second centred
+            lockup between the directory and the CtaBand read as the band's
+            twin however small it was made; a pointer row is a different
+            shape, so the band is the only heading in the close. The concept
+            it used to carry ("two sides, one album") lives in the link's own
+            words. */}
+        <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+          <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
+            <LearnMoreLink href="/how-it-works">
+              The full walkthrough, both sides
+            </LearnMoreLink>
+          </div>
+          <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>
+            <LearnMoreLink href="/help/how-partyreel-works">
+              How Partyreel works
+            </LearnMoreLink>
+          </div>
+        </Reveal>
       </SectionShell>
-
-      {/* The two-sided pointer: the one concept the directory can't carry in
-          tiles (the product has a guest side and a host side), routing to the
-          walkthrough that interleaves them, plus the hub's one GoDeeper rung
-          into the help center. THE QUIET BEAT of the chapter (Will,
-          2026-09-02): it used to be a full SectionShell with a body-tier
-          heading and an outline button, which sat back to back with the
-          CtaBand as two near-identical designs. It is now a minimal follow-up
-          at the 24/30 prose tier with two chevron links, so the doors above
-          keep the weight and the band below gets its pop back. */}
-      <section className="pt-8 pb-20 sm:pt-10 sm:pb-24">
-        <Container>
-          <Reveal className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
-            <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-              How it works
-            </Eyebrow>
-            <h2
-              data-mkt-reveal
-              className="font-heading text-2xl text-balance sm:text-3xl"
-              style={{ "--i": 1 } as CSSProperties}
-            >
-              Two sides, one album.
-            </h2>
-            <p
-              data-mkt-reveal
-              className="text-pretty text-muted-foreground"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              Guests scan and shoot. You curate and keep. The walkthrough shows
-              both sides, start to finish.
-            </p>
-            <div
-              data-mkt-reveal
-              className="mt-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2"
-              style={{ "--i": 3 } as CSSProperties}
-            >
-              <LearnMoreLink href="/how-it-works">See how it works</LearnMoreLink>
-              <LearnMoreLink href="/help/how-partyreel-works">
-                How Partyreel works
-              </LearnMoreLink>
-            </div>
-          </Reveal>
-        </Container>
-      </section>
 
       <CtaBand
         className="border-t"

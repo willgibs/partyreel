@@ -49,8 +49,9 @@ page does, on shared pieces instead of six hand-rolled copies.**
   to `max-w-3xl` again (the family's width; unclamped, the hub's title ran the full Container in one
   line), so every swept hero breaks evenly; the hub's actions are a Start free / How it works pair
   with the demo line centred beneath (the events hub takes the same balance); and the "How it
-  works" beat drops from a body-tier SectionShell to a 24/30 pointer with two chevron links, so it
-  no longer twins the CtaBand two screens in a row.
+  works" section is GONE as a section: after two cuts (a body-tier SectionShell, then a 24/30
+  lockup) still read as the CtaBand's twin, the walkthrough and help pointers became one link row
+  trailing the doors (the film strip's bridge idiom), so the band is the only heading in the close.
 - **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
   a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
   each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.
