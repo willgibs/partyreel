@@ -52,6 +52,14 @@ import { createClient } from "@/lib/supabase/server";
  * anonymised and the events are binned, so signing back in would land someone
  * on a wrecked account they could still create events with. There is no unban
  * path in the product, by ruling.
+ *
+ * ★ THE BAN IS IMMEDIATE, NOT JUST FOR THE NEXT SIGN-IN, and that is the
+ * `getUser()` landmine paying off. Measured against live GoTrue (2026-09-02): a
+ * new sign-in is refused ("User is banned"), a refresh is refused, AND an
+ * ALREADY-ISSUED access token stops validating, because getUser() re-validates
+ * with the auth server on every call. So there is no window in which a stolen
+ * or cached session keeps working. Any code that "optimised" an authz check
+ * into getSession() would reopen exactly that window (auth-accounts.md).
  */
 const DELETION_BAN_DURATION = "876000h";
 

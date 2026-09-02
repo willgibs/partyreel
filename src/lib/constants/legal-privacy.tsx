@@ -27,6 +27,18 @@ import {
  *
  * Section ids are the anchor contract (the rail, deep links, help articles).
  * The eight R5 ids survive; the new ones sit around them.
+ *
+ * ★ AN HTML ENTITY EATS THE LEADING SPACE OF ITS OWN JSX TEXT NODE. Measured
+ * against the production build 2026-09-02: in `<strong>Label.</strong> Word ...
+ * event&rsquo;s ...`, the text node renders as "Label.Word", with the space
+ * after the closing tag gone, and ONLY when that same text node also contains an
+ * entity. Three items on this page had shipped that way. Prettier will not save
+ * you: it collapses a `{" "}` there back to a literal space, because by the spec
+ * the space IS significant. THE FIX IS THE LITERAL CHARACTER: write ’ and “ ”
+ * rather than &rsquo; and &ldquo;/&rdquo; in a text node whose leading space
+ * matters (react/no-unescaped-entities does not object to the curly forms). A
+ * bolded lead-in followed by prose is the shape that hits it, so check any new
+ * one in the built HTML, not in the editor.
  */
 const PRIVACY_EMAIL = (
   <LegalLink href={`mailto:${LEGAL_PARTY.privacyEmail}`}>
@@ -514,8 +526,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         </>,
         <>
           <strong className="text-foreground">Stay out of view.</strong> Hide
-          any event from your public profile, and stay off an event&rsquo;s
-          guest list by not uploading to it while signed in.
+          any event from your public profile, and stay off an event’s guest list
+          by not uploading to it while signed in.
         </>,
         // Self-serve since 2026-09-02: the /account danger zone (request path in
         // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).
@@ -527,8 +539,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           any paid plan is cancelled, the events you host are deleted with
           everything in them, and your name, email address, profile photo and
           handle are removed from your profile straight away. The remaining
-          records are erased within days. Your uploads to other people&rsquo;s
-          events stay in their albums unless you delete them first. Deletion is
+          records are erased within days. Your uploads to other people’s events
+          stay in their albums unless you delete them first. Deletion is
           permanent, and an account cannot be restored. If you cannot sign in,
           write to us from the {CONTACT_PAGE} and we will do it for you.
           Details:{" "}
@@ -556,8 +568,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         </>,
         <>
           <strong className="text-foreground">Google.</strong> You can remove
-          Partyreel from your Google account&rsquo;s connected apps at any time;
-          your Partyreel account continues with email sign-in.
+          Partyreel from your Google account’s connected apps at any time; your
+          Partyreel account continues with email sign-in.
         </>,
       ),
     ],

@@ -1,7 +1,7 @@
 # Auth & host accounts
 
 > ROLE: how hosts (and operators) authenticate + the account/profile model.
-> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity / `allow_anonymous_uploads` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
+> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock, account deletion. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity / `allow_anonymous_uploads` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -21,6 +21,12 @@ one `profiles` row per signup.
 - Account page: `/account` — password set/change, [`display-name-form.tsx`](../../src/components/app/display-name-form.tsx),
   [`account-avatar-form.tsx`](../../src/components/app/account-avatar-form.tsx) + [`avatar-cropper.tsx`](../../src/components/app/avatar-cropper.tsx).
 - Password length single-source: `MIN_PASSWORD_LENGTH` in [`validation/auth.ts`](../../src/lib/validation/auth.ts).
+- Deletion: the request in [`db/mutations/account.ts`](../../src/lib/db/mutations/account.ts), the hard delete in
+  [`lifecycle/account-deletion.ts`](../../src/lib/lifecycle/account-deletion.ts) (`purgeAccount` /
+  `sweepDeletedAccounts`, called once from the purge cron), the plan cancellation in
+  [`stripe/account-cancel.ts`](../../src/lib/stripe/account-cancel.ts); surfaces are the `/account`
+  [delete card](../../src/components/app/account-delete-card.tsx) and the operator trigger on
+  [`/admin/accounts/[id]`](../../src/app/admin/accounts).
 
 ## Invariants (don't break)
 
@@ -37,6 +43,25 @@ one `profiles` row per signup.
   webhook only. → [database-security.md](database-security.md).
 - The password hash never leaves the DB: `has_password` / `verify_current_password` are authenticated-only
   SECURITY DEFINER RPCs that return booleans.
+- **Account deletion is IMMEDIATE, has no undo, and cancels an active plan** (Will, 2026-09-02). The request
+  cancels the subscription FIRST and refuses everything if Stripe will not play (nothing is destroyed, so
+  "deleted but still billed" is unreachable), then stamps `profiles.deletion_requested_at`, bins every hosted
+  event, removes the address from `newsletter_signups`, anonymises the profile (email / display_name / slug /
+  avatar, never an entitlement column) and bans the auth user. ★ **The auth.users row is deleted only by the
+  sweep, and only at ZERO remaining events** — that FK chain is `auth.users → profiles → events → media`, all
+  CASCADE, so deleting it early destroys the `original_key`/`preview_key` rows the R2 delete still needs; the
+  zero check is a `mustCount`, because a failed count reads as a confident zero. A **forensic hold** on any of
+  the account's own events outranks the request (ADR-0020): that event is skipped whole, the account never
+  reaches zero, and it waits anonymised until the hold lifts. `guests.user_id` / `media.guest_id` are
+  `ON DELETE SET NULL`, so the account's uploads to OTHER hosts' events survive, unlinked — that is the FK, not
+  app code, and it is the promise `/privacy` makes.
+- **`deletion_requested_at` is service-role-write-only by construction** (migration `20260902130000`): the
+  `profiles` write grant is a table-level revoke plus a column allowlist, so a new column is fail-closed and
+  there is no client un-request path. Never add it to that allowlist.
+- **The re-verification is enforced in the server action, not the dialog.** `deleteMyAccountAction` re-checks
+  the password (via `verify_current_password`) or a fresh email OTP itself, because a server action is a public
+  endpoint and the attack re-verification exists to stop is a borrowed session. The address a code is sent to
+  and verified against is read from the caller's own row, never from the request.
 
 ## Gotchas (why it's like this — don't revert)
 
@@ -79,6 +104,16 @@ one `profiles` row per signup.
   ADMIN-client write); the `authenticated` UPDATE grant on the column was revoked so a public name can't be set
   unfiltered. A null/invalid name gates `/dashboard` (+ `/dashboard/new`) and the guest upload to the name step;
   `/account` is exempt so it can be set there. The "Hosted by" byline + uploader attribution render it.
+
+- **A GoTrue ban invalidates a LIVE token, not just the next sign-in** (measured 2026-09-02). Setting
+  `ban_duration` via `auth.admin.updateUserById` makes sign-in fail ("User is banned"), refresh fail, AND an
+  already-issued access token stop validating — because `getUser()` re-validates with the auth server on every
+  call. So a deleted-but-not-yet-swept account has NO window in which a cached session keeps working. This is
+  the concrete payoff of the `getUser()`-not-`getSession()` landmine above: an "optimisation" to `getSession()`
+  anywhere in the authz path would reopen exactly that window.
+- **Cancelling an already-canceled Stripe subscription RAISES `resource_missing`** (measured 2026-09-02); it
+  does not return the object. `cancelSubscriptionForDeletion` maps that code to success, which is what keeps a
+  retried deletion from aborting on a plan that is already in the state we wanted.
 
 ## See also
 
