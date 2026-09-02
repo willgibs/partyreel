@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Boxes,
+  Clapperboard,
   FlaskConical,
   LayoutGrid,
   Palette,
@@ -59,7 +60,7 @@ export default async function DesignIndexPage({
 
       {/* Jump straight into the live reference (the stars of the tool). */}
       <h2 className="mt-10 text-sm font-semibold">Jump in</h2>
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <JumpCard
           href={link("/design/foundations")}
           icon={<Palette className="size-4" />}
@@ -71,6 +72,12 @@ export default async function DesignIndexPage({
           icon={<Boxes className="size-4" />}
           title="Components"
           blurb="The live UI primitives."
+        />
+        <JumpCard
+          href={link("/design/marketing")}
+          icon={<Clapperboard className="size-4" />}
+          title="Marketing"
+          blurb="The site's system, live."
         />
         <JumpCard
           href={link("/design/record")}

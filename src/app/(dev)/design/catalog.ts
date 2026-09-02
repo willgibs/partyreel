@@ -88,6 +88,12 @@ export const ZONES: LabZone[] = [
             status: "reference",
             note: "The real product components (event card, meter, share) from sample props.",
           },
+          {
+            href: "/design/marketing",
+            label: "Marketing",
+            status: "reference",
+            note: "The marketing system and the shared section atoms, on the real cinema skin.",
+          },
         ],
       },
       {

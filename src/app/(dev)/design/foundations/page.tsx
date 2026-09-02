@@ -1,3 +1,4 @@
+import { Glow } from "@/components/shared/glow";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { requireDesignKey } from "@/lib/design-gate/server";
@@ -87,7 +88,9 @@ export default async function FoundationsPage({
         <div className="grid gap-3 sm:grid-cols-2">
           <Spec label="Identity" hint="font-heading · Urbanist 700">
             <div className="space-y-2">
-              <p className="font-heading text-3xl">Maya &amp; Jay&rsquo;s Wedding</p>
+              <p className="font-heading text-3xl">
+                Maya &amp; Jay&rsquo;s Wedding
+              </p>
               <p className="font-heading text-xl">Create an event</p>
               <p className="font-heading text-base">Your photos land here</p>
             </div>
@@ -112,10 +115,26 @@ export default async function FoundationsPage({
         blurb="Sharp surfaces, round actions: the radius contrast itself signals what is pressable. One root knob (--radius) scales the surface family."
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <RadiusBox name="Surface" hint="--radius · 2px" className="rounded-lg" />
-          <RadiusBox name="Tile" hint="--radius-tile · 3px" className="rounded-[var(--radius-tile)]" />
-          <RadiusBox name="Float" hint="--radius-float · 8px" className="rounded-[var(--radius-float)]" />
-          <RadiusBox name="Action" hint="--radius-action · 16px" className="rounded-[var(--radius-action)]" />
+          <RadiusBox
+            name="Surface"
+            hint="--radius · 2px"
+            className="rounded-lg"
+          />
+          <RadiusBox
+            name="Tile"
+            hint="--radius-tile · 3px"
+            className="rounded-[var(--radius-tile)]"
+          />
+          <RadiusBox
+            name="Float"
+            hint="--radius-float · 8px"
+            className="rounded-[var(--radius-float)]"
+          />
+          <RadiusBox
+            name="Action"
+            hint="--radius-action · 16px"
+            className="rounded-[var(--radius-action)]"
+          />
         </div>
       </RefSection>
 
@@ -169,7 +188,9 @@ export default async function FoundationsPage({
         <div className="grid gap-3 sm:grid-cols-2">
           <Spec label="Floating layer" hint="shadow-float">
             <div className="flex h-24 items-center justify-center rounded-[var(--radius-float)] bg-popover shadow-float">
-              <span className="text-sm text-muted-foreground">Menu / tooltip / toast</span>
+              <span className="text-sm text-muted-foreground">
+                Menu / tooltip / toast
+              </span>
             </div>
           </Spec>
           <Spec label="Surface steps" hint="bg / card / popover">
@@ -183,6 +204,61 @@ export default async function FoundationsPage({
               </div>
             </div>
           </Spec>
+        </div>
+      </RefSection>
+
+      <RefSection
+        title="Light"
+        blurb="SPILL is light from a lit thing; BEAM is the live subject lit at its edge. Five lamps, our palette; the engine (Glow) reads them from these tokens, and the turbulence filter it warps through mounts once, in the root layout."
+      >
+        <div className="space-y-5">
+          <SwatchGroup
+            caption="The lamp set (--lamp-1..5; the literals JavaScript needs live in components/dev/lamp-set.ts)"
+            tokens={[
+              ["Lamp 1", "--lamp-1"],
+              ["Lamp 2", "--lamp-2"],
+              ["Lamp 3", "--lamp-3"],
+              ["Lamp 4", "--lamp-4"],
+              ["Lamp 5", "--lamp-5"],
+            ]}
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Spec
+              label="A seam on the ink slab"
+              hint="Glow shape=seam · the footer's light"
+            >
+              <div className="relative h-40 overflow-hidden rounded-lg bg-gallery">
+                <Glow shape="seam" />
+              </div>
+            </Spec>
+            <Spec
+              label="The engine's knobs"
+              hint="--glw-* · defaults in globals.css's engine block"
+            >
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground">
+                {[
+                  "--glw-base",
+                  "--glw-strength",
+                  "--glw-dur",
+                  "--glw-blur",
+                  "--glw-scale",
+                  "--glw-h",
+                  "--glw-core",
+                  "--glw-core-blur",
+                  "--glw-from-x",
+                  "--glw-from-y",
+                  "--glw-reach",
+                  "--glw-radius",
+                ].map((name) => (
+                  <span key={name}>{name}</span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Tune through the vars prop, never a className: the engine sizes
+                itself to its positioned parent.
+              </p>
+            </Spec>
+          </div>
         </div>
       </RefSection>
     </main>
@@ -221,7 +297,9 @@ function RadiusBox({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <div className={`mx-auto size-16 border-2 border-foreground ${className}`} />
+      <div
+        className={`mx-auto size-16 border-2 border-foreground ${className}`}
+      />
       <p className="mt-3 text-center text-[13px] font-medium">{name}</p>
       <p className="text-center font-mono text-[10px] text-muted-foreground">
         {hint}

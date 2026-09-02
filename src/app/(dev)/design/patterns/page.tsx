@@ -2,6 +2,10 @@ import Link from "next/link";
 import { CircleAlert, Compass, ImageUp } from "lucide-react";
 
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
+import { Container } from "@/components/shared/container";
+import { Kbd } from "@/components/shared/kbd";
+import { LegalConsentLine } from "@/components/shared/legal-consent-line";
+import { PageHeading } from "@/components/shared/page-heading";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Logo } from "@/components/shared/logo";
 import { CornerPlayBadge } from "@/components/shared/masonry";
@@ -11,7 +15,11 @@ import { Button } from "@/components/ui/button";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { requireDesignKey } from "@/lib/design-gate/server";
-import { SetNameStepDemo } from "../reference/interactive-demos";
+import {
+  ActionTooltipDemo,
+  FloatingAddDemo,
+  SetNameStepDemo,
+} from "../reference/interactive-demos";
 import { RefHeader, RefSection, Row, Spec } from "../reference/reference-ui";
 
 // THE LIVE PATTERNS REFERENCE. The composed shared/* pieces, rendered from the
@@ -128,6 +136,46 @@ export default async function PatternsPage({
               </span>
             </Row>
           </Spec>
+        </div>
+      </RefSection>
+
+      <RefSection
+        title="App chrome atoms"
+        blurb="The small shared pieces every app surface is built from."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Spec
+            label="PageHeading"
+            hint="shared/page-heading · the app's one h1 source"
+          >
+            <PageHeading>Dashboard</PageHeading>
+          </Spec>
+          <Spec label="Kbd" hint="shared/kbd">
+            <Row className="text-sm text-muted-foreground">
+              <Kbd>&#8593;</Kbd>
+              <Kbd>&#8595;</Kbd>
+              Navigate
+              <Kbd>Esc</Kbd>
+              Close
+            </Row>
+          </Spec>
+          <Spec
+            label="Container"
+            hint="shared/container · max-w-7xl gutter"
+            contentClassName="p-0"
+          >
+            <Container className="border-x border-dashed border-border py-4 text-center text-xs text-muted-foreground">
+              max-w-7xl, px-4 / sm:px-6 / lg:px-8
+            </Container>
+          </Spec>
+          <Spec
+            label="LegalConsentLine"
+            hint="shared/legal-consent-line · newTab"
+          >
+            <LegalConsentLine newTab />
+          </Spec>
+          <ActionTooltipDemo />
+          <FloatingAddDemo />
         </div>
       </RefSection>
     </main>

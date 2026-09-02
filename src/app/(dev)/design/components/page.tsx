@@ -50,11 +50,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -102,7 +118,10 @@ export default async function ComponentsPage({
         blurb="The real UI primitives, imported from production source and rendered here. What you tune in the component file shows up on this page and across the app at once."
       />
 
-      <RefSection title="Buttons" blurb="Sharp surfaces, round actions; press feedback only.">
+      <RefSection
+        title="Buttons"
+        blurb="Sharp surfaces, round actions; press feedback only."
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <Spec label="Variants" hint="buttonVariants">
             <Row>
@@ -197,6 +216,20 @@ export default async function ComponentsPage({
           <FormDemo />
           <OtpDemo />
           <PasswordStrengthDemo />
+          <Spec label="Select" hint="ui/select · Radix, portal-rendered">
+            <div className="max-w-xs">
+              <Select defaultValue="public">
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="password">Password</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </Spec>
         </div>
       </RefSection>
 
@@ -206,7 +239,9 @@ export default async function ComponentsPage({
             <Card>
               <CardHeader>
                 <CardTitle>Maya &amp; Jay&rsquo;s Wedding</CardTitle>
-                <CardDescription>128 photos and videos from 43 guests</CardDescription>
+                <CardDescription>
+                  128 photos and videos from 43 guests
+                </CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 Card content sits here, on the card surface.
@@ -232,6 +267,55 @@ export default async function ComponentsPage({
             </Row>
           </Spec>
         </div>
+      </RefSection>
+
+      <RefSection
+        title="Navigation"
+        blurb="The mega-menu primitive behind the marketing header: one sliding viewport shared by every trigger."
+      >
+        <Spec
+          label="NavigationMenu"
+          hint="ui/navigation-menu · hover a trigger"
+        >
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-72 gap-1 p-2 text-sm">
+                    <li className="rounded-md px-3 py-2 hover:bg-muted">
+                      Uploads
+                    </li>
+                    <li className="rounded-md px-3 py-2 hover:bg-muted">
+                      Curation
+                    </li>
+                    <li className="rounded-md px-3 py-2 hover:bg-muted">
+                      Sharing
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Events</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-72 gap-1 p-2 text-sm">
+                    <li className="rounded-md px-3 py-2 hover:bg-muted">
+                      Weddings
+                    </li>
+                    <li className="rounded-md px-3 py-2 hover:bg-muted">
+                      Parties
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  Pricing
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </Spec>
       </RefSection>
 
       <RefSection title="Feedback">
@@ -285,7 +369,8 @@ export default async function ComponentsPage({
                 <DialogHeader>
                   <DialogTitle>Delete this event?</DialogTitle>
                   <DialogDescription>
-                    This removes the event and everything in it. There is no undo.
+                    This removes the event and everything in it. There is no
+                    undo.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter showCloseButton>
@@ -386,13 +471,22 @@ export default async function ComponentsPage({
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="videos">Videos</TabsTrigger>
               </TabsList>
-              <TabsContent value="all" className="pt-3 text-sm text-muted-foreground">
+              <TabsContent
+                value="all"
+                className="pt-3 text-sm text-muted-foreground"
+              >
                 Everything, interleaved.
               </TabsContent>
-              <TabsContent value="photos" className="pt-3 text-sm text-muted-foreground">
+              <TabsContent
+                value="photos"
+                className="pt-3 text-sm text-muted-foreground"
+              >
                 Photos only.
               </TabsContent>
-              <TabsContent value="videos" className="pt-3 text-sm text-muted-foreground">
+              <TabsContent
+                value="videos"
+                className="pt-3 text-sm text-muted-foreground"
+              >
                 Videos only.
               </TabsContent>
             </Tabs>

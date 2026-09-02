@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { ActionTooltip } from "@/components/shared/action-tooltip";
+import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import { Button } from "@/components/ui/button";
@@ -40,7 +43,11 @@ export function ToastDemo() {
   return (
     <Spec label="Toast" hint="sonner · toast()">
       <Row>
-        <Button variant="outline" size="sm" onClick={() => toast.success("Saved")}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => toast.success("Saved")}
+        >
           Success
         </Button>
         <Button
@@ -150,7 +157,11 @@ export function FormDemo() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="you@example.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription>
                   We only email you about this event.
@@ -164,6 +175,65 @@ export function FormDemo() {
           </Button>
         </form>
       </Form>
+    </Spec>
+  );
+}
+
+/** ActionTooltip: the lightbox-only tooltip around one real action control. */
+export function ActionTooltipDemo() {
+  const [liked, setLiked] = useState(false);
+  return (
+    <Spec label="ActionTooltip" hint="shared/action-tooltip · hover or focus">
+      <Row>
+        <ActionTooltip label={liked ? "Unlike" : "Like"}>
+          <button
+            type="button"
+            aria-pressed={liked}
+            aria-label={liked ? "Unlike" : "Like"}
+            onClick={() => setLiked((v) => !v)}
+            className="flex size-9 items-center justify-center rounded-full bg-muted text-foreground"
+          >
+            <Heart
+              className={liked ? "size-4 fill-like text-like" : "size-4"}
+            />
+          </button>
+        </ActionTooltip>
+        <span className="text-sm text-muted-foreground">
+          The child keeps its own aria-label; the tooltip is presentational.
+        </span>
+      </Row>
+    </Spec>
+  );
+}
+
+/** FloatingAddButton: fixed to the viewport, so the demo shows it briefly. */
+export function FloatingAddDemo() {
+  const [show, setShow] = useState(false);
+  return (
+    <Spec
+      label="FloatingAddButton"
+      hint="shared/floating-add-button · fixed bottom"
+    >
+      <Row>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setShow(true);
+            window.setTimeout(() => setShow(false), 4000);
+          }}
+        >
+          Show for 4 seconds
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Appears at the bottom of the viewport with an uploading count.
+        </span>
+      </Row>
+      <FloatingAddButton
+        show={show}
+        uploadingCount={2}
+        onClick={() => toast("The picker would open here")}
+      />
     </Spec>
   );
 }
