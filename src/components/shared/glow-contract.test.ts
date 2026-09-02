@@ -317,6 +317,45 @@ describe("the spill engine CSS", () => {
     expect(rest![1].trim()).toBe(from![1].trim());
   });
 
+  it("rests an UNARMED bloom where its own animation starts", () => {
+    // ★ The same law, on the one shape the pin above cannot see. A bloom is
+    // excluded from the comet mask, so nothing windows its band away: the two
+    // states where its animation is not running (unarmed, and reduced motion,
+    // which never enters the no-preference block at all) show whatever the band
+    // DECLARES. That was `opacity: var(--glw-strength)` from the shared rule --
+    // the beat fully lit before it fires, and permanently for anyone who opted
+    // out of motion. The resting value has to be glw-bloom's own 0% keyframe.
+    const from = engineCode.match(/@keyframes glw-bloom\s*\{\s*0%\s*\{([^}]*)\}/);
+    expect(from, "glw-bloom 0% keyframe not found").not.toBeNull();
+    const fromOpacity = /opacity:\s*([^;]+);/.exec(from![1]);
+    const fromScale = /scale:\s*([^;]+);/.exec(from![1]);
+    expect(fromOpacity, "glw-bloom 0% declares no opacity").not.toBeNull();
+    expect(fromScale, "glw-bloom 0% declares no scale").not.toBeNull();
+
+    // OUTSIDE the no-preference block on purpose: a resting state declared
+    // inside it is invisible to the visitors it exists for. Slice bounds are
+    // asserted, never trusted (see declBody's note).
+    const noPrefAt = engineCode.indexOf(
+      "@media (prefers-reduced-motion: no-preference)",
+    );
+    expect(noPrefAt, "no-preference block not found").toBeGreaterThan(-1);
+    const unconditional = engineCode.slice(0, noPrefAt);
+    const restRule =
+      /\[data-glw-shape="bloom"\]\s+\[data-glw-band\]\s*\{([^}]*)\}/.exec(
+        unconditional,
+      );
+    expect(
+      restRule,
+      "the bloom band declares no resting state outside the no-preference block",
+    ).not.toBeNull();
+    expect(/opacity:\s*([^;]+);/.exec(restRule![1])?.[1].trim()).toBe(
+      fromOpacity![1].trim(),
+    );
+    expect(/scale:\s*([^;]+);/.exec(restRule![1])?.[1].trim()).toBe(
+      fromScale![1].trim(),
+    );
+  });
+
   it("has exactly one filter host, and the footer is now on it", () => {
     expect(engineCode).toContain("url(#glw-warp)");
     // This pin used to read `not.toContain`, because the footer ran its own

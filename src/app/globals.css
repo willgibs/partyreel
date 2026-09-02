@@ -1643,6 +1643,35 @@
   opacity: var(--glw-strength);
 }
 
+/* ★ A BLOOM'S BAND RESTS AT ITS OWN FROM-KEYFRAME (round 2, 2026-09-02). Law
+   4's reduced-motion half, one shape over from the mask drives' resting
+   mask-position, and it was broken the same way. The rule above declares the
+   band at full --glw-strength, and a bloom is the ONE shape with no travelling
+   window to hide that (the comet mask block carries
+   :not([data-glw-shape="bloom"])), so the swell's colour sat over an
+   already-lit base in BOTH states where its animation is not running:
+
+     unarmed   the no-preference block sets `animation: none` until arrival
+               arms it, which parked the band at full strength. The beat was
+               fully visible BEFORE the moment it exists to mark, and arming it
+               then dropped to opacity 0 and swelled back -- a flash-off, not
+               an arrival.
+     reduced   the animation is only ever declared inside no-preference, so the
+               DECLARED value is the whole of what a reduced-motion visitor
+               sees, and that was base + band both at 0.62 forever: the same
+               law inverted that the `50% 0` resting mask-position was.
+
+   glw-bloom's from-keyframe is `opacity: 0; scale: 0.94`, so declaring it here
+   makes the resting state the START of the travel rather than a point inside
+   it, and the base alone carries the light -- which IS law 4's arrival. The
+   animation runs `both`, so its 0% keyframe wins from the first tick and the
+   armed no-preference path is unchanged down to the frame. Specificity (0,2,0)
+   beats the (0,1,0) rule above, so placement here is for reading order only. */
+[data-glw-shape="bloom"] [data-glw-band] {
+  opacity: 0;
+  scale: 0.94;
+}
+
 /* ── Drive A: the shipped mechanic. Static field, travelling window.
 
    ★ NOT ON A BLOOM. A bloom is a swell, not a travelling window, so windowing
@@ -2035,8 +2064,9 @@
   }
   /* The one-shot. Decays TO the base, never to zero, so the lamp stays lit
      after the moment has passed. Re-key the element to replay it. Until it is
-     ARMED (scrolled into view, or fired by hand) the band simply rests at the
-     base, so an offscreen bloom is not spent on nobody. */
+     ARMED (scrolled into view, or fired by hand) the band holds the resting
+     state declared above -- its own from-keyframe, off-layer -- so an offscreen
+     bloom is neither spent on nobody nor half-shown before it fires. */
   [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-band],
   [data-glw-shape="bloom"][data-glw-armed="false"] [data-glw-edge] {
     animation: none;
