@@ -1,5 +1,8 @@
 "use client";
 
+// the glow boards' sheet: the glw-* recipes and the lit surface; it leaves with the board.
+import "./glow-lab.css";
+
 import Image from "next/image";
 import { useMemo, useState } from "react";
 

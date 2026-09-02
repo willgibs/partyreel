@@ -1,5 +1,8 @@
 "use client";
 
+// the board's own sheet (moved out of design.css); it leaves with the board.
+import "./marketing-open.css";
+
 import Image from "next/image";
 import { RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -9,8 +12,8 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { ReelFrame } from "@/components/marketing/frames";
 
-import { DesktopFrame } from "./marketing-lab-shared";
-import { Variant } from "./variant-frame";
+import { DesktopFrame } from "../components/marketing-lab-shared";
+import { Variant } from "../components/variant-frame";
 
 /**
  * Touchpoint: MARKETING DECOMPOSITION (Track B F5 round 1, 2026-08-25).
@@ -76,7 +79,13 @@ function TilePhoto({ id, w }: { id: string; w: number }) {
       className="relative w-full"
       style={{ aspectRatio: `${m.width} / ${m.height}` }}
     >
-      <Image src={m.src} alt="" fill sizes={`${w}px`} className="object-cover" />
+      <Image
+        src={m.src}
+        alt=""
+        fill
+        sizes={`${w}px`}
+        className="object-cover"
+      />
     </div>
   );
 }
@@ -182,23 +191,43 @@ function OneShotStage({ onReplay }: { onReplay: () => void }) {
           data-mkt-reveal
           data-dir-display
           className="text-[24px] leading-tight text-white/90"
-          style={{ "--i": 0, "--mkt-stagger-ms": "260ms" } as React.CSSProperties}
+          style={
+            { "--i": 0, "--mkt-stagger-ms": "260ms" } as React.CSSProperties
+          }
         >
-          Built from <CountUp to={FACT_PHOTOS} on={inView} reduced={reduced} delayMs={350} /> photos.
+          Built from{" "}
+          <CountUp
+            to={FACT_PHOTOS}
+            on={inView}
+            reduced={reduced}
+            delayMs={350}
+          />{" "}
+          photos.
         </p>
         <p
           data-mkt-reveal
           data-dir-display
           className="text-[24px] leading-tight text-white/90"
-          style={{ "--i": 1, "--mkt-stagger-ms": "260ms" } as React.CSSProperties}
+          style={
+            { "--i": 1, "--mkt-stagger-ms": "260ms" } as React.CSSProperties
+          }
         >
-          Shot by <CountUp to={FACT_GUESTS} on={inView} reduced={reduced} delayMs={610} /> guests.
+          Shot by{" "}
+          <CountUp
+            to={FACT_GUESTS}
+            on={inView}
+            reduced={reduced}
+            delayMs={610}
+          />{" "}
+          guests.
         </p>
         <p
           data-mkt-reveal
           data-dir-display
           className="text-[24px] leading-tight text-white/90"
-          style={{ "--i": 2, "--mkt-stagger-ms": "260ms" } as React.CSSProperties}
+          style={
+            { "--i": 2, "--mkt-stagger-ms": "260ms" } as React.CSSProperties
+          }
         >
           Created for you.
         </p>
@@ -250,10 +279,7 @@ function DecompositionOneShot() {
       <DesktopFrame>
         <div className="bg-[oklch(0.11_0_0)] text-[oklch(0.97_0_0)]">
           <LeadIn />
-          <OneShotStage
-            key={runId}
-            onReplay={() => setRunId((n) => n + 1)}
-          />
+          <OneShotStage key={runId} onReplay={() => setRunId((n) => n + 1)} />
           <div className="h-24" aria-hidden />
         </div>
       </DesktopFrame>
@@ -548,7 +574,8 @@ function createPileDrag({
   ) => {
     chip.style.setProperty("--dx", `${x.toFixed(1)}px`);
     chip.style.setProperty("--dy", `${y.toFixed(1)}px`);
-    if (tilt !== null) chip.style.setProperty("--tilt", `${tilt.toFixed(2)}deg`);
+    if (tilt !== null)
+      chip.style.setProperty("--tilt", `${tilt.toFixed(2)}deg`);
     if (lift !== null) chip.style.setProperty("--lift", String(lift));
   };
 
@@ -572,7 +599,10 @@ function createPileDrag({
       ?.setAttribute("baseFrequency", `${freq} ${freq}`);
     filter
       .querySelector("feDisplacementMap")
-      ?.setAttribute("scale", String(readNum(root, "--mkt-drop-smoke-warp", 30)));
+      ?.setAttribute(
+        "scale",
+        String(readNum(root, "--mkt-drop-smoke-warp", 30)),
+      );
     filter
       .querySelector("feGaussianBlur")
       ?.setAttribute(
@@ -587,7 +617,10 @@ function createPileDrag({
     applySmokeKnobs();
     const dist = readNum(root, "--mkt-drop-puff-dist", 30);
     const dur = readNum(root, "--mkt-drop-puff-dur", 1500);
-    const count = Math.max(1, Math.round(readNum(root, "--mkt-drop-wave-count", 2)));
+    const count = Math.max(
+      1,
+      Math.round(readNum(root, "--mkt-drop-wave-count", 2)),
+    );
     const baseW = readNum(root, "--mkt-drop-wave-width", 50);
     const falloff = readNum(root, "--mkt-drop-wave-falloff", 20);
     const stagger = readNum(root, "--mkt-drop-wave-stagger", 150);
@@ -608,7 +641,10 @@ function createPileDrag({
       wave.setAttribute("height", String(Math.max(1, 100 - sw)));
       wave.setAttribute("rx", String(Math.max(2, 14 - hw)));
       wave.setAttribute("stroke-width", String(sw));
-      wave.style.setProperty("--wdur", `${Math.round(dur * (0.85 + w * grow))}ms`);
+      wave.style.setProperty(
+        "--wdur",
+        `${Math.round(dur * (0.85 + w * grow))}ms`,
+      );
       wave.style.setProperty("--wdelay", `${Math.round(w * stagger)}ms`);
       wave.style.setProperty("--wscale", (travel + w * 0.07).toFixed(3));
       puffs.appendChild(wave);
@@ -791,7 +827,13 @@ function PhotoPileDemo() {
         aria-hidden
         focusable="false"
       >
-        <filter id={PILE_SMOKE_ID} x="-150%" y="-150%" width="400%" height="400%">
+        <filter
+          id={PILE_SMOKE_ID}
+          x="-150%"
+          y="-150%"
+          width="400%"
+          height="400%"
+        >
           <feTurbulence
             type="fractalNoise"
             baseFrequency="0.046 0.046"
@@ -893,9 +935,23 @@ const STACK_IDS = [
 
 const STACK_SLOTS = [
   { cx: "34px", cy: "18px", rot: "5deg", dx: "4px", dy: "-34px", drot: "8deg" },
-  { cx: "14px", cy: "22px", rot: "-7deg", dx: "-8px", dy: "-14px", drot: "-8deg" },
+  {
+    cx: "14px",
+    cy: "22px",
+    rot: "-7deg",
+    dx: "-8px",
+    dy: "-14px",
+    drot: "-8deg",
+  },
   { cx: "28px", cy: "26px", rot: "2deg", dx: "6px", dy: "4px", drot: "3deg" },
-  { cx: "12px", cy: "30px", rot: "-3deg", dx: "-6px", dy: "22px", drot: "-5deg" },
+  {
+    cx: "12px",
+    cy: "30px",
+    rot: "-3deg",
+    dx: "-6px",
+    dy: "22px",
+    drot: "-5deg",
+  },
   { cx: "24px", cy: "32px", rot: "0deg", dx: "4px", dy: "38px", drot: "5deg" },
 ];
 
@@ -1267,8 +1323,8 @@ function ConfettiDemo() {
       ) : (
         <div className="flex h-[230px] w-full items-center justify-center rounded-[var(--radius)] border border-dashed border-border">
           <p className="max-w-[240px] text-center text-xs leading-relaxed text-muted-foreground">
-            Off by default. Toggle it on to see the burst land on the Reel
-            ready card. Reduced motion skips it entirely.
+            Off by default. Toggle it on to see the burst land on the Reel ready
+            card. Reduced motion skips it entirely.
           </p>
         </div>
       )}
@@ -1315,8 +1371,8 @@ export function MarketingDecompositionVariants() {
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
             The plan&apos;s tactile candidates plus one proposal, small on
             purpose: transitions-pro recipes re-tokened to the house sheet.
-            Where each would live is the loud/quiet map&apos;s call, not
-            this page&apos;s.
+            Where each would live is the loud/quiet map&apos;s call, not this
+            page&apos;s.
           </p>
         </div>
         <div className="grid gap-10 lg:grid-cols-2">
@@ -1326,7 +1382,10 @@ export function MarketingDecompositionVariants() {
             rationale="drag-drop-physics: grab a photo (1:1 follow, lift, velocity tilt) and drop it into the album zone; the zone morphs into it with a squash, a spring, and a smoke ring. Candidate for the album moment."
             framed={false}
           >
-            <div className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4" data-mode="dark">
+            <div
+              className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4"
+              data-mode="dark"
+            >
               <PhotoPileDemo />
             </div>
           </Variant>
@@ -1336,7 +1395,10 @@ export function MarketingDecompositionVariants() {
             rationale="card-stack-hover: a pile of five event photos fans out on hover with a springy overshoot and closes softly. Candidate for style covers or the events cards."
             framed={false}
           >
-            <div className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4" data-mode="dark">
+            <div
+              className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4"
+              data-mode="dark"
+            >
               <CardStackDemo />
             </div>
           </Variant>
@@ -1346,7 +1408,10 @@ export function MarketingDecompositionVariants() {
             rationale="confetti-burst, MONOCHROME: flakes fall with physics and land on the Reel ready card. Proposed as an additive garnish for the live demo's payoff beat; ships only if ruled in, stays off by default here."
             framed={false}
           >
-            <div className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4" data-mode="dark">
+            <div
+              className="mono rounded-xl border border-white/10 bg-[oklch(0.13_0_0)] p-4"
+              data-mode="dark"
+            >
               <ConfettiDemo />
             </div>
           </Variant>

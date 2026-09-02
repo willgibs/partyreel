@@ -1,5 +1,8 @@
 "use client";
 
+// the board's own sheet (moved out of design.css); it leaves with the board.
+import "./marketing-open.css";
+
 import Image from "next/image";
 import { Play, RotateCcw } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -8,7 +11,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import { DesktopFrame } from "./marketing-lab-shared";
+import { DesktopFrame } from "../components/marketing-lab-shared";
 
 /**
  * Touchpoint: MARKETING HERO SUBSTRATE (Track B F5 round 2, 2026-08-25).
@@ -366,7 +369,8 @@ function SubstrateHero({
 
     const sync = (t: number) => {
       let idx = 0;
-      for (let i = 0; i < boundaries.length; i++) if (t >= boundaries[i]) idx = i;
+      for (let i = 0; i < boundaries.length; i++)
+        if (t >= boundaries[i]) idx = i;
       setShot((s) => (s === idx ? s : idx));
       boundaries.forEach((b, i) => {
         const fill = segRefs.current[i];
@@ -653,10 +657,10 @@ export function MarketingHeroSubstrateVariants() {
       <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
         The production hero, judged against moving footage. Switch the voice
         grouping and the word animation below; the word cuts WITH the
-        substrate&apos;s shots either way (the round-2 finding: a hard cut
-        needs an image cut to motivate it). When the render session lands
-        hero-candidate-01.mp4 this same page plays it poster-first; until
-        then it runs the Ken Burns montage fallback on the same cut rhythm.
+        substrate&apos;s shots either way (the round-2 finding: a hard cut needs
+        an image cut to motivate it). When the render session lands
+        hero-candidate-01.mp4 this same page plays it poster-first; until then
+        it runs the Ken Burns montage fallback on the same cut rhythm.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -686,7 +690,8 @@ export function MarketingHeroSubstrateVariants() {
         <span className="inline-flex rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {substrate === "probing" && "Probing the substrate"}
           {substrate === "video" && "Substrate: hero-candidate-01.mp4"}
-          {substrate === "montage" && "Substrate: montage fallback (mp4 not rendered yet)"}
+          {substrate === "montage" &&
+            "Substrate: montage fallback (mp4 not rendered yet)"}
         </span>
         {reduced && (
           <span className="text-[11px] text-muted-foreground">
