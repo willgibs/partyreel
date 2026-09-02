@@ -309,7 +309,7 @@ export function FeatureDoor({
           <span
             className={cn(
               "text-sm leading-relaxed text-white/85",
-              aspect === "wide" ? "max-w-md" : "max-w-[19rem]",
+              aspect === "wide" ? "max-w-lg" : "max-w-[19rem]",
             )}
           >
             {copy === "long" ? door.long : door.line}
