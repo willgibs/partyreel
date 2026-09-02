@@ -313,8 +313,10 @@ export function isSettingLocked(
  * guests AND the host. Authoritatively enforced in create_media /
  * create_media_as_host (a free host's event rejects type='video'); this helper
  * drives the host upload UI + the settings status row. Like isSettingLocked,
- * "allowed" = any non-free tier (pro + event_pass). The universal 5-min / 2-GB
- * video limits (lib/media/limits.ts) are orthogonal — they apply to paid video too.
+ * "allowed" = any non-free tier (pro + event_pass). The universal per-file SIZE
+ * ceiling (lib/media/limits.ts, MAX_UPLOAD_BYTES) is orthogonal — it applies to paid
+ * video too. There is no duration cap: the retired 5-min / 2-GB pair this line used
+ * to cite has not been the limit since size became the only per-file gate.
  */
 export function videosAllowedForTier(tier: Tier): boolean {
   return tier !== "free";

@@ -28,7 +28,8 @@ something a later session can read.
   and pushed before any other work.
 - **handed-off**: the agent has filled Handoff and Record, run the pre-handoff sync and the lane
   check, set `status: handed-off`, and pushed. The chat report is one line.
-- **integrated**: flipped by the Orchestrator inside the merge commit, with `merged: "<sha>"`.
+- **integrated**: flipped by the Orchestrator inside the merge commit, with `merged: "<sha>"` (the
+  branch head that was merged; the merge commit itself is cited in the CHANGELOG).
 
 ## Claims are path prefixes
 

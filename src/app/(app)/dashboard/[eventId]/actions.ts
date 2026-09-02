@@ -151,9 +151,27 @@ export async function restoreMediaAction(
   return { ok: true };
 }
 
+/**
+ * restore_event is all-or-nothing over the event, but media removed INDEPENDENTLY of the
+ * event stay in the bin (lifecycle-recovery.md): the RPC reports how many as
+ * `media_still_removed`, and a host who restores an event with 12 of its photos still
+ * binned is told "Event restored." That count reached this action and stopped here.
+ *
+ * So this action has its OWN result type. The shared ActionResult stays `{ ok: true }`
+ * deliberately: it is the contract of a dozen form actions, and widening it to carry one
+ * action's payload would make every caller handle data it will never have. The failure arm
+ * is EXTRACTED from ActionResult rather than restated, so the codes and the friendly
+ * messages keep exactly one home (the same shape RestoreResult uses in db/mutations/media).
+ *
+ * Consumers narrow on `ok` as before, so nothing breaks by ignoring the count.
+ */
+export type RestoreEventResult =
+  | { ok: true; mediaStillRemoved: number }
+  | Extract<ActionResult, { ok: false }>;
+
 export async function restoreEventAction(
   eventId: string,
-): Promise<ActionResult> {
+): Promise<RestoreEventResult> {
   const result = await restoreEvent(eventId);
   if (!result.ok) {
     if (result.code === "unknown") {
@@ -166,11 +184,9 @@ export async function restoreEventAction(
   }
 
   // Restoring re-adds the event to BOTH the active dashboard list and its detail page.
-  // (result.data.mediaStillRemoved is available for a Phase-4 "N items still in the bin"
-  // prompt — ActionResult carries no data, so Phase 4 surfaces it when it adds the UI.)
   revalidatePath(`/dashboard/${eventId}`);
   revalidatePath("/dashboard");
-  return { ok: true };
+  return { ok: true, mediaStillRemoved: result.data.mediaStillRemoved };
 }
 
 export async function purgeMediaNowAction(

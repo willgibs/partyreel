@@ -69,7 +69,9 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   RSC flight payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4
   hardening; the date joined in 4.5 when the welcome byline started rendering it).
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
-  viewer then gets a teaser (see "Gallery access" below).
+  viewer then gets a teaser (see "Gallery access" below). ★ **The OG description keys on the SAME column** —
+  anonymous-allowed keeps the "No app, no account" line, account-required says the event asks guests for an
+  email, so the preview a host pastes into a chat never promises what the entry modal then refuses.
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
   entirely (a quiet "uploads closed" line), leaving the action row + gallery.
 
