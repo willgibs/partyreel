@@ -395,15 +395,18 @@ manifest fill.
 7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
    (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
    one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
-   and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`
-   (CI integrates alone, first); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
+   and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
+   **`product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
    Will's sessions or the next window, as slots free. Integration: 1 + 2 together → a
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
    branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
    run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
    (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
    round in the Launch checkpoint's human order.
-8. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
+8. **The account-required unfurl line** (from `product-truth`, on prod at the next milestone): it now
+   reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
+   rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.
+9. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
    suite ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)

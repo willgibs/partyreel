@@ -20,6 +20,13 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The restore toast should read `mediaStillRemoved`** (the `product-truth` track, 2026-09-02:
+  `restoreEventAction` now returns the count, and nothing reads it). The consumer is
+  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest
+  (`docs/tracks/product-truth.md`, Handoff) until that file is pruned at the milestone, then in git.
+- **Give the visibility WORD a server-safe home** (e.g. `src/lib/events/visibility-labels.ts`) so the
+  RSC chip, the client selector and marketing's `access-switch.tsx` read one record; an RSC cannot dot
+  into `visibility-selector.tsx` ("use client"), so the chip re-types "Public" today with a comment.
 - **The root 404's browser tint.** The lit root `not-found` (outside every route group) inherits the root
   layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
   `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
