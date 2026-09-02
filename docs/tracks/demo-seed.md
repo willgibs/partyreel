@@ -39,7 +39,9 @@ through the Supabase and R2 MCPs, then the throwaway event deleted.
 
 ## Handoff
 
-- Head `087e3af`, pushed. No preview needed (a Node operator script, no UI); `preview: false`.
+- Head is the last commit on `lp/demo-seed`, pushed; the gates below ran on `087e3af`, the
+  pre-handoff merge, which the handoff commits only add this file to. No preview needed (a Node
+  operator script, no UI); `preview: false`.
 - Synced with `origin/launch-prep` at `4e38590` (it had moved 16 commits, incl. milestone-18); merged,
   no conflicts.
 - Gates on the synced tree: typecheck ok, lint ok, test ok (1533), build ok (244 pages).
