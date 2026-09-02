@@ -302,14 +302,17 @@ export function FeatureDoor({
             {door.title}
             <LearnChevron />
           </span>
-          {/* white/85: the smaller face over the lighter part of the ramp.
-              Width-constrained (Will, 2026-09-02): a line that runs the whole
-              card reads as a block; on a measure of ~40 characters it reads
-              as two quick rows. */}
+          {/* The line sits a step quieter than the title (white/70, not the
+              event cards' /85: Will, 2026-09-02, "draws too much attention"),
+              on a PERCENTAGE measure of the copy block so both rows stop short
+              of the card's right edge by layout rather than by where the words
+              happen to break, and text-balance so the two rows land even. The
+              copy scrim behind it (85% black at the foot) is what keeps /70
+              readable; do not lift it without re-measuring. */}
           <span
             className={cn(
-              "text-sm leading-relaxed text-white/85",
-              aspect === "wide" ? "max-w-lg" : "max-w-[19rem]",
+              "text-sm leading-relaxed text-balance text-white/70",
+              aspect === "wide" ? "max-w-lg" : "max-w-[84%]",
             )}
           >
             {copy === "long" ? door.long : door.line}

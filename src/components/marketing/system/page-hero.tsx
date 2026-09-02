@@ -201,12 +201,19 @@ export function PageHero({
           >
             {heading}
           </h1>
+          {/* text-balance on a CENTRED subhead, not text-pretty (Will,
+              2026-09-02): a long first line over a short second reads as a
+              broken block, and balanced rows are the cheapest visual win a
+              lockup has. Left-aligned copy keeps pretty, where a ragged right
+              edge is the natural shape. */}
           {subhead && (
             <p
               {...mark()}
               className={cn(
-                "text-lg text-pretty text-muted-foreground",
-                align === "center" ? "max-w-xl" : "max-w-2xl",
+                "text-lg text-muted-foreground",
+                align === "center"
+                  ? "max-w-xl text-balance"
+                  : "max-w-2xl text-pretty",
               )}
             >
               {subhead}
