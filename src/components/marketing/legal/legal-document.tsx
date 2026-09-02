@@ -101,6 +101,16 @@ export function LegalDocument({
               <p className="text-sm text-muted-foreground tabular-nums">
                 {legalStatusLine(meta)} &middot; {minutes}
               </p>
+              {/* Paper only: the document's own address, so a printed or filed
+                  copy can be checked against the live text later. The help
+                  article's shared data-print-url hook (globals.css reveals it in
+                  print); hidden on screen, where the URL bar says it already. */}
+              <p
+                className="hidden text-sm text-muted-foreground"
+                data-print-url
+              >
+                partyreel.com{meta.path}
+              </p>
               {pending && (
                 <div className="mt-4 border-t pt-4" aria-label="Review status">
                   <Eyebrow>Before launch</Eyebrow>
@@ -124,9 +134,22 @@ export function LegalDocument({
               <div aria-hidden className="hidden lg:block" />
 
               <div className="mx-auto w-full max-w-2xl min-w-0">
-                <ChipToc headings={headings} className="mb-8" />
+                {/* Screen navigation, not document: the chip row is below-lg
+                    only, and a print sheet measures ~816px, so without the hook
+                    it would print as a paragraph of section names. */}
+                <div data-print-hide>
+                  <ChipToc headings={headings} className="mb-8" />
+                </div>
 
-                <article id={ARTICLE_BODY_ID} className="divide-y">
+                {/* data-print-legal is the print block's one opt-in hook
+                    (globals.css, the legal print block): it prints the cinema
+                    room light, breaks pages between sections, and spells out
+                    where each link goes. Nothing else on the site sets it. */}
+                <article
+                  id={ARTICLE_BODY_ID}
+                  className="divide-y"
+                  data-print-legal
+                >
                   {sections.map((section, index) => (
                     <section
                       key={section.id}
@@ -160,7 +183,9 @@ export function LegalDocument({
                 {/* One delegated island upgrades every heading's copy-link anchor. */}
                 <HeadingAnchorsDelegate />
 
-                <section className="mt-12 border-t pt-10">
+                {/* Navigation, not the document: the printed copy ends at the
+                    last section. */}
+                <section className="mt-12 border-t pt-10" data-print-hide>
                   <h2 className="font-heading text-xl tracking-tight">
                     Read next
                   </h2>
@@ -182,7 +207,10 @@ export function LegalDocument({
               {/* aside self-stretch is LOAD-BEARING (the help page's catch):
                   items-start would collapse the rail to content height and
                   leave sticky no runway. */}
-              <aside className="hidden lg:block lg:self-stretch">
+              <aside
+                className="hidden lg:block lg:self-stretch"
+                data-print-hide
+              >
                 <nav
                   aria-label="On this page"
                   className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pl-2"

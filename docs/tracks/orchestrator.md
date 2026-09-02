@@ -50,3 +50,8 @@ wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orch
 - `000ecd6` `src/app/globals.css` gained `@source not` for the lab and `docs/`; its `@theme` block and
   the `dark` variant moved verbatim to `src/app/theme.css`. A lane editing tokens edits VALUES in
   `globals.css` and the MAPPING in `theme.css`; `css-source-policy.test.ts` explains.
+- Wave 1 integrated: `product-truth` (`1352bb7`: the dashboard, the guest door, `visibility-selector.tsx`,
+  `media.ts`, `host-media.ts`, `uploader.ts`), `ci-workflow` (`192c708`: `.github/workflows/ci.yml`; CI
+  now gates every push), `legal-billing-truth` (`2f98157`: `.env.example`, the print block in `globals.css`,
+  `features.ts`, `jsonld.tsx`, the home privacy ledger, `PRICING.md`, `billing-caps.md`). A lane touching
+  any of those syncs this.

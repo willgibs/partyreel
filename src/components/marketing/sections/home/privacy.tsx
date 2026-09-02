@@ -26,8 +26,14 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 const CLAIMS: { title: string; body: string }[] = [
   {
+    // ★ THE RULED SHORT FORM (Will, 2026-09-02). The clause "for the common
+    // formats" rides EVERY shortened version of this claim: HEIC, HEIF and AVIF
+    // images and WebM video are stored exactly as the device sends them, so the
+    // unconditional sentence this used to carry was not true. The long form,
+    // naming the formats, is the privacy policy's own paragraph (the "metadata"
+    // section of constants/legal-privacy.tsx). Do not drop the clause.
     title: "Location data stays on the phone",
-    body: "EXIF and GPS metadata are stripped in the browser before a photo ever uploads.",
+    body: "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
   },
   {
     title: "Three ways to share",

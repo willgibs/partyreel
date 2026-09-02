@@ -225,12 +225,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   "Deleting your account" section of `your-data-and-deleting-your-account` AND the privacy policy's
   "Delete your account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy
   promises removal on request within 30 days until one exists; `newsletter_signups` has no delete route
-  and `notification_prefs` has no UI); **the EXIF-strip overclaim** on six sites (`sections/home/privacy.tsx`,
-  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx),
-  `constants/features.ts` twice, `jsonld.tsx`, `feature-pages.ts`) and one blog post, the help article
-  already right (HEIC/HEIF/AVIF/WebM pass through untouched; the privacy policy says so since
-  2026-09-01); ruled 2026-09-02 to the "for the common formats" clause, split between the
-  `legal-billing-truth` and `marketing-followons` tracks;
+  and `notification_prefs` has no UI); **the EXIF-strip overclaim**: ruled 2026-09-02 to the "for the common formats" clause and fixed the
+  same day on `sections/home/privacy.tsx`, `constants/features.ts` (twice), `jsonld.tsx`, the blog post
+  and `src/lib/content/llms.ts` (the help article was already right); the two sites left,
+  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx)
+  and `feature-pages.ts`, belong to the `marketing-followons` track;
   **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
@@ -450,14 +449,14 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 published claim is true, every promised path exists, every backend job is operable from `/admin`, and
 the switches below flip in a known order with nothing else pending. The agent-doable half runs as
 tracks ([`tracks/`](tracks); the wave plan in [`STATUS.md`](STATUS.md)): the help catalog's nine gaps
-closed or ruled, the EXIF claim corrected on its six sites, the guest unfurl and 404 true for
+closed or ruled, the EXIF claim corrected on its seven sites, the guest unfurl and 404 true for
 account-required events, self-serve account deletion with an operator trigger, a newsletter removal
 control, the contact and careers limiters failing closed, security headers on, Sentry scrubbing
 capability tokens, every job with a kill switch and a heartbeat on `/admin/jobs`, CI on every push,
 `.env.example` parity, legal pages that print, the `LEGAL_PARTY` flip rehearsed, the blur-rise heroes
 with a visible h1, the root 404 tint, the marketing site at phone widths, the demo event on curated
 media. **The `[human]` switches, in order:** counsel sign-off, the DMCA agent, the `privacy@` and
-`help@` mailboxes → `LEGAL_PARTY` and both documents effective → Stripe live (the 3 products and 8
+`help@` mailboxes → `LEGAL_PARTY` and both documents effective → Stripe live (the 4 products and 8
 prices, the live webhook and portal with six-price switching verified, the 10 env values, one
 real-card smoke) → Vercel Pro (the analytics vendor, the Spend cap, Cloudflare fronting and CSAM
 scanning at the DNS move, the Realtime quota) → secrets Sensitive, leaked-password protection, the
@@ -484,21 +483,28 @@ Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo 
   [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
 - Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
   (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
-- Stripe test → live cutover `[eng+human]` — re-create the 3 products and 8 prices in live (6 recurring:
-  three monthly and three annual Pro; 2 one-time: the event pass and its renewal) + swap the 10 env
-  values (code unchanged); the runbook in [`PRICING.md`](PRICING.md) (the `legal-billing-truth` track
-  corrects it from "5 env vars").
+- Stripe test → live cutover `[eng+human]` — re-create the 4 products and 8 prices in live (three Pro
+  products carrying six recurring prices, monthly and annual each; the Event Pass product carrying the two
+  one-time prices), named WITHOUT the em-dash the test products carry today (those names render in
+  Checkout and the portal), + swap the 10 env values (code unchanged); the runbook is
+  [`PRICING.md`](PRICING.md) "Stripe setup" (corrected 2026-09-02 by the `legal-billing-truth` track).
 - Verify the Stripe Billing Portal permits switching between the six Pro prices (monthly and annual) `[human]` — now
   LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
   portal (checkout refuses the second subscription it used to create silently). If the portal's
-  product config does not allow the swap, a paying host has no self-serve way to resize.
+  product config does not allow the swap, a paying host has no self-serve way to resize. The default
+  portal configuration (`bpc_1TcTxWPtjqmVkBwkcAldFEZA`) enables `subscription_update` with
+  `default_allowed_updates: ["price"]` and `proration_behavior: always_invoice`, but the API returns no
+  `products` list, so the actual switch set is unverified from the API side (2026-09-02): a dashboard look,
+  or a portal session opened as a Pro host.
 - Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER` (currently 3× the storage cap, ADR-0021) before
   Pro launch `[eng]` — confirm the multiplier holds at real scale.
 - Legal go-live `[human]` — the documents are written (v1.0, 2026-09-01, incl. the forensic-capture
   paragraph and the Sentry replay line); after counsel signs the gate above: (1) fill `LEGAL_PARTY` in
   [`src/lib/constants/legal.ts`](../src/lib/constants/legal.ts) (entity, state, address, DMCA agent)
   and flip both documents' `status` to `effective` with an `effectiveDate` (`legal.test.ts` refuses a
-  bracketed placeholder once effective, so the fill cannot be skipped); (2) register the DMCA
+  bracketed placeholder once effective, so the fill cannot be skipped; the 2026-09-02 rehearsal showed the
+  flip also needs one line of that test, whose pending status-line assertion reads the live meta: the diff is
+  in `docs/tracks/legal-billing-truth.md` until the milestone prunes it, then in git); (2) register the DMCA
   designated agent with the Copyright Office ($6, renewed every 3 years) so the Terms' safe-harbor
   section is true; (3) create the `privacy@partyreel.com` mailbox both documents name, routed to the
   support inbox.

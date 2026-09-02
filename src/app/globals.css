@@ -2188,3 +2188,109 @@
     text-decoration: underline;
   }
 }
+
+/* PRINT: the legal documents (the launch-runbook round, 2026-09-02). /privacy
+   and /terms are the two pages people actually put on paper or file as a PDF
+   (a host archiving the terms they agreed to, counsel marking the text up), and
+   they are the only long documents that live in the (cinema) group: printed
+   raw, they came out as a black hero on sheet one, a rail of screen navigation
+   beside the text, and every link a dead underline. Same doctrine as the help
+   block above: ONE opt-in hook (data-print-legal, set on the legal shell's
+   <article>), the shared data-print-hide for screen-only furniture, and no
+   rule that can fire on a page which has not opted in. No @page here on
+   purpose: @page cannot be scoped to a selector, so a margin set for the legal
+   sheet would silently re-margin the help articles too. */
+@media print {
+  /* THE ROOM PRINTS LIGHT. The dark is not one background to patch: the cinema
+     wrapper carries `.dark` (the whole token flip) and marketing.css paints the
+     BODY oklch(0.11), so muted text, card and hairline all resolve dark too.
+     Re-declaring the tokens on the wrapper turns the subtree light in one move
+     (paper values, not the oklch originals: print is sRGB and ink on white is
+     the point). !important because marketing.css's body rule is a tie on
+     specificity and loads later. */
+  body:has([data-print-legal]),
+  body:has([data-print-legal]) [data-mkt-skin="cinema"] {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  body:has([data-print-legal]) [data-mkt-skin="cinema"] {
+    --background: #fff;
+    --foreground: #111;
+    --card: #fff;
+    --card-foreground: #111;
+    --popover: #fff;
+    --popover-foreground: #111;
+    --muted: #f4f4f4;
+    --muted-foreground: #444;
+    --border: #c9c9c9;
+    --input: #c9c9c9;
+    --ring: #666;
+    color-scheme: light;
+  }
+
+  /* PAPER HAS NO VIEWPORT, so nothing can enter one: every [data-mkt-reveal]
+     slot sits at opacity 0 until an IntersectionObserver flips its ancestor's
+     data-inview, and a sheet printed before (or without) that fires loses the
+     eyebrow and the subhead to blank space. Forced visible for the whole
+     printed page, never just the article. */
+  body:has([data-print-legal]) [data-mkt-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Chrome the document does not include: the overlay header, the footer, and
+     the per-heading copy-link affordance (a hover control on paper). The chip
+     ToC, the sticky rail and the "Read next" foot carry data-print-hide at
+     their call sites, which the help block above already hides. */
+  body:has([data-print-legal]) header,
+  body:has([data-print-legal]) footer,
+  [data-print-legal] [data-anchor-copy] {
+    display: none !important;
+  }
+
+  /* Breaks fall BETWEEN sections. `avoid` is a preference, not a promise: a
+     section longer than a page still breaks inside it, which is what we want
+     (a forced break-before would leave half-empty sheets through a 22-section
+     document). The heading rules cover that case, so a break never strands a
+     numbered heading, a sub-heading or an "In short" line at a page foot. */
+  [data-print-legal] > section {
+    break-inside: avoid;
+  }
+  [data-print-legal] h2,
+  [data-print-legal] h3 {
+    break-after: avoid;
+  }
+  [data-print-legal] li,
+  [data-print-legal] tr,
+  [data-print-legal] figure {
+    break-inside: avoid;
+  }
+  [data-print-legal] thead {
+    display: table-header-group;
+  }
+  [data-print-legal] p,
+  [data-print-legal] li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* LINKS SHOW WHERE THEY GO. On paper a link is just an underline, and these
+     documents cite the help centre and each other constantly. In-document
+     anchors are left bare (the target is on the same sheet), and so is the
+     mailto, whose label already IS the address. */
+  [data-print-legal] a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  [data-print-legal] a[href^="/"]::after {
+    content: " (partyreel.com" attr(href) ")";
+  }
+  [data-print-legal] a[href^="http"]::after {
+    content: " (" attr(href) ")";
+  }
+  [data-print-legal] a[href^="/"]::after,
+  [data-print-legal] a[href^="http"]::after {
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+}
