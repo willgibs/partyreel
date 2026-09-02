@@ -25,6 +25,17 @@ its own types and is not fooled. (2) A pipeline like `pnpm typecheck 2>&1 | tail
 (it happened once; the failure turned out to be lesson 1, but the chain could not know that). Run
 each gate step to a log and test its own exit code: `pnpm typecheck > /tmp/tc.log 2>&1 || { …; exit 1; }`.
 
+**Confirming a deploy is READY at the SHA you pushed** (the Vercel MCP lists deployments, but a
+one-line poll is faster and scriptable): `curl -s -H "Authorization: Bearer $VERCEL_TOKEN"
+"https://api.vercel.com/v6/deployments?projectId=prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB&teamId=team_ht9qAVBQVZf60dpGNJUwmaj5&limit=12"`
+(add `&target=production` for prod), match `meta.githubCommitSha` to your SHA and wait for `state`
+READY; `/v3/deployments/<uid>/events` carries the build log, including the build gate's own
+`[ignore-build]` line. Never echo the token.
+
+**Shell gotcha (zsh):** `for h in $VAR` does NOT word-split an unquoted variable in zsh, so a
+multi-line variable becomes one iteration (one curl of a three-line "URL" returned 0 bytes,
+2026-09-02); pipe into `while read h` or use `${(f)VAR}`.
+
 ## Test accounts + fixtures (live testing runs on disposable test data ONLY)
 
 - **Accounts:** `willg97@gmail.com` = the host (Pro) · `hi@willgibs.com` = a Free host ·
