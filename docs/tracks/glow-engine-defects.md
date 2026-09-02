@@ -1,7 +1,7 @@
 ---
 track: glow-engine-defects
 status: open
-cut: "a370800"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
+cut: "791fd4f"
 preview: false
 owns:
   - src/components/shared/glow.tsx
