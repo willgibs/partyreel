@@ -269,10 +269,18 @@ async function runUpload(args: {
         uploadedBytes += blob.size;
         const eTag = xhr.getResponseHeader("ETag");
         if (!eTag) {
+          // A missing part ETag is a BUCKET MISCONFIGURATION (R2 CORS stopped exposing
+          // the ETag header), never something a guest did or can fix — so it follows the
+          // uploadFile contract's rule below: the operator detail goes to the console for
+          // triage, the guest gets copy they can act on. It used to name the header and
+          // the bucket, which read like a broken app to the person holding the phone.
+          console.error(
+            "uploadFile: multipart part missing ETag (the R2 bucket CORS must expose the ETag header)",
+            { partNumber: part.partNumber },
+          );
           return {
             ok: false,
-            message:
-              "Upload couldn't be verified (missing ETag). The bucket must expose the ETag header.",
+            message: "Something went wrong with that upload. Please try again.",
           };
         }
         parts.push({ partNumber: part.partNumber, eTag });

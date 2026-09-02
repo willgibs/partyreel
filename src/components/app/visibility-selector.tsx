@@ -8,10 +8,23 @@ import { cn } from "@/lib/utils";
 
 type Visibility = Database["public"]["Enums"]["event_visibility"];
 
-const OPTIONS: { value: Visibility; label: string; Icon: typeof Globe }[] = [
-  { value: "open", label: "Public", Icon: Globe },
-  { value: "password", label: "Password", Icon: KeyRound },
-  { value: "private", label: "Private", Icon: Lock },
+/**
+ * The word for each visibility state, single-sourced (Will's ruling, 2026-09-02:
+ * "Public sounds much clearer than open"). ★ "Open" is the ACCEPTING-UPLOADS state and
+ * never a visibility word: the two were written separately, so the settings selector
+ * said Public while the event header chip said Open, for the same `visibility = 'open'`
+ * row. Read this record; do not re-type a label next to the enum.
+ */
+export const VISIBILITY_LABELS: Record<Visibility, string> = {
+  open: "Public",
+  password: "Password",
+  private: "Private",
+};
+
+const OPTIONS: { value: Visibility; Icon: typeof Globe }[] = [
+  { value: "open", Icon: Globe },
+  { value: "password", Icon: KeyRound },
+  { value: "private", Icon: Lock },
 ];
 
 // One-line hint shown under the selector for the active choice (single-sourced so the
@@ -45,7 +58,7 @@ export function VisibilitySelector({
       }}
       className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
     >
-      {OPTIONS.map(({ value: optionValue, label, Icon }) => (
+      {OPTIONS.map(({ value: optionValue, Icon }) => (
         <ToggleGroupPrimitive.Item
           key={optionValue}
           value={optionValue}
@@ -59,7 +72,7 @@ export function VisibilitySelector({
           )}
         >
           <Icon className="size-3.5" />
-          {label}
+          {VISIBILITY_LABELS[optionValue]}
         </ToggleGroupPrimitive.Item>
       ))}
     </ToggleGroupPrimitive.Root>

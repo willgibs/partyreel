@@ -11,6 +11,26 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `product-truth` integrated (`1352bb7`)
+
+The first wave-1 track through the manifest model: stubbed by the Orchestrator, adopted at boot,
+handed off in the manifest (`d752a9b`), integrated in its own window with the lane check, the
+staleness check and the doc-eye pass, the manifest flipped inside the merge. Gate on the merged tree:
+1519 tests, 244 static pages, each step on its own exit code.
+
+Merged into `launch-prep` at `1352bb7` (2026-09-02). The app and guest surfaces stopped saying untrue
+things: eight of the nine gaps the help-catalog research found closed here, the ninth being
+marketing's. The host video refusal named both paid plans, not Pro alone; a completed Stripe Checkout
+finally got a confirmation, read once from `?upgraded=1` then stripped from the URL and worded by the
+server so it never claims a plan the webhook has not written; the event header chip started saying
+"Public" for `visibility = 'open'`, leaving "Open" to mean accepting uploads; `restoreEventAction` got
+its own result type so `mediaStillRemoved` leaves the action rather than dying in it, without widening
+the shared `ActionResult` (the toast reading it is deferred, in an unowned component); the "missing
+ETag" bucket misconfiguration went to the console and left the guest copy they can act on; `tiers.ts`
+stopped citing a retired 5-min / 2-GB video limit; the guest 404 stopped blaming an event for "ending"
+in a product with no end date; the unfurl stopped promising "no account" where one is required; and the
+host's Trash stopped listing a guest's own deletion behind a Restore `restore_media` always refused.
+
 ## 2026-09-02 — MILESTONE-17: prod = the operating model for parallel tracks and the library round
 
 `main` @ tag `milestone-17` (`42c5cd2`; `launch-prep` `37e143b` merged `--no-ff`, then `launch-prep`

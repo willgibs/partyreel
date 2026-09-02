@@ -10,6 +10,7 @@ import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { FollowingSection } from "@/components/app/dashboard/following-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { TrashSection } from "@/components/app/dashboard/trash-section";
+import { UpgradedToast } from "@/app/(app)/dashboard/upgraded-toast";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { Button } from "@/components/ui/button";
@@ -48,9 +49,21 @@ export default async function DashboardPage({
 }: {
   // The feed is deep-linkable via ?filter= (all|events|uploads|likes|trash);
   // legacy ?tab= bookmarks still resolve (see resolveInitialFilter).
-  searchParams: Promise<{ tab?: string; filter?: string }>;
+  // `upgraded=1` is where Stripe Checkout lands a buyer (the route's success_url).
+  searchParams: Promise<{ tab?: string; filter?: string; upgraded?: string }>;
 }) {
-  const { tab, filter } = await searchParams;
+  const { tab, filter, upgraded } = await searchParams;
+  // Exactly "1", the only value the checkout route sends: a hand-typed ?upgraded=x
+  // must never manufacture a payment confirmation.
+  const justUpgraded = upgraded === "1";
+  // Where the toast sends the buyer once it has spoken, so the flag can't survive a
+  // reload or a copied URL. Keeps any feed deep-link the buyer already had.
+  const feedParams = new URLSearchParams();
+  if (tab) feedParams.set("tab", tab);
+  if (filter) feedParams.set("filter", filter);
+  const dashboardUrl = feedParams.size
+    ? `/dashboard?${feedParams.toString()}`
+    : "/dashboard";
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here. Kept
@@ -191,6 +204,17 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
+      {justUpgraded && (
+        <UpgradedToast
+          // The webhook is the only writer of profiles.tier, and Stripe can land the
+          // buyer here before it fires, so the claim is scoped to what this render can
+          // actually see. `tier` is read fresh above on every dashboard render.
+          applied={tier !== "free"}
+          planName={planName}
+          nextUrl={dashboardUrl}
+        />
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <PageHeading>Dashboard</PageHeading>

@@ -35,8 +35,10 @@ helpers in [`r2/delete.ts`](../../src/lib/r2/delete.ts): `deleteR2Objects()` chu
   `remove_my_upload(uuid)` RPC (re-checks the caller owns the row via the `get_my_uploads` host-arm/guest-arm
   predicates, then soft-removes; idempotent). ★ A guest's self-deletion of an upload they made to SOMEONE
   ELSE's event is marked **`media.removed_by_uploader=true` = PRIVATE to that host**: excluded from the
-  host's bin (`listRecentlyDeletedMedia`) AND refused by `restore_media` (the uploader's deletion wins; it
-  still auto-purges + counts in that host's standby meter). A host deleting their OWN event's upload leaves
+  host's bin by `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (the RLS policy
+  does NOT filter it, so dropping that line un-hides the rows — it was missing until 2026-09-02, and the
+  bin offered a Restore the RPC always refused) AND refused by `restore_media` (the uploader's deletion
+  wins; it still auto-purges + counts in that host's standby meter). A host deleting their OWN event's upload leaves
   it `false` (host-restorable, identical to the event-gallery Remove). The marker is write-locked — set only
   by the owner-context RPC, deliberately NOT in the `authenticated (status, removed_at)` grant.
 
