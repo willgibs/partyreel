@@ -1,4 +1,4 @@
-import { PhoneShell } from "../screens/phone-shell";
+import { PhoneShell } from "./phone-shell";
 
 /**
  * One labeled exploration in a touchpoint comparison: a number, a name, the
@@ -30,7 +30,11 @@ export function Variant({
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{rationale}</p>
       </div>
-      {framed ? <PhoneShell className="max-w-[320px]">{children}</PhoneShell> : children}
+      {framed ? (
+        <PhoneShell className="max-w-[320px]">{children}</PhoneShell>
+      ) : (
+        children
+      )}
     </div>
   );
 }

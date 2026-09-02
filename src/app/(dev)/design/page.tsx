@@ -31,12 +31,12 @@ export default async function DesignIndexPage({
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
         Partyreel · design lab
       </p>
-      <h1 className="font-heading mt-2 text-4xl text-balance">The Workbench</h1>
+      <h1 className="mt-2 font-heading text-4xl text-balance">The Workbench</h1>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
         One place for Partyreel&rsquo;s UI: a live reference of the real shipped
         components and tokens, synced by construction, plus a sandbox to
-        prototype new designs before they reach the app. Browse the whole library
-        from the sidebar.
+        prototype new designs before they reach the app. Browse the whole
+        library from the sidebar.
       </p>
 
       {/* The two halves. */}
@@ -53,7 +53,7 @@ export default async function DesignIndexPage({
           icon={<FlaskConical className="size-4" />}
           title="Sandbox"
           count={`${COUNTS.sandbox} explorations`}
-          blurb="Polished prototypes of new designs, built before integrating into the data-heavy app."
+          blurb="The workshop: polished prototypes whose ruling is still open, built before integrating into the data-heavy app."
         />
       </div>
 
@@ -73,18 +73,18 @@ export default async function DesignIndexPage({
           blurb="The live UI primitives."
         />
         <JumpCard
-          href={link("/design/system")}
+          href={link("/design/record")}
           icon={<LayoutGrid className="size-4" />}
-          title="Composed screens"
-          blurb="The system across surfaces."
+          title="The record"
+          blurb="Every ruling, one line each."
         />
       </div>
 
       {/* The sandbox library, grouped by surface (quiet size signal). */}
       <h2 className="mt-10 text-sm font-semibold">Sandbox</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-        Explorations grouped by surface. Each records the shipped direction and
-        why.
+        The boards whose ruling is still open, grouped by surface. Every ruling,
+        shipped or pending, is on the record.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         {sandboxSurfaces.map((group) => (
@@ -115,7 +115,8 @@ export default async function DesignIndexPage({
 }
 
 function firstSandboxId(groups: { entries: { href: string }[] }[]): string {
-  const href = groups[0]?.entries[0]?.href ?? "/design/c/entry";
+  const href =
+    groups[0]?.entries[0]?.href ?? "/design/c/marketing-decomposition";
   return href.replace("/design/c/", "");
 }
 

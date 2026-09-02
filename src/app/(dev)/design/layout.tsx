@@ -3,6 +3,12 @@ import { Suspense } from "react";
 
 import { LabNav } from "./lab-nav";
 import "./design.css";
+// The production marketing sheet loads in the lab on purpose (the library round,
+// 2026-09-02): the sandbox's marketing boards and the marketing library render
+// on the real [data-mkt-*] grammar instead of a lab copy. Its containment
+// contract (no :root, no bare elements, mkt- keyframes, tokens on [data-mkt])
+// is what makes loading it here harmless to every other lab page.
+import "@/app/(marketing)/marketing.css";
 
 // The lab's heading face is the SAME Urbanist the app loads (root layout's
 // --font-display): the live Reference inherits it natively, and the Sandbox's
@@ -11,7 +17,7 @@ import "./design.css";
 // follow-up.
 
 // Never indexed, never linked: the lab exists only behind the gate
-// (see gate.ts; production 404s without the key).
+// (see src/lib/design-gate; production 404s without the key).
 export const metadata: Metadata = {
   title: "V1 design lab",
   robots: { index: false, follow: false },

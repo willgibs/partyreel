@@ -12,8 +12,8 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { ReelFrame } from "@/components/marketing/frames";
 
-import { DesktopFrame } from "../components/marketing-lab-shared";
-import { Variant } from "../components/variant-frame";
+import { DesktopFrame } from "./marketing-lab-shared";
+import { Variant } from "./variant-frame";
 
 /**
  * Touchpoint: MARKETING DECOMPOSITION (Track B F5 round 1, 2026-08-25).

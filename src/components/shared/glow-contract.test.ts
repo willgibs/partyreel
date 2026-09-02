@@ -247,9 +247,10 @@ describe("the spill engine CSS", () => {
   });
 
   it("does not collide with a keyframe name already defined elsewhere", () => {
-    // Keyframes are document-global and the last definition wins. This repo
-    // already has nine collisions between design.css and production (logged to
-    // ROADMAP); the engine must not add a tenth.
+    // Keyframes are document-global and the last definition wins. The lab once
+    // carried nine collisions with production (deleted in the library round;
+    // src/app/keyframe-uniqueness.test.ts holds the count at zero); the engine
+    // must not add one.
     const names = (rel: string) =>
       [...read(rel).matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]);
     const mine = [...engineCode.matchAll(/@keyframes\s+([\w-]+)/g)].map(

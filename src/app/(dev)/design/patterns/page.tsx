@@ -9,6 +9,7 @@ import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Button } from "@/components/ui/button";
 
+import { marketingImage } from "@/lib/constants/marketing-media";
 import { requireDesignKey } from "@/lib/design-gate/server";
 import { SetNameStepDemo } from "../reference/interactive-demos";
 import { RefHeader, RefSection, Row, Spec } from "../reference/reference-ui";
@@ -112,7 +113,10 @@ export default async function PatternsPage({
       <RefSection title="Forms and info">
         <div className="grid gap-3 sm:grid-cols-2">
           <SetNameStepDemo />
-          <Spec label="Anonymous info" hint="shared/anonymous-info · tap to open">
+          <Spec
+            label="Anonymous info"
+            hint="shared/anonymous-info · tap to open"
+          >
             <Row>
               <span className="flex items-center gap-1.5 text-sm">
                 Anonymous
@@ -134,9 +138,9 @@ export default async function PatternsPage({
 function Poster({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative size-24 overflow-hidden rounded-lg bg-gallery">
-      {/* eslint-disable-next-line @next/next/no-img-element -- local sample asset */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- a local manifest asset */}
       <img
-        src="/design/p03.jpg"
+        src={marketingImage("concert-confetti").src}
         alt=""
         className="size-full object-cover opacity-90"
       />
@@ -158,7 +162,7 @@ function RouteErrorMock() {
         <h3 className="font-heading text-2xl text-balance">
           Something went wrong
         </h3>
-        <p className="text-pretty text-sm text-muted-foreground">
+        <p className="text-sm text-pretty text-muted-foreground">
           That&apos;s on us, not you. Try again, and if it keeps happening, let
           us know.
         </p>

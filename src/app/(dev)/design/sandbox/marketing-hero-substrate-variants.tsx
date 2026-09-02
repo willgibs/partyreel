@@ -11,7 +11,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import { DesktopFrame } from "../components/marketing-lab-shared";
+import { DesktopFrame } from "./marketing-lab-shared";
 
 /**
  * Touchpoint: MARKETING HERO SUBSTRATE (Track B F5 round 2, 2026-08-25).
