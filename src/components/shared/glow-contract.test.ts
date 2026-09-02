@@ -119,6 +119,21 @@ describe("the spill primitive", () => {
     expect(glowCode).toMatch(/runId > 0/);
   });
 
+  it("arms a one-shot against the VIEWPORT, not against its own height", () => {
+    // The lamp is `position: absolute; inset: 0`, so its box is the CALLER's
+    // wrapper and can be several viewports tall. An element-relative 0.35 is
+    // unreachable there (35% of a 3000px lamp is more pixels than an 800px
+    // screen holds), so the observer never trips and the one-shot never fires:
+    // no error, no warning, just a beat that does not happen. The hook's
+    // viewportFraction is the rescue (armingThreshold, use-in-view-once.ts, and
+    // its own test pins the arithmetic); dropping it here would put the silent
+    // failure straight back, and only on the tall surfaces nobody tests on.
+    const glowFn = declBody(glowCode, "export function Glow(");
+    expect(glowFn).toMatch(
+      /useInViewOnce<HTMLDivElement>\([\s\S]*?viewportFraction:/,
+    );
+  });
+
   it("accepts no className", () => {
     const glowFn = declBody(glowCode, "export function Glow(");
     // Tailwind's filter/mask utilities live in the utilities layer, which
@@ -325,7 +340,9 @@ describe("the spill engine CSS", () => {
     // DECLARES. That was `opacity: var(--glw-strength)` from the shared rule --
     // the beat fully lit before it fires, and permanently for anyone who opted
     // out of motion. The resting value has to be glw-bloom's own 0% keyframe.
-    const from = engineCode.match(/@keyframes glw-bloom\s*\{\s*0%\s*\{([^}]*)\}/);
+    const from = engineCode.match(
+      /@keyframes glw-bloom\s*\{\s*0%\s*\{([^}]*)\}/,
+    );
     expect(from, "glw-bloom 0% keyframe not found").not.toBeNull();
     const fromOpacity = /opacity:\s*([^;]+);/.exec(from![1]);
     const fromScale = /scale:\s*([^;]+);/.exec(from![1]);

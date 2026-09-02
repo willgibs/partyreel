@@ -111,7 +111,17 @@ export function Glow({
   // shape's contract calls for is read. The unused observer is cheap and it
   // keeps the branch out of the render tree.
   const ambient = useAmbientPause<HTMLDivElement>();
-  const arrival = useInViewOnce<HTMLDivElement>(0.35);
+  // ★ ARMING IS VIEWPORT-RELATIVE, because a lamp is routinely taller than the
+  // screen. This element is `position: absolute; inset: 0`, so its box is the
+  // caller's wrapper: a full-bleed underlight or a chapter-height field can be
+  // several viewports tall, and 35% of THAT is more pixels than the screen can
+  // hold. The observer would then never trip and the one-shot would simply
+  // never fire, silently. The fraction arms it once the lamp fills 35% of the
+  // SCREEN instead, and takes the earlier of the two, so every lamp shorter
+  // than the viewport keeps exactly the behaviour it had.
+  const arrival = useInViewOnce<HTMLDivElement>(0.35, undefined, {
+    viewportFraction: 0.35,
+  });
 
   const ref = oneShot ? arrival.ref : ambient.ref;
   const paused = oneShot ? false : ambient.paused;
