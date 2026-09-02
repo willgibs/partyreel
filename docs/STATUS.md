@@ -397,7 +397,9 @@ manifest fill.
    one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
    and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
    **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) `legal-billing-truth` integrated at `2f98157`, and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening` and `account-deletion` were spawned after the first three handed off;
-   **`ops-hardening` integrated at `b0c2ba3`** (its migration applied, the heartbeat exercised live); `demo-seed`
+   **`ops-hardening` integrated at `b0c2ba3`** (its migration applied, the heartbeat exercised live) and
+   **`account-deletion` at `244f57e`** (its migration applied, the contract check green, the cards walked);
+   wave 1 is complete; `demo-seed`
    was spawned with them and integrated at `ec69d7f` (the script is in; the prod run waits on Will's
    curated folder). Integration: 1 + 2 together → a
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
@@ -408,8 +410,11 @@ manifest fill.
 8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
    reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
    rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.
-9. **`/admin/jobs` on `admin.partyreel.com` after the next milestone** (it is host-gated, so the preview
-   alias cannot show it): four cards, the purge switch, Run now; the admin session needs your TOTP.
+9. **Two admin looks on `admin.partyreel.com` after milestone-19** (the admin portal is host-gated, so
+   the preview alias cannot show them; the session needs your TOTP): `/admin/jobs` (four cards, the purge
+   switch, Run now) and the Delete account card on `/admin/accounts/<id>` (the retyped-email guard). If you
+   want the self-serve deletion exercised through the UI as well, do it on a throwaway host: it is
+   immediate and cancels the TEST plan.
 10. **The purchase toast, a ten-second look:** open `/dashboard?upgraded=1` as the Pro host on prod or
    the alias; one toast should say "You're on Pro." and the flag should vanish from the URL. The
    browser tooling could only see it indirectly (a background tab throttles hydration).

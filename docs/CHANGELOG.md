@@ -11,6 +11,43 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `account-deletion` integrated (`244f57e`)
+
+Merged into `launch-prep` at `244f57e` (2026-09-02). Self-serve account deletion shipped end to end.
+The `/account` danger zone deletes an account immediately and permanently: it cancels any Stripe
+subscription FIRST and refuses the whole request if Stripe will not play, so "deleted but still
+billed" is unreachable; then stamps `profiles.deletion_requested_at`, bins every hosted event through
+the existing `softDeleteEvent`, takes the address off `newsletter_signups`, anonymises the profile
+(email, display name, handle, avatar; never an entitlement column, which stays the webhook's) and bans
+the auth user. The re-verification, a password or a fresh emailed code, is enforced inside the server
+action rather than the dialog, because the attack it exists to stop is a borrowed session.
+`sweepDeletedAccounts` finishes the job from the daily purge cron: legal-hold filter, then R2 objects
+including the reel `.mp4`, then `purge_media_rows`, then the event rows, and the `auth.users` row only
+at a `mustCount`-verified zero events, since that FK chain cascades. A forensic hold on any of the
+account's own events outranks the request: the event is skipped whole and the account waits
+anonymised. `/admin/accounts/[id]` gained the same trigger behind admin + AAL2 and a retyped-email
+guard, plus the in-progress state. `/account` also gained an Email preferences card: the four tier-2
+switches, and a marketing switch whose OFF state keeps both halves of the privacy policy's removal
+promise. Privacy and Terms moved to version 1.1 to describe the control that now exists, including
+that a deletion cancels a plan at that moment rather than at period end, and the two help articles
+followed. Two measured facts came out of the round: a GoTrue ban invalidates an already-issued access
+token (the `getUser()` landmine paying off), and Stripe raises `resource_missing` on an already-
+canceled subscription. A third was a bug: an HTML entity eats the leading whitespace of its own JSX
+text node, which had been rendering "Stay out of view.Hide" on `/privacy` since before this round.
+At integration the migration was applied through the Supabase MCP and its header's rolled-back contract
+check ran against prod and aborted with `ROLLBACK_OK` (neither `anon` nor `authenticated` can update
+the column, the service role can stamp it, the partial index is there; the advisors show no delta),
+`types.ts` was regenerated and the one cron line wired (`9be533d`; eleven sweeps now). Walked on the
+launch-prep alias as the Pro host: the Email preferences card (five switches, Product news off) and
+the Delete account card; the dialog names the two events, the plan cancellation, what survives in other
+hosts' albums and the no-restore rule, offers the emailed code for a Google-origin account and keeps the
+delete button disabled until verified (dismissed, not confirmed). `/privacy` and `/terms` read Version
+1.1 with the self-serve wording and no glued words; both help articles carry their new sections. The
+end-to-end deletion had been proven by the track against the real Supabase, R2 and Stripe TEST with
+disposable hosts, including the hold and the cross-tenant survivals; the operator card is host-gated
+and gets its look on `admin.partyreel.com` at the milestone. Gate on the merged tree: 1577 tests, 244
+static pages.
+
 ## 2026-09-02 — Track `ops-hardening` integrated (`b0c2ba3`)
 
 Merged into `launch-prep` at `b0c2ba3` (2026-09-02). Every backend job is now operable from `/admin`
