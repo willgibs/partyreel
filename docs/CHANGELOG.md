@@ -11,6 +11,37 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `ops-hardening` integrated (`b0c2ba3`)
+
+Merged into `launch-prep` at `b0c2ba3` (2026-09-02). Every backend job is now operable from `/admin`
+with zero silent failures. One additive migration adds `job_runs` (deny-all, service-role only) and
+four `ops_flags` kill switches; the purge cron, the backup Worker's reconcile and prune, and the
+nightly DB-backup Action each open a run and close it with a status, a duration and their own counts,
+and a paused job logs a SKIPPED run so pausing never reads as a fault. The two jobs that cannot reach
+the database report through a new `/api/internal/job-run` on a URL DERIVED from `PRUNE_API_URL`, so
+nothing new had to be deployed. Their postures are opposite on purpose: the reconcile and the DB
+backup run anyway when the heartbeat is unreachable, the prune and the purge cron refuse. The purge
+cron, the only scheduled app-side code, carries the platform freshness scan and raises one Sentry
+`job_missed_run` per job with no terminal row inside 1.5x its cadence, using the same pure `jobHealth`
+the console renders. `/admin/jobs` shows all four with their last runs, the switches, and Run now for
+the one job the app can honestly start; an unreadable heartbeat draws a loud banner instead of empty
+cards. The public /contact and /careers forms gained the one limiter in the app that fails CLOSED,
+because they have no capability token behind them and each accepted submission spends the Resend quota
+the breaker alerts also send on. `next.config.ts` drops `X-Powered-By` and adds HSTS, nosniff, a
+referrer policy and a Permissions-Policy (no CSP: that is its own round). And guest capability tokens
+are scrubbed from every telemetry channel, not just error events: an event processor, a breadcrumb
+hook and a replay-frame hook in all three runtimes, matching the token shape as well as the `/e/` route.
+At integration the migration was applied through the Supabase MCP (`job_runs` with RLS on and no
+policy, the default writes revoked, two indexes, four switches seeded on; the advisors unchanged in
+kind, `job_runs` joining the deny-all INFO set), `types.ts` regenerated (`d157d15`), the
+`PRUNE_API_SECRET` repository secret set so the nightly backup reports in, and the heartbeat exercised
+on the launch-prep alias: a manual purge run wrote an `ok` row (1.3 s, the freshness scan reporting
+four jobs checked and none missed), the switch turned off made the next run answer `skipped, paused`
+and write a `skipped` row, and the switch went back on. The headers and both refusals verified on the
+alias by curl. `/admin/jobs` is host-gated and gets its visual walk on `admin.partyreel.com` at the
+milestone; the backup Worker redeploys once prod carries the heartbeat route, so its prune never
+fails closed against a 404. Gate on the merged tree: 1561 tests, 244 static pages.
+
 ## 2026-09-02 — Track `demo-seed` integrated (`ec69d7f`)
 
 Merged into `launch-prep` at `ec69d7f` (2026-09-02). `scripts/seed-demo-event.mjs` turns a folder of

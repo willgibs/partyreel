@@ -55,3 +55,7 @@ wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orch
   now gates every push), `legal-billing-truth` (`2f98157`: `.env.example`, the print block in `globals.css`,
   `features.ts`, `jsonld.tsx`, the home privacy ledger, `PRICING.md`, `billing-caps.md`). A lane touching
   any of those syncs this.
+- `ec69d7f` `demo-seed` (`scripts/seed-demo-event.mjs`). `b0c2ba3` + `d157d15` `ops-hardening`: `next.config.ts`
+  (headers), `src/app/api/cron/purge/route.ts`, `src/app/api/internal/`, `src/app/admin/jobs/`, `src/lib/security/`,
+  the Sentry files, `workers/backup/src/`, `.github/workflows/db-backup.yml`, `src/lib/db/types.ts` (job_runs).
+  A lane touching the cron route, the Sentry files or the limiters syncs this.
