@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { BLOG_REDIRECTS } from "./src/lib/content/blog-redirects";
+
 const nextConfig: NextConfig = {
+  // Retired blog slugs (the placeholder posts the blog launched with) 308 to their successors.
+  // The map lives in src/lib/content/blog-redirects.ts so a test can hold it against the live
+  // slugs; this is the only config surface the blog touches.
+  async redirects() {
+    return BLOG_REDIRECTS.map(({ from, to }) => ({
+      source: `/blog/${from}`,
+      destination: `/blog/${to}`,
+      permanent: true,
+    }));
+  },
   images: {
     // AVIF preferred, WebP fallback (array order matters). The default config
     // serves WebP only; the hero poster is the marketing LCP element, so the

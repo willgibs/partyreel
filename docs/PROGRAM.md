@@ -75,8 +75,11 @@ one, say so: "resume `lp/<track>`".)
    `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`.
 4. Confirm the invariant: `git branch --show-current` = `lp/<track>` AND
    `git merge-base --is-ancestor origin/launch-prep HEAD` succeeds.
-5. Read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, then follow CLAUDE.md's
-   working loop. First push: `git push -u origin lp/<track>` — every push auto-deploys your review
+5. A fresh worktree has NO `node_modules` and NO `.env.local` (gitignored): `nvm use` then
+   `pnpm install --frozen-lockfile`, and copy `.env.local` from the primary checkout before the
+   first gate or `pnpm dev` (the env-validating instrumentation hook fails the dev server without
+   it). Then read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, and follow
+   CLAUDE.md's working loop. First push: `git push -u origin lp/<track>` — every push auto-deploys your review
    preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (builds queue one-at-a-time on the
    Hobby plan; UI-review only — the allow-list-gated flows fail there by design, see CLAUDE.md
    "Local dev vs. live testing").

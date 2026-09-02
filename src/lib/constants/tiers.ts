@@ -387,8 +387,10 @@ export function formatLimit(
 
 // ≈ figures for the pricing page — illustrative, derived from the GB cap so the
 // copy can't drift from the enforced number. ~4 MB/photo, ~150 MB/min 1080p video.
-const AVG_PHOTO_BYTES = 4 * 1024 ** 2;
-const VIDEO_BYTES_PER_MIN = 150 * 1024 ** 2;
+// Exported (2026-09) so the blog's spec components can cite the rule of thumb itself
+// (<PhotoAverageSize />, <VideoMinuteSize />) instead of an author typing "4 MB".
+export const AVG_PHOTO_BYTES = 4 * 1024 ** 2;
+export const VIDEO_BYTES_PER_MIN = 150 * 1024 ** 2;
 
 /** "≈ X photos or Y min of video" for a byte cap, for friendly capacity copy. */
 export function friendlyCapacity(bytes: number): {
@@ -399,4 +401,27 @@ export function friendlyCapacity(bytes: number): {
     photos: Math.round(bytes / AVG_PHOTO_BYTES),
     videoMinutes: Math.round(bytes / VIDEO_BYTES_PER_MIN),
   };
+}
+
+/**
+ * The capacity estimate as a sentence fragment ("19,200 photos or 9 hours of video").
+ * One formatter for every surface that says it (the blog's <CapacityEstimate />, /pricing's
+ * `capacityPhrase`), so two pages never describe one cap in two ways.
+ * `video: false` renders photos only, which is what the Free tier gets (photos-only).
+ * Locale is pinned: this renders on the server and in tests, and a machine-dependent
+ * thousands separator would make llms.txt / snapshot output drift by host.
+ */
+export function formatCapacity(
+  bytes: number,
+  { video = true }: { video?: boolean } = {},
+): string {
+  const { photos, videoMinutes } = friendlyCapacity(bytes);
+  const photosText = `${photos.toLocaleString("en-US")} photos`;
+  if (!video) return photosText;
+  // Hours from two hours up (the /pricing threshold the site shipped with); minutes below.
+  const videoText =
+    videoMinutes >= 120
+      ? `${Math.round(videoMinutes / 60).toLocaleString("en-US")} hours of video`
+      : `${videoMinutes.toLocaleString("en-US")} minutes of video`;
+  return `${photosText} or ${videoText}`;
 }

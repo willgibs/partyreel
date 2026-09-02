@@ -244,7 +244,14 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
   explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
   milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
-  drop to ChatGPT-only if first impressions warrant; **move the remaining `(paper)` pages onto the
+  drop to ChatGPT-only if first impressions warrant; **the blog library's follow-ons** (2026-09):
+  promote `?page=` to real `/blog/page/[n]` routes once deep-page indexing matters (today a cold load
+  of a shared `?tag=`/`?page=` URL paints the unfiltered first page before hydration corrects it); a "Start here" curated strip above the
+  rail once the archive passes ~40; the featured card's `Latest` eyebrow becoming the post's purpose
+  label (a POV hero should read as an opinion, not a news item; the tag `kind` field is in place); a
+  founder-voice origin post NEEDS A RULING first (the zero-team relaxation is /about-only); the
+  incumbent claims in the `compared` posts get re-verified against the named products' current
+  behaviour on each refresh (`updated` convention in the brief); **move the remaining `(paper)` pages onto the
   cinema rhythm** (Will's 2026-08-28 ruling covers legal, privacy and contact too — blog/careers/press
   arrive via their own branches, so this is the leftover trio, and `(paper)` retires when the last one
   moves); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
@@ -397,9 +404,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   structured intake shipped 2026-08-28; the neutralized copy already permits automation) + auto-routing
   rules in `/admin/support`; published language must keep committing to outcomes only (the
   promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
-- **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — question-shaped
-  comparison/blog content for assistant retrieval (category pages stay brand-nameless per Will's
-  2026-08-28 ruling) · `.md` mirrors of key pages (the llms spec's optional convention) · the
+- **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — the blog half
+  SHIPPED in the library round (2026-09: 23 posts, question-shaped `faq` blocks + FAQPage on hubs
+  and comparisons, incumbents named and rivals category-level per Will's 2026-08-28 ruling; category
+  pages stay brand-nameless); still open: `.md` mirrors of key pages (the llms spec's optional convention) · the
   `/u/[slug]` sitemap/robots decision (ADR-0019 says indexable; needs a slug feed) · WebSite
   SearchAction (needs a real `?q=` route) · AI-referral analytics (UA-tagged hits on /llms.txt).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is

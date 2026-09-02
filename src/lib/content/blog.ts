@@ -5,6 +5,12 @@ import { isMarketingImageId } from "@/lib/constants/marketing-media";
 import { formatEventDate } from "@/lib/utils";
 
 import { type BlogCover, coverFor } from "./blog-covers";
+import {
+  BLOG_TAG_IDS,
+  type BlogTagId,
+  audienceTags,
+  getBlogTag,
+} from "./blog-tags";
 
 import { AUTHOR_IDS, DEFAULT_AUTHOR_ID, getAuthor } from "./authors";
 import {
@@ -26,8 +32,9 @@ export const blogFrontmatterSchema = z.object({
   /**
    * ★ CAPPED AT 80 (Will, 2026-08-28). This is a LAYOUT contract, not a style preference: the index
    * is built on cards whose titles are meant to fill their measure evenly, and the page reads the
-   * way it does because the featured title lands at ~3 lines and library cards at 2. Shipped titles
-   * run 47-72, so 80 is the ceiling that keeps that rhythm without cramping an author. The cards
+   * way it does because the featured title lands at ~3 lines and library cards at 2. At three
+   * columns a card fits about 60 characters of ordinary words; 80 is the ceiling that keeps the grid
+   * whole (the card clamps), measured on the wall rather than assumed. The cards
    * ALSO line-clamp, so an over-long title can never break the layout, but failing the build here
    * means the content agent finds out at authoring time instead of shipping a silently cut title.
    */
@@ -36,14 +43,73 @@ export const blogFrontmatterSchema = z.object({
     .min(1)
     .max(
       80,
-      "title must be 80 characters or fewer (aim 45-75): blog cards clamp to 2 lines and the featured card to 3, so a longer title ships visibly truncated",
+      "title must be 80 characters or fewer (aim 45-60): a library card holds two lines at three columns and the featured card three, so a longer title ships visibly truncated",
     ),
   description: z.string().min(1).max(160),
   /** Published date — drives sort order, the byline, and RSS pubDate. */
   date: z.string().regex(ISO_DATE, "date must be YYYY-MM-DD"),
   updated: z.string().regex(ISO_DATE, "updated must be YYYY-MM-DD").optional(),
   author: z.enum(AUTHOR_IDS).default(DEFAULT_AUTHOR_ID),
-  tags: z.array(z.string()).default([]),
+  /**
+   * Registered ids only (blog-tags.ts): a typo fails the BUILD, like `author` and `cover`.
+   * One or two tags (the card prints at most two chips, so a third would be invisible) and at
+   * most one AUDIENCE (weddings / parties / corporate): a post is written for one room.
+   */
+  tags: z
+    .array(z.enum(BLOG_TAG_IDS))
+    .min(
+      1,
+      "tags must name at least one registered tag (see BLOG_TAGS in src/lib/content/blog-tags.ts)",
+    )
+    .max(
+      2,
+      "at most two tags: the card prints two chips and would hide a third",
+    )
+    .refine((tags) => new Set(tags).size === tags.length, {
+      message: "tags must not repeat",
+    })
+    .refine((tags) => audienceTags(tags).length <= 1, {
+      message:
+        "at most one audience tag (weddings / parties / corporate); pair it with a purpose tag",
+    }),
+  /**
+   * Optional Q&A rendered after the body AND emitted as FAQPage JSON-LD, verbatim. Plain text
+   * only: the `<>` guard stops an author reaching for `<ProPrice />` in an answer (it would ship
+   * as literal text into the structured data) and doubles as the </script> guard for the inlined
+   * JSON-LD. Numbers are fenced separately in blog.test.ts: a FAQ answer is the one place a
+   * marketed figure can only be typed, so answers point at /pricing instead of quoting caps.
+   */
+  faq: z
+    .array(
+      z.object({
+        q: z
+          .string()
+          .trim()
+          .min(1)
+          .max(120)
+          .refine((q) => !/[<>]/.test(q), {
+            message: "faq questions are plain text (no JSX or HTML)",
+          }),
+        a: z
+          .string()
+          .trim()
+          .min(1)
+          .max(
+            400,
+            "faq answers are plain text of 400 characters or fewer: they render verbatim and ship into FAQPage JSON-LD",
+          )
+          .refine((a) => !/[<>]/.test(a), {
+            message:
+              "faq answers are plain text (no JSX or HTML); spec components cannot be used here",
+          }),
+      }),
+    )
+    .min(1)
+    .max(8)
+    .refine((items) => new Set(items.map((i) => i.q)).size === items.length, {
+      message: "faq questions must not repeat",
+    })
+    .optional(),
   /**
    * Optional art direction: a `MARKETING_IMAGES` id. Omit it and `coverFor` derives a stable one
    * from the slug, so no post is ever artless. Validated against the manifest here so a typo fails
@@ -79,33 +145,47 @@ export function getAllBlogSlugs(): string[] {
   return getAllPosts().map((post) => post.slug);
 }
 
-export function getAllTags(): string[] {
-  const tags = new Set<string>();
-  for (const post of getAllPosts()) {
-    for (const tag of post.frontmatter.tags) tags.add(tag);
-  }
-  return Array.from(tags).sort();
-}
-
-// Same-tag posts first (then recency) for "Related posts".
+// "Keep reading": scored, not same-tag-first.
+//
+// The first version was "same-tag posts first, then recency". That degenerates on a real archive:
+// every audience tag matches a third of the posts, so the two NEWEST same-tag posts (the hero and
+// its neighbour) landed in nearly every ending of that audience. The score below weighs a shared
+// AUDIENCE (the room the reader is in) over a shared PURPOSE, and breaks ties by NEAREST publish
+// date rather than newest, so the archive's endings spread instead of funnelling to the top.
+// blog.test.ts bounds how often any one post may appear across all endings.
 //
 // `exclude` is what keeps the article's ending honest: chronological neighbours are shown ABOVE
-// related posts, and on a small archive the two sets are nearly identical, so without it the same
-// post appears twice within one screen. The page passes the neighbours it already rendered.
+// related posts, and on a small archive the two sets overlap, so without it the same post appears
+// twice within one screen. The page passes the neighbours it already rendered.
+function relatedScore(a: BlogPost, b: BlogPost): number {
+  let score = 0;
+  for (const tag of a.frontmatter.tags) {
+    if (!b.frontmatter.tags.includes(tag)) continue;
+    score += getBlogTag(tag).kind === "audience" ? 2 : 1;
+  }
+  return score;
+}
+
+function msApart(a: BlogPost, b: BlogPost): number {
+  return Math.abs(
+    Date.parse(a.frontmatter.date) - Date.parse(b.frontmatter.date),
+  );
+}
+
 export function getRelatedPosts(
   post: BlogPost,
   limit = 3,
   exclude: ReadonlySet<string> = new Set(),
 ): BlogPost[] {
-  const others = getAllPosts().filter(
-    (p) => p.slug !== post.slug && !exclude.has(p.slug),
-  );
-  const sharesTag = (p: BlogPost) =>
-    p.frontmatter.tags.some((t) => post.frontmatter.tags.includes(t));
-  return [
-    ...others.filter(sharesTag),
-    ...others.filter((p) => !sharesTag(p)),
-  ].slice(0, limit);
+  return getAllPosts()
+    .filter((p) => p.slug !== post.slug && !exclude.has(p.slug))
+    .map((p) => ({ p, score: relatedScore(post, p), gap: msApart(post, p) }))
+    .sort(
+      (x, y) =>
+        y.score - x.score || x.gap - y.gap || x.p.slug.localeCompare(y.p.slug),
+    )
+    .slice(0, limit)
+    .map((x) => x.p);
 }
 
 /**
@@ -140,7 +220,8 @@ export type BlogListItem = {
   authorName: string;
   authorRole: string;
   readingTime: string;
-  tags: string[];
+  /** Registered ids (blog-tags.ts); the UI prints the registry LABEL for each. */
+  tags: BlogTagId[];
   /** Resolved server-side (explicit frontmatter cover, else the slug-derived fallback) so the
       client filter island never touches the resolver or the manifest. */
   cover: BlogCover;

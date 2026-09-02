@@ -17,7 +17,11 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // `<` is escaped as \u003c (valid JSON, identical when parsed) so no string that reaches
+      // any emitter (a blog title, a FAQ question) can close the script tag early.
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }

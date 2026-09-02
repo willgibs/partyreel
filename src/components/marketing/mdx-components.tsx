@@ -12,11 +12,31 @@ import {
 import Image from "next/image";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import { MatrixMark } from "@/components/marketing/matrix-mark";
+import { HEADING_SCROLL_MT } from "@/components/marketing/reading/heading-contract";
 import { Kbd } from "@/components/shared/kbd";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
-import { planById } from "@/lib/constants/tiers";
+import {
+  AVG_PHOTO_BYTES,
+  EVENT_PASS_RENEWAL_PRICE_LABEL,
+  MAX_EVENTS,
+  MAX_REEL_SECONDS,
+  type PlanId,
+  type Tier,
+  VIDEO_BYTES_PER_MIN,
+  formatCapacity,
+  formatLimit,
+  planById,
+  videosAllowedForTier,
+} from "@/lib/constants/tiers";
+import { TEASER_LIMIT } from "@/lib/events/gallery-access";
+import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { cn, formatBytes } from "@/lib/utils";
 
 // Components available to every MDX article (help now, blog later). next-mdx-remote v6
@@ -31,14 +51,97 @@ import { cn, formatBytes } from "@/lib/utils";
 // ── Inline spec values (single-sourced from limits.ts / tiers.ts) ───────────────
 // The universal per-upload ceiling (photos + videos; size is the only gate).
 export const UploadSize = () => <>{formatBytes(MAX_UPLOAD_BYTES)}</>;
-export const FreeStorage = () => (
-  <>{formatBytes(planById("free").storageBytes)}</>
+// The original help-center trio, kept as ALIASES of the generic pair below so the two
+// dialects can never disagree (help articles still use these names).
+export const FreeStorage = () => <PlanStorage id="free" />;
+export const EventPassStorage = () => <PlanStorage id="event_pass" />;
+export const EventPassPrice = () => <PlanPrice id="event_pass" />;
+export const ProPrice = () => <PlanPrice id="pro_100" />;
+
+// ── The wider spec family (the blog library, 2026-09) ───────────────────────────
+// Naming convention: a name ending in a UNIT (Seconds, Days, Size) renders the bare numeral or
+// formatted size and the author writes the unit; a name for a THING (PlanStorage, PlanPrice,
+// CapacityEstimate) renders the formatted label. No `bytes` props anywhere: a literal byte
+// count in MDX is exactly the drift this family exists to prevent.
+export const ReelSeconds = ({ tier }: { tier: Tier }) => (
+  <>{MAX_REEL_SECONDS[tier]}</>
 );
-export const EventPassStorage = () => (
-  <>{formatBytes(planById("event_pass").storageBytes)}</>
+export const ReelStyleCount = () => <>{STYLE_CATALOG.length}</>;
+export const RecoveryWindowDays = () => <>{RECENTLY_DELETED_WINDOW_DAYS}</>;
+export const InactiveDays = () => <>{INACTIVE_DAYS}</>;
+export const InactiveWarningDays = () => <>{WARN_BEFORE_DAYS}</>;
+export const OverCapGraceDays = () => <>{OVER_CAP_GRACE_DAYS}</>;
+export const RenewalNudgeDays = () => <>{RENEWAL_NUDGE_DAYS}</>;
+export const TeaserCount = () => <>{TEASER_LIMIT}</>;
+/** Events that may exist on a tier; `pro` renders the unlimited word. */
+export const EventLimit = ({ tier = "free" }: { tier?: Tier }) => (
+  <>{formatLimit(MAX_EVENTS[tier])}</>
 );
-export const EventPassPrice = () => <>{planById("event_pass").priceLabel}</>;
-export const ProPrice = () => <>{planById("pro_100").priceLabel}</>;
+export const PlanStorage = ({ id }: { id: PlanId }) => (
+  <>{formatBytes(planById(id).storageBytes)}</>
+);
+export const PlanPrice = ({ id }: { id: PlanId }) => (
+  <>{planById(id).priceLabel}</>
+);
+export const EventPassRenewalPrice = () => (
+  <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
+);
+/** The rule-of-thumb sizes behind every capacity estimate ("about 4 MB a photo"). */
+export const PhotoAverageSize = () => <>{formatBytes(AVG_PHOTO_BYTES)}</>;
+export const VideoMinuteSize = () => <>{formatBytes(VIDEO_BYTES_PER_MIN)}</>;
+/** "19,200 photos or 9 hours of video" for a plan; photos only where the tier has no video
+ *  (so `plan="free"` renders the photo count alone, with no second component to reach for). */
+export const CapacityEstimate = ({ plan }: { plan: PlanId }) => {
+  const p = planById(plan);
+  return (
+    <>
+      {formatCapacity(p.storageBytes, { video: videosAllowedForTier(p.tier) })}
+    </>
+  );
+};
+
+// ── Comparison-table marks: the SAME glyphs as the /pricing matrix (matrix-mark.tsx) ──
+// Anything other than a plain yes/no (Partial, Free only, By default) is written as words.
+export const Yes = () => <MatrixMark value label="Yes" />;
+export const No = () => <MatrixMark value={false} label="No" />;
+
+// ── Tables (the blog's comparison posts). GFM tables already render as <table> inside
+// `prose-help` with hairline rows from --tw-prose-td-borders; these overrides add the
+// register and the phone behaviour. The WRAPPER scrolls, bleeding to the viewport edge on
+// phones so a four-column matrix gets the full width; the label column stays on one line so
+// a row keeps its name while the reader scrolls the values. No sticky first column: that
+// needs an opaque ground matching the paper chapter, and the pricing matrix does without it
+// too. The header register is pricing's (0.08em), not the eyebrow's, since column heads
+// are often proper nouns. Numerals are tabular Inter, never mono (the R6 mono ruling: mono
+// is for numerals that align in a column; these cells mix words and figures).
+function MdxTable(props: ComponentProps<"table">) {
+  return (
+    <div className="-mx-4 my-8 [scrollbar-width:thin] overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <table {...props} className="my-0 w-full min-w-[32rem] text-sm" />
+    </div>
+  );
+}
+// `align` arrives from a GFM `|:---:|` / `|---:|` column; the utility only fills in when the author
+// left a column unaligned, so a right-aligned numeric column keeps its heads over its figures.
+function MdxTh(props: ComponentProps<"th">) {
+  return (
+    <th
+      {...props}
+      className={cn(
+        "px-3 py-2 align-bottom text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase first:pl-0 last:pr-0",
+        !props.align && "text-left",
+      )}
+    />
+  );
+}
+function MdxTd(props: ComponentProps<"td">) {
+  return (
+    <td
+      {...props}
+      className="px-3 py-2.5 align-top text-muted-foreground tabular-nums first:pl-0 first:font-medium first:whitespace-nowrap first:text-foreground last:pr-0"
+    />
+  );
+}
 
 // ── Callout — the main richness add for long-form ───────────────────────────────
 // Grayscale + brand only (the destructive token is the one system "alert" color);
@@ -160,7 +263,7 @@ function toText(node: ReactNode): string {
 // The scroll margin rides --mkt-header-h (the one chrome-height knob; same calc as
 // SectionShell) so a TOC/anchor jump clears the sticky header even if its height is
 // ever retuned (the old hardcoded scroll-mt-24 silently coupled to h-16).
-const HEADING_SCROLL_MT = "scroll-mt-[calc(var(--mkt-header-h,4rem)+1rem)]";
+// HEADING_SCROLL_MT lives in reading/heading-contract.ts (an import-free leaf the ToC can share).
 
 // The copy-link affordance (R6): server-rendered markup only — a real anchor
 // (no-JS still jumps) that the ONE HeadingAnchorsDelegate island upgrades to
@@ -289,4 +392,24 @@ export const mdxComponents = {
   EventPassStorage,
   EventPassPrice,
   ProPrice,
+  ReelSeconds,
+  ReelStyleCount,
+  RecoveryWindowDays,
+  InactiveDays,
+  InactiveWarningDays,
+  OverCapGraceDays,
+  RenewalNudgeDays,
+  TeaserCount,
+  EventLimit,
+  PlanStorage,
+  PlanPrice,
+  EventPassRenewalPrice,
+  PhotoAverageSize,
+  VideoMinuteSize,
+  CapacityEstimate,
+  Yes,
+  No,
+  table: MdxTable,
+  th: MdxTh,
+  td: MdxTd,
 };
