@@ -12,6 +12,15 @@ included where recorded; the full original prose lives in git history. The found
 
 ## 2026-09-01 — The blog library: 23 posts, six registered tags, four rising-tide upgrades
 
+**Merged into `launch-prep` by the Orchestrator at `e70d241` (2026-09-02)**, full gate green on the merged
+tree (1337 tests, 155 static pages); the one conflict was the CHANGELOG's top, and the three auto-merged
+docs were read by eye. Re-verified on the launch-prep alias at `e70d241`: the rail reads Everything 23,
+Weddings 8, Parties 4, Corporate 3, How-to 12, Compared 7, Product 8, with the pager live; the sitemap
+carries 23 blog URLs, `/llms.txt` 8 and `/llms-full.txt` all of them; a retired placeholder slug
+redirects; a post renders its Questions `<dl>` with `Article` + `FAQPage` JSON-LD and six Keep-reading
+links; /pricing states capacity through the shared `formatCapacity` ("19,200 photos or 9 hours of
+video"); no sideways scroll on any of the three; console clean. Prod at milestone-15, on Will's OK.
+
 `lp/blog-library` (Agent handoff; the round's commits from `89dded3` to `dc9c08d` plus the docs
 commit, cut from `launch-prep` at `332f8aa`). Gate green at every commit; 1316 → **1336 tests**;
 production build renders all 23 posts, their OG cards and the feed. Verified on the dev server,
