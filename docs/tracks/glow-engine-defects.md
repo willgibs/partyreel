@@ -2,7 +2,7 @@
 track: glow-engine-defects
 status: open
 cut: "791fd4f"
-preview: false
+preview: true
 owns:
   - src/components/shared/glow.tsx
   - src/components/shared/glow-contract.test.ts
