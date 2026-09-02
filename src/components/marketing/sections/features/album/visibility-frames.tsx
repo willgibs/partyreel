@@ -23,7 +23,20 @@ import { TEASER_LIMIT } from "@/lib/events/gallery-access";
  */
 
 const EVENT_NAME = "Maya & Jay's Wedding";
-const OPEN_TILES = ["wedding-golden", "party-balloons", "wedding-toast", "festival-crowd"];
+const OPEN_TILES = [
+  "wedding-golden",
+  "party-balloons",
+  "wedding-toast",
+  "festival-crowd",
+  "reception-table",
+  "wedding-rings",
+  "party-dj",
+  "wedding-arch",
+  "concert-confetti",
+  "reception-hall",
+  "wedding-petals",
+  "festival-lights",
+];
 const TEASER_TILES = [
   "wedding-golden",
   "reception-table",
@@ -97,7 +110,6 @@ export function VisibilityFrames() {
       <Frame icon={Globe} title="Public" hint={VISIBILITY_HINTS.open}>
         <div className="self-center">
           <Tiles ids={OPEN_TILES} cols={4} />
-          <Tiles ids={[...OPEN_TILES].reverse()} cols={4} />
         </div>
       </Frame>
 
