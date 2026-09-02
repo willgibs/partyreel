@@ -7,6 +7,7 @@ import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { sendOnce } from "@/lib/email/send";
 import { applicationReceivedEmail } from "@/lib/email/templates";
 import { serverEnv } from "@/lib/env";
+import { checkPublicFormRate } from "@/lib/security/public-form-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { careerSchema, type CareerInput } from "@/lib/validation/careers";
 
@@ -16,7 +17,7 @@ export type CareerResult =
   | { ok: true }
   | {
       ok: false;
-      code: "validation" | "not_found" | "send_failed";
+      code: "validation" | "not_found" | "send_failed" | "rate_limited";
       message?: string;
     };
 
@@ -30,18 +31,41 @@ export async function submitApplication(
   }
   const data = parsed.data;
 
-  // Honeypot: real applicants leave this hidden field empty. Drop bots silently.
+  // Honeypot: real applicants leave this hidden field empty. Drop bots silently. Checked BEFORE the
+  // limiter so a bot caught here (which costs us nothing) never spends a real applicant's budget on
+  // a shared office address.
   if (data.website && data.website.trim() !== "") {
     return { ok: true };
   }
 
   const role = getJob(roleSlug);
   if (!role) {
-    return { ok: false, code: "not_found", message: "That role is no longer open." };
+    return {
+      ok: false,
+      code: "not_found",
+      message: "That role is no longer open.",
+    };
+  }
+
+  const requestHeaders = await headers();
+
+  // The rate gate (QA #14), FAILING CLOSED for the same reason as /contact: unauthenticated, one
+  // service-role insert plus one Resend send per accepted application, and no capability token
+  // behind it to hold the line if the counter goes dark.
+  const gate = await checkPublicFormRate("careers", requestHeaders);
+  if (!gate.allowed) {
+    return {
+      ok: false,
+      code: "rate_limited",
+      message:
+        gate.reason === "rate_limited"
+          ? "That is a lot of applications from this network. Please try again in a bit."
+          : "We could not accept that just now. Please try again in a minute.",
+    };
   }
 
   const admin = createAdminClient();
-  const userAgent = (await headers()).get("user-agent")?.slice(0, 500) ?? null;
+  const userAgent = requestHeaders.get("user-agent")?.slice(0, 500) ?? null;
 
   // DB row is authoritative (deny-all table, service-role admin client).
   const { data: row, error } = await admin

@@ -7,6 +7,7 @@ import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { sendOnce } from "@/lib/email/send";
 import { contactFormEmail } from "@/lib/email/templates";
 import { serverEnv } from "@/lib/env";
+import { checkPublicFormRate } from "@/lib/security/public-form-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
@@ -14,7 +15,11 @@ import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 // resolves copy via showActionError, so `message` is only for overrides.
 export type ContactResult =
   | { ok: true }
-  | { ok: false; code: "validation" | "send_failed"; message?: string };
+  | {
+      ok: false;
+      code: "validation" | "send_failed" | "rate_limited";
+      message?: string;
+    };
 
 export async function submitContactForm(
   input: ContactInput,
@@ -27,12 +32,31 @@ export async function submitContactForm(
   const data = parsed.data;
 
   // Honeypot: real users leave this hidden field empty. Pretend success, store nothing.
+  // Checked BEFORE the limiter on purpose: a bot caught here costs us nothing (no row, no email),
+  // so it must not spend the budget of a real person sharing the same office address.
   if (data.website && data.website.trim() !== "") {
     return { ok: true };
   }
 
+  const requestHeaders = await headers();
+
+  // The rate gate (QA #14). This form is unauthenticated and each accepted submission costs one
+  // service-role insert plus one Resend send, so it is the one limiter in the app that FAILS CLOSED:
+  // there is no capability token behind it to hold the line if the counter goes dark.
+  const gate = await checkPublicFormRate("contact", requestHeaders);
+  if (!gate.allowed) {
+    return {
+      ok: false,
+      code: "rate_limited",
+      message:
+        gate.reason === "rate_limited"
+          ? "That is a lot of messages from this network. Please try again in a bit."
+          : "We could not accept that just now. Please try again in a minute.",
+    };
+  }
+
   const admin = createAdminClient();
-  const userAgent = (await headers()).get("user-agent")?.slice(0, 500) ?? null;
+  const userAgent = requestHeaders.get("user-agent")?.slice(0, 500) ?? null;
 
   // The DB row is AUTHORITATIVE — written via the service-role admin client into the
   // deny-all contact_submissions table.
