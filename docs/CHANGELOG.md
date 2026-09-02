@@ -11,6 +11,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Track `ci-workflow` integrated (`192c708`)
+
+Merged into `launch-prep` at `192c708` (2026-09-02). Added `.github/workflows/ci.yml`: the four-step
+gate now runs on GitHub Actions for every push to `launch-prep` and `lp/*` and every pull request to
+`main`, on the pinned toolchain (Node from `.nvmrc`, pnpm 9.14.4, `--frozen-lockfile`), with the pnpm
+store cached and superseded runs of the same ref cancelled. `pnpm typecheck`, `pnpm lint`, `pnpm test`
+and `pnpm build` are four separately named steps, so the red step title is the diagnosis. Measuring the
+build against a genuinely empty environment showed it needs exactly two values,
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, both public by construction and
+therefore repository variables; the other three steps need no environment at all. The build step is
+guarded on those variables and skips with an annotation naming them until they are set, so a red run
+means broken code rather than unfinished setup. The gate was proven in both directions on the branch: a
+deliberately failing test turned a push red at the named `pnpm test` step and the revert turned it green
+again, and both commits stay on the branch as the proof. An agent's break now surfaces on its own push
+instead of inside the Orchestrator's integration window, which is what wider fan-out was waiting on.
+At integration the two repository variables were set from the Vercel project's values and `main` was
+added to the push triggers (milestone merges land without a pull request). Gate on the merged tree:
+1519 tests, 244 static pages.
+
 ## 2026-09-02 — Track `product-truth` integrated (`1352bb7`)
 
 The first wave-1 track through the manifest model: stubbed by the Orchestrator, adopted at boot,

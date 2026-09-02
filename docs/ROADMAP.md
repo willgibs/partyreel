@@ -20,6 +20,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **CI caches only the pnpm store**, so every run compiles cold (about 2m20s with the build skipped;
+  longer with it). If the wall time starts to bite, cache `.next/cache` too, keyed on the lockfile plus a
+  source hash (the `ci-workflow` track's note, 2026-09-02).
 - **The restore toast should read `mediaStillRemoved`** (the `product-truth` track, 2026-09-02:
   `restoreEventAction` now returns the count, and nothing reads it). The consumer is
   `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest
