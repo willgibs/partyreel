@@ -20,6 +20,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The root 404's browser tint.** The lit root `not-found` (outside every route group) inherits the root
+  layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
+  `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
+  the milestone-16 red-team, 2026-09-02).
 - **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
   problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
   UNLIT by ruling meanwhile: the wall is the ground, not a source.
@@ -53,48 +57,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   dragging the real surfaces; verified live on the panel. Ruled to run AFTER the library round, before
   branching agents. Everything on the glow boards reads its token rather than a literal, so the lab inherits
   whatever lands here for free.
-- **The design lab taxes production CSS, and nobody had measured it** (found verifying milestone-13,
-  2026-09-01). Tailwind v4 generates its utility layer from a scan of the source tree, and
-  `src/app/(dev)/design/` is in that tree, so a utility used ONLY by a lab specimen is still emitted into
-  the shared stylesheet every production page loads. Measured by diffing the homepage CSS of two
-  production deployments across the glow merge: **+2,752 bytes uncompressed, 26 selectors added and 0
-  removed, every one of them lab-only** (`-inset-14`, `accent-current`, `-bottom-16` and friends, each
-  with zero occurrences in production source). Small today and entirely dead weight (no production
-  element uses them), but it is a standing cost that grows every time the lab does, and the lab is now
-  the largest thing in the repo: **89 files, 29,463 lines** (`design.css` alone was 2,725 before round 0
-  cut it to 1,894).
-  ★ **THE LEVER EXISTS AND IS UNUSED.** `@source not "..."` is implemented in the installed Tailwind
-  4.3.0 (verified in `node_modules/tailwindcss/dist/lib.mjs`: paths must be QUOTED and the directive
-  cannot be nested), so it is one line at the top of `globals.css`. There is no `@source` anywhere
-  today, meaning the scan is fully automatic and the whole lab is in it. Caveat for whoever does it: it
-  also stops emitting classes the lab genuinely needs, and it does nothing about `design.css`'s own
-  bytes (those are excluded by the route-group import, not by the scanner). Pin the number in
-  [`perf/v1-baseline.md`](perf/v1-baseline.md) either way.
-  ★★ **AND THE BIGGER HALF IS NOT BYTES** (Will, 2026-09-01): the lab has become "a massive working
-  record of all experiments", and all that stale information distills what actually matters. Worse, the
-  volume of unused rules reads to a new agent as **a huge bible of design law they must obey**, which
-  works directly against rising tides, whose whole premise is that a better system can be reshaped
-  rather than worked around. So this is not a bytes cleanup: **distil the lab into a minimal internal
-  design-system library**, keeping the ratified primitives and the live decision records, and letting
-  git history hold the rest. Pre-launch. Round 0 started it for free (the doctrine's LAWS moved to
-  `design-system.md` and the engine left `design.css`, -31%); the pattern to repeat is "when something
-  is ratified, the rule leaves the lab with it".
-  ★★★ **SEQUENCED BY WILL (2026-09-01): this runs AFTER the Glow integration rounds, not before.**
-  "Let's go through all of our rounds of integrating the new Glow branches' work across marketing and
-  app. Once complete, we'll review everything still remaining in the lab, pull anything still remaining
-  that may benefit the streamlined design system library, and effectively wipe everything that's left
-  stale." Distilling first would freeze boards whose placements have not shipped yet, against the very
-  pattern above. The integration order: **R1 the home page ✅ (2026-09-01)** → R2 the guest surfaces
-  (doorbell arrival, locked door, awaiting-media; blocked on one ruling, since `/e/[token]` follows the
-  visitor's own theme and all three were argued on cinema, plus the sampling loader swap) → R3 the Get
-  Pro beam + the lit surface, which are entangled (three of four beam specimens already wear
-  `[data-lit]`) → R4 the publish beat's violet. **Then** the lab review.
-  ★ Two lab-fidelity findings to carry INTO that review, both the same class: moment 05's specimen is
-  vertically INVERTED from the surface it names (paper above / dark below, where production is the
-  opposite) and claims a 160px overhang where the real one is 63px; and moment 09's lamp does not
-  exist at all, since /press has no real photograph left to sample ("every frame is ours"), so its ship
-  verdict needs re-arguing or dropping. A specimen that does not model its own surface launders a guess
-  into a ruling.
+- **The design lab's CSS tax, CLOSED 2026-09-02 (the library round):** the lab and `docs/` left the
+  production scan (`@source not`; the lab compiles its own utilities from a second Tailwind entry that
+  references `src/app/theme.css`, never `globals.css`), and the home's main stylesheet went from 304,277 to
+  265,358 raw bytes (42,084 to 37,790 gzipped) with zero lab-only utilities left; the method and the columns
+  are [`perf/v1-baseline.md`](perf/v1-baseline.md) section 5, the arrangement is pinned by
+  `src/app/css-source-policy.test.ts`.
 - **`marketing-css-policy.test.ts` rule 3 is a bad system, not a good rule** (the round-0 rules audit,
   2026-09-01). Its `selectorLines()` treats ANY line ending in `,` as a selector, so multi-line CSS
   values are misparsed and a legitimate ` * ` inside `calc()` reads as a universal selector. It has
@@ -128,7 +96,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
   it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
   [`design-system.md`](systems/design-system.md), and it is already applied to three of four moment-12
-  specimens including the flagship Get Pro card, while the board and `design.css` both still say
+  specimens including the flagship Get Pro card, while the board and its sheet (`sandbox/glow-lab.css`) both still say
   "lab-local until you rule". If adopted its production surface is every dark card in the app, which is
   why it should not ride inside a round about light. ★ Do NOT un-apply `data-lit` from the specimens to
   re-judge them on today's card: those are bare divs with no ring, so removing the 9% hairline puts them
@@ -219,13 +187,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   finding: an already-built deployment never picks it up. Proven on one branch at one moment with
   one key: `lp/glow-doctrine`'s FIRST deployment still 404s on `/design` at its immutable URL while
   its latest serves the lab fine. `lp/about` is the remaining stale alias and will fix itself on its
-  next push. Nothing to do here beyond knowing it: if `/design` 404s on an `lp/*` alias, push again
-  before concluding anything about the env.
-- **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
-  production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
-  `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
-  definition wins, so any `/design` visit shadows the production definitions for the rest of the
-  session. Worth a uniqueness pin across the three sheets. (2) The repo has NO `forced-colors` and no
+  next push. Nothing to do here beyond knowing it: if `/design` (or `/design/marketing`, `/design/record`,
+  a `/design/c/<board>`) 404s on an `lp/*` alias, push again before concluding anything about the env.
+- **One real bug the glow round surfaced, out of its scope** (its sibling, nine production keyframe
+  names redeclared by `design.css`, closed 2026-09-02 in the library round: the blocks are gone and
+  `src/app/keyframe-uniqueness.test.ts` pins every sheet). The repo has NO `forced-colors` and no
   `@media print` rule on any production surface; the spill engine is the first thing in the repo to
   carry either, so the pattern to copy now exists.
 
@@ -311,11 +277,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `REPLY_LINE` const in the contact lab. The content-policy test already NAMES it as the standard
   line, which is the tell that it wants one home.
 
-- **Collapse the THREE FLIP implementations to one** (found in the /blog merge, 2026-08-29): the
+- **Collapse the TWO FLIP implementations to one** (found in the /blog merge, 2026-08-29; the stale
+  lab copy under `(dev)/design/event-feed/` went with the event-feed prototype, 2026-09-02): the
   shared [`use-flip.ts`](../src/lib/shared/use-flip.ts) (event feed + blog library, now two-axis and
-  covered by `use-flip.test.tsx`), a stale lab-local copy under `(dev)/design/event-feed/`, and a
-  third inlined in `use-sortable-grid.ts`. Only the shared one got the two-axis + prune work, so the
-  other two are now behind it. Behaviour-neutral consolidation; its own small round.
+  covered by `use-flip.test.tsx`) and a second inlined in `use-sortable-grid.ts`, which is behind it.
+  Behaviour-neutral consolidation; its own small round.
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,

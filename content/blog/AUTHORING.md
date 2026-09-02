@@ -97,7 +97,9 @@ plates. Will replaces the whole media set before launch; the ids stay.
 3. **Numbers come from components, never keyboards.** Every marketed figure reaches a post through
    a spec component reading the real constant, so nothing can drift. The family is listed below.
    A test scans bodies for typed sizes and prices; if you need a number that has no component,
-   add one to `mdx-components.tsx` reading the constant, and never type it.
+   add one to `src/components/marketing/mdx/spec-blog.tsx` (the blog lane's file) reading the
+   constant, and never type it; if the help center needs it too, the Orchestrator promotes it to
+   `mdx/spec-shared.tsx` at integration.
 4. **How-tos track shipped reality.** Only marketing pages present the product as-if-complete. If
    a post describes a flow, the flow has to exist today. Do not write about anything unshipped:
    there is no slideshow or projector mode (say "put the album on a screen"), no co-hosts, no
@@ -137,7 +139,9 @@ plates. Will replaces the whole media set before launch; the ids stay.
 
 ## The component vocabulary
 
-Available inside every post (`src/components/marketing/mdx-components.tsx`):
+Available inside every post. The shared vocabulary lives in
+`src/components/marketing/mdx/spec-shared.tsx` (Orchestrator-owned); blog-only additions go in
+`src/components/marketing/mdx/spec-blog.tsx`, the blog lane's own file (`docs/tracks/README.md`):
 
 - `<Callout type="info | tip | warning" title="...">` for the one aside that earns it.
 - `<Steps>` / `<Step title="...">` for a numbered procedure with bodies.

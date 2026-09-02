@@ -10,11 +10,17 @@
 
 ## What it is
 
-Ratified in V1 program Phase 1 (the gated `/design` lab; decisions live in
-`src/app/(dev)/design/touchpoints.ts`), made real in Phase 2: production tokens in
+Ratified in V1 program Phase 1 (the gated `/design` lab), made real in Phase 2: production tokens in
 [`src/app/globals.css`](../../src/app/globals.css), the craft pass across `src/components/ui/*`,
-and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is a standing
-instrument: prototype + compare there, ratify into `touchpoints.ts`, then transplant here.
+and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is two things and never a
+third (the library round, 2026-09-02): a **LIBRARY** of production imports (the reference pages render
+the real components and tokens, synced by construction; `/design/marketing` renders the marketing
+system on the cinema skin; the index is below) and a **WORKSHOP** that is empty by default (`sandbox/`
+holds only the boards whose ruling is still open). Prototype and compare there; when a ruling lands,
+the RULE moves here (or to its surface doc), the RECORD moves to
+[`docs/decisions/design-record.md`](../decisions/design-record.md), and the board is deleted (git
+keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per ruling, where
+the rule lives), rendered at `/design/record`.
 
 ## The identity: monochrome, media is the color
 
@@ -199,11 +205,20 @@ covers the album and the
 host experience · **chapter 3** opens on the reel, supports through events and pricing, and closes on
 the FAQ, the CTA and the tail.
 
+**Heroes: registers, not a template (Will, 2026-09-02).** "Every page does not need to have a single
+templated hero. In fact, that would be an incredibly boring site where you know exactly what to expect
+everywhere and therefore don't really want to explore." Variety is wanted; what is not wanted is "tons
+of very minor variants". So `PageHero` carries a few NAMED entrance registers (the marketing branch
+added `rise` and `cut`; the blur-rise trio on /help, /contact and /careers becomes a named third, with
+the h1 visible at paint), and a new hero either uses an existing register or adds a named one, never an
+unnamed tweak, and never condenses the existing ones into a single template.
+
 ## Light: SPILL, BEAM, and the lamp set
 
-> Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The lab boards
-> ([`/design/c/glow-doctrine`](../../src/app/(dev)/design/components/glow-doctrine-variants.tsx),
-> `glow-moments`) keep the decision RECORD and the specimens; the rules live here, because a rule
+> Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The two boards
+> ([`sandbox/glow-doctrine-variants.tsx`](../../src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx),
+> `glow-moments`) stand in the workshop for the placements still open; the rulings are
+> [on the record](../decisions/design-record.md#glow-doctrine) and the rules live here, because a rule
 > that lives only inside a 1,405-line lab TSX is a rule the next agent has to go excavating for.
 
 Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit
@@ -625,7 +640,7 @@ immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-
 
 The host event feed ([host-app.md](host-app.md)) is the densest motion cluster — all CSS-first,
 reduced-motion-safe, and var-tunable. The motion-defining picks were ratified in the
-[`/design/event-feed`](../../src/app/(dev)/design/event-feed) lab (Will 2026-06-22):
+event-feed lab ([on the record](../decisions/design-record.md#event-feed); Will 2026-06-22):
 - **A=Condense** — the sticky pill bar gains `data-stuck` once the feed scrolls past its top sentinel:
   a hairline + backdrop, and the pills shrink (`h-8`→`h-7`, smaller text) on a `transition-[transform,height,padding,font-size]`.
 - **B=Fade** (`[data-section-swap]`) — the feed container is re-keyed on a pill change (and the floating
@@ -753,24 +768,61 @@ controls (`items-center` centers children but the BOX stays edge-to-edge and eat
 its flanks — this once killed swipe-nav on all six shared-viewer surfaces). And the repo's
 react-hooks lint bans setState-in-effect sync resets — use the adjust-state-during-render pattern
 (prev-state comparison) for transient view resets.
+## The component index
+
+Every rendered component, where it lives, what it is for, and where its live specimen is (the lab
+renders production source, so the specimen IS the component). A component without a specimen gets one
+or a reason ([`marketing-library.test.ts`](../../src/app/(dev)/design/marketing/marketing-library.test.ts)
+enforces it for the marketing set).
+
+| component | file | for | specimen |
+| --- | --- | --- | --- |
+| the shadcn primitives (avatar, badge, button, card, dialog, drawer, dropdown-menu, form, input, input-otp, label, navigation-menu, popover, progress, select, separator, sheet, skeleton, sonner, switch, tabs, textarea, tooltip) | `src/components/ui/*` | the crafted primitives; semicolon-free generator style | `/design/components` (the Toaster is root-mounted; the toast demo fires it) |
+| `Logo`, `PlayBadge`, `EmptyState` | `src/components/shared/` | brand mark, the video badge, the typographic/iconographic/photographic empties | `/design/components` |
+| `PasswordStrengthMeter`, `SetNameStep` | `src/components/shared/` | the sign-up meter, the name step | `/design/components`, `/design/patterns` |
+| `NotFoundScreen`, `RouteError` | `src/components/shared/` | the dead ends (the error boundary is shown static) | `/design/patterns` |
+| `AnonymousInfo`, `CornerPlayBadge` (masonry) | `src/components/shared/` | the anonymous-upload explainer, the masonry tile badge | `/design/patterns` |
+| `PageHeading`, `Kbd`, `Container`, `LegalConsentLine`, `ActionTooltip`, `FloatingAddButton` | `src/components/shared/` | the app page title, key glyphs, the gutter, the consent line, the lightbox-only tooltip, the fixed Add pill | `/design/patterns` |
+| `Glow` | `src/components/shared/glow.tsx` | the spill engine (seam, throw, sweep, bloom, halo) | `/design/foundations` (Light) |
+| `GlowFilter` | `src/components/shared/glow-filter.tsx` | the turbulence field every Glow warps through; a document singleton | root layout only; never mounted in the lab |
+| `MediaLightbox`, `Masonry`, `AppShell`, `UploadThumbnail`, `ClaimUploadsOnAuth` | `src/components/shared/` | data- and provider-heavy; no in-lab harness yet | none (deferred, noted on the compositions page) |
+| `SectionShell`, `PaperChapter`, `PageHero`, `Eyebrow`, `MonoCaption` | `src/components/marketing/system/` | the section lockup and reveal, the paper cut, the hero at three scales, the two type atoms | `/design/marketing` |
+| `CardGrid`, `TiltCard`, `MediaSplit`, `Conveyor` | `src/components/marketing/system/` | the media frames: a tilt grid, the pointer-tracked card, the 7/5 split, the marquee | `/design/marketing` |
+| `Reveal`, `StatBand`, `CtaBand`, `DemoTicket`, `DemoCtaLink` | `src/components/marketing/system/` | the observer island, the counting band, the conversion band, the scannable demo ticket and its text link (both null without a demo event) | `/design/marketing` |
+| `MorphDelegate` | `src/components/marketing/system/morph-delegate.tsx` | the view-transition delegate (configured by `blog/cover-morph.tsx` and `sections/careers/role-morph.tsx`) | `/design/marketing` (on a real post) |
+| `WebAnalytics` | `src/components/marketing/system/web-analytics.tsx` | the analytics singleton and the `data-track` listener | listed on `/design/marketing`, mounted only in the marketing layout |
+| `BulkBarMock`, `SelectTile`, `ConfettiBurst`, `InlineReelPlayer`, `LearnChevron`, `LearnMoreLink`, `SampleReelOverlay`, `TextsReveal` | `src/components/marketing/sections/shared/` | the select-mode mocks, the celebration, the poster-first reel, the two learn links, the lazy sample overlay, the class-keyed line reveal | `/design/marketing` |
+| `EventCard`, `EventCardQr`, `FeedSection`, `StorageMeter`, `FilterChips`, the two empty teasers, `HostMediaGrid`, `RecentlyDeletedGrid`, `QrPresetPicker`, `ReviewSection` | `src/components/app/` | the real product compositions, from sample props | `/design/compositions` |
 
 ## Where it lives
 
-`src/app/globals.css` (tokens + utilities + guards, the single source) ·
+`src/app/globals.css` (tokens + utilities + guards, the single source; its `@theme` block and the `dark`
+variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
-`error.tsx` files · `src/app/(dev)/design/` (the lab: reference `design.css`, `touchpoints.ts`
-decision record, `/design/boom` probe). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
+`error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages, `touchpoints.ts` the rulings
+registry, `sandbox/` the open boards with their own sheets, the four probes) · `src/lib/design-gate/*` +
+`/api/design-gate` (the gate, outside the lab because production depends on it) ·
+[`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
 
 ## Gotchas / don't-revert
 
-- The lab's `design.css` deliberately DUPLICATES production tokens (a frozen reference sheet);
-  dedup is a Phase 8 task, don't "fix" it early.
+- The lab's `design.css` keeps the `.mono` mock sheet (the sandbox's frozen token set, the one
+  deliberate duplicate of production tokens: it is what the boards are judged in), the type layer and the
+  shared motion, and declares NO keyframes: keyframe names are document-global and the lab once shadowed
+  nine production names on every `/design` visit; `src/app/keyframe-uniqueness.test.ts` holds the count at
+  zero. A board's own CSS lives beside the board under `sandbox/`, imported by it, so it leaves with it.
 - 47 behavior pins (`*.test.tsx`, the component vitest project) freeze MediaLightbox / GuestUpload /
   LikesProvider behavior ahead of the Phase 4-5 decomposition — they assert behavior only, never
   styles, so token/craft changes don't touch them.
 - jsdom can't run the lightbox pause-on-navigate effect (portal/commit timing); that one pin was
   dropped on purpose — cover it in live device passes.
+- ★ **Two Tailwind entries, one theme, two scans** (the library round, 2026-09-02). `globals.css` excludes
+  the lab and `docs/` from its scan (`@source not`), and the lab compiles its own utilities from the entry at
+  the top of `design.css`, which `@reference`s `theme.css`. Never `@reference "globals.css"` from the lab: it
+  drags the exclusion along and the lab compiles nothing (19 rules against 695, measured). Never move a
+  token VALUE into `theme.css`: it holds only the variant and the `@theme` mapping. Pinned by
+  `src/app/css-source-policy.test.ts`.
 - `vitest.setup.ts` mocks sonner globally; `vi.unmock("sonner")` is the per-file escape hatch.
 - shadcn `src/components/ui/*` files are semicolon-free (generator style); app code uses
   semicolons. Don't reformat either direction.

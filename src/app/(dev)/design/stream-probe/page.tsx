@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ProbeTabs, UseClientSection } from "./probe-tabs";
 
 /**

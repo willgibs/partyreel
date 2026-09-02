@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 /**
  * The surface-paper theme contract (the mixed-theme chapter mechanism).
  * Marketing forces its themes (cinema = dark wrapper, paper pages/chapters =
- * `.surface-paper`), and the whole mechanism is three globals.css facts a
- * well-meaning refactor could silently drop:
+ * `.surface-paper`), and the whole mechanism is three facts (two in globals.css,
+ * the variant in theme.css) a well-meaning refactor could silently drop:
  *
  *  1. the light token block is aliased to `.surface-paper` (subtree re-entry
  *     to the paper theme inside `.dark`),
@@ -32,7 +32,14 @@ describe("globals.css surface-paper contract", () => {
   });
 
   it("guards the dark variant against paper subtrees", () => {
-    expect(globals).toContain(
+    // The variant moved to theme.css with the @theme block (the library round,
+    // 2026-09-02) so the design lab's own Tailwind entry can share it; the
+    // guard is the same line.
+    const theme = readFileSync(
+      join(process.cwd(), "src/app/theme.css"),
+      "utf8",
+    );
+    expect(theme).toContain(
       "@custom-variant dark (&:is(.dark *):not(.surface-paper *));",
     );
   });
@@ -92,7 +99,12 @@ describe("the lamp set is light, never UI", () => {
     /(?:^|[;{}])\s*(-{0,2}[a-zA-Z][\w-]*)\s*:([^;{}]*var\(--lamp-[^;{}]*)/g;
   const ALLOWED = new Set(["background", "background-image"]);
 
-  it("declares the five exactly once, in globals.css, outside @theme", () => {
+  it("declares the five exactly once, in globals.css, never inside theme.css's @theme", () => {
+    // The @theme block moved to theme.css (the library round, 2026-09-02); the
+    // lamps stay in globals.css, so no bg-lamp-N / text-lamp-N utility can exist.
+    const theme = strip(
+      readFileSync(join(process.cwd(), "src/app/theme.css"), "utf8"),
+    );
     for (let n = 1; n <= 5; n++) {
       const decl = new RegExp(`^\\s*--lamp-${n}:`, "gm");
       expect(
@@ -100,26 +112,23 @@ describe("the lamp set is light, never UI", () => {
         `--lamp-${n} declarations`,
       ).toBe(1);
       expect(strip(marketing)).not.toMatch(decl);
+      expect(theme, `--lamp-${n} inside theme.css`).not.toMatch(decl);
     }
     // Not in @theme: an @theme entry would emit bg-lamp-N / text-lamp-N
-    // utilities, which is exactly the reach this rule denies. Brace-matched,
-    // NOT sliced to the next known directive: @custom-variant sits ABOVE
-    // @theme in this file, so an index-to-index slice silently returns "" and
-    // the assertion below passes against nothing.
-    const start = globals.indexOf("@theme inline {");
+    // utilities, which is exactly the reach this rule denies. Brace-matched in
+    // theme.css, not sliced to the next known directive.
+    const start = theme.indexOf("@theme inline {");
     expect(start, "@theme inline block not found").toBeGreaterThan(-1);
     let depth = 0;
     let end = start;
-    for (let i = globals.indexOf("{", start); i < globals.length; i++) {
-      if (globals[i] === "{") depth++;
-      else if (globals[i] === "}" && --depth === 0) {
-        end = i;
+    for (let k = theme.indexOf("{", start); k < theme.length; k++) {
+      if (theme[k] === "{") depth++;
+      else if (theme[k] === "}" && --depth === 0) {
+        end = k;
         break;
       }
     }
-    const theme = globals.slice(start, end);
-    expect(theme.length, "the @theme slice is empty").toBeGreaterThan(1000);
-    expect(theme).not.toContain("--lamp-");
+    expect(theme.slice(start, end)).not.toMatch(/--lamp-\d/);
   });
 
   it("uses them only in gradients or in a re-exporting custom property", () => {

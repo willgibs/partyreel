@@ -1,15 +1,16 @@
-import { SURFACE_LABEL, type Surface, TOUCHPOINTS } from "./touchpoints";
+import { SANDBOX, SURFACE_LABEL, type Surface } from "./touchpoints";
 
 /**
- * THE WORKBENCH CATALOG (2026-06-19) — the SINGLE source for the lab's contents
- * and its navigation. Everything the sidebar, search, and landing show comes from
- * here, so the tool stays synced and adding any UI is ONE entry.
+ * THE WORKBENCH CATALOG (2026-06-19; reshaped in the library round, 2026-09-02):
+ * the SINGLE source for the lab's contents and its navigation. Everything the
+ * sidebar, search, and landing show comes from here, so adding a page is ONE
+ * entry.
  *
- * Two halves under one shell (Will's vision): REFERENCE is the real shipped UI,
- * synced by construction (Foundations + Components import production source);
- * SANDBOX is prototype explorations of new designs before integrating. LAB holds
- * the diagnostics. Sandbox groups derive from `touchpoints.ts` (by surface), so a
- * new exploration appears here automatically.
+ * Three zones under one shell. REFERENCE is the real shipped UI, synced by
+ * construction (every page imports production source), plus the record of every
+ * ruling. SANDBOX is the workshop: only the boards whose ruling is still open
+ * stand here (derived from `touchpoints.ts`, so a board appears and retires with
+ * its `board` field). LAB holds the diagnostics and runtime probes.
  */
 
 export type Status = "shipped" | "exploring" | "reference";
@@ -33,22 +34,20 @@ export type LabZone = {
 
 const SURFACE_ORDER: Surface[] = ["guest", "host", "shared", "marketing"];
 
-// Sandbox = the touchpoint explorations, grouped by the surface they prototype.
-// Shipped (a direction landed in production) vs exploring (still a sandbox idea).
+// Sandbox = the standing boards, grouped by the surface they prototype. A board
+// with a shipped pick still standing (a mixed verdict) reads as shipped.
 function sandboxGroups(): LabGroup[] {
   return SURFACE_ORDER.flatMap((surface) => {
-    const items = TOUCHPOINTS.filter((t) => t.surface === surface);
+    const items = SANDBOX.filter((r) => r.surface === surface);
     if (items.length === 0) return [];
     return [
       {
         label: SURFACE_LABEL[surface],
-        entries: items.map((t) => ({
-          href: `/design/c/${t.id}`,
-          label: t.title,
-          status: (t.decision !== undefined
-            ? "shipped"
-            : "exploring") as Status,
-          note: t.note,
+        entries: items.map((r) => ({
+          href: `/design/c/${r.id}`,
+          label: r.title,
+          status: (r.shipped ? "shipped" : "exploring") as Status,
+          note: r.board?.note ?? r.why,
         })),
       },
     ];
@@ -89,22 +88,22 @@ export const ZONES: LabZone[] = [
             status: "reference",
             note: "The real product components (event card, meter, share) from sample props.",
           },
+          {
+            href: "/design/marketing",
+            label: "Marketing",
+            status: "reference",
+            note: "The marketing system and the shared section atoms, on the real cinema skin.",
+          },
         ],
       },
       {
-        label: "Showcases",
+        label: "History",
         entries: [
           {
-            href: "/design/system",
-            label: "Composed screens",
+            href: "/design/record",
+            label: "The record",
             status: "reference",
-            note: "The system read across five surfaces.",
-          },
-          {
-            href: "/design/demo",
-            label: "Cohesive demo",
-            status: "reference",
-            note: "Shipped pieces composed together on one screen set.",
+            note: "Every ruling the lab has taken, one line each, with where the rule lives now.",
           },
         ],
       },
@@ -114,7 +113,7 @@ export const ZONES: LabZone[] = [
     id: "sandbox",
     label: "Sandbox",
     blurb:
-      "Prototype explorations of new designs, built before integrating into the data-heavy app.",
+      "The workshop: boards whose ruling is still open, grouped by the surface they prototype.",
     groups: sandboxGroups(),
   },
   {
@@ -122,17 +121,6 @@ export const ZONES: LabZone[] = [
     label: "Lab",
     blurb: "Diagnostics and runtime probes (gated, permanent).",
     groups: [
-      {
-        label: "Prototypes",
-        entries: [
-          {
-            href: "/design/event-feed",
-            label: "Event feed",
-            status: "exploring",
-            note: "Feel + ratify the stacked-feed pill behavior, the swap transition, and the urgency-reorder (+ the motion trial).",
-          },
-        ],
-      },
       {
         label: "Diagnostics",
         entries: [

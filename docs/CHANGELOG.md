@@ -11,6 +11,85 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Round 3, parts A and B: the operating model for parallel tracks, and the library round
+
+On `launch-prep` (`ece2a8a` through `000ecd6`), the first two workstreams of the round-3 plan (the
+third, the near-term roadmap as tracks, follows). The full gate on the final tree: 1513 tests, 244
+static pages, each step on its own exit code.
+
+**A. The operating model.** Every `lp/<track>` branch has a manifest in `docs/tracks/` (claimed path
+prefixes, rulings, handoff, record; `open` → `handed-off` → `integrated`), and two guards run in `pnpm
+test`: `track-manifests.test.ts` (well-formed manifests, no two live claims overlapping, the never-owned
+docs) and `single-source-policy.test.ts` (no UPPER_SNAKE constant exported from two modules under
+`src/lib`). The MDX component map split into `mdx/spec-shared.tsx` (Orchestrator-owned) plus
+`spec-help.tsx` and `spec-blog.tsx` (one per content lane), composed by `mdx-components.tsx`, which
+throws on a duplicate name. The Vercel build gate builds an `lp/*` push only when the manifest asks
+(`preview: true` or `status: handed-off`), the commit says `[preview]`, or the branch has no manifest;
+proven both ways on a throwaway branch by the gate's own log lines. PROGRAM.md carries the boot step,
+the merge-never-rebase sync rule, the handoff and the windowed per-track integration checklist;
+CLAUDE.md the docs rule and the Orient row. Three merged worktrees and four merged branches were
+pruned. Commits `ece2a8a`, `e58dff4`, `7284933`, `8eeff91`, `3115a6c`, `cb38b50`, `e45efea`, `31697da`.
+
+**B. The library round.** The design gate left the lab for `src/lib/design-gate` and
+`/api/design-gate` (`89e8e8d`); the lamp set became a module beside the contrast instrument
+(`13920fe`); the four open boards moved to `sandbox/` with their own sheets (`9b75ec1`); the 26 ruled
+boards, the screens mirror, the two showcase routes, the event-feed prototype, the unused font and the
+sample-photo pack were cut, their rulings distilled verbatim into `docs/decisions/design-record.md`,
+`touchpoints.ts` thinned to the `RULINGS` registry rendered at `/design/record`, `design.css` from 1,893
+to 243 lines with no keyframes (`keyframe-uniqueness.test.ts`) and `marketing.css` loading in the lab
+(`3e0dfa7`: 91 files, 18,164 lines removed); `/design/marketing` renders every marketing system
+component and shared section atom from production on the cinema skin, pinned by
+`marketing-library.test.ts`, with Light on foundations and the missing primitives and atoms on
+components and patterns (`cee27ae`); and the lab left the production CSS scan (`000ecd6`: `@source not`
+for the lab and `docs/`, the lab's own Tailwind entry, the theme in `src/app/theme.css`). The home's
+main stylesheet went from 304,277 to 265,358 raw bytes (42,084 to 37,790 gzipped) with zero lab-only
+utilities left; `docs/perf/v1-baseline.md` section 5 has the method and the columns.
+
+## 2026-09-02 — MILESTONE-16: prod = the legal round and the help catalog, and the live red-team across the batch
+
+`main` @ tag `milestone-16` (`9b61419`; `launch-prep` `5012e92` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). Migrations at parity, the full gate green on the merged tree
+(1489 tests, 245 static pages, every step on its own exit code), prod READY at the merge SHA. Will:
+"complete any remaining testing on launch prep and then merge to main for the full live red team
+across our recent work." The last preview check before the merge was the gated guest door as a
+signed-out guest (the `Test Wedding` event, email-gated): its entry sheet opens on arrival with "By
+continuing you agree to our Terms and Privacy Policy", both links in a new tab.
+
+**The live red-team on partyreel.com at `9b61419`, rounds 0 to 2b plus the blog, legal and help rounds:**
+
+- **Guards and negatives.** `/api/cron/purge` without its secret: 401 on GET, 405 on POST. A bogus
+  door token, post slug and help slug: 404 each. `/blog?tag=nope` and `?page=999`: 200, collapsing
+  to Everything and clamping to a real page by design. A retired blog slug: 308 to its successor.
+- **Metadata.** The OG images for the home, /privacy, /terms, a post and a help article all 200 as
+  `image/png` at the hashed URLs the pages declare (the unhashed path guesses 404, correctly).
+  `/llms.txt` on the canonical domain: 14,243 characters, 38 help + 8 blog links, the full-count
+  line; `/llms-full.txt`: all 59 help entries. Sitemap: 59 help, 23 blog, the legal pages' `lastmod`
+  from the legal single-source. The blog feed: 23 items. `theme-color` `#040404` on the legal pages.
+- **The home.** Section alignment reads centred, LEFT, centred, centred through chapter 1's tail and
+  LEFT, centred, LEFT across the paper chapter; the film-strip seam full-bleed, the reel pool 768px
+  over a 768px player with its radial mask, the Pro beam present; all four event teasers at two
+  lines; the skin wrapper's `overflow-x-clip` on the served HTML. The lit root 404 renders its one
+  seam over the filter host.
+- **Blog, pricing, curation.** The rail at Everything 23 / Weddings 8 / Parties 4 / Corporate 3 /
+  How-to 12 / Compared 7 / Product 8; a post with `Article` + `FAQPage` JSON-LD, its Questions
+  section, the chip ToC and five copy-link anchors; /pricing's capacity through the shared formatter;
+  /features/curation still rendering its bulk-select bar through the shared mock.
+- **Legal and help.** /privacy on the cinema skin with 17 sections and 29 anchors, the "Version 1.0 ·
+  Pending counsel review · Effective on launch" line and the `[ENTITY NAME]` / `[ADDRESS]` fill-ins
+  as ruled; /terms with 24 sections and 38 anchors; the logged-out login page's consent line with both
+  links; the help hub at 59 articles; an article reading "After a downgrade you get 45 days" from the
+  shared component, with the chip ToC, the print-aware body and pagination. The gated guest door on prod,
+  as a signed-out guest with the browser's remembered guest session cleared, opens its entry sheet on
+  arrival with the consent line and both legal links in a new tab.
+- **Narrow widths.** Through a same-origin iframe at 375 under a classic 17px scrollbar, the home,
+  /blog, /privacy and a help article are exactly viewport-wide (358/358) and a forced sideways
+  scroll lands at 0. Console clean on every page visited.
+
+**One finding, logged, not fixed:** the ROOT 404 (a path outside every route group, e.g.
+`/this-page-does-not-exist`) is the lit cinema page but ships the root layout's light `theme-color`
+(`#fcfcfc`), while a 404 inside the cinema group carries `#040404`; a light browser tint over a dark
+page. Pre-existing since the lit-404 round, one line in the ROADMAP.
+
 ## 2026-09-01 — The legal round: Privacy Policy + Terms of Service v1.0 (`lp/legal-docs`, pending integration)
 
 **Merged into `launch-prep` by the Orchestrator at `988aac3` (2026-09-02)**, full gate green on the merged

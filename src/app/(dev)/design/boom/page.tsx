@@ -1,4 +1,4 @@
-import { requireDesignKey } from "../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 
 // PERMANENT boundary probe (program Phase 2, slice 4). Behind the design-lab
 // gate (prod 404s without ?key=), this page throws during server render on

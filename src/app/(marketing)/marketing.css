@@ -1,5 +1,6 @@
 /* ════════════════════════════════════════════════════════════════════════════════
-   MARKETING MOTION + SKIN (Track B; imported ONLY by the (marketing) layout).
+   MARKETING MOTION + SKIN (Track B; imported by the (marketing) layout and, since the
+   library round (2026-09-02), by the design lab's layout, which the contract below makes safe).
 
    THE CONTAINMENT CONTRACT (pinned by marketing-css-policy.test.ts): this file
    persists app-wide once any marketing route has loaded (Next never unloads

@@ -1,17 +1,31 @@
 /**
- * THE PROTOTYPE CATALOG of the design lab. Each touchpoint page shows 2-3
- * labeled variants of ONE UX moment on the locked system (monochrome). It seeds
- * the lab's two standing purposes (lab refresh, 2026-06-19): a browsable design
- * reference, and a space to spin up multiple polished explorations per component
- * before integrating into the data-heavy app.
+ * THE RULINGS REGISTRY of the design lab (thinned in the library round, 2026-09-02).
  *
- * The interactive picking mechanism is RETIRED (decisions now happen in chat
- * with more context). What survives is the DESIGN RECORD: `decision` +
- * `decisionNote` are the SHIPPED variant and the why, rendered read-only on each
- * touchpoint page. `surface` groups the catalog in the sidebar (adding an
- * exploration to a surface = one new entry here, picked up automatically).
+ * One entry per ruling the lab has taken: what shipped, why in one line, and
+ * where the rule lives now. The long record (the ruling verbatim, the round's
+ * context, the board's files and last SHA) is docs/decisions/design-record.md,
+ * anchored by these ids and rendered at /design/record. The rules a reader must
+ * obey live in the system docs named in `lives`, never here.
+ *
+ * `board` is set ONLY while a board still stands in sandbox/ (its ruling is
+ * open). When the ruling lands: the rule moves to its system doc, the record doc
+ * keeps the history, the board is deleted, and `board` goes with it. SANDBOX and
+ * the sidebar derive from that, so this file is the one place a board is added
+ * or retired. The touchpoint dispatcher (c/[touchpoint]/page.tsx) maps the same
+ * four ids to their components.
  */
-export type TouchpointId =
+export type Surface = "guest" | "host" | "marketing" | "shared";
+
+/** Surface display labels: the ONE home (the sidebar, the record page and the
+ *  touchpoint header all import this, never redefine it). */
+export const SURFACE_LABEL: Record<Surface, string> = {
+  guest: "Guest",
+  host: "Host",
+  marketing: "Marketing",
+  shared: "Shared",
+};
+
+export type RulingId =
   | "entry"
   | "upload"
   | "gallery"
@@ -43,567 +57,387 @@ export type TouchpointId =
   | "glow-doctrine"
   | "glow-moments";
 
-/** Which product surface a touchpoint prototypes - the sidebar's grouping.
- *  "marketing" was reserved from the lab refresh until the marketing-identity
- *  round (2026-07-03) claimed it. Empty groups are dropped automatically. */
-export type Surface = "guest" | "host" | "marketing" | "shared";
+/** The four boards standing in sandbox/ (each has `board` set below). */
+export type SandboxId =
+  | "marketing-decomposition"
+  | "marketing-hero-substrate"
+  | "glow-doctrine"
+  | "glow-moments";
 
-/** Surface display labels - the ONE home (the sidebar + the touchpoint header
- *  both import this, never redefine it). */
-export const SURFACE_LABEL: Record<Surface, string> = {
-  guest: "Guest",
-  host: "Host",
-  marketing: "Marketing",
-  shared: "Shared",
-};
-
-export type Touchpoint = {
-  id: TouchpointId;
+export type Ruling = {
+  id: RulingId;
   title: string;
-  note: string;
-  /** The product surface this explores (groups the catalog in the sidebar). */
   surface: Surface;
-  /** Variant names by number (index 0 = V1) - context for the shipped record. */
-  variants: string[];
-  /** The SHIPPED variant number (the design record). Unset = nothing shipped. */
-  decision?: number;
-  /** Why that variant shipped (the rationale, kept as the record). */
-  decisionNote?: string;
+  /** An ISO date, a phase, an ADR, or "open" followed by what is still open. */
+  ruled: string;
+  /** "V<n> <name>" for a shipped variant; null when rejected, a placement list, or open. */
+  shipped: string | null;
+  /** The ruling in one line (the long form is the record doc). */
+  why: string;
+  /** Where the rule lives now: system-doc anchors and production paths. */
+  lives: string[];
+  /** Present only while the board stands in sandbox/. */
+  board?: { note: string; variants: string[] };
 };
 
-export const TOUCHPOINTS: Touchpoint[] = [
+export const RULINGS: Ruling[] = [
   {
     id: "entry",
     title: "Guest entry",
     surface: "guest",
-    note: "How the welcome moment is staged on a guest's phone",
-    variants: [
-      "Centered card",
-      "Bottom sheet",
-      "Full-screen welcome",
-      "Adaptive sheet + ghost grid",
-      "Full-screen marquee",
-      "Inline teaser + sticky bar",
-    ],
-    decision: 4,
-    decisionNote:
-      "the perfect combo: V2 staging for public events (real backdrop), ghost grid when locked/empty; lock mark above the heading; the account step framed as the host's safety choice, not a capture gate",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V4 Adaptive sheet + ghost grid",
+    why: "V2 staging for public events and a ghost grid when locked or empty; the account step framed as the host's safety choice.",
+    lives: ["docs/systems/guest-flow.md"],
   },
   {
     id: "upload",
     title: "Upload moment",
     surface: "guest",
-    note: "Where adding photos lives and how progress feels",
-    variants: [
-      "Dropzone card",
-      "Floating action bar",
-      "Add tile in the grid",
-      "Floating + tile combo",
-    ],
-    decision: 4,
-    decisionNote:
-      "combo minus the add tile (too busy): header Add on load, floating Add appears on scroll (never both), in-gallery progress, green check, subtle play badge on video tiles",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V4 Floating + tile combo",
+    why: "Header Add on load and a floating Add on scroll, never both; progress in the gallery, a green check, a play badge on video.",
+    lives: ["docs/systems/guest-flow.md", "docs/systems/uploads-and-r2.md"],
   },
   {
     id: "gallery",
     title: "Gallery grid",
     surface: "guest",
-    note: "How the media field itself is laid out",
-    variants: ["Uniform grid", "Masonry columns", "Edge-to-edge"],
-    decision: 2,
-    decisionNote:
-      "unique and personalized vs standard grids; this creative separation is global philosophy",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V2 Masonry columns",
+    why: "V2 over a standard grid: unique and personalized; that creative separation became global philosophy.",
+    lives: ["docs/systems/guest-flow.md"],
   },
   {
     id: "header",
     title: "Event header",
     surface: "guest",
-    note: "The event's identity block above the gallery",
-    variants: ["Left editorial", "Centered formal", "Cover hero"],
-    decision: 1,
-    decisionNote:
-      "minimal and fully contextual, no cover-image pressure on the host, more room for the gallery; meta UI keeps refining",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V1 Left editorial",
+    why: "Left editorial: minimal and contextual, no cover-image pressure on the host, more room for the gallery.",
+    lives: ["docs/systems/guest-flow.md", "docs/systems/host-app.md"],
   },
   {
     id: "buttons",
     title: "Buttons & shape",
     surface: "shared",
-    note: "The pressable language: shape, weight, sizes",
-    variants: [
-      "Soft rectangle",
-      "Pill",
-      "Sharp",
-      "Sharp surfaces, round actions",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V4 Sharp surfaces, round actions",
+    why: "Sharp surfaces, round actions: a near-sharp surface radius and a 16px-at-40px action radius, one token each to retune.",
+    lives: [
+      "docs/systems/design-system.md#rounding-sharp-surfaces-round-actions",
+      "src/app/globals.css",
+      "src/components/ui/button.tsx",
     ],
-    decision: 4,
-    decisionNote:
-      "sharp general UI + 16px-at-40px-height scaled radius on interactive elements; one token to go full pill later",
   },
   {
     id: "lightbox",
     title: "Lightbox chrome",
     surface: "guest",
-    note: "Controls and attribution around a full-screen photo",
-    variants: ["Pinned chrome", "Floating pill", "Immersive auto-hide"],
-    decision: 2,
-    decisionNote:
-      "max media space + mobile-friendly floating pattern; no like counts (utility not social), attribution baked under the pill, subtle swipe hints, video state designed",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V2 Floating pill",
+    why: "The floating pill: maximum media, attribution under the pill, no like counts, video state designed.",
+    lives: ["docs/systems/guest-flow.md"],
   },
   {
     id: "event-card",
     title: "Host event card",
     surface: "host",
-    note: "The dashboard's atomic unit: one event at a glance",
-    variants: ["Cover-led", "Compact row", "Stat-forward overlay"],
-    decision: 3,
-    decisionNote:
-      "refined pills + QR chip top-left (opens QR/link modal); leans on the cover image, which keeps proving useful",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V3 Stat-forward overlay",
+    why: "Stat-forward overlay on the cover image, refined pills, the QR chip top-left opening the QR and link modal.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
     id: "forms",
     title: "Forms & inputs",
     surface: "host",
-    note: "The settings language: fields, toggles, sections",
-    variants: ["Card sections", "Inline rows", "Focused column"],
-    decision: 1,
-    decisionNote:
-      "V1 refined for settings/management; V3 focused column for onboarding + creation. SYSTEM RULE: Urbanist is for identity moments (page titles, event names); functional section headings use Inter",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V1 Card sections",
+    why: "Card sections for settings, the focused column for onboarding; Urbanist for identity moments, Inter for functional headings.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/design-system.md#type-the-heading-face-the-tiered-scale",
+    ],
   },
   {
     id: "states",
     title: "Empty & loading",
     surface: "shared",
-    note: "What nothing looks like, and what almost-something looks like",
-    variants: ["Typographic", "Iconographic", "Photographic promise"],
-    decision: 3,
-    decisionNote:
-      "ghost mosaic fills the visible field, CTA centered in it; empty-state header drops the primary Add in favor of the CTA",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V3 Photographic promise",
+    why: "The photographic promise: a ghost mosaic fills the visible field with the CTA centered in it.",
+    lives: ["docs/systems/design-system.md"],
   },
   {
     id: "qr-card",
     title: "QR table card",
     surface: "shared",
-    note: "The printed growth artifact guests actually scan",
-    variants: ["Minimal ink", "Invitation frame", "Photo-backed"],
-    decision: 1,
-    decisionNote:
-      "expand the QR tool: V1 AND V3 are the base presets; the share studio (configurator) is the real feature, on the ROADMAP",
+    ruled: "Phase 1 (June 2026)",
+    shipped: "V1 Minimal ink",
+    why: "Minimal ink and photo-backed as the base presets; the share studio configurator is the real feature (ROADMAP).",
+    lives: ["docs/systems/host-app.md", "docs/ROADMAP.md"],
   },
   {
-    // Phase 4.5 (Will's iPhone pass of the live gated entry, 2026-06-11): the
-    // arrival is judged as ONE choreographed flow, not static screens - this
-    // touchpoint's variants are composed TIMING/PRESENCE presets played by an
-    // interactive flow player (real Vaul sheet physics, fake password "demo").
-    // The knob tuning Will lands on rides into decisionNote verbatim and
-    // becomes the production constants.
     id: "arrival",
     title: "Guest arrival",
     surface: "guest",
-    note: "The gated first-open as one choreographed flow: stage, invitation, threshold, reveal",
-    variants: ["Calm arrival", "Swift arrival", "Stately arrival"],
-    decision: 1,
-    decisionNote:
-      "Calm with a longer pause - THE PRODUCTION CONSTANTS: arrival beat 700ms (password return visits 350ms, reduced motion 0) / welcome tall (~55svh) / step transition slide (directional 16px crossfade + 300ms height glide) / success morph + hold 900ms in --success green / type bumped (welcome hero 28px, gate titles 22px, page h1 28px)",
+    ruled: "2026-06-11",
+    shipped: "V1 Calm arrival",
+    why: "Calm arrival with a longer pause: a 700ms beat, a tall welcome, the directional step slide, the 900ms success morph.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/design-system.md#the-arrival-choreography-phase-45-ratified-calm-700ms",
+    ],
   },
   {
-    // Phase 5 (Will at plan review, 2026-06-12): Phase 1 ratified COMPONENTS
-    // but never the host PAGE COMPOSITIONS - "the host event page feels
-    // terribly designed". These two touchpoints stage page ARCHITECTURES by
-    // composing the already-ratified pieces (stat-forward cards, masonry,
-    // card-section forms). Direction-setting; finetuning stays post-roadmap.
     id: "host-event",
     title: "Host event page",
     surface: "host",
-    note: "How one event's management surface is composed: gallery, share, review queue, settings",
-    variants: ["Gallery-first", "Command center", "Tabbed surfaces"],
-    decision: 1,
-    decisionNote:
-      "Gallery-first (Will, 2026-06-12): the host page mirrors the guest experience - the gallery IS the page under a minimal left-editorial header (the ratified header rule: max room for the gallery, cohesion with the guest surface). Management collapses into ONE compact command strip: Share/QR + the amber 'N to review' chip (opens the pending queue) + a settings entry point. Moderation is one tap away, not a wall in front of the gallery.",
+    ruled: "2026-06-12",
+    shipped: "V1 Gallery-first",
+    why: "Gallery-first: the gallery is the page under a minimal editorial header, management in one compact command strip.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
     id: "host-dashboard",
     title: "Host dashboard",
     surface: "host",
-    note: "How the home surface is composed: events, storage, the personal tabs",
-    variants: ["Cards-first", "Ambient storage", "Single feed"],
-    decision: 3,
-    decisionNote:
-      "Single feed + ambient storage, a HYBRID (Will, 2026-06-12): tabs become FILTER chips over ONE continuous feed - events (V3 stat-forward cards) THEN your uploads (masonry) THEN likes, in one scroll. WHY: a free user with ONE event still gets a full, exciting page (content beneath the lone event) instead of a sparse list + forced navigation to find the rest. Storage = the AMBIENT slim meter from V2 (NOT V1's in-your-face card): polished + visible to incentivize the upgrade when it matters, never a hero block. Trash stays a filter (the recovery bin). The personal feeds (uploads/likes) keep their own empty-state ownership (client-only unlike).",
+    ruled: "2026-06-12",
+    shipped: "V3 Single feed",
+    why: "A hybrid: filter chips over one continuous feed (events, then uploads, then likes) with the ambient storage meter.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
-    // Phase 5 S3·S0 (Will, 2026-06-20): the gallery-first DIRECTION is ratified
-    // (host-event decision 1); this touchpoint makes it concrete and resolves
-    // the two open BUILD forks. Three labeled groups in one variant file:
-    // A. whole-page composition (react to the architecture), B. settings entry,
-    // C. deleted placement. Ratification happens in chat; the picks land in
-    // decisionNote below. Label is "Deleted" (the 2026-06-20 rename).
     id: "host-event-page",
     title: "Gallery-first event page",
     surface: "host",
-    note: "The ratified gallery-first event page made concrete: the whole-page composition plus the two open forks (settings entry, deleted placement)",
-    variants: [
-      "Composition: editorial",
-      "Composition: stat line",
-      "Composition: share-forward",
-      "Settings: route",
-      "Settings: drawer",
-      "Settings: dialog",
-      "Deleted: behind settings",
-      "Deleted: command strip",
-      "Deleted: gallery toggle",
-    ],
-    decision: 1,
-    decisionNote:
-      "Ratified (Will, 2026-06-20): A = Editorial (1) refined - icon sub-stats (items/contributors/views) + date + subtle visibility & accepting-uploads status; Share = PRIMARY; the Review button leaves the strip for its own horizontal-scroll TEASER section (faded right edge, only when reviews exist) below the actions (mobile: Share full-width / Add+Settings 2-col / Review teaser / gallery). B = Settings as a dedicated ROUTE (1), smooth view-transition feel, polished + tooltips. C = Deleted BEHIND settings (1) - intentional + rare, the retrieval path is where a host looks. The refined composition + settings-page explorations live in the gallery-first refinement round; the cross-surface hover/lightbox action model is the new `gallery-actions` touchpoint.",
+    ruled: "2026-06-20",
+    shipped: "V1 Composition: editorial",
+    why: "The editorial composition with icon sub-stats, Share primary, the review teaser below the actions; settings as a route, Deleted behind it.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
-    // Phase 5 S3·3b (Will, 2026-06-20): the gallery-first BUILD round. The
-    // composition direction + the two forks are ratified (host-event-page
-    // decision 1); this touchpoint is the EXECUTION CRAFT plus the one open
-    // interaction - the review surface (in-page expansion vs focused mode),
-    // built INTERACTIVE so Will can feel it. `decision` stays unset until he
-    // picks the review form in chat; then it records the picked form + the
-    // header/strip/settings craft calls.
     id: "host-event-build",
     title: "Gallery-first page: build",
     surface: "host",
-    note: "The execution craft of the ratified gallery-first page (header config status, the responsive command strip, the settings crossfade) plus the one open fork: the review surface, interactive so it can be felt",
-    variants: [
-      "Header: status row",
-      "Header: inline meta",
-      "Strip: mobile (stacked)",
-      "Strip: desktop (one row)",
-      "Review: in-page expansion",
-      "Review: focused mode",
-      "Settings: route + crossfade",
-    ],
-    decision: 6,
-    decisionNote:
-      "Ratified (Will, 2026-06-20, felt live). A = Header STATUS ROW (1): counts on one line (date + items / contributors / views icons), then a SEPARATE row of small bordered chips for the config status (visibility Open/Password/Private + an Accepting-uploads dot) - state reads as state, worth the extra line. B = the command strip ships RESPONSIVE both ways (phone: Share full-width, then Add + Settings; one row when wide); review has LEFT the strip for its own teaser. C = the review surface is FOCUSED REVIEW MODE (6): the pending teaser (faded right edge, only when reviews exist) opens a full TAKEOVER (its own header 'Review N' + back, the page hidden behind) with tap-to-select + a sticky bulk bar (Hide / Approve selected, Approve all); moderation is INSTANT (no theater), toasts fire (Approved N, Hidden from everyone). D = Settings is a dedicated ROUTE with a lean crossfade (the ONE place motion is spent) + Deleted BEHIND it. Next: the incremental A->D build, hydration-safe (native title on SSR'd surfaces, NO radix Tooltip - the regression cause), each increment verified on Will's real browser + the gated probe.",
+    ruled: "2026-06-20",
+    shipped: "V6 Review: focused mode",
+    why: "A header status row, a responsive command strip, focused review mode as a takeover with instant moderation, settings as a route with a crossfade.",
+    lives: ["docs/systems/host-app.md"],
   },
   {
-    // Phase 5 S3·3c (Will, 2026-06-20): the GALLERY ACTION MODEL across guest +
-    // host. 3c.1 SHIPPED the host tile reveal (top-right hover row, like
-    // far-right, hidden = 30% dim). This pass shapes 3c.2: the LIGHTBOX host
-    // actions (the grouped "enjoy | curate" pill + Share), the UNIVERSAL
-    // per-action COLOR layer (same colors guest + host; only the action SET
-    // differs), and the Like/Hide feedback toasts. `decision` stays unset until
-    // Will ratifies the colors + toast copy in chat.
     id: "gallery-actions",
     title: "Gallery actions",
     surface: "shared",
-    note: "The universal action-color system (monochrome at rest, color on hover/state) across the tile reveal and the lightbox pill, plus the host lightbox moderation set and the Like/Hide feedback toasts",
-    variants: [
-      "Universal action colors + the grouped lightbox (the model)",
-      "Host tile: rest / on-hover",
-      "Host lightbox: grouped pill",
-      "Guest parity",
-      "Feedback toasts",
+    ruled: "2026-06-20",
+    shipped: "V1 Universal action colors + the grouped lightbox (the model)",
+    why: "Universal per-action colors (like pink, save blue, hide amber, approve green, delete red): monochrome at rest, color on hover and state.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/design-system.md",
+      "docs/systems/architecture.md",
     ],
-    decision: 1,
-    decisionNote:
-      "Ratified (Will, 2026-06-20). UNIVERSAL per-action colors (guest + host; only the action SET differs): like pink, save/download blue, hide/show amber, approve green, delete red. Emil: monochrome at rest, color on direct icon-hover + active state (liked = filled pink); native title tooltips. TILE (3c.1, shipped): the top-right hover-reveal row, Like FAR-RIGHT (stays colored when liked, never shifts on hover-off), hidden = 30% opacity; mobile keeps Like + Save only (hide/delete move to the lightbox). LIGHTBOX (3c.2): the grouped 'enjoy | curate' pill, Like LEFTMOST of enjoy [like, count, download, share] then a divider then [approve-or-hide-or-unhide, remove]; delete behind a modal confirm, everything else 1-way-safe or reversible; Share passes the event JOIN url. The guest lightbox keeps its exact behavior + gestures, it just gains the same colors. TOASTS: Like 'Added to your likes'; Hide 'Hidden from everyone', firing from BOTH the tile hover-row and the lightbox. Corrects the prior 'viewer pill is unchanged' reading: the color clarity is for everyone, not host-only. POLISH (Will, 2026-06-20): OPTIMISTIC moderation (instant tile + lightbox via useOptimistic; reverts + toasts on failure); a PERSISTENT amber hidden marker (off-hover + mobile, like the liked heart, atop the 30% dim); the lightbox Like is a bare icon; Share hovers blue (shared with download/save). STYLED tooltips are LIGHTBOX-ONLY: wrapping the SSR'd tiles in radix Tooltips regressed host-gallery hydration on prod (the lightbox is ssr:false so its tooltips are safe; tiles use native title). See the hydration gotcha in docs/systems/architecture.md.",
   },
   {
-    // Marketing-identity lab round (2026-07-03): the marketing site is
-    // content-complete but pre-V1 identity (it still wears the retired accent).
-    // This round prototypes 3 genuinely distinct site identities ON the locked
-    // mono system - directions differ in COMPOSITION, TYPE SCALE, MOTION
-    // LANGUAGE, and MEDIA TREATMENT, never in palette - so Will can pick one
-    // direction for the full marketing rebuild. Each variant is a desktop hero
-    // plus one signature scroll section inside a scrollable browser mock (feel
-    // the motion, don't imagine it). `decision` stays unset until Will rules.
     id: "marketing-identity",
     title: "Marketing identity",
     surface: "marketing",
-    note: "Three site identities for the marketing rebuild, same mono system: they differ in composition, type scale, motion language, and media treatment",
-    variants: [
-      "Editorial gallery",
-      "The reel is the hero",
-      "Live event energy",
+    ruled: "2026-07-05 (T1)",
+    shipped: "V1 Editorial gallery",
+    why: "A B plus C hybrid: the cinema hero leads with the reel animation, C's product demo follows; A rejected as too templated.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/sections/home/",
     ],
-    decision: 1,
-    decisionNote:
-      "T1 ruling (Will, 2026-07-05): B+C HYBRID. B's cinema hero leads (the desired visual language, the most design magic) with B's how-it-works reel animation kept, and C's animated product-demo as a close follow-up section visualizing the how. A rejected as too templated. BINDING CAVEAT: these wow sections are the FLOOR, not the site: the build is gated on a full-site IA/content-architecture round (core loop + supporting features) done collaboratively with Will (T2.5) before any production pages.",
   },
   {
-    // Marketing-voice lab round (T2.5 cluster-4). ROUND 2 (2026-07-08) rebuilt
-    // the groupings on the owner's ratified palette (event language, collection
-    // co-lead) with a word-animation toggle (Roll default) after the hard cut
-    // read glitchy on text-only boards. Round 1 (2026-07-07) had drafted four
-    // boards off a D2xD4 blend; the owner's rulings reset it: the copy leaned
-    // too hard on the reel (most value is the easy collection), "night" was
-    // banned as identity language, and eight lines were ratified as the GOLDEN
-    // SET to build around verbatim. The three groupings differ in H1/thesis
-    // strategy (G1 collection-led, G2 arc-led, G3 reel-led-tempered); a ratified-
-    // palette strip type-sets his eight lines above them. `decision` stays unset
-    // until he confirms which grouping + the animation mode.
     id: "marketing-voice",
     title: "Marketing voice",
     surface: "marketing",
-    note: "Three copy groupings for the marketing rebuild, all anchored on the owner's ratified eight-line palette but leading with a different thesis (collection, arc, reel-tempered), type-set dark-mono with a three-mode word-animation toggle (Roll default)",
-    variants: ["Collection-led", "Arc-led", "Reel-led"],
-    decision: 1,
-    decisionNote:
-      "Ruled in chat (2026-08-25), not as a pure grouping pick: the thesis Will supplied ('The whole event, in one album.') is Collection-led's evolved form, so V1 stands as the shipped spine while 'Arc has a much better voice in the sentence examples' guides the register. He supplied the subhead verbatim + a per-section header map (marketing-voice.ts is the single source; ruled vs provisional flagged there with his notes), warmed the decomposition's third fact to 'Created for you.', ordered pricing after the reel section, and rejected the width-reserving kinetic slot ('a huge inline gap') in favor of a measured, animated width. The word-ANIMATION mode still confirms on the hero prototype.",
+    ruled: "2026-08-25",
+    shipped: "V1 Collection-led",
+    why: "Collection-led stands as the spine ('The whole event, in one album.') with Arc's register guiding the sentences; marketing-voice.ts is the source.",
+    lives: [
+      "src/lib/constants/marketing-voice.ts",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // Track B F5 lab round 1 (2026-08-25, the trackb-marketing-build plan):
-    // the home's SIGNATURE section (IA section 3, the made-from spine's anchor
-    // beat) has NO prototype; the lab-first gate mandates this round before
-    // lp/mkt-home builds it. Two selectable mechanics for the same story (the
-    // hero's reel comes APART into its source tiles while three counters land
-    // as facts): V1 plays once on scroll-into-view; V2 is scrubbed by scroll
-    // (the one sanctioned scroll-linked JS candidate; V1 is the fallback if
-    // the feel is off). The same session carries the plan's tactile candidates
-    // (drag-drop photo pile, card-stack hover) and the mono confetti-burst
-    // proposal for the live demo's "Reel ready" beat (default OFF). `decision`
-    // stays unset until Will rules V1 vs V2 (+ the extras' fate) in-session.
     id: "marketing-decomposition",
     title: "Marketing decomposition",
     surface: "marketing",
-    note: "The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal",
-    variants: [
-      "One-shot play",
-      "Scroll-driven",
-      "Photo-pile drag (extra)",
-      "Card-stack hover (extra)",
-      "Confetti proposal (extra)",
-    ],
+    ruled: "open",
+    shipped: null,
+    why: "Open: one-shot play (V1) versus scroll-driven (V2) for the home's signature decomposition; the extras ride the ruling.",
+    lives: ["docs/systems/marketing-content.md", "docs/ROADMAP.md"],
+    board: {
+      note: "The home's signature move, two ways: the hero's reel comes apart into its source tiles while three counters land as facts, played once on scroll or scrubbed by it, plus the tactile photo-pile and card-stack candidates and the mono confetti proposal",
+      variants: [
+        "One-shot play",
+        "Scroll-driven",
+        "Photo-pile drag (extra)",
+        "Card-stack hover (extra)",
+        "Confetti proposal (extra)",
+      ],
+    },
   },
   {
-    // Track B F5 lab round 2 (2026-08-25, the trackb-marketing-build plan):
-    // decides the PRODUCTION hero. The cinema hero is ruled (Direction B) but
-    // the round-2 voice finding was that a hard word cut needs an IMAGE cut to
-    // motivate it, so this round judges Roll/Type/Cut against MOVING footage: a
-    // substrate slot plays /marketing/reels/hero-candidate-01.mp4 when the
-    // render session has landed it (poster-first, ambient-pause wired) and
-    // falls back to the 4-shot Ken Burns montage until then. The kinetic H1 is
-    // parameterized across ALL THREE voice groupings so an unanswered voice
-    // pick cannot stall it (both picks can land in one sitting). `decision`
-    // stays unset until Will rules the word animation (+ grouping if open).
     id: "marketing-hero-substrate",
     title: "Marketing hero substrate",
     surface: "marketing",
-    note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
-    variants: ["Roll on footage", "Type on footage", "Cut on footage"],
+    ruled: "open",
+    shipped: null,
+    why: "Open: the kinetic H1's word animation (Roll, Type, or Cut) judged against moving footage.",
+    lives: ["docs/systems/marketing-content.md", "docs/ROADMAP.md"],
+    board: {
+      note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
+      variants: ["Roll on footage", "Type on footage", "Cut on footage"],
+    },
   },
   {
-    // The pricing round (2026-08-27): /pricing rebuilt on the restrained
-    // default; this decides the plan cards' visual identity layer (the
-    // Biograph-burst equivalent, built from media). Each variant renders the
-    // REAL pair anatomy (paper Free + ink Pro) in miniature so the identity is
-    // judged across both registers at once. V2 uses the back-pocket
-    // soft-shadow exception (photos physically stacking).
     id: "pricing-plan-cards",
     title: "Pricing plan cards",
     surface: "marketing",
-    note: "The pair's visual identity layer: a media burst, a stacked-photo depth read, or quiet concentric ink",
-    variants: ["Media burst", "Stacked photos", "Quiet ink"],
-    decision: 2,
-    decisionNote:
-      "V2 Stacked photos (Will, 2026-08-27): 'v1 is really cool but within the card v2 has a nice balance.' Wired into /pricing the same day (Free stacks two grayscale, Pro four vivid on ink; hover spreads; the back-pocket soft-shadow exception carries the depth). His sitting also flagged the mono face on the cards ('don't know where this mono font is coming from') -> the pricing-wide price-register swap: money in the display face (Urbanist, tabular digits), values in Inter; Geist Mono survives only as the wall's timecode chips.",
+    ruled: "2026-08-27",
+    shipped: "V2 Stacked photos",
+    why: "Stacked photos: two grayscale on Free, four vivid on ink for Pro, hover spreads; money set in the display face.",
+    lives: [
+      "src/app/(marketing)/(cinema)/pricing/",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // The pricing round (2026-08-27): does the find-your-size slider earn its
-    // delight layer? V1 makes the golden line mechanical (the album wall fills
-    // as you slide); V2 is the shipped receipt meter reproduced as the
-    // baseline. Both run the same stop ladder + the same pure recommendPlan
-    // brain, so only the EXPRESSION differs.
     id: "pricing-calculator",
     title: "Pricing calculator",
     surface: "marketing",
-    note: "The find-your-size slider's expression: the album-fill wall against the shipped receipt meter",
-    variants: ["Album fill", "Receipt meter"],
-    decision: 1,
-    decisionNote:
-      "V1 Album fill (Will, 2026-08-27): 'definitely the V1 direction. Cool idea already!' The wall replaced the bare meter in /pricing#fit on the real gallery grammar (3px tiles/gaps); the receipt line + aria-live verdict stay the accessible summary; clip tiles keep the one legitimate mono (a timecode).",
+    ruled: "2026-08-27",
+    shipped: "V1 Album fill",
+    why: "Album fill: the wall fills as you slide, on the real gallery grammar; the receipt line stays the accessible summary.",
+    lives: [
+      "src/app/(marketing)/(cinema)/pricing/",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // The contact round REDO (2026-08-28): the first build kept the old page's
-    // wireframe DNA and Will called it ("super bland... did not follow 'if
-    // this page didn't already exist'"). The IA survives (topic router, help
-    // search, directory); THIS touchpoint re-designs the form chapter's
-    // visual identity from zero. Each direction carries its own topic-router
-    // treatment, so one ruling settles the page.
     id: "contact-identity",
     title: "Contact identity",
     surface: "marketing",
-    note: "The form chapter from zero: a stationery note with a photo stamp, a media-split desk, or a bare-paper editorial ledger",
-    variants: ["The note", "The desk", "The ledger"],
-    decision: 2,
-    decisionNote:
-      "COMPOSITE on V2 (Will, 2026-08-28): 'I like the V2 desk layout most for the form section, as it feels very structured, but I'd like to use the V1 note design and the v2 form itself to jazz up the visual design.' Wired same-day: the desk structure + facts rows, the note's stamp + letterhead on the card, the Polaroid spread DROPPED ('so it doesn't feel too busy'), the seven open chips collapsed to a clean dropdown ('takes a ton of room'), and the card on the Biograph gray panel with white fields (his biograph.com/contact reference). V3's numbered-index grammar was grafted onto the self-serve directory.",
+    ruled: "2026-08-28",
+    shipped: "V2 The desk",
+    why: "A composite on the desk: its structure and form, the note's stamp and letterhead, the Polaroid spread dropped, the chips collapsed to a dropdown.",
+    lives: [
+      "src/app/(marketing)/(paper)/contact/",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // The /press redesign (2026-08-28). The page is the last wireframe-grade
-    // surface on the marketing site and has no metaphor, while every elevated
-    // surface here is a physical object. Two full page-chapter directions,
-    // rendering IDENTICAL content from constants/press.ts + PRESS_KIT so the
-    // ruling is about identity alone. Will's constraint: the logo changes
-    // before launch, so this round builds the SYSTEM (a manifest, a rebuildable
-    // kit zip, rules written against the mark's own box), never a shrine to the
-    // current glyph. `decision` stays unset until Will rules V1 vs V2 (a hybrid
-    // of V1's sheet with V2's register is an expected outcome).
     id: "press-identity",
     title: "Press identity",
     surface: "marketing",
-    note: "Two directions for the press kit, same content and IA throughout: the assets as a photographic contact sheet on ink, or as a type-foundry specimen sheet on paper",
-    variants: ["The contact sheet", "The specimen sheet"],
-    decision: 1,
-    decisionNote:
-      'Ruled by Will (2026-08-28): the contact sheet, for "focusing press around the assets and quick hit points" where the specimen sheet "felt more like internal brand guidelines." The ruling came with a scope cut that survived into the build: the logo usage guidelines (clear space, minimum size, misuse) are OUT of the shipped page entirely. Only the two usage points that are press business rather than brand-book material ship, as quick hits beside the copy they govern: quoting needs no permission, and how to write the name. V2\'s register is kept here as the design record, and its rules array moved into this lab file so production carries no dead constant. One mechanic was promoted from this round: [data-mkt-isolate] into marketing.css as a general recipe. The page also briefly borrowed the concurrent lp/about CinemaChapter, then dropped it when it moved into the (cinema) route group instead, which is where it shipped.',
+    ruled: "2026-08-28",
+    shipped: "V1 The contact sheet",
+    why: "The contact sheet: press around the assets and quick hit points; the logo usage guidelines cut from the page entirely.",
+    lives: [
+      "src/app/(marketing)/(cinema)/press/page.tsx",
+      "src/components/marketing/press/press-sheet.tsx",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // The blog round (2026-08-28): /blog is the last marketing surface still
-    // on its route-completeness scaffold (centered hero, pill row, card boxes,
-    // and NO photography on a media product). Will ruled the move into the
-    // (cinema) group, an optional per-post `cover` with a deterministic
-    // fallback, and freeform tags with a redesigned rail; his brief for the
-    // shape was "a bespoke header/hero article, with a polished library
-    // beneath that can be filtered as needed". That makes DISTINCTNESS FROM
-    // /help the round's hard constraint (both hubs now open on the dark
-    // stage), so every direction opens on the lead STORY rather than on an
-    // instrument. V4 was added after a fresh-eyes pass found the first three
-    // each carry a structural flaw: V1 restates /help's index sheet, V2 is the
-    // most exposed to a 12-image manifest, and V3's fanning stack already
-    // ships in the footer of every page.
     id: "blog-identity",
     title: "Blog identity",
     surface: "marketing",
-    note: "The index from zero: a type-led broadsheet, a photographic contact sheet, a desk of physical objects, or a letterboxed edit track",
-    variants: [
-      "The Broadsheet",
-      "The Contact Sheet",
-      "The Reading Table",
-      "The Cutting Room",
+    ruled: "2026-08-28",
+    shipped: "V4 The Cutting Room",
+    why: "A composite on the cutting room: the broadsheet masthead, the letterboxed featured card, a portrait-card library, a sticky tag index.",
+    lives: [
+      "src/app/(marketing)/(cinema)/blog/blog-list.tsx",
+      "docs/systems/marketing-content.md",
     ],
-    decision: 4,
-    decisionNote:
-      "COMPOSITE on V4 (Will, 2026-08-28): \"Let's Frankenstein this thing. I like the cutting room as the primary direction. However, I love broadsheet's small 'notes' title and underline above the featured blog card... should say 'Blog' instead of 'Notes'. I'd like the cutting room's tags to be sticky on the left as you scroll. Rather than library cards stretching the full width of its column, let's do two to three columns of cards in the library (desktop, width depending). Very media-forward cards... When a tag is selected, there should be a polished motion transition, then cards reorganize.\" Wired the same day: the Broadsheet masthead (a small h1 + the drawn rule, a deliberate departure from the 4xl-7xl H1 ladder so the featured card owns the stage), the Cutting Room letterbox kept for the FEATURED card only (21:9 - a 16:9 hero measured 684px against an 820px fold), the library as 4/5 portrait cards at 1/2/3 columns, and the margin index made sticky. The filter became the two-beat grammar (exit together, then a two-axis FLIP reorganize) and useFlip was generalized to X+Y to carry it.",
   },
   {
-    // Careers-identity lab round (the careers round, 2026-08-28). Today's
-    // /careers is a template instance: it shares its hero AND its numbered-
-    // principles grid with /about (whose comment calls the shape "the careers
-    // idiom"), invents a team album that does not exist, restates the product
-    // pitch four times before the job appears, and buries the reel engine one
-    // click deep. Ruled before prototyping: cinema-led with paper chapters, no
-    // JobPosting JSON-LD while the listing is placeholder, the small-team hook
-    // KEPT (headcount and founder identity stay off the site), and copy leads,
-    // so each direction carries its own rewritten voice and one ruling settles
-    // layout and words together.
-    //
-    // Two directions were dropped BEFORE build, with reasons, so they are not
-    // re-proposed: THE CALL SHEET (a call sheet persuades by being full of
-    // facts we are forbidden from publishing, and it is mono-native against the
-    // R6 mono ruling) and THE WORK SAMPLE (its centrepiece was the live style
-    // switcher, already /reel's ruled flagship signature, and it would drag the
-    // engine into a marketing chunk that style-switcher-island.tsx exists to
-    // keep it out of). The proof survives as a LINK to /reel#styles.
     id: "careers-identity",
     title: "Careers identity",
     surface: "marketing",
-    note: "The careers page from zero: an album of the build, an annotated handoff, or one role in one room",
-    variants: ["The contact sheet", "The handoff", "One room"],
-    // No `decision`: ALL THREE WERE REJECTED (Will, 2026-08-28), which is the
-    // most useful thing this entry records. Kept as the standing warning about
-    // what a careers page is not.
-    decisionNote:
-      "ALL THREE REJECTED (Will, 2026-08-28): 'a total back to the drawing board.' The directions were three costumes over the wrong CONTENT. (1) Engine internals do not belong on a careers page: 'why in the world am I reading about Reel CSS rendering on the careers page... this will all be handled during interviews' and 'we don't need to pour our heart out about the internal workings of our app.' D was 'the most visually engaging version but doesn't feel like a careers page at all', and its H1 (built from our own details-nobody-notices value) was 'laughably one of the least incentivizing things I could read as a prospect'. (2) E exposed 'the full state of our app to anybody online... never seen a careers page like this.' (3) C 'feels closer to an actual career listing than a careers page' and we are 'definitely not centering the entire careers page around a single role' (the General Application is ongoing and more listings are coming). Also ruled: stop dwelling on pre-launch, 'we're building this for launch.' SALVAGED into the shipped page: D's header, re-aimed off the reel engine onto global Partyreel concepts ('the subtle technical art kind of makes it feel cool in a developer this is cool work way versus repeating more images'), and C's metric row, which was then CUT with him for lack of honest content (no social proof exists, hiring facts read as boring). Shipped instead, after TWO more rebuild prototypes were rejected as generic: a page that argues in PHOTOGRAPHS (a contact-sheet hero, then the roll -> the selects -> the reel), because the cause was never layout - both prototypes were claims about ourselves on a page whose reader had already met the pitch twice.",
+    ruled: "2026-08-28",
+    shipped: null,
+    why: "All three rejected as costumes over the wrong content; the page that shipped argues in photographs, and engine internals never belong here.",
+    lives: [
+      "src/app/(marketing)/(cinema)/careers/",
+      "docs/systems/marketing-content.md",
+    ],
   },
   {
-    // Reel reveal-moment lab round (2026-07-03): the beat where a host who just
-    // tapped Create reel watches their reel exist for the first time (the North
-    // Star wow; a RARE moment, so animate-by-frequency allows real delight).
-    // Built on the NEW canvas engine: each stage choreographs around the real
-    // CanvasReelPlayer held at frame 0 and released at its ignite beat, which
-    // client-side encode makes honest (the reel is watchable instantly, no
-    // progress theater). Each direction carries its guest (/e/) adaptation
-    // sketch on the page. T1 ruled a COMPOSITE of the three; it is built as V1
-    // with every beat a --tune-rvl-* var + the MotionTuner on the page, so the
-    // T2 device session tunes it live (Copy CSS -> bake -> reset).
     id: "reel-reveal",
     title: "Reel reveal moment",
     surface: "host",
-    note: "The ruled composite reveal on the real playing canvas engine, above its three source choreographies: a cinema premiere, the making-of made visible, and photo-becomes-cinema",
-    variants: [
-      "Composite (ruled)",
-      "Lights down",
-      "Assembly",
-      "First frame held",
-    ],
-    decision: 1,
-    decisionNote:
-      "T1 ruling (Will, 2026-07-05): a NEW COMPOSITE, not a single source variant (built as V1 of this touchpoint; Assembly's flight is its base mechanic). Sequence: start from the shared base state (gallery at top, no reel placeholder) -> tiles assemble into center screen -> hold + CAMERA FLASH -> scale to full-bleed from center (the First-frame-held expansion) -> as it reaches full screen, the Lights-down overlay event-name intro plays -> the reel takes breath. Cleaner than no intro (Assembly) or the polaroid mat (First frame held). Explicitly fine-tunable with Will; T2 device session is the tuning venue (the page mounts the motion tuner over the --tune-rvl-* beats). The three originals stay as V2-V4 for reference. T2 (Will, 2026-07-08, on-device): RATIFIED AS-BUILT, no retime (the shipped defaults ARE the tuned values); stays in the lab with the tuner for later revisits; production wiring is R3's job.",
+    ruled: "2026-07-05 (T1), ratified as built 2026-07-08",
+    shipped: "V1 Composite (ruled)",
+    why: "A new composite: tiles assemble, a camera flash, the full-bleed expansion, the lights-down title, then the reel breathes; ratified as built on device.",
+    lives: ["src/app/globals.css", "docs/systems/design-system.md"],
   },
   {
-    // Reel-experience lab round (R3 slice C, 2026-07-21): Will's verdict on
-    // the shipped reel UI, verbatim, "very weak and v1". Three directions over
-    // the SAME four moments (event-page section, creation/curation with
-    // 14-style identity, the publish moment, the guest arrival) so they
-    // compare like-for-like; the product model is ruled and closed (ADR-0021/
-    // 0022), the UI is the canvas. The ratified reveal grammar is reused
-    // untouched (V3's Create reel fires it); only the publish beats carry new
-    // tuner knobs. The ruling lands in chat and is recorded here when it does.
     id: "reel-experience",
     title: "Reel experience",
     surface: "host",
-    note: "Three directions for the reel as a product moment: the event-page section, creation with 14-style identity, the publish moment, and the guest arrival",
-    variants: ["Marquee in the feed", "The Studio", "The Premiere"],
-    decision: 1,
-    decisionNote:
-      "V1 Marquee (ADR-0023): richer + feed-native, a clear create action for the host, and the most beautiful guest arrival. Composite: V1 IS the feed section (poster card, labeled control rows, engine-thumb style rail); deeper editing GRADUATES to a Reel Studio destination (V2's room, entered from the card, never forced inline); the reel is still BORN by an explicit Create act, which is what the ratified reveal triggers on. Re-opened for the production build: the quick-add signal (most-liked is unreliable when likes are sparse, so blend likes + recency + per-guest coverage + media mix behind an honest label, never random)",
+    ruled: "ADR-0023",
+    shipped: "V1 Marquee in the feed",
+    why: "Marquee in the feed (ADR-0023): the poster card is the feed section, deeper editing graduates to a Reel Studio, the reel is born by Create.",
+    lives: [
+      "docs/adr/0023-qa-round-product-rulings.md",
+      "docs/systems/host-app.md",
+    ],
   },
   {
-    // THE SPILL DOCTRINE (the glow round, 2026-08-28). Will asked for the
-    // footer's organic-shimmer seam glow to become core to the visual design
-    // "without forcing it everywhere". That is a doctrine problem before it is
-    // an engineering one: an unbounded glow undoes the ratified zero-chroma
-    // identity, and the first framing I tried ("an edge where media is,
-    // arrives, or is about to") disqualified nothing in a media product. This
-    // board proposes SPILL (light is never a material, always spill from a lit
-    // thing), its four laws, the engine, and the measurements. Concepts only:
-    // the engine is lab-local in design.css, and promotion into globals.css is
-    // a separate ruling because it deletes the test fence that currently keeps
-    // colour literals scoped to --mkt-confetti-N.
     id: "glow-doctrine",
     title: "The spill doctrine",
     surface: "shared",
-    note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
-    variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Corner A/B"],
-    decisionNote:
-      'MOSTLY SETTLED (Will, 2026-08-28 + 08-31). One item on this board is still OPEN and the round recorded it as closed: the LIT SURFACE carve-out. Its cue set was ruled (hairline + lip at 9%, air blur gone), but the doc contract it amends was not: [data-lit] adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule, and it is already applied to three of four moment-12 specimens including the Get Pro card, while the board and design.css both still say "lab-local until you rule". It wants its own round the way the corner became the rounding round, because if adopted its production surface is every dark card in the app. Do NOT un-apply data-lit from the specimens to re-judge them: those are bare divs with no ring, so removing the 9% hairline puts them further from the shipped Card, not closer. Everything else here IS settled. Law 3 (sampled where there is media, the ratified five where there is not); the engine cleared for promotion to globals.css; lights-on over lights-off; the PALETTE ours globally, with border-beam\'s own colours reviewed side by side and not adopted; the CORNER the rounder one, which grew into its own rounding round rather than riding out here (the rounded-* scale is derived from --radius by multiplication, so the literal reading overshoots what was approved, across 445 uses in 140 files). Also ruled: the register at 8s, and the lit surface trimmed to hairline + lip at 9%, with the air blur gone. Section 05 records that the round misread Will\'s original note: he meant component design in general, not three named cues. The doctrine\'s sibling stands: SPILL is light from a lit thing falling on its surroundings, BEAM is an object lit at its own edge because it IS the live subject. Carried forward, not blocking: the frame cost of the three sweep drives, which needs a foreground window.',
+    ruled: "2026-08-28 and 08-31; open: the lit surface",
+    shipped: null,
+    why: "Settled but for the lit surface: SPILL is light from a lit thing, BEAM is the live subject lit at its edge; the engine promoted, our palette, the 8s register.",
+    lives: [
+      "docs/systems/design-system.md#light-spill-beam-and-the-lamp-set",
+      "src/components/shared/glow.tsx",
+      "src/app/globals.css",
+    ],
+    board: {
+      note: "Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing",
+      variants: ["Seam", "Throw", "Sweep", "Bloom", "Halo", "Corner A/B"],
+    },
   },
   {
-    // The placement half of the same round. Every specimen names its lamp, its
-    // direction, its colour source and the law that admits it, and carries a
-    // verdict. The rejects are BUILT rather than described on purpose: a
-    // placement you have seen and turned down stays turned down.
     id: "glow-moments",
     title: "Spill placements",
     surface: "shared",
-    note: "Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into",
-    decisionNote:
-      "REVIEWED (Will, 2026-08-31), and merged 2026-08-31 with TWO items the record wrongly listed as closed. (1) THE PUBLISH BEAT'S VIOLET is unruled: moment 07 still says \"needs a ruling on the violet\", and the constraint is real, since violet is a ratified STATE colour for reel curation and law 3 forbids a state colour, so the sampled spill has to stay outside the frame while violet stays on the controls, or a state colour has quietly become decoration. (2) THE HELP-PALETTE BEAM is listed as shipping while its own specimen still reads \"New, wants your eye\", and it should come OFF the beam list: production forces surface-paper on that palette so it is near-white in every session, which is the exact ground that got the QR plate's beam rejected. The rule that falls out is worth more than the placement: the ground picks the sibling, ink takes the beam and paper takes spill in the paper register. Same correction retires the reel-render beam from this list, not as a reject but because today's stitching dialog is a minimal stand-in rather than the finished reel-render surface, so it rides that surface's own round. SHIPS: the hero underlight, the locked door, the doorbell arrival (its lap softened to light, since a 1px rounded stroke read as chrome on a gallery with no border), awaiting-media, the album straddle, the QR plate switching on, the publish beat's sampled spill, the paper probe, the whole-page scarcity test, and three beam surfaces (Get Pro at rest, the reel while it renders, the help palette while focused). RULED TO SOMETHING ELSE: the QR plate takes our own light rather than the beam (the beam reads too faintly on a white plate); the upload takes NO light at all (the opacity climb plus the bar already say it, and the sweep read as forced), which leaves the engine's scalar drive exercised but unplaced. KILLED: the pointer lamp, the CTA rim (border-beam does that job better on premium buttons), and the scan-through (its own ground-up round; the POUR is kept and parked as a working technique with no placement).",
-    variants: [
-      "Hero underlight",
-      "Locked door",
-      "Doorbell arrival",
-      "Awaiting media",
-      "Album straddle",
-      "QR plate",
-      "Publish beat",
-      "CTA rim",
-      "Paper probe",
-      "Upload as light",
-      "Scan-through",
-      "Where a beam is allowed",
-      "The whole page",
-    ],
+    ruled: "2026-08-31; open: the publish beat's violet",
+    shipped: null,
+    why: "Reviewed: ten spill placements and three beams ship, the QR plate takes our own light, the upload takes none; the publish beat's violet is unruled.",
+    lives: ["docs/systems/design-system.md#the-shipped-light"],
+    board: {
+      note: "Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into",
+      variants: [
+        "Hero underlight",
+        "Locked door",
+        "Doorbell arrival",
+        "Awaiting media",
+        "Album straddle",
+        "QR plate",
+        "Publish beat",
+        "CTA rim",
+        "Paper probe",
+        "Upload as light",
+        "Scan-through",
+        "Where a beam is allowed",
+        "The whole page",
+      ],
+    },
   },
 ];
 
-export function getTouchpoint(id: string): Touchpoint | undefined {
-  return TOUCHPOINTS.find((t) => t.id === id);
+/** The standing boards, in registry order: the sidebar's Sandbox zone. */
+export const SANDBOX: Ruling[] = RULINGS.filter((r) => r.board !== undefined);
+
+export function getRuling(id: string): Ruling | undefined {
+  return RULINGS.find((r) => r.id === id);
 }

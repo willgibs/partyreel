@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-// THE BLOG INDEX (rebuilt 2026-08-28 from the /design/c/blog-identity round). The page shell stays
+// THE BLOG INDEX (rebuilt 2026-08-28 from the blog-identity lab round, on the record at
+// docs/decisions/design-record.md#blog-identity). The page shell stays
 // server-side: metadata, the JSON-LD, and the close. Everything between the masthead and the
 // library is one island, because the ruled hero rule couples the staged lead to the filter (the
 // why is in blog-list.tsx + blog-index.ts).

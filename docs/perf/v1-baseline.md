@@ -168,3 +168,25 @@ measuring in an existing client component).
 
 **Still owed to a human session:** actual frame timings and motion FEEL, and a
 `prefers-reduced-motion: reduce` pass — none of the three are judgeable from an agent session.
+
+## 5. CSS: the library round (2026-09-02, `launch-prep`)
+
+Method: `pnpm build` at each commit; the stylesheet hrefs read from the built home
+(`.next/server/app/index.html`); per chunk the raw bytes (`wc -c`), gzip bytes (`gzip -9c | wc -c`) and
+the rule count (`tr '}' '\n' | grep -c '{'`); selector deltas from `sort -u` of the split rules. The home
+loads three chunks and the largest is the production entry (`globals.css`); the other two (5,097 and
+25,858 bytes: the root and marketing sheets) did not change across the round. Repeat with the same
+commands; the numbers are the built files, not the deployed (brotli) wire bytes.
+
+| the home's main stylesheet | raw bytes | gzip -9 | rules | lab-only marker (`-inset-14`) |
+| --- | --- | --- | --- | --- |
+| base `e45efea` (before the round) | 304,277 | 42,084 | 3,150 | 1 |
+| after the cut `3e0dfa7` (26 boards, the screens mirror, the event-feed prototype, the sample pack gone) | 275,472 | 39,143 | 2,803 | 1 (the name quoted in ROADMAP, scanned as a class) |
+| after `@source not` for the lab and docs, with the theme split (`globals.css` + `theme.css`) | 265,358 | 37,790 | 2,664 | 0 |
+
+Selectors: the cut removed 354 and added 7; the scan exclusions removed a further 144 and added 5
+(regrouped rules). Net for the round: **38,919 raw bytes (12.8 percent) and 4,294 gzipped bytes (10.2
+percent) off every production page.** The lab now carries its own sheet, compiled from a scan of the
+lab alone and loaded only under `/design`: 48,511 raw, 8,357 gzipped, 637 rules. Why the theme split:
+a lab entry that `@reference`s `globals.css` inherits its `@source not` and compiles 19 rules; against
+`theme.css` alone it compiles 695 (PostCSS probe before landing).
