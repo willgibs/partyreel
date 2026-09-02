@@ -77,11 +77,14 @@ type GlowProps = {
    * (--lamp-1..5, globals.css). Lands inline, so it outranks both the engine's
    * defaults and any ancestor that retuned --lamp-* for its subtree.
    *
-   * ★ SAMPLING DOES NOT WORK ON REAL USER MEDIA YET. useSampledPalette sets no
-   * crossOrigin, so an R2-presigned photo taints the canvas, getImageData
-   * throws, and the catch silently hands back the fallback: no error, no
-   * failing test, just generic-looking light. Fix that before wiring this to
-   * guest media (see sampled-palette.ts's header for the two options).
+   * ★ WHICH SAMPLER YOU FEED THIS FROM DECIDES WHETHER LAW 3 ACTUALLY FIRES ON
+   * GUEST MEDIA. useSampledPalette decodes CORS-clean (round 2), so pointed at
+   * a row's previewUrl it works on real R2 media. useSampledPaletteFromDom
+   * reads painted <img> elements, and a raw presigned R2 tile carries no
+   * crossOrigin, so its canvas taints, getImageData throws, and the catch
+   * hands back the fallback five: no error, no failing test, just
+   * generic-looking light. Same failure either way to the eye, so pick the
+   * sampler deliberately (sampled-palette.ts's header has the whole story).
    */
   colors?: readonly string[];
   vars?: GlowVars;

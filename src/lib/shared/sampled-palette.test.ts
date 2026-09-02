@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -116,5 +119,47 @@ describe("spill sampling (law 3)", () => {
     for (const c of huesToSpillColors(pickSpillHues(pixels([[200, 40, 40]])))) {
       expect(c).toMatch(/^oklch\(0\.72 0\.15 \d+(\.\d+)?\)$/);
     }
+  });
+});
+
+/**
+ * ★ THE LOADER, PINNED AS SOURCE TEXT, because its failure is the silent kind
+ * (the footer-contract.test.ts house pattern). A bare `new Image()` sets no
+ * crossOrigin: a presigned R2 photo then taints the canvas, getImageData throws
+ * SecurityError, the catch hands back the fallback five, and the only symptom
+ * is that the light looks generic. Nothing throws, nothing logs, no unit test
+ * of the sampling MATH can see it -- the maths above is fed pixels directly and
+ * passes either way. That is precisely the gap this pin closes.
+ */
+describe("the URL sampler's loader is the CORS-clean one", () => {
+  const src = readFileSync(
+    join(process.cwd(), "src/lib/shared/sampled-palette.ts"),
+    "utf8",
+  );
+  // Comments FIRST: this file explains the taint at length, and a pin that
+  // trips on its own explanation teaches the next agent to delete the
+  // explanation rather than keep the fix.
+  const code = src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  it("decodes through the reel engine's decodeImage", () => {
+    expect(code).toMatch(
+      /import \{ decodeImage \} from "@\/lib\/reel\/engine\/assets"/,
+    );
+    expect(code).toMatch(/decodeImage\(one, ac\.signal\)/);
+  });
+
+  it("never constructs a bare Image() to sample from", () => {
+    // The exact regression: `new Image()` + img.decode() reads fine, looks
+    // cheaper than a fetch, and silently loses every cross-origin photo.
+    expect(code).not.toMatch(/new Image\(\)/);
+  });
+
+  it("releases the decoded bitmaps it only needed for one 32px draw", () => {
+    // An ImageBitmap's pixels live outside the JS heap, so dropping the
+    // reference does not free them promptly. The reel engine keeps its own
+    // because it redraws them every frame; this hook draws each once.
+    expect(code).toMatch(/if \("close" in img\) img\.close\(\)/);
   });
 });
