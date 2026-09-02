@@ -230,14 +230,35 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   carry either, so the pattern to copy now exists.
 
 - **Elevation-program deferred queue (marketing).** Logged at
-  R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
-  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);
-  the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
-  the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
-  article's contact path — swap that article's deletion section when it ships); faq-accordion
+  R5/R6 settlement (2026-08-27): the **help catalog** shipped on `lp/help-catalog` (2026-09-01; the brief is
+  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md)) and left these one-liners: the `Checklist`
+  component's persistence/draw is Will's preview call (revert the day-of article to `Steps` if it fails);
+  in-app contextual deep links into help (the settings page → its article, the Studio → the reel guides);
+  research-found product gaps that the catalog documents honestly rather than fixes — the
+  `Video uploads are available on the Pro plan.` wrapper string omits the Event Pass, `?upgraded=1` is set
+  by checkout and never read (no post-purchase confirmation), the settings selector says "Public" while the
+  event header chip says "Open", `restoreEventAction.mediaStillRemoved` is never surfaced, the ops-only
+  "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
+  event-level Report, `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit, the guest
+  404 page says the event "may have ended" (events have no end date) and the open-event unfurl
+  promises "no account" even when the event requires one, and `lifecycle-recovery.md` says a guest's
+  self-deleted upload is excluded from the host's Deleted list while `listRecentlyDeletedMedia`
+  applies no such filter (only `restore_media` refuses it; a live check settles which is true);
+  **self-serve account DELETION in the app** (supersedes the help article's contact path — swap the
+  "Deleting your account" section of `your-data-and-deleting-your-account` AND the privacy policy's
+  "Delete your account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy
+  promises removal on request within 30 days until one exists; `newsletter_signups` has no delete route
+  and `notification_prefs` has no UI); **the EXIF-strip overclaim** in
+  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx) +
+  `content/help/who-can-see-your-event.mdx` (HEIC/HEIF/AVIF/WebM pass through untouched; the privacy
+  policy says so since 2026-09-01, the marketing + help copy still state the strip unconditionally);
+  **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
+  2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
+  (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
-  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
-  settled on `/press` 2026-08-28: mono holds data only, Inter for every label and descriptor);
+  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for GoDeeper captions (press facts were
+  settled on `/press` 2026-08-28 and the legal status lines on 2026-09-01: mono holds data only, Inter
+  for every label and descriptor);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
@@ -251,10 +272,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   label (a POV hero should read as an opinion, not a news item; the tag `kind` field is in place); a
   founder-voice origin post NEEDS A RULING first (the zero-team relaxation is /about-only); the
   incumbent claims in the `compared` posts get re-verified against the named products' current
-  behaviour on each refresh (`updated` convention in the brief); **move the remaining `(paper)` pages onto the
-  cinema rhythm** (Will's 2026-08-28 ruling covers legal, privacy and contact too — blog/careers/press
-  arrive via their own branches, so this is the leftover trio, and `(paper)` retires when the last one
-  moves); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
+  behaviour on each refresh (`updated` convention in the brief); **move `/contact` onto the
+  cinema rhythm** (Will's 2026-08-28 ruling; privacy and terms moved in the legal round 2026-09-01, so
+  /contact is the last `(paper)` page and the group retires with it); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
@@ -474,8 +494,14 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   product config does not allow the swap, a paying host has no self-serve way to resize.
 - Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER` (currently 3× the storage cap, ADR-0021) before
   Pro launch `[eng]` — confirm the multiplier holds at real scale.
-- Real `/privacy` page `[content]` — replace the stub; include the drafted Sentry session-replay
-  disclosure line.
+- Legal go-live `[human]` — the documents are written (v1.0, 2026-09-01, incl. the forensic-capture
+  paragraph and the Sentry replay line); after counsel signs the gate above: (1) fill `LEGAL_PARTY` in
+  [`src/lib/constants/legal.ts`](../src/lib/constants/legal.ts) (entity, state, address, DMCA agent)
+  and flip both documents' `status` to `effective` with an `effectiveDate` (`legal.test.ts` refuses a
+  bracketed placeholder once effective, so the fill cannot be skipped); (2) register the DMCA
+  designated agent with the Copyright Office ($6, renewed every 3 years) so the Terms' safe-harbor
+  section is true; (3) create the `privacy@partyreel.com` mailbox both documents name, routed to the
+  support inbox.
 - Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
   event with catchy approved media.
 - Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks. BLOCKED

@@ -31,7 +31,7 @@ anything shared.
 | R2 Reel Engine + Foundation | ✅ milestone-1 (2026-07-08) |
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
-| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). Next marketing goal comes from Will (rising-tides posture). |
+| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01, a pending Agent handoff: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
 | R4 Growth (Share Studio) / R4b Social P4 | Profiles+social P1-P3 shipped early (rode milestone-2); Share Studio + the P4 feed not started |
 | R5 Notifications · R6 App polish · R7 Admin · R8 Hardening | not started (content: their [ROADMAP](ROADMAP.md) buckets) |
 
@@ -99,6 +99,17 @@ first, THEN the lab review** (keep what earns a place in a streamlined design-sy
 stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2 chapter pacing ✅ (opener A/B pending Will)**
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
+
+**The help catalog and the legal round integrated (2026-09-02).** `lp/legal-docs` merged at `988aac3`
+and `lp/help-catalog` at `3cff3a7`, both gates green on the merged trees (1489 tests, 245 static pages
+after the catalog), both verified on the launch-prep alias; four integration decisions inside the
+agents' work are in the [CHANGELOG](CHANGELOG.md) (one over-cap source, bare-number spec components,
+the shared heading anchor, the per-shelf llms cap). Awaiting Will's look, then milestone-16.
+
+**MILESTONE-15 (2026-09-02): prod = the blog library.** `main` @ tag `milestone-15` (`c46621f`), prod
+READY + verified at the merge SHA (the rail's counts, sitemap 23, llms 8, a redirect, Article +
+FAQPage on a post, the shared capacity phrase on /pricing, console clean). Will: "Well done. Please
+continue." Full narrative: [CHANGELOG](CHANGELOG.md).
 
 **MILESTONE-14 (2026-09-02): prod = rounds 0 to 2b.** `main` @ tag `milestone-14` (`54bd519`), prod
 READY + verified at the merge SHA (the light system, the lit 404, the film strip's backlight, the Pro
@@ -293,7 +304,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-14`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-15`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -360,8 +371,9 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **Rounds 0 to 2b shipped at MILESTONE-14 (2026-09-02).** Unmerged now: the blog library, merged
-   into `launch-prep` at `e70d241` for Will's look on the preview, then milestone-15.
+2. **Rounds 0 to 2b shipped at MILESTONE-14 and the blog library at MILESTONE-15 (2026-09-02).**
+   Next into `launch-prep` for review: the help catalog (`lp/help-catalog`) and the legal round
+   (`lp/legal-docs`), Will's ruling 2026-09-02.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
@@ -369,10 +381,15 @@ manifest fill.
 5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-6. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
-   lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-7. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
-   and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
+6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
+   facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
+   "Elevation-program deferred queue").
+7. **His-side inits:** none pending. Both content Agents ran 2026-09-01 and were integrated into
+   `launch-prep` on 2026-09-02: the legal round (`lp/legal-docs`, at `988aac3`: Privacy Policy + Terms
+   of Service v1.0 on the `LegalDocument` shell in `(cinema)`, the consent line on the guest door; the
+   three go-live fill-ins are `[human]` launch tasks in [ROADMAP](ROADMAP.md)) and the help catalog
+   (`lp/help-catalog`: 59 articles across ten shelves). Both await Will's look on the preview, then a
+   milestone.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
 

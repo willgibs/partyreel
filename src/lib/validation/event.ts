@@ -75,10 +75,15 @@ export type UpdateEventValues = z.output<typeof updateEventSchema>;
 
 // Album password (set / change). The DB RPC (set_event_password) re-checks tier +
 // length (defense-in-depth); this is the shared client + action shape.
+/** Exported so the help center's spec inline renders the real floor. */
+export const EVENT_PASSWORD_MIN_LENGTH = 4;
 export const eventPasswordSchema = z.object({
   password: z
     .string()
-    .min(4, "Use at least 4 characters.")
+    .min(
+      EVENT_PASSWORD_MIN_LENGTH,
+      `Use at least ${EVENT_PASSWORD_MIN_LENGTH} characters.`,
+    )
     .max(128, "Keep the password under 128 characters."),
 });
 export type EventPasswordValues = z.output<typeof eventPasswordSchema>;
@@ -100,7 +105,13 @@ export const eventSlugSchema = z.object({
       "Use lowercase letters, numbers, and hyphens (no leading or trailing hyphen).",
     )
     // A 32-hex slug could be mistaken for a qr_token in the shared /e/ namespace.
-    .refine((s) => !/^[0-9a-f]{32}$/.test(s), "That custom link isn't available.")
-    .refine((s) => !RESERVED_SLUGS.has(s), "That word is reserved. Try another."),
+    .refine(
+      (s) => !/^[0-9a-f]{32}$/.test(s),
+      "That custom link isn't available.",
+    )
+    .refine(
+      (s) => !RESERVED_SLUGS.has(s),
+      "That word is reserved. Try another.",
+    ),
 });
 export type EventSlugValues = z.output<typeof eventSlugSchema>;

@@ -82,6 +82,15 @@ function Scene({ slug }: { slug: string }) {
           <span className="h-4 w-[5px] rounded-[2px] border-[1.5px] border-foreground/40" />
         </span>
       );
+    case "account-and-profile":
+      // The profile: one avatar over its name field (the display-name moment,
+      // not a lock: Privacy already owns the hatched frame).
+      return (
+        <span className="flex flex-col items-center gap-[4px]">
+          <span className="size-[15px] rounded-full border-2 border-foreground bg-card" />
+          <span className="h-0.5 w-[18px] rounded-full bg-foreground/40" />
+        </span>
+      );
     case "privacy-and-safety":
       // The hatched (redacted) frame.
       return (

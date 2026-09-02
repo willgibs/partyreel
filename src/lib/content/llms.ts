@@ -60,6 +60,8 @@ function pricingFacts() {
 
 /** How many of the newest posts llms.txt lists; llms-full.txt lists them all. */
 export const LLMS_BLOG_LIMIT = 8;
+/** The lean index lists this many help articles per shelf; llms-full.txt lists them all. */
+export const LLMS_HELP_PER_SHELF = 4;
 
 function blogLines(
   posts: ReturnType<typeof getPostListItems>,
@@ -139,12 +141,25 @@ export function buildLlmsTxt(site: LlmsSite): string {
   const SITE_NAME = site.name;
   const SUPPORT_EMAIL = site.supportEmail;
   const url = (path: string) => `${site.url}${path}`;
-  const helpLinks = getAllArticles()
-    .map(
-      (a) =>
-        `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)}): ${a.frontmatter.description}`,
-    )
-    .join("\n");
+  // Title + link only (the help-catalog round, 2026-09-01): at 59 articles the
+  // annotated form blew the file's 16k budget, and once the blog library landed
+  // beside it (2026-09-02) even the bare list did. The lean index now shows the
+  // first LLMS_HELP_PER_SHELF articles of every shelf, so each shelf is
+  // represented and the file stays a map; /llms-full.txt keeps every article
+  // with its description. That one is the territory.
+  const allHelp = getAllArticles();
+  const perShelf = new Map<string, number>();
+  const helpLinks = allHelp
+    .filter((a) => {
+      const n = perShelf.get(a.frontmatter.category) ?? 0;
+      perShelf.set(a.frontmatter.category, n + 1);
+      return n < LLMS_HELP_PER_SHELF;
+    })
+    .map((a) => `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)})`)
+    .join("\n")
+    .concat(
+      `\n- The full help center (${allHelp.length} articles, each with its description) is in llms-full.txt.`,
+    );
   const featureLinks = FEATURE_PAGES.map(
     (f) =>
       `- [${f.navLabel}](${url(`/features/${f.slug}`)}): ${f.navDescription}`,

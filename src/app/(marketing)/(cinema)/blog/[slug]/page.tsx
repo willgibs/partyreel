@@ -16,6 +16,7 @@ import {
   ARTICLE_BODY_ID,
   ArticleToc,
 } from "@/components/marketing/reading/article-toc";
+import { ChipToc } from "@/components/marketing/reading/chip-toc";
 import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
 import {
   ARTICLE_FAQ_HEADING,
@@ -238,25 +239,7 @@ export default async function BlogPostPage({
             <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-2xl min-w-0">
                 {/* Mobile contents: the zero-JS chip row (the desktop rail is lg-only). */}
-                {headings.length >= 2 && (
-                  <nav
-                    aria-label="On this page"
-                    className="mb-8 flex flex-wrap items-center gap-2 lg:hidden"
-                  >
-                    <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                      On this page
-                    </span>
-                    {headings.map((heading) => (
-                      <a
-                        key={heading.id}
-                        href={`#${heading.id}`}
-                        className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
-                      >
-                        {heading.text}
-                      </a>
-                    ))}
-                  </nav>
-                )}
+                <ChipToc headings={headings} className="mb-8" />
 
                 {/* prose-headings:font-heading pulls the post's h2/h3 onto the house heading face;
                     the prose SCALE itself is untouched. */}

@@ -8,7 +8,95 @@ Dates are when the work was shipped + verified on partyreel.com (test data is di
 included where recorded; the full original prose lives in git history. The foundational build (Phases
 0–4 + 6) is summarized at the bottom.
 
+
 ---
+
+## 2026-09-01 — The legal round: Privacy Policy + Terms of Service v1.0 (`lp/legal-docs`, pending integration)
+
+**Merged into `launch-prep` by the Orchestrator at `988aac3` (2026-09-02)**, full gate green on the merged
+tree (1360 tests, 157 static pages). Two conflicts, both against the blog library's round: the heading
+anchor now lives in `reading/heading-anchor.tsx` (the legal shell is not MDX and emits the same markup)
+while `HEADING_SCROLL_MT` stays single-sourced in the import-free `reading/heading-contract.ts`, which the
+anchor file re-exports; and ROADMAP's "(paper) trio" sentence became the legal round's "/contact is the
+last". Re-verified on the launch-prep alias at `988aac3`: /privacy on the cinema skin with 17 sections,
+29 copy-link anchors, the chip ToC and the "Version 1.0 · Pending counsel review · Effective on launch"
+line with the `[ENTITY NAME]` / `[ADDRESS]` fill-ins showing as ruled; /terms with 24 sections and 38
+anchors; the sitemap carrying both pages' `lastmod` from the legal single-source (2026-09-01); the blog
+post page on the shared chip ToC; no sideways scroll; console clean. Prod at the next milestone, on
+Will's OK.
+
+`lp/legal-docs` (`151b5a1`, `b8e0ccc`, + the record commit), cut from `launch-prep` @ `7a189ae`. Gate
+green at every commit: typecheck, lint, 1339 tests (23 new), `pnpm build`. Preview READY at
+`partyreel-git-lp-legal-docs-partyreel.vercel.app` (b8e0ccc).
+
+**The brief was the R5 plain-language drafts; the research found them incomplete against the product.**
+Undisclosed in the old privacy draft: the per-upload forensic record (raw IP, user agent, client hints,
+coarse geo, device UUID; ADR-0020 had anticipated "a one-paragraph disclosure"), Sentry error reports with
+on-error masked replay (a ROADMAP launch requirement), the EXIF strip's fail-open formats (HEIC/HEIF/AVIF/
+WebM upload untouched, and HEIC is the iPhone default), guests' self-serve upload deletion (shipped,
+unmentioned), public profiles + the host-controlled guest list (ADR-0019), the recovery-bin storage
+budget, and the backup prune still in dry-run (deleted media's backup copy persists past 30 days). The old
+terms claimed account suspension that has no implementation, and the product had no refund policy, age
+rule, DMCA process, dispute clause, rights section or legal entity anywhere.
+
+**Will's rulings (three question rounds, 2026-09-01):** bracketed placeholders for the entity/state/
+address/DMCA agent, filled in one constant at launch · formal but readable · US-first with GDPR/UK and
+California sections · Pro non-refundable with cancel-anytime, Event Pass refundable within 14 days if
+unused · hosts 18+, guests 13+ · informal resolution then the courts of [STATE] with a class waiver, no
+arbitration · the full DMCA notice + counter-notice + repeat-infringer procedure (registration is a $6
+launch task) · full page scope: move to `(cinema)` + upgrade the shell · the consent line on the guest
+door, Stripe consent off · `privacy@partyreel.com` · the pre-launch notice stays, reworded to "complete
+text pending counsel review".
+
+**What shipped:** `lib/constants/legal.ts` (the single-source: meta, placeholders, the typed block
+model, `legalPlainText`, `legalHrefs`); the Privacy Policy (15 sections, 4 tables: purposes + legal
+bases, providers + regions, cookies, the retention schedule) and the Terms (22 sections; the guest→host
+license the product implied but never stated; suspension as a RESERVED right; no prices, `/pricing`
+linked instead); `LegalDocument` (cinema hero at `lg`, the straddling meta card, one `PaperChapter`, the
+three-track centred grid, `ArticleToc` spine, `ChipToc`, anchors, a self-scrolling rail); OG cards for
+both routes; the sitemap on the legal dates; `HeadingAnchor` + `ChipToc` extracted to `reading/` (help
+and blog swapped, byte-identical markup); `LegalConsentLine` on `/login` and the welcome step. Tests: the
+pinned anchor-id arrays, the launch switch (no placeholder once effective, the party named while pending),
+the clean plain-language register, dead-link + anchor + table checks, the shell source pins, the consent
+line (+ a source pin that neither consumer hand-rolls it).
+
+**Verified locally** (Preview MCP, DOM + fetch; the pane was `document.hidden`, so paint and scroll-spy
+were NOT judged there): one h1 per page; 15/22 sections, 14/16 h3s, 15/22 rail entries; skin `cinema`,
+`theme-color #040404`; the chapter computed near-white with ink text; canonical + `article:modified_time`
++ BreadcrumbList; both hashed OG routes 200 `image/png` (~41 KB); 3/8 bracketed placeholders in the
+bodies, none in a summary; sitemap `lastmod` = 2026-09-01 for both; `/contact` still paper; `/help/nonsense`
+404 with one header + one footer on cinema; `/login` consent line intact; at 375px: 22 chips shown, rail
+hidden, no horizontal overflow, tables inside their own scroll wrappers. The demo event runs demo mode
+with no entry modal, so the guest-door line was verified on a real test event (see the live pass).
+**Verified live** on the branch alias (`b8e0ccc`) with the Chrome MCP at 1440: the h1 at 72px, opacity 1
+(the site ladder, no reveal gate); the meta card straddling the cut by exactly 40px (card 384→589, chapter
+top 549) over a chapter computed at lab(98.84); the rail's scroll-spy following a deep jump (`active` =
+"Retention and deletion", spine at 0.62; on /terms `active` = "Disclaimers" with the 22-entry rail scrolling
+within itself at a 779px viewport); 38 copy-link anchors on /terms; both OG routes 200 `image/png`; the 8
+bracketed placeholders on /terms exactly the entity, agent, address and state tokens; zero horizontal
+overflow. The guest-door consent line verified on the Test Wedding event: welcome step → Continue → Just
+browsing → the line, both links `target=_blank rel=noopener`. Not verified: the Chrome window refuses
+widths under ~1440 on this machine, so the phone-width numbers come from the local Browser-pane
+emulation (375px: 22 chips shown, rail hidden, overflow 0, tables inside their scroll wrappers).
+
+★ **Two lessons for the next legal edit.** The fences read comments: the first `pnpm test` failed on the
+header comment that LISTED the banned phrases. And the neutralization fence's `business day` ban meets
+the DMCA statute head-on; "working days" is the recast, with the WHY comment on the paragraph.
+---
+
+## 2026-09-02 — MILESTONE-15: prod = the blog library
+
+`main` @ tag `milestone-15` (`c46621f`; `launch-prep` `243aace` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). Migrations at parity, the full gate green on the merged tree
+(1337 tests, 155 static pages), prod READY at the merge SHA. Will: "Well done. Please continue."
+
+Verified on partyreel.com at `c46621f` with the Chrome MCP: the library rail reads Everything 23,
+Weddings 8, Parties 4, Corporate 3, How-to 12, Compared 7, Product 8, with the pager live; the sitemap
+carries 23 blog URLs and `/llms.txt` 8; a retired placeholder slug redirects; a post renders its
+Questions section with `Article` + `FAQPage` JSON-LD; /pricing states capacity through the shared
+`formatCapacity` ("19,200 photos or 9 hours of video"); no sideways scroll on any of the three;
+console clean. Still owed before launch: a foreground LCP read of the blog (paint timing is suppressed
+in the hidden tabs both browser tools run in).
 
 ## 2026-09-01 — The blog library: 23 posts, six registered tags, four rising-tide upgrades
 
@@ -264,6 +352,58 @@ tab, so ambient-pause lamps read paused, lazy images below the fold never load (
 measuring), an unbounded `img.decode()` hangs the evaluate for 45s, chained `setTimeout`s hit Chrome's
 intensive throttling and make a two-second script take minutes, a screenshot after a scroll jump can be
 a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
+
+## 2026-09-01 — The help catalog: 59 articles, a tenth shelf, and four honesty tests (`lp/help-catalog`, Agent handoff)
+
+**Merged into `launch-prep` by the Orchestrator at `3cff3a7` (2026-09-02)**, full gate green on the merged
+tree (1489 tests, 245 static pages). Eight conflicts, all against the blog and legal rounds' integrations,
+and four decisions taken inside the agents' work: (1) the over-cap grace numbers keep the blog round's
+single source (`lib/lifecycle/over-cap.ts`, both constants) and the catalog's parallel
+`over-capacity.ts` is gone, the purge route and the spec component pointing at the one file; (2) the
+shared spec components render BARE numbers on every surface (the catalog's `OverCapGraceDays` said
+"45 days" and its `ReelSeconds` "30 seconds", the blog's said "45" and "30"), so nineteen catalog
+usages now say the unit in prose and `ReelSeconds` defaults to the free tier; (3) the heading anchor is
+the legal round's shared one, the catalog's local copy dropped; (4) the lean `/llms.txt` outgrew its
+16k budget by 205 characters with both libraries on it, so it now lists the first `LLMS_HELP_PER_SHELF`
+(4) articles of every shelf, 38 links plus a line naming the full count, and `/llms-full.txt` keeps all
+59 (pinned by test; the budget is measured on the canonical domain, where the preview's longer hostnames
+add ~2k). The help post page keeps the catalog's print-aware body under the legal round's chip ToC; the
+merge had left the legal round's older tail beneath it, closing the article column twice, caught by
+`tsc`. Re-verified on the launch-prep alias at `3cff3a7`: the hub with 59 articles and the sitemap
+at 59; "After a downgrade you get 45 days before anything moves" and "Free-plan reels run up to 30
+seconds" reading from the shared components; the chip ToC, print attributes, pagination cards and
+anchors on an article; llms.txt at 38 help + 8 blog links; console clean. Prod at the next milestone,
+on Will's OK.
+
+**The help center's library was written fresh from the shipped product** (Will's brief: wipe the 15
+seed articles, research the codebase, answer every question a host or guest arrives with; four rounds of
+clarification settled a lifecycle spine with a guest lane inside, warm-and-confident voice, billing owned
+by help, and every article written by the Agent itself). Three research passes mapped the host app, the
+guest flow, and billing/reel/lifecycle with every UI string verbatim; a second fresh-context pass (a
+persona gap audit + a creative/risk review) added the live-screen article, the guest-side password
+messages, three merges, reading orders, and the quieter chrome for the new components. What shipped:
+**ten categories** (the new `account-and-profile` shelf with its emblem, strip cell, and contact topic;
+"Guest experience" retitled "For guests"), **59 articles** (all 15 pinned slugs kept, bodies rewritten),
+the article vocabulary (`PlanBadge`, `Path`, `Checklist`, thirteen spec inlines over real constants,
+`FreePrice`/`AccountPasswordMinLength` among them), the article page's audience tag + In-short footer
+(action + Applies-to) + guest end-matter on the host rung + "Up next" + print rule, the index's tenth pane
+(with the strip-overflow and row-parity fixes ten needed) + guest fast lane + retuned curated lists, the
+palette's empty-state category chips + "Guest" tail, related-articles requiring a shared keyword and
+skipping prev/next, `/llms.txt` help lines trimmed to title + link, and `HELP_DESCRIPTION_MAX` raised to
+200. **Four tests** hold the catalog honest: every article compiles as MDX, every `<UiLabel>` is a shipped
+app string, every internal link and section anchor resolves, all eleven literal-referenced slugs are
+pinned. Honesty flags the research surfaced and the catalog states plainly: metadata strip skips
+HEIC/AVIF/WebM, Report is event-level, no upload cancel, no captions, no co-hosts, no album sort or cover,
+no in-app account deletion or email change, `Manage billing` lives only in the storage-meter popover, the
+reel is silent with video as stills. Verification narrative + the branch preview: the handoff report.
+`guest-flow.md`'s stale "turning it off is Pro-gated" line fixed in place. **A second full pass before
+Will's review** (two accuracy audits against the source, an editorial read, and an eight-angle code
+review) fixed the settings-card order, the guest `Download all` position (above the gallery), HEIC's
+full-size view (Safari only), the hidden-in-reel behavior, the two refusals in Deleted, three
+mislinked cross-references, the reversed name step, a print rule that hid the article's own header,
+duplicate checklist ids, an empty Related section on ten articles, and the house terms (Deleted,
+photo viewer, panel, chips, grid) across the catalog; the strip labels moved onto the category
+registry and the sheet's row parity is computed from the category count.
 
 ## 2026-09-01 — Round 1, second pass: both lamps pulled, and the light moved to the film strip and the Pro card
 

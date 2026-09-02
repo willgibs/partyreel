@@ -50,6 +50,37 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
+- **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0, the legal round, 2026-09-01; formal but
+  readable by Will's ruling, with the R5 two-register contract kept: every section carries an "In
+  short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)
+  (version, date, `status`, the bracketed `LEGAL_PARTY` launch placeholders, the typed block model +
+  `legalPlainText`, `LEGAL_RELATED`) and the two content modules
+  [`legal-privacy.tsx`](../../src/lib/constants/legal-privacy.tsx) /
+  [`legal-terms.tsx`](../../src/lib/constants/legal-terms.tsx) (both on the content-policy
+  `CLAIM_FILES` list; **env-free by rule**, never import `site.ts`). Shell:
+  [`legal-document.tsx`](../../src/components/marketing/legal/legal-document.tsx): `PageHero` at `lg`
+  (never `display`: multi-word titles) → the version/status/reading-time META CARD straddling the
+  cinema→paper cut (the help "In short" move; a `<div>`, never a `<header>`, because `ArticleToc`
+  measures the first header) → ONE `PaperChapter` on a three-track grid (gutter / 42rem column / rail)
+  so the column, the card and the centred hero share one axis → `ArticleToc` with the reading spine +
+  `ChipToc` below `lg` + `HeadingAnchor` on every h2/h3 → a "Read next" foot from `LEGAL_RELATED`.
+  The rail takes `max-h` + its own overflow (22 entries do not fit a laptop viewport). Blocks render
+  in [`legal-blocks.tsx`](../../src/components/marketing/legal/legal-blocks.tsx) (p / list / table /
+  sub / `note`, the `bg-muted/40 border-y` set-apart register for disclaimers, never all-caps). The
+  status line is Inter (the mono ruling; `MonoCaption` retired here). ★ **Section ids are the anchor
+  contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. ★ **The launch
+  switch is a test**: flipping `status` to `effective` with a bracketed placeholder still in the text
+  fails CI. ★ **No prices and no cap numbers in the Terms**: they point at `/pricing` so a Stripe
+  price change never falsifies a contract. ★ **The fences read the legal text AND its comments**: the
+  neutralization regexes (`business day`, the child-safety acronyms, `law enforcement`, `ingress`)
+  cannot be quoted even in a header comment; write "working days", "public authorities", "content
+  that sexually exploits minors", "reasonable limits on upload volume". Acceptance: the one
+  [`LegalConsentLine`](../../src/components/shared/legal-consent-line.tsx) on `/login` and on the
+  guest door's welcome step (`newTab` there so the sheet survives the tap); no checkbox, nothing
+  recorded. The sitemap reads the legal `lastUpdated`, not build time. The reading family's shared
+  pieces now live in [`reading/`](../../src/components/marketing/reading): `heading-anchor.tsx`
+  (`HeadingAnchor` + `HEADING_SCROLL_MT`, lifted out of `mdx-components`) and `chip-toc.tsx` (the
+  mobile chip row help and blog each carried verbatim).
 - **`/about`** — THE MISSION PAGE (rebuilt twice, 2026-08-28; the IA never recorded its job before,
   which is a fair part of why it stayed a scaffold). Copy single-source
   [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
@@ -82,7 +113,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
   dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
-  `(paper)` survives only until the remaining pages have moved.
+  `(paper)` holds only `/contact` now (privacy + terms moved 2026-09-01) and retires with it.
   ★ **A DARK HERO DECIDES THE ROUTE GROUP**, because a dark hero must be paired with a dark nav (Will)
   and the header skin is chosen by the GROUP LAYOUT, which a page cannot override from inside. That one
   sentence is the whole rule: the ground your hero wants is not a page-level choice.
@@ -235,20 +266,45 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +
   `extractHeadings` + `readingTime` + `escapeXml`); [`help.ts`](../../src/lib/content/help.ts) +
   [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help (rebuilt R6, 2026-08-26 — "the index
-  of everything"): a NINE-category lifecycle taxonomy (each category carries a `feature` link up to its
-  marketing rung; a new category must land WITH its first article — the test requires ≥1 per category) +
-  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
+  of everything"; the CATALOG written fresh in the help-catalog round, 2026-09-01): a TEN-category
+  lifecycle taxonomy (set up → invite → guests → album → share → reel → pay → account → trust → fix; each
+  category carries a `feature` link up to its marketing rung; a new category must land WITH its first
+  article, its emblem, its strip label + grid column, and its `CATEGORY_TOPIC` row on /contact — the test
+  requires ≥1 per category and the contact map is exhaustive by type) holding **59 answer-first
+  articles**, every one checked against the shipped app. The guest lane is titled "For guests" (slug
+  `guest-experience`) and `account-and-profile` is the tenth shelf (sign-in, name + photo, the handle,
+  following, notifications). Frontmatter carries an optional `audience` (`host|guest|both`, default derived
+  from the category), `plans` ("Applies to" badges in the In-short card's footer) and `action` (the one
+  door under the short answer); `description` is capped at 200 (`HELP_DESCRIPTION_MAX`, raised from 160 so
+  the lead keeps its second sentence). A ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
   ([`help-palette.tsx`](../../src/components/marketing/help/help-palette.tsx); pure fs-free scorer in
   [`help-search-rank.ts`](../../src/lib/content/help-search-rank.ts) — heading hits deep-link to sections
-  only when they're the sole match reason, plus a static "Pages" tail onward to the site) + the index
+  only when they're the sole match reason, plus a static "Pages" tail onward to the site; the empty state
+  offers the ten category chips and guest-voiced results carry a "Guest" tail) + the index
   sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx),
-  a live-constants "numbers" strip) + answer-first articles (the frontmatter `description` renders as the
-  "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated copy-anchor island; prev/next;
-  an honest feedback row handing misses to `/contact?about=<slug>`, which the static contact page prefills
-  from an allowlist). First-party MDX components
+  a live-constants "numbers" strip, a one-line guest fast lane under the quick links; ★ at ten categories
+  the strip cells need `sm:min-w-0` or the desktop strip scrolls, and the sheet keeps its row parity by
+  making the guest pane wide too; panes with 7+ guides split into two columns) + answer-first articles (the frontmatter
+  `description` renders as the "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated
+  copy-anchor island; prev/next; keyword-scored related — since the catalog round a candidate needs a shared
+  keyword and the prev/next siblings are excluded, or Related duplicated pagination; an audience tag only when it says
+  something the category chip does not; guest articles end on /how-it-works, the growth loop stated once; a
+  Yes in the feedback row offers "Up next"; an honest feedback row handing misses to `/contact?about=<slug>`,
+  which the static contact page prefills from an allowlist; `@media print` on the article page via
+  `data-print-*` hooks, the day-of checklist being the guide a host prints). First-party MDX components
   ([`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx) — `Callout`, `AlbumShowcase`,
-  `Steps`/`Step`, `Kbd`, `UiLabel`, inline spec components reading the `limits.ts`/`tiers.ts` single sources
-  so numbers can't drift; NOTHING client-side may import it, it reaches `node:fs`) + a `prose-help` theme.
+  `Steps`/`Step`, `Kbd`, `UiLabel`, `PlanBadge` (an outline pill, distinct from UiLabel's filled chip),
+  `Path` (where-to-find-it chips), `Checklist`/`Check` (ticks persisted per article in localStorage, the
+  drawn check; [`help/checklist.tsx`](../../src/components/marketing/help/checklist.tsx)), and a spec-inline
+  family reading the `limits.ts`/`tiers.ts`/`lifecycle/*` single sources so numbers can't drift; NOTHING
+  client-side may import it, it reaches `node:fs`) + a `prose-help` theme. ★ Four tests hold the catalog
+  honest: every article COMPILES as MDX (`help-mdx-compile.test.ts`; `blockJS` strips `{placeholder}`
+  braces, so UI strings are quoted in rendered form), every `<UiLabel>` is a shipped app string
+  (`help-ui-labels.test.ts`, whitespace-, tag- and apostrophe-normalized), every internal link and
+  `#section` anchor resolves, and all eleven literal-referenced slugs are pinned. `/llms.txt` lists the
+  first `LLMS_HELP_PER_SHELF` (4) articles of every shelf as title + link (the annotated form blew its
+  budget at 59, and the bare list did too once the blog library sat beside it); `/llms-full.txt` keeps the
+  descriptions.
   Help lives in the **(cinema) group** since the polish arc (dark overlay nav + dark stages; the reading
   bodies ride `PaperChapter`, the search card / emblem strip / In-short card are `surface-paper` islands,
   the strip and the article's In-short card STRADDLE the cinema→paper cut via negative margin). Shared help
@@ -257,9 +313,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   flex utilities on the same element — center constrained children with `mx-auto`, never a parent
   `justify-center`. ★ The R6 MONO RULING (site-wide type doctrine, full text in
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
-  captions, labels, and CTA notes are Inter. The content agent's brief lives at
-  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
-  writing rules; the content-policy tests scan `.md` too so the brief obeys itself).
+  captions, labels, and CTA notes are Inter. The authoring brief lives at
+  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (the map, the component vocabulary, the
+  three-class numbers doctrine, the writing rules; it names the fences by pointer only, because the
+  content-policy tests scan `.md` too and the brief must obey itself).
 - **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting
   Room). Moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading
   half rides `PaperChapter`. ★ **DISTINCTNESS FROM /help is the standing constraint** now that both
@@ -496,8 +553,8 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   centered content (lost-visitor copy single-sourced in
   [`marketing-not-found.tsx`](../../src/components/marketing/marketing-not-found.tsx)). ★ Since the
   careers round the marketing pair is LOPSIDED: `(cinema)` catches every dynamic marketing route
-  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only the static
-  trio. Do not delete the paper one for having no slug: a static page can call `notFound()`, and
+  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only `/contact`
+  (privacy and terms joined `(cinema)` 2026-09-01). Do not delete the paper one for having no slug: a static page can call `notFound()`, and
   without the boundary that render falls through to the ROOT one and double-stacks the chrome.
   By audience: root
   (unmatched URL, brings its own chrome), marketing (bad `[slug]`, no chrome), guest (dead/expired event link

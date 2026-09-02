@@ -1,4 +1,8 @@
-import { getSearchIndex, HELP_QUICK_LINKS } from "@/lib/content/help";
+import {
+  getCategoryChips,
+  getSearchIndex,
+  HELP_QUICK_LINKS,
+} from "@/lib/content/help";
 
 import { HelpPaletteProvider } from "@/components/marketing/help/help-palette";
 
@@ -15,7 +19,11 @@ export default function HelpLayout({
   children: React.ReactNode;
 }) {
   return (
-    <HelpPaletteProvider index={getSearchIndex()} quickLinks={HELP_QUICK_LINKS}>
+    <HelpPaletteProvider
+      index={getSearchIndex()}
+      quickLinks={HELP_QUICK_LINKS}
+      categories={getCategoryChips()}
+    >
       {children}
     </HelpPaletteProvider>
   );

@@ -77,6 +77,10 @@ const CLAIM_FILES = [
   // neutralization fence: social proof written inline on it was caught by
   // nothing at all.
   "src/lib/constants/about.ts",
+  // The legal documents (2026-09-01): a contract is the one place a stray
+  // cap number or a child-safety acronym would be read as a binding claim.
+  "src/lib/constants/legal-privacy.tsx",
+  "src/lib/constants/legal-terms.tsx",
 ].map((f) => join(ROOT, f));
 
 function scanLines(
