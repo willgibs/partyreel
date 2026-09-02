@@ -278,29 +278,54 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     `<link rel=alternate>`). Picking a tag runs the **two-beat set change** (`--mkt-set-*` in
     marketing.css: departing cards leave together, then a two-axis `useFlip` reorganizes the
     survivors) - page-neutral hooks, so any filtered collection can take it.
+  - **Registered tags** (the library round, 2026-09): six ids in a zero-import registry
+    ([`blog-tags.ts`](../../src/lib/content/blog-tags.ts); three AUDIENCES weddings / parties /
+    corporate, three PURPOSES how-to / compared / product, each with a label and a one-line
+    description). The frontmatter schema enforces membership, one or two tags, and at most one
+    audience, so a typo fails the BUILD like `cover`/`author`. The rail prints LABELS in fixed
+    registry order (a most-used-first rail reshuffles as posts land) while `?tag=` carries the id;
+    the library heading is a label + description lockup whose height never changes under a filter
+    (the unfiltered view carries `BLOG_LIBRARY_LINE`), because a height change there is what the
+    set-change FLIP would animate as a jolt; the description re-mounts on the shared enter beat.
+    ★ The registry must stay import-free: it is reached by the "use client" island and PostCard
+    (a test reads the file). "Keep reading" is SCORED (2 × shared audience + shared purpose,
+    tiebreak nearest date), since same-tag-first funnelled every audience's endings to its two
+    newest posts; a test bounds any post to five recommendations across the archive.
   - ★ **The hero exists ONLY in the unfiltered view** — lifting it permanently out of the filtered
     set renders EMPTY tags, because a hero can own tags no other post has (the derivations + the pin
-    live in [`blog-index.ts`](../../src/lib/content/blog-index.ts)). Filter state rides a shareable
-    `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would deopt the static
-    route; a mount effect is banned by the react-hooks lint). **Pagination** is built and INVISIBLE
-    below `POSTS_PER_PAGE` (12), so today's four posts render with no control at all; it rides
-    `?page=` beside `?tag=` rather than `/blog/page/[n]` routes, which would multiply into tag x page
-    URL space on a four-post blog — ★ `paginate()` CLAMPS, because a stale `?page=` or a filter that
-    shrinks the set under the reader (tag with 40 posts, page 4, pick a tag with 3) must land on a
-    real page instead of an empty grid.
+    live in [`blog-index.ts`](../../src/lib/content/blog-index.ts); `normalizeTag` checks POSTS, not
+    the registry, so a registered-but-empty `?tag=` also collapses to Everything). Filter state
+    rides a shareable `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would
+    deopt the static route; a mount effect is banned by the react-hooks lint). **Pagination** is
+    INVISIBLE below `POSTS_PER_PAGE` (12) and LIVE since the library reached 23 posts (two pages of
+    the unfiltered wall; the pager fades in on the shared enter beat); it rides `?page=` beside
+    `?tag=` rather than `/blog/page/[n]` routes, which would multiply into tag x page URL space —
+    ★ `paginate()` CLAMPS, because a stale `?page=` or a filter that shrinks the set under the
+    reader (tag with 40 posts, page 4, pick a tag with 3) must land on a real page instead of an
+    empty grid. ★ The develop stagger (`--i`) is CAPPED at 5 on library cards: the staged lead holds
+    6 so it lands last, and an uncapped twelve-card page landed half its cards after the hero and
+    replayed a second-long muted hole on every filter change.
   - **Covers.** An optional frontmatter `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the
     BUILD) over a stable slug-hash fallback in
     [`blog-covers.ts`](../../src/lib/content/blog-covers.ts) — ★ a pure function of the SLUG alone,
     because the obvious "walk the post list and hand out unused images" is deterministic but NOT
     stable and silently re-skins older posts on every publish. A crop ladder re-slices the same
-    source so 11 images yield 66 distinguishable plates.
+    source so 11 images yield 66 distinguishable plates. Every library post SETS its cover, and a
+    pure test pins that no photograph repeats beside itself (i+1, i+2 at two columns, i+3 at
+    three) in the unfiltered wall on any page or under any tag filter, and that the hero is
+    landscape (`wedding-petals`, the one portrait, bands in the 21:9 card and the OG crop).
   - **The ARTICLE** ("the print of the frame") opens on the same cover at the same slug-derived crop
     as the card the reader clicked, so the page reads as the card opening; the frontmatter
     `description` renders as the visible STANDFIRST (it previously appeared on the card, in metadata,
     in the feed and in llms.txt, everywhere except in front of the reader). The ending is deliberately
     TWO blocks: chronological neighbours, then related posts with those neighbours excluded
     (`getRelatedPosts(post, n, exclude)`), because on a small archive the two sets otherwise coincide
-    and repeat a post within one screen. Long-form reading components are shared with /help and live
+    and repeat a post within one screen. An optional frontmatter **`faq`** (1-8 plain-text items,
+    schema-guarded against markup and test-guarded against typed numbers) renders as an always-open
+    "Questions" `<dl>` outside the article body (an appendix, like Keep reading, so the spine measures
+    the piece; appended to the ToC as `#questions`) and ships verbatim as `FaqPageJsonLd`: on-page
+    Q&A plus assistant-retrieval data, NOT a Google rich result (withdrawn for non-authority sites in
+    2023). Long-form reading components are shared with /help and live
     in [`components/marketing/reading/`](../../src/components/marketing/reading) — `ArticleToc`
     (scroll-spy, plus the `progress` READING SPINE that **both** long-form surfaces take, Will
     2026-08-29) and the delegated `HeadingAnchorsDelegate`. Both pages mark their body with the
@@ -338,6 +363,19 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     `buildBlogRssXml` that takes its site config as a param so it stays out of the env-validating
     `site.ts` + is unit-tested); `draft: true` posts are excluded from listing/sitemap/RSS. The author
     brief is [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md).
+  - **The library** (2026-09): 23 posts under the six tags, every marketed number reaching prose
+    through the spec family in `mdx-components.tsx` (reel seconds, the Trash window, inactivity and
+    over-cap days, plan storage/prices, the capacity rule of thumb via `formatCapacity`; a test
+    scans bodies for a typed size, price, or limit-beside-its-unit). GFM tables render with a
+    scrolling wrapper, /pricing's header register and a nowrap label column; `<Yes />` / `<No />`
+    are the /pricing matrix's own glyphs through the shared `MatrixMark`. Comparison content names
+    INCUMBENTS only (Google Photos, iCloud, WhatsApp, iMessage, AirDrop, email, Dropbox, disposables,
+    booths),
+    hedged; QR-app rivals stay category-level per the 2026-08-28 posture ruling. `/llms.txt` lists
+    the newest `LLMS_BLOG_LIMIT` (8) posts (the archive outgrew the 16k lean budget) and
+    `/llms-full.txt` all of them. The four placeholder slugs 308 to their successors via
+    [`blog-redirects.ts`](../../src/lib/content/blog-redirects.ts) → `redirects()` in
+    `next.config.ts` (test-held against the live slugs).
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
   (a two-way Vitest mirror: change one side and you must change the other).
 

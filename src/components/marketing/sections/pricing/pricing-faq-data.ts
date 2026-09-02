@@ -4,6 +4,7 @@ import {
   MAX_REEL_SECONDS,
   planById,
 } from "@/lib/constants/tiers";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -46,7 +47,7 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Can I cancel Pro anytime?",
-    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a 45-day window to free up space or re-upgrade before anything moves toward the trash.`,
+    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward the trash.`,
   },
   {
     q: "How big can uploads be?",

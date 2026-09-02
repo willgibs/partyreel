@@ -10,6 +10,128 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — The blog library: 23 posts, six registered tags, four rising-tide upgrades
+
+**Merged into `launch-prep` by the Orchestrator at `e70d241` (2026-09-02)**, full gate green on the merged
+tree (1337 tests, 155 static pages); the one conflict was the CHANGELOG's top, and the three auto-merged
+docs were read by eye. Re-verified on the launch-prep alias at `e70d241`: the rail reads Everything 23,
+Weddings 8, Parties 4, Corporate 3, How-to 12, Compared 7, Product 8, with the pager live; the sitemap
+carries 23 blog URLs, `/llms.txt` 8 and `/llms-full.txt` all of them; a retired placeholder slug
+redirects; a post renders its Questions `<dl>` with `Article` + `FAQPage` JSON-LD and six Keep-reading
+links; /pricing states capacity through the shared `formatCapacity` ("19,200 photos or 9 hours of
+video"); no sideways scroll on any of the three; console clean. Prod at milestone-15, on Will's OK.
+
+`lp/blog-library` (Agent handoff; the round's commits from `89dded3` to `dc9c08d` plus the docs
+commit, cut from `launch-prep` at `332f8aa`). Gate green at every commit; 1316 → **1336 tests**;
+production build renders all 23 posts, their OG cards and the feed. Verified on the dev server,
+then on the branch preview (`partyreel-git-lp-blog-library-partyreel.vercel.app`, READY at
+`dc9c08d`): the same rail/filter/pager/article/JSON-LD checks, feed 23/23, sitemap 23, llms 8 +
+full 23, the four 308s, the hero OG card at 200 with a landscape crop, console clean at 1440 and
+375, `pr-no-track` set first. **LCP was NOT measured**: the Browser pane's tab reports
+`visibilityState: hidden`, which suppresses paint timing entirely (recorded in
+testing-verification.md), so the number is left for a foreground Chrome pass.
+
+**The four placeholder posts the blog shipped with at milestone-11 are gone, replaced by a library
+written under one content plan.** Will's rulings for the round: name incumbents only (Google Photos,
+iCloud, WhatsApp, iMessage, AirDrop, email, Dropbox, disposables, booths) and keep QR rivals at the
+category level per the 2026-08-28 posture ruling; 18-24 posts (23 landed); dates spread over the
+last four months with the hero chosen deliberately; the existing 11-image manifest for covers (a
+wholesale media swap comes before launch); the six tags; all four UI upgrades. A second-pass review
+with fresh context reshaped the slate before a word was written: three posts cut (two duplicated
+PLANNED help articles, one of them a truth trap since metadata stripping fails open on HEIC; one
+argued from an invented statistic), four added (the missing trips how-to, the photo-booth category,
+a guest-facing explainer hosts can send from their announcement, and a photographer/planner piece,
+the one B2B2C channel the slate had ignored), the five "incumbents fail" posts de-cannibalized to
+one argument each, and the seasonality fixed for a September launch (corporate and the holiday
+party near the top).
+
+**Registered tags.** Six ids in a zero-import registry (three audiences, three purposes, each
+with a label and a one-line description); the schema enforces membership, one-or-two tags and at
+most one audience. The rail prints labels in fixed registry order (most-used-first would reshuffle
+as posts land), the library heading became a label + description lockup whose height never
+changes under a filter (the jolt the set-change FLIP would otherwise animate), the description and
+the pager ride the shared enter beat, the active rail row scrolls into view from a `?tag=` deep
+link on phones, a one-post tag spans the row, and the develop stagger is capped so the staged lead
+still lands last on a twelve-card page. "Keep reading" is scored (audience over purpose, nearest
+date) because same-tag-first funnelled every audience's endings to its two newest posts; a test
+bounds any post to five recommendations. **The FAQ block**: optional plain-text `faq` frontmatter
+renders as an always-open Questions appendix outside the article body (in the ToC as
+`#questions`) and ships verbatim as FAQPage JSON-LD; markup is rejected by schema and typed numbers
+by test. **The spec family** grew by fifteen live-number components (reel seconds, the Trash
+window, inactivity and over-cap days, plan storage and prices, the capacity rule of thumb) so no
+post types a figure, which meant single-sourcing the over-cap grace numbers out of the purge route
+and exporting the capacity constants; a body-scan test now fails a typed size, price, or limit
+beside its unit. **Comparison tables**: GFM tables get a scrolling wrapper, pricing's header
+register and a nowrap label column, and `<Yes />` / `<No />` are the /pricing matrix's own glyphs
+through a shared `MatrixMark` (one truth, two surfaces). Plus: the four retired slugs 308 to their
+successors through `blog-redirects.ts` → `next.config.ts` `redirects()`, held by a test; a pure
+test pins cover adjacency (no photograph beside itself at one, two or three columns, on any page,
+under any filter) and a landscape hero; `llms.txt` lists the newest eight posts (the archive
+outgrew its 16k lean budget by ~4k) and `llms-full.txt` all of them; the sitemap honours
+`updated`.
+
+**Production method.** The authoring brief was rewritten as the content bible (voice, the
+fences, ratified phrases reused byte-for-byte, the link architecture, hedged incumbent claims),
+23 outlines were written with a claimed-anecdote list so no two drafters could write the same
+paragraph, four Opus drafters wrote in parallel, and every piece got an editorial pass against the
+system docs (three claims softened: a "reach the room afterwards" promise, "renewals stack" →
+"chains a year on", a "no contact export" claim dropped). Mechanical QA: 8-word shingle overlap
+across every pair peaked at 1.4% (all of it shared link text), every ratified phrase appears
+exactly once, every post links two or more posts, one help article and one marketing rung, every
+hub has three or more inbound links.
+
+**The full pass before review (same day).** Three fresh-context reviewers (a content editor over
+all 23 posts, a docs-versus-code audit, an eight-angle code review) plus a foreground Chrome look at
+the preview. What changed: six titles that clamped at three columns were retitled to fit two lines
+and the brief's title guidance corrected to the measured ~60 characters; the rail's deep-link nudge
+was rewritten to scroll the rail's own `scrollLeft` (the `scrollIntoView` form moved the whole page
+79px on hydration at 375x667); `<` is now escaped at the shared JSON-LD emitter (the right layer
+for the script guard, covering titles and questions too); the FAQ question field got the markup
+guard and a uniqueness refine, and a test reserves the `#questions` anchor; the number fence
+derives its limit list from the constants (it had already drifted past `TEASER_LIMIT`); table
+heads honour GFM column alignment; `formatCapacity` now backs /pricing's `capacityPhrase` (the two
+flipped to hours at different thresholds) and /pricing's two literal "45-day" strings read
+`OVER_CAP_GRACE_DAYS`; the heading scroll-margin moved to an import-free leaf; `getAllTags` and
+`PhotoEstimate` were dropped as synonyms; eight changed files were Prettier-formatted (the format
+script only sees uncommitted files). Content: two branding overclaims on the photographers post,
+an invented ratio, a borrowed endorsement, a "we will not build it" promise and a flat SMS/MMS
+claim were recast; five first-person lines neutralized; four FAQ questions that duplicated a
+marketing FAQ replaced; the photo-booth post given its own claim (the queue) instead of borrowing
+the disposables' keepsake argument; the wedding hub's five "actually"s and the library's
+"genuinely" tic cut back. One reviewer call was rejected on the code: guests CAN delete their own
+uploads (the uploads hub's Trash button, `remove_my_upload`), so the guest explainer keeps saying so
+and the help article that says otherwise is flagged for its next refresh.
+
+**Verified on the dev server, 1440 and 375:** the rail in registry order with counts 8/4/3/12/7/8;
+`?tag=corporate` collapses the hero, shows three cards with the description line and no pager;
+page 2 shows ten cards, "Showing 13–22 of 22", `?page=2` via replaceState with no history entry;
+`?tag=how-to&page=99` clamps to one page; an article's FAQPage + Article JSON-LD both present; a
+comparison table scrolls inside its wrapper at 375 with 31 marks each carrying screen-reader text;
+no horizontal overflow at either width; feed 23 items / 23 enclosures; sitemap 23; the four old
+URLs 308 to their targets. Two docs corrected in passing: a stale "Pro-gated" line in
+guest-flow.md (turning accounts off has been free since 2026-06-21), and the help brief's
+spec-inline pointer.
+
+## 2026-09-02 — MILESTONE-14: prod = the light system, the re-paced home, and the reel's pool
+
+`main` @ tag `milestone-14` (`54bd519`; `launch-prep` `94d38db` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit so the two branches agree). Migrations at parity (none since
+milestone-13), the full gate green on the merged tree (1317 tests), prod READY at the merge SHA.
+Will's acceptance on the launch-prep alias: "This looks way better. It still needs plenty of work
+later, but please go ahead and merge to main."
+
+Verified on partyreel.com at `54bd519` with the Chrome MCP: the section alignment reads centred, LEFT,
+centred, centred through chapter 1's tail and LEFT, centred, LEFT across the paper chapter; the live
+demo's padding 144px above and below; the four event teasers at two lines with their titles 249px from
+the card tops and the focus-ring token present; the reel screen's pool 768px wide over a 768px player,
+its mask computing with all eleven stops and the `-webkit-` twin; the curation mock first in the DOM
+and the album print wholly inside the paper chapter; no sideways scroll at 1440 (1440/1440), nor at
+375 through a same-origin iframe under a classic 17px scrollbar (358/358, a forced sideways scroll
+landing at 0, the reel pool 326 wide over a 326px player); console clean across a full scroll after a
+fresh load. Rounds 0 to 2b are all on prod now: the SPILL engine and the footer seam on it, the lit
+root 404, the film strip's backlight, the Pro card's beam, the media-forward event cards, the chapter
+pacing, the adjacency rule, and the sideways-scroll fix.
+
 ## 2026-09-01 — Round 2, second pass: A ships, and no two sections back to back read alike
 
 `lp/reel-a` (`05f8c51`) merged into `launch-prep` (`f0c8f99`, `--no-ff`) with `launch-prep`'s own

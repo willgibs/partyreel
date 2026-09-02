@@ -12,7 +12,7 @@
  *   • Pro sizes resolve to the SMALLEST cap that fits (never upsell past fit).
  */
 import {
-  friendlyCapacity,
+  formatCapacity,
   GIGABYTE,
   planById,
   plansForTier,
@@ -46,16 +46,10 @@ export function smallestProFor(bytes: number): Plan {
 }
 
 /** "about 12,800 photos or 7 hours of video" — the receipt line for a byte cap. */
+// Delegates to the shared formatter (tiers.ts) so the blog and /pricing can never describe one
+// cap in two ways; the en-US pin there also removes a host-locale hydration hazard this used to have.
 export function capacityPhrase(bytes: number, withVideo: boolean): string {
-  const cap = friendlyCapacity(bytes);
-  const photos = `about ${cap.photos.toLocaleString()} photos`;
-  if (!withVideo) return photos;
-  const hours = cap.videoMinutes / 60;
-  const video =
-    hours >= 2
-      ? `${Math.round(hours).toLocaleString()} hours of video`
-      : `${cap.videoMinutes.toLocaleString()} minutes of video`;
-  return `${photos} or ${video}`;
+  return `about ${formatCapacity(bytes, { video: withVideo })}`;
 }
 
 export function recommendPlan(input: CalculatorInput): Recommendation {

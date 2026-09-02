@@ -1,13 +1,19 @@
 import type { BlogListItem } from "./blog";
+import {
+  BLOG_TAGS,
+  type BlogTag,
+  type BlogTagId,
+  isBlogTagId,
+} from "./blog-tags";
 
 /**
  * THE BLOG INDEX's pure derivations. Client-safe (no `node:fs`): the filter island imports these,
  * `blog.ts` cannot cross that boundary.
  *
  * ★ THE HERO RULE, and why it is a rule rather than a layout detail. The obvious shape is "lift the
- * newest post out as the hero, filter the rest" - and it is broken. Tags are freeform and per-post,
- * so a hero can own tags no other post has (today the newest post owns `product` and
- * `highlight-reel` alone). Lift it out permanently and those chips render an EMPTY library while
+ * newest post out as the hero, filter the rest" - and it is broken. Tags are registered but
+ * per-post, so a hero can own tags no other post has (the test fixture's newest post owns
+ * `product` and `compared` alone). Lift it out permanently and those chips render an EMPTY library while
  * the one matching article sits in the hero directly above, which reads as a bug.
  *
  * So the hero exists ONLY in the unfiltered view. Pick a tag and the hero collapses into a pure
@@ -16,18 +22,25 @@ import type { BlogListItem } from "./blog";
  * `everyTagYieldsRows` pins.
  */
 
-export type TagCount = { label: string; count: number };
+export type TagCount = BlogTag & { count: number };
 
-/** Tags with their post counts, most-used first then alphabetical. Counts come from the FULL set,
- *  which is what makes them a reliable promise about what a chip will show. */
+/**
+ * Tags with their post counts, in REGISTRY order (audiences, then purposes), dropping any tag
+ * with no posts. Counts come from the FULL set, which is what makes them a reliable promise
+ * about what a row will show. Registry order rather than most-used-first on purpose: a rail
+ * that re-sorts itself every time a batch of posts lands is the same instability the cover
+ * resolver forbids, and "Weddings / Parties / Corporate" above "How-to / Compared / Product"
+ * reads as a menu, which is what a browse rail is.
+ */
 export function tagCounts(posts: BlogListItem[]): TagCount[] {
-  const counts = new Map<string, number>();
+  const counts = new Map<BlogTagId, number>();
   for (const post of posts) {
     for (const tag of post.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
   }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([label, count]) => ({ label, count }));
+  return BLOG_TAGS.flatMap((tag) => {
+    const count = counts.get(tag.id) ?? 0;
+    return count > 0 ? [{ ...tag, count }] : [];
+  });
 }
 
 export type LibrarySplit = {
@@ -39,7 +52,7 @@ export type LibrarySplit = {
 
 export function splitLibrary(
   posts: BlogListItem[],
-  activeTag: string | null,
+  activeTag: BlogTagId | null,
 ): LibrarySplit {
   if (activeTag) {
     return {
@@ -56,19 +69,21 @@ export function splitLibrary(
 export function normalizeTag(
   raw: string | null | undefined,
   posts: BlogListItem[],
-): string | null {
-  if (!raw) return null;
+): BlogTagId | null {
+  if (!raw || !isBlogTagId(raw)) return null;
+  // Checked against POSTS, not just the registry: a registered tag with zero posts must
+  // also collapse to the unfiltered view, which is what keeps an empty library impossible.
   return posts.some((post) => post.tags.includes(raw)) ? raw : null;
 }
 
 // ── Pagination ───────────────────────────────────────────────────────────────
 // Built ahead of need (Will, 2026-08-28: "it may be worth building the future pagination we'll
-// need"). It is INVISIBLE below the threshold, so today's four posts render exactly as they do now
-// and the control appears the first time a page overflows.
+// need"), and INVISIBLE below the threshold; the library rewrite (2026-09) was the first time a
+// page overflowed and the control rendered.
 //
 // Client-side over `/blog/page/[n]` routes on purpose: the filter already owns `?tag=`, the route
 // is static, and a second axis of real routes would multiply into tag x page URL space for a blog
-// with four posts in it. `?page=` keeps every view shareable without any of that. If the archive
+// of a couple of dozen posts. `?page=` keeps every view shareable without any of that. If the archive
 // ever gets big enough that indexing deep pages matters, THAT is the moment to promote it to real
 // routes, and the pure function below is what those routes would call anyway.
 

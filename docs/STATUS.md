@@ -100,6 +100,15 @@ stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
 
+**MILESTONE-14 (2026-09-02): prod = rounds 0 to 2b.** `main` @ tag `milestone-14` (`54bd519`), prod
+READY + verified at the merge SHA (the light system, the lit 404, the film strip's backlight, the Pro
+beam, the media-forward cards, the re-paced home with the adjacency rule, the reel's pool, the
+sideways-scroll fix). Will's acceptance: "This looks way better. It still needs plenty of work later,
+but please go ahead and merge to main." Full narrative: [CHANGELOG](CHANGELOG.md). The blog library
+(`lp/blog-library`, the Agent's handoff at `661205f`) merged into `launch-prep` right after, at
+`e70d241`, gate green on the merged tree (1337 tests, 155 static pages); the one conflict was the
+CHANGELOG's top, and the three auto-merged docs were read by eye.
+
 **Round 2 (2026-09-01)** turned the chapter idea into a recorded PACING PRINCIPLE (a chapter is an
 attention arc; each opener bespoke; core marketing pages only) and re-paced the home page against it:
 two quiet guest-side sections wind chapter 1 down before the live demo, now its centred closing anchor;
@@ -284,11 +293,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-13`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-14`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1317 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1337 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -351,10 +360,8 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **When to ship `launch-prep` to `main`.** Rounds 0, 1 AND 2 are now unmerged, one past the
-   policy's ~2-round ceiling. All three are real production changes (the light system, the lit 404,
-   the film strip's backlight, the re-paced home page, the sideways-scroll fix), and Will ruled (2026-09-01)
-   that the milestone follows round 2's second pass: merge to `main` once `launch-prep` verifies.
+2. **Rounds 0 to 2b shipped at MILESTONE-14 (2026-09-02).** Unmerged now: the blog library, merged
+   into `launch-prep` at `e70d241` for Will's look on the preview, then milestone-15.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

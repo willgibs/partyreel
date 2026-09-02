@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { getPostListItems } from "@/lib/content/blog";
+import { LLMS_BLOG_LIMIT } from "@/lib/content/llms";
 import { getAllArticles } from "@/lib/content/help";
 
 import { buildLlmsFullTxt, buildLlmsTxt } from "./llms";
@@ -91,6 +92,16 @@ describe("buildLlmsTxt", () => {
   it("stays lean", () => {
     expect(txt.length).toBeLessThan(16_000);
   });
+
+  it("lists only the newest posts (the archive outgrew the lean budget)", () => {
+    const posts = getPostListItems();
+    const listed = posts.filter((p) => txt.includes(`/blog/${p.slug})`));
+    expect(listed.length).toBe(Math.min(LLMS_BLOG_LIMIT, posts.length));
+    // Newest-first: the first N of the (already sorted) collection, exactly.
+    expect(listed.map((p) => p.slug)).toEqual(
+      posts.slice(0, LLMS_BLOG_LIMIT).map((p) => p.slug),
+    );
+  });
 });
 
 describe("buildLlmsFullTxt", () => {
@@ -106,6 +117,13 @@ describe("buildLlmsFullTxt", () => {
   it("inlines every FAQ question", () => {
     const questions = [...full.matchAll(/^### /gm)];
     expect(questions.length).toBeGreaterThanOrEqual(16);
+  });
+
+  it("carries every blog post, since the index is capped", () => {
+    expect(full).toContain("## Every blog post");
+    for (const p of getPostListItems()) {
+      expect(full, p.slug).toContain(`/blog/${p.slug})`);
+    }
   });
 
   it("stays within the ingestion budget", () => {

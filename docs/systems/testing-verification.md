@@ -25,6 +25,11 @@ site, these are the ways the *test tooling* misreports, so a working change look
 
 ## Chrome MCP blind spots
 
+- ★ **Paint timing does not exist in a hidden document** (the blog-library round, 2026-09-01): both
+  the Browser pane and the Chrome MCP tab can report `document.visibilityState === "hidden"` even
+  after fronting them, and a hidden document records NO paint timing at all: a `PerformanceObserver`
+  for `largest-contentful-paint` / `first-contentful-paint` returns zero entries, not a slow number.
+  An LCP read from either is meaningless; measure vitals from a tab a human has in the foreground.
 - ★ **The Chrome MCP's tab is usually a BACKGROUND tab (`document.hidden === true`), and that changes
   what the page does, not just what you see** (round 2, 2026-09-01). Three consequences, all of which
   read as product bugs and are not: (1) every `useAmbientPause` consumer reports `data-paused="true"`,

@@ -193,7 +193,7 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
 - **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
   gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). The account step lives in the entry
+  `require_email`, ADR-0015; default is ON, and turning it off is FREE on every tier since 2026-06-21, see [host-app.md](host-app.md)). The account step lives in the entry
   modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
   secondary password login; the teaser shows behind it. `create_guest` derives identity (`user_id` + `email`)
