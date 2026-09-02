@@ -11,6 +11,20 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — MILESTONE-19: prod = wave 1 complete (every job operable from /admin, self-serve account deletion, the demo seed)
+
+`main` @ tag `milestone-19` (`88827d9`; `launch-prep` `1c221f7` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1577 tests, 244 static pages); prod READY at the merge SHA. The three track entries below are the
+round; both migrations were applied at their integrations with their contract checks.
+
+**Prod at `88827d9`:** the home, /privacy and /terms (both Version 1.1), the two help articles and the
+`Test Wedding` door 200; /account and /dashboard 307 to login signed out; the purge cron 401 without
+its secret; `/api/internal/job-run` 401 bare and on a wrong bearer; the four security headers present
+with no `x-powered-by`. The backup Worker was redeployed right after (version `4e77f674`, both
+schedules intact), so its heartbeat calls land on a route that exists. `/admin/jobs` and the operator
+deletion card are host-gated to `admin.partyreel.com` and get their looks there.
+
 ## 2026-09-02 — Track `account-deletion` integrated (`244f57e`)
 
 Merged into `launch-prep` at `244f57e` (2026-09-02). Self-serve account deletion shipped end to end.
