@@ -33,21 +33,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/help" },
 };
 
-// One-word strip labels: the hero's emblem row is an instrument, and
-// instruments read at a glance (full titles live on the panes below).
-const STRIP_LABELS: Record<string, string> = {
-  "getting-started": "Start",
-  "qr-and-invites": "QR",
-  "guest-experience": "Guests",
-  "event-album": "Album",
-  "sharing-and-downloads": "Sharing",
-  "highlight-reel": "Reel",
-  "plans-and-billing": "Plans",
-  "account-and-profile": "Account",
-  "privacy-and-safety": "Privacy",
-  troubleshooting: "Fixes",
-};
-
 // THE INDEX OF EVERYTHING (R6, ruled): the help center as the product's printed
 // index — hairline sheet, numbered categories and rows, DOM-art emblems, the
 // palette as the primary interface. Reveal choreography is deliberately hero-
@@ -57,6 +42,8 @@ const STRIP_LABELS: Record<string, string> = {
 // here is registry-driven from help.ts (curated slugs are test-pinned).
 export default function HelpIndexPage() {
   const groups = getArticlesByCategory();
+  // Panes other than the always-wide troubleshooting closer.
+  const oddRegular = (groups.length - 1) % 2 === 1;
   const startHere = getStartHereArticles();
   const facts = getHelpFacts();
 
@@ -160,7 +147,7 @@ export default function HelpIndexPage() {
                     >
                       <CategoryEmblem slug={category.slug} className="scale-90" />
                       <span className="text-[11px] leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                        {STRIP_LABELS[category.slug] ?? category.title}
+                        {category.stripLabel}
                       </span>
                     </a>
                   ))}
@@ -282,14 +269,14 @@ export default function HelpIndexPage() {
 
           <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border bg-border ring-1 ring-foreground/5 lg:grid-cols-2">
             {groups.map(({ category, articles }, groupIndex) => {
-              // Two wide panes keep the two-column sheet's rows even at ten
-              // categories (9 regular + 1 wide left an orphan cell): the
-              // guest lane opens wide, troubleshooting closes wide. Any pane
-              // holding 7+ guides splits its list in two so the sheet stays
-              // scannable at desktop widths.
+              // Troubleshooting always closes the sheet wide. The guest lane
+              // opens wide only when the remaining count is odd, which is
+              // what keeps the two-column rows even at ANY category count
+              // (nine left an orphan cell once ten arrived). Any pane holding
+              // 7+ guides splits its list in two so the sheet stays scannable.
               const wide =
                 category.slug === "troubleshooting" ||
-                category.slug === "guest-experience";
+                (category.slug === "guest-experience" && oddRegular);
               const columns = wide || articles.length >= 7;
               return (
                 <div

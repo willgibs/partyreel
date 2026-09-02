@@ -81,7 +81,7 @@ type PaletteOption = {
   /** Section deep-link, only when a heading was the sole reason for the match. */
   anchor: { id: string; text: string } | null;
   categoryTitle: string | null;
-  /** "Guest" when the article speaks to guests (the tail's second word). */
+  /** The exceptional audience ("For guests" outside the guest lane), else null. */
   audienceTail: string | null;
 };
 
@@ -143,13 +143,9 @@ export function HelpPaletteProvider({
         label: result.item.title,
         anchor: result.anchor,
         categoryTitle: result.item.categoryTitle,
-        // The guest lane's own title already says "For guests"; the tail
-        // marks guest-voiced articles that live elsewhere.
-        audienceTail:
-          result.item.audience === "guest" &&
-          result.item.category !== "guest-experience"
-            ? "Guest"
-            : null,
+        // help.ts decides when the audience is worth a word (the same
+        // decision the article page's badge makes).
+        audienceTail: result.item.audienceLabel,
       })),
       ...pages.map<PaletteOption>((page) => ({
         kind: "page",

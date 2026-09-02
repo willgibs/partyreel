@@ -4,6 +4,7 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  useMemo,
   useSyncExternalStore,
   type ReactElement,
   type ReactNode,
@@ -26,18 +27,26 @@ import { cn } from "@/lib/utils";
 const STORAGE_PREFIX = "pr_help_check_";
 const CHANGE_EVENT = "pr-help-checklist";
 
-// The ticks live in localStorage and reach React through useSyncExternalStore
-// (the palette's useIsMac pattern): the server snapshot is "nothing ticked",
-// the client snapshot is the stored string, so the first render never
-// mismatches and no effect ever calls setState. Snapshots are STRINGS on
-// purpose: getSnapshot must return a stable value between changes, and a
-// fresh array each call would loop.
+// ONE store: a module-level cache is the read source React subscribes to
+// (through useSyncExternalStore, the palette's useIsMac pattern: the server
+// snapshot is "nothing ticked", so the first render never mismatches and no
+// effect ever calls setState). localStorage is seeded from once per id and
+// written best-effort, so a browser that blocks storage still ticks for the
+// visit. Snapshots are STRINGS on purpose: getSnapshot must return a stable
+// value between changes, and a fresh array each call would loop.
+const cache = new Map<string, string>();
+
 function readRaw(id: string): string {
+  const cached = cache.get(id);
+  if (cached !== undefined) return cached;
+  let raw = "";
   try {
-    return localStorage.getItem(STORAGE_PREFIX + id) ?? "";
+    raw = localStorage.getItem(STORAGE_PREFIX + id) ?? "";
   } catch {
-    return "";
+    // Storage blocked: start empty for this visit.
   }
+  cache.set(id, raw);
+  return raw;
 }
 
 function parseTicks(raw: string, size: number): boolean[] {
@@ -52,25 +61,30 @@ function parseTicks(raw: string, size: number): boolean[] {
 }
 
 function writeTicks(id: string, ticks: boolean[]) {
+  const raw = JSON.stringify(ticks);
+  cache.set(id, raw);
   try {
-    localStorage.setItem(STORAGE_PREFIX + id, JSON.stringify(ticks));
+    localStorage.setItem(STORAGE_PREFIX + id, raw);
   } catch {
-    // Storage blocked or full: the list still works for this visit through
-    // the in-memory fallback below.
+    // Storage blocked or full: the cache still carries the visit.
   }
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-// In-memory fallback for sessions where storage throws (private windows on
-// some browsers, blocked site data): the checklist still ticks for the visit.
-const memory = new Map<string, string>();
-
 function subscribe(callback: () => void) {
+  // Another tab ticking the same list invalidates the cache so the next
+  // snapshot re-reads storage.
+  const onStorage = (event: StorageEvent) => {
+    if (event.key?.startsWith(STORAGE_PREFIX)) {
+      cache.delete(event.key.slice(STORAGE_PREFIX.length));
+    }
+    callback();
+  };
   window.addEventListener(CHANGE_EVENT, callback);
-  window.addEventListener("storage", callback);
+  window.addEventListener("storage", onStorage);
   return () => {
     window.removeEventListener(CHANGE_EVENT, callback);
-    window.removeEventListener("storage", callback);
+    window.removeEventListener("storage", onStorage);
   };
 }
 
@@ -79,6 +93,7 @@ type CheckProps = {
   children?: ReactNode;
   /** Injected by Checklist. */
   index?: number;
+  listId?: string;
   checked?: boolean;
   onToggle?: (index: number) => void;
 };
@@ -87,10 +102,12 @@ export function Check({
   title,
   children,
   index = 0,
+  listId = "list",
   checked = false,
   onToggle,
 }: CheckProps) {
-  const inputId = `help-check-${index}`;
+  // Scoped by the list's id: two checklists on one page must not share ids.
+  const inputId = `help-check-${listId}-${index}`;
   return (
     <li className="flex gap-3.5 py-3">
       <span className="relative mt-0.5 flex size-5 shrink-0">
@@ -159,24 +176,18 @@ export function Checklist({
   const items = Children.toArray(children).filter(
     (child): child is ReactElement<CheckProps> => isValidElement(child),
   );
-  const raw = useSyncExternalStore(
-    subscribe,
-    () => readRaw(id) || memory.get(id) || "",
-    () => "",
-  );
-  const ticks = parseTicks(raw, items.length);
-
-  const commit = (next: boolean[]) => {
-    memory.set(id, JSON.stringify(next));
-    writeTicks(id, next);
-  };
+  const raw = useSyncExternalStore(subscribe, () => readRaw(id), () => "");
+  const ticks = useMemo(() => parseTicks(raw, items.length), [raw, items.length]);
 
   const toggle = (index: number) => {
-    commit(ticks.map((v, i) => (i === index ? !v : v)));
+    writeTicks(
+      id,
+      ticks.map((v, i) => (i === index ? !v : v)),
+    );
   };
 
   const reset = () => {
-    commit(Array(items.length).fill(false));
+    writeTicks(id, Array(items.length).fill(false));
   };
 
   const done = ticks.filter(Boolean).length;
@@ -187,6 +198,7 @@ export function Checklist({
         {items.map((child, i) =>
           cloneElement(child, {
             index: i,
+            listId: id,
             checked: ticks[i] ?? false,
             onToggle: toggle,
           }),

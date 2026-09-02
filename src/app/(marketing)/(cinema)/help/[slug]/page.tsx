@@ -20,6 +20,7 @@ import {
   getAllSlugs,
   getArticle,
   getCategory,
+  audienceLabel,
   getRelatedArticles,
   resolveAudience,
   type HelpArticle,
@@ -75,7 +76,6 @@ export default async function HelpArticlePage({
 
   const category = getCategory(article.frontmatter.category);
   const headings = extractHeadings(article.body);
-  const related = getRelatedArticles(article);
 
   // Prev/next within the category's shipping order (getAllArticles is already
   // category+order sorted); under-populated ends just render one card.
@@ -85,26 +85,17 @@ export default async function HelpArticlePage({
   const at = siblings.findIndex((a) => a.slug === slug);
   const prev = at > 0 ? siblings[at - 1] : null;
   const next = at >= 0 && at < siblings.length - 1 ? siblings[at + 1] : null;
+  // Related skips what the pagination cards already show.
+  const related = getRelatedArticles(
+    article,
+    3,
+    [prev?.slug, next?.slug].filter((s): s is string => Boolean(s)),
+  );
 
-  // The audience tag renders only when it says something the category badge
-  // does not: a guest article outside the guest lane, a host article inside
-  // it, or a both-sides article anywhere. The default case stays quiet so the
-  // stage keeps its one chip.
+  // The audience tag renders only when it says something the category chip
+  // does not (help.ts owns that decision, shared with the palette's tail).
   const audience = resolveAudience(article);
-  const categoryDefault =
-    category.slug === "guest-experience"
-      ? "guest"
-      : category.slug === "troubleshooting"
-        ? "both"
-        : "host";
-  const audienceLabel =
-    audience === categoryDefault
-      ? null
-      : audience === "guest"
-        ? "For guests"
-        : audience === "both"
-          ? "Hosts & guests"
-          : "For hosts";
+  const audienceTag = audienceLabel(article);
   const plans = article.frontmatter.plans;
 
   // compileMDX (rsc) renders the body to a ReactElement we drop into the prose
@@ -177,7 +168,7 @@ export default async function HelpArticlePage({
                   the heading face; meta in Inter small muted with tabular
                   digits (the mono ruling). The badge is the way back to this
                   category's pane on the index — a paper chip on the stage. */}
-              <header className="mt-8">
+              <header className="mt-8" data-print-keep>
                 <span className="surface-paper inline-flex items-center gap-2">
                   <Link href={`/help#${category.slug}`} className="inline-flex">
                     <Badge
@@ -187,9 +178,7 @@ export default async function HelpArticlePage({
                       {category.title}
                     </Badge>
                   </Link>
-                  {audienceLabel && (
-                    <Badge variant="outline">{audienceLabel}</Badge>
-                  )}
+                  {audienceTag && <Badge variant="outline">{audienceTag}</Badge>}
                 </span>
                 <h1 className="mt-4 font-heading text-4xl text-balance sm:text-5xl lg:text-6xl">
                   {article.frontmatter.title}

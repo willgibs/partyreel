@@ -80,7 +80,10 @@ export const EVENT_PASSWORD_MIN_LENGTH = 4;
 export const eventPasswordSchema = z.object({
   password: z
     .string()
-    .min(EVENT_PASSWORD_MIN_LENGTH, "Use at least 4 characters.")
+    .min(
+      EVENT_PASSWORD_MIN_LENGTH,
+      `Use at least ${EVENT_PASSWORD_MIN_LENGTH} characters.`,
+    )
     .max(128, "Keep the password under 128 characters."),
 });
 export type EventPasswordValues = z.output<typeof eventPasswordSchema>;

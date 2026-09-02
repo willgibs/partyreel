@@ -28,7 +28,7 @@ On the free plan only, an event nobody touches for <InactivityMonths /> is warne
 
 ## The Event Pass
 
-A pass covers its event with <EventPassStorage /> for <EventPassTerm /> from purchase. When it ends without a renewal, the account settles to the free plan; nothing is deleted, and if the album is bigger than the free plan allows, there's a <OverCapGraceDays /> window to renew, upgrade, or make room before the largest files start moving to Deleted. See [how long an Event Pass lasts](/help/how-long-an-event-pass-lasts).
+A pass covers its event with <EventPassStorage /> for <EventPassTerm /> from purchase. When it ends without a renewal, the account settles to the free plan and nothing is deleted. If the album is bigger than the free plan allows, there's a <OverCapGraceDays /> window to renew, upgrade, or make room before the largest files start moving to Deleted. See [how long an Event Pass lasts](/help/how-long-an-event-pass-lasts).
 
 ## Deleted, and gone
 
@@ -36,7 +36,7 @@ Removing a photo or deleting an event moves it to Deleted for <RecoveryDays />, 
 
 ## Where the files live
 
-Every upload is stored in one region and copied to a second, locked copy in another, minutes after it arrives, along with nightly copies of the album records. That's the durability story, in full: two regions, and deletes that wait <RecoveryDays />. Partyreel doesn't make claims beyond what's built.
+Every upload is stored in one region and copied to a second region minutes after it arrives; the album's records are copied nightly. That's the whole durability story: two regions, and deletes that wait <RecoveryDays />.
 
 <Callout type="tip" title="Keep your own copy too">
 

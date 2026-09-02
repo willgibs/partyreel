@@ -54,6 +54,7 @@ export type { ArticleHeading } from "./collection";
 export const HELP_CATEGORIES = [
   {
     slug: "getting-started",
+    stripLabel: "Start",
     title: "Getting started",
     blurb: "How it works, your first event, and your dashboard.",
     icon: Rocket,
@@ -61,6 +62,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "qr-and-invites",
+    stripLabel: "QR",
     title: "QR & invites",
     blurb: "The code, the cards, the screens: getting guests in.",
     icon: QrCode,
@@ -71,6 +73,7 @@ export const HELP_CATEGORIES = [
     // guest-voiced lane inside the host's lifecycle spine. The slug stays
     // (contact's CATEGORY_TOPIC, the emblem, and #anchors key on it).
     slug: "guest-experience",
+    stripLabel: "Guests",
     title: "For guests",
     blurb: "Joining, adding your photos, and browsing: no app, no account.",
     icon: Users,
@@ -78,6 +81,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "event-album",
+    stripLabel: "Album",
     title: "Event album",
     blurb: "Review, curate, and shape what everyone sees.",
     icon: Images,
@@ -88,6 +92,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "sharing-and-downloads",
+    stripLabel: "Sharing",
     title: "Sharing & downloads",
     blurb: "The album link, full-quality downloads, and the zip.",
     icon: Share2,
@@ -95,6 +100,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "highlight-reel",
+    stripLabel: "Reel",
     title: "Highlight reel",
     blurb: "Your event's best moments, cut into one shareable video.",
     icon: Film,
@@ -102,6 +108,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "plans-and-billing",
+    stripLabel: "Plans",
     title: "Plans & billing",
     blurb: "Storage, the free plan, Pro, and the one-time Event Pass.",
     icon: CreditCard,
@@ -113,6 +120,7 @@ export const HELP_CATEGORIES = [
     // in the nine lifecycle categories. Hosts AND guests share one account,
     // so it sits with the account-admin tail (billing, privacy), not up front.
     slug: "account-and-profile",
+    stripLabel: "Account",
     title: "Account & profile",
     blurb: "Sign-in, your name and photo, your profile, and notifications.",
     icon: UserRound,
@@ -120,6 +128,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "privacy-and-safety",
+    stripLabel: "Privacy",
     title: "Privacy & safety",
     blurb: "Who can see your media, how long it's kept, and your data.",
     icon: ShieldCheck,
@@ -127,6 +136,7 @@ export const HELP_CATEGORIES = [
   },
   {
     slug: "troubleshooting",
+    stripLabel: "Fixes",
     title: "Troubleshooting",
     blurb: "When something won't scan, send, or upload.",
     icon: Wrench,
@@ -135,6 +145,8 @@ export const HELP_CATEGORIES = [
   },
 ] as const satisfies readonly {
   slug: string;
+  /** The one-word strip label on the index hero (an instrument reads at a glance). */
+  stripLabel: string;
   title: string;
   blurb: string;
   icon: LucideIcon;
@@ -201,9 +213,32 @@ export function resolveAudience(article: {
   frontmatter: Pick<HelpFrontmatter, "audience" | "category">;
 }): HelpAudience {
   if (article.frontmatter.audience) return article.frontmatter.audience;
-  if (article.frontmatter.category === "guest-experience") return "guest";
-  if (article.frontmatter.category === "troubleshooting") return "both";
+  return defaultAudience(article.frontmatter.category);
+}
+
+function defaultAudience(category: HelpCategorySlug): HelpAudience {
+  if (category === "guest-experience") return "guest";
+  if (category === "troubleshooting") return "both";
   return "host";
+}
+
+const AUDIENCE_LABEL: Record<HelpAudience, string> = {
+  host: "For hosts",
+  guest: "For guests",
+  both: "Hosts & guests",
+};
+
+/**
+ * The audience tag, or null when the article's audience is its category's
+ * default (the category chip already says it). ONE decision for the article
+ * page's badge and the palette's result tail, so the two never disagree.
+ */
+export function audienceLabel(article: {
+  frontmatter: Pick<HelpFrontmatter, "audience" | "category">;
+}): string | null {
+  const audience = resolveAudience(article);
+  if (audience === defaultAudience(article.frontmatter.category)) return null;
+  return AUDIENCE_LABEL[audience];
 }
 
 const categoryOrder = new Map(HELP_CATEGORIES.map((c, i) => [c.slug, i]));
@@ -266,43 +301,45 @@ export function scoreRelated(
 
 // Scored related articles; ties break on the canonical index order so results are
 // deterministic. Under-filling is intentional (never pad with unrelated articles).
-// Two rules since the catalog grew past 50 (2026-09-01): the prev/next
-// siblings are excluded (the pagination cards already show them, and at 5-8
-// articles per category Related was duplicating them), and a candidate needs
-// at least ONE shared keyword (score ≥ 2): same-category alone is not
-// relatedness once a category holds eight guides.
+// The caller passes what it already shows (the prev/next cards) as `exclude`,
+// the blog's getRelatedPosts shape, so "what pagination shows" stays a page
+// decision. Same-category candidates (score 1) still qualify, ranked below
+// keyword matches: a stricter "shared keyword or nothing" rule was tried and
+// left ten articles with an empty section, a dead end on exactly the pages
+// that need an exit.
 export function getRelatedArticles(
   article: HelpArticle,
   limit = 3,
+  /** Slugs the caller already shows (the prev/next cards), skipped first. */
+  exclude: readonly string[] = [],
 ): HelpArticle[] {
   const self = {
     category: article.frontmatter.category,
     keywords: article.frontmatter.keywords,
   };
   const all = getAllArticles();
-  const siblings = all.filter(
-    (a) => a.frontmatter.category === article.frontmatter.category,
-  );
-  const at = siblings.findIndex((a) => a.slug === article.slug);
-  const neighbors = new Set(
-    [siblings[at - 1]?.slug, siblings[at + 1]?.slug].filter(Boolean),
-  );
-  return all
-    .map((candidate, index) => ({
-      candidate,
-      index,
-      score:
-        candidate.slug === article.slug || neighbors.has(candidate.slug)
-          ? 0
-          : scoreRelated(self, {
-              category: candidate.frontmatter.category,
-              keywords: candidate.frontmatter.keywords,
-            }),
-    }))
-    .filter((entry) => entry.score >= 2)
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .slice(0, limit)
-    .map((entry) => entry.candidate);
+  const skip = new Set(exclude);
+  const rank = (honorExclude: boolean) =>
+    all
+      .map((candidate, index) => ({
+        candidate,
+        index,
+        score:
+          candidate.slug === article.slug ||
+          (honorExclude && skip.has(candidate.slug))
+            ? 0
+            : scoreRelated(self, {
+                category: candidate.frontmatter.category,
+                keywords: candidate.frontmatter.keywords,
+              }),
+      }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .slice(0, limit)
+      .map((entry) => entry.candidate);
+  // A two-article category has only its neighbors; better a repeat than a void.
+  const related = rank(true);
+  return related.length > 0 ? related : rank(false);
 }
 
 // Light, serializable metadata for the client search palette (NO bodies — they stay
@@ -317,11 +354,13 @@ export type HelpSearchItem = {
   category: HelpCategorySlug;
   categoryTitle: string;
   audience: HelpAudience;
+  /** The exceptional audience tag ("For guests" outside the guest lane), else null. */
+  audienceLabel: string | null;
   keywords: string[];
   headings: { id: string; text: string }[];
 };
 
-export function getSearchIndex(): HelpSearchItem[] {
+export const getSearchIndex = cache((): HelpSearchItem[] => {
   return getAllArticles().map((article) => ({
     slug: article.slug,
     title: article.frontmatter.title,
@@ -329,10 +368,11 @@ export function getSearchIndex(): HelpSearchItem[] {
     category: article.frontmatter.category,
     categoryTitle: getCategory(article.frontmatter.category).title,
     audience: resolveAudience(article),
+    audienceLabel: audienceLabel(article),
     keywords: article.frontmatter.keywords,
     headings: extractHeadings(article.body),
   }));
-}
+});
 
 /** The category chips the palette offers when a query matches nothing. */
 export function getCategoryChips(): { slug: HelpCategorySlug; title: string }[] {

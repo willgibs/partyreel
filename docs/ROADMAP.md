@@ -239,7 +239,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   by checkout and never read (no post-purchase confirmation), the settings selector says "Public" while the
   event header chip says "Open", `restoreEventAction.mediaStillRemoved` is never surfaced, the ops-only
   "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
-  event-level Report, and `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit;
+  event-level Report, `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit, the guest
+  404 page says the event "may have ended" (events have no end date) and the open-event unfurl
+  promises "no account" even when the event requires one, and `lifecycle-recovery.md` says a guest's
+  self-deleted upload is excluded from the host's Deleted list while `listRecentlyDeletedMedia`
+  applies no such filter (only `restore_media` refuses it; a live check settles which is true);
   the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
   the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
   article's contact path — swap the "Deleting your account" section of

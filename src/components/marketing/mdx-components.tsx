@@ -21,6 +21,7 @@ import Image from "next/image";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { Check, Checklist } from "@/components/marketing/help/checklist";
 import { Kbd } from "@/components/shared/kbd";
+import { Badge } from "@/components/ui/badge";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
 import {
@@ -128,10 +129,15 @@ const BADGE_LABEL: Record<BadgeTier, string> = {
 };
 
 export function PlanBadge({ tier = "paid" }: { tier?: BadgeTier }) {
+  // The design system's outline Badge, re-sized to sit on a prose baseline
+  // (Badge's fixed h-5 fights the line box inside a paragraph).
   return (
-    <span className="inline-flex items-center rounded-full border border-foreground/30 px-2 py-px align-baseline text-[0.8em] leading-5 font-medium whitespace-nowrap text-foreground">
+    <Badge
+      variant="outline"
+      className="h-auto px-2 py-px align-baseline text-[0.8em] leading-5"
+    >
       {BADGE_LABEL[tier]}
-    </span>
+    </Badge>
   );
 }
 

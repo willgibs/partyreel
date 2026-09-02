@@ -5,6 +5,7 @@ import {
   getAllArticles,
   getAllSlugs,
   getHelpFacts,
+  getRelatedArticles,
   getSearchIndex,
   getStartHereArticles,
   HELP_CATEGORIES,
@@ -113,6 +114,24 @@ describe("help content integrity", () => {
     }
     // Pinned for non-emptiness: a regex that matches nothing proves nothing.
     expect(checked).toBeGreaterThan(20);
+  });
+
+  it("every article has at least one related article (no dead ends)", () => {
+    // A stricter scorer once emptied the section on ten articles; the
+    // pagination cards are not a substitute, so the fallback is pinned.
+    for (const article of articles) {
+      const siblings = articles.filter(
+        (a) => a.frontmatter.category === article.frontmatter.category,
+      );
+      const at = siblings.findIndex((a) => a.slug === article.slug);
+      const neighbors = [siblings[at - 1]?.slug, siblings[at + 1]?.slug].filter(
+        (s): s is string => Boolean(s),
+      );
+      expect(
+        getRelatedArticles(article, 3, neighbors).length,
+        `${article.slug} has no related articles`,
+      ).toBeGreaterThan(0);
+    }
   });
 
   it("no article carries a JS-expression placeholder (blockJS would strip it)", () => {

@@ -100,6 +100,19 @@ file for limits. Field notes:
     `help-slug-pins.test.ts`. Renaming one means sweeping every referrer in
     the same commit.
 
+## The house terms
+
+One word per thing, so the palette's deep links and the reader's mental map
+stay whole: **Deleted** (the place removed items wait; never "trash" or "bin"
+in prose), **photo viewer** (the full-screen view; never "lightbox"), **the
+Studio** (the reel editor, glossed on first use in an article), **panel** (a
+Studio sub-view; never "sheet"), **event link** (the address guests open;
+"permanent link" only against a "custom link"), **share dialog** (the host's
+Share sheet; guests have the `Invite` button), **chips** (the filter row on
+the dashboard and the event page), **grid** (the album layout), **Review**
+(the switch and the section; "waiting in Review" for the state), and
+**confirm an email** for what a guest does at the email step.
+
 ## The component vocabulary
 
 Available inside every article (`src/components/marketing/mdx-components.tsx`):
@@ -123,7 +136,7 @@ Available inside every article (`src/components/marketing/mdx-components.tsx`):
   `<ProPrice />`, `<FreePrice />`, `<ProPlans />`, `<EventPassRenewalPrice />`,
   `<ReelSeconds tier="free" />`, `<RecoveryDays />`,
   `<MaxEvents tier="free" />`, `<UploadCapFloor />`, `<InactivityMonths />`,
-  `<EventPassTerm />`, `<PasswordMinLength />`, `<UnlockHours />`,
+  `<EventPassTerm />`, `<PasswordMinLength />`, `<AccountPasswordMinLength />`, `<UnlockHours />`,
   `<TeaserCount />`, `<OverCapGraceDays />`, `<TierName tier="pro" />`.
   Extend this family for new numbers.
 - `<AlbumShowcase label="..." caption="...">` for a product-shaped

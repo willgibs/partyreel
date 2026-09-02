@@ -97,7 +97,14 @@ pinned. Honesty flags the research surfaced and the catalog states plainly: meta
 HEIC/AVIF/WebM, Report is event-level, no upload cancel, no captions, no co-hosts, no album sort or cover,
 no in-app account deletion or email change, `Manage billing` lives only in the storage-meter popover, the
 reel is silent with video as stills. Verification narrative + the branch preview: the handoff report.
-`guest-flow.md`'s stale "turning it off is Pro-gated" line fixed in place.
+`guest-flow.md`'s stale "turning it off is Pro-gated" line fixed in place. **A second full pass before
+Will's review** (two accuracy audits against the source, an editorial read, and an eight-angle code
+review) fixed the settings-card order, the guest `Download all` position (above the gallery), HEIC's
+full-size view (Safari only), the hidden-in-reel behavior, the two refusals in Deleted, three
+mislinked cross-references, the reversed name step, a print rule that hid the article's own header,
+duplicate checklist ids, an empty Related section on ten articles, and the house terms (Deleted,
+photo viewer, panel, chips, grid) across the catalog; the strip labels moved onto the category
+registry and the sheet's row parity is computed from the category count.
 
 
 ## 2026-09-01 — Round 1: the home page's light, and the first colour taken from a photograph

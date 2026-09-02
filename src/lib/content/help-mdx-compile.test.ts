@@ -13,30 +13,21 @@ import { getAllArticles } from "./help";
  * prerender at a time. Compiling here makes it a unit failure with the slug
  * in the message.
  *
- * The component table is a NAME list, not the real components: mdx-components
- * reaches next/image and node:fs through help.ts, and compile only needs to
- * know which JSX names are legal. Keep this list equal to the exported
- * `mdxComponents` keys (the pin below reads the source to prove it).
+ * The real table is imported for its KEYS only (the unit project resolves it
+ * fine); every entry is replaced by a stub, since compile needs to know which
+ * JSX names are legal, not how they render.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mdxComponents } from "@/components/marketing/mdx-components";
 
-const source = readFileSync(
-  join(process.cwd(), "src/components/marketing/mdx-components.tsx"),
-  "utf8",
+const componentNames = Object.keys(mdxComponents).filter((name) =>
+  /^[A-Z]/.test(name),
 );
-const tableMatch = /export const mdxComponents = \{([\s\S]*?)\n\};/.exec(source);
-const componentNames = (tableMatch?.[1] ?? "")
-  .split("\n")
-  .map((line) => line.trim().replace(/,$/, ""))
-  .filter((line) => /^[A-Za-z][A-Za-z0-9]*$/.test(line))
-  .filter((name) => /^[A-Z]/.test(name));
 
 const stub = () => null;
 const components = Object.fromEntries(componentNames.map((n) => [n, stub]));
 
 describe("help articles compile as MDX", () => {
-  it("the component vocabulary was read from the source", () => {
+  it("the component vocabulary is non-empty", () => {
     // Pinned for non-emptiness: an empty table would make every article
     // "compile" against nothing and hide unknown-component errors.
     expect(componentNames.length).toBeGreaterThan(10);
@@ -48,7 +39,7 @@ describe("help articles compile as MDX", () => {
   expect(articles.length).toBeGreaterThan(0);
 
   for (const article of articles) {
-    it(`${article.slug} compiles`, async () => {
+    it.concurrent(`${article.slug} compiles`, async () => {
       await expect(
         compileMDX({
           source: article.body,

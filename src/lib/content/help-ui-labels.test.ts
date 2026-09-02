@@ -49,7 +49,7 @@ describe("every <UiLabel> quotes a shipped app string", () => {
   // label that spans a wrapper element ("Reason <span>(optional)</span>") is
   // one string on screen. A label may match either.
   const corpus = normalize(raw);
-  const corpusText = normalize(raw.replace(/<[^>]+>/g, " "));
+  const corpusText = corpus.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
   const articles = getAllArticles();
   expect(articles.length).toBeGreaterThan(0);

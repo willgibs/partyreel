@@ -16,6 +16,7 @@ function item(overrides: Partial<HelpSearchItem>): HelpSearchItem {
     category: "getting-started",
     categoryTitle: "Getting started",
     audience: "host",
+    audienceLabel: null,
     keywords: [],
     headings: [],
     ...overrides,
