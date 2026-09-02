@@ -100,6 +100,12 @@ stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
 
+**The help catalog and the legal round integrated (2026-09-02).** `lp/legal-docs` merged at `988aac3`
+and `lp/help-catalog` at `3cff3a7`, both gates green on the merged trees (1489 tests, 245 static pages
+after the catalog), both verified on the launch-prep alias; four integration decisions inside the
+agents' work are in the [CHANGELOG](CHANGELOG.md) (one over-cap source, bare-number spec components,
+the shared heading anchor, the per-shelf llms cap). Awaiting Will's look, then milestone-16.
+
 **MILESTONE-15 (2026-09-02): prod = the blog library.** `main` @ tag `milestone-15` (`c46621f`), prod
 READY + verified at the merge SHA (the rail's counts, sitemap 23, llms 8, a redirect, Article +
 FAQPage on a post, the shared capacity phrase on /pricing, console clean). Will: "Well done. Please

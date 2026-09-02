@@ -13,6 +13,18 @@ site, these are the ways the *test tooling* misreports, so a working change look
 > your screen?").** Chasing a tool-blindness ghost is how you burn a loop and ship a change for a bug that
 > never existed; a human eyeball confirms reality far cheaper than more tooling.
 
+## The gate
+
+★ **Two ways the gate lies when it is run carelessly (the help + legal integrations, 2026-09-02).**
+(1) `pnpm typecheck` reads `.next/dev/types/validator.ts`, a file the DEV server generates and the
+build never cleans; after a route file moves or is deleted (the legal round moved `/privacy` and
+`/terms` out of `(paper)`), that stale validator fails `tsc` with a "Cannot find module …/page.js"
+that names a file no longer in the tree. `rm -rf .next/dev` and re-run; `next build` regenerates
+its own types and is not fooled. (2) A pipeline like `pnpm typecheck 2>&1 | tail -1 && …` reports
+`tail`'s exit code, not the gate's, so a failing step prints one line and the chain COMMITS anyway
+(it happened once; the failure turned out to be lesson 1, but the chain could not know that). Run
+each gate step to a log and test its own exit code: `pnpm typecheck > /tmp/tc.log 2>&1 || { …; exit 1; }`.
+
 ## Test accounts + fixtures (live testing runs on disposable test data ONLY)
 
 - **Accounts:** `willg97@gmail.com` = the host (Pro) · `hi@willgibs.com` = a Free host ·

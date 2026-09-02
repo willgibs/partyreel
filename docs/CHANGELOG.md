@@ -13,6 +13,18 @@ included where recorded; the full original prose lives in git history. The found
 
 ## 2026-09-01 — The legal round: Privacy Policy + Terms of Service v1.0 (`lp/legal-docs`, pending integration)
 
+**Merged into `launch-prep` by the Orchestrator at `988aac3` (2026-09-02)**, full gate green on the merged
+tree (1360 tests, 157 static pages). Two conflicts, both against the blog library's round: the heading
+anchor now lives in `reading/heading-anchor.tsx` (the legal shell is not MDX and emits the same markup)
+while `HEADING_SCROLL_MT` stays single-sourced in the import-free `reading/heading-contract.ts`, which the
+anchor file re-exports; and ROADMAP's "(paper) trio" sentence became the legal round's "/contact is the
+last". Re-verified on the launch-prep alias at `988aac3`: /privacy on the cinema skin with 17 sections,
+29 copy-link anchors, the chip ToC and the "Version 1.0 · Pending counsel review · Effective on launch"
+line with the `[ENTITY NAME]` / `[ADDRESS]` fill-ins showing as ruled; /terms with 24 sections and 38
+anchors; the sitemap carrying both pages' `lastmod` from the legal single-source (2026-09-01); the blog
+post page on the shared chip ToC; no sideways scroll; console clean. Prod at the next milestone, on
+Will's OK.
+
 `lp/legal-docs` (`151b5a1`, `b8e0ccc`, + the record commit), cut from `launch-prep` @ `7a189ae`. Gate
 green at every commit: typecheck, lint, 1339 tests (23 new), `pnpm build`. Preview READY at
 `partyreel-git-lp-legal-docs-partyreel.vercel.app` (b8e0ccc).
@@ -342,6 +354,26 @@ intensive throttling and make a two-second script take minutes, a screenshot aft
 a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
 
 ## 2026-09-01 — The help catalog: 59 articles, a tenth shelf, and four honesty tests (`lp/help-catalog`, Agent handoff)
+
+**Merged into `launch-prep` by the Orchestrator at `3cff3a7` (2026-09-02)**, full gate green on the merged
+tree (1489 tests, 245 static pages). Eight conflicts, all against the blog and legal rounds' integrations,
+and four decisions taken inside the agents' work: (1) the over-cap grace numbers keep the blog round's
+single source (`lib/lifecycle/over-cap.ts`, both constants) and the catalog's parallel
+`over-capacity.ts` is gone, the purge route and the spec component pointing at the one file; (2) the
+shared spec components render BARE numbers on every surface (the catalog's `OverCapGraceDays` said
+"45 days" and its `ReelSeconds` "30 seconds", the blog's said "45" and "30"), so nineteen catalog
+usages now say the unit in prose and `ReelSeconds` defaults to the free tier; (3) the heading anchor is
+the legal round's shared one, the catalog's local copy dropped; (4) the lean `/llms.txt` outgrew its
+16k budget by 205 characters with both libraries on it, so it now lists the first `LLMS_HELP_PER_SHELF`
+(4) articles of every shelf, 38 links plus a line naming the full count, and `/llms-full.txt` keeps all
+59 (pinned by test; the budget is measured on the canonical domain, where the preview's longer hostnames
+add ~2k). The help post page keeps the catalog's print-aware body under the legal round's chip ToC; the
+merge had left the legal round's older tail beneath it, closing the article column twice, caught by
+`tsc`. Re-verified on the launch-prep alias at `3cff3a7`: the hub with 59 articles and the sitemap
+at 59; "After a downgrade you get 45 days before anything moves" and "Free-plan reels run up to 30
+seconds" reading from the shared components; the chip ToC, print attributes, pagination cards and
+anchors on an article; llms.txt at 38 help + 8 blog links; console clean. Prod at the next milestone,
+on Will's OK.
 
 **The help center's library was written fresh from the shipped product** (Will's brief: wipe the 15
 seed articles, research the codebase, answer every question a host or guest arrives with; four rounds of

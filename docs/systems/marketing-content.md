@@ -302,7 +302,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   braces, so UI strings are quoted in rendered form), every `<UiLabel>` is a shipped app string
   (`help-ui-labels.test.ts`, whitespace-, tag- and apostrophe-normalized), every internal link and
   `#section` anchor resolves, and all eleven literal-referenced slugs are pinned. `/llms.txt` lists the
-  articles as title + link only (the annotated form blew its budget at 59); `/llms-full.txt` keeps the
+  first `LLMS_HELP_PER_SHELF` (4) articles of every shelf as title + link (the annotated form blew its
+  budget at 59, and the bare list did too once the blog library sat beside it); `/llms-full.txt` keeps the
   descriptions.
   Help lives in the **(cinema) group** since the polish arc (dark overlay nav + dark stages; the reading
   bodies ride `PaperChapter`, the search card / emblem strip / In-short card are `surface-paper` islands,
