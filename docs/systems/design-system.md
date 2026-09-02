@@ -144,7 +144,9 @@ templated one level up, which kills the freshness each chapter is supposed to br
 - the heading a tier up (`SectionShell scale="lg"`, the ladder's one empty slot: 36/48/60)
 - the hard film-cut entrance (`reveal="cinema"` / `data-mkt-cut`) instead of the soft rise
 - materially more air above the opener than a body section gets
-- an object that physically crosses the chapter cut (the home album's straddle)
+- an object that physically crosses the chapter cut (/about's gather, /help's emblem strip, /blog's
+  featured card; the home album carried one until the 2026-09-01 second pass, when it fought the live
+  demo across the cut and came off)
 - a drawn rule (`[data-mkt-rule]`, the masthead hairline)
 - a lit subject (the reel player, a screen in a dark room)
 - a full-bleed frame or strip (break out of the container with `w-screen -translate-x-1/2`; it is
@@ -175,9 +177,25 @@ still stands: an opener that already carries a straddling object does not also t
   reworked as the chapter's closing **anchor**: a chapter can end on a strong visual that wraps its
   ideas together, as long as the sections before it have ramped down.
 
+**A second rule from the same review (Will, 2026-09-01) governs SHAPE where the arc governs loudness:**
+
+> No two sections back to back should feel repetitive. Otherwise, scrolling gets boring quickly.
+
+Two neighbours may share a register (both quiet, both informative) but never a layout. The checkable
+line is the page's column rhythm read top to bottom: a centred icon three-up after a centred icon
+three-up reads as one long section (the two guest-side sections shipped exactly that way and were
+caught on review), and "three centred sections in a row" is the specific failure to watch on a paper
+chapter, where the ground is quiet and only shape carries the pacing. The home's answer: chapter 1
+runs strip, ledger, three-up, stage; the paper chapter alternates left, centred, left with a masthead,
+a mirrored split and a numbered ledger. The straddle left the home in the same pass: the live demo and
+the straddling album were "two huge visuals fighting for attention" across one cut, so a chapter now
+ends on its own air before the next one opens.
+
 The home arc as ruled: **chapter 1** opens on the hero, supports through the trust strip, the
 decomposition and the film strip, winds down through the two guest-side sections, and closes on the
-live-demo anchor · **chapter 2** (paper) opens on the album's straddle and covers the album and the
+live-demo anchor · **chapter 2** (paper) opens on the album as the host's masthead (a left header a tier up, the print
+laid on the desk below-right; no straddle, so the live demo concludes chapter 1 on its own air) and
+covers the album and the
 host experience · **chapter 3** opens on the reel, supports through events and pricing, and closes on
 the FAQ, the CTA and the tail.
 
@@ -285,16 +303,27 @@ and pinned by test.
 | --- | --- | --- | --- |
 | **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
 | **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
+| **The reel screen's pool** | [reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx), under the reel player, the box exactly the screen's width under an elliptical wrapper mask | `seam` | **sampled** from the reel's poster |
 | **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
 
-Two seams and one beam, 4128px apart on the home page (4.6 viewports at 1440): scarcity as a distance.
-The hero and the album straddle were lit at round 1 and pulled the same day (the wall is the ground,
-not a source; the straddle's slot is 63px), and the event cards' own light was tried three ways and
-dropped for scarcity against the beam. Treatment A of the reel opener adds a seam under the reel
-player ([reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx))
-on `lp/reel-a`, pending Will's ruling.
+Three seams and one beam on the home page (film strip, reel, Pro beam, footer: 5909, 1275 and 1509px
+apart at 1440 on the re-paced page, the nearest pair 1.4 viewports): scarcity as a distance. The hero and the album straddle
+were lit at round 1 and pulled the same day (the wall is the ground, not a source; the straddle's slot
+was 63px), and the event cards' own light was tried three ways and dropped for scarcity against the
+beam. The reel opener's seam (treatment A, "lights down") was ruled in on 2026-09-01 once its light
+was held to the screen's width.
 
-Both seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the open ruling is no
+★ **Two ways a seam's sides end, and the box decides.** A seam's five ellipses sit at 14/38/60/80/96%
+of the field, so its colour is still ~40 to 50% at the ends of ANY box, and a box that ends on screen
+ends the light on a cut. A strip's light goes full-bleed so its ends are off-screen
+([film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx)). A screen's
+light must not be wider than the screen, so its box IS the screen and the wrapper carries an
+elliptical mask anchored at the screen's bottom centre (rx 46%, smoothstep stops): a pool, gone 31px
+inside each edge at 1440 and 14px at 375. A linear side mask on a wider box is a third thing, a wedge
+lit 40% at the object's own edge and ending on a straight line outside it; ruled out on sight, and
+pinned by test.
+
+All three seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the open ruling is no
 longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
 11s against the whole page at 8s.
 

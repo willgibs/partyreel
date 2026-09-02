@@ -14,7 +14,9 @@ import {
 /**
  * The ratified home order (Will, 2026-08-25: album/curation split, pricing
  * after the reel; 2026-08-26: privacy up beside curation so the paper chapter
- * is contiguous) + the ratified CHAPTER MAP (the mixed-theme ruling). index.ts
+ * is contiguous; 2026-09-01: two guest-side sections above the live demo, and
+ * the adjacency ruling, which changed layouts, never this order) + the ratified
+ * CHAPTER MAP (the mixed-theme ruling). index.ts
  * renders exactly this array (its Record type pins the pairing), so these
  * byte-pins make any reshuffle or re-chaptering a deliberate act. The test
  * imports section-ids (pure) rather than index because the section tree

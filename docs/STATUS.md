@@ -104,8 +104,10 @@ guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branch
 attention arc; each opener bespoke; core marketing pages only) and re-paced the home page against it:
 two quiet guest-side sections wind chapter 1 down before the live demo, now its centred closing anchor;
 the event cards went media-forward and lost their light (measured legibility, fixed twice); and the
-payoff chapter's opener is deployed as two bespoke treatments on `lp/reel-a` / `lp/reel-b` for Will's
-ruling. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
+payoff chapter's opener went out as two bespoke treatments; **Will ruled for A, "lights down"** (merged after its light was
+held to the screen's width; `lp/reel-b` deleted), and his second pass re-paced the page again: no two
+sections back to back share a layout, the straddle is off the home, and the album opens the paper
+chapter as the host's masthead. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
 
 **Round 1 (2026-09-01)** put the first new light on the site, in two passes. The first lit the hero and
 the album straddle; both drew a visible rectangle (verified in the wrong browser, and placed where no
@@ -286,7 +288,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1316 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1317 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -319,14 +321,14 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Round 2 rulings pending (2026-09-01):** (i) **the payoff opener — A or B.** `lp/reel-a` "lights
-down" (the screen throws its light onto the floor) vs `lp/reel-b` "the marquee" (the style names as a
-display-scale title strip); one variable apart, both on the hard cut. (ii) **Two provisional headers**
-— `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality` "Everything they shoot, at
-the size they shot it." (iii) **The album opener** — judge on screen against the new arc whether the
-straddle alone already reads as the paper chapter opening, or wants its own bespoke treatment.
-(iv) The events copy's legibility over the borrowed conference still: improved twice by scrim (median 5.6:1; the brightest 5% of pixels under the heading at 4.27:1), and the
-real fix is the manifest fill.
+**Round 2, after Will's second pass (2026-09-01):** (i) the payoff opener **RULED: A**, "lights
+down", merged after the width fix; `lp/reel-b` deleted. (ii) **Two provisional headers stay
+provisional by ruling** — `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality`
+"Everything they shoot, at the size they shot it."; he will send alternatives. (iii) **The album
+opener is done**: the paper chapter opens on the host's masthead, and only the provisional `album`
+line remains his. (iv) The four event teasers are equalised (57 to 64 characters) so the titles share a
+baseline; the conference still's legibility (median 5.6:1, brightest 5% at 4.27:1) waits on the
+manifest fill.
 
 1. **The light system's remaining rulings.** Rounds 0 and 1 are both on `launch-prep` (2026-09-01) and
    three of the five are closed:
@@ -351,8 +353,8 @@ real fix is the manifest fill.
    dropped the help palette. Needs a ruling before R2 can be built.
 2. **When to ship `launch-prep` to `main`.** Rounds 0, 1 AND 2 are now unmerged, one past the
    policy's ~2-round ceiling. All three are real production changes (the light system, the lit 404,
-   the film strip's backlight, the re-paced home page, the sideways-scroll fix), so a milestone is due
-   the moment the reel ruling lands, with the winning treatment riding along.
+   the film strip's backlight, the re-paced home page, the sideways-scroll fix), and Will ruled (2026-09-01)
+   that the milestone follows round 2's second pass: merge to `main` once `launch-prep` verifies.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

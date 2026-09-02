@@ -10,6 +10,63 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — Round 2, second pass: A ships, and no two sections back to back read alike
+
+`lp/reel-a` (`05f8c51`) merged into `launch-prep` (`f0c8f99`, `--no-ff`) with `launch-prep`'s own
+`40288a8` and `be0741a`, plus the record commit. Gate green at every commit; 1317 tests (one new pin).
+Verified on the deployed `launch-prep` alias at `f0c8f99` with the Chrome MCP at 1440 and, through a
+same-origin iframe, at 375. `lp/reel-b` deleted (its SHAs stay in the round-2 entry below).
+
+**Will's review of round 2, and the four rulings** (2026-09-01): treatment A ("lights down") wins "due
+to the subtlety of the design enhancement and infusion of our new visual identity", with one bug: the
+lamp ran wider than the video and "the clipping feels very unnatural". The two new chapter-1 sections
+"hold great content, but I wish they didn't have the exact same layout back to back". The live demo and
+the straddling album were "two huge visuals fighting for attention", so chapter 1 should conclude on the
+live demo and the album should open the paper chapter "more introductory towards the host experience",
+with no three centred sections in a row there. And the four event teasers get similar lengths. The rule
+he stated is now doctrine in [design-system.md](systems/design-system.md): **"No two sections back to
+back should feel repetitive. Otherwise, scrolling gets boring quickly."**
+
+- **The screen's light is held to the screen.** Measured against the engine: a seam's five ellipses sit
+  at 14/38/60/80/96% of the field, so its colour is still ~40 to 50% at the ends of any box, and the
+  first cut's linear side mask on a box 64px wider than the screen was a wedge, 40% lit at the video's
+  own edge and ending on a straight line outside it. The box is now exactly the screen's width and the
+  wrapper's mask is an ellipse anchored at the screen's bottom centre (rx 46%, smoothstep stops, so the
+  alpha arrives at zero tangent-flat): a pool, gone 31px inside each edge at 1440 and 14px at 375. No
+  engine change; the `-webkit-` twin is emitted by the production build (Lightning CSS at Tailwind's
+  targets) and confirmed in the built chunk. Measured live: the wrapper's width equals the player's
+  (768 and 343), the mask computes with all eleven stops, and the sideways-scroll record's 48px overhang
+  at 375 is gone with it. A pin in glow-placement.test.ts refuses a linear side mask.
+- **Chapter 1 stops repeating itself.** `no-app` is an open, left-aligned ledger in /about's conviction
+  idiom (the home's first left header; no numerals under the strip's SCENE labels, no icons), so the
+  chapter's column rhythm runs three cards, rows, three-up, stage. The live demo takes symmetric air
+  (`py-28 sm:py-36`, measured 144/144px) and ends the chapter on its own.
+- **The album opens the paper chapter as the host's masthead.** The straddle came off the home (it
+  stays vocabulary for /about, /help and /blog): a left header at the lg tier, a host-framed lead that
+  no longer repeats chapter 1's guest story, the pointer, and the album laid on the desk below-right as
+  a print (`max-w-3xl`, so it is not a second 896px object one cut after the live-demo stage; the float
+  shadow is the paper theme's real elevation). Measured: the frame starts 40px below the pointer, wholly
+  inside the paper chapter, its right edge on the container's content edge and the header's left on the
+  other; the h2 at 60px.
+- **Curation and privacy stopped reading alike.** Curation is a mirrored split: a palm-sized select-mode
+  mock on the LEFT (the app's own bulk-select state, extracted from /features/curation into a shared
+  `bulk-select-mock.tsx` so the two cannot drift; four tiles not in the album's eight, two chosen, the
+  floating bar) beside the three controls stacked on the right, mirrored so it does not repeat the
+  album's header-left / print-right composition beneath it. Privacy is a left-aligned numbered ledger
+  in a bordered card. The paper chapter alternates left, centred, left, with three shapes that share
+  nothing. /features/curation re-verified rendering its bar through the shared import.
+- **The four event teasers wrap alike.** Conferences and Trips rewritten to 57 and 59 characters
+  (Weddings 60, Parties 64), without the count; measured, all four teasers run two lines and the four
+  titles sit at the same 249px from their card's top. The card's class strings had been joined with no
+  space (`outline-whitetransition-[transform]`), so the focus ring and the press transition were silently
+  dead; `cn()` now, and both tokens are present on the deployed cards.
+- **Scarcity re-measured on the re-paced page:** the film strip lamp, the reel pool, the Pro beam and
+  the footer seam at 2085, 7994, 9269 and 10778px: 5909, 1275 and 1509px apart, the nearest pair 1.4
+  viewports at 1440. No sideways scroll at 1440, nor at 375 under a classic scrollbar.
+
+The two chapter-1 headers stay provisional by ruling; the milestone to `main` follows once Will has seen
+the sequence.
+
 ## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light
 
 `launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`, `e1372f8`, `6518dda`,

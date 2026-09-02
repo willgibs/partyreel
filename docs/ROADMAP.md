@@ -23,9 +23,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
   problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
   UNLIT by ruling meanwhile: the wall is the ground, not a source.
-- **The album chapter's opener** — assess on screen against the round-2 arc whether the straddle
-  already reads as the paper chapter opening; `SECTION_HEADERS.album`'s note ("wants more distinctness
-  from the live demo before it") predates the pacing principle and may now be answered by the wind-down.
+- **Events then pricing on the home** are both card grids (four photo cards, then three pricing
+  cards): the one soft adjacency left after the 2026-09-01 ruling ("no two sections back to back
+  should feel repetitive"). Will named chapter 3 the model, so it stays until he wants it varied.
 - **The events manifest fill** — the conference and trip stills are borrowed. Over the conference
   placeholder's white tablecloth the card copy needed a second scrim and still sits at 4.27:1 at the
   brightest 5% of pixels under the heading (median 5.6:1; measured 2026-09-01). The real photographs
