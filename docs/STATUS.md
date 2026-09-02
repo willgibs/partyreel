@@ -393,10 +393,11 @@ manifest fill.
    facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
    "Elevation-program deferred queue").
 7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
-   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks) and ready to spawn** (each stub is the
-   track's whole init; the one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`
-   first, alone, merged the same day; then `product-truth`, `legal-billing-truth` and `ops-hardening`
-   together; `account-deletion` and `demo-seed` as slots free. Integration: 1 + 2 together → a
+   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
+   one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
+   and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`
+   (CI integrates alone, first); `ops-hardening`, `account-deletion` and `demo-seed` are ready for
+   Will's sessions or the next window, as slots free. Integration: 1 + 2 together → a
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2** after the marketing
    branch and `legal-billing-truth` land: `marketing-followons`, `glow-engine-defects`, the demo seed
    run. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds

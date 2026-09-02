@@ -25,7 +25,9 @@ landed. Agents sync `origin/launch-prep` mid-round only when a line below touche
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
 **This window (round 3, 2026-09-02):** the operating model (this directory, the two guards, the
-registry split, the build-gate policy, the program docs), then the library round on the lab.
+registry split, the build-gate policy, the program docs), then the library round on the lab, then
+wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orchestrator-run agents
+(worktrees under `../partyreel-wt/`); their integration is the next window, CI first and alone.
 
 ## Landed this window
 
