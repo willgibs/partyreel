@@ -201,6 +201,23 @@ async function scanJobFreshness(now: Date): Promise<Json> {
   return { checked: JOBS.length, missed };
 }
 
+/**
+ * The freshness scan, guarded, for the two EARLY-RETURN paths (paused, and switch unreadable). On
+ * the normal path the scan rides `runSweep`, which already catches; these two returns happen before
+ * that helper exists, and an unguarded throw there turns a correctly-skipped run into a 500 — which
+ * is how a paused cron would start looking like a broken deploy. Found by red-teaming the paused
+ * path against a database that did not have `job_runs` yet, which is exactly the window this branch
+ * ships into.
+ */
+async function safeScanJobFreshness(now: Date): Promise<Json> {
+  try {
+    return await scanJobFreshness(now);
+  } catch (e) {
+    captureError("cron", e, { sweep: "job_health" });
+    return { error: true };
+  }
+}
+
 export async function GET(request: Request): Promise<Response> {
   let cronSecret: string;
   try {
@@ -237,7 +254,7 @@ export async function GET(request: Request): Promise<Response> {
       "Kill switch unreadable, skipped to fail closed.",
     );
     reportHeartbeat(skip.heartbeatError, "skip");
-    const health = await scanJobFreshness(now);
+    const health = await safeScanJobFreshness(now);
     return Response.json({
       ok: true,
       skipped: true,
@@ -256,7 +273,7 @@ export async function GET(request: Request): Promise<Response> {
       "Paused from /admin/jobs.",
     );
     reportHeartbeat(skip.heartbeatError, "skip");
-    const health = await scanJobFreshness(now);
+    const health = await safeScanJobFreshness(now);
     return Response.json({
       ok: true,
       skipped: true,
