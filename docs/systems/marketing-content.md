@@ -50,6 +50,37 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
+- **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0, the legal round, 2026-09-01; formal but
+  readable by Will's ruling, with the R5 two-register contract kept: every section carries an "In
+  short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)
+  (version, date, `status`, the bracketed `LEGAL_PARTY` launch placeholders, the typed block model +
+  `legalPlainText`, `LEGAL_RELATED`) and the two content modules
+  [`legal-privacy.tsx`](../../src/lib/constants/legal-privacy.tsx) /
+  [`legal-terms.tsx`](../../src/lib/constants/legal-terms.tsx) (both on the content-policy
+  `CLAIM_FILES` list; **env-free by rule**, never import `site.ts`). Shell:
+  [`legal-document.tsx`](../../src/components/marketing/legal/legal-document.tsx): `PageHero` at `lg`
+  (never `display`: multi-word titles) → the version/status/reading-time META CARD straddling the
+  cinema→paper cut (the help "In short" move; a `<div>`, never a `<header>`, because `ArticleToc`
+  measures the first header) → ONE `PaperChapter` on a three-track grid (gutter / 42rem column / rail)
+  so the column, the card and the centred hero share one axis → `ArticleToc` with the reading spine +
+  `ChipToc` below `lg` + `HeadingAnchor` on every h2/h3 → a "Read next" foot from `LEGAL_RELATED`.
+  The rail takes `max-h` + its own overflow (22 entries do not fit a laptop viewport). Blocks render
+  in [`legal-blocks.tsx`](../../src/components/marketing/legal/legal-blocks.tsx) (p / list / table /
+  sub / `note`, the `bg-muted/40 border-y` set-apart register for disclaimers, never all-caps). The
+  status line is Inter (the mono ruling; `MonoCaption` retired here). ★ **Section ids are the anchor
+  contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. ★ **The launch
+  switch is a test**: flipping `status` to `effective` with a bracketed placeholder still in the text
+  fails CI. ★ **No prices and no cap numbers in the Terms**: they point at `/pricing` so a Stripe
+  price change never falsifies a contract. ★ **The fences read the legal text AND its comments**: the
+  neutralization regexes (`business day`, the child-safety acronyms, `law enforcement`, `ingress`)
+  cannot be quoted even in a header comment; write "working days", "public authorities", "content
+  that sexually exploits minors", "reasonable limits on upload volume". Acceptance: the one
+  [`LegalConsentLine`](../../src/components/shared/legal-consent-line.tsx) on `/login` and on the
+  guest door's welcome step (`newTab` there so the sheet survives the tap); no checkbox, nothing
+  recorded. The sitemap reads the legal `lastUpdated`, not build time. The reading family's shared
+  pieces now live in [`reading/`](../../src/components/marketing/reading): `heading-anchor.tsx`
+  (`HeadingAnchor` + `HEADING_SCROLL_MT`, lifted out of `mdx-components`) and `chip-toc.tsx` (the
+  mobile chip row help and blog each carried verbatim).
 - **`/about`** — THE MISSION PAGE (rebuilt twice, 2026-08-28; the IA never recorded its job before,
   which is a fair part of why it stayed a scaffold). Copy single-source
   [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
@@ -82,7 +113,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
   dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
-  `(paper)` survives only until the remaining pages have moved.
+  `(paper)` holds only `/contact` now (privacy + terms moved 2026-09-01) and retires with it.
   ★ **A DARK HERO DECIDES THE ROUTE GROUP**, because a dark hero must be paired with a dark nav (Will)
   and the header skin is chosen by the GROUP LAYOUT, which a page cannot override from inside. That one
   sentence is the whole rule: the ground your hero wants is not a page-level choice.
@@ -496,8 +527,8 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   centered content (lost-visitor copy single-sourced in
   [`marketing-not-found.tsx`](../../src/components/marketing/marketing-not-found.tsx)). ★ Since the
   careers round the marketing pair is LOPSIDED: `(cinema)` catches every dynamic marketing route
-  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only the static
-  trio. Do not delete the paper one for having no slug: a static page can call `notFound()`, and
+  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only `/contact`
+  (privacy and terms joined `(cinema)` 2026-09-01). Do not delete the paper one for having no slug: a static page can call `notFound()`, and
   without the boundary that render falls through to the ROOT one and double-stacks the chrome.
   By audience: root
   (unmatched URL, brings its own chrome), marketing (bad `[slug]`, no chrome), guest (dead/expired event link

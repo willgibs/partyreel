@@ -30,6 +30,7 @@ import {
   ARTICLE_BODY_ID,
   ArticleToc,
 } from "@/components/marketing/reading/article-toc";
+import { ChipToc } from "@/components/marketing/reading/chip-toc";
 import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
 import { HelpSearchTrigger } from "@/components/marketing/help/help-palette";
 
@@ -191,132 +192,114 @@ export default async function HelpArticlePage({
       </section>
 
       <PaperChapter>
-      <section className="pt-16 pb-12 sm:pt-20 sm:pb-16">
-        <Container>
-        <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
-          <div className="max-w-2xl min-w-0">
-            {/* Mobile contents: the zero-JS chip row (the desktop rail is
+        <section className="pt-16 pb-12 sm:pt-20 sm:pb-16">
+          <Container>
+            <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
+              <div className="max-w-2xl min-w-0">
+                {/* Mobile contents: the zero-JS chip row (the desktop rail is
                 lg-only; an accordion here was deliberately cut). */}
-            {headings.length >= 2 && (
-              <nav
-                aria-label="On this page"
-                className="flex flex-wrap items-center gap-2 lg:hidden"
-              >
-                <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                  On this page
-                </span>
-                {headings.map((heading) => (
-                  <a
-                    key={heading.id}
-                    href={`#${heading.id}`}
-                    className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
-                  >
-                    {heading.text}
-                  </a>
-                ))}
-              </nav>
-            )}
+                <ChipToc headings={headings} />
 
-            {/* prose-headings:font-heading pulls the article's h2/h3 onto the
+                {/* prose-headings:font-heading pulls the article's h2/h3 onto the
                 house heading face (Urbanist) so long-form matches the chrome;
                 the prose SCALE itself is untouched (the ruling keeps it). */}
-            <article
-              id={ARTICLE_BODY_ID}
-              className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
-            >
-              {content}
-            </article>
-            {/* One delegated island upgrades every heading's copy-link anchor. */}
-            <HeadingAnchorsDelegate />
-
-            <ArticleFeedback slug={slug} />
-
-            {(prev || next) && (
-              <nav
-                aria-label={`More in ${category.title}`}
-                className="mt-10 grid gap-3 sm:grid-cols-2"
-              >
-                {prev ? (
-                  <PaginationCard direction="prev" article={prev} />
-                ) : (
-                  <span aria-hidden className="hidden sm:block" />
-                )}
-                {next && <PaginationCard direction="next" article={next} />}
-              </nav>
-            )}
-
-            {related.length > 0 && (
-              <section className="mt-12 border-t pt-10">
-                <h2 className="font-heading text-xl tracking-tight">
-                  Related articles
-                </h2>
-                <ul className="mt-5 flex flex-col gap-3.5">
-                  {related.map((item) => (
-                    <li key={item.slug}>
-                      <LearnMoreLink
-                        href={`/help/${item.slug}`}
-                        className="text-foreground"
-                      >
-                        {item.frontmatter.title}
-                      </LearnMoreLink>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {/* The ladder points UP too (the de-silo ruling): each category
-                maps to one marketing rung. */}
-            {category.feature && (
-              <p className="mt-10 text-sm text-muted-foreground">
-                Want the bigger picture?{" "}
-                <LearnMoreLink
-                  href={category.feature.href}
-                  className="text-foreground"
+                <article
+                  id={ARTICLE_BODY_ID}
+                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
                 >
-                  {category.feature.label}
-                </LearnMoreLink>
-              </p>
-            )}
+                  {content}
+                </article>
+                {/* One delegated island upgrades every heading's copy-link anchor. */}
+                <HeadingAnchorsDelegate />
 
-            <section className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center">
-              <h2 className="font-heading text-xl tracking-tight">
-                Still need help?
-              </h2>
-              <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">
-                Can&rsquo;t find the answer here? Reach out and we&rsquo;ll get
-                back to you.
-              </p>
-              <Button asChild className="mt-4">
-                <Link href={`/contact?about=${slug}`}>Contact us</Link>
-              </Button>
-            </section>
-          </div>
+                <ArticleFeedback slug={slug} />
 
-          {/* aside self-stretch is LOAD-BEARING: the grid's lg:items-start
+                {(prev || next) && (
+                  <nav
+                    aria-label={`More in ${category.title}`}
+                    className="mt-10 grid gap-3 sm:grid-cols-2"
+                  >
+                    {prev ? (
+                      <PaginationCard direction="prev" article={prev} />
+                    ) : (
+                      <span aria-hidden className="hidden sm:block" />
+                    )}
+                    {next && <PaginationCard direction="next" article={next} />}
+                  </nav>
+                )}
+
+                {related.length > 0 && (
+                  <section className="mt-12 border-t pt-10">
+                    <h2 className="font-heading text-xl tracking-tight">
+                      Related articles
+                    </h2>
+                    <ul className="mt-5 flex flex-col gap-3.5">
+                      {related.map((item) => (
+                        <li key={item.slug}>
+                          <LearnMoreLink
+                            href={`/help/${item.slug}`}
+                            className="text-foreground"
+                          >
+                            {item.frontmatter.title}
+                          </LearnMoreLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {/* The ladder points UP too (the de-silo ruling): each category
+                maps to one marketing rung. */}
+                {category.feature && (
+                  <p className="mt-10 text-sm text-muted-foreground">
+                    Want the bigger picture?{" "}
+                    <LearnMoreLink
+                      href={category.feature.href}
+                      className="text-foreground"
+                    >
+                      {category.feature.label}
+                    </LearnMoreLink>
+                  </p>
+                )}
+
+                <section className="mt-10 rounded-2xl border bg-muted/30 p-8 text-center">
+                  <h2 className="font-heading text-xl tracking-tight">
+                    Still need help?
+                  </h2>
+                  <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">
+                    Can&rsquo;t find the answer here? Reach out and we&rsquo;ll
+                    get back to you.
+                  </p>
+                  <Button asChild className="mt-4">
+                    <Link href={`/contact?about=${slug}`}>Contact us</Link>
+                  </Button>
+                </section>
+              </div>
+
+              {/* aside self-stretch is LOAD-BEARING: the grid's lg:items-start
               collapses the rail to content height, leaving sticky zero travel
               room — the ToC never tracked (Will's catch). Stretching restores
               the full-column runway for sticky top-24. */}
-          {headings.length >= 2 && (
-            <aside className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch">
-              <nav aria-label="On this page" className="sticky top-24">
-                <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                  On this page
-                </p>
-                {/* The reading spine, shared with the blog article (Will, 2026-08-29):
+              {headings.length >= 2 && (
+                <aside className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch">
+                  <nav aria-label="On this page" className="sticky top-24">
+                    <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                      On this page
+                    </p>
+                    {/* The reading spine, shared with the blog article (Will, 2026-08-29):
                     both long-form surfaces are built from this component, so they run
                     one behaviour. The target is the BODY, never the page - the feedback
                     block and the footer below it must not count as reading. */}
-                <ArticleToc
-                  headings={headings}
-                  progress={{ targetId: ARTICLE_BODY_ID }}
-                />
-              </nav>
-            </aside>
-          )}
-        </div>
-        </Container>
-      </section>
+                    <ArticleToc
+                      headings={headings}
+                      progress={{ targetId: ARTICLE_BODY_ID }}
+                    />
+                  </nav>
+                </aside>
+              )}
+            </div>
+          </Container>
+        </section>
       </PaperChapter>
     </>
   );

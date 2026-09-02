@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Logo } from "@/components/shared/logo";
 import {
   Card,
@@ -73,23 +74,7 @@ export default async function LoginPage({
             <LoginForm />
           </CardContent>
         </Card>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing you agree to our{" "}
-          <Link
-            href="/terms"
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="/privacy"
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        <LegalConsentLine className="mt-6 text-center" />
       </div>
     </div>
   );

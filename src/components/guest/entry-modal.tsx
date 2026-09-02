@@ -14,6 +14,7 @@ import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import { PasswordGate } from "@/components/guest/password-gate";
+import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
@@ -107,7 +108,10 @@ export const EntryModal = forwardRef<
   // invitation, 350ms for a password re-visit (see ARRIVAL_BEAT_MS).
   const beatReady = useArrivalBeat({
     enabled: autoOpen,
-    ms: current === "welcome" ? ARRIVAL_BEAT_MS.welcome : ARRIVAL_BEAT_MS.password,
+    ms:
+      current === "welcome"
+        ? ARRIVAL_BEAT_MS.welcome
+        : ARRIVAL_BEAT_MS.password,
   });
   const router = useRouter();
   // THE SUCCESS HOLD (Phase 4.5 S5): on unlock the gate fires onUnlocked() +
@@ -483,11 +487,7 @@ function WelcomeStep({
       </div>
 
       <div className="mt-auto flex flex-col gap-1">
-        <Button
-          onClick={onContinue}
-          size="lg"
-          className="w-full text-[15px]"
-        >
+        <Button onClick={onContinue} size="lg" className="w-full text-[15px]">
           {continueLabel ?? (gateNext ? "Continue" : "View the gallery")}
         </Button>
         {browseAvailable && (
@@ -499,6 +499,10 @@ function WelcomeStep({
             Just browsing
           </Button>
         )}
+        {/* The acceptance line rides the door every guest passes once (the
+            legal round's ruling); links open in a new tab so the sheet the
+            guest is standing in survives the tap. */}
+        <LegalConsentLine newTab className="mt-2 text-center" />
       </div>
     </div>
   );
