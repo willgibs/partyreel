@@ -74,6 +74,11 @@ describe("the guest reel anon allow-list", () => {
 
   it("never intersects the forbidden names", () => {
     const allowed = new Set<string>(GUEST_REEL_ALLOWED_KEYS);
+    // Imported from prod code, so an edit THERE could silently empty this loop.
+    expect(
+      GUEST_REEL_FORBIDDEN_KEYS.length,
+      "the forbidden-key list is empty",
+    ).toBeGreaterThan(2);
     for (const name of GUEST_REEL_FORBIDDEN_KEYS) {
       expect(allowed.has(name)).toBe(false);
     }
@@ -111,9 +116,9 @@ describe("toGuestReelPayload", () => {
   });
 
   it("defaults an unknown orientation to portrait (the RPC CASEs, this is the belt)", () => {
-    expect(toGuestReelPayload({ ...row, orientation: "sideways" }, null)).toMatchObject(
-      { orientation: "portrait", coverUrl: null },
-    );
+    expect(
+      toGuestReelPayload({ ...row, orientation: "sideways" }, null),
+    ).toMatchObject({ orientation: "portrait", coverUrl: null });
   });
 
   it("emits no forbidden key under any spelling", () => {
@@ -121,7 +126,9 @@ describe("toGuestReelPayload", () => {
     for (const name of GUEST_REEL_FORBIDDEN_KEYS) {
       expect(keys.has(name)).toBe(false);
       // The camelCase spelling a mapper "helpfully" adding a field would produce:
-      const camel = name.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+      const camel = name.replace(/_([a-z])/g, (_, c: string) =>
+        c.toUpperCase(),
+      );
       expect(keys.has(camel)).toBe(false);
     }
   });

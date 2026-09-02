@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -128,5 +131,78 @@ describe("the ink slab's headroom", () => {
     const report = worstCaseGround(SLAB, SLAB_FG, SLAB_MUTED, PALETTE, 0.3)!;
     // Amber is the lightest of the five, so it lifts a dark ground the most.
     expect(report.worstColor).toBe("oklch(0.8 0.15 85)");
+  });
+});
+
+/**
+ * ★ THE LAMP SET HAS TWO HOMES BY NECESSITY, SO PIN THEM TOGETHER.
+ *
+ * CSS reads --lamp-1..5 from globals.css. The contrast instrument cannot: it
+ * parses colour numerically, so it needs literals. Same for the vendored beam
+ * palette. That is a real constraint, not sloppiness, but it means a retune of
+ * the lamp set can silently leave the board reporting contrast for the OLD
+ * five, on the instrument whose whole job is telling you whether light is
+ * legible.
+ *
+ * The failure mode is worse than drift. Hand parseOklch a "var(--lamp-1)" and
+ * it returns null, worstCaseGround returns null, and the board renders floor 1
+ * with every ratio undefined instead of floor 0.13: wrong numbers, no error,
+ * no crash. I made exactly that edit during round 0 while de-duplicating the
+ * palette, and caught it only in the live pass. This test is what should have
+ * caught it.
+ */
+describe("the board's fallback palette tracks the shipped lamp set", () => {
+  const globals = readFileSync(
+    join(process.cwd(), "src/app/globals.css"),
+    "utf8",
+  );
+  const board = readFileSync(
+    join(
+      process.cwd(),
+      "src/app/(dev)/design/components/glow-doctrine-variants.tsx",
+    ),
+    "utf8",
+  );
+
+  it("matches --lamp-1..5 value for value", () => {
+    const shipped = [1, 2, 3, 4, 5].map((n) => {
+      const m = globals.match(new RegExp(`--lamp-${n}:\\s*([^;]+);`));
+      return m?.[1].trim();
+    });
+    expect(shipped.filter(Boolean).length, "--lamp-* not found").toBe(5);
+
+    const block = board.slice(board.indexOf("const FALLBACK_PALETTE = ["));
+    const listed = [
+      ...block.slice(0, block.indexOf("]")).matchAll(/"([^"]+)"/g),
+    ].map((m) => m[1]);
+    expect(listed.length, "FALLBACK_PALETTE not found").toBe(5);
+
+    expect(
+      listed,
+      "The board's fallback five drifted from --lamp-* in globals.css. They are " +
+        "duplicated on purpose (the contrast math parses colour and cannot take " +
+        "a var()), so a retune has to update both by hand.",
+    ).toEqual(shipped);
+  });
+
+  it("stays parseable, so the contrast table cannot go silently blank", () => {
+    const block = board.slice(board.indexOf("const FALLBACK_PALETTE = ["));
+    const listed = [
+      ...block.slice(0, block.indexOf("]")).matchAll(/"([^"]+)"/g),
+    ].map((m) => m[1]);
+    const report = worstCaseGround(
+      "oklch(0.14 0 0)",
+      "oklch(0.62 0 0)",
+      "oklch(0.62 0 0)",
+      listed,
+      0.62,
+    );
+    expect(
+      report,
+      "worstCaseGround returned null: an entry is not parseable as a colour " +
+        "(a var() token, most likely). The board would render floor 1 and every " +
+        "ratio undefined, with no error.",
+    ).not.toBeNull();
+    expect(report!.mutedRatio).toBeGreaterThan(0);
   });
 });

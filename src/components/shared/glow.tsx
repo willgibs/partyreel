@@ -1,14 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-
-import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
-import { useInViewOnce } from "@/lib/shared/use-in-view-once";
-
 /**
- * SPILL: the light primitive (lab-local, the doctrine round 2026-08-28).
+ * SPILL: the light primitive (promoted to production, round 0, 2026-09-01).
  *
- * The engine's CSS lives in design.css; this owns the JS-side invariants BY
+ * The engine's CSS lives in globals.css; this owns the JS-side invariants BY
  * CONSTRUCTION, so a consumer cannot forget them. Three of those are non
  * obvious enough that they are the reason this component exists at all:
  *
@@ -29,10 +24,18 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  *    element is absolutely positioned to inset 0, so the CALLER's own wrapper
  *    is what positions it, and tuning happens through `vars`.
  *
- * The filter host is deliberately NOT rendered here (see GlowFilter): one page
- * gets exactly one turbulence field, because duplicate SVG ids resolve by
- * document order and that is unstable under portals and reconciliation.
+ * The filter host is deliberately NOT rendered here, and as of round 1 it is
+ * not rendered by any consumer either: <GlowFilter> lives in glow-filter.tsx
+ * and is mounted ONCE in the root layout. One page gets exactly one turbulence
+ * field, because duplicate SVG ids resolve by document order and that is
+ * unstable under portals and reconciliation. Add a lamp anywhere; the host is
+ * already there.
  */
+
+import { useEffect, type CSSProperties } from "react";
+
+import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
+import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 
 export type GlowShape = "seam" | "throw" | "sweep" | "bloom" | "halo";
 export type GlowDrive = "mask" | "transform" | "scalar";
@@ -51,7 +54,6 @@ export type GlowVars = Partial<
     | "--glw-from-x"
     | "--glw-from-y"
     | "--glw-reach"
-    | "--glw-span"
     | "--glw-radius"
     | "--glw-t",
     string
@@ -71,7 +73,15 @@ type GlowProps = {
   edge?: boolean;
   /**
    * Law 3. Five colours sampled from the media this lamp is lighting. Omit on
-   * surfaces with no media and the engine falls back to the ratified five.
+   * surfaces with no media and the engine falls back to the house lamp set
+   * (--lamp-1..5, globals.css). Lands inline, so it outranks both the engine's
+   * defaults and any ancestor that retuned --lamp-* for its subtree.
+   *
+   * ★ SAMPLING DOES NOT WORK ON REAL USER MEDIA YET. useSampledPalette sets no
+   * crossOrigin, so an R2-presigned photo taints the canvas, getImageData
+   * throws, and the catch silently hands back the fallback: no error, no
+   * failing test, just generic-looking light. Fix that before wiring this to
+   * guest media (see sampled-palette.ts's header for the two options).
    */
   colors?: readonly string[];
   vars?: GlowVars;
@@ -112,6 +122,28 @@ export function Glow({
   // The attribute holds the animation instead, so the light is present and
   // resting from first paint and a runId change always replays it.
   const armed = !oneShot || arrival.inView || runId > 0;
+
+  // ★ THE MISSING-HOST TRIPWIRE, and the measurement that justifies its shape
+  // (round 1, 2026-09-01). Measured in Chrome: when `filter: url(#glw-warp)`
+  // points at a filter that is NOT in the document, the element still paints --
+  // but the WHOLE chain is dropped, blur() included, so the five ellipses land
+  // as hard-edged colour blobs. Verified twice, by renaming the id and by
+  // removing the host node; identical either way. So a missing host is not a
+  // blank element, it is a visibly WRONG one, and nothing is logged.
+  //
+  // Which makes this a quality tripwire rather than a crash guard, and dev-only
+  // is the right scope: in production the page still renders, just badly, and a
+  // console error would not help the visitor.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (document.getElementById("glw-warp")) return;
+    console.error(
+      "[Glow] #glw-warp is not in the document. The lamp will render with NO " +
+        "warp and NO blur (Chrome drops the whole filter chain), i.e. hard-" +
+        "edged colour blobs. GlowFilter is mounted in the root layout; check " +
+        "it was not removed.",
+    );
+  }, []);
   const style = { ...colorVars(colors), ...(vars as CSSProperties) };
 
   return (
@@ -147,45 +179,5 @@ export function Glow({
         </>
       )}
     </div>
-  );
-}
-
-/**
- * The turbulence field that waves every spill on the page. Render EXACTLY ONE
- * per document: SVG ids are document-global, duplicates resolve by document
- * order (unstable under React reconciliation and portals), and if the node
- * that owns it unmounts, every other consumer is left holding a dangling
- * `filter: url(#glw-warp)`. In production this belongs in the root layout;
- * in the lab each board renders it once at the top.
- *
- * Values are the footer's, verbatim: they are already ruled beautiful, so they
- * are the calibration for everything the doctrine round proposes.
- */
-export function GlowFilter() {
-  return (
-    <svg
-      width="0"
-      height="0"
-      className="absolute"
-      aria-hidden
-      focusable="false"
-    >
-      <filter id="glw-warp" x="-40%" y="-40%" width="180%" height="180%">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.009 0.015"
-          numOctaves="2"
-          seed="7"
-          result="n"
-        />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="n"
-          scale="30"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </svg>
   );
 }

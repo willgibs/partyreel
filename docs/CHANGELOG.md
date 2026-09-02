@@ -10,6 +10,390 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-01 — Round 2, second pass: A ships, and no two sections back to back read alike
+
+`lp/reel-a` (`05f8c51`) merged into `launch-prep` (`f0c8f99`, `--no-ff`) with `launch-prep`'s own
+`40288a8` and `be0741a`, plus the record commit. Gate green at every commit; 1317 tests (one new pin).
+Verified on the deployed `launch-prep` alias at `f0c8f99` with the Chrome MCP at 1440 and, through a
+same-origin iframe, at 375. `lp/reel-b` deleted (its SHAs stay in the round-2 entry below).
+
+**Will's review of round 2, and the four rulings** (2026-09-01): treatment A ("lights down") wins "due
+to the subtlety of the design enhancement and infusion of our new visual identity", with one bug: the
+lamp ran wider than the video and "the clipping feels very unnatural". The two new chapter-1 sections
+"hold great content, but I wish they didn't have the exact same layout back to back". The live demo and
+the straddling album were "two huge visuals fighting for attention", so chapter 1 should conclude on the
+live demo and the album should open the paper chapter "more introductory towards the host experience",
+with no three centred sections in a row there. And the four event teasers get similar lengths. The rule
+he stated is now doctrine in [design-system.md](systems/design-system.md): **"No two sections back to
+back should feel repetitive. Otherwise, scrolling gets boring quickly."**
+
+- **The screen's light is held to the screen.** Measured against the engine: a seam's five ellipses sit
+  at 14/38/60/80/96% of the field, so its colour is still ~40 to 50% at the ends of any box, and the
+  first cut's linear side mask on a box 64px wider than the screen was a wedge, 40% lit at the video's
+  own edge and ending on a straight line outside it. The box is now exactly the screen's width and the
+  wrapper's mask is an ellipse anchored at the screen's bottom centre (rx 46%, smoothstep stops, so the
+  alpha arrives at zero tangent-flat): a pool, gone 31px inside each edge at 1440 and 14px at 375. No
+  engine change; the `-webkit-` twin is emitted by the production build (Lightning CSS at Tailwind's
+  targets) and confirmed in the built chunk. Measured live: the wrapper's width equals the player's
+  (768 and 343), the mask computes with all eleven stops, and the sideways-scroll record's 48px overhang
+  at 375 is gone with it. A pin in glow-placement.test.ts refuses a linear side mask.
+- **Chapter 1 stops repeating itself.** `no-app` is an open, left-aligned ledger in /about's conviction
+  idiom (the home's first left header; no numerals under the strip's SCENE labels, no icons), so the
+  chapter's column rhythm runs three cards, rows, three-up, stage. The live demo takes symmetric air
+  (`py-28 sm:py-36`, measured 144/144px) and ends the chapter on its own.
+- **The album opens the paper chapter as the host's masthead.** The straddle came off the home (it
+  stays vocabulary for /about, /help and /blog): a left header at the lg tier, a host-framed lead that
+  no longer repeats chapter 1's guest story, the pointer, and the album laid on the desk below-right as
+  a print (`max-w-3xl`, so it is not a second 896px object one cut after the live-demo stage; the float
+  shadow is the paper theme's real elevation). Measured: the frame starts 40px below the pointer, wholly
+  inside the paper chapter, its right edge on the container's content edge and the header's left on the
+  other; the h2 at 60px.
+- **Curation and privacy stopped reading alike.** Curation is a mirrored split: a palm-sized select-mode
+  mock on the LEFT (the app's own bulk-select state, extracted from /features/curation into a shared
+  `bulk-select-mock.tsx` so the two cannot drift; four tiles not in the album's eight, two chosen, the
+  floating bar) beside the three controls stacked on the right, mirrored so it does not repeat the
+  album's header-left / print-right composition beneath it. Privacy is a left-aligned numbered ledger
+  in a bordered card. The paper chapter alternates left, centred, left, with three shapes that share
+  nothing. /features/curation re-verified rendering its bar through the shared import.
+- **The four event teasers wrap alike.** Conferences and Trips rewritten to 57 and 59 characters
+  (Weddings 60, Parties 64), without the count; measured, all four teasers run two lines and the four
+  titles sit at the same 249px from their card's top. The card's class strings had been joined with no
+  space (`outline-whitetransition-[transform]`), so the focus ring and the press transition were silently
+  dead; `cn()` now, and both tokens are present on the deployed cards.
+- **Scarcity re-measured on the re-paced page:** the film strip lamp, the reel pool, the Pro beam and
+  the footer seam at 2085, 7994, 9269 and 10778px: 5909, 1275 and 1509px apart, the nearest pair 1.4
+  viewports at 1440. No sideways scroll at 1440, nor at 375 under a classic scrollbar.
+
+The two chapter-1 headers stay provisional by ruling; the milestone to `main` follows once Will has seen
+the sequence.
+
+## 2026-09-01 — Round 2: chapter pacing, the payoff opener, and the cards that lost their light
+
+`launch-prep` (`a5eadd1`, `3b69a86`, `3060070`, `b26f4cd`, `332f8aa`, `9885d91`, `e1372f8`, `6518dda`,
+`7a189ae`, `0cdd480`) plus two review branches (`lp/reel-a` @ `7d7d345`, `lp/reel-b` @ `ee10e04`, each
+its treatment on top of the same `launch-prep` base). Gate green at every commit; 1316 tests. Verified
+on the deployed aliases with the Chrome MCP; **nothing was verified on localhost**, by ruling.
+
+**The round's idea is a pacing principle, and it was corrected twice before anything was built.** The
+first plan proposed a `SectionShell` prop stamped across ~13 chapter openers, which would have traded
+section-level monotony for chapter-level monotony. Will's restatement, now recorded in
+[design-system.md](systems/design-system.md) close to his words: a chapter is an **attention arc** —
+open strong, ramp down through supporting sections that stay interesting but stop shouting, and let the
+next chapter open bold. Each opener stays bespoke; the devices are a vocabulary, varied between the
+chapters of one page. Scoped to core marketing pages with multi-section chapters; never the resource
+and utility pages.
+
+**What shipped on `launch-prep`:**
+
+- **Event cards media-forward, unlit, untilted.** The blog post-card anatomy adopted whole: image
+  fill, bottom-weighted scrim that lifts on hover, white type bottom-left. The third version of this
+  card's light had *worked* and was still pulled, for a reason about the page rather than the card:
+  four spills followed 765px later by the Pro card's beam put two light events inside one viewport.
+  Scarcity is a distance. **Legibility was measured, not eyeballed** — per pixel off the rendered image
+  with the gradient's alpha applied — and the first cut failed: the Conferences title sat at a median
+  **3.65:1** over its white tablecloth. A second short scrim behind the copy block only (the hero's
+  own device for its mobile copy) took it to 5.06 median; a step darker again (85%, 60% of the card) took it to **median 5.6:1**, with the
+  brightest 5% of pixels under the heading at **4.27:1** — still just under AA on that one card. It stops
+  there on purpose: a third darkening would bury every card's photograph to serve one borrowed
+  placeholder still, and the real fix is the manifest fill (logged). The teaser is white/85, because a translucent white is a lower contrast than the
+  measurement's pure-white assumption.
+- **The page never scrolls sideways** (6518dda, then 7a189ae). Measured inside same-origin iframes,
+  because the Chrome MCP window would not resize: every marketing alias was 4px wider than a 375
+  viewport (the Pro card's beam bloom, which reaches 30px past the card by design) and 8px wider at
+  1440 under a classic 17px scrollbar (the `w-screen` breakout: 100vw includes the scrollbar on
+  Windows, so the film-strip lamp had shipped a wobble there); treatment A's screen lamp added 48px at
+  375. The first fix, `overflow-x: clip` on `body`, computed as clip and changed nothing: body's
+  overflow propagates to the viewport, and the viewport treats clip as visible (the page still
+  scrolled 48px). The clip now sits on the cinema and paper skin wrappers, where it holds on every
+  alias: at 375 and at 1440 with the scrollbar, the document is exactly viewport-wide, a forced
+  sideways scroll lands at 0, and the sticky header still sits at 0 after scrolling. `clip`, not
+  `hidden`: no scroll container, so the header and the album straddle are untouched.
+- **Chapter 1 winds down before its anchor.** It used to escalate: the live demo, the loudest non-hero
+  section, landed straight before the paper cut. Two quiet guest-side sections (`no-app`,
+  `full-quality`, in the privacy section's register, provisional headers per the `SECTION_HEADERS`
+  contract) now sit above it, and the live demo is reworked as the chapter's closing **anchor**: centred,
+  heading a tier up, real air, the standard rise rather than the cut. The pinned home order goes 13 →
+  15 ids; the chapter map 7 dark / 3 paper / 5 dark.
+- **`SectionShell scale="lg"`**, the one empty slot in the h2 ladder (36/48/60), and the ladder itself
+  written down for the first time: 24/30 bespoke paper prose · 30/36/48 body section · 36/48/60
+  opener/anchor.
+- **Three radius knobs on the marketing tuner** (`--radius`, `--radius-float`, `--radius-tile`) so the
+  rounding round is ruled on real pages behind `?key=` — verified live on the panel.
+
+**What is deployed for a ruling, not merged:** two bespoke treatments of the payoff chapter's opener,
+one variable apart. **A, "lights down"** (`lp/reel-a`): more air, the heading a tier up, the player as
+the subject throwing its own poster's sampled colour down onto the floor beneath it (a seam on the
+player's bottom edge; measured live: box top 0px from the player's edge, hue 172° sampled from the
+poster), the style chips pulled back beneath it. **B, "the marquee"** (`lp/reel-b`): the fourteen style
+names run full-bleed at display scale as the title strip, the playing style lit, the player revealed
+beneath. Both use the hard film cut. Will picks; the winner lands on `launch-prep`.
+
+★ **A's first two cuts were wrong in kind, and the maths is now in the file.** A centred `throw` behind
+an opaque screen renders as a rectangle at high reach and as nothing at the corrected reach, because a
+radial gradient's percentage radius is a fraction of the box's *full* dimension and the ramp is spent
+before the object ends; the `halo` is the inverse ramp but is built to be clipped *inside* its object,
+which an opaque screen makes invisible. Neither shape backlights an opaque object. The screen throws its
+light **down** instead — the mechanic the film strip and the footer already use. One mechanic for every
+underlight on the site, including the payoff's.
+
+★ **The tooling findings this round, all recorded in
+[testing-verification.md](systems/testing-verification.md):** the Chrome MCP's tab is a *background*
+tab, so ambient-pause lamps read paused, lazy images below the fold never load (force `eager` before
+measuring), an unbounded `img.decode()` hangs the evaluate for 45s, chained `setTimeout`s hit Chrome's
+intensive throttling and make a two-second script take minutes, a screenshot after a scroll jump can be
+a stale black frame, and a query string on the navigated URL makes the tool refuse to run page JS.
+
+## 2026-09-01 — Round 1, second pass: both lamps pulled, and the light moved to the film strip and the Pro card
+
+`launch-prep` (`bd6892f`, `1faaad4`, `bbb0430`, `42ba717`, `732b2e4`). Gate green at every commit.
+Verified on the deployed `launch-prep` alias with the Chrome MCP, after the first pass had been verified
+in the in-app Browser pane, which renders the marketing pages black; that is the tooling root cause of
+shipping two lamps nobody had actually seen.
+
+**Will pulled both first-pass lamps, and was right on every count.** The hero lamp put a straight-edged
+band of haze across a wall of moving photographs: the hero is already the loudest, most media-forward
+surface on the site, and there is no source above the band because the wall IS the ground. The album
+lamp was wedged into a 63px gap between two visuals that are already tight, where it could barely be
+read even when it rendered correctly. Both drew a visible rectangle, law 4's one explicit prohibition,
+written into the doctrine that same round. ★ **The placements were wrong before the rendering was
+wrong**: no amount of tuning makes a lamp correct on a surface with no lamp above it, or in a slot too
+tight to read. What stayed, because it is verified and independent of placement: the root-layout filter
+singleton, the reduced-motion fix, the DOM sampler, the dev-only missing-host guard, and the doc
+corrections. The hero's colour warm-up (registered `--glw-c1..5` transitioning from the house set to
+the sampled set) was built, measured, and pulled unproven; it is logged in the ROADMAP.
+
+**The redo chose surfaces from a screenshot survey of all thirteen home sections, not from a lab
+specimen.** Measured, the page is ZONES rather than sections: the decomposition, the film strip and the
+live demo all sit within one viewport of each other, so at most one can carry a lamp; the reel teaser
+and the event cards likewise. Will picked the film strip and the event cards. **The film strip takes
+light off its own bottom edge**: the sprocket rail stops and black begins, which is the real-boundary
+condition the footer seam has always quietly depended on, and the three SCENE cards 48px below are
+positioned to catch it. It samples the strip's eight frames. ★ **Both first attempts still drew
+edges, and the reason generalises**: each glow box was sized to the region to be lit rather than to
+where the falloff dies, which are different numbers. The strip lamp is therefore full-bleed, so its
+side edges are off-screen the way the footer's always were.
+
+**Will's review of that pass, and the four changes it produced.** The film strip was approved as-is
+("the lamp acting as almost a backlight... alive without being overwhelming"). (1) The event lamps
+became seams, one mechanic for every underlight on the site. (2) **The card tilt and the cursor-tracking
+glare were retired**, both halves: "a nice touch by itself, this would need to be applied globally to
+become part of our visual identity, but it does not complement our rainbow glow/spill/beam at all"; the
+sharper reason is that the glare is a second light model on the same card, chasing the pointer, six
+inches from a lamp saying the light comes from the photograph. The press affordance stays. (3) **The
+Pro card takes the beam**, lab moment 12's reference implementation, which the first pass had not
+reached for ("despite us having built almost the perfect pro pricing card with a beam effect in the
+lab... it wasn't even considered"). Beam, not spill: it marks the live subject. (4) A focus pass on the
+pricing cards, which were "stale card headings and fully achromatic".
+
+**The event cards' light was then moved INSIDE the card** ("the glow would be the background of the
+bottom part of each event card, so it visually bleeds from the image above within the card itself"): a
+seam hanging below the card read as a detached coloured slab, and contained, the same light read as the
+photograph continuing into the card's own body. ★ That made the card's own `overflow-hidden` the one
+place in the system where a clipping ancestor is correct, because the clip IS the card. Round 2 then
+dropped that light altogether, for scarcity against the Pro beam one viewport below (recorded above).
+
+## 2026-09-01 — Round 1: the home page's light, and the first colour taken from a photograph
+
+`launch-prep` (`f6cfd07`, `8a2c181`, `01424e6`, `b6d7650`). Gate green at every commit;
+1307 → **1319 tests**. Verified live on the `launch-prep` alias at `b6d7650`, with **production as the
+before-state** (prod still runs milestone-13, which has no `[data-glw]` at all).
+
+**Round 0 shipped the machinery and the site still had exactly one lamp: the same footer seam it had
+before.** This is the round where light appears somewhere new. Will ruled the target (the home page,
+lab moments 01 and 05, judged by 13's scarcity test) and the sequence that follows: all Glow
+integration rounds across marketing and app FIRST, then the lab review.
+
+**Law 3 stopped being a claim.** Measured live: the hero's `--glw-c1/3/5` resolve to hues 52.6 / 354.7
+/ 185.9 and the album's to 53.4 / 186.0 / 113.4. Neither is the lamp set (25 / 85 / 155 / 255 / 305),
+and they differ from each other because they are reading different photographs. The footer stays on the
+house set, correctly: it has no media to sample.
+
+**The sampler learned to read the DOM, and that was worth ~1 MB.** `useSampledPalette` takes URLs
+because a lab board has no rendered `<img>`. On the home page that refetches the ORIGINALS — `next/image`
+serves a different URL, so nothing is a cache hit — which measures **1,101,641 bytes** of full-resolution
+JPEG to read 32×32 of each, on the page whose own header comment spells out an LCP contract. The new
+`useSampledPaletteFromDom` reads the elements the page already painted, reusing decoded bitmaps.
+Verified live: **0 raw-original fetches**, and the wall's 6-eager loading strategy untouched. It never
+calls `img.decode()`, which would force a `loading="lazy"` tile to fetch — the lamp would undo the
+page's own loading strategy to colour itself.
+
+★ **The album specimen was upside down, and its headline number was wrong.** The lab stage puts paper
+above and dark below and throws downward; production's arc runs cinema → paper and `lg:-mt-40` hangs the
+card UP into the dark, so copying those insets would have thrown dark-register light onto near-white
+paper — the exact "dirty rather than lit" failure `SPILL_REGISTER.paper` exists to fix. The bias is
+mirrored and the specimen's own argument ("the card casts onto the dark field it overhangs") survives
+intact. Its "overhangs the cut by 160px" was also wrong: **the real overhang is 63px** (`-mt-40` is
+10rem, `SectionShell` puts back 6rem, `PaperChapter`'s border 1px). The board read the margin and
+ignored what the section gives back. The clip is expressed from those same terms and lands on the cut
+with **0px of error**, measured live.
+
+★ **The comet's resting position was the worst case, not a park.** The band declared
+`mask-position: 50% 0` outside the `no-preference` block. With `mask-size: 280%` that puts the comet's
+peak at dead centre of the box at full strength — the exact midpoint of a sweep whose own endpoints
+(150% → peak −130%, −50% → peak +230%) are both off-layer. Since the animation lives inside
+`no-preference`, every visitor who asked for less motion has been getting the peak of the travel,
+permanently, on the one lamp we shipped. The tell was in the source: the block's comment read "comet
+parked", a claim the CSS did not implement. Fixed to the animation's own from-keyframe (so nothing
+changes for anyone else), and verified on the SHIPPED sheet: the band's unconditional declaration is
+`150% 0` and every `animation` sits inside `no-preference`.
+
+★ **A missing filter host is a quality failure, not a crash — measured rather than assumed.** The
+singleton hoist (to the root layout, because `not-found.tsx` renders the footer outside `(marketing)`)
+owed a live check. Done twice, by renaming the filter id and by deleting the host node: Chrome does NOT
+blank the element, it drops the whole filter chain including `blur()`, so the five ellipses land as
+hard-edged colour blobs. Visibly wrong and completely silent, so `Glow` gained a dev-only guard.
+`GlowFilter` became its own **server** component: left in the client `glow.tsx` it would have put the
+glow hooks on every route in the app to render a static `<svg>`. All three prior mounts removed —
+including both lab boards, which sit inside the root layout and would otherwise have put **two**
+`#glw-warp` filters on every board page, the exact failure the fix was for.
+
+★ **A refactor silently broke two guards.** Two pins sliced `indexOf(...)` → `indexOf("export function
+GlowFilter(")`; moving `GlowFilter` out made that −1, and `slice(start, -1)` does not throw — it returns
+everything but the last character, so both kept passing over the wrong text. Same class as the four
+unable-to-fail guards the round-0 sweep found, except created by an unrelated refactor rather than
+written wrong. Bounds are now asserted and searched forward from the start index.
+
+★ **Superseded the same day.** Both lamps below were pulled in `bd6892f` (the second-pass entry
+above); the machinery, the reduced-motion fix, the DOM sampler and the guard stayed.
+
+**Verified live at `b6d7650`:** 1 filter host and no duplicate ids on both the home page and the root
+404 (which proves the hoist target, being outside `(marketing)`); 3 lamps at 1440 with gaps of **3.06
+and 5.77 viewports**, so scarcity holds with room; at 375 the album lamp has **no box at all**
+(`hidden lg:block` — no straddle, no lamp, law 1 applied honestly) leaving hero and footer 13 viewports
+apart; no horizontal overflow at either width; `forced-colors`, `print` and `no-preference` all present
+in the shipped CSSOM; console clean. **Cost against production (rounds 0+1 combined): +1,888 B CSS and
++2,824 B JS, gzipped.** Round 1's own CSS delta is ~23 B — it added no selectors.
+
+**Not measurable in this pass, and not claimed:** LCP timing and the frame cost of three filtered layers
+on one page. The Browser pane runs hidden, so `document.hidden` is true, Chrome records no paint timing
+at all (FCP and LCP both report 0) and rAF is throttled. Carried forward rather than guessed.
+
+**Twelve new pins, every one watched to fail** before being trusted — six injections against the home
+lamps (dropping `Container`'s `relative`, moving the lamp under the scrims, dropping the `colors` prop,
+flipping the album's throw back down, client-ifying `album.tsx`, lighting a third section) and four
+against the singleton, plus the resting-position pin and the `GlowVars`-key pin that would have caught
+`--glw-span`. All red on injection, all green on restore.
+
+## 2026-09-01 — Round 0: the light system in production, and the footer retired onto it
+
+`launch-prep` (`9572d55`, `b9621f2`, `44acf10`, `58157db`, `abe7c34`, `1b552b1`). Gate green at every commit;
+1301 → **1307 tests**. Verified live on the `launch-prep` alias at `44acf10`, against **production as
+the reference** (prod still runs the old footer until the next milestone merge, so it is a live
+before-state that needs no stored baseline).
+
+**The first wiring round, and it was not optional-adjacent.** The shipped footer glow WAS the engine's
+mechanic, so the site was carrying two engines painting one light. Round 0 promotes the engine into
+`globals.css` (unlayered) and retires `FooterGlow` onto it.
+
+**The light system, not just the machinery.** Will ruled globals.css directly (skip the staging: "the
+app will also be pulling from this") and asked for one consistent colour library for spill and beam.
+The five hues were duplicated in three places, so `--lamp-1..5` lands in `globals.css` beside
+`--gallery-*`, values unchanged, and `--mkt-confetti-*` becomes an alias. The rule that ships with it:
+**the lamp set is LIGHT, never UI** — enforced structurally (the block is deliberately not in `@theme`,
+so no `bg-lamp-1` utility can exist) and by a fence requiring every CSS reference to land in a gradient.
+
+**Equivalence proved by computed style, not by eye.** No test guards it and an 11s loop never
+screenshots twice the same, so the proof is a `getComputedStyle` diff of all five nodes, prod vs
+preview. **Six differences, every one explained:** the filter-id rename, `animation-name`, `isolation`
+(no z-indexed children while `edge={false}`), two animation-phase artifacts, and the seamline's
+resolved `bottom` (it re-parented from the glow to the footer, and renders at the identical screen
+y=349). Nothing else moved. The two `background-image` values are byte-identical, which is also the
+proof that the `--lamp-*` aliasing resolves to the same colours; `--mkt-confetti-*` and `--lamp-*`
+compute to the same five `lab()` strings live. A frozen-phase pixel A/B (`mask-position: 95% 0` pinned
+on both) is indistinguishable.
+
+★ **The delta nobody had caught.** `[data-glw-field]` overhangs 40px on all four sides; the shipped
+footer's warp is `-40px -40px 0 -40px`. The field box is the coordinate space for the five ellipses, so
+the engine's 290px field rendered every `90%`/`85%` vertical extent **16% larger** than the footer's
+250px. Which means **the lab's seam specimen and the live footer were never the same lamp**, and every
+seam ruling before today was taken on a field 16% taller than production's. Fixed with a per-shape rule
+(the halo already sets its own field inset), and confirmed live: the warp measures 250px.
+
+★ **One deliberate visual change: the root 404 gains a lit seam.** `not-found.tsx` renders
+`MarketingFooter` outside `(marketing)`, so `marketing.css` never loaded there and every `.mkt-fglow`
+selector failed to match. The engine is in `globals.css`, which loads everywhere. The old file called
+the flat 404 "correct", but that was a side effect described after the fact, not a ruling. Captured
+before/after for Will; a lit seam matching every other page is the better answer.
+
+**The beam's chroma register, closed by evidence.** The merge flagged it as a second palette recorded
+as "ours". It is not: the values are our own five hues through `glow-contrast.ts`'s `oklchToSrgb`,
+raised to effect-grade chroma with hue held exactly — a DERIVED register. It cannot be tokenised
+either, because `styles.ts` regex-parses `rgb()` strings to compute alpha variants. Now pinned by test
+(every beam colour's OKLCH hue within 12° of the five).
+
+★★ **Four guards found unable to fail, and the class fixed.** The engine's `/^\s{2}animation:/gm`
+matched **zero** declarations (four-space indentation), so the arrival-default contract was unguarded
+from the day it was written. Worse, **the lamp fence I wrote for this round had the same disease**: its
+property capture was `(--?[a-zA-Z]…)`, which requires a leading hyphen, so `color: var(--lamp-1)` — the
+exact thing it exists to catch — walked straight through. Found by injecting the violation and watching
+it pass. With the border-beam mark count and the em-dash walk from the merge, that is four, so the
+sweep pins every scan-derived loop in `marketing-css-policy`, `content-policy` and
+`guest-reel-contract`. (A correction to my own measurement: I counted loops-vs-pins across eight files
+and concluded eight needed fixing; most iterate literal arrays that cannot silently empty. Three did.)
+
+**The doctrine left the lab with its engine.** The laws lived only inside a 1,405-line lab TSX, which
+is exactly the "bible" that reads as obligation to a new agent. They are now one section in
+[`design-system.md`](systems/design-system.md); the board keeps the decision record and says so.
+`design.css` 2725 → **1894 lines (-31%)**, which starts the lab distillation for free.
+
+★ **One regression I shipped and caught in the live pass.** De-duplicating the palette, I re-pointed
+the doctrine board's `FALLBACK_PALETTE` from literals to `var(--lamp-N)`. That array does not feed a
+`colors` prop: it feeds `worstCaseGround()`, which parses colour NUMERICALLY. Measured, the board's
+contrast floor went `0.13 → 1` and every ratio to `undefined`, because `parseOklch` returned null and
+the report came back null. Wrong numbers, no error, on the one instrument whose job is saying whether
+light is legible. Reverted, with the rule recorded where the same instinct will recur: **a JS consumer
+that PARSES colour needs literals; only CSS can take the token** (the vendored beam palette is the same
+shape). Two guards added so the necessary duplication is safe: the board's five must equal `--lamp-*`
+value for value, and `worstCaseGround` must return non-null for them.
+
+**Measured cost:** homepage CSS 312,228 → 330,766 B raw, **+1,865 B gzipped**, for the whole engine
+(halo, bloom, edge beam, all three drives) going global net of the 155 deleted marketing lines.
+
+**Noted, not a blocker:** Lightning CSS resolves the engine's `@supports not (mask-image: …)` fallback
+against browserslist, finds it statically false, and drops it. The rule is real in source and dead in
+the build, which is correct given the targets but means the comment claims a protection that does not
+ship.
+
+Also live-verified: the pause contract still flips (in view `false`, offscreen `true`,
+`animation-play-state: paused`); `forced-colors` and `@media print` are in the served CSS (the repo's
+first production rules of each); all nine marketing routes 200; the `/design` gate holds; both lab
+boards render 13 lamps with halo bands `orbit-free`, so the merge's specificity fix is holding live.
+
+---
+
+## 2026-09-01 — MILESTONE-13: the glow doctrine on prod (adopt only, wire nothing)
+
+`main` @ tag `milestone-13` (`f3e6cbb`), `--no-ff` merge of `launch-prep`, gate re-run green on the
+merged tree: typecheck clean, 0 lint errors (1 pre-existing warning in `contact-form.tsx`),
+**1301 tests**, build ok.
+
+★ **This milestone changes no production byte, deliberately**, which makes it unlike the four page
+rounds before it. `main` gains the doctrine, the engine and the vendored beam as TOOLS; every placement
+becomes its own paced round. Verified as a diff rather than asserted: nothing outside `docs/`,
+`(dev)/design/`, `components/dev/`, `components/vendor/` and three guard configs. Shipped now so
+`launch-prep` is free to start the integration rounds.
+
+**The agent-merge sequence closes here.** `lp/about` at milestone-9, `lp/press-kit` at 10,
+`lp/blog-redesign` at 11, `lp/careers-identity` at 12, `lp/glow-doctrine` at 13. All five remotes,
+worktrees and local branches are cleaned up (~5.6 GB of stale worktrees reclaimed).
+
+**Verified on partyreel.com at the merge SHA.** All nine marketing routes 200, byte-identical to the
+pre-merge capture. The `/design` gate holds in production (404 without the key, 200 with it). Zero
+`data-glw` in the CSS of `/`, `/pricing`, `/careers` or `/help`, so the engine does not ship; the
+shipped footer glow is unchanged, at exactly 23 `mkt-fglow` occurrences before AND after.
+
+★ **One honest correction to "no production byte changed."** It is true of the SOURCE (verified as a
+diff) and true of BEHAVIOUR (nothing renders differently), but not literally true of what is served:
+prod's shared CSS grew **2,752 bytes uncompressed**, and a content diff against the previous production
+deployment shows exactly why. **26 selectors added, 0 removed, and every one is a Tailwind utility**
+(`-inset-14`, `accent-current`, `-bottom-16` and friends) that appears ONLY in `(dev)/design` source.
+Tailwind v4 generates utilities from a scan of the tree, the lab is in that tree, so ~4,000 lines of new
+lab TSX taxed every production page's stylesheet with dead classes no production element uses. Nothing
+is broken and the effect is tiny, but the mechanism is worth knowing: **the design lab has a standing,
+if small, cost on production CSS**, and it grows every time the lab does. Logged to ROADMAP.
+
+---
+
 ## 2026-08-31 — the glow doctrine MERGED to `launch-prep` (adopt only, wire nothing)
 
 `launch-prep` @ `2bf18dc` (merge `a87d09b`, `--no-ff`). The fifth and last branch of the agent-merge

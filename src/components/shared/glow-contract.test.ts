@@ -1,13 +1,7 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
-
-import {
-  huesToSpillColors,
-  pickSpillHues,
-  srgbToOklch,
-} from "./sampled-palette";
 
 /**
  * THE SPILL ENGINE'S CONTRACT.
@@ -18,22 +12,59 @@ import {
  * tests cover the sampling math, which is real logic and testable without a
  * canvas.
  *
- * The engine is lab-local this round. When the wiring round promotes it into
- * globals.css these pins move with it, and the keyframe-collision check below
- * becomes considerably more load-bearing than it already is.
+ * The engine was promoted into globals.css at round 0 (2026-09-01), so these
+ * pins now guard PRODUCTION css that every route loads, and the keyframe
+ * collision check below is load-bearing rather than precautionary. The sampling
+ * math moved to sampled-palette.test.ts beside the module it tests.
  */
 
 const ROOT = process.cwd();
+/** Every file under a directory, recursively. Used by the singleton pins, which
+ *  must scan the WHOLE tree: a second filter host anywhere is the defect. */
+const walk = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.name === "node_modules"
+      ? []
+      : e.isDirectory()
+        ? walk(join(dir, e.name))
+        : [join(dir, e.name)],
+  );
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const glowSrc = read("src/components/dev/glow.tsx");
+const glowSrc = read("src/components/shared/glow.tsx");
 const glowCode = stripComments(glowSrc);
-const designCss = read("src/app/(dev)/design/design.css");
-// The engine block only: everything appended under the SPILL banner.
-const engine = designCss.slice(designCss.indexOf("SPILL: the light engine"));
-const engineCode = stripComments(engine);
+const filterSrc = read("src/components/shared/glow-filter.tsx");
+
+/**
+ * ★ SLICE BOUNDS ARE ASSERTED, NEVER TRUSTED (round 1, 2026-09-01). Two pins
+ * below used to slice `indexOf(A)` -> `indexOf("export function GlowFilter(")`.
+ * When round 1 moved GlowFilter into its own module that second index became
+ * -1, and `slice(start, -1)` does not throw: it quietly returns everything but
+ * the last character, so both pins kept passing over the WRONG text. Same class
+ * as the four guards the round-0 sweep found unable to fail, and it appeared
+ * here as a SIDE EFFECT of an unrelated refactor, which is exactly why the
+ * bound has to be checked rather than assumed.
+ */
+const declBody = (src: string, from: string) => {
+  const a = src.indexOf(from);
+  expect(a, `slice start not found: ${from}`).toBeGreaterThan(-1);
+  // The next TOP-LEVEL export after the marker, or EOF when it is the last one.
+  // Searched from `a`, never from 0: searching the whole string would find an
+  // export ABOVE the marker and silently invert the range.
+  const b = src.indexOf("\nexport ", a + from.length);
+  const body = src.slice(a, b === -1 ? src.length : b);
+  expect(body.length, `empty slice for ${from}`).toBeGreaterThan(200);
+  return body;
+};
+const globalsCss = read("src/app/globals.css");
+// The engine block only: everything appended under the SPILL banner, which the
+// promotion put at the END of globals.css, so this slice runs banner -> EOF.
+// If anything is ever appended BELOW the engine this silently widens, so the
+// keyframe-namespace test below doubles as the tripwire for that.
+const bannerAt = globalsCss.indexOf("SPILL: the light engine");
+const engineCode = stripComments(globalsCss.slice(bannerAt));
 
 describe("the spill primitive", () => {
   it("uses the per-shape pause contract, not one hook for everything", () => {
@@ -89,10 +120,7 @@ describe("the spill primitive", () => {
   });
 
   it("accepts no className", () => {
-    const glowFn = glowCode.slice(
-      glowCode.indexOf("export function Glow("),
-      glowCode.indexOf("export function GlowFilter("),
-    );
+    const glowFn = declBody(glowCode, "export function Glow(");
     // Tailwind's filter/mask utilities live in the utilities layer, which
     // outranks everything the engine declares. One `blur-sm` from a caller
     // replaces `filter: url(#glw-warp) blur(...)` wholesale and the turbulence
@@ -101,17 +129,14 @@ describe("the spill primitive", () => {
     expect(glowFn).not.toMatch(/\bclassName\b/);
     // GlowFilter is exempt: it positions a zero-size <svg>, and carries none
     // of the engine's filter or mask properties.
-    expect(glowCode).toMatch(/GlowFilter[\s\S]*className="absolute"/);
+    expect(stripComments(filterSrc)).toMatch(/className="absolute"/);
   });
 
   it("never renders the filter host itself", () => {
     // SVG ids are document-global; duplicates resolve by document order, which
     // is unstable under reconciliation and portals. Exactly one GlowFilter per
     // document, owned by the page, never by the effect.
-    const glowFn = glowCode.slice(
-      glowCode.indexOf("export function Glow("),
-      glowCode.indexOf("export function GlowFilter("),
-    );
+    const glowFn = declBody(glowCode, "export function Glow(");
     expect(glowFn).not.toContain("feTurbulence");
     expect(glowFn).not.toContain("<filter");
   });
@@ -202,8 +227,16 @@ describe("the spill engine CSS", () => {
     const noPref = engineCode.slice(
       engineCode.indexOf("@media (prefers-reduced-motion: no-preference)"),
     );
-    for (const m of engineCode.matchAll(/^\s{2}animation:/gm)) {
-      expect(noPref).toContain(m[0].trim());
+    // ★ THIS WAS /^\s{2}animation:/ AND MATCHED ZERO DECLARATIONS. Every
+    // animation here sits inside `@media { selector { ... } }`, so it is
+    // FOUR-space indented and a two-space anchor could never hit it: the loop
+    // body never ran and the arrival-default contract was unguarded from the
+    // day it was written. Anchored to \s* and pinned below, because the whole
+    // failure mode of a loop-shaped assertion is passing over nothing.
+    const decls = [...engineCode.matchAll(/^\s*animation:.*$/gm)];
+    expect(decls.length, "no animation declarations found").toBeGreaterThan(4);
+    for (const m of decls) {
+      expect(noPref, m[0].trim()).toContain(m[0].trim());
     }
   });
 
@@ -222,132 +255,134 @@ describe("the spill engine CSS", () => {
     const mine = [...engineCode.matchAll(/@keyframes\s+([\w-]+)/g)].map(
       (m) => m[1],
     );
+    // ★ THIS SET INVERTED AT THE PROMOTION. globals.css used to be "elsewhere";
+    // it is now the engine's OWN home, so reading it whole would compare the
+    // engine against itself and fail on every name. design.css moved the other
+    // way and is now wholly elsewhere (it kept the lab-only glw-skel / glw-fly
+    // / glw-tilefly recipes, which is exactly what this must catch).
     const elsewhere = new Set([
-      ...names("src/app/globals.css"),
       ...names("src/app/(marketing)/marketing.css"),
-      // design.css minus the engine block itself. Slice the RAW file, then
+      ...names("src/app/(dev)/design/design.css"),
+      // globals.css minus the engine block itself. Slice the RAW file, then
       // strip: the banner lives inside a CSS comment, so it cannot be found
       // in the comment-stripped text (indexOf would return -1 and quietly
       // hand back the whole file, including the engine's own keyframes).
       ...[
-        ...stripComments(
-          designCss.slice(0, designCss.indexOf("SPILL: the light engine")),
-        ).matchAll(/@keyframes\s+([\w-]+)/g),
+        ...stripComments(globalsCss.slice(0, bannerAt)).matchAll(
+          /@keyframes\s+([\w-]+)/g,
+        ),
       ].map((m) => m[1]),
     ]);
     for (const name of mine) expect(elsewhere.has(name), name).toBe(false);
     expect(mine.length).toBeGreaterThan(0);
   });
 
-  it("uses a filter id nothing else in the repo claims", () => {
+  it("rests the comet where its own animation starts", () => {
+    // ★ Law 4's reduced-motion half, as a number. The animation lives inside
+    // @media (prefers-reduced-motion: no-preference), so whatever the band
+    // DECLARES is what a reduced-motion visitor sees permanently. That resting
+    // value must be the from-keyframe (off-layer), never a point inside the
+    // travel. It shipped as `50% 0` for two rounds, which with mask-size 280%
+    // puts the comet's peak at dead centre of the box at full strength -- the
+    // exact midpoint of the sweep, i.e. the worst case, forever, for the
+    // visitors who opted out of motion.
+    const from = engineCode.match(
+      /@keyframes glw-mask-x\s*\{\s*from\s*\{[\s\S]*?[^-]mask-position:\s*([^;]+);/,
+    );
+    expect(from, "glw-mask-x from-keyframe not found").not.toBeNull();
+    // Anchored on `mask-size: 280% 100%`, which is unique to the band's own
+    // declaring block. Anchoring on the SELECTOR does not work: the declaring
+    // rule is a four-part :not() compound split over five lines, and the naive
+    // `[data-glw-drive="mask"] [data-glw-band]` matches the ANIMATION rule in
+    // the no-preference block instead, which declares no position at all and
+    // would have made this pin unfindable rather than wrong.
+    const anchor = engineCode.indexOf("mask-size: 280% 100%");
+    expect(anchor, "band mask-size anchor not found").toBeGreaterThan(-1);
+    const rest = /[^-]mask-position:\s*([^;]+);/.exec(
+      engineCode.slice(anchor, anchor + 400),
+    );
+    expect(rest, "resting mask-position not found").not.toBeNull();
+    expect(rest![1].trim()).toBe(from![1].trim());
+  });
+
+  it("has exactly one filter host, and the footer is now on it", () => {
     expect(engineCode).toContain("url(#glw-warp)");
+    // This pin used to read `not.toContain`, because the footer ran its own
+    // byte-identical copy of the turbulence under a different id. Retiring it
+    // onto the engine is what round 0 was for: two engines painting one light
+    // was the actual defect. What still has to hold is SINGULARITY, so assert
+    // the id is declared exactly once in the repo (GlowFilter) and that the
+    // old hand-rolled host is gone rather than merely renamed.
+    expect(filterSrc).toContain('id="glw-warp"');
     expect(
       read("src/components/marketing/chrome/footer-glow.tsx"),
-    ).not.toContain("glw-warp");
+    ).not.toContain("<filter");
+    expect(read("src/app/(marketing)/marketing.css")).not.toContain(
+      "mkt-fglow",
+    );
   });
 });
 
-describe("spill sampling (law 3)", () => {
-  it("converts sRGB to plausible OKLCH", () => {
-    const red = srgbToOklch(255, 0, 0);
-    expect(red.l).toBeGreaterThan(0.55);
-    expect(red.l).toBeLessThan(0.68);
-    expect(red.c).toBeGreaterThan(0.2);
-    expect(red.h).toBeGreaterThan(20);
-    expect(red.h).toBeLessThan(45);
-    const grey = srgbToOklch(128, 128, 128);
-    expect(grey.c).toBeLessThan(0.005);
-  });
+/**
+ * THE SINGLETON, AS OF ROUND 1 (2026-09-01). The footer stopped being the only
+ * consumer, so the host moved to the root layout. Three failures are silent
+ * enough to need pins: a second host reappearing (duplicate document-global
+ * ids, resolved by document order, unstable under portals); the host going
+ * missing entirely (every lamp left holding a dangling url(#glw-warp)); and
+ * the module quietly becoming a client component, which would put glow.tsx's
+ * hooks on every route in the app to render a static svg.
+ */
+describe("the turbulence field is a document singleton", () => {
+  // Test files excluded, and not as a convenience: THIS file quotes both the
+  // filter id and the <GlowFilter /> tag in its own assertions, so scanning
+  // itself would report the guard as a second declaration site.
+  const sources = walk(join(ROOT, "src")).filter(
+    (f) =>
+      (f.endsWith(".tsx") || f.endsWith(".ts")) &&
+      !/\.test\.tsx?$/.test(f) &&
+      !f.endsWith("vitest.setup.ts"),
+  );
 
-  function pixels(rgb: [number, number, number][]): Uint8ClampedArray {
-    const out = new Uint8ClampedArray(rgb.length * 4);
-    rgb.forEach(([r, g, b], i) => {
-      out[i * 4] = r;
-      out[i * 4 + 1] = g;
-      out[i * 4 + 2] = b;
-      out[i * 4 + 3] = 255;
-    });
-    return out;
-  }
-
-  it("finds the hues actually present, spread apart", () => {
-    const hues = pickSpillHues(
-      pixels([
-        [200, 40, 40],
-        [200, 40, 40],
-        [40, 90, 200],
-        [40, 160, 80],
-      ]),
-      3,
+  it("declares the filter in exactly one module", () => {
+    const declaring = sources.filter((f) =>
+      readFileSync(f, "utf8").includes('id="glw-warp"'),
     );
-    expect(hues).toHaveLength(3);
-    for (let i = 0; i < hues.length; i++) {
-      for (let j = i + 1; j < hues.length; j++) {
-        const d = Math.abs(hues[i].hue - hues[j].hue);
-        expect(Math.min(d, 360 - d)).toBeGreaterThanOrEqual(40);
-      }
-    }
+    expect(sources.length, "no sources scanned").toBeGreaterThan(100);
+    expect(declaring.map((f) => f.slice(ROOT.length + 1))).toEqual([
+      "src/components/shared/glow-filter.tsx",
+    ]);
   });
 
-  it("never lets five hues share one quadrant", () => {
-    // The real failure Will caught: a foliage photograph sampled to
-    // 34/68/97/130/158, five neighbours that composite to mud on paper. A
-    // green-and-yellow image must still yield a SPREAD, not a cluster.
-    const greens: [number, number, number][] = [
-      [60, 140, 50],
-      [90, 160, 40],
-      [140, 170, 40],
-      [40, 130, 70],
-      [110, 150, 45],
-    ];
-    const hues = pickSpillHues(pixels(greens), 5);
-    expect(hues).toHaveLength(5);
-    const sorted = hues.map((h) => h.hue).sort((a, b) => a - b);
-    const arc = sorted[sorted.length - 1] - sorted[0];
-    expect(arc).toBeGreaterThan(180);
+  it("mounts it exactly once, in the root layout", () => {
+    const mounting = sources.filter((f) =>
+      /<GlowFilter\s*\/>/.test(readFileSync(f, "utf8")),
+    );
+    expect(mounting.map((f) => f.slice(ROOT.length + 1))).toEqual([
+      "src/app/layout.tsx",
+    ]);
   });
 
-  it("carries a lighter, calmer register for paper", () => {
-    // On a dark ground light ADDS; over near-white the same wash darkens and
-    // reads as stain. The paper register sits near the paper's own lightness.
-    const hues = pickSpillHues(pixels([[200, 40, 40]]));
-    const dark = huesToSpillColors(hues, "dark");
-    const paper = huesToSpillColors(hues, "paper");
-    expect(dark[0]).toMatch(/^oklch\(0\.72 0\.15 /);
-    expect(paper[0]).toMatch(/^oklch\(0\.88 0\.08 /);
+  it("has no knob the engine does not read", () => {
+    // ★ THE --glw-span CLASS (removed round 1). That key sat in GlowVars for a
+    // whole round after the engine stopped declaring it: it typechecked, it
+    // autocompleted, and setting it did nothing at all. A knob that tunes
+    // nothing is worse than a missing one, because the caller believes it
+    // worked and goes looking elsewhere for the reason it did not.
+    const varsType = declBody(glowCode, "export type GlowVars");
+    const keys = [...varsType.matchAll(/"(--glw-[\w-]+)"/g)].map((m) => m[1]);
+    expect(keys.length, "no GlowVars keys parsed").toBeGreaterThan(8);
+    const dead = keys.filter((k) => !engineCode.includes(k));
+    expect(dead, `GlowVars keys the engine never reads: ${dead}`).toEqual([]);
   });
 
-  it("ignores near-black, near-white and grey pixels", () => {
-    // These are the pixels whose hue is numerically unstable: letting them vote
-    // is how a night photograph produces a muddy, arbitrary palette.
-    expect(
-      pickSpillHues(
-        pixels([
-          [2, 2, 3],
-          [253, 254, 253],
-          [128, 128, 128],
-        ]),
-      ),
-    ).toHaveLength(0);
-  });
-
-  it("always returns five inputs, even from a near-monochrome image", () => {
-    // A single-hue photograph is legitimate; the engine must never receive a
-    // short array, or every caller has to branch. The filler now fans AROUND
-    // the wheel rather than crowding the one hue that was found.
-    const hues = pickSpillHues(pixels([[200, 40, 40]]), 5);
-    expect(hues).toHaveLength(5);
-    expect(huesToSpillColors(hues)).toHaveLength(5);
-    const sorted = hues.map((h) => h.hue).sort((a, b) => a - b);
-    expect(sorted[sorted.length - 1] - sorted[0]).toBeGreaterThan(180);
-  });
-
-  it("normalises every sampled colour into the atmosphere register", () => {
-    // Hue-only sampling is what makes the central experiment readable: the two
-    // palettes then differ in exactly one variable. It also stops a dark photo
-    // from producing a spill that is not light.
-    for (const c of huesToSpillColors(pickSpillHues(pixels([[200, 40, 40]])))) {
-      expect(c).toMatch(/^oklch\(0\.72 0\.15 \d+(\.\d+)?\)$/);
-    }
+  it("keeps the host a server component", () => {
+    // No directive and no hook call: the whole point of splitting it out of
+    // glow.tsx. A `use client` here is ~2KB of glow machinery on /admin.
+    // ★ Comments stripped FIRST: glow-filter.tsx's own docstring explains why
+    // it has no "use client", so the raw source contains the literal and a
+    // naive check fails on the very comment documenting the rule it enforces.
+    const code = stripComments(filterSrc);
+    expect(code).not.toContain('"use client"');
+    expect(code).not.toMatch(/\buse[A-Z]\w*\(/);
   });
 });

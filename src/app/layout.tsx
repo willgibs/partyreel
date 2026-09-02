@@ -3,6 +3,7 @@ import { Geist_Mono, Inter, Urbanist } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
+import { GlowFilter } from "@/components/shared/glow-filter";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
 
@@ -78,6 +79,13 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
         <Toaster />
+        {/* The spill engine's one turbulence field (round 1). Mounted at the
+            ROOT rather than in (marketing) because not-found.tsx renders the
+            marketing footer OUTSIDE that group — the same fact that lit the
+            404 when the engine went global. A filter nothing references is
+            parsed and never rasterized, so pages with no lamp pay for the tag
+            alone; see glow-filter.tsx for why it is a server component. */}
+        <GlowFilter />
       </body>
     </html>
   );

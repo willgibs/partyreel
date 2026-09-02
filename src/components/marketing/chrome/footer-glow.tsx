@@ -1,76 +1,51 @@
 "use client";
 
-import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
+import { Glow } from "@/components/shared/glow";
 
 /**
  * THE SEAM GLOW: light spilling into the ink slab from the page above.
  *
  * The slab meets a bright paper page (and a darker cinema room) at a hard cut
- * that read as a wireframe edge. This is the transitions-pro organic-shimmer
- * mechanic pinned to that seam: a colour band warped by an SVG turbulence field
- * and swept by a travelling mask, faded downward so it reads as spill rather
- * than a stripe. The palette is the ratified confetti five, consumed via
- * color-mix in marketing.css, so nothing new was added to the accent set.
+ * that read as a wireframe edge. This was a hand-rolled copy of the
+ * transitions-pro organic-shimmer mechanic; at round 0 (2026-09-01) it was
+ * retired onto the SPILL engine, which IS that same mechanic generalised. The
+ * site was shipping two engines painting one light, and this file was the
+ * older of the two.
  *
- * The sweep is INFINITE, so it owns the loop-pause contract: useAmbientPause
- * mirrors offscreen/tab-hidden/reduced-motion onto data-paused. That matters
- * more here than anywhere else on the site, because the footer sits below the
- * fold on every page, so the default state is paused and the animation only
- * ever runs while someone is actually looking at it.
+ * Everything the hand-rolled version tuned is now the engine's DEFAULT, which
+ * is not a coincidence: the engine was calibrated against this footer. 210px
+ * layer, base and band both at 0.62, 16px blur, the same five-ellipse field in
+ * the same deliberately-scrambled 4/5/1/2/3 hue order, the same 100deg 9-stop
+ * comet at 280% width, the same turbulence seed. The ONE override is the
+ * cadence: the engine's ruled register is 8s and this surface ships 11s, so it
+ * is passed explicitly rather than silently re-timing ratified live chrome by
+ * 27%. Round 1 gave the home page two more lamps, all three at 11s, so the
+ * open ruling is no longer "the footer alone with nothing else moving" but the
+ * SYSTEM's register: the whole page at 11s against the whole page at 8s.
  *
- * Absent on the root 404 (no marketing.css there, so every .mkt-* selector
- * fails to match) — the seam simply renders flat, which is correct for a 404.
+ * Colour comes from --lamp-* (globals.css) via the engine's own defaults, so
+ * no `colors` prop: the footer's light is the house light. That is also why
+ * the seam now renders on the root 404, where marketing.css never loads. The
+ * old version went flat there, and a lit seam matching every other page is the
+ * better answer.
+ *
+ * The sweep is INFINITE, so it owns the loop-pause contract, which the Glow
+ * primitive carries BY CONSTRUCTION (useAmbientPause -> data-paused, mirroring
+ * offscreen / hidden-tab / reduced-motion). That matters more here than
+ * anywhere on the site: the footer sits below the fold on every page, so the
+ * default state is paused and the animation only ever runs while someone is
+ * actually looking at it.
  */
 export function FooterGlow() {
-  const { ref, paused } = useAmbientPause<HTMLDivElement>();
-
   return (
     <>
-      <div
-        ref={ref}
-        className="mkt-fglow"
-        data-paused={paused ? "true" : "false"}
-        aria-hidden
-      >
-        <div className="mkt-fglow-warp">
-          {/* Base is always visible; the band sweeps a brighter comet over it. */}
-          <div className="mkt-fglow-base" />
-          <div className="mkt-fglow-band" />
-        </div>
-        <div className="mkt-fglow-ring" />
-      </div>
-      {/* The displacement field that waves the band. Rendered once, and only
-          here: the footer is the single consumer. */}
-      <svg
-        width="0"
-        height="0"
-        className="absolute"
-        aria-hidden
-        focusable="false"
-      >
-        <filter
-          id="mkt-fglow-warp"
-          x="-40%"
-          y="-40%"
-          width="180%"
-          height="180%"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.009 0.015"
-            numOctaves="2"
-            seed="7"
-            result="n"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="n"
-            scale="30"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-      </svg>
+      <Glow shape="seam" vars={{ "--glw-dur": "11s" }} />
+      {/* The seam itself: a hairline the light appears to be leaking through.
+          A SIBLING of the glow, not a child, which is how the lab writes it and
+          what keeps the 1px line crisp while the light behind it undulates. It
+          reads --foreground, which this footer remaps to --gallery-foreground
+          (see marketing-footer.tsx), so the computed colour is unchanged. */}
+      <div data-glw-seamline aria-hidden />
     </>
   );
 }

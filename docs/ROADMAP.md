@@ -20,6 +20,17 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
+  problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
+  UNLIT by ruling meanwhile: the wall is the ground, not a source.
+- **Events then pricing on the home** are both card grids (four photo cards, then three pricing
+  cards): the one soft adjacency left after the 2026-09-01 ruling ("no two sections back to back
+  should feel repetitive"). Will named chapter 3 the model, so it stays until he wants it varied.
+- **The events manifest fill** — the conference and trip stills are borrowed. Over the conference
+  placeholder's white tablecloth the card copy needed a second scrim and still sits at 4.27:1 at the
+  brightest 5% of pixels under the heading (median 5.6:1; measured 2026-09-01). The real photographs
+  are the real fix; do not darken the scrim a third time for this one image.
+
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
   the 16px column over our sharp surfaces. Deliberately NOT applied in the glow round, because it is
@@ -37,27 +48,82 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (4) `--radius-tile` (3px) exists because tight-gap grids open corner holes, and `--radius-float`
   (8px) because sharp reads broken on floating elements — both are separate tokens and may not want to
   move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
-  commit. Everything on the glow boards reads its token rather than a literal, so the lab inherits
+  commit. ✅ **Staged at round 2 (2026-09-01):** three knobs on the marketing motion tuner (`--radius`,
+  `--radius-float`, `--radius-tile`, behind `?key=` on every cinema page), so the ruling is taken by
+  dragging the real surfaces; verified live on the panel. Ruled to run AFTER the library round, before
+  branching agents. Everything on the glow boards reads its token rather than a literal, so the lab inherits
   whatever lands here for free.
-- **The beam's chroma register wants an explicit ruling** (surfaced at the glow merge, 2026-08-31, and
-  the most consequential thing in that round nobody wrote down). The record everywhere says "the palette
-  is ours, globally". What the code adopted is our five HUES at effect-grade chroma, saturated sRGB
-  primaries like `rgb(253, 0, 37)` and `rgb(154, 14, 239)`, NOT our ratified token values, and
-  `border-beam-vendor.test.ts` pins a channel spread above 150 explicitly so that "a future let-us-just-
-  use-the-token-values edit fails here". Four of our five ratified values score 144 / 112 / 148 / 107 and
-  would fail that pin. So a zero-chroma identity quietly gained a second, saturated register on a
-  permanently-animated card. The engineering reason is real (low-chroma colours wash out in gradients
-  built at the gamut edge, which is what sank three hand-ports), but it is not what was ruled.
-  ★ **Try this before ratifying anything:** the Get Pro card's identity is literally "Stacked photos"
-  (Will, 2026-08-27), it carries real event photographs via `marketingImage()`, and marketing images are
-  same-origin, so `useSampledPalette` works there TODAY. Letting the beam sample the photographs stacked
-  on the card would dissolve the question entirely: no second register to ratify, BEAM under the same law
-  3 as SPILL instead of two colour rules, and the premium card lit by the colour of the product's own
-  media, on the one surface that sells it. The honest risk is that the beam drives a nine-lobe gradient
-  tuned for specific hue relationships and the board already notes our five are "a less varied field no
-  retune can fix", so arbitrary sampled hues may read muddier than either fixed palette. Look at it on
-  the board. If it does not hold, ratify the raised register as a NAMED, effect-only tier scoped to the
-  beam and documented in `design-system.md`, rather than leaving it recorded as "our palette".
+- **The design lab taxes production CSS, and nobody had measured it** (found verifying milestone-13,
+  2026-09-01). Tailwind v4 generates its utility layer from a scan of the source tree, and
+  `src/app/(dev)/design/` is in that tree, so a utility used ONLY by a lab specimen is still emitted into
+  the shared stylesheet every production page loads. Measured by diffing the homepage CSS of two
+  production deployments across the glow merge: **+2,752 bytes uncompressed, 26 selectors added and 0
+  removed, every one of them lab-only** (`-inset-14`, `accent-current`, `-bottom-16` and friends, each
+  with zero occurrences in production source). Small today and entirely dead weight (no production
+  element uses them), but it is a standing cost that grows every time the lab does, and the lab is now
+  the largest thing in the repo: **89 files, 29,463 lines** (`design.css` alone was 2,725 before round 0
+  cut it to 1,894).
+  ★ **THE LEVER EXISTS AND IS UNUSED.** `@source not "..."` is implemented in the installed Tailwind
+  4.3.0 (verified in `node_modules/tailwindcss/dist/lib.mjs`: paths must be QUOTED and the directive
+  cannot be nested), so it is one line at the top of `globals.css`. There is no `@source` anywhere
+  today, meaning the scan is fully automatic and the whole lab is in it. Caveat for whoever does it: it
+  also stops emitting classes the lab genuinely needs, and it does nothing about `design.css`'s own
+  bytes (those are excluded by the route-group import, not by the scanner). Pin the number in
+  [`perf/v1-baseline.md`](perf/v1-baseline.md) either way.
+  ★★ **AND THE BIGGER HALF IS NOT BYTES** (Will, 2026-09-01): the lab has become "a massive working
+  record of all experiments", and all that stale information distills what actually matters. Worse, the
+  volume of unused rules reads to a new agent as **a huge bible of design law they must obey**, which
+  works directly against rising tides, whose whole premise is that a better system can be reshaped
+  rather than worked around. So this is not a bytes cleanup: **distil the lab into a minimal internal
+  design-system library**, keeping the ratified primitives and the live decision records, and letting
+  git history hold the rest. Pre-launch. Round 0 started it for free (the doctrine's LAWS moved to
+  `design-system.md` and the engine left `design.css`, -31%); the pattern to repeat is "when something
+  is ratified, the rule leaves the lab with it".
+  ★★★ **SEQUENCED BY WILL (2026-09-01): this runs AFTER the Glow integration rounds, not before.**
+  "Let's go through all of our rounds of integrating the new Glow branches' work across marketing and
+  app. Once complete, we'll review everything still remaining in the lab, pull anything still remaining
+  that may benefit the streamlined design system library, and effectively wipe everything that's left
+  stale." Distilling first would freeze boards whose placements have not shipped yet, against the very
+  pattern above. The integration order: **R1 the home page ✅ (2026-09-01)** → R2 the guest surfaces
+  (doorbell arrival, locked door, awaiting-media; blocked on one ruling, since `/e/[token]` follows the
+  visitor's own theme and all three were argued on cinema, plus the sampling loader swap) → R3 the Get
+  Pro beam + the lit surface, which are entangled (three of four beam specimens already wear
+  `[data-lit]`) → R4 the publish beat's violet. **Then** the lab review.
+  ★ Two lab-fidelity findings to carry INTO that review, both the same class: moment 05's specimen is
+  vertically INVERTED from the surface it names (paper above / dark below, where production is the
+  opposite) and claims a 160px overhang where the real one is 63px; and moment 09's lamp does not
+  exist at all, since /press has no real photograph left to sample ("every frame is ours"), so its ship
+  verdict needs re-arguing or dropping. A specimen that does not model its own surface launders a guess
+  into a ruling.
+- **`marketing-css-policy.test.ts` rule 3 is a bad system, not a good rule** (the round-0 rules audit,
+  2026-09-01). Its `selectorLines()` treats ANY line ending in `,` as a selector, so multi-line CSS
+  values are misparsed and a legitimate ` * ` inside `calc()` reads as a universal selector. It has
+  already distorted authoring once on the record (`marketing.css:1353` documents a formatting
+  compromise made to appease it) and would have rejected the promoted halo mask on eight lines. The
+  intent is right (no bare element selectors in a scoped stylesheet); the parser is wrong. Fix: only
+  treat a line as a selector when it precedes a `{` at brace depth 0, and strip declaration bodies
+  first. Small, and it removes a standing tax on how CSS may be written in that file.
+- **The engine's no-mask fallback is compiled away** (noted at round 0). `@supports not (mask-image: …)`
+  is real in `globals.css` but absent from the built chunk: Lightning CSS evaluates the condition
+  against browserslist, finds it statically false, and drops the block. Correct given the targets, but
+  the source comment claims a protection that does not ship. Either accept and say so in the comment,
+  or drop the rule. Same question likely applies to other `@supports not` blocks.
+- **The hero's warm-up: built, measured, and pulled** (round 1, 2026-09-01). A sampled lamp paints on
+  the house five and takes the photographs' hues a beat later, which on the home hero is above the
+  fold. The proposed delight was to register `--glw-c1..5` with `@property` as `<color>` and transition
+  them, so the lamp arrives neutral and warms into the wall's colour: "the lamp cannot be the colour of
+  the wall until the wall has been read". It WORKS -- the registration takes (an unrelated probe reports
+  the `initial-value` rather than an empty string) and the transition binds to all five.
+  ★ **Pulled anyway, and the reason generalises: I never established the problem it solves is real.**
+  The Browser pane runs hidden, so `document.hidden` is true, images never load, rAF is throttled to
+  zero and transitions do not advance -- so the colour pop it hides was never actually observed being
+  objectionable. Adding a mechanism to production because it *ought* to help is the same move that
+  broke the contrast instrument at round 0. It also introduced a real if benign new state: measured, a
+  frozen transition leaves the computed value at the OLD palette (`transition: none` applies the new
+  one instantly, which is how it was isolated), so a background-tab visitor keeps the lamp set until
+  focus. That fails toward the lit fallback, i.e. law 4's correct no-media branch, so it is safe -- but
+  it is a cost with an unproven benefit. **Pick this back up the moment Will can say whether the swap
+  reads as a bug on a visible screen.** One commit either way.
 - **The lit surface (`[data-lit]`) wants its own round**, the way the corner became the rounding round.
   Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
   it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
@@ -68,24 +134,22 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   re-judge them on today's card: those are bare divs with no ring, so removing the 9% hairline puts them
   further from the shipped `Card`, not closer.
 - **The spill wiring round** (the glow doctrine's second half; the lab boards are `glow-doctrine` +
-  `glow-moments`, engine in `design.css` behind the `glw-` prefix). The doctrine is RULED; what remains
-  blocking is the ADR for promoting the engine plus its five-hue palette to `globals.css`/`:root`.
-  ★ That one-way door is NOT what the glow round wrote. It does not "delete the
-  `marketing-css-policy.test.ts` fence": that fence reads exactly one file (`marketing.css`) and never
-  looks at `globals.css`, so promotion would not trip it at all. The real risk is the opposite and
-  worse, which is why the ADR still stands: chromatic literals would land in a file with NO colour
-  fence whatsoever. So **extending the fence to cover `globals.css` is a PRECONDITION of promotion**,
-  not a casualty of it. First task once ruled: collapse `--mkt-confetti-1..5` onto the promoted tokens
-  so there is one palette home (they must move to `globals :root`, since `marketing.css` is barred
-  from declaring on `:root`). Note the shipped `.mkt-fglow*` footer glow is the SAME mechanic as
-  `shape="seam" drive="mask"`, so promotion either retires it onto the engine or the site ships two
-  engines painting one light. Unmeasured and carried
+  `glow-moments`). ✅ **ROUND 0 SHIPPED 2026-09-01**: engine promoted to `globals.css` unlayered,
+  `--lamp-1..5` is the one palette home (`--mkt-confetti-*` aliases it), `FooterGlow` retired onto the
+  engine, the doctrine moved into `design-system.md`. The one-way-door ADR is resolved rather than
+  waived: the engine block carries ZERO colour literals, and the lamp set ships with its own fence
+  (light only, never UI, enforced structurally by staying out of `@theme`). What remains is the
+  PLACEMENT rounds below. Unmeasured and carried
   forward: the frame cost of the three sweep drives on a mid-range Android (the board has the meter
   and the buttons; a background tab throttles rAF to zero, so it needs a foreground window). The
   BEAM half of this round no longer needs porting: border-beam is vendored at
   `src/components/vendor/border-beam` and wired into doctrine 04 + moment 12. Both of its questions are
-  CLOSED (Will, 2026-08-31): the palette is ours globally (theirs reviewed side by side, not adopted),
-  and the corner is the rounder one, which grew into the rounding round above. Beam surfaces that ship:
+  CLOSED: the corner is the rounder one (Will, 2026-08-31), which grew into the rounding round above;
+  and the palette question closed by evidence at round 0 — the beam's values are our own five hues
+  through `oklchToSrgb` at effect-grade chroma, hue held exactly, so it is the LIVE REGISTER of the
+  lamp set rather than a rival palette. Named in `design-system.md`, pinned by test. It stays literal
+  `rgb()` in the vendored file on purpose: `styles.ts` regex-parses those strings to derive alpha
+  variants, so a `var()` would silently break the gradients. Beam surfaces that ship:
   Get Pro at rest, the reel while it renders, the help palette while focused. The QR plate takes our
   own light instead (the beam reads too faintly on a white plate), and the upload takes NO light at all
   (the opacity climb and the bar already say it; the sweep read as forced).
@@ -114,36 +178,31 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   hook's `.catch()` silently returns the fallback five. No console error, no failing test, no visual
   tell beyond "the colours look generic". Every lab specimen samples `marketingImage(...)`, which is
   same-origin, which is why the lab never caught it. Four ship-listed placements depend on sampling
-  (the doorbell arrival, the album straddle, the publish beat, the paper probe), so all four are blocked
-  on one of: (a) `crossOrigin="anonymous"` plus an R2 CORS rule for the site origin, accepting a
-  CORS-partitioned refetch of a full-size photo to read 32x32 of it; or (b) better, extract the palette
-  SERVER-SIDE once at upload/derivative time and store it on the media row (no CORS, no double fetch,
-  works for video posters, computed once instead of per view). Marketing placements are unaffected:
-  those images are same-origin and sample correctly today.
-  **ROUND 0 IS THE FOOTER, and its success criterion is that nothing changes visually.** `FooterGlow` is
-  the engine already shipping: byte-identical turbulence filter (`fractalNoise`, `0.009 0.015`,
-  `numOctaves 2`, `seed 7`, `scale 30`), same 210px / 0.62 / 16px, same base+band split, same
-  `useAmbientPause`. The one difference is cadence, engine `8s` against the shipped footer's `11s`, so
-  retiring the footer onto the engine re-times a ratified live surface by 27 percent unless the var is
-  passed. Settle that first, with a live look at the real footer.
-  **Promotion mechanics, so round 0 does not rediscover them:** land the engine UNLAYERED (the
-  `[data-rvl-*]` precedent, because inside `@layer base` one caller utility can replace
-  `filter: url(#glw-warp)`, which is the exact failure the no-className invariant exists to prevent);
-  move the engine block only and leave the lab-only companions (`.glw-skel*`, `[data-glw-fly]`,
-  `[data-glw-tile]`, `[data-glw-mod]`, `[data-lit]`) behind; render `GlowFilter` exactly once in the root
-  layout, after a live check of what a browser does with an absent `url(#...)` reference (if the answer is
-  "render nothing" the singleton needs a runtime guard, not a comment); relocate `glow.tsx` to
-  `components/shared/` and the two libs to `lib/`; re-anchor `glow-contract.test.ts`'s slice boundary and
-  its hardcoded paths; and promote the four laws, the never-list and the SPILL/BEAM sibling into
-  `design-system.md`, since today the doctrine lives ONLY inside a 1,405-line lab TSX, which is the
-  concrete route by which "an effect on every section" comes back.
-  **Engine defects to confirm and fix at promotion** (none matter while lab-local): `glow-contract.test.ts`
-  matches ZERO animation declarations because `/^\s{2}animation:/gm` cannot match the 4-space indentation
-  actually used, which makes the test guarding the arrival-default contract vacuous; `effectiveAlpha`
+  (the doorbell arrival, the album straddle, the publish beat, the paper probe). ★ **CORRECTED AT ROUND
+  1: the blocker is much smaller than this said, and the album straddle was never blocked at all** (its
+  card is marketing media, and it shipped). The R2 CORS rule listed as prerequisite work is ALREADY LIVE
+  and already proven in production — the reel's canvas engine CORS-fetches presigned R2 media, decodes
+  it and reads the canvas back on every export (`decodeImage` in `src/lib/reel/engine/assets.ts`), which
+  is strictly more than this hook needs. So the unblock is a **loader swap** to that same `decodeImage`
+  pointed at `previewUrl` (the ~16KB WebP already presigned for every row, which also covers video
+  posters); reuse it rather than hand-setting `crossOrigin`, because its `cache: "no-store"` is
+  load-bearing against R2's ACAO-less cache poisoning. The server-side-palette option is now the
+  EXPENSIVE one, not the better one: no server-side image decode exists in this stack, `media` has no
+  palette column, and the insert path is a locked-down SECURITY DEFINER RPC. Marketing placements are
+  unaffected and sample correctly today.
+  ✅ **The promotion's owed items closed at ROUND 1**: `GlowFilter` is now a server component mounted
+  once in the root layout, and the live check it owed is answered — a dangling `url(#glw-warp)` does
+  NOT blank the element, it drops the whole filter chain (`blur()` included), so a missing host is a
+  visible quality failure rather than a crash. Dev-only console guard shipped. `sampled-palette.ts`
+  moved to `lib/shared/`; `glow-contrast.ts` stays in `components/dev/` (it is the lab's measuring
+  instrument, not a shipped dependency). **The cadence ruling is still open but its SHAPE changed**:
+  all three lamps ship at 11s, so the honest A/B is no longer "the footer alone with nothing else
+  moving" but the whole home page at 11s vs 8s.
+  **Engine defects still open** (the vacuous animation guard was fixed at round 0): `effectiveAlpha`
   models one layer while its own docstring defines the worst case as base and band together, so the
-  reported contrast ceiling is optimistic; reduced motion parks the band mid-sweep at full strength, which
-  is the model's own worst case (parking it at `mask-position: 150% 0` inside the `no-preference` block is
-  the one-line answer, and leaves Will's ruled 0.62 alone); a bloom's band sits lit while unarmed and
+  reported contrast ceiling is optimistic; ~~reduced motion parks the band mid-sweep at full strength~~
+  **FIXED at round 1** (the declared rest is now the animation's own `150% 0` from-keyframe, pinned by
+  test; nothing changes for no-preference visitors); a bloom's band sits lit while unarmed and
   snaps to 0 as it arms; `useInViewOnce(0.35)` is an element-area threshold, so a lamp taller than about
   2.86 viewports can never arm; and `BorderBeam` reads the OS colour scheme directly rather than
   `next-themes`, so any wrapper must pass `resolvedTheme` (never `theme`, which can be `"system"`).

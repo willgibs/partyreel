@@ -13,7 +13,12 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
- * LOUD (the loud/quiet map): the ratified Direction-C phase machine re-skinned
+ * LOUD (the loud/quiet map) and, since round 2, CHAPTER 1's CLOSING ANCHOR in
+ * the pacing arc (design-system.md "Chapters"): the one section that wraps
+ * the chapter's ideas into a single visual, landing after two quieter
+ * sections rather than escalating into the paper cut.
+ *
+ * The ratified Direction-C phase machine re-skinned
  * to the always-dark cinema room (the live-direction lab reference), acting
  * out the core loop: QR pulses, the scan beam sweeps, tiles FLY from the
  * phone into the album, live toasts pop, the reel card lands, counters tick.
@@ -96,10 +101,22 @@ export function LiveDemo() {
 
   return (
     <SectionShell
-      align="left"
       eyebrow="Live demo"
       heading={SECTION_HEADERS.liveDemo.line}
       subhead={SUBHEAD}
+      /* CHAPTER 1's CLOSING ANCHOR (Will, round 2): "it does a good job as a
+         visual anchor for the first chapter, wrapping all the ideas together in
+         one." It used to sit left-aligned at the body tier and land straight
+         before the paper cut, reading as one more escalation. Now it follows
+         two quieter sections, arrives centred with the heading a tier up and
+         real air above, and reads as the chapter's conclusion. Standard rise,
+         not the cut: the cut is how a chapter OPENS. */
+      /* SYMMETRIC AIR (Will's second pass, 2026-09-01: "more bottom padding for
+         breathing room"). The album no longer overhangs into this section, so
+         the chapter ends here on its own: equal air below the stage reads as
+         the exhale, and the cut plus the album's own top pad add the rest. */
+      scale="lg"
+      className="py-28 sm:py-36"
     >
       <div ref={ref} className="mx-auto mt-10 max-w-4xl">
         {/* The stage: the core loop, acted out. data-paused freezes the QR
@@ -307,7 +324,7 @@ function LiveCounters({ phase, reduced }: { phase: Phase; reduced: boolean }) {
   const shown = counting && reduced ? COUNTER_TARGETS : counts;
 
   return (
-    <p className="font-mono text-[13px] text-muted-foreground tabular-nums">
+    <p className="text-[13px] text-muted-foreground tabular-nums">
       {shown.photos} photos · {shown.guests} guests · 1 reel
     </p>
   );

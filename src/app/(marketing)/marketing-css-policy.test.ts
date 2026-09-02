@@ -25,6 +25,18 @@ function marketingSources(
   });
 }
 
+/**
+ * ★ EVERY LOOP BELOW IS PINNED FOR NON-EMPTINESS (2026-09-01, the round-0
+ * sweep). A `for (const x of scan())` assertion passes SILENTLY when the scan
+ * returns nothing, so a broken parse or a moved file turns the whole policy
+ * into a green no-op with no signal at all. This repo has now produced four of
+ * those: the border-beam mark count, the em-dash file walk, the engine's
+ * animation guard, and the lamp fence I wrote myself and had to watch fail
+ * before it worked. The rule is: if a loop iterates something DERIVED (a scan,
+ * a walk, a matchAll), pin the count first. Loops over hardcoded literal arrays
+ * need no pin, since they cannot silently empty.
+ */
+
 /** Selector lines only: everything before a `{`, ignoring comments and declarations. */
 function selectorLines(): string[] {
   return css
@@ -38,7 +50,9 @@ function selectorLines(): string[] {
 
 describe("marketing.css containment policy", () => {
   it("never declares on :root", () => {
-    for (const sel of selectorLines()) {
+    const sels = selectorLines();
+    expect(sels.length, "the selector scan found nothing").toBeGreaterThan(200);
+    for (const sel of sels) {
       expect(sel.includes(":root"), sel).toBe(false);
     }
   });
@@ -58,7 +72,9 @@ describe("marketing.css containment policy", () => {
   });
 
   it("uses no bare element selectors except the sanctioned body:has([data-mkt...])", () => {
-    for (const sel of selectorLines()) {
+    const sels = selectorLines();
+    expect(sels.length, "the selector scan found nothing").toBeGreaterThan(200);
+    for (const sel of sels) {
       if (sel.startsWith("@")) continue;
       // Keyframe stop selectors (from/to/percentages) are not element selectors.
       if (/^(from|to|\d+%)$/.test(sel)) continue;
@@ -118,7 +134,12 @@ describe("marketing.css containment policy", () => {
   });
 
   it("prefixes every keyframes name with mkt-", () => {
-    for (const match of css.matchAll(/@keyframes\s+([\w-]+)/g)) {
+    const frames = [...css.matchAll(/@keyframes\s+([\w-]+)/g)];
+    expect(
+      frames.length,
+      "no @keyframes found in marketing.css",
+    ).toBeGreaterThan(10);
+    for (const match of frames) {
       expect(match[1].startsWith("mkt-"), match[1]).toBe(true);
     }
   });
@@ -158,6 +179,9 @@ describe("marketing.css containment policy", () => {
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .split(";")
       .map((c) => c.replace(/\s+/g, " "));
+    expect(chunks.length, "the declaration scan found nothing").toBeGreaterThan(
+      500,
+    );
     const literal =
       /#[0-9a-fA-F]{3,8}\b|(?:rgba?|hsla?|oklch|oklab|hwb|lab|lch|color)\([^)]*\)/g;
     chunks.forEach((chunk) => {

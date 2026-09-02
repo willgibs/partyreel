@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-08-29
+**Updated:** 2026-09-01
 
 ## The era
 
@@ -88,20 +88,46 @@ from a lit thing) and its sibling BEAM (an object lit because it IS the live sub
 six-item never-list, 13 argued placements, the engine behind them, and `border-beam` v1.4.0 vendored
 under MIT. **Merged ADOPT-ONLY on Will's ruling: the branch touched zero production bytes and the
 merge kept it that way**, so every placement becomes its own paced round instead of arriving as a wave
-of effects. Not yet shipped to `main`.
+of effects. **Shipped at MILESTONE-13** (`main` @ tag `milestone-13`, `f3e6cbb`, 2026-09-01), which is
+unlike the four page milestones before it: it changes no production byte, so prod gained TOOLS rather
+than a surface. The agent-merge sequence CLOSES here, and all five branches, remotes, worktrees and
+local branches are cleaned up (~5.6 GB of stale worktrees reclaimed). `launch-prep` is now free for
+the integration rounds.
 
-What the merge is holding for the rounds that follow, all recorded in
-[ROADMAP](ROADMAP.md): (1) **the first integration round is the FOOTER**, because the engine IS
-`FooterGlow` generalized (byte-identical turbulence filter, same 210px / 0.62 / 16px), so promotion
-either retires it or the site ships two engines painting one light; its success criterion is that
-nothing changes visually, and it opens by settling the engine's 8s register against the footer's
-shipped 11s. (2) **Law 3 cannot fire on real user media** (no `crossOrigin`, and R2 is a different
-origin, so the canvas taints and the failure is silent), which blocks four ship-listed placements and
-is why the sequence starts on marketing. (3) **Two identity-level amendments are riding unruled**: the
-beam adopted our five HUES at raised chroma rather than our token values, with a test pinning that the
-tokens may not be used, and the lit surface amends "Dark: NO shadows anywhere". (4) **The ground picks
-the sibling** (ink takes the beam, paper takes spill in the paper register), which came out of two beam
-surfaces being specified on grounds they do not have.
+**The wiring sequence Will ruled (2026-09-01): every Glow integration round across marketing and app
+first, THEN the lab review** (keep what earns a place in a streamlined design-system library, wipe the
+stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2 chapter pacing ✅ (opener A/B pending Will)**
+(all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
+guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
+
+**Round 2 (2026-09-01)** turned the chapter idea into a recorded PACING PRINCIPLE (a chapter is an
+attention arc; each opener bespoke; core marketing pages only) and re-paced the home page against it:
+two quiet guest-side sections wind chapter 1 down before the live demo, now its centred closing anchor;
+the event cards went media-forward and lost their light (measured legibility, fixed twice); and the
+payoff chapter's opener went out as two bespoke treatments; **Will ruled for A, "lights down"** (merged after its light was
+held to the screen's width; `lp/reel-b` deleted), and his second pass re-paced the page again: no two
+sections back to back share a layout, the straddle is off the home, and the album opens the paper
+chapter as the host's masthead. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
+
+**Round 1 (2026-09-01)** put the first new light on the site, in two passes. The first lit the hero and
+the album straddle; both drew a visible rectangle (verified in the wrong browser, and placed where no
+source sits above the ground) and were **pulled the same day** on Will's call. The second chose its
+surfaces from a screenshot survey of the whole page: the **film strip's backlight**, a seam off the
+strip's own bottom edge sampling its eight frames (approved: "the lamp acting as almost a backlight"),
+and the **Pro card's beam** from the lab's reference implementation; the card tilt and cursor glare
+were retired, and the event cards' own light was tried three ways and dropped for scarcity at round 2.
+What stayed from the first pass: `GlowFilter` as a root-layout singleton, the DOM sampler, the dev-only
+missing-host guard, and the engine's reduced-motion fix (the band had been resting at the MIDPOINT of
+its sweep at full strength, permanently, for anyone who asked for less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
+inverted from its own production surface and overstates the overhang by 2.5x, and moment 09's lamp does
+not exist at all. Full narrative: [CHANGELOG](CHANGELOG.md).
+
+Still open from the merge, all recorded in [ROADMAP](ROADMAP.md): **Law 3 on real GUEST media** — the
+canvas taints on presigned R2 URLs, but the fix is far smaller than logged (the R2 CORS rule is already
+live and proven by the shipping reel encoder, so it is a loader swap); **the lit surface** amends "Dark:
+NO shadows anywhere"; and **the ground picks the sibling** (ink takes the beam, paper takes spill in the
+paper register), which came out of two beam surfaces being specified on grounds they do not have and now
+blocks R2 the same way.
 
 ★ Two transferable lessons from this round. **A guard whose name promises more than its assertion is
 worse than no guard**: two here could not fail, and one of them was the only thing watching ~3,000
@@ -258,11 +284,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-11`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-13`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1253 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1317 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -295,22 +321,40 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-1. **The glow doctrine's four open rulings** (the agent-merge sequence is CLOSED: `lp/about` shipped at
-   milestone-9, `lp/press-kit` at milestone-10, `lp/blog-redesign` at milestone-11,
-   `lp/careers-identity` at milestone-12, `lp/glow-doctrine` merged to `launch-prep` 2026-08-31 and
-   not yet shipped to `main`). Each is in [ROADMAP](ROADMAP.md) with the evidence:
-   (a) **the beam's chroma register** — the record says "our palette, globally", but the code adopted
-   our five HUES at effect-grade chroma, not our token values, and a test pins that the tokens may NOT
-   be used. That is a second saturated register inside a zero-chroma identity, and it is the thing in
-   the round most likely to have been approved without being seen. Worth trying first: the Get Pro card
-   already carries real event photographs and is same-origin, so letting the beam SAMPLE them would
-   dissolve the question and put BEAM under the same law 3 as SPILL.
+**Round 2, after Will's second pass (2026-09-01):** (i) the payoff opener **RULED: A**, "lights
+down", merged after the width fix; `lp/reel-b` deleted. (ii) **Two provisional headers stay
+provisional by ruling** — `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality`
+"Everything they shoot, at the size they shot it."; he will send alternatives. (iii) **The album
+opener is done**: the paper chapter opens on the host's masthead, and only the provisional `album`
+line remains his. (iv) The four event teasers are equalised (57 to 64 characters) so the titles share a
+baseline; the conference still's legibility (median 5.6:1, brightest 5% at 4.27:1) waits on the
+manifest fill.
+
+1. **The light system's remaining rulings.** Rounds 0 and 1 are both on `launch-prep` (2026-09-01) and
+   three of the five are closed:
+   ~~(a) the beam's chroma register~~ **CLOSED by evidence** — it is not a second palette. The values
+   are our own five hues through `oklchToSrgb` at effect-grade chroma, hue held exactly: a DERIVED
+   register of the lamp set, now named in [design-system.md](systems/design-system.md) and pinned by
+   test. It cannot be tokenised (the vendored file regex-parses `rgb()` strings).
+   ~~(e) the root 404's lit seam~~ **RULED: keep it lit** (Will, 2026-09-01), with a reason that is
+   doctrine rather than a one-off — *a 404 that feels alive keeps a visitor exploring, while a flat one
+   makes giving up feel fine.*
+   (d) **the cadence, and its SHAPE changed at round 1.** All three lamps ship at `--glw-dur: 11s`
+   against the engine's ruled 8s, so the question is no longer "the footer alone with nothing else
+   moving" but the **system's register**: the whole home page at 11s against the whole page at 8s.
+   Ask for it whenever.
    (b) **the lit surface**, which amends "Dark: NO shadows anywhere" and is already on the Get Pro
-   specimen; recommend its own round, the way the corner became the rounding round.
+   specimen; it and the Get Pro beam are entangled (three of four beam specimens wear `[data-lit]`), so
+   they want one round.
    (c) **the publish beat's violet**, unruled, where a ratified state colour meets law 3's ban on them.
-   (d) **the footer's cadence** at promotion: engine 8s against the shipped 11s.
-2. **When to ship `launch-prep` to `main`.** The glow merge changes no production byte, so a milestone
-   is optional here in a way it was not for the four page rounds.
+   (f) NEW, and it blocks the next round — **the guest surfaces follow the VISITOR's theme.**
+   `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
+   skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
+   dropped the help palette. Needs a ruling before R2 can be built.
+2. **When to ship `launch-prep` to `main`.** Rounds 0, 1 AND 2 are now unmerged, one past the
+   policy's ~2-round ceiling. All three are real production changes (the light system, the lit 404,
+   the film strip's backlight, the re-paced home page, the sideways-scroll fix), and Will ruled (2026-09-01)
+   that the milestone follows round 2's second pass: merge to `main` once `launch-prep` verifies.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

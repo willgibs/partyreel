@@ -83,6 +83,11 @@ function scanLines(
   files: string[],
   hit: (line: string) => string | null,
 ): string[] {
+  // ★ A scan that finds no files passes every rule below in silence. Pinned
+  // here, once, because every line-based rule funnels through this walker
+  // (the round-0 sweep, 2026-09-01: the em-dash guard had exactly this hole,
+  // where an unanchored skip pattern could empty the whole file list).
+  if (files.length === 0) throw new Error("content-policy: scanned no files");
   const found: string[] = [];
   for (const file of files) {
     readFileSync(file, "utf8")
@@ -179,6 +184,10 @@ describe("content policy", () => {
     // 2026-08-28). Line precision is traded for wrap-proofing; the match
     // excerpt localizes the hit well enough.
     const found: string[] = [];
+    expect(surfaces.length, "the surface scan found no files").toBeGreaterThan(
+      5,
+    );
+    expect(BANNED.length, "the banned list is empty").toBeGreaterThan(0);
     for (const file of surfaces) {
       const flat = readFileSync(file, "utf8").replace(/\s+/g, " ");
       for (const { why, re } of BANNED) {

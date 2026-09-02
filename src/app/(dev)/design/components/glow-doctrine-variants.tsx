@@ -3,19 +3,14 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-import {
-  Glow,
-  GlowFilter,
-  type GlowShape,
-  type GlowVars,
-} from "@/components/dev/glow";
+import { Glow, type GlowShape, type GlowVars } from "@/components/shared/glow";
 import {
   alphaAtAaFloor,
   effectiveAlpha,
   seamCoverage,
   worstCaseGround,
 } from "@/components/dev/glow-contrast";
-import { useSampledPalette } from "@/components/dev/sampled-palette";
+import { useSampledPalette } from "@/lib/shared/sampled-palette";
 import { BorderBeam } from "@/components/vendor/border-beam";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
@@ -39,10 +34,35 @@ import {
  * doctrine problem before it is an engineering one, so this board proposes the
  * doctrine and the engine; the moments board argues the placements.
  *
- * The engine is lab-local on purpose (see the design.css banner): the repo's
- * ratified sequence is lab, then ruling, then promotion into globals.css.
+ * ★ THE RULES NO LONGER LIVE HERE. Promoted at round 0 (2026-09-01) along with
+ * the engine: the four SPILL laws, the four BEAM laws, the NEVER list, the
+ * LampCard's four questions and the lamp set's three registers are now in
+ * docs/systems/design-system.md ("Light: SPILL, BEAM, and the lamp set"), which
+ * is the one home and the thing to cite. What stays here is the DECISION
+ * RECORD: the specimens, the arguments, and the verdicts that produced them.
+ *
+ * The constants below are kept in sync by hand and are the board's copy, not
+ * the source of truth. If they disagree with design-system.md, the doc wins.
+ *
+ * The engine itself moved to globals.css (unlayered) and the primitive to
+ * components/shared/glow.tsx.
  */
 
+// ★ THESE MUST STAY LITERAL, and the reason is worth stating because the
+// instinct to de-duplicate them onto --lamp-* is correct everywhere else.
+// This array does NOT feed a `colors` prop: it feeds worstCaseGround() and
+// alphaAtAaFloor() in glow-contrast.ts, which are numeric colour MATH that
+// parseOklch()es each entry. Hand it "var(--lamp-1)" and parseOklch returns
+// null, worstCaseGround returns null, and the board's contrast table silently
+// reports floor 1 and every ratio undefined instead of floor 0.13 - wrong
+// numbers with no error, on the instrument whose whole job is telling you
+// whether the light is legible. I made exactly that edit at round 0 and caught
+// it in the live pass; measured, the delta is 0.13 -> 1.
+//
+// Same shape as the vendored beam palette (styles.ts), which also cannot take
+// a var() because it regex-parses rgb() strings. The general rule: a JS
+// consumer that PARSES colour needs literals; only CSS can take the token.
+// If the lamp set is ever retuned, update these five to match by hand.
 const FALLBACK_PALETTE = [
   "oklch(0.72 0.17 25)",
   "oklch(0.8 0.15 85)",
@@ -118,9 +138,9 @@ const LAMP_CHOICES = [
 export function GlowDoctrineVariants() {
   return (
     <div className="flex flex-col gap-12 pt-6">
-      {/* One turbulence field for the whole page. SVG ids are document-global,
-          so this is rendered by the BOARD and never by the effect. */}
-      <GlowFilter />
+      {/* The turbulence field is mounted in the ROOT layout as of round 1, so
+          the board no longer hosts one: two #glw-warp filters on a page is the
+          document-global-id failure the primitive exists to prevent. */}
       <StartHere />
       <Thesis />
       <Laws />

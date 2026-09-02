@@ -1330,162 +1330,6 @@
   }
 }
 
-/* ── pro/organic-shimmer, adapted as THE FOOTER SEAM GLOW. The ink slab meets a
-   bright paper page (and a darker cinema room) at a hard cut that read as a
-   wireframe edge. Two layers, both warped by one SVG turbulence field so the
-   light undulates instead of ruling a straight line:
-
-     BASE  — a static multi-hue bloom hugging the top edge. This is the "inner
-             shadow" itself and it is ALWAYS visible.
-     BAND  — the recipe's travelling shimmer, a mask 280% the layer's width
-             swept across the base so a brighter comet passes along the seam.
-
-   ★ The split is load-bearing, not decorative layering. A single swept layer
-   rests at mask-position 140% (fully off-layer), so the glow VANISHES whenever
-   the sweep is paused — which, given the loop-pause contract, is its default
-   state (the footer is below the fold on every page) and its reduced-motion
-   state. The house convention is that a reduced-motion jump still ARRIVES; a
-   base that never moves is how this one does.
-
-   COLOUR: the already-ratified confetti five (the accent block below), consumed
-   through color-mix, so this file gains NO new literal and the effect needs no
-   new palette ruling. `in oklab` carries no "(", so the policy test's literal
-   scan is untouched. Mask stops are fixed rather than calc()-derived: that same
-   scan reads a multi-line declaration as a selector and a ` * ` multiplier trips
-   its universal-selector check, and weakening a guard to fit my formatting is
-   the wrong trade. ── */
-[data-mkt] {
-  --mkt-fglow-h: 210px;
-  --mkt-fglow-dur: 11s;
-  --mkt-fglow-base: 0.62;
-  --mkt-fglow-sweep: 0.62;
-  --mkt-fglow-blur: 16px;
-}
-
-[data-mkt] .mkt-fglow {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: var(--mkt-fglow-h);
-  overflow: hidden;
-  pointer-events: none;
-  /* Full at the seam, gone well before the layer ends, so it reads as spill. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
-}
-
-/* Split wrapper + layers: a filter applies BEFORE a mask on a single element,
-   so the warp has to sit on a parent for the band's masked edge to undulate. */
-[data-mkt] .mkt-fglow-warp {
-  position: absolute;
-  inset: -40px -40px 0 -40px;
-  filter: url(#mkt-fglow-warp) blur(var(--mkt-fglow-blur));
-}
-
-[data-mkt] .mkt-fglow-base,
-[data-mkt] .mkt-fglow-band {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      ellipse 42% 90% at 14% 0%,
-      color-mix(in oklab, var(--mkt-confetti-4) 62%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 36% 85% at 38% 0%,
-      color-mix(in oklab, var(--mkt-confetti-5) 58%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 40% 90% at 60% 0%,
-      color-mix(in oklab, var(--mkt-confetti-1) 52%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 34% 85% at 80% 0%,
-      color-mix(in oklab, var(--mkt-confetti-2) 52%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 38% 90% at 96% 0%,
-      color-mix(in oklab, var(--mkt-confetti-3) 48%, transparent),
-      transparent 72%
-    );
-}
-
-[data-mkt] .mkt-fglow-base {
-  opacity: var(--mkt-fglow-base);
-}
-
-[data-mkt] .mkt-fglow-band {
-  opacity: var(--mkt-fglow-sweep);
-  -webkit-mask-image: linear-gradient(
-    100deg,
-    transparent 0%,
-    transparent 24%,
-    rgba(255, 255, 255, 0.25) 36%,
-    rgba(255, 255, 255, 0.7) 44%,
-    white 50%,
-    rgba(255, 255, 255, 0.7) 56%,
-    rgba(255, 255, 255, 0.25) 64%,
-    transparent 76%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    100deg,
-    transparent 0%,
-    transparent 24%,
-    rgba(255, 255, 255, 0.25) 36%,
-    rgba(255, 255, 255, 0.7) 44%,
-    white 50%,
-    rgba(255, 255, 255, 0.7) 56%,
-    rgba(255, 255, 255, 0.25) 64%,
-    transparent 76%,
-    transparent 100%
-  );
-  -webkit-mask-size: 280% 100%;
-  mask-size: 280% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: 50% 0;
-  mask-position: 50% 0;
-}
-
-/* The seam itself: a hairline the light appears to be leaking through. */
-[data-mkt] .mkt-fglow-ring {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--gallery-foreground) 20%, transparent) 25%,
-    color-mix(in oklab, var(--gallery-foreground) 34%, transparent) 50%,
-    color-mix(in oklab, var(--gallery-foreground) 20%, transparent) 75%,
-    transparent
-  );
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-mkt] .mkt-fglow-band {
-    animation: mkt-fglow-sweep var(--mkt-fglow-dur) linear infinite;
-  }
-  [data-mkt] .mkt-fglow[data-paused="true"] .mkt-fglow-band {
-    animation-play-state: paused;
-  }
-}
-
-@keyframes mkt-fglow-sweep {
-  from {
-    -webkit-mask-position: 150% 0;
-    mask-position: 150% 0;
-  }
-  to {
-    -webkit-mask-position: -50% 0;
-    mask-position: -50% 0;
-  }
-}
-
 /* ── THE GATHER (about): photographs lie strewn like prints dropped on a table,
    then draw together into one album.
 
@@ -1533,8 +1377,8 @@
 }
 
 /* No straddle on phones: at three columns the album is FOUR rows, so half of it
-   over the paper would need ~300px of clearance (album.tsx and /help gate their
-   straddles the same way). */
+   over the paper would need ~300px of clearance (/help gates its straddle the
+   same way; the home album's came off on 2026-09-01). */
 [data-mkt] .mkt-gather-straddle {
   margin-bottom: 0;
 }
@@ -1754,19 +1598,21 @@
    session says. They are the file's only body selectors, sanctioned by the
    policy test. ─── */
 
-/* ─── THE ACCENT BLOCK (sanctioned by the policy test; the 2026-08-25 ruling:
-   ACHROMATIC base, not monochromatic — occasional tasteful color accents for
-   status feedback and life, never a brand hue). These are the file's ONLY
-   sanctioned color-literal tokens beyond the skin ink: the confetti set, a
-   festive five at restrained chroma, consumed by the celebratory beat's canvas
-   (per-flake fill via getComputedStyle). State colors elsewhere keep riding
-   the house tokens (--success etc.), never literals. ─── */
+/* ─── THE ACCENT BLOCK (the 2026-08-25 ruling: ACHROMATIC base, not
+   monochromatic — occasional tasteful color accents for status feedback and
+   life, never a brand hue). The confetti five are ALIASES now, not literals:
+   the values moved to --lamp-* in globals.css at the light-system promotion
+   (2026-09-01), because the same five hues light the footer seam, the confetti
+   canvas and the beam, and three copies of a palette is how a palette drifts.
+   The names stay because confetti-burst.tsx reads them by name via
+   getComputedStyle, and because "confetti" is what they mean HERE. State colors
+   elsewhere keep riding the house tokens (--success etc.), never literals. ─── */
 [data-mkt] {
-  --mkt-confetti-1: oklch(0.72 0.17 25);
-  --mkt-confetti-2: oklch(0.8 0.15 85);
-  --mkt-confetti-3: oklch(0.72 0.14 155);
-  --mkt-confetti-4: oklch(0.7 0.14 255);
-  --mkt-confetti-5: oklch(0.68 0.16 305);
+  --mkt-confetti-1: var(--lamp-1);
+  --mkt-confetti-2: var(--lamp-2);
+  --mkt-confetti-3: var(--lamp-3);
+  --mkt-confetti-4: var(--lamp-4);
+  --mkt-confetti-5: var(--lamp-5);
   --mkt-confetti-count: 120;
   --mkt-confetti-size: 7;
   --mkt-confetti-gravity: 1300;

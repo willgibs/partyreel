@@ -114,6 +114,249 @@ instrument: prototype + compare there, ratify into `touchpoints.ts`, then transp
   keep their chosen rendering, scanners locate corners by shape, and the share studio (ROADMAP)
   redesigns presets wholesale. No longer tied to any UI token.
 
+## Chapters: the attention arc
+
+> Will's ruling, 2026-09-01, made while reviewing the homepage's light. Recorded close to his own
+> words because they are the clearest statement of it, and because the first attempt to build it
+> proposed a component, which is exactly wrong.
+
+Marketing pages already alternate **cinema** (dark) and **paper** chapters to group sections and break
+the monotony of an all-dark or all-paper page. The chapter idea goes one step further, and it is a
+**pacing principle, not a component**:
+
+> Chapters can start visually strong to keep the visual attention and encourage further exploration,
+> then follow up with supporting informative sections that should be interesting within themselves but
+> ramp down from the big visual design until the next chapter intro or another big visual within that
+> chapter.
+
+So a chapter is an **attention arc**. It opens strong, to recapture attention that the previous
+chapter's quiet tail may have started to lose. It ramps down through supporting sections that stay
+interesting but stop shouting and carry the information. Then the next chapter opens bold and the cycle
+restarts. That is what paces the visual-forward sections (a hero, a live demo, the reel) against the
+information-dense ones (curation, privacy, FAQ) so a page keeps visual interest and clear communication
+without ever being monotonous *or* overwhelming.
+
+**The first section of each chapter carries more weight than a body section, and it stays BESPOKE.**
+The goal is not formalised chapter intros. Give every opener the same device and the page reads as
+templated one level up, which kills the freshness each chapter is supposed to bring. The devices are a
+**vocabulary** to draw from, and a page should **vary the device between its chapters**:
+
+- the heading a tier up (`SectionShell scale="lg"`, the ladder's one empty slot: 36/48/60)
+- the hard film-cut entrance (`reveal="cinema"` / `data-mkt-cut`) instead of the soft rise
+- materially more air above the opener than a body section gets
+- an object that physically crosses the chapter cut (/about's gather, /help's emblem strip, /blog's
+  featured card; the home album carried one until the 2026-09-01 second pass, when it fought the live
+  demo across the cut and came off)
+- a drawn rule (`[data-mkt-rule]`, the masthead hairline)
+- a lit subject (the reel player, a screen in a dark room)
+- a full-bleed frame or strip (break out of the container with `w-screen -translate-x-1/2`; it is
+  safe because the cinema and paper skin wrappers clip the x axis at the viewport, so nothing ever
+  scrolls sideways. That clip must stay ON THE WRAPPER: on `body` it propagates to the viewport,
+  which treats `clip` as visible. Measured 2026-09-01; the why lives on the cinema layout's class)
+
+**Scope.** Core marketing pages with enough body sections to justify chapters: home, the feature
+pages, the event pages, how-it-works. **Not** the resource and utility pages (help, blog, press,
+contact, about, careers, legal), which have no room to alternate chapters in the body and keep the
+cinema hero → paper body → cinema close rhythm, each designed bespoke. The checkable line: **the arc
+applies where a chapter holds several distinct sections; where the chapter IS the page's body (an
+article, a form, a reading surface) it does not.** The "two devices at one cut would be noise" ruling
+still stands: an opener that already carries a straddling object does not also take a second device.
+
+**Two worked examples, both on the homepage (Will's own):**
+
+- *Chapter 3, the payoff, is the model.* The reel section is visual-forward and recaptures the
+  attention curation and privacy may have started to lose while conveying real information; events and
+  pricing follow, less bold but still visually interesting; the FAQ and the CTA close simple. If this
+  were not the last chapter, that quiet tail would be followed by a fresh opener catching attention
+  again — a perfect mid-page example.
+- *Chapter 1, the event, was the defect.* The hero grabs attention; the trust strip balances it and
+  hits key ideas; the decomposition is a beautiful visual that is less bold than the hero and
+  introduces the idea. But the chapter then **escalated** — the live demo, the loudest non-hero section
+  on the page, landed immediately before the paper cut, so the next chapter had no quiet to open
+  against. The fix (round 2) was two quieter guest-side sections above the live demo, and the live demo
+  reworked as the chapter's closing **anchor**: a chapter can end on a strong visual that wraps its
+  ideas together, as long as the sections before it have ramped down.
+
+**A second rule from the same review (Will, 2026-09-01) governs SHAPE where the arc governs loudness:**
+
+> No two sections back to back should feel repetitive. Otherwise, scrolling gets boring quickly.
+
+Two neighbours may share a register (both quiet, both informative) but never a layout. The checkable
+line is the page's column rhythm read top to bottom: a centred icon three-up after a centred icon
+three-up reads as one long section (the two guest-side sections shipped exactly that way and were
+caught on review), and "three centred sections in a row" is the specific failure to watch on a paper
+chapter, where the ground is quiet and only shape carries the pacing. The home's answer: chapter 1
+runs strip, ledger, three-up, stage; the paper chapter alternates left, centred, left with a masthead,
+a mirrored split and a numbered ledger. The straddle left the home in the same pass: the live demo and
+the straddling album were "two huge visuals fighting for attention" across one cut, so a chapter now
+ends on its own air before the next one opens.
+
+The home arc as ruled: **chapter 1** opens on the hero, supports through the trust strip, the
+decomposition and the film strip, winds down through the two guest-side sections, and closes on the
+live-demo anchor · **chapter 2** (paper) opens on the album as the host's masthead (a left header a tier up, the print
+laid on the desk below-right; no straddle, so the live demo concludes chapter 1 on its own air) and
+covers the album and the
+host experience · **chapter 3** opens on the reel, supports through events and pricing, and closes on
+the FAQ, the CTA and the tail.
+
+## Light: SPILL, BEAM, and the lamp set
+
+> Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The lab boards
+> ([`/design/c/glow-doctrine`](../../src/app/(dev)/design/components/glow-doctrine-variants.tsx),
+> `glow-moments`) keep the decision RECORD and the specimens; the rules live here, because a rule
+> that lives only inside a 1,405-line lab TSX is a rule the next agent has to go excavating for.
+
+Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit
+thing onto what is near it. **BEAM** is an object lit BECAUSE IT IS the live subject. The ground
+usually picks: ink takes the beam, paper takes spill in the paper register.
+
+**SPILL's four laws**
+
+| # | Law | What it kills |
+| --- | --- | --- |
+| 1 | **Source.** Name the lamp. If you cannot point at the object emitting, there is no spill. | Decorative glow on section edges, cards, borders, "anything that could use some life" |
+| 2 | **Direction.** Spill has a vector; every instance declares where it comes from. | Even rims, concentric halos, premium pill treatments |
+| 3 | **Colour of the lit thing.** Real media where it exists, the lamp set where it does not. **Never a house token, never a state colour.** | The glow becoming a second brand palette. Amber storage warnings, violet reel glows |
+| 4 | **Falloff.** Fades with distance, never draws an edge, sits behind content, always warped, always an always-on base under any travelling band. | The paused-state invisibility trap |
+
+**BEAM's four laws:** 1 it marks the object that is currently the LIVE SUBJECT (working, awaiting,
+uploading, publishing, live). 2 One subject per view. 3 **It ends when the state ends** (a beam is a
+state, never a decoration, and that is the whole difference between a live object and a pretty
+border). 4 One standing exception, named so it stays an exception rather than a precedent: a premium
+object at rest (Get Pro, whose card already carries stacked photographs).
+
+**Scarcity is a DISTANCE, not a count** (amended in the lab after a whole-page test falsified the
+first version): roughly a viewport of unlit page between lamps.
+
+**NEVER:** nav panels and dropdowns (no lamp, and the frequency doctrine forbids theater on the
+most-used controls) · the storage meter near its cap and upload errors/retry (the moment spill can
+mean "warning" it is a state colour and the system is decoration; failure is `--destructive`, full
+stop) · generic skeletons (a skeleton is an absence; spill needs a presence) · every CtaBand (the
+every-section-gets-a-version failure under another name) · the admin portal.
+
+**The four-question LampCard is the anti-sprawl mechanism.** A placement that cannot answer all four
+cannot be built, and the form is answerable by someone other than its author: **Lamp** (what is
+emitting?) · **Direction** (from where?) · **Colour** (sampled from what, or the lamp set?) ·
+**Admitted by** (which law lets this in?). It has demonstrably decided cases on its own terms: it
+killed the pointer lamp, the CTA rim and the upload light.
+
+### The lamp set, and its three registers
+
+The five HUES are the identity constant: **25 coral, 85 amber, 155 green, 255 blue, 305 violet**.
+What varies per surface is the REGISTER, not the hue.
+
+| Register | Values live in | For |
+| --- | --- | --- |
+| **Ambient** | `--lamp-1..5`, [globals.css](../../src/app/globals.css) | Light falling on things: spill, the confetti canvas. Hand-tuned per hue (85 needs a higher L than 305 to read equally bright), which is why it is not one flat L/C row |
+| **Paper** | `SPILL_REGISTER.paper`, [sampled-palette.ts](../../src/components/dev/sampled-palette.ts) | The same light on a near-white ground. Exists because sampled light made a paper card "look dirty rather than lit". Uniform L/C today, so a hand-tuned paper five is still an open design task |
+| **Live** | the `partyreel` entry in the vendored [border-beam styles.ts](../../src/components/vendor/border-beam/styles.ts) | The beam. Same five hues, raised to the chroma a gamut-edge gradient needs, **generated by `glow-contrast.ts`'s `oklchToSrgb`**, hue held exactly. It is a DERIVED register, not a second palette. It cannot be a `var()`: that file regex-parses `rgb()` strings to compute alpha variants, so a token would silently break it. Pinned by `border-beam-vendor.test.ts` instead |
+
+★ **The lamp set is LIGHT, never UI.** Never a text, border, background, state or brand colour. The
+identity stays achromatic and media-forward; these five exist so the LIGHT in a room can carry colour
+while the room does not. Enforced two ways: the block is deliberately **not** in `@theme` (so no
+`bg-lamp-1` / `text-lamp-1` utility is ever generated), and a fence in
+[globals-theme-contract.test.ts](../../src/app/globals-theme-contract.test.ts) requires every CSS
+reference to land in a gradient or in another custom property that re-exports it.
+
+★★ **Law 3 cannot fire on real user media yet.** `useSampledPalette` calls `new Image()` with no
+`crossOrigin` and then `getImageData()`. Our media is presigned against `*.r2.cloudflarestorage.com`,
+a different origin, so the canvas taints, `getImageData` throws, and the `.catch()` silently returns
+the fallback five. No console error, no failing test, no tell beyond "the colours look generic". The
+lab never caught it because every specimen samples `marketingImage(...)`, which is same-origin. Fix
+before any placement lights guest media: `crossOrigin="anonymous"` plus an R2 CORS rule, or better,
+extract the palette server-side once at upload and store it on the media row.
+
+### Where the machinery is
+
+The engine is `[data-glw*]` at the end of [globals.css](../../src/app/globals.css), landed
+**UNLAYERED**, and the primitive is [`Glow` / `GlowFilter`](../../src/components/shared/glow.tsx).
+
+★ **Unlayered is load-bearing.** Inside `@layer base` the utilities layer outranks the engine, so one
+`blur-sm` from a caller replaces `filter: url(#glw-warp) blur(...)` wholesale and the turbulence
+vanishes with no error and no failing test. That is also why `Glow` **accepts no `className`**: the
+caller's own wrapper positions it, and tuning goes through `vars`. The `[data-reveal-chip]`
+`!important`s are the scar from learning the utilities-beat-base lesson once already.
+
+★ **Base and band always ship together** (law 4 as code). A swept layer rests fully off-layer, so a
+band-only glow is invisible whenever it is paused, which is its default state below the fold AND its
+reduced-motion state. The base is how a reduced-motion arrival still ARRIVES.
+
+`GlowFilter` (its own **server** component, [glow-filter.tsx](../../src/components/shared/glow-filter.tsx))
+is mounted **once, in the root layout**. Root and not `(marketing)`, because `not-found.tsx` renders the
+marketing footer outside that group. Never mount a second: SVG ids are document-global.
+
+★ **A missing host is a quality failure, not a crash** (measured in Chrome at round 1, twice: renaming
+the filter id, and deleting the host node). A dangling `filter: url(#glw-warp)` does **not** blank the
+element. The whole chain is dropped, `blur()` included, so the five ellipses land as hard-edged colour
+blobs: visibly wrong, and completely silent. `Glow` carries a dev-only console guard for it.
+
+★ **The band rests where its animation starts (`150% 0`), never mid-travel.** The animation lives inside
+`@media (prefers-reduced-motion: no-preference)`, so whatever the band *declares* is what a
+reduced-motion visitor sees permanently. It shipped declaring `50% 0` for two rounds, which with
+`mask-size: 280%` puts the comet's peak at dead centre of the box at full strength: the exact midpoint
+of the sweep, i.e. the worst case, forever, for the people who asked for less motion. Fixed at round 1
+and pinned by test.
+
+### The shipped light
+
+| Light | Where | Shape | Colour |
+| --- | --- | --- | --- |
+| **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
+| **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
+| **The reel screen's pool** | [reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx), under the reel player, the box exactly the screen's width under an elliptical wrapper mask | `seam` | **sampled** from the reel's poster |
+| **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
+
+Three seams and one beam on the home page (film strip, reel, Pro beam, footer: 5909, 1275 and 1509px
+apart at 1440 on the re-paced page, the nearest pair 1.4 viewports): scarcity as a distance. The hero and the album straddle
+were lit at round 1 and pulled the same day (the wall is the ground, not a source; the straddle's slot
+was 63px), and the event cards' own light was tried three ways and dropped for scarcity against the
+beam. The reel opener's seam (treatment A, "lights down") was ruled in on 2026-09-01 once its light
+was held to the screen's width.
+
+★ **Two ways a seam's sides end, and the box decides.** A seam's five ellipses sit at 14/38/60/80/96%
+of the field, so its colour is still ~40 to 50% at the ends of ANY box, and a box that ends on screen
+ends the light on a cut. A strip's light goes full-bleed so its ends are off-screen
+([film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx)). A screen's
+light must not be wider than the screen, so its box IS the screen and the wrapper carries an
+elliptical mask anchored at the screen's bottom centre (rx 46%, smoothstep stops): a pool, gone 31px
+inside each edge at 1440 and 14px at 375. A linear side mask on a wider box is a third thing, a wedge
+lit 40% at the object's own edge and ending on a straight line outside it; ruled out on sight, and
+pinned by test.
+
+All three seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the open ruling is no
+longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
+11s against the whole page at 8s.
+
+★ **Sample from the DOM, never from URLs, in production.** `useSampledPaletteFromDom(ref)` reads the
+`<img>` elements the page has already painted, so `drawImage` reuses the decoded bitmap: zero bytes,
+zero requests, zero extra decodes. The URL form (`useSampledPalette`) is the LAB's, because a board has
+no rendered image to read; on the home page's wall it would refetch **1,101,641 bytes** of originals,
+since `next/image` serves a different URL and nothing is a cache hit. It also never calls `img.decode()`
+— that would force a `loading="lazy"` tile to fetch, so the lamp would undo the page's own loading
+strategy in order to colour itself.
+
+★ **Two placement rules the home page paid for, both cheap to break by accident.** (1) A lamp goes
+**after** the scrims it lights through, never inside them: nothing in the hero creates a stacking
+context, so children paint in DOM order and a lamp under four scrims arrives at about an eighth
+strength. (2) The caller's content wrapper needs an explicit `relative` — `Container` is a static div,
+and an absolutely-positioned `Glow` otherwise paints **over** the H1. Both failures look like "the
+effect is too strong" and send you tuning opacity instead of fixing the stack.
+
+★ **A lamp that crosses a chapter cut is clipped at the cut.** Light stopping dead there is doctrine, not
+containment: `PaperChapter`'s rule is that cuts are hard (hairline + plane change, no gradients), so a
+bleed would soften the edge the chapter system rests on. It also keeps one lamp on one register instead
+of needing the dark register above and the paper register below.
+
+★ **A lab specimen can be geometrically inverted from the surface it names.** Moment 05's stage puts
+paper above and dark below; production is the opposite, so its insets would have thrown dark-register
+light onto near-white paper. Its stated *argument* ("the card casts onto the dark field it overhangs")
+survived intact and only the geometry flipped — which is the useful distinction when a specimen and its
+surface disagree. Its "overhangs the cut by 160px" was also wrong: the real number is **63px**
+(`-mt-40` is 10rem, `SectionShell` puts back 6rem of padding, `PaperChapter`'s border another 1px).
+Same family as the seam field-inset finding at round 0: a specimen that was not rendering what its own
+source claimed.
+
+
 ## Type: the heading face + the tiered scale
 
 `font-heading` is a Tailwind `@utility` in globals.css (NOT a theme font token): the brand face
@@ -139,8 +382,7 @@ stay Inter" rule; app page + card titles now use the heading face):
 marketing page H1s ramp `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` (the 72px class on desktop).
 Exemptions by the ruling's own latitude: the HOME hero keeps its unique display ramp (5xl→8xl), `/reel`
 was already at 7xl, long-title ARTICLE surfaces (help/blog/careers articles) stop at `lg:text-6xl`, and
-utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. Marketing section h2s
-keep the paper ladder (`text-2xl sm:text-3xl`, composed bespoke — the 2026-08-25 careers ruling).
+utility documents (`/contact` via SectionShell, the legal shell) stay at 4xl/5xl. The marketing **h2 ladder** has three real tiers, and they should be named rather than inferred: **24/30** (`text-2xl sm:text-3xl`) is the bespoke paper-prose section (/about's story, /press's sections, the 2026-08-25 careers ruling); **30/36/48** is `SectionShell`'s default body section (~70 sites); **36/48/60** is `SectionShell scale="lg"`, the one slot nothing else occupied, for a chapter's opener or closing anchor (the "Chapters" section above). Below `lg` that top tier equals the page h1's size, so on a phone a section's weight comes from its entrance and its air, not its type.
 **The hero lockup owns all of this** ([`page-hero.tsx`](../../src/components/marketing/system/page-hero.tsx),
 pinned by `page-hero-contract.test.ts`): eyebrow / heading / subhead / actions on one shared `gap-6`
 grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the cinema register, `display`

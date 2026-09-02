@@ -25,6 +25,22 @@ site, these are the ways the *test tooling* misreports, so a working change look
 
 ## Chrome MCP blind spots
 
+- ★ **The Chrome MCP's tab is usually a BACKGROUND tab (`document.hidden === true`), and that changes
+  what the page does, not just what you see** (round 2, 2026-09-01). Three consequences, all of which
+  read as product bugs and are not: (1) every `useAmbientPause` consumer reports `data-paused="true"`,
+  so lamps sit on their base and marquees freeze; (2) `loading="lazy"` images below the fold **never
+  load**, so anything that reads them (the DOM palette sampler, a contrast measurement) silently gets
+  nothing -- force `img.loading = "eager"` before measuring, which is legitimate for a measurement; and
+  (3) `await img.decode()` on an image that is never going to load **hangs the CDP evaluate for the
+  full 45s timeout** and reports the renderer as frozen. Always race a decode against a timeout. Also
+  from the same session: **a screenshot taken right after a programmatic scroll jump can capture a
+  stale, all-black frame** even when computed styles say everything is visible. A 2px nudge did not
+  fix it; a real scroll (`scrollBy(-80)` then `scrollBy(80)`, ~300ms apart, then ~700ms) did. Treat a
+  single black frame as a capture artifact until a second read agrees. `matchMedia` is the honest way
+  to know the profile's motion setting (it was ON here); do not infer it from an animation reading
+  `none`. And do not append a query string to the URL you navigate to: the tool then refuses to run
+  page JavaScript at all ("Cookie/query string data").
+
 - **Ephemeral `sonner` toasts are invisible.** The Chrome MCP reads the DOM in an isolated world and toasts
   are short-lived, so a *working* success/error toast reads as "nothing happened." Don't chase it: assert
   off the underlying state change instead (the RPC's effect, a new row, a redirect, a network response),
@@ -96,7 +112,13 @@ site, these are the ways the *test tooling* misreports, so a working change look
     screenshot as evidence that something is absent. ★ A FOURTH costume, the careers MERGE
     (2026-08-29): the second screenshot trick stops working entirely once the pane is HIDDEN
     (`innerWidth` reads 0 and every capture comes back black) and `resize_window` silently no-ops on
-    the Chrome side while reporting success. DOM reads stay honest in both. When neither browser will
+    the Chrome side while reporting success. It ALSO no-ops for the Chrome MCP whenever the tab is a
+    background tab, which is its normal state (`innerWidth` never changes). To measure a narrow
+    layout anyway, append a same-origin `<iframe>` at the width you need and read its
+    `contentDocument.documentElement.scrollWidth` against `clientWidth`; to reproduce Windows, where
+    `100vw` includes a classic scrollbar, inject `::-webkit-scrollbar{width:17px}` into the iframe,
+    which forces classic scrollbars even on macOS Chrome. That is how the sideways-scroll defect was
+    found, and how the fix was verified (2026-09-01). DOM reads stay honest in both. When neither browser will
     paint, stop fighting them and verify geometry + computed style by hand, then look at the
     DEPLOYED preview, where both have always worked.
 
@@ -185,6 +207,19 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   the escaped form or you will "prove" a class is missing when it is there). A new-to-the-repo
   utility with no effect in dev is NOT proof the class is wrong — never rewrite working classes
   chasing dev.
+
+- ★ **`rm -rf .next/cache` is NOT enough, and the tell is a stylesheet that is TRUNCATED rather than
+  stale** (round 1, 2026-09-01). Turbopack's dev output lives in **`.next/dev/`**, which the `cache`
+  wipe does not touch, so a restart can serve a chunk that is minutes old (check its mtime — it will
+  look fresh) and still be missing part of your CSS. The symptom here was surgical: everything in
+  `globals.css` up to ~line 1026 was present in the served chunk and the entire spill engine from
+  ~line 1387 was absent, so `[data-glw]` computed `position: static` and both lamps -- including the
+  SHIPPED footer one -- silently rendered as unstyled divs. It reads exactly like a CSS syntax error
+  you just introduced. **Rule it out in 30 seconds before touching source:** the production build is
+  ground truth (`grep -c data-glw` in `.next/static/chunks/*.css` — it was there, 96 selectors), and
+  the source's own brace balance is checkable in a few lines of python. Then `rm -rf .next` (the whole
+  directory, not `cache`) and restart; it came back immediately. Cost ~20 minutes of hunting a
+  non-existent parse error in a file the build was compiling correctly.
 
 - **The Preview MCP starts the dev server in the SHARED git root, not your worktree.** `preview_start`
   resolves the project by git common dir, which every worktree shares, so from `../partyreel-wt/<track>`

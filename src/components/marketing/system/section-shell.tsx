@@ -30,6 +30,20 @@ type SectionShellProps = ComponentProps<"section"> & {
   reveal?: "cinema" | "standard" | "none";
   /** Extra classes for the inner Container (e.g. width clamps). */
   containerClassName?: string;
+  /**
+   * Heading tier. "default" is the body-section h2 (30/36/48). "lg" steps it
+   * into the one empty slot in the site's h2 ladder (36/48/60): above every
+   * body section, below the 72px page h1. It is a VOCABULARY item for a
+   * chapter's opener or closing anchor, not a chapter template: the pacing
+   * principle (design-system.md, "Chapters") wants each such section designed
+   * bespoke, and this is just the type step several of those designs share.
+   */
+  scale?: "default" | "lg";
+};
+
+const HEADING_SCALE: Record<NonNullable<SectionShellProps["scale"]>, string> = {
+  default: "text-3xl sm:text-4xl lg:text-5xl",
+  lg: "text-4xl sm:text-5xl lg:text-6xl",
 };
 
 const WIDTH_CLASS: Record<NonNullable<SectionShellProps["width"]>, string> = {
@@ -54,6 +68,7 @@ export function SectionShell({
   align = "center",
   width = "default",
   reveal = "standard",
+  scale = "default",
   className,
   containerClassName,
   children,
@@ -83,7 +98,7 @@ export function SectionShell({
       {heading && (
         <Heading
           {...mark()}
-          className="font-heading text-3xl text-balance sm:text-4xl lg:text-5xl"
+          className={cn("font-heading text-balance", HEADING_SCALE[scale])}
         >
           {heading}
         </Heading>

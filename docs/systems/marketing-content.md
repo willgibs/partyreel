@@ -99,7 +99,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as
-  `album.tsx` and /help do below `lg`.
+  /help does below `lg`.
   ★ **THE LESSON WORTH KEEPING: the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
   so its pre-state is INVISIBLE.** Nobody ever saw the scatter, only an empty frame filling in, and
   Will's read was "almost unnoticeable" — the whole idea was happening in a state that could not be

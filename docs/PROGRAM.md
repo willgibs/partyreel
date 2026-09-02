@@ -148,6 +148,17 @@ same session.
   in-house (the canvas engine replacing Lambda is the archetype).
 - **Model delegation:** the Orchestrator carries judgment/curation; volume work fans out to cheaper
   subagents.
+- ★ **RULES ARE PROVISIONAL TOO, and auditing them is an Orchestrator duty** (Will, 2026-09-01).
+  Will sets the big-picture goals, answers the follow-ups, and rules on UI. **Most of the laws,
+  doctrines and don't-revert notes in this repo were written by AGENTS**, to keep themselves
+  consistent, against a design system that has since moved. So every round, ask of the rules it
+  touches: *"is this a good rule that prevents bad choices, or a bad system that prevents good
+  choices?"* Keep the ones that encode a real scar, reshape the ones whose reason expired, and say
+  which you did and why in the commit. Rising tides is not confined to working inside the current
+  system: if a better system can be reshaped, reshape it. The failure this exists to stop is an
+  agent treating an agent-authored constraint as a ruling and quietly narrowing the work to fit it.
+  Related, and the same instinct one level down: the lab and production are **both** provisional and
+  the arrow points both ways ([design-system.md](systems/design-system.md)).
 
 ## Settled — do not re-litigate (pointers, not restatements)
 
