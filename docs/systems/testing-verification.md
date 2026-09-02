@@ -25,6 +25,13 @@ its own types and is not fooled. (2) A pipeline like `pnpm typecheck 2>&1 | tail
 (it happened once; the failure turned out to be lesson 1, but the chain could not know that). Run
 each gate step to a log and test its own exit code: `pnpm typecheck > /tmp/tc.log 2>&1 || { …; exit 1; }`.
 
+**CI runs the same four steps on every push** to `launch-prep` and `lp/*` and on every PR to `main`
+([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), each command its own named step, so a track
+turns red before the integration window instead of inside it; read a failed run with `gh run list --branch
+lp/<track>` then `gh run view <id> --log-failed`. Its `pnpm build` step needs the repository variables
+`NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only env `next build` requires)
+and skips with an annotation naming them until they are set; the other three always run.
+
 ## Test accounts + fixtures (live testing runs on disposable test data ONLY)
 
 - **Accounts:** `willg97@gmail.com` = the host (Pro) · `hi@willgibs.com` = a Free host ·
