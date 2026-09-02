@@ -520,7 +520,7 @@ clear space / minimum size / misuse are brand-book material; only the two press-
 The kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` + `scripts/build-press-qr.mjs`
 + the committed zip, guarded by `press-kit.test.ts`, which parses the archive back and CRC-checks
 every member against the files on disk), so the pre-launch logo change is a files-and-rows edit with
-no component work. Explored range + the ruling: `/design/c/press-identity`.
+no component work. Explored range + the ruling: [the record](../decisions/design-record.md#press-identity).
 
 **The promise-neutralization doctrine (Will, 2026-08-28):** published copy commits to OUTCOMES (a
 reply, a review, host control), never to WHO or WHAT delivers them — no "a real person answers", no

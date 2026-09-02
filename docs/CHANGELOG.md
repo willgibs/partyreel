@@ -11,6 +11,40 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-02 — Round 3, parts A and B: the operating model for parallel tracks, and the library round
+
+On `launch-prep` (`ece2a8a` through `000ecd6`), the first two workstreams of the round-3 plan (the
+third, the near-term roadmap as tracks, follows). The full gate on the final tree: 1513 tests, 244
+static pages, each step on its own exit code.
+
+**A. The operating model.** Every `lp/<track>` branch has a manifest in `docs/tracks/` (claimed path
+prefixes, rulings, handoff, record; `open` → `handed-off` → `integrated`), and two guards run in `pnpm
+test`: `track-manifests.test.ts` (well-formed manifests, no two live claims overlapping, the never-owned
+docs) and `single-source-policy.test.ts` (no UPPER_SNAKE constant exported from two modules under
+`src/lib`). The MDX component map split into `mdx/spec-shared.tsx` (Orchestrator-owned) plus
+`spec-help.tsx` and `spec-blog.tsx` (one per content lane), composed by `mdx-components.tsx`, which
+throws on a duplicate name. The Vercel build gate builds an `lp/*` push only when the manifest asks
+(`preview: true` or `status: handed-off`), the commit says `[preview]`, or the branch has no manifest;
+proven both ways on a throwaway branch by the gate's own log lines. PROGRAM.md carries the boot step,
+the merge-never-rebase sync rule, the handoff and the windowed per-track integration checklist;
+CLAUDE.md the docs rule and the Orient row. Three merged worktrees and four merged branches were
+pruned. Commits `ece2a8a`, `e58dff4`, `7284933`, `8eeff91`, `3115a6c`, `cb38b50`, `e45efea`, `31697da`.
+
+**B. The library round.** The design gate left the lab for `src/lib/design-gate` and
+`/api/design-gate` (`89e8e8d`); the lamp set became a module beside the contrast instrument
+(`13920fe`); the four open boards moved to `sandbox/` with their own sheets (`9b75ec1`); the 26 ruled
+boards, the screens mirror, the two showcase routes, the event-feed prototype, the unused font and the
+sample-photo pack were cut, their rulings distilled verbatim into `docs/decisions/design-record.md`,
+`touchpoints.ts` thinned to the `RULINGS` registry rendered at `/design/record`, `design.css` from 1,893
+to 243 lines with no keyframes (`keyframe-uniqueness.test.ts`) and `marketing.css` loading in the lab
+(`3e0dfa7`: 91 files, 18,164 lines removed); `/design/marketing` renders every marketing system
+component and shared section atom from production on the cinema skin, pinned by
+`marketing-library.test.ts`, with Light on foundations and the missing primitives and atoms on
+components and patterns (`cee27ae`); and the lab left the production CSS scan (`000ecd6`: `@source not`
+for the lab and `docs/`, the lab's own Tailwind entry, the theme in `src/app/theme.css`). The home's
+main stylesheet went from 304,277 to 265,358 raw bytes (42,084 to 37,790 gzipped) with zero lab-only
+utilities left; `docs/perf/v1-baseline.md` section 5 has the method and the columns.
+
 ## 2026-09-02 — MILESTONE-16: prod = the legal round and the help catalog, and the live red-team across the batch
 
 `main` @ tag `milestone-16` (`9b61419`; `launch-prep` `5012e92` merged `--no-ff`, then `launch-prep`

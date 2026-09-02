@@ -230,7 +230,7 @@ also appear in full in the linked system doc — don't revert them.
 - ★ **Authorize with `supabase.auth.getUser()`, NEVER `getSession()`** — `getUser()` re-validates the JWT; `getSession()` only decodes the spoofable cookie; the proxy refreshes cookies but is **not** a security boundary. Full detail: [auth-accounts.md](docs/systems/auth-accounts.md).
 - Use `@supabase/ssr` (not the deprecated `auth-helpers`); the cookie API is **`getAll`/`setAll`**. Clients: `src/lib/supabase/{client,server,middleware,admin}.ts` (admin = service-role, `server-only`, bypasses RLS).
 
-**Tailwind v4** — CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme`, dark via `@custom-variant`. No `tailwind.config.js`; PostCSS uses only `@tailwindcss/postcss`. Theme is global via `next-themes`. Translate utilities set the STANDALONE `translate` property — `transform: none` won't clear them; clear with `translate-x-0` / `translate: none`.
+**Tailwind v4** — CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme` and dark via `@custom-variant` (both in `src/app/theme.css`, imported by `globals.css`; the design lab compiles its own utilities from a second entry that references `theme.css`, pinned by `css-source-policy.test.ts`). No `tailwind.config.js`; PostCSS uses only `@tailwindcss/postcss`. Theme is global via `next-themes`. Translate utilities set the STANDALONE `translate` property — `transform: none` won't clear them; clear with `translate-x-0` / `translate: none`.
 
 **zod v4** — top-level `z.url()` (not `z.string().url()`); `error.issues` (not `.errors`). See `src/lib/env.ts`.
 

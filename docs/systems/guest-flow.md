@@ -99,8 +99,7 @@ entry modal (below). The host "Require guest accounts" relabel + live preview (P
 ## The ARRIVAL (the entry surface: welcome + the gates, Phase 4.5)
 
 The gated arrival is the PRIMARY first experience (most events gate; a guest arrives from a QR with
-zero context) and plays as a four-act narrative, ratified in the lab (`/design/c/arrival`, touchpoint
-11, "Calm + 700ms"): **the stage** (the page settles: name/lock-line/ghost-grid rise via
+zero context) and plays as a four-act narrative, ratified in the lab ([the arrival record](../decisions/design-record.md#arrival), "Calm + 700ms"): **the stage** (the page settles: name/lock-line/ghost-grid rise via
 `data-arrive` + `--arrive-i`) → **the invitation** (after the ARRIVAL BEAT the sheet rises) → **the
 threshold** (the warm gate) → **the reveal** (the success morph, then the gallery rises as the sheet
 exits).
