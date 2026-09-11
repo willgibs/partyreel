@@ -56,11 +56,10 @@ export default function PricingPage() {
             <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
               Pricing
             </Eyebrow>
-            <h1
-              data-mkt-reveal
-              className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ "--i": 1 } as CSSProperties}
-            >
+            {/* The H1 never carries a reveal-hidden state (the LCP rule,
+                pinned by marketing-h1-policy.test.ts); the slots around it
+                do the arriving. */}
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
               {GOLDEN_LINES.pricing}.
             </h1>
             <p

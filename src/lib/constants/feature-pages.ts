@@ -21,6 +21,16 @@ export type FeaturePage = {
   h1: string;
   /** The hero subline (PROVISIONAL). */
   heroSub: string;
+  /**
+   * The door's line on the /features directory (Will's copy rewrite,
+   * 2026-09-02). Written as ONE SET, in one register (what it does, present
+   * tense, no adjectives doing the work), TWO ROWS AT MOST ("people tend not
+   * to read most copy on a site"; a door has to be quick and interesting or
+   * it is not read), and held in one length band by the registry test so the
+   * six doors wrap alike. Deliberately separate from heroSub, which each page
+   * owns.
+   */
+  directoryLine: string;
 };
 
 export const FEATURE_PAGES: FeaturePage[] = [
@@ -28,9 +38,11 @@ export const FEATURE_PAGES: FeaturePage[] = [
     slug: "album",
     navLabel: "The live album",
     navDescription: "Every photo and video, full quality, live.",
-    h1: "One album, filling itself.",
+    h1: "Every photo, from every guest, in one place.",
     heroSub:
-      "Every phone in the room feeds one album, at full quality, while the event is still going.",
+      "One code in the room. Every phone uploads into the same album, live, at full quality.",
+    directoryLine:
+      "Every phone in the room, feeding one album while the party is on.",
   },
   {
     slug: "qr",
@@ -39,6 +51,8 @@ export const FEATURE_PAGES: FeaturePage[] = [
     h1: "One scan and they're in.",
     heroSub:
       "Style a code that matches the event, put it where people look, and the uploads start.",
+    directoryLine:
+      "Print it or put it on a screen. One scan and they are in.",
   },
   {
     slug: "curation",
@@ -47,6 +61,8 @@ export const FEATURE_PAGES: FeaturePage[] = [
     h1: "Your guests only see the good part.",
     heroSub:
       "Review uploads before they appear, or clean up afterward in one pass. Either way, the album stays yours.",
+    directoryLine:
+      "Approve before it appears, or tidy up after. Your album, your call.",
   },
   {
     slug: "sharing",
@@ -55,6 +71,8 @@ export const FEATURE_PAGES: FeaturePage[] = [
     h1: "Everyone leaves with everything.",
     heroSub:
       "The album is one link, and every photo and video comes back out at the quality it went in.",
+    directoryLine:
+      "One link for the whole album. Every original, at full quality.",
   },
   {
     slug: "guests",
@@ -63,6 +81,8 @@ export const FEATURE_PAGES: FeaturePage[] = [
     h1: "Made of everyone who was there.",
     heroSub:
       "Every shot is credited, you can see who is in the room, and profiles connect one event to the next.",
+    directoryLine:
+      "Names on every shot, and profiles that carry to the next party.",
   },
   {
     slug: "privacy",
@@ -71,6 +91,8 @@ export const FEATURE_PAGES: FeaturePage[] = [
     h1: "Yours, and only as public as you make it.",
     heroSub:
       "Three visibility levels, location data stripped before upload, and storage built to not lose things.",
+    directoryLine:
+      "Public, password, or private. Location data stays on the phone.",
   },
 ];
 

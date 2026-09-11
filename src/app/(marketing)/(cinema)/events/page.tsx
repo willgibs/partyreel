@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import { HelpPane } from "@/components/marketing/built-for";
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
@@ -9,10 +8,8 @@ import { ReelAngleBand } from "@/components/marketing/sections/events/reel-angle
 import { TypeDirectory } from "@/components/marketing/sections/events/type-directory";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
-import { Reveal } from "@/components/marketing/system/reveal";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { EVENTS_HUB } from "@/lib/constants/events";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
@@ -36,11 +33,6 @@ const HUB_REEL_ANGLE =
   "Every angle your guests caught, cut into one highlight reel you can send the same night.";
 
 export default function EventsHub() {
-  const cut = (i: number) => ({
-    "data-mkt-cut": "",
-    style: { "--i": i } as CSSProperties,
-  });
-
   return (
     <>
       <BreadcrumbJsonLd
@@ -51,45 +43,35 @@ export default function EventsHub() {
       />
       <FaqPageJsonLd items={EVENTS_HUB.faq} />
 
-      {/* Hero: centered, the route-H1 scale (4xl/5xl/6xl) on the cinema cut. */}
-      <section className="overflow-hidden pt-14 pb-4 sm:pt-20 sm:pb-6">
-        <Container>
-          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            <Eyebrow {...cut(0)}>{EVENTS_HUB.eyebrow}</Eyebrow>
-            <h1
-              {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-            >
-              {EVENTS_HUB.headline}
-            </h1>
-            <p
-              {...cut(2)}
-              className="max-w-2xl text-lg text-pretty text-muted-foreground"
-            >
-              {EVENTS_HUB.subhead}
-            </p>
-            <div
-              {...cut(3)}
-              className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="h-11 px-6 text-base">
-                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="h-11 px-6 text-base"
-                >
-                  <Link href="/pricing">See pricing</Link>
-                </Button>
-              </div>
-              <DemoCtaLink />
+      {/* Hero: the shared lockup on the cinema cut (the PageHero sweep, the
+          feature-pages round); copy stays single-sourced in EVENTS_HUB. */}
+      <PageHero
+        entrance="cut"
+        eyebrow={EVENTS_HUB.eyebrow}
+        heading={EVENTS_HUB.headline}
+        subhead={EVENTS_HUB.subhead}
+        actions={
+          /* The pair on one row, the longer demo line beneath (the hub's
+             balance, Will 2026-09-02, applied here by rising tides). */
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-11 px-6 text-base">
+                <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-11 px-6 text-base"
+              >
+                <Link href="/pricing">See pricing</Link>
+              </Button>
             </div>
-          </Reveal>
-        </Container>
-      </section>
+            <DemoCtaLink />
+          </div>
+        }
+        className="overflow-hidden pt-14 pb-4 sm:pt-20 sm:pb-6"
+      />
 
       <SectionShell
         heading="Pick your kind of event"

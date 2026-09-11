@@ -16,6 +16,15 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  * test-scan tip as a mono note. Print mocks stay achromatic ink-on-white (the
  * scanner-safest pairing, per qr-presets.ts); shadow-float is the paper
  * theme's real elevation, so the pieces read as stock laid on the desk.
+ *
+ * THE PAPER CHAPTER'S OPENER (the feature-pages round): THE STRADDLE. At lg+
+ * the print stock overhangs the cinema -> paper cut, so the welcome sign's
+ * corner sits on the event's dark field and the table card lands on the desk:
+ * the code leaving the screen and becoming a physical thing, which is what
+ * this section is about. The home album's device, worn by a different object
+ * (white stock, not a browser frame). NEGATIVE MARGIN, never translate; the
+ * wrapper carries relative + z so the stock paints over the dark it overhangs.
+ * Below lg the split stacks and the hard cut carries the seam.
  */
 
 const QR_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
@@ -30,7 +39,14 @@ export function PrintShop() {
     <SectionShell>
       {/* R4 / review B14: both columns start on the same line, so the shorter
           copy run no longer floats mid-height against the taller stock. */}
-      <MediaSplit className="lg:items-start" media={<PrintMocks />}>
+      <MediaSplit
+        className="lg:items-start"
+        media={
+          <div className="relative z-10 lg:-mt-44">
+            <PrintMocks />
+          </div>
+        }
+      >
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>Print it</Eyebrow>
           <h2

@@ -19,6 +19,7 @@ import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { MorphDelegate } from "@/components/marketing/system/morph-delegate";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
+import { ScreenLamp } from "@/components/marketing/system/screen-lamp";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { TiltCard } from "@/components/marketing/system/tilt-card";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -140,7 +141,7 @@ export default async function MarketingLibraryPage({
 
         <RefSection
           title="Heroes"
-          blurb="PageHero at its three scales, on today's props (scale, align, eyebrow, heading, subhead, actions). A page renders one; three here is the specimen."
+          blurb="PageHero at its three scales and its two entrances (rise for the identity pages, cut for the cinema family), on today's props (scale, align, entrance, eyebrow, heading, subhead, actions, and children as the stage under the lockup). A page renders one; four here is the specimen."
         >
           <div className="space-y-3">
             <Spec
@@ -191,6 +192,53 @@ export default async function MarketingLibraryPage({
                 subhead="The compact lockup, left-aligned."
                 className="py-12"
               />
+            </Spec>
+            <Spec
+              label="cut, with a stage and its lamp"
+              hint="entrance=cut · children under the lockup · ScreenLamp samples the frame"
+              contentClassName="p-0"
+            >
+              {/* The stage slot and the one underlight, as a feature hero composes
+                  them: the lockup holds still (the H1 never moves), the object
+                  arrives under it, and ScreenLamp throws the object's own sampled
+                  light down off its bottom edge. The section is overflow-x-clip
+                  (the lamp's contract: never overflow-hidden) and reserves the
+                  lamp's height below the frame, since the field is absolute. */}
+              <PageHero
+                scale="lg"
+                entrance="cut"
+                eyebrow="Album"
+                heading="One album, filling itself."
+                subhead="The cut register with a stage: the type holds, the object under it arrives with its own lamp."
+                className="overflow-x-clip py-12 pb-72"
+              >
+                <div className="mt-10">
+                  <ScreenLamp>
+                    <div className="mx-auto grid max-w-md grid-cols-3 gap-1 rounded-xl border border-border bg-card p-2">
+                      {(
+                        [
+                          "wedding-golden",
+                          "party-balloons",
+                          "reception-table",
+                        ] as const
+                      ).map((id) => (
+                        <span
+                          key={id}
+                          className="relative aspect-square overflow-hidden rounded-[3px]"
+                        >
+                          <Image
+                            src={marketingImage(id).src}
+                            alt=""
+                            fill
+                            sizes="140px"
+                            className="object-cover"
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  </ScreenLamp>
+                </div>
+              </PageHero>
             </Spec>
           </div>
         </RefSection>

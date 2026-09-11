@@ -39,6 +39,61 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **home** + **`/features`** (copy in [`features.ts`](../../src/lib/constants/features.ts), feeding the home
   teaser too; layout via `FeatureSpotlight` + the `FEATURE_PRESENTATION` map in
   [`features-layout.ts`](../../src/lib/constants/features-layout.ts)).
+- **THE FEATURE FAMILY (the feature-pages round, 2026-09-01: the hub + six pages lifted onto the
+  home page's grammar).** Identity single-source: [`feature-pages.ts`](../../src/lib/constants/feature-pages.ts)
+  (its `directoryLine` is the hub door's line, written as one set and held in one length band by
+  the registry test so the six doors wrap alike; `heroSub` stays each page's own).
+  The hub is a DIRECTORY of **photographic doors** ([`feature-door.tsx`](../../src/components/marketing/sections/features/shared/feature-door.tsx),
+  the ruled media-forward card anatomy from the home event cards, each door carrying its feature's
+  own photograph plus the chip its surface draws: the live dot, the approved check, the name chip,
+  the lock, the play badge; the QR door is the one made object, the real renderer on a white plate,
+  rendered ABOVE the scrims because a scrim over white greys it). The reel leads full-width on its
+  poster. The same doors are every page's closing band ([`related-features.tsx`](../../src/components/marketing/sections/features/shared/related-features.tsx)),
+  so the site has ONE picture of each feature. Every page's hero composes `PageHero` on the cut
+  (the H1 static, [design-system.md](design-system.md)); the album, guests and sharing heroes put
+  their object in the stage slot under a `ScreenLamp` (the page's one lamp, sampled from its own
+  frame), the QR plate switches on in its own bespoke hero, and curation and privacy open plain on
+  purpose. The eyebrow is the page's own label alone (the "Features ·" breadcrumb half was ruled
+  unbalanced, 2026-09-02).
+  **`/features/album` had its own ground-up round (2026-09-02, twice)** and is the model for the
+  others: designed from a first-time host's QUESTIONS outward (the link vs the QR, hosting accounts,
+  names without accounts, live vs review timing, guest deletion, the total cap and what happens at
+  it, video on Free, who can OPEN the album, downloads, paying to keep it, the bin, the big screen),
+  with light tie-ins to the neighbouring features so a visitor landing here first is never lost.
+  Thirteen beats in three arcs: cinema (the hero, getting in, everywhere, the numbers), ONE paper
+  chapter as the host's desk (your call, names, who can open it, taking it home, how much fits, it
+  stays), the close (doors, nine questions, the band). Every app string is quoted and pinned by
+  `mock-parity.test.ts`; every number derives (`tiers.ts`, `limits.ts`, the lifecycle constants,
+  including [`over-cap.ts`](../../src/lib/lifecycle/over-cap.ts), the grace numbers the cron
+  reads too). ★ Facts the page corrected and must keep: Require accounts defaults ON for a new event
+  (never "no account by default"); anonymous is Anonymous (no name field exists); a guest deletes
+  their own upload from their dashboard and it is private to the host; a private page shows no name
+  and no count (the name + count tease is the PASSWORD state); no big-screen mode exists (the album
+  in any browser is the claim); nothing is locked or hidden at lapse. Chapter 1 opens on **the
+  album filling from the top** ([`album/arrivals-stage.tsx`](../../src/components/marketing/sections/features/album/arrivals-stage.tsx)
+  over the shared [`album-fill-grid.tsx`](../../src/components/marketing/sections/features/album/album-fill-grid.tsx)
+  + [`use-album-fill.ts`](../../src/components/marketing/sections/features/album/use-album-fill.ts)):
+  the REAL guest album's arrival grammar quoted (newest-first, arrivals prepended with older tiles
+  sliding down on `useFlip`, the ~2.5s green check, the live "N photos & videos from M guests"
+  line, the in-flight progress strip), driven by ONE tick and a pure derivation that the test pins.
+  ★ The FLIP wrapper carries no transform of its own (the entrance lives on the inner element) and
+  its `layoutKey` is the MOUNTED COUNT, never the tick, with the beat held above `--tune-reorder-ms`,
+  or a landing re-runs the layout effect mid-slide and snaps the column. ★ The old "Just added"
+  chip and "Maya added 3" toasts were marketing inventions with no product surface and are gone.
+  Then "Land once, show up everywhere" (the doorbell as a benefit: one `useAlbumFill` feeding a
+  laptop and a `PhoneShell` so the same tile lands on both in one commit), then the quiet numbers.
+  Chapter 2 is ONE document on the cut (what lands, and what stays; the keeping cards folded in).
+  Chapter 3 is the doors, three questions, the band. Every figure derives from `limits.ts` and
+  `recently-deleted.ts`. **Each page is a three-chapter attention arc** (design-system.md "Chapters"): a cinema
+  chapter that opens on the lamp and ramps down (the album re-paced hero → live → the quiet
+  numbers), ONE paper chapter whose opener is bespoke per page (the print stock STRADDLES the cut
+  on /qr, the guest-list card straddles on /guests, the spec sheet / downloads / queue / access
+  switch open a tier up on the cut elsewhere), and a close chapter that opens on the doors band and
+  winds down through the FAQ to the CtaBand. ★ The doors band takes `opener={false}` on a page whose
+  close already opens on its own beat (/qr's entry flow): two openers back to back are noise. The
+  FAQ band and the GoDeeper row are ONE pair for all six pages
+  ([`shared/feature-faq.tsx`](../../src/components/marketing/sections/features/shared/feature-faq.tsx)
+  emits the FAQPage JSON-LD itself; each page's `*-faq.ts` is data only).
 - **`/events`** — a full landing hub + 4 umbrella pages (weddings/parties/conferences/trips) off ONE
   `[slug]` template; copy in [`events.ts`](../../src/lib/constants/events.ts) (`EVENT_TYPE*` — named to
   avoid colliding with the real `events` domain; + the `EVENTS_HUB` block); distinct hero + "Built for X"

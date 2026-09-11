@@ -83,10 +83,10 @@ export default async function EventTypePage({
             >
               Events
             </Link>
-            <h1
-              {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-            >
+            {/* The H1 never carries a reveal-hidden state (the LCP rule,
+                pinned by marketing-h1-policy.test.ts); the slots around it
+                do the arriving. */}
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
               {eventType.headline}
             </h1>
             <p

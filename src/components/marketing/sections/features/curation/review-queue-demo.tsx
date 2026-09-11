@@ -96,6 +96,13 @@ export function ReviewQueueDemo() {
       subhead={
         "Turn on review and new uploads wait for you instead of going live. This queue works: clear it in one tap, or Select just the exceptions."
       }
+      /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up,
+         the hard cut and real air. This page's hero is deliberately plain, so
+         the desk is where it opens strong, on the one interactive object; the
+         modes, reversibility and bulk sections ramp down after it. */
+      scale="lg"
+      reveal="cinema"
+      className="pt-28 sm:pt-36"
     >
       {/* The body rides the header's choreography: SectionShell's own Reveal
           spends --i 0-2 on eyebrow/heading/subhead, so the frame and its
