@@ -34,6 +34,14 @@ so the tool learned to read `Retry-After` and the reset in the error body and wa
 the attempt; the second run finished the job. It is now the last step of the per-track integration
 checklist, so a deleted branch takes its deployments with it.
 
+**Retention, shortened.** Previews expire in 7 days rather than 30 (Will: "we really only ever check
+the live branch deployments anyway"), canceled and errored in 1 day, and production stays at 30
+because those are the instant-rollback targets. There is no REST endpoint for this: `PATCH
+/v9/projects/{id}` rejects `deploymentExpiration` as an additional property and four candidate
+retention paths answer 404, so it is a dashboard-only setting, applied there and then read back
+through the API to confirm. 44 deployments remain and a prune dry run now classifies every one as
+keep.
+
 **sharp out of the function trace, measured rather than assumed.** sharp and its `@img` packages were
 16.6 MB of the 51.1 MB union one deployment stores, present in all 113 route bundles. Next already
 ignores them on a Vercel build, but only in `serverIgnores`, which builds the `next-server` trace; the

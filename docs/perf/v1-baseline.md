@@ -224,5 +224,8 @@ upload credentials set on Vercel, so the 79.6 MB of maps in a local `.next` is a
 
 Deployment COUNT dominated all of it: 381 retained, 183 on branches deleted weeks earlier and 176 on
 `launch-prep`, which built on every push. The gate now builds `launch-prep` only on `[preview]` and
-`scripts/prune-vercel-deployments.mjs` deletes what no branch can reach.
+`scripts/prune-vercel-deployments.mjs` deletes what no branch can reach. Retention was cut the same
+day to 7 days for previews, 1 day for canceled and 1 day for errored, with production left at 30 (the
+instant-rollback window) and 10 kept per branch. **44 deployments remain**, 22 of them production
+history on `main`, and a dry run classifies every one as keep.
 
