@@ -4,7 +4,10 @@ import { Globe, KeyRound, Lock } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { VISIBILITY_HINTS } from "@/components/app/visibility-selector";
+import {
+  VISIBILITY_HINTS,
+  VISIBILITY_LABELS,
+} from "@/lib/events/visibility-labels";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { GhostBackdrop } from "@/components/marketing/sections/features/shared/ghost-grid";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
@@ -29,9 +32,9 @@ import { cn } from "@/lib/utils";
 type Mode = "open" | "password" | "private";
 
 const SEGMENTS: { mode: Mode; label: string; Icon: typeof Globe }[] = [
-  { mode: "open", label: "Public", Icon: Globe },
-  { mode: "password", label: "Password", Icon: KeyRound },
-  { mode: "private", label: "Private", Icon: Lock },
+  { mode: "open", label: VISIBILITY_LABELS.open, Icon: Globe },
+  { mode: "password", label: VISIBILITY_LABELS.password, Icon: KeyRound },
+  { mode: "private", label: VISIBILITY_LABELS.private, Icon: Lock },
 ];
 
 // The site-wide fixture event (one coherent fictional album across pages) and

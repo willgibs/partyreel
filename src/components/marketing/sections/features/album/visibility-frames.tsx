@@ -4,7 +4,7 @@ import { Globe, KeyRound, Lock, MailCheck } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-import { VISIBILITY_HINTS } from "@/components/app/visibility-selector";
+import { VISIBILITY_HINTS } from "@/lib/events/visibility-labels";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
 import { cn } from "@/lib/utils";

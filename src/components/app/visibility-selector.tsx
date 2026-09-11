@@ -3,37 +3,17 @@
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import { Globe, KeyRound, Lock } from "lucide-react";
 
-import type { Database } from "@/lib/db/types";
+import {
+  VISIBILITY_LABELS,
+  type Visibility,
+} from "@/lib/events/visibility-labels";
 import { cn } from "@/lib/utils";
-
-type Visibility = Database["public"]["Enums"]["event_visibility"];
-
-/**
- * The word for each visibility state, single-sourced (Will's ruling, 2026-09-02:
- * "Public sounds much clearer than open"). ★ "Open" is the ACCEPTING-UPLOADS state and
- * never a visibility word: the two were written separately, so the settings selector
- * said Public while the event header chip said Open, for the same `visibility = 'open'`
- * row. Read this record; do not re-type a label next to the enum.
- */
-export const VISIBILITY_LABELS: Record<Visibility, string> = {
-  open: "Public",
-  password: "Password",
-  private: "Private",
-};
 
 const OPTIONS: { value: Visibility; Icon: typeof Globe }[] = [
   { value: "open", Icon: Globe },
   { value: "password", Icon: KeyRound },
   { value: "private", Icon: Lock },
 ];
-
-// One-line hint shown under the selector for the active choice (single-sourced so the
-// form and any future surface describe the states identically).
-export const VISIBILITY_HINTS: Record<Visibility, string> = {
-  open: "Anyone with the link can view the album.",
-  password: "Anyone with the link and the password can view the album.",
-  private: "Only you can view it. Guests see a friendly locked screen.",
-};
 
 type VisibilitySelectorProps = {
   value: Visibility;
