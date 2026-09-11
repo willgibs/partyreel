@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -31,6 +31,7 @@ import { track } from "@/lib/analytics/web";
 import {
   CONTACT_TOPICS,
   type ContactTopicValue,
+  REPLY_LINE,
 } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
@@ -62,7 +63,7 @@ function FormCard({ children }: { children: ReactNode }) {
           className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lg"
         />
       </div>
-      <MonoCaption>A note to Partyreel</MonoCaption>
+      <Caption>A note to Partyreel</Caption>
       <div className="mt-5">{children}</div>
     </div>
   );
@@ -223,8 +224,7 @@ export function ContactForm({
           </span>
           <h3 className="font-heading text-lg font-medium">Message sent</h3>
           <p className="text-sm text-pretty text-muted-foreground">
-            Thanks for reaching out. Every note gets a reply, usually within a
-            day.
+            Thanks for reaching out. {REPLY_LINE}
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
             <Button
@@ -448,9 +448,7 @@ export function ContactForm({
               {isSubmitting ? "Sending…" : "Send message"}
             </Button>
             {/* The V1 steal: the reply line seated at the commit point. */}
-            <p className="text-xs text-muted-foreground">
-              Every note gets a reply, usually within a day.
-            </p>
+            <p className="text-xs text-muted-foreground">{REPLY_LINE}</p>
           </div>
         </form>
       </Form>

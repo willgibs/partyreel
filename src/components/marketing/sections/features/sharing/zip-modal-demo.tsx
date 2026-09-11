@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn, formatBytes } from "@/lib/utils";
@@ -192,10 +192,10 @@ export function ZipModalDemo() {
           </div>
         </div>
       </div>
-      <MonoCaption className="mt-4 text-center">
+      <Caption className="mt-4 text-center">
         shown with the host extras · guests get the same modal, minus Include
         hidden
-      </MonoCaption>
+      </Caption>
     </div>
   );
 }

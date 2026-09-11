@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { StyledQr } from "@/components/app/styled-qr";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
@@ -64,9 +64,9 @@ export function PrintShop() {
             However far you scale it, the code itself never changes: same link,
             same album, every copy.
           </p>
-          <MonoCaption {...rise(4)}>
+          <Caption {...rise(4)}>
             Tip: test-scan with your own phone before you print a hundred.
-          </MonoCaption>
+          </Caption>
         </Reveal>
       </MediaSplit>
     </SectionShell>

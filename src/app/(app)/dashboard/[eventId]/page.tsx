@@ -41,6 +41,7 @@ import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
+import { VISIBILITY_LABELS } from "@/lib/events/visibility-labels";
 import { PageHeading } from "@/components/shared/page-heading";
 
 // Presigned gallery URLs are per-request + short-lived, so this page must never
@@ -170,22 +171,16 @@ export default async function EventDetailPage({
   // 2026-09-02: "Public sounds much clearer than open"). "Open" belongs to the
   // ACCEPTING-UPLOADS state alone, which is the chip rendered right beside this one, and
   // this label read "Open" while the settings selector called the same row "Public".
-  // The words match VISIBILITY_LABELS in components/app/visibility-selector.tsx and are
-  // re-typed here on purpose: that module is "use client", and an RSC that dots into a
-  // client module throws ("You cannot dot into a client module from a server component").
-  // A server-safe home for the record would let both read one source, see the track handoff.
+  // The word comes from the server-safe record in lib/events/visibility-labels.ts,
+  // the same module the client selector and the marketing access switch read (it used
+  // to be re-typed here because an RSC cannot dot into a "use client" module).
   const VisibilityIcon =
     event.visibility === "open"
       ? Globe
       : event.visibility === "password"
         ? Lock
         : Shield;
-  const visibilityLabel =
-    event.visibility === "open"
-      ? "Public"
-      : event.visibility === "password"
-        ? "Password"
-        : "Private";
+  const visibilityLabel = VISIBILITY_LABELS[event.visibility];
 
   return (
     <div data-route-fade className="space-y-8">

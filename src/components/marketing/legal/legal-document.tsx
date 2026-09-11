@@ -213,7 +213,7 @@ export function LegalDocument({
               >
                 <nav
                   aria-label="On this page"
-                  className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pl-2"
+                  className="sticky top-[var(--mkt-rail-top)] max-h-[calc(100vh-7rem)] overflow-y-auto pl-2"
                 >
                   <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                     On this page

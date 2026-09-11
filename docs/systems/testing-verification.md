@@ -239,6 +239,11 @@ QA #11) has TWO setup traps that both produce a false "broken" reading, and neit
   prove the server is right, or check the Browser pane (its own cache); then in the tab
   `fetch(url, {cache: "reload"})` every `/_next/static/chunks/*.js|css` referenced in the HTML and
   `location.reload()`.**
+  **A third cause is TURBOPACK'S PERSISTENT CACHE (`.next/dev`, 2026-09-11):** a rule added to
+  `globals.css` while the dev server ran never reached the served stylesheet, and a `preview_stop` +
+  `preview_start` restart served the SAME hashed chunk without it (Tailwind's own compiler emitted the
+  rule fine). `rm -rf .next/dev` between the stop and the start is what fixed it; do that after any
+  edit to `globals.css` or `theme.css` before trusting what the pane shows.
   **The second cause is an ORPHANED SERVER.** `preview_stop` does not reliably reap `next-server`,
   so an orphan can keep winning the port and serve a bundle compiled before your files existed,
   which is why restarts and even an `.next` wipe can appear not to help. Its ugliest face is a page

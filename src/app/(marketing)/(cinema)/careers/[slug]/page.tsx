@@ -126,7 +126,7 @@ export default async function RolePage({
                   wants before the prose, and it only turns into a sticky
                   column once there is a column to stick inside. */}
               <aside className="order-first shrink-0 lg:order-last lg:w-60 lg:self-stretch">
-                <div className="lg:sticky lg:top-24">
+                <div className="lg:sticky lg:top-[var(--mkt-rail-top)]">
                   <SpecList job={job} />
                   <Button
                     asChild

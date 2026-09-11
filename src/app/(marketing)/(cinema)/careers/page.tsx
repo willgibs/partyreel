@@ -12,14 +12,13 @@ import {
   HERO_SELECTS,
 } from "@/components/marketing/sections/careers/careers-story";
 import { RoleListings } from "@/components/marketing/sections/careers/role-listings";
-import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
+import { REPLY_LINE } from "@/lib/constants/contact";
 import {
   CAREERS_INTRO,
   HOW_WE_WORK,
@@ -76,62 +75,49 @@ export default function CareersPage() {
             behind the nav and the scrim's top stop fades it out there instead.
             The Container adds the header height back so the type keeps its
             intended breathing room. */}
-      <section className="relative -mt-[var(--mkt-header-h,4rem)] overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <ContactSheet
-            selects={HERO_SELECTS}
-            columns="grid-cols-5 sm:grid-cols-7 lg:grid-cols-9"
-            repeat={3}
-            className="size-full [&>figure]:aspect-auto"
-          />
-        </div>
-        <div
-          aria-hidden
-          className="mkt-careers-scrim pointer-events-none absolute inset-0"
-        />
-        <Container className="relative flex flex-col items-center gap-6 pt-[calc(var(--mkt-header-h,4rem)+7rem)] pb-28 text-center sm:pt-[calc(var(--mkt-header-h,4rem)+9rem)] sm:pb-36">
-          <TextsReveal className="flex flex-col items-center gap-6">
-            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
-              {CAREERS_INTRO.eyebrow}
-            </Eyebrow>
-            {/* THE SITE LADDER, not a ramp of its own (Will, 2026-08-29). The
-                round shipped this at 5xl/6xl/7xl - PageHero's cinema `xl` step
-                with its top removed - which landed identically to every other
-                page at desktop and one step louder below it. His ruling: "let's
-                normalize the site ladder so that we don't have one unique size
-                ramp for a utility page." A photographic hero earns its presence
-                from the sheet behind the words, not from a private type step. */}
-            <h1
-              className="mkt-line font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ "--i": 1 } as CSSProperties}
+      {/* THE SITE LADDER, not a ramp of its own (Will, 2026-08-29): the hero
+          composes PageHero at the standard `lg` step. A photographic hero
+          earns its presence from the sheet behind the words (the backdrop
+          slot), not from a private type step; the blur register is the
+          utility trio's named entrance (2026-09-11), with the h1 held at
+          paint. */}
+      <PageHero
+        entrance="blur"
+        scale="lg"
+        eyebrow={CAREERS_INTRO.eyebrow}
+        heading={CAREERS_INTRO.headline}
+        subhead={CAREERS_INTRO.subhead}
+        actions={
+          <Button asChild size="lg" className="h-11 px-6 text-base">
+            <Link
+              href="#open-roles"
+              {...trackAttrs("cta_click", {
+                cta: "see-open-roles",
+                location: "careers-hero",
+              })}
             >
-              {CAREERS_INTRO.headline}
-            </h1>
-            <p
-              className="mkt-line max-w-2xl text-lg text-pretty text-muted-foreground"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              {CAREERS_INTRO.subhead}
-            </p>
-            {/* A DIV, not a span: [data-mkt] .mkt-line forces display:block, so
-                a flex/inline wrapper on the same element is silently killed.
-                The button centers off the section's text-center instead. */}
-            <div className="mkt-line" style={{ "--i": 3 } as CSSProperties}>
-              <Button asChild size="lg" className="h-11 px-6 text-base">
-                <Link
-                  href="#open-roles"
-                  {...trackAttrs("cta_click", {
-                    cta: "see-open-roles",
-                    location: "careers-hero",
-                  })}
-                >
-                  {CAREERS_INTRO.cta}
-                </Link>
-              </Button>
+              {CAREERS_INTRO.cta}
+            </Link>
+          </Button>
+        }
+        backdrop={
+          <>
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <ContactSheet
+                selects={HERO_SELECTS}
+                columns="grid-cols-5 sm:grid-cols-7 lg:grid-cols-9"
+                repeat={3}
+                className="size-full [&>figure]:aspect-auto"
+              />
             </div>
-          </TextsReveal>
-        </Container>
-      </section>
+            <div
+              aria-hidden
+              className="mkt-careers-scrim pointer-events-none absolute inset-0"
+            />
+          </>
+        }
+        className="relative -mt-[var(--mkt-header-h,4rem)] overflow-hidden pt-[calc(var(--mkt-header-h,4rem)+7rem)] pb-28 text-center sm:pt-[calc(var(--mkt-header-h,4rem)+9rem)] sm:pb-36"
+      />
 
       <PaperChapter>
         <CareersStory />
@@ -220,8 +206,7 @@ export default function CareersPage() {
             >
               <h3 className="font-heading text-lg">Not sure yet?</h3>
               <p className="text-sm text-pretty text-muted-foreground">
-                Ask anything before you apply. Every note gets a reply, usually
-                within a day.
+                Ask anything before you apply. {REPLY_LINE}
               </p>
             </div>
             <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>

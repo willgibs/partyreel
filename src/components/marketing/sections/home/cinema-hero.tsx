@@ -15,6 +15,7 @@ import {
 
 import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
@@ -236,7 +237,7 @@ export function CinemaHero() {
               />
             )}
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
-              <MonoCaption className="text-white/80">The reel</MonoCaption>
+              <Caption className="text-white/80">The reel</Caption>
               <MonoCaption className="text-white/60">
                 0:
                 {String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}

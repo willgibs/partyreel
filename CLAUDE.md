@@ -299,6 +299,7 @@ Under the elevation program an Agent records in its track manifest (`docs/tracks
 CHANGELOG / STATUS / ROADMAP; the Orchestrator folds it at integration.
 
 **Other conventions:**
+- **A design rule is a candidate until it is on `/design/rules` with a verdict.** Every guard test's titles and every ★ line in the design docs render there, with who set them and Will's keep / merge / drop. Before adding a guard test or a ★ rule, check the page: widen a global rule rather than invent a one-off, and never write a rule for a single page's case (Will, 2026-09-11).
 - **Leave WHY-comments** for the next agent — capture non-obvious decisions + what NOT to do; don't narrate the obvious.
 - **Backend jobs must be operable + observable from `/admin`** — when you build any backend job (cron, Worker, backup), ship its admin management + health signal in the SAME change (zero silent failures; the admin-portal P8 mandate).
 - **Test data integrity as you build** — Vitest for pure logic + a rolled-back Supabase-MCP RPC contract check for new SQL.

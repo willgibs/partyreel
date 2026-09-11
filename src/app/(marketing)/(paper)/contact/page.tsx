@@ -11,13 +11,11 @@ import {
   ContactPageJsonLd,
 } from "@/components/marketing/jsonld";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
-import { type ContactTopicValue } from "@/lib/constants/contact";
+import { REPLY_LINE, type ContactTopicValue } from "@/lib/constants/contact";
 import {
   getAllArticles,
   getCategoryChips,
@@ -30,8 +28,7 @@ import { ContactFacts, ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description:
-    "Get in touch with Partyreel: questions about your event, billing, or anything else. Every note gets a reply, usually within a day.",
+  description: `Get in touch with Partyreel: questions about your event, billing, or anything else. ${REPLY_LINE}`,
   alternates: { canonical: "/contact" },
 };
 
@@ -116,30 +113,21 @@ export default function ContactPage() {
       />
       <ContactPageJsonLd />
 
-      {/* Hero: the paper-page header idiom (texts-reveal, calm register). */}
-      <section className="border-b">
-        <Container className="flex flex-col items-center gap-6 py-20 text-center sm:py-28">
-          <TextsReveal className="flex flex-col items-center gap-6">
-            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
-              Contact
-            </Eyebrow>
-            <h1
-              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl"
-              style={{ "--i": 1 } as CSSProperties}
-            >
-              Talk to Partyreel.
-            </h1>
-            <p
-              className="mkt-line max-w-xl text-pretty text-muted-foreground sm:text-lg"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              An event you&rsquo;re planning, a plan you&rsquo;re weighing,
-              something that broke. Every note gets a reply, usually within a
-              day.
-            </p>
-          </TextsReveal>
-        </Container>
-      </section>
+      {/* Hero: the utility trio's blur register on PageHero (2026-09-11),
+          the calm paper-page header; the h1 holds at paint. */}
+      <PageHero
+        entrance="blur"
+        scale="lg"
+        eyebrow="Contact"
+        heading="Talk to Partyreel."
+        subhead={
+          <>
+            An event you&rsquo;re planning, a plan you&rsquo;re weighing,
+            something that broke. {REPLY_LINE}
+          </>
+        }
+        className="border-b py-20 sm:py-28"
+      />
 
       {/* The form chapter: the page's instrument. Form leads on mobile (the
           page's purpose); the rail sits beside it from lg. */}

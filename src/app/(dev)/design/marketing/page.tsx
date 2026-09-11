@@ -5,9 +5,27 @@ import {
   BulkBarMock,
   SelectTile,
 } from "@/components/marketing/sections/shared/bulk-select-mock";
+import { FAQ_ITEMS } from "@/components/marketing/faq-data";
+import {
+  AlbumFrame,
+  BrowserFrame,
+  GalleryFrame,
+  PhoneFrame,
+  PhoneShell,
+  QrFrame,
+  ReelFrame,
+} from "@/components/marketing/frames";
+import { LiveQr } from "@/components/marketing/frames/live-qr";
+import { FeatureDoor } from "@/components/marketing/sections/features/shared/feature-door";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
+import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
+import { GhostBackdrop } from "@/components/marketing/sections/features/shared/ghost-grid";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
+import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
+import { Caption } from "@/components/marketing/system/caption";
 import { CardGrid } from "@/components/marketing/system/card-grid";
 import { Conveyor } from "@/components/marketing/system/conveyor";
 import { CtaBand } from "@/components/marketing/system/cta-band";
@@ -39,6 +57,7 @@ import {
   RevealDemo,
   StatBandDemo,
   TextsRevealDemo,
+  TextSwapDemo,
 } from "./marketing-demos";
 
 // THE MARKETING LIBRARY (the library round, 2026-09-02): every component of the
@@ -141,7 +160,7 @@ export default async function MarketingLibraryPage({
 
         <RefSection
           title="Heroes"
-          blurb="PageHero at its three scales and its two entrances (rise for the identity pages, cut for the cinema family), on today's props (scale, align, entrance, eyebrow, heading, subhead, actions, and children as the stage under the lockup). A page renders one; four here is the specimen."
+          blurb="PageHero at its three scales and its three named entrances (rise for the identity pages and /pricing, cut for the cinema family, blur for the utility trio), on today's props (scale, align, entrance, eyebrow, heading, subhead, actions, children as the stage under the lockup, backdrop behind it). A page renders one; five here is the specimen. The h1 holds at paint in every register."
         >
           <div className="space-y-3">
             <Spec
@@ -190,6 +209,27 @@ export default async function MarketingLibraryPage({
                 eyebrow="Help"
                 heading="How can we help?"
                 subhead="The compact lockup, left-aligned."
+                className="py-12"
+              />
+            </Spec>
+            <Spec
+              label="blur"
+              hint="entrance=blur · the texts-reveal on the slots, the h1 still"
+              contentClassName="p-0"
+            >
+              <PageHero
+                scale="lg"
+                entrance="blur"
+                eyebrow="Help center"
+                heading="How can we help?"
+                subhead="The utility trio's register: eyebrow, subhead and actions rise through the blur while the title is already there."
+                actions={
+                  <Row className="justify-center">
+                    <span className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background">
+                      Search the guides
+                    </span>
+                  </Row>
+                }
                 className="py-12"
               />
             </Spec>
@@ -251,8 +291,17 @@ export default async function MarketingLibraryPage({
             <Spec label="Eyebrow" hint="system/eyebrow">
               <Eyebrow>How it works</Eyebrow>
             </Spec>
-            <Spec label="MonoCaption" hint="system/mono-caption">
+            <Spec label="MonoCaption" hint="system/mono-caption · data only">
               <MonoCaption>00:00:12 · rendered on your device</MonoCaption>
+            </Spec>
+            <Spec
+              label="Caption"
+              hint="system/caption · every label and descriptor"
+            >
+              <Caption>
+                Mono holds the data (timecodes, counts, sizes, URLs, indices); a
+                sentence like this one is Inter.
+              </Caption>
             </Spec>
             <Spec label="LearnMoreLink" hint="sections/shared/learn-more-link">
               <LearnMoreLink href="/features">See every feature</LearnMoreLink>
@@ -482,6 +531,150 @@ export default async function MarketingLibraryPage({
               <BulkBarMock count={3} />
             </div>
           </Spec>
+        </RefSection>
+
+        <RefSection
+          title="Frames"
+          blurb="The media-frame library: a set of distinct frames, never one visual reused. All share BrowserFrame's tokens, all aria-hidden and reduced-motion-safe."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Spec
+              label="BrowserFrame"
+              hint="frames/browser-frame · label + children"
+              contentClassName="p-5"
+            >
+              <BrowserFrame
+                label={
+                  <span className="font-mono text-[11px]">
+                    partyreel.com/a/maya-and-jay
+                  </span>
+                }
+              >
+                <div className="grid grid-cols-3 gap-1 p-2">
+                  {(
+                    [
+                      "wedding-golden",
+                      "party-balloons",
+                      "reception-table",
+                    ] as const
+                  ).map((id) => (
+                    <span
+                      key={id}
+                      className="relative aspect-square overflow-hidden rounded-[3px]"
+                    >
+                      <Image
+                        src={marketingImage(id).src}
+                        alt=""
+                        fill
+                        sizes="120px"
+                        className="object-cover"
+                      />
+                    </span>
+                  ))}
+                </div>
+              </BrowserFrame>
+            </Spec>
+            <Spec
+              label="PhoneShell"
+              hint="frames/phone-frame · the bezel with a children slot"
+            >
+              <PhoneShell className="mx-auto max-w-[220px]">
+                <p className="text-xs font-medium">Any screen goes here.</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  The album&rsquo;s phones and the getting-in stage compose it.
+                </p>
+              </PhoneShell>
+            </Spec>
+            <Spec
+              label="PhoneFrame"
+              hint="frames/phone-frame · the upload mock inside the shell"
+            >
+              <PhoneFrame />
+            </Spec>
+            <Spec label="AlbumFrame" hint="frames/album-frame · default label">
+              <AlbumFrame />
+            </Spec>
+            <Spec
+              label="GalleryFrame"
+              hint="frames/gallery-frame · default label"
+            >
+              <GalleryFrame />
+            </Spec>
+            <Spec
+              label="QrFrame"
+              hint="frames/qr-frame · decorative without liveQrUrl"
+            >
+              <QrFrame />
+            </Spec>
+            <Spec
+              label="ReelFrame"
+              hint="frames/reel-frame · no media = the player at rest"
+            >
+              <ReelFrame />
+            </Spec>
+            <Spec label="LiveQr" hint="frames/live-qr · a real, scannable code">
+              <LiveQr
+                url="https://partyreel.com"
+                caption="Scan to open partyreel.com"
+              />
+            </Spec>
+          </div>
+        </RefSection>
+
+        <RefSection
+          title="The feature family"
+          blurb="The shared furniture of the six feature pages (the album is the model): the photographic doors, the sibling band that opens a page's close, one FAQ band with its JSON-LD, the quiet help pointer, the eyebrow, the ghost grid and the blur-swap. The registry is src/lib/constants/feature-pages.ts."
+        >
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Spec
+                label="FeatureDoor"
+                hint="sections/features/shared/feature-door · slug=album · copy=long"
+              >
+                <div className="max-w-sm">
+                  <FeatureDoor slug="album" copy="long" />
+                </div>
+              </Spec>
+              <Spec
+                label="FeatureHeroEyebrow + GhostBackdrop"
+                hint="the one eyebrow · the locked-gallery grid"
+              >
+                <div className="space-y-4">
+                  <FeatureHeroEyebrow label="The live album" />
+                  <div className="relative h-40 overflow-hidden rounded-lg border border-border">
+                    <GhostBackdrop cells={8} />
+                  </div>
+                </div>
+              </Spec>
+              <Spec
+                label="TextSwap"
+                hint="sections/features/shared/text-swap · imperative, exits up with blur"
+              >
+                <TextSwapDemo />
+              </Spec>
+            </div>
+            <Spec
+              label="RelatedFeatures"
+              hint="three doors on the hard cut (opener) · slugs"
+              contentClassName="p-0"
+            >
+              <RelatedFeatures slugs={["qr", "curation", "sharing"]} />
+            </Spec>
+            <Spec
+              label="FeatureFaq + GoDeeper"
+              hint="items · children=GoDeeper"
+              contentClassName="p-0"
+            >
+              <FeatureFaq items={FAQ_ITEMS.slice(0, 3)}>
+                <GoDeeper
+                  links={[
+                    { href: "/help", label: "How curation works" },
+                    { href: "/pricing", label: "Every plan, side by side" },
+                  ]}
+                />
+              </FeatureFaq>
+            </Spec>
+          </div>
         </RefSection>
 
         <RefSection

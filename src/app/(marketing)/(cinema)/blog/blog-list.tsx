@@ -477,7 +477,7 @@ function TagRail({
       // min-w-0 is load-bearing, not tidiness: a grid item defaults to min-width:auto, so the
       // horizontal tag scroller below could not clip and stretched the whole page to 763px at a
       // 375px viewport (a body-level horizontal scrollbar on every phone).
-      className="min-w-0 lg:sticky lg:top-[calc(var(--mkt-header-h,4rem)+1.5rem)] lg:self-start"
+      className="min-w-0 lg:sticky lg:top-[var(--mkt-rail-top)] lg:self-start"
     >
       <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
         Browse

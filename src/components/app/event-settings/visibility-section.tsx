@@ -9,10 +9,8 @@ import type {
   UpdateEventValues,
 } from "@/lib/validation/event";
 import { EventPasswordControl } from "@/components/app/event-password-control";
-import {
-  VISIBILITY_HINTS,
-  VisibilitySelector,
-} from "@/components/app/visibility-selector";
+import { VisibilitySelector } from "@/components/app/visibility-selector";
+import { VISIBILITY_HINTS } from "@/lib/events/visibility-labels";
 import {
   Card,
   CardContent,

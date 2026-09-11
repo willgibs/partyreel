@@ -8,7 +8,7 @@ import { StyledQr } from "@/components/app/styled-qr";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { Glow } from "@/components/shared/glow";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
@@ -209,11 +209,11 @@ export function QrHero() {
                 ))}
               </div>
 
-              <MonoCaption {...cut(8)} className="mt-3 text-center lg:mt-4">
+              <Caption {...cut(8)} className="mt-3 text-center lg:mt-4">
                 {DEMO_EVENT_URL
                   ? "Scannable for real. It opens the live demo."
                   : "The Classic preset, at print sharpness."}
-              </MonoCaption>
+              </Caption>
             </div>
           </div>
         </Reveal>

@@ -37,15 +37,32 @@ function marketingSources(
  * need no pin, since they cannot silently empty.
  */
 
-/** Selector lines only: everything before a `{`, ignoring comments and declarations. */
+/**
+ * Every selector list in the sheet: the prelude before each `{` that is not an
+ * at-rule, found by scanning braces rather than line endings (the round-0
+ * rules audit, 2026-09-01, found the line scan misread a multi-line value as a
+ * selector and a `*` inside calc() as the universal selector). A declaration
+ * ends at `;`, a block at `}`, so neither can leak into a prelude.
+ */
 function selectorLines(): string[] {
-  return css
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.endsWith("{") || line.endsWith(","))
-    .map((line) => line.replace(/[{,]$/, "").trim())
-    .filter(Boolean);
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out: string[] = [];
+  let start = 0;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === "{") {
+      const prelude = src.slice(start, i).trim();
+      start = i + 1;
+      if (!prelude || prelude.startsWith("@")) continue;
+      for (const part of prelude.split(",")) {
+        const sel = part.trim();
+        if (sel) out.push(sel);
+      }
+    } else if (ch === "}" || ch === ";") {
+      start = i + 1;
+    }
+  }
+  return out;
 }
 
 describe("marketing.css containment policy", () => {

@@ -11,6 +11,8 @@ import {
 import { cn } from "@/lib/utils";
 
 import { COUNTS, ZONES } from "./catalog";
+import { COMPONENT_NOTES } from "./rules/annotations";
+import { COMPONENTS } from "./rules/rules";
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
 // THE WORKBENCH LANDING (2026-06-19). The lab is Partyreel's one internal UI
@@ -113,12 +115,83 @@ export default async function DesignIndexPage({
         ))}
       </div>
 
+      {/* THE COMPONENT INDEX (the library phase, 2026-09-11): every component
+          file in the library's directories and the page that renders it,
+          derived from the pages' imports by scripts/design-rules/collect.mjs
+          (rules-annotations.test.ts keeps every file rendered or excused).
+          The pages ARE the index; this is the map. */}
+      <h2 className="mt-10 text-sm font-semibold">
+        Every component, where it lives
+      </h2>
+      <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+        {COMPONENTS.length} files across the library&rsquo;s directories, each
+        with the page that renders it. A file with no specimen says why.
+      </p>
+      <div className="mt-3 space-y-3">
+        {groupByDirectory(COMPONENTS).map(([dir, files]) => (
+          <div key={dir} className="rounded-xl border border-border bg-card">
+            <p className="border-b border-border px-4 py-2 font-mono text-[11px] text-muted-foreground">
+              {dir}
+            </p>
+            <ul className="divide-y divide-border">
+              {files.map((c) => {
+                const note = COMPONENT_NOTES[c.file];
+                return (
+                  <li
+                    key={c.file}
+                    className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-1.5 text-[13px]"
+                  >
+                    <span className="font-medium">
+                      {c.names.join(", ") || c.file.split("/").pop()}
+                    </span>
+                    {note?.for && (
+                      <span className="text-xs text-muted-foreground">
+                        {note.for}
+                      </span>
+                    )}
+                    <span className="ml-auto flex flex-wrap gap-2 font-mono text-[11px]">
+                      {c.specimens.length > 0 ? (
+                        c.specimens.map((route) => (
+                          <Link
+                            key={route}
+                            href={link(route)}
+                            className="underline"
+                          >
+                            {route}
+                          </Link>
+                        ))
+                      ) : (
+                        <span
+                          className="text-muted-foreground"
+                          title={note?.unspecimened}
+                        >
+                          no specimen: {note?.unspecimened ?? "unexcused"}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+
       <p className="mt-12 text-xs text-muted-foreground">
         Internal lab. Not linked anywhere, not indexed, and absent from
         production without the key.
       </p>
     </main>
   );
+}
+
+function groupByDirectory(components: typeof COMPONENTS) {
+  const groups = new Map<string, typeof COMPONENTS>();
+  for (const c of components) {
+    const dir = c.file.slice(0, c.file.lastIndexOf("/"));
+    groups.set(dir, [...(groups.get(dir) ?? []), c]);
+  }
+  return [...groups.entries()];
 }
 
 function firstSandboxId(groups: { entries: { href: string }[] }[]): string {

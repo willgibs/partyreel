@@ -6,6 +6,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { useEnteredFrame } from "@/lib/shared/use-entered-frame";
 import { cn } from "@/lib/utils";
 
 import { YOUR_CALL } from "./album-copy";
@@ -29,23 +30,6 @@ const SEGMENTS: { mode: Mode; label: string; Icon: typeof Radio }[] = [
 
 const UPLOAD = "wedding-toast";
 const ALBUM = ["wedding-golden", "party-balloons", "reception-table"];
-
-/** Flip to the visible state two frames after mount so the fly transition
- *  actually runs (the double-rAF precedent; state only inside rAF). */
-function useEnteredFrame(): boolean {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    let second = 0;
-    const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => setOn(true));
-    });
-    return () => {
-      cancelAnimationFrame(first);
-      cancelAnimationFrame(second);
-    };
-  }, []);
-  return on;
-}
 
 /** The travelling photograph: keyed by its destination so a mode change
  *  remounts it and it flies in from the phone's side, settling small. */

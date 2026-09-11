@@ -12,6 +12,7 @@ import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+import { REPLY_LINE } from "@/lib/constants/contact";
 import {
   PRESS_BOILERPLATE,
   PRESS_BOILERPLATE_SHORT,
@@ -307,7 +308,7 @@ export default function PressPage() {
             </h2>
             <p className="max-w-xl text-pretty text-muted-foreground">
               Interviews, higher-resolution assets, or a walkthrough of the
-              product. Every note gets a reply, usually within a day.
+              product. {REPLY_LINE}
             </p>
             <Button asChild size="lg" className="mt-2 h-11 px-6 text-base">
               <Link href="/contact">Send a message</Link>

@@ -2,7 +2,7 @@ import { Flag, SearchCheck, Trash2, type LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -66,7 +66,7 @@ export function ReportReview() {
           was a dead island rendering statically anyway. Now that is the
           deliberate call, and a plain div says so. */}
       <div className="mt-14 flex flex-col items-center gap-2 text-center">
-        <MonoCaption>The exact details live in the help center</MonoCaption>
+        <Caption>The exact details live in the help center</Caption>
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           <LearnMoreLink href="/help/who-can-see-your-event">
             Who can see your event

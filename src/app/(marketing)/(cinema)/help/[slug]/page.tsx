@@ -370,13 +370,13 @@ export default async function HelpArticlePage({
               {/* aside self-stretch is LOAD-BEARING: the grid's lg:items-start
               collapses the rail to content height, leaving sticky zero travel
               room — the ToC never tracked (Will's catch). Stretching restores
-              the full-column runway for sticky top-24. */}
+              the full-column runway for the sticky rail. */}
               {headings.length >= 2 && (
                 <aside
                   className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch"
                   data-print-hide
                 >
-                  <nav aria-label="On this page" className="sticky top-24">
+                  <nav aria-label="On this page" className="sticky top-[var(--mkt-rail-top)]">
                     <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       On this page
                     </p>

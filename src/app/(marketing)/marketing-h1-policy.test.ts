@@ -12,6 +12,10 @@ import { describe, expect, it } from "vitest";
  * hand-rolled hero in the marketing tree, so the bug the sweep closed on
  * /features/album cannot come back one page at a time.
  *
+ * The blur-rise trio carried the same hole as a CLASS (`.mkt-line` rests at
+ * opacity 0) until the hero registers round (2026-09-11) moved the trio onto
+ * PageHero's blur entrance; the scan refuses that form too.
+ *
  * ★ Pinned for non-emptiness (the round-0 rule): a scan that finds no h1 is a
  * broken scan, not a clean site.
  */
@@ -37,20 +41,28 @@ function h1Tags(code: string): string[] {
 describe("the marketing h1 policy", () => {
   it("finds the site's h1s at all", () => {
     const tags = FILES.flatMap((f) => h1Tags(readFileSync(f, "utf8")));
-    expect(tags.length).toBeGreaterThan(10);
+    // Nine after the hero registers round (2026-09-11) moved the utility trio
+    // and /pricing onto PageHero: the bespoke heroes, the article and role
+    // headers, and PageHero's own h1.
+    expect(tags.length).toBeGreaterThan(5);
   });
 
-  it("never gates an h1 on the cut or the rise", () => {
+  it("never gates an h1 on the cut, the rise or the blur-rise", () => {
     const offenders: string[] = [];
     for (const file of FILES) {
-      const code = readFileSync(file, "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+      const code = readFileSync(file, "utf8").replace(
+        /\{\/\*[\s\S]*?\*\/\}/g,
+        "",
+      );
       for (const tag of h1Tags(code)) {
         if (
-          /data-mkt-cut|data-mkt-reveal|\.\.\.cut\(|\.\.\.rise\(|\.\.\.mark\(/.test(
+          /data-mkt-cut|data-mkt-reveal|mkt-line|\.\.\.cut\(|\.\.\.rise\(|\.\.\.mark\(/.test(
             tag,
           )
         ) {
-          offenders.push(`${file.replace(ROOT + "/", "")}: ${tag.slice(0, 60)}`);
+          offenders.push(
+            `${file.replace(ROOT + "/", "")}: ${tag.slice(0, 60)}`,
+          );
         }
       }
     }

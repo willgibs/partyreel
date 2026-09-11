@@ -31,7 +31,9 @@ import { FooterGlow } from "./footer-glow";
  * (~22px headings, ~60px row pitch, nothing hidden), so this pass spends the
  * type scale and drops the disclosure entirely.
  *
- * ── THE SLAB PAINTS WITH --gallery*, AND REDECLARES TOKENS LOCALLY ──
+ * ── THE SLAB PAINTS WITH --gallery*, AND TAKES ITS TOKEN SET FROM .surface-ink ──
+ *   (globals.css, one class since the library phase, 2026-09-11; the reasoning below
+ *   is why that class exists)
  *
  * The footer renders in THREE contexts: cinema (.dark), paper (.surface-paper,
  * forced light), and the root 404 (.surface-paper, and OUTSIDE (marketing) so
@@ -102,9 +104,8 @@ export function MarketingFooter() {
   return (
     <footer
       className={cn(
-        // The local token redeclaration (see the header note). Keep together.
-        "[--background:var(--gallery)] [--border:var(--gallery-border)] [--foreground:var(--gallery-foreground)] [--muted-foreground:var(--gallery-muted)] [--ring:var(--gallery-foreground)]",
-        "[--brand-foreground:var(--gallery)] [--brand:var(--gallery-foreground)] [--primary-foreground:var(--gallery)] [--primary:var(--gallery-foreground)]",
+        // The slab's token set: .surface-ink in globals.css (see the header note).
+        "surface-ink",
         // isolate + relative give the seam glow something to pin to without it
         // escaping over the page above.
         "relative isolate bg-background text-foreground",
@@ -170,8 +171,8 @@ function SignOff() {
           gets: CtaBand sits above the footer on cinema pages but nowhere on
           /about, /press, /careers or a 404. Deliberately SECONDARY to the demo
           (a hairline, not a fill) so the two do not compete, and hand-rolled
-          against the gallery tokens because a shadcn Button would paint
-          --primary ink on the slab and vanish. It also gives the register a
+          on purpose: the slab's .surface-ink set would let a Button paint, but
+          the outline register is the point. It also gives the register a
           right edge; without it the row left ~600px of dead space, the exact
           wireframe quality this pass exists to remove. */}
       <Link

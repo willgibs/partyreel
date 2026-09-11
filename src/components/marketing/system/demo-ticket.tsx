@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { StyledQr } from "@/components/app/styled-qr";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { trackAttrs } from "@/lib/analytics/events";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
@@ -82,12 +82,12 @@ export function DemoTicket({
         >
           {DEMO_CTA_LABEL}
         </span>
-        <MonoCaption className={column ? undefined : "text-white/60"}>
+        <Caption className={column ? undefined : "text-white/60"}>
           <span className="hidden sm:inline">
             Scan with your phone, or tap to open
           </span>
           <span className="sm:hidden">Tap to open the demo album</span>
-        </MonoCaption>
+        </Caption>
       </span>
     </Link>
   );
