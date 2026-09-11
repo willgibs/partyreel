@@ -16,7 +16,7 @@ included where recorded; the full original prose lives in git history. The found
 `main` @ tag `milestone-21` (`e2c159e`; `launch-prep` `b19e008` merged `--no-ff`, then `launch-prep`
 fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
 (1639 tests at the merge, 1631 after the eight integrated manifests left with the consolidation
-commit; 244 static pages); CI green on every `launch-prep` push (the `main` run at `e2c159e` was still in progress at this record); prod READY at the merge SHA. The one track entry below is the
+commit; 244 static pages); CI green on every push, `main` included; prod READY at the merge SHA. The one track entry below is the
 round.
 
 **The walk before the merge, on the launch-prep alias (1440 in Chrome, 375 in the Browser pane, every
