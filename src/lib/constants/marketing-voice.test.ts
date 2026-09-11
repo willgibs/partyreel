@@ -8,6 +8,7 @@ import {
   ABOUT_META,
   ABOUT_STORY,
 } from "./about";
+import { FEATURE_PAGES } from "./feature-pages";
 import { MARKETING_CTA } from "./marketing-nav";
 import {
   DECOMPOSITION_FACTS,
@@ -98,6 +99,15 @@ describe("the marketing voice single-source", () => {
       ...ABOUT_STORY.paragraphs,
       ...Object.values(ABOUT_LEDGER),
       ...ABOUT_CONVICTIONS.flatMap((c) => [c.title, c.body, c.linkLabel]),
+      // The six feature pages' identity layer (added at the /features/album
+      // round, 2026-09-02): h1s and sublines are copy single-sources too.
+      ...FEATURE_PAGES.flatMap((p) => [
+        p.navLabel,
+        p.navDescription,
+        p.h1,
+        p.heroSub,
+        p.directoryLine,
+      ]),
       ...Object.values(ABOUT_CAREERS),
     ];
     for (const line of all) {

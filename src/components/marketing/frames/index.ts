@@ -4,6 +4,6 @@
 export { AlbumFrame } from "./album-frame";
 export { BrowserFrame } from "./browser-frame";
 export { GalleryFrame } from "./gallery-frame";
-export { PhoneFrame } from "./phone-frame";
+export { PhoneFrame, PhoneShell } from "./phone-frame";
 export { QrFrame } from "./qr-frame";
 export { ReelFrame } from "./reel-frame";

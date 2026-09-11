@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { FeatureFaq } from "@/components/marketing/sections/features/album/feature-faq";
-import { GoDeeper } from "@/components/marketing/sections/features/album/go-deeper";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { AttributionHero } from "@/components/marketing/sections/features/guests/attribution-hero";
 import { CreditedAlbum } from "@/components/marketing/sections/features/guests/credited-album";

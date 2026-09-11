@@ -65,3 +65,9 @@ shipped and the `glow-engine-defects` track claims `glow-contrast.ts` there.
   (a new `viewportFraction` option, default off), `src/lib/shared/sampled-palette.ts` (the URL sampler decodes
   through `decodeImage`), `src/components/dev/glow-contrast.ts` (`effectiveAlpha` gains `band`), the engine
   block of `globals.css`. A lane placing light or reading the contrast instrument syncs this.
+- `1e5d693` `marketing-feature-pages` (2026-09-11, Will's track): `src/components/marketing/system/page-hero.tsx`
+  (`entrance`, the stage slot), `screen-lamp.tsx`, `src/components/marketing/frames/` (`PhoneShell`),
+  `src/app/(marketing)/marketing.css` (`--fly-scale`), `src/components/marketing/mock-parity.test.ts`,
+  `src/lib/constants/feature-pages.ts` (`directoryLine`), the six feature pages, the hub, /how-it-works,
+  /events, /pricing; the library gained the `ScreenLamp` specimen. A lane composing a hero or a phone
+  mock syncs this.

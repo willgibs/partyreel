@@ -11,6 +11,148 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — Track `marketing-feature-pages` integrated (`1e5d693`)
+
+Merged into `launch-prep` at `1e5d693` (2026-09-11). The feature family lifted onto the home page's
+grammar on shared pieces: `PageHero` settled its one entrance (`rise | cut`) and grew a stage slot,
+with the h1 LCP gate lifted everywhere the scan found one; `ScreenLamp` became the one underlight
+as a component; `FeatureDoor` made the hub a directory of photographic doors that every page also
+closes on; one FAQ band and one GoDeeper row serve all six pages. The hub was rewritten three times
+on Will's reading rule (his H1, a one-breath subhead, seven door lines held in one band). The album
+page was rebuilt twice from a first-time host's questions outward (thirteen beats: getting in,
+everywhere, the numbers, then the host's desk of live-or-review, names, who can open it, taking it
+home, how much fits, it stays), every app string pinned, every number derived, then finished: copy
+as tested sets, verdict-first FAQ, no mono but the stat band, every section in its own register.
+The five other pages keep the shared furniture and await their own rounds, one track each.
+
+**How it came in.** Will's own track, spawned 2026-09-01 before the manifest model existed and
+given a stub at the operating model's landing; its agent synced `launch-prep` three times (the first
+took CHANGELOG and ROADMAP on `launch-prep`'s side whole, unioned the light table, and collapsed its
+`over-capacity.ts` onto `over-cap.ts`; the last at `e67d23c`), so the merge was clean: zero conflicts,
+no staleness. Lane exceptions accepted, all additive: `marketing.css` (`--fly-scale`,
+default-preserving), `frames/` (`PhoneShell`), `mock-parity.test.ts` (14 rows),
+`marketing-voice.test.ts` (the feature registry in the night scan). Its one red test was the marketing
+library's pin wanting a `ScreenLamp` specimen (the Orchestrator's lane), added inside the merge as a
+cut hero with a stage and its lamp. Gate on the merged tree: 1639 tests, 244 static pages. The
+doc-eye pass (`4019f8c`) amended two facts in `design-system.md` (/pricing is not on the blur-rise;
+the trio's third register is ruled, not open) and one JSDoc line in `page-hero.tsx`.
+
+#### 2026-09-01, the feature pages round (the branch's own entries, newest first)
+
+An autonomous Agent round on Will's brief: "attempt a redesign across all of our marketing feature
+pages", with the design lab's light doctrine and the home page's chapter pacing as the current peak,
+under rising tides. Built and verified on the worktree dev server (Chrome MCP at 1440, the Browser
+pane at 375; every reveal forced by hand, since both tabs run in the background) and on the branch
+preview. Gate green at every commit; 1316 tests.
+
+**What it is, in one line: the hub and the six feature pages now open, light and pace the way the home
+page does, on shared pieces instead of six hand-rolled copies.**
+
+- **`PageHero` settles the one hero entrance** (`entrance: "rise" | "cut"`) and grows a stage slot.
+  The six feature heroes, the hub, /how-it-works and /events compose it; the album hero had been
+  cutting its own h1 after hydration against the family rule, which the sweep closes by contract.
+- **`ScreenLamp`**, the one underlight mechanic as a component: a lit object throws its own sampled
+  light down off its bottom edge, full-bleed. The album's arrivals stream, the guests' attribution
+  wall and the sharing page's link frame are now lamps, each the colour of its own photographs
+  (measured live on /features/album: hues 53 and 308, not the house set). The QR plate switches on
+  (lab moment 06's second specimen: ignite on arrival, rest lit), with its field sized so the falloff
+  completes inside it. Curation, privacy and the doors carry no lamp, by the scarcity ruling.
+- **`FeatureDoor`**, the ruled media-forward card as the feature directory: the hub's seven doors and
+  every page's sibling band are photographs with each surface's own chip. The hub's hand-drawn motifs
+  went with it. The sibling band is now the close chapter's opener (three doors on the hard cut, with
+  air), so the FAQ and CTA have something to ramp down from.
+- **Each page as an attention arc**, bespoke per page: the album re-paced (hero → live → the quiet
+  numbers → paper); the print stock straddles the cut on /qr and the guest-list card on /guests; the
+  spec sheet, downloads, queue and access switch open their paper chapters a tier up; /qr's entry
+  flow opens its close, so its doors drop to the body register.
+- **One FAQ band and one GoDeeper row for all six pages** (`shared/`): curation, sharing and privacy
+  drop their near-copies and their second FAQPage JSON-LD emission; the ROADMAP's unification
+  one-liner closes. `launch-prep`'s sideways-scroll clip (the skin wrappers) merged in mid-round,
+  which is the clip the full-bleed lamps rely on. Verified on the branch alias: the guest card
+  overhangs the cut by 79px, the QR plate rests at base 0.34 with its field inside the section, the
+  album lamp's first three hues are orange, gold and blue (sampled), no page overflows.
+
+- **Per-page round 1, `/features` (Will's notes, 2026-09-02):** the centred `PageHero` lockup clamps
+  to `max-w-3xl` again (the family's width; unclamped, the hub's title ran the full Container in one
+  line), so every swept hero breaks evenly; the hub's actions are a Start free / How it works pair
+  with the demo line centred beneath (the events hub takes the same balance); and the "How it
+  works" section is GONE as a section: after two cuts (a body-tier SectionShell, then a 24/30
+  lockup) still read as the CtaBand's twin, the walkthrough and help pointers were dropped altogether
+  ("feels very clean"): the directory takes a step more padding and goes straight to the CtaBand.
+  Then a full copy rewrite of the hub as one voice, cut twice on Will's reading rule ("people tend
+  not to read most copy on a site"): his H1 "The full media kit for any event", a one-breath
+  subhead, the seven door lines rewritten as a set on a new registry field (`directoryLine`, two
+  rows at most, width-constrained on the card, held to one length band so they wrap alike), and a
+  fresh close ("Start with one event, free.").
+- **`/features/album`, the finish pass before review (2026-09-02).** Will's three notes on the
+  question-driven rebuild: no mono anywhere but tabular alignment (a consumer product, not a devtool),
+  supporting copy punchy and every multi-item list visually balanced, every section finished in its
+  own register. Copy now lives in `album-copy.ts` as SETS held in a measured length band + spread by
+  `album-copy.test.ts` (the hub's `directoryLine` mechanism); the FAQ is verdict-first (a few words,
+  a period, one sentence). Mono swept to the StatBand alone (the GoDeeper caption went to Inter across
+  every feature page). Elevations: the getting-in facts are the phone's INDEX (ruled rows, an ink
+  gutter bar following the screen, hover pins it); the three controls are a settings document with
+  the real switch / select / hidden-tile shapes; the Live|Review photograph MOVES along one rule
+  (Approve all is a real button that sends it on); one lightbox pill cycles its three states with a
+  synced index; four exposures of one album on the 3px rebate (`[data-mkt-isolate]` light table);
+  three equal photographic take-home plates with the icon-swap; one ruled plan strip with storage
+  bars and the guest's refusal drawn as the toast; the lifecycle on one hairline grid closing the desk
+  on a drawn rule. Measured at 1440 and 375: every set's siblings on equal rows, no overflow.
+- **`/features/album`, the second pass, from the host's questions outward (2026-09-02).** Will's
+  read of the first pass was exact: the same skeleton with polish, and "a very poor job of covering
+  all the questions a host would have". Three fact sheets (the system docs, the host-side code, the
+  guest-side code) were compiled first and a Plan agent stress-tested the IA against a fresh
+  reader's question list; it caught "no account by default" (backwards: Require accounts defaults
+  ON), a private frame leaking a name and count, and a plans chart opening a cinema chapter. The
+  page is now thirteen beats: getting in (one phone cycling the scan, the welcome and the first
+  upload), everywhere, the numbers, then a paper desk (Live | Review as a switch you flip, names in
+  the lightbox, four states of who can open it, taking it home, how much fits with every number
+  derived, it stays with the grace and idle windows derived), then the doors and nine questions.
+  New: `over-capacity.ts` (the 45-day grace, now shared by the cron and the pricing FAQ), a shared
+  ghost grid, ten mock-parity pins, the night scan over the feature registry.
+- **`/features/album`, the first ground-up page round (2026-09-02).** Will's brief: treat it as a
+  total visual and copy redesign and think from the whole product's benefits, not the previous
+  sections. The page is now the album through the event's own timeline in three arcs. The hero's
+  stage was rebuilt on two product truths the old mock got wrong: the real album is newest-first
+  and PREPENDS arrivals, and the real feedback is a green check plus a live count, not toasts. So
+  the album now fills from the top (older tiles slide down on the shared `useFlip`, the check draws,
+  the count ticks, an in-flight tile shows the real progress strip), from one tick and a pure,
+  unit-tested derivation; a second stage lands the same tile on a laptop and a phone in one commit
+  (the doorbell as a benefit); the spec sheet and keeping cards became one document; the double
+  eyebrow became the page's label alone on all six pages; every copy block is two rows. New:
+  `album-fill-fixtures.ts`, `use-album-fill.ts`, `album-fill-grid.tsx`, `arrivals-stage.tsx`,
+  `everywhere-*.tsx`, `PhoneShell` (the bezel with a children slot), a `--fly-scale` token on the
+  fly recipe so an album arrival settles (0.96) instead of popping (0.55). Deleted:
+  `live-section.tsx`. ★ Neither browser tool can run the clock (both are background tabs, so
+  `useAmbientPause` stays paused); the mechanic is held by the derivation tests and Will's eye.
+- **The h1 never moves, held by a scan.** `marketing-h1-policy.test.ts` reads every marketing h1 for
+  a reveal or cut gate. It found three outside the feature family (/pricing, /reel, the event pages),
+  each the LCP hole PageHero forbids; the gate came off each and the slots around it keep arriving.
+  The blur-rise trio (/help, /contact, /careers) carries the same hole as a CLASS, which the scan
+  cannot see, and stays Will's call (ROADMAP). `screen-lamp.test.ts` and `feature-door.test.ts` pin
+  the new pieces; the hero contract test grows the two-entrance and stage rules. 1316 → 1330 tests.
+
+★ A radial mask's reach is a fraction of the full field: the lab's 78% on the plate rendered as a
+rounded square until the field grew and reach dropped to 60%. ★ Both browser tools run as background
+tabs here: IntersectionObserver never fires, so every reveal must be forced before a screenshot, and
+the Chrome window will not resize below ~500px, so the phone pass ran in the Browser pane with the
+mobile preset and DOM measurements (no page overflows at 375).
+
+## 2026-09-11 — MILESTONE-20: prod = the spill engine's six defects fixed
+
+`main` @ tag `milestone-20` (`616aea2`; `launch-prep` `4ab5484` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1592 tests, 244 static pages); prod READY at the merge SHA. The one track entry below is the round.
+
+**The walk before the merge, on the launch-prep alias:** the home's three seams present at their
+shipped strengths with the hero and the footer rendering as before and a clean console; on the
+doctrine board an unarmed bloom now rests at opacity 0 and scale 0.94 with no animation running (the
+first fix, seen live); the placements board renders its 21 engine mounts and 4 lit surfaces cleanly.
+
+**Prod at `616aea2`:** the home, /features, /pricing, /help, /privacy and the `Test Wedding` door 200,
+/dashboard 307 signed out, the purge cron 401 without its secret; the main stylesheet carries the
+bloom's resting rule and the settled no-mask fallback.
+
 ## 2026-09-11 — Track `glow-engine-defects` integrated (`8181c85`)
 
 Merged into `launch-prep` at `8181c85` (2026-09-11). Six engine defects fixed, no placement touched: an

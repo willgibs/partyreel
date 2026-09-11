@@ -32,6 +32,12 @@ export function DownloadsSection() {
       eyebrow="Downloads"
       heading="Everything comes back out at full quality."
       subhead="Downloads are the original files: the same resolution they went in at, no re-compression, and no watermarks on photos, ever."
+      /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up,
+         the hard cut, and real air, so the morning-after desk opens with
+         weight; who-gets-what below stays at the body tier and closes quiet. */
+      scale="lg"
+      reveal="cinema"
+      className="pt-28 sm:pt-36"
     >
       {/* R4 body choreography: ONE Reveal over the whole split (the modal used
           to appear statically while only the copy rose), with --i continuing

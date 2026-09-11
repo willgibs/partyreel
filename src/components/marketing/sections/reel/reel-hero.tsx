@@ -37,10 +37,10 @@ export function ReelHero() {
         <Reveal className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="flex max-w-2xl flex-col items-start gap-5 lg:col-span-7">
             <Eyebrow {...cut(0)}>The highlight reel</Eyebrow>
-            <h1
-              {...cut(1)}
-              className="font-heading text-4xl text-balance sm:text-5xl lg:text-7xl"
-            >
+            {/* The H1 never carries a reveal-hidden state (the LCP rule,
+                pinned by marketing-h1-policy.test.ts); the slots around it
+                do the arriving. */}
+            <h1 className="font-heading text-4xl text-balance sm:text-5xl lg:text-7xl">
               {GOLDEN_LINES.reelThesis}.
             </h1>
             <p

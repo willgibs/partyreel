@@ -25,8 +25,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   source hash (the `ci-workflow` track's note, 2026-09-02).
 - **The restore toast should read `mediaStillRemoved`** (the `product-truth` track, 2026-09-02:
   `restoreEventAction` now returns the count, and nothing reads it). The consumer is
-  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest
-  (`docs/tracks/product-truth.md`, Handoff) until that file is pruned at the milestone, then in git.
+  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest, now in git
+  only: `git show d752a9b:docs/tracks/product-truth.md` (Handoff).
 - **Give the visibility WORD a server-safe home** (e.g. `src/lib/events/visibility-labels.ts`) so the
   RSC chip, the client selector and marketing's `access-switch.tsx` read one record; an RSC cannot dot
   into `visibility-selector.tsx` ("use client"), so the chip re-types "Public" today with a comment.
@@ -44,6 +44,13 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   placeholder's white tablecloth the card copy needed a second scrim and still sits at 4.27:1 at the
   brightest 5% of pixels under the heading (median 5.6:1; measured 2026-09-01). The real photographs
   are the real fix; do not darken the scrim a third time for this one image.
+- **The five remaining feature pages, one ground-up round each, in nav order** (Will, 2026-09-11:
+  /features/qr, /curation, /sharing, /guests, /privacy), the album page as the model, section for
+  section; they cut AFTER the library phase, two to three at a time, each claiming only its own
+  route and sections directories (the queue in [`tracks/README.md`](tracks/README.md)). The brief,
+  page by page (what each has today, the questions its round answers, the mechanisms to reuse, the
+  corrections that must hold), lives in the track's manifest in git:
+  `git show 0f52503:docs/tracks/marketing-feature-pages.md`.
 
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
@@ -233,12 +240,14 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
-  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
-  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for GoDeeper captions (press facts were
-  settled on `/press` 2026-08-28 and the legal status lines on 2026-09-01: mono holds data only, Inter
-  for every label and descriptor);
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep**, answered for the GoDeeper captions (Inter since 2026-09-02, the
+  feature-pages round; the ruling: mono holds data only, as the press facts on 2026-08-28 and the legal
+  status lines on 2026-09-01 already settled); what remains is `MonoCaption`'s other call sites (29
+  files, most of them the feature sections' captions), one pass in the library phase;
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
-  the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
+  the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
+  subjects; the hub doors' and the album stages' stock photographs are placeholders Will replaces,
+  "the only weak link");
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
   explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
@@ -256,30 +265,27 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
-  **settle `PageHero`: one hero entrance, then sweep the twelve hand-rolled copies onto it** (Will,
-  2026-08-29 — one round, after careers lands, never inside a merge). Two halves of the same
-  question. (a) ENTRANCE: `PageHero` uses the chapter-1 rise while /help, /contact and /careers
-  arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line` forces
-  `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
-  `opacity: 0` rest state is why those pages gate their own h1's paint. ★ That last part is a REAL
-  BUG the sweep closes, on **4 of 22 marketing h1s** (pricing, /help index, /contact, /careers): the
-  h1 ships at `opacity: 0` and paints only after hydration plus an observer, which is exactly the LCP
-  hole `PageHero` already forbids. ★ And /careers is confirmed to QUALIFY (checked at its merge,
-  2026-08-29) — its hero is a plain eyebrow/h1/subhead/actions lockup, with the contact sheet a
-  BACKGROUND sibling rather than part of it — so the old "careers still hand-rolls, so the sweep is
-  blocked" framing is retired; only (a) blocks it. (b) ADOPTION: only /about and
-  /press compose it, while TWELVE pages hand-copy its exact lockup inline (`<Reveal>` + `Eyebrow` +
-  the identical `text-4xl…lg:text-7xl` h1 + subhead + a two-Button row) and have already drifted to
-  `gap-5` against its `gap-6`. The sweep is blocked on (a): those twelve differ in entrance
-  (`data-mkt-reveal` vs `data-mkt-cut`, and /features/curation deliberately keeps its h1 static), so
-  `PageHero` needs an entrance prop before any of them can move. ★ `PageHero` owns ONLY the plain
-  type lockup — it must never absorb a hero with media, a form, or its own object (/blog's index
-  masthead, /help's instrument row, the home hero all stay bespoke by design)
+  **the `PageHero` sweep, the remaining half** (Will,
+  2026-08-29; the cut family swept at the feature-pages round, 2026-09-01: `entrance` is `rise | cut`,
+  and five of the six feature pages (/qr stays bespoke), the hub, /how-it-works and /events compose
+  it, so ten of the twelve hand-rolled copies are gone; and the h1 LCP hole is CLOSED on every hero
+  whose h1 carried a data-attribute gate: /pricing, /reel and /events/[slug] lifted at the same round,
+  held by `marketing-h1-policy.test.ts`). What is left is the blur-rise trio: the /help index,
+  /contact and /careers arrive on the texts-reveal `.mkt-line`, whose `opacity: 0` rest state is the
+  SAME LCP BUG in class form (the scan cannot see a class), and `.mkt-line` forces `display:block`,
+  so a blur-rise lockup needs its own handling for the actions row. RULED 2026-09-02: the trio
+  becomes a NAMED third `entrance` register on `PageHero` with the h1 visible at paint (the
+  blur-rise animates the slots around it), in the library phase before the next marketing tracks
+  cut; /pricing's hand-rolled `rise` lockup (static h1) moves onto `PageHero` in the same pass.
+  ★ `PageHero` owns ONLY the plain type lockup plus a stage slot for what sits under it; it must
+  never absorb a hero whose object sits beside the lockup or a form (/qr, /blog's index masthead,
+  /help's instrument row, the home hero all stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 - **A mobile pass of its own** (Will, 2026-08-29): "we'll already need to make mobile tweaks in the
   future. Right now, I've really been reviewing desktop only." Every marketing round to date has been
   judged at desktop and merely checked for breakage at 375, so the phone is un-tuned by accretion
-  rather than by any single decision. One round over the whole marketing site, not per page.
+  rather than by any single decision. One round over the whole marketing site, not per page. The
+  feature pages (2026-09-11) were measured at 375 for overflow and row balance, not for feel.
 - **The sticky-offset split** (found in the careers merge, 2026-08-29): reading rails use `top-24`
   (96px — /help/[slug], the legal shell, the careers role page) while index rails use
   `calc(var(--mkt-header-h) + 1.5rem)` (88px — /blog, /press, the /help index). Both are consistent

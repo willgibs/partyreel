@@ -1,22 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
-import { BreadcrumbJsonLd, FaqPageJsonLd } from "@/components/marketing/jsonld";
+import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { BulkTools } from "@/components/marketing/sections/features/curation/bulk-tools";
-import {
-  CURATION_FAQ,
-  CurationFaq,
-} from "@/components/marketing/sections/features/curation/curation-faq";
+import { CURATION_FAQ } from "@/components/marketing/sections/features/curation/curation-faq";
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { Reversibility } from "@/components/marketing/sections/features/curation/reversibility";
 import { ReviewModes } from "@/components/marketing/sections/features/curation/review-modes";
 import { ReviewQueueDemo } from "@/components/marketing/sections/features/curation/review-queue-demo";
+import { FeatureFaq } from "@/components/marketing/sections/features/shared/feature-faq";
+import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
+import { GoDeeper } from "@/components/marketing/sections/features/shared/go-deeper";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
-import { Reveal } from "@/components/marketing/system/reveal";
-import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
@@ -37,11 +34,6 @@ export const metadata: Metadata = {
  * pricing-document treatment matured), then the dark close.
  */
 export default function CurationFeaturePage() {
-  const cut = (i: number) => ({
-    "data-mkt-cut": "",
-    style: { "--i": i } as CSSProperties,
-  });
-
   return (
     <>
       <BreadcrumbJsonLd
@@ -51,56 +43,33 @@ export default function CurationFeaturePage() {
           { name: page.navLabel, href: "/features/curation" },
         ]}
       />
-      <FaqPageJsonLd items={CURATION_FAQ} />
 
-      {/* The short dark hero: the stub grammar, contextual secondary to the
-          album page (the surface curation shapes). */}
-      <section className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
-        <Container>
-          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            {/* ONE ruled eyebrow, not two stacked labels: the parent link and
-                the page name read as a single breadcrumb line. */}
-            <Eyebrow {...cut(0)}>
-              <Link
-                href="/features"
-                className="transition-colors duration-150 hover:text-foreground"
-              >
-                Features
-              </Link>
-              <span aria-hidden className="px-1.5 text-muted-foreground/50">
-                ·
-              </span>
-              {page.navLabel}
-            </Eyebrow>
-            {/* The H1 stays STATIC (no cut): the six-page family rule after
-                R4 — the hero's headline is the LCP-adjacent anchor and the
-                post-hydration re-cut read as a flash. Secondary elements
-                keep the register. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
-              {page.h1}
-            </h1>
-            <p
-              {...cut(1)}
-              className="max-w-2xl text-lg text-pretty text-muted-foreground"
+      {/* The short dark hero on the shared lockup (the PageHero sweep): the
+          cinema cut around a STATIC h1, contextual secondary to the album
+          page (the surface curation shapes). No stage and no lamp on purpose:
+          restraint IS this page's identity, and the queue below is the beat. */}
+      <PageHero
+        entrance="cut"
+        eyebrow={<FeatureHeroEyebrow label={page.navLabel} />}
+        heading={page.h1}
+        subhead={page.heroSub}
+        actions={
+          <>
+            <Button asChild size="lg" className="h-11 px-6 text-base">
+              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 px-6 text-base"
             >
-              {page.heroSub}
-            </p>
-            <div {...cut(2)} className="mt-2 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-11 px-6 text-base">
-                <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-11 px-6 text-base"
-              >
-                <Link href="/features/album">See the live album</Link>
-              </Button>
-            </div>
-          </Reveal>
-        </Container>
-      </section>
+              <Link href="/features/album">See the live album</Link>
+            </Button>
+          </>
+        }
+        className="overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14"
+      />
 
       {/* THE HOST'S DESK: the whole working body on one paper chapter (the
           chapter doctrine: reading, deciding, trust). */}
@@ -115,7 +84,16 @@ export default function CurationFeaturePage() {
           The chapter's own bottom hairline owns the cut back to the cinema,
           so no border-t anywhere in the close. */}
       <RelatedFeatures slugs={["album", "sharing", "privacy"]} />
-      <CurationFaq />
+      <FeatureFaq items={CURATION_FAQ}>
+        <GoDeeper
+          links={[
+            {
+              href: "/help/moderate-and-curate-your-album",
+              label: "Curate what shows up in your album",
+            },
+          ]}
+        />
+      </FeatureFaq>
       <CtaBand
         heading="Your album, your call."
         subhead="Start your first event free. Let it fill live, or hold every upload for your approval."

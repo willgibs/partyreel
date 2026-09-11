@@ -32,6 +32,7 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **Round 3 wave 2: the marketing branch** | **✅ integrated 2026-09-11 (`1e5d693`)**: the feature family on shared pieces (`PageHero`'s two entrances and stage slot, `ScreenLamp`, `FeatureDoor`, one FAQ band), the hub and /features/album to Will's bar, the five other feature pages awaiting their own rounds. Milestone-21 next: the consolidation to one version. |
 | **Round 3 wave 1: six agent tracks** | **✅ milestones 18 and 19 (2026-09-02)**: CI on every push, the app and guest surfaces true, the launch runbook's billing half and the legal surface, every job operable from `/admin/jobs`, self-serve account deletion, the demo seed. Each track ran as an Orchestrator-spawned agent on its manifest and integrated in its own window. |
 | **Round 3 (A + B): the operating model + the library round** | **✅ milestone-17 (2026-09-02)**: track manifests + two guards + the build gate on request; the lab distilled (26 boards to [`decisions/design-record.md`](decisions/design-record.md), `/design/marketing`, `/design/record`, the CSS split: the home's main sheet 304,277 → 265,358 bytes). Part C (the roadmap as tracks + the wave-1 inits) is next. |
 | R4 Growth (Share Studio) / R4b Social P4 | Profiles+social P1-P3 shipped early (rode milestone-2); Share Studio + the P4 feed not started |
@@ -312,11 +313,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-16`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-20`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1489 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1639 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -379,15 +380,13 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **All of wave 1 is on prod (MILESTONE-19, 2026-09-02).** `launch-prep` and `main` agree at
-   `88827d9`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
-   `7a189ae`, 21 commits of its own: the six feature pages and their hub, /how-it-works, /events,
-   /pricing, `PageHero`'s two entrance registers, the screen lamp, and a new /features/album page).
-   On 2026-09-11 its agent merged `launch-prep` locally as a pre-handoff sync (unpushed as of this
-   line; it resolved the purge cron to `over-cap.ts`, the right way). Eight of its files sit outside
-   its stub's claims (`marketing.css`, `frames/`, `mock-parity.test.ts`, `pricing-faq-data.ts`,
-   `marketing-voice.test.ts`, the purge route's import) and get ruled at integration; the marketing
-   library's pin will need a `ScreenLamp` specimen or an UNSPECIMENED reason at the merge. Every track's claim and handoff lives in [`docs/tracks/`](tracks).
+2. **The marketing branch is integrated (`1e5d693`, 2026-09-11); milestone-21 is the consolidation.**
+   `lp/marketing-feature-pages` (Will's, cut at `7a189ae`, 26 commits) merged clean after its agent's
+   three syncs; its `ScreenLamp` specimen landed inside the merge; the lane exceptions were ruled
+   additive. Next, in order: the preview walk on the alias (your ten-second eye on the album's ambient
+   pieces), the milestone merge to `main` with the eight integrated manifests deleted, every `lp/*`
+   branch and worktree gone, then the library phase before any track cuts. Every track's claim and
+   handoff lives in [`docs/tracks/`](tracks) until the milestone; after it, in git.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
@@ -395,11 +394,12 @@ manifest fill.
 5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
-   facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
-   "Elevation-program deferred queue").
-7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
-   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
+6. **The MonoCaption sweep**, answered for the GoDeeper captions on the marketing branch (Inter,
+   2026-09-02, your words: mono only where it aids a tabular layout). What remains is `MonoCaption`'s
+   other 29 call sites, one pass in the library phase ([ROADMAP](ROADMAP.md) "Elevation-program
+   deferred queue").
+7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: none;
+   `lp/marketing-feature-pages` (Will's) integrated 2026-09-11 at `1e5d693`. **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
    one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
    and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
    **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) `legal-billing-truth` integrated at `2f98157`, and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening` and `account-deletion` were spawned after the first three handed off;
@@ -410,9 +410,10 @@ manifest fill.
    curated folder). Integration: 1 + 2 together → a
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` integrated 2026-09-11 at `8181c85` (its agent's session died
    after the sixth of six commits; the Orchestrator wrote the handoff from the branch);
-   `marketing-followons` waits on the marketing branch; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
-   (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
-   round in the Launch checkpoint's human order.
+   `marketing-followons` waits on the library phase; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Before wave 3, the library phase** (Orchestrator-run, no agents; Will's direction of
+   2026-09-11): the rules bible in the library, lab to library, the rounding, the hero registers, the
+   feature-family furniture and the single sources, the light rulings. **Wave 4:** the home hero as its
+   own agent focus round, then the launch round in the Launch checkpoint's human order.
 8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
    reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
    rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.

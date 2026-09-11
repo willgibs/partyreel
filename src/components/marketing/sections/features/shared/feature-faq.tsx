@@ -10,8 +10,11 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  * The per-page FAQ band (template kit, item 5): the shared FaqAccordion +
  * FAQPage JSON-LD over the same items, in the events/[slug] section shape.
  * `children` is the optional GoDeeper row under the accordion (kit item 6).
- * T1-SHARED across album / qr / guests (see related-features.tsx for why the
- * shared copy lives in album/).
+ * ONE FAQ band for all six feature pages since the feature-pages round
+ * (2026-09-01): curation, sharing and privacy each carried a near-copy, and
+ * the page files emitted the JSON-LD a second time beside it. The items stay
+ * per page (each `*-faq.ts` is data, exported for the JSON-LD pairing test);
+ * the band, its one quiet arrival slot and the JSON-LD emission live here.
  */
 export function FeatureFaq({
   items,

@@ -325,6 +325,21 @@ and pinned by test.
 | **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
 | **The reel screen's pool** | [reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx), under the reel player, the box exactly the screen's width under an elliptical wrapper mask | `seam` | **sampled** from the reel's poster |
 | **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
+| **The feature heroes** (album, guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the arrivals stream, the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
+| **The QR plate switching on** | [qr-hero.tsx](../../src/components/marketing/sections/features/qr/qr-hero.tsx) (lab moment 06, "the second one") | `bloom` armed on arrival, resting at `--glw-base: 0.34` | the house five (a code is ink on white, law 3's no-media branch) |
+
+★ **`ScreenLamp` is the ONE underlight as a component** (the feature-pages round, 2026-09-01): a lit
+object throws its own sampled light down off its bottom edge, full-bleed, as a sibling of the object
+(never inside a clipping frame). Neither `throw` nor `halo` can backlight an opaque object, so every
+underlight on the site is this mechanic; a new one is a `<ScreenLamp>` around the object, not a fourth
+file. Its section must be `overflow-x-clip`, never `overflow-hidden`, or the field hanging below is
+cut off. Scarcity on a feature page is one lamp in the hero and the footer seam, nothing between; the
+curation and privacy pages carry NO lamp on purpose (restraint is their identity), and so does the
+doors band (a row of lit cards is the every-section-gets-a-version failure).
+★ **A radial mask's reach is a fraction of the FULL field** (found twice now: the reel treatment and
+the QR plate). The transparent stop sits at 78% of that radius, so a lab `--glw-reach: 78%` on a field
+the size of its object puts the fade outside the box and the light renders as a rounded square. Size
+the field generously (`-inset-32` on the plate) and keep reach where the falloff completes inside it.
 
 Three seams and one beam on the home page (film strip, reel, Pro beam, footer: 5909, 1275 and 1509px
 apart at 1440 on the re-paced page, the nearest pair 1.4 viewports): scarcity as a distance. The hero and the album straddle
@@ -411,7 +426,18 @@ grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the ci
 the exemption below. Will's ruling for the identity pages, 2026-08-28: **share grammar, page picks
 scale.** Compose it rather than hand-rolling a hero; four agents wrote four heroes in one week and that
 is the drift it closes. The heading is always an `<h1>` (the /contact bug class; `SectionShell`'s `as`
-carries the same rule for sections).
+carries the same rule for sections). **The one hero entrance is settled (2026-09-01): `entrance` is
+`rise` (the standard stagger, the identity pages) or `cut` (the hard film cut, every cinema-family
+hero: the six feature pages, the hub, /how-it-works, /events), and the H1 never moves either way.**
+`children` is the STAGE slot, rendered inside the same Container under the lockup, so a page with an
+object (the album filling, the attribution wall, the link frame) composes the lockup and owns its
+object, its entrance and its lamp; `PageHero` still owns only the type. The texts-reveal blur-rise is
+not a third entrance yet: its rest state is `opacity: 0`, the LCP hole, so /help, /contact and /careers
+keep their bespoke heroes until the ruled third register lands (Will, 2026-09-02: the trio becomes a
+NAMED `entrance` with the h1 visible at paint and the blur-rise on the slots around it; the library
+phase, before the next marketing tracks cut). /pricing hand-rolls a `rise` lockup with a static h1,
+its calculator beside it. The QR hero is the one
+feature hero that stays hand-rolled: its object sits BESIDE the lockup, not under it.
 
 The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
 decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's
@@ -459,8 +485,11 @@ link). One page uses it; if a second index wants it, THAT is when it gets extrac
 **The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
 where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
-devtool" — Will). Existing `MonoCaption` surfaces (press facts, legal status lines, GoDeeper rows) are
-grandfathered pending Will's ruling on a sweep (→ ROADMAP).
+devtool" — Will). Restated 2026-09-02 on the album page's finish pass: **"I don't want to use mono
+anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day. The
+press facts and the legal status lines were already settled on the same line (mono holds the data,
+Inter the labels); what remains is one pass over `MonoCaption`'s other call sites, most of them the
+feature sections' captions, mono for data only (→ ROADMAP).
 
 ## Rounding: sharp surfaces, round actions
 
