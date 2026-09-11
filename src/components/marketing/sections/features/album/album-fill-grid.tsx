@@ -6,6 +6,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { useFlip } from "@/lib/shared/use-flip";
+import { useEnteredFrame } from "@/lib/shared/use-entered-frame";
 import { cn } from "@/lib/utils";
 
 import type { AlbumFillView, AlbumTile } from "./use-album-fill";
@@ -34,24 +35,6 @@ import type { AlbumFillView, AlbumTile } from "./use-album-fill";
  * past the foot are clipped, not shrunk. `--fill-scale` lets a narrow viewport
  * scale every authored height at once.
  */
-
-/** Flip to the visible state two frames after mount, so the entrance transition
- *  actually runs (the ClearedBeat precedent: state only inside rAF). */
-function useEnteredFrame(instant: boolean): boolean {
-  const [on, setOn] = useState(instant);
-  useEffect(() => {
-    if (instant) return;
-    let second = 0;
-    const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => setOn(true));
-    });
-    return () => {
-      cancelAnimationFrame(first);
-      cancelAnimationFrame(second);
-    };
-  }, [instant]);
-  return on || instant;
-}
 
 function CheckBadge() {
   const on = useEnteredFrame(false);
