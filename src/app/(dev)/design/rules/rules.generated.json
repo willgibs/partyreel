@@ -2413,7 +2413,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/declares-background-only-inside-the-sanctioned-cinema-skin",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 147,
+      "line": 164,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2434,7 +2434,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/names-every-view-transition-rule-after-a-live",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 107,
+      "line": 124,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2455,7 +2455,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/never-declares-on-root",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 52,
+      "line": 69,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2476,7 +2476,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/never-defines-the-theme-ease-names-they-would",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 60,
+      "line": 77,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2497,7 +2497,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/never-targets-a-view-transition-pseudo-element-with",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 90,
+      "line": 107,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2518,7 +2518,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/prefixes-every-keyframes-name-with-mkt",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 136,
+      "line": 153,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2539,7 +2539,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/uses-no-bare-element-selectors-except-the-sanctioned",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 74,
+      "line": 91,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2560,7 +2560,7 @@
       "id": "t:src/app/(marketing)/marketing-css-policy.test.ts#marketing-css-containment-policy/uses-no-color-literals-beyond-the-sanctioned-set",
       "source": "test",
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
-      "line": 173,
+      "line": 190,
       "suite": [
         "marketing.css containment policy"
       ],
@@ -2810,6 +2810,27 @@
       "pins": []
     },
     {
+      "id": "t:src/app/globals-theme-contract.test.ts#globals-css-surface-paper-contract/declares-the-ink-leaf-set-once-after-paper",
+      "source": "test",
+      "file": "src/app/globals-theme-contract.test.ts",
+      "line": 57,
+      "suite": [
+        "globals.css surface-paper contract"
+      ],
+      "title": "declares the ink leaf set once, after paper, as .surface-ink",
+      "body": null,
+      "emphasis": 1,
+      "dynamic": false,
+      "skipped": false,
+      "provenance": {
+        "dates": [],
+        "adrs": [],
+        "ruledBy": "unknown",
+        "quote": "The surface-paper theme contract (the mixed-theme chapter mechanism). Marketing forces its themes (cinema = dark wrapper, paper pages/chapters = `.surface-paper`), and the whole mechanism is three fac"
+      },
+      "pins": []
+    },
+    {
       "id": "t:src/app/globals-theme-contract.test.ts#globals-css-surface-paper-contract/fixes-light-color-scheme-on-paper-subtrees",
       "source": "test",
       "file": "src/app/globals-theme-contract.test.ts",
@@ -2876,7 +2897,7 @@
       "id": "t:src/app/globals-theme-contract.test.ts#paperchapter-doctrine/never-carries-data-mkt-skin-page-level-chrome",
       "source": "test",
       "file": "src/app/globals-theme-contract.test.ts",
-      "line": 59,
+      "line": 71,
       "suite": [
         "PaperChapter doctrine"
       ],
@@ -2897,7 +2918,7 @@
       "id": "t:src/app/globals-theme-contract.test.ts#the-lamp-set-is-light-never-ui/declares-the-five-exactly-once-in-globals-css",
       "source": "test",
       "file": "src/app/globals-theme-contract.test.ts",
-      "line": 102,
+      "line": 114,
       "suite": [
         "the lamp set is light, never UI"
       ],
@@ -2920,7 +2941,7 @@
       "id": "t:src/app/globals-theme-contract.test.ts#the-lamp-set-is-light-never-ui/uses-them-only-in-gradients-or-in-a",
       "source": "test",
       "file": "src/app/globals-theme-contract.test.ts",
-      "line": 134,
+      "line": 146,
       "suite": [
         "the lamp set is light, never UI"
       ],
@@ -3658,7 +3679,7 @@
       "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/keeps-the-qr-server-rendered-no-client-island",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
-      "line": 66,
+      "line": 70,
       "suite": [
         "the ink-slab footer contract"
       ],
@@ -3679,7 +3700,7 @@
       "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/never-nests-dark-the-standing-gallery-rule",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
-      "line": 58,
+      "line": 62,
       "suite": [
         "the ink-slab footer contract"
       ],
@@ -3700,7 +3721,7 @@
       "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/passes-the-shipped-11s-cadence-rather-than-taking",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
-      "line": 94,
+      "line": 98,
       "suite": [
         "the ink-slab footer contract"
       ],
@@ -3718,14 +3739,14 @@
       "pins": []
     },
     {
-      "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/redeclares-the-tokens-gallery-does-not-cover",
+      "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/takes-the-slab-s-token-set-from-surface",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
       "line": 25,
       "suite": [
         "the ink-slab footer contract"
       ],
-      "title": "redeclares the tokens --gallery* does not cover",
+      "title": "takes the slab's token set from .surface-ink, declared once in globals.css",
       "body": null,
       "emphasis": 1,
       "dynamic": false,
@@ -3742,7 +3763,7 @@
       "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/the-seam-glow-owns-the-loop-pause-contract",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
-      "line": 74,
+      "line": 78,
       "suite": [
         "the ink-slab footer contract"
       ],
