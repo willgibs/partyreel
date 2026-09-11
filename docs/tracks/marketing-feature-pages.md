@@ -179,10 +179,10 @@ docs carry in-place edits, each for a fact inside the owned paths:
 
 ## Handoff
 
-- Head: the commit carrying this manifest, on top of the two sync merges `e12a883` and `08d2cb3`
+- Head: the commit carrying this manifest, on top of the sync merges `e12a883`, `08d2cb3` and the third
   (the album finish pass is `f9ffc33`); pushed. Preview:
   partyreel-git-lp-marketing-feature-pages-partyreel.vercel.app (builds on every push now).
-- Synced with `launch-prep` at `8181c85` (the glow-engine-defects merge). The first sync's
+- Synced with `launch-prep` at `e67d23c` (milestone 20 recorded; the third sync, docs only, clean). The first sync's
   resolutions: CHANGELOG and ROADMAP take launch-prep's side whole; the design-system light table
   is a union; the over-capacity grace numbers collapse onto launch-prep's
   `src/lib/lifecycle/over-cap.ts` (the branch's duplicate `over-capacity.ts` deleted, its importers
