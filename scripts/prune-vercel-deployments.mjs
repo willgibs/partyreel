@@ -45,8 +45,15 @@ const DEFAULT_KEEP = 10;
 /** Nothing younger than this is ever deleted, however it classifies. */
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 
-/** Courtesy pause between deletes so a long prune cannot look like a hammering client. */
-const DELETE_DELAY_MS = 150;
+/**
+ * Courtesy pause between deletes. Vercel rate-limits deletion hard: the first run of this script
+ * managed 213 before every remaining call came back 429, so the pause is generous and the client
+ * waits out a 429 rather than burning the attempt (see deleteOne).
+ */
+const DELETE_DELAY_MS = 900;
+
+/** How many times one deployment may be re-tried after a 429 before we give up on it. */
+const MAX_RETRIES = 6;
 
 try {
   process.loadEnvFile(new URL("../.env.local", import.meta.url).pathname);
@@ -69,17 +76,54 @@ if (keepOverride !== null && !Number.isFinite(keepOverride)) {
   process.exit(1);
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function api(path, init = {}) {
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) },
   });
   if (!res.ok) {
-    throw new Error(
-      `${init.method ?? "GET"} ${path} -> ${res.status} ${await res.text()}`,
+    const body = await res.text();
+    const err = new Error(
+      `${init.method ?? "GET"} ${path} -> ${res.status} ${body}`,
     );
+    err.status = res.status;
+    // Vercel answers a 429 with the epoch-seconds (or ms) at which the window resets, either in
+    // the standard header or inside the error body. Prefer whichever is present over guessing.
+    const header = Number(res.headers.get("retry-after"));
+    let reset = null;
+    try {
+      const raw = JSON.parse(body)?.error?.limit?.reset;
+      if (raw) reset = raw > 1e12 ? raw - Date.now() : raw * 1000 - Date.now();
+    } catch {
+      // Body was not the shape we expected; the header or the default carries it.
+    }
+    err.retryAfterMs =
+      Number.isFinite(header) && header > 0 ? header * 1000 : (reset ?? null);
+    throw err;
   }
   return res.status === 204 ? null : res.json();
+}
+
+/** One delete, waiting out any rate limit rather than counting it as a failure. */
+async function deleteOne(uid) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await api(`/v13/deployments/${uid}?teamId=${TEAM_ID}`, {
+        method: "DELETE",
+      });
+      return true;
+    } catch (err) {
+      if (err.status !== 429 || attempt >= MAX_RETRIES) throw err;
+      // Cap the wait so a wrong reset value cannot park the run for an hour.
+      const wait =
+        Math.min(err.retryAfterMs ?? 0, 90_000) ||
+        Math.min(2 ** attempt * 2000, 60_000);
+      console.log(`  rate limited, waiting ${Math.round(wait / 1000)}s...`);
+      await sleep(wait);
+    }
+  }
 }
 
 /** Branches that still exist on origin; everything else is a dead branch. */
@@ -196,15 +240,13 @@ let done = 0;
 let failed = 0;
 for (const { d } of drop) {
   try {
-    await api(`/v13/deployments/${d.uid}?teamId=${TEAM_ID}`, {
-      method: "DELETE",
-    });
+    await deleteOne(d.uid);
     done += 1;
     if (done % 25 === 0) console.log(`  ${done}/${drop.length}`);
   } catch (err) {
     failed += 1;
     console.error(`  failed ${d.uid}: ${err.message.slice(0, 140)}`);
   }
-  await new Promise((r) => setTimeout(r, DELETE_DELAY_MS));
+  await sleep(DELETE_DELAY_MS);
 }
 console.log(`\nDeleted ${done}, failed ${failed}, kept ${keep.length}.`);

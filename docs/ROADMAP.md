@@ -51,6 +51,18 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - **The album's ambient pieces, a focused round later** (Will, 2026-09-11: "good enough for now, a
   little buggy"): the phone's screen cycle, the Live | Review photograph and the lightbox pill on
   `/features/album`. Neither browser tool can run them, so the round is judged on his screen.
+- **The design lab on its own subdomain** (Will, 2026-09-11). He wants it "closely tied and unified
+  with the marketing site and app for the agents to continually learn from and upgrade", which argues
+  for ONE repository and a second Vercel project pointed at the same code, not a separate codebase:
+  agents keep reading production components, and the lab stops shipping inside the product. ★ This is
+  architecture, NOT a saving: measured at the cost round, all 13 lab routes cost 2.5 MB marginal in
+  the trace, because every route bundle shares the same dependencies. The round decides the
+  subdomain, how the gate travels with it, and which of the six filesystem-path tests move.
+- **Admin as its own app on its own subdomain** (Will, 2026-09-11): "totally closed to regular users
+  while continuing to be fully available to our orchestrators and agents". `admin.partyreel.com`
+  already exists as a project domain and the portal is already host-gated to it, so the round is about
+  making it a separately deployable surface rather than about the hostname. ★ Also not a saving: the
+  16 admin routes cost 1.5 MB marginal. The win is the closed blast radius.
 
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked

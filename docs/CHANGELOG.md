@@ -11,6 +11,47 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — The Vercel cost round: 381 deployments to a few dozen, and sharp out of every function (`4abfa60`, `d1a4c66`)
+
+Will found deployment and function storage far over plan, with a shutdown risk. The cause was
+overwhelmingly the NUMBER of deployments, not the size of each: 381 retained, all inside five weeks,
+183 of them on 45 `lp/*` branches that had been merged and deleted, and 176 on `launch-prep`, which
+built on every push including docs commits. Retention was already 30 days and working; the program
+simply produced deployments faster than the window cleared them.
+
+**The gate.** `main` always builds; `launch-prep` now builds only when the commit message carries
+`[preview]` (Will: "deployments are only needed for reviewable rounds"); `lp/*` is unchanged. Nothing
+is lost but the preview, since CI runs typecheck, lint, test and build on every push regardless. Both
+paths were probed locally before the push, and the push itself carried the flag and deployed, which
+proved the allow path on the way in.
+
+**The prune.** `scripts/prune-vercel-deployments.mjs` deletes what no branch can reach: a deployment
+whose branch is gone from origin, one that is canceled or errored, or one past its live branch's keep
+count (`main` keeps all, `launch-prep` keeps 10). Three guards outrank every rule and no flag
+overrides them: the deployment serving production, the newest on any live branch, and anything under
+24 hours old. Dry run is the default. The first run deleted 213 before Vercel rate-limited the rest,
+so the tool learned to read `Retry-After` and the reset in the error body and wait rather than burn
+the attempt; the second run finished the job. It is now the last step of the per-track integration
+checklist, so a deleted branch takes its deployments with it.
+
+**sharp out of the function trace, measured rather than assumed.** sharp and its `@img` packages were
+16.6 MB of the 51.1 MB union one deployment stores, present in all 113 route bundles. Next already
+ignores them on a Vercel build, but only in `serverIgnores`, which builds the `next-server` trace; the
+per-route `.nft.json` files are filtered by `routesIgnores`, which carries neither entry. An
+`outputFileTracingExcludes` key matching the literal `next-server` reaches both, which is why the key
+is `"**"`. Verified by rebuilding with `NOW_BUILDER=1` to reproduce Vercel's own conditions: the union
+fell to 34.4 MB and sharp to two 288-byte symlinks. Verified safe on the deployed preview: the same
+`/_next/image` request returns byte-identical output (200, `image/jpeg`, 10,560 bytes) on the preview
+without sharp and on production with it, because Vercel optimizes images at the platform level. The
+method and the numbers are `docs/perf/v1-baseline.md` section 6.
+
+**Two things I had wrong in my first answer, corrected in the record.** The design lab is not a cost
+problem: all 13 of its routes cost 2.5 MB marginal, and admin's 16 cost 1.5 MB, because the route
+traces overlap almost entirely. And the 79.6 MB of source maps I measured is a local-only artifact:
+`serverIgnores` carries `**/*.map` unconditionally and Sentry deletes what it uploads by default with
+the credentials set on Vercel. Both are written into the perf baseline so nobody re-derives them. The
+lab and admin subdomains stay worth doing, as architecture rather than savings, and are queued.
+
 ## 2026-09-11 — The library phase: round C staged for Will's sittings, and the one FLIP (`09587a7` to `d5e9389`)
 
 **Round C, staged.** Every shipped lamp (the footer seam, the film strip, the reel pool, the feature

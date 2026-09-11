@@ -58,3 +58,8 @@ the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
   cadence and rounding knobs in `src/components/dev/motion-tuner-config.ts` (the rounding list shared
   with the lab's playground). A lane placing a lamp syncs this.
 - `d5e9389` one FLIP: `src/lib/shared/use-flip.ts` exports `runFlip`; `use-sortable-grid.ts` calls it.
+- `4abfa60` `d1a4c66` the Vercel cost round: `next.config.ts` (`outputFileTracingExcludes`, sharp out of
+  every route bundle), `scripts/vercel-ignore-build.mjs` (`launch-prep` builds only on `[preview]`),
+  `scripts/prune-vercel-deployments.mjs` (new), and the gate's description in `CLAUDE.md`,
+  `docs/PROGRAM.md` and `docs/tracks/README.md`. ★ A lane that wants its own preview still says
+  `[preview]` or flips its manifest; nothing about `lp/*` changed.
