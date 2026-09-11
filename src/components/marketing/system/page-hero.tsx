@@ -120,8 +120,10 @@ const HERO_SCALE: Record<
  * The texts-reveal blur-rise (`.mkt-line`) is deliberately NOT a third value:
  * its rest state is `opacity: 0`, which is the LCP hole this component
  * forbids, and `.mkt-line` forces `display:block` on whatever carries it.
- * The four pages still on it (/pricing, /help, /contact, /careers) are the
- * bespoke identity heroes and keep their own handling until their revisit.
+ * The three pages still on it (/help, /contact, /careers) keep their own
+ * handling until the trio becomes the NAMED third register with the h1
+ * visible at paint (Will's ruling, 2026-09-02; ROADMAP, the sweep's remaining
+ * half). /pricing hand-rolls a rise lockup with a static h1 instead.
  *
  * Either way the H1 never moves (the LCP rule below), so switching registers
  * changes what the slots AROUND the title do and nothing else.

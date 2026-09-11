@@ -432,8 +432,11 @@ hero: the six feature pages, the hub, /how-it-works, /events), and the H1 never 
 `children` is the STAGE slot, rendered inside the same Container under the lockup, so a page with an
 object (the album filling, the attribution wall, the link frame) composes the lockup and owns its
 object, its entrance and its lamp; `PageHero` still owns only the type. The texts-reveal blur-rise is
-deliberately not a third entrance (its rest state is `opacity: 0`, the LCP hole), so /pricing, /help,
-/contact and /careers keep their bespoke heroes until their own revisit. The QR hero is the one
+not a third entrance yet: its rest state is `opacity: 0`, the LCP hole, so /help, /contact and /careers
+keep their bespoke heroes until the ruled third register lands (Will, 2026-09-02: the trio becomes a
+NAMED `entrance` with the h1 visible at paint and the blur-rise on the slots around it; the library
+phase, before the next marketing tracks cut). /pricing hand-rolls a `rise` lockup with a static h1,
+its calculator beside it. The QR hero is the one
 feature hero that stays hand-rolled: its object sits BESIDE the lockup, not under it.
 
 The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
@@ -483,9 +486,10 @@ link). One page uses it; if a second index wants it, THAT is when it gets extrac
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
 where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
 devtool" — Will). Restated 2026-09-02 on the album page's finish pass: **"I don't want to use mono
-anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day; the
-remaining `MonoCaption` surfaces (press facts, legal status lines, the feature pages' captions) are
-to be swept the same way, page by page (→ ROADMAP).
+anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day. The
+press facts and the legal status lines were already settled on the same line (mono holds the data,
+Inter the labels); what remains is one pass over `MonoCaption`'s other call sites, most of them the
+feature sections' captions, mono for data only (→ ROADMAP).
 
 ## Rounding: sharp surfaces, round actions
 
