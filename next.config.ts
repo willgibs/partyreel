@@ -58,6 +58,38 @@ const nextConfig: NextConfig = {
     // smaller format pays the budget back directly (Track B, B1).
     formats: ["image/avif", "image/webp"],
   },
+  /**
+   * SHARP NEVER REACHES A FUNCTION (the Vercel cost round, 2026-09-11). Measured on the
+   * real trace files: sharp and its `@img` platform packages were 16.6 MB of the 51.1 MB
+   * union Vercel stores per deployment, and they sat in ALL 113 route bundles.
+   *
+   * ★ Next already ignores sharp when it detects a Vercel build (`hasNextSupport`, i.e.
+   * NOW_BUILDER is set) — but only for the `next-server` trace, NOT for the per-route
+   * `.nft.json` files, which is why a NOW_BUILDER=1 build still traced every byte of it.
+   * This closes that half. The key `"**"` is load-bearing twice over: Next matches it
+   * against each route path with picomatch `contains`, AND against the literal string
+   * `"next-server"`, which is how the same list reaches the shared ignore set.
+   *
+   * ★ Safe ON VERCEL ONLY. Image optimization runs at the platform level there, which is
+   * why Next drops `image-optimizer.js` from the trace on the same condition. If this app
+   * is ever self-hosted behind `next start`, DELETE this block or image optimization
+   * breaks at runtime (Next's own docs list sharp as the one extra dependency
+   * self-hosting needs).
+   *
+   * The globs match pnpm's real layout: the files live under `node_modules/.pnpm/<pkg>@<ver>/`,
+   * so a plain `node_modules/sharp/**` would match nothing. Both forms are listed anyway, and
+   * `@img+*` covers the linux-x64 variants Vercel installs.
+   */
+  outputFileTracingExcludes: {
+    "**": [
+      "node_modules/.pnpm/sharp@*/**",
+      "node_modules/.pnpm/@img+*/**",
+      "node_modules/.pnpm/node_modules/sharp/**",
+      "node_modules/.pnpm/node_modules/@img/**",
+      "node_modules/sharp/**",
+      "node_modules/@img/**",
+    ],
+  },
 };
 
 // Sentry build wiring (R2). Source-map upload is gated on the build-time creds — when
