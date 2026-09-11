@@ -64,7 +64,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   chapter as the host's desk (your call, names, who can open it, taking it home, how much fits, it
   stays), the close (doors, nine questions, the band). Every app string is quoted and pinned by
   `mock-parity.test.ts`; every number derives (`tiers.ts`, `limits.ts`, the lifecycle constants,
-  including the new [`over-capacity.ts`](../../src/lib/lifecycle/over-capacity.ts) the cron now
+  including [`over-cap.ts`](../../src/lib/lifecycle/over-cap.ts), the grace numbers the cron
   reads too). ★ Facts the page corrected and must keep: Require accounts defaults ON for a new event
   (never "no account by default"); anonymous is Anonymous (no name field exists); a guest deletes
   their own upload from their dashboard and it is private to the host; a private page shows no name
