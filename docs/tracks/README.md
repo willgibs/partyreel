@@ -150,3 +150,7 @@ The build gate (`scripts/vercel-ignore-build.mjs`) builds an `lp/<track>` push w
 no manifest yet, when its manifest says `preview: true` or `status: handed-off`, or when the commit
 message carries `[preview]`. A manifest with `preview: false` and `status: open` skips the build, so
 the integration preview never queues behind work in progress on the one-at-a-time Hobby plan.
+
+`main` always builds. `launch-prep` builds ON REQUEST since 2026-09-11: say `[preview]` in the
+commit message of the push whose alias you mean to walk. Building it on every push was most of a
+Vercel storage overage, and CI runs the four-step gate on every push either way.
