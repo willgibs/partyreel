@@ -229,3 +229,9 @@ day to 7 days for previews, 1 day for canceled and 1 day for errored, with produ
 instant-rollback window) and 10 kept per branch. **44 deployments remain**, 22 of them production
 history on `main`, and a dry run classifies every one as keep.
 
+Read the dashboard meter with care: hours after the prune it still showed Deployment Storage
+21.77 GB and Functions Storage 17.38 GB against a 10 GB allowance, slightly ABOVE the pre-prune
+reading, over a window labelled Aug 12 to Sep 11. It behaves as a billing-period measure rather than
+a live gauge of what is stored now, so deleting deployments does not walk it back; judge the round by
+the deployment count and the traced union, and expect the meter to answer in the next period.
+
