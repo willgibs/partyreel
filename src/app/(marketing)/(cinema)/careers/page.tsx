@@ -18,6 +18,7 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
+import { REPLY_LINE } from "@/lib/constants/contact";
 import {
   CAREERS_INTRO,
   HOW_WE_WORK,
@@ -205,8 +206,7 @@ export default function CareersPage() {
             >
               <h3 className="font-heading text-lg">Not sure yet?</h3>
               <p className="text-sm text-pretty text-muted-foreground">
-                Ask anything before you apply. Every note gets a reply, usually
-                within a day.
+                Ask anything before you apply. {REPLY_LINE}
               </p>
             </div>
             <div data-mkt-reveal style={{ "--i": 1 } as CSSProperties}>

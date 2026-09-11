@@ -28,6 +28,15 @@ export const CONTACT_TOPIC_VALUES = [
 
 export type ContactTopicValue = (typeof CONTACT_TOPIC_VALUES)[number];
 
+/**
+ * The reply promise, one home (the library phase, 2026-09-11): /contact's subhead
+ * and metadata, the form's commit point and its thank-you, /help's and /press's
+ * closing notes, and the careers "not sure yet" card all read this line. The
+ * content policy names it as the standard line; the two help articles that
+ * quote it are prose (MDX) and keep the sentence as text.
+ */
+export const REPLY_LINE = "Every note gets a reply, usually within a day.";
+
 export type ContactTopic = {
   value: ContactTopicValue;
   /** Chip label on /contact; also the admin chip and the email subject tag. */

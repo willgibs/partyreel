@@ -13,6 +13,7 @@ import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+import { REPLY_LINE } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import {
   getArticlesByCategory,
@@ -368,7 +369,7 @@ export default function HelpIndexPage() {
             <Link href="/contact">Contact us</Link>
           </Button>
           <p className="text-sm text-muted-foreground">
-            Every note gets a reply, usually within a day.
+            {REPLY_LINE}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t pt-6 text-sm">
             <span className="text-muted-foreground">Keep exploring:</span>

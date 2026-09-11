@@ -15,7 +15,7 @@ import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { type ContactTopicValue } from "@/lib/constants/contact";
+import { REPLY_LINE, type ContactTopicValue } from "@/lib/constants/contact";
 import {
   getAllArticles,
   getCategoryChips,
@@ -28,8 +28,7 @@ import { ContactFacts, ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description:
-    "Get in touch with Partyreel: questions about your event, billing, or anything else. Every note gets a reply, usually within a day.",
+  description: `Get in touch with Partyreel: questions about your event, billing, or anything else. ${REPLY_LINE}`,
   alternates: { canonical: "/contact" },
 };
 
@@ -124,7 +123,7 @@ export default function ContactPage() {
         subhead={
           <>
             An event you&rsquo;re planning, a plan you&rsquo;re weighing,
-            something that broke. Every note gets a reply, usually within a day.
+            something that broke. {REPLY_LINE}
           </>
         }
         className="border-b py-20 sm:py-28"

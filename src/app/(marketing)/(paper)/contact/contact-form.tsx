@@ -31,6 +31,7 @@ import { track } from "@/lib/analytics/web";
 import {
   CONTACT_TOPICS,
   type ContactTopicValue,
+  REPLY_LINE,
 } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
@@ -223,8 +224,7 @@ export function ContactForm({
           </span>
           <h3 className="font-heading text-lg font-medium">Message sent</h3>
           <p className="text-sm text-pretty text-muted-foreground">
-            Thanks for reaching out. Every note gets a reply, usually within a
-            day.
+            Thanks for reaching out. {REPLY_LINE}
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
             <Button
@@ -449,7 +449,7 @@ export function ContactForm({
             </Button>
             {/* The V1 steal: the reply line seated at the commit point. */}
             <p className="text-xs text-muted-foreground">
-              Every note gets a reply, usually within a day.
+              {REPLY_LINE}
             </p>
           </div>
         </form>
