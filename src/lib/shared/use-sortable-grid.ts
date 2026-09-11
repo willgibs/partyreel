@@ -13,7 +13,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
-import { readCssMs } from "@/lib/shared/read-css-ms";
+import { runFlip } from "@/lib/shared/use-flip";
 
 // Our own small, dependency-free sortable for a UNIFORM grid (the project dropped framer-motion + ships
 // no drag lib). The whole reason hand-rolling beats pulling in dnd-kit here: on a fixed-aspect grid the
@@ -37,7 +37,10 @@ export function pointToIndex(p: {
   gap: number;
   count: number;
 }): number {
-  const col = Math.min(Math.max(Math.floor(p.x / (p.tileW + p.gap)), 0), p.cols - 1);
+  const col = Math.min(
+    Math.max(Math.floor(p.x / (p.tileW + p.gap)), 0),
+    p.cols - 1,
+  );
   const row = Math.max(Math.floor(p.y / (p.tileH + p.gap)), 0);
   return Math.min(Math.max(row * p.cols + col, 0), p.count - 1);
 }
@@ -153,35 +156,15 @@ export function useSortableGrid<T extends { id: string }>(opts: {
   }, []);
 
   // FLIP the OTHER tiles to their new slots whenever the order changes; finger-recompute the dragged one
-  // (it's excluded from the slide). 2-axis (a grid moves on both X and Y), mirroring use-flip's technique
-  // + timing (--tune-reorder-ms, --ease-in-out-strong, reduced-motion = instant). Reads the CLOSED-OVER
-  // `order` so it's correct in the same paint as the reorder.
+  // (skipped by the pass, so its transformed rect never becomes a baseline). The pass is use-flip's
+  // runFlip, the one implementation (2026-09-11); this used to be a second copy of it. Reads the
+  // CLOSED-OVER `order` so it's correct in the same paint as the reorder.
   useLayoutEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dur = readCssMs("--tune-reorder-ms", 500);
     const dragId = dragRef.current?.id ?? null;
-    for (const [id, el] of nodes.current) {
-      if (id === dragId) {
-        applyDragTransform(order.findIndex((i) => i.id === dragId));
-        continue; // finger-followed, not FLIPped; don't baseline its (transformed) rect
-      }
-      const now = el.getBoundingClientRect();
-      const was = prevRects.current.get(id);
-      if (was && !reduce) {
-        const dx = was.left - now.left;
-        const dy = was.top - now.top;
-        if (dx || dy) {
-          el.style.transition = "none";
-          el.style.transform = `translate(${dx}px, ${dy}px)`;
-          void el.offsetWidth;
-          requestAnimationFrame(() => {
-            el.style.transition = `transform ${dur}ms var(--ease-in-out-strong)`;
-            el.style.transform = "";
-          });
-        }
-      }
-      prevRects.current.set(id, now);
-    }
+    runFlip(nodes.current, prevRects.current, {
+      skip: (id) => id === dragId,
+      onSkip: () => applyDragTransform(order.findIndex((i) => i.id === dragId)),
+    });
     // order is intentionally a dep (via orderKey) — the closure must be the post-reorder order.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderKey, applyDragTransform]);
@@ -190,7 +173,8 @@ export function useSortableGrid<T extends { id: string }>(opts: {
     const container = containerRef.current;
     if (!container) return null;
     const style = getComputedStyle(container);
-    const cols = style.gridTemplateColumns.split(" ").filter(Boolean).length || 1;
+    const cols =
+      style.gridTemplateColumns.split(" ").filter(Boolean).length || 1;
     const gap = parseFloat(style.columnGap || "0") || 0;
     const first = container.firstElementChild as HTMLElement | null;
     const r = first?.getBoundingClientRect();

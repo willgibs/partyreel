@@ -266,11 +266,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   rather than by any single decision. One round over the whole marketing site, not per page. The
   feature pages (2026-09-11) were measured at 375 for overflow and row balance, not for feel.
 
-- **Collapse the TWO FLIP implementations to one** (found in the /blog merge, 2026-08-29; the stale
-  lab copy under `(dev)/design/event-feed/` went with the event-feed prototype, 2026-09-02): the
-  shared [`use-flip.ts`](../src/lib/shared/use-flip.ts) (event feed + blog library, now two-axis and
-  covered by `use-flip.test.tsx`) and a second inlined in `use-sortable-grid.ts`, which is behind it.
-  Behaviour-neutral consolidation; its own small round.
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,
