@@ -32,6 +32,7 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **MILESTONE-21: one version again** | **✅ 2026-09-11 (`e2c159e`)**: the marketing branch on prod, the eight integrated manifests deleted, every `lp/*` branch and worktree pruned, `launch-prep` = `main`. The library phase is next, before any track cuts. |
 | **Round 3 wave 2: the marketing branch** | **✅ integrated 2026-09-11 (`1e5d693`)**: the feature family on shared pieces (`PageHero`'s two entrances and stage slot, `ScreenLamp`, `FeatureDoor`, one FAQ band), the hub and /features/album to Will's bar, the five other feature pages awaiting their own rounds. Milestone-21 next: the consolidation to one version. |
 | **Round 3 wave 1: six agent tracks** | **✅ milestones 18 and 19 (2026-09-02)**: CI on every push, the app and guest surfaces true, the launch runbook's billing half and the legal surface, every job operable from `/admin/jobs`, self-serve account deletion, the demo seed. Each track ran as an Orchestrator-spawned agent on its manifest and integrated in its own window. |
 | **Round 3 (A + B): the operating model + the library round** | **✅ milestone-17 (2026-09-02)**: track manifests + two guards + the build gate on request; the lab distilled (26 boards to [`decisions/design-record.md`](decisions/design-record.md), `/design/marketing`, `/design/record`, the CSS split: the home's main sheet 304,277 → 265,358 bytes). Part C (the roadmap as tracks + the wave-1 inits) is next. |
@@ -313,11 +314,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-20`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-21` (`e2c159e`). **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1639 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1631 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -380,13 +381,13 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **The marketing branch is integrated (`1e5d693`, 2026-09-11); milestone-21 is the consolidation.**
-   `lp/marketing-feature-pages` (Will's, cut at `7a189ae`, 26 commits) merged clean after its agent's
-   three syncs; its `ScreenLamp` specimen landed inside the merge; the lane exceptions were ruled
-   additive. Next, in order: the preview walk on the alias (your ten-second eye on the album's ambient
-   pieces), the milestone merge to `main` with the eight integrated manifests deleted, every `lp/*`
-   branch and worktree gone, then the library phase before any track cuts. Every track's claim and
-   handoff lives in [`docs/tracks/`](tracks) until the milestone; after it, in git.
+2. **One version again (MILESTONE-21, 2026-09-11).** `launch-prep` and `main` agree at `e2c159e`; no
+   track is open, `origin/lp/*` is empty, `git worktree list` is the root alone, and `docs/tracks/` holds
+   the README and the orchestrator's manifest (the integrated manifests live in git, e.g.
+   `git show 0f52503:docs/tracks/marketing-feature-pages.md`). The marketing branch (`1e5d693`) merged
+   clean; its ambient pieces on `/features/album` (the phone's screen cycle, the Live | Review
+   photograph flying, the lightbox pill cycling) are yours for a ten-second eye on prod whenever, since
+   the tools cannot run them. Next: the library phase (item 7), planned in its own round.
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)

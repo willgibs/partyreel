@@ -11,6 +11,38 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — MILESTONE-21: prod = the feature family on shared pieces, and one version again
+
+`main` @ tag `milestone-21` (`e2c159e`; `launch-prep` `b19e008` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1639 tests at the merge, 1631 after the eight integrated manifests left with the consolidation
+commit; 244 static pages); CI green on every `launch-prep` push (the `main` run at `e2c159e` was still in progress at this record); prod READY at the merge SHA. The one track entry below is the
+round.
+
+**The walk before the merge, on the launch-prep alias (1440 in Chrome, 375 in the Browser pane, every
+reveal forced):** `/features` (the H1 in two balanced rows, the seven doors with their chips, the
+CtaBand straight after the directory), `/features/album` top to bottom (the arrivals frame under its
+sampled lamp, the phone's index, the live split, the stat band, the desk, the lightbox pill, the four
+visibility states, the take-home plates, the plan strip, the lifecycle grid), then /qr, /curation,
+/sharing, /guests, /privacy, /how-it-works, /events and /pricing: every page 200, no horizontal
+overflow at either width, one FAQPage JSON-LD per feature page, /pricing's h1 at opacity 1 at paint,
+a clean console. `/design/marketing?key=` renders the new specimen with the lamp sampling its frame
+(hues 54 and 217, not the house set). The ambient pieces (the phone's screen cycle, the Live | Review
+photograph flying, the lightbox pill cycling) cannot run in a background tab; Will reviewed them on
+his branch preview across his rounds, and the merge changed none of that code.
+
+**The consolidation:** the eight integrated manifests deleted from `docs/tracks/` (git keeps them:
+`git show <merged sha>:docs/tracks/<track>.md`), every `lp/*` branch and worktree pruned, the two app
+worktrees under `.claude/worktrees/` removed with the never-pushed `claude/partyreel-album-qa-f188d8`
+(both fully contained in history; Will's ruling), the queue rewritten for the library phase.
+`git worktree list` is the root alone; `origin/lp/*` is empty; `launch-prep` = `main`.
+
+**Prod at `e2c159e`:** the home, `/features`, the six feature pages, `/how-it-works`, `/events`,
+`/pricing`, `/help` and `/privacy` 200 with one FAQPage each where a FAQ exists; `/dashboard` 307
+signed out; the purge cron 401 without its secret; the sitemap lists the seven feature URLs; the
+marketing stylesheet carries `--fly-scale`; a Chrome look at `/features` and `/features/album` on
+partyreel.com at 1440 matches the preview (the album's lamp sampled at hue 67 on prod), console clean.
+
 ## 2026-09-11 — Track `marketing-feature-pages` integrated (`1e5d693`)
 
 Merged into `launch-prep` at `1e5d693` (2026-09-11). The feature family lifted onto the home page's
