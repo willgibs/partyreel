@@ -53,3 +53,8 @@ the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
   brace parser, `.surface-ink` in `globals.css` (the footer wears it), `src/lib/shared/use-entered-frame.ts`.
   A lane touching a rail, the footer, the visibility word or the reply line syncs this.
 - `84cd975` the MonoCaption sweep: twelve marketing files moved their labels to `system/caption.tsx`.
+- `09587a7` `9d89e05` round C staged: `--spill-cadence` in `src/app/globals.css` read by every lamp
+  (`footer-glow.tsx`, `film-strip-glow.tsx`, `reel-screen-lamp.tsx`, `system/screen-lamp.tsx`), the
+  cadence and rounding knobs in `src/components/dev/motion-tuner-config.ts` (the rounding list shared
+  with the lab's playground). A lane placing a lamp syncs this.
+- `d5e9389` one FLIP: `src/lib/shared/use-flip.ts` exports `runFlip`; `use-sortable-grid.ts` calls it.

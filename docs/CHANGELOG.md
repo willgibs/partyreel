@@ -11,6 +11,31 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — The library phase: round C staged for Will's sittings, and the one FLIP (`09587a7` to `d5e9389`)
+
+**Round C, staged.** Every shipped lamp (the footer seam, the film strip, the reel pool, the feature
+heroes' screen lamps) reads `--glw-dur: var(--spill-cadence)` from one token in `globals.css` (11s as
+shipped; the engine's ruled register is 8s), and the marketing tuner gains a "Lamp cadence" knob (6
+to 14 s) so the cadence sitting is the whole home page dragged between the two; `footer-contract.test.ts`
+pins the token at both ends. `ROUNDING_TUNER_CONTROLS` is one list, on the marketing tuner and now on
+the lab's `/design/motion` playground, so the radius sitting can be taken on the app's own cards,
+dialogs and tiles as well as the marketing pages (the values sit on `<html>`; a soft navigation
+carries them). The rules pass needs nothing staged: `/design/rules?key=` with its verdict island is
+the sitting. The three sittings and what each lands are in STATUS.
+
+**The one FLIP (round D's app-side item, done early):** `use-flip.ts` exports the pass itself,
+`runFlip` (invert from the previous rect, transition back, re-baseline, prune unmounted keys; reduced
+motion skips the invert) with a `skip` option and an `onSkip` callback; `useFlip` calls it, and
+`use-sortable-grid.ts` drops its inlined copy and calls it with the dragged tile skipped and
+finger-positioned. A new pin: a skipped key is neither inverted nor re-baselined and reaches `onSkip`.
+Verified on the alias in the reel studio of the demo event: a moment lifted from the keyboard and moved
+one slot reordered the strip, every other tile inverted in the same frame and slid back, the order
+persisted on drop, no console errors; the order was put back afterwards. 1646 tests.
+
+The ROADMAP lines round B shipped are closed (the visibility word, the css policy's parser, the
+sticky-offset split, the reply line, the ink footer's token spray, the FLIP), and the album's ambient
+pieces are logged as a focused round (Will: "good enough for now, a little buggy").
+
 ## 2026-09-11 — MILESTONE-22: prod = the rules bible, the library's specimens, the hero registers, the single sources
 
 `main` @ tag `milestone-22` (`ffa12b6`; `launch-prep` `18314ad` merged `--no-ff`, then `launch-prep`
