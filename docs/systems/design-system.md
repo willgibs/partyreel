@@ -806,29 +806,16 @@ react-hooks lint bans setState-in-effect sync resets — use the adjust-state-du
 (prev-state comparison) for transient view resets.
 ## The component index
 
-Every rendered component, where it lives, what it is for, and where its live specimen is (the lab
-renders production source, so the specimen IS the component). A component without a specimen gets one
-or a reason ([`marketing-library.test.ts`](../../src/app/(dev)/design/marketing/marketing-library.test.ts)
-enforces it for the marketing set).
-
-| component | file | for | specimen |
-| --- | --- | --- | --- |
-| the shadcn primitives (avatar, badge, button, card, dialog, drawer, dropdown-menu, form, input, input-otp, label, navigation-menu, popover, progress, select, separator, sheet, skeleton, sonner, switch, tabs, textarea, tooltip) | `src/components/ui/*` | the crafted primitives; semicolon-free generator style | `/design/components` (the Toaster is root-mounted; the toast demo fires it) |
-| `Logo`, `PlayBadge`, `EmptyState` | `src/components/shared/` | brand mark, the video badge, the typographic/iconographic/photographic empties | `/design/components` |
-| `PasswordStrengthMeter`, `SetNameStep` | `src/components/shared/` | the sign-up meter, the name step | `/design/components`, `/design/patterns` |
-| `NotFoundScreen`, `RouteError` | `src/components/shared/` | the dead ends (the error boundary is shown static) | `/design/patterns` |
-| `AnonymousInfo`, `CornerPlayBadge` (masonry) | `src/components/shared/` | the anonymous-upload explainer, the masonry tile badge | `/design/patterns` |
-| `PageHeading`, `Kbd`, `Container`, `LegalConsentLine`, `ActionTooltip`, `FloatingAddButton` | `src/components/shared/` | the app page title, key glyphs, the gutter, the consent line, the lightbox-only tooltip, the fixed Add pill | `/design/patterns` |
-| `Glow` | `src/components/shared/glow.tsx` | the spill engine (seam, throw, sweep, bloom, halo) | `/design/foundations` (Light) |
-| `GlowFilter` | `src/components/shared/glow-filter.tsx` | the turbulence field every Glow warps through; a document singleton | root layout only; never mounted in the lab |
-| `MediaLightbox`, `Masonry`, `AppShell`, `UploadThumbnail`, `ClaimUploadsOnAuth` | `src/components/shared/` | data- and provider-heavy; no in-lab harness yet | none (deferred, noted on the compositions page) |
-| `SectionShell`, `PaperChapter`, `PageHero`, `Eyebrow`, `MonoCaption` | `src/components/marketing/system/` | the section lockup and reveal, the paper cut, the hero at three scales, the two type atoms | `/design/marketing` |
-| `CardGrid`, `TiltCard`, `MediaSplit`, `Conveyor` | `src/components/marketing/system/` | the media frames: a tilt grid, the pointer-tracked card, the 7/5 split, the marquee | `/design/marketing` |
-| `Reveal`, `StatBand`, `CtaBand`, `DemoTicket`, `DemoCtaLink` | `src/components/marketing/system/` | the observer island, the counting band, the conversion band, the scannable demo ticket and its text link (both null without a demo event) | `/design/marketing` |
-| `MorphDelegate` | `src/components/marketing/system/morph-delegate.tsx` | the view-transition delegate (configured by `blog/cover-morph.tsx` and `sections/careers/role-morph.tsx`) | `/design/marketing` (on a real post) |
-| `WebAnalytics` | `src/components/marketing/system/web-analytics.tsx` | the analytics singleton and the `data-track` listener | listed on `/design/marketing`, mounted only in the marketing layout |
-| `BulkBarMock`, `SelectTile`, `ConfettiBurst`, `InlineReelPlayer`, `LearnChevron`, `LearnMoreLink`, `SampleReelOverlay`, `TextsReveal` | `src/components/marketing/sections/shared/` | the select-mode mocks, the celebration, the poster-first reel, the two learn links, the lazy sample overlay, the class-keyed line reveal | `/design/marketing` |
-| `EventCard`, `EventCardQr`, `FeedSection`, `StorageMeter`, `FilterChips`, the two empty teasers, `HostMediaGrid`, `RecentlyDeletedGrid`, `QrPresetPicker`, `ReviewSection` | `src/components/app/` | the real product compositions, from sample props | `/design/compositions` |
+The library renders its own index. `/design` lists every component file under
+`src/components/{ui,shared,marketing/system,marketing/sections/shared,marketing/frames,marketing/sections/features/shared}`
+with the page that renders it, derived from the pages' imports by
+[`scripts/design-rules/collect.mjs`](../../scripts/design-rules/collect.mjs) into the committed
+`src/app/(dev)/design/rules/rules.generated.json`; a file with no specimen carries a reason in
+`src/app/(dev)/design/rules/annotations.ts` (`COMPONENT_NOTES`: the root singletons `GlowFilter` and
+the `Toaster`, the provider-bound `AppShell`, `MediaLightbox`, `ClaimUploadsOnAuth`, the
+`UploadThumbnail` that takes a live File), and `rules-annotations.test.ts` fails on silence. The table
+that used to sit here was hand-maintained and drifted; the pages ARE the index (the library phase,
+2026-09-11).
 
 ## Where it lives
 
@@ -836,8 +823,11 @@ enforces it for the marketing set).
 variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
-`error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages, `touchpoints.ts` the rulings
-registry, `sandbox/` the open boards with their own sheets, the four probes) · `src/lib/design-gate/*` +
+`error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages; `/design/rules`, every enforced rule derived from
+the guard tests' titles, the ★ runs in this doc and `marketing-content.md`, and the rulings, with
+`pnpm design:rules` regenerating `rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh
+and `rules/annotations.ts` holding the scopes and Will's verdicts; `touchpoints.ts` the rulings
+registry; `sandbox/` the open boards with their own sheets; the four probes) · `src/lib/design-gate/*` +
 `/api/design-gate` (the gate, outside the lab because production depends on it) ·
 [`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
 

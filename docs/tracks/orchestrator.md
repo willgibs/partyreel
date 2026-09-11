@@ -33,4 +33,8 @@ the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
 
 ## Landed this window
 
-- nothing yet
+- `2ae8773` `e062b1e` `38053e8` the rules registry (`scripts/design-rules/`, `src/app/(dev)/design/rules/`,
+  `/design/rules` with the verdict island, the component index on `/design`), the library's frames and
+  feature-family specimens, and `src/components/marketing/system/caption.tsx` (new, the Inter caption
+  atom; the MonoCaption sweep onto it is round B). A lane adding a guard test or a ★ rule regenerates
+  the artifact (`pnpm design:rules`) and annotates the file, or `pnpm test` says so.
