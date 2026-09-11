@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:types": "supabase gen types typescript --linked > src/lib/db/types.ts.tmp && mv src/lib/db/types.ts.tmp src/lib/db/types.ts",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "design:rules": "node scripts/build-design-rules.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1056.0",

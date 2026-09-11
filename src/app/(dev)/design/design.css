@@ -11,6 +11,9 @@
 @reference "../../theme.css";
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source "./";
+/* The rules artifact quotes class names inside rule text ("bg-gallery",
+   "outline-ring/50"); scanning it would compile utilities out of prose. */
+@source not "./rules/rules.generated.json";
 
 /*
   THE LAB SHEET: the mono mock tokens, the type layer, the shared motion.
