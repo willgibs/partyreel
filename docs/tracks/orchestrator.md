@@ -14,6 +14,12 @@ owns:
   - scripts/vercel-ignore-build.mjs
   - docs/decisions/design-record.md
   - docs/perf/v1-baseline.md
+  - src/components/marketing/system/
+  - src/app/globals.css
+  - src/app/(marketing)/marketing.css
+  - src/lib/events/visibility-labels.ts
+  - src/lib/shared/use-entered-frame.ts
+  - scripts/design-rules/
 announces:
   - the library phase (Orchestrator-run, no agents; Will, 2026-09-11) touches src/components/marketing/system/ (the hero registers), src/app/theme.css and src/app/globals.css (the rounding), src/components/marketing/sections/features/shared/ and src/lib/constants/feature-pages.ts (the feature-family furniture), the MonoCaption call sites and the single-source homes; no track cuts until it lands
 ---
@@ -38,3 +44,12 @@ the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
   feature-family specimens, and `src/components/marketing/system/caption.tsx` (new, the Inter caption
   atom; the MonoCaption sweep onto it is round B). A lane adding a guard test or a ★ rule regenerates
   the artifact (`pnpm design:rules`) and annotates the file, or `pnpm test` says so.
+- `bb00a14` the hero registers: `src/components/marketing/system/page-hero.tsx` (`entrance: blur`, `backdrop`),
+  `/help`, `/contact`, `/careers` and `/pricing` composed onto it, `marketing-h1-policy.test.ts` refusing
+  `mkt-line` on an h1. A lane composing a hero syncs this.
+- `ed85a13` `1c9e025` `e98e5d9` `52c9cb4` `c29c195` `cf5416c` the single sources:
+  `src/lib/events/visibility-labels.ts` (the labels left `visibility-selector.tsx`), `REPLY_LINE` in
+  `src/lib/constants/contact.ts`, `--mkt-rail-top` in `marketing.css` (every sticky rail), the css policy's
+  brace parser, `.surface-ink` in `globals.css` (the footer wears it), `src/lib/shared/use-entered-frame.ts`.
+  A lane touching a rail, the footer, the visibility word or the reply line syncs this.
+- `84cd975` the MonoCaption sweep: twelve marketing files moved their labels to `system/caption.tsx`.

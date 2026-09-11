@@ -11,6 +11,62 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — The library phase, rounds A and B: the rules bible, the library's specimens, the hero registers, the single sources (`2ae8773` to `84cd975`)
+
+Will's direction for the phase (2026-09-11): the design LIBRARY is what agents pull from and the
+lab is a temporary exploratory surface; the full set of working design rules goes INTO the library
+as a bible of what is actually enforced, so a maze of agent-invented one-offs can be seen and pruned;
+the rules that survive enforce global consistency. Rounds A and B needed no input from him.
+
+**Round A, the rules bible.** [`scripts/design-rules/collect.mjs`](../scripts/design-rules/collect.mjs)
+derives every enforced rule from code: the guard tests' `describe` and `it` titles through the
+TypeScript AST (46 files, 341 titles; provenance mined from their comments: dates, ADRs, and whether
+Will is named at all), the star runs in `design-system.md` and `marketing-content.md` (92), and the
+library pages' imports against the six component directories (84 files). `pnpm design:rules` writes
+the committed artifact `src/app/(dev)/design/rules/rules.generated.json` (JSON so the titles' em-dashes
+stay verbatim); `rules-registry.test.ts` fails when it drifts, and did, in CI, on the docs commit that
+wrote a star glyph into prose (a star in the two docs IS a rule to the collector: the guard did its
+job); `rules-annotations.test.ts` keeps the hand layer complete (a scope and a one-line `guards` for
+every file, every verdict on a live rule or a tombstone, every unrendered component excused).
+[`/design/rules`](../src/app/(dev)/design/rules/page.tsx) renders the registry grouped by scope then
+by guard file (the four design scopes open, the app, data-integrity and tooling scopes collapsed),
+each rule with who set it and when (unsigned in red: the ones Will is hunting), the source opening in
+the editor and on GitHub, the nearest comment or the star run behind a disclosure; prose a test pins
+nests under it, the rest sit in a "prose only (not enforced)" box per scope; the lab's 30 rulings
+follow with how many enforced rules live where each says. The verdict island keeps Will's keep /
+merge / drop and a note per rule in localStorage as overrides of the committed verdicts and exports
+only the changes (a block for chat; the same block renders on the page when the clipboard refuses).
+The library gained a Frames section (BrowserFrame, PhoneShell, PhoneFrame, AlbumFrame, GalleryFrame,
+QrFrame, ReelFrame, LiveQr), a feature-family section (FeatureDoor, RelatedFeatures, FeatureFaq with
+GoDeeper, FeatureHeroEyebrow, GhostBackdrop, TextSwap behind a Next button) and the `Caption` atom
+beside `MonoCaption`; `/design` renders the component index (84 files, nine excused with reasons) and
+`design-system.md`'s hand-maintained table gave way to it. 433 rules at the round's end, all
+unreviewed; CLAUDE.md carries the convention (a design rule is a candidate until it is on the page
+with a verdict).
+
+**Round B, the shared pieces every later track reads.** `PageHero`'s entrances are three NAMED
+registers (`rise | cut | blur`): `blur` wraps the lockup in the class-keyed `TextsReveal`, marks the
+slots with `.mkt-line` and leaves the h1 still, which closed the LCP hole the utility trio carried as
+a class; a `backdrop` slot renders what sits behind the lockup. /help (its search, quick links, guest
+lane and emblem strip as the stage), /contact and /careers (its contact sheet as the backdrop) compose
+`blur`; /pricing, the last hand-rolled lockup, composes `rise`; `marketing-h1-policy.test.ts` refuses
+`mkt-line` on an h1 too. Six single sources: `VISIBILITY_LABELS` and `VISIBILITY_HINTS` in
+`src/lib/events/visibility-labels.ts` (server-safe; the dashboard chip, the settings form, the album
+frames and the access switch read it), `REPLY_LINE` in `constants/contact.ts` (seven sites),
+`--mkt-rail-top` for every sticky rail (the reading family moved from 96px to 88px), the css policy's
+rule 3 parsing selectors by braces instead of line endings, `.surface-ink` in `globals.css` (the
+footer's nine-token spray plus the three it never redeclared, one class, computed colours identical
+before and after), and `useEnteredFrame` in `src/lib/shared/`. The MonoCaption sweep: twelve label
+sites to `Caption`, sixteen data sites keep mono. Gate at the end of the round: 1645 tests, 245
+static pages; CI green on every push.
+
+**Three tooling lessons the round paid for:** `pnpm format` reformats every staged file, not only the
+integrator's own (restore the rest from the index); Turbopack's persistent dev cache (`.next/dev`)
+survives a server restart and kept serving `globals.css` without a rule added while the server ran,
+until `rm -rf .next/dev` (now in `testing-verification.md`); a regex that removes a function with an
+optional leading comment can swallow an earlier JSDoc, so anchor deletions on exact text and diff
+before committing (it took two amends here).
+
 ## 2026-09-11 — MILESTONE-21: prod = the feature family on shared pieces, and one version again
 
 `main` @ tag `milestone-21` (`e2c159e`; `launch-prep` `b19e008` merged `--no-ff`, then `launch-prep`
