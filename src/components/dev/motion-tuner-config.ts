@@ -285,6 +285,21 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     unit: "px",
     default: 3,
   },
+  // ── The lamps' cadence (staged for the cadence sitting, 2026-09-11) ──
+  // Every lamp reads --spill-cadence (globals.css, 11s as shipped; the engine's
+  // ruled register is 8s). The honest A/B is the whole home page at each,
+  // which this knob gives: drag, walk the page, rule. On <html> like the
+  // radius knobs, where an inline value outranks the :root token.
+  {
+    kind: "range",
+    cssVar: "--spill-cadence",
+    label: "Lamp cadence",
+    min: 6,
+    max: 14,
+    step: 1,
+    unit: "s",
+    default: 11,
+  },
   {
     kind: "range",
     cssVar: "--mkt-reveal-ms",
