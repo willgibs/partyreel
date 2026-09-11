@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { Container } from "@/components/shared/container";
 import { cn } from "@/lib/utils";
 
@@ -107,28 +108,30 @@ const HERO_SCALE: Record<
 };
 
 /**
- * THE ONE HERO ENTRANCE, SETTLED (the feature-pages round, 2026-09-01; Will's
- * ask of 2026-08-29 was "one hero entrance, then sweep the hand-rolled copies
- * onto it"). Two registers, and they are the two the site already had:
+ * THE NAMED ENTRANCES. The feature-pages round settled the first two
+ * (2026-09-01); Will's hero ruling of 2026-09-02 named the third: "every page
+ * does not need to have a single templated hero... but maintaining common
+ * design systems around the hero variations we do create is deeply
+ * encouraged, so please ensure we don't have tons of very minor variants."
  *
  *  - "rise": the standard `[data-mkt-reveal]` staggered rise. The identity
- *    pages (/about, /press) arrive this way.
- *  - "cut": the `[data-mkt-cut]` hard film cut. Every CINEMA-group page hero
- *    that hand-rolled the lockup used this (the six feature pages, the hub,
- *    /how-it-works, /events), and it is the register their chapters open on.
+ *    pages (/about, /press) and /pricing arrive this way.
+ *  - "cut": the `[data-mkt-cut]` hard film cut. Every cinema-family hero
+ *    (the six feature pages, the hub, /how-it-works, /events).
+ *  - "blur": the texts-reveal blur-rise (`.mkt-line` under a `TextsReveal`,
+ *    which is class-keyed, so the lockup wraps in that island instead of
+ *    `Reveal`). The utility trio: /help, /contact, /careers. The h1 is NEVER
+ *    a line: `.mkt-line` rests at opacity 0, which is the LCP hole below, so
+ *    the slots around the title do the arriving and the title holds at
+ *    paint. `.mkt-line` also forces display:block, so the actions row rides
+ *    inside a block wrapper in this register.
  *
- * The texts-reveal blur-rise (`.mkt-line`) is deliberately NOT a third value:
- * its rest state is `opacity: 0`, which is the LCP hole this component
- * forbids, and `.mkt-line` forces `display:block` on whatever carries it.
- * The three pages still on it (/help, /contact, /careers) keep their own
- * handling until the trio becomes the NAMED third register with the h1
- * visible at paint (Will's ruling, 2026-09-02; ROADMAP, the sweep's remaining
- * half). /pricing hand-rolls a rise lockup with a static h1 instead.
- *
- * Either way the H1 never moves (the LCP rule below), so switching registers
- * changes what the slots AROUND the title do and nothing else.
+ * A new hero either uses one of these or adds a NAMED register here, never
+ * an unnamed tweak. Either way the H1 never moves (the LCP rule below), so
+ * switching registers changes what the slots AROUND the title do and
+ * nothing else.
  */
-export type HeroEntrance = "rise" | "cut";
+export type HeroEntrance = "rise" | "cut" | "blur";
 
 export function PageHero({
   scale = "lg",
@@ -138,6 +141,7 @@ export function PageHero({
   heading,
   subhead,
   actions,
+  backdrop,
   className,
   children,
   ...props
@@ -158,25 +162,46 @@ export function PageHero({
    * how the six feature heroes drifted apart in the first place.
    */
   children?: ReactNode;
+  /**
+   * THE BACKDROP: what sits BEHIND the lockup (careers' contact sheet and its
+   * scrim), rendered before the Container, which turns `relative` so the type
+   * stacks above it. Never in front and never beside: an object beside the
+   * lockup is a bespoke hero (/qr, the home), by the same ruling.
+   */
+  backdrop?: ReactNode;
 }) {
   // One entrance clock for the whole lockup: each slot takes the next stagger
-  // seat, so a hero without an eyebrow does not leave an empty beat.
+  // seat, so a hero without an eyebrow does not leave an empty beat. The blur
+  // register marks its slots with the `.mkt-line` class (the recipe's shape)
+  // instead of a data attribute, and wraps in the class-keyed island.
   let line = 0;
+  const blur = entrance === "blur";
   const mark = () =>
     ({
-      ...(entrance === "cut" ? { "data-mkt-cut": "" } : { "data-mkt-reveal": "" }),
+      ...(entrance === "cut"
+        ? { "data-mkt-cut": "" }
+        : entrance === "rise"
+          ? { "data-mkt-reveal": "" }
+          : {}),
       style: { "--i": line++ } as CSSProperties,
     }) as const;
+  const lineClass = blur ? "mkt-line" : undefined;
+  const Lockup = blur ? TextsReveal : Reveal;
+  const actionsRow = cn(
+    "flex flex-col gap-3 sm:flex-row",
+    align === "center" ? "items-center" : "items-start",
+  );
 
   return (
     <section className={className} {...props}>
-      <Container>
+      {backdrop}
+      <Container className={backdrop ? "relative" : undefined}>
         {/* max-w-3xl on the centred lockup is LOAD-BEARING (Will, 2026-09-02):
             every hand-rolled hero this replaced clamped its column to 3xl, so
             a long title broke into two even lines; unclamped, "Everything you
             need, nothing to chase." ran the full Container in one 72px line
             and read worse. The clamp is the grammar, not the page. */}
-        <Reveal
+        <Lockup
           className={cn(
             "flex flex-col gap-6",
             align === "center"
@@ -184,7 +209,11 @@ export function PageHero({
               : "items-start",
           )}
         >
-          {eyebrow && <Eyebrow {...mark()}>{eyebrow}</Eyebrow>}
+          {eyebrow && (
+            <Eyebrow {...mark()} className={lineClass}>
+              {eyebrow}
+            </Eyebrow>
+          )}
           {/* ONE h1 per page, and it is here. SectionShell's `as` prop carries
               the same rule for sections; both exist because /contact once
               shipped with no h1 at all.
@@ -193,7 +222,9 @@ export function PageHero({
               a type-led hero, so gating it behind an in-view callback plus a
               transition delays the largest paint for nothing. The slots around
               it do the arriving; the home hero's ratified shape, and the same
-              note sits on qr-hero, attribution-hero and album-link-hero. */}
+              note sits on qr-hero, attribution-hero and album-link-hero. In
+              the blur register this is the line that fixes the trio's LCP
+              hole: the h1 is the one child without `.mkt-line`. */}
           <h1
             className={cn(
               "font-heading",
@@ -213,6 +244,7 @@ export function PageHero({
               {...mark()}
               className={cn(
                 "text-lg text-muted-foreground",
+                lineClass,
                 align === "center"
                   ? "max-w-xl text-balance"
                   : "max-w-2xl text-pretty",
@@ -222,19 +254,20 @@ export function PageHero({
             </p>
           )}
           {/* mt-2 on top of the shared gap: a control row wants a touch more
-              air than a text slot, the same offset the feature heroes use. */}
-          {actions && (
-            <div
-              {...mark()}
-              className={cn(
-                "mt-2 flex flex-col gap-3 sm:flex-row",
-                align === "center" ? "items-center" : "items-start",
-              )}
-            >
-              {actions}
-            </div>
-          )}
-        </Reveal>
+              air than a text slot, the same offset the feature heroes use.
+              In the blur register the row sits inside the line (a block), so
+              `.mkt-line`'s display:block cannot flatten the flex row. */}
+          {actions &&
+            (blur ? (
+              <div {...mark()} className="mkt-line mt-2">
+                <div className={actionsRow}>{actions}</div>
+              </div>
+            ) : (
+              <div {...mark()} className={cn("mt-2", actionsRow)}>
+                {actions}
+              </div>
+            ))}
+        </Lockup>
         {children}
       </Container>
     </section>

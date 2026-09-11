@@ -8,7 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
@@ -67,102 +67,88 @@ export default function HelpIndexPage() {
              the same element — constrained children center with mx-auto,
              never a parent justify-center (the off-center-search bug Will
              caught on the first polish pass). */}
-      <section>
-        <Container className="flex flex-col items-center pt-16 pb-0 text-center sm:pt-20">
-          <TextsReveal className="flex w-full flex-col items-center gap-6">
-            <Eyebrow className="mkt-line" style={{ "--i": 0 } as CSSProperties}>
-              Help center
-            </Eyebrow>
-            <h1
-              className="mkt-line max-w-3xl font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ "--i": 1 } as CSSProperties}
-            >
-              How can we help?
-            </h1>
-            <p
-              className="mkt-line max-w-2xl text-lg text-pretty text-muted-foreground"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              Guides for hosts and guests: setup, sharing, privacy, plans, and
-              the highlight reel.
-            </p>
-            <div
-              className="surface-paper mkt-line mt-1 w-full"
-              style={{ "--i": 3 } as CSSProperties}
-            >
-              <HelpSearchTrigger variant="hero" className="mx-auto" />
-            </div>
-            <div
-              className="mkt-line max-w-3xl text-center"
-              style={{ "--i": 4 } as CSSProperties}
-            >
-              {HELP_QUICK_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-            {/* The guest fast lane: most people who land here from a phone just
+      <PageHero
+        entrance="blur"
+        scale="lg"
+        eyebrow="Help center"
+        heading="How can we help?"
+        subhead="Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel."
+        className="pt-16 pb-0 text-center sm:pt-20"
+      >
+        {/* THE STAGE: the search field, the quick links, the guest lane and the
+            emblem strip, on the same blur-rise as the lockup (their seats
+            continue the lockup's clock, --i 3 to 6). */}
+        <TextsReveal className="mt-6 flex w-full flex-col items-center gap-6">
+          <div
+            className="surface-paper mkt-line mt-1 w-full"
+            style={{ "--i": 3 } as CSSProperties}
+          >
+            <HelpSearchTrigger variant="hero" className="mx-auto" />
+          </div>
+          <div
+            className="mkt-line max-w-3xl text-center"
+            style={{ "--i": 4 } as CSSProperties}
+          >
+            {HELP_QUICK_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          {/* The guest fast lane: most people who land here from a phone just
                 scanned a QR code and are not hosts. One muted line, one link,
                 in the quick-link register (never a new component). */}
-            <p
-              className="mkt-line text-sm text-muted-foreground"
-              style={{ "--i": 5 } as CSSProperties}
-            >
-              Just scanned a QR code?{" "}
-              <LearnMoreLink
-                href="#guest-experience"
-                className="text-foreground"
-              >
-                Start with the guest guides
-              </LearnMoreLink>
-            </p>
+          <p
+            className="mkt-line text-sm text-muted-foreground"
+            style={{ "--i": 5 } as CSSProperties}
+          >
+            Just scanned a QR code?{" "}
+            <LearnMoreLink href="#guest-experience" className="text-foreground">
+              Start with the guest guides
+            </LearnMoreLink>
+          </p>
 
-            {/* THE EMBLEM STRIP: the nine categories as a paper instrument
+          {/* THE EMBLEM STRIP: the nine categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
                 the cinema→paper cut — the negative bottom margin ends the
                 dark stage halfway up the strip, so the index arrives out of
                 the dark the way the album arrives out of the event on home
                 (the R2 negative-margin move: real layout, no translate). */}
-            <nav
-              aria-label="Browse by category"
-              className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
-              style={{ "--i": 6 } as CSSProperties}
-            >
-              <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
-                {/* Ten cells since the account category (2026-09-01). The 84px
+          <nav
+            aria-label="Browse by category"
+            className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
+            style={{ "--i": 6 } as CSSProperties}
+          >
+            <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-float ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
+              {/* Ten cells since the account category (2026-09-01). The 84px
                     floor is the PHONE snap width only: on the grid it must
                     release (sm:min-w-0), or 10 x 84 overflows the 768px nav
                     and the desktop strip grows a scrollbar. */}
-                <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-10">
-                  {groups.map(({ category }, i) => (
-                    <a
-                      key={category.slug}
-                      href={`#${category.slug}`}
-                      className={cn(
-                        "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60 sm:min-w-0",
-                        i > 0 && "border-l",
-                      )}
-                    >
-                      <CategoryEmblem
-                        slug={category.slug}
-                        className="scale-90"
-                      />
-                      <span className="text-[11px] leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                        {category.stripLabel}
-                      </span>
-                    </a>
-                  ))}
-                </div>
+              <div className="flex min-w-max snap-x sm:grid sm:min-w-0 sm:grid-cols-10">
+                {groups.map(({ category }, i) => (
+                  <a
+                    key={category.slug}
+                    href={`#${category.slug}`}
+                    className={cn(
+                      "group flex min-w-[84px] snap-start flex-col items-center gap-1 px-2 py-3 transition-colors duration-150 hover:bg-muted/60 sm:min-w-0",
+                      i > 0 && "border-l",
+                    )}
+                  >
+                    <CategoryEmblem slug={category.slug} className="scale-90" />
+                    <span className="text-[11px] leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                      {category.stripLabel}
+                    </span>
+                  </a>
+                ))}
               </div>
-            </nav>
-          </TextsReveal>
-        </Container>
-      </section>
+            </div>
+          </nav>
+        </TextsReveal>
+      </PageHero>
 
       {/* THE PAPER CHAPTER: the reading body (trio, filmstrip, sheet) on
           forced light inside the cinema page — the ratified chapter grammar

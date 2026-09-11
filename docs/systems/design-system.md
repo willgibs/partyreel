@@ -426,18 +426,19 @@ grammar, with `scale` picking the type — `lg` is the ladder above, `xl` the ci
 the exemption below. Will's ruling for the identity pages, 2026-08-28: **share grammar, page picks
 scale.** Compose it rather than hand-rolling a hero; four agents wrote four heroes in one week and that
 is the drift it closes. The heading is always an `<h1>` (the /contact bug class; `SectionShell`'s `as`
-carries the same rule for sections). **The one hero entrance is settled (2026-09-01): `entrance` is
-`rise` (the standard stagger, the identity pages) or `cut` (the hard film cut, every cinema-family
-hero: the six feature pages, the hub, /how-it-works, /events), and the H1 never moves either way.**
-`children` is the STAGE slot, rendered inside the same Container under the lockup, so a page with an
-object (the album filling, the attribution wall, the link frame) composes the lockup and owns its
-object, its entrance and its lamp; `PageHero` still owns only the type. The texts-reveal blur-rise is
-not a third entrance yet: its rest state is `opacity: 0`, the LCP hole, so /help, /contact and /careers
-keep their bespoke heroes until the ruled third register lands (Will, 2026-09-02: the trio becomes a
-NAMED `entrance` with the h1 visible at paint and the blur-rise on the slots around it; the library
-phase, before the next marketing tracks cut). /pricing hand-rolls a `rise` lockup with a static h1,
-its calculator beside it. The QR hero is the one
-feature hero that stays hand-rolled: its object sits BESIDE the lockup, not under it.
+carries the same rule for sections). **The hero entrances are three NAMED registers (2026-09-01 and 2026-09-11): `entrance` is `rise`
+(the standard stagger: the identity pages and /pricing), `cut` (the hard film cut: every
+cinema-family hero, the six feature pages, the hub, /how-it-works, /events) or `blur` (the
+texts-reveal blur-rise on the slots around the title: the utility trio /help, /contact, /careers),
+and the H1 never moves in any of them.** `children` is the STAGE slot, rendered inside the same
+Container under the lockup, so a page with an object (the album filling, the attribution wall, the
+link frame, /help's instrument strip) composes the lockup and owns its object, its entrance and its
+lamp; `backdrop` is what sits BEHIND the lockup (careers' contact sheet and scrim), never in front;
+`PageHero` still owns only the type. The blur register closed the trio's LCP hole (their h1s rested
+at `opacity: 0` under `.mkt-line`; `marketing-h1-policy.test.ts` now refuses that class on an h1
+too). Will's hero ruling (2026-09-02): no single templated hero, few named registers, no unnamed
+minor variants; a new hero uses one of the three or adds a named one. The QR hero and the home hero
+stay hand-rolled: their object sits BESIDE the lockup, not under it.
 
 The **display step** is the MASTHEAD tier: `clamp(3.25rem, 12vw, 10rem)`, a 160px string, a recorded
 decision rather than a stray arbitrary value. Do not "fix" it back down toward 72px. /about's
@@ -824,7 +825,7 @@ variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
 `error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages; `/design/rules`, every enforced rule derived from
-the guard tests' titles, the ★ runs in this doc and `marketing-content.md`, and the rulings, with
+the guard tests' titles, the star-marked runs in this doc and `marketing-content.md`, and the rulings, with
 `pnpm design:rules` regenerating `rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh
 and `rules/annotations.ts` holding the scopes and Will's verdicts; `touchpoints.ts` the rulings
 registry; `sandbox/` the open boards with their own sheets; the four probes) · `src/lib/design-gate/*` +

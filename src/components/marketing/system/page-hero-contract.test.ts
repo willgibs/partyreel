@@ -84,14 +84,20 @@ describe("the page hero lockup", () => {
     expect(code).toMatch(/align === "left" && HERO_SCALE\[scale\]\.leadIn/);
   });
 
-  it("offers exactly two entrances, and neither is the blur-rise", () => {
-    // The one-hero-entrance ruling (2026-09-01): rise for the identity pages,
-    // cut for the cinema family. The texts-reveal blur-rise (`.mkt-line`)
-    // rests at opacity 0, which is the LCP hole above, so it is not a value.
-    expect(code).toMatch(/type HeroEntrance = "rise" \| "cut"/);
-    expect(code).not.toContain("mkt-line");
+  it("offers three named entrances, and the blur-rise never touches the h1", () => {
+    // rise for the identity pages, cut for the cinema family (2026-09-01), and
+    // blur for the utility trio (Will's hero ruling, 2026-09-02: few named
+    // registers, no unnamed variants). The texts-reveal line rests at opacity
+    // 0, which is the LCP hole above, so the h1 is the one slot that is never
+    // a `.mkt-line`; the blur register wraps in the class-keyed island.
+    expect(code).toMatch(/type HeroEntrance = "rise" \| "cut" \| "blur"/);
     expect(code).toContain('"data-mkt-cut"');
     expect(code).toContain('"data-mkt-reveal"');
+    expect(code).toContain("TextsReveal");
+    const h1 = code.slice(code.indexOf("<h1"), code.indexOf("</h1>"));
+    expect(h1).not.toContain("mkt-line");
+    expect(h1).not.toContain("lineClass");
+    expect(h1).not.toContain("mark()");
   });
 
   it("renders the stage AFTER the lockup, inside the same Container", () => {
@@ -99,7 +105,7 @@ describe("the page hero lockup", () => {
     // bespoke for exactly that reason. The slot sits after the Reveal so the
     // stage's own island (a lamp, a fill clock) is not gated on the lockup's
     // observer.
-    const reveal = code.indexOf("</Reveal>");
+    const reveal = code.indexOf("</Lockup>");
     const stage = code.indexOf("{children}");
     const container = code.indexOf("</Container>");
     expect(stage).toBeGreaterThan(reveal);

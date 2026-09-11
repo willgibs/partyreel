@@ -160,7 +160,7 @@ export default async function MarketingLibraryPage({
 
         <RefSection
           title="Heroes"
-          blurb="PageHero at its three scales and its two entrances (rise for the identity pages, cut for the cinema family), on today's props (scale, align, entrance, eyebrow, heading, subhead, actions, and children as the stage under the lockup). A page renders one; four here is the specimen."
+          blurb="PageHero at its three scales and its three named entrances (rise for the identity pages and /pricing, cut for the cinema family, blur for the utility trio), on today's props (scale, align, entrance, eyebrow, heading, subhead, actions, children as the stage under the lockup, backdrop behind it). A page renders one; five here is the specimen. The h1 holds at paint in every register."
         >
           <div className="space-y-3">
             <Spec
@@ -209,6 +209,27 @@ export default async function MarketingLibraryPage({
                 eyebrow="Help"
                 heading="How can we help?"
                 subhead="The compact lockup, left-aligned."
+                className="py-12"
+              />
+            </Spec>
+            <Spec
+              label="blur"
+              hint="entrance=blur · the texts-reveal on the slots, the h1 still"
+              contentClassName="p-0"
+            >
+              <PageHero
+                scale="lg"
+                entrance="blur"
+                eyebrow="Help center"
+                heading="How can we help?"
+                subhead="The utility trio's register: eyebrow, subhead and actions rise through the blur while the title is already there."
+                actions={
+                  <Row className="justify-center">
+                    <span className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background">
+                      Search the guides
+                    </span>
+                  </Row>
+                }
                 className="py-12"
               />
             </Spec>

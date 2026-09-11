@@ -11,11 +11,10 @@ import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/prici
 import { SharedBand } from "@/components/marketing/sections/pricing/shared-band";
 import { UnlockGrid } from "@/components/marketing/sections/pricing/unlock-grid";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
+import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { Container } from "@/components/shared/container";
 import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
 
 export const metadata: Metadata = {
@@ -48,31 +47,17 @@ export default function PricingPage() {
       <PricingJsonLd />
       <FaqPageJsonLd items={PRICING_FAQ_ITEMS} />
 
-      {/* Hero: the golden pricing line at the route-H1 scale. QUIET-confident:
-          standard reveals, no cinema cut, no media. */}
-      <section className="pt-14 pb-4 sm:pt-20 sm:pb-6">
-        <Container>
-          <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-            <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-              Pricing
-            </Eyebrow>
-            {/* The H1 never carries a reveal-hidden state (the LCP rule,
-                pinned by marketing-h1-policy.test.ts); the slots around it
-                do the arriving. */}
-            <h1 className="font-heading text-4xl text-balance sm:text-5xl md:text-6xl lg:text-7xl">
-              {GOLDEN_LINES.pricing}.
-            </h1>
-            <p
-              data-mkt-reveal
-              className="max-w-2xl text-lg text-pretty text-muted-foreground"
-              style={{ "--i": 2 } as CSSProperties}
-            >
-              No per-guest fees. Plans are sized by storage, so pick the room
-              your event actually needs.
-            </p>
-          </Reveal>
-        </Container>
-      </section>
+      {/* Hero: the golden pricing line on PageHero's rise register (the
+          quiet-confident entrance: standard reveals, no cinema cut, no media);
+          the last hand-rolled lockup moved onto the grammar 2026-09-11. */}
+      <PageHero
+        entrance="rise"
+        scale="lg"
+        eyebrow="Pricing"
+        heading={<>{GOLDEN_LINES.pricing}.</>}
+        subhead="No per-guest fees. Plans are sized by storage, so pick the room your event actually needs."
+        className="pt-14 pb-4 sm:pt-20 sm:pb-6"
+      />
 
       {/* THE PAPER DOCUMENT IN A DARK ROOM (the chapter ruling): the money
           turns the page to paper. The pair reads tier identity (Free = the

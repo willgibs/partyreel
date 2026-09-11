@@ -5,7 +5,7 @@
       "id": "d:docs/systems/design-system.md#event-feed-review-motion-the-live-motion-tuner/it-also-prunes-prev-rects-for-unmounted-keys",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 685,
+      "line": 686,
       "suite": [
         "event-feed-review-motion-the-live-motion-tuner"
       ],
@@ -26,7 +26,7 @@
       "id": "d:docs/systems/design-system.md#event-feed-review-motion-the-live-motion-tuner/it-prunes-the-selection-to-the-surviving-ids",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 731,
+      "line": 732,
       "suite": [
         "event-feed-review-motion-the-live-motion-tuner"
       ],
@@ -47,7 +47,7 @@
       "id": "d:docs/systems/design-system.md#event-feed-review-motion-the-live-motion-tuner/js-timed-motion-reads-vars-with-readcssms-read",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 713,
+      "line": 714,
       "suite": [
         "event-feed-review-motion-the-live-motion-tuner"
       ],
@@ -68,7 +68,7 @@
       "id": "d:docs/systems/design-system.md#event-feed-review-motion-the-live-motion-tuner/why-hand-rolled-beats-dnd-kit-here-on",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 744,
+      "line": 745,
       "suite": [
         "event-feed-review-motion-the-live-motion-tuner"
       ],
@@ -89,7 +89,7 @@
       "id": "d:docs/systems/design-system.md#gotchas-dont-revert/the-lab-and-production-are-both-provisional-and",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 865,
+      "line": 856,
       "suite": [
         "gotchas-dont-revert"
       ],
@@ -112,7 +112,7 @@
       "id": "d:docs/systems/design-system.md#gotchas-dont-revert/two-tailwind-entries-one-theme-two-scans",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 856,
+      "line": 847,
       "suite": [
         "gotchas-dont-revert"
       ],
@@ -137,7 +137,7 @@
       "id": "d:docs/systems/design-system.md#motion/a-background-wash-is-a-crossfade-not-an",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 533,
+      "line": 534,
       "suite": [
         "motion"
       ],
@@ -160,7 +160,7 @@
       "id": "d:docs/systems/design-system.md#motion/a-filling-animation-outranks-every-author-declaration-so",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 597,
+      "line": 598,
       "suite": [
         "motion"
       ],
@@ -181,7 +181,7 @@
       "id": "d:docs/systems/design-system.md#motion/a-swept-mask-layer-needs-a-static-base",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 590,
+      "line": 591,
       "suite": [
         "motion"
       ],
@@ -202,7 +202,7 @@
       "id": "d:docs/systems/design-system.md#motion/has-focus-visible-matches-in-element-matches-but",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 605,
+      "line": 606,
       "suite": [
         "motion"
       ],
@@ -223,7 +223,7 @@
       "id": "d:docs/systems/design-system.md#motion/position-sticky-on-a-grid-item-is-a",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 612,
+      "line": 613,
       "suite": [
         "motion"
       ],
@@ -244,7 +244,7 @@
       "id": "d:docs/systems/design-system.md#motion/the-arrival-default-contract-generalized-2026-08-28",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 578,
+      "line": 579,
       "suite": [
         "motion"
       ],
@@ -267,7 +267,7 @@
       "id": "d:docs/systems/design-system.md#motion/the-floating-layer-contract-named-2026-08-28",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 550,
+      "line": 551,
       "suite": [
         "motion"
       ],
@@ -290,7 +290,7 @@
       "id": "d:docs/systems/design-system.md#rounding-sharp-surfaces-round-actions/anything-drawn-around-an-object-takes-the-object",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 506,
+      "line": 507,
       "suite": [
         "rounding-sharp-surfaces-round-actions"
       ],
@@ -313,7 +313,7 @@
       "id": "d:docs/systems/design-system.md#the-arrival-choreography-phase-45-ratified-calm-700ms/the-vaul-motion-gotcha-with-no-snappoints-vaul",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 794,
+      "line": 795,
       "suite": [
         "the-arrival-choreography-phase-45-ratified-calm-700ms"
       ],
@@ -334,7 +334,7 @@
       "id": "d:docs/systems/design-system.md#the-craft-guidance-stack/proactively-propose-creative-delight-make-it-feel-like",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 645,
+      "line": 646,
       "suite": [
         "the-craft-guidance-stack"
       ],
@@ -703,7 +703,7 @@
       "id": "d:docs/systems/design-system.md#type-the-heading-face-the-tiered-scale/one-or-two-words-only",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 442,
+      "line": 443,
       "suite": [
         "type-the-heading-face-the-tiered-scale"
       ],
@@ -726,7 +726,7 @@
       "id": "d:docs/systems/design-system.md#type-the-heading-face-the-tiered-scale/the-h1-matches-its-nav-label",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 442,
+      "line": 443,
       "suite": [
         "type-the-heading-face-the-tiered-scale"
       ],
@@ -747,7 +747,7 @@
       "id": "d:docs/systems/design-system.md#type-the-heading-face-the-tiered-scale/the-third-register-the-index-masthead-and-it",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 473,
+      "line": 474,
       "suite": [
         "type-the-heading-face-the-tiered-scale"
       ],
@@ -770,7 +770,7 @@
       "id": "d:docs/systems/design-system.md#type-the-heading-face-the-tiered-scale/the-tracking-squeeze-mkt-name-belongs-to-the",
       "source": "doc",
       "file": "docs/systems/design-system.md",
-      "line": 442,
+      "line": 443,
       "suite": [
         "type-the-heading-face-the-tiered-scale"
       ],
@@ -2583,7 +2583,7 @@
       "id": "t:src/app/(marketing)/marketing-h1-policy.test.ts#the-marketing-h1-policy/finds-the-site-s-h1s-at-all",
       "source": "test",
       "file": "src/app/(marketing)/marketing-h1-policy.test.ts",
-      "line": 38,
+      "line": 42,
       "suite": [
         "the marketing h1 policy"
       ],
@@ -2594,7 +2594,8 @@
       "skipped": false,
       "provenance": {
         "dates": [
-          "2026-09-01"
+          "2026-09-01",
+          "2026-09-11"
         ],
         "adrs": [],
         "ruledBy": "unknown",
@@ -2603,21 +2604,22 @@
       "pins": []
     },
     {
-      "id": "t:src/app/(marketing)/marketing-h1-policy.test.ts#the-marketing-h1-policy/never-gates-an-h1-on-the-cut-or",
+      "id": "t:src/app/(marketing)/marketing-h1-policy.test.ts#the-marketing-h1-policy/never-gates-an-h1-on-the-cut-the",
       "source": "test",
       "file": "src/app/(marketing)/marketing-h1-policy.test.ts",
-      "line": 43,
+      "line": 50,
       "suite": [
         "the marketing h1 policy"
       ],
-      "title": "never gates an h1 on the cut or the rise",
+      "title": "never gates an h1 on the cut, the rise or the blur-rise",
       "body": null,
       "emphasis": 1,
       "dynamic": false,
       "skipped": false,
       "provenance": {
         "dates": [
-          "2026-09-01"
+          "2026-09-01",
+          "2026-09-11"
         ],
         "adrs": [],
         "ruledBy": "unknown",
@@ -4304,7 +4306,7 @@
       "id": "t:src/components/marketing/system/page-hero-contract.test.ts#the-page-hero-lockup/keeps-the-tracking-squeeze-on-the-display-step",
       "source": "test",
       "file": "src/components/marketing/system/page-hero-contract.test.ts",
-      "line": 109,
+      "line": 115,
       "suite": [
         "the page hero lockup"
       ],
@@ -4343,14 +4345,14 @@
       "pins": []
     },
     {
-      "id": "t:src/components/marketing/system/page-hero-contract.test.ts#the-page-hero-lockup/offers-exactly-two-entrances-and-neither-is-the",
+      "id": "t:src/components/marketing/system/page-hero-contract.test.ts#the-page-hero-lockup/offers-three-named-entrances-and-the-blur-rise",
       "source": "test",
       "file": "src/components/marketing/system/page-hero-contract.test.ts",
       "line": 87,
       "suite": [
         "the page hero lockup"
       ],
-      "title": "offers exactly two entrances, and neither is the blur-rise",
+      "title": "offers three named entrances, and the blur-rise never touches the h1",
       "body": null,
       "emphasis": 1,
       "dynamic": false,
@@ -4388,7 +4390,7 @@
       "id": "t:src/components/marketing/system/page-hero-contract.test.ts#the-page-hero-lockup/renders-the-stage-after-the-lockup-inside-the",
       "source": "test",
       "file": "src/components/marketing/system/page-hero-contract.test.ts",
-      "line": 97,
+      "line": 103,
       "suite": [
         "the page hero lockup"
       ],

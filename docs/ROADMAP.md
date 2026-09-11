@@ -265,21 +265,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
-  **the `PageHero` sweep, the remaining half** (Will,
-  2026-08-29; the cut family swept at the feature-pages round, 2026-09-01: `entrance` is `rise | cut`,
-  and five of the six feature pages (/qr stays bespoke), the hub, /how-it-works and /events compose
-  it, so ten of the twelve hand-rolled copies are gone; and the h1 LCP hole is CLOSED on every hero
-  whose h1 carried a data-attribute gate: /pricing, /reel and /events/[slug] lifted at the same round,
-  held by `marketing-h1-policy.test.ts`). What is left is the blur-rise trio: the /help index,
-  /contact and /careers arrive on the texts-reveal `.mkt-line`, whose `opacity: 0` rest state is the
-  SAME LCP BUG in class form (the scan cannot see a class), and `.mkt-line` forces `display:block`,
-  so a blur-rise lockup needs its own handling for the actions row. RULED 2026-09-02: the trio
-  becomes a NAMED third `entrance` register on `PageHero` with the h1 visible at paint (the
-  blur-rise animates the slots around it), in the library phase before the next marketing tracks
-  cut; /pricing's hand-rolled `rise` lockup (static h1) moves onto `PageHero` in the same pass.
-  ★ `PageHero` owns ONLY the plain type lockup plus a stage slot for what sits under it; it must
-  never absorb a hero whose object sits beside the lockup or a form (/qr, /blog's index masthead,
-  /help's instrument row, the home hero all stay bespoke by design)
+  **the `PageHero` sweep is COMPLETE** (2026-09-11, the library phase: three named registers,
+  `rise | cut | blur`; the utility trio composes `blur` and /pricing composes `rise`; every marketing
+  h1 holds at paint, and `marketing-h1-policy.test.ts` refuses the cut, the rise and the blur-rise on
+  an h1). ★ `PageHero` owns ONLY the plain type lockup, a stage slot under it and a backdrop behind
+  it; it must never absorb a hero whose object sits beside the lockup or a form (/qr, /blog's index
+  masthead, the home hero stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 - **A mobile pass of its own** (Will, 2026-08-29): "we'll already need to make mobile tweaks in the
   future. Right now, I've really been reviewing desktop only." Every marketing round to date has been
