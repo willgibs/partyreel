@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-09-02
+**Updated:** 2026-09-11
 
 ## The era
 
@@ -379,10 +379,15 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **All of wave 1 is on prod (MILESTONE-19, 2026-09-02).** `launch-prep` and `main` agree at
-   `88827d9`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
-   `7a189ae`, 16 commits ahead and 41 behind; its code lane is clean and its four doc edits are
-   reconciled at integration). Every track's claim and handoff lives in [`docs/tracks/`](tracks).
+2. **Wave 1 and the glow engine's fixes are on prod (MILESTONE-20, 2026-09-11).** `launch-prep` and
+   `main` agree at `616aea2`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
+   `7a189ae`, 21 commits of its own: the six feature pages and their hub, /how-it-works, /events,
+   /pricing, `PageHero`'s two entrance registers, the screen lamp, and a new /features/album page).
+   On 2026-09-11 its agent merged `launch-prep` locally as a pre-handoff sync (unpushed as of this
+   line; it resolved the purge cron to `over-cap.ts`, the right way). Eight of its files sit outside
+   its stub's claims (`marketing.css`, `frames/`, `mock-parity.test.ts`, `pricing-faq-data.ts`,
+   `marketing-voice.test.ts`, the purge route's import) and get ruled at integration; the marketing
+   library's pin will need a `ScreenLamp` specimen or an UNSPECIMENED reason at the merge. Every track's claim and handoff lives in [`docs/tracks/`](tracks).
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
@@ -403,7 +408,8 @@ manifest fill.
    wave 1 is complete; `demo-seed`
    was spawned with them and integrated at `ec69d7f` (the script is in; the prod run waits on Will's
    curated folder). Integration: 1 + 2 together → a
-   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` stubbed and spawned 2026-09-02 (its prerequisites landed);
+   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` integrated 2026-09-11 at `8181c85` (its agent's session died
+   after the sixth of six commits; the Orchestrator wrote the handoff from the branch);
    `marketing-followons` waits on the marketing branch; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
    (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
    round in the Launch checkpoint's human order.
