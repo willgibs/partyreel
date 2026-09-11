@@ -130,13 +130,19 @@ session:
 
 ## The queue (not yet cut; no manifest until their wave opens)
 
-The wave plan is in [`../STATUS.md`](../STATUS.md). These tracks cannot be stubbed yet because their
-claims overlap a live track; they open when it integrates.
+No track is live (2026-09-11: the marketing branch integrated and every `lp/*` pruned). These open
+AFTER the library phase, which the Orchestrator runs on `launch-prep` with no agents (Will's
+direction, 2026-09-11: the rules bible in the library, lab to library, the rounding, the hero
+registers, the feature-family furniture and the single sources, the light rulings), so the shared
+pieces every row below reads are settled once rather than five times. The order is the wave plan in
+[`../STATUS.md`](../STATUS.md).
 
-| track | after | owns (prefixes) | rulings up front |
-| --- | --- | --- | --- |
-| `marketing-followons` | `lp/marketing-feature-pages` integrates and `legal-billing-truth` lands | `src/app/(marketing)/`, `src/components/marketing/` (except `system/page-hero.tsx` beyond the trio ruling), `src/app/(marketing)/marketing.css`, `src/lib/constants/contact.ts`, `src/app/not-found.tsx` | the blur-rise trio becomes a NAMED third `entrance` register with the h1 visible at paint; the visibility word "Public" on `access-switch.tsx`; Report on `privacy-faq.ts`; the EXIF clause on `never-rides-along.tsx` and `feature-pages.ts`; `/contact` onto cinema with no identity revisit; one reply line; the root 404 tint |
-| `marketing-mobile` | `marketing-followons` | all of `src/app/(marketing)/`, `src/components/marketing/`, `marketing.css`, alone in its wave | none up front, many during; judged on Will's phone, reduced motion and a classic scrollbar included; gating for launch |
+| track | after | owns (prefixes) | reads (never claim) | rulings up front |
+| --- | --- | --- | --- | --- |
+| `marketing-followons` | the library phase | `src/app/(marketing)/` except `(cinema)/features/`, `src/components/marketing/` except `sections/features/` and `system/page-hero.tsx`, `src/app/(marketing)/marketing.css`, `src/lib/constants/contact.ts`, `src/app/not-found.tsx` | `src/lib/constants/feature-pages.ts`, `system/page-hero.tsx` | `/contact` onto cinema with no identity revisit (the `(paper)` group retires with it); the root 404 tint; whatever single-source homes the library phase leaves it to re-point |
+| `features-qr`, `features-curation`, `features-sharing`, `features-guests`, `features-privacy` (one track each, nav order, two to three at a time) | `marketing-followons` | `src/app/(marketing)/(cinema)/features/<page>/`, `src/components/marketing/sections/features/<page>/` | `src/lib/constants/feature-pages.ts` (propose the page's new strings in Handoff), `sections/features/shared/`, `system/`, `frames/`, `mock-parity.test.ts` (append under a `// <page>` comment) | the album is the model, section for section; the brief per page is in git: `git show 0f52503:docs/tracks/marketing-feature-pages.md` ("For the per-page tracks that follow"); the corrections that must hold (Require accounts defaults ON; Anonymous is anonymous; a guest deletes their own upload; a private page shows no name and no count; no big-screen mode; nothing locked at lapse; EXIF "for the common formats"); `features-privacy` also: "Public" on `access-switch.tsx`, Report on `privacy-faq.ts`, the EXIF clause on `never-rides-along.tsx` |
+| `marketing-mobile` | the five page tracks | all of `src/app/(marketing)/`, `src/components/marketing/`, `marketing.css`, alone in its wave | | none up front, many during; judged on Will's phone, reduced motion and a classic scrollbar included; gating for launch |
+| `home-hero` | the library phase; its own focus round (Will, 2026-09-11) | `src/components/marketing/sections/home/cinema-hero.tsx`, its boards under `src/app/(dev)/design/sandbox/` | `src/components/marketing/system/`, `src/app/globals.css` | a design problem, not a lighting one: boards in the lab first, Will's rulings, then the wiring; the hero stays UNLIT by ruling meanwhile (the wall is the ground, not a source) |
 
 ## Previews
 

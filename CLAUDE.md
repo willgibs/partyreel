@@ -262,7 +262,7 @@ also appear in full in the linked system doc — don't revert them.
 | --- | --- |
 | Pricing / tier limits (app side) | `src/lib/constants/tiers.ts` |
 | Pricing / tier limits (DB enforcement) | `public.tier_limits()` SQL fn — **must mirror `tiers.ts`** (a Vitest parity test guards it) |
-| Universal per-file media limits (5 min / 2 GB / 50 MB) | `src/lib/media/limits.ts` |
+| Universal per-file media limits (the numbers live in the file, never here) | `src/lib/media/limits.ts` |
 | R2 object keys (+ `parseMediaIdFromKey`/`parseExtFromKey`) | `src/lib/r2/keys.ts` |
 | R2 bulk delete / list (purge cron) | `src/lib/r2/delete.ts` |
 | DB access (queries/mutations) | `src/lib/db/*` — never inline SQL in components |

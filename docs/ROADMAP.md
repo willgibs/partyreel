@@ -25,8 +25,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   source hash (the `ci-workflow` track's note, 2026-09-02).
 - **The restore toast should read `mediaStillRemoved`** (the `product-truth` track, 2026-09-02:
   `restoreEventAction` now returns the count, and nothing reads it). The consumer is
-  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest
-  (`docs/tracks/product-truth.md`, Handoff) until that file is pruned at the milestone, then in git.
+  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest, now in git
+  only: `git show d752a9b:docs/tracks/product-truth.md` (Handoff).
 - **Give the visibility WORD a server-safe home** (e.g. `src/lib/events/visibility-labels.ts`) so the
   RSC chip, the client selector and marketing's `access-switch.tsx` read one record; an RSC cannot dot
   into `visibility-selector.tsx` ("use client"), so the chip re-types "Public" today with a comment.
