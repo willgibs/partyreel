@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -165,7 +166,7 @@ export function Spine() {
           the old <Reveal> here wrapped children with no [data-mkt-reveal] and
           animated nothing anyway. */}
       <div className="mt-20 flex flex-col items-center gap-2 text-center">
-        <MonoCaption>The exact details live in the help center</MonoCaption>
+        <Caption>The exact details live in the help center</Caption>
         <LearnMoreLink href="/help/how-partyreel-works">
           How Partyreel works
         </LearnMoreLink>

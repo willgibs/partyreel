@@ -395,10 +395,8 @@ manifest fill.
 5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-6. **The MonoCaption sweep**, answered for the GoDeeper captions on the marketing branch (Inter,
-   2026-09-02, your words: mono only where it aids a tabular layout). What remains is `MonoCaption`'s
-   other 29 call sites, one pass in the library phase ([ROADMAP](ROADMAP.md) "Elevation-program
-   deferred queue").
+6. ~~**The MonoCaption sweep**~~ **DONE 2026-09-11** (the library phase): mono holds data only; every
+   label, hint and descriptor is the `Caption` atom. Nothing mono-side remains open.
 7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: none;
    `lp/marketing-feature-pages` (Will's) integrated 2026-09-11 at `1e5d693`. **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
    one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`

@@ -1,7 +1,7 @@
 import { Radio, ShieldCheck, type LucideIcon } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -94,7 +94,7 @@ export function ReviewModes() {
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {mode.body}
               </p>
-              <MonoCaption className="mt-auto pt-1">{mode.note}</MonoCaption>
+              <Caption className="mt-auto pt-1">{mode.note}</Caption>
             </div>
           ))}
         </Reveal>
@@ -106,7 +106,7 @@ export function ReviewModes() {
             className="flex flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5"
             style={{ "--i": 4 } as CSSProperties}
           >
-            <MonoCaption className="mb-4">event settings</MonoCaption>
+            <Caption className="mb-4">event settings</Caption>
             <div
               aria-hidden
               className="flex items-start justify-between gap-4 rounded-xl border p-4"
@@ -137,7 +137,7 @@ export function ReviewModes() {
             className="flex flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5"
             style={{ "--i": 4 } as CSSProperties}
           >
-            <MonoCaption className="mb-4">turning it off</MonoCaption>
+            <Caption className="mb-4">turning it off</Caption>
             <div aria-hidden className="rounded-xl border p-4">
               <p className="text-sm font-semibold">Stop reviewing uploads?</p>
               <p className="mt-1.5 text-sm text-muted-foreground">

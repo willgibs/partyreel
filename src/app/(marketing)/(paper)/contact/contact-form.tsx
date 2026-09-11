@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -63,7 +63,7 @@ function FormCard({ children }: { children: ReactNode }) {
           className="size-16 rounded-[4px] border-4 border-background object-cover shadow-lg"
         />
       </div>
-      <MonoCaption>A note to Partyreel</MonoCaption>
+      <Caption>A note to Partyreel</Caption>
       <div className="mt-5">{children}</div>
     </div>
   );
@@ -448,9 +448,7 @@ export function ContactForm({
               {isSubmitting ? "Sending…" : "Send message"}
             </Button>
             {/* The V1 steal: the reply line seated at the commit point. */}
-            <p className="text-xs text-muted-foreground">
-              {REPLY_LINE}
-            </p>
+            <p className="text-xs text-muted-foreground">{REPLY_LINE}</p>
           </div>
         </form>
       </Form>

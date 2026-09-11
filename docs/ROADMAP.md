@@ -240,10 +240,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
-  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep**, answered for the GoDeeper captions (Inter since 2026-09-02, the
-  feature-pages round; the ruling: mono holds data only, as the press facts on 2026-08-28 and the legal
-  status lines on 2026-09-01 already settled); what remains is `MonoCaption`'s other call sites (29
-  files, most of them the feature sections' captions), one pass in the library phase;
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** is COMPLETE (2026-09-11: mono holds data only; every label is the
+  `Caption` atom);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
   subjects; the hub doors' and the album stages' stock photographs are placeholders Will replaces,

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
 import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
@@ -100,9 +100,9 @@ export function PresetSwitcher() {
                 />
               </div>
             </div>
-            <MonoCaption aria-live="polite" className="mt-3 text-center">
+            <Caption aria-live="polite" className="mt-3 text-center">
               <TextSwap value={`${preset.label} · ${preset.description}`} />
-            </MonoCaption>
+            </Caption>
           </div>
           {/* The explainer belongs with the thing it explains — and it is what
               keeps the two columns near the same height (B7 again). */}
@@ -199,10 +199,10 @@ export function PresetSwitcher() {
               </button>
             </div>
           ) : (
-            <MonoCaption className="text-center">
+            <Caption className="text-center">
               Downloads in the app: SVG (best for print) · PNG (best for
               screens)
-            </MonoCaption>
+            </Caption>
           )}
         </div>
       </Reveal>

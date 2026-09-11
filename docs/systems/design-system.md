@@ -487,10 +487,11 @@ link). One page uses it; if a second index wants it, THAT is when it gets extrac
 tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
 where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
 devtool" — Will). Restated 2026-09-02 on the album page's finish pass: **"I don't want to use mono
-anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day. The
-press facts and the legal status lines were already settled on the same line (mono holds the data,
-Inter the labels); what remains is one pass over `MonoCaption`'s other call sites, most of them the
-feature sections' captions, mono for data only (→ ROADMAP).
+anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day, and the
+library phase swept the rest (2026-09-11): `MonoCaption` holds DATA only (timecodes, counts, sizes,
+URLs, step indices, style-and-duration lines) and every label, hint and descriptor is the `Caption`
+atom (`system/caption.tsx`, Inter, the same size and colour). A new caption picks by that question
+alone; both atoms sit side by side on `/design/marketing`.
 
 ## Rounding: sharp surfaces, round actions
 

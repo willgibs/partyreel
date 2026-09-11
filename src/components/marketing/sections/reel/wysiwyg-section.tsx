@@ -1,4 +1,4 @@
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
 /**
@@ -17,16 +17,13 @@ export function WysiwygSection() {
     >
       <div className="mx-auto mt-10 flex max-w-md items-center justify-center gap-4">
         <span className="rounded-lg border px-4 py-2">
-          <MonoCaption className="text-foreground/80">the preview</MonoCaption>
+          <Caption className="text-foreground/80">the preview</Caption>
         </span>
-        <span
-          aria-hidden
-          className="font-mono text-lg text-muted-foreground"
-        >
+        <span aria-hidden className="font-mono text-lg text-muted-foreground">
           =
         </span>
         <span className="rounded-lg border px-4 py-2">
-          <MonoCaption className="text-foreground/80">your video</MonoCaption>
+          <Caption className="text-foreground/80">your video</Caption>
         </span>
       </div>
     </SectionShell>

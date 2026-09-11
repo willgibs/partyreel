@@ -6,7 +6,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import { MARKETING_CTA, type NavLink } from "@/lib/constants/marketing-nav";
 
 import { DemoCtaLink } from "./demo-cta-link";
-import { MonoCaption } from "./mono-caption";
+import { Caption } from "./caption";
 import { SectionShell } from "./section-shell";
 
 type CtaBandProps = {
@@ -96,7 +96,7 @@ export function CtaBand({
       </div>
       {credit && (
         <div className="mt-16 flex flex-col items-center">
-          <MonoCaption>A Partyreel production · partyreel.com</MonoCaption>
+          <Caption>A Partyreel production · partyreel.com</Caption>
         </div>
       )}
     </SectionShell>
