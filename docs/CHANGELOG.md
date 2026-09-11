@@ -11,6 +11,38 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — Track `glow-engine-defects` integrated (`8181c85`)
+
+Merged into `launch-prep` at `8181c85` (2026-09-11). Six engine defects fixed, no placement touched: an
+unarmed bloom now rests at its own from-keyframe instead of sitting fully lit before the beat it
+exists to mark; `useInViewOnce` gained a viewport-relative arming option (`viewportFraction`, taking
+the earlier of the two thresholds, so a lamp taller than the screen can arm at all and every shorter
+element behaves as before) and the lamp uses it; the URL sampler decodes through the reel engine's
+`decodeImage`, CORS-clean and cache-safe, so law 3 fires on presigned guest media when handed a row's
+`previewUrl`, with the DOM form documented as the one that still taints; `effectiveAlpha` models base
+and band composited source-over, so the contrast instrument reports the light the eye meets rather
+than two thirds of it; the no-mask fallback was measured in the production build (Lightning CSS keeps
+it, rewritten stricter) and now hides the whole lamp rather than leaving an unmasked field; and every
+`BorderBeam` wrapper's `theme` is pinned by the glow contract test. Fourteen new tests.
+The agent's session was terminated by an API error after its sixth commit and before it could hand
+off; nine days later the Orchestrator ran the gate on its tree (1592 tests, 244 static pages; CI green
+on both of its pushes), wrote the Handoff and Record into the manifest from the branch, and merged.
+The branch was cut at the tip it was merged onto, so nothing needed a sync.
+
+## 2026-09-02 — MILESTONE-19: prod = wave 1 complete (every job operable from /admin, self-serve account deletion, the demo seed)
+
+`main` @ tag `milestone-19` (`88827d9`; `launch-prep` `1c221f7` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1577 tests, 244 static pages); prod READY at the merge SHA. The three track entries below are the
+round; both migrations were applied at their integrations with their contract checks.
+
+**Prod at `88827d9`:** the home, /privacy and /terms (both Version 1.1), the two help articles and the
+`Test Wedding` door 200; /account and /dashboard 307 to login signed out; the purge cron 401 without
+its secret; `/api/internal/job-run` 401 bare and on a wrong bearer; the four security headers present
+with no `x-powered-by`. The backup Worker was redeployed right after (version `4e77f674`, both
+schedules intact), so its heartbeat calls land on a route that exists. `/admin/jobs` and the operator
+deletion card are host-gated to `admin.partyreel.com` and get their looks there.
+
 ## 2026-09-02 — Track `account-deletion` integrated (`244f57e`)
 
 Merged into `launch-prep` at `244f57e` (2026-09-02). Self-serve account deletion shipped end to end.

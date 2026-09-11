@@ -9,7 +9,6 @@ owns:
   - src/components/marketing/mdx-components.tsx
   - src/lib/design-gate/
   - src/app/api/design-gate/
-  - src/components/dev/
   - src/lib/track-manifests.test.ts
   - src/lib/single-source-policy.test.ts
   - scripts/vercel-ignore-build.mjs
@@ -24,10 +23,9 @@ The Orchestrator's rolling manifest: what `launch-prep` itself is changing this 
 landed. Agents sync `origin/launch-prep` mid-round only when a line below touches one of their
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
-**This window (round 3, 2026-09-02):** the operating model (this directory, the two guards, the
-registry split, the build-gate policy, the program docs), then the library round on the lab, then
-wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orchestrator-run agents
-(worktrees under `../partyreel-wt/`); their integration is the next window, CI first and alone.
+**This window (round 3, 2026-09-02):** the operating model, the library round, then wave 1 (six
+tracks, all integrated; milestones 17 to 19). `src/components/dev/` is released: the library round is
+shipped and the `glow-engine-defects` track claims `glow-contrast.ts` there.
 
 ## Landed this window
 
@@ -63,3 +61,7 @@ wave 1: `ci-workflow`, `legal-billing-truth` and `product-truth` spawned as Orch
   `src/lib/db/mutations/account.ts`, `src/lib/lifecycle/account-deletion.ts`, `src/lib/stripe/account-cancel.ts`,
   the legal constants (1.1), two help articles, `src/lib/db/types.ts` (deletion_requested_at), the cron route
   (one sweep). A lane touching the legal constants or the account page syncs this.
+- `8181c85` `glow-engine-defects` (2026-09-11): `src/components/shared/glow.tsx`, `src/lib/shared/use-in-view-once.ts`
+  (a new `viewportFraction` option, default off), `src/lib/shared/sampled-palette.ts` (the URL sampler decodes
+  through `decodeImage`), `src/components/dev/glow-contrast.ts` (`effectiveAlpha` gains `band`), the engine
+  block of `globals.css`. A lane placing light or reading the contrast instrument syncs this.
