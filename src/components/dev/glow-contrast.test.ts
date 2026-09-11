@@ -94,10 +94,57 @@ describe("the ink slab's headroom", () => {
     expect(seamCoverage(80, 210)).toBeLessThan(0.5);
   });
 
-  it("stacks the three multipliers that decide what text meets", () => {
-    const a = effectiveAlpha({ layerOpacity: 0.62, coverage: 1 });
-    expect(a).toBeCloseTo(0.62 * 0.62, 4);
+  it("stacks BOTH layers the engine paints, not just one", () => {
+    // ★ THE DEFECT THIS PIN EXISTS FOR. Law 4 is "base + band, always": the
+    // two layers are the same colour field stacked source-over, and the worst
+    // case this function computes is a run under the brightest blob with both
+    // present. The docstring said so; the arithmetic multiplied ONE opacity
+    // and under-read the shipped register by a third. An instrument that
+    // reports light at two thirds of what it is is worse than no instrument,
+    // because it reads as a measurement.
+    const peak = 0.62;
+    const one = peak * 0.62; // what a single layer contributes
+    const both = one + one * (1 - one); // source-over, NOT a product
+    expect(effectiveAlpha({ layerOpacity: 0.62, coverage: 1 })).toBeCloseTo(
+      both,
+      6,
+    );
+    // The failure it replaces, spelled out so nobody reintroduces it: two
+    // layers at 38% make 62%, not 15%.
+    expect(both).toBeGreaterThan(one);
+    expect(effectiveAlpha({ layerOpacity: 0.62, coverage: 1 })).not.toBeCloseTo(
+      one * one,
+      3,
+    );
+
+    // The band is separable: where the comet is not, only the base is lit.
+    expect(
+      effectiveAlpha({ layerOpacity: 0.62, band: 0, coverage: 1 }),
+    ).toBeCloseTo(one, 6);
+    // ...and it defaults to the base, because the engine ships both at 0.62.
+    expect(effectiveAlpha({ layerOpacity: 0.62, coverage: 1 })).toBe(
+      effectiveAlpha({ layerOpacity: 0.62, band: 0.62, coverage: 1 }),
+    );
+
+    // Coverage still gates everything, and the result stays a valid alpha.
     expect(effectiveAlpha({ layerOpacity: 0.62, coverage: 0 })).toBe(0);
+    const full = effectiveAlpha({ peakStop: 1, layerOpacity: 1, coverage: 1 });
+    expect(full).toBe(1);
+    expect(
+      effectiveAlpha({ layerOpacity: -3, band: 9, coverage: 4 }),
+    ).toBeLessThanOrEqual(1);
+  });
+
+  it("reports the shipped footer's geometry at what the eye meets", () => {
+    // The board prints this number and reasons from it, so pin the number.
+    // 0.181 was the one-layer model; 0.292 is base and band together at the
+    // first text line, 80px below a 210px seam.
+    const atFirstLine = effectiveAlpha({
+      layerOpacity: 0.62,
+      coverage: seamCoverage(80, 210),
+    });
+    expect(atFirstLine).toBeCloseTo(0.2924, 4);
+    expect(atFirstLine).toBeGreaterThan(0.62 * 0.62 * seamCoverage(80, 210));
   });
 
   it("is an UPPER BOUND, and says so by construction", () => {

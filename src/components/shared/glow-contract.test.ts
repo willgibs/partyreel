@@ -119,6 +119,21 @@ describe("the spill primitive", () => {
     expect(glowCode).toMatch(/runId > 0/);
   });
 
+  it("arms a one-shot against the VIEWPORT, not against its own height", () => {
+    // The lamp is `position: absolute; inset: 0`, so its box is the CALLER's
+    // wrapper and can be several viewports tall. An element-relative 0.35 is
+    // unreachable there (35% of a 3000px lamp is more pixels than an 800px
+    // screen holds), so the observer never trips and the one-shot never fires:
+    // no error, no warning, just a beat that does not happen. The hook's
+    // viewportFraction is the rescue (armingThreshold, use-in-view-once.ts, and
+    // its own test pins the arithmetic); dropping it here would put the silent
+    // failure straight back, and only on the tall surfaces nobody tests on.
+    const glowFn = declBody(glowCode, "export function Glow(");
+    expect(glowFn).toMatch(
+      /useInViewOnce<HTMLDivElement>\([\s\S]*?viewportFraction:/,
+    );
+  });
+
   it("accepts no className", () => {
     const glowFn = declBody(glowCode, "export function Glow(");
     // Tailwind's filter/mask utilities live in the utilities layer, which
@@ -221,6 +236,38 @@ describe("the spill engine CSS", () => {
     expect(engineCode).toMatch(/@supports not \(mask-image/);
   });
 
+  it("hides the WHOLE lamp where masking is unsupported", () => {
+    // ★ The guard used to hide the band and the edge and claim it was keeping
+    // the lamp "lit and still, rather than showing an unmasked colour slab".
+    // The FALLOFF is a mask too -- [data-glw]'s own radial, a seam's linear
+    // ramp, and a halo's mask, which is the one that CLEARS the centre so the
+    // backlit object is not painted over. Without masking, hiding only the
+    // moving parts leaves exactly the unmasked field the guard exists to
+    // prevent. There is no lit-and-still state to keep, so the lamp goes.
+    const at = engineCode.indexOf("@supports not (mask-image");
+    expect(at, "the no-mask fallback is gone").toBeGreaterThan(-1);
+    const open = engineCode.indexOf("{", at);
+    const close = engineCode.indexOf("\n}", at);
+    expect(open, "no-mask fallback has no block").toBeGreaterThan(at);
+    expect(close, "no-mask fallback is unterminated").toBeGreaterThan(open);
+    const body = engineCode.slice(open, close);
+    expect(body).toMatch(/\[data-glw\]\s*\{/);
+    expect(
+      body,
+      "hiding only the moving layers leaves the field",
+    ).not.toContain("[data-glw-band]");
+
+    // The condition names ONLY the unprefixed property, on purpose. Lightning
+    // CSS prefixes it at build time into
+    // `not ((-webkit-mask-image: ...) or (mask-image: ...))`, which is the test
+    // we actually want (every mask here ships the -webkit- pair, so a prefixed-
+    // only engine masks fine and must not take the fallback). Measured in the
+    // production build: the block is NOT compiled away. Writing the `or` by
+    // hand would double-prefix.
+    const condition = engineCode.slice(at, open);
+    expect(condition).not.toContain("-webkit-mask-image");
+  });
+
   it("keeps every animation inside the no-preference block", () => {
     // House convention: FINAL states sit outside the media queries (a
     // reduced-motion jump still arrives), motion lives inside no-preference.
@@ -317,6 +364,47 @@ describe("the spill engine CSS", () => {
     expect(rest![1].trim()).toBe(from![1].trim());
   });
 
+  it("rests an UNARMED bloom where its own animation starts", () => {
+    // ★ The same law, on the one shape the pin above cannot see. A bloom is
+    // excluded from the comet mask, so nothing windows its band away: the two
+    // states where its animation is not running (unarmed, and reduced motion,
+    // which never enters the no-preference block at all) show whatever the band
+    // DECLARES. That was `opacity: var(--glw-strength)` from the shared rule --
+    // the beat fully lit before it fires, and permanently for anyone who opted
+    // out of motion. The resting value has to be glw-bloom's own 0% keyframe.
+    const from = engineCode.match(
+      /@keyframes glw-bloom\s*\{\s*0%\s*\{([^}]*)\}/,
+    );
+    expect(from, "glw-bloom 0% keyframe not found").not.toBeNull();
+    const fromOpacity = /opacity:\s*([^;]+);/.exec(from![1]);
+    const fromScale = /scale:\s*([^;]+);/.exec(from![1]);
+    expect(fromOpacity, "glw-bloom 0% declares no opacity").not.toBeNull();
+    expect(fromScale, "glw-bloom 0% declares no scale").not.toBeNull();
+
+    // OUTSIDE the no-preference block on purpose: a resting state declared
+    // inside it is invisible to the visitors it exists for. Slice bounds are
+    // asserted, never trusted (see declBody's note).
+    const noPrefAt = engineCode.indexOf(
+      "@media (prefers-reduced-motion: no-preference)",
+    );
+    expect(noPrefAt, "no-preference block not found").toBeGreaterThan(-1);
+    const unconditional = engineCode.slice(0, noPrefAt);
+    const restRule =
+      /\[data-glw-shape="bloom"\]\s+\[data-glw-band\]\s*\{([^}]*)\}/.exec(
+        unconditional,
+      );
+    expect(
+      restRule,
+      "the bloom band declares no resting state outside the no-preference block",
+    ).not.toBeNull();
+    expect(/opacity:\s*([^;]+);/.exec(restRule![1])?.[1].trim()).toBe(
+      fromOpacity![1].trim(),
+    );
+    expect(/scale:\s*([^;]+);/.exec(restRule![1])?.[1].trim()).toBe(
+      fromScale![1].trim(),
+    );
+  });
+
   it("has exactly one filter host, and the footer is now on it", () => {
     expect(engineCode).toContain("url(#glw-warp)");
     // This pin used to read `not.toContain`, because the footer ran its own
@@ -396,5 +484,84 @@ describe("the turbulence field is a document singleton", () => {
     const code = stripComments(filterSrc);
     expect(code).not.toContain('"use client"');
     expect(code).not.toMatch(/\buse[A-Z]\w*\(/);
+  });
+});
+
+/**
+ * THE BEAM SIBLING'S ONE ENGINE-LEVEL INVARIANT.
+ *
+ * SPILL and BEAM are one doctrine with two mechanisms (design-system.md
+ * "Light"), and the beam has exactly one knob that can go wrong the way an
+ * engine defect goes wrong: silently, on somebody else's machine. `theme`
+ * decides the whole opacity/saturation preset the effect is drawn at, and
+ * `theme="auto"` resolves it from `prefers-color-scheme` -- the visitor's OS,
+ * NOT next-themes and not the chapter the beam is sitting in. Our marketing
+ * chapters force their own ground, so on a forced-dark chapter viewed from a
+ * light-mode OS `auto` picks the light preset and the beam is drawn for a
+ * ground it is not on. Nothing throws, and nobody developing on a dark OS ever
+ * sees it.
+ *
+ * The vendored default happens to be 'dark' today, which is right for the one
+ * production surface and wrong as a thing to rely on: it is upstream's choice,
+ * a version bump can move it, and DO-NOT-RESTYLE means we would not be the ones
+ * to notice. So every call site states its ground.
+ *
+ * Lives here rather than in border-beam-vendor.test.ts because that file guards
+ * the vendored PACKAGE (its licence, its deviations, its palette) and this is a
+ * rule about our call sites; it is also outside this track's claim.
+ */
+describe("every beam states the ground it is drawn for", () => {
+  /** The opening tag at `at`, brace-aware so a `{cond ? a : b}` prop is not cut short. */
+  const openingTag = (src: string, at: number): string | null => {
+    let depth = 0;
+    for (let i = at; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+      else if (ch === ">" && depth === 0) return src.slice(at, i + 1);
+    }
+    return null;
+  };
+
+  // Every call site, production and lab. The vendored package declares the prop
+  // and must not be scanned as a caller; test files are excluded for the same
+  // reason as the singleton pins above (this one quotes `<BorderBeam` itself).
+  const callSites = walk(join(ROOT, "src"))
+    .filter(
+      (f) =>
+        f.endsWith(".tsx") &&
+        !/\.test\.tsx?$/.test(f) &&
+        !f.includes("/vendor/border-beam/"),
+    )
+    .map((f) => ({
+      rel: f.slice(ROOT.length + 1),
+      code: stripComments(readFileSync(f, "utf8")),
+    }))
+    .filter((f) => f.code.includes("<BorderBeam"));
+
+  it("found the call sites at all", () => {
+    // A pin that scans nothing passes forever. The engine's own guards were
+    // caught doing exactly that twice.
+    expect(callSites.map((f) => f.rel).sort()).toEqual([
+      "src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx",
+      "src/app/(dev)/design/sandbox/glow-moments-variants.tsx",
+      "src/components/marketing/sections/home/pro-card-beam.tsx",
+    ]);
+  });
+
+  it("passes theme explicitly, and never 'auto'", () => {
+    for (const { rel, code } of callSites) {
+      let at = code.indexOf("<BorderBeam");
+      expect(at, rel).toBeGreaterThan(-1);
+      while (at !== -1) {
+        const tag = openingTag(code, at);
+        expect(tag, `${rel}: unterminated <BorderBeam tag`).not.toBeNull();
+        expect(tag!, `${rel}: a beam with no theme`).toMatch(/\stheme=/);
+        expect(tag!, `${rel}: a beam on the OS theme`).not.toMatch(
+          /theme=\{?\s*["']auto["']/,
+        );
+        at = code.indexOf("<BorderBeam", at + 1);
+      }
+    }
   });
 });

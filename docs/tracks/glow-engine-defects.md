@@ -1,8 +1,9 @@
 ---
 track: glow-engine-defects
-status: open
-cut: "a370800"          # the stub SHA; the agent resets it to the launch-prep SHA it cuts from
-preview: false
+status: integrated
+merged: "75069ba"      # the branch head merged into launch-prep
+cut: "791fd4f"
+preview: true
 owns:
   - src/components/shared/glow.tsx
   - src/components/shared/glow-contract.test.ts
@@ -59,8 +60,36 @@ flip `preview: true` for that).
 
 ## Handoff
 
-- to be filled at handoff
+Written by the Orchestrator on 2026-09-11: the agent's session was terminated by an API error after
+its sixth commit and before it could hand off, so this section records what the branch contains and
+what the Orchestrator verified, not what the agent reported.
+
+- Head `75069ba`, pushed; preview `partyreel-git-lp-glow-engine-defects-partyreel.vercel.app` (the
+  agent's last commit carried `[preview]`).
+- Cut at `791fd4f`, which was still the `launch-prep` tip at integration, so no sync was needed
+  (staleness 0).
+- Gates on that tree, run by the Orchestrator in the track's worktree, each on its own exit code:
+  typecheck ok, lint ok, test ok (1592), build ok (244 pages). CI green on both of the branch's pushes.
+- Lane check `git diff --name-only launch-prep...origin/lp/glow-engine-defects` = the six owned paths,
+  their three tests (`glow-contract.test.ts` is owned; `sampled-palette.test.ts` and
+  `use-in-view-once.test.ts` sit beside their owned modules), the engine block of `globals.css` (the
+  ruled exception, for items 1 and 5), `docs/systems/design-system.md` (the listed edits) and this
+  manifest. Item 6 needed no production edit: the one wrapper (`pro-card-beam.tsx`) already pins
+  `theme`, so the commit pins the invariant in the glow contract test instead.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the resting state of a bloom (`[data-glw-shape="bloom"] [data-glw-band]` at its
+  from-keyframe), the no-mask fallback now hiding the whole lamp, and `armingThreshold`'s geometry.
 
 ## Record
 
-- to be filled at integration
+Merged into `launch-prep` at `<sha>` (2026-09-11). Six engine defects fixed, no placement touched: an
+unarmed bloom now rests at its own from-keyframe instead of sitting fully lit before the beat it
+exists to mark; `useInViewOnce` gained a viewport-relative arming option (`viewportFraction`, taking
+the earlier of the two thresholds, so a lamp taller than the screen can arm at all and every shorter
+element behaves as before) and the lamp uses it; the URL sampler decodes through the reel engine's
+`decodeImage`, CORS-clean and cache-safe, so law 3 fires on presigned guest media when handed a row's
+`previewUrl`, with the DOM form documented as the one that still taints; `effectiveAlpha` models base
+and band composited source-over, so the contrast instrument reports the light the eye meets rather
+than two thirds of it; the no-mask fallback was measured in the production build (Lightning CSS keeps
+it, rewritten stricter) and now hides the whole lamp rather than leaving an unmasked field; and every
+`BorderBeam` wrapper's `theme` is pinned by the glow contract test. Fourteen new tests.
