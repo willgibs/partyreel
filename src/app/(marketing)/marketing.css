@@ -43,6 +43,11 @@
   --mkt-pulse-ring: color-mix(in oklab, var(--foreground) 18%, transparent);
   /* The one knob chrome + anchors share; SectionShell scroll-margins ride it too. */
   --mkt-header-h: 4rem;
+  /* The sticky rail offset, ONE knob for the reading rails (help articles, the
+     legal shell, a role page) and the index rails (blog): the header plus a
+     breath. Was top-24 on one family and this calc on the other (found in the
+     careers merge, 2026-08-29; settled in the library phase). */
+  --mkt-rail-top: calc(var(--mkt-header-h) + 1.5rem);
   /* The chapter-1 reveal clocks (standard rise + per-item stagger). Until R4
      these existed only as var() fallbacks below — undeclared, so untunable.
      Declared with the shipped fallback values: ZERO visual change, one home. */

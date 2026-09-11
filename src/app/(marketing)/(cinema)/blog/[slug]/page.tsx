@@ -313,7 +313,7 @@ export default async function BlogPostPage({
                       travel room, and the ToC silently never tracks. */}
                   <nav
                     aria-label="On this page"
-                    className="sticky top-[calc(var(--mkt-header-h,4rem)+1.5rem)]"
+                    className="sticky top-[var(--mkt-rail-top)]"
                   >
                     <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       On this page
