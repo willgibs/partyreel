@@ -379,8 +379,8 @@ manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **All of wave 1 is on prod (MILESTONE-19, 2026-09-02).** `launch-prep` and `main` agree at
-   `88827d9`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
+2. **Wave 1 and the glow engine's fixes are on prod (MILESTONE-20, 2026-09-11).** `launch-prep` and
+   `main` agree at `616aea2`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
    `7a189ae`, 21 commits of its own: the six feature pages and their hub, /how-it-works, /events,
    /pricing, `PageHero`'s two entrance registers, the screen lamp, and a new /features/album page).
    On 2026-09-11 its agent merged `launch-prep` locally as a pre-handoff sync (unpushed as of this

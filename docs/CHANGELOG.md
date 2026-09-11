@@ -11,6 +11,21 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — MILESTONE-20: prod = the spill engine's six defects fixed
+
+`main` @ tag `milestone-20` (`616aea2`; `launch-prep` `4ab5484` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1592 tests, 244 static pages); prod READY at the merge SHA. The one track entry below is the round.
+
+**The walk before the merge, on the launch-prep alias:** the home's three seams present at their
+shipped strengths with the hero and the footer rendering as before and a clean console; on the
+doctrine board an unarmed bloom now rests at opacity 0 and scale 0.94 with no animation running (the
+first fix, seen live); the placements board renders its 21 engine mounts and 4 lit surfaces cleanly.
+
+**Prod at `616aea2`:** the home, /features, /pricing, /help, /privacy and the `Test Wedding` door 200,
+/dashboard 307 signed out, the purge cron 401 without its secret; the main stylesheet carries the
+bloom's resting rule and the settled no-mask fallback.
+
 ## 2026-09-11 — Track `glow-engine-defects` integrated (`8181c85`)
 
 Merged into `launch-prep` at `8181c85` (2026-09-11). Six engine defects fixed, no placement touched: an
