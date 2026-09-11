@@ -90,27 +90,54 @@ export type GroundReport = {
 /**
  * The alpha a text run actually meets, which is NOT the layer opacity.
  *
- * Three multipliers stack, and skipping any of them produces a number that
- * looks alarming and is not true. Modelling only the layer opacity says the
- * shipped footer fails AA, which it plainly does not:
+ * ★ THE ENGINE PAINTS TWO LAYERS, AND THIS MODELLED ONE (fixed round 2,
+ * 2026-09-02). Law 4 is "base + band, always": [data-glw-base] and
+ * [data-glw-band] are the SAME colour field stacked source-over, and the
+ * worst case this function exists to compute is a text run under the peak of
+ * the brightest blob with both of them present. The docstring said exactly
+ * that ("--glw-base, plus --glw-strength again where the band overlaps") and
+ * the arithmetic then multiplied ONE opacity, so the instrument under-read the
+ * shipped register by a third: 0.181 where the eye meets 0.292. An instrument
+ * whose whole job is telling you whether light is legible cannot report the
+ * light at two thirds of what it is.
+ *
+ * Four terms now, and skipping any of them produces a number that looks
+ * alarming and is not true:
  *
  *   peakStop      the highest alpha any single stop reaches in the colour
  *                 field (the engine's brightest blob mixes at 62%), and only
  *                 at that blob's exact centre;
- *   layerOpacity  --glw-base, plus --glw-strength again where the travelling
- *                 band happens to be overlapping the base;
+ *   layerOpacity  --glw-base, the resting layer, always on;
+ *   band          --glw-strength, the travelling comet, where it is overlapping
+ *                 the base. Defaults to layerOpacity because the engine ships
+ *                 both at 0.62; pass 0 for the parts of a sweep the band is not
+ *                 currently over;
  *   coverage      the container mask's alpha where the text sits. This is the
  *                 big one. A seam masks to transparent well before the layer
  *                 ends, so text a little way down the surface meets a small
  *                 fraction of the light at the edge.
+ *
+ * The two layers composite source-over (a + b(1-a)) rather than multiplying:
+ * two 38% layers of the same colour make 62%, not 15%. Every number this
+ * returns is still a CEILING -- it ignores each blob's own radial falloff and
+ * the 16px blur, both of which only ever reduce what a run meets.
+ *
+ * `layerOpacity` keeps its name because the doctrine board calls it that and
+ * the board is frozen; it has always meant the base layer.
  */
 export function effectiveAlpha(opts: {
   peakStop?: number;
   layerOpacity: number;
+  band?: number;
   coverage: number;
 }): number {
-  const peak = opts.peakStop ?? 0.62;
-  return Math.max(0, Math.min(1, peak * opts.layerOpacity * opts.coverage));
+  const unit = (v: number) =>
+    Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+  const peak = unit(opts.peakStop ?? 0.62);
+  const base = peak * unit(opts.layerOpacity);
+  const band = peak * unit(opts.band ?? opts.layerOpacity);
+  const stacked = base + band * (1 - base);
+  return unit(stacked * unit(opts.coverage));
 }
 
 /**

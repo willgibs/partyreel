@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { decodeImage } from "@/lib/reel/engine/assets";
+
 /**
  * LAW 3, made real: the spill takes its colour FROM the media it is lighting.
  *
@@ -145,41 +147,44 @@ export function huesToSpillColors(
 }
 
 /**
- * ★★ SAME-ORIGIN ONLY, AND THAT EXCLUDES OUR REAL MEDIA (recorded at the glow
- * merge, 2026-08-31). This draws the image to a canvas and calls getImageData,
- * and it sets no crossOrigin. Every guest photo and video is presigned against
- * *.r2.cloudflarestorage.com (src/lib/r2/client.ts), a DIFFERENT ORIGIN, so the
- * canvas taints, getImageData throws SecurityError, and the catch below returns
- * the fallback five. That failure is SILENT by construction: no console error,
- * no failing test, no tell beyond "the colours look generic", which means law 3
- * would quietly stop being true on exactly the surfaces that have real media.
- * The lab never caught it because every specimen samples marketingImage(...),
- * which Next serves same-origin.
+ * ★★ THE URL FORM IS CORS-CLEAN AS OF ROUND 2 (2026-09-02), and it was not
+ * before. It used to build its own `new Image()` with no crossOrigin and call
+ * getImageData, so every guest photo -- presigned against
+ * *.r2.cloudflarestorage.com (src/lib/r2/client.ts), a DIFFERENT ORIGIN --
+ * tainted the canvas, getImageData threw SecurityError, and the catch handed
+ * back the fallback five. SILENT by construction: no console error, no failing
+ * test, no tell beyond "the colours look generic", which meant law 3 quietly
+ * stopped being true on exactly the surfaces that HAVE real media. The lab
+ * never caught it because every specimen samples marketingImage(...), which
+ * Next serves same-origin.
  *
- * ★ AND THE FIX IS MUCH SMALLER THAN THIS FILE USED TO CLAIM (round 1,
- * 2026-09-01). The note here, and the ROADMAP, both listed the R2 CORS rule as
- * work still to do. It is already live and already proven in production: the
- * reel's canvas engine CORS-fetches presigned R2 media, decodes it, draws it
- * and reads the canvas back on every export -- strictly more than this hook
- * needs -- via decodeImage() in src/lib/reel/engine/assets.ts. A tainted canvas
- * would throw at encode time, and it does not.
+ * The loader is now decodeImage() from src/lib/reel/engine/assets.ts, reused
+ * rather than reimplemented, and its two properties are why:
  *
- * So the guest-media unblock is: swap the loader for that same decodeImage and
- * point it at previewUrl (the ~16KB client-generated WebP already presigned for
- * every row, which is what the tiles serve and what covers video posters too).
- * Reuse it rather than setting crossOrigin by hand -- its `cache: "no-store"`
- * is load-bearing, because a plain <img> tile fetches the same URL with no
- * Origin, R2 answers without ACAO and without Vary: Origin, and a later CORS
- * fetch reads the poisoned entry (see uploads-and-r2.md).
+ *   CORS      it fetches `mode: "cors"` and falls back to an <img> with
+ *             crossOrigin="anonymous", the same path the reel's encode has
+ *             proven on presigned R2 media in production (a tainted canvas
+ *             would throw at encode time, and it does not).
+ *   no-store  load-bearing, not a knob. A plain <img> tile fetches the same URL
+ *             with no Origin, R2 answers WITHOUT Access-Control-Allow-Origin
+ *             and without Vary: Origin, and a later CORS fetch then reads that
+ *             poisoned cache entry and fails (see uploads-and-r2.md).
  *
- * Storing a palette on the media row is still possible but is now the EXPENSIVE
+ * ★ HAND IT previewUrl, NEVER THE ORIGINAL. The loader is honest about
+ * whatever URL it is given, and the original is a full-resolution JPEG fetched
+ * to read 32x32 of it: slow enough that a lamp sits on the fallback while the
+ * download runs, which is the same generic light by a different route. Every
+ * media row already carries previewUrl, the ~16KB client-generated WebP the
+ * tiles serve, and it covers video posters too.
+ *
+ * Storing a palette on the media row is still possible but is the EXPENSIVE
  * option, not the better one: no server-side image decode exists anywhere in
  * this stack, media has no palette column, and the insert path is a locked-down
  * SECURITY DEFINER RPC whose signature would have to change.
  *
- * Marketing surfaces are unaffected and sample correctly today.
+ * The DOM form below is a separate case and still taints -- see its own note.
  *
- * Sample same-origin media into a spill palette. Returns null until it resolves
+ * Sample media into a spill palette. Returns null until it resolves
  * (callers fall back to the ratified five, which is law 3's no-media branch, so
  * there is never an unlit frame).
  *
@@ -226,14 +231,17 @@ function whenIdle(fn: () => void): () => void {
 }
 
 /**
- * Sample from URLs. The LAB's form: a board has no rendered <img> to read, only
- * marketingImage(...) strings, so it fetches its own copies.
+ * Sample from URLs: for a lamp whose media is a list of URLs rather than
+ * elements the page has painted. That is every lab board (a board has only
+ * marketingImage(...) strings), and it is the form a guest-media placement
+ * wants, because it can be handed previewUrl directly.
  *
- * ★ PRODUCTION SHOULD USE useSampledPaletteFromDom INSTEAD. On a real page the
- * images are already in the DOM and already decoded, and this form re-fetches
- * the ORIGINALS: next/image serves /_next/image?url=..., a different URL, so
- * nothing here is a cache hit. On the home page's wall that is ~1.05 MB of
- * full-resolution JPEG requested purely to read 32x32 of each.
+ * ★ ON A PAGE THAT ALREADY PAINTED THE IMAGES, USE useSampledPaletteFromDom.
+ * This form fetches its own copies, and next/image serves /_next/image?url=...,
+ * a different URL, so nothing here is a cache hit. Pointed at the home page's
+ * wall of originals that is ~1.05 MB of full-resolution JPEG requested purely
+ * to read 32x32 of each, and the lamp sits on the fallback for as long as it
+ * takes. Hand it previewUrl (~16KB) or read the DOM; never the originals.
  */
 export function useSampledPalette(
   src: string | readonly string[] | null,
@@ -251,29 +259,34 @@ export function useSampledPalette(
 
   useEffect(() => {
     if (!key) return;
-    let cancelled = false;
     const list = key.split("|");
-    Promise.all(
-      list.map((one) => {
-        const img = new Image();
-        img.decoding = "async";
-        img.src = one;
-        return img.decode().then(() => img);
-      }),
-    )
+    // decodeImage, not `new Image()` + decode(): the bare element sets no
+    // crossOrigin, so a presigned R2 URL taints the canvas and getImageData
+    // throws into the silent catch below. See this file's header for the whole
+    // failure and why this loader in particular is the right one to reuse.
+    // AbortController rather than a `cancelled` flag, because decodeImage takes
+    // a signal and can abandon the fetch itself instead of finishing a download
+    // nobody will read.
+    const ac = new AbortController();
+    Promise.all(list.map((one) => decodeImage(one, ac.signal)))
       .then((images) => {
-        if (cancelled) return;
-        const colors = paletteFromImages(images, register);
-        if (colors) setState({ key, colors });
+        if (ac.signal.aborted) return;
+        try {
+          const colors = paletteFromImages(images, register);
+          if (colors) setState({ key, colors });
+        } finally {
+          // These are full decodes held only long enough for one 32px draw.
+          // ImageBitmaps are not reclaimed by GC promptly (the bitmap lives
+          // outside the JS heap), so release them by hand; the reel engine
+          // keeps its own because it redraws them every frame.
+          for (const img of images) if ("close" in img) img.close();
+        }
       })
       .catch(() => {
         // A decode failure is not an error state for a decorative layer: the
-        // fallback palette is already correct. See the CROSS-ORIGIN note in
-        // this file's header for the one failure this silence hides.
+        // fallback palette is already correct.
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ac.abort();
   }, [key, register]);
 
   return state && state.key === key ? state.colors : null;
@@ -282,10 +295,11 @@ export function useSampledPalette(
 /**
  * Sample from the DOM: read the <img> elements the page has ALREADY painted.
  *
- * This is the production form, and the difference is not a micro-optimisation.
- * drawImage() on a live HTMLImageElement reuses the bitmap the browser already
- * decoded, so a lamp costs ZERO new bytes, ZERO new requests and ZERO extra
- * decodes. The URL form above costs a megabyte on the home page's wall.
+ * The form for a lamp over media the page has already painted, and the
+ * difference is not a micro-optimisation. drawImage() on a live
+ * HTMLImageElement reuses the bitmap the browser already decoded, so a lamp
+ * costs ZERO new bytes, ZERO new requests and ZERO extra decodes. Pointing the
+ * URL form at the same originals costs a megabyte on the home page's wall.
  *
  * It is also more honest about law 3. The light becomes the colour of what the
  * visitor is actually looking at, rather than of a list of ids that happens to
@@ -297,11 +311,14 @@ export function useSampledPalette(
  * already-complete images are read, and incomplete ones are awaited with a
  * one-shot `load` listener instead.
  *
- * ★ DOES NOT SOLVE THE R2 TAINT. Same-origin by construction for next/image
- * output (/_next/image is always same-origin), which is a real robustness gain
- * over passing URLs. But a guest photo rendered straight from a presigned R2
- * URL still taints the canvas exactly as before, so this does not close the
- * guest-media prerequisite. See the CROSS-ORIGIN note in the header.
+ * ★ STILL TAINTS ON RAW R2 MEDIA, and it is now the only form that does. It is
+ * same-origin by construction for next/image output (/_next/image always is),
+ * but a guest photo rendered straight from a presigned R2 <img> has no
+ * crossOrigin attribute, so the bitmap this reads is tainted and getImageData
+ * throws into the catch below: the silent fallback five again. The URL form
+ * above no longer has that failure (it decodes CORS-clean), so a guest-media
+ * lamp either hands that one previewUrl, or the tiles it reads have to carry
+ * crossOrigin="anonymous" themselves. Nothing here can fix it from this side.
  */
 export function useSampledPaletteFromDom(
   ref: { current: HTMLElement | null },
