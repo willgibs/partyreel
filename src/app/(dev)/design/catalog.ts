@@ -100,6 +100,12 @@ export const ZONES: LabZone[] = [
         label: "History",
         entries: [
           {
+            href: "/design/rules",
+            label: "The rules",
+            status: "reference",
+            note: "Every rule a test or a doc actually enforces, with its scope, its provenance and Will's verdict.",
+          },
+          {
             href: "/design/record",
             label: "The record",
             status: "reference",

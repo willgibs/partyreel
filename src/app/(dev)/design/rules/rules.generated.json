@@ -2077,7 +2077,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-component-index/keeps-its-reasons-for-files-that-exist-and",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 114,
+      "line": 149,
       "suite": [
         "the component index"
       ],
@@ -2098,7 +2098,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-component-index/renders-every-component-in-the-library-or-says",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 107,
+      "line": 139,
       "suite": [
         "the component index"
       ],
@@ -2119,7 +2119,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-file-annotations/cover-every-guard-test-exactly-once",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 53,
+      "line": 59,
       "suite": [
         "the file annotations"
       ],
@@ -2140,7 +2140,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-file-annotations/say-one-line-each-about-what-the-file",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 62,
+      "line": 73,
       "suite": [
         "the file annotations"
       ],
@@ -2203,7 +2203,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-rule-annotations/carry-the-title-they-were-written-against-a",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 83,
+      "line": 103,
       "suite": [
         "the rule annotations"
       ],
@@ -2224,7 +2224,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-rule-annotations/keep-merges-and-intents-well-formed",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 90,
+      "line": 113,
       "suite": [
         "the rule annotations"
       ],
@@ -2245,7 +2245,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-annotations.test.ts#the-rule-annotations/point-at-rules-that-exist-or-at-tombstones",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-annotations.test.ts",
-      "line": 72,
+      "line": 86,
       "suite": [
         "the rule annotations"
       ],
@@ -2266,7 +2266,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-registry.test.ts#the-rules-artifact/carries-the-collector-s-version",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-registry.test.ts",
-      "line": 24,
+      "line": 26,
       "suite": [
         "the rules artifact"
       ],
@@ -2308,7 +2308,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-registry.test.ts#the-rules-artifact/has-a-unique-id-per-rule",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-registry.test.ts",
-      "line": 29,
+      "line": 31,
       "suite": [
         "the rules artifact"
       ],
@@ -2329,7 +2329,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-registry.test.ts#the-rules-artifact/matches-the-collector-rule-for-rule-else-run",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-registry.test.ts",
-      "line": 34,
+      "line": 36,
       "suite": [
         "the rules artifact"
       ],
@@ -2350,7 +2350,7 @@
       "id": "t:src/app/(dev)/design/rules/rules-registry.test.ts#the-rules-artifact/matches-the-collector-s-component-index-else-run",
       "source": "test",
       "file": "src/app/(dev)/design/rules/rules-registry.test.ts",
-      "line": 55,
+      "line": 61,
       "suite": [
         "the rules artifact"
       ],

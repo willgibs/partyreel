@@ -228,7 +228,7 @@ function calleeOf(call) {
 }
 
 /** A title as text; template holes become {expr}. */
-function titleOf(arg, sourceText) {
+function titleOf(arg) {
   if (!arg) return { title: "", dynamic: true };
   if (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg)) {
     return { title: arg.text, dynamic: false };
@@ -278,7 +278,7 @@ function collectTestFile(root, rel) {
             ? node.parent
             : node;
         const own = commentsBefore(text, stmt);
-        const { title, dynamic } = titleOf(node.arguments[0], text);
+        const { title, dynamic } = titleOf(node.arguments[0]);
         if (callee.kind === "suite") {
           suite.push(title);
           suiteComments.push(own);
