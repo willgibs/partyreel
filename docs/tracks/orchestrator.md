@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "e2c159e"
+cut: "ffa12b6"
 preview: false
 owns:
   - src/app/(dev)/design/
@@ -30,8 +30,8 @@ The Orchestrator's rolling manifest: what `launch-prep` itself is changing this 
 landed. Agents sync `origin/launch-prep` mid-round only when a line below touches one of their
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
-**This window (the library phase, from 2026-09-11):** the tree is one version (milestone-21,
-`e2c159e`; no track open). The phase runs on `launch-prep` with no agents: the rules bible in the library
+**This window (the library phase, from 2026-09-11):** rounds A and B shipped at milestone-22
+(`ffa12b6`); round C is Will's three sittings and their landings; no track is open. The phase runs on `launch-prep` with no agents: the rules bible in the library
 (`/design/rules`), lab to library, the rounding, the hero registers, the feature-family furniture and the
 single sources, the light rulings. Its plan is written in its own round; the queue in [`README.md`](README.md)
 opens after it. The previous window's landed list (round 3: the operating model, the library round, wave 1,

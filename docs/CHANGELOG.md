@@ -11,6 +11,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-11 — MILESTONE-22: prod = the rules bible, the library's specimens, the hero registers, the single sources
+
+`main` @ tag `milestone-22` (`ffa12b6`; `launch-prep` `18314ad` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1645 tests, 245 static pages); CI green on every push, `main` included; prod READY at the merge SHA. The round entry below is
+the round.
+
+**The walk before the merge, on the launch-prep alias (1440 in Chrome, 375 in the Browser pane):**
+/help, /contact, /careers and /pricing with the h1 at opacity 1 at paint and the slots arriving on
+their register, careers' contact sheet behind relative type, no horizontal overflow at either width;
+the footer's computed background, foreground, hairline, link and ring colours on /contact identical
+to prod's before the change (`.surface-ink` is the same set in one class); the help article rail at
+88px; the access switch's three labels from the record; `/design/rules?key=` with 433 rules (341
+from tests, 92 from prose, 85 prose-only, all unreviewed) and 404 without the key; the library's
+Heroes with the blur register, the frames and the feature family; the QR page's tip in Inter.
+
+**Prod at `ffa12b6`:** the home, /help, /contact, /careers, /pricing, /features, /features/album,
+/features/qr and /privacy 200, no h1 carrying `mkt-line`, the footer wearing `surface-ink` on every
+page; /dashboard 307 signed out; the purge cron 401 without its secret; `/design/rules` 404 bare and
+200 with the key (341 + 92 rows); `/design/marketing` with the blur specimen and the frames; the reply
+line on /contact; the QR tip with no mono.
+
 ## 2026-09-11 — The library phase, rounds A and B: the rules bible, the library's specimens, the hero registers, the single sources (`2ae8773` to `84cd975`)
 
 Will's direction for the phase (2026-09-11): the design LIBRARY is what agents pull from and the
