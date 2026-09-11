@@ -278,6 +278,31 @@
   color-scheme: light;
 }
 
+/* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
+   ONE class. A leaf that paints with --gallery* needs the same re-mapping every
+   time (--ring, --border, --foreground, --muted-foreground and --brand are not
+   in the gallery family, so under paper they keep their LIGHT values and a
+   focus ring lands at 1.43:1 on the slab); the ink footer used to spray nine
+   of these on its own element. Leaf only, never page chrome (design-system.md:
+   a hand-assembled dark set is for a LEAF). The three the footer never
+   redeclared ride along, derived from the gallery pair rather than copied from
+   .dark, so they move when the ramp is retuned. Declared AFTER .surface-paper
+   so an ink leaf inside a paper chapter wins. */
+.surface-ink {
+  --background: var(--gallery);
+  --foreground: var(--gallery-foreground);
+  --card-foreground: var(--gallery-foreground);
+  --border: var(--gallery-border);
+  --muted: color-mix(in oklab, var(--gallery) 85%, var(--gallery-foreground));
+  --muted-foreground: var(--gallery-muted);
+  --ring: var(--gallery-foreground);
+  --brand: var(--gallery-foreground);
+  --brand-foreground: var(--gallery);
+  --primary: var(--gallery-foreground);
+  --primary-foreground: var(--gallery);
+  --shadow-float: 0 0 0 0 oklch(0 0 0 / 0);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

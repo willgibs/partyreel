@@ -53,6 +53,18 @@ describe("globals.css surface-paper contract", () => {
       /\.dark\s*,\s*\.surface-paper|\.surface-paper\s*,\s*\.dark/,
     );
   });
+
+  it("declares the ink leaf set once, after paper, as .surface-ink", () => {
+    // The always-dark slab set (the footer's nine remaps plus the three it
+    // never redeclared) lives in one class since the library phase
+    // (2026-09-11); it comes after every .surface-paper block so an ink leaf
+    // inside a paper chapter wins the cascade at equal specificity.
+    const ink = globals.indexOf("\n.surface-ink {");
+    const paper = globals.lastIndexOf(".surface-paper {");
+    expect(ink, "the .surface-ink block is missing").toBeGreaterThan(0);
+    expect(ink, ".surface-ink must come after .surface-paper").toBeGreaterThan(paper);
+    expect(globals.match(/\.surface-ink \{/g)?.length).toBe(1);
+  });
 });
 
 describe("PaperChapter doctrine", () => {

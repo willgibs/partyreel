@@ -22,36 +22,40 @@ const footer = read("src/components/marketing/chrome/marketing-footer.tsx");
 const footerCode = stripComments(footer);
 
 describe("the ink-slab footer contract", () => {
-  it("redeclares the tokens --gallery* does not cover", () => {
-    // ★ THE INVISIBLE BUG. bg-gallery paints the slab, but --ring, --border,
-    // --foreground and --muted-foreground are NOT in that family, so under
-    // .surface-paper (every (paper) route AND the root 404) they keep their
-    // LIGHT values. globals.css applies `outline-ring/50` to every element, so
-    // focus rings land at oklch(0.3) on an oklch(0.155) slab: 1.43:1 against a
-    // 3:1 requirement, a flat WCAG failure. A bare border-t paints a near-white
-    // hairline for the same reason.
-    //
-    // None of this is visible on cinema pages, where the footer sits inside
-    // .dark and the ring reads 12.4:1 — so it would ship. Hence a pin.
+  it("takes the slab's token set from .surface-ink, declared once in globals.css", () => {
+    // ★ THE INVISIBLE BUG (kept, moved). bg-gallery paints the slab, but --ring,
+    // --border, --foreground and --muted-foreground are NOT in that family, so
+    // under .surface-paper (every (paper) route AND the root 404) they keep
+    // their LIGHT values: focus rings at 1.43:1 on the slab, a near-white
+    // hairline from a bare border-t. Invisible on cinema pages, where the
+    // footer sits inside .dark. The footer used to spray nine tokens on its
+    // element; since the library phase (2026-09-11) the set is `.surface-ink`
+    // in globals.css, one class for every ink leaf. Both ends are pinned: the
+    // class on the footer, the full set (plus --brand DIRECTLY, not via
+    // --primary: a var() inside a custom property resolves where it is
+    // declared, so overriding --primary alone leaves the mark inverted on
+    // paper) in the block.
+    expect(footerCode).toMatch(/className=\{cn\(\s*"surface-ink"/);
+    expect(footerCode).not.toContain("[--background:var(--gallery)]");
+    const globals = read("src/app/globals.css");
+    const start = globals.indexOf(".surface-ink {");
+    expect(start, "the .surface-ink block is missing").toBeGreaterThan(0);
+    const block = globals.slice(start, globals.indexOf("}", start));
     for (const token of [
-      "[--background:var(--gallery)]",
-      "[--border:var(--gallery-border)]",
-      "[--foreground:var(--gallery-foreground)]",
-      "[--muted-foreground:var(--gallery-muted)]",
-      "[--ring:var(--gallery-foreground)]",
-      // --brand aliases --primary, and Logo paints the mark bg-brand: without
-      // this the brand mark inverts between skins (white on cinema, an
-      // invisible dark-on-dark tile on every paper page).
-      "[--primary:var(--gallery-foreground)]",
-      "[--primary-foreground:var(--gallery)]",
-      // ★ --brand DIRECTLY, not via --primary: a var() inside a custom property
-      // is substituted at the element that declares it, so --brand resolved to
-      // ink back at :root and inherits already-resolved. Overriding --primary
-      // alone leaves the mark inverted on paper.
-      "[--brand:var(--gallery-foreground)]",
-      "[--brand-foreground:var(--gallery)]",
+      "--background: var(--gallery)",
+      "--border: var(--gallery-border)",
+      "--foreground: var(--gallery-foreground)",
+      "--muted-foreground: var(--gallery-muted)",
+      "--ring: var(--gallery-foreground)",
+      "--primary: var(--gallery-foreground)",
+      "--primary-foreground: var(--gallery)",
+      "--brand: var(--gallery-foreground)",
+      "--brand-foreground: var(--gallery)",
+      "--card-foreground: var(--gallery-foreground)",
+      "--muted:",
+      "--shadow-float:",
     ]) {
-      expect(footerCode, `${token} missing from the slab`).toContain(token);
+      expect(block, `${token} missing from .surface-ink`).toContain(token);
     }
   });
 
