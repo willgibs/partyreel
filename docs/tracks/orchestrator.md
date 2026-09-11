@@ -61,3 +61,7 @@ shipped and the `glow-engine-defects` track claims `glow-contrast.ts` there.
   `src/lib/db/mutations/account.ts`, `src/lib/lifecycle/account-deletion.ts`, `src/lib/stripe/account-cancel.ts`,
   the legal constants (1.1), two help articles, `src/lib/db/types.ts` (deletion_requested_at), the cron route
   (one sweep). A lane touching the legal constants or the account page syncs this.
+- `8181c85` `glow-engine-defects` (2026-09-11): `src/components/shared/glow.tsx`, `src/lib/shared/use-in-view-once.ts`
+  (a new `viewportFraction` option, default off), `src/lib/shared/sampled-palette.ts` (the URL sampler decodes
+  through `decodeImage`), `src/components/dev/glow-contrast.ts` (`effectiveAlpha` gains `band`), the engine
+  block of `globals.css`. A lane placing light or reading the contrast instrument syncs this.
