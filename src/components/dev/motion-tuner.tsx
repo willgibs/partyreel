@@ -30,7 +30,7 @@ import type { TunerControl } from "@/components/dev/motion-tuner-config";
  * polish increment adds knobs without touching this file.
  *
  * GATING: the SERVER page that mounts this checks isDesignGateOpen() (see
- * app/(dev)/design/gate.ts) — opt-in via `?key=`, dev-open, prod requires the
+ * src/lib/design-gate/server.ts) — opt-in via `?key=`, dev-open, prod requires the
  * timing-safe match. So this component never renders for a real host; it only
  * appears for a designer who arrived with the key. It still ships in the prod
  * bundle (tiny + inert) BY DESIGN, because tune-live happens on partyreel.com.

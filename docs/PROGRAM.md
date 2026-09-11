@@ -23,17 +23,29 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   runs milestone merges. It closes every round **succession-ready** (checklist below).
 - **Agents** work in worktrees on their own `lp/<track>`, **self-created at boot** (the Agent boot
   sequence below — Will never pre-creates branches). An Agent needs NO live Orchestrator: it
-  prepares the handoff (push `lp/<track>` + a report naming what it built, its gate results, its
-  branch preview URL (`partyreel-git-lp-<track>-partyreel.vercel.app`), and any proposed
-  migrations/config changes) and stops. Worktree sessions have no out-of-repo memory by
+  prepares the handoff in its manifest `docs/tracks/<track>.md` (the Handoff and Record sections:
+  what it built, the gate results on the synced tree, the lane check, the branch preview URL
+  `partyreel-git-lp-<track>-partyreel.vercel.app`, any proposed migrations/config changes), sets
+  `status: handed-off`, pushes, and stops; the chat report is one line. Worktree sessions have no out-of-repo memory by
   design — the repo is their whole context.
+- **Every track has a manifest** at `docs/tracks/<track>.md` (contract + template:
+  [`tracks/README.md`](tracks/README.md)): its claimed path PREFIXES, what it reads, the rulings it
+  works under, its handoff and its record. The Orchestrator stubs it at spawn or the Agent creates it
+  at boot, committed ALONE and pushed before any other work; `src/lib/track-manifests.test.ts`
+  refuses two live tracks whose claims overlap. Agents never edit CHANGELOG, STATUS, ROADMAP, this
+  file or CLAUDE.md: a track's record and its ROADMAP one-liners live in the manifest and the
+  Orchestrator folds them at integration; a `docs/systems/*.md` line may be refined in place only
+  for a fact inside the track's owned paths, and every such edit is listed in the manifest so it is
+  read by eye at the merge (a clean doc merge reconciles text, not facts).
 - **Orchestrator seat-in (a fresh Orchestrator session):** read [`STATUS.md`](STATUS.md) then this
-  doc; sweep `git branch -r --list 'lp/*'` for unintegrated handoffs; confirm the preview deploy
+  doc; read `docs/tracks/` (a `handed-off` manifest is the signal) and sweep
+  `git branch -r --list 'lp/*'` for branches without one; confirm the preview deploy
   state at the `launch-prep` tip; review Will's open decision queue in STATUS. Everything needed to
   seat lives in the repo.
 - **Succession-ready round close (the Orchestrator's exit checklist):** the record step is done
   (system docs refined in place, CHANGELOG entry, ROADMAP pruned); STATUS is current (round table,
-  live state, decision queue); every track branch is integrated or listed as a pending handoff;
+  live state, decision queue); every track branch is integrated or `handed-off` in its manifest; `git worktree list` shows only the root and open tracks and
+  `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and the preview deploy is READY there; nothing a
   successor needs lives only in the closing session.
 
@@ -45,12 +57,16 @@ a session opened in the repo root.
 
 **Agent:**
 
-> You are an AGENT on Partyreel's elevation program. Goal: `<goal>`.
-> Boot per `docs/PROGRAM.md` "Agent boot" (self-create your `lp/<track>` branch), then proceed;
-> hand off by pushing + a final report (include your branch preview URL).
+> You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
+> Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
+> `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
+> Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
+> build, then hand off by filling the manifest's Handoff + Record sections, setting
+> `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
-(A bare goal works too — CLAUDE.md "Sessions & roles" routes any undesignated session here — but the
-one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
+(With a committed stub the prompt shrinks to one line, in [`tracks/README.md`](tracks/README.md)
+"Spawning a track from a stub": the manifest is the init. A bare goal works too — CLAUDE.md "Sessions &
+roles" routes any undesignated session here — but the one-liner makes it deterministic. To RESUME an existing handoff branch instead of cutting a fresh
 one, say so: "resume `lp/<track>`".)
 
 **Orchestrator** (repo root, no worktree):
@@ -63,7 +79,9 @@ one, say so: "resume `lp/<track>`".)
 1. `git fetch origin`, then derive a short kebab `<track>` from the goal (e.g. `help-content`),
    keeping it ≤ 36 chars (past that the preview-alias label truncates).
    If `origin/lp/<track>` already exists, that's someone's handoff — pick a fresh variant name;
-   never adopt an existing branch unless Will's prompt said to resume it.
+   never adopt an existing branch unless Will's prompt said to resume it. If
+   `docs/tracks/<track>.md` exists on `origin/launch-prep`, adopt it only if your init named that
+   track (it is your stub); a stub with your derived name but not your goal is someone else's.
 2. **In a worktree** (the normal case — `git rev-parse --git-dir` contains `/worktrees/`): note your
    birth branch (`git branch --show-current`; the app's toggle auto-creates one, often cut from
    `main`), then `git checkout -b lp/<track> origin/launch-prep`. Delete the auto-created birth
@@ -75,11 +93,39 @@ one, say so: "resume `lp/<track>`".)
    `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`.
 4. Confirm the invariant: `git branch --show-current` = `lp/<track>` AND
    `git merge-base --is-ancestor origin/launch-prep HEAD` succeeds.
-5. Read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, then follow CLAUDE.md's
-   working loop. First push: `git push -u origin lp/<track>` — every push auto-deploys your review
-   preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (builds queue one-at-a-time on the
-   Hobby plan; UI-review only — the allow-list-gated flows fail there by design, see CLAUDE.md
-   "Local dev vs. live testing").
+5. A fresh worktree has NO `node_modules` and NO `.env.local` (gitignored): `nvm use` then
+   `pnpm install --frozen-lockfile`, and copy `.env.local` from the primary checkout before the
+   first gate or `pnpm dev` (the env-validating instrumentation hook fails the dev server without
+   it). Then read `docs/STATUS.md` + the `docs/systems/` doc(s) the goal touches, and follow
+   CLAUDE.md's working loop. First push: `git push -u origin lp/<track>`. Your review preview at
+   `partyreel-git-lp-<track>-partyreel.vercel.app` builds only when your manifest says `preview: true`
+   or `status: handed-off`, or a commit message carries `[preview]`; an open manifest with
+   `preview: false` skips, so builds never queue behind work in progress on the one-at-a-time Hobby
+   plan (proven both ways 2026-09-02). UI-review only — the allow-list-gated flows fail there by
+   design, see CLAUDE.md "Local dev vs. live testing".
+6. **Your manifest, before any other work** (the operating model, 2026-09-02). If the stub exists,
+   fill its body; else copy the template from [`tracks/README.md`](tracks/README.md) and fill
+   `owns` / `reads` from your init. Commit it alone (`docs(tracks): open <track>`) and push. Then
+   run the peer sweep and, for anything you plan to create, the single-source lookup (both in the
+   README); if a peer's claim overlaps yours, stop and say so rather than build. `pnpm test` must
+   be green here: the manifest guard proves your lane is free.
+
+### Sync (merge, never rebase, a pushed branch)
+
+Sync `origin/launch-prep` exactly when: (1) never at boot (you were cut from its tip); (2) before
+handoff, only if it moved (`git fetch --prune && git rev-list --count HEAD..origin/launch-prep`
+greater than 0: `git merge origin/launch-prep`, re-run the gate, record the SHA in Handoff); (3)
+mid-round only when `docs/tracks/orchestrator.md` on `origin/launch-prep` lists a landed change
+touching one of your `reads` or the MDX registries. Syncing minutes after cutting merges your own
+merge-base and gains nothing (it happened twice on 2026-09-01). Conflicts belong to the lane owner
+while its session is alive.
+
+### Handoff
+
+Sync per above; fill the manifest's Handoff (head SHA, preview URL, the gates on the synced tree,
+the lane check `git diff --name-only origin/launch-prep...HEAD` pasted with any exception explained,
+proposed migrations/config changes) and Record (the CHANGELOG paragraph, past tense, at most 12
+lines); set `status: handed-off` (and `preview: true` if Will should look); push; one line in chat.
 
 ## The hard gates (religious — no exceptions)
 
@@ -119,11 +165,25 @@ same session.
   `origin/launch-prep` and cleans up the auto-birth branch; proven live 2026-08-27). The
   Orchestrator creates subagent-track worktrees explicitly:
   `git worktree add ../partyreel-wt/<track> -b lp/<track> launch-prep`.
-- **Integration is single-writer.** Track rebases onto `launch-prep` (the track's own agent resolves
-  its conflicts) → `merge --ff-only` → the FULL gate re-runs on the MERGED tree (a green worktree can
-  lie by omission) → one push per round → confirm the Vercel preview READY at the pushed SHA before
-  any red-team. Contention hotspots (minimize subagent touches): STATUS / CHANGELOG / ROADMAP /
-  `src/lib/env.ts`.
+- **Integration is single-writer, merge-based, and windowed.** Never rebase a pushed branch; every
+  integration is `merge --no-ff` (the branch's own merges of `launch-prep` are merges too). Two
+  integration windows per Orchestrator session (after seat-in, before close) plus on request; a
+  window = fetch with prune, integrate every `handed-off` track OLDEST FIRST (a quick typecheck +
+  test after each merge localises a break; the full four-step gate once on the final tree, each
+  step on its own exit code), ONE push, one preview verify at the pushed SHA before any red-team.
+  The Orchestrator's own cross-cutting change lands last in the window. Per track: read its manifest
+  (must be `handed-off`) → lane check `git diff --name-only launch-prep...origin/lp/<track>` (every
+  line inside `owns`, the manifest, or a listed system doc; anything else is handed back or ruled)
+  → staleness `git rev-list --count origin/lp/<track>..launch-prep` (if the two name-only diffs
+  intersect outside docs and the agent is alive, it syncs first) → `merge --no-ff` with the manifest
+  flipped to `status: integrated` + `merged: "<sha>"` in the same commit → the doc-eye pass over
+  every listed system-doc edit, fact against code → fold Record into CHANGELOG (dated, merge SHA)
+  and Deferred into its ROADMAP buckets, STATUS's round table if it moved → prune: `git worktree
+  remove`, `git branch -d lp/<track>`, `git push origin --delete lp/<track>`. A change touching
+  more than one open lane (a rename, a shared-component sweep, the radius round) is
+  Orchestrator-only, announced in `docs/tracks/orchestrator.md` first, and lands after the affected
+  tracks integrate or are told to sync. Contention hotspots, now fenced by the manifests: STATUS /
+  CHANGELOG / ROADMAP / `src/lib/env.ts` / `src/components/marketing/mdx/spec-shared.tsx`.
 - **DB migrations are global state** (ONE prod Supabase serves prod AND every preview, launch-prep
   and agent `lp/*` aliases alike — preview writes ARE prod writes). Agents write migration FILES only. The Orchestrator applies via the Supabase MCP
   one at a time (re-timestamped; diff-against-live before any `CREATE OR REPLACE`), then

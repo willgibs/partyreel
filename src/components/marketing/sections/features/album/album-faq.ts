@@ -1,6 +1,6 @@
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { planById } from "@/lib/constants/tiers";
-import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 

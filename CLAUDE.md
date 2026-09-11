@@ -33,6 +33,7 @@ Read the ONE doc whose question matches your task. Don't read everything; load d
 | The whole-picture architecture / data flow? | [`docs/systems/architecture.md`](docs/systems/architecture.md) |
 | How do I verify live? (test-tool blind-spots) | [`docs/systems/testing-verification.md`](docs/systems/testing-verification.md) |
 | Where are we right now? (era, program position, live state, Will's queue) | [`docs/STATUS.md`](docs/STATUS.md) |
+| What is every open track claiming, and what did a track hand off? | [`docs/tracks/`](docs/tracks) — one manifest per `lp/<track>` branch |
 | What program is running + its rules? (roles, gates, protocol depth, init templates) | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 | Why was a decision made? | [`docs/adr/`](docs/adr) — rationale at decision time (a later ADR or change may have superseded it; the system docs are current truth) |
@@ -79,7 +80,12 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
   worktree-toggle cutting from `main`, cleans up the auto-birth branch, and covers a session opened
   in the repo root by creating its own worktree). Orchestrator-spawned tracks live at
   `../partyreel-wt/<track>`. Full build/test/push rights on their own branch; the hard prohibitions
-  are in the Git rules below. Handoff = push `lp/<track>` + a report; no live Orchestrator needed.
+  are in the Git rules below. Handoff = the manifest's Handoff + Record sections filled, `status: handed-off`, pushed; no live
+  Orchestrator needed.
+- **Every track has a manifest**, `docs/tracks/<track>.md`: its claimed path prefixes, rulings,
+  handoff and record ([`docs/tracks/README.md`](docs/tracks/README.md)). Read the directory to see
+  what every open track is working on; the boot sequence creates yours before any other work, and
+  `pnpm test` refuses two live claims that overlap.
 - **The Orchestrator** alone integrates, applies migrations, deploys, and runs milestone merges; it
   closes every round succession-ready. Duties, seat-in, and both init templates:
   [`docs/PROGRAM.md`](docs/PROGRAM.md).
@@ -224,7 +230,7 @@ also appear in full in the linked system doc — don't revert them.
 - ★ **Authorize with `supabase.auth.getUser()`, NEVER `getSession()`** — `getUser()` re-validates the JWT; `getSession()` only decodes the spoofable cookie; the proxy refreshes cookies but is **not** a security boundary. Full detail: [auth-accounts.md](docs/systems/auth-accounts.md).
 - Use `@supabase/ssr` (not the deprecated `auth-helpers`); the cookie API is **`getAll`/`setAll`**. Clients: `src/lib/supabase/{client,server,middleware,admin}.ts` (admin = service-role, `server-only`, bypasses RLS).
 
-**Tailwind v4** — CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme`, dark via `@custom-variant`. No `tailwind.config.js`; PostCSS uses only `@tailwindcss/postcss`. Theme is global via `next-themes`. Translate utilities set the STANDALONE `translate` property — `transform: none` won't clear them; clear with `translate-x-0` / `translate: none`.
+**Tailwind v4** — CSS-first: `@import "tailwindcss";` in `globals.css`, tokens in `@theme` and dark via `@custom-variant` (both in `src/app/theme.css`, imported by `globals.css`; the design lab compiles its own utilities from a second entry that references `theme.css`, pinned by `css-source-policy.test.ts`). No `tailwind.config.js`; PostCSS uses only `@tailwindcss/postcss`. Theme is global via `next-themes`. Translate utilities set the STANDALONE `translate` property — `transform: none` won't clear them; clear with `translate-x-0` / `translate: none`.
 
 **zod v4** — top-level `z.url()` (not `z.string().url()`); `error.issues` (not `.errors`). See `src/lib/env.ts`.
 
@@ -234,7 +240,7 @@ also appear in full in the linked system doc — don't revert them.
 
 **Copy** — NO em-dashes (`—`) in user-facing copy (marketing, app UI, API/DB/validation messages, email templates); it reads as an AI tell. Recast with a comma/parens/colon/two sentences. A Vitest AST guard ([no-em-dash-policy.test.ts](src/lib/no-em-dash-policy.test.ts)) enforces this across `app`+`components`+`lib` (comments + internal docs are exempt).
 
-**Git — the elevation-program branch protocol (2026-07-02; THE canonical statement — operating depth in [`docs/PROGRAM.md`](docs/PROGRAM.md)).** Agents/tracks/subagents commit ONLY to their own `lp/<track>` branch (self-created at boot from `origin/launch-prep` per the PROGRAM.md boot sequence, worked in a worktree) and may push it freely for durability — every `lp/*` push auto-deploys its own preview at `partyreel-git-lp-<track>-partyreel.vercel.app` (Will's review surface + the Agent's own live UI checks; deliberately in NO auth/CORS allow-list, so sign-in/upload/checkout/email fail there BY DESIGN — never "fix" that by allow-listing lp aliases — and it talks to prod Supabase/R2, so disposable-test-data rules apply; the branch gate is [`scripts/vercel-ignore-build.mjs`](scripts/vercel-ignore-build.mjs) via `vercel.json`'s `ignoreCommand`). **Only the Orchestrator**: merges into `launch-prep` (the integration branch; stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`) re-running the full gate on the merged tree, applies DB migrations (Agents write the SQL file only — the DB is shared prod state), deploys Workers, and mutates Vercel/Stripe/Supabase config; `src/lib/db/types.ts` is generated, never hand-edited — propose instead. After an integration push, confirm the preview deploy is READY at the intended SHA before red-teaming. `main` is FROZEN except milestone merges (`--no-ff`, tagged `milestone-<n>`, prod-verified at the merge SHA) and true hotfixes (fix on `main` → verify → back-merge to `launch-prep` the same session). Unchanged guardrails: tests green before any commit; never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push; `Co-Authored-By` trailer on every commit. (When the program ends this reverts to a deliberate post-program decision — the teardown checklist is in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
+**Git — the elevation-program branch protocol (2026-07-02; THE canonical statement — operating depth in [`docs/PROGRAM.md`](docs/PROGRAM.md)).** Agents/tracks/subagents commit ONLY to their own `lp/<track>` branch (self-created at boot from `origin/launch-prep` per the PROGRAM.md boot sequence, worked in a worktree) and may push it freely for durability — an `lp/*` push deploys its own preview at `partyreel-git-lp-<track>-partyreel.vercel.app` when the track's manifest says `preview: true` or `status: handed-off`, the commit message carries `[preview]`, or the branch has no manifest (Will's review surface + the Agent's own live UI checks; deliberately in NO auth/CORS allow-list, so sign-in/upload/checkout/email fail there BY DESIGN — never "fix" that by allow-listing lp aliases — and it talks to prod Supabase/R2, so disposable-test-data rules apply; the branch gate is [`scripts/vercel-ignore-build.mjs`](scripts/vercel-ignore-build.mjs) via `vercel.json`'s `ignoreCommand`). **Only the Orchestrator**: merges into `launch-prep` (the integration branch; stable preview = `https://partyreel-git-launch-prep-partyreel.vercel.app`) re-running the full gate on the merged tree, applies DB migrations (Agents write the SQL file only — the DB is shared prod state), deploys Workers, and mutates Vercel/Stripe/Supabase config; `src/lib/db/types.ts` is generated, never hand-edited — propose instead. After an integration push, confirm the preview deploy is READY at the intended SHA before red-teaming. `main` is FROZEN except milestone merges (`--no-ff`, tagged `milestone-<n>`, prod-verified at the merge SHA) and true hotfixes (fix on `main` → verify → back-merge to `launch-prep` the same session). Unchanged guardrails: tests green before any commit; never `git add -A` (stage explicitly); never commit secrets; never skip hooks (`--no-verify`) or force-push; `Co-Authored-By` trailer on every commit. **Docs under the program:** Agents never edit `docs/CHANGELOG.md`, `docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PROGRAM.md`, `CLAUDE.md` or `AGENTS.md`; a track's record and its ROADMAP one-liners live in its manifest (`docs/tracks/<track>.md`) and the Orchestrator folds them at integration; a `docs/systems/*.md` line may be refined in place only for a fact inside the track's owned paths, listed in the manifest so it is read by eye at the merge (a clean doc merge reconciles text, not facts). (When the program ends this reverts to a deliberate post-program decision — the teardown checklist is in [`docs/ROADMAP.md`](docs/ROADMAP.md).)
 
 ---
 
@@ -288,6 +294,9 @@ universal/workflow facts); a **deferred task** goes as a one-liner under its mat
 bucket or the launch checkpoint (never an inline "Deferred:" note); a **shipped feature's** durable facts
 update its system doc in place while its verification narrative goes to `CHANGELOG.md`. Each doc's top
 blockquote states its own contract (`ROLE` / `BELONGS HERE` · `NOT HERE` / `GROWS BY`) — honor it.
+
+Under the elevation program an Agent records in its track manifest (`docs/tracks/<track>.md`), never in
+CHANGELOG / STATUS / ROADMAP; the Orchestrator folds it at integration.
 
 **Other conventions:**
 - **Leave WHY-comments** for the next agent — capture non-obvious decisions + what NOT to do; don't narrate the obvious.

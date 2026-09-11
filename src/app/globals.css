@@ -1,4 +1,16 @@
 @import "tailwindcss";
+/* The design lab is NOT in the production scan (the library round, 2026-09-02): a utility
+   used only by a lab specimen used to be emitted into the stylesheet every production page
+   loads (measured 2026-09-01: 26 lab-only selectors on the home; the library round took 498
+   selectors and 38,919 bytes off that sheet, see docs/perf/v1-baseline.md section 5).
+   The lab compiles its own utilities from src/app/(dev)/design/design.css instead; a
+   production component the lab renders is already in this scan by being production.
+   Pinned by src/app/css-source-policy.test.ts. */
+@source not "./(dev)/design";
+/* docs/ never renders, but the automatic scan reads every non-ignored file under the project
+   root, so a class name quoted in a doc (ROADMAP once listed `-inset-14` by name) became a real
+   utility in production CSS. Excluded for the same reason as the lab. */
+@source not "../../docs";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 /* Long-form `prose` styling for the help center / blog (MDX articles). Tailwind v4
@@ -63,104 +75,9 @@
    `:not(.light *)` guard would strip `dark:` styling from every cinema page in
    those sessions. Do NOT rewrite with `:where()` — that drops `dark:` rules
    below plain utilities in specificity, a real regression. */
-@custom-variant dark (&:is(.dark *):not(.surface-paper *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-
-  /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
-     -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy
-     `tracking-tight` usages are no-ops; re-tuning them is its own deferred pass. */
-  --tracking-tight: 0em;
-
-  /* Motion — STRONG custom curves only (built-ins are too weak; emil-design-
-     eng). emphasis = enter/exit ease-out; in-out-strong = on-screen movement;
-     drawer = sheets/drawers (the iOS curve). UI stays under ~300ms; exits run
-     faster than enters. */
-  --ease-emphasis: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-
-  /* Brand = ink (aliased to primary in :root). Kept as a token so any future
-     accent decision is a two-line change, never a sweep. */
-  --color-brand: var(--brand);
-  --color-brand-foreground: var(--brand-foreground);
-
-  /* State colors — feedback always gets color; brand never does. */
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-like: var(--like);
-  --color-save: var(--save);
-  --color-save-foreground: var(--save-foreground);
-  --color-reel: var(--reel);
-
-  /* Media-first gallery surface — always dark so photos/videos are the hero. */
-  --color-gallery: var(--gallery);
-  --color-gallery-foreground: var(--gallery-foreground);
-  --color-gallery-muted: var(--gallery-muted);
-  --color-gallery-border: var(--gallery-border);
-
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-
-  /* The rounding system (see header). The legacy sm..4xl scale stays mapped
-     (everything in it is now "sharp family"); interactive + floating layers
-     use the dedicated tokens. */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --radius-action: var(--radius-action);
-  --radius-action-lg: var(--radius-action-lg);
-  --radius-action-sm: var(--radius-action-sm);
-  --radius-tile: var(--radius-tile);
-  --radius-float: var(--radius-float);
-
-  /* The elevation contract: the one light-mode shadow family (floating layer
-     only); resolves to nothing in dark (lighter-is-closer instead). */
-  --shadow-float: var(--shadow-float);
-
-  /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
-     (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction
-     motion, and a strong curve stutters at the loop point. */
-  --animate-shimmer: shimmer 1.8s linear infinite;
-
-  @keyframes shimmer {
-    from {
-      background-position: 200% 0;
-    }
-    to {
-      background-position: -200% 0;
-    }
-  }
-}
+/* The `dark` variant and the `@theme inline` mapping live in theme.css (shared with the design
+   lab's own Tailwind entry; see its header). Token VALUES stay below, in the @layer base blocks. */
+@import "./theme.css";
 
 /* `.surface-paper` aliases the WHOLE light block: a subtree-scoped "force the
    paper theme" hook (marketing paper pages + paper chapters inside the cinema
@@ -2240,5 +2157,140 @@
   [data-glw-band],
   [data-glw-edge] {
     display: none;
+  }
+}
+
+/* PRINT: help articles (the help-catalog round, 2026-09-01). The day-of
+   checklist is the guide a host prints at 7am, so the article page marks its
+   screen chrome with data-print-hide and the paper-only address with
+   data-print-url; nothing else in the app carries a print rule. Attribute
+   hooks, not classes, so the rule stays inert everywhere the page does not
+   opt in. The marketing chrome (header/footer) hides through the same hook
+   set on the article page's wrappers. */
+@media print {
+  /* Every header except the article's own (which carries the title and the
+     In-short answer and opts out with data-print-keep). */
+  [data-print-hide],
+  body:has([data-print-article]) header:not([data-print-keep]),
+  body:has([data-print-article]) footer {
+    display: none !important;
+  }
+  [data-print-url] {
+    display: block !important;
+    margin-top: 0.5rem;
+  }
+  [data-print-article] {
+    color: #111 !important;
+    background: #fff !important;
+  }
+  [data-print-article] a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+/* PRINT: the legal documents (the launch-runbook round, 2026-09-02). /privacy
+   and /terms are the two pages people actually put on paper or file as a PDF
+   (a host archiving the terms they agreed to, counsel marking the text up), and
+   they are the only long documents that live in the (cinema) group: printed
+   raw, they came out as a black hero on sheet one, a rail of screen navigation
+   beside the text, and every link a dead underline. Same doctrine as the help
+   block above: ONE opt-in hook (data-print-legal, set on the legal shell's
+   <article>), the shared data-print-hide for screen-only furniture, and no
+   rule that can fire on a page which has not opted in. No @page here on
+   purpose: @page cannot be scoped to a selector, so a margin set for the legal
+   sheet would silently re-margin the help articles too. */
+@media print {
+  /* THE ROOM PRINTS LIGHT. The dark is not one background to patch: the cinema
+     wrapper carries `.dark` (the whole token flip) and marketing.css paints the
+     BODY oklch(0.11), so muted text, card and hairline all resolve dark too.
+     Re-declaring the tokens on the wrapper turns the subtree light in one move
+     (paper values, not the oklch originals: print is sRGB and ink on white is
+     the point). !important because marketing.css's body rule is a tie on
+     specificity and loads later. */
+  body:has([data-print-legal]),
+  body:has([data-print-legal]) [data-mkt-skin="cinema"] {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  body:has([data-print-legal]) [data-mkt-skin="cinema"] {
+    --background: #fff;
+    --foreground: #111;
+    --card: #fff;
+    --card-foreground: #111;
+    --popover: #fff;
+    --popover-foreground: #111;
+    --muted: #f4f4f4;
+    --muted-foreground: #444;
+    --border: #c9c9c9;
+    --input: #c9c9c9;
+    --ring: #666;
+    color-scheme: light;
+  }
+
+  /* PAPER HAS NO VIEWPORT, so nothing can enter one: every [data-mkt-reveal]
+     slot sits at opacity 0 until an IntersectionObserver flips its ancestor's
+     data-inview, and a sheet printed before (or without) that fires loses the
+     eyebrow and the subhead to blank space. Forced visible for the whole
+     printed page, never just the article. */
+  body:has([data-print-legal]) [data-mkt-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Chrome the document does not include: the overlay header, the footer, and
+     the per-heading copy-link affordance (a hover control on paper). The chip
+     ToC, the sticky rail and the "Read next" foot carry data-print-hide at
+     their call sites, which the help block above already hides. */
+  body:has([data-print-legal]) header,
+  body:has([data-print-legal]) footer,
+  [data-print-legal] [data-anchor-copy] {
+    display: none !important;
+  }
+
+  /* Breaks fall BETWEEN sections. `avoid` is a preference, not a promise: a
+     section longer than a page still breaks inside it, which is what we want
+     (a forced break-before would leave half-empty sheets through a 22-section
+     document). The heading rules cover that case, so a break never strands a
+     numbered heading, a sub-heading or an "In short" line at a page foot. */
+  [data-print-legal] > section {
+    break-inside: avoid;
+  }
+  [data-print-legal] h2,
+  [data-print-legal] h3 {
+    break-after: avoid;
+  }
+  [data-print-legal] li,
+  [data-print-legal] tr,
+  [data-print-legal] figure {
+    break-inside: avoid;
+  }
+  [data-print-legal] thead {
+    display: table-header-group;
+  }
+  [data-print-legal] p,
+  [data-print-legal] li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* LINKS SHOW WHERE THEY GO. On paper a link is just an underline, and these
+     documents cite the help centre and each other constantly. In-document
+     anchors are left bare (the target is on the same sheet), and so is the
+     mailto, whose label already IS the address. */
+  [data-print-legal] a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  [data-print-legal] a[href^="/"]::after {
+    content: " (partyreel.com" attr(href) ")";
+  }
+  [data-print-legal] a[href^="http"]::after {
+    content: " (" attr(href) ")";
+  }
+  [data-print-legal] a[href^="/"]::after,
+  [data-print-legal] a[href^="http"]::after {
+    font-size: 0.85em;
+    word-break: break-all;
   }
 }

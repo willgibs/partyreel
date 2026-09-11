@@ -1,5 +1,6 @@
 /* ════════════════════════════════════════════════════════════════════════════════
-   MARKETING MOTION + SKIN (Track B; imported ONLY by the (marketing) layout).
+   MARKETING MOTION + SKIN (Track B; imported by the (marketing) layout and, since the
+   library round (2026-09-02), by the design lab's layout, which the contract below makes safe).
 
    THE CONTAINMENT CONTRACT (pinned by marketing-css-policy.test.ts): this file
    persists app-wide once any marketing route has loaded (Next never unloads
@@ -1381,8 +1382,8 @@
 }
 
 /* No straddle on phones: at three columns the album is FOUR rows, so half of it
-   over the paper would need ~300px of clearance (album.tsx and /help gate their
-   straddles the same way). */
+   over the paper would need ~300px of clearance (/help gates its straddle the
+   same way; the home album's came off on 2026-09-01). */
 [data-mkt] .mkt-gather-straddle {
   margin-bottom: 0;
 }

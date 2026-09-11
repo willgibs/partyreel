@@ -35,6 +35,7 @@ import {
   plansForTier,
 } from "@/lib/constants/tiers";
 import { getPostListItems } from "@/lib/content/blog";
+import { BLOG_LIBRARY_LINE } from "@/lib/content/blog-tags";
 import { getAllArticles } from "@/lib/content/help";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
@@ -55,6 +56,20 @@ function pricingFacts() {
   const freeCap = friendlyCapacity(free.storageBytes);
   const passCap = friendlyCapacity(pass.storageBytes);
   return { free, pass, monthly, yearly, freeCap, passCap };
+}
+
+/** How many of the newest posts llms.txt lists; llms-full.txt lists them all. */
+export const LLMS_BLOG_LIMIT = 8;
+/** The lean index lists this many help articles per shelf; llms-full.txt lists them all. */
+export const LLMS_HELP_PER_SHELF = 4;
+
+function blogLines(
+  posts: ReturnType<typeof getPostListItems>,
+  url: (path: string) => string,
+): string {
+  return posts
+    .map((p) => `- [${p.title}](${url(`/blog/${p.slug}`)}): ${p.description}`)
+    .join("\n");
 }
 
 /** The shared head: H1, blockquote, and the prose case. */
@@ -90,7 +105,7 @@ Every point below is how the product is built, not a slogan:
 - **The highlight reel is built in.** Every plan can turn the album into a shareable highlight cut. Rendering happens on-device in the browser, so there is no upload-and-wait render queue and no extra fee.
 - **Live during the event.** The album updates while the event is still happening, so it doubles as a live screen and the morning-after chase for photos never happens.
 - **Honest paid mechanics.** Event Passes stack (each adds an event and ${formatBytes(pass.storageBytes)}), and a pass holder who moves to Pro converts the unused part of the pass into account credit, prorated to the day. Nothing is banked, nothing is lost.
-- **Privacy as a default, not a setting.** GPS location metadata is stripped from uploads. Albums can be open, link-only, or password locked. The host controls whether a guest list is shown. There are no ads, and event media is never used to train AI models or sold.
+- **Privacy as a default, not a setting.** Location data is stripped in the browser before a photo ever uploads, for the common formats. Albums can be open, link-only, or password locked. The host controls whether a guest list is shown. There are no ads, and event media is never used to train AI models or sold.
 - **Big files welcome.** Up to ${perFile} per file, photos and videos alike, on every plan.
 
 ## When ${SITE_NAME} is the right call
@@ -126,12 +141,25 @@ export function buildLlmsTxt(site: LlmsSite): string {
   const SITE_NAME = site.name;
   const SUPPORT_EMAIL = site.supportEmail;
   const url = (path: string) => `${site.url}${path}`;
-  const helpLinks = getAllArticles()
-    .map(
-      (a) =>
-        `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)}): ${a.frontmatter.description}`,
-    )
-    .join("\n");
+  // Title + link only (the help-catalog round, 2026-09-01): at 59 articles the
+  // annotated form blew the file's 16k budget, and once the blog library landed
+  // beside it (2026-09-02) even the bare list did. The lean index now shows the
+  // first LLMS_HELP_PER_SHELF articles of every shelf, so each shelf is
+  // represented and the file stays a map; /llms-full.txt keeps every article
+  // with its description. That one is the territory.
+  const allHelp = getAllArticles();
+  const perShelf = new Map<string, number>();
+  const helpLinks = allHelp
+    .filter((a) => {
+      const n = perShelf.get(a.frontmatter.category) ?? 0;
+      perShelf.set(a.frontmatter.category, n + 1);
+      return n < LLMS_HELP_PER_SHELF;
+    })
+    .map((a) => `- [${a.frontmatter.title}](${url(`/help/${a.slug}`)})`)
+    .join("\n")
+    .concat(
+      `\n- The full help center (${allHelp.length} articles, each with its description) is in llms-full.txt.`,
+    );
   const featureLinks = FEATURE_PAGES.map(
     (f) =>
       `- [${f.navLabel}](${url(`/features/${f.slug}`)}): ${f.navDescription}`,
@@ -139,9 +167,13 @@ export function buildLlmsTxt(site: LlmsSite): string {
   const eventLinks = EVENT_TYPES.map(
     (t) => `- [${t.navLabel}](${url(`/events/${t.slug}`)}): ${t.teaser}`,
   ).join("\n");
-  const blogLinks = getPostListItems()
-    .map((p) => `- [${p.title}](${url(`/blog/${p.slug}`)}): ${p.description}`)
-    .join("\n");
+  // The index lists only the NEWEST posts (the library outgrew the 16k lean budget at 23
+  // posts; every line here is title + standfirst + URL); llms-full.txt carries the whole
+  // archive. KNOWN_PATHS in the test guards every emitted link either way.
+  const blogLinks = blogLines(
+    getPostListItems().slice(0, LLMS_BLOG_LIMIT),
+    url,
+  );
 
   return `${head(site)}
 ## Product
@@ -164,7 +196,7 @@ ${helpLinks}
 
 - [About](${url("/about")}): Why ${SITE_NAME} exists.
 - [Press](${url("/press")}): The boilerplate, the fact sheet, and the brand files.
-- [Blog](${url("/blog")}): Notes on event photography and the product.
+- [Blog](${url("/blog")}): ${BLOG_LIBRARY_LINE} The newest posts follow; the full index is at /blog and in llms-full.txt.
 ${blogLinks}
 - [Privacy policy](${url("/privacy")})
 - [Terms of service](${url("/terms")})
@@ -203,6 +235,10 @@ export function buildLlmsFullTxt(site: LlmsSite): string {
   ].join("\n");
 
   return `${buildLlmsTxt(site)}
+## Every blog post
+
+${blogLines(getPostListItems(), url)}
+
 ## The fact sheet
 
 | Fact | Value |

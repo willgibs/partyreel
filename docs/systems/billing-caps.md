@@ -132,12 +132,18 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   LIVE connector once created 3 products by mistake → archived).
 - **The human creates the webhook endpoint + the Billing Portal config in the Stripe dashboard** (the MCP
   catalog can't), and pastes the env values the agent can't set: `STRIPE_SECRET_KEY`,
-  `STRIPE_WEBHOOK_SECRET`, the `STRIPE_PRICE_*` IDs — into `.env.local` + Vercel, then redeploy.
+  `STRIPE_WEBHOOK_SECRET`, the eight `STRIPE_PRICE_*` IDs — into `.env.local` + Vercel, then redeploy.
+  **The portal's plan switcher must list all SIX Pro prices** (monthly + yearly on each of the three
+  products): it is the only route between the intervals, since checkout refuses a second subscription
+  for an active Pro.
 - **Checkout/webhook can't run on localhost** — verify on partyreel.com with test card `4242 4242 4242
   4242`. The Chrome MCP BLOCKS interaction on Stripe-hosted pages, so the card entry / Subscribe click is
   human-driven; verify the result via the Supabase MCP (read `profiles.tier`/`storage_cap_bytes`). To
   exercise the downgrade webhook without waiting, use the Stripe MCP `cancel_subscription` (immediate).
-- **Re-create everything in LIVE + swap the 5 env vars before launch** (test and live data are separate).
+- **Re-create the catalog in LIVE + swap the TEN env values before launch** (test and live data are
+  separate): the key, the webhook secret and all eight price IDs, in one redeploy; the rollback is
+  reverting those ten. The catalog is **4 products / 8 prices** (3 Pro products carrying 6 recurring
+  prices, monthly + yearly on each; the Event Pass product carrying the 2 one-time prices).
 
 ## See also
 

@@ -1,9 +1,9 @@
-import { Check, Minus } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
+import { MatrixMark } from "@/components/marketing/matrix-mark";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
@@ -204,31 +204,9 @@ function buildGroups(): MatrixGroup[] {
 
 const PLAN_COLUMNS = ["Free", "Event Pass", "Pro"] as const;
 
+// The glyphs live in matrix-mark.tsx, shared with the blog's comparison tables.
 function CellContent({ value }: { value: CellValue }) {
-  if (value === true) {
-    return (
-      <>
-        <Check
-          className="inline size-4 text-success"
-          strokeWidth={2}
-          aria-hidden
-        />
-        <span className="sr-only">Included</span>
-      </>
-    );
-  }
-  if (value === false) {
-    return (
-      <>
-        <Minus
-          className="inline size-4 text-muted-foreground/50"
-          strokeWidth={2}
-          aria-hidden
-        />
-        <span className="sr-only">Not included</span>
-      </>
-    );
-  }
+  if (typeof value === "boolean") return <MatrixMark value={value} />;
   return <span>{value}</span>;
 }
 

@@ -1,11 +1,3 @@
-import {
-  DatabaseBackup,
-  LockKeyhole,
-  MailCheck,
-  MapPinOff,
-  Undo2,
-  type LucideIcon,
-} from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
@@ -15,35 +7,47 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 /**
  * QUIET (the loud/quiet map): the shipped-but-invisible safety features as
- * NAMED, SPECIFIC claims (IA section 8, "the unused ammunition"), mono
- * hairline icons, quiet reveals only. Specifics over adjectives throughout.
- * Deliberately absent by the hard fence: CSAM / forensic / law-enforcement
- * language (counsel + NCMEC pending) and any retention-as-legal-promise.
+ * NAMED, SPECIFIC claims (IA section 8, "the unused ammunition"), quiet
+ * reveals only. Specifics over adjectives throughout. Deliberately absent by
+ * the hard fence: CSAM / forensic / law-enforcement language (counsel + NCMEC
+ * pending) and any retention-as-legal-promise.
+ *
+ * ★ WHY A NUMBERED LEDGER, LEFT-ALIGNED (Will's second pass, 2026-09-01: "no
+ * two sections back to back should feel repetitive"; the paper chapter must
+ * not run three centred sections in a row). This and curation shipped as two
+ * centred icon layouts and read alike. The paper chapter now alternates left
+ * (the album's masthead), centred (curation's mirrored split), left (this):
+ * a document card in the idiom of /features/privacy's storage facts, five
+ * rows with a mono index, the claim on the left and its specifics on the
+ * right. It differs from chapter 1's open ledger (no-app.tsx) on purpose:
+ * bordered, numbered, on paper, five sections away. No icons; the numerals do
+ * the scanning.
  */
 
-const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
+const CLAIMS: { title: string; body: string }[] = [
   {
-    icon: MapPinOff,
+    // ★ THE RULED SHORT FORM (Will, 2026-09-02). The clause "for the common
+    // formats" rides EVERY shortened version of this claim: HEIC, HEIF and AVIF
+    // images and WebM video are stored exactly as the device sends them, so the
+    // unconditional sentence this used to carry was not true. The long form,
+    // naming the formats, is the privacy policy's own paragraph (the "metadata"
+    // section of constants/legal-privacy.tsx). Do not drop the clause.
     title: "Location data stays on the phone",
-    body: "EXIF and GPS metadata are stripped in the browser before a photo ever uploads.",
+    body: "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
   },
   {
-    icon: LockKeyhole,
     title: "Three ways to share",
     body: "Open, password-protected on paid plans, or fully private. A locked event shows only its name and a count.",
   },
   {
-    icon: MailCheck,
     title: "A verified email to upload",
     body: "Ask every uploader for a verified email first. Free on every plan, on by default.",
   },
   {
-    icon: Undo2,
     title: "30 days to change your mind",
     body: "Deleted media waits in a recovery bin for 30 days before it is gone for good.",
   },
   {
-    icon: DatabaseBackup,
     title: "Backed up twice, automatically",
     body: "Every file is replicated to a second region the moment it lands.",
   },
@@ -51,46 +55,47 @@ const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
 
 export function Privacy() {
   return (
-    <SectionShell eyebrow="Privacy" heading={SECTION_HEADERS.privacy.line}>
-      {/* FIVE ITEMS, NO HOLE (R4/A18): a 3-column GRID left the sixth cell
-          empty, which read as a missing claim. A wrapped flex row with the
-          same column widths centers the short last row instead (3 + 2 at lg,
-          2 + 2 + 1 at sm), so the shape reads deliberate at every width. */}
-      {/* ONE CHOREOGRAPHY (R4): this header is two lines, so the claims
-          continue at slot 2 and the pointer closes at 7, all under ONE
-          observer. Seven slots at the 90ms default would trail past 600ms, so
-          the block tightens the stagger token to 70ms (the polish rule: keep a
-          long stagger's total inside ~300ms of spread past the header). */}
+    <SectionShell
+      eyebrow="Privacy"
+      heading={SECTION_HEADERS.privacy.line}
+      align="left"
+      containerClassName="max-w-4xl"
+    >
+      {/* ONE CHOREOGRAPHY (R4): this header is two lines, so the rows continue
+          at slot 2 and the pointer closes at 7, all under ONE observer. Seven
+          slots at the 90ms default would trail past 600ms, so the block
+          tightens the stagger token to 70ms (the polish rule: keep a long
+          stagger's total inside ~300ms of spread past the header). */}
       <Reveal
-        className="mx-auto mt-12 max-w-4xl"
+        className="mt-10 sm:mt-12"
         style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}
       >
-        <div className="flex flex-wrap justify-center gap-x-10 gap-y-10">
+        <ol className="divide-y rounded-xl border bg-card/40">
           {CLAIMS.map((claim, i) => (
-            <div
+            <li
               key={claim.title}
               data-mkt-reveal
-              className="flex w-full items-start gap-4 sm:w-[calc((100%-2.5rem)/2)] lg:w-[calc((100%-5rem)/3)]"
+              className="flex items-baseline gap-4 px-5 py-5 sm:gap-6 sm:py-6"
               style={{ "--i": i + 2 } as CSSProperties}
             >
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground">
-                <claim.icon className="size-4.5" strokeWidth={1.5} />
+              <span className="w-6 shrink-0 font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
+                {String(i + 1).padStart(2, "0")}
               </span>
-              <div className="flex flex-col gap-1">
-                <h3 className="font-heading text-base sm:text-lg">
+              <div className="grid min-w-0 flex-1 gap-x-8 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+                <h3 className="font-heading text-lg sm:text-xl">
                   {claim.title}
                 </h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {claim.body}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
         {/* The ladder pointer (expansion round): the full trust story. */}
         <div
           data-mkt-reveal
-          className="mt-10 flex justify-center"
+          className="mt-8"
           style={{ "--i": 7 } as CSSProperties}
         >
           <LearnMoreLink href="/features/privacy">

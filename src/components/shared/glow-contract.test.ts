@@ -247,9 +247,10 @@ describe("the spill engine CSS", () => {
   });
 
   it("does not collide with a keyframe name already defined elsewhere", () => {
-    // Keyframes are document-global and the last definition wins. This repo
-    // already has nine collisions between design.css and production (logged to
-    // ROADMAP); the engine must not add a tenth.
+    // Keyframes are document-global and the last definition wins. The lab once
+    // carried nine collisions with production (deleted in the library round;
+    // src/app/keyframe-uniqueness.test.ts holds the count at zero); the engine
+    // must not add one.
     const names = (rel: string) =>
       [...read(rel).matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]);
     const mine = [...engineCode.matchAll(/@keyframes\s+([\w-]+)/g)].map(
@@ -260,9 +261,20 @@ describe("the spill engine CSS", () => {
     // engine against itself and fail on every name. design.css moved the other
     // way and is now wholly elsewhere (it kept the lab-only glw-skel / glw-fly
     // / glw-tilefly recipes, which is exactly what this must catch).
+    // Every lab stylesheet, not one path: the open boards keep their sheets
+    // under sandbox/ (glow-lab.css holds the glw-* recipes this must catch),
+    // and a sheet that moves must stay in this net.
+    const labDir = "src/app/(dev)/design";
+    const labSheets = readdirSync(join(process.cwd(), labDir), {
+      recursive: true,
+    })
+      .map(String)
+      .filter((f) => f.endsWith(".css"))
+      .map((f) => `${labDir}/${f}`);
+    expect(labSheets.length, "no lab stylesheets found").toBeGreaterThan(1);
     const elsewhere = new Set([
       ...names("src/app/(marketing)/marketing.css"),
-      ...names("src/app/(dev)/design/design.css"),
+      ...labSheets.flatMap(names),
       // globals.css minus the engine block itself. Slice the RAW file, then
       // strip: the banner lives inside a CSS comment, so it cannot be found
       // in the comment-stripped text (indexOf would return -1 and quietly

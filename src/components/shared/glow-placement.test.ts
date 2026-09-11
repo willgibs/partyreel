@@ -104,3 +104,31 @@ describe("no lamp sits inside a clipping ancestor", () => {
     }
   });
 });
+
+describe("the reel screen's lamp is held to the screen", () => {
+  it("keeps the box the screen's width and ends its sides in a pool", () => {
+    // THE WEDGE (Will's ruling on treatment A, 2026-09-01). A seam's five
+    // ellipses sit at 14/38/60/80/96% of the field, so its colour is still
+    // ~40-50% at the ends of ANY box; a box wider than the screen with a
+    // linear side fade lit the screen's own edge at 40% and ended on a
+    // straight line 64px outside it. The fix is geometric and silent to lose.
+    const src = readFileSync(
+      new URL(
+        "../marketing/sections/home/reel-screen-lamp.tsx",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    const glow = src.indexOf("<Glow");
+    expect(glow).toBeGreaterThan(-1);
+    const wrapper =
+      [...src.slice(0, glow).matchAll(/className="([^"]*)"/g)].at(-1)?.[1] ??
+      "";
+    expect(wrapper).toMatch(/\binset-x-0\b/);
+    expect(wrapper).not.toMatch(/-inset-x-/);
+    expect(wrapper).toMatch(
+      /\[mask-image:radial-gradient\(ellipse_\d+%_\d+%_at_50%_0%,/,
+    );
+    expect(wrapper).not.toMatch(/\[mask-image:linear-gradient\(to_right/);
+  });
+});

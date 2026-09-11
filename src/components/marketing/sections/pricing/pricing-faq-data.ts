@@ -1,10 +1,10 @@
-import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   MAX_REEL_SECONDS,
   planById,
 } from "@/lib/constants/tiers";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 

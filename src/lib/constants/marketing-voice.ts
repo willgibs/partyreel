@@ -66,7 +66,7 @@ export const SECTION_HEADERS: Record<
   album: {
     line: "Every photo comes to you first.",
     status: "provisional",
-    note: "Wants more distinctness from the live demo before it and curation after it.",
+    note: "Wants more distinctness from the live demo before it and curation after it. Round 2, second pass (2026-09-01): the section is now the paper chapter's opener (a left masthead at the lg tier, the print laid on the desk below-right; the straddle is off and the body no longer repeats chapter 1), so the distinctness is designed in. The line itself still awaits his ruling.",
   },
   curation: {
     line: "Every moment, and you decide what stays.",

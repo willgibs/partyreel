@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-09-01
+**Updated:** 2026-09-02
 
 ## The era
 
@@ -31,7 +31,9 @@ anything shared.
 | R2 Reel Engine + Foundation | ✅ milestone-1 (2026-07-08) |
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
-| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). Next marketing goal comes from Will (rising-tides posture). |
+| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **Round 3 wave 1: six agent tracks** | **✅ milestones 18 and 19 (2026-09-02)**: CI on every push, the app and guest surfaces true, the launch runbook's billing half and the legal surface, every job operable from `/admin/jobs`, self-serve account deletion, the demo seed. Each track ran as an Orchestrator-spawned agent on its manifest and integrated in its own window. |
+| **Round 3 (A + B): the operating model + the library round** | **✅ milestone-17 (2026-09-02)**: track manifests + two guards + the build gate on request; the lab distilled (26 boards to [`decisions/design-record.md`](decisions/design-record.md), `/design/marketing`, `/design/record`, the CSS split: the home's main sheet 304,277 → 265,358 bytes). Part C (the roadmap as tracks + the wave-1 inits) is next. |
 | R4 Growth (Share Studio) / R4b Social P4 | Profiles+social P1-P3 shipped early (rode milestone-2); Share Studio + the P4 feed not started |
 | R5 Notifications · R6 App polish · R7 Admin · R8 Hardening | not started (content: their [ROADMAP](ROADMAP.md) buckets) |
 
@@ -100,18 +102,51 @@ stale rest). Position: **R0 the engine ✅ · R1 the home page's light ✅ · R2
 (all on `launch-prep`, unmerged) → R3 the library + the lab's dead weight → R4 radius, globally → then the
 guest surfaces, the Get Pro beam + the lit surface, the publish beat, and branching agents per page.
 
+**MILESTONE-16 (2026-09-02): prod = the legal round and the help catalog, red-teamed live.** `main` @
+tag `milestone-16` (`9b61419`), prod READY + red-teamed at the merge SHA across rounds 0 to 2b, the blog,
+legal and help (guards, negatives, metadata, the home's arc and lamps, legal and help surfaces, 375
+under a classic scrollbar, console clean). One finding logged: the root 404's light `theme-color` over
+its dark lit page. Full narrative: [CHANGELOG](CHANGELOG.md).
+
+**The help catalog and the legal round integrated (2026-09-02).** `lp/legal-docs` merged at `988aac3`
+and `lp/help-catalog` at `3cff3a7`, both gates green on the merged trees (1489 tests, 245 static pages
+after the catalog), both verified on the launch-prep alias; four integration decisions inside the
+agents' work are in the [CHANGELOG](CHANGELOG.md) (one over-cap source, bare-number spec components,
+the shared heading anchor, the per-shelf llms cap). Awaiting Will's look, then milestone-16.
+
+**MILESTONE-15 (2026-09-02): prod = the blog library.** `main` @ tag `milestone-15` (`c46621f`), prod
+READY + verified at the merge SHA (the rail's counts, sitemap 23, llms 8, a redirect, Article +
+FAQPage on a post, the shared capacity phrase on /pricing, console clean). Will: "Well done. Please
+continue." Full narrative: [CHANGELOG](CHANGELOG.md).
+
+**MILESTONE-14 (2026-09-02): prod = rounds 0 to 2b.** `main` @ tag `milestone-14` (`54bd519`), prod
+READY + verified at the merge SHA (the light system, the lit 404, the film strip's backlight, the Pro
+beam, the media-forward cards, the re-paced home with the adjacency rule, the reel's pool, the
+sideways-scroll fix). Will's acceptance: "This looks way better. It still needs plenty of work later,
+but please go ahead and merge to main." Full narrative: [CHANGELOG](CHANGELOG.md). The blog library
+(`lp/blog-library`, the Agent's handoff at `661205f`) merged into `launch-prep` right after, at
+`e70d241`, gate green on the merged tree (1337 tests, 155 static pages); the one conflict was the
+CHANGELOG's top, and the three auto-merged docs were read by eye.
+
 **Round 2 (2026-09-01)** turned the chapter idea into a recorded PACING PRINCIPLE (a chapter is an
 attention arc; each opener bespoke; core marketing pages only) and re-paced the home page against it:
 two quiet guest-side sections wind chapter 1 down before the live demo, now its centred closing anchor;
 the event cards went media-forward and lost their light (measured legibility, fixed twice); and the
-payoff chapter's opener is deployed as two bespoke treatments on `lp/reel-a` / `lp/reel-b` for Will's
-ruling. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
+payoff chapter's opener went out as two bespoke treatments; **Will ruled for A, "lights down"** (merged after its light was
+held to the screen's width; `lp/reel-b` deleted), and his second pass re-paced the page again: no two
+sections back to back share a layout, the straddle is off the home, and the album opens the paper
+chapter as the host's masthead. Radius knobs are staged on the marketing tuner for round 4. Full narrative: [CHANGELOG](CHANGELOG.md).
 
-**Round 1 (2026-09-01)** put the first new light on the site: the hero underlight and the album
-straddle, both **sampling their own photographs**, so law 3 is real in production rather than a claim.
-`GlowFilter` became a root-layout singleton, and the engine's reduced-motion state was fixed (the band
-had been resting at the MIDPOINT of its sweep at full strength, permanently, for anyone who asked for
-less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
+**Round 1 (2026-09-01)** put the first new light on the site, in two passes. The first lit the hero and
+the album straddle; both drew a visible rectangle (verified in the wrong browser, and placed where no
+source sits above the ground) and were **pulled the same day** on Will's call. The second chose its
+surfaces from a screenshot survey of the whole page: the **film strip's backlight**, a seam off the
+strip's own bottom edge sampling its eight frames (approved: "the lamp acting as almost a backlight"),
+and the **Pro card's beam** from the lab's reference implementation; the card tilt and cursor glare
+were retired, and the event cards' own light was tried three ways and dropped for scarcity at round 2.
+What stayed from the first pass: `GlowFilter` as a root-layout singleton, the DOM sampler, the dev-only
+missing-host guard, and the engine's reduced-motion fix (the band had been resting at the MIDPOINT of
+its sweep at full strength, permanently, for anyone who asked for less motion). Two lab-fidelity findings went to the lab review: moment 05's specimen is vertically
 inverted from its own production surface and overstates the overhang by 2.5x, and moment 09's lamp does
 not exist at all. Full narrative: [CHANGELOG](CHANGELOG.md).
 
@@ -277,11 +312,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-11`. **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-16`. **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1319 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1489 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -306,7 +341,7 @@ All backing services run under the dedicated owner account **partyr33l@gmail.com
 
 **Already configured — DO NOT redo:** R2 buckets + creds + CORS + abort-multipart lifecycle rule; the
 apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products/prices + webhook + Billing
-Portal + the 5 env vars; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
+Portal + the 10 Stripe env values; Supabase TOTP MFA + `admin.partyreel.com/auth/callback` in the redirect
 allow-list + `NEXT_PUBLIC_ADMIN_HOST` (break-glass: delete the TOTP factor in the Supabase dashboard,
 `auth.mfa_factors`); the Sentry project + DSN + 4 env vars; the media-backup Worker + the DB-backup
 Action secrets; the prune crons + shared `PRUNE_API_SECRET`. (All Vercel-side items were recreated on
@@ -314,14 +349,14 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Round 2 rulings pending (2026-09-01):** (i) **the payoff opener — A or B.** `lp/reel-a` "lights
-down" (the screen throws its light onto the floor) vs `lp/reel-b` "the marquee" (the style names as a
-display-scale title strip); one variable apart, both on the hard cut. (ii) **Two provisional headers**
-— `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality` "Everything they shoot, at
-the size they shot it." (iii) **The album opener** — judge on screen against the new arc whether the
-straddle alone already reads as the paper chapter opening, or wants its own bespoke treatment.
-(iv) The events copy's legibility over the borrowed conference still: improved twice by scrim (median 5.6:1; the brightest 5% of pixels under the heading at 4.27:1), and the
-real fix is the manifest fill.
+**Round 2, after Will's second pass (2026-09-01):** (i) the payoff opener **RULED: A**, "lights
+down", merged after the width fix; `lp/reel-b` deleted. (ii) **Two provisional headers stay
+provisional by ruling** — `noApp` "Nothing to install. Nothing to sign up for." and `fullQuality`
+"Everything they shoot, at the size they shot it."; he will send alternatives. (iii) **The album
+opener is done**: the paper chapter opens on the host's masthead, and only the provisional `album`
+line remains his. (iv) The four event teasers are equalised (57 to 64 characters) so the titles share a
+baseline; the conference still's legibility (median 5.6:1, brightest 5% at 4.27:1) waits on the
+manifest fill.
 
 1. **The light system's remaining rulings.** Rounds 0 and 1 are both on `launch-prep` (2026-09-01) and
    three of the five are closed:
@@ -344,9 +379,10 @@ real fix is the manifest fill.
    `/e/[token]` has no forced skin, but the doorbell arrival, the locked door and the awaiting-media
    skeleton were all argued on cinema. That is the same ground mismatch that killed the QR beam and
    dropped the help palette. Needs a ruling before R2 can be built.
-2. **When to ship `launch-prep` to `main`.** Rounds 0 AND 1 are now unmerged, which is the policy's
-   ~2-round ceiling. Both are real production changes (the light system, the lit 404, and the home
-   page's two new lamps), so this wants a milestone when Will is ready to look.
+2. **All of wave 1 is on prod (MILESTONE-19, 2026-09-02).** `launch-prep` and `main` agree at
+   `88827d9`. One track is open: `lp/marketing-feature-pages` (Will's, cut at
+   `7a189ae`, 16 commits ahead and 41 behind; its code lane is clean and its four doc edits are
+   reconciled at integration). Every track's claim and handoff lives in [`docs/tracks/`](tracks).
 3. **A revisit of /blog and /careers** — Will's own note at the milestone-12 merge: "I'll definitely
    revisit both of these page designs." Approved and shipped as they are; the revisit is his, not a
    defect list. (The `PageHero` sweep and the mobile pass below are separate and already logged.)
@@ -354,10 +390,36 @@ real fix is the manifest fill.
 5. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
    items and the real-phone QR ticket-scan check). (The contact-identity ruling landed 2026-08-28:
    the desk + note composite, wired same-day; the nav feel pass cleared same-day at milestone-6.)
-6. **The MonoCaption sweep question** — does the R6 mono ruling extend to press facts / legal status
-   lines / GoDeeper captions ([ROADMAP](ROADMAP.md) "Elevation-program deferred queue").
-7. **His-side inits:** the help-content Agent ([`content/help/AUTHORING.md`](../content/help/AUTHORING.md))
-   and the legal Agent (the `LegalArticle` shell) — both ready to spawn via the PROGRAM.md Agent template.
+6. **The MonoCaption sweep question** — does the R6 mono ruling extend to GoDeeper captions (press
+   facts settled 2026-08-28, the legal status lines 2026-09-01: Inter) ([ROADMAP](ROADMAP.md)
+   "Elevation-program deferred queue").
+7. **Tracks (the wave plan, 2026-09-02; three to four concurrent).** Open: `lp/marketing-feature-pages`
+   (Will's). **Wave 1, stubbed in [`docs/tracks/`](tracks)** (each stub is the track's whole init; the
+   one-line prompt is in [`tracks/README.md`](tracks/README.md)): `ci-workflow`, `legal-billing-truth`
+   and `product-truth` were SPAWNED 2026-09-02 as Orchestrator-run agents in `../partyreel-wt/<track>`;
+   **`ci-workflow` integrated at `192c708` (CI runs the gate on every push now) `legal-billing-truth` integrated at `2f98157`, and `product-truth` integrated the same day at `1352bb7`** (its signed-in surfaces walked on the alias); `ops-hardening` and `account-deletion` were spawned after the first three handed off;
+   **`ops-hardening` integrated at `b0c2ba3`** (its migration applied, the heartbeat exercised live) and
+   **`account-deletion` at `244f57e`** (its migration applied, the contract check green, the cards walked);
+   wave 1 is complete; `demo-seed`
+   was spawned with them and integrated at `ec69d7f` (the script is in; the prod run waits on Will's
+   curated folder). Integration: 1 + 2 together → a
+   milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` stubbed and spawned 2026-09-02 (its prerequisites landed);
+   `marketing-followons` waits on the marketing branch; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Wave 4:** the Will-led rounds
+   (the home hero, the rounding, the lit surface, the guest surfaces, the publish beat), then the launch
+   round in the Launch checkpoint's human order.
+8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
+   reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
+   rather name the mechanism is "...asks guests to sign in with an email." One word from you settles it.
+9. **Two admin looks on `admin.partyreel.com` after milestone-19** (the admin portal is host-gated, so
+   the preview alias cannot show them; the session needs your TOTP): `/admin/jobs` (four cards, the purge
+   switch, Run now) and the Delete account card on `/admin/accounts/<id>` (the retyped-email guard). If you
+   want the self-serve deletion exercised through the UI as well, do it on a throwaway host: it is
+   immediate and cancels the TEST plan.
+10. **The purchase toast, a ten-second look:** open `/dashboard?upgraded=1` as the Pro host on prod or
+   the alias; one toast should say "You're on Pro." and the flag should vanish from the URL. The
+   browser tooling could only see it indirectly (a background tab throttles hydration).
+11. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his): unblocks the committed RPC integration
+   suite ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free — nothing pricing-side
 remains open.)
 

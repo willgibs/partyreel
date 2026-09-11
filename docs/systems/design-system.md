@@ -10,11 +10,17 @@
 
 ## What it is
 
-Ratified in V1 program Phase 1 (the gated `/design` lab; decisions live in
-`src/app/(dev)/design/touchpoints.ts`), made real in Phase 2: production tokens in
+Ratified in V1 program Phase 1 (the gated `/design` lab), made real in Phase 2: production tokens in
 [`src/app/globals.css`](../../src/app/globals.css), the craft pass across `src/components/ui/*`,
-and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is a standing
-instrument: prototype + compare there, ratify into `touchpoints.ts`, then transplant here.
+and the error taxonomy in [`src/lib/errors/`](../../src/lib/errors). The lab is two things and never a
+third (the library round, 2026-09-02): a **LIBRARY** of production imports (the reference pages render
+the real components and tokens, synced by construction; `/design/marketing` renders the marketing
+system on the cinema skin; the index is below) and a **WORKSHOP** that is empty by default (`sandbox/`
+holds only the boards whose ruling is still open). Prototype and compare there; when a ruling lands,
+the RULE moves here (or to its surface doc), the RECORD moves to
+[`docs/decisions/design-record.md`](../decisions/design-record.md), and the board is deleted (git
+keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per ruling, where
+the rule lives), rendered at `/design/record`.
 
 ## The identity: monochrome, media is the color
 
@@ -144,10 +150,15 @@ templated one level up, which kills the freshness each chapter is supposed to br
 - the heading a tier up (`SectionShell scale="lg"`, the ladder's one empty slot: 36/48/60)
 - the hard film-cut entrance (`reveal="cinema"` / `data-mkt-cut`) instead of the soft rise
 - materially more air above the opener than a body section gets
-- an object that physically crosses the chapter cut (the home album's straddle)
+- an object that physically crosses the chapter cut (/about's gather, /help's emblem strip, /blog's
+  featured card; the home album carried one until the 2026-09-01 second pass, when it fought the live
+  demo across the cut and came off)
 - a drawn rule (`[data-mkt-rule]`, the masthead hairline)
 - a lit subject (the reel player, a screen in a dark room)
-- a full-bleed frame or strip
+- a full-bleed frame or strip (break out of the container with `w-screen -translate-x-1/2`; it is
+  safe because the cinema and paper skin wrappers clip the x axis at the viewport, so nothing ever
+  scrolls sideways. That clip must stay ON THE WRAPPER: on `body` it propagates to the viewport,
+  which treats `clip` as visible. Measured 2026-09-01; the why lives on the cinema layout's class)
 
 **Scope.** Core marketing pages with enough body sections to justify chapters: home, the feature
 pages, the event pages, how-it-works. **Not** the resource and utility pages (help, blog, press,
@@ -172,17 +183,42 @@ still stands: an opener that already carries a straddling object does not also t
   reworked as the chapter's closing **anchor**: a chapter can end on a strong visual that wraps its
   ideas together, as long as the sections before it have ramped down.
 
+**A second rule from the same review (Will, 2026-09-01) governs SHAPE where the arc governs loudness:**
+
+> No two sections back to back should feel repetitive. Otherwise, scrolling gets boring quickly.
+
+Two neighbours may share a register (both quiet, both informative) but never a layout. The checkable
+line is the page's column rhythm read top to bottom: a centred icon three-up after a centred icon
+three-up reads as one long section (the two guest-side sections shipped exactly that way and were
+caught on review), and "three centred sections in a row" is the specific failure to watch on a paper
+chapter, where the ground is quiet and only shape carries the pacing. The home's answer: chapter 1
+runs strip, ledger, three-up, stage; the paper chapter alternates left, centred, left with a masthead,
+a mirrored split and a numbered ledger. The straddle left the home in the same pass: the live demo and
+the straddling album were "two huge visuals fighting for attention" across one cut, so a chapter now
+ends on its own air before the next one opens.
+
 The home arc as ruled: **chapter 1** opens on the hero, supports through the trust strip, the
 decomposition and the film strip, winds down through the two guest-side sections, and closes on the
-live-demo anchor · **chapter 2** (paper) opens on the album's straddle and covers the album and the
+live-demo anchor · **chapter 2** (paper) opens on the album as the host's masthead (a left header a tier up, the print
+laid on the desk below-right; no straddle, so the live demo concludes chapter 1 on its own air) and
+covers the album and the
 host experience · **chapter 3** opens on the reel, supports through events and pricing, and closes on
 the FAQ, the CTA and the tail.
 
+**Heroes: registers, not a template (Will, 2026-09-02).** "Every page does not need to have a single
+templated hero. In fact, that would be an incredibly boring site where you know exactly what to expect
+everywhere and therefore don't really want to explore." Variety is wanted; what is not wanted is "tons
+of very minor variants". So `PageHero` carries a few NAMED entrance registers (the marketing branch
+added `rise` and `cut`; the blur-rise trio on /help, /contact and /careers becomes a named third, with
+the h1 visible at paint), and a new hero either uses an existing register or adds a named one, never an
+unnamed tweak, and never condenses the existing ones into a single template.
+
 ## Light: SPILL, BEAM, and the lamp set
 
-> Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The lab boards
-> ([`/design/c/glow-doctrine`](../../src/app/(dev)/design/components/glow-doctrine-variants.tsx),
-> `glow-moments`) keep the decision RECORD and the specimens; the rules live here, because a rule
+> Promoted out of the lab at round 0 (2026-09-01) with the engine it governs. The two boards
+> ([`sandbox/glow-doctrine-variants.tsx`](../../src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx),
+> `glow-moments`) stand in the workshop for the placements still open; the rulings are
+> [on the record](../decisions/design-record.md#glow-doctrine) and the rules live here, because a rule
 > that lives only inside a 1,405-line lab TSX is a rule the next agent has to go excavating for.
 
 Two siblings, and picking the wrong one is the usual mistake. **SPILL** is light falling FROM a lit
@@ -276,13 +312,14 @@ reduced-motion visitor sees permanently. It shipped declaring `50% 0` for two ro
 of the sweep, i.e. the worst case, forever, for the people who asked for less motion. Fixed at round 1
 and pinned by test.
 
-### The shipped lamps
+### The shipped light
 
-| Lamp | Where | Shape | Colour |
+| Light | Where | Shape | Colour |
 | --- | --- | --- | --- |
 | **The footer seam** | [footer-glow.tsx](../../src/components/marketing/chrome/footer-glow.tsx), every page incl. the root 404 | `seam` | the house lamp set (no media to sample) |
-| **The hero underlight** | [cinema-hero.tsx](../../src/components/marketing/sections/home/cinema-hero.tsx) | `seam` | **sampled** from the wall's eager tiles |
-| **The film strip** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx) | `seam` | **sampled** from the strip's frames |
+| **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
+| **The reel screen's pool** | [reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx), under the reel player, the box exactly the screen's width under an elliptical wrapper mask | `seam` | **sampled** from the reel's poster |
+| **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
 | **The feature heroes** (album, guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the arrivals stream, the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
 | **The QR plate switching on** | [qr-hero.tsx](../../src/components/marketing/sections/features/qr/qr-hero.tsx) (lab moment 06, "the second one") | `bloom` armed on arrival, resting at `--glw-base: 0.34` | the house five (a code is ink on white, law 3's no-media branch) |
 
@@ -299,7 +336,24 @@ the QR plate). The transparent stop sits at 78% of that radius, so a lab `--glw-
 the size of its object puts the fade outside the box and the light renders as a rounded square. Size
 the field generously (`-inset-32` on the plate) and keep reach where the falloff completes inside it.
 
-All three ship at `--glw-dur: 11s` against the engine's ruled 8s. With three lamps the open ruling is no
+Three seams and one beam on the home page (film strip, reel, Pro beam, footer: 5909, 1275 and 1509px
+apart at 1440 on the re-paced page, the nearest pair 1.4 viewports): scarcity as a distance. The hero and the album straddle
+were lit at round 1 and pulled the same day (the wall is the ground, not a source; the straddle's slot
+was 63px), and the event cards' own light was tried three ways and dropped for scarcity against the
+beam. The reel opener's seam (treatment A, "lights down") was ruled in on 2026-09-01 once its light
+was held to the screen's width.
+
+★ **Two ways a seam's sides end, and the box decides.** A seam's five ellipses sit at 14/38/60/80/96%
+of the field, so its colour is still ~40 to 50% at the ends of ANY box, and a box that ends on screen
+ends the light on a cut. A strip's light goes full-bleed so its ends are off-screen
+([film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx)). A screen's
+light must not be wider than the screen, so its box IS the screen and the wrapper carries an
+elliptical mask anchored at the screen's bottom centre (rx 46%, smoothstep stops): a pool, gone 31px
+inside each edge at 1440 and 14px at 375. A linear side mask on a wider box is a third thing, a wedge
+lit 40% at the object's own edge and ending on a straight line outside it; ruled out on sight, and
+pinned by test.
+
+All three seams ship at `--glw-dur: 11s` against the engine's ruled 8s. With more than one lamp the open ruling is no
 longer "the footer alone with nothing else moving" but the **system's register**: the whole home page at
 11s against the whole page at 8s.
 
@@ -611,7 +665,7 @@ immediately. The cap (540ms) stops deep galleries from queuing forever; reduced-
 
 The host event feed ([host-app.md](host-app.md)) is the densest motion cluster — all CSS-first,
 reduced-motion-safe, and var-tunable. The motion-defining picks were ratified in the
-[`/design/event-feed`](../../src/app/(dev)/design/event-feed) lab (Will 2026-06-22):
+event-feed lab ([on the record](../decisions/design-record.md#event-feed); Will 2026-06-22):
 - **A=Condense** — the sticky pill bar gains `data-stuck` once the feed scrolls past its top sentinel:
   a hairline + backdrop, and the pills shrink (`h-8`→`h-7`, smaller text) on a `transition-[transform,height,padding,font-size]`.
 - **B=Fade** (`[data-section-swap]`) — the feed container is re-keyed on a pill change (and the floating
@@ -739,24 +793,61 @@ controls (`items-center` centers children but the BOX stays edge-to-edge and eat
 its flanks — this once killed swipe-nav on all six shared-viewer surfaces). And the repo's
 react-hooks lint bans setState-in-effect sync resets — use the adjust-state-during-render pattern
 (prev-state comparison) for transient view resets.
+## The component index
+
+Every rendered component, where it lives, what it is for, and where its live specimen is (the lab
+renders production source, so the specimen IS the component). A component without a specimen gets one
+or a reason ([`marketing-library.test.ts`](../../src/app/(dev)/design/marketing/marketing-library.test.ts)
+enforces it for the marketing set).
+
+| component | file | for | specimen |
+| --- | --- | --- | --- |
+| the shadcn primitives (avatar, badge, button, card, dialog, drawer, dropdown-menu, form, input, input-otp, label, navigation-menu, popover, progress, select, separator, sheet, skeleton, sonner, switch, tabs, textarea, tooltip) | `src/components/ui/*` | the crafted primitives; semicolon-free generator style | `/design/components` (the Toaster is root-mounted; the toast demo fires it) |
+| `Logo`, `PlayBadge`, `EmptyState` | `src/components/shared/` | brand mark, the video badge, the typographic/iconographic/photographic empties | `/design/components` |
+| `PasswordStrengthMeter`, `SetNameStep` | `src/components/shared/` | the sign-up meter, the name step | `/design/components`, `/design/patterns` |
+| `NotFoundScreen`, `RouteError` | `src/components/shared/` | the dead ends (the error boundary is shown static) | `/design/patterns` |
+| `AnonymousInfo`, `CornerPlayBadge` (masonry) | `src/components/shared/` | the anonymous-upload explainer, the masonry tile badge | `/design/patterns` |
+| `PageHeading`, `Kbd`, `Container`, `LegalConsentLine`, `ActionTooltip`, `FloatingAddButton` | `src/components/shared/` | the app page title, key glyphs, the gutter, the consent line, the lightbox-only tooltip, the fixed Add pill | `/design/patterns` |
+| `Glow` | `src/components/shared/glow.tsx` | the spill engine (seam, throw, sweep, bloom, halo) | `/design/foundations` (Light) |
+| `GlowFilter` | `src/components/shared/glow-filter.tsx` | the turbulence field every Glow warps through; a document singleton | root layout only; never mounted in the lab |
+| `MediaLightbox`, `Masonry`, `AppShell`, `UploadThumbnail`, `ClaimUploadsOnAuth` | `src/components/shared/` | data- and provider-heavy; no in-lab harness yet | none (deferred, noted on the compositions page) |
+| `SectionShell`, `PaperChapter`, `PageHero`, `Eyebrow`, `MonoCaption` | `src/components/marketing/system/` | the section lockup and reveal, the paper cut, the hero at three scales, the two type atoms | `/design/marketing` |
+| `CardGrid`, `TiltCard`, `MediaSplit`, `Conveyor` | `src/components/marketing/system/` | the media frames: a tilt grid, the pointer-tracked card, the 7/5 split, the marquee | `/design/marketing` |
+| `Reveal`, `StatBand`, `CtaBand`, `DemoTicket`, `DemoCtaLink` | `src/components/marketing/system/` | the observer island, the counting band, the conversion band, the scannable demo ticket and its text link (both null without a demo event) | `/design/marketing` |
+| `MorphDelegate` | `src/components/marketing/system/morph-delegate.tsx` | the view-transition delegate (configured by `blog/cover-morph.tsx` and `sections/careers/role-morph.tsx`) | `/design/marketing` (on a real post) |
+| `WebAnalytics` | `src/components/marketing/system/web-analytics.tsx` | the analytics singleton and the `data-track` listener | listed on `/design/marketing`, mounted only in the marketing layout |
+| `BulkBarMock`, `SelectTile`, `ConfettiBurst`, `InlineReelPlayer`, `LearnChevron`, `LearnMoreLink`, `SampleReelOverlay`, `TextsReveal` | `src/components/marketing/sections/shared/` | the select-mode mocks, the celebration, the poster-first reel, the two learn links, the lazy sample overlay, the class-keyed line reveal | `/design/marketing` |
+| `EventCard`, `EventCardQr`, `FeedSection`, `StorageMeter`, `FilterChips`, the two empty teasers, `HostMediaGrid`, `RecentlyDeletedGrid`, `QrPresetPicker`, `ReviewSection` | `src/components/app/` | the real product compositions, from sample props | `/design/compositions` |
 
 ## Where it lives
 
-`src/app/globals.css` (tokens + utilities + guards, the single source) ·
+`src/app/globals.css` (tokens + utilities + guards, the single source; its `@theme` block and the `dark`
+variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
-`error.tsx` files · `src/app/(dev)/design/` (the lab: reference `design.css`, `touchpoints.ts`
-decision record, `/design/boom` probe). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
+`error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages, `touchpoints.ts` the rulings
+registry, `sandbox/` the open boards with their own sheets, the four probes) · `src/lib/design-gate/*` +
+`/api/design-gate` (the gate, outside the lab because production depends on it) ·
+[`../decisions/design-record.md`](../decisions/design-record.md) (the rulings, verbatim). Perf baselines: [`../perf/v1-baseline.md`](../perf/v1-baseline.md).
 
 ## Gotchas / don't-revert
 
-- The lab's `design.css` deliberately DUPLICATES production tokens (a frozen reference sheet);
-  dedup is a Phase 8 task, don't "fix" it early.
+- The lab's `design.css` keeps the `.mono` mock sheet (the sandbox's frozen token set, the one
+  deliberate duplicate of production tokens: it is what the boards are judged in), the type layer and the
+  shared motion, and declares NO keyframes: keyframe names are document-global and the lab once shadowed
+  nine production names on every `/design` visit; `src/app/keyframe-uniqueness.test.ts` holds the count at
+  zero. A board's own CSS lives beside the board under `sandbox/`, imported by it, so it leaves with it.
 - 47 behavior pins (`*.test.tsx`, the component vitest project) freeze MediaLightbox / GuestUpload /
   LikesProvider behavior ahead of the Phase 4-5 decomposition — they assert behavior only, never
   styles, so token/craft changes don't touch them.
 - jsdom can't run the lightbox pause-on-navigate effect (portal/commit timing); that one pin was
   dropped on purpose — cover it in live device passes.
+- ★ **Two Tailwind entries, one theme, two scans** (the library round, 2026-09-02). `globals.css` excludes
+  the lab and `docs/` from its scan (`@source not`), and the lab compiles its own utilities from the entry at
+  the top of `design.css`, which `@reference`s `theme.css`. Never `@reference "globals.css"` from the lab: it
+  drags the exclusion along and the lab compiles nothing (19 rules against 695, measured). Never move a
+  token VALUE into `theme.css`: it holds only the variant and the `@theme` mapping. Pinned by
+  `src/app/css-source-policy.test.ts`.
 - `vitest.setup.ts` mocks sonner globally; `vi.unmock("sonner")` is the per-file escape hatch.
 - shadcn `src/components/ui/*` files are semicolon-free (generator style); app code uses
   semicolons. Don't reformat either direction.

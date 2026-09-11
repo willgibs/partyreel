@@ -1,12 +1,12 @@
-import { Check, Clapperboard, Download, EyeOff, X } from "lucide-react";
-import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 
+import {
+  BulkBarMock,
+  SelectTile,
+} from "@/components/marketing/sections/shared/bulk-select-mock";
 import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { marketingImage } from "@/lib/constants/marketing-media";
-import { cn } from "@/lib/utils";
 
 /**
  * Curation page section 5: the bulk sweep (copy absorbed from FEATURE_GROUPS
@@ -33,51 +33,9 @@ const GRID: { id: string; selected: boolean }[] = [
   { id: "festival-lights", selected: false },
 ];
 
-/** One icon action inside the mock bar (a resting shape, never a control). */
-function BarAction({
-  children,
-  label,
-}: {
-  children: ReactNode;
-  label: string;
-}) {
-  return (
-    <span
-      title={label}
-      className="flex size-8 items-center justify-center rounded-md"
-    >
-      {children}
-    </span>
-  );
-}
-
-/**
- * The floating select-mode bar, quoted: the app's rounded-full pill over the
- * album, carrying All/Clear, the live count, the actions, and Cancel.
- */
-function BulkBarMock({ count }: { count: number }) {
-  return (
-    <span className="flex items-center gap-0.5 rounded-full border border-border bg-background/95 px-2 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.18)] backdrop-blur sm:gap-1">
-      <span className="px-2 text-xs font-medium">All</span>
-      <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
-        {count}
-      </span>
-      <BarAction label="Add to reel">
-        <Clapperboard className="size-4 text-reel" />
-      </BarAction>
-      <BarAction label="Hide">
-        <EyeOff className="size-4 text-warning" />
-      </BarAction>
-      <BarAction label="Download">
-        <Download className="size-4 text-muted-foreground" />
-      </BarAction>
-      <BarAction label="Cancel selection">
-        <X className="size-4" />
-      </BarAction>
-    </span>
-  );
-}
-
+// BarAction, BulkBarMock and the select tile live in sections/shared/
+// bulk-select-mock.tsx since 2026-09-01: the home's curation section quotes
+// the same select mode, and one copy cannot drift from the other.
 export function BulkTools() {
   const selectedCount = GRID.filter((t) => t.selected).length;
   return (
@@ -95,37 +53,12 @@ export function BulkTools() {
         >
           <div className="grid grid-cols-4 gap-1.5">
             {GRID.map((tile) => (
-              <div
+              <SelectTile
                 key={tile.id}
-                className="relative aspect-square overflow-hidden rounded-lg"
-              >
-                <Image
-                  src={marketingImage(tile.id).src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 640px) 160px, 25vw"
-                  className="object-cover"
-                />
-                <span
-                  className={cn(
-                    "absolute inset-0",
-                    tile.selected ? "bg-black/40" : "bg-black/0",
-                  )}
-                />
-                <span
-                  className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border-2"
-                  style={
-                    tile.selected
-                      ? { borderColor: "#fff", background: "var(--success)" }
-                      : {
-                          borderColor: "rgba(255,255,255,0.85)",
-                          background: "rgba(0,0,0,0.35)",
-                        }
-                  }
-                >
-                  {tile.selected && <Check className="size-3.5 text-white" />}
-                </span>
-              </div>
+                id={tile.id}
+                selected={tile.selected}
+                sizes="(min-width: 640px) 160px, 25vw"
+              />
             ))}
           </div>
           {/* The bar the selection summons, straddling the album's edge the

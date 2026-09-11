@@ -20,6 +20,7 @@ import { Container } from "@/components/shared/container";
 import { type ContactTopicValue } from "@/lib/constants/contact";
 import {
   getAllArticles,
+  getCategoryChips,
   getSearchIndex,
   HELP_QUICK_LINKS,
   type HelpCategorySlug,
@@ -51,6 +52,9 @@ const CATEGORY_TOPIC: Record<HelpCategorySlug, ContactTopicValue> = {
   "sharing-and-downloads": "hosting",
   "highlight-reel": "hosting",
   "plans-and-billing": "billing",
+  // Account questions come from hosts AND guests, so neither audience topic
+  // fits; "Something else" is the honest chip.
+  "account-and-profile": "other",
   "privacy-and-safety": "privacy",
   troubleshooting: "bug",
 };
@@ -99,7 +103,11 @@ export default function ContactPage() {
   return (
     // The palette provider wraps the whole page so cmd-K works anywhere on
     // /contact, exactly like the help layout (the index serializes once here).
-    <HelpPaletteProvider index={getSearchIndex()} quickLinks={HELP_QUICK_LINKS}>
+    <HelpPaletteProvider
+      index={getSearchIndex()}
+      quickLinks={HELP_QUICK_LINKS}
+      categories={getCategoryChips()}
+    >
       <BreadcrumbJsonLd
         items={[
           { name: "Home", href: "/" },
@@ -192,7 +200,7 @@ export default function ContactPage() {
               style={{ "--i": 3 + i } as CSSProperties}
               className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
             >
-              <span className="font-heading text-sm tabular-nums text-muted-foreground/60">
+              <span className="font-heading text-sm text-muted-foreground/60 tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="font-heading text-lg">{tile.title}</h3>

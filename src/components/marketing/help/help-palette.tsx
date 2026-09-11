@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 // pull node:fs into the client bundle.
 
 type QuickLink = { label: string; href: string };
+type CategoryChip = { slug: string; title: string };
 
 type PaletteContextValue = { open: () => void };
 
@@ -80,15 +81,20 @@ type PaletteOption = {
   /** Section deep-link, only when a heading was the sole reason for the match. */
   anchor: { id: string; text: string } | null;
   categoryTitle: string | null;
+  /** The exceptional audience ("For guests" outside the guest lane), else null. */
+  audienceTail: string | null;
 };
 
 export function HelpPaletteProvider({
   index,
   quickLinks,
+  categories = [],
   children,
 }: {
   index: HelpSearchItem[];
   quickLinks: readonly QuickLink[];
+  /** The category chips the empty state offers (the index page's panes). */
+  categories?: readonly CategoryChip[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -123,6 +129,7 @@ export function HelpPaletteProvider({
         label: link.label,
         anchor: null,
         categoryTitle: null,
+        audienceTail: null,
       }));
     }
     return [
@@ -136,6 +143,9 @@ export function HelpPaletteProvider({
         label: result.item.title,
         anchor: result.anchor,
         categoryTitle: result.item.categoryTitle,
+        // help.ts decides when the audience is worth a word (the same
+        // decision the article page's badge makes).
+        audienceTail: result.item.audienceLabel,
       })),
       ...pages.map<PaletteOption>((page) => ({
         kind: "page",
@@ -144,12 +154,14 @@ export function HelpPaletteProvider({
         label: page.label,
         anchor: null,
         categoryTitle: null,
+        audienceTail: null,
       })),
     ];
   }, [hasQuery, quickLinks, results, pages]);
 
   // Render-time clamp (options shrink as the query narrows).
-  const active = options.length > 0 ? Math.min(activeIndex, options.length - 1) : 0;
+  const active =
+    options.length > 0 ? Math.min(activeIndex, options.length - 1) : 0;
   const activeId = options[active]?.id;
 
   const close = useCallback(() => {
@@ -260,7 +272,7 @@ export function HelpPaletteProvider({
             data-mkt=""
             className={cn(
               skin.className,
-              "fixed inset-0 isolate z-50 bg-black/15 duration-200 ease-emphasis supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 data-closed:duration-150",
+              "fixed inset-0 isolate z-50 bg-black/15 duration-200 ease-emphasis supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0",
             )}
           />
           <DialogPrimitive.Content
@@ -274,7 +286,7 @@ export function HelpPaletteProvider({
             }}
             className={cn(
               skin.className,
-              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:duration-150",
+              "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-float ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
             )}
           >
             <DialogPrimitive.Title className="sr-only">
@@ -338,9 +350,29 @@ export function HelpPaletteProvider({
                 <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
                   <MissingFrameStrip label="0" />
                   <p className="text-sm text-muted-foreground">
-                    No matches for &ldquo;{query}&rdquo;. Try fewer words, or
-                    send us a note.
+                    No matches for &ldquo;{query}&rdquo;. Try fewer words,
+                    browse a shelf, or send us a note.
                   </p>
+                  {/* The empty state lands somewhere: the ten category panes
+                      as chips, so a miss becomes a browse instead of a wall. */}
+                  {categories.length > 0 && (
+                    <ul className="flex flex-wrap justify-center gap-1.5">
+                      {categories.map((category) => (
+                        <li key={category.slug}>
+                          <Link
+                            href={`/help#${category.slug}`}
+                            onClick={() => {
+                              navigatingRef.current = true;
+                              close();
+                            }}
+                            className="inline-flex rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
+                          >
+                            {category.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <Link
                     href="/contact"
                     onClick={() => {
@@ -416,6 +448,9 @@ export function HelpPaletteProvider({
                     {option.categoryTitle && (
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {option.categoryTitle}
+                        {option.audienceTail && (
+                          <> &middot; {option.audienceTail}</>
+                        )}
                       </span>
                     )}
                   </Link>
@@ -491,7 +526,10 @@ export function HelpSearchTrigger({
         className,
       )}
     >
-      <Search aria-hidden className="size-[18px] shrink-0 text-muted-foreground" />
+      <Search
+        aria-hidden
+        className="size-[18px] shrink-0 text-muted-foreground"
+      />
       <span className="flex-1 truncate text-[15px] text-muted-foreground">
         Search the help center...
       </span>

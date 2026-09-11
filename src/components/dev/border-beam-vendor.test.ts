@@ -96,8 +96,8 @@ describe("the vendored border-beam package", () => {
     // right-hand column, which exists to show the library's own 16px against
     // our tokens, and it lives in a className rather than in this prop.
     const boards = [
-      "src/app/(dev)/design/components/glow-doctrine-variants.tsx",
-      "src/app/(dev)/design/components/glow-moments-variants.tsx",
+      "src/app/(dev)/design/sandbox/glow-doctrine-variants.tsx",
+      "src/app/(dev)/design/sandbox/glow-moments-variants.tsx",
     ];
     for (const rel of boards) {
       // Comments stripped first: these files EXPLAIN the bug, and a pin that

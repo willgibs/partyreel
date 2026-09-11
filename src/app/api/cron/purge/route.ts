@@ -16,7 +16,14 @@
  * are gone get caught by the orphan sweep.
  *
  * Each sweep is independently try/caught so one failure doesn't abort the rest.
+ *
+ * OPERABILITY (admin-portal P8): the run is bracketed by the job heartbeat, so /admin/jobs can say
+ * when this last ran, how long it took and what it reclaimed, and an operator can PAUSE it from
+ * there without a deploy. It also carries the platform's freshness scan: this is the only scheduled
+ * app-side code, so at the end of every run it checks EVERY job (including the Cloudflare and GitHub
+ * ones) for a missing heartbeat and raises a Sentry warning per silent job.
  */
+import { JOBS, jobHealth } from "@/app/admin/jobs/catalog";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import {
   capWithWriteHeadroom,
@@ -25,7 +32,20 @@ import {
 } from "@/lib/constants/tiers";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { mustQuery } from "@/lib/db/must-query";
+import {
+  finishJobRun,
+  getJobFlags,
+  getJobStates,
+  recordSkippedRun,
+  startJobRun,
+  type JobTrigger,
+} from "@/lib/db/queries/jobs";
 import { recomputePassEntitlement } from "@/lib/db/mutations/event-passes";
+import type { Json } from "@/lib/db/types";
+import {
+  OVER_CAP_GRACE_DAYS,
+  OVER_CAP_REMINDER_DAYS,
+} from "@/lib/lifecycle/over-cap";
 import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
@@ -47,20 +67,17 @@ import {
   RECENTLY_DELETED_WINDOW_DAYS,
   selectForStandbyEviction,
 } from "@/lib/lifecycle/recently-deleted";
+import { sweepDeletedAccounts } from "@/lib/lifecycle/account-deletion";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 import { selectForAutoReduce } from "@/lib/media/auto-reduce";
 import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
-import { captureError } from "@/lib/observability/sentry";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { deleteR2Objects, listR2Objects } from "@/lib/r2/delete";
 import { parseMediaIdFromKey, reelOutputKey } from "@/lib/r2/keys";
 import { evaluateOrphanSweep } from "@/lib/r2/orphan-guard";
 import { getSiteUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
-import {
-  OVER_CAP_GRACE_DAYS,
-  OVER_CAP_REMINDER_DAYS,
-} from "@/lib/lifecycle/over-capacity";
 
 // node:crypto + the service-role admin client require the Node runtime; never edge.
 export const runtime = "nodejs";
@@ -81,8 +98,8 @@ const ORPHAN_MIN_AGE_HOURS = 24;
 const ORPHAN_PAGE_CAP = 20;
 const MEDIA_PREFIX = "events/";
 
-// Over-capacity grace: a lapsed account over its cap gets this long to upgrade/remove
-// before auto-reduce; we email a reminder this many days before the deadline.
+// Over-capacity grace numbers live in lib/lifecycle/over-cap.ts (single-sourced so the
+// marketing spec components can cite them without importing this route).
 // Candidate floor: storage_used_bytes ≤ the smallest cap (Free 2 GB) can't exceed any
 // tier's cap, so only profiles above it (or already in grace) are over-capacity candidates.
 const FREE_CAP_BYTES = 2 * 1024 ** 3;
@@ -112,6 +129,96 @@ function minIso(a: string | null, b: string | null): string | null {
   return a < b ? a : b;
 }
 
+/**
+ * A heartbeat write that did not land. Never fatal (the sweeps matter, the bookkeeping does not),
+ * but never silent either: a job whose heartbeat stops writing would otherwise start reading as
+ * MISSED on /admin/jobs while it is in fact running perfectly, which is the worst of both worlds.
+ * Lives here rather than in the store because Sentry never gets imported into `src/lib/db/*`.
+ */
+function reportHeartbeat(error: string | null, phase: string): void {
+  if (!error) return;
+  captureWarning("cron", "job_heartbeat_write_failed", {
+    job: "purge_cron",
+    phase,
+    error,
+  });
+}
+
+function isSweepError(value: unknown): boolean {
+  return typeof value === "object" && value !== null && "error" in value;
+}
+
+/**
+ * The sweep tallies, stored on the heartbeat row so /admin/jobs can show what a run actually
+ * reclaimed. Error TEXT is replaced with a boolean: the message can quote an address or a row from
+ * a failed email send, and the full error already went to Sentry (which scrubs). Numbers only here.
+ */
+function summarizeSweeps(sweeps: Record<string, unknown>): Json {
+  const out: Record<string, Json> = {};
+  for (const [name, value] of Object.entries(sweeps)) {
+    if (isSweepError(value)) {
+      out[name] = { error: true };
+      continue;
+    }
+    out[name] = (value ?? null) as Json;
+  }
+  return out;
+}
+
+/**
+ * THE MISSED-RUN SIGNAL. Nothing else in the system is scheduled app-side, so this daily cron is
+ * where "did the Cloudflare Worker and the GitHub Action actually run?" gets asked. A job that has
+ * not reported a finished run within 1.5x its own cadence raises ONE Sentry warning per run (daily,
+ * so a dead job pages once a day rather than once a minute) and shows as missed on /admin/jobs.
+ * The verdict comes from `jobHealth`, the same pure function the page renders, so the alert and the
+ * console can never disagree about what healthy means.
+ */
+async function scanJobFreshness(now: Date): Promise<Json> {
+  const [flags, states] = await Promise.all([getJobFlags(), getJobStates()]);
+  const nowMs = now.getTime();
+  const missed: string[] = [];
+
+  for (const def of JOBS) {
+    const state = states.find((s) => s.job === def.id);
+    const health = jobHealth({
+      def,
+      enabled: flags[def.id],
+      lastRun: state?.lastRun ?? null,
+      lastFinishedAtMs: state?.lastFinishedAtMs ?? null,
+      nowMs,
+    });
+    if (health !== "missed") continue;
+    missed.push(def.id);
+    captureWarning("cron", "job_missed_run", {
+      job: def.id,
+      cadence: def.cadence,
+      host: def.host,
+      last_finished_at: state?.lastFinishedAtMs
+        ? new Date(state.lastFinishedAtMs).toISOString()
+        : null,
+      last_status: state?.lastRun?.status ?? null,
+    });
+  }
+  return { checked: JOBS.length, missed };
+}
+
+/**
+ * The freshness scan, guarded, for the two EARLY-RETURN paths (paused, and switch unreadable). On
+ * the normal path the scan rides `runSweep`, which already catches; these two returns happen before
+ * that helper exists, and an unguarded throw there turns a correctly-skipped run into a 500 — which
+ * is how a paused cron would start looking like a broken deploy. Found by red-teaming the paused
+ * path against a database that did not have `job_runs` yet, which is exactly the window this branch
+ * ships into.
+ */
+async function safeScanJobFreshness(now: Date): Promise<Json> {
+  try {
+    return await scanJobFreshness(now);
+  } catch (e) {
+    captureError("cron", e, { sweep: "job_health" });
+    return { error: true };
+  }
+}
+
 export async function GET(request: Request): Promise<Response> {
   let cronSecret: string;
   try {
@@ -128,6 +235,58 @@ export async function GET(request: Request): Promise<Response> {
 
   const admin = createAdminClient();
   const now = new Date();
+  // `Run now` on /admin/jobs sets this header so a manual run is distinguishable from the cron in
+  // the heartbeat. Any other value (including absent) is the schedule.
+  const triggeredBy: JobTrigger =
+    request.headers.get("x-job-trigger") === "manual" ? "manual" : "schedule";
+
+  // THE KILL SWITCH, and it fails CLOSED. This job hard-deletes bytes, so "we could not read whether
+  // an operator paused it" must never resolve to "delete anyway". One skipped daily purge costs
+  // nothing (the next run reclaims the same rows); ignoring a pause could cost data. The freshness
+  // scan below still runs either way, so pausing the purge never blinds the other three jobs.
+  let killSwitchOn = true;
+  try {
+    killSwitchOn = (await getJobFlags()).purge_cron;
+  } catch (e) {
+    captureError("cron", e, { job: "purge_cron", phase: "flag_read" });
+    const skip = await recordSkippedRun(
+      "purge_cron",
+      triggeredBy,
+      "Kill switch unreadable, skipped to fail closed.",
+    );
+    reportHeartbeat(skip.heartbeatError, "skip");
+    const health = await safeScanJobFreshness(now);
+    return Response.json({
+      ok: true,
+      skipped: true,
+      reason: "flag_unavailable",
+      ran_at: now.toISOString(),
+      health,
+    });
+  }
+
+  if (!killSwitchOn) {
+    // A paused job still REPORTS IN: the skipped row keeps its heartbeat fresh, so pausing never
+    // masquerades as a dead job on /admin/jobs (or pages anyone at 3am).
+    const skip = await recordSkippedRun(
+      "purge_cron",
+      triggeredBy,
+      "Paused from /admin/jobs.",
+    );
+    reportHeartbeat(skip.heartbeatError, "skip");
+    const health = await safeScanJobFreshness(now);
+    return Response.json({
+      ok: true,
+      skipped: true,
+      reason: "paused",
+      ran_at: now.toISOString(),
+      health,
+    });
+  }
+
+  const run = await startJobRun("purge_cron", triggeredBy);
+  reportHeartbeat(run.heartbeatError, "start");
+
   // Track media ids handled by earlier sweeps so a later sweep can't double-process.
   const handled = new Set<string>();
   const sweeps: Record<string, unknown> = {};
@@ -148,6 +307,12 @@ export async function GET(request: Request): Promise<Response> {
     sweepExpiredEvents(admin, now, handled),
   );
   await runSweep("removed_media", () => sweepRemovedMedia(admin, now, handled));
+  // Accounts that asked to be deleted: after removed_media so `handled` is populated, before the
+  // capacity sweeps so they never act on bytes this run is about to reclaim (the account-deletion
+  // track's wire, landed at its integration). Pre-apply it returns { skipped: "not_provisioned" }.
+  await runSweep("deleted_accounts", () =>
+    sweepDeletedAccounts(admin, now, handled),
+  );
   await runSweep("orphans", () => sweepOrphans(admin, now));
   await runSweep("expired_passes", () => sweepExpiredPasses(admin, now));
   await runSweep("over_capacity", () => sweepOverCapacity(admin, now));
@@ -163,6 +328,21 @@ export async function GET(request: Request): Promise<Response> {
   // Prune the unlock rate-limiter log — rows older than its longest window are dead weight.
   await runSweep("unlock_attempts", () => sweepUnlockAttempts(admin, now));
   await runSweep("action_attempts", () => sweepActionAttempts(admin, now));
+
+  // The platform freshness scan. It is a sweep like any other so a failure here is caught + reported
+  // rather than losing the whole run, and it runs LAST so this run's own heartbeat is not yet closed
+  // (the purge is judged on its PREVIOUS finish, which is the honest question anyway).
+  await runSweep("job_health", () => scanJobFreshness(now));
+
+  const failed = Object.entries(sweeps)
+    .filter(([, v]) => isSweepError(v))
+    .map(([name]) => name);
+  const done = await finishJobRun(run, {
+    status: failed.length ? "error" : "ok",
+    counts: summarizeSweeps(sweeps),
+    note: failed.length ? `Sweeps failed: ${failed.join(", ")}` : undefined,
+  });
+  reportHeartbeat(done.heartbeatError, "finish");
 
   return Response.json({ ok: true, ran_at: now.toISOString(), sweeps });
 }

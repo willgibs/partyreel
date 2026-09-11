@@ -105,6 +105,37 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
+- **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0, the legal round, 2026-09-01; formal but
+  readable by Will's ruling, with the R5 two-register contract kept: every section carries an "In
+  short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)
+  (version, date, `status`, the bracketed `LEGAL_PARTY` launch placeholders, the typed block model +
+  `legalPlainText`, `LEGAL_RELATED`) and the two content modules
+  [`legal-privacy.tsx`](../../src/lib/constants/legal-privacy.tsx) /
+  [`legal-terms.tsx`](../../src/lib/constants/legal-terms.tsx) (both on the content-policy
+  `CLAIM_FILES` list; **env-free by rule**, never import `site.ts`). Shell:
+  [`legal-document.tsx`](../../src/components/marketing/legal/legal-document.tsx): `PageHero` at `lg`
+  (never `display`: multi-word titles) → the version/status/reading-time META CARD straddling the
+  cinema→paper cut (the help "In short" move; a `<div>`, never a `<header>`, because `ArticleToc`
+  measures the first header) → ONE `PaperChapter` on a three-track grid (gutter / 42rem column / rail)
+  so the column, the card and the centred hero share one axis → `ArticleToc` with the reading spine +
+  `ChipToc` below `lg` + `HeadingAnchor` on every h2/h3 → a "Read next" foot from `LEGAL_RELATED`.
+  The rail takes `max-h` + its own overflow (22 entries do not fit a laptop viewport). Blocks render
+  in [`legal-blocks.tsx`](../../src/components/marketing/legal/legal-blocks.tsx) (p / list / table /
+  sub / `note`, the `bg-muted/40 border-y` set-apart register for disclaimers, never all-caps). The
+  status line is Inter (the mono ruling; `MonoCaption` retired here). ★ **Section ids are the anchor
+  contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. ★ **The launch
+  switch is a test**: flipping `status` to `effective` with a bracketed placeholder still in the text
+  fails CI. ★ **No prices and no cap numbers in the Terms**: they point at `/pricing` so a Stripe
+  price change never falsifies a contract. ★ **The fences read the legal text AND its comments**: the
+  neutralization regexes (`business day`, the child-safety acronyms, `law enforcement`, `ingress`)
+  cannot be quoted even in a header comment; write "working days", "public authorities", "content
+  that sexually exploits minors", "reasonable limits on upload volume". Acceptance: the one
+  [`LegalConsentLine`](../../src/components/shared/legal-consent-line.tsx) on `/login` and on the
+  guest door's welcome step (`newTab` there so the sheet survives the tap); no checkbox, nothing
+  recorded. The sitemap reads the legal `lastUpdated`, not build time. The reading family's shared
+  pieces now live in [`reading/`](../../src/components/marketing/reading): `heading-anchor.tsx`
+  (`HeadingAnchor` + `HEADING_SCROLL_MT`, lifted out of `mdx-components`) and `chip-toc.tsx` (the
+  mobile chip row help and blog each carried verbatim).
 - **`/about`** — THE MISSION PAGE (rebuilt twice, 2026-08-28; the IA never recorded its job before,
   which is a fair part of why it stayed a scaffold). Copy single-source
   [`about.ts`](../../src/lib/constants/about.ts), on the content-policy `CLAIM_FILES` list because the
@@ -137,7 +168,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   all six feature pages already do, so there is no new mechanism and the dark overlay nav, the dark
   dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
-  `(paper)` survives only until the remaining pages have moved.
+  `(paper)` holds only `/contact` now (privacy + terms moved 2026-09-01) and retires with it.
   ★ **A DARK HERO DECIDES THE ROUTE GROUP**, because a dark hero must be paired with a dark nav (Will)
   and the header skin is chosen by the GROUP LAYOUT, which a page cannot override from inside. That one
   sentence is the whole rule: the ground your hero wants is not a page-level choice.
@@ -154,7 +185,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   The gather carries the dark-to-paper cut on its own back: the album is centred on it, arriving out
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as
-  `album.tsx` and /help do below `lg`.
+  /help does below `lg`.
   ★ **THE LESSON WORTH KEEPING: the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
   so its pre-state is INVISIBLE.** Nobody ever saw the scatter, only an empty frame filling in, and
   Will's read was "almost unnoticeable" — the whole idea was happening in a state that could not be
@@ -290,20 +321,45 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   [`content/collection.ts`](../../src/lib/content/collection.ts) (`loadCollection` + `slugify` +
   `extractHeadings` + `readingTime` + `escapeXml`); [`help.ts`](../../src/lib/content/help.ts) +
   [`blog.ts`](../../src/lib/content/blog.ts) are thin wrappers. Help (rebuilt R6, 2026-08-26 — "the index
-  of everything"): a NINE-category lifecycle taxonomy (each category carries a `feature` link up to its
-  marketing rung; a new category must land WITH its first article — the test requires ≥1 per category) +
-  a ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
+  of everything"; the CATALOG written fresh in the help-catalog round, 2026-09-01): a TEN-category
+  lifecycle taxonomy (set up → invite → guests → album → share → reel → pay → account → trust → fix; each
+  category carries a `feature` link up to its marketing rung; a new category must land WITH its first
+  article, its emblem, its strip label + grid column, and its `CATEGORY_TOPIC` row on /contact — the test
+  requires ≥1 per category and the contact map is exhaustive by type) holding **59 answer-first
+  articles**, every one checked against the shipped app. The guest lane is titled "For guests" (slug
+  `guest-experience`) and `account-and-profile` is the tenth shelf (sign-in, name + photo, the handle,
+  following, notifications). Frontmatter carries an optional `audience` (`host|guest|both`, default derived
+  from the category), `plans` ("Applies to" badges in the In-short card's footer) and `action` (the one
+  door under the short answer); `description` is capped at 200 (`HELP_DESCRIPTION_MAX`, raised from 160 so
+  the lead keeps its second sentence). A ranked ⌘K **search palette** mounted from [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
   ([`help-palette.tsx`](../../src/components/marketing/help/help-palette.tsx); pure fs-free scorer in
   [`help-search-rank.ts`](../../src/lib/content/help-search-rank.ts) — heading hits deep-link to sections
-  only when they're the sole match reason, plus a static "Pages" tail onward to the site) + the index
+  only when they're the sole match reason, plus a static "Pages" tail onward to the site; the empty state
+  offers the ten category chips and guest-voiced results carry a "Guest" tail) + the index
   sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx),
-  a live-constants "numbers" strip) + answer-first articles (the frontmatter `description` renders as the
-  "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated copy-anchor island; prev/next;
-  an honest feedback row handing misses to `/contact?about=<slug>`, which the static contact page prefills
-  from an allowlist). First-party MDX components
+  a live-constants "numbers" strip, a one-line guest fast lane under the quick links; ★ at ten categories
+  the strip cells need `sm:min-w-0` or the desktop strip scrolls, and the sheet keeps its row parity by
+  making the guest pane wide too; panes with 7+ guides split into two columns) + answer-first articles (the frontmatter
+  `description` renders as the "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated
+  copy-anchor island; prev/next; keyword-scored related — since the catalog round a candidate needs a shared
+  keyword and the prev/next siblings are excluded, or Related duplicated pagination; an audience tag only when it says
+  something the category chip does not; guest articles end on /how-it-works, the growth loop stated once; a
+  Yes in the feedback row offers "Up next"; an honest feedback row handing misses to `/contact?about=<slug>`,
+  which the static contact page prefills from an allowlist; `@media print` on the article page via
+  `data-print-*` hooks, the day-of checklist being the guide a host prints). First-party MDX components
   ([`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx) — `Callout`, `AlbumShowcase`,
-  `Steps`/`Step`, `Kbd`, `UiLabel`, inline spec components reading the `limits.ts`/`tiers.ts` single sources
-  so numbers can't drift; NOTHING client-side may import it, it reaches `node:fs`) + a `prose-help` theme.
+  `Steps`/`Step`, `Kbd`, `UiLabel`, `PlanBadge` (an outline pill, distinct from UiLabel's filled chip),
+  `Path` (where-to-find-it chips), `Checklist`/`Check` (ticks persisted per article in localStorage, the
+  drawn check; [`help/checklist.tsx`](../../src/components/marketing/help/checklist.tsx)), and a spec-inline
+  family reading the `limits.ts`/`tiers.ts`/`lifecycle/*` single sources so numbers can't drift; NOTHING
+  client-side may import it, it reaches `node:fs`) + a `prose-help` theme. ★ Four tests hold the catalog
+  honest: every article COMPILES as MDX (`help-mdx-compile.test.ts`; `blockJS` strips `{placeholder}`
+  braces, so UI strings are quoted in rendered form), every `<UiLabel>` is a shipped app string
+  (`help-ui-labels.test.ts`, whitespace-, tag- and apostrophe-normalized), every internal link and
+  `#section` anchor resolves, and all eleven literal-referenced slugs are pinned. `/llms.txt` lists the
+  first `LLMS_HELP_PER_SHELF` (4) articles of every shelf as title + link (the annotated form blew its
+  budget at 59, and the bare list did too once the blog library sat beside it); `/llms-full.txt` keeps the
+  descriptions.
   Help lives in the **(cinema) group** since the polish arc (dark overlay nav + dark stages; the reading
   bodies ride `PaperChapter`, the search card / emblem strip / In-short card are `surface-paper` islands,
   the strip and the article's In-short card STRADDLE the cinema→paper cut via negative margin). Shared help
@@ -312,9 +368,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   flex utilities on the same element — center constrained children with `mx-auto`, never a parent
   `justify-center`. ★ The R6 MONO RULING (site-wide type doctrine, full text in
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
-  captions, labels, and CTA notes are Inter. The content agent's brief lives at
-  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (taxonomy map + component vocabulary +
-  writing rules; the content-policy tests scan `.md` too so the brief obeys itself).
+  captions, labels, and CTA notes are Inter. The authoring brief lives at
+  [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (the map, the component vocabulary, the
+  three-class numbers doctrine, the writing rules; it names the fences by pointer only, because the
+  content-policy tests scan `.md` too and the brief must obey itself).
 - **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting
   Room). Moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading
   half rides `PaperChapter`. ★ **DISTINCTNESS FROM /help is the standing constraint** now that both
@@ -333,29 +390,54 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     `<link rel=alternate>`). Picking a tag runs the **two-beat set change** (`--mkt-set-*` in
     marketing.css: departing cards leave together, then a two-axis `useFlip` reorganizes the
     survivors) - page-neutral hooks, so any filtered collection can take it.
+  - **Registered tags** (the library round, 2026-09): six ids in a zero-import registry
+    ([`blog-tags.ts`](../../src/lib/content/blog-tags.ts); three AUDIENCES weddings / parties /
+    corporate, three PURPOSES how-to / compared / product, each with a label and a one-line
+    description). The frontmatter schema enforces membership, one or two tags, and at most one
+    audience, so a typo fails the BUILD like `cover`/`author`. The rail prints LABELS in fixed
+    registry order (a most-used-first rail reshuffles as posts land) while `?tag=` carries the id;
+    the library heading is a label + description lockup whose height never changes under a filter
+    (the unfiltered view carries `BLOG_LIBRARY_LINE`), because a height change there is what the
+    set-change FLIP would animate as a jolt; the description re-mounts on the shared enter beat.
+    ★ The registry must stay import-free: it is reached by the "use client" island and PostCard
+    (a test reads the file). "Keep reading" is SCORED (2 × shared audience + shared purpose,
+    tiebreak nearest date), since same-tag-first funnelled every audience's endings to its two
+    newest posts; a test bounds any post to five recommendations across the archive.
   - ★ **The hero exists ONLY in the unfiltered view** — lifting it permanently out of the filtered
     set renders EMPTY tags, because a hero can own tags no other post has (the derivations + the pin
-    live in [`blog-index.ts`](../../src/lib/content/blog-index.ts)). Filter state rides a shareable
-    `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would deopt the static
-    route; a mount effect is banned by the react-hooks lint). **Pagination** is built and INVISIBLE
-    below `POSTS_PER_PAGE` (12), so today's four posts render with no control at all; it rides
-    `?page=` beside `?tag=` rather than `/blog/page/[n]` routes, which would multiply into tag x page
-    URL space on a four-post blog — ★ `paginate()` CLAMPS, because a stale `?page=` or a filter that
-    shrinks the set under the reader (tag with 40 posts, page 4, pick a tag with 3) must land on a
-    real page instead of an empty grid.
+    live in [`blog-index.ts`](../../src/lib/content/blog-index.ts); `normalizeTag` checks POSTS, not
+    the registry, so a registered-but-empty `?tag=` also collapses to Everything). Filter state
+    rides a shareable `?tag=` read through `useSyncExternalStore` (never `useSearchParams`: it would
+    deopt the static route; a mount effect is banned by the react-hooks lint). **Pagination** is
+    INVISIBLE below `POSTS_PER_PAGE` (12) and LIVE since the library reached 23 posts (two pages of
+    the unfiltered wall; the pager fades in on the shared enter beat); it rides `?page=` beside
+    `?tag=` rather than `/blog/page/[n]` routes, which would multiply into tag x page URL space —
+    ★ `paginate()` CLAMPS, because a stale `?page=` or a filter that shrinks the set under the
+    reader (tag with 40 posts, page 4, pick a tag with 3) must land on a real page instead of an
+    empty grid. ★ The develop stagger (`--i`) is CAPPED at 5 on library cards: the staged lead holds
+    6 so it lands last, and an uncapped twelve-card page landed half its cards after the hero and
+    replayed a second-long muted hole on every filter change.
   - **Covers.** An optional frontmatter `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the
     BUILD) over a stable slug-hash fallback in
     [`blog-covers.ts`](../../src/lib/content/blog-covers.ts) — ★ a pure function of the SLUG alone,
     because the obvious "walk the post list and hand out unused images" is deterministic but NOT
     stable and silently re-skins older posts on every publish. A crop ladder re-slices the same
-    source so 11 images yield 66 distinguishable plates.
+    source so 11 images yield 66 distinguishable plates. Every library post SETS its cover, and a
+    pure test pins that no photograph repeats beside itself (i+1, i+2 at two columns, i+3 at
+    three) in the unfiltered wall on any page or under any tag filter, and that the hero is
+    landscape (`wedding-petals`, the one portrait, bands in the 21:9 card and the OG crop).
   - **The ARTICLE** ("the print of the frame") opens on the same cover at the same slug-derived crop
     as the card the reader clicked, so the page reads as the card opening; the frontmatter
     `description` renders as the visible STANDFIRST (it previously appeared on the card, in metadata,
     in the feed and in llms.txt, everywhere except in front of the reader). The ending is deliberately
     TWO blocks: chronological neighbours, then related posts with those neighbours excluded
     (`getRelatedPosts(post, n, exclude)`), because on a small archive the two sets otherwise coincide
-    and repeat a post within one screen. Long-form reading components are shared with /help and live
+    and repeat a post within one screen. An optional frontmatter **`faq`** (1-8 plain-text items,
+    schema-guarded against markup and test-guarded against typed numbers) renders as an always-open
+    "Questions" `<dl>` outside the article body (an appendix, like Keep reading, so the spine measures
+    the piece; appended to the ToC as `#questions`) and ships verbatim as `FaqPageJsonLd`: on-page
+    Q&A plus assistant-retrieval data, NOT a Google rich result (withdrawn for non-authority sites in
+    2023). Long-form reading components are shared with /help and live
     in [`components/marketing/reading/`](../../src/components/marketing/reading) — `ArticleToc`
     (scroll-spy, plus the `progress` READING SPINE that **both** long-form surfaces take, Will
     2026-08-29) and the delegated `HeadingAnchorsDelegate`. Both pages mark their body with the
@@ -393,6 +475,19 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     `buildBlogRssXml` that takes its site config as a param so it stays out of the env-validating
     `site.ts` + is unit-tested); `draft: true` posts are excluded from listing/sitemap/RSS. The author
     brief is [`content/blog/AUTHORING.md`](../../content/blog/AUTHORING.md).
+  - **The library** (2026-09): 23 posts under the six tags, every marketed number reaching prose
+    through the spec family in `mdx-components.tsx` (reel seconds, the Trash window, inactivity and
+    over-cap days, plan storage/prices, the capacity rule of thumb via `formatCapacity`; a test
+    scans bodies for a typed size, price, or limit-beside-its-unit). GFM tables render with a
+    scrolling wrapper, /pricing's header register and a nowrap label column; `<Yes />` / `<No />`
+    are the /pricing matrix's own glyphs through the shared `MatrixMark`. Comparison content names
+    INCUMBENTS only (Google Photos, iCloud, WhatsApp, iMessage, AirDrop, email, Dropbox, disposables,
+    booths),
+    hedged; QR-app rivals stay category-level per the 2026-08-28 posture ruling. `/llms.txt` lists
+    the newest `LLMS_BLOG_LIMIT` (8) posts (the archive outgrew the 16k lean budget) and
+    `/llms-full.txt` all of them. The four placeholder slugs 308 to their successors via
+    [`blog-redirects.ts`](../../src/lib/content/blog-redirects.ts) → `redirects()` in
+    `next.config.ts` (test-held against the live slugs).
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
   (a two-way Vitest mirror: change one side and you must change the other).
 
@@ -480,7 +575,7 @@ clear space / minimum size / misuse are brand-book material; only the two press-
 The kit is manifest-driven (`PRESS_KIT` + `scripts/build-press-kit.mjs` + `scripts/build-press-qr.mjs`
 + the committed zip, guarded by `press-kit.test.ts`, which parses the archive back and CRC-checks
 every member against the files on disk), so the pre-launch logo change is a files-and-rows edit with
-no component work. Explored range + the ruling: `/design/c/press-identity`.
+no component work. Explored range + the ruling: [the record](../decisions/design-record.md#press-identity).
 
 **The promise-neutralization doctrine (Will, 2026-08-28):** published copy commits to OUTCOMES (a
 reply, a review, host control), never to WHO or WHAT delivers them — no "a real person answers", no
@@ -513,8 +608,8 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   centered content (lost-visitor copy single-sourced in
   [`marketing-not-found.tsx`](../../src/components/marketing/marketing-not-found.tsx)). ★ Since the
   careers round the marketing pair is LOPSIDED: `(cinema)` catches every dynamic marketing route
-  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only the static
-  trio. Do not delete the paper one for having no slug: a static page can call `notFound()`, and
+  (events, help, blog, careers) and `(paper)` catches NO `[slug]` at all, holding only `/contact`
+  (privacy and terms joined `(cinema)` 2026-09-01). Do not delete the paper one for having no slug: a static page can call `notFound()`, and
   without the boundary that render falls through to the ROOT one and double-stacks the chrome.
   By audience: root
   (unmatched URL, brings its own chrome), marketing (bad `[slug]`, no chrome), guest (dead/expired event link

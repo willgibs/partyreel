@@ -11,14 +11,16 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-// The 13-section made-from arc in three chapters (the 2026-08-26 mixed-theme
+// The 15-section made-from arc in three chapters (the 2026-08-26 mixed-theme
 // ruling): THE EVENT (cinema dark) → THE MORNING AFTER (album/curation/privacy
 // on one PaperChapter) → THE PAYOFF (cinema again, lights down for the reel).
 // section-ids.ts is the ONE source of order + surface (Vitest-pinned); this
 // page maps its chunks, so reshuffling or re-chaptering is a section-ids edit.
-// No kicker on this chapter ON PURPOSE: the album section opens with its own
-// eyebrow + ruled header, and the straddling album card IS the seam signature.
-// Two devices at one cut would be noise.
+// No kicker on the paper chapter ON PURPOSE: the album section opens as the
+// host's masthead (its own eyebrow + ruled header a tier up, the album print
+// laid on the desk below-right). The straddling card came off the cut on
+// 2026-09-01: two visuals were fighting across it (Will), so chapter 1 ends
+// on the live demo and the paper chapter opens on type and air.
 export default function MarketingHome() {
   return (
     <>

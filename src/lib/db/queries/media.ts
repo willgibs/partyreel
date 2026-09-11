@@ -64,6 +64,14 @@ export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
  * first, windowed to RECENTLY_DELETED_WINDOW_DAYS (older are about to be hard-purged; the
  * standby-budget cron can also evict early). Carries `purge_at` for the countdown chip. RLS
  * (media_host_all) scopes to media in the host's own events.
+ *
+ * ★ `removed_by_uploader = false` is a PRODUCT rule, not an optimisation: a guest deleting their
+ * own upload from someone else's event is private to that host (lifecycle-recovery.md), which is
+ * why `restore_media` carries `and m.removed_by_uploader = false` and refuses those rows. The bin
+ * had no such filter, so it listed items with a Restore button the RPC would always refuse, and
+ * showed the host a guest's change of mind. media_host_all does NOT filter it either (checked
+ * against the live policy, 2026-09-02), so this query is the only place the rule can hold. The
+ * rows still auto-purge on the same clock and still count in the standby meter.
  */
 /** A soft-removed media row for the event-detail bin, with the days-until-purge countdown. */
 export type RemovedMediaRow = MediaRow & { countdownDays: number };
@@ -86,6 +94,7 @@ export async function listRecentlyDeletedMedia(
     .select(MEDIA_HOST_COLUMNS)
     .eq("event_id", eventId)
     .eq("status", "removed")
+    .eq("removed_by_uploader", false)
     .gte("removed_at", windowStart)
     .order("removed_at", { ascending: false });
   if (error) throw error;

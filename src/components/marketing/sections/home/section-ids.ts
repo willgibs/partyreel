@@ -4,7 +4,9 @@
  * privacy moves up beside curation so the paper chapter is contiguous;
  * 2026-09-01 chapter-pacing ruling: two quieter guest-side sections land above
  * the live demo so chapter 1 winds down before its anchor instead of
- * escalating into the paper cut). This
+ * escalating into the paper cut; 2026-09-01 second pass, the adjacency ruling:
+ * no two adjacent sections share a layout, which changed section LAYOUTS,
+ * never this order or the chapter map). This
  * module is deliberately PURE (no component imports) so the Vitest pin can
  * hold the sequence without dragging the section tree's env-reading imports
  * (lib/demo.ts) into the test runner; index.ts derives its component pairing

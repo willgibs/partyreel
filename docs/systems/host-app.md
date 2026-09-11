@@ -183,7 +183,7 @@ Review caught-up + moderation-off; it renders UNDER the header, never replacing 
   [architecture.md](architecture.md)). The feed/sections/bar are client islands fed by RSC-resolved props;
   the section model is pure so the server-resolved initial filter matches the client's first render. Rich
   client UI (the share dialog, QR designer, the review peek overlay) is safe inside client islands.
-- **Motion (ratified in the [`/design/event-feed`](../../src/app/(dev)/design/event-feed) lab, Will
+- **Motion (ratified in the event-feed lab, [on the record](../decisions/design-record.md#event-feed), Will
   2026-06-22):** **A=Condense** (the sticky pill bar shrinks on scroll, `data-stuck`), **B=Fade** (the filter
   swap re-keys the feed → `[data-section-swap]`), **C=FLIP** (the urgency reorder slides the sections via a
   hand-rolled CSS FLIP, [`use-flip.ts`](../../src/lib/shared/use-flip.ts) — `motion`/framer was trialed +

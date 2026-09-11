@@ -2,6 +2,10 @@ import Link from "next/link";
 import { CircleAlert, Compass, ImageUp } from "lucide-react";
 
 import { AnonymousInfo } from "@/components/shared/anonymous-info";
+import { Container } from "@/components/shared/container";
+import { Kbd } from "@/components/shared/kbd";
+import { LegalConsentLine } from "@/components/shared/legal-consent-line";
+import { PageHeading } from "@/components/shared/page-heading";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Logo } from "@/components/shared/logo";
 import { CornerPlayBadge } from "@/components/shared/masonry";
@@ -9,8 +13,13 @@ import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Button } from "@/components/ui/button";
 
-import { requireDesignKey } from "../gate";
-import { SetNameStepDemo } from "../reference/interactive-demos";
+import { marketingImage } from "@/lib/constants/marketing-media";
+import { requireDesignKey } from "@/lib/design-gate/server";
+import {
+  ActionTooltipDemo,
+  FloatingAddDemo,
+  SetNameStepDemo,
+} from "../reference/interactive-demos";
 import { RefHeader, RefSection, Row, Spec } from "../reference/reference-ui";
 
 // THE LIVE PATTERNS REFERENCE. The composed shared/* pieces, rendered from the
@@ -112,7 +121,10 @@ export default async function PatternsPage({
       <RefSection title="Forms and info">
         <div className="grid gap-3 sm:grid-cols-2">
           <SetNameStepDemo />
-          <Spec label="Anonymous info" hint="shared/anonymous-info · tap to open">
+          <Spec
+            label="Anonymous info"
+            hint="shared/anonymous-info · tap to open"
+          >
             <Row>
               <span className="flex items-center gap-1.5 text-sm">
                 Anonymous
@@ -126,6 +138,46 @@ export default async function PatternsPage({
           </Spec>
         </div>
       </RefSection>
+
+      <RefSection
+        title="App chrome atoms"
+        blurb="The small shared pieces every app surface is built from."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Spec
+            label="PageHeading"
+            hint="shared/page-heading · the app's one h1 source"
+          >
+            <PageHeading>Dashboard</PageHeading>
+          </Spec>
+          <Spec label="Kbd" hint="shared/kbd">
+            <Row className="text-sm text-muted-foreground">
+              <Kbd>&#8593;</Kbd>
+              <Kbd>&#8595;</Kbd>
+              Navigate
+              <Kbd>Esc</Kbd>
+              Close
+            </Row>
+          </Spec>
+          <Spec
+            label="Container"
+            hint="shared/container · max-w-7xl gutter"
+            contentClassName="p-0"
+          >
+            <Container className="border-x border-dashed border-border py-4 text-center text-xs text-muted-foreground">
+              max-w-7xl, px-4 / sm:px-6 / lg:px-8
+            </Container>
+          </Spec>
+          <Spec
+            label="LegalConsentLine"
+            hint="shared/legal-consent-line · newTab"
+          >
+            <LegalConsentLine newTab />
+          </Spec>
+          <ActionTooltipDemo />
+          <FloatingAddDemo />
+        </div>
+      </RefSection>
     </main>
   );
 }
@@ -134,9 +186,9 @@ export default async function PatternsPage({
 function Poster({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative size-24 overflow-hidden rounded-lg bg-gallery">
-      {/* eslint-disable-next-line @next/next/no-img-element -- local sample asset */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- a local manifest asset */}
       <img
-        src="/design/p03.jpg"
+        src={marketingImage("concert-confetti").src}
         alt=""
         className="size-full object-cover opacity-90"
       />
@@ -158,7 +210,7 @@ function RouteErrorMock() {
         <h3 className="font-heading text-2xl text-balance">
           Something went wrong
         </h3>
-        <p className="text-pretty text-sm text-muted-foreground">
+        <p className="text-sm text-pretty text-muted-foreground">
           That&apos;s on us, not you. Try again, and if it keeps happening, let
           us know.
         </p>

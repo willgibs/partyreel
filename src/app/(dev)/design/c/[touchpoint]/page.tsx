@@ -1,81 +1,27 @@
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 
-import { ArrivalVariants } from "../../components/arrival-variants";
-import { ButtonVariants } from "../../components/button-variants";
-import { HostDashboardVariants } from "../../components/host-dashboard-variants";
-import { HostEventVariants } from "../../components/host-event-variants";
-import { HostEventPageVariants } from "../../components/host-event-page-variants";
-import { HostEventBuildVariants } from "../../components/host-event-build-variants";
-import { GalleryActionsVariants } from "../../components/gallery-actions-variants";
-import { GlowDoctrineVariants } from "../../components/glow-doctrine-variants";
-import { GlowMomentsVariants } from "../../components/glow-moments-variants";
-import { MarketingIdentityVariants } from "../../components/marketing-identity-variants";
-import { MarketingVoiceBoards } from "../../components/marketing-voice-boards";
-import { MarketingDecompositionVariants } from "../../components/marketing-decomposition-variants";
-import { MarketingHeroSubstrateVariants } from "../../components/marketing-hero-substrate-variants";
-import { PricingPlanCardsVariants } from "../../components/pricing-plan-cards-variants";
-import { PricingCalculatorVariants } from "../../components/pricing-calculator-variants";
-import { ContactIdentityVariants } from "../../components/contact-identity-variants";
-import { PressIdentityVariants } from "../../components/press-identity-variants";
-import { BlogIdentityVariants } from "../../components/blog-identity-variants";
-import { CareersIdentityVariants } from "../../components/careers-identity-variants";
-import { ReelRevealVariants } from "../../components/reel-reveal-variants";
-import { ReelExperienceVariants } from "../../components/reel-experience-variants";
-import { EntryVariants } from "../../components/entry-variants";
-import { EventCardVariants } from "../../components/event-card-variants";
-import { FormVariants } from "../../components/form-variants";
-import { GalleryVariants } from "../../components/gallery-variants";
-import { HeaderVariants } from "../../components/header-variants";
-import { LightboxVariants } from "../../components/lightbox-variants";
-import { QrCardVariants } from "../../components/qr-card-variants";
-import { StateVariants } from "../../components/state-variants";
-import { UploadVariants } from "../../components/upload-variants";
-import { requireDesignKey } from "../../gate";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../../mode-shell";
-import {
-  getTouchpoint,
-  SURFACE_LABEL,
-  type TouchpointId,
-} from "../../touchpoints";
+import { GlowDoctrineVariants } from "../../sandbox/glow-doctrine-variants";
+import { GlowMomentsVariants } from "../../sandbox/glow-moments-variants";
+import { MarketingDecompositionVariants } from "../../sandbox/marketing-decomposition-variants";
+import { MarketingHeroSubstrateVariants } from "../../sandbox/marketing-hero-substrate-variants";
+import { getRuling, type SandboxId, SURFACE_LABEL } from "../../touchpoints";
 
-const VARIANTS: Record<TouchpointId, React.ComponentType> = {
-  entry: EntryVariants,
-  upload: UploadVariants,
-  gallery: GalleryVariants,
-  header: HeaderVariants,
-  buttons: ButtonVariants,
-  lightbox: LightboxVariants,
-  "event-card": EventCardVariants,
-  forms: FormVariants,
-  states: StateVariants,
-  "qr-card": QrCardVariants,
-  arrival: ArrivalVariants,
-  "host-event": HostEventVariants,
-  "host-dashboard": HostDashboardVariants,
-  "host-event-page": HostEventPageVariants,
-  "host-event-build": HostEventBuildVariants,
-  "gallery-actions": GalleryActionsVariants,
-  "marketing-identity": MarketingIdentityVariants,
-  "marketing-voice": MarketingVoiceBoards,
+// The standing boards. A ruling gets a component here only while its board
+// stands in sandbox/ (touchpoints.ts sets `board` on the same ids); when the
+// ruling lands, both go and docs/decisions/design-record.md keeps the history.
+const VARIANTS: Record<SandboxId, React.ComponentType> = {
   "marketing-decomposition": MarketingDecompositionVariants,
   "marketing-hero-substrate": MarketingHeroSubstrateVariants,
-  "pricing-plan-cards": PricingPlanCardsVariants,
-  "pricing-calculator": PricingCalculatorVariants,
-  "contact-identity": ContactIdentityVariants,
-  "press-identity": PressIdentityVariants,
-  "blog-identity": BlogIdentityVariants,
-  "careers-identity": CareersIdentityVariants,
-  "reel-reveal": ReelRevealVariants,
-  "reel-experience": ReelExperienceVariants,
   "glow-doctrine": GlowDoctrineVariants,
   "glow-moments": GlowMomentsVariants,
 };
 
-// One UX touchpoint, its 2-3 explorations side by side on the locked system.
-// The interactive picking is retired (lab refresh): the shipped variant + its
-// rationale render as a read-only record, so the page is the design history.
-// The sidebar (lab-nav.tsx) owns navigation between touchpoints.
+// One open question, its explorations side by side on the locked system. The
+// header is the catalog record: the ruling so far in one line and the pointer to
+// the long record. The sidebar (lab-nav.tsx) owns navigation between boards.
 export default async function TouchpointPage({
   params,
   searchParams,
@@ -85,56 +31,57 @@ export default async function TouchpointPage({
 }) {
   await requireDesignKey(searchParams);
   const { touchpoint: slug } = await params;
-  const touchpoint = getTouchpoint(slug);
-  if (!touchpoint) notFound();
-  const Variants = VARIANTS[touchpoint.id];
-  const shippedName =
-    touchpoint.decision !== undefined
-      ? touchpoint.variants[touchpoint.decision - 1]
-      : null;
+  const ruling = getRuling(slug);
+  const board = ruling?.board;
+  const Variants =
+    ruling && board ? VARIANTS[ruling.id as SandboxId] : undefined;
+  if (!ruling || !board || !Variants) notFound();
+
+  // Marketing boards render inside the production marketing skin so the
+  // [data-mkt-*] grammar (marketing.css, loaded by the lab layout) reaches them
+  // with the real tokens; the app-surface boards keep the bare mono shell.
+  const skin = ruling.surface === "marketing" ? { "data-mkt": "" } : {};
 
   return (
     <ModeShell fontClass="font-opt-urbanist">
       <header className="mx-auto w-full max-w-5xl px-4 pt-4 pb-2">
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-          {SURFACE_LABEL[touchpoint.surface]} · Sandbox
+          {SURFACE_LABEL[ruling.surface]} · Sandbox
         </p>
         <h1
           data-dir-display
           className="mt-1 text-3xl tracking-tight text-balance"
         >
-          {touchpoint.title}
+          {ruling.title}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          {touchpoint.note}.
+          {board.note}.
         </p>
-        {/* The catalog record: the shipped direction (named, not a variant
-            number) plus the rationale prose. Unshipped reads as exploring. */}
         <div className="mt-3.5">
-          {touchpoint.decision !== undefined ? (
+          {ruling.shipped ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-medium text-background">
                 <Check className="size-3" />
                 Shipped
               </span>
-              {shippedName && (
-                <span className="text-sm font-medium">{shippedName}</span>
-              )}
+              <span className="text-sm font-medium">{ruling.shipped}</span>
             </div>
           ) : (
             <span className="inline-flex rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
               Exploring
             </span>
           )}
-          {touchpoint.decisionNote && (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {touchpoint.decisionNote}
-            </p>
-          )}
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {ruling.why}
+          </p>
+          <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
+            Ruled {ruling.ruled} · the record: docs/decisions/design-record.md#
+            {ruling.id}
+          </p>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-20">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-20" {...skin}>
         <Variants />
       </div>
     </ModeShell>

@@ -35,7 +35,8 @@ export const dynamic = "force-dynamic";
 // The qr_token is an opaque capability — noindex (don't index join links), but emit OG
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
 // nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
-// isn't the secret) but no description; OPEN gets the full unfurl.
+// isn't the secret) but no description; OPEN gets the full unfurl, whose description
+// also depends on the account gate (see allow_anonymous_uploads below).
 export async function generateMetadata({
   params,
 }: {
@@ -62,7 +63,14 @@ export async function generateMetadata({
   }
 
   const title = `Add photos to ${event.name}`;
-  const description = `Add your photos and videos to ${event.name}. No app, no account, just your phone.`;
+  // ★ The unfurl's promise is keyed on allow_anonymous_uploads, the column that decides it.
+  // With the account gate ON (allow_anonymous_uploads = false) a guest must sign in to see
+  // the full gallery and to upload, so the "no account" line was a promise the page then
+  // broke at the entry modal, in the preview a host pastes into a group chat. "No app" holds
+  // either way, and the gate costs an email rather than a download.
+  const description = event.allow_anonymous_uploads
+    ? `Add your photos and videos to ${event.name}. No app, no account, just your phone.`
+    : "Add your photos and videos. This event asks guests for an email.";
   return {
     title,
     description,

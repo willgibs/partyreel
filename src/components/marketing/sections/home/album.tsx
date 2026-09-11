@@ -3,21 +3,34 @@ import type { CSSProperties } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
-import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 /**
- * MEDIUM (the loud/quiet map): product-real chrome over real manifest media,
- * calm reveals, the collection-depth story (the 2026-08-25 rebalance ruling:
- * the easy media collection co-leads the value, not just the reel). The album
- * visual composes BrowserFrame + manifest tiles directly because AlbumFrame /
- * GalleryFrame render fixed placeholder tiles with no media slot (frames are
- * consumed as-is by contract; the gap is flagged for the orchestrator).
- * The demo CTA recurs here per the IA's cross-cutting demo-link map.
+ * THE PAPER CHAPTER'S OPENER: the host's masthead (Will's second pass,
+ * 2026-09-01). Chapter 2 is the morning after, the host's desk, and this
+ * section introduces it: a left header a tier up (the home's first
+ * left-aligned opener), a host-framed lead, real air, and the album laid on
+ * the desk below-right like a print. Product-real chrome over real manifest
+ * media (the 2026-08-25 rebalance ruling: the easy media collection co-leads
+ * the value, not just the reel). The visual composes BrowserFrame + manifest
+ * tiles directly because AlbumFrame / GalleryFrame render fixed placeholder
+ * tiles with no media slot.
+ *
+ * ★ THE STRADDLE CAME OFF THE HOME. For two rounds the card overhung the
+ * dark-to-paper cut (a negative top margin, the seam's one signature). Will:
+ * the live demo and the album visual sat "very tightly back to back as two
+ * huge visuals fighting for attention". So chapter 1 now ends on the live
+ * demo with its own air, and this chapter opens on type and air instead of
+ * an overhang. The device stays in the vocabulary for other pages' cuts
+ * (/about, /help and /blog carry theirs); do not bring it back here.
+ *
+ * The print is max-w-3xl, not 4xl, on purpose: the live-demo stage one cut
+ * above is 896px wide, and a second 896px object right after it recreates the
+ * two-visuals problem, only separated. shadow-float is the paper theme's real
+ * elevation (a print on the desk); on dark it is zero, so it is unconditional.
  */
 
 const ALBUM_TILE_IDS = [
@@ -31,67 +44,51 @@ const ALBUM_TILE_IDS = [
   "concert-confetti",
 ];
 
-const BODY =
-  "Every angle of the same moment, from every phone in the room, at full quality. It all lands in one album while the party is still going, nothing to install and nothing to chase.";
+// Host-framed on purpose: chapter 1 already says "nothing to install" and
+// "photos land"; this chapter is about what the host does with the album.
+const SUBHEAD =
+  "Every phone in the room feeds one album, and the album is yours: look through it, tidy it up, and share it when you are ready.";
 
-// TEMPO (R4/A32): the copy column is short beside a tall straddling card, so a
-// full 96px bottom pad left a big empty field under the left half before the
-// curation header. Part of it goes back; the straddle itself (a negative TOP
-// margin on the media) is untouched.
 export function Album() {
   return (
-    <SectionShell className="pb-10 sm:pb-12">
-      <MediaSplit media={<AlbumVisual />} mediaSide="end">
-        <Reveal className="flex flex-col gap-3">
-          <Eyebrow data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-            The album
-          </Eyebrow>
-          <h2
-            data-mkt-reveal
-            className="font-heading text-3xl text-balance sm:text-4xl"
-            style={{ "--i": 1 } as CSSProperties}
-          >
-            {SECTION_HEADERS.album.line}
-          </h2>
-          <p
-            data-mkt-reveal
-            className="text-pretty text-muted-foreground"
-            style={{ "--i": 2 } as CSSProperties}
-          >
-            {BODY}
-          </p>
-          {/* The ladder pointer (expansion round): this section's depth lives
-              at /features/album now; the demo link stays in the hero ticket +
-              the CTA bands. */}
-          <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <LearnMoreLink href="/features/album">
-              Inside the live album
-            </LearnMoreLink>
-          </div>
-        </Reveal>
-      </MediaSplit>
+    <SectionShell
+      eyebrow="The album"
+      heading={SECTION_HEADERS.album.line}
+      subhead={SUBHEAD}
+      align="left"
+      scale="lg"
+    >
+      {/* ONE CHOREOGRAPHY (R4): the header's three lines hold slots 0-2, the
+          pointer lands at 3, and the print closes at 4. */}
+      <Reveal>
+        <div
+          data-mkt-reveal
+          className="mt-6"
+          style={{ "--i": 3 } as CSSProperties}
+        >
+          <LearnMoreLink href="/features/album">
+            Inside the live album
+          </LearnMoreLink>
+        </div>
+        {/* The print laid on the desk: set below-right under the left masthead
+            (the diagonal is the composition). Below lg it runs full width. */}
+        <div
+          data-mkt-reveal
+          className="mt-10 lg:ml-auto lg:max-w-3xl"
+          style={{ "--i": 4 } as CSSProperties}
+        >
+          <AlbumVisual />
+        </div>
+      </Reveal>
     </SectionShell>
   );
 }
 
 function AlbumVisual() {
   return (
-    /* THE STRADDLE (the chapter seam's one signature, lg+): the album card
-       overhangs the dark→paper cut so it sits half on the event's dark field,
-       half on the morning-after paper — the album arriving out of the event
-       into daylight, the chapter doctrine drawn literally. NEGATIVE MARGIN,
-       not translate (Will's checkpoint catch): a transform left the layout
-       box behind — a phantom gap under the card and the copy centered against
-       the untranslated row. The margin genuinely shrinks the grid row, so the
-       card's box overhangs the chapter top for real and items-center centers
-       the copy against what's visible. relative+z keep it painting over the
-       dark section it overhangs. shadow-float is the light theme's real
-       elevation, which the paper chapter restores — over the dark field it
-       reads as a print laid on the desk. Below lg the split stacks and the
-       plain hard cut carries the seam. */
-    <div aria-hidden className="relative z-10 lg:-mt-40">
+    <div aria-hidden>
       <BrowserFrame
-        className="lg:shadow-[var(--shadow-float)]"
+        className="shadow-[var(--shadow-float)]"
         label="partyreel.com/a/maya-and-jay"
       >
         <div className="grid grid-cols-4 gap-2">
@@ -106,7 +103,7 @@ function AlbumVisual() {
                   src={m.src}
                   alt=""
                   fill
-                  sizes="(min-width: 1024px) 170px, 25vw"
+                  sizes="(min-width: 1024px) 180px, 25vw"
                   className="object-cover"
                 />
               </div>

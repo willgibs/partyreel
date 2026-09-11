@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { JOB_SLUGS } from "@/lib/constants/careers";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
+import { LEGAL_DOCUMENTS } from "@/lib/constants/legal";
 import { SITE_URL } from "@/lib/constants/site";
 import { getAllPosts } from "@/lib/content/blog";
 import { getAllArticles } from "@/lib/content/help";
@@ -33,8 +34,20 @@ const ROUTES: Entry[] = [
   { path: "/about", changeFrequency: "yearly", priority: 0.5 },
   { path: "/press", changeFrequency: "monthly", priority: 0.5 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.6 },
-  { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
+  // The legal pages carry their version date (the legal single-source), not
+  // build time: a policy that "changed" every deploy is the sitemap lying.
+  {
+    path: "/privacy",
+    changeFrequency: "yearly",
+    priority: 0.3,
+    lastModified: new Date(LEGAL_DOCUMENTS.privacy.lastUpdated),
+  },
+  {
+    path: "/terms",
+    changeFrequency: "yearly",
+    priority: 0.3,
+    lastModified: new Date(LEGAL_DOCUMENTS.terms.lastUpdated),
+  },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -71,7 +84,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       path: `/blog/${post.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.6,
-      lastModified: new Date(post.frontmatter.date),
+      // A revision is news to a crawler; the publish date is the floor (the help precedent).
+      lastModified: new Date(post.frontmatter.updated ?? post.frontmatter.date),
     })),
   ];
   return entries.map(

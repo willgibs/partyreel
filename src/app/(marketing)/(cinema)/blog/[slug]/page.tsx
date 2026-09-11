@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 
+import { ArticleFaq } from "@/components/marketing/blog/article-faq";
 import { CoverMorphDelegate } from "@/components/marketing/blog/cover-morph";
 import { PostCard } from "@/components/marketing/blog/post-card";
 import { PostMeta } from "@/components/marketing/blog/post-meta";
@@ -15,7 +16,12 @@ import {
   ARTICLE_BODY_ID,
   ArticleToc,
 } from "@/components/marketing/reading/article-toc";
+import { ChipToc } from "@/components/marketing/reading/chip-toc";
 import { HeadingAnchorsDelegate } from "@/components/marketing/reading/heading-anchors";
+import {
+  ARTICLE_FAQ_HEADING,
+  ARTICLE_FAQ_ID,
+} from "@/components/marketing/reading/heading-contract";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Container } from "@/components/shared/container";
@@ -29,6 +35,7 @@ import {
   toListItem,
 } from "@/lib/content/blog";
 import { coverFor } from "@/lib/content/blog-covers";
+import { type BlogTagId, getBlogTag } from "@/lib/content/blog-tags";
 import { extractHeadings } from "@/lib/content/collection";
 import { cn, formatEventDate } from "@/lib/utils";
 
@@ -58,7 +65,7 @@ export async function generateMetadata({
       publishedTime: post.frontmatter.date,
       modifiedTime: post.frontmatter.updated ?? post.frontmatter.date,
       authors: [getAuthor(post.frontmatter.author).name],
-      tags: post.frontmatter.tags.length ? post.frontmatter.tags : undefined,
+      tags: post.frontmatter.tags.map((tag) => getBlogTag(tag).label),
     },
   };
 }
@@ -90,7 +97,14 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const author = getAuthor(post.frontmatter.author);
-  const headings = extractHeadings(post.body);
+  const faq = post.frontmatter.faq ?? null;
+  // extractHeadings parses the MDX body, so the Questions section (rendered from frontmatter,
+  // outside the body) is invisible to it; append it by hand so the ToC and the scroll-spy can
+  // deep-link #questions like any other section. Only when the post carries one.
+  const headings = [
+    ...extractHeadings(post.body),
+    ...(faq ? [{ id: ARTICLE_FAQ_ID, text: ARTICLE_FAQ_HEADING }] : []),
+  ];
   const cover = coverFor(slug, post.frontmatter.cover);
   const listItem = toListItem(post);
 
@@ -225,25 +239,7 @@ export default async function BlogPostPage({
             <div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-2xl min-w-0">
                 {/* Mobile contents: the zero-JS chip row (the desktop rail is lg-only). */}
-                {headings.length >= 2 && (
-                  <nav
-                    aria-label="On this page"
-                    className="mb-8 flex flex-wrap items-center gap-2 lg:hidden"
-                  >
-                    <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                      On this page
-                    </span>
-                    {headings.map((heading) => (
-                      <a
-                        key={heading.id}
-                        href={`#${heading.id}`}
-                        className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
-                      >
-                        {heading.text}
-                      </a>
-                    ))}
-                  </nav>
-                )}
+                <ChipToc headings={headings} className="mb-8" />
 
                 {/* prose-headings:font-heading pulls the post's h2/h3 onto the house heading face;
                     the prose SCALE itself is untouched. */}
@@ -260,6 +256,12 @@ export default async function BlogPostPage({
                 {/* One delegated island upgrades every heading's copy-link anchor. The shared MDX
                     components already emit the markup; the blog just never mounted the upgrade. */}
                 <HeadingAnchorsDelegate />
+
+                {/* Outside the <article>: the reading spine measures the piece, and the FAQ is
+                    an appendix to it, like "Keep reading". The section emits its own FAQPage
+                    JSON-LD (verbatim; not a Google rich result since 2023, on-page Q&A plus
+                    retrieval data). */}
+                {faq && <ArticleFaq items={faq} />}
 
                 {post.frontmatter.tags.length > 0 && (
                   <div className="mt-12 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-6">
@@ -341,7 +343,7 @@ function TagChip({
   tag,
   tone = "media",
 }: {
-  tag: string;
+  tag: BlogTagId;
   tone?: "media" | "paper";
 }) {
   return (
@@ -354,7 +356,7 @@ function TagChip({
           : "border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
       )}
     >
-      {tag}
+      {getBlogTag(tag).label}
     </Link>
   );
 }

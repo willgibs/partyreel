@@ -1,7 +1,7 @@
 import { planById } from "@/lib/constants/tiers";
 import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
 import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
-import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-capacity";
+import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";

@@ -17,12 +17,12 @@ import {
   encodeReel,
 } from "@/lib/reel/engine/encode";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
-import {
-  ENGINE_STYLES,
-  engineStyleDuration,
-} from "@/lib/reel/engine/registry";
+import { ENGINE_STYLES, engineStyleDuration } from "@/lib/reel/engine/registry";
 import type { ReelClip, ReelProps } from "@/lib/reel/engine/reel-types";
-import { resolveStyleEntry, styleThemeId } from "@/lib/reel/engine/style-registry";
+import {
+  resolveStyleEntry,
+  styleThemeId,
+} from "@/lib/reel/engine/style-registry";
 import {
   type EngineSupport,
   probeEngineSupport,
@@ -30,28 +30,33 @@ import {
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { resolveTheme } from "@/lib/reel/engine/themes";
 
-// LOCAL fixtures on purpose: the canvas reads back pixels for the encode, and a cross-origin host
-// without CORS (picsum) TAINTS the canvas and kills the export. Mixed aspects so cover-vs-fit framing
-// shows (landscape media in a portrait reel is FIT with the theme backdrop; p12 is portrait and covers).
-// One fixture is a VIDEO whose url is a still standing in for the client-generated poster WebP, so the
-// browser visually proves a video slot draws its poster (not a black hold) across every style.
-const FIXTURES: { src: string; w: number; h: number; type?: "video" }[] = [
-  { src: "/design/p01.jpg", w: 900, h: 600 },
-  { src: "/design/p12.jpg", w: 700, h: 1050 },
-  { src: "/design/p02.jpg", w: 900, h: 601, type: "video" }, // a video item: url = its poster still
-  { src: "/design/p03.jpg", w: 900, h: 600 },
-  { src: "/design/p04.jpg", w: 800, h: 534 },
-  { src: "/design/p05.jpg", w: 900, h: 600 },
-  { src: "/design/p06.jpg", w: 900, h: 600 },
-  { src: "/design/p07.jpg", w: 900, h: 600 },
+// SAME-ORIGIN fixtures on purpose: the canvas reads back pixels for the encode, and a cross-origin
+// host without CORS (picsum) TAINTS the canvas and kills the export. They come from the marketing
+// manifest (the one image registry, with true dimensions); mixed aspects so cover-vs-fit framing
+// shows (landscape media in a portrait reel is FIT with the theme backdrop; wedding-petals is the
+// portrait one and covers). One fixture is a VIDEO whose url is a still standing in for the
+// client-generated poster WebP, so the browser visually proves a video slot draws its poster (not a
+// black hold) across every style.
+const FIXTURES: { id: string; type?: "video" }[] = [
+  { id: "wedding-golden" },
+  { id: "wedding-petals" },
+  { id: "reception-table", type: "video" }, // a video item: url = its poster still
+  { id: "concert-confetti" },
+  { id: "festival-crowd" },
+  { id: "wedding-toast" },
+  { id: "reception-hall" },
+  { id: "party-dj" },
 ];
 
-const CLIPS: ReelClip[] = FIXTURES.map(({ src, w, h, type }) => ({
-  url: src,
-  type: type ?? "photo",
-  width: w,
-  height: h,
-}));
+const CLIPS: ReelClip[] = FIXTURES.map(({ id, type }) => {
+  const image = marketingImage(id);
+  return {
+    url: image.src,
+    type: type ?? "photo",
+    width: image.width,
+    height: image.height,
+  };
+});
 
 // Dev-only clip SETS (Track B F4): the lab pack above stays the default; the
 // marketing sets pull same-origin manifest media so hero-loop candidates render
@@ -66,22 +71,46 @@ const CLIP_SETS: { id: string; label: string; clips: ReelClip[] }[] = [
   {
     id: "mkt-wedding",
     label: "Marketing: wedding arc",
-    clips: ["wedding-golden", "wedding-rings", "wedding-arch", "wedding-petals", "wedding-toast", "reception-table"].map(marketingClip),
+    clips: [
+      "wedding-golden",
+      "wedding-rings",
+      "wedding-arch",
+      "wedding-petals",
+      "wedding-toast",
+      "reception-table",
+    ].map(marketingClip),
   },
   {
     id: "mkt-party",
     label: "Marketing: party arc",
-    clips: ["party-balloons", "reception-hall", "party-dj", "concert-confetti"].map(marketingClip),
+    clips: [
+      "party-balloons",
+      "reception-hall",
+      "party-dj",
+      "concert-confetti",
+    ].map(marketingClip),
   },
   {
     id: "mkt-festival",
     label: "Marketing: festival arc",
-    clips: ["festival-lights", "festival-crowd", "concert-confetti", "party-dj"].map(marketingClip),
+    clips: [
+      "festival-lights",
+      "festival-crowd",
+      "concert-confetti",
+      "party-dj",
+    ].map(marketingClip),
   },
   {
     id: "mkt-mixed",
     label: "Marketing: mixed 6",
-    clips: ["wedding-golden", "party-balloons", "festival-crowd", "wedding-petals", "party-dj", "wedding-toast"].map(marketingClip),
+    clips: [
+      "wedding-golden",
+      "party-balloons",
+      "festival-crowd",
+      "wedding-petals",
+      "party-dj",
+      "wedding-toast",
+    ].map(marketingClip),
   },
 ];
 

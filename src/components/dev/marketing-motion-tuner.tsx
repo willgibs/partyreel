@@ -19,7 +19,7 @@ const MotionTuner = lazy(() =>
  * static marketing home per-request rendered (an LCP-budget risk), so this is
  * the honest static-safe equivalent of the event page's isDesignGateOpen
  * precedent: a zero-cost island that does NOTHING unless the visitor arrived
- * with `?key=`, and then asks the server to validate it (/design/gate-check,
+ * with `?key=`, and then asks the server to validate it (/api/design-gate,
  * timing-safe, 404 on anything invalid) before mounting the tuner. The gate
  * decision stays server-side; only the boolean crosses the wire.
  */
@@ -30,7 +30,7 @@ export function MarketingMotionTuner() {
     const key = new URLSearchParams(window.location.search).get("key");
     if (!key) return;
     const ctrl = new AbortController();
-    fetch(`/design/gate-check?key=${encodeURIComponent(key)}`, {
+    fetch(`/api/design-gate?key=${encodeURIComponent(key)}`, {
       signal: ctrl.signal,
     })
       .then((res) => setOpen(res.ok))

@@ -20,12 +20,26 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able)
 
+- **CI caches only the pnpm store**, so every run compiles cold (about 2m20s with the build skipped;
+  longer with it). If the wall time starts to bite, cache `.next/cache` too, keyed on the lockfile plus a
+  source hash (the `ci-workflow` track's note, 2026-09-02).
+- **The restore toast should read `mediaStillRemoved`** (the `product-truth` track, 2026-09-02:
+  `restoreEventAction` now returns the count, and nothing reads it). The consumer is
+  `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest
+  (`docs/tracks/product-truth.md`, Handoff) until that file is pruned at the milestone, then in git.
+- **Give the visibility WORD a server-safe home** (e.g. `src/lib/events/visibility-labels.ts`) so the
+  RSC chip, the client selector and marketing's `access-switch.tsx` read one record; an RSC cannot dot
+  into `visibility-selector.tsx` ("use client"), so the chip re-types "Public" today with a comment.
+- **The root 404's browser tint.** The lit root `not-found` (outside every route group) inherits the root
+  layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
+  `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
+  the milestone-16 red-team, 2026-09-02).
 - **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
   problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
   UNLIT by ruling meanwhile: the wall is the ground, not a source.
-- **The album chapter's opener** — assess on screen against the round-2 arc whether the straddle
-  already reads as the paper chapter opening; `SECTION_HEADERS.album`'s note ("wants more distinctness
-  from the live demo before it") predates the pacing principle and may now be answered by the wind-down.
+- **Events then pricing on the home** are both card grids (four photo cards, then three pricing
+  cards): the one soft adjacency left after the 2026-09-01 ruling ("no two sections back to back
+  should feel repetitive"). Will named chapter 3 the model, so it stays until he wants it varied.
 - **The events manifest fill** — the conference and trip stills are borrowed. Over the conference
   placeholder's white tablecloth the card copy needed a second scrim and still sits at 4.27:1 at the
   brightest 5% of pixels under the heading (median 5.6:1; measured 2026-09-01). The real photographs
@@ -53,48 +67,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   dragging the real surfaces; verified live on the panel. Ruled to run AFTER the library round, before
   branching agents. Everything on the glow boards reads its token rather than a literal, so the lab inherits
   whatever lands here for free.
-- **The design lab taxes production CSS, and nobody had measured it** (found verifying milestone-13,
-  2026-09-01). Tailwind v4 generates its utility layer from a scan of the source tree, and
-  `src/app/(dev)/design/` is in that tree, so a utility used ONLY by a lab specimen is still emitted into
-  the shared stylesheet every production page loads. Measured by diffing the homepage CSS of two
-  production deployments across the glow merge: **+2,752 bytes uncompressed, 26 selectors added and 0
-  removed, every one of them lab-only** (`-inset-14`, `accent-current`, `-bottom-16` and friends, each
-  with zero occurrences in production source). Small today and entirely dead weight (no production
-  element uses them), but it is a standing cost that grows every time the lab does, and the lab is now
-  the largest thing in the repo: **89 files, 29,463 lines** (`design.css` alone was 2,725 before round 0
-  cut it to 1,894).
-  ★ **THE LEVER EXISTS AND IS UNUSED.** `@source not "..."` is implemented in the installed Tailwind
-  4.3.0 (verified in `node_modules/tailwindcss/dist/lib.mjs`: paths must be QUOTED and the directive
-  cannot be nested), so it is one line at the top of `globals.css`. There is no `@source` anywhere
-  today, meaning the scan is fully automatic and the whole lab is in it. Caveat for whoever does it: it
-  also stops emitting classes the lab genuinely needs, and it does nothing about `design.css`'s own
-  bytes (those are excluded by the route-group import, not by the scanner). Pin the number in
-  [`perf/v1-baseline.md`](perf/v1-baseline.md) either way.
-  ★★ **AND THE BIGGER HALF IS NOT BYTES** (Will, 2026-09-01): the lab has become "a massive working
-  record of all experiments", and all that stale information distills what actually matters. Worse, the
-  volume of unused rules reads to a new agent as **a huge bible of design law they must obey**, which
-  works directly against rising tides, whose whole premise is that a better system can be reshaped
-  rather than worked around. So this is not a bytes cleanup: **distil the lab into a minimal internal
-  design-system library**, keeping the ratified primitives and the live decision records, and letting
-  git history hold the rest. Pre-launch. Round 0 started it for free (the doctrine's LAWS moved to
-  `design-system.md` and the engine left `design.css`, -31%); the pattern to repeat is "when something
-  is ratified, the rule leaves the lab with it".
-  ★★★ **SEQUENCED BY WILL (2026-09-01): this runs AFTER the Glow integration rounds, not before.**
-  "Let's go through all of our rounds of integrating the new Glow branches' work across marketing and
-  app. Once complete, we'll review everything still remaining in the lab, pull anything still remaining
-  that may benefit the streamlined design system library, and effectively wipe everything that's left
-  stale." Distilling first would freeze boards whose placements have not shipped yet, against the very
-  pattern above. The integration order: **R1 the home page ✅ (2026-09-01)** → R2 the guest surfaces
-  (doorbell arrival, locked door, awaiting-media; blocked on one ruling, since `/e/[token]` follows the
-  visitor's own theme and all three were argued on cinema, plus the sampling loader swap) → R3 the Get
-  Pro beam + the lit surface, which are entangled (three of four beam specimens already wear
-  `[data-lit]`) → R4 the publish beat's violet. **Then** the lab review.
-  ★ Two lab-fidelity findings to carry INTO that review, both the same class: moment 05's specimen is
-  vertically INVERTED from the surface it names (paper above / dark below, where production is the
-  opposite) and claims a 160px overhang where the real one is 63px; and moment 09's lamp does not
-  exist at all, since /press has no real photograph left to sample ("every frame is ours"), so its ship
-  verdict needs re-arguing or dropping. A specimen that does not model its own surface launders a guess
-  into a ruling.
+- **The design lab's CSS tax, CLOSED 2026-09-02 (the library round):** the lab and `docs/` left the
+  production scan (`@source not`; the lab compiles its own utilities from a second Tailwind entry that
+  references `src/app/theme.css`, never `globals.css`), and the home's main stylesheet went from 304,277 to
+  265,358 raw bytes (42,084 to 37,790 gzipped) with zero lab-only utilities left; the method and the columns
+  are [`perf/v1-baseline.md`](perf/v1-baseline.md) section 5, the arrangement is pinned by
+  `src/app/css-source-policy.test.ts`.
 - **`marketing-css-policy.test.ts` rule 3 is a bad system, not a good rule** (the round-0 rules audit,
   2026-09-01). Its `selectorLines()` treats ANY line ending in `,` as a selector, so multi-line CSS
   values are misparsed and a legitimate ` * ` inside `calc()` reads as a universal selector. It has
@@ -128,7 +106,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
   it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
   [`design-system.md`](systems/design-system.md), and it is already applied to three of four moment-12
-  specimens including the flagship Get Pro card, while the board and `design.css` both still say
+  specimens including the flagship Get Pro card, while the board and its sheet (`sandbox/glow-lab.css`) both still say
   "lab-local until you rule". If adopted its production surface is every dark card in the app, which is
   why it should not ride inside a round about light. ★ Do NOT un-apply `data-lit` from the specimens to
   re-judge them on today's card: those are bare divs with no ring, so removing the 9% hairline puts them
@@ -219,49 +197,84 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   finding: an already-built deployment never picks it up. Proven on one branch at one moment with
   one key: `lp/glow-doctrine`'s FIRST deployment still 404s on `/design` at its immutable URL while
   its latest serves the lab fine. `lp/about` is the remaining stale alias and will fix itself on its
-  next push. Nothing to do here beyond knowing it: if `/design` 404s on an `lp/*` alias, push again
-  before concluding anything about the env.
-- **Two real bugs the glow round surfaced, both out of its scope.** (1) `design.css` REDECLARES nine
-  production keyframe names (`rvl-flash`, `rxp-bloom`, `rxp-pubglow`, `mkt-kenburns`, `mkt-cut`,
-  `mkt-marquee`, `mkt-scan`, `mkt-pulse`, `mkt-progress`); keyframes are document-global and the last
-  definition wins, so any `/design` visit shadows the production definitions for the rest of the
-  session. Worth a uniqueness pin across the three sheets. (2) The repo has NO `forced-colors` and no
+  next push. Nothing to do here beyond knowing it: if `/design` (or `/design/marketing`, `/design/record`,
+  a `/design/c/<board>`) 404s on an `lp/*` alias, push again before concluding anything about the env.
+- **One real bug the glow round surfaced, out of its scope** (its sibling, nine production keyframe
+  names redeclared by `design.css`, closed 2026-09-02 in the library round: the blocks are gone and
+  `src/app/keyframe-uniqueness.test.ts` pins every sheet). The repo has NO `forced-colors` and no
   `@media print` rule on any production surface; the spill engine is the first thing in the repo to
   carry either, so the pattern to copy now exists.
 
 - **Elevation-program deferred queue (marketing).** Logged at
-  R5/R6 settlement (2026-08-27): the dedicated **help-content agent** fills the library against
-  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md) (Will initializes; UI + taxonomy are final);
-  the dedicated **legal agent** fills privacy/terms bodies in the `LegalArticle` shell (section ids stable;
-  the plain-language drafts are its brief); **self-serve account DELETION in the app** (supersedes the help
-  article's contact path — swap that article's deletion section when it ships); faq-accordion
-  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep question** for legal status lines + GoDeeper captions (press facts were
-  settled on `/press` 2026-08-28: mono holds data only, Inter for every label and descriptor);
+  R5/R6 settlement (2026-08-27): the **help catalog** shipped on `lp/help-catalog` (2026-09-01; the brief is
+  [`content/help/AUTHORING.md`](../content/help/AUTHORING.md)) and left these one-liners: the `Checklist`
+  component's persistence/draw is Will's preview call (revert the day-of article to `Steps` if it fails);
+  in-app contextual deep links into help (the settings page → its article, the Studio → the reel guides);
+  research-found product gaps that the catalog documents honestly rather than fixes — the
+  `Video uploads are available on the Pro plan.` wrapper string omits the Event Pass, `?upgraded=1` is set
+  by checkout and never read (no post-purchase confirmation), the settings selector says "Public" while the
+  event header chip says "Open", `restoreEventAction.mediaStillRemoved` is never surfaced, the ops-only
+  "missing ETag" upload error can reach a guest, the privacy FAQ's "flag a photo or video" overstates the
+  event-level Report, `tiers.ts`'s comment still cites a retired 5-min/2-GB video limit, the guest
+  404 page says the event "may have ended" (events have no end date) and the open-event unfurl
+  promises "no account" even when the event requires one (keyed on `allow_anonymous_uploads`, the real
+  column), and `lifecycle-recovery.md` says a guest's
+  self-deleted upload is excluded from the host's Deleted list while `listRecentlyDeletedMedia`
+  applies no such filter (only `restore_media` refuses it; a live check settles which is true);
+  **self-serve account DELETION in the app** (supersedes the help article's contact path — swap the
+  "Deleting your account" section of `your-data-and-deleting-your-account` AND the privacy policy's
+  "Delete your account" choice when it ships); **a newsletter unsubscribe path** (the privacy policy
+  promises removal on request within 30 days until one exists; `newsletter_signups` has no delete route
+  and `notification_prefs` has no UI); **the EXIF-strip overclaim**: ruled 2026-09-02 to the "for the common formats" clause and fixed the
+  same day on `sections/home/privacy.tsx`, `constants/features.ts` (twice), `jsonld.tsx`, the blog post
+  and `src/lib/content/llms.ts` (the help article was already right); the two sites left,
+  [`never-rides-along.tsx`](../src/components/marketing/sections/features/privacy/never-rides-along.tsx)
+  and `feature-pages.ts`, belong to the `marketing-followons` track;
+  **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
+  2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
+  (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); FAQ/GoDeeper unification onto
+  `shared/` (M3's ready-to-apply plan); the **MonoCaption sweep question** for GoDeeper captions (press facts were
+  settled on `/press` 2026-08-28 and the legal status lines on 2026-09-01: mono holds data only, Inter
+  for every label and descriptor);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference subjects);
   the **/contact identity revisit** — shipped at milestone-5 as the desk + note composite ("good enough
   for rising tides," Will 2026-08-28, "not in love yet"); the `contact-identity` touchpoint holds the
   explored range for the next pass; the **footer Claude assistant-link banner** — shipped at
   milestone-7 with Claude's "use caution" banner over the URL-injected prompt known and flagged;
-  drop to ChatGPT-only if first impressions warrant; **move the remaining `(paper)` pages onto the
-  cinema rhythm** (Will's 2026-08-28 ruling covers legal, privacy and contact too — blog/careers/press
-  arrive via their own branches, so this is the leftover trio, and `(paper)` retires when the last one
-  moves); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
+  drop to ChatGPT-only if first impressions warrant; **the blog library's follow-ons** (2026-09):
+  promote `?page=` to real `/blog/page/[n]` routes once deep-page indexing matters (today a cold load
+  of a shared `?tag=`/`?page=` URL paints the unfiltered first page before hydration corrects it); a "Start here" curated strip above the
+  rail once the archive passes ~40; the featured card's `Latest` eyebrow becoming the post's purpose
+  label (a POV hero should read as an opinion, not a news item; the tag `kind` field is in place); a
+  founder-voice origin post NEEDS A RULING first (the zero-team relaxation is /about-only); the
+  incumbent claims in the `compared` posts get re-verified against the named products' current
+  behaviour on each refresh (`updated` convention in the brief); **move `/contact` onto the
+  cinema rhythm** (Will's 2026-08-28 ruling; privacy and terms moved in the legal round 2026-09-01, so
+  /contact is the last `(paper)` page and the group retires with it); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
   `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
   `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
   behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
-  **the `PageHero` sweep, the remaining half** (Will, 2026-08-29; the cut family swept at the
-  feature-pages round, 2026-09-01: `entrance` is `rise | cut`, and the six feature pages, the hub,
-  /how-it-works and /events compose it, so ten of the twelve hand-rolled copies are gone; and the
-  h1 LCP hole is CLOSED on every hero whose h1 carried a data-attribute gate: /pricing, /reel and
-  /events/[slug] lifted at the same round, held by `marketing-h1-policy.test.ts`). What is left is
-  the blur-rise trio: the /help index, /contact and /careers arrive on the texts-reveal `.mkt-line`,
-  whose `opacity: 0` rest state is the SAME LCP BUG in class form (the scan cannot see a class), and
-  `.mkt-line` forces `display:block`, so a blur-rise lockup needs its own handling for the actions
-  row. Either give those three the cut or keep the blur-rise and lift its gate off the h1; Will's
-  call, since all three are identity pages he has said he will revisit. ★ `PageHero` owns ONLY the plain type lockup plus a stage slot for what
-  sits under it; it must never absorb a hero whose object sits beside the lockup or a form (/qr,
-  /blog's index masthead, /help's instrument row, the home hero all stay bespoke by design)
+  **settle `PageHero`: one hero entrance, then sweep the twelve hand-rolled copies onto it** (Will,
+  2026-08-29 — one round, after careers lands, never inside a merge). Two halves of the same
+  question. (a) ENTRANCE: `PageHero` uses the chapter-1 rise while /help, /contact and /careers
+  arrive on the texts-reveal blur-rise — two grammars for one slot; note `.mkt-line` forces
+  `display:block`, so a blur-rise lockup needs its own handling for the actions row, and its
+  `opacity: 0` rest state is why those pages gate their own h1's paint. ★ That last part is a REAL
+  BUG the sweep closes, on **4 of 22 marketing h1s** (pricing, /help index, /contact, /careers): the
+  h1 ships at `opacity: 0` and paints only after hydration plus an observer, which is exactly the LCP
+  hole `PageHero` already forbids. ★ And /careers is confirmed to QUALIFY (checked at its merge,
+  2026-08-29) — its hero is a plain eyebrow/h1/subhead/actions lockup, with the contact sheet a
+  BACKGROUND sibling rather than part of it — so the old "careers still hand-rolls, so the sweep is
+  blocked" framing is retired; only (a) blocks it. (b) ADOPTION: only /about and
+  /press compose it, while TWELVE pages hand-copy its exact lockup inline (`<Reveal>` + `Eyebrow` +
+  the identical `text-4xl…lg:text-7xl` h1 + subhead + a two-Button row) and have already drifted to
+  `gap-5` against its `gap-6`. The sweep is blocked on (a): those twelve differ in entrance
+  (`data-mkt-reveal` vs `data-mkt-cut`, and /features/curation deliberately keeps its h1 static), so
+  `PageHero` needs an entrance prop before any of them can move. ★ `PageHero` owns ONLY the plain
+  type lockup — it must never absorb a hero with media, a form, or its own object (/blog's index
+  masthead, /help's instrument row, the home hero all stay bespoke by design)
   ([`ask-ai.ts`](../src/lib/constants/ask-ai.ts) carries the verified per-vendor behavior).
 - **A mobile pass of its own** (Will, 2026-08-29): "we'll already need to make mobile tweaks in the
   future. Right now, I've really been reviewing desktop only." Every marketing round to date has been
@@ -276,11 +289,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `REPLY_LINE` const in the contact lab. The content-policy test already NAMES it as the standard
   line, which is the tell that it wants one home.
 
-- **Collapse the THREE FLIP implementations to one** (found in the /blog merge, 2026-08-29): the
+- **Collapse the TWO FLIP implementations to one** (found in the /blog merge, 2026-08-29; the stale
+  lab copy under `(dev)/design/event-feed/` went with the event-feed prototype, 2026-09-02): the
   shared [`use-flip.ts`](../src/lib/shared/use-flip.ts) (event feed + blog library, now two-axis and
-  covered by `use-flip.test.tsx`), a stale lab-local copy under `(dev)/design/event-feed/`, and a
-  third inlined in `use-sortable-grid.ts`. Only the shared one got the two-axis + prune work, so the
-  other two are now behind it. Behaviour-neutral consolidation; its own small round.
+  covered by `use-flip.test.tsx`) and a second inlined in `use-sortable-grid.ts`, which is behind it.
+  Behaviour-neutral consolidation; its own small round.
 
 - **Cross-gallery sort/filter for the Uploads hub** — `get_my_uploads` is already filter-ready; add a
   **like-count** sort dimension. (The rest of the attribution initiative shipped + closed 2026-06-09,
@@ -350,8 +363,17 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
     #47 teardown residue + stale doc claims.
   - **Carried-forward live verification:** #11 the >90-min presign-roll soak + #12 upload retry (fixed
     in code at milestone-1.5, never verified live; the two soak traps are in
-    [`systems/testing-verification.md`](systems/testing-verification.md)).
-
+    [`systems/testing-verification.md`](systems/testing-verification.md)). · **Follow-ons the `ops-hardening` track logged (2026-09-02):** a report-only CSP, then an enforced
+  one (a per-request nonce through the streaming render plus an inventory of every inline style; its own
+  project) · `X-Frame-Options` / CSP `frame-ancestors`, a one-line add once the CSP question is settled ·
+  Session Replay records DOM snapshots and an `href` in them can still carry `/e/<qr_token>` (the replay
+  scrub covers custom frames only; walking every snapshot node is more than it buys) · a dedicated
+  `JOB_API_SECRET` instead of reusing `PRUNE_API_SECRET` as the internal-jobs bearer (cleaner naming; three
+  homes plus a Worker secret plus a GitHub secret is why it was not done). · **From the `account-deletion` track (2026-09-02):** sweep the app routes for the JSX landmine it found
+  on `/privacy` (a text node that contains an HTML entity loses its own leading space, so a bolded lead-in
+  glues to the next word; the prerendered surface is clean as of `26341a7`, the dynamic app routes were not
+  scanned, and no lint or test catches it) · a `deletion_requested_by` column so an operator-triggered
+  deletion is distinguishable from a self-serve one after the fact.
 - **Notification system** — the announcements overhaul · new bell signals (link-activity "new since last
   seen" deltas; billing `past_due` alerts, needs a denormalized flag on `profiles`) · a durable per-item
   feed + real-time push · per-item announcement un-read toggling · **the reel-published guest send** (R3
@@ -389,9 +411,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   structured intake shipped 2026-08-28; the neutralized copy already permits automation) + auto-routing
   rules in `/admin/support`; published language must keep committing to outcomes only (the
   promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
-- **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — question-shaped
-  comparison/blog content for assistant retrieval (category pages stay brand-nameless per Will's
-  2026-08-28 ruling) · `.md` mirrors of key pages (the llms spec's optional convention) · the
+- **The AI-SEO content arc** (its own round; the llms layer shipped at milestone-4) — the blog half
+  SHIPPED in the library round (2026-09: 23 posts, question-shaped `faq` blocks + FAQPage on hubs
+  and comparisons, incumbents named and rivals category-level per Will's 2026-08-28 ruling; category
+  pages stay brand-nameless); still open: `.md` mirrors of key pages (the llms spec's optional convention) · the
   `/u/[slug]` sitemap/robots decision (ADR-0019 says indexable; needs a slug feed) · WebSite
   SearchAction (needs a real `?q=` route) · AI-referral analytics (UA-tagged hits on /llms.txt).
 - **Billing follow-ons** — pricing **grandfathering** when the first price change happens (the policy is
@@ -431,7 +454,26 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
-- Enable leaked-password protection (HaveIBeenPwned) `[human]` — Pro-gated; the long-standing advisor WARN.
+**The clean launch point** (ruled 2026-09-02, with no date: "launch when everything's done"): every
+published claim is true, every promised path exists, every backend job is operable from `/admin`, and
+the switches below flip in a known order with nothing else pending. The agent-doable half runs as
+tracks ([`tracks/`](tracks); the wave plan in [`STATUS.md`](STATUS.md)): the help catalog's nine gaps
+closed or ruled, the EXIF claim corrected on its seven sites, the guest unfurl and 404 true for
+account-required events, self-serve account deletion with an operator trigger, a newsletter removal
+control, the contact and careers limiters failing closed, security headers on, Sentry scrubbing
+capability tokens, every job with a kill switch and a heartbeat on `/admin/jobs`, CI on every push,
+`.env.example` parity, legal pages that print, the `LEGAL_PARTY` flip rehearsed, the blur-rise heroes
+with a visible h1, the root 404 tint, the marketing site at phone widths, the demo event on curated
+media. **The `[human]` switches, in order:** counsel sign-off, the DMCA agent, the `privacy@` and
+`help@` mailboxes → `LEGAL_PARTY` and both documents effective → Stripe live (the 4 products and 8
+prices, the live webhook and portal with six-price switching verified, the 10 env values, one
+real-card smoke) → Vercel Pro (the analytics vendor, the Spend cap, Cloudflare fronting and CSAM
+scanning at the DNS move, the Realtime quota) → secrets Sensitive, leaked-password protection, the
+Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo token repointed,
+`PRUNE_MODE=live` → the program teardown.
+
+- Enable leaked-password protection (HaveIBeenPwned) `[human]` — no longer Pro-gated (checked 2026-09-02),
+  so it can flip any time; the long-standing advisor WARN.
 - Pick the web-analytics vendor at the Vercel Hobby → Pro cutover `[eng+human]` — Hobby collects free
   (pageviews only, hard caps); Pro activates the wired custom-event taxonomy but bills usage. Will's
   pricing research (2026-08-28): PostHog gives 1M events/mo free (likely covering launch traffic
@@ -450,16 +492,31 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   [`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)); if denied, we still report actively.
 - Enable the Cloudflare CSAM Scanning Tool at the DNS move `[human]` — free; scans only proxied traffic
   (cannot see presigned R2 media — state that plainly), per ADR-0020 C2.
-- Stripe test → live cutover `[eng+human]` — re-create products/prices in live + swap the 5 env vars
-  (code unchanged); checklist in [`PRICING.md`](PRICING.md).
-- Verify the Stripe Billing Portal permits switching between the three Pro prices `[human]` — now
+- Stripe test → live cutover `[eng+human]` — re-create the 4 products and 8 prices in live (three Pro
+  products carrying six recurring prices, monthly and annual each; the Event Pass product carrying the two
+  one-time prices), named WITHOUT the em-dash the test products carry today (those names render in
+  Checkout and the portal), + swap the 10 env values (code unchanged); the runbook is
+  [`PRICING.md`](PRICING.md) "Stripe setup" (corrected 2026-09-02 by the `legal-billing-truth` track).
+- Verify the Stripe Billing Portal permits switching between the six Pro prices (monthly and annual) `[human]` — now
   LOAD-BEARING, not cosmetic: per ADR-0023 1b a Pro host changing storage size is routed to the
   portal (checkout refuses the second subscription it used to create silently). If the portal's
-  product config does not allow the swap, a paying host has no self-serve way to resize.
+  product config does not allow the swap, a paying host has no self-serve way to resize. The default
+  portal configuration (`bpc_1TcTxWPtjqmVkBwkcAldFEZA`) enables `subscription_update` with
+  `default_allowed_updates: ["price"]` and `proration_behavior: always_invoice`, but the API returns no
+  `products` list, so the actual switch set is unverified from the API side (2026-09-02): a dashboard look,
+  or a portal session opened as a Pro host.
 - Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER` (currently 3× the storage cap, ADR-0021) before
   Pro launch `[eng]` — confirm the multiplier holds at real scale.
-- Real `/privacy` page `[content]` — replace the stub; include the drafted Sentry session-replay
-  disclosure line.
+- Legal go-live `[human]` — the documents are written (v1.0, 2026-09-01, incl. the forensic-capture
+  paragraph and the Sentry replay line); after counsel signs the gate above: (1) fill `LEGAL_PARTY` in
+  [`src/lib/constants/legal.ts`](../src/lib/constants/legal.ts) (entity, state, address, DMCA agent)
+  and flip both documents' `status` to `effective` with an `effectiveDate` (`legal.test.ts` refuses a
+  bracketed placeholder once effective, so the fill cannot be skipped; the 2026-09-02 rehearsal showed the
+  flip also needs one line of that test, whose pending status-line assertion reads the live meta: the diff is
+  in `docs/tracks/legal-billing-truth.md` until the milestone prunes it, then in git); (2) register the DMCA
+  designated agent with the Copyright Office ($6, renewed every 3 years) so the Terms' safe-harbor
+  section is true; (3) create the `privacy@partyreel.com` mailbox both documents name, routed to the
+  support inbox.
 - Swap the demo event to curated media `[eng+content]` — repoint `NEXT_PUBLIC_DEMO_QR_TOKEN` to a dedicated
   event with catchy approved media.
 - Committed automated RPC integration suite `[eng]` — replace the per-change rolled-back MCP checks. BLOCKED
@@ -491,6 +548,30 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 - Toggle critical secrets to Vercel "Sensitive" `[human]` — pre-launch all env vars are non-sensitive (so
   values stay swappable); at launch flip the critical ones (the Supabase service-role key, Stripe + webhook,
   `CRON_SECRET`, `PRUNE_API_SECRET`, `UNLOCK_COOKIE_SECRET`) to Sensitive.
+- Self-serve account deletion with its operator path `[eng]` — gating; the `account-deletion` track
+  ([`tracks/account-deletion.md`](tracks/account-deletion.md)).
+- The four QA items that are launch truth, cross-listed from the QA bucket `[eng]` — #42 security
+  headers, #22 Sentry scrubbing capability tokens, #19 limiter observability plus the contact and careers
+  limiters failing closed (the `ops-hardening` track), and the guest unfurl and 404 true for
+  account-required events (the `product-truth` track).
+- CI on every push `[eng]` — the `ci-workflow` track; a program prerequisite for the wider fan-out.
+- The blur-rise heroes' foreground LCP read (the h1 at `opacity: 0` until hydration; the "Now" item)
+  `[eng]` — the `marketing-followons` track, as a named entrance register with the h1 visible at paint.
+- Cloudflare fronting at the DNS move and the Realtime concurrent-connection quota `[human]` —
+  cross-listed from the Vercel / Next.js bucket so they are not forgotten at the cutover.
+- One DB-backup test-restore `[human]` — prove the backup restores before it is the only copy.
+- The `help@partyreel.com` mailbox `[human]` — the help center and the documents name it; confirm the
+  receipt path once it exists.
+- `.env.example` parity with `env.ts`, pinned by a test `[eng]` — the `legal-billing-truth` track.
+- The marketing site tuned at phone widths, judged on Will's phone `[eng+human]` — gating; the
+  `marketing-mobile` track.
+- A per-account throttle on the deletion request `[eng]` — beyond Supabase Auth's own OTP limits it is
+  unlimited; it needs a live session plus a password or an emailed code, so the exposure is a borrowed
+  session rather than a stranger, but the throttle is cheap insurance (the `account-deletion` track's note).
+- Submit the apex to the HSTS preload list `[human]` — a one-way door for the domain and every future
+  subdomain (`max-age` already meets the list's requirement; the header ships without `preload` on purpose).
+- `SUPABASE_DB_URL` into `.env.local` `[human, 15 minutes]` — unblocks the committed RPC integration
+  suite above.
 
 ## Speculative / longer-horizon backlog
 

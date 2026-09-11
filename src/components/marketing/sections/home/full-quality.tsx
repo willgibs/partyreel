@@ -14,8 +14,10 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * WHY IT IS HERE (the chapter arc, design-system.md "Chapters"): the second
  * of the two simpler sections Will asked for above the live demo, so chapter
  * 1 winds down through real information before its closing anchor instead of
- * escalating into the paper cut. Same register as no-app.tsx and the privacy
- * section: hairline icons, quiet reveals, specifics over adjectives.
+ * escalating into the paper cut. Chapter 1's ONE icon three-up, by the
+ * 2026-09-01 adjacency ruling (no two sections back to back share a layout):
+ * no-app.tsx above became an open ledger, and the live demo below is the
+ * stage. Hairline icons, quiet reveals, specifics over adjectives.
  *
  * No figures. The marketed storage numbers reach copy through the MDX spec
  * tags by policy (content-policy.test.ts), and per-file limits are not a

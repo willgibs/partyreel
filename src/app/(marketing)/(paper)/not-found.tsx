@@ -4,8 +4,8 @@ import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
 
 // Catches notFound() thrown inside a PAPER route. ★ It now serves NO [slug] at
 // all: help left in R6, blog in the blog round, careers in the careers round, so
-// (paper) holds only the static trio (contact, privacy, terms) until those move
-// too. It still must not be deleted - a static page can call notFound(), and
+// (paper) holds only /contact since privacy and terms moved to (cinema) in the
+// legal round. It still must not be deleted - a static page can call notFound(), and
 // without this boundary that render falls through to the ROOT one, which brings
 // its own chrome and double-stacks (the original live-caught gotcha). Group-owned
 // twin of (cinema)/not-found.tsx: the paper layout wraps it, so a 404 here stays

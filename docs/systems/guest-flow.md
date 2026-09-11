@@ -69,7 +69,9 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   RSC flight payload — a locked page leaks the event NAME + COUNT only, zero media URLs (Phase 4
   hardening; the date joined in 4.5 when the welcome byline started rendering it).
 - **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
-  viewer then gets a teaser (see "Gallery access" below).
+  viewer then gets a teaser (see "Gallery access" below). ★ **The OG description keys on the SAME column** —
+  anonymous-allowed keeps the "No app, no account" line, account-required says the event asks guests for an
+  email, so the preview a host pastes into a chat never promises what the entry modal then refuses.
 - **`accepting_uploads=false`** = the **view-only STATE** of the one page: the upload panel is removed
   entirely (a quiet "uploads closed" line), leaving the action row + gallery.
 
@@ -99,8 +101,7 @@ entry modal (below). The host "Require guest accounts" relabel + live preview (P
 ## The ARRIVAL (the entry surface: welcome + the gates, Phase 4.5)
 
 The gated arrival is the PRIMARY first experience (most events gate; a guest arrives from a QR with
-zero context) and plays as a four-act narrative, ratified in the lab (`/design/c/arrival`, touchpoint
-11, "Calm + 700ms"): **the stage** (the page settles: name/lock-line/ghost-grid rise via
+zero context) and plays as a four-act narrative, ratified in the lab ([the arrival record](../decisions/design-record.md#arrival), "Calm + 700ms"): **the stage** (the page settles: name/lock-line/ghost-grid rise via
 `data-arrive` + `--arrive-i`) → **the invitation** (after the ARRIVAL BEAT the sheet rises) → **the
 threshold** (the warm gate) → **the reveal** (the success morph, then the gallery rises as the sheet
 exits).
@@ -193,7 +194,8 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
 - **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
   gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`, ADR-0015; default is ON, turning it off is Pro-gated). The account step lives in the entry
+  `require_email`, ADR-0015; default is ON and FREE on every tier since 2026-06-21, see [host-app.md](host-app.md);
+  turning it off is the opt-in, behind a consequence-confirm, not a paid feature). The account step lives in the entry
   modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
   secondary password login; the teaser shows behind it. `create_guest` derives identity (`user_id` + `email`)

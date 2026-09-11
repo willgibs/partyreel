@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 /**
  * THE SHEET: the press kit as a photographic contact sheet (ruled by Will 2026-08-28
  * over the specimen-sheet alternative, "focusing press around the assets and quick hit
- * points"; the explored range is at /design/c/press-identity).
+ * points"; the explored range is on the record, docs/decisions/design-record.md#press-identity).
  *
  * ★ THE FRAMES ARE NOT ALL THE SAME KIND OF THING, and that is the whole idea: artwork,
  * an app icon, a share card, a working code, the ink, the type. A contact sheet is

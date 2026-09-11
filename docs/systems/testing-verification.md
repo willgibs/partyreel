@@ -13,6 +13,36 @@ site, these are the ways the *test tooling* misreports, so a working change look
 > your screen?").** Chasing a tool-blindness ghost is how you burn a loop and ship a change for a bug that
 > never existed; a human eyeball confirms reality far cheaper than more tooling.
 
+## The gate
+
+★ **Two ways the gate lies when it is run carelessly (the help + legal integrations, 2026-09-02).**
+(1) `pnpm typecheck` reads `.next/dev/types/validator.ts`, a file the DEV server generates and the
+build never cleans; after a route file moves or is deleted (the legal round moved `/privacy` and
+`/terms` out of `(paper)`), that stale validator fails `tsc` with a "Cannot find module …/page.js"
+that names a file no longer in the tree. `rm -rf .next/dev` and re-run; `next build` regenerates
+its own types and is not fooled. (2) A pipeline like `pnpm typecheck 2>&1 | tail -1 && …` reports
+`tail`'s exit code, not the gate's, so a failing step prints one line and the chain COMMITS anyway
+(it happened once; the failure turned out to be lesson 1, but the chain could not know that). Run
+each gate step to a log and test its own exit code: `pnpm typecheck > /tmp/tc.log 2>&1 || { …; exit 1; }`.
+
+**CI runs the same four steps on every push** to `launch-prep` and `lp/*` and on every PR to `main`
+([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), each command its own named step, so a track
+turns red before the integration window instead of inside it; read a failed run with `gh run list --branch
+lp/<track>` then `gh run view <id> --log-failed`. Its `pnpm build` step needs the repository variables
+`NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only env `next build` requires)
+and skips with an annotation naming them until they are set; the other three always run.
+
+**Confirming a deploy is READY at the SHA you pushed** (the Vercel MCP lists deployments, but a
+one-line poll is faster and scriptable): `curl -s -H "Authorization: Bearer $VERCEL_TOKEN"
+"https://api.vercel.com/v6/deployments?projectId=prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB&teamId=team_ht9qAVBQVZf60dpGNJUwmaj5&limit=12"`
+(add `&target=production` for prod), match `meta.githubCommitSha` to your SHA and wait for `state`
+READY; `/v3/deployments/<uid>/events` carries the build log, including the build gate's own
+`[ignore-build]` line. Never echo the token.
+
+**Shell gotcha (zsh):** `for h in $VAR` does NOT word-split an unquoted variable in zsh, so a
+multi-line variable becomes one iteration (one curl of a three-line "URL" returned 0 bytes,
+2026-09-02); pipe into `while read h` or use `${(f)VAR}`.
+
 ## Test accounts + fixtures (live testing runs on disposable test data ONLY)
 
 - **Accounts:** `willg97@gmail.com` = the host (Pro) · `hi@willgibs.com` = a Free host ·
@@ -22,9 +52,19 @@ site, these are the ways the *test tooling* misreports, so a working change look
 - **Media fixtures:** real images/videos live at `/Users/gibby/local/ai/partyreel-test-media`. Seed
   via REAL uploads through the product, never raw DB rows — a `media` row with no R2 object renders
   broken images and poisons later checks.
+- **Reseeding an album from a folder:** `node scripts/seed-demo-event.mjs <folder> [--host <email>]
+  [--name <event>] [--dry-run]` drives that same write path from Node (`mediaObjectKey`, the EXIF
+  strip, a ~640px WebP preview or video poster, an R2-HEAD size, `create_media_as_host`), replaces
+  the event's media on every run, and prints the event's `NEXT_PUBLIC_DEMO_QR_TOKEN`; it defaults to
+  the "Partyreel Demo" event and its host, and needs ffmpeg on PATH.
 
 ## Chrome MCP blind spots
 
+- ★ **Paint timing does not exist in a hidden document** (the blog-library round, 2026-09-01): both
+  the Browser pane and the Chrome MCP tab can report `document.visibilityState === "hidden"` even
+  after fronting them, and a hidden document records NO paint timing at all: a `PerformanceObserver`
+  for `largest-contentful-paint` / `first-contentful-paint` returns zero entries, not a slow number.
+  An LCP read from either is meaningless; measure vitals from a tab a human has in the foreground.
 - ★ **The Chrome MCP's tab is usually a BACKGROUND tab (`document.hidden === true`), and that changes
   what the page does, not just what you see** (round 2, 2026-09-01). Three consequences, all of which
   read as product bugs and are not: (1) every `useAmbientPause` consumer reports `data-paused="true"`,
@@ -112,7 +152,13 @@ site, these are the ways the *test tooling* misreports, so a working change look
     screenshot as evidence that something is absent. ★ A FOURTH costume, the careers MERGE
     (2026-08-29): the second screenshot trick stops working entirely once the pane is HIDDEN
     (`innerWidth` reads 0 and every capture comes back black) and `resize_window` silently no-ops on
-    the Chrome side while reporting success. DOM reads stay honest in both. When neither browser will
+    the Chrome side while reporting success. It ALSO no-ops for the Chrome MCP whenever the tab is a
+    background tab, which is its normal state (`innerWidth` never changes). To measure a narrow
+    layout anyway, append a same-origin `<iframe>` at the width you need and read its
+    `contentDocument.documentElement.scrollWidth` against `clientWidth`; to reproduce Windows, where
+    `100vw` includes a classic scrollbar, inject `::-webkit-scrollbar{width:17px}` into the iframe,
+    which forces classic scrollbars even on macOS Chrome. That is how the sideways-scroll defect was
+    found, and how the fix was verified (2026-09-01). DOM reads stay honest in both. When neither browser will
     paint, stop fighting them and verify geometry + computed style by hand, then look at the
     DEPLOYED preview, where both have always worked.
 
