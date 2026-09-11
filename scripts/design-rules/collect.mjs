@@ -28,7 +28,7 @@
 // must stay verbatim; the no-em-dash policy scans only .ts/.tsx.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { basename, join, posix, relative, sep } from "node:path";
+import { join, posix, relative, sep } from "node:path";
 
 import ts from "typescript";
 

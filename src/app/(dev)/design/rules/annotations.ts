@@ -493,77 +493,10 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/shared/upload-thumbnail.tsx": {
     for: "the per-file thumbnail in the upload queue",
     unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/album-frame.tsx": {
-    for: "the album frame",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/browser-frame.tsx": {
-    for: "the browser window frame with an optional bar",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/gallery-frame.tsx": {
-    for: "the gallery frame",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/live-qr.tsx": {
-    for: "a scannable QR that opens the live demo",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/phone-frame.tsx": {
-    for: "the phone bezel (PhoneShell) and the upload mock inside it (PhoneFrame)",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/qr-frame.tsx": {
-    for: "the QR card frame",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/frames/reel-frame.tsx": {
-    for: "the reel poster frame",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/sections/features/shared/feature-door.tsx": {
-    for: "the photographic door to a feature page, with its signature chip",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/sections/features/shared/feature-faq.tsx": {
-    for: "the shared FAQ band with its FAQPage JSON-LD",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
+      "takes a live File from the upload queue; a specimen would need a client-made blob to show a square of nothing",
   },
   "src/components/marketing/sections/features/shared/feature-hero-eyebrow.tsx":
     {
       for: "the feature hero's one eyebrow",
-      unspecimened:
-        "specimen pending: lands with the library phase's third commit",
     },
-  "src/components/marketing/sections/features/shared/ghost-grid.tsx": {
-    for: "the locked-gallery ghost grid",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/sections/features/shared/go-deeper.tsx": {
-    for: "the quiet help-center pointer row",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/sections/features/shared/related-features.tsx": {
-    for: "the sibling-features band that opens a feature page's close",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
-  "src/components/marketing/sections/features/shared/text-swap.tsx": {
-    for: "the blur-swap text island",
-    unspecimened:
-      "specimen pending: lands with the library phase's third commit",
-  },
 };

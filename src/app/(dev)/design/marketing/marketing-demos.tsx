@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useRef, useState, type CSSProperties } from "react";
 
+import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
 import { ConfettiBurst } from "@/components/marketing/sections/shared/confetti-burst";
 import { TextsReveal } from "@/components/marketing/sections/shared/texts-reveal";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -126,6 +127,25 @@ export function OverlayDemo() {
           <SampleReelOverlay onClose={() => setOpen(false)} />
         </Suspense>
       )}
+    </div>
+  );
+}
+
+const SWAP_VALUES = ["Filling live", "Held for review", "Published"];
+
+/** TextSwap: the imperative blur-swap island; Next hands it the next value. */
+export function TextSwapDemo() {
+  const [i, setI] = useState(0);
+  return (
+    <div className="flex items-center gap-4">
+      <TextSwap value={SWAP_VALUES[i]} className="text-sm font-medium" />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setI((n) => (n + 1) % SWAP_VALUES.length)}
+      >
+        Next
+      </Button>
     </div>
   );
 }

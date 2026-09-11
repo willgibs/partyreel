@@ -1993,7 +1993,7 @@
       "id": "t:src/app/(dev)/design/marketing/marketing-library.test.ts#the-marketing-library-page/declares-no-component-of-its-own",
       "source": "test",
       "file": "src/app/(dev)/design/marketing/marketing-library.test.ts",
-      "line": 52,
+      "line": 48,
       "suite": [
         "the marketing library page"
       ],
@@ -2006,7 +2006,7 @@
         "dates": [],
         "adrs": [],
         "ruledBy": "unknown",
-        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, wears no lab-l"
+        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, and wears no l"
       },
       "pins": []
     },
@@ -2014,7 +2014,7 @@
       "id": "t:src/app/(dev)/design/marketing/marketing-library.test.ts#the-marketing-library-page/imports-only-production-modules-and-the-reference-kit",
       "source": "test",
       "file": "src/app/(dev)/design/marketing/marketing-library.test.ts",
-      "line": 31,
+      "line": 27,
       "suite": [
         "the marketing library page"
       ],
@@ -2027,28 +2027,7 @@
         "dates": [],
         "adrs": [],
         "ruledBy": "unknown",
-        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, wears no lab-l"
-      },
-      "pins": []
-    },
-    {
-      "id": "t:src/app/(dev)/design/marketing/marketing-library.test.ts#the-marketing-library-page/shows-every-system-component-and-shared-section-atom",
-      "source": "test",
-      "file": "src/app/(dev)/design/marketing/marketing-library.test.ts",
-      "line": 75,
-      "suite": [
-        "the marketing library page"
-      ],
-      "title": "shows every system component and shared section atom",
-      "body": null,
-      "emphasis": 1,
-      "dynamic": false,
-      "skipped": false,
-      "provenance": {
-        "dates": [],
-        "adrs": [],
-        "ruledBy": "unknown",
-        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, wears no lab-l"
+        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, and wears no l"
       },
       "pins": []
     },
@@ -2056,7 +2035,7 @@
       "id": "t:src/app/(dev)/design/marketing/marketing-library.test.ts#the-marketing-library-page/wears-no-lab-local-treatment",
       "source": "test",
       "file": "src/app/(dev)/design/marketing/marketing-library.test.ts",
-      "line": 68,
+      "line": 64,
       "suite": [
         "the marketing library page"
       ],
@@ -2069,7 +2048,7 @@
         "dates": [],
         "adrs": [],
         "ruledBy": "unknown",
-        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, wears no lab-l"
+        "quote": "The marketing library page is a specimen sheet of PRODUCTION imports, never a board: it may import only production modules and the lab's reference kit, declares no component of its own, and wears no l"
       },
       "pins": []
     },
@@ -9394,28 +9373,36 @@
       "names": [
         "AlbumFrame"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/browser-frame.tsx",
       "names": [
         "BrowserFrame"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/gallery-frame.tsx",
       "names": [
         "GalleryFrame"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/live-qr.tsx",
       "names": [
         "LiveQr"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/phone-frame.tsx",
@@ -9423,70 +9410,90 @@
         "PhoneFrame",
         "PhoneShell"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/qr-frame.tsx",
       "names": [
         "QrFrame"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/frames/reel-frame.tsx",
       "names": [
         "ReelFrame"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/feature-door.tsx",
       "names": [
         "FeatureDoor"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/feature-faq.tsx",
       "names": [
         "FeatureFaq"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/feature-hero-eyebrow.tsx",
       "names": [
         "FeatureHeroEyebrow"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/ghost-grid.tsx",
       "names": [
         "GhostBackdrop"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/go-deeper.tsx",
       "names": [
         "GoDeeper"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/related-features.tsx",
       "names": [
         "RelatedFeatures"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/features/shared/text-swap.tsx",
       "names": [
         "TextSwap"
       ],
-      "specimens": []
+      "specimens": [
+        "/design/marketing"
+      ]
     },
     {
       "file": "src/components/marketing/sections/shared/bulk-select-mock.tsx",
@@ -9547,6 +9554,15 @@
       "file": "src/components/marketing/sections/shared/texts-reveal.tsx",
       "names": [
         "TextsReveal"
+      ],
+      "specimens": [
+        "/design/marketing"
+      ]
+    },
+    {
+      "file": "src/components/marketing/system/caption.tsx",
+      "names": [
+        "Caption"
       ],
       "specimens": [
         "/design/marketing"
