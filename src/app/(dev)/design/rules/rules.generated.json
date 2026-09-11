@@ -3718,14 +3718,14 @@
       "pins": []
     },
     {
-      "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/passes-the-shipped-11s-cadence-rather-than-taking",
+      "id": "t:src/components/marketing/chrome/footer-contract.test.ts#the-ink-slab-footer-contract/reads-the-lamps-cadence-from-the-one-token",
       "source": "test",
       "file": "src/components/marketing/chrome/footer-contract.test.ts",
       "line": 98,
       "suite": [
         "the ink-slab footer contract"
       ],
-      "title": "passes the shipped 11s cadence rather than taking the 8s register",
+      "title": "reads the lamps' cadence from the one token, never a literal",
       "body": null,
       "emphasis": 1,
       "dynamic": false,

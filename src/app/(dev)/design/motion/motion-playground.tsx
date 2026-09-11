@@ -4,7 +4,10 @@ import { type CSSProperties, useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
 
 import { MotionTuner } from "@/components/dev/motion-tuner";
-import { EVENT_PAGE_TUNER_CONTROLS } from "@/components/dev/motion-tuner-config";
+import {
+  EVENT_PAGE_TUNER_CONTROLS,
+  ROUNDING_TUNER_CONTROLS,
+} from "@/components/dev/motion-tuner-config";
 import { Button } from "@/components/ui/button";
 import { readCssMs as readMs } from "@/lib/shared/read-css-ms";
 
@@ -175,7 +178,12 @@ export function MotionPlayground() {
         </div>
       </Section>
 
-      <MotionTuner controls={EVENT_PAGE_TUNER_CONTROLS} />
+      {/* The rounding knobs ride along (the radius round's sitting, 2026-09-11):
+          the values land on <html>, so /design/components and /design/compositions
+          show the app's own surfaces at the dragged radii after a soft navigation. */}
+      <MotionTuner
+        controls={[...EVENT_PAGE_TUNER_CONTROLS, ...ROUNDING_TUNER_CONTROLS]}
+      />
     </div>
   );
 }
