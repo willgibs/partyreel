@@ -27,9 +27,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `restoreEventAction` now returns the count, and nothing reads it). The consumer is
   `src/components/app/restore-event-button.tsx`; the exact block is in the track's manifest, now in git
   only: `git show d752a9b:docs/tracks/product-truth.md` (Handoff).
-- **Give the visibility WORD a server-safe home** (e.g. `src/lib/events/visibility-labels.ts`) so the
-  RSC chip, the client selector and marketing's `access-switch.tsx` read one record; an RSC cannot dot
-  into `visibility-selector.tsx` ("use client"), so the chip re-types "Public" today with a comment.
 - **The root 404's browser tint.** The lit root `not-found` (outside every route group) inherits the root
   layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
   `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
@@ -51,6 +48,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   page by page (what each has today, the questions its round answers, the mechanisms to reuse, the
   corrections that must hold), lives in the track's manifest in git:
   `git show 0f52503:docs/tracks/marketing-feature-pages.md`.
+- **The album's ambient pieces, a focused round later** (Will, 2026-09-11: "good enough for now, a
+  little buggy"): the phone's screen cycle, the Live | Review photograph and the lightbox pill on
+  `/features/album`. Neither browser tool can run them, so the round is judged on his screen.
 
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
@@ -80,14 +80,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   265,358 raw bytes (42,084 to 37,790 gzipped) with zero lab-only utilities left; the method and the columns
   are [`perf/v1-baseline.md`](perf/v1-baseline.md) section 5, the arrangement is pinned by
   `src/app/css-source-policy.test.ts`.
-- **`marketing-css-policy.test.ts` rule 3 is a bad system, not a good rule** (the round-0 rules audit,
-  2026-09-01). Its `selectorLines()` treats ANY line ending in `,` as a selector, so multi-line CSS
-  values are misparsed and a legitimate ` * ` inside `calc()` reads as a universal selector. It has
-  already distorted authoring once on the record (`marketing.css:1353` documents a formatting
-  compromise made to appease it) and would have rejected the promoted halo mask on eight lines. The
-  intent is right (no bare element selectors in a scoped stylesheet); the parser is wrong. Fix: only
-  treat a line as a selector when it precedes a `{` at brace depth 0, and strip declaration bodies
-  first. Small, and it removes a standing tax on how CSS may be written in that file.
 - **The engine's no-mask fallback is compiled away** (noted at round 0). `@supports not (mask-image: …)`
   is real in `globals.css` but absent from the built chunk: Lightning CSS evaluates the condition
   against browserslist, finds it statically false, and drops the block. Correct given the targets, but
@@ -259,10 +251,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   incumbent claims in the `compared` posts get re-verified against the named products' current
   behaviour on each refresh (`updated` convention in the brief); **move `/contact` onto the
   cinema rhythm** (Will's 2026-08-28 ruling; privacy and terms moved in the legal round 2026-09-01, so
-  /contact is the last `(paper)` page and the group retires with it); **unify the ink footer's 9-token spray with a shared dark-ground set** (the /about round's
-  `CINEMA_TOKENS` analysis found three tokens the footer never redeclares — `--card-foreground`,
-  `--muted`, `--shadow-float` — which is why its Start-free link is hand-rolled instead of a `Button`;
-  behavior-neutral, guarded by `footer-contract.test.ts`, deliberately not done inside a merge);
+  /contact is the last `(paper)` page and the group retires with it); **the ink footer's token spray is ONE CLASS** (`.surface-ink` in `globals.css`, 2026-09-11: the nine plus the
+  three it never redeclared, computed colours unchanged);
   **the `PageHero` sweep is COMPLETE** (2026-09-11, the library phase: three named registers,
   `rise | cut | blur`; the utility trio composes `blur` and /pricing composes `rise`; every marketing
   h1 holds at paint, and `marketing-h1-policy.test.ts` refuses the cut, the rise and the blur-rise on
@@ -275,14 +265,6 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   judged at desktop and merely checked for breakage at 375, so the phone is un-tuned by accretion
   rather than by any single decision. One round over the whole marketing site, not per page. The
   feature pages (2026-09-11) were measured at 375 for overflow and row balance, not for feel.
-- **The sticky-offset split** (found in the careers merge, 2026-08-29): reading rails use `top-24`
-  (96px — /help/[slug], the legal shell, the careers role page) while index rails use
-  `calc(var(--mkt-header-h) + 1.5rem)` (88px — /blog, /press, the /help index). Both are consistent
-  WITHIN their family, so neither is a bug; it is one number that should come from the same knob.
-- **The reply line, hand-copied on seven surfaces** (found in the careers merge): "Every note gets a
-  reply, usually within a day." lives inline on /press, /help, /contact (×3) and now /careers, plus a
-  `REPLY_LINE` const in the contact lab. The content-policy test already NAMES it as the standard
-  line, which is the tell that it wants one home.
 
 - **Collapse the TWO FLIP implementations to one** (found in the /blog merge, 2026-08-29; the stale
   lab copy under `(dev)/design/event-feed/` went with the event-feed prototype, 2026-09-02): the
