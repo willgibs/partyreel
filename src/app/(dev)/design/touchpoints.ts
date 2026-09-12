@@ -46,6 +46,7 @@ export type RulingId =
   | "marketing-voice"
   | "marketing-decomposition"
   | "marketing-hero-substrate"
+  | "home-hero"
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
@@ -57,10 +58,11 @@ export type RulingId =
   | "glow-doctrine"
   | "glow-moments";
 
-/** The four boards standing in sandbox/ (each has `board` set below). */
+/** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "marketing-decomposition"
   | "marketing-hero-substrate"
+  | "home-hero"
   | "glow-doctrine"
   | "glow-moments";
 
@@ -293,6 +295,22 @@ export const RULINGS: Ruling[] = [
     board: {
       note: "The production hero decided against real footage: an mp4 substrate slot with poster-first loading and montage fallback, story progress and timecode synced to the video, and the kinetic H1 word toggling Roll, Type, or Cut across all three voice groupings",
       variants: ["Roll on footage", "Type on footage", "Cut on footage"],
+    },
+  },
+  {
+    id: "home-hero",
+    title: "The home hero",
+    surface: "marketing",
+    ruled: "open",
+    shipped: null,
+    why: "Open: where the type lives so no photograph is dimmed, since the shipped wall carries four darkenings and not one frame reads as a photograph.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/sections/home/cinema-hero.tsx",
+    ],
+    board: {
+      note: "The full hero redesign as one question, asked four ways: the type as a cell in the album, as its own column, as a band over an album that fills, or as a title card on a single frame, every one of them at 100% media",
+      variants: ["The contact sheet", "The split", "The arrival", "One frame"],
     },
   },
   {

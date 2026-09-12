@@ -8,6 +8,7 @@ owns:
   - src/app/(dev)/design/sandbox/
   - src/app/(dev)/design/c/
   - src/app/(dev)/design/touchpoints.ts
+  - src/app/(dev)/design/touchpoints.test.ts
 reads:
   - src/components/marketing/system/page-hero.tsx
   - src/app/globals.css
