@@ -11,6 +11,25 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-12 — MILESTONE-24: prod = the 22-rule bible, contracts on the components, the look-pins gone, the big swing licensed
+
+`main` @ tag `milestone-24` (`592da24`; `launch-prep` `d21a61b` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1622 tests, 245 static pages); CI green on every push, `main` included; prod READY at the merge SHA.
+The round entry below is the round.
+
+**The walk before the merge, on the launch-prep alias at `05e201f`:** all 22 bible rows and all 10
+component blocks by anchor, no verdict control, the counters 22 / 10 / 74, 404 without the key, an
+anchor on all 84 index rows and a contracts link on the six indexed components that have one, the page
+walked in Chrome in dark; locally, one `unspecimened` reason removed makes `component-index.test.ts`
+refuse and restoring it passes.
+
+**Prod at `592da24`:** the home, /features/album, /pricing and /help 200, one h1 on the home and none
+carrying `mkt-line`; the demo guest link 200; /dashboard 307 signed out; the purge cron 401 without
+its secret; `/design/rules` 404 bare and 200 with the key (22 rows, 10 blocks, the counters
+22 / 10 / 74, no verdict control); `/design` with the key and its 84 row anchors; the `/_next/image`
+fixture 200 `image/jpeg` 10,560 bytes.
+
 ## 2026-09-12 — The "less is more" reset: 433 rules to a 22-rule bible, contracts on the components, the big swing licensed (`f79a711`, `91606e9`, `05e201f`)
 
 Will, on seeing the rules bible at milestone-23: 433 rules was far past what he expected, most read

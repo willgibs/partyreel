@@ -32,6 +32,7 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **MILESTONE-24: the reset on prod** | **✅ 2026-09-12 (`592da24`)**: the 22-rule bible and the component contracts on `/design/rules`, the look-pins and copy-pins gone, ★ landmines only, the big swing licensed. `design-gallery` and `home-hero` spawned the same day. |
 | **The "less is more" reset** | **✅ 2026-09-12 (`f79a711`, `91606e9`, the docs pass)**: the design law is the 22-rule bible on `/design/rules` (Will's, ratified at the plan) plus each component's contract (a test tagged `@contract-for`, on the component's library row); 433 derived rules, the verdict island and the annotations layer gone; the look-pins and copy-pins deleted (no copy is pinned by a test); ★ means landmine only (92 stars to 33 across the two design docs); agents are told to take the big swing. Next: `design-gallery` and `home-hero` cut together; the rounding GUI round after the gallery. |
 | **MILESTONE-23: the cost round and round C's staging on prod** | **✅ 2026-09-12 (`d52b1e6`)**: sharp out of every function, `launch-prep` on request with the prune tool and 7-day retention, one cadence token with its knob, the rounding knobs on the playground, one FLIP. The sittings themselves were deferred at the merge; their tooling shipped. |
 | **The Vercel cost round** | **✅ 2026-09-11**: 381 retained deployments pruned to 44 and a tool that keeps them pruned; preview retention cut to 7 days (canceled and errored to 1, production stays 30); `launch-prep` builds only on `[preview]`; sharp out of the function trace (16.6 MB of 51.1 off every deployment, image optimization verified identical). The lab and admin subdomains are queued as architecture rounds, not savings. |
@@ -320,7 +321,7 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-23` (`d52b1e6`). **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-24` (`592da24`). **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).

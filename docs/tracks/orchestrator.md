@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "d52b1e6"
+cut: "592da24"
 preview: false
 owns:
   - src/app/(dev)/design/rules/bible.ts
