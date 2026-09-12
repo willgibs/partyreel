@@ -4,9 +4,9 @@ import { RULINGS, SANDBOX } from "./touchpoints";
 
 /**
  * The rulings registry stays a registry: unique ids, one-line whys, a home for
- * every rule, and `board` set on exactly the four boards the dispatcher
- * renders (a fifth would 404 at runtime; a missing one would hide a standing
- * board from the sidebar).
+ * every rule, and `board` set on exactly the boards the dispatcher renders (an
+ * extra one would 404 at runtime; a missing one would hide a standing board
+ * from the sidebar).
  */
 describe("the design lab's rulings registry", () => {
   it("has a unique id per ruling and a non-empty record", () => {
@@ -28,6 +28,7 @@ describe("the design lab's rulings registry", () => {
       [
         "glow-doctrine",
         "glow-moments",
+        "home-hero",
         "marketing-decomposition",
         "marketing-hero-substrate",
       ].sort(),

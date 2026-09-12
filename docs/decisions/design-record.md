@@ -1,6 +1,6 @@
 # The design record
 
-> **ROLE:** the history of every ruling taken in the `/design` lab: what was tried, what shipped, why, and where each board stood when it left the workshop. **NOT LAW:** the rules live in [`docs/systems/design-system.md`](../systems/design-system.md) and the surface docs (`guest-flow.md`, `host-app.md`, `marketing-content.md`); this file explains how they were reached, the way the `t1-*` tombstones beside it keep ruled options-docs. **BELONGS HERE:** one section per touchpoint, the ruling verbatim as the lab recorded it, the board's files and last SHA. **NOT HERE:** anything a reader must obey today (that is a system doc's line) or a deferred task (ROADMAP). **GROWS BY:** one section per lab round, added when its board leaves `sandbox/`; the four standing boards are listed with `ruled: open` and move to "deleted" when their round lands. Sections are never rewritten to say something new about the present.
+> **ROLE:** the history of every ruling taken in the `/design` lab: what was tried, what shipped, why, and where each board stood when it left the workshop. **NOT LAW:** the rules live in [`docs/systems/design-system.md`](../systems/design-system.md) and the surface docs (`guest-flow.md`, `host-app.md`, `marketing-content.md`); this file explains how they were reached, the way the `t1-*` tombstones beside it keep ruled options-docs. **BELONGS HERE:** one section per touchpoint, the ruling verbatim as the lab recorded it, the board's files and last SHA. **NOT HERE:** anything a reader must obey today (that is a system doc's line) or a deferred task (ROADMAP). **GROWS BY:** one section per lab round, added when its board leaves `sandbox/`; the standing boards are listed with `ruled: open` and move to "deleted" when their round lands. Sections are never rewritten to say something new about the present.
 
 Deleted boards were last at `9b75ec1` (`git show 9b75ec1:<path>` reopens any of them) and were removed on 2026-09-02 in the library round; the thin registry the lab reads is [`src/app/(dev)/design/touchpoints.ts`](../../src/app/(dev)/design/touchpoints.ts) (`RULINGS`), rendered at `/design/record`.
 
@@ -26,6 +26,7 @@ Deleted boards were last at `9b75ec1` (`git show 9b75ec1:<path>` reopens any of 
 | [marketing-voice](#marketing-voice) | marketing | 2026-08-25 | V1 Collection-led |
 | [marketing-decomposition](#marketing-decomposition) | marketing | open | open |
 | [marketing-hero-substrate](#marketing-hero-substrate) | marketing | open | open |
+| [home-hero](#home-hero) | marketing | open | open |
 | [pricing-plan-cards](#pricing-plan-cards) | marketing | 2026-08-27 | V2 Stacked photos |
 | [pricing-calculator](#pricing-calculator) | marketing | 2026-08-27 | V1 Album fill |
 | [contact-identity](#contact-identity) | marketing | 2026-08-28 | V2 The desk |
@@ -275,6 +276,19 @@ The ruling: not yet taken (see the board).
 
 Board: `src/app/(dev)/design/sandbox/marketing-hero-substrate-variants.tsx`, standing in `sandbox/` until the ruling lands.  
 Lives: `docs/systems/marketing-content.md`, `docs/ROADMAP.md`
+
+## home-hero
+
+**The home hero** (marketing). Ruled open. Shipped: open.  
+The full hero redesign as one question, asked four ways: the type as a cell in the album, as its own column, as a band over an album that fills, or as a title card on a single frame, every one of them at 100% media.  
+Variants: V1 The contact sheet; V2 The split; V3 The arrival; V4 One frame.
+
+Context, as the lab recorded it: its own agent round (Will, 2026-09-01 and 2026-09-12: "I'd love a full home hero redesign"), cut alongside `design-gallery` off milestone-24. The round's finding is the board: the shipped hero carries three darkening layers over its wall of 24 tiles at desktop and a fourth below `sm`, because white type had to survive over whichever tile the drift parked under it, so bible rule 1 is inverted and not one photograph reads as a photograph. That makes the design question "where does the type live, so no photograph is ever dimmed", and the four variants are the four answers: a cell in the album's own grid, its own column against a hard frame edge, a band over an album that fills guest by guest, a small opaque title card on one frame. Measured on the preview: the four stages carry ZERO darkening layers over media between them, against three on the shipped hero rendered beside them from production code. Held fixed: the ruled copy verbatim, the h1 never gated and at opacity 1 at paint, the ladder's `lg` and `xl` steps, cinema and unlit. Two sub-questions ride the ruling: the kinetic word (a toggle on the board; the recommendation is to retire it, since the variety it carried is now carried by the photographs) and, if V3 wins, the live-demo section, which already does the same thing at position 7 of the home arc.
+
+The ruling: not yet taken (see the board). The agent's recommendation is V1, with V2 as the safer second.
+
+Board: `src/app/(dev)/design/sandbox/home-hero-variants.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/systems/marketing-content.md`, `src/components/marketing/sections/home/cinema-hero.tsx`
 
 ## pricing-plan-cards
 

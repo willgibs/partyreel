@@ -1,0 +1,118 @@
+/* The home-hero board's own sheet (home-hero-variants.tsx), imported by the
+   board so it leaves with the board when the ruling lands (the convention
+   marketing-open.css set in the library round).
+
+   House convention, same as every lab round: FINAL states live OUTSIDE the
+   media queries, so a reduced-motion reader gets the settled composition with
+   no rule to undo; entrances and loops live inside `no-preference` only;
+   keyframes are prefixed (hh-) so nothing collides with marketing.css.
+
+   The vocabulary:
+
+     [data-hh-develop]   V1's contact-sheet entrance. A photograph arrives the
+                         way a print comes up in the tray: a hair of scale off,
+                         then settled. --i is the sheet seat, so the sheet
+                         develops in reading order and rests.
+     [data-hh-land]      V3's arrival. One photograph landing into the album,
+                         played on the tile React just mounted (the beat is
+                         JS, the motion is CSS), so no delay var is needed.
+     [data-hh-chip]      V3's attribution chip: in, hold, out, once.
+     [data-hh-col]       V2's endless column. Two copies of the tile list per
+                         column and a -50% travel, so the seam never shows;
+                         the middle column runs the other way.
+     [data-hh-thumb]     V4's contact strip. The active frame lifts; a plain
+                         transition because a rail is touched, not watched. */
+
+@keyframes hh-develop {
+  from {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hh-land {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hh-chip {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  14%,
+  72% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+@keyframes hh-col-up {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+@keyframes hh-col-down {
+  from {
+    transform: translate3d(0, -50%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-hh-develop] {
+    /* `both` holds the from-state through the stagger delay; without it every
+       tile paints solid and then jumps back to develop, which is the bug this
+       comment exists to stop the next agent reintroducing. */
+    animation: hh-develop 320ms var(--mkt-ease-pop) both;
+    animation-delay: calc(var(--i, 0) * 34ms);
+  }
+
+  [data-hh-land] {
+    animation: hh-land 260ms var(--mkt-ease-pop) both;
+  }
+
+  [data-hh-chip] {
+    animation: hh-chip 2400ms var(--ease-emphasis) both;
+  }
+
+  [data-hh-col] {
+    animation: hh-col-up var(--hh-col-dur, 64s) linear infinite;
+  }
+
+  [data-hh-col="down"] {
+    animation-name: hh-col-down;
+  }
+
+  /* The loop-pause contract, mirrored from marketing.css. The board sets it
+     per stage so a hero scrolled out of the lab column stops drifting. */
+  [data-paused="true"] [data-hh-col] {
+    animation-play-state: paused;
+  }
+
+  [data-hh-thumb] {
+    transition:
+      opacity 180ms var(--ease-emphasis),
+      transform 220ms var(--mkt-ease-pop);
+  }
+}
