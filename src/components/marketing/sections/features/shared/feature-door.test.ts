@@ -11,7 +11,9 @@ import { isMarketingImageId } from "@/lib/constants/marketing-media";
  * The door registry's contract. Source-scanned where the rule is about the
  * file (the footer-contract precedent) and evaluated where it is about data:
  * every feature page must have a door with a real manifest photograph, or the
- * hub renders a bare ink card for it with no error.
+ * hub renders a bare ink card for it with no error. The door's LOOK (no lamp,
+ * no tilt, no photograph twice) was pinned here until the "less is more"
+ * reset (2026-09-12); a contract keeps a component working, never its look.
  */
 const source = readFileSync(
   join(
@@ -57,18 +59,6 @@ describe("the feature doors", () => {
     for (const [slug, id] of Object.entries(signatureImages())) {
       expect(isMarketingImageId(id), `${slug} -> ${id}`).toBe(true);
     }
-  });
-
-  it("uses no two photographs twice: six doors, six rooms", () => {
-    const ids = Object.values(signatureImages());
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it("carries no lamp, no tilt and no glare (the event cards' rulings)", () => {
-    const code = source.replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(code).not.toMatch(/<Glow\b/);
-    expect(code).not.toMatch(/TiltCard/);
-    expect(code).not.toMatch(/data-mkt-tilt/);
   });
 
   it("keeps the white focus ring, offset inward, on the photographic link", () => {

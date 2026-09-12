@@ -7,8 +7,9 @@ import { describe, expect, it } from "vitest";
 /**
  * SOURCE-TEXT PINS for the legal shell (the footer-contract.test.ts pattern).
  * Each guards something that fails silently: a rail that stops tracking, a
- * heading a deep link can no longer clear, a status line drifting back to
- * mono, a `dark:` utility inside a chapter that never sees the class.
+ * heading a deep link can no longer clear. The shell's look (the hero scale,
+ * the retired mono status line, no `dark:` utilities) was pinned here until
+ * the "less is more" reset (2026-09-12); a contract never freezes a look.
  */
 const read = (rel: string) =>
   readFileSync(join(process.cwd(), rel), "utf8")
@@ -20,13 +21,6 @@ const shell = read("src/components/marketing/legal/legal-document.tsx");
 const blocks = read("src/components/marketing/legal/legal-blocks.tsx");
 
 describe("the legal document shell contract", () => {
-  it("rides the cinema hero at the standard page ramp", () => {
-    // `display` is nowrap under a 12vw clamp and contractually one or two
-    // words; "Terms of Service" would overflow a phone.
-    expect(shell).toContain('scale="lg"');
-    expect(shell).toContain("PaperChapter");
-  });
-
   it("runs the shared reading spine and anchors", () => {
     expect(shell).toContain("ArticleToc");
     expect(shell).toContain("progress={{ targetId: ARTICLE_BODY_ID }}");
@@ -45,11 +39,5 @@ describe("the legal document shell contract", () => {
 
   it("the meta card is not a <header> (ArticleToc measures the first header)", () => {
     expect(shell).not.toMatch(/<header[\s>]/);
-  });
-
-  it("retired the mono status line and never uses dark: utilities", () => {
-    expect(shell).not.toContain("MonoCaption");
-    expect(shell).not.toMatch(/\bdark:/);
-    expect(blocks).not.toMatch(/\bdark:/);
   });
 });

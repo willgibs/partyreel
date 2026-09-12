@@ -8,8 +8,9 @@ import { formatBytes } from "@/lib/utils";
  * The album page's questions, verdict first: a few words and a period, then
  * one sentence, so the nine answers wrap alike and a skimmer gets the answer
  * from the first word. The first three are what a visitor landing here first
- * asks. Numbers derive; the band is held by album-copy.test.ts. Rendered by
- * FeatureFaq and mirrored into FAQPage JSON-LD.
+ * asks. Numbers derive. (The length band was held by a test until the "less
+ * is more" reset, 2026-09-12; copy is not a test.) Rendered by FeatureFaq and
+ * mirrored into FAQPage JSON-LD.
  */
 const FREE_CAP = formatBytes(planById("free").storageBytes);
 
