@@ -24,6 +24,11 @@ its own types and is not fooled. (2) A pipeline like `pnpm typecheck 2>&1 | tail
 `tail`'s exit code, not the gate's, so a failing step prints one line and the chain COMMITS anyway
 (it happened once; the failure turned out to be lesson 1, but the chain could not know that). Run
 each gate step to a log and test its own exit code: `pnpm typecheck > /tmp/tc.log 2>&1 || { …; exit 1; }`.
+(3) **A green gate is only green for the tree that existed when it ran** (the gallery round,
+2026-09-12): `pnpm format` read and wrote a file while a parallel sub-agent was still writing it, and
+the spliced file was committed on the strength of a gate that had passed minutes earlier. When a round
+fans work out inside one worktree, re-run typecheck after formatting whenever anything else might hold
+the file, and verify the commit rather than the run.
 
 **CI runs the same four steps on every push** to `launch-prep` and `lp/*` and on every PR to `main`
 ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), each command its own named step, so a track

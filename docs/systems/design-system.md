@@ -829,7 +829,7 @@ plus any no-specimen reason come off
 ★ **A family is the page that MOUNTS the specimen, and an entry module must live in that page's
 directory.** The collector reads a component's specimen route from the directory of the `page.tsx`
 or `*-demos.tsx` file that imports it, so a demo module in the wrong folder indexes its components at
-a route that does not exist: six of them sat at `/design/reference`, which has never been a page,
+a route that does not exist: nine of them sat at `/design/reference`, which has never been a page,
 until the gallery round (2026-09-12). It also means `family` is not always the component's own
 directory, and should not be made to be: Glow lives in `src/components/shared` and belongs beside the
 light tokens on `/design/foundations`.

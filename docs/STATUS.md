@@ -32,6 +32,8 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **The home-hero board (track `home-hero`)** | **✅ integrated 2026-09-12 (`d63f6cc`, head `393bacc`)**: four heroes on `/design/c/home-hero?key=` with zero darkening layers over media against three on the shipped hero, the ruled copy verbatim, the h1 at paint in all four; no production byte changed. **Waits on your ruling** (the agent recommends V1, the contact sheet; V2 second); the wiring follows it. |
+| **The gallery (track `design-gallery`)** | **✅ integrated 2026-09-12 (`7048ab1`, head `9ee41cd`)**: a component is declared once in its family's `gallery-demos.tsx` and three surfaces render from it (its family page, its permalink at `/design/library/<id>`, the searchable index of all 88 at `/design/library`); 15 config panels; `gallery.test.ts` refuses a declared variant the component does not have. Next: the rounding and tweaking GUI round. |
 | **MILESTONE-24: the reset on prod** | **✅ 2026-09-12 (`592da24`)**: the 22-rule bible and the component contracts on `/design/rules`, the look-pins and copy-pins gone, ★ landmines only, the big swing licensed. `design-gallery` and `home-hero` spawned the same day. |
 | **The "less is more" reset** | **✅ 2026-09-12 (`f79a711`, `91606e9`, the docs pass)**: the design law is the 22-rule bible on `/design/rules` (Will's, ratified at the plan) plus each component's contract (a test tagged `@contract-for`, on the component's library row); 433 derived rules, the verdict island and the annotations layer gone; the look-pins and copy-pins deleted (no copy is pinned by a test); ★ means landmine only (92 stars to 33 across the two design docs); agents are told to take the big swing. Next: `design-gallery` and `home-hero` cut together; the rounding GUI round after the gallery. |
 | **MILESTONE-23: the cost round and round C's staging on prod** | **✅ 2026-09-12 (`d52b1e6`)**: sharp out of every function, `launch-prep` on request with the prune tool and 7-day retention, one cadence token with its knob, the rounding knobs on the playground, one FLIP. The sittings themselves were deferred at the merge; their tooling shipped. |
@@ -358,10 +360,14 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Pending now: nothing.** Will's ruling at milestone-23 (2026-09-12): the rest of human review waits
-for the UI era to land on what it lands on, unless something blocks or is high-leverage; the rules
-pass became the "less is more" reset (the bible, ratified at its plan), and the two sittings below
-became rounds of their own.
+**Pending now: one thing, and it blocks the hero's wiring.** The home-hero board on the launch-prep
+alias, `/design/c/home-hero?key=`: four heroes, the Desktop toggle, scrolling from V1 to "Today, for
+reference" at the bottom, then the Phone 375 toggle and the Kinetic word toggle. The agent recommends
+V1 (the contact sheet, the only one whose composition IS the thesis), V2 second; V4 is the most
+beautiful frame and the weakest argument; V3 says what the live demo already says at position 7. Say
+the variant and whether the kinetic word stays, and the wiring round cuts. Everything else waits for
+the UI era to land on what it lands on (Will's ruling at milestone-23, 2026-09-12), unless something
+blocks or is high-leverage.
 
 **Parked until the UI era lands** (each keeps its line and its link; nothing is lost):
 
@@ -406,10 +412,11 @@ became rounds of their own.
 
 **Tracks (the wave plan).** Wave 1 (`ci-workflow`, `legal-billing-truth`, `product-truth`,
 `ops-hardening`, `account-deletion`, `demo-seed`) and wave 2's `glow-engine-defects` are integrated
-(milestones 18 to 21; the record is the CHANGELOG). The library phase closed with the reset. Next, in
-parallel (Will, 2026-09-12): `design-gallery` and `home-hero`, stubbed in [`docs/tracks/`](tracks);
-then `marketing-followons`, the five feature-page tracks, `marketing-mobile`; the lab and admin
-subdomains as architecture rounds; then the launch round in the Launch checkpoint's human order.
+(milestones 18 to 21; the record is the CHANGELOG). The library phase closed with the reset; `design-gallery` and `home-hero` ran in
+parallel and integrated the same day (2026-09-12, `7048ab1` and `d63f6cc`). Next: the rounding and
+tweaking GUI round (Orchestrator-run), the hero's wiring once ruled, then `marketing-followons`, the
+five feature-page tracks, `marketing-mobile`; the lab and admin subdomains as architecture rounds;
+then the launch round in the Launch checkpoint's human order.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free; nothing pricing-side remains
 open.)
 

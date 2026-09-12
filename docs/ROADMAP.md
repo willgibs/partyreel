@@ -31,10 +31,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
   `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
   the milestone-16 red-team, 2026-09-02).
-- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
-  problem, not a lighting one; deserves the lab and his rulings, as its own round: the `home-hero` track,
-  cut 2026-09-12 alongside `design-gallery` (the queue in [`tracks/README.md`](tracks/README.md)). The
-  hero stays UNLIT by ruling meanwhile: the wall is the ground, not a source.
+- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). The `home-hero`
+  track (integrated 2026-09-12) put the board up at `/design/c/home-hero?key=`: four heroes with zero
+  darkening layers over media against three on the shipped one, the agent's recommendation V1 (the
+  contact sheet) with V2 second. **Waits on Will's ruling**; then: wire the ruled hero into
+  `cinema-hero.tsx`, retire the board and record the ruling in `decisions/design-record.md#home-hero`;
+  rule the kinetic word in the h1 (every variant reads better with it off, the photographs carry the
+  variety now); and if the ruling is V3 (the arrival), the live-demo section at position 7 of the home
+  arc needs its own round, since the two would say the same thing in one chapter. The hero stays UNLIT
+  meanwhile: the wall is the ground, not a source.
 - **Events then pricing on the home** are both card grids (four photo cards, then three pricing
   cards): the one soft adjacency left after the 2026-09-01 ruling ("no two sections back to back
   should feel repetitive"). Will named chapter 3 the model, so it stays until he wants it varied.
@@ -69,6 +74,14 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   the star pass demoted 59 of their 92 stars to past-tense notes; a round could move the per-page record
   into `decisions/design-record.md` and leave each doc the system and its landmines. Not before the UI
   era; Will: "we've just weighed ourselves down with docs and rules".
+- **Design lab follow-ons from the gallery round** (2026-09-12): fold the two `SourceLink` copies into
+  one (`gallery/gallery-ui.tsx` has the one to keep; `rules/page.tsx` was outside the track's lane), and
+  link each contract block on `/design/rules` to its component's permalink at `/design/library/<id>`.
+- **App polish the gallery's declarations surfaced** (2026-09-12): `shared/empty-state.tsx`'s comment
+  says `"quiet" (default)` while the signature defaults to `"icon"`; `shared/action-tooltip.tsx` claims a
+  200ms provider delay while `ui/tooltip.tsx` defaults to 0; `ui/drawer.tsx` and `ui/tabs.tsx` have no
+  product call site and `ui/select.tsx` and `ui/sheet.tsx` exactly one each, so a round decides whether
+  to use them or drop them.
 
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
