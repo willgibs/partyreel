@@ -1,3 +1,5 @@
+// @contract-for: src/components/shared/glow.tsx
+// @contract-for: src/components/shared/glow-filter.tsx
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

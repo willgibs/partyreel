@@ -1,72 +1,46 @@
-// THE DESIGN RULES COLLECTOR (the library phase, 2026-09-11). Derives, from
-// code, every rule the repo actually enforces, so the design library can
-// render them at /design/rules and Will can keep, merge or drop each one.
+// THE DESIGN RULES COLLECTOR (the "less is more" reset, 2026-09-12; first
+// written in the library phase, 2026-09-11). Derives, from code, the two
+// things the library renders on /design/rules and the /design index, and NOT
+// the design law itself:
 //
-// Three sources, one artifact (src/app/(dev)/design/rules/rules.generated.json,
-// committed; `pnpm design:rules` rewrites it; rules-registry.test.ts fails
-// when it drifts):
-//
-//  - GUARD TESTS: any test under src/ that reads the repo's own source
-//    (`process.cwd()` in the file) or whose name ends in -policy / -contract /
-//    -parity / -guards / -uniqueness, plus EXTRA_GUARDS, minus NOT_GUARDS.
-//    Their describe() and it() titles ARE the rules, in plain language; the
-//    TypeScript AST reads them (a regex cannot see nesting or a template
-//    title), and the leading comments give provenance: dates, ADRs, and
-//    whether Will is named at all.
-//  - PROSE RULES: every ★ run in the two design docs. A run starts at a ★ and
-//    ends at the next ★ or the end of its block; one bullet can hold four.
 //  - THE COMPONENT INDEX: every component file in the library's directories
-//    and which library page renders it (parsed from the pages' imports).
+//    (COMPONENT_DIRS) and which library page renders it, parsed from the
+//    pages' imports, plus every file a contract test names.
+//  - CONTRACTS: a test file whose first lines carry
+//    `// @contract-for: <repo-relative path>` (one line per target; a file may
+//    name two) is that file's functional contract, and its it() titles render
+//    on the component's block. A test WITHOUT the line is a test, not a rule.
+//    Will's ruling (2026-09-12): a contract guards a component's function
+//    (structure, accessibility, single-source, its engine), never its look.
+//
+// The bible, the global design law, is hand-authored in
+// src/app/(dev)/design/rules/bible.ts and never derived. The first registry
+// (433 rules: every guard test's titles plus every ★ run in two docs, chosen
+// by a heuristic rather than a person) is what "less is more" replaced; ★ in
+// a doc now means a landmine, never a rule.
 //
 // Why a committed artifact and not a page that reads the filesystem: the lab
 // pages are dynamic (they await searchParams for the gate) and the Vercel
 // bundle only traces files it can see through imports, so a request-time
-// readFileSync over docs/ and 48 test files would ENOENT in production. The
-// page imports this JSON; the freshness guard keeps it honest.
+// readFileSync over test files would ENOENT in production. The page imports
+// this JSON; rules-registry.test.ts keeps it fresh.
 //
-// Why JSON and not a .ts module: test titles and ★ runs carry em-dashes and
-// must stay verbatim; the no-em-dash policy scans only .ts/.tsx.
+// Why JSON and not a .ts module: test titles carry em-dashes and must stay
+// verbatim; the no-em-dash policy scans only .ts/.tsx.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, posix, relative, sep } from "node:path";
 
 import ts from "typescript";
 
-export const ARTIFACT_VERSION = 1;
+export const ARTIFACT_VERSION = 2;
 
-/** A guard test by name: the five house suffixes. */
-export const GUARD_SUFFIX =
-  /-(policy|contract|parity|guards|uniqueness)\.test\.tsx?$/;
+/** The directive a contract test opens with; one target per line. */
+export const CONTRACT_DIRECTIVE =
+  /^\s*(?:\/\/|\/\*+|\*)\s*@contract-for:\s*(\S+)/;
 
-/** Guard tests the heuristic misses (they import the source they pin). */
-export const EXTRA_GUARDS = [
-  "src/app/(dev)/design/marketing/marketing-library.test.ts",
-  "src/app/(dev)/design/touchpoints.test.ts",
-  "src/components/marketing/sections/features/album/album-copy.test.ts",
-  "src/components/marketing/sections/features/shared/feature-door.test.ts",
-  "src/components/marketing/system/screen-lamp.test.ts",
-  "src/components/shared/legal-consent-line.test.tsx",
-  "src/lib/constants/feature-pages.test.ts",
-  "src/lib/constants/marketing-voice.test.ts",
-  "src/lib/content/blog-tags.test.ts",
-  "src/lib/reel/guest-download-contract.test.ts",
-  "src/lib/reel/guest-reel-contract.test.ts",
-  "src/lib/reel/quick-add.test.ts",
-  "src/lib/reel/upload-contract.test.ts",
-];
-
-/** Files the heuristic matches that are not rules of the repo's own source. */
-export const NOT_GUARDS = {
-  // path -> the reason it is a behaviour suite rather than a rule of the repo's
-  // own source. Empty today: strip-metadata.test.ts reads its out-of-repo
-  // fixtures without process.cwd(), so the heuristic never sees it.
-};
-
-/** The docs whose ★ runs are prose rules. */
-export const DOC_SOURCES = [
-  "docs/systems/design-system.md",
-  "docs/systems/marketing-content.md",
-];
+/** How far down a test file the directive may sit: the header, not the body. */
+const DIRECTIVE_WINDOW = 40;
 
 /** The directories whose every component the library must render or excuse. */
 export const COMPONENT_DIRS = [
@@ -79,12 +53,6 @@ export const COMPONENT_DIRS = [
 ];
 
 export const LIBRARY_DIR = "src/app/(dev)/design";
-
-const DATE_RE = /\b20\d\d-\d\d-\d\d\b/g;
-const ADR_RE = /\bADR-\d{4}\b/g;
-const WILL_RE = /\bWill\b/;
-const TEST_FILE_RE = /\b([\w.-]+\.test\.tsx?)\b/g;
-const QUOTE_MAX = 200;
 
 /* ───────────────────────── files ───────────────────────── */
 
@@ -100,150 +68,81 @@ function walk(dir, out = []) {
 
 const toPosix = (p) => p.split(sep).join(posix.sep);
 
-/** Every guard test, repo-relative, sorted. */
-export function discoverGuardFiles(root) {
-  const src = join(root, "src");
-  const found = new Set();
-  for (const abs of walk(src)) {
+const scriptKind = (p) =>
+  p.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+
+/**
+ * Every contract test with the files it names, repo-relative, sorted. A
+ * directive naming a file that does not exist throws: the freshness guard
+ * calls this, so a typo fails `pnpm test` with the path in the message.
+ */
+export function discoverContractFiles(root) {
+  const found = [];
+  for (const abs of walk(join(root, "src"))) {
     if (!/\.test\.tsx?$/.test(abs)) continue;
-    const rel = toPosix(relative(root, abs));
-    if (
-      GUARD_SUFFIX.test(rel) ||
-      readFileSync(abs, "utf8").includes("process.cwd()")
-    ) {
-      found.add(rel);
+    const head = readFileSync(abs, "utf8").split("\n", DIRECTIVE_WINDOW);
+    const targets = new Set();
+    for (const line of head) {
+      const m = CONTRACT_DIRECTIVE.exec(line);
+      if (m) targets.add(m[1]);
     }
+    if (targets.size === 0) continue;
+    const rel = toPosix(relative(root, abs));
+    for (const t of targets) {
+      if (!existsSync(join(root, t))) {
+        throw new Error(`${rel}: @contract-for names a missing file: ${t}`);
+      }
+    }
+    found.push({ file: rel, targets: [...targets].sort() });
   }
-  for (const rel of EXTRA_GUARDS) found.add(rel);
-  for (const rel of Object.keys(NOT_GUARDS)) found.delete(rel);
-  return [...found].sort();
+  return found.sort((a, b) => a.file.localeCompare(b.file));
 }
 
-/** The heuristic alone (what NOT_GUARDS must actually match). */
-export function heuristicMatches(root, rel) {
-  const abs = join(root, rel);
-  if (!existsSync(abs)) return false;
-  return (
-    GUARD_SUFFIX.test(rel) ||
-    readFileSync(abs, "utf8").includes("process.cwd()")
-  );
-}
+/* ───────────────────────── contract titles ───────────────────────── */
 
-/* ───────────────────────── ids ───────────────────────── */
-
-export function slug(text, max = 8) {
-  return text
-    .replace(/\{[^}]*\}/g, " ")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .split("-")
-    .filter(Boolean)
-    .slice(0, max)
-    .join("-");
-}
-
-/** Appends ~2, ~3 to ids that collide within one collection. */
-function disambiguate(records) {
-  const seen = new Map();
-  for (const r of records) {
-    const n = (seen.get(r.id) ?? 0) + 1;
-    seen.set(r.id, n);
-    if (n > 1) r.id = `${r.id}~${n}`;
-  }
-  return records;
-}
-
-/* ───────────────────────── provenance ───────────────────────── */
+const SUITE_NAMES = new Set(["describe", "suite"]);
+const CASE_NAMES = new Set(["it", "test"]);
 
 function collapse(text) {
   return text.replace(/\s+/g, " ").trim();
 }
 
-function stripComment(raw) {
-  return raw
-    .replace(/^\/\*+/, "")
-    .replace(/\*+\/$/, "")
-    .split("\n")
-    .map((l) => l.replace(/^\s*\*\s?/, "").replace(/^\s*\/\/\s?/, ""))
-    .join(" ");
-}
-
-function commentsBefore(sourceText, node) {
-  const ranges =
-    ts.getLeadingCommentRanges(sourceText, node.getFullStart()) ?? [];
-  return ranges.map((r) => stripComment(sourceText.slice(r.pos, r.end)));
-}
-
-function provenanceOf(texts) {
-  const joined = texts.join(" ");
-  const dates = [...new Set(joined.match(DATE_RE) ?? [])].sort();
-  const adrs = [...new Set(joined.match(ADR_RE) ?? [])].sort();
-  const nearest = texts.find((t) => collapse(t).length > 0);
-  return {
-    dates,
-    adrs,
-    ruledBy: WILL_RE.test(joined) ? "will" : "unknown",
-    quote: nearest ? collapse(nearest).slice(0, QUOTE_MAX) : null,
-  };
-}
-
-/* ───────────────────────── guard tests ───────────────────────── */
-
-const SUITE_NAMES = new Set(["describe", "suite"]);
-const CASE_NAMES = new Set(["it", "test"]);
-
 /** Resolves `it`, `it.skip`, `describe.only`, `it.each(...)` to its kind. */
 function calleeOf(call) {
   let expr = call.expression;
-  let mods = [];
-  let each = false;
   // it.each(cases)("title", fn): the outer call's expression is a call.
   if (
     ts.isCallExpression(expr) &&
-    ts.isPropertyAccessExpression(expr.expression)
+    ts.isPropertyAccessExpression(expr.expression) &&
+    expr.expression.name.text === "each"
   ) {
-    if (expr.expression.name.text === "each") {
-      each = true;
-      expr = expr.expression.expression;
-    }
+    expr = expr.expression.expression;
   }
-  while (ts.isPropertyAccessExpression(expr)) {
-    mods.push(expr.name.text);
-    expr = expr.expression;
-  }
+  while (ts.isPropertyAccessExpression(expr)) expr = expr.expression;
   if (!ts.isIdentifier(expr)) return null;
-  const name = expr.text;
-  const kind = SUITE_NAMES.has(name)
-    ? "suite"
-    : CASE_NAMES.has(name)
-      ? "case"
-      : null;
-  if (!kind) return null;
-  return {
-    kind,
-    skipped: mods.includes("skip") || mods.includes("todo"),
-    each,
-  };
+  if (SUITE_NAMES.has(expr.text)) return "suite";
+  if (CASE_NAMES.has(expr.text)) return "case";
+  return null;
 }
 
 /** A title as text; template holes become {expr}. */
 function titleOf(arg) {
-  if (!arg) return { title: "", dynamic: true };
+  if (!arg) return "";
   if (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg)) {
-    return { title: arg.text, dynamic: false };
+    return arg.text;
   }
   if (ts.isTemplateExpression(arg)) {
     let out = arg.head.text;
     for (const span of arg.templateSpans) {
       out += `{${collapse(span.expression.getText())}}${span.literal.text}`;
     }
-    return { title: out, dynamic: true };
+    return out;
   }
-  return { title: `{${collapse(arg.getText())}}`, dynamic: true };
+  return `{${collapse(arg.getText())}}`;
 }
 
-function collectTestFile(root, rel) {
+/** The it() titles of one contract test, with their describe path. */
+function collectContracts(root, rel) {
   const abs = join(root, rel);
   const text = readFileSync(abs, "utf8");
   const sf = ts.createSourceFile(
@@ -251,60 +150,25 @@ function collectTestFile(root, rel) {
     text,
     ts.ScriptTarget.Latest,
     true,
-    rel.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+    scriptKind(rel),
   );
-  // The file header: the first comment block, wherever it sits before code.
-  const header = (() => {
-    const first = sf.statements.find((s) => !ts.isImportDeclaration(s));
-    const texts = first ? commentsBefore(text, first) : [];
-    const top = ts.getLeadingCommentRanges(text, 0) ?? [];
-    return [
-      ...top.map((r) => stripComment(text.slice(r.pos, r.end))),
-      ...texts,
-    ];
-  })();
-
-  const rules = [];
+  const contracts = [];
   const suite = [];
-  const suiteComments = [];
-  const suiteSkipped = [];
-
   const visit = (node) => {
     if (ts.isCallExpression(node)) {
-      const callee = calleeOf(node);
-      if (callee) {
-        const stmt =
-          node.parent && ts.isExpressionStatement(node.parent)
-            ? node.parent
-            : node;
-        const own = commentsBefore(text, stmt);
-        const { title, dynamic } = titleOf(node.arguments[0]);
-        if (callee.kind === "suite") {
-          suite.push(title);
-          suiteComments.push(own);
-          suiteSkipped.push(callee.skipped);
-          ts.forEachChild(node, visit);
-          suite.pop();
-          suiteComments.pop();
-          suiteSkipped.pop();
-          return;
-        }
-        const line =
-          sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
-        const nearest = [...own, ...suiteComments.flat().reverse(), ...header];
-        rules.push({
-          id: `t:${rel}#${suite.map((s) => slug(s)).join("/")}/${slug(title)}`,
-          source: "test",
-          file: rel,
-          line,
+      const kind = calleeOf(node);
+      if (kind === "suite") {
+        suite.push(titleOf(node.arguments[0]));
+        ts.forEachChild(node, visit);
+        suite.pop();
+        return;
+      }
+      if (kind === "case") {
+        contracts.push({
+          title: titleOf(node.arguments[0]),
           suite: [...suite],
-          title,
-          body: null,
-          emphasis: 1,
-          dynamic: dynamic || callee.each,
-          skipped: callee.skipped || suiteSkipped.some(Boolean),
-          provenance: provenanceOf(nearest),
-          pins: [],
+          file: rel,
+          line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1,
         });
         return;
       }
@@ -312,121 +176,7 @@ function collectTestFile(root, rel) {
     ts.forEachChild(node, visit);
   };
   visit(sf);
-  return disambiguate(rules);
-}
-
-/* ───────────────────────── prose rules ───────────────────────── */
-
-const LIST_START = /^\s*(?:[-*+]|\d+\.)\s+/;
-const HEADING = /^(#{1,6})\s+(.*?)\s*#*\s*$/;
-
-/** GitHub's heading slug, close enough for our headings. */
-function headingSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[`*_]/g, "")
-    .replace(/[^\p{L}\p{N}\s-]/gu, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
-
-/** Splits a markdown file into blocks: paragraphs, list items, table rows. */
-function blocksOf(lines) {
-  const blocks = [];
-  let cur = null;
-  const flush = () => {
-    if (cur) blocks.push(cur);
-    cur = null;
-  };
-  let fenced = false;
-  lines.forEach((raw, i) => {
-    const line = raw.replace(/\r$/, "");
-    if (/^\s*```/.test(line)) {
-      fenced = !fenced;
-      flush();
-      return;
-    }
-    if (fenced) return;
-    if (line.trim() === "") return flush();
-    const heading = HEADING.exec(line);
-    if (heading) {
-      flush();
-      blocks.push({
-        kind: "heading",
-        level: heading[1].length,
-        text: heading[2],
-        line: i + 1,
-        lines: [],
-      });
-      return;
-    }
-    const startsItem = LIST_START.test(line) || /^\s*\|/.test(line);
-    if (startsItem || !cur) {
-      flush();
-      cur = { kind: "block", line: i + 1, lines: [line] };
-      return;
-    }
-    cur.lines.push(line);
-  });
-  flush();
-  return blocks;
-}
-
-function collectDoc(root, rel) {
-  const text = readFileSync(join(root, rel), "utf8");
-  const rules = [];
-  let anchor = "";
-  for (const block of blocksOf(text.split("\n"))) {
-    if (block.kind === "heading") {
-      anchor = headingSlug(block.text);
-      continue;
-    }
-    const joined = block.lines.map((l) => l.trim()).join(" ");
-    if (!joined.includes("★")) continue;
-    // Each ★ opens a run that ends at the next ★ or the block's end.
-    const parts = joined.split("★").slice(1);
-    let emphasisCarry = 0;
-    for (const raw of parts) {
-      if (raw === "") {
-        // A second ★ in a row: ★★ emphasis for the run that follows.
-        emphasisCarry += 1;
-        continue;
-      }
-      const emphasis = emphasisCarry > 0 ? 2 : 1;
-      emphasisCarry = 0;
-      const run = raw.trim();
-      const bold = /^\*\*(.+?)\*\*/.exec(run);
-      const headline = bold
-        ? bold[1].trim()
-        : (run.split(/(?<=[.!?])\s/)[0] ?? run).slice(0, 120).trim();
-      const body = bold
-        ? run
-            .slice(bold[0].length)
-            .replace(/^[\s:,.-]+/, "")
-            .trim()
-        : run;
-      const pins = [
-        ...new Set(
-          (run.match(TEST_FILE_RE) ?? []).map((m) => m.replace(/^`/, "")),
-        ),
-      ];
-      rules.push({
-        id: `d:${rel}#${anchor}/${slug(headline)}`,
-        source: "doc",
-        file: rel,
-        line: block.line,
-        suite: [anchor],
-        title: headline,
-        body: body || null,
-        emphasis,
-        dynamic: false,
-        skipped: false,
-        provenance: provenanceOf([run]),
-        pins,
-      });
-    }
-  }
-  return disambiguate(rules);
+  return contracts;
 }
 
 /* ───────────────────────── the component index ───────────────────────── */
@@ -438,7 +188,7 @@ function exportsOf(abs) {
     text,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TSX,
+    scriptKind(abs),
   );
   const names = new Set();
   const reexports = [];
@@ -536,55 +286,80 @@ function libraryImports(root) {
   return imports;
 }
 
-function collectComponents(root) {
-  const imports = libraryImports(root);
-  const components = [];
-  for (const dir of COMPONENT_DIRS) {
-    const abs = join(root, dir);
-    const files = readdirSync(abs)
-      .filter((f) => /\.tsx$/.test(f) && !f.includes(".test."))
-      .sort();
-    // An index.ts that re-exports lets a page import the directory itself.
-    const indexPath = join(abs, "index.ts");
-    const index = existsSync(indexPath) ? exportsOf(indexPath) : null;
-    for (const f of files) {
-      const file = `${dir}/${f}`;
-      const stem = f.replace(/\.tsx$/, "");
-      const { names } = exportsOf(join(abs, f));
-      const own = `@/${dir.replace(/^src\//, "")}/${stem}`;
-      const viaIndex = index
-        ? index.reexports
-            .filter((r) => r.from === `./${stem}`)
-            .map((r) => r.name)
-        : [];
-      const specimens = new Set();
-      for (const imp of imports) {
-        if (imp.specifier === own) specimens.add(imp.route);
-        else if (
-          viaIndex.length &&
-          imp.specifier === `@/${dir.replace(/^src\//, "")}` &&
-          imp.names.some((n) => n === "*" || viaIndex.includes(n))
-        ) {
-          specimens.add(imp.route);
-        }
-      }
-      components.push({ file, names, specimens: [...specimens].sort() });
+/** The library routes whose page imports the file, by its own specifier or its directory's index. */
+function specimensOf(root, file, imports) {
+  const dir = file.slice(0, file.lastIndexOf("/"));
+  const stem = file.slice(file.lastIndexOf("/") + 1).replace(/\.tsx?$/, "");
+  const alias = dir.replace(/^src\//, "");
+  const indexPath = join(root, dir, "index.ts");
+  const index = existsSync(indexPath) ? exportsOf(indexPath) : null;
+  const viaIndex = index
+    ? index.reexports.filter((r) => r.from === `./${stem}`).map((r) => r.name)
+    : [];
+  const specimens = new Set();
+  for (const imp of imports) {
+    if (imp.specifier === `@/${alias}/${stem}`) specimens.add(imp.route);
+    else if (
+      viaIndex.length &&
+      imp.specifier === `@/${alias}` &&
+      imp.names.some((n) => n === "*" || viaIndex.includes(n))
+    ) {
+      specimens.add(imp.route);
     }
   }
-  return components.sort((a, b) => a.file.localeCompare(b.file));
+  return [...specimens].sort();
+}
+
+const stemOf = (file) =>
+  file.slice(file.lastIndexOf("/") + 1).replace(/\.tsx?$/, "");
+
+function collectComponents(root) {
+  const imports = libraryImports(root);
+
+  const contractsByTarget = new Map();
+  for (const { file, targets } of discoverContractFiles(root)) {
+    const contracts = collectContracts(root, file);
+    for (const t of targets) {
+      contractsByTarget.set(t, [
+        ...(contractsByTarget.get(t) ?? []),
+        ...contracts,
+      ]);
+    }
+  }
+
+  const indexed = new Set();
+  for (const dir of COMPONENT_DIRS) {
+    for (const f of readdirSync(join(root, dir))) {
+      if (/\.tsx$/.test(f) && !f.includes(".test.")) indexed.add(`${dir}/${f}`);
+    }
+  }
+  const files = new Set([...indexed, ...contractsByTarget.keys()]);
+
+  // Ids are file stems; a stem shared by two directories takes its parent's name.
+  const stems = new Map();
+  for (const f of files) stems.set(stemOf(f), (stems.get(stemOf(f)) ?? 0) + 1);
+  const idOf = (f) =>
+    stems.get(stemOf(f)) === 1
+      ? stemOf(f)
+      : `${f.split("/").at(-2)}-${stemOf(f)}`;
+
+  return [...files].sort().map((file) => ({
+    id: idOf(file),
+    file,
+    names: exportsOf(join(root, file)).names,
+    specimens: specimensOf(root, file, imports),
+    indexed: indexed.has(file),
+    contracts: (contractsByTarget.get(file) ?? [])
+      .slice()
+      .sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line),
+  }));
 }
 
 /* ───────────────────────── the artifact ───────────────────────── */
 
 export function collectRules(root = process.cwd()) {
-  const rules = [];
-  for (const rel of discoverGuardFiles(root))
-    rules.push(...collectTestFile(root, rel));
-  for (const rel of DOC_SOURCES) rules.push(...collectDoc(root, rel));
-  rules.sort((a, b) => a.id.localeCompare(b.id));
   return {
     version: ARTIFACT_VERSION,
-    rules,
     components: collectComponents(root),
   };
 }

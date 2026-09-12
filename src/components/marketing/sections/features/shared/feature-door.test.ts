@@ -1,3 +1,4 @@
+// @contract-for: src/components/marketing/sections/features/shared/feature-door.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -10,7 +11,9 @@ import { isMarketingImageId } from "@/lib/constants/marketing-media";
  * The door registry's contract. Source-scanned where the rule is about the
  * file (the footer-contract precedent) and evaluated where it is about data:
  * every feature page must have a door with a real manifest photograph, or the
- * hub renders a bare ink card for it with no error.
+ * hub renders a bare ink card for it with no error. The door's LOOK (no lamp,
+ * no tilt, no photograph twice) was pinned here until the "less is more"
+ * reset (2026-09-12); a contract keeps a component working, never its look.
  */
 const source = readFileSync(
   join(
@@ -36,10 +39,16 @@ function signatureImages(): Record<string, string> {
 describe("the feature doors", () => {
   it("gives every registry page a photograph, except the QR plate", () => {
     const images = signatureImages();
-    expect(Object.keys(images).length, "the signature scan found nothing").toBeGreaterThan(3);
+    expect(
+      Object.keys(images).length,
+      "the signature scan found nothing",
+    ).toBeGreaterThan(3);
     for (const slug of FEATURE_PAGE_SLUGS) {
       if (slug === "qr") {
-        expect(images[slug], "the QR door is the one made object").toBeUndefined();
+        expect(
+          images[slug],
+          "the QR door is the one made object",
+        ).toBeUndefined();
         continue;
       }
       expect(images[slug], `${slug} has no door photograph`).toBeDefined();
@@ -50,18 +59,6 @@ describe("the feature doors", () => {
     for (const [slug, id] of Object.entries(signatureImages())) {
       expect(isMarketingImageId(id), `${slug} -> ${id}`).toBe(true);
     }
-  });
-
-  it("uses no two photographs twice: six doors, six rooms", () => {
-    const ids = Object.values(signatureImages());
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it("carries no lamp, no tilt and no glare (the event cards' rulings)", () => {
-    const code = source.replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(code).not.toMatch(/<Glow\b/);
-    expect(code).not.toMatch(/TiltCard/);
-    expect(code).not.toMatch(/data-mkt-tilt/);
   });
 
   it("keeps the white focus ring, offset inward, on the photographic link", () => {

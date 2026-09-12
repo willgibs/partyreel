@@ -62,6 +62,8 @@ a session opened in the repo root.
 > You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
 > Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
 > `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
+> Design law: the bible on `/design/rules` and the component contracts on `/design`; everything else is
+> precedent. Take the big swing, in the lab first.
 > Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
 > build, then hand off by filling the manifest's Handoff + Record sections, setting
 > `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
@@ -158,7 +160,20 @@ lines); set `status: handed-off` (and `preview: true` if Will should look); push
 a `--no-ff` true merge into `main` (never squash), tagged `milestone-<n>`, prod deployment confirmed
 READY at the merge SHA, then a **post-merge production verification pass** on partyreel.com (the
 things previews can't prove). Hotfix rule: fix on `main` → verify → back-merge to `launch-prep` the
-same session.
+same session. The steps, so no milestone is reverse-engineered from git again (2026-09-12):
+1. The full gate on `launch-prep`, each step on its own exit code (`rm -rf .next/dev` first).
+2. `git checkout main && git merge --no-ff launch-prep`: subject `milestone-<n>: prod = <the three to
+   five things>`; body `launch-prep merged --no-ff: <the round>.` then the inventory, `Gate on the tree:
+   <N> tests, <M> static pages; CI green on the tip.`, the preview walk in parentheses, and `prod is
+   verified at this SHA (docs/CHANGELOG.md).`
+3. An annotated tag, one line: `milestone-<n>: <the same things> (<the round>)`. Push `main`, then the
+   tag. (`git tag -l` sorts lexically; read the last one with `--sort=v:refname`.)
+4. Production READY at the merge SHA (the Vercel API), then the verification pass on partyreel.com,
+   including whatever the round made newly risky on prod.
+5. `git checkout launch-prep && git merge --ff-only main`, so the two agree again.
+6. The record on `launch-prep`, pushed without `[preview]`: the CHANGELOG entry (`## <date> —
+   MILESTONE-<n>: prod = …` with its two blocks, the walk before and prod at the SHA), STATUS's top
+   round row, Live state and Updated date, and the orchestrator manifest's window.
 
 ## The multi-agent versioning protocol (the operating depth behind CLAUDE.md's Git rules)
 
@@ -212,7 +227,9 @@ same session.
   in-house (the canvas engine replacing Lambda is the archetype).
 - **Model delegation:** the Orchestrator carries judgment/curation; volume work fans out to cheaper
   subagents.
-- ★ **RULES ARE PROVISIONAL TOO, and auditing them is an Orchestrator duty** (Will, 2026-09-01).
+- ★ **RULES ARE PROVISIONAL TOO; auditing them is everyone's duty and landing the change is the
+  Orchestrator's** (Will, 2026-09-01; widened to every agent 2026-09-12, when the design law became
+  the 22-rule bible plus the component contracts and everything else became precedent).
   Will sets the big-picture goals, answers the follow-ups, and rules on UI. **Most of the laws,
   doctrines and don't-revert notes in this repo were written by AGENTS**, to keep themselves
   consistent, against a design system that has since moved. So every round, ask of the rules it

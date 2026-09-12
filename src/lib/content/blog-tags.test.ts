@@ -4,51 +4,22 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  BLOG_LIBRARY_LINE,
-  BLOG_TAG_IDS,
   BLOG_TAGS,
   audienceTags,
   getBlogTag,
   isBlogTagId,
 } from "@/lib/content/blog-tags";
 
+// The tag set itself and the description lengths were pinned here until the
+// "less is more" reset (2026-09-12): the registry is its own list, and copy
+// is not a test.
 describe("the blog tag registry", () => {
-  it("is exactly the six ruled tags, audiences then purposes", () => {
-    expect(BLOG_TAG_IDS).toEqual([
-      "weddings",
-      "parties",
-      "corporate",
-      "how-to",
-      "compared",
-      "product",
-    ]);
-    expect(BLOG_TAGS.map((t) => t.kind)).toEqual([
-      "audience",
-      "audience",
-      "audience",
-      "purpose",
-      "purpose",
-      "purpose",
-    ]);
-  });
-
   it("has unique, lowercase-hyphen ids and unique labels", () => {
     const ids = BLOG_TAGS.map((t) => t.id);
     const labels = BLOG_TAGS.map((t) => t.label);
     expect(new Set(ids).size).toBe(ids.length);
     expect(new Set(labels).size).toBe(labels.length);
     for (const id of ids) expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/);
-  });
-
-  it("keeps descriptions to one line (≤ 80 chars), em-dash free, and never 'night'", () => {
-    for (const line of [
-      ...BLOG_TAGS.map((t) => t.description),
-      BLOG_LIBRARY_LINE,
-    ]) {
-      expect(line.length, line).toBeLessThanOrEqual(80);
-      expect(line, line).not.toContain("—");
-      expect(line.toLowerCase(), line).not.toMatch(/\bnight\b/);
-    }
   });
 
   it("resolves ids and rejects strangers", () => {

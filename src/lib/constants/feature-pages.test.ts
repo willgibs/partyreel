@@ -1,27 +1,15 @@
+// @contract-for: src/lib/constants/feature-pages.ts
 import { describe, expect, it } from "vitest";
 
-import {
-  FEATURE_PAGE_SLUGS,
-  FEATURE_PAGES,
-  featurePage,
-} from "./feature-pages";
+import { FEATURE_PAGES, featurePage } from "./feature-pages";
 
 /**
  * The feature-pages registry contract: the nav panel, hub, footer, sitemap, and
- * six routes all key off this shape, so drift fails here first.
+ * six routes all key off this shape, so drift fails here first. The page
+ * order and the copy lengths were pinned here too until the "less is more"
+ * reset (2026-09-12); the registry is its own order and copy is not a test.
  */
 describe("the feature-pages registry", () => {
-  it("pins the ratified six-page carve in buyer-journey order", () => {
-    expect(FEATURE_PAGE_SLUGS).toEqual([
-      "album",
-      "qr",
-      "curation",
-      "sharing",
-      "guests",
-      "privacy",
-    ]);
-  });
-
   it("every page carries the full identity layer, non-blank", () => {
     for (const page of FEATURE_PAGES) {
       expect(page.slug.trim()).not.toBe("");
@@ -30,22 +18,6 @@ describe("the feature-pages registry", () => {
       expect(page.h1.trim()).not.toBe("");
       expect(page.heroSub.trim()).not.toBe("");
       expect(page.directoryLine.trim()).not.toBe("");
-    }
-  });
-
-  it("keeps the directory lines in one length band, so the doors wrap alike", () => {
-    // Six doors in a grid read as a set only if their lines land on the same
-    // number of rows, and Will's rule is TWO rows at most. Measured at 1440 on
-    // the door's constrained measure (~40 characters a line): 50-78 is two.
-    for (const page of FEATURE_PAGES) {
-      expect(page.directoryLine.length, page.slug).toBeGreaterThanOrEqual(50);
-      expect(page.directoryLine.length, page.slug).toBeLessThanOrEqual(78);
-    }
-  });
-
-  it("panel one-liners stay panel-sized", () => {
-    for (const page of FEATURE_PAGES) {
-      expect(page.navDescription.length).toBeLessThanOrEqual(48);
     }
   });
 

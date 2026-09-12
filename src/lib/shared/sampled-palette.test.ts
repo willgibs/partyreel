@@ -1,3 +1,4 @@
+// @contract-for: src/lib/shared/sampled-palette.ts
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

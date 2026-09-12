@@ -12,8 +12,9 @@ import { formatBytes } from "@/lib/utils";
  * Will's reading rule, made mechanical: "people tend not to read most copy on
  * a site", and a list whose siblings wrap to different row counts reads as
  * unbalanced before anyone reads a word. So every multi-item list on the page
- * is written here as a SET and held in one length band by album-copy.test.ts
- * (the `directoryLine` mechanism from the hub). Numbers derive from the same
+ * is written here as a SET in one length band (the `directoryLine` mechanism
+ * from the hub; the test that held the bands left in the "less is more" reset,
+ * 2026-09-12, because copy is not a test). Numbers derive from the same
  * constants the product enforces, so a band can only drift by a word.
  *
  * Pure on purpose: strings and the constants that fill them, no React, so the

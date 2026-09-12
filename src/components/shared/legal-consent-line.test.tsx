@@ -1,3 +1,4 @@
+// @contract-for: src/components/shared/legal-consent-line.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

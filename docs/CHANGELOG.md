@@ -11,6 +11,91 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-12 — The "less is more" reset: 433 rules to a 22-rule bible, contracts on the components, the big swing licensed (`f79a711`, `91606e9`, `05e201f`)
+
+Will, on seeing the rules bible at milestone-23: 433 rules was far past what he expected, most read
+as one-off revision notes logged as permanent law, and agents working against them produced timid,
+repetitive layouts. Measured before the cut: 341 of the 433 were guard-test titles and 92 were ★ runs
+in two docs, chosen by a heuristic (any test mentioning `process.cwd()` or named
+`-policy/-contract/-parity/-guards/-uniqueness`); 162 were engineering guards that were never design
+rules; 85 of the 92 prose runs were enforced by nothing; 44 sat under one heading of
+`marketing-content.md`; 81 were minted on two days; no verdict had been written. And the only sentence
+in the repo that licensed reshaping the system was scoped to the Orchestrator by its own title.
+
+**The bible.** `src/app/(dev)/design/rules/bible.ts`: twenty-two hand-authored rules, ratified by
+Will at the plan (identity, type, shape and tokens, light, motion, surfaces, copy, the bar), each with
+its why and an honest `enforcedBy` (a linked test, or "at review"). The criterion for a line: true on
+a page that does not exist yet, and breaking it would make Partyreel look like a different product.
+`/design/rules` renders it in eight groups with three counters (22 rules, 10 components with a
+contract, 74 contracts); the verdict island and the annotations layer are deleted, and the record page
+drops the "enforced" column that could only ever have read nothing.
+
+**Contracts on the components.** A test opens with `// @contract-for: <path>` (one line per target;
+`glow-contract.test.ts` names the engine and its filter) and its `it()` titles render on that
+component's block and link from its row on the `/design` index; a test without the line is a test,
+not a rule. Ten files carry the directive; the collector reads nothing else and no docs. Four targets
+sit outside the library's directories (the footer, the legal shell, the sampler, the feature-pages
+registry) and are indexed for their contracts only. The freshness guard compares without line
+numbers; a directive naming a missing file throws with the path in the message.
+
+**The cut.** A test that freezes one page's layout or copy shape, a component's aesthetic choice, or
+the bytes of a ruled line is not a rule: `album-copy.test.ts` and `marketing-voice.test.ts` deleted
+whole (Will's ruling: no copy is pinned by a test; `marketing-voice.ts` is the one home and a rewrite
+is a ruling), and seven cases cut from `feature-pages`, `blog-tags`, `feature-door` and
+`legal-document-contract`. What stays is function: structure, accessibility, single sources, the
+engine. The em-dash guard and the content policy are lints on all copy and stay. 1646 tests to 1622,
+the two new manifests included.
+
+**★ means landmine, and only landmine.** `design-system.md` 40 stars to 18, `marketing-content.md`
+52 to 15: every survivor breaks silently when reverted (the `.mkt-line` display trap, the
+ViewTransition runtime swap, the Radix Select gotchas, `paginate()` clamping, sticky-needs-self-start,
+the filling animation outranking author declarations, the two Tailwind entries, the hand-assembled
+dark set one token behind); every design decision lost its star and reads as the page's record; every
+bible-bound run points at its bible number.
+
+**The posture.** `CLAUDE.md`'s Build step and convention line, the agent init template, the stub
+prompt and PROGRAM.md's "rules are provisional" principle now say one thing: the bible and a
+component's contracts are the only design law, everything else is precedent an agent may break, and a
+round that asks for a page or a section gets the big swing, prototyped in the lab first. A rule that
+blocks better work is a finding, not a wall.
+
+**Verified on the launch-prep alias at `05e201f`:** `/design/rules?key=` with all 22 bible rows by
+anchor, all 10 component blocks, no verdict control anywhere, the counters 22 / 10 / 74, and 404
+without the key; `/design?key=` with an anchor on every one of the 84 indexed rows and a contracts
+link on the six indexed components that have one; the page walked in Chrome in dark; locally,
+removing one `unspecimened` reason makes `component-index.test.ts` refuse, and restoring it passes.
+
+**Closed with it, and one correction.** The milestone-23 STATUS record repaired (the record script's
+last write won and dropped the row, the live-state line and the date); Will's queue parked in STATUS
+(nothing pending, eleven items kept with their links); the rounding sitting re-ruled as a GUI round
+after the gallery, with the tuner's two defects named (a Replay on the playground wipes every tuned
+value; values die on leaving the cinema group), which also corrects the round C entry below: the
+tuner's values sit on `<html>` only while the cinema layout stays mounted, so a soft navigation
+carries them between cinema pages and not into the lab. `design-gallery` and `home-hero` are
+stubbed to cut together, the orchestrator manifest releasing the lab to them.
+
+## 2026-09-12 — MILESTONE-23: prod = sharp out of every function, launch-prep on request, one cadence token, one FLIP
+
+`main` @ tag `milestone-23` (`d52b1e6`; `launch-prep` `19c16b8` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1646 tests, 245 static pages); CI green on every push, `main` included; prod READY at the merge SHA.
+The two round entries below are the round: the Vercel cost round and round C's staging. Will's ruling
+at the merge (2026-09-12): the sittings are deferred and their tooling ships; the rules bible is reset
+under "less is more" in the round that follows.
+
+**The walk before the merge, on the launch-prep alias at `d1a4c66`:** the `/_next/image` fixture
+200 `image/jpeg` 10,560 bytes without sharp, byte-identical to prod with it; `/design/rules`,
+`/design/motion`, the four sandbox boards and the home 200 with the key and `/design/rules` 404
+without; the gate's both paths live (`d1a4c66` READY on `[preview]`, `99cb5a1` and `3f88d3e`
+canceled without it, CI green on all three).
+
+**Prod at `d52b1e6`:** the home, /features, /features/album, /pricing, /help and /privacy 200, one
+h1 on the home and no h1 carrying `mkt-line`; the demo guest link 200; /dashboard 307 signed out and
+the signed-in dashboard rendering in Chrome (the event card, the storage meter, the plan notice, the
+shelves); the purge cron 401 without its secret; `/design/rules` 404 bare and 200 with the key; the
+`/_next/image` fixture 200 `image/jpeg` 10,560 bytes on production with sharp out of its trace for
+the first time, identical to the pre-merge baseline taken minutes earlier.
+
 ## 2026-09-11 — The Vercel cost round: 381 deployments to a few dozen, and sharp out of every function (`4abfa60`, `d1a4c66`)
 
 Will found deployment and function storage far over plan, with a shutdown risk. The cause was
