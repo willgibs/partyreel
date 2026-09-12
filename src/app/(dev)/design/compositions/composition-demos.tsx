@@ -9,8 +9,8 @@ import { QrPresetPicker } from "@/components/app/qr-preset-picker";
 import type { FilterValue } from "@/lib/dashboard/filters";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 
-import { SAMPLE, SAMPLE_MEDIA } from "./sample-data";
-import { Spec } from "./reference-ui";
+import { SAMPLE, SAMPLE_MEDIA } from "../reference/sample-data";
+import { Spec } from "../reference/reference-ui";
 
 // A pending set for the review-surface probe (force pending + unique ids to fill the queue).
 const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({

@@ -19,7 +19,7 @@ import {
   ActionTooltipDemo,
   FloatingAddDemo,
   SetNameStepDemo,
-} from "../reference/interactive-demos";
+} from "./interactive-demos";
 import { RefHeader, RefSection, Row, Spec } from "../reference/reference-ui";
 
 // THE LIVE PATTERNS REFERENCE. The composed shared/* pieces, rendered from the

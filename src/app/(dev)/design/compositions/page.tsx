@@ -13,7 +13,7 @@ import {
   FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
-} from "../reference/composition-demos";
+} from "./composition-demos";
 import { RefHeader, RefSection, Spec } from "../reference/reference-ui";
 import { SAMPLE, SAMPLE_BIN, SAMPLE_MEDIA } from "../reference/sample-data";
 
