@@ -78,7 +78,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   line, the in-flight progress strip), driven by ONE tick and a pure derivation that the test pins.
   ★ The FLIP wrapper carries no transform of its own (the entrance lives on the inner element) and
   its `layoutKey` is the MOUNTED COUNT, never the tick, with the beat held above `--tune-reorder-ms`,
-  or a landing re-runs the layout effect mid-slide and snaps the column. ★ The old "Just added"
+  or a landing re-runs the layout effect mid-slide and snaps the column. The old "Just added"
   chip and "Maya added 3" toasts were marketing inventions with no product surface and are gone.
   Then "Land once, show up everywhere" (the doorbell as a benefit: one `useAlbumFill` feeding a
   laptop and a `PhoneShell` so the same tile lands on both in one commit), then the quiet numbers.
@@ -89,7 +89,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   numbers), ONE paper chapter whose opener is bespoke per page (the print stock STRADDLES the cut
   on /qr, the guest-list card straddles on /guests, the spec sheet / downloads / queue / access
   switch open a tier up on the cut elsewhere), and a close chapter that opens on the doors band and
-  winds down through the FAQ to the CtaBand. ★ The doors band takes `opener={false}` on a page whose
+  winds down through the FAQ to the CtaBand. The doors band takes `opener={false}` on a page whose
   close already opens on its own beat (/qr's entry flow): two openers back to back are noise. The
   FAQ band and the GoDeeper row are ONE pair for all six pages
   ([`shared/feature-faq.tsx`](../../src/components/marketing/sections/features/shared/feature-faq.tsx)
@@ -122,11 +122,11 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   The rail takes `max-h` + its own overflow (22 entries do not fit a laptop viewport). Blocks render
   in [`legal-blocks.tsx`](../../src/components/marketing/legal/legal-blocks.tsx) (p / list / table /
   sub / `note`, the `bg-muted/40 border-y` set-apart register for disclaimers, never all-caps). The
-  status line is Inter (the mono ruling; `MonoCaption` retired here). ★ **Section ids are the anchor
-  contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. ★ **The launch
+  status line is Inter (the mono ruling; `MonoCaption` retired here). **Section ids are the anchor
+  contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. **The launch
   switch is a test**: flipping `status` to `effective` with a bracketed placeholder still in the text
   fails CI. ★ **No prices and no cap numbers in the Terms**: they point at `/pricing` so a Stripe
-  price change never falsifies a contract. ★ **The fences read the legal text AND its comments**: the
+  price change never falsifies a contract. **The fences read the legal text AND its comments**: the
   neutralization regexes (`business day`, the child-safety acronyms, `law enforcement`, `ingress`)
   cannot be quoted even in a header comment; write "working days", "public authorities", "content
   that sexually exploits minors", "reasonable limits on upload volume". Acceptance: the one
@@ -148,17 +148,17 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   the rhythm into a list. The six convictions then land as the ANSWER to that story rather than a
   feature list, and each links to the page that proves it (the previous version promised "you can
   verify each one" and gave the reader nothing to click). Close points at careers, not signup.
-  ★ **AFFIRMATIVE ONLY (Will, 2026-08-28):** a planned "where Partyreel is the wrong call" section was
+  **AFFIRMATIVE ONLY** (bible 20; Will, 2026-08-28): a planned "where Partyreel is the wrong call" section was
   cut. "A photographer could also deliver their photos via this platform... I genuinely hope people do
   find ways to use this beyond what we've thought of. **This is about who we are, not who we are not.**"
   Never enumerate what the product is not for, and never fence a use case.
-  ★ **The comparison stays CATEGORY-LEVEL** (the AI-posture ruling): the cross-platform album, the
+  **The comparison stays CATEGORY-LEVEL** (the AI-posture ruling): the cross-platform album, the
   drip-fed thread, the account wall, the per-person rental, never a product name.
-  ★ **The R5 zero-team ruling is RELAXED here** (Will, 2026-08-28): the page carries a first-person
+  **The R5 zero-team ruling is RELAXED here** (Will, 2026-08-28): the page carries a first-person
   origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
-  ★ **No CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
+  **Shipped without a CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
   and no mono anywhere (the R6 ruling).
-- ★ **THE UTILITY-PAGE RHYTHM (Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
+- **THE UTILITY-PAGE RHYTHM (bible 16; Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
   EVERY utility page** — the identity pages (about, blog, careers, press) and, as they are reworked,
   legal, privacy and contact too. "With the cinema hero, we need to go back to the dark nav to match."
   The dark ground BOOKENDS these pages rather than interrupting them: a short utility page has too few
@@ -169,14 +169,14 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   dropdowns, the dark overscroll and the `#040404` browser chrome all come with the group. Route groups
   do not appear in URLs, so adopting or dropping the treatment is a directory move with no redirect.
   `(paper)` holds only `/contact` now (privacy + terms moved 2026-09-01) and retires with it.
-  ★ **A DARK HERO DECIDES THE ROUTE GROUP**, because a dark hero must be paired with a dark nav (Will)
+  **A DARK HERO DECIDES THE ROUTE GROUP** (bible 16), because a dark hero must be paired with a dark nav (Will)
   and the header skin is chosen by the GROUP LAYOUT, which a page cannot override from inside. That one
   sentence is the whole rule: the ground your hero wants is not a page-level choice.
   ★ **Do NOT build it from the paper side.** The /about round first shipped it as a `(spotlight)`
   group whose sticky header wore a hand-assembled `--gallery*` set, and that set is always one token
   behind: it omitted `--popover`, so the in-flow nav panels rendered white-on-white at ~1.07:1. The
   measurement and the rule live in [design-system.md](design-system.md).
-  ★ **Do NOT drop a dark chapter into the MIDDLE of one of these pages** either. The register for a
+  **A dark chapter never sits in the MIDDLE of one of these pages** either (bible 16). The register for a
   set-apart block inside a paper body is `bg-muted/40` with `border-y` (the /contact panel surface).
 - **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(cinema)/about/gather.tsx)) —
   About opens on the cinema room and BOOKENDS the page in dark against the ink footer, leaving the
@@ -186,7 +186,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   of the event and onto the desk (the /help strip idiom), **`sm:` and up only** — at three columns the
   album is four rows, so phones get the whole album on dark and a plain hard cut, exactly as
   /help does below `lg`.
-  ★ **THE LESSON WORTH KEEPING: the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
+  **THE LESSON WORTH KEEPING (bible 13): the first build reused `[data-mkt-fly]`, which animates opacity 0 → 1,
   so its pre-state is INVISIBLE.** Nobody ever saw the scatter, only an empty frame filling in, and
   Will's read was "almost unnoticeable" — the whole idea was happening in a state that could not be
   seen. The `.mkt-gather` recipe never touches opacity: the photographs are visible throughout and
@@ -197,10 +197,10 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   of it" and there is always one more phone in the room.
 - **`/careers`** (rebuilt from zero, the careers round 2026-08-28) — in the **(cinema)** group (URL
   unchanged; every consumer addresses it by path). Shape: dark hero → ONE paper chapter carrying the
-  whole body → the ink footer. ★ **One cut, not stripes**: an earlier pass alternated per section and
+  whole body → the ink footer. **One cut, not stripes** (bible 17): an earlier pass alternated per section and
   Will's read was that it "feels overwhelming when it's every section on a shorter page", which is
   also the ratified chapter doctrine (a cut introduces a concept group, "never stripe alternation").
-  ★ **THE PAGE ARGUES IN PHOTOGRAPHS.** Two prototypes were rejected as generic and the cause was
+  **THE PAGE ARGUES IN PHOTOGRAPHS** (bible 18). Two prototypes were rejected as generic and the cause was
   content, not layout: both were claims about ourselves ("why it matters" restated the product pitch,
   "how we work" was a values list) on a page whose reader had already met the pitch twice. The middle
   is now **the roll → the selects → the reel**
@@ -215,7 +215,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   itself in on arrival, because marking the selects is the product's core act performed above the
   fold. The section is pulled UP under the overlay chrome (`-mt-[var(--mkt-header-h)]`, home's cinema-hero
   move) so the sheet runs behind the nav and the scrim's top stop fades it out there: starting below
-  the header left a hard seam across the top of the page. ★ The hero's marks are POSITIONAL and low
+  the header left a hard seam across the top of the page. The hero's marks are POSITIONAL and low
   in the sheet (index 18+ clears row one at all three column counts) because marks in the top row sit
   under that chrome; the roll's marks are DERIVED from the kept-frame ids instead, so the four
   photographs circled there are provably the four that lead the album a screen later, and a reorder
@@ -224,25 +224,25 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   Its composition is this page's alone (home owns the drifting wall, pricing the stacked photos,
   the footer the fanning pile), per the media doctrine in
   [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
-  ★ Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue.
+  Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue (bible 1).
   ★ **Nothing in the hero is lazy** (fixed at the merge): the sheet fills the first screen, so every
   one of its cells is above the fold, and half of them were `loading="lazy"` on the reasoning that
   this is the LCP surface, which is the wrong lever. Because the roll REPEATS, covering the unique
   pass costs six more small requests; `priority` stays at six, since a preload per frame would fight
   the LCP element for the same bandwidth.
-  ★ The h1 takes the **site ladder**, not a ramp of its own (Will, 2026-08-29: "let's normalize the
+  The h1 takes the **site ladder** (bible 5), not a ramp of its own (Will, 2026-08-29: "let's normalize the
   site ladder so that we don't have one unique size ramp for a utility page"). The round shipped it
   one step louder below `lg`; a photographic hero earns presence from the sheet, not a private step.
   This hero is what EXPOSED the roughness in the overlay header's glass wash (the pattern itself
   predates it, on home's cinema hero); the fix is now the recommendation for any full-bleed hero, in
   the glass-crossfade note in [design-system.md](design-system.md).
-  ★ The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
+  The scrim is tuned against PHOTOGRAPHY, not the dim DOM art it first served — density plus a
   uniform 0.8 dim on hero frames is what lets the type win without crushing the images the page
   exists to show. Listings use ONE row design for every entry with contact-sheet frame numbers; the
   General Application's honesty lives in its DATA (no team at all, type "Always open", its own
   action label), because with a single real role a second container read as inconsistency rather than
   distinction. The close points at **/contact**, not the product: the footer carries a product CTA
-  immediately below. ★ The HEADINGS have to tell the story alone, because people skim them and read nothing
+  immediately below. The HEADINGS have to tell the story alone, because people skim them and read nothing
   else: they run join our team → the best content gets lost in camera rolls → so we gather all of it in
   one place → and turn the best into a highlight reel → our core philosophy → we're hiring. Two traps
   live-caught there: a bare "Most of it is never seen again" under a hiring headline read as though
@@ -253,9 +253,9 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   the index and the facts share one ruled line across the card top, which is what gives it structure
   rather than three stacked text blocks. The close is a small FOLLOW-UP inside the roles section
   (smaller than a role title, tucked under the cards) rather than a CtaBand, whose heading scale
-  shouted over the list it was meant to trail. ★ Mono is confined to the contact sheet's frame
-  NUMERALS; the role and philosophy indices are Inter (the R6 ruling, applied 2026-08-29).
-  ★ **The philosophy indices are CIRCLED by the sheet's own `SelectMark`** (Will, 2026-08-29: "give
+  shouted over the list it was meant to trail. Mono is confined to the contact sheet's frame
+  NUMERALS; the role and philosophy indices are Inter (bible 7, applied 2026-08-29).
+  **The philosophy indices are CIRCLED by the sheet's own `SelectMark`** (Will, 2026-08-29: "give
   it the page's vocabulary"). That row was the one beat arguing in prose on a page that argues in
   photographs, and a bare 01/02/03 under a hairline is any startup's values grid; the mark is not a
   new device, so one gesture repeats at three scales (hero frames, roll frames, indices), and it is
@@ -273,7 +273,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   an achromatic SVG plate (a film reel, an empty slide mount, the album grid) shown on its listing
   card and again as the avatar above its title, which the two pages **MORPH between** via the native
   View Transitions API ([`role-morph.tsx`](../../src/components/marketing/sections/careers/role-morph.tsx),
-  mounted from a careers-scoped layout so the listener stays off every other route). ★ The morph
+  mounted from a careers-scoped layout so the listener stays off every other route). The morph
   itself is the SHARED
   [`morph-delegate.tsx`](../../src/components/marketing/system/morph-delegate.tsx), collapsed at the
   merge with the blog's cover morph, which was built in parallel and differed in three strings; a
@@ -282,9 +282,9 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   The CSS is NAME-SCOPED because `::view-transition-*` are document-global like `@keyframes`, and the
   binding between a `name` and its rule is pinned by `marketing-css-policy.test.ts` (renaming one
   side alone drops the timing with no error). Emblems map by slug with a deterministic integer-hash
-  fallback, so a new listing is never emblem-less and server and hydration agree; ★ that fallback
+  fallback, so a new listing is never emblem-less and server and hydration agree; that fallback
   draws only from NEUTRAL kinds, because an unwritten role inheriting `reel` (the graphics role's
-  mark) or `open` ("not a real vacancy") asserts something false. ★ It carries NO PHOTOGRAPHIC hero media on purpose.
+  mark) or `open` ("not a real vacancy") asserts something false. It shipped with NO photographic hero media, on purpose.
   The hub argues in photographs; this page is where somebody decides and wants information density,
   and a contact-sheet frame borrowed as a header was considered and dropped because an image
   unrelated to the actual role reads as decoration. The restraint straight after a photographic hub
@@ -337,7 +337,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   only when they're the sole match reason, plus a static "Pages" tail onward to the site; the empty state
   offers the ten category chips and guest-voiced results carry a "Guest" tail) + the index
   sheet (numbered panes, DOM-art [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx),
-  a live-constants "numbers" strip, a one-line guest fast lane under the quick links; ★ at ten categories
+  a live-constants "numbers" strip, a one-line guest fast lane under the quick links; at ten categories
   the strip cells need `sm:min-w-0` or the desktop strip scrolls, and the sheet keeps its row parity by
   making the guest pane wide too; panes with 7+ guides split into two columns) + answer-first articles (the frontmatter
   `description` renders as the "In short" lead; scroll-spy ToC via pure `pickActiveHeading`; one delegated
@@ -352,7 +352,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   `Path` (where-to-find-it chips), `Checklist`/`Check` (ticks persisted per article in localStorage, the
   drawn check; [`help/checklist.tsx`](../../src/components/marketing/help/checklist.tsx)), and a spec-inline
   family reading the `limits.ts`/`tiers.ts`/`lifecycle/*` single sources so numbers can't drift; NOTHING
-  client-side may import it, it reaches `node:fs`) + a `prose-help` theme. ★ Four tests hold the catalog
+  client-side may import it, it reaches `node:fs`) + a `prose-help` theme. Four tests hold the catalog
   honest: every article COMPILES as MDX (`help-mdx-compile.test.ts`; `blockJS` strips `{placeholder}`
   braces, so UI strings are quoted in rendered form), every `<UiLabel>` is a shipped app string
   (`help-ui-labels.test.ts`, whitespace-, tag- and apostrophe-normalized), every internal link and
@@ -366,7 +366,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   components live in [`components/marketing/help/`](../../src/components/marketing/help). ★ MOTION LANDMINE:
   `[data-mkt] .mkt-line` forces `display:block` (texts-reveal recipe, 0,2,1 specificity) and silently kills
   flex utilities on the same element — center constrained children with `mx-auto`, never a parent
-  `justify-center`. ★ The R6 MONO RULING (site-wide type doctrine, full text in
+  `justify-center`. The R6 MONO RULING (bible 7) (site-wide type doctrine, full text in
   [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
   captions, labels, and CTA notes are Inter. The authoring brief lives at
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (the map, the component vocabulary, the
@@ -374,7 +374,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   content-policy tests scan `.md` too and the brief must obey itself).
 - **Blog** (rebuilt 2026-08-28 from the `blog-identity` lab round; Will's composite on V4 Cutting
   Room). Moved into the **(cinema) group** like /help, so it opens on the dark stage and the reading
-  half rides `PaperChapter`. ★ **DISTINCTNESS FROM /help is the standing constraint** now that both
+  half rides `PaperChapter`. **DISTINCTNESS FROM /help was the round's constraint** now that both
   hubs open dark: /help opens on an instrument (centred question, search field, emblem strip), /blog
   opens asymmetric on the lead story with a media wall beneath. No search field, no emblems, and the
   tag rail stays words-and-numerals only - an icon column there is the one move that collapses the
@@ -399,7 +399,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     the library heading is a label + description lockup whose height never changes under a filter
     (the unfiltered view carries `BLOG_LIBRARY_LINE`), because a height change there is what the
     set-change FLIP would animate as a jolt; the description re-mounts on the shared enter beat.
-    ★ The registry must stay import-free: it is reached by the "use client" island and PostCard
+    The registry must stay import-free: it is reached by the "use client" island and PostCard
     (a test reads the file). "Keep reading" is SCORED (2 × shared audience + shared purpose,
     tiebreak nearest date), since same-tag-first funnelled every audience's endings to its two
     newest posts; a test bounds any post to five recommendations across the archive.
@@ -414,7 +414,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     `?tag=` rather than `/blog/page/[n]` routes, which would multiply into tag x page URL space —
     ★ `paginate()` CLAMPS, because a stale `?page=` or a filter that shrinks the set under the
     reader (tag with 40 posts, page 4, pick a tag with 3) must land on a real page instead of an
-    empty grid. ★ The develop stagger (`--i`) is CAPPED at 5 on library cards: the staged lead holds
+    empty grid. The develop stagger (`--i`) is CAPPED at 5 on library cards: the staged lead holds
     6 so it lands last, and an uncapped twelve-card page landed half its cards after the hero and
     replayed a second-long muted hole on every filter change.
   - **Covers.** An optional frontmatter `cover` (a `MARKETING_IMAGES` id, refined so a typo fails the
@@ -447,7 +447,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     [`morph-delegate.tsx`](../../src/components/marketing/system/morph-delegate.tsx) at the careers
     merge (the careers round had rebuilt it line for line in parallel);
     [`cover-morph.tsx`](../../src/components/marketing/blog/cover-morph.tsx) is now three strings of
-    configuration. One delegated island, so every card stays a server component. ★ NOT React's `<ViewTransition>`: that needs
+    configuration. One delegated island, so every card stays a server component. NOT React's `<ViewTransition>`: that needs
     `experimental.viewTransition`, which swaps the WHOLE app's React runtime from the pinned 19.2.4
     to 19.3.0-canary (measured with a probe build, not assumed) — a product-wide trade for a blog
     flourish, and a decision for Will, not a round. Two traps it cost: the delegate must intercept in
@@ -543,21 +543,21 @@ everywhere (header panel, footer column, /contact directory, title, breadcrumb, 
 "Press & brand" combo was two labels for one page and "brand" did no work a reporter needed. Hero =
 the shared `PageHero` at `scale="display"`, eyebrow "Media assets" over H1 "Press" (both hoisted to
 constants in the page; a taste call Will has turned three times).
-★ **AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL** (Will, 2026-08-29, arriving from the footer's
+**AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL** (bible 6) (Will, 2026-08-29, arriving from the footer's
 "Press" link). A 160px masthead is the loudest promise on the page, so it has to be the word the reader
 just clicked; a link reading Press over a masthead reading "Media" lands as a non-sequitur. Anything
 more specific belongs in the EYEBROW, which carries no word limit (the H1 does: see page-hero.tsx).
 
 **The sheet** is the kit as a photographic proof sheet: eight numbered frames on the 3px
 `--gap-gallery` album grid, opening the paper body rather than riding in the dark with the hero, so
-the body reads as one continuous surface. ★ The frames are deliberately NOT all the same kind of thing
+the body reads as one continuous surface. The frames are deliberately NOT all the same kind of thing
 (artwork, an app icon, the share card, a working QR, the ink, the type) — a uniform grid of marks is a
-downloads table wearing a metaphor; do not "tidy" it. ★ EVERY FRAME IS OURS: the first cut used two
+downloads table wearing a metaphor; do not "tidy" it. EVERY FRAME IS OURS (bible 18): the first cut used two
 stock event photos and Will pulled them ("just feels weird to say here's a random stock photo"), which
 was right twice, since a press page must not hand a publisher media whose rights we do not hold.
 ★ Plate by LEGIBILITY, not variety: white behind ink-drawn artwork, ink behind white-drawn artwork,
 and the two grounds are LITERAL colours (`PLATE_PAPER` / `BRAND_HEX`), never theme utilities — a plate
-is the artwork's own ground and must not follow a token flip. ★ THE REBATE: the grid paints `--border`
+is the artwork's own ground and must not follow a token flip. THE REBATE: the grid paints `--border`
 and insets itself by the same `--gap-gallery`, so every gap is a hairline; outer inset and inner gap
 are one value or it stops reading as a rebate.
 
@@ -568,7 +568,7 @@ the gap between a pinned heading and its answer grows with the viewport while th
 not. Words and the fact sheet share one `max-w-2xl`. Each pinned column carries a pointer under its
 note (the kit download, then /contact, then /how-it-works), and the glyph follows the ACTION rather
 than variety: navigation takes `LearnChevron`, a download takes the hero's down arrow. The close is
-centred, so the spine resolves before the cut to the footer. ★ NO BRAND-GUIDELINES SECTION, by ruling —
+centred, so the spine resolves before the cut to the footer. No brand-guidelines section, by ruling —
 clear space / minimum size / misuse are brand-book material; only the two press-business usage points
 (quoting needs no permission, how to write the name) ship, as quick hits beside the copy they govern.
 

@@ -62,6 +62,8 @@ a session opened in the repo root.
 > You are an AGENT on Partyreel's elevation program. Track `<track>`. Goal: `<goal>`.
 > Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
 > `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
+> Design law: the bible on `/design/rules` and the component contracts on `/design`; everything else is
+> precedent. Take the big swing, in the lab first.
 > Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
 > build, then hand off by filling the manifest's Handoff + Record sections, setting
 > `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
@@ -225,7 +227,9 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
   in-house (the canvas engine replacing Lambda is the archetype).
 - **Model delegation:** the Orchestrator carries judgment/curation; volume work fans out to cheaper
   subagents.
-- ★ **RULES ARE PROVISIONAL TOO, and auditing them is an Orchestrator duty** (Will, 2026-09-01).
+- ★ **RULES ARE PROVISIONAL TOO; auditing them is everyone's duty and landing the change is the
+  Orchestrator's** (Will, 2026-09-01; widened to every agent 2026-09-12, when the design law became
+  the 22-rule bible plus the component contracts and everything else became precedent).
   Will sets the big-picture goals, answers the follow-ups, and rules on UI. **Most of the laws,
   doctrines and don't-revert notes in this repo were written by AGENTS**, to keep themselves
   consistent, against a design system that has since moved. So every round, ask of the rules it

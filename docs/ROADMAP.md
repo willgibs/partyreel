@@ -32,8 +32,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
   the milestone-16 red-team, 2026-09-02).
 - **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). A design
-  problem, not a lighting one; deserves the lab and his rulings, as its own round. The hero stays
-  UNLIT by ruling meanwhile: the wall is the ground, not a source.
+  problem, not a lighting one; deserves the lab and his rulings, as its own round: the `home-hero` track,
+  cut 2026-09-12 alongside `design-gallery` (the queue in [`tracks/README.md`](tracks/README.md)). The
+  hero stays UNLIT by ruling meanwhile: the wall is the ground, not a source.
 - **Events then pricing on the home** are both card grids (four photo cards, then three pricing
   cards): the one soft adjacency left after the 2026-09-01 ruling ("no two sections back to back
   should feel repetitive"). Will named chapter 3 the model, so it stays until he wants it varied.
@@ -63,6 +64,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   already exists as a project domain and the portal is already host-gated to it, so the round is about
   making it a separately deployable surface rather than about the hostname. ★ Also not a saving: the
   16 admin routes cost 1.5 MB marginal. The win is the closed blast radius.
+- **A docs diet for the two design docs** (a candidate off the "less is more" reset, 2026-09-12):
+  `design-system.md` (885 lines) and `marketing-content.md` (636) are half record, half machinery now that
+  the star pass demoted 59 of their 92 stars to past-tense notes; a round could move the per-page record
+  into `decisions/design-record.md` and leave each doc the system and its landmines. Not before the UI
+  era; Will: "we've just weighed ourselves down with docs and rules".
 
 - **The rounding round** (Will, 2026-08-31, off the glow board's section 04: "I'm thinking we go with
   that amount of rounding carried into our design system. Not just these components only."). He picked
@@ -83,9 +89,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   move with `--radius`. Wants a preview of REAL pages at two or three candidate values before any
   commit. ✅ **Staged at round 2 (2026-09-01):** three knobs on the marketing motion tuner (`--radius`,
   `--radius-float`, `--radius-tile`, behind `?key=` on every cinema page), so the ruling is taken by
-  dragging the real surfaces; verified live on the panel. Ruled to run AFTER the library round, before
-  branching agents. Everything on the glow boards reads its token rather than a literal, so the lab inherits
-  whatever lands here for free.
+  dragging the real surfaces; verified live on the panel. **Ruled again 2026-09-12 (the "less is more"
+  reset): a dedicated rounding and tweaking GUI round, Orchestrator-run, after `design-gallery`
+  integrates**, and the tuner earns the sitting first: `TunerControl` gets a `description` and where each
+  knob ships (Will: "some of the labels aren't very clear"), knobs grouped, a working set that survives a
+  reload with an export block, a specimen for every knob or the knob retired (eight playground knobs have
+  none), and two defects fixed (a Replay on the playground wipes every tuned value, because the control
+  array is rebuilt per render and the effect cleanup removes the properties; values die on leaving the
+  cinema group). The light rulings follow it. Everything on the glow boards reads its token rather than a
+  literal, so the lab inherits whatever lands here for free.
 - **The design lab's CSS tax, CLOSED 2026-09-02 (the library round):** the lab and `docs/` left the
   production scan (`@source not`; the lab compiles its own utilities from a second Tailwind entry that
   references `src/app/theme.css`, never `globals.css`), and the home's main stylesheet went from 304,277 to
