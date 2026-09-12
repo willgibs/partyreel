@@ -64,12 +64,17 @@ import {
  * THE MARKETING SYSTEM, declared (the gallery round, 2026-09-12).
  *
  * Every component of @/components/marketing/system, every shared section atom,
- * every frame and the feature family's furniture, each with an entry of its
- * own. The page it renders on supplies the real cinema skin, so a specimen
- * here needs no wrapper of its own; what it does need, and now has, is a
- * declared variants model, because these are the components with real prop
- * axes (three hero scales, three entrances, three reveals) and the page used
- * to show whichever subset somebody had written a Spec for.
+ * every media frame and the feature family's furniture, each with an entry of
+ * its own. The page it renders on supplies the real cinema skin, so a specimen
+ * here needs no wrapper; what it did need, and now has, is a declared variants
+ * model, because these are the components with real prop axes (three hero
+ * scales, three entrances, three reveals) and the page this replaced showed
+ * whichever subset somebody had written a <Spec> for.
+ *
+ * ONE COMPONENT, ONE ENTRY, which is what keying an entry to the file forces:
+ * ScreenLamp used to live inside a PageHero specimen, GhostBackdrop shared a
+ * frame with FeatureHeroEyebrow and GoDeeper shared one with FeatureFaq, so
+ * three real components had no block and no permalink of their own.
  *
  * It declares NO component of its own: marketing-library.test.ts checks that,
  * and it is the line between a specimen sheet and a board.
@@ -114,6 +119,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "default",
         options: ["default", "lg"],
+        note: "lg is the one empty slot in the h2 ladder: above every body section, below the page h1.",
       },
       {
         prop: "align",
@@ -126,6 +132,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "default",
         options: ["default", "narrow", "wide"],
+        note: "The inner Container's clamp: narrow is the reading column, wide the showcase bleed.",
       },
       {
         prop: "reveal",
@@ -203,7 +210,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
               className="py-12"
             />
           </PaperChapter>
-
+        ),
       },
     ],
   },
@@ -214,7 +221,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Heroes",
     play: "page-hero",
-    lede: "A page renders one. The h1 holds at paint in every register, which is rule 13 and why no entrance may gate it.",
+    lede: "A page renders one. The h1 holds at paint in every register, which is why no entrance may gate it.",
     variants: [
       {
         prop: "scale",
@@ -344,7 +351,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
               </ScreenLamp>
             </div>
           </PageHero>
-
+        ),
       },
     ],
   },
@@ -355,6 +362,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Type atoms and links",
     play: "eyebrow",
+    // No specimen: for a one-line atom the config panel above IS the specimen,
+    // and a static second copy of the same three words only reads as a
+    // duplicate. The same call the Avatar entry makes on /design/components.
     specimens: [],
   },
   {
@@ -403,6 +413,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "learn-chevron",
     family: "marketing",
     section: "Type atoms and links",
+    lede: "The bare chevron, for a card or row Link where nesting a LearnMoreLink (its own Link) would be invalid HTML.",
     specimens: [
       {
         label: "LearnChevron",
@@ -439,7 +450,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
       {
         label: "Reveal",
         hint: "data-inview flips once · Replay re-mounts",
-
+        node: <RevealDemo />,
       },
     ],
   },
@@ -452,17 +463,10 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     variants: [
       {
         prop: "columns",
-        source: "declared",
+        source: "prop",
         fallback: "3",
         options: ["2", "3", "4"],
-        note: "The desktop column count; a phone is always one column.",
-      },
-      {
-        prop: "tilt",
-        source: "declared",
-        fallback: "false",
-        options: ["false", "true"],
-        note: "Wraps each child in the pointer-tracked TiltCard.",
+        note: "The desktop column count; a phone is always one column. The other axis is the boolean tilt: without it the grid is pure layout and ships no JS, so the client island is opt-in per grid.",
       },
     ],
     specimens: [
@@ -496,6 +500,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "tilt-card",
     family: "marketing",
     section: "Media",
+    lede: "Mouse-only by deliberate deviation from the recipe: a finger over a marketing card must scroll the page, not tilt a tile.",
     specimens: [
       {
         label: "On its own",
@@ -580,6 +585,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "conveyor",
     family: "marketing",
     section: "Media",
+    lede: "The marquee shell, and the owner of the loop-pause contract: offscreen and hidden-tab freeze it, and reduced motion never mounts the marquee at all.",
     specimens: [
       {
         label: "Six manifest images",
@@ -608,20 +614,13 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "inline-reel-player",
     family: "marketing",
     section: "Media",
+    lede: "The one playback surface: the reel teaser's inline sample and the hero's overlay both render this, so the transport contract lives once and no video bytes load without intent.",
     specimens: [
       {
-
-                <SelectTile
-                  key={tile.id}
-                  id={tile.id}
-                  selected={tile.selected}
-                  sizes="96px"
-                />
-              ))}
-            </div>
-            <BulkBarMock count={3} />
-          </div>
-        ),
+        label: "InlineReelPlayer",
+        hint: `reelId=${LIBRARY_REEL_ID} · poster first, click to play`,
+        bleed: true,
+        node: <InlineReelPlayer reelId={LIBRARY_REEL_ID} />,
       },
     ],
   },
@@ -687,6 +686,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "gallery-frame",
     family: "marketing",
     section: "Frames",
+    lede: "The lightbox read of an album, deliberately distinct from AlbumFrame's even grid: one large media area on the dark gallery surface over a thumbnail strip.",
     specimens: [
       { label: "GalleryFrame", hint: "default label", node: <GalleryFrame /> },
     ],
@@ -711,10 +711,25 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
       {
         label: "ReelFrame",
         hint: "no media = the player at rest",
-
-        hint: `reelId=${LIBRARY_REEL_ID} · poster first, click to play`,
-        bleed: true,
-        node: <InlineReelPlayer reelId={LIBRARY_REEL_ID} />,
+        node: <ReelFrame />,
+      },
+    ],
+  },
+  {
+    id: "live-qr",
+    family: "marketing",
+    section: "Frames",
+    lede: "The one frame that is not a picture of a thing: the app's own renderer on a real white plate, with the quiet zone a scanner needs.",
+    specimens: [
+      {
+        label: "LiveQr",
+        hint: "a real, scannable code",
+        node: (
+          <LiveQr
+            url="https://partyreel.com"
+            caption="Scan to open partyreel.com"
+          />
+        ),
       },
     ],
   },
@@ -724,13 +739,14 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "stat-band",
     family: "marketing",
     section: "Beats",
+    lede: "It server-renders the FINAL digits, so no-JS and search always read the true numbers and the motion is pure enhancement.",
     variants: [
       {
         prop: "animate",
         source: "prop",
         fallback: "spin",
         options: ["spin", "pop", "none"],
-        note: "How the numerals arrive: the odometer spin, a scale pop, or already there.",
+        note: "How the numerals arrive: the odometer spin, a per-digit pop, or already there. Fired once in view, and reduced motion renders the final numbers whichever is set.",
       },
     ],
     specimens: [
@@ -750,38 +766,33 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "confetti-burst",
     family: "marketing",
     section: "Beats",
+    lede: "A one-shot beat with real physics, in the sanctioned confetti tokens. Never an ambient loop, so it sits outside the loop-pause contract by construction.",
     specimens: [
       {
         label: "ConfettiBurst",
         hint: "fire increments · collides with the pill",
         node: <ConfettiDemo />,
       },
+    ],
+  },
   {
-    id: "go-deeper",
+    id: "sample-reel-overlay.lazy",
     family: "marketing",
-    section: "Feature pieces",
+    section: "Beats",
+    title: "SampleReelOverlay",
     specimens: [
       {
-        label: "GoDeeper",
-        hint: "the quiet help pointer, on its own",
-        node: (
-          <GoDeeper
-            links={[
-              { href: "/help", label: "How curation works" },
-              { href: "/pricing", label: "Every plan, side by side" },
-            ]}
-          />
-        ),
+        label: "SampleReelOverlay",
+        hint: "lazy default export · Escape closes",
+        node: <OverlayDemo />,
       },
     ],
   },
-
-  /* ────────────────────────────── Delegates ───────────────────────────── */
   {
     id: "morph-delegate",
     family: "marketing",
     section: "Beats",
-    lede: "A delegate renders nothing and listens. The other invisible piece, WebAnalytics, is a document singleton the library lists and never mounts.",
+    lede: "A delegate renders nothing and listens, so N cards cost one listener and each of them stays a server component. The other invisible piece, WebAnalytics, is a document singleton the library lists and never mounts.",
     specimens: [
       {
         label: "The blog cover morph, on a real post",
@@ -797,18 +808,24 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
               href={`/blog/${LIBRARY_MORPH_SLUG}`}
               data-cover-morph=""
               className="group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted"
-
-  },
-  {
-    id: "sample-reel-overlay.lazy",
-    family: "marketing",
-    section: "Beats",
-    title: "SampleReelOverlay",
-    specimens: [
-      {
-        label: "SampleReelOverlay",
-        hint: "lazy default export · Escape closes",
-        node: <OverlayDemo />,
+            >
+              <span data-cover-plate="" className="absolute inset-0">
+                <Image
+                  src={morphCover.src}
+                  alt=""
+                  fill
+                  sizes="224px"
+                  className="object-cover"
+                />
+              </span>
+            </Link>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Click the cover: the plate grows into the article&rsquo;s own
+              plate where the browser supports view transitions, and navigates
+              plainly where it does not.
+            </p>
+          </>
+        ),
       },
     ],
   },
@@ -818,25 +835,14 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "cta-band",
     family: "marketing",
     section: "Conversion",
-    lede: "The demo pieces render only when a demo event is configured (NEXT_PUBLIC_DEMO_QR_TOKEN); without it, DemoTicket and DemoCtaLink render nothing, by design.",
+    lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section.",
     variants: [
       {
         prop: "reveal",
         source: "prop",
         fallback: "standard",
         options: ["cinema", "standard", "none"],
-      },
-      {
-        prop: "demoLink",
-        source: "declared",
-        fallback: "false",
-        options: ["false", "true"],
-      },
-      {
-        prop: "credit",
-        source: "declared",
-        fallback: "false",
-        options: ["false", "true"],
+        note: "Passed straight through to the shell it composes.",
       },
     ],
     specimens: [
@@ -860,12 +866,14 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "demo-ticket",
     family: "marketing",
     section: "Conversion",
+    lede: "The demo pieces render only when a demo event is configured (NEXT_PUBLIC_DEMO_QR_TOKEN); without it this and DemoCtaLink render nothing, by design, so a dead demo CTA is impossible.",
     variants: [
       {
         prop: "layout",
         source: "prop",
         fallback: "row",
         options: ["row", "column"],
+        note: "The two shapes sit on different grounds and cannot share a palette: row is the hero's dark glass, column the opaque nav panel's card.",
       },
     ],
     specimens: [
@@ -882,40 +890,49 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         label: "Column",
         hint: "layout=column · the nav panel card",
         node: <DemoTicket layout="column" />,
-
-  /* ─────────────────────────── Feature pieces ─────────────────────────── */
+      },
     ],
   },
   {
-    id: "live-qr",
+    id: "demo-cta-link",
     family: "marketing",
-    section: "Frames",
+    section: "Conversion",
     specimens: [
       {
-        label: "LiveQr",
-        hint: "a real, scannable code",
-        node: (
-          <LiveQr
-            url="https://partyreel.com"
-            caption="Scan to open partyreel.com"
-          />
-        ),
+        label: "DemoCtaLink",
+        hint: "source=library · null without a demo",
+        node: <DemoCtaLink source="library" />,
       },
     ],
   },
 
-  /* ───────────────────────── The feature family ───────────────────────── */
+  /* ─────────────────────────── Feature pieces ─────────────────────────── */
   {
     id: "feature-door",
     family: "marketing",
     section: "Feature pieces",
-    lede: "The shared furniture of the six feature pages (the album is the model). The registry is src/lib/constants/feature-pages.ts.",
+    lede: "The shared furniture of the six feature pages (the album is the model). A door's labels and lines are read off src/lib/constants/feature-pages.ts, so its copy can never drift from the nav.",
     variants: [
+      {
+        prop: "slug",
+        source: "prop",
+        options: [
+          "album",
+          "qr",
+          "curation",
+          "sharing",
+          "guests",
+          "privacy",
+          "reel",
+        ],
+        note: "Required, and it picks both the door's photograph and the chip that surface draws. reel is the one non-registry slug, special-cased the way the nav and the hub hand-append it.",
+      },
       {
         prop: "aspect",
         source: "prop",
         fallback: "landscape",
         options: ["portrait", "landscape", "wide"],
+        note: "Portrait is the app's uniform tile; landscape the sibling band's row of three; wide the hub's full-width lead.",
       },
       {
         prop: "copy",
@@ -932,6 +949,18 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         node: (
           <div className="max-w-sm">
             <FeatureDoor slug="album" copy="long" />
+          </div>
+        ),
+      },
+      {
+        // The QR door is the one non-photograph, on purpose: a code is a made
+        // object rather than a moment, so it renders through the real app
+        // renderer on its own white plate over ink.
+        label: "The QR door",
+        hint: "slug=qr · aspect=portrait",
+        node: (
+          <div className="max-w-[14rem]">
+            <FeatureDoor slug="qr" aspect="portrait" />
           </div>
         ),
       },
@@ -986,9 +1015,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
       {
         prop: "opener",
         source: "declared",
-        fallback: "false",
-        options: ["false", "true"],
-        note: "The band opens a page's close on the hard cut.",
+        fallback: "true",
+        options: ["true", "false"],
+        note: "True lands the doors on the hard cut with a chapter opener's air; false drops them to the body register, for a page whose close already opens on its own beat.",
       },
     ],
     specimens: [
@@ -1004,6 +1033,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     id: "feature-faq",
     family: "marketing",
     section: "Feature pieces",
+    lede: "One FAQ band for all six feature pages: the shared accordion and the FAQPage JSON-LD over the same items, so the structured data cannot drift from what is on screen.",
     specimens: [
       {
         label: "One FAQ band, with GoDeeper inside it",
@@ -1020,27 +1050,33 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
           </FeatureFaq>
         ),
       },
+    ],
   },
   {
-    id: "demo-cta-link",
+    id: "go-deeper",
     family: "marketing",
-    section: "Conversion",
+    section: "Feature pieces",
     specimens: [
       {
-        label: "DemoCtaLink",
-        hint: "source=library · null without a demo",
-        node: <DemoCtaLink source="library" />,
+        label: "GoDeeper",
+        hint: "the quiet help pointer, on its own",
+        node: (
+          <GoDeeper
+            links={[
+              { href: "/help", label: "How curation works" },
+              { href: "/pricing", label: "Every plan, side by side" },
+            ]}
+          />
+        ),
       },
     ],
   },
-
-  /* ────────────────────────── Product mocks ───────────────────────────── */
   {
     id: "bulk-select-mock",
     family: "marketing",
     section: "Feature pieces",
     title: "BulkBarMock",
-    lede: "Static pictures of the app's select mode, shared by the home and the curation feature page.",
+    lede: "Static pictures of the app's select mode, shared by the home and the curation feature page so the two can never drift from each other or from the app's own bar.",
     specimens: [
       {
         label: "BulkBarMock and SelectTile",
@@ -1048,4 +1084,19 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         node: (
           <div className="space-y-4">
             <div className="grid max-w-sm grid-cols-4 gap-1">
+              {LIBRARY_SELECT_TILES.map((tile) => (
+                <SelectTile
+                  key={tile.id}
+                  id={tile.id}
+                  selected={tile.selected}
+                  sizes="96px"
+                />
+              ))}
+            </div>
+            <BulkBarMock count={3} />
+          </div>
+        ),
+      },
+    ],
+  },
 ];
