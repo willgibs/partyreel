@@ -115,12 +115,19 @@ function frame(i: number) {
 }
 
 /** One photograph at FULL luminance. There is no scrim prop and there never
- *  should be: a variant that needs one has not solved the composition. */
+ *  should be: a variant that needs one has not solved the composition.
+ *
+ *  ★ EAGER BY DEFAULT, and that is production truth, not a lab convenience: a
+ *  hero is above the fold by definition, so every frame in it must load with
+ *  the page. The /careers round shipped a hero lazy-loading half of itself
+ *  above the fold and only a measurement caught it. Only a frame that is
+ *  genuinely below the viewport (V2's duplicate column copies, which exist so
+ *  the drift seam never shows) passes eager={false}. */
 function Photo({
   index,
   className,
   sizes = "33vw",
-  eager = false,
+  eager = true,
   style,
   develop,
   land,
@@ -352,7 +359,6 @@ function ContactSheet({ mode, kinetic }: VariantProps) {
               key={n}
               index={n}
               develop={n}
-              eager={n < 2}
               sizes="50vw"
               className={n === 0 ? "col-span-2" : ""}
             />
@@ -363,10 +369,10 @@ function ContactSheet({ mode, kinetic }: VariantProps) {
   }
   return (
     <div className="grid h-full grid-cols-5 grid-rows-3 gap-1.5 bg-background">
-      <Photo index={0} develop={0} eager className="col-span-2" sizes="40vw" />
-      <Photo index={1} develop={1} eager sizes="20vw" />
-      <Photo index={2} develop={2} eager sizes="20vw" />
-      <Photo index={3} develop={3} eager sizes="20vw" />
+      <Photo index={0} develop={0} className="col-span-2" sizes="40vw" />
+      <Photo index={1} develop={1} sizes="20vw" />
+      <Photo index={2} develop={2} sizes="20vw" />
+      <Photo index={3} develop={3} sizes="20vw" />
       {/* THE CELL. Bottom-left, two by two: the album's own grid holds the
           promise, which is the thesis stated structurally rather than claimed. */}
       <div className="col-span-2 row-span-2 flex flex-col justify-center pr-8 pl-28">
@@ -410,9 +416,13 @@ function DriftColumn({
       >
         {[...run, ...run].map((n, i) => (
           <div key={i} className="relative aspect-[4/5] w-full shrink-0">
+            {/* The FIRST copy is the column you can see; the second exists
+                only so the -50% travel never exposes a seam, and it is
+                genuinely below the viewport, so it is the one thing in a hero
+                that may load lazily. */}
             <Photo
               index={n}
-              eager={i < 2}
+              eager={i < count}
               sizes="25vw"
               className="absolute inset-0"
             />
@@ -570,7 +580,6 @@ function Arrival({ mode, kinetic }: VariantProps) {
               key={n}
               index={n}
               land={!reduced && n >= ARRIVAL_START}
-              eager={n < ARRIVAL_START}
               sizes={phone ? "33vw" : "17vw"}
             />
           ) : (
