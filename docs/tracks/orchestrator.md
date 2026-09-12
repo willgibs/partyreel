@@ -30,12 +30,13 @@ The Orchestrator's rolling manifest: what `launch-prep` itself is changing this 
 landed. Agents sync `origin/launch-prep` mid-round only when a line below touches one of their
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
-**This window (the library phase, from 2026-09-11):** rounds A and B shipped at milestone-22
-(`ffa12b6`); round C is Will's three sittings and their landings; no track is open. The phase runs on `launch-prep` with no agents: the rules bible in the library
-(`/design/rules`), lab to library, the rounding, the hero registers, the feature-family furniture and the
-single sources, the light rulings. Its plan is written in its own round; the queue in [`README.md`](README.md)
-opens after it. The previous window's landed list (round 3: the operating model, the library round, wave 1,
-the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
+**This window (the "less is more" reset, from 2026-09-12):** milestone-23 (`d52b1e6`) shipped the
+Vercel cost round and round C's staging; Will's ruling at the merge deferred the sittings and reset the
+rules bible: a 22-rule bible, contracts on the components, the look-pins and copy-pins deleted, ★
+meaning landmine only, the posture rewritten for big swings. No track is open; at the round's close
+`design-gallery` and `home-hero` cut in parallel (the queue in [`README.md`](README.md)). The previous
+window's landed list (the library phase's rounds A to C and the cost round) is in the CHANGELOG,
+milestones 22 and 23.
 
 ## Landed this window
 

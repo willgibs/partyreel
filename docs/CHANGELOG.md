@@ -11,6 +11,28 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-12 — MILESTONE-23: prod = sharp out of every function, launch-prep on request, one cadence token, one FLIP
+
+`main` @ tag `milestone-23` (`d52b1e6`; `launch-prep` `19c16b8` merged `--no-ff`, then `launch-prep`
+fast-forwarded onto the merge commit). The merged tree is the `launch-prep` tree; the gate green on it
+(1646 tests, 245 static pages); CI green on every push, `main` included; prod READY at the merge SHA.
+The two round entries below are the round: the Vercel cost round and round C's staging. Will's ruling
+at the merge (2026-09-12): the sittings are deferred and their tooling ships; the rules bible is reset
+under "less is more" in the round that follows.
+
+**The walk before the merge, on the launch-prep alias at `d1a4c66`:** the `/_next/image` fixture
+200 `image/jpeg` 10,560 bytes without sharp, byte-identical to prod with it; `/design/rules`,
+`/design/motion`, the four sandbox boards and the home 200 with the key and `/design/rules` 404
+without; the gate's both paths live (`d1a4c66` READY on `[preview]`, `99cb5a1` and `3f88d3e`
+canceled without it, CI green on all three).
+
+**Prod at `d52b1e6`:** the home, /features, /features/album, /pricing, /help and /privacy 200, one
+h1 on the home and no h1 carrying `mkt-line`; the demo guest link 200; /dashboard 307 signed out and
+the signed-in dashboard rendering in Chrome (the event card, the storage meter, the plan notice, the
+shelves); the purge cron 401 without its secret; `/design/rules` 404 bare and 200 with the key; the
+`/_next/image` fixture 200 `image/jpeg` 10,560 bytes on production with sharp out of its trace for
+the first time, identical to the pre-merge baseline taken minutes earlier.
+
 ## 2026-09-11 — The Vercel cost round: 381 deployments to a few dozen, and sharp out of every function (`4abfa60`, `d1a4c66`)
 
 Will found deployment and function storage far over plan, with a shutdown risk. The cause was

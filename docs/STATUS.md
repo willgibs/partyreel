@@ -416,8 +416,9 @@ manifest fill.
    `marketing-followons` waits on the library phase; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Before wave 3, the library phase** (Orchestrator-run, no agents; Will's direction of
    2026-09-11): rounds A and B are on prod at milestone-22 (the rules bible, the library's specimens,
    the hero registers, the single sources); round C is your three sittings (the rules pass, the
-   rounding, the light rulings) and their landings; round D closes the phase (the FLIP collapse, the
-   docs pass, milestone-23) and opens the queue. **Wave 4:** the home hero as its
+   rounding, the light rulings) and their landings; milestone-23 shipped 2026-09-12 with round C's staging and the FLIP; the sittings are deferred by
+   Will's ruling and the phase closes with the "less is more" reset (the round after the milestone),
+   which opens the queue. **Wave 4:** the home hero as its
    own agent focus round, then the launch round in the Launch checkpoint's human order.
 8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
    reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would
