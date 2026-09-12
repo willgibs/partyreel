@@ -812,19 +812,35 @@ controls (`items-center` centers children but the BOX stays edge-to-edge and eat
 its flanks — this once killed swipe-nav on all six shared-viewer surfaces). And the repo's
 react-hooks lint bans setState-in-effect sync resets — use the adjust-state-during-render pattern
 (prev-state comparison) for transient view resets.
-## The component index
+## The component index and the gallery
 
-The library renders its own index. `/design` lists every component file under
-`src/components/{ui,shared,marketing/system,marketing/sections/shared,marketing/frames,marketing/sections/features/shared}`
-with the page that renders it, derived from the pages' imports by
-[`scripts/design-rules/collect.mjs`](../../scripts/design-rules/collect.mjs) into the committed
-`src/app/(dev)/design/rules/rules.generated.json`; a file with no specimen carries a reason in
-`src/app/(dev)/design/rules/component-notes.ts` (`COMPONENT_NOTES`: the root singletons `GlowFilter` and
-the `Toaster`, the provider-bound `AppShell`, `MediaLightbox`, `ClaimUploadsOnAuth`, the
-`UploadThumbnail` that takes a live File), a component with a contract links to its block on
-`/design/rules`, and `component-index.test.ts` fails on silence. The table
-that used to sit here was hand-maintained and drifted; the pages ARE the index (the library phase,
-2026-09-11).
+The library renders itself. A component is **declared once**, in its family's
+`src/app/(dev)/design/<family>/gallery-demos.tsx` (its id, its section, its variants, its specimens,
+and the id of a config panel where it has one), and three surfaces render from that one declaration:
+its family page, its permalink at `/design/library/<id>`, and the searchable index of all of them at
+`/design/library`. The declaration carries only what code cannot derive: the file, the exported
+names, the specimen routes and the contracts come off `rules.generated.json`
+([`scripts/design-rules/collect.mjs`](../../scripts/design-rules/collect.mjs)), and the `for` line
+plus any no-specimen reason come off
+[`component-notes.ts`](../../src/app/(dev)/design/rules/component-notes.ts), joined in
+`gallery/registry.ts`. A component outside the six indexed directories (the product components under
+`src/components/app`) declares its own `file` and joins on that.
+
+★ **A family is the page that MOUNTS the specimen, and an entry module must live in that page's
+directory.** The collector reads a component's specimen route from the directory of the `page.tsx`
+or `*-demos.tsx` file that imports it, so a demo module in the wrong folder indexes its components at
+a route that does not exist: six of them sat at `/design/reference`, which has never been a page,
+until the gallery round (2026-09-12). It also means `family` is not always the component's own
+directory, and should not be made to be: Glow lives in `src/components/shared` and belongs beside the
+light tokens on `/design/foundations`.
+
+Two guards keep it honest. `component-index.test.ts` fails when a library component has neither a
+specimen nor a recorded reason. `gallery/gallery.test.ts` fails when a component has no gallery entry
+or no `for` line, when a config panel is unreachable or shared, and, the one that earns its keep,
+when a DECLARED variant is not a variant the component has: a `cva` axis is compared key for key
+against the component's own `variants` block and its `defaultVariants`, and a `prop` or `declared`
+axis must at least name values the source contains. That check found the library showing five Badge
+variants of six and four Button sizes of eight on the day it was written.
 
 ## Where it lives
 
@@ -832,7 +848,8 @@ that used to sit here was hand-maintained and drifted; the pages ARE the index (
 variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
-`error.tsx` files · `src/app/(dev)/design/` (the lab: the library pages; `/design/rules`, the bible (`rules/bible.ts`, hand-authored)
+`error.tsx` files · `src/app/(dev)/design/` (the lab: the five family pages plus `gallery/` (the entry model, the chrome, the
+config panels) and `library/` (the index and every component's permalink); `/design/rules`, the bible (`rules/bible.ts`, hand-authored)
 and the component contracts (every test tagged `@contract-for`, collected by `pnpm design:rules` into
 `rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh); `touchpoints.ts` the rulings
 registry; `sandbox/` the open boards with their own sheets; the four probes) · `src/lib/design-gate/*` +
