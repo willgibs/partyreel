@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 
+import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { ReviewSection } from "@/components/app/event-feed/review-section";
 import { useReviewTriage } from "@/components/app/event-feed/use-review-triage";
-import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
-import type { FilterValue } from "@/lib/dashboard/filters";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
+import type { FilterValue } from "@/lib/dashboard/filters";
 
 import { SAMPLE, SAMPLE_MEDIA } from "../reference/sample-data";
-import { Spec } from "../reference/reference-ui";
 
 // A pending set for the review-surface probe (force pending + unique ids to fill the queue).
 const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
@@ -20,26 +19,29 @@ const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
 }));
 
 /**
- * The CONTROLLED product components for the Compositions reference: the two that
- * take an onChange handler, so they need client state to be live. Everything else
- * on the page renders from static sample props in the server page.
+ * The CONTROLLED product components for the Compositions gallery: the ones that
+ * take an onChange handler or a hook, so they need client state to be live.
+ * Everything else in the family renders from static sample props in
+ * gallery-demos.tsx.
+ *
+ * Each demo returns bare content now (the gallery round, 2026-09-12): the Stage
+ * supplies the frame, the label and the light-and-dark split, and the specimen
+ * that mounts the demo carries its label and hint.
  */
 
 export function FilterChipsDemo() {
   const [active, setActive] = useState<FilterValue>("all");
-  return (
-    <Spec label="Filter chips" hint="dashboard · controlled">
-      <FilterChips active={active} onChange={setActive} trashCount={3} />
-    </Spec>
-  );
+  return <FilterChips active={active} onChange={setActive} trashCount={3} />;
 }
 
 export function QrPresetPickerDemo() {
   const [value, setValue] = useState<QrStyleKey>("classic");
   return (
-    <Spec label="QR preset picker" hint="share · live styled QR">
-      <QrPresetPicker value={value} onChange={setValue} joinUrl={SAMPLE.joinUrl} />
-    </Spec>
+    <QrPresetPicker
+      value={value}
+      onChange={setValue}
+      joinUrl={SAMPLE.joinUrl}
+    />
   );
 }
 
@@ -53,12 +55,10 @@ export function ReviewSectionDemo() {
     moderationOn: true,
   });
   return (
-    <Spec label="Review section" hint="inline triage · Select / Approve all">
-      <ReviewSection
-        triage={triage}
-        onEnableModeration={() => {}}
-        enabling={false}
-      />
-    </Spec>
+    <ReviewSection
+      triage={triage}
+      onEnableModeration={() => {}}
+      enabling={false}
+    />
   );
 }

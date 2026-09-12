@@ -128,7 +128,7 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
     name: "EmptyState",
     defaults: { variant: "icon", action: false },
     knobs: [
-      { kind: "select", prop: "variant", options: ["icon", "quiet"], value: "quiet" },
+      { kind: "select", prop: "variant", options: ["quiet", "icon"], value: "quiet" },
       { kind: "text", prop: "title", value: "No photos yet" },
       {
         kind: "text",

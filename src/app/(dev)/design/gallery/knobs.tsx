@@ -125,7 +125,7 @@ export function ConfigPanel({ def }: { def: PlaygroundDef }) {
       <div className="grid lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div
           className={cn(
-            "flex min-h-40 items-center justify-center p-6",
+            "flex min-h-36 items-center justify-center p-6",
             def.wellClassName,
           )}
         >

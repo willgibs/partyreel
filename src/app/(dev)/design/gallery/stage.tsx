@@ -136,7 +136,7 @@ export function CopyLine({ code }: { code: string }) {
       }}
       className="group/copy flex w-full items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-left transition-colors hover:border-foreground/25"
     >
-      <code className="min-w-0 flex-1 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-muted-foreground group-hover/copy:text-foreground">
+      <code className="min-w-0 flex-1 font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap text-muted-foreground group-hover/copy:text-foreground">
         {code}
       </code>
       <span className="relative mt-0.5 size-3.5 shrink-0 text-muted-foreground">
