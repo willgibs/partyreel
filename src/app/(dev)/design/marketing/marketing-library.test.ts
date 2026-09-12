@@ -8,15 +8,19 @@ import { describe, expect, it } from "vitest";
  * board: it may import only production modules and the lab's reference kit,
  * declares no component of its own, and wears no lab-local treatment. Which
  * components it (and every other library page) renders is pinned by the
- * component index in ../rules/rules-annotations.test.ts, derived from the
- * pages' imports; a new component gets a specimen or a reasoned entry in
- * COMPONENT_NOTES, never silence.
+ * component index in ../rules/component-index.test.ts, derived from the
+ * imports of this directory's page.tsx and its *-demos.tsx modules; a new
+ * component gets a specimen or a reasoned entry in COMPONENT_NOTES, never
+ * silence. Which is why the entry module is read here too: since the gallery
+ * round the specimens live in gallery-demos.tsx, so an allow-list that only
+ * covered page.tsx would have stopped guarding the imports that matter.
  */
 const ROOT = process.cwd();
 const DIR = "src/app/(dev)/design/marketing";
 const PAGE = readFileSync(join(ROOT, DIR, "page.tsx"), "utf8");
 const DEMOS = readFileSync(join(ROOT, DIR, "marketing-demos.tsx"), "utf8");
-const SOURCE = PAGE + "\n" + DEMOS;
+const ENTRIES = readFileSync(join(ROOT, DIR, "gallery-demos.tsx"), "utf8");
+const SOURCE = [PAGE, DEMOS, ENTRIES].join("\n");
 
 const SPECIFIERS = [
   ...SOURCE.matchAll(/from "([^"]+)"/g),
@@ -33,7 +37,9 @@ describe("the marketing library page", () => {
       /^react$/,
       /^lucide-react$/,
       /^\.\.\/reference\//,
+      /^\.\.\/gallery\//,
       /^\.\/marketing-demos$/,
+      /^\.\/gallery-demos$/,
     ];
     const offenders = SPECIFIERS.filter(
       (s) => !allowed.some((re) => re.test(s)),
@@ -59,6 +65,14 @@ describe("the marketing library page", () => {
       (m) => m[1],
     );
     for (const name of demoDecls) expect(name, name).toMatch(/Demo$/);
+    // The entry module is a DECLARATION (an array of specimens), so a
+    // capitalised function there is the same board creeping in one file over.
+    const entryDecls = [
+      ...ENTRIES.matchAll(
+        /^(?:export )?(?:default )?(?:async )?function ([A-Z]\w*)/gm,
+      ),
+    ].map((m) => m[1]);
+    expect(entryDecls, "gallery-demos.tsx declares a component").toEqual([]);
   });
 
   it("wears no lab-local treatment", () => {

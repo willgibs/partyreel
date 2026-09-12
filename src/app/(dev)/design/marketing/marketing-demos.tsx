@@ -16,6 +16,11 @@ import { LIBRARY_STATS } from "../reference/marketing-sample-data";
  * point is an entrance or a beat, so they need a Replay, a Fire, or an Open.
  * Re-mounting by key is the honest replay (the components arm on mount, as
  * they do in production); nothing here is a copy of a component.
+ *
+ * Each demo returns BARE content: since the gallery round (2026-09-12) the
+ * Stage supplies the frame, the label, the mono hint and the light-and-dark
+ * split, so a control that restated its own specimen's name was saying the
+ * heading twice. The entries that mount these live in gallery-demos.tsx.
  */
 
 const SampleReelOverlay = lazy(
@@ -86,7 +91,7 @@ export function StatBandDemo({ animate }: { animate: "spin" | "pop" }) {
     <div className="space-y-4">
       <StatBand key={run} stats={LIBRARY_STATS} animate={animate} />
       <Button variant="outline" size="sm" onClick={replay}>
-        Replay {animate}
+        Replay
       </Button>
     </div>
   );

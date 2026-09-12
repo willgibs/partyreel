@@ -4,15 +4,15 @@ import {
   Boxes,
   Clapperboard,
   FlaskConical,
-  LayoutGrid,
+  Library,
   Palette,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { COUNTS, ZONES } from "./catalog";
-import { COMPONENT_NOTES } from "./rules/component-notes";
-import { INDEXED, groupByDirectory } from "./rules/rules";
+import { ITEMS } from "./gallery/registry";
+import { INDEXED } from "./rules/rules";
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
 // THE WORKBENCH LANDING (2026-06-19). The lab is Partyreel's one internal UI
@@ -82,10 +82,10 @@ export default async function DesignIndexPage({
           blurb="The site's system, live."
         />
         <JumpCard
-          href={link("/design/record")}
-          icon={<LayoutGrid className="size-4" />}
-          title="The record"
-          blurb="Every ruling, one line each."
+          href={link("/design/library")}
+          icon={<Library className="size-4" />}
+          title="The library"
+          blurb="Every component, one page each."
         />
       </div>
 
@@ -115,79 +115,47 @@ export default async function DesignIndexPage({
         ))}
       </div>
 
-      {/* THE COMPONENT INDEX (the library phase, 2026-09-11): every component
-          file in the library's directories and the page that renders it,
-          derived from the pages' imports by scripts/design-rules/collect.mjs
-          (component-index.test.ts keeps every file rendered or excused). A
-          component with a contract links to it on /design/rules; the pages
-          ARE the index, this is the map. */}
-      <h2 className="mt-10 text-sm font-semibold">
-        Every component, where it lives
-      </h2>
+      {/* THE LIBRARY (the gallery round, 2026-09-12). The eighty-four-row
+          table that used to sit here could only be read top to bottom, so it
+          moved to /design/library, where it is searchable and every row is a
+          page. This is the doorway and the count; the facts still come from
+          the artifact (scripts/design-rules/collect.mjs) joined to the gallery
+          entries, never from a second list. */}
+      <h2 className="mt-10 text-sm font-semibold">The library</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-        {INDEXED.length} files across the library&rsquo;s directories, each with
-        the page that renders it and, where one exists, its contract. A file
-        with no specimen says why.
+        {INDEXED.length} components, each with its specimens, its declared
+        variants, its config panel where it has one, and its contracts.
       </p>
-      <div className="mt-3 space-y-3">
-        {groupByDirectory(INDEXED).map(([dir, files]) => (
-          <div key={dir} className="rounded-xl border border-border bg-card">
-            <p className="border-b border-border px-4 py-2 font-mono text-[11px] text-muted-foreground">
-              {dir}
-            </p>
-            <ul className="divide-y divide-border">
-              {files.map((c) => {
-                const note = COMPONENT_NOTES[c.file];
-                return (
-                  <li
-                    key={c.file}
-                    id={`c-${c.id}`}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-1.5 text-[13px]"
-                  >
-                    <span className="font-medium">
-                      {c.names.join(", ") || c.file.split("/").pop()}
-                    </span>
-                    {note?.for && (
-                      <span className="text-xs text-muted-foreground">
-                        {note.for}
-                      </span>
-                    )}
-                    <span className="ml-auto flex flex-wrap gap-2 font-mono text-[11px]">
-                      {c.specimens.length > 0 ? (
-                        c.specimens.map((route) => (
-                          <Link
-                            key={route}
-                            href={link(route)}
-                            className="underline"
-                          >
-                            {route}
-                          </Link>
-                        ))
-                      ) : (
-                        <span
-                          className="text-muted-foreground"
-                          title={note?.unspecimened}
-                        >
-                          no specimen: {note?.unspecimened ?? "unexcused"}
-                        </span>
-                      )}
-                      {c.contracts.length > 0 && (
-                        <Link
-                          href={`${link("/design/rules")}#c-${c.id}`}
-                          className="text-muted-foreground underline"
-                        >
-                          {c.contracts.length} contract
-                          {c.contracts.length === 1 ? "" : "s"}
-                        </Link>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+      <Link
+        href={link("/design/library")}
+        className="group mt-3 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30"
+      >
+        {(
+          [
+            ["components", INDEXED.length],
+            ["with a specimen", ITEMS.filter((i) => i.entry.specimens.length > 0).length],
+            ["with a config panel", ITEMS.filter((i) => i.entry.play).length],
+            [
+              "declared variants",
+              ITEMS.reduce(
+                (n, i) =>
+                  n +
+                  (i.entry.variants ?? []).reduce((m, v) => m + v.options.length, 0),
+                0,
+              ),
+            ],
+          ] as [string, number][]
+        ).map(([label, n]) => (
+          <span key={label} className="block">
+            <span className="block font-heading text-2xl">{n}</span>
+            <span className="block text-xs text-muted-foreground">{label}</span>
+          </span>
         ))}
-      </div>
+        <span className="ml-auto flex items-center gap-1.5 text-sm font-medium">
+          Browse
+          <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </Link>
 
       <p className="mt-12 text-xs text-muted-foreground">
         Internal lab. Not linked anywhere, not indexed, and absent from

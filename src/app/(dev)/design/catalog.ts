@@ -65,6 +65,12 @@ export const ZONES: LabZone[] = [
         label: "Live",
         entries: [
           {
+            href: "/design/library",
+            label: "Every component",
+            status: "reference",
+            note: "The whole library, searchable, one row each; open one for its specimens, variants, config panel and contracts.",
+          },
+          {
             href: "/design/foundations",
             label: "Foundations",
             status: "reference",

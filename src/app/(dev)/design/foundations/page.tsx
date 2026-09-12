@@ -1,7 +1,8 @@
-import { Glow } from "@/components/shared/glow";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { requireDesignKey } from "@/lib/design-gate/server";
+import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
+import { EntryBlock } from "../gallery/gallery-ui";
+import { itemById } from "../gallery/registry";
 import { RefHeader, RefSection, Spec, Swatch } from "../reference/reference-ui";
 
 // THE LIVE FOUNDATIONS REFERENCE. Every swatch fills with the REAL CSS var and
@@ -13,7 +14,12 @@ export default async function FoundationsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireDesignKey(searchParams);
+  const key = await requireDesignKey(searchParams);
+  // Glow is the one COMPONENT on a page of tokens, so it is declared like every
+  // other library component (foundations/gallery-demos.tsx) and rendered here
+  // through the gallery block: its variants, its config panel and its permalink
+  // all come from that one entry.
+  const glow = itemById("glow");
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 pt-8 pb-20">
@@ -222,43 +228,12 @@ export default async function FoundationsPage({
               ["Lamp 5", "--lamp-5"],
             ]}
           />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Spec
-              label="A seam on the ink slab"
-              hint="Glow shape=seam · the footer's light"
-            >
-              <div className="relative h-40 overflow-hidden rounded-lg bg-gallery">
-                <Glow shape="seam" />
-              </div>
-            </Spec>
-            <Spec
-              label="The engine's knobs"
-              hint="--glw-* · defaults in globals.css's engine block"
-            >
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground">
-                {[
-                  "--glw-base",
-                  "--glw-strength",
-                  "--glw-dur",
-                  "--glw-blur",
-                  "--glw-scale",
-                  "--glw-h",
-                  "--glw-core",
-                  "--glw-core-blur",
-                  "--glw-from-x",
-                  "--glw-from-y",
-                  "--glw-reach",
-                  "--glw-radius",
-                ].map((name) => (
-                  <span key={name}>{name}</span>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Tune through the vars prop, never a className: the engine sizes
-                itself to its positioned parent.
-              </p>
-            </Spec>
-          </div>
+          {glow && (
+            <EntryBlock
+              item={glow}
+              link={(href) => withDesignKey(href, key)}
+            />
+          )}
         </div>
       </RefSection>
     </main>
