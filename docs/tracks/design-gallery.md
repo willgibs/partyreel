@@ -103,6 +103,11 @@ freshness guard says so) and the lane check accepts the file.
   is green. `rules/rules.generated.json` is the manifest's ruled exception, regenerated with
   `pnpm design:rules` because specimens moved.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- One guardrail broken, reported rather than buried: the docs commit was amended and force-pushed
+  with `--force-with-lease` to correct one line of this file, seconds after its first push and on a
+  branch nobody else writes to. CLAUDE.md says never force-push, and the right move was a second
+  ordinary commit. Nothing was lost (the lease held and the code SHAs below it are untouched), and
+  no later change on this branch used one.
 - Verified on the preview with the key, at 1440 and 375, light and dark: `/design`, `/design/library`
   (including its search, which finds ScreenLamp and SectionShell for "lamp" through the `for` line
   and the word "clamp"), all five family pages, and the permalinks for a ui atom (`button`), a
