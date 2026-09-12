@@ -674,7 +674,10 @@ function OneFrame({ mode, kinetic }: VariantProps) {
           src={marketingImage(FRAMES[shot]).src}
           alt=""
           fill
-          sizes="100vw"
+          // The canvas width, not the window's: `sizes` is viewport-relative
+          // and the stage is zoomed, so a vw value here picks the wrong
+          // candidate and next/image says so in the console.
+          sizes={phone ? "375px" : "1440px"}
           priority
           className="object-cover"
         />
@@ -731,7 +734,7 @@ function Stage({ mode, children }: { mode: Mode; children: React.ReactNode }) {
   }, [w]);
 
   return (
-    <div ref={boxRef} className="flex justify-center">
+    <div ref={boxRef} className="flex justify-center overflow-hidden">
       <div
         className="dark relative overflow-hidden rounded-lg border border-border text-foreground"
         data-mkt
@@ -861,8 +864,8 @@ export function HomeHeroVariants() {
           fewer, bigger photographs.
         </p>
         <p className="border-l-2 border-foreground/25 pl-3 text-foreground">
-          <span className="font-medium">The recommendation: V1.</span> It is the
-          only one that solves the problem structurally rather than by
+          <span className="font-medium">{"The recommendation: V1. "}</span>It is
+          the only one that solves the problem structurally rather than by
           partition, and the only one whose composition IS the thesis: the
           promise is a page in the album, seated on the album&apos;s own grid
           lines. V2 is the close second and the safer pick, with the most air
