@@ -1,3 +1,4 @@
+// @contract-for: src/components/marketing/sections/features/shared/feature-door.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -36,10 +37,16 @@ function signatureImages(): Record<string, string> {
 describe("the feature doors", () => {
   it("gives every registry page a photograph, except the QR plate", () => {
     const images = signatureImages();
-    expect(Object.keys(images).length, "the signature scan found nothing").toBeGreaterThan(3);
+    expect(
+      Object.keys(images).length,
+      "the signature scan found nothing",
+    ).toBeGreaterThan(3);
     for (const slug of FEATURE_PAGE_SLUGS) {
       if (slug === "qr") {
-        expect(images[slug], "the QR door is the one made object").toBeUndefined();
+        expect(
+          images[slug],
+          "the QR door is the one made object",
+        ).toBeUndefined();
         continue;
       }
       expect(images[slug], `${slug} has no door photograph`).toBeDefined();

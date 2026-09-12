@@ -11,8 +11,8 @@ import {
 import { cn } from "@/lib/utils";
 
 import { COUNTS, ZONES } from "./catalog";
-import { COMPONENT_NOTES } from "./rules/annotations";
-import { COMPONENTS } from "./rules/rules";
+import { COMPONENT_NOTES } from "./rules/component-notes";
+import { INDEXED, groupByDirectory } from "./rules/rules";
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
 // THE WORKBENCH LANDING (2026-06-19). The lab is Partyreel's one internal UI
@@ -118,17 +118,19 @@ export default async function DesignIndexPage({
       {/* THE COMPONENT INDEX (the library phase, 2026-09-11): every component
           file in the library's directories and the page that renders it,
           derived from the pages' imports by scripts/design-rules/collect.mjs
-          (rules-annotations.test.ts keeps every file rendered or excused).
-          The pages ARE the index; this is the map. */}
+          (component-index.test.ts keeps every file rendered or excused). A
+          component with a contract links to it on /design/rules; the pages
+          ARE the index, this is the map. */}
       <h2 className="mt-10 text-sm font-semibold">
         Every component, where it lives
       </h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-        {COMPONENTS.length} files across the library&rsquo;s directories, each
-        with the page that renders it. A file with no specimen says why.
+        {INDEXED.length} files across the library&rsquo;s directories, each with
+        the page that renders it and, where one exists, its contract. A file
+        with no specimen says why.
       </p>
       <div className="mt-3 space-y-3">
-        {groupByDirectory(COMPONENTS).map(([dir, files]) => (
+        {groupByDirectory(INDEXED).map(([dir, files]) => (
           <div key={dir} className="rounded-xl border border-border bg-card">
             <p className="border-b border-border px-4 py-2 font-mono text-[11px] text-muted-foreground">
               {dir}
@@ -139,6 +141,7 @@ export default async function DesignIndexPage({
                 return (
                   <li
                     key={c.file}
+                    id={`c-${c.id}`}
                     className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-1.5 text-[13px]"
                   >
                     <span className="font-medium">
@@ -168,6 +171,15 @@ export default async function DesignIndexPage({
                           no specimen: {note?.unspecimened ?? "unexcused"}
                         </span>
                       )}
+                      {c.contracts.length > 0 && (
+                        <Link
+                          href={`${link("/design/rules")}#c-${c.id}`}
+                          className="text-muted-foreground underline"
+                        >
+                          {c.contracts.length} contract
+                          {c.contracts.length === 1 ? "" : "s"}
+                        </Link>
+                      )}
                     </span>
                   </li>
                 );
@@ -183,15 +195,6 @@ export default async function DesignIndexPage({
       </p>
     </main>
   );
-}
-
-function groupByDirectory(components: typeof COMPONENTS) {
-  const groups = new Map<string, typeof COMPONENTS>();
-  for (const c of components) {
-    const dir = c.file.slice(0, c.file.lastIndexOf("/"));
-    groups.set(dir, [...(groups.get(dir) ?? []), c]);
-  }
-  return [...groups.entries()];
 }
 
 function firstSandboxId(groups: { entries: { href: string }[] }[]): string {

@@ -1,3 +1,4 @@
+// @contract-for: src/components/marketing/system/screen-lamp.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -14,7 +15,9 @@ const source = readFileSync(
   join(process.cwd(), "src/components/marketing/system/screen-lamp.tsx"),
   "utf8",
 );
-const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+const code = source
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/^\s*\/\/.*$/gm, "");
 
 describe("the screen lamp", () => {
   it("is a seam that hangs BELOW the object (the one underlight mechanic)", () => {
@@ -40,7 +43,10 @@ describe("the screen lamp", () => {
   });
 
   it("passes the engine no className (the utilities layer outranks it)", () => {
-    const glow = code.slice(code.indexOf("<Glow"), code.indexOf("/>", code.indexOf("<Glow")));
+    const glow = code.slice(
+      code.indexOf("<Glow"),
+      code.indexOf("/>", code.indexOf("<Glow")),
+    );
     expect(glow).not.toContain("className");
   });
 });

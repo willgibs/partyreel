@@ -1,20 +1,21 @@
-import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
+import { requireDesignKey } from "@/lib/design-gate/server";
 import { RefHeader, RefSection } from "../reference/reference-ui";
-import { RULES } from "../rules/rules";
 import { type Ruling, RULINGS, SURFACE_LABEL } from "../touchpoints";
 
 // THE RECORD: every ruling the lab has taken, one line each, from
 // touchpoints.ts. The long form (the ruling verbatim, the round's context, the
 // board's files and last SHA) is docs/decisions/design-record.md, anchored by
-// the same ids; the rules a reader must obey live in the system docs named
-// under "Lives". Open boards are the ones still standing in the sandbox.
+// the same ids; the rules a reader must obey are the bible on /design/rules
+// and the contracts on the components. Open boards are the ones still
+// standing in the sandbox. (The "enforced" column that counted registry rules
+// against each ruling's paths left with the reset of 2026-09-12: with the
+// bible hand-authored, it could only ever have read "nothing".)
 export default async function RecordPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const key = await requireDesignKey(searchParams);
-  const rulesHref = withDesignKey("/design/rules", key);
+  await requireDesignKey(searchParams);
   const open = RULINGS.filter((r) => r.board !== undefined);
   const ruled = RULINGS.filter((r) => r.board === undefined);
 
@@ -23,49 +24,28 @@ export default async function RecordPage({
       <RefHeader
         eyebrow="Reference · history"
         title="The record"
-        blurb="Every ruling the lab has taken, one line each. The long form, verbatim, is docs/decisions/design-record.md; the rules themselves live where each row says. Boards leave the sandbox when their ruling lands; git keeps them."
+        blurb="Every ruling the lab has taken, one line each. The long form, verbatim, is docs/decisions/design-record.md; the rules themselves are the bible and the component contracts. Boards leave the sandbox when their ruling lands; git keeps them."
       />
       <RefSection
         title={`Open (${open.length})`}
         blurb="Boards still standing in the sandbox."
       >
-        <RecordTable rows={open} rulesHref={rulesHref} />
+        <RecordTable rows={open} />
       </RefSection>
       <RefSection
         title={`Ruled (${ruled.length})`}
         blurb="Boards deleted; the record doc and git history keep them."
       >
-        <RecordTable rows={ruled} rulesHref={rulesHref} />
+        <RecordTable rows={ruled} />
       </RefSection>
     </main>
   );
 }
 
-/** How many enforced rules live where the ruling says its rule lives (a
- *  prefix on the path, the anchor for a doc): derived, never hand-written,
- *  so a ruling nothing enforces shows as exactly that. */
-function enforcedRuleCount(lives: string[]): number {
-  return RULES.filter((rule) =>
-    lives.some((entry) => {
-      const [path, anchor] = entry.split("#");
-      if (rule.source === "doc") {
-        return rule.file === path && (!anchor || rule.suite[0] === anchor);
-      }
-      return rule.file.startsWith(path.replace(/\.[jt]sx?$/, ""));
-    }),
-  ).length;
-}
-
-function RecordTable({
-  rows,
-  rulesHref,
-}: {
-  rows: Ruling[];
-  rulesHref: string;
-}) {
+function RecordTable({ rows }: { rows: Ruling[] }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
-      <table className="w-full min-w-[56rem] text-left text-[13px]">
+      <table className="w-full min-w-[52rem] text-left text-[13px]">
         <thead>
           <tr className="border-b border-border text-[11px] tracking-wider text-muted-foreground uppercase">
             <th className="px-3 py-2 font-medium">Touchpoint</th>
@@ -74,13 +54,13 @@ function RecordTable({
             <th className="px-3 py-2 font-medium">Shipped</th>
             <th className="px-3 py-2 font-medium">Why</th>
             <th className="px-3 py-2 font-medium">Lives</th>
-            <th className="px-3 py-2 font-medium">Enforced</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr
               key={r.id}
+              id={r.id}
               className="border-b border-border align-top last:border-0"
             >
               <td className="px-3 py-2.5">
@@ -106,16 +86,6 @@ function RecordTable({
                     {l}
                   </p>
                 ))}
-              </td>
-              <td className="px-3 py-2.5 font-mono text-[11px] whitespace-nowrap">
-                {enforcedRuleCount(r.lives) === 0 ? (
-                  <span className="text-muted-foreground">nothing</span>
-                ) : (
-                  <a href={`${rulesHref}#r-${r.id}`} className="underline">
-                    {enforcedRuleCount(r.lives)} rule
-                    {enforcedRuleCount(r.lives) === 1 ? "" : "s"}
-                  </a>
-                )}
               </td>
             </tr>
           ))}

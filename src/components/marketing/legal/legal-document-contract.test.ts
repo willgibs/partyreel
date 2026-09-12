@@ -1,3 +1,4 @@
+// @contract-for: src/components/marketing/legal/legal-document.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
