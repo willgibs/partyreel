@@ -127,5 +127,5 @@ export type GalleryEntry = {
   play?: string;
 };
 
-/** The order sections read in on a family page; anything unlisted follows. */
-export type FamilySections = Record<GalleryFamily, string[]>;
+// Section ORDER is declaration order (registry.familySections walks the array),
+// so there is deliberately no separate order list to keep in sync.

@@ -93,7 +93,9 @@ function stringArray(
   if (ts.isIdentifier(node)) return consts.get(node.text);
   if (!ts.isArrayLiteralExpression(node)) return undefined;
   const values = node.elements.map(str);
-  return values.every((v) => v !== undefined) ? (values as string[]) : undefined;
+  return values.every((v) => v !== undefined)
+    ? (values as string[])
+    : undefined;
 }
 
 const prop = (o: ts.ObjectLiteralExpression, name: string) =>
@@ -123,7 +125,8 @@ function readEntries(): Entry[] {
       );
       if (!exported) continue;
       for (const d of s.declarationList.declarations) {
-        if (!d.initializer || !ts.isArrayLiteralExpression(d.initializer)) continue;
+        if (!d.initializer || !ts.isArrayLiteralExpression(d.initializer))
+          continue;
         for (const el of d.initializer.elements) {
           if (!ts.isObjectLiteralExpression(el)) continue;
           const id = str(prop(el, "id"));
@@ -171,7 +174,8 @@ function readPlaygrounds(): Map<string, { prop: string; options: string[] }[]> {
     if (!ts.isVariableStatement(s)) continue;
     for (const d of s.declarationList.declarations) {
       if (!ts.isIdentifier(d.name) || d.name.text !== "PLAYGROUNDS") continue;
-      if (!d.initializer || !ts.isObjectLiteralExpression(d.initializer)) continue;
+      if (!d.initializer || !ts.isObjectLiteralExpression(d.initializer))
+        continue;
       for (const p of d.initializer.properties) {
         if (!ts.isPropertyAssignment(p)) continue;
         const key =
@@ -199,7 +203,9 @@ function readPlaygrounds(): Map<string, { prop: string; options: string[] }[]> {
 /* ───────────────────────── reading a component's variants ───────────────── */
 
 /** Every cva block in a component file: prop -> { options, fallback }. */
-function cvaAxes(rel: string): Map<string, { options: string[]; fallback?: string }> {
+function cvaAxes(
+  rel: string,
+): Map<string, { options: string[]; fallback?: string }> {
   const sf = parse(rel);
   const out = new Map<string, { options: string[]; fallback?: string }>();
   const visit = (node: ts.Node) => {
@@ -220,7 +226,8 @@ function cvaAxes(rel: string): Map<string, { options: string[]; fallback?: strin
             ts.isIdentifier(axis.name) || ts.isStringLiteral(axis.name)
               ? axis.name.text
               : undefined;
-          if (!name || !ts.isObjectLiteralExpression(axis.initializer)) continue;
+          if (!name || !ts.isObjectLiteralExpression(axis.initializer))
+            continue;
           const options = axis.initializer.properties
             .filter(ts.isPropertyAssignment)
             .map((o) =>
@@ -244,9 +251,9 @@ function cvaAxes(rel: string): Map<string, { options: string[]; fallback?: strin
 }
 
 /**
- * Every value a component names: string literals (type unions included) and
- * object keys written bare, which is how a cva block and a class map spell
- * their options.
+ * Every value a component names: string literals (type unions included),
+ * numbers, and object keys written bare, which is how a cva block and a class
+ * map spell their options.
  */
 function literals(rel: string): Set<string> {
   const sf = parse(rel);
@@ -256,11 +263,15 @@ function literals(rel: string): Set<string> {
       out.add(node.text);
     }
     if (
-      (ts.isPropertyAssignment(node) || ts.isShorthandPropertyAssignment(node)) &&
-      ts.isIdentifier(node.name)
+      (ts.isPropertyAssignment(node) ||
+        ts.isShorthandPropertyAssignment(node)) &&
+      (ts.isIdentifier(node.name) || ts.isNumericLiteral(node.name))
     ) {
       out.add(node.name.text);
     }
+    // A numeric union (`columns?: 2 | 3 | 4`) is spelled in numbers, and an
+    // option list is strings, so the two meet here.
+    if (ts.isNumericLiteral(node)) out.add(node.text);
     ts.forEachChild(node, visit);
   };
   visit(sf);
@@ -310,7 +321,10 @@ describe("every gallery entry", () => {
   it("has a unique id", () => {
     const seen = new Map<string, string>();
     for (const e of ENTRIES) {
-      expect(seen.has(e.id), `${e.id} is declared twice (${seen.get(e.id)} and ${e.from})`).toBe(false);
+      expect(
+        seen.has(e.id),
+        `${e.id} is declared twice (${seen.get(e.id)} and ${e.from})`,
+      ).toBe(false);
       seen.set(e.id, e.from);
     }
   });
@@ -328,9 +342,10 @@ describe("every gallery entry", () => {
           e.file,
           `${e.id} is outside the six indexed directories, so it must declare its file`,
         ).toBeTruthy();
-        expect(existsSync(join(ROOT, e.file!)), `${e.id}: ${e.file} is gone`).toBe(
-          true,
-        );
+        expect(
+          existsSync(join(ROOT, e.file!)),
+          `${e.id}: ${e.file} is gone`,
+        ).toBe(true);
       }
     }
   });
@@ -368,7 +383,10 @@ describe("the declared variants match the component", () => {
       if (!file) continue;
       for (const axis of e.variants.filter((a) => a.source === "cva")) {
         const found = cvaAxes(file).get(axis.prop);
-        expect(found, `${e.id}: ${file} declares no cva axis "${axis.prop}"`).toBeTruthy();
+        expect(
+          found,
+          `${e.id}: ${file} declares no cva axis "${axis.prop}"`,
+        ).toBeTruthy();
         expect(
           [...axis.options].sort(),
           `${e.id}: the gallery's "${axis.prop}" options differ from ${file}`,
@@ -421,7 +439,9 @@ describe("the config panels", () => {
     expect(new Set(played).size, "two entries share a config panel").toBe(
       played.length,
     );
-    const unreached = [...PLAYGROUNDS.keys()].filter((k) => !played.includes(k));
+    const unreached = [...PLAYGROUNDS.keys()].filter(
+      (k) => !played.includes(k),
+    );
     expect(unreached, "a config panel no entry mounts").toEqual([]);
   });
 

@@ -717,7 +717,7 @@
         "ActionTooltip"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -773,7 +773,6 @@
         "EmptyState"
       ],
       "specimens": [
-        "/design/components",
         "/design/patterns"
       ],
       "indexed": true,
@@ -786,7 +785,7 @@
         "FloatingAddButton"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1327,7 +1326,6 @@
         "Logo"
       ],
       "specimens": [
-        "/design/components",
         "/design/patterns"
       ],
       "indexed": true,
@@ -1397,7 +1395,7 @@
         "PasswordStrengthMeter"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1409,7 +1407,6 @@
         "PlayBadge"
       ],
       "specimens": [
-        "/design/components",
         "/design/patterns"
       ],
       "indexed": true,
@@ -1432,7 +1429,7 @@
         "SetNameStep"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1485,8 +1482,7 @@
       "specimens": [
         "/design/components",
         "/design/marketing",
-        "/design/patterns",
-        "/design/reference"
+        "/design/patterns"
       ],
       "indexed": true,
       "contracts": []
@@ -1590,7 +1586,7 @@
         "FormMessage"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1605,7 +1601,7 @@
         "InputOTPSlot"
       ],
       "specimens": [
-        "/design/reference"
+        "/design/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1617,8 +1613,7 @@
         "Input"
       ],
       "specimens": [
-        "/design/components",
-        "/design/reference"
+        "/design/components"
       ],
       "indexed": true,
       "contracts": []
@@ -1630,8 +1625,7 @@
         "Label"
       ],
       "specimens": [
-        "/design/components",
-        "/design/reference"
+        "/design/components"
       ],
       "indexed": true,
       "contracts": []

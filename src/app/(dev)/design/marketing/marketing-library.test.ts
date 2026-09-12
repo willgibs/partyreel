@@ -16,7 +16,8 @@ const ROOT = process.cwd();
 const DIR = "src/app/(dev)/design/marketing";
 const PAGE = readFileSync(join(ROOT, DIR, "page.tsx"), "utf8");
 const DEMOS = readFileSync(join(ROOT, DIR, "marketing-demos.tsx"), "utf8");
-const SOURCE = PAGE + "\n" + DEMOS;
+const ENTRIES = readFileSync(join(ROOT, DIR, "gallery-demos.tsx"), "utf8");
+const SOURCE = [PAGE, DEMOS, ENTRIES].join("\n");
 
 const SPECIFIERS = [
   ...SOURCE.matchAll(/from "([^"]+)"/g),
@@ -33,7 +34,9 @@ describe("the marketing library page", () => {
       /^react$/,
       /^lucide-react$/,
       /^\.\.\/reference\//,
+      /^\.\.\/gallery\//,
       /^\.\/marketing-demos$/,
+      /^\.\/gallery-demos$/,
     ];
     const offenders = SPECIFIERS.filter(
       (s) => !allowed.some((re) => re.test(s)),
@@ -59,6 +62,14 @@ describe("the marketing library page", () => {
       (m) => m[1],
     );
     for (const name of demoDecls) expect(name, name).toMatch(/Demo$/);
+    // The entry module is a DECLARATION (an array of specimens), so a
+    // capitalised function there is the same board creeping in one file over.
+    const entryDecls = [
+      ...ENTRIES.matchAll(
+        /^(?:export )?(?:default )?(?:async )?function ([A-Z]\w*)/gm,
+      ),
+    ].map((m) => m[1]);
+    expect(entryDecls, "gallery-demos.tsx declares a component").toEqual([]);
   });
 
   it("wears no lab-local treatment", () => {

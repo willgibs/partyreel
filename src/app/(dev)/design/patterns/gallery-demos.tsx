@@ -52,7 +52,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "Lockup and mark",
-        hint: "the one brand splash",
+        hint: "default, then markOnly",
         node: (
           <div className="flex flex-col gap-3">
             <Logo />
@@ -132,6 +132,9 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "icon",
         note: "The prop's own doc comment calls quiet the default; the code defaults to icon. Declared here is what the code does.",
+        // The order of the prop's own union, which is also the order the config
+        // panel's select offers: gallery.test.ts compares the two lists element
+        // for element, so the two move together.
         options: ["quiet", "icon"],
       },
     ],
@@ -165,7 +168,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "not-found-screen",
     family: "patterns",
     section: "Dead ends",
-    lede: "The dead-end hero the not-found pages share. Content only, with no page chrome of its own, because its three call sites sit in different wrappers; the top-down stagger is CSS, so it runs in a Server Component.",
     specimens: [
       {
         label: "Not found",
@@ -206,14 +208,13 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "anonymous-info",
     family: "patterns",
     section: "Forms and info",
-    lede: "The explainer beside an Anonymous caption. A tap-to-open popover rather than a tooltip, because guests are mobile first, and the copy changes for the host, who can turn anonymous uploads off.",
     specimens: [
       {
         // On the gallery skin because that is where it ships: the trigger is
         // painted in white/60 for the always-dark lightbox, and on the lab's
         // light card it is nearly invisible.
         label: "Guest and host",
-        hint: "tap to open",
+        hint: "the guest copy, then the host copy",
         skin: "gallery",
         node: (
           <Row>
@@ -234,7 +235,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "set-name-step",
     family: "patterns",
     section: "Forms and info",
-    lede: "The one required name step, reused at every gate (host onboarding and the guest upload flow), so the same profanity-checked write path and the same privacy guidance serve both.",
     specimens: [
       {
         label: "Set name step",
@@ -247,7 +247,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "legal-consent-line",
     family: "patterns",
     section: "Forms and info",
-    lede: "The acceptance line tying sign-in and the guest door to the Terms and the Privacy Policy from one component, so the two surfaces cannot drift.",
     specimens: [
       {
         label: "Consent line",
@@ -264,7 +263,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "PageHeading",
-        hint: "the app's one h1 source",
+        hint: "font-heading at text-2xl; size rides className",
         node: <PageHeading>Dashboard</PageHeading>,
       },
     ],
@@ -299,7 +298,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
         // Bleed, so the frame's own padding does not fake a gutter the
         // component is not drawing: the dashed edges ARE the measurement.
         label: "Container",
-        hint: "max-w-7xl, the one horizontal gutter",
+        hint: "the dashed edges are the gutter",
         bleed: true,
         node: (
           <Container className="border-x border-dashed border-border py-4 text-center text-xs text-muted-foreground">
@@ -314,7 +313,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "action-tooltip",
     family: "patterns",
     section: "Actions",
-    lede: "Lightbox only. Wrapping the server-rendered gallery tiles in Radix tooltips regressed host gallery hydration in prod, so tiles carry a native title instead.",
     specimens: [
       {
         label: "ActionTooltip",
@@ -327,7 +325,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     id: "floating-add-button",
     family: "patterns",
     section: "Actions",
-    lede: "The floating Add photos pill, fixed to the viewport and shown only while the header's own Add button is scrolled out of view. The demo brings it up for four seconds.",
     specimens: [
       {
         label: "FloatingAddButton",
