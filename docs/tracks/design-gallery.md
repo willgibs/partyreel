@@ -1,7 +1,7 @@
 ---
 track: design-gallery
 status: open            # open -> handed-off -> integrated (deleted at the milestone that ships it)
-cut: "<filled at boot>"  # the launch-prep SHA the branch was cut from
+cut: "260c015"       # the launch-prep SHA the branch was cut from (docs: record MILESTONE-24)
 preview: true           # Will's review surface: every push builds partyreel-git-lp-design-gallery
 owns:
   - src/app/(dev)/design/page.tsx
