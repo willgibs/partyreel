@@ -11,6 +11,68 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-12 — The home-hero board: four heroes with zero darkening layers over media, waiting on Will's ruling (`lp/home-hero`, merged at `d63f6cc`)
+
+Merged into `launch-prep` at `d63f6cc` (2026-09-12; the branch head `393bacc`). The home hero round
+opened with a board, not a build. The finding is the board: the shipped hero carries three darkening
+layers over its wall of 24 tiles at desktop and a fourth below `sm`, because white type had to survive
+over whichever tile the 55-second drift parked under it, so bible rule 1 is inverted and not one
+photograph reads as a photograph. That turns the hero into one design question, WHERE DOES THE TYPE
+LIVE so no photograph is ever dimmed, and `/design/c/home-hero` answers it four ways: the type as a
+cell in the album's own grid, as its own column against a hard frame edge, as a band over an album
+that fills guest by guest with the count climbing, and as a small opaque title card on one photograph
+that owns the screen. The four stages carry zero darkening layers over media between them, measured
+on the preview against three on the shipped hero rendered beside them from production code, and all
+four show fewer, bigger photographs (8 to 18, not 24 thumbnails). The ruled copy renders verbatim,
+the h1 is never gated and at `opacity: 1` at paint in all four, and the hero stays cinema and unlit.
+Two lab-fidelity findings are worth keeping: a board that shows two viewport sizes on one page cannot
+use Tailwind's responsive ramps, because a breakpoint keys off the reviewer's window and not the
+stage, so the canvases are real viewport pixels fitted with `zoom` and the ladder is resolved per
+canvas; and a board that proposes a hero has to propose its LOADING too, since four of V1's frames,
+two thirds of V2's and most of V3's album were lazy inside a hero, the exact defect the /careers
+round measured on production. No production byte changed: `cinema-hero.tsx` is untouched, and the
+wiring waits on Will's ruling. The agent's recommendation is V1, the contact sheet, with V2 second.
+
+**Integration.** Lane check clean with two claimed exceptions accepted: `touchpoints.test.ts` (the
+test for a file the track owns, now in its owns) and one section plus one index row in
+`docs/decisions/design-record.md` (its contract lists the standing boards). `launch-prep` had not
+moved since the cut. **On the launch-prep alias at `2455a84`:** the board 200 with the key, 404 bare;
+the four older boards still 200 and an unknown board 404; all four variant h1s white at 72px and
+`opacity: 1` with the thesis verbatim, read off the DOM; the home unchanged (one h1, no `mkt-line`).
+
+## 2026-09-12 — The gallery: the library as a declaration, 88 entries with permalinks, a searchable index and 15 config panels (`lp/design-gallery`, merged at `7048ab1`)
+
+Merged into `launch-prep` at `7048ab1` (2026-09-12; the branch head `9ee41cd`). The library became a
+declaration. A component is declared once in its family's `gallery-demos.tsx` (id, section, its
+variants, its specimens, the id of a config panel) and three surfaces render from that one entry:
+its family page, its permalink at `/design/library/<id>`, and a searchable index of all 88 at
+`/design/library`, which replaces the 84-row block that could only be read top to bottom. The id is
+the collector's own, so the file, the exported names, the specimen routes and the contracts join on
+with no second copy. 15 config panels give a live instance, its knobs and the JSX line they describe,
+copyable. `gallery.test.ts` is the new guard: no component without an entry or a `for` line (88 now
+carry one, against 10), no unreachable panel, and no declared variant the component does not have, a
+cva axis compared key for key against its own `variants` and `defaultVariants`. That last check
+immediately found the library showing five Badge variants of six and four Button sizes of eight. Two
+defects went with it: nine components were indexed at `/design/reference`, a route that has never
+existed (the demo islands sat in a directory with no page; they moved into the families whose pages
+mount them), and the marketing page had been showing whichever prop subset somebody had written a
+Spec for.
+
+**Integration.** Lane check clean: `owns` grew by `gallery/` and `library/` at build time with no
+peer claim, and `rules.generated.json` regenerated under the ruled exception. One system-doc edit
+read by eye (`design-system.md`'s index section, rewritten as the index and the gallery, with a new ★
+that is a real landmine: a demo module in the wrong directory indexes its components at a route that
+does not exist); its count corrected from six to nine per the artifact at the cut. One guardrail slip
+reported by the agent rather than buried: its docs commit was amended and pushed with
+`--force-with-lease` on its own branch, nothing lost. Its process lesson is now the third way the gate
+lies in `testing-verification.md`. Gate on the merged tree: typecheck, lint, 1633 tests in 190 files,
+246 static pages. **On the launch-prep alias at `2455a84`:** `/design/library` 200 with the key and
+88 permalink links, 404 bare; permalinks for a ui atom (`button`), a shared molecule (`logo`), a
+marketing organism (`page-hero`), `glow` and the off-artifact `event-card` 200, an unknown id 404,
+a wrong key 404; all five family pages and the landing 200; the rules counters unchanged at
+22 / 10 / 74; the index walked in Chrome in dark. Both track branches and worktrees pruned; the
+Vercel dry run has nothing to delete.
+
 ## 2026-09-12 — MILESTONE-24: prod = the 22-rule bible, contracts on the components, the look-pins gone, the big swing licensed
 
 `main` @ tag `milestone-24` (`592da24`; `launch-prep` `d21a61b` merged `--no-ff`, then `launch-prep`
