@@ -8,9 +8,12 @@ import { describe, expect, it } from "vitest";
  * board: it may import only production modules and the lab's reference kit,
  * declares no component of its own, and wears no lab-local treatment. Which
  * components it (and every other library page) renders is pinned by the
- * component index in ../rules/rules-annotations.test.ts, derived from the
- * pages' imports; a new component gets a specimen or a reasoned entry in
- * COMPONENT_NOTES, never silence.
+ * component index in ../rules/component-index.test.ts, derived from the
+ * imports of this directory's page.tsx and its *-demos.tsx modules; a new
+ * component gets a specimen or a reasoned entry in COMPONENT_NOTES, never
+ * silence. Which is why the entry module is read here too: since the gallery
+ * round the specimens live in gallery-demos.tsx, so an allow-list that only
+ * covered page.tsx would have stopped guarding the imports that matter.
  */
 const ROOT = process.cwd();
 const DIR = "src/app/(dev)/design/marketing";
