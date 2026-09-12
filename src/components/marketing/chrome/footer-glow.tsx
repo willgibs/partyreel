@@ -39,7 +39,7 @@ import { Glow } from "@/components/shared/glow";
 export function FooterGlow() {
   return (
     <>
-      <Glow shape="seam" vars={{ "--glw-dur": "11s" }} />
+      <Glow shape="seam" vars={{ "--glw-dur": "var(--spill-cadence)" }} />
       {/* The seam itself: a hairline the light appears to be leaking through.
           A SIBLING of the glow, not a child, which is how the lab writes it and
           what keeps the 1px line crisp while the light behind it undulates. It

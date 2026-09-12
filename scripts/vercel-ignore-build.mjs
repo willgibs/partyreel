@@ -12,14 +12,22 @@
  * shows as canceled). Runs BEFORE install with the repo checked out, so: node stdlib only,
  * never import from node_modules.
  *
- * Policy: build main (production) and launch-prep (the integration preview) always. An lp/<track>
- * push builds when the branch has NO manifest yet (the pre-model default, so a branch that
- * predates docs/tracks keeps its every-push preview), when its manifest docs/tracks/<track>.md
- * says `preview: true` or `status: handed-off`, or when the commit message carries `[preview]`.
- * A manifest with `preview: false` and `status: open` skips, so the integration preview never
- * queues behind work in progress on the one-at-a-time Hobby plan (the operating model,
- * 2026-09-02). A missing/empty VERCEL_GIT_COMMIT_REF means a manual `vercel deploy` with no git
- * ref, which must never be silently canceled, so it builds. Everything else skips.
+ * Policy: build main (production) always. launch-prep builds ON REQUEST: only when the commit
+ * message carries `[preview]` (the Vercel cost round, 2026-09-11 — Will: "deployments are only
+ * needed for reviewable rounds"). It used to build on every push, which alone accounted for 176
+ * of the 381 retained deployments and most of the storage overage; a docs commit or a
+ * mid-round checkpoint needs no preview, and the round's LAST push before a walk says
+ * `[preview]`. Nothing is lost but the preview itself: CI (GitHub Actions) runs typecheck,
+ * lint, test and build on every push to main, launch-prep and lp/** regardless of this file.
+ *
+ * An lp/<track> push is unchanged: it builds when the branch has NO manifest yet (the pre-model
+ * default, so a branch that predates docs/tracks keeps its every-push preview), when its manifest
+ * docs/tracks/<track>.md says `preview: true` or `status: handed-off`, or when the commit message
+ * carries `[preview]`. A manifest with `preview: false` and `status: open` skips, so the
+ * integration preview never queues behind work in progress on the one-at-a-time Hobby plan (the
+ * operating model, 2026-09-02). A missing/empty VERCEL_GIT_COMMIT_REF means a manual
+ * `vercel deploy` with no git ref, which must never be silently canceled, so it builds.
+ * Everything else skips.
  *
  * vercel.json's "ignoreCommand" points here and overrides the project-settings field; keep the
  * policy in THIS file. Rollback: delete the vercel.json key (the dashboard field, if still set,
@@ -50,9 +58,14 @@ let why;
 if (ref === "") {
   build = true;
   why = "no git ref (manual deploy), never silently canceled";
-} else if (ref === "main" || ref === "launch-prep") {
+} else if (ref === "main") {
   build = true;
-  why = "production or the integration preview";
+  why = "production";
+} else if (ref === "launch-prep") {
+  build = message.includes("[preview]");
+  why = build
+    ? "the commit message says [preview]"
+    : "the integration branch builds on request (say [preview] when a walk needs it)";
 } else if (ref.startsWith("lp/")) {
   const { hasManifest, wants } = manifestDecision(ref.slice(3));
   if (!hasManifest) {

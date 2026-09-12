@@ -58,7 +58,7 @@ export function FilmStripLamp({ children }: { children: ReactNode }) {
           shape="seam"
           drive="mask"
           colors={colors ?? undefined}
-          vars={{ "--glw-dur": "11s", "--glw-strength": "0.5" }}
+          vars={{ "--glw-dur": "var(--spill-cadence)", "--glw-strength": "0.5" }}
         />
       </div>
     </div>

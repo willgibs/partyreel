@@ -61,7 +61,7 @@ export function ReelScreenLamp({ children }: { children: ReactNode }) {
           drive="mask"
           colors={colors ?? undefined}
           vars={{
-            "--glw-dur": "11s",
+            "--glw-dur": "var(--spill-cadence)",
             "--glw-h": "220px",
             "--glw-strength": "0.5",
           }}

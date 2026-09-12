@@ -46,8 +46,10 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   (system docs refined in place, CHANGELOG entry, ROADMAP pruned); STATUS is current (round table,
   live state, decision queue); every track branch is integrated or `handed-off` in its manifest; `git worktree list` shows only the root and open tracks and
   `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
-  gates are green at the `launch-prep` tip and the preview deploy is READY there; nothing a
-  successor needs lives only in the closing session.
+  gates are green at the `launch-prep` tip and, when the round ended in a walk, its `[preview]`
+  push is READY there (the integration preview is built on request since 2026-09-11); Vercel is
+  pruned (`node scripts/prune-vercel-deployments.mjs`); nothing a successor needs lives only in
+  the closing session.
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
@@ -179,7 +181,9 @@ same session.
   flipped to `status: integrated` + `merged: "<sha>"` in the same commit → the doc-eye pass over
   every listed system-doc edit, fact against code → fold Record into CHANGELOG (dated, merge SHA)
   and Deferred into its ROADMAP buckets, STATUS's round table if it moved → prune: `git worktree
-  remove`, `git branch -d lp/<track>`, `git push origin --delete lp/<track>`. A change touching
+  remove`, `git branch -d lp/<track>`, `git push origin --delete lp/<track>`, then
+  `node scripts/prune-vercel-deployments.mjs --apply` so the branch's deployments go with the
+  branch (the Vercel cost round, 2026-09-11; dry-run first, it prints what it would delete). A change touching
   more than one open lane (a rename, a shared-component sweep, the radius round) is
   Orchestrator-only, announced in `docs/tracks/orchestrator.md` first, and lands after the affected
   tracks integrate or are told to sync. Contention hotspots, now fenced by the manifests: STATUS /

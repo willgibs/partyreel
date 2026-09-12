@@ -126,6 +126,14 @@
   --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
   --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
   --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
+  /* The lamps' cadence, ONE token (staged for the cadence sitting, 2026-09-11):
+     every shipped lamp (the footer seam, the film strip, the reel pool, the
+     feature heroes' screen lamps) passes --glw-dur: var(--spill-cadence). The
+     engine's ruled register is 8s (2026-08-31); every lamp shipped 11s; the
+     sitting judges the whole home page at each on the tuner's knob, and the
+     ruling lands here. Not --glw-* (the engine reads only its own knobs) and
+     not --lamp-* (the five are colour, fenced as light-never-UI). */
+  --spill-cadence: 11s;
 
   /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
      Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle

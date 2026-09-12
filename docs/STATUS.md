@@ -32,6 +32,9 @@ anything shared.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **The Vercel cost round** | **✅ 2026-09-11**: 381 retained deployments pruned to 44 and a tool that keeps them pruned; preview retention cut to 7 days (canceled and errored to 1, production stays 30); `launch-prep` builds only on `[preview]`; sharp out of the function trace (16.6 MB of 51.1 off every deployment, image optimization verified identical). The lab and admin subdomains are queued as architecture rounds, not savings. |
+| **The library phase, round C staged + the one FLIP** | **✅ 2026-09-11 (`d5e9389`)**: the lamps read `--spill-cadence` with a tuner knob for the 8s vs 11s sitting; the rounding knobs on the lab's playground too; the two FLIPs are one. Your three sittings are next (item 1 and item 7). |
+| **MILESTONE-22: rounds A and B on prod** | **✅ 2026-09-11 (`ffa12b6`)**: the rules bible, the library's specimens and index, the three hero registers, six single sources, the MonoCaption sweep. Next: round C, your three sittings (the rules pass on `/design/rules`, the rounding on the tuner, the light rulings on the boards), each landed by the Orchestrator; then round D closes the phase. |
 | **The library phase, rounds A and B** | **✅ 2026-09-11 (`84cd975`)**: the rules bible on `/design/rules` (433 rules, verdicts pending), the library's missing specimens and the component index, the three hero registers, six single sources, the MonoCaption sweep. Milestone-22 next; then Will's three sittings (round C). |
 | **MILESTONE-21: one version again** | **✅ 2026-09-11 (`e2c159e`)**: the marketing branch on prod, the eight integrated manifests deleted, every `lp/*` branch and worktree pruned, `launch-prep` = `main`. The library phase is next, before any track cuts. |
 | **Round 3 wave 2: the marketing branch** | **✅ integrated 2026-09-11 (`1e5d693`)**: the feature family on shared pieces (`PageHero`'s two entrances and stage slot, `ScreenLamp`, `FeatureDoor`, one FAQ band), the hub and /features/album to Will's bar, the five other feature pages awaiting their own rounds. Milestone-21 next: the consolidation to one version. |
@@ -315,11 +318,11 @@ after Will's mono flag; both rulings recorded on the touchpoints.
 
 ## Live state
 
-- **Prod (partyreel.com)** = `main` @ tag `milestone-21` (`e2c159e`). **Preview** = `launch-prep` tip at the alias
+- **Prod (partyreel.com)** = `main` @ tag `milestone-22` (`ffa12b6`). **Preview** = `launch-prep` tip at the alias
   above (branch-scoped env + Stripe TEST preview webhook + Supabase redirect + R2 CORS wired).
 - **Data:** disposable test data only (3 profiles / 3 events / ~16 media rows). Test accounts +
   fixtures: [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** 1631 green (`pnpm test`); the full gate is typecheck + lint + test + build.
+- **Tests:** 1645 green (`pnpm test`); the full gate is typecheck + lint + test + build.
 - **Jobs:** the daily purge cron + the media-backup Worker + the **daily DB-backup GitHub Action
   (green, runs ~06:30 UTC)** are all live; the deletion-aware backup prune ships in **dry-run**
   (`PRUNE_MODE=live` is a launch-checkpoint flip).
@@ -370,10 +373,10 @@ manifest fill.
    ~~(e) the root 404's lit seam~~ **RULED: keep it lit** (Will, 2026-09-01), with a reason that is
    doctrine rather than a one-off — *a 404 that feels alive keeps a visitor exploring, while a flat one
    makes giving up feel fine.*
-   (d) **the cadence, and its SHAPE changed at round 1.** All three lamps ship at `--glw-dur: 11s`
-   against the engine's ruled 8s, so the question is no longer "the footer alone with nothing else
-   moving" but the **system's register**: the whole home page at 11s against the whole page at 8s.
-   Ask for it whenever.
+   (d) **the cadence, STAGED for your sitting (2026-09-11).** Every lamp reads one token,
+   `--spill-cadence` (11s as shipped; the engine's ruled register is 8s). On the alias, open the home
+   with `?key=`, drag "Lamp cadence" between 8 and 11 on the marketing tuner and walk the page; say
+   the number and it lands as the token's value.
    (b) **the lit surface**, which amends "Dark: NO shadows anywhere" and is already on the Get Pro
    specimen; it and the Get Pro beam are entangled (three of four beam specimens wear `[data-lit]`), so
    they want one round.
@@ -411,8 +414,10 @@ manifest fill.
    milestone; 4b (its migration applied first) then 3 → a milestone. **Wave 2:** `glow-engine-defects` integrated 2026-09-11 at `8181c85` (its agent's session died
    after the sixth of six commits; the Orchestrator wrote the handoff from the branch);
    `marketing-followons` waits on the library phase; the demo seed run waits on Will's folder. **Wave 3:** `marketing-mobile` alone on the marketing surface. **Before wave 3, the library phase** (Orchestrator-run, no agents; Will's direction of
-   2026-09-11): the rules bible in the library, lab to library, the rounding, the hero registers, the
-   feature-family furniture and the single sources, the light rulings. **Wave 4:** the home hero as its
+   2026-09-11): rounds A and B are on prod at milestone-22 (the rules bible, the library's specimens,
+   the hero registers, the single sources); round C is your three sittings (the rules pass, the
+   rounding, the light rulings) and their landings; round D closes the phase (the FLIP collapse, the
+   docs pass, milestone-23) and opens the queue. **Wave 4:** the home hero as its
    own agent focus round, then the launch round in the Launch checkpoint's human order.
 8. **The account-required unfurl line** (from `product-truth`, on prod since milestone-18): it now
    reads "Add your photos and videos. This event asks guests for an email."; the alternative if you would

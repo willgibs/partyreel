@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "e2c159e"
+cut: "ffa12b6"
 preview: false
 owns:
   - src/app/(dev)/design/
@@ -30,8 +30,8 @@ The Orchestrator's rolling manifest: what `launch-prep` itself is changing this 
 landed. Agents sync `origin/launch-prep` mid-round only when a line below touches one of their
 `reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
 
-**This window (the library phase, from 2026-09-11):** the tree is one version (milestone-21,
-`e2c159e`; no track open). The phase runs on `launch-prep` with no agents: the rules bible in the library
+**This window (the library phase, from 2026-09-11):** rounds A and B shipped at milestone-22
+(`ffa12b6`); round C is Will's three sittings and their landings; no track is open. The phase runs on `launch-prep` with no agents: the rules bible in the library
 (`/design/rules`), lab to library, the rounding, the hero registers, the feature-family furniture and the
 single sources, the light rulings. Its plan is written in its own round; the queue in [`README.md`](README.md)
 opens after it. The previous window's landed list (round 3: the operating model, the library round, wave 1,
@@ -53,3 +53,13 @@ the glow engine, the marketing branch) is in the CHANGELOG, milestones 17 to 21.
   brace parser, `.surface-ink` in `globals.css` (the footer wears it), `src/lib/shared/use-entered-frame.ts`.
   A lane touching a rail, the footer, the visibility word or the reply line syncs this.
 - `84cd975` the MonoCaption sweep: twelve marketing files moved their labels to `system/caption.tsx`.
+- `09587a7` `9d89e05` round C staged: `--spill-cadence` in `src/app/globals.css` read by every lamp
+  (`footer-glow.tsx`, `film-strip-glow.tsx`, `reel-screen-lamp.tsx`, `system/screen-lamp.tsx`), the
+  cadence and rounding knobs in `src/components/dev/motion-tuner-config.ts` (the rounding list shared
+  with the lab's playground). A lane placing a lamp syncs this.
+- `d5e9389` one FLIP: `src/lib/shared/use-flip.ts` exports `runFlip`; `use-sortable-grid.ts` calls it.
+- `4abfa60` `d1a4c66` the Vercel cost round: `next.config.ts` (`outputFileTracingExcludes`, sharp out of
+  every route bundle), `scripts/vercel-ignore-build.mjs` (`launch-prep` builds only on `[preview]`),
+  `scripts/prune-vercel-deployments.mjs` (new), and the gate's description in `CLAUDE.md`,
+  `docs/PROGRAM.md` and `docs/tracks/README.md`. ★ A lane that wants its own preview still says
+  `[preview]` or flips its manifest; nothing about `lp/*` changed.

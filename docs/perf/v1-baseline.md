@@ -193,3 +193,45 @@ percent) off every production page.** The lab now carries its own sheet, compile
 lab alone and loaded only under `/design`: 48,511 raw, 8,357 gzipped, 637 rules. Why the theme split:
 a lab entry that `@reference`s `globals.css` inherits its `@source not` and compiles 19 rules; against
 `theme.css` alone it compiles 695 (PostCSS probe before landing).
+
+## 6. Vercel storage: the cost round (2026-09-11, `launch-prep`)
+
+Method: `node scripts/design-rules/..`-style measurement of the real trace files, not an estimate.
+For each `.next/server/app/**/*.nft.json`, resolve every listed path against the trace's own
+directory, `stat` it once, and union the results across all 113 route bundles; that union is what one
+deployment stores, since the project runs Fluid compute and Vercel reports a single lambda. Build with
+`NOW_BUILDER=1 pnpm build` to reproduce Vercel's own build conditions, because Next's trace ignores
+branch on that variable. Repeat with the same commands.
+
+| one deployment's traced union | files | bytes | sharp and `@img` |
+| --- | --- | --- | --- |
+| before, either build | 2,212 | 51.1 MB | 36 files, 16.6 MB |
+| after `outputFileTracingExcludes` (`4abfa60`) | 2,150 | 34.4 MB | 2 symlinks, 288 bytes each |
+
+**Net: 16.6 MB (32.7 percent) off every deployment.** Why it was there at all: Next already ignores
+`**/node_modules/sharp/**` and `**/@img/sharp-libvips*/**` when `hasNextSupport` is true (that is
+`NOW_BUILDER`, i.e. a Vercel build), but only in `serverIgnores`, which builds the `next-server`
+trace. The per-route `.nft.json` files are filtered by `routesIgnores`, which does NOT carry those two
+entries, so a Vercel build still traced every byte into all 113 bundles. An
+`outputFileTracingExcludes` key that matches the literal string `next-server` is folded into
+`sharedIgnores` and therefore reaches both, which is why the key is `"**"` rather than `"/**"`.
+
+What was NOT a problem, measured so nobody re-derives it: the design lab's 13 routes cost 2.5 MB
+marginal and admin's 16 cost 1.5 MB, because the traces overlap almost entirely (moving either to its
+own subdomain is an architecture decision, not a saving). Server source maps never ship: `serverIgnores`
+carries `**/*.map` unconditionally, and Sentry's `deleteSourcemapsAfterUpload` defaults to true with the
+upload credentials set on Vercel, so the 79.6 MB of maps in a local `.next` is a local-only artifact.
+
+Deployment COUNT dominated all of it: 381 retained, 183 on branches deleted weeks earlier and 176 on
+`launch-prep`, which built on every push. The gate now builds `launch-prep` only on `[preview]` and
+`scripts/prune-vercel-deployments.mjs` deletes what no branch can reach. Retention was cut the same
+day to 7 days for previews, 1 day for canceled and 1 day for errored, with production left at 30 (the
+instant-rollback window) and 10 kept per branch. **44 deployments remain**, 22 of them production
+history on `main`, and a dry run classifies every one as keep.
+
+Read the dashboard meter with care: hours after the prune it still showed Deployment Storage
+21.77 GB and Functions Storage 17.38 GB against a 10 GB allowance, slightly ABOVE the pre-prune
+reading, over a window labelled Aug 12 to Sep 11. It behaves as a billing-period measure rather than
+a live gauge of what is stored now, so deleting deployments does not walk it back; judge the round by
+the deployment count and the traced union, and expect the meter to answer in the next period.
+

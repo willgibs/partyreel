@@ -95,14 +95,17 @@ describe("the ink-slab footer contract", () => {
     expect(primitive).toContain('data-paused={paused ? "true" : "false"}');
   });
 
-  it("passes the shipped 11s cadence rather than taking the 8s register", () => {
-    // The engine's ruled register is 8s; this surface ships 11s. Retiring the
-    // footer onto the engine without the override would silently re-time
-    // ratified live chrome by 27%, inside a change whose whole point is that
-    // nothing moves. Delete this pin only together with a cadence ruling.
+  it("reads the lamps' cadence from the one token, never a literal", () => {
+    // The engine's ruled register is 8s (2026-08-31); every lamp shipped 11s.
+    // Retiring the footer onto the engine without the override would have
+    // re-timed ratified chrome by 27%. Since the library phase (2026-09-11)
+    // the override is --spill-cadence in globals.css, one token for every
+    // lamp, so the cadence sitting rules once and the tuner's knob drives it.
     const glow = stripComments(
       read("src/components/marketing/chrome/footer-glow.tsx"),
     );
-    expect(glow).toMatch(/"--glw-dur":\s*"11s"/);
+    expect(glow).toMatch(/"--glw-dur":\s*"var\(--spill-cadence\)"/);
+    const globals = read("src/app/globals.css");
+    expect(globals).toMatch(/--spill-cadence:\s*11s;/);
   });
 });

@@ -244,17 +244,21 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
  * consumed by JS: marketing-nav.tsx reads it with readCssMs off the [data-mkt]
  * scope, so a live tuner change lands on the next mount (a reload, not a drag).
  */
-export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
-  // ── Rounding (staged for the radius round, 2026-09-01) ──
-  // Will drags the surface radius on REAL pages instead of judging a token
-  // table. --radius is the base every rounded-* utility derives from
-  // (globals.css: md 0.8x, lg 1x, xl 1.4x, 2xl 1.8x, 3xl 2.2x, 4xl 2.6x), so
-  // one knob restyles every sharp-family surface at once; --radius-float and
-  // --radius-tile are separate tokens by design (menus/toasts; media grids)
-  // and get their own knobs so the round can decide whether they move with
-  // the surfaces or stay put. The baked defaults are 0.125rem / 0.5rem / 3px;
-  // the tuner writes px, same computed values. Not --mkt-*, so tunerScope
-  // puts these on <html>, where an inline value outranks the :root token.
+/**
+ * THE ROUNDING KNOBS (staged for the radius round, 2026-09-01; shared with the
+ * lab's motion playground since 2026-09-11 so the app's own cards, dialogs and
+ * tiles on /design/components and /design/compositions can be judged with the
+ * same three values as the marketing pages). --radius is the base every
+ * rounded-* utility derives from (theme.css: md 0.8x, lg 1x, xl 1.4x, 2xl 1.8x,
+ * 3xl 2.2x, 4xl 2.6x), so one knob restyles every sharp-family surface at once;
+ * --radius-float and --radius-tile are separate tokens by design (menus/toasts;
+ * media grids) and get their own knobs so the round can decide whether they
+ * move with the surfaces or stay put. The baked defaults are 0.125rem / 0.5rem
+ * / 3px; the tuner writes px, same computed values. Not --mkt-*, so tunerScope
+ * puts these on <html>, where an inline value outranks the :root token, and a
+ * soft navigation carries them across pages.
+ */
+export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   {
     kind: "range",
     cssVar: "--radius",
@@ -284,6 +288,25 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     step: 1,
     unit: "px",
     default: 3,
+  },
+];
+
+export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
+  ...ROUNDING_TUNER_CONTROLS,
+  // ── The lamps' cadence (staged for the cadence sitting, 2026-09-11) ──
+  // Every lamp reads --spill-cadence (globals.css, 11s as shipped; the engine's
+  // ruled register is 8s). The honest A/B is the whole home page at each,
+  // which this knob gives: drag, walk the page, rule. On <html> like the
+  // radius knobs, where an inline value outranks the :root token.
+  {
+    kind: "range",
+    cssVar: "--spill-cadence",
+    label: "Lamp cadence",
+    min: 6,
+    max: 14,
+    step: 1,
+    unit: "s",
+    default: 11,
   },
   {
     kind: "range",
