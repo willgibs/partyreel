@@ -72,6 +72,7 @@ git diff --name-only origin/launch-prep...HEAD
 | `content/<x>/AUTHORING.md` | whoever owns `content/<x>/` | promotes shared vocabulary to `src/components/marketing/mdx/spec-shared.tsx` |
 | `src/components/marketing/mdx/spec-shared.tsx` | never (read it) | grows it by promotion |
 | `src/lib/env.ts`, migrations, Workers, Vercel / Stripe / Supabase config | propose in Handoff | applies |
+| `docs/ASSETS.md` (the asset log) | never (ask in Handoff, one bullet per asset) | folds each ask into a row at integration; Will marks a row delivered; the wiring round marks it wired |
 
 ## The template
 
@@ -112,7 +113,7 @@ exploration round, the board on its preview at 1440 and 375 with reduced motion 
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none (or the exact list: what, size, grade, count, and the stand-in each replaces by id)
+- Assets requested from Will: none, or one bullet per asset in this shape so it folds into `docs/ASSETS.md` as a row: `what · spec (size, grade, count, format) · replaces <stand-in id>`
 - Look at first: ...
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
@@ -136,9 +137,11 @@ session:
 
 `design-gallery` and `home-hero` integrated 2026-09-12; the home hero's second round ran as three
 concept tracks in parallel against one board shell and integrated 2026-09-14 (`hero-source`,
-`hero-reel`, `hero-gathering`); the wiring round cuts once Will rules. The rest follow the wave plan
-in [`../STATUS.md`](../STATUS.md). The rounding and tweaking GUI round (Orchestrator-run) is next on
-the Orchestrator's side, then the light rulings.
+`hero-reel`, `hero-gathering`); the wiring round cuts once Will rules and `kill-mono` lands. The
+review wave cut 2026-09-14 off the bible's second edition: `palette`, `light`, `type-scale`,
+`floating-surfaces`, `brand-voice`, `media-kit` and `kill-mono`, seven at once, each with a stub
+in this directory (In flight in [`orchestrator.md`](orchestrator.md)); the rounding and tweaking GUI
+round runs on the Orchestrator's side. The rest follow the wave plan in [`../STATUS.md`](../STATUS.md).
 
 | track | after | owns (prefixes) | reads (never claim) | rulings up front |
 | --- | --- | --- | --- | --- |

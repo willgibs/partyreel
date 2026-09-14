@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "592da24"
+cut: "51f40e3"          # this window opened at the round-two walk (2026-09-14)
 preview: false
 owns:
   - src/app/(dev)/design/rules/bible.ts
@@ -16,6 +16,11 @@ owns:
   - src/app/(dev)/design/stream-probe/
   - src/app/(dev)/design/boom/
   - src/app/(dev)/design/reel-parity/
+  - src/app/(dev)/design/c/
+  - src/app/(dev)/design/touchpoints.ts
+  - src/app/(dev)/design/touchpoints.test.ts
+  - src/app/(dev)/design/sandbox/home-hero/
+  - src/app/(dev)/design/sandbox/rounding/
   - src/components/dev/
   - src/components/marketing/mdx/
   - src/components/marketing/mdx-components.tsx
@@ -26,51 +31,114 @@ owns:
   - scripts/vercel-ignore-build.mjs
   - docs/decisions/design-record.md
   - docs/perf/v1-baseline.md
-  - src/components/marketing/system/
   - src/app/globals.css
+  - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/lib/events/visibility-labels.ts
   - src/lib/shared/use-entered-frame.ts
   - scripts/design-rules/
+reads:
+  - src/app/(marketing)/(cinema)/layout.tsx
+  - src/components/marketing/system/section-shell.tsx
 announces:
-  - the "less is more" reset (2026-09-12) rewrote the lab's rules surface and deleted look-pin tests across src/; design-gallery and home-hero cut at its close and own their lab paths (the gallery the family pages and the index, home-hero the sandbox, the dispatcher and touchpoints.ts); the rules files, the record and the diagnostics stay here
-  - the rounding and tweaking GUI round (after design-gallery integrates) touches src/components/dev/ (the tuner), src/app/(dev)/design/motion/ and the radius tokens in src/app/globals.css and src/app/theme.css; the light rulings follow it
+  - the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)
+  - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
+  - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
+  - no @contract-for test is added on launch-prep until kill-mono integrates (it regenerates rules.generated.json); the Orchestrator reruns pnpm design:rules at each merge
 ---
 
 # The integration branch
 
-The Orchestrator's rolling manifest: what `launch-prep` itself is changing this window, and what
-landed. Agents sync `origin/launch-prep` mid-round only when a line below touches one of their
-`reads` or the MDX registries; otherwise they sync once, before handoff, if it moved.
+The Orchestrator's rolling manifest: what `launch-prep` itself is changing this window, what every
+open track is doing, what waits on Will, and what landed. Agents sync `origin/launch-prep` mid-round
+only when a line under "announces" or "Landed this window" touches one of their `reads`; otherwise
+they sync once, before handoff, if it moved.
 
-**This window (the "less is more" reset, from 2026-09-12):** milestone-23 (`d52b1e6`) shipped the
-Vercel cost round and round C's staging; Will's ruling at the merge deferred the sittings and reset the
-rules bible: a 22-rule bible, contracts on the components, the look-pins and copy-pins deleted, ★
-meaning landmine only, the posture rewritten for big swings. No track is open; at the round's close
-`design-gallery` and `home-hero` cut in parallel (the queue in [`README.md`](README.md)). The previous
-window's landed list (the library phase's rounds A to C and the cost round) is in the CHANGELOG,
-milestones 22 and 23.
+**This window (the review wave, from 2026-09-14):** Will's rule-by-rule review of the bible, taken
+while round two of the home hero was building. Nine rules rewritten, each reviewed rule carrying a
+status on `/design/rules` (under exploration: the board writing what it inherits; retiring: the track
+that retires it), rising tides redefined as the ground-up judgment (bible 22), copy opened (21), mono
+leaving (7). Seven tracks cut at once: six lab boards and one production sweep, each on its own
+preview for Will's parallel reviews, with the rounding and tweaking GUI round on this side. The
+record the Orchestrator keeps between windows is the two lists below plus [`../ASSETS.md`](../ASSETS.md);
+the desk at `/design/c?key=` renders the same files.
+
+## In flight
+
+Every open track, its board, its preview and what it waits on. A row changes at spawn, at handoff
+(the preview builds on every push from the start: `preview: true`), at integration and at the ruling.
+
+| track | board | preview | waits on |
+| --- | --- | --- | --- |
+| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | stubbed; spawn pending |
+| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | stubbed; spawn pending |
+| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | stubbed; spawn pending |
+| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | stubbed; spawn pending |
+| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | stubbed; spawn pending |
+| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | stubbed; spawn pending |
+| `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | stubbed; spawn pending |
+| the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | the tuner's store, descriptions and the action-radius knobs; then Will's sitting |
+
+## Waiting on Will
+
+Every open ruling with its link; the asks are quoted from each board's meta panel as the boards hand
+off. Assets live in [`../ASSETS.md`](../ASSETS.md).
+
+1. **The home hero, round two** (`/design/c/home-hero?key=` on the launch-prep alias, read in a
+   FOREGROUND tab): the concept (the source, the reel, the gathering), its eyebrow, its copy (the
+   toggle shows the ruled and the proposed), and the departures ruled in; the reel's scrim toggle is
+   its one trade; the gathering's staggered phone pairs are its one (accept them, spend a phone
+   scrim, or drop the phone h1 a step). The wiring round cuts after `kill-mono` lands.
+2. **The six boards of the review wave**, as each hands off: its asks are added here verbatim.
+3. **The rounding sitting** (after the tuner earns it, this side): the radius values on the real
+   surfaces and on `/design/c/rounding`; bible 8 inherits.
+4. **The light rulings**, riding the `light` board and closed by its ruling: (b) the lit surface
+   (`[data-lit]`, on three of four beam specimens), (c) the publish beat's violet, (d) the cadence,
+   8s or 11s. Still parked on its own: (f) whether the guest surfaces follow the VISITOR's theme
+   (`/e/[token]` has no forced skin; the doorbell arrival, the locked door and the awaiting-media
+   skeleton were argued on cinema), which blocks the next guest-surface light round.
+5. **Two copy rulings**, riding the `brand-voice` board: the account-required unfurl line ("This
+   event asks guests for an email." against "...asks guests to sign in with an email."; one word
+   settles it) and the five copy-alternative picks with the two provisional home headers (`noApp`,
+   `fullQuality`); the board rewrites the seven provisional headers in the proposed voice as its
+   worked example.
+6. **The album's ambient pieces** on `/features/album` (the phone's screen cycle, the Live | Review
+   photograph flying, the lightbox pill cycling): a ten-second eye on prod, since the tools cannot
+   run them.
+7. **Two admin looks on `admin.partyreel.com`** (host-gated; the session needs your TOTP):
+   `/admin/jobs` (four cards, the purge switch, Run now) and the Delete account card on
+   `/admin/accounts/<id>` (the retyped-email guard). To exercise the self-serve deletion through the
+   UI, use a throwaway host: it is immediate and cancels the TEST plan.
+8. **The purchase toast**: `/dashboard?upgraded=1` as the Pro host; one toast should say "You're on
+   Pro." and the flag should vanish from the URL (a background tab throttles hydration, so the
+   browser tooling could only see it indirectly).
+9. **A revisit of /blog and /careers**, your own note at the milestone-12 merge ("I'll definitely
+   revisit both of these page designs"); approved and shipped as they are, unprotected now.
+10. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, yours; the session or direct string on port
+    5432, not the pooler): unblocks the committed RPC integration suite
+    ([`../decisions/rpc-suite-blocked.md`](../decisions/rpc-suite-blocked.md)).
+11. **The Sitting-1 `/design` lab rulings** (the frozen `/reel` items and the real-phone QR
+    ticket-scan check), parked until the UI era lands.
+
+Closed earlier, kept so nobody re-asks: (a) the beam's chroma register is a DERIVED register of the
+lamp set, not a second palette; (e) the root 404's lit seam stays lit (Will, 2026-09-01: a 404 that
+feels alive keeps a visitor exploring).
 
 ## Landed this window
 
-- `f79a711` the bible replaces the registry: `src/app/(dev)/design/rules/bible.ts` (22 rules, Will's),
-  the collector reads only tests tagged `@contract-for`, the verdict island and the annotations layer
-  deleted, the record page's enforced column gone. A lane adding a component's contract tags the test
-  with `// @contract-for: <path>` and regenerates (`pnpm design:rules`), or `pnpm test` says so;
-  nothing else it writes is a rule.
-- `91606e9` the look-pins and copy-pins deleted (`album-copy.test.ts` and `marketing-voice.test.ts`
-  whole; cases in `feature-pages`, `blog-tags`, `feature-door`, `legal-document-contract`); no copy is
-  pinned by a test.
-- the star pass and the posture: `design-system.md` 40 stars to 18, `marketing-content.md` 52 to 15,
-  every survivor a landmine; `CLAUDE.md`'s Build step and convention line, the agent template, the stub
-  prompt and the provisional-rules principle now license the big swing.
-- `09587a7` `9d89e05` round C staged: `--spill-cadence` in `src/app/globals.css` read by every lamp
-  (`footer-glow.tsx`, `film-strip-glow.tsx`, `reel-screen-lamp.tsx`, `system/screen-lamp.tsx`), the
-  cadence and rounding knobs in `src/components/dev/motion-tuner-config.ts` (the rounding list shared
-  with the lab's playground). A lane placing a lamp syncs this.
-- `d5e9389` one FLIP: `src/lib/shared/use-flip.ts` exports `runFlip`; `use-sortable-grid.ts` calls it.
-- `4abfa60` `d1a4c66` the Vercel cost round: `next.config.ts` (`outputFileTracingExcludes`, sharp out of
-  every route bundle), `scripts/vercel-ignore-build.mjs` (`launch-prep` builds only on `[preview]`),
-  `scripts/prune-vercel-deployments.mjs` (new), and the gate's description in `CLAUDE.md`,
-  `docs/PROGRAM.md` and `docs/tracks/README.md`. ★ A lane that wants its own preview still says
-  `[preview]` or flips its manifest; nothing about `lp/*` changed.
+- `fa45a88` the bible, second edition: `rules/bible.ts` (nine rules rewritten; `status` per rule;
+  rule 7 `mono-is-leaving`, 10 `depth-in-dark`, 11 `lamps-without-media`, 16 `four-grounds`, 21
+  `copy-is-open`, 22 `rising-tides`), `bible.test.ts` (a status names a slug), `rules/page.tsx`
+  (the status badge links the board; the page's mono stripped).
+- `7ce4bef` the doctrine: CLAUDE.md (rising tides in the Build step, the asset-log Orient row, copy
+  open), PROGRAM.md (the principle redefined, the record between windows, one window per handoff,
+  the exit checklist), STATUS (the wave row, the queue as a pointer), ROADMAP (the rounding round
+  opened, the composition pass, the lit surface on the light board, the hero wiring after kill-mono,
+  voice-infusion), design-system.md and marketing-content.md (rules 1, 10, 11, 16 as rewritten, marked
+  under exploration), the design record (seven open boards), `marketing-nav.ts` (no pin claim).
+- the asset log and this record: `docs/ASSETS.md` seeded with round two's asks and the two parked
+  media items; `docs/tracks/README.md` (the ASSETS row, the Handoff line's fixed shape, the queue);
+  `track-manifests.test.ts` (`docs/ASSETS.md` is never owned); this manifest rebuilt to its template.
+
+The previous window (the "less is more" reset, milestone-24, the gallery, the home-hero board and
+round two) is recorded in the CHANGELOG.

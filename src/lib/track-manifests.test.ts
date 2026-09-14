@@ -26,6 +26,7 @@ const NEVER_OWNED = [
   "AGENTS.md",
   "src/lib/db/types.ts",
   "docs/tracks/",
+  "docs/ASSETS.md",
 ];
 
 type Manifest = {
