@@ -154,6 +154,12 @@ The board, plus the three token blocks written in the Record so the ruling is a 
   five files under `src/app/(dev)/design/sandbox/palette/` (`board.tsx`, `board.css`, `ramps.ts`,
   `sections.tsx`, `call-sites.tsx`). No exceptions. No production byte changed: `globals.css`,
   `theme.css` and `marketing.css` were read and not touched.
+- Light QA on the preview, measured rather than eyeballed: at 1440 the ladder and the rooms strip lay
+  out four across (239 px and 236 px), at 375 they stack (343 px and 164 px), no horizontal scroll at
+  either width, all nine stages hold their canvas with zero overflow, no element on the page renders
+  in a mono stack, and no animation runs on the board (the one colour fade on the token wrapper lives
+  inside `prefers-reduced-motion: no-preference`, so a reduced-motion reader gets the jump cut and
+  the same composition).
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none. The ruling's own paste needs one
   line per candidate in `theme.css`'s `@theme inline` block (`--color-faint: var(--faint);`) before a
   `text-faint` utility exists; the board reaches the token with an arbitrary value.
