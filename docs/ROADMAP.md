@@ -38,8 +38,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   and copy proposal and its own asset request; all three integrated 2026-09-14 and **ruled the same day:
   the source** ("I bet if I scan this QR I get all of these images"; the reel read as the video being the
   product, the gathering's QR as a learn-more object). **Round three runs as three variation tracks off the
-  source** (`hero-scan`, `hero-burst`, `hero-river`; the source stays on the board as the reference) and
-  **waits on Will's ruling**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
+  source** (`hero-scan`, `hero-burst`, `hero-river`; the source stays on the board as the reference), all
+  three integrated 2026-09-14 (`66b4ebe`, `3aeef1a`, `ff0291a`), and **waits on Will's ruling**; the
+  wiring inherits a `demoCount` prop beside `qrUrl` (the demo event's real media count, from a
+  build-time count or the guest page's RPC) because the scan's and the river's counts are stand-ins that
+  must not ship as drawn, the scan's hand-and-phone cutout, the burst's per-card quiet zone and lg
+  headline, the river's parting held on the corridor's wall; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
   `MonoCaption` import) then lifts the ruled variation's mechanics into `cinema-hero.tsx` (the
   source: the loop on `useAmbientPause` and a `<noscript>` companion for the deployed corridor; the
   reel: the announcement card `lg:fixed` and a `--radius-screen` step if its 24 px corner is ruled in;

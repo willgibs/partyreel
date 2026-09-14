@@ -101,6 +101,21 @@ leaned to 305. Nothing production changed; the board's own sheet carries the thr
 does not have yet. Five asks went to Will, two assets were requested, and seven departures were flagged
 on the board rather than buried. The draft doctrine lives in `docs/specs/light.md`.
 
+**hero-river** (round three of the home hero; `lp/hero-river`, `46138e6`, merged `ff0291a`). The river, variation 4 of the home-hero board's
+third round, replaced its placeholder. It moves the source's code out of the exact centre into the
+slot an eyebrow occupies, at the top of the page, and pours the album down out of it: frames are
+born behind the plate, fall on a gravity curve, grow as they come, part around the headline and
+dissolve through the hero's bottom and side edges, so the page reads as the album the scan started
+rather than a page with an album in it. The loop is the source's lesson kept exactly: a card's
+progress is a closed form of the clock and fall, scale and lateral position are all that one number,
+so there is no state, no timer and no per-card bookkeeping. The parting is the new idea: while a
+card's box could overlap the lockup, its projected inner edge is held on the corridor's wall, which
+makes the clearing a geometric guarantee (verified against the rendered ink of the type at both
+canvases and both copy toggles) and keeps the corridor a constant width as the frames grow. The
+deployed stream is the rest state, written into the server's HTML as per-card custom properties;
+the pre-pour frame lives inside the reduced-motion block so the pour cannot flash.
+
+
 **hero-burst** (round three of the home hero; `lp/hero-burst`, `2d0631e`, merged `3aeef1a`). The burst, concept 3 of the home-hero board's
 third round, replaced its placeholder. It keeps the source's ruled sentence and takes it onto the two
 axes a corridor cannot use: around the whole compass, and forward out of the screen. Frames are born

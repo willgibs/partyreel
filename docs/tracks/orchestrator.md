@@ -85,7 +85,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
 | `hero-scan` | `/design/c/home-hero` (variation 2) | the launch-prep alias (integrated `66b4ebe`) | Will's ruling on round three (Waiting on Will, item 1) |
 | `hero-burst` | `/design/c/home-hero` (variation 3) | the launch-prep alias (integrated `3aeef1a`) | Will's ruling on round three (Waiting on Will, item 1) |
-| `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-river` | `/design/c/home-hero` (variation 4) | the launch-prep alias (integrated `ff0291a`) | Will's ruling on round three (Waiting on Will, item 1) |
 | the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | built; Will's sitting (Waiting on Will, item 3) |
 
 ## Waiting on Will
@@ -124,6 +124,20 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      Also to rule: whether "One code. Every angle." earns the composition, and whether the phone
      reads as the same composition rather than a thinner one. Its ask: 8 of the 24 squares also as
      4:5 portrait crops (`docs/ASSETS.md` row 9).
+   - **The river** (integrated `ff0291a`): look at the first two seconds on Desktop (the code alone
+     for half a second, then the whole album pours out from behind it in one beat and never stops).
+     Three calls that are yours: whether the code belongs at the top at all (departure 1, the one
+     real argument with the source: a code at the top with the album falling out of it is a
+     beginning, everything below it is what the scan produced); which side the Caption line sits on
+     (departure 4: above the plate, against its own brief, because a line under the plate forces
+     every frame sideways within 80 px of its birth and kills the emergence read); and whether the
+     live count under the CTAs earns its line (departure 5: a stand-in that ticks once per launch,
+     248 and climbing, the only fabricated thing on the board). Also flagged: the centred lockup
+     (the first thing to overrule if the hero should stay left) and bible 13 on the pre-pour state.
+     Its ask: 12 portraits at 720x900 (`docs/ASSETS.md` row 12; row 3's parked portrait third would
+     also serve). **All three variations are on the alias now, the source first as the reference.**
+     Both the scan and the river want one shell change for the wiring round: a `demoCount` prop
+     beside `qrUrl` (the demo event's real media count), so no count ships as drawn.
 2. **The boards of the review wave**, as each hands off, its asks verbatim.
    - **brand-voice** (integrated `749e29a`; `/design/c/brand-voice?key=` on the launch-prep alias; the
      guide at `docs/specs/brand-voice.md`): "The voice: today, A the house, B the room, or C the guest
@@ -257,6 +271,9 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `ff0291a` hero-river integrated: variation 4 on the hero board, the code in the eyebrow's slot and
+  the album pouring down out of it, the parting held by geometry; the asset log's row 12. Round three
+  is complete on the board.
 - `ae03a94` light integrated: a four-part board (depth in dark, lamps without media, the cadence, the
   violet) and the draft doctrine (SEPARATE, FILL, MARK; a lamp needs a place; the aurora as the FILL job
   at chapter scale) in `docs/specs/light.md`; the asset log's rows 10 and 11. Every board of the wave
