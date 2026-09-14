@@ -88,6 +88,19 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**palette** (`lp/palette`, `bf1a6ef`, merged `d5847ad`). The palette exploration of the review wave put
+bible 1 on a board: today's twenty-one hand-picked values beside three complete candidate token sets,
+each a paste for `:root`, `.dark`, the gallery canvas, `.surface-ink` and the cinema ground. A (one
+ladder) keeps the philosophy and fixes the spacing, B (one room) derives every surface from one
+ground per mode and collapses the three darks into one, C (film stock) is A's spacing at 0.003 to
+0.008 warm chroma, which re-opens a decision `globals.css` records as closed. They are judged on real
+sections built from production components, at 1440 and 375, against a ruler that interpolates in
+oklab so a tick's position is its lightness. The findings: the light middle is empty and the 20
+`text-muted-foreground/70` sites composite to exactly the missing step; the dark panel ships lighter
+than the card it sits in; `.surface-ink` has no `--card`, so a card in the footer is near white; and
+`--gallery` is doing two jobs, which makes bible 16's four grounds five. The accent is argued by the
+job it does rather than by taste. Lab only: no production byte changed. The three token blocks live in `docs/specs/palette.md`.
+
 **floating-surfaces** (`lp/floating-surfaces`, `3071cfc`, merged `e1f06d6`). The floating-surfaces exploration put all
 nine primitives on one canvas and found that the contract misses bible 9 inside itself: a menu
 draws an 8px container around 1.6px rows in 4px of padding, so the highlighted row never nests.

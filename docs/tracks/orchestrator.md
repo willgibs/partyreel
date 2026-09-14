@@ -76,7 +76,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `palette` | `/design/c/palette` | the launch-prep alias (integrated `d5847ad`) | Will's ruling (Waiting on Will, item 2) |
 | `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
 | `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias (integrated `e1f06d6`) | Will's ruling (Waiting on Will, item 2) |
@@ -146,6 +146,19 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      row never nests: the ruling is which family a floating layer belongs to), then row 3 on cinema
      and on paper, then row 1 with the entrance on "by frequency" against "one clock" (rule 12
      against rule 15, a bible question), then row 5 at 375 (the sheet is the guest's surface).
+   - **palette** (integrated `d5847ad`; `/design/c/palette?key=`; the three token blocks in
+     `docs/specs/palette.md`): 1. "The ramp: A, B or C, or today's, in both modes"; 2. "The accent:
+     which hue (ink today, blue 252, violet 300, flare 330), and which of its three jobs it takes
+     (identity, attention, the stand-in for media)"; 3. "The panel: one token at full strength,
+     retiring the six alphas it ships at, and hover fills moving to --secondary"; 4. "The dark
+     grounds: three steps of one ladder (A and C) or one room for cinema, the app, ink and the canvas
+     (B)"; 5. "The missing step: --faint enters the token set (all three candidates add it) or the
+     37 alpha-dimmed text sites stay as they are". ★ A finding against bible 16: there are FIVE
+     grounds, not four; `--gallery` is both the lightbox's canvas and the footer's slab, and the
+     candidates split it two ways. Look at row 01 first (the four rulers: today's light column has
+     five surfaces inside 0.037 then a 0.455 fall; today's dark panel is lighter than the card, the
+     ladder upside down), then row 06 with the ramp toggle, row 07 (a Card on the ink leaf is near
+     white), row 09's accent toggle against the state row.
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
@@ -210,6 +223,9 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `d5847ad` palette integrated: three complete token sets as pastes on real sections at both widths
+  against an oklab ruler, the accent argued by job; `docs/specs/palette.md` carries the blocks; the
+  asset log's row 7 gains the four hard-case frames it asked for.
 - `e1f06d6` floating-surfaces integrated: nine primitives live on one canvas over real photographs,
   radius / entrance / light as independent knobs, the outliers beside the contract, each frame an
   iframe at true pixels on a gated scene route (`/design/sandbox/floating-surfaces`); the contract
