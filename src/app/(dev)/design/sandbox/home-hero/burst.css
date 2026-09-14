@@ -1,7 +1,64 @@
-/* The the burst's own sheet (round three of the home-hero board). Keyframe
-   prefix: hhb- (hhs- is the source's, hh- the board's; keyframe names are
+/* The burst's own sheet (round three of the home-hero board). Keyframe prefix:
+   hhb- (hhs- is the source's, hh- the board's; keyframe names are
    document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab). FINAL states live OUTSIDE the media queries so a reduced-motion reader
-   gets the settled composition; entrances and loops inside `no-preference`
-   only, and any infinite loop marked [data-hh-loop] so the stage's
-   data-paused stops it on a hidden tab (board.css owns that rule). */
+   lab). This sheet declares NONE, deliberately: the field is one
+   requestAnimationFrame loop writing inline transforms, so there is no keyframe
+   to collide with production and no [data-hh-loop] hook to mark (the loop reads
+   the stage's data-paused itself).
+
+   THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual shape.
+
+   House convention is "final states outside the media queries, entrances inside
+   `no-preference`". That is exactly what this is, once you see which state is
+   which. The field's FINAL state is the album fully deployed around the code,
+   and it lives outside every query on `.hhb-card`, read from the per-card
+   custom properties the concept computes during render: a reduced-motion
+   reader, a crawler and the server's own HTML all get the burst standing still
+   at its steady-state positions, with nothing to undo.
+
+   The state inside `no-preference` is the burst's FIRST FRAME, every frame
+   collapsed inside the code. It has to live in CSS rather than in an effect,
+   because an effect runs after the server's paint: the field would paint
+   deployed, then snap back to the code, then burst. Put the pre-burst frame in
+   the same query the animation itself is allowed in and the burst is one beat.
+
+   THE TRADE, flagged on the board under Departures: a reader with JavaScript
+   off who has NOT asked for less motion sees the field rest around the code.
+   Nothing that carries meaning is gated by it. The h1, the code, the caption,
+   the sentence and the actions are plain markup and never move. */
+
+.hhb-field {
+  position: absolute;
+  inset: 0;
+  /* Each card carries its own z-index so a near frame paints over a far one
+     (the depth axis is the concept). This keeps that ordering contained: the
+     lockup above the field must not have to out-number 26 cards. */
+  isolation: isolate;
+}
+
+.hhb-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: var(--hhb-rest);
+  opacity: var(--hhb-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* The one shadow in the concept, and the one departure from the unlit hero
+   (bible 10 allows it: overlapping media cards need separating). The burst
+   overlaps constantly, near frame over far, and without an edge the field reads
+   flat. Tuned to sit UNDER the frame rather than around it, so it separates
+   without haloing, and it darkens the ground, never a photograph. */
+.hhb-card > * {
+  box-shadow: 0 22px 48px -18px rgb(0 0 0 / 0.7);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The burst's first frame: every frame inside the code, at no size. */
+  .hhb-card {
+    transform: translate3d(0, 0, 0) scale(0);
+    opacity: 0;
+  }
+}
