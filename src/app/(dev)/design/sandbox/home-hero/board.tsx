@@ -4,7 +4,7 @@
 import "./board.css";
 
 import { RotateCcw } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { CinemaHero } from "@/components/marketing/sections/home/cinema-hero";
 import { DEMO_EVENT_URL } from "@/lib/demo";
@@ -14,7 +14,13 @@ import { cn } from "@/lib/utils";
 import { Variant } from "../variant-frame";
 import { gathering } from "./gathering";
 import { reel } from "./reel";
-import { CANVAS, type Concept, type CopyMode, type Mode } from "./shared";
+import {
+  CANVAS,
+  type Concept,
+  type CopyMode,
+  type Mode,
+  useTabHidden,
+} from "./shared";
 import { source } from "./source";
 
 /**
@@ -66,20 +72,6 @@ function Stage({ mode, children }: { mode: Mode; children: React.ReactNode }) {
       </div>
     </div>
   );
-}
-
-/** Pause loops in a hidden tab only. No IntersectionObserver on purpose: the
- *  lab wants everything running side by side, and an IO here would also make
- *  the board unverifiable in a background tab, where observers never fire. */
-function useTabHidden(): boolean {
-  const [hidden, setHidden] = useState(false);
-  useEffect(() => {
-    const sync = () => setHidden(document.hidden);
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
-  }, []);
-  return hidden;
 }
 
 function Toggle<T extends string>({

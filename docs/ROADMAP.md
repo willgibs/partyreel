@@ -35,7 +35,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (`home-hero`, integrated 2026-09-12) put four grids on the board; Will's ruling 2026-09-14: none of
   them, too generic, not the QR-to-album idea. Round two runs as three parallel tracks (`hero-source`,
   `hero-reel`, `hero-gathering`) against one shell at `sandbox/home-hero/`, each with its own eyebrow
-  and copy proposal and its own asset request. **Waits on Will's ruling on round two**; then: wire the ruled hero into
+  and copy proposal and its own asset request; all three integrated 2026-09-14. **Waits on Will's ruling on
+  round two**; the wiring round then lifts the ruled concept's mechanics into `cinema-hero.tsx` (the
+  source: the loop on `useAmbientPause` and a `<noscript>` companion for the deployed corridor; the
+  reel: the announcement card `lg:fixed` and a `--radius-screen` step if its 24 px corner is ruled in;
+  the gathering: the clearing profile and the parallax hook, retiring the four stacked darkenings);
+  then: wire the ruled hero into
   `cinema-hero.tsx`, retire the board and record the ruling in `decisions/design-record.md#home-hero`;
   rule the kinetic word in the h1 (every variant reads better with it off, the photographs carry the
   variety now); and if the ruling is V3 (the arrival), the live-demo section at position 7 of the home

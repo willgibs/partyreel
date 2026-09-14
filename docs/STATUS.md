@@ -35,6 +35,7 @@ run through the Orchestrator.
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
 | **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **The home hero, round two (tracks `hero-source`, `hero-reel`, `hero-gathering`)** | **✅ integrated 2026-09-14 (`e98d1a7`, `9d8af64`, `ef58913` on the shell `f28d521`)**: three concepts on `/design/c/home-hero?key=`, the QR as the origin in each (the corridor streaming out of it; the encapsulated film with the QR pinned as the announcement; the hand-placed field with the QR as the eyebrow), each with its own eyebrow, its copy proposal, its flagged departures and its asset ask on the board; no production byte changed. **Waits on your ruling.** |
 | **The home-hero board (track `home-hero`)** | **✅ integrated 2026-09-12 (`d63f6cc`, head `393bacc`)**: four heroes on `/design/c/home-hero?key=` with zero darkening layers over media against three on the shipped hero, the ruled copy verbatim, the h1 at paint in all four; no production byte changed. **Waits on your ruling** (the agent recommends V1, the contact sheet; V2 second); the wiring follows it. |
 | **The gallery (track `design-gallery`)** | **✅ integrated 2026-09-12 (`7048ab1`, head `9ee41cd`)**: a component is declared once in its family's `gallery-demos.tsx` and three surfaces render from it (its family page, its permalink at `/design/library/<id>`, the searchable index of all 88 at `/design/library`); 15 config panels; `gallery.test.ts` refuses a declared variant the component does not have. Next: the rounding and tweaking GUI round. |
 | **MILESTONE-24: the reset on prod** | **✅ 2026-09-12 (`592da24`)**: the 22-rule bible and the component contracts on `/design/rules`, the look-pins and copy-pins gone, ★ landmines only, the big swing licensed. `design-gallery` and `home-hero` spawned the same day. |
@@ -363,13 +364,16 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Pending now: the home hero, round two, once its three concepts land.** Round one's four grids did
-not land (Will, 2026-09-14: bland, generic, the image-grid idiom of ten to twenty years ago, and not
-the QR-to-album idea). Round two asks one question, the hero is the QR becoming the album, three ways
-built in parallel (`hero-source`, `hero-reel`, `hero-gathering`) against a new board shell; the board
-at `/design/c/home-hero?key=` shows placeholders until they land. Then: the concept, its eyebrow and
-its copy proposal, and any flagged departure (the reel's container radius and type scrim). The asset
-requests each concept names are yours to produce whenever; stand-ins ship first. Everything else waits for
+**Pending now: the home hero, round two.** The board at `/design/c/home-hero?key=` on the launch-prep
+alias carries the three concepts and the shipped hero for reference. Read it in a FOREGROUND tab (the
+source's fountain and the clips pause on a hidden one): the source (concept 1: the first two seconds
+are the point, the QR alone and then the album unfolding out of it), the reel (2: the frame at Desktop,
+then Phone 375, then the scrim toggle, which is the one trade it asks you to rule), the gathering (3:
+the clearing on load, the three clips, scroll the board past the stage for the parallax, then Phone
+375, where its staggered pairs are the one ruling it asks: accept them, spend a phone scrim, or drop
+the phone h1 a step). Under each stage: its eyebrow proposal, its copy proposal (the toggle shows
+both), its departures and its asks. Say the concept, its eyebrow, its copy, and the departures you
+rule in; the wiring round cuts. The asset asks are yours to produce whenever; stand-ins ship first. Everything else waits for
 the UI era to land on what it lands on (Will's ruling at milestone-23, 2026-09-12), unless something
 blocks or is high-leverage.
 

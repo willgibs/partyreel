@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import {
@@ -45,8 +45,16 @@ import { cn } from "@/lib/utils";
  *  - Replay is a REMOUNT (the stage key), so entrances are CSS with
  *    `animation-fill-mode: both` and state resets for free;
  *  - a filling animation and [data-mkt-isolate] never share an element;
- *  - geometry comes from CANVAS, never from getBoundingClientRect, which lies
- *    under zoom;
+ *  - geometry for POSITION comes from CANVAS, never from getBoundingClientRect,
+ *    which lies under zoom; a zoom-invariant RATIO off a rect (top / height,
+ *    the gathering's parallax) is safe, because the zoom factor cancels;
+ *  - tailwind-merge drops a `leading-*` that precedes a `text-{size}` in the
+ *    same cn() (a size utility may carry a line-height), and LADDER's classes
+ *    are size classes: put the leading AFTER the ladder class, always (it bit
+ *    the reel twice);
+ *  - the lab's pause source is useTabHidden below (the stage sets data-paused
+ *    from it; a JS loop reads the same attribute); production swaps in
+ *    useAmbientPause, which also pauses off-screen;
  *  - keyframes live in the concept's OWN sheet with its prefix (hhs-, hhr-,
  *    hhg-); keyframe-uniqueness.test.ts reads every sheet under the lab;
  *  - video follows the house pattern: no `autoplay` attribute, imperative
@@ -185,6 +193,22 @@ export function copyFor(concept: Concept, mode: CopyMode): HeroCopy {
     secondary: RULED.secondary,
     proposed: false,
   };
+}
+
+/** Pause loops in a hidden tab only. No IntersectionObserver on purpose: the
+ *  lab wants everything running side by side, and an IO here would also make
+ *  the board unverifiable in a background tab, where observers never fire.
+ *  Shared here because every concept that drives a video or a rAF loop needs
+ *  it (three copies existed after round two's first pass). */
+export function useTabHidden(): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const sync = () => setHidden(document.hidden);
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
+  return hidden;
 }
 
 /** One photograph at FULL luminance. No scrim prop, and there never will be:

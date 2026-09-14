@@ -205,6 +205,15 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
   followed me to prod." Same round, same fifteen minutes. Check the URLs inside the messages before
   believing what page they came from.
 
+**A JS-driven loop photographs as an empty stage in a driven tab** (the home-hero round two,
+2026-09-14). An occluded real-Chrome window suspends `requestAnimationFrame` completely (measured:
+0 frames in 2.9 s), so a rAF-driven animation never leaves its first frame there; the Browser pane
+keeps ticking rAF while hidden but its screenshots go stale and desync from the page's own scroll;
+and a hidden tab sets a lab board's `data-paused`, so the loops and the clips pause by design. None
+of it is a product bug. The way through: make the loop a pure function of elapsed time so it can be
+frozen at a chosen elapsed and the still shot, verify the DOM (the nodes, their rest-state
+declarations, the h1), and hand the human the foreground look for the motion itself.
+
 ## Long-lived-session tests (the presign-roll soak)
 
 Testing "the album survives the evening" (refreshed presigns adopted as the 30-min stable bucket rolls,

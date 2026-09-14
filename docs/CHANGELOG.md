@@ -11,7 +11,69 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
-## 2026-09-12 — The home-hero board: four heroes with zero darkening layers over media, waiting on Will's ruling (`lp/home-hero`, merged at `d63f6cc`)
+## 2026-09-14 — The home hero, round two: the QR is the origin, three concepts built in parallel against one shell (`f28d521`; merged `e98d1a7`, `9d8af64`, `ef58913`)
+
+Will's ruling on round one, the same morning: none of the four. "Very bland and generic, using image
+grids that felt very popular 10 to 20 years ago", and not "the one QR/link -> full event album
+concept". Everything open: the hero's UI, its copy, the eyebrow, the design system around it. Three
+references, each for one strength: Melius (cards branch from the centre and stream to both edges
+forever), Ploy (an encapsulated video hero with a pinned announcement card), Frame.io (a bespoke
+field of cards around centred type). Two standing policies set in the same message and recorded in
+PROGRAM.md, CLAUDE.md and the manifest template: design as if design resources are unlimited and
+request assets specifically (he makes image, video, SVG, 3D and generative work); and exploration
+rounds are light on QA and iterative, the deep red-team at the wiring round.
+
+**The shell** (`f28d521`). The board became a directory: `shared.tsx` is the contract and the doctrine
+(the Concept type, the canvases, the ladder resolved per canvas, the gutter, the stand-in media, the
+ruled copy, the Photo primitive, DemoQr on FooterQr's zero-JS path), `board.tsx` the stage with three
+toggles (viewport; ruled or proposed copy; the reel's type scrim), Replay, and the meta each concept
+lists under its stage (eyebrow, proposed copy, departures, asks); one file and one sheet per concept,
+owned by a track each. V1 to V4 left the board (git keeps them at `bd9d98e`).
+
+**The source** (`lp/hero-source`, `0298c21`, merged `9d8af64`). The album is a horizontal corridor
+through the middle of the frame and the type lives above and below it, so no photograph is darkened
+and no word sits over one. At the corridor's exact centre the real demo QR stands still at scanning
+size, and the frames are born behind it and fly outward forever: Melius's three.js fountain ported
+to DOM transforms, 24 cards in two pools, one launch a side every 900 ms, 9.6 s flights, position
+and scale on separate curves, the recycling falling out of one modulo so a card's progress is a
+closed form of the clock; one requestAnimationFrame loop writing 24 nodes, React state never
+touched; the branch-out is the same expression under a 1.75 s reveal. The deployed corridor is the
+rest state, written as per-card custom properties into the server's HTML, so reduced motion, a
+crawler and a cold paint all get the album standing still. Eyebrow: the QR itself, no label. Its
+ask: 24 photographs as 512-pixel squares framed tight enough to read at 120 px.
+
+**The reel** (`lp/hero-reel`, `658abd6`, merged `e98d1a7`). The hero becomes an object: one film in
+one rounded frame inset to the page column and sized by the canvas height, the display type over
+it, the real demo QR pinned inside the frame at the bottom left as the announcement (absolute on the
+board, `lg:fixed` in production, so the code that starts an album travels down the page). The film
+rides the house video pattern; the composition carries no darkening layer over the media (the type
+is separated by a shadow on the glyphs), and the board's scrim toggle renders one radial sized to
+the type block so Will rules that trade rather than inherits it. Five departures flagged on the
+board: the frame's 24 px corner (proposed as a `--radius-screen` step), the glyph shadow, one named
+spill under the frame as the depth cue rule 10 asks for, the scrim toggle, the fixed card. Eyebrow:
+an announcement pill with a live dot that beats on the reel's shot boundaries. Its ask: a 15 to 20 s
+film of 12 to 18 shots graded dark and warm with the left 55 percent of frame kept low, at both
+aspects, mp4 under 1.5 MB plus webm, posters from the first graded frame, the cut list in seconds.
+
+**The gathering** (`lp/hero-gathering`, `8f1432c`, merged `ef58913`). Centred type inside a CLEARING
+that is the lockup's real profile band by band, fifteen photographs and three vertical clips hand
+placed around it in five overlapping clusters, bleeding off all four edges; the lockup carries no
+entrance, so the h1 is at paint by construction and the album gathers around type that was already
+there, two frames landing a beat late. Depth buys the parallax rate, the sway and the stacking, never
+a dimming. The clips are cut from the portrait stand-in reel at its own shot boundaries by a rAF
+range keeper, poster-first, cross-fading only once playback is inside the range. Phone is seven
+larger cards in staggered pairs, since two full columns beside a 48 px h1 at 375 exists only with a
+scrim: the one place the brief and the build differ, a ruling for Will. Eyebrow: the QR, small and
+real, with a caption. Its ask: 36 photographs with a third portrait, 8 vertical clips each with its
+own poster, and three frames of a guest holding a phone up.
+
+**Integration.** Lane checks clean on all three (two files and a manifest each, no exceptions);
+`launch-prep` unmoved since the cut; typecheck and 1636 tests green after each merge. The shell took
+the two notes both agents raised: `useTabHidden` is now exported from `shared.tsx` (three copies
+had grown), and the doctrine gained the tailwind-merge trap (a `leading-*` before a size class is
+dropped) and the rect-ratio clarification. No production byte moved; the wiring waits on the ruling.
+
+
 
 Merged into `launch-prep` at `d63f6cc` (2026-09-12; the branch head `393bacc`). The home hero round
 opened with a board, not a build. The finding is the board: the shipped hero carries three darkening
