@@ -126,7 +126,10 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
   `partyreel-git-lp-type-scale-partyreel.vercel.app`, and the board is at
   `/design/c/type-scale?key=8838d0dd22f626a603fcf551`. The alias was READY at the first commit
   `90baaf5` when this was written, with the later pushes queued behind the wave's other tracks on
-  the one-at-a-time plan; it moves to the head on its own.
+  the one-at-a-time plan; it moves to the head on its own. ★ WAIT FOR IT TO PASS `e28579b` before
+  ruling on the display step: at `90baaf5` the masthead still lost its tracking to marketing.css and
+  reported -0.03em under every candidate, so stage 2 and stage 1's top row read wrong there. The
+  whole board is correct from `e28579b` on.
 - Synced with `launch-prep` at `b34993e` (round three's hero tracks and the round-two ruling). No
   conflicts: nothing it landed touches this track's `reads`.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
