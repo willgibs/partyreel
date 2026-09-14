@@ -35,6 +35,10 @@ reserved keyframe prefixes. Seven manifests stubbed as whole inits (`9366df5`) a
 boards, light QA) and `kill-mono` (a production sweep), with the rounding and tweaking GUI round on
 the Orchestrator's side. Walked on the alias at `6c19d84`: the rules page's statuses, the desk's
 rows and links, the stubs at 1440 and 375, the hero board on the extracted shell, no console errors.
+Walked again at `8b06f89` after the first three integrations and the rounding round: the tuner
+mounts on the alias and a 12px surface radius restyles the live column (16.8px on the card) while
+the fixed columns hold, the store persists and Reset clears it; `/design/rules` carries the two-faces
+rule; `/help` computes to Inter and Urbanist only; no console errors.
 
 **The rounding and tweaking GUI round** (Orchestrator-run, the same day). The tuner earned the
 sitting first: its only state had been component state, so a Replay on the playground (the control
