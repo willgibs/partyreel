@@ -2,11 +2,16 @@
 
 import "./board.css";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import type { Ground } from "@/components/dev/board";
 
-import { GROUND_SET, type Dim, type Scene as SceneId } from "./constants";
+import {
+  GROUND_CLASSES,
+  GROUND_SET,
+  type Dim,
+  type Scene as SceneId,
+} from "./constants";
 import { Scene } from "./scenes";
 
 /**
@@ -19,12 +24,27 @@ import { Scene } from "./scenes";
  * theme), and cover the lab layout's nav, which every route under /design
  * inherits and which has no stable hook of its own to hide.
  *
- * The ground and the three candidate knobs are plain attributes on <html>, so
- * after the first paint the parent board changes them by reaching straight into
- * `contentDocument` (same origin) and the frame never reloads. Only the props
- * that change the RENDER (the scene, the width, the ladder's dimension) ride the
- * URL, and changing one of those is a deliberate reload.
+ * THE FRAME OWNS ITS OWN GROUND, and the parent asks for a change by firing
+ * `flt:set` at this window rather than writing the classes itself. Two reasons,
+ * both learned the hard way on this board:
+ *   - the ground classes are mutually EXCLUSIVE (globals.css declares `.dark`
+ *     after `:root, .surface-paper`, so an element carrying both paints dark),
+ *     and next-themes runs in here too: it puts `dark` back on <html> after this
+ *     component's effect has already run, and again whenever the lab's theme is
+ *     toggled, which broadcasts to every frame through storage;
+ *   - so the ground needs a resident owner that re-asserts, and two owners
+ *     writing the same class list from either side of the frame boundary is a
+ *     fight rather than a fix.
+ * The three candidate knobs ride the same event: they are attributes nobody else
+ * touches, but one owner is simpler to follow than two.
  */
+
+type Knobs = {
+  ground: Ground;
+  radius: string;
+  entrance: string;
+  light: string;
+};
 
 export function FramePage({
   scene,
@@ -47,22 +67,49 @@ export function FramePage({
   entrance: string;
   light: string;
 }) {
+  const [knobs, setKnobs] = useState<Knobs>({
+    ground,
+    radius,
+    entrance,
+    light,
+  });
+
+  useEffect(() => {
+    const onSet = (e: Event) => {
+      const detail = (e as CustomEvent<Partial<Knobs>>).detail;
+      if (detail) setKnobs((k) => ({ ...k, ...detail }));
+    };
+    window.addEventListener("flt:set", onSet);
+    return () => window.removeEventListener("flt:set", onSet);
+  }, []);
+
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-flt-frame", "");
-    const g = GROUND_SET[ground];
-    // The lab layout's own classes stay: only the ground set is ours to add.
-    root.classList.add(...g.className.split(" "));
-    if (g.mkt) root.setAttribute("data-mkt", "");
-    if (g.bg) root.style.setProperty("--background", g.bg);
-    if (g.className.includes("dark")) root.style.colorScheme = "dark";
-    root.setAttribute("data-flt-radius", radius);
-    root.setAttribute("data-flt-entrance", entrance);
-    root.setAttribute("data-flt-light", light);
-    // First paint only: from here the parent owns these attributes, so this
-    // effect deliberately does not re-run on a knob change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const g = GROUND_SET[knobs.ground];
+    const want = g.className.split(" ");
+    const apply = () => {
+      const stale = GROUND_CLASSES.filter(
+        (c) => root.classList.contains(c) && !want.includes(c),
+      );
+      const missing = want.filter((c) => !root.classList.contains(c));
+      // The guard is what keeps our own write from re-entering the observer.
+      if (stale.length) root.classList.remove(...stale);
+      if (missing.length) root.classList.add(...missing);
+      if (g.mkt) root.setAttribute("data-mkt", "");
+      else root.removeAttribute("data-mkt");
+      root.style.removeProperty("--background");
+      if (g.bg) root.style.setProperty("--background", g.bg);
+      root.style.colorScheme = want.includes("dark") ? "dark" : "light";
+      root.setAttribute("data-flt-radius", knobs.radius);
+      root.setAttribute("data-flt-entrance", knobs.entrance);
+      root.setAttribute("data-flt-light", knobs.light);
+    };
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, [knobs]);
 
   return (
     <div className="flt-cover bg-background text-foreground">

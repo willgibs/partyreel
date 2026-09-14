@@ -6,12 +6,7 @@ import { CANVAS, type Ground, type Mode } from "@/components/dev/board";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
-import {
-  GROUND_CLASSES,
-  GROUND_SET,
-  type Dim,
-  type Scene,
-} from "./constants";
+import type { Dim, Scene } from "./constants";
 
 /**
  * A VIEWPORT ON A GROUND: the board's stage for this family.
@@ -27,8 +22,12 @@ import {
  *
  * Only the props that change the render ride the URL, so a ground or candidate
  * change never reloads: those are attributes the parent writes straight into
- * `contentDocument` (same origin). Frames mount lazily, one viewport ahead, so a
- * board of six does not open six app documents at once.
+ * `contentDocument` (same origin).
+ *
+ * Every frame mounts at once rather than on scroll. An IntersectionObserver was
+ * the obvious economy and the wrong call here: a board of six frames is six
+ * documents of the same already-cached bundle, while a frame that appears when
+ * you reach it makes a side-by-side comparison depend on how you scrolled to it.
  */
 
 export type FrameProps = {
@@ -54,7 +53,9 @@ export type FrameProps = {
   light?: string;
   /** Bumping this re-runs every entrance inside the frame. */
   replay?: number;
-  designKey: string | null;
+  /** `undefined` while the board has not read the lab key yet: the frame holds
+   *  its box and loads nothing, so the gated scene route is never hit keyless. */
+  designKey: string | null | undefined;
   label: string;
 };
 
@@ -78,7 +79,6 @@ export function Frame({
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
-  const [near, setNear] = useState(false);
   const [ready, setReady] = useState(0);
   const w = width ?? CANVAS[mode].w;
   const h = height ?? CANVAS[mode].h;
@@ -97,6 +97,7 @@ export function Frame({
       light,
     });
     if (rung) q.set("rung", rung);
+    if (designKey === undefined) return undefined;
     return withDesignKey(
       `/design/sandbox/floating-surfaces?${q.toString()}`,
       designKey,
@@ -105,19 +106,6 @@ export function Frame({
     // owned by the attribute effect below, so they must NOT retrigger the memo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene, mode, dim, variant, rung, designKey]);
-
-  // Mount one viewport ahead of the scroll, so a board of six frames does not
-  // open six app documents on load.
-  useEffect(() => {
-    const box = boxRef.current;
-    if (!box) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.some((e) => e.isIntersecting) && setNear(true),
-      { rootMargin: "600px" },
-    );
-    io.observe(box);
-    return () => io.disconnect();
-  }, []);
 
   useLayoutEffect(() => {
     const box = boxRef.current;
@@ -132,23 +120,17 @@ export function Frame({
     return () => ro.disconnect();
   }, [w, fit]);
 
-  // The ground and the three knobs, written into the frame's own <html>. Same
-  // origin, so this is a direct attribute write rather than a postMessage.
+  // The ground and the three knobs, asked for rather than written: the frame is
+  // their resident owner (frame-page.tsx says why next-themes makes that
+  // necessary). Same origin, so this is a direct dispatch, no postMessage.
+  // `ready` is in the deps so a frame that has just reloaded is told again.
   useEffect(() => {
-    const doc = frameRef.current?.contentDocument;
-    if (!doc?.documentElement) return;
-    const root = doc.documentElement;
-    const g = GROUND_SET[ground];
-    root.classList.remove(...GROUND_CLASSES);
-    root.classList.add(...g.className.split(" "));
-    if (g.mkt) root.setAttribute("data-mkt", "");
-    else root.removeAttribute("data-mkt");
-    root.style.removeProperty("--background");
-    if (g.bg) root.style.setProperty("--background", g.bg);
-    root.style.colorScheme = g.className.includes("dark") ? "dark" : "light";
-    root.setAttribute("data-flt-radius", radius);
-    root.setAttribute("data-flt-entrance", entrance);
-    root.setAttribute("data-flt-light", light);
+    const win = frameRef.current?.contentWindow;
+    if (!win) return;
+    const Ctor = (win as Window & typeof globalThis).CustomEvent ?? CustomEvent;
+    win.dispatchEvent(
+      new Ctor("flt:set", { detail: { ground, radius, entrance, light } }),
+    );
   }, [ground, radius, entrance, light, ready]);
 
   useEffect(() => {
@@ -164,7 +146,7 @@ export function Frame({
         )}
         style={{ width: w * scale, height: h * scale }}
       >
-        {near ? (
+        {src ? (
           <iframe
             ref={frameRef}
             title={label}

@@ -3,8 +3,7 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   BoardMeta,
@@ -150,8 +149,24 @@ function Row({
   );
 }
 
+/** The lab's key, read from the address bar rather than through
+ *  `useSearchParams()`. The dispatcher that renders this board (design/c) owns no
+ *  Suspense boundary for it, and a client component that reads search params
+ *  without one suspends its subtree: the lab nav's own boundary was left hanging
+ *  and every frame stayed unmounted. An effect costs one render and needs
+ *  nothing from anyone else's tree. */
+function useDesignKey(): string | null | undefined {
+  // undefined = not read yet. A frame must not load before then: on the preview
+  // the scene route is gated, so a keyless first src would 404 and reload.
+  const [key, setKey] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    setKey(new URLSearchParams(window.location.search).get("key"));
+  }, []);
+  return key;
+}
+
 export function FloatingSurfacesBoard() {
-  const designKey = useSearchParams().get("key");
+  const designKey = useDesignKey();
 
   const [mode, setMode] = useState<Mode>("desktop");
   const [ground, setGround] = useState<Ground>("cinema");

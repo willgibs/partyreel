@@ -408,9 +408,20 @@ function LadderScene({ phone, dim }: { phone: boolean; dim: Dim }) {
                 sideOffset={4}
                 avoidCollisions={false}
               >
-                <DropdownMenuLabel>This event</DropdownMenuLabel>
-                {MENU_ROWS.slice(0, phone ? 2 : 3).map((r) => (
-                  <DropdownMenuItem key={r.label}>{r.label}</DropdownMenuItem>
+                {/* The FIRST row wears the highlight at rest. The thing the
+                    radius ladder is actually about is whether the highlighted
+                    row's corner nests inside the panel's corner (bible 9), and
+                    with no row highlighted the item radius is invisible: this
+                    is the resting `focus:bg-accent` state, held. */}
+                {MENU_ROWS.slice(0, phone ? 2 : 3).map((r, i) => (
+                  <DropdownMenuItem
+                    key={r.label}
+                    className={
+                      i === 0 ? "bg-accent text-accent-foreground" : undefined
+                    }
+                  >
+                    {r.label}
+                  </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>

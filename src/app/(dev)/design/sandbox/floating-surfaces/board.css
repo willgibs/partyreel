@@ -51,11 +51,20 @@
    a centred dialog is a much larger box than a menu, and one value cannot serve
    both (a 6px corner on a full-width bottom sheet reads square). Ruling needed:
    one token or two. */
+/* GOTCHA, cost a round of this board: theme.css declares the theme `@theme
+   inline`, so a DERIVED token is compiled into the utilities that use it and is
+   never emitted as a custom property. `rounded-md` still paints 1.6px, but
+   `var(--radius-md)` is empty at runtime, and an empty var inside a calc()
+   invalidates the whole declaration silently (the panel drew at 0px, not at the
+   fallback). The RAW tokens from globals.css `:root` do resolve (--radius,
+   --radius-float, --radius-action, --shadow-float, --ease-emphasis,
+   --ease-drawer), so the sharp rung re-derives the md step from --radius using
+   theme.css's own expression and still follows a retune of it. */
 .flt-r-sharp,
 [data-flt-radius="sharp"] {
-  --flt-r-item: var(--radius-md);
-  --flt-r: calc(var(--radius-md) + 4px);
-  --flt-r-lg: calc((var(--radius-md) + 4px) * 2);
+  --flt-r-item: calc(var(--radius) * 0.8);
+  --flt-r: calc(var(--radius) * 0.8 + 4px);
+  --flt-r-lg: calc((var(--radius) * 0.8 + 4px) * 2);
 }
 .flt-r-nested,
 [data-flt-radius="nested"] {
@@ -390,4 +399,10 @@ html[data-flt-frame] body {
   inset: 0;
   z-index: 1;
   overflow: hidden;
+}
+/* Next's dev indicator mounts into every document, so in dev it lands inside
+   each frame and reads as part of the scene. Inert in a production build, where
+   the element does not exist. */
+html[data-flt-frame] nextjs-portal {
+  display: none;
 }
