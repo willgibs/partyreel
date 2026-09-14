@@ -1,6 +1,6 @@
 ---
 track: hero-gathering
-status: open            # open -> handed-off -> integrated (deleted at the milestone that ships it)
+status: handed-off      # open -> handed-off -> integrated (deleted at the milestone that ships it)
 cut: "f28d521"          # the launch-prep SHA the branch was cut from
 preview: true           # Will's review surface: every push builds partyreel-git-lp-hero-gathering
 owns:
@@ -47,22 +47,79 @@ exploration-round principle: nothing more.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none expected: no production byte moves.
+- none: no production byte moved. Two lab files, both owned.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing overhaul: if the gathering is the pick, the wiring round lifts `.hhg-card`'s clearing
+  profile and its parallax hook into the shipped hero and retires the four stacked darkenings the
+  current `cinema-hero.tsx` puts over its wall.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-gathering-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Head `0ff8ef6`, pushed; preview partyreel-git-lp-hero-gathering-partyreel.vercel.app, `/design/c/home-hero?key=<DESIGN_PREVIEW_KEY>`
+- Synced with launch-prep: it had not moved (`git rev-list --count HEAD..origin/launch-prep` = 0, cut from `f28d521`)
+- Gates on the tree: typecheck ok, lint ok (0 errors; the 6 warnings are pre-existing, none in my files), test ok (1636 in 190 files), build ok (246 static pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-gathering.md`,
+  `src/app/(dev)/design/sandbox/home-hero/gathering.tsx`, `src/app/(dev)/design/sandbox/home-hero/gathering.css`. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: (the exact list: what, size, grade, count, and the stand-in each replaces by id)
-- Look at first: ...
+- **The shell lacked nothing**, and two of its rules earned their keep: `sizes` canvas-relative (a vw
+  picks the wrong candidate under the stage's `zoom`), and Replay as a remount (the entrance is CSS
+  with `both`, so the field re-gathers for free). One clarification worth folding into `shared.tsx`
+  if a future concept needs it: the doctrine's "geometry comes from CANVAS, never
+  getBoundingClientRect" is about POSITION, and a zoom-invariant RATIO off a rect is safe, because
+  the zoom factor cancels in `top / height`. The parallax reads scroll progress that way and is
+  exact at any stage scale; nothing is ever positioned from a rect.
+
+- **Assets requested from Will** (the ask also renders on the board):
+  1. **36 event photographs**, one grade, 1600px long edge, a third of them portrait. The field
+     places 12 at once on desktop and 5 on phone, in 3:2, 16:9, 1:1, 4:3, 4:5, 3:4 and 2:3 boxes, so
+     a frame that exists only at 3:2 crops hard in the tall slots. Replaces all twelve stand-ins by
+     id: `wedding-golden`, `party-dj`, `reception-table`, `festival-lights`, `wedding-petals`,
+     `concert-confetti`, `wedding-toast`, `festival-crowd`, `wedding-rings`, `reception-hall`,
+     `party-balloons`, `wedding-arch`.
+  2. **8 vertical clips**, 3 to 5s, 1080 x 1920, silent, **each with its own poster** at 1080 x 1920
+     (the clip's first frame). Three run at once on desktop and two on phone. They replace the three
+     `currentTime` ranges this cuts out of `hero-candidate-01`, which shares ONE poster between all
+     three today, so a card's poster currently shows a different moment than its clip.
+  3. **3 of the 36 showing a guest holding a phone up at the event.** The many-hands argument is
+     carried by the arrangement; it lands harder if one or two frames say it literally.
+
+- **Look at first**, in this order:
+  1. **Desktop, ruled copy, on load.** The type is there at paint and the album gathers around it.
+     Fifteen frames land in a burst, then two stragglers arrive a beat later (1.5s and 2.4s), which
+     is the whole argument: an album keeps filling while you read.
+  2. **The clearing.** No scrim anywhere, no darkening layer, no dimming: the type wins purely by
+     placement, against a clearing that is the lockup's real profile band by band (measured off the
+     rendered lockup at both canvases, not guessed). Zero card boxes intersect a band at either
+     canvas.
+  3. **The three clips.** Each holds a 4.2 to 4.5s range cut at the reel's OWN shot boundaries, so a
+     range never opens mid-shot; verified they never overrun the end and snap forward from below it.
+  4. **Scroll the board past the stage.** Near frames lead the page and far ones lag it, around a
+     neutral depth, so the field separates in both directions rather than sliding as one plate. That
+     hook is the production one, not a lab stand-in.
+  5. **Phone 375.** Seven larger cards in staggered pairs, not two columns: at 375 the lockup is
+     sixty percent of the height and the h1 alone is the full column, so two full-height columns
+     beside the type exists only with a scrim. The pair flanking the QR at half off each edge is
+     what keeps the album around the type there. **This is the one place the brief's phrasing and
+     the build differ, and it is a ruling for Will**: accept the staggered pairs, or spend a phone
+     scrim, or drop the phone h1 a step off the ladder.
+  6. **The two copy proposals and the eyebrow caption**, beside the ruled line on the board.
+  7. Hover a frame: it lifts 1.8% and its edge warms, and nothing else moves. No isolate dim, on
+     purpose (bible 1 reads better without thirteen photographs stepping back for a cursor).
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The home-hero board's third concept, the
+gathering, replaced its placeholder: centred type on the cinema ground inside a CLEARING that is the
+lockup's real profile band by band, with fifteen photographs and vertical clips hand placed around
+it in five overlapping clusters, unevenly weighted, bleeding off all four edges. The lockup carries
+no entrance at all, so the h1 is at paint by construction (bible 13) and the album gathers around
+type that was already there; two frames land late, a beat after the burst. Depth buys the parallax
+rate, the sway amplitude and the stacking order and never a dimming, so the media stays at 100% with
+no scrim anywhere (bible 1). Three cards are vertical clips cut out of the portrait stand-in reel at
+its own shot boundaries by a rAF range keeper, on the house poster-first pattern with one
+refinement: the cross-fade waits until playback is inside the range. Phone is seven larger cards in
+staggered pairs, since two full columns beside a 48px h1 at 375 exists only with a scrim. Every
+animation sits inside the reduced-motion block and every loop is marked `data-hh-loop`; the rest
+state is the settled field.
