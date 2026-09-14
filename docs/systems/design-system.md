@@ -539,7 +539,12 @@ system's DELIBERATE exception to it.
 theme set they were re-declared by every paper chapter and every lab board, so the tuner's
 html-inline override never pierced them: a radius sitting on a paper chapter or on the rounding
 board was silently on the baked values (measured: `<html>` at 14px, the live column at 2px).
-Declared once on `:root` they inherit everywhere and the tuner wins everywhere. The sitting surface
+Declared once on `:root` they inherit everywhere and the tuner wins everywhere. ★ **A DERIVED radius
+token is not a runtime variable**: `theme.css` declares `--radius-sm..4xl` inside `@theme inline`, so
+Tailwind compiles each into its utility and emits NO custom property; `var(--radius-md)` is empty at
+runtime and an empty var inside a `calc()` invalidates the whole declaration silently (found by the
+floating-surfaces board). Derive from `--radius`, `--radius-action`, `--radius-float` or
+`--radius-tile` (the real `:root` tokens), never from the scale's names. The sitting surface
 is `/design/c/rounding` (four columns of one kit: three fixed candidates as inline overrides and a
 live column that follows the tuner) plus every real page the tuner mounts on; bible 8 inherits the
 values Will rules there.

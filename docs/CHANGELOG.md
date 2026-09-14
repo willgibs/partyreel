@@ -88,6 +88,21 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**floating-surfaces** (`lp/floating-surfaces`, `3071cfc`, merged `e1f06d6`). The floating-surfaces exploration put all
+nine primitives on one canvas and found that the contract misses bible 9 inside itself: a menu
+draws an 8px container around 1.6px rows in 4px of padding, so the highlighted row never nests.
+Three radius rungs each fix it from a different end (items sharp, today's container, items on the
+action law), three entrances (one clock, by frequency, origin true) and three lights in dark
+(lighter is closer, a soft shadow, a lit edge) are independent knobs over the live family, so a
+ruling is three words. The board needed a stage the shell could not give it: every radix panel
+portals to `globalThis.document.body`, so inside a zoom-fitted `Stage` it leaves the ground, the
+zoom and the canvas, and each frame is instead an iframe laid out at the canvas's true pixels
+running a gated scene route in its own document. Nothing under `src/components/ui/` changed: the
+candidates ride token overrides and a class on the panel. Four findings came out of the build
+(`@theme inline` never emits a derived token, the ground classes are mutually exclusive under
+next-themes, `tw-animate-css` has no reduced-motion guard, the nav viewport cannot size itself
+outside the marketing header). The contract rewritten and the per-primitive table live in `docs/specs/floating-surfaces.md`.
+
 **media-kit** (`lp/media-kit`, `c1aa5c6`, merged `797f692`). The media-kit exploration wrote bible 18 down as a
 proposed sourcing law (`docs/specs/media-kit.md`): two provenance classes and no third, `author`,
 `sourceUrl` and `retrieved` required on every manifest entry, a generated frame's license being the

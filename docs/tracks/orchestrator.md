@@ -79,7 +79,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
-| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias (integrated `e1f06d6`) | Will's ruling (Waiting on Will, item 2) |
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
@@ -137,6 +137,15 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      that needs a decision before launch:** Unsplash's terms exclude recognizable people from the
      license, all twelve stills are full of them, and eleven are the blog's cover pool (23 posts,
      their OG cards, the RSS enclosures). Say: the CC0 bridge on the blog pool now, or the kit first.
+   - **floating-surfaces** (integrated `e1f06d6`; `/design/c/floating-surfaces?key=`; the contract
+     rewritten in `docs/specs/floating-surfaces.md`): 1. "The radius: sharp, nested or round, and
+     whether the sheet and dialog take a second token or the same one"; 2. "The entrance: one clock,
+     by frequency, or origin true"; 3. "The light in dark: lighter is closer, a soft shadow, or a lit
+     edge"; 4. "The outliers: select, drawer and sheet onto the contract, or dropped". Look at row 2
+     at 1:1 first (today's menu draws an 8px corner around 1.6px rows in 4px of padding, so the lit
+     row never nests: the ruling is which family a floating layer belongs to), then row 3 on cinema
+     and on paper, then row 1 with the entrance on "by frequency" against "one clock" (rule 12
+     against rule 15, a bible question), then row 5 at 375 (the sheet is the guest's surface).
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
@@ -201,6 +210,11 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `e1f06d6` floating-surfaces integrated: nine primitives live on one canvas over real photographs,
+  radius / entrance / light as independent knobs, the outliers beside the contract, each frame an
+  iframe at true pixels on a gated scene route (`/design/sandbox/floating-surfaces`); the contract
+  rewritten in `docs/specs/floating-surfaces.md`. Its frame is offered to `src/components/dev/board/`
+  as an addition (a `Stage` cannot hold a portalled layer): taken up when the next board needs one.
 - `797f692` media-kit integrated: the sourcing law as a proposal, ten licenses quoted, eight CC0
   candidates staged under `public/design/media-kit/` with `provenance.json` (a test pins the pair),
   the contact sheet; the asset log's rows 2, 4, 6 and 7 rewritten from its Handoff.
