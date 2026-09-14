@@ -86,39 +86,63 @@
      phone's corner (about 12% of its width), so it is a literal here rather
      than --radius / --radius-tile. Flagged on the board with the device. */
   position: relative;
-  border-radius: calc(var(--hhc-w) * 0.115);
+  border-radius: calc(var(--hhc-w) * 0.13);
   background: linear-gradient(
-    150deg,
-    oklch(0.19 0 0) 0%,
-    oklch(0.07 0 0) 38%,
-    oklch(0.05 0 0) 100%
+    148deg,
+    oklch(0.26 0 0) 0%,
+    oklch(0.1 0 0) 30%,
+    oklch(0.05 0 0) 72%,
+    oklch(0.13 0 0) 100%
   );
-  /* The room's light catching the aluminium, and the shadow two overlapping
-     objects need to separate (bible 10). No lamp and no spill: the light in
-     this hero comes off the screen and stays on the object. */
+  /* THE ONE THING that separates a near-black object from a near-black room:
+     the rim. A drop shadow does nothing on this ground, so the edge carries
+     the read, brightest along the top-left where the phone faces the screen's
+     own light and the room's. It is the object lighting itself and its own
+     bezel: no lamp, no spill onto the room or onto a photograph. The shadow
+     underneath is only what two overlapping objects need (bible 10). */
   box-shadow:
-    inset 0 0 0 1px oklch(1 0 0 / 0.14),
-    inset 0 1px 0 0 oklch(1 0 0 / 0.22),
-    0 24px 60px oklch(0 0 0 / 0.55);
+    inset 0 0 0 1px oklch(1 0 0 / 0.26),
+    inset 0 1.5px 0 0 oklch(1 0 0 / 0.42),
+    inset 1.5px 0 0 0 oklch(1 0 0 / 0.2),
+    0 30px 70px oklch(0 0 0 / 0.7);
   transform: rotateY(var(--hhc-ry)) rotateZ(var(--hhc-rz));
   transform-origin: 50% 60%;
 }
 
 .hhc-screen {
   position: absolute;
-  inset: calc(var(--hhc-w) * 0.031);
+  inset: calc(var(--hhc-w) * 0.042);
   overflow: hidden;
-  border-radius: calc(var(--hhc-w) * 0.09);
-  /* The camera's own preview of a dark room: the plate is the only bright
-     thing in it, which is what a scanner actually sees at an event. */
+  border-radius: calc(var(--hhc-w) * 0.098);
+  /* The camera's own preview of a dark room, and it has to sit clearly ABOVE
+     the body's black or the whole device reads as one slab: a phone screen in
+     a dark room is still the brightest thing in the hand. The plate is the
+     brightest thing in the preview, which is what a scanner actually sees at
+     an event. */
   background:
     radial-gradient(
-      120% 70% at 50% 42%,
-      oklch(0.21 0 0) 0%,
-      oklch(0.12 0 0) 58%,
-      oklch(0.08 0 0) 100%
+      58% 26% at 50% var(--hhc-vy),
+      oklch(0.42 0 0) 0%,
+      oklch(0.24 0 0) 62%,
+      transparent 100%
     ),
-    oklch(0.09 0 0);
+    radial-gradient(
+      125% 76% at 50% 42%,
+      oklch(0.28 0 0) 0%,
+      oklch(0.18 0 0) 56%,
+      oklch(0.12 0 0) 100%
+    ),
+    oklch(0.13 0 0);
+}
+
+/* Where on the screen the camera found the code. Not centred by law: a code is
+   wherever it is in the frame, and biasing it up the screen is what lets the
+   phone be cropped hard by the bottom edge of the composition (the POV crop)
+   and still show what it is looking at. */
+.hhc-viewpos {
+  position: absolute;
+  left: 50%;
+  translate: -50% -50%;
 }
 
 /* The notch. Two things say "phone" faster than any amount of bezel: this and

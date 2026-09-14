@@ -123,6 +123,10 @@ type Device = {
   ry: number;
   /** The detected code's edge on the screen, quiet zone included. */
   qr: number;
+  /** Where the code sits down the screen, 0 to 1. A code is wherever it is in
+   *  the frame, so biasing it up is what lets the phone be cropped hard by the
+   *  bottom edge and still show what it has found. */
+  qrY: number;
   /** The bracket's arm, its gap from the plate, its stroke, and how far
    *  outward it starts before the lock. */
   arm: number;
@@ -171,7 +175,7 @@ const GEO: Record<Mode, Geo> = {
     perspective: 900,
     offset: 196,
     axis: 0,
-    lane: 94,
+    lane: 104,
     laneMax: 300,
     captionClass: "text-[13px]",
     countClass: "text-[12px]",
@@ -181,16 +185,17 @@ const GEO: Record<Mode, Geo> = {
     h1Max: 1100,
     fade: "12%",
     device: {
-      w: 300,
-      x: -560,
-      y: 390,
+      w: 210,
+      x: -640,
+      y: 290,
       rz: 13,
       ry: -12,
-      qr: 116,
-      arm: 22,
-      pad: 11,
-      stroke: 2,
-      throw: 26,
+      qr: 84,
+      qrY: 0.5,
+      arm: 24,
+      pad: 10,
+      stroke: 2.5,
+      throw: 28,
     },
   },
   phone: {
@@ -199,9 +204,9 @@ const GEO: Record<Mode, Geo> = {
     travel: 1.65 * CANVAS.phone.w,
     perspective: 360,
     offset: 130,
-    axis: 0,
-    lane: 46,
-    laneMax: 150,
+    axis: -34,
+    lane: 82,
+    laneMax: 190,
     captionClass: "text-[11px]",
     countClass: "text-[10px]",
     sizes: "170px",
@@ -210,16 +215,23 @@ const GEO: Record<Mode, Geo> = {
     h1Max: 343,
     fade: "16%",
     device: {
-      w: 100,
-      x: -152,
-      y: -4,
+      // The same idea at the same crop as the desktop: the phone rises out of
+      // the bottom-left corner of the frame. It was tried IN the band instead,
+      // beside the code, and it ate the whole left arm on a 375 canvas: a dark
+      // slab against photographs on the right, which is worse than a few
+      // hundred pixels between the cause and its effect. The corridor's axis
+      // rides 34 px up so the corner has room for it.
+      w: 112,
+      x: -143,
+      y: 384,
       rz: 8,
       ry: -10,
-      qr: 44,
-      arm: 9,
-      pad: 4,
+      qr: 46,
+      qrY: 0.28,
+      arm: 12,
+      pad: 5,
       stroke: 1.5,
-      throw: 11,
+      throw: 14,
     },
   },
 };
@@ -512,8 +524,11 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         }
       >
         <div className="hhc-phone w-full" style={{ aspectRatio: "0.472" }}>
-          <div className="hhc-screen">
-            <div className="flex size-full items-center justify-center">
+          <div
+            className="hhc-screen"
+            style={{ "--hhc-vy": `${d.qrY * 100}%` } as CSSProperties}
+          >
+            <div className="hhc-viewpos" style={{ top: `${d.qrY * 100}%` }}>
               <Viewfinder url={qrUrl} d={d} />
             </div>
             <div className="hhc-pill" />
@@ -550,7 +565,7 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
           Every guest scans the same code
         </Caption>
         <p
-          className={`mx-auto mt-1 tabular-nums text-white/45 ${geo.countClass}`}
+          className={`mx-auto mt-1 tabular-nums text-white/55 ${geo.countClass}`}
           style={{ maxWidth: geo.laneMax }}
         >
           <span ref={countRef}>{countText(PHOTOS_SETTLED)}</span>
