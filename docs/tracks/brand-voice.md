@@ -134,7 +134,7 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
 
 ## Handoff (replaces the chat report)
 
-- Head `4d0052d` plus this handoff commit, pushed; preview
+- Head: the branch tip (the board and spec at `4d0052d`, the spec's read-through fixes after it), pushed; preview
   `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
   `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
 - Synced with launch-prep: it had not moved. Still `6c19d84`, the SHA in `cut`.

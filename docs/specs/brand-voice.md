@@ -86,7 +86,7 @@ code becoming an album) is a thing happening, so this is the default shape.
 seven of the eight ratified golden lines are built this way, and it is the shape a headline should
 reach for first.
 
-> The whole event, and it is yours to keep.
+> The whole event, and it's yours to keep.
 
 **3. The count.** A real number and what it adds up to. Only ever a number the product actually
 produced, never a number about us.
@@ -96,7 +96,7 @@ produced, never a number about us.
 **4. The instruction.** The action in the reader's words, ending in what they get. Every step is one
 the reader can picture doing.
 
-> Scan the code, and you are in.
+> Scan the code, and you're in.
 
 **5. The plain statement.** One clause, no music. The app's only shape, and the right shape anywhere
 the reader wants an answer rather than a line.
@@ -107,11 +107,12 @@ the reader wants an answer rather than a line.
 
 Each surface gets the rule, then the example. The shapes in brackets are the ones that belong there.
 
-**Hero** (shapes 2, 1). The h1 is the whole product in one line and the subhead is the mechanism in
+**Hero** (shapes 1, 2). The h1 is the whole product in one line and the subhead is the mechanism in
 one sentence. The h1 never explains; the subhead never sells a second time.
 
-> **The whole event, as everyone saw it.**
-> One code in the room, and every phone fills the same album, live and at full size.
+> **One code on the table, and the album starts filling.**
+> Every phone in the room finds it, uploads at full size, and you end up with the whole event in one
+> place.
 
 **Section header** (shapes 1, 2, 3). A section header is a claim the section then proves. It says
 the thing the section is about, not the category it belongs to.
@@ -136,7 +137,7 @@ reading after it. No voice-work in either: this surface is quiet even though it 
 sentence and never a promise. It is also a contract: the help catalogue quotes labels verbatim, so
 the string here is the source of the string there.
 
-> Waiting for review
+> Approve all
 
 **Email subject** (shape 5). Name what happened to the reader's own thing, in the reader's words,
 front-loaded for a truncating inbox. Carry "Partyreel" only where the inbox needs it to sort.
