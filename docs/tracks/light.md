@@ -1,7 +1,8 @@
 ---
 track: light
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "6c19d84"
+merged: "72b20da"      # the branch head merged into launch-prep
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/light/
@@ -143,23 +144,122 @@ The board, plus a draft of the replacement doctrine in the Record (one paragraph
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. This track owns no system doc; the replacement doctrine is drafted in the Record below and
+  the Orchestrator lands it in `design-system.md` at the ruling.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-light-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/light` (the sync merge `0672ad9`, this manifest committed on top), pushed; preview
+  partyreel-git-lp-light-partyreel.vercel.app. The board is `/design/c/light?key=...`; each part has
+  an anchor (`#lgt-a` .. `#lgt-d`).
+- Synced with `launch-prep` at `3d40173` (it had moved 57 commits; merged at `0672ad9`).
+- Gates on the synced tree: typecheck ok, lint ok (0 findings in the lane; 7 pre-existing warnings
+  elsewhere), test ok (1697), build ok (248 static pages, 114 routes).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/light.md` +
+  `src/app/(dev)/design/sandbox/light/{board.tsx,board.css,shared.tsx,depth.tsx,aurora.tsx,beats.tsx}`.
+  No exceptions. No production byte changed: the board composes `<Glow>` and reads the engine, and the
+  three things it proposes that do not exist yet (the dark shadow family, the lit face's paper half,
+  the aurora's grain) live in the board's own sheet under the `lgt-` prefix.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will:
+  - A grain tile, so the aurora stops banding · seamless monochrome noise, 256x256, PNG-8, fine grain
+    (about 1px), neutral, mean 50 percent grey, used at about 5 percent over the light · replaces the
+    inline feTurbulence stand-in in `board.css` (`[data-lgt-grain]`).
+  - A worst-case pair of overlapping photographs for part A · two images whose touching edges are both
+    dark and low contrast (a night reception, a dim dance floor), 1200px long edge, JPG · replaces the
+    `reception-hall` + `wedding-toast` pair in `depth.tsx`, so the depth cue is judged against the case
+    it exists for rather than a lucky one.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - Depth in dark: the cue set for stacked media cards, a layer over content and a flat card
+  - Lamps without media: the section aurora, yes or no, and its register on cinema and on paper
+  - The cadence: 8s or 11s
+  - The publish beat's violet
+  - The lit surface ([data-lit]): adopt, adapt or drop
+- Look at first: part B, the aurora at accent on cinema, then the same on paper. It is the answer to
+  "what is the aurora" and it is the only part of the board that proposes a new thing rather than a
+  rule about existing things. Then part A's stacked-photographs row, which is the whole case for
+  letting a shadow back into dark.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The light exploration replaced its stub with a
+four-part board at `/design/c/light` and drafted the doctrine that replaces the source-and-direction
+law. Part A put three subjects (two overlapping photographs, a layer over content, a flat card) under
+four cues (the surface step alone, the ring lift, a soft shadow, the lit face) on cinema, app dark and
+paper, and proposed one shadow family at two sizes with one alpha ramp per ground. Part B rendered the
+footer seam as the model and then three candidate lamps for a media-less chapter (the seam at a
+chapter's top edge, the aurora at both boundaries, one fill behind everything) at two registers and
+three temperatures, and proposed a hand-tuned paper five. Part C put 8s, 11s and the aurora's 33s on
+three identical seams. Part D put the publish beat's violet beside the house five and beside the five
+leaned to 305. Nothing production changed; the board's own sheet carries the three things the system
+does not have yet. Five asks went to Will, two assets were requested, and seven departures were flagged
+on the board rather than buried.
+
+### The draft doctrine (for `design-system.md` at the ruling)
+
+**LIGHT.** One doctrine in three jobs, decided by what the light is DOING rather than by the mode or by
+what kind of thing is emitting. **SEPARATE** is achromatic and static: it says one object is in front of
+another (today's elevation contract, moved inside the light doctrine instead of sitting beside it).
+**FILL** is chromatic, slow and always behind content: it gives a room a temperature (spill, and the
+aurora it grows into). **MARK** is chromatic, bounded, and ends when its state ends (the beam, and a
+moment's beat). A surface takes at most one job at a time and a view carries at most one MARK. The
+identity claim underneath: light is where our colour lives, so the five hues are the whole palette of
+all three jobs and nothing else on the site is allowed colour (bible 3, unchanged and now load-bearing
+for three jobs instead of one).
+
+**SHADOW.** One family, two sizes, one alpha ramp per ground. **LIFT** separates two objects of the same
+lightness that overlap (two photographs, a card over a card). **FLOAT** detaches a layer from content
+that keeps living behind it (menu, dialog, sheet, toast). A flat surface with nothing behind it and
+nothing over it takes neither, in either mode, and keeps its step and its hairline. The geometry is
+`--shadow-float`'s, unchanged (blur = 2x offset, a single top source); `float` is that geometry at
+double the offsets. What changes per ground is only the ALPHA, because a shadow has to be darker than
+what it falls on and 6 percent of black over `oklch(0.14)` is arithmetically invisible: that is why
+"dark has no shadows" read as true for so long, and it was never the real rule. Proposed values are in
+the board's sheet. The **RING** (`ring-1 ring-foreground/5` on surfaces, `/10` on media frames, 77 uses
+and in no document) is the fourth SEPARATE technique and is now named: it states an edge without
+implying height. The **LIT FACE** (an inset hairline plus a 1px lip) is not elevation at all, it is
+material: it belongs to a face that is catching light (a media frame, a screen, a plate), and on paper
+it reads off the bottom edge instead of the top, because a ground changes what light means.
+
+**LAMP.** A lamp needs a **PLACE**, not an object: an edge, a boundary, a screen, a plate, a horizon.
+That replaces "name the lamp, and if you cannot point at the object emitting there is no spill", and it
+reaches every verdict the old law reached (a pill's rim is not a place, a nav panel is not a place, a
+skeleton is an absence) while admitting the footer seam, which the old law forbade and which is the
+model Will named. The rest of SPILL stands as written: DIRECTION (every lamp declares its vector; the
+container mask is origin-anchored, so there is no even-rim mode), COLOUR (real media where it exists,
+the house five where it does not, never a house token and never a state colour), FALLOFF (base and band
+always ship together, because a swept layer rests off-layer and the base is how a reduced-motion
+arrival still arrives). BEAM's four laws stand. Scarcity stays a DISTANCE, roughly a viewport of unlit
+page between lamps, and it governs LAMPS only, never the field. The four-question LampCard stands with
+question one restated: what place is the light entering from? The cadence is a lamp's, not the
+system's: one register for a lamp (the board recommends the engine's own 8s) and a multiple of it for
+the aurora, so `--spill-cadence` stays one token and gains a sibling.
+
+**THE AURORA.** The aurora is the FILL job at chapter scale: the house light itself, at rest, in a
+section that has no media. It is three things, and it is not a lamp. A **REGISTER**: a low base with a
+band near zero, so it reads as the room having a temperature rather than as something glowing, and
+higher numbers on paper than on cinema, because a tint has far less contrast with a near-white page
+than with a near-black room. A **PLACEMENT GRAMMAR**: the chapter's own boundaries, its top edge and
+its bottom edge, never its middle, never centred on a card or a control, and never a fill; the copy
+lives in the clean band between the two. A **MOTION**: a drift several times slower than a lamp's,
+because a field the size of a chapter moving at a lamp's clock reads as a screensaver. Its **COLOUR**
+is the house five narrowed to a temperature by the section itself, through the engine's own documented
+ancestor hook (`--lamp-*` is inherited and `[data-glw]` reads it, so a section retuning it recolours
+every lamp inside it): a temperature is five of the five, re-ordered, never a sixth hue. On paper the
+five take the paper register, hand-tuned per hue rather than one flat L/C row. This is how marketing
+carries colour of its own where there is no media (bible 1) without growing a second palette.
+
+**What goes.** "If you cannot point at the object emitting, there is no spill" (replaced by the place).
+"One depth technique per mode" and "Dark: NO shadows anywhere" (replaced by one cue per relationship).
+"Never a violet reel glow" as an absolute (replaced by: light never takes its colour from a meaning, but
+a moment may lean the five toward the nearest hue, so 300 becomes 305).
+
+**What stays.** The lamp set is light, never UI. Direction, colour, falloff. BEAM's four laws. Scarcity
+as a distance. The four-question LampCard. Every animation inside the reduced-motion block, and every
+lamp's rest state designed, which is the argument that decides part D on its own: the shipped publish
+beat declares nothing outside its animation, so a visitor who asked for less motion is told nothing at
+all when their reel goes live.
