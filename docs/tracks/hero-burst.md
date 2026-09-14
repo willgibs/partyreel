@@ -1,6 +1,6 @@
 ---
 track: hero-burst
-status: open
+status: handed-off
 cut: "b34993e3f6a2cc670e2b38cf7119cd10abc96099"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
@@ -105,23 +105,118 @@ name any extra shape you need (a portrait set for the vertical radials, for inst
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **none.** No production byte moved, and no owned fact belongs in a system doc yet: the burst is a
+  lab concept until Will rules on the board.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Home hero (the wiring round, if the burst is ruled): production wires the loop to
+  `useAmbientPause` rather than to the stage's `data-paused`, and the pre-burst frame wants a
+  `<noscript>` companion rule so a reader with JavaScript off and motion allowed still gets the
+  deployed field (the one departure flagged on the board; the source flagged the same thing).
+- Home hero (the wiring round, if the burst is ruled): the quiet zone's boxes (`KEEP` in `burst.tsx`)
+  are measured numbers for the lab's two fixed canvases. Production is fluid, so the wiring round
+  either derives them from the lockup at layout time (a ResizeObserver on the type, once, feeding the
+  same clearance scan) or pins the lockup to a fixed measure at each breakpoint. Do not ship the
+  literals as-is against a fluid column.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-burst-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The departures, verbatim from the concept (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `9e3a94c` (the sync merge; the work commit is `59cdd49`), pushed; preview
+  `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at
+  `/design/c/home-hero?key=` (concept 3 of 4).
+- **Synced with launch-prep at `3d40173`** (it had moved 68 commits: media-kit, floating-surfaces,
+  palette, type-scale, kill-mono). Nothing under `sandbox/home-hero/` moved, so the contract is
+  unchanged; of my `reads`, `caption.tsx` lost its `MonoCaption` sibling in the kill-mono sweep (this
+  concept was already on the one Caption atom), `stage.tsx` gained a doc-only ★ about breakpoint
+  prefixes reading the real viewport inside a zoomed stage (this concept carries none: it keys off
+  `mode`), and `CANVAS`, `LADDER` and `GUTTER` are untouched.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are pre-existing, on
+  `brand-voice/board.tsx`, `contact-form.tsx`, two album sections, `jobs.ts` and `use-flip.ts`),
+  test ok (1697 in 193 files), build ok (248 static pages; this change adds no route).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-burst.md`,
+  `src/app/(dev)/design/sandbox/home-hero/burst.css`,
+  `src/app/(dev)/design/sandbox/home-hero/burst.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx` and `source.tsx` were read whole and not touched; the shell had
+  everything the concept needed.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **Verified on the preview at `59cdd49`** (Vercel READY at that SHA; the alias was polled until its
+  HTML carried `hhb-card`, so the build is proven by a marker rather than by the clock), and the
+  gates re-run after the sync at `9e3a94c`:
+  - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
+  - The server's own HTML carries 26 `.hhb-card` nodes with 26 `--hhb-rest` and 26 `--hhb-rest-o`
+    declarations, so the deployed field is in the markup: reduced motion, a crawler and a cold paint
+    all get the album standing still around the code rather than an empty stage.
+  - The h1 is in the HTML at computed opacity 1 with `transform: none`, at 72 px on the desktop
+    canvas and 36 px on the phone, with no `data-mkt-cut` / `data-mkt-reveal` / `.mkt-line` on any h1
+    on the page. It never moves, before or during the burst.
+  - Desktop 1440 and Phone 375, ruled and proposed copy: 12 to 13 frames in the air on the desktop
+    canvas and 9 on the phone, the code still at the exact centre at scanning size (140 px and
+    100 px), the type clear of every photograph at both widths and under both copies.
+  - **The quiet zone, measured live rather than argued**: over 11 s of the running field on the
+    desktop canvas under the taller (proposed) copy, sampling every visible card against the h1, the
+    caption, the sentence, both buttons and the QR, the closest any visible frame came to any of them
+    was **36 px**. No photograph is ever under a word, in any direction, at any moment of the loop.
+  - Replay: the burst from the code, measured on the stage. Desktop: nothing at 200 ms, three frames
+    beside the code at 400 (180 px out), four at 800, seventeen at 1010 (the crest, 731 px out),
+    settling to ten to fourteen. Phone: nothing at 440 ms, two at 660, fourteen at 1100, settling to
+    six to nine. One eruption, then the rain.
+  - Reduced motion: simulated by deleting the `no-preference` block from the live sheet and clearing
+    the loop's inline styles, which leaves exactly the cascade a reduced-motion reader gets. The
+    field stands fully deployed around the code, 12 frames, the lockup untouched.
+  - No em-dash, no `font-mono` and no `MonoCaption` anywhere in the two owned files; the eight
+    `font-mono` hits on the served page are the board shell's variant badge, outside this lane.
+- **Assets requested from Will** (the concept lists these on the board too):
+  1. **24 event photographs as 512 x 512 squares** · one grade, 6 to 35 KB webp each, across
+     weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two
+     hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape
+     stand-ins the field cycles (`FRAMES` in `shared.tsx`). **This is `docs/ASSETS.md` row 2, already
+     requested for the source**; the same 24 serve the burst unchanged, and at 24 no frame is ever on
+     screen twice.
+  2. **8 of those same 24 also as 4:5 portrait crops** · 512 x 640, the same photograph recropped,
+     same grade · replaces the square box on the third of the field that already lays out 4:5.
+     Guests shoot vertical, so a field of nothing but squares reads as a deck of cards rather than as
+     an album. This is the one ask the burst adds, and it needs no new photography.
+  3. Nothing else. The QR is the real demo event's, live from `NEXT_PUBLIC_DEMO_QR_TOKEN`; there is
+     no plate art, no lamp and no video in this concept.
+- **The departures, verbatim from the concept** (the Orchestrator quotes them under Waiting on Will):
+  1. "Bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion
+     block, so with JavaScript off and motion allowed the field rests around the code instead of
+     leaving it. Putting it in an effect instead would paint the album deployed and then snap it back
+     to the code. The h1, the code, the caption, the sentence and the actions are plain markup, never
+     gated, and reduced motion gets the field fully deployed."
+  2. "Bible 10, flagged because the hero is unlit by the standing ruling: the frames carry a soft
+     drop shadow. Rule 10 allows exactly this (stacked or overlapping media cards need separating)
+     and the burst overlaps constantly, near frame over far, so without it the depth axis collapses
+     into a flat scatter. It is a shadow, never a lamp: no light source is added and no photograph is
+     darkened."
+  3. "Precedent, not law: the lockup is centred rather than left-aligned, because the code owns the
+     axis. The first thing to overrule if the home hero should stay left."
+  4. "Not a departure, but the visible difference from the source and worth a ruling: the headline
+     sits on the ladder's lg step (text-7xl on desktop, text-4xl on the phone) rather than xl,
+     because the quiet zone has to stay small enough for the burst to own the canvas around it. Both
+     are cinema steps of the one site ladder (bible 5)."
+  5. "There is no scrim, no darkening layer and no lamp anywhere in this concept. Media at 100%."
+- **Look at first**: the first second and a half after a Replay. The code sits alone, two or three
+  frames slip out beside it, and then the whole album erupts in every direction at once and keeps
+  going. Then: whether the headline at the ladder's lg step is the right trade for the burst having
+  the canvas (departure 4, the one real choice on the board), whether the proposed copy earns the
+  composition ("One code. Every angle." names the field, which the ruled thesis does not), and
+  whether the phone reads as the same composition rather than a thinner one, which is the claim this
+  variation makes against the source.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The burst, concept 3 of the home-hero board's
+third round, replaced its placeholder. It keeps the source's ruled sentence and takes it onto the two
+axes a corridor cannot use: around the whole compass, and forward out of the screen. Frames are born
+inside the code and fly outward and toward the viewer, so a near frame grows until it wipes past the
+edge while a far one stays small and slides out, and nothing on screen has any other origin. The
+projection is done by hand rather than with a CSS perspective parent, because the screen position,
+the apparent size and the paint order all have to be readable as numbers, and because the transform
+string then stays a pure function of the clock. Travel is the square root of progress and size lags
+it; the perspective term multiplies both, so the acceleration is depth rather than an easing curve
+imitating one. The quiet zone is one box per block of the lockup rather than one rectangle around all
+of it, and each card is given, once, the progress after which its own box is permanently clear of
+every block: measured live over 11 s of the running field, the closest any visible frame came to any
+word was 36 px, with no scrim and no darkening layer anywhere.
