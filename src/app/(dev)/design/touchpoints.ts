@@ -92,8 +92,9 @@ export type Ruling = {
   why: string;
   /** Where the rule lives now: system-doc anchors and production paths. */
   lives: string[];
-  /** Present only while the board stands in sandbox/. */
-  board?: { note: string; variants: string[] };
+  /** Present only while the board stands in sandbox/. `tracks` names the lp/<track>
+   *  branches building it when they differ from the board id (the desk reads it). */
+  board?: { note: string; variants: string[]; tracks?: string[] };
 };
 
 export const RULINGS: Ruling[] = [
@@ -315,16 +316,18 @@ export const RULINGS: Ruling[] = [
     id: "home-hero",
     title: "The home hero",
     surface: "marketing",
-    ruled: "open",
+    ruled:
+      "open (round two ruled 2026-09-14: the source; round three varies it)",
     shipped: null,
-    why: "Open, round two: the hero is the QR becoming the album. Round one's four grids did not land (Will, 2026-09-14); three mechanisms answer it now.",
+    why: "The source won round two (a stranger should think 'if I scan this, I get all of these'); round three varies it three ways beside the source.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "Round two: the scan is the origin of everything on screen. The QR at the centre with the album streaming out of it, an encapsulated highlight reel with the live QR pinned as the announcement, and a bespoke field of photographs and clips with the QR as the eyebrow; each proposes its own eyebrow and copy",
-      variants: ["The source", "The reel", "The gathering"],
+      note: "Round three: the source as the reference, then three variations of the same causality: the scan makes the cause literal, the burst takes the origin into every direction, the river runs the album down out of the code into the page; each proposes its supporting elements and copy",
+      variants: ["The source (ruled)", "The scan", "The burst", "The river"],
+      tracks: ["hero-scan", "hero-burst", "hero-river"],
     },
   },
   {
