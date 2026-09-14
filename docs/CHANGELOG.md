@@ -72,6 +72,13 @@ own poster, and three frames of a guest holding a phone up.
 the two notes both agents raised: `useTabHidden` is now exported from `shared.tsx` (three copies
 had grown), and the doctrine gained the tailwind-merge trap (a `leading-*` before a size class is
 dropped) and the rect-ratio clarification. No production byte moved; the wiring waits on the ruling.
+**On the launch-prep alias at `ba82222`:** the board 200 with the key and 404 bare; the served HTML
+carries the source's 24 cards with their rest-state declarations, the gathering's 15 cards, the
+reel's frame and four `<video>` elements (the film and three clips), no placeholder left; five h1s
+on the page (the lab's and one per stage) and none gated; the home, the rules, the library and an
+older board unchanged; the three concepts walked in Chrome (a hidden tab, so the loops sat paused by
+design and the fountain at its pre-burst frame: the tooling, recorded in testing-verification.md).
+The three branches and worktrees pruned; the Vercel prune deleted 29 dead deployments and kept 43.
 
 
 
