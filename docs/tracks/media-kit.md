@@ -132,8 +132,9 @@ clause; the first batch, OK or not, item by item; the kit plan.
 
 ## Handoff (replaces the chat report)
 
-- Head: the tip of `lp/media-kit`, pushed. The last commit touching the work is `95e9b39`; this
-  manifest is the tip after it. Preview: `partyreel-git-lp-media-kit-partyreel.vercel.app`
+- Head: the tip of `lp/media-kit`, pushed. The last commit touching the board, the spec or the batch
+  is `14bd665`; `f78800f` merged `launch-prep`; the commits after it are this manifest.
+  Preview: `partyreel-git-lp-media-kit-partyreel.vercel.app`
 - Synced with `launch-prep` at `8b06f89` (twice: an earlier merge at `04af3d5` took a tip that still
   carried a YAML break in `docs/tracks/orchestrator.md`'s frontmatter, landed by `ff2de13`, which
   failed `track-manifests.test.ts`; `8b06f89` has it fixed and the suite is green)
