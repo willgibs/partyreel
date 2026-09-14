@@ -342,12 +342,10 @@ export function PaletteBoard() {
             <Spectrum key={r.id} ramp={r} />
           ))}
         </div>
-        <div
-          className={cn(
-            "mt-2 grid gap-3",
-            desktop ? "grid-cols-4" : "grid-cols-2",
-          )}
-        >
+        {/* The board's OWN chrome keys off the real viewport, not the stage
+            toggle: these tables are not inside a Stage, so a breakpoint is
+            honest here, and four 77px columns at 375 is unreadable. */}
+        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {RAMPS.map((r) => (
             <Ladder key={`${r.id}-light`} ramp={r} tone="light" />
           ))}
@@ -362,9 +360,7 @@ export function PaletteBoard() {
         name="Three darks, or one"
         reading="Cinema, the app, the footer's ink and the media canvas, side by side for each set. Today they are four numbers nobody wrote a reason for. A and C make them steps of one ladder and send the canvas deeper than any room; B makes them one room and deletes the cinema override."
       >
-        <div
-          className={cn("grid gap-4", desktop ? "grid-cols-4" : "grid-cols-2")}
-        >
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {RAMPS.map((r) => (
             <div key={r.id} className="space-y-1.5">
               <p className="text-[11px] font-medium">{r.label}</p>
