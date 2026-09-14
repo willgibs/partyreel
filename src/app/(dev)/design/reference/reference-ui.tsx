@@ -22,7 +22,7 @@ export function RefHeader({
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
         {eyebrow}
       </p>
-      <h1 className="font-heading mt-1 text-3xl text-balance">{title}</h1>
+      <h1 className="mt-1 font-heading text-3xl text-balance">{title}</h1>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
         {blurb}
       </p>
@@ -67,9 +67,7 @@ export function Spec({
       {(label || hint) && (
         <div className="flex items-baseline justify-between gap-3 border-b border-border px-4 py-2.5">
           {label && <p className="text-[13px] font-medium">{label}</p>}
-          {hint && (
-            <p className="font-mono text-[11px] text-muted-foreground">{hint}</p>
-          )}
+          {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
         </div>
       )}
       <div className={cn("p-5", contentClassName)}>{children}</div>
@@ -93,13 +91,7 @@ export function Row({
 }
 
 /** A live color swatch: the real CSS var as the fill, so it tracks the theme. */
-export function Swatch({
-  name,
-  varName,
-}: {
-  name: string;
-  varName: string;
-}) {
+export function Swatch({ name, varName }: { name: string; varName: string }) {
   return (
     <div className="overflow-hidden rounded-lg border border-border">
       <div
@@ -108,9 +100,7 @@ export function Swatch({
       />
       <div className="bg-card px-2.5 py-1.5">
         <p className="truncate text-[12px] font-medium">{name}</p>
-        <p className="truncate font-mono text-[10px] text-muted-foreground">
-          {varName}
-        </p>
+        <p className="truncate text-[10px] text-muted-foreground">{varName}</p>
       </div>
     </div>
   );

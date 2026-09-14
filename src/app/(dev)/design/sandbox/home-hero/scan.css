@@ -1,0 +1,7 @@
+/* The the scan's own sheet (round three of the home-hero board). Keyframe
+   prefix: hhc- (hhs- is the source's, hh- the board's; keyframe names are
+   document-global and keyframe-uniqueness.test.ts reads every sheet under the
+   lab). FINAL states live OUTSIDE the media queries so a reduced-motion reader
+   gets the settled composition; entrances and loops inside `no-preference`
+   only, and any infinite loop marked [data-hh-loop] so the stage's
+   data-paused stops it on a hidden tab (board.css owns that rule). */

@@ -104,9 +104,10 @@ function Scene({ slug }: { slug: string }) {
       );
     case "troubleshooting":
       // The frame being fixed (the 404 strip's cousin). The glyph is drawing,
-      // not UI text, so the mono face is in-bounds here.
+      // not UI text, so it takes the brand face: at regular body weight it would
+      // read lighter than the 2px geometry of every sibling emblem.
       return (
-        <span className="flex size-[26px] items-center justify-center rounded-[7px] border-2 border-dashed border-foreground/40 font-mono text-[13px] leading-none text-foreground">
+        <span className="flex size-[26px] items-center justify-center rounded-[7px] border-2 border-dashed border-foreground/40 font-heading text-[13px] leading-none text-foreground">
           ?
         </span>
       );

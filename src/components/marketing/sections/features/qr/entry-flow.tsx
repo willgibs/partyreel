@@ -118,7 +118,7 @@ export function EntryFlow() {
                 </span>
               ))}
             </div>
-            <p className="font-mono text-[11px] tracking-wide text-muted-foreground">
+            <p className="text-[11px] tracking-wide text-muted-foreground tabular-nums">
               Uploading 3 · full quality
             </p>
           </div>
@@ -130,7 +130,7 @@ export function EntryFlow() {
 
 function StepLabel({ n, label }: { n: string; label: string }) {
   return (
-    <p className="font-mono text-xs tracking-wide text-muted-foreground">
+    <p className="text-xs tracking-wide text-muted-foreground tabular-nums">
       {n} · {label}
     </p>
   );

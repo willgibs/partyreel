@@ -12,4 +12,20 @@
   [data-paused="true"] [data-pal-loop] {
     animation-play-state: paused;
   }
+
+  /* Flipping the ramp toggle repaints every stage at once, and the useful
+     question at that moment is "what actually moved?". A short colour fade on
+     the token wrapper answers it without any movement; a reduced-motion reader
+     gets the jump cut, which reads the same and is the honest default.
+
+     ★ Deliberately NOT applied to descendants. This sheet is unlayered, so a
+     `[data-pal-swap] *` rule would outrank EVERY Tailwind transition utility
+     inside the stage (unlayered beats @layer utilities whatever the
+     specificity) and would quietly strip `transform` from the Button's press
+     transition. The ground is the surface the eye tracks anyway. */
+  [data-pal-swap] {
+    transition:
+      background-color 220ms var(--ease-emphasis),
+      color 220ms var(--ease-emphasis);
+  }
 }

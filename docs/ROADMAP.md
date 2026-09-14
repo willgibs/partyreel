@@ -35,9 +35,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (`home-hero`, integrated 2026-09-12) put four grids on the board; Will's ruling 2026-09-14: none of
   them, too generic, not the QR-to-album idea. Round two runs as three parallel tracks (`hero-source`,
   `hero-reel`, `hero-gathering`) against one shell at `sandbox/home-hero/`, each with its own eyebrow
-  and copy proposal and its own asset request; all three integrated 2026-09-14. **Waits on Will's ruling on
-  round two**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
-  `MonoCaption` import) then lifts the ruled concept's mechanics into `cinema-hero.tsx` (the
+  and copy proposal and its own asset request; all three integrated 2026-09-14 and **ruled the same day:
+  the source** ("I bet if I scan this QR I get all of these images"; the reel read as the video being the
+  product, the gathering's QR as a learn-more object). **Round three runs as three variation tracks off the
+  source** (`hero-scan`, `hero-burst`, `hero-river`; the source stays on the board as the reference) and
+  **waits on Will's ruling**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
+  `MonoCaption` import) then lifts the ruled variation's mechanics into `cinema-hero.tsx` (the
   source: the loop on `useAmbientPause` and a `<noscript>` companion for the deployed corridor; the
   reel: the announcement card `lg:fixed` and a `--radius-screen` step if its 24 px corner is ruled in;
   the gathering: the clearing profile and the parallax hook, retiring the four stacked darkenings);
@@ -121,6 +124,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   round of the review wave (`tracks/orchestrator.md` In flight): the `rounding` board on `/design/c/rounding`
   is the sitting surface, the three action-radius knobs join the tuner, and a store outside the
   component (persisted, exported) fixes both defects at their one root. Bible 8 inherits the values.
+  ✅ **The tuner earned the sitting (2026-09-14):** the store, the descriptions and ships lines, the
+  grouped panel and export, the action trio, the retirements (nine knobs without a specimen), the
+  board at `/design/c/rounding`, the button ladder derived from `--radius-action`, and the two
+  places that made the tokens deaf to the knob (the `:root, .surface-paper` alias and the lab's
+  `.mono` sheet) fixed. **The sitting is Will's** (Waiting on Will, item 3).
 - **The composition pass** (2026-09-14): when the review wave's six boards are ruled, one Orchestrator
   board stacks the ruled token blocks (ramp, accent, panel, light, type ladder, floating treatment,
   radius values) on the home arc and the dashboard, at both widths and on every ground, beside today;
@@ -284,6 +292,10 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** (2026-09-11) is superseded: **mono is leaving** (Will, 2026-09-14; the `kill-mono` track removes the face and redesigns every place it did semantic work); **the voice-infusion round** (after `brand-voice` is ruled): the voice carried site-wide, the 30 feature-page strings, the 59 nav strings, the seven provisional headers, the MDX, the ten email templates and the inline app copy (`help-ui-labels.test.ts` makes an app-control rename a two-file change);
+  ★ **`tw-animate-css` ships no reduced-motion guard** (floating-surfaces, 2026-09-14): every `animate-in` / `animate-out` utility, the whole floating layer included, still animates for a reader who asked for less motion; bible 14 is enforced by hand today; the floating wiring round guards the family (hardening, WCAG); **`ui/tooltip.tsx`'s arrow** takes a literal `rounded-[2px]` (bible 8), the one literal radius left on the floating layer; **`ui/navigation-menu.tsx`'s viewport** cannot size itself outside the marketing header (its width rides a radix var that never lands on a lab page), so the mega-menu rendered anywhere but `marketing-nav.tsx` gets a 0-wide panel; **the board shell wants a frame** (the floating board's `frame.tsx` + scene route: an iframe at the canvas's true pixels for anything that portals to `document.body`; add it to `src/components/dev/board/` when the next board needs one);
+  **the blog's cover pool is unlicensed for what it shows** (media-kit, 2026-09-14: Unsplash's terms exclude recognizable people, all twelve `MARKETING_IMAGES` are full of them, eleven cover 23 posts plus OG and RSS; replace before launch with the kit (`docs/ASSETS.md` row 7) or bridge with the staged CC0 batch on the blog pool only, Will's call); **`/design/reel-parity` hardcodes its eight `FIXTURES`**, so re-rendering a recorded `MARKETING_REELS` recipe needs a code edit rather than a control (read the clip ids off the recipe); **the media manifest has no home in `docs/systems/`** (fold `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled);
+  **inline code as a plate** in the help centre and the blog (kill-mono, 2026-09-14: `prose-code:font-sans` left ~260 code spans reading on the body face at weight 600 inside backticks; a muted plate would read better; its own round); **the operator emails' `<code>media</code>`** (`src/lib/email/templates.ts:169,196` renders in each mail client's mono face; an inline style or drop the tag); **the 404 title** (`shared/not-found-screen.tsx:55` is the one h1 without `font-heading`; the type wiring sweeps it with the ladder);
+  **a "Watch your event highlights" video card** on another page, a CTA that links to `/reel` (Will, 2026-09-14: the round-two reel hero, redesigned as a section rather than the hero, since a film in the hero reads as the video being the product; the film ask in `docs/ASSETS.md` row 1 serves it);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
   subjects; the hub doors' and the album stages' stock photographs are placeholders Will replaces,
@@ -411,7 +423,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (At very large scale, the prune+reconcile per-run bucket scans can move to a merge-join / deletion
   tombstone / shared copy-state index — see [`systems/durability-backups.md`](systems/durability-backups.md).)
   Also: an operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription
-  health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
+  health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md). **The MFA enrolment secret** (`src/components/admin/mfa-enroll.tsx:122`) is a bare `<code>`, so preflight still sets it in a mono stack (kill-mono, 2026-09-14; outside that lane): `font-sans`, or the muted plate the other admin codes took.
 - **Vercel / Next.js optimization** — ~~the 12s guest-gallery poll~~ SHIPPED Phase 3 (doorbell +
   ETag/304 + stable presigns → [`systems/guest-flow.md`](systems/guest-flow.md)) · **dashboard
   Suspense streaming DEFERRED post-launch** (P5 S1, three live strandings: completions die inside

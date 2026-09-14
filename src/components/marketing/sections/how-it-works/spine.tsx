@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -19,7 +18,7 @@ import {
 /**
  * THE TWO-SIDED SPINE (this page's signature): the whole product as six
  * numbered steps, the HOST side and the GUEST side interleaved as one
- * timeline in the order a real event runs. Each step = the mono number + a
+ * timeline in the order a real event runs. Each step = the step number + a
  * side chip (the ONE quiet convention, side-chip.tsx) + two sentences + a
  * static product frame + a door into that feature's own page (the
  * progressive-disclosure ladder: this page orients, the feature pages carry
@@ -122,9 +121,9 @@ export function Spine() {
                 className="flex items-center gap-3"
                 style={{ "--i": 0 } as CSSProperties}
               >
-                <MonoCaption className="text-sm">
+                <Caption className="text-sm tabular-nums">
                   {String(i + 1).padStart(2, "0")}
-                </MonoCaption>
+                </Caption>
                 <SideChip>{step.side}</SideChip>
               </div>
               <h3

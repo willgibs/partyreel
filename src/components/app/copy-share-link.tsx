@@ -33,7 +33,7 @@ export function CopyShareLink({ url }: CopyShareLinkProps) {
         readOnly
         value={url}
         onFocus={(event) => event.currentTarget.select()}
-        className="font-mono text-xs"
+        className="text-xs"
       />
       <Button
         type="button"

@@ -92,8 +92,9 @@ export type Ruling = {
   why: string;
   /** Where the rule lives now: system-doc anchors and production paths. */
   lives: string[];
-  /** Present only while the board stands in sandbox/. */
-  board?: { note: string; variants: string[] };
+  /** Present only while the board stands in sandbox/. `tracks` names the lp/<track>
+   *  branches building it when they differ from the board id (the desk reads it). */
+  board?: { note: string; variants: string[]; tracks?: string[] };
 };
 
 export const RULINGS: Ruling[] = [
@@ -315,16 +316,18 @@ export const RULINGS: Ruling[] = [
     id: "home-hero",
     title: "The home hero",
     surface: "marketing",
-    ruled: "open",
+    ruled:
+      "open (round two ruled 2026-09-14: the source; round three varies it)",
     shipped: null,
-    why: "Open, round two: the hero is the QR becoming the album. Round one's four grids did not land (Will, 2026-09-14); three mechanisms answer it now.",
+    why: "The source won round two (a stranger should think 'if I scan this, I get all of these'); round three varies it three ways beside the source.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "Round two: the scan is the origin of everything on screen. The QR at the centre with the album streaming out of it, an encapsulated highlight reel with the live QR pinned as the announcement, and a bespoke field of photographs and clips with the QR as the eyebrow; each proposes its own eyebrow and copy",
-      variants: ["The source", "The reel", "The gathering"],
+      note: "Round three: the source as the reference, then three variations of the same causality: the scan makes the cause literal, the burst takes the origin into every direction, the river runs the album down out of the code into the page; each proposes its supporting elements and copy",
+      variants: ["The source (ruled)", "The scan", "The burst", "The river"],
+      tracks: ["hero-scan", "hero-burst", "hero-river"],
     },
   },
   {
@@ -482,8 +485,13 @@ export const RULINGS: Ruling[] = [
       "src/app/theme.css",
     ],
     board: {
-      note: "Today's ramp beside three candidate ramps on real sections, on cinema, paper and ink, at both widths; the accent as a hue on the brand call sites; the panel as one token",
-      variants: ["Placeholder"],
+      note: "Today's twenty-one values beside three complete candidate token sets on real sections at both widths against an oklab ruler, the accent argued by the job it does, the panel as one token",
+      variants: [
+        "A, one ladder",
+        "B, one room",
+        "C, film stock",
+        "The accent by job",
+      ],
     },
   },
   {
@@ -516,8 +524,8 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Three candidate scales beside today's on the home arc, a feature page, help, the dashboard, an event page and admin, at 1440 and 375",
-      variants: ["Placeholder"],
+      note: "Eleven stages driving the production components through three custom properties, so picking a ladder re-lays the real home arc, a feature page, help, about, the dashboard, an event page and admin",
+      variants: ["Today", "A tuned", "B rungs", "C registers"],
     },
   },
   {
@@ -532,8 +540,14 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "Dialog, drawer, dropdown, popover, select, sheet, toast, tooltip and the nav viewport on cinema, paper and ink; the phone canvas primary for sheets and dialogs",
-      variants: ["Placeholder"],
+      note: "All nine primitives live on one canvas over real photographs, on every ground at both widths, with radius, entrance and light as independent knobs, three ladders at 1:1 and the outliers beside the contract",
+      variants: [
+        "The entrance",
+        "The radius ladder",
+        "The light ladder",
+        "The outliers",
+        "The sheet at 375",
+      ],
     },
   },
   {
@@ -548,8 +562,8 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "The proposed voice on real section shells, the home arc's seven provisional headers rewritten as the worked example, the unfurl line and the five copy picks ruled here",
-      variants: ["Placeholder"],
+      note: "Three candidate voices on the real PageHero and SectionShell across cinema, paper and the app ground; the seven provisional home headers rewritten in each beside today's line; the unfurl both ways",
+      variants: ["A the house", "B the room", "C the guest list"],
     },
   },
   {
@@ -565,8 +579,8 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "A contact sheet of the candidate first batch beside the current twelve stills, provenance under each; the batch is staged, not wired",
-      variants: ["Placeholder"],
+      note: "Three routes swapping in place on the same twelve positions with the provenance line under each, the vertical gap on the blog's cover pool, the sources with their clauses, and the blog plate at production geometry",
+      variants: ["Licensed", "Ours", "Mix", "In place"],
     },
   },
   {
@@ -582,8 +596,13 @@ export const RULINGS: Ruling[] = [
       "src/components/dev/motion-tuner-config.ts",
     ],
     board: {
-      note: "Every radius token at candidate values on the surfaces that carry it, beside the tuner that drags the real pages",
-      variants: ["Placeholder"],
+      note: "One kit of every radius-bearing surface in four columns: three fixed candidates and a live column that follows the tuner, on the app's grounds and cinema",
+      variants: [
+        "Today",
+        "B, soft surfaces",
+        "C, the 16px column",
+        "Live, the tuner",
+      ],
     },
   },
 ];

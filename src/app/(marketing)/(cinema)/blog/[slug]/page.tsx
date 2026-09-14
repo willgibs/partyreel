@@ -249,7 +249,7 @@ export default async function BlogPostPage({
                     Scoped to the first child so it can never catch a second paragraph. */}
                 <article
                   id={ARTICLE_BODY_ID}
-                  className="prose max-w-none prose-help prose-headings:font-heading [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
+                  className="prose max-w-none prose-help prose-headings:font-heading prose-code:font-sans [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
                 >
                   {content}
                 </article>

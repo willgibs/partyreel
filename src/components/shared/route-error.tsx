@@ -71,7 +71,10 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
             style={{ "--nf-i": 3 } as CSSProperties}
             className="text-xs text-muted-foreground/70"
           >
-            Error code: <span className="font-mono">{error.digest}</span>
+            Error code:{" "}
+            <span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80 tabular-nums select-all">
+              {error.digest}
+            </span>
           </p>
         )}
       </div>

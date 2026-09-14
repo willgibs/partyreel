@@ -7,7 +7,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
  * The durability section, framed "boring on purpose": the storage facts as a
- * calm numbered document (mono figures, hairline rules, zero photography), the
+ * calm numbered document (tabular figures, hairline rules, zero photography), the
  * quietest register on the site's quietest page. Every line is a shipped,
  * verified behavior; the fenced claims (E2EE, PITR, compliance badges,
  * multi-cloud) are deliberately absent. The recovery-window number derives
@@ -47,7 +47,7 @@ export function MediaLives() {
               className="flex items-baseline gap-5 px-5 py-4"
               style={{ "--i": Math.min(i, 2) + 3 } as CSSProperties}
             >
-              <span className="font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
+              <span className="text-xs tracking-wide text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <p className="text-sm leading-relaxed">{fact}</p>

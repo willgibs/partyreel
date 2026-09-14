@@ -25,19 +25,21 @@ const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
       },
-      // Radius rides height (ratio ~0.4): h-6 0.6rem · h-7 0.7rem ·
-      // h-8 --radius-action-sm · h-9 0.9rem. Tune globally via the action
-      // tokens in globals.css; the in-between sizes interpolate the ratio.
+      // Radius rides height (ratio ~0.4): h-8 is --radius-action-sm and the
+      // in-between sizes DERIVE from --radius-action (h-6 0.6x, h-7 0.7x, h-9
+      // 0.9x of the 40px button's 16px), so one knob on the tuner moves the
+      // whole action ladder (the rounding round, 2026-09-14; the literals
+      // 0.6rem / 0.7rem / 0.9rem they replace were the same numbers, frozen).
       size: {
         default:
           "h-8 gap-1.5 rounded-action-sm px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[0.6rem] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[0.7rem] px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 rounded-[0.9rem] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-9 gap-1.5 rounded-[calc(var(--radius-action)*0.9)] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         icon: "size-8 rounded-action-sm",
-        "icon-xs": "size-6 rounded-[0.6rem] [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7 rounded-[0.7rem]",
-        "icon-lg": "size-9 rounded-[0.9rem]",
+        "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)]",
+        "icon-lg": "size-9 rounded-[calc(var(--radius-action)*0.9)]",
       },
     },
     defaultVariants: {

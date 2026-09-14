@@ -19,7 +19,7 @@ export function WysiwygSection() {
         <span className="rounded-lg border px-4 py-2">
           <Caption className="text-foreground/80">the preview</Caption>
         </span>
-        <span aria-hidden className="font-mono text-lg text-muted-foreground">
+        <span aria-hidden className="text-lg text-muted-foreground">
           =
         </span>
         <span className="rounded-lg border px-4 py-2">

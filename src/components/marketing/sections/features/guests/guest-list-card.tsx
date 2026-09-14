@@ -76,7 +76,7 @@ export function GuestListCard({ names }: { names: string[] }) {
         <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
           Guests
         </span>
-        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {names.length} signed in
         </span>
       </div>

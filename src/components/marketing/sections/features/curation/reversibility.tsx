@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -59,9 +59,9 @@ function TrashMock() {
         <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
           Trash
         </p>
-        <MonoCaption>
+        <Caption className="tabular-nums">
           restore within {RECENTLY_DELETED_WINDOW_DAYS} days
-        </MonoCaption>
+        </Caption>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {TRASH_TILES.map(({ id, days }) => (

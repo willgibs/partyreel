@@ -103,7 +103,7 @@ export default async function DesignIndexPage({
           >
             <p className="flex items-baseline gap-2 text-sm font-medium">
               {group.label}
-              <span className="font-mono text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground tabular-nums">
                 {group.entries.length}
               </span>
             </p>
@@ -133,14 +133,20 @@ export default async function DesignIndexPage({
         {(
           [
             ["components", INDEXED.length],
-            ["with a specimen", ITEMS.filter((i) => i.entry.specimens.length > 0).length],
+            [
+              "with a specimen",
+              ITEMS.filter((i) => i.entry.specimens.length > 0).length,
+            ],
             ["with a config panel", ITEMS.filter((i) => i.entry.play).length],
             [
               "declared variants",
               ITEMS.reduce(
                 (n, i) =>
                   n +
-                  (i.entry.variants ?? []).reduce((m, v) => m + v.options.length, 0),
+                  (i.entry.variants ?? []).reduce(
+                    (m, v) => m + v.options.length,
+                    0,
+                  ),
                 0,
               ),
             ],
@@ -197,7 +203,7 @@ function ZoneCard({
           {title}
           <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
         </span>
-        <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground">
+        <span className="mt-0.5 block text-[11px] text-muted-foreground tabular-nums">
           {count}
         </span>
         <span className="mt-1.5 block text-sm leading-relaxed text-muted-foreground">
