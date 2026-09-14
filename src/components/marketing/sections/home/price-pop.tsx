@@ -15,7 +15,7 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
  * ONE PRICE REGISTER (R4/A10): the labels come from tiers.ts as whole phrases
  * ("$0", "from $9/mo", "$24 one-time"), and setting all three at price size
  * made the row read as three different type treatments — a bare number beside
- * two mono sentences. The label is split into a MONEY core and its qualifier
+ * two sentences. The label is split into a MONEY core and its qualifier
  * words; the core keeps the big face, the qualifiers drop to a small muted
  * one. Same face and same strings throughout, so every card now leads with a
  * number of the same weight. tiers.ts stays the only copy source.

@@ -87,9 +87,9 @@
    added to :root later reach paper surfaces automatically; `.dark`-only
    overrides stay dark-only. NEVER alias `.dark` this way, and never nest
    `.dark` inside `.surface-paper` (always-dark media surfaces use --gallery*
-   instead — the standing rule). Nuance: --tune-* re-declared here means
-   html-inline tuner overrides don't pierce paper subtrees; no marketing
-   surface reads --tune-* inside one today. */
+   instead — the standing rule). The theme-independent tokens (radius, gap,
+   cadence, --tune-*) live in their own :root block BELOW this one, so a
+   tuner override on <html> pierces every paper subtree. */
 :root,
 .surface-paper {
   /* Light = paper. No pure white anywhere (Hobday): bg 0.99, card 0.997 —
@@ -117,54 +117,6 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-
-  /* The rounding system (rationale in the header). */
-  --radius: 0.125rem;
-  --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
-  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
-  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
-  --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
-  --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
-  --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
-  /* The lamps' cadence, ONE token (staged for the cadence sitting, 2026-09-11):
-     every shipped lamp (the footer seam, the film strip, the reel pool, the
-     feature heroes' screen lamps) passes --glw-dur: var(--spill-cadence). The
-     engine's ruled register is 8s (2026-08-31); every lamp shipped 11s; the
-     sitting judges the whole home page at each on the tuner's knob, and the
-     ruling lands here. Not --glw-* (the engine reads only its own knobs) and
-     not --lamp-* (the five are colour, fenced as light-never-UI). */
-  --spill-cadence: 11s;
-
-  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
-     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
-     (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
-     on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
-  --tune-route-fade-ms: 310ms; /* the page route fade-in */
-  --tune-route-fade-ease: ease-out;
-  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
-  --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
-  --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
-
-  /* The REEL REVEAL beats (R3). CLOSED grammar: ruled by Will at T1, ratified
-     AS-BUILT at T2, so these are transplanted verbatim from the design lab and
-     are revisit-only — do not re-tune them as part of a build. They are read by
-     CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
-     (src/components/reel/reveal-constants.ts), which mirrors them again. */
-  --tune-rvl-fly-ms: 640ms; /* per-tile assembly flight */
-  --tune-rvl-stagger-ms: 42ms; /* per-tile flight delay step */
-  --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
-  --tune-rvl-flash-ms: 360ms; /* the camera flash */
-  --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
-  --tune-rvl-expand-ease: cubic-bezier(
-    0.77,
-    0,
-    0.175,
-    1
-  ); /* = --ease-in-out-strong (on-screen movement) */
-  --tune-rvl-title-ms: 1700ms; /* the title hold */
-  /* The reel-experience beats: the publish flourish + the sheet/swap family. */
-  --tune-rxp-pub-ms: 700ms; /* publish flourish (share-card bloom / studio glow) */
-  --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
 
   /* Brand = ink. The alias keeps every legacy brand-tinted class coherent
      under the mono identity with zero sweeps. */
@@ -226,6 +178,64 @@
   --lamp-3: oklch(0.72 0.14 155);
   --lamp-4: oklch(0.7 0.14 255);
   --lamp-5: oklch(0.68 0.16 305);
+}
+
+/* THEME-INDEPENDENT TOKENS, on :root ONLY (the rounding round, 2026-09-14): the
+   radius system, the gallery gap, the lamps' cadence and the motion knobs are
+   not part of a theme, so they are NOT aliased to .surface-paper. Aliased,
+   every paper chapter re-declared them and the tuner's html-inline override
+   never pierced it (a radius sitting on a paper chapter was silently on the
+   baked values). Declared once here they inherit into every subtree, and an
+   inline value on <html> (what the tuner writes) wins everywhere. Never move
+   them back into the `:root, .surface-paper` block. */
+:root {
+  /* The rounding system (rationale in the header). */
+  --radius: 0.125rem;
+  --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
+  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
+  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
+  --radius-tile: 3px; /* media tiles: subtle, never opens corner holes */
+  --gap-gallery: 3px; /* the ONE gap for every media-tile grid (masonry + the dense triage grids); use gap-[var(--gap-gallery)] */
+  --radius-float: 0.5rem; /* menus/tooltips/toasts: sharp reads broken */
+  /* The lamps' cadence, ONE token (staged for the cadence sitting, 2026-09-11):
+     every shipped lamp (the footer seam, the film strip, the reel pool, the
+     feature heroes' screen lamps) passes --glw-dur: var(--spill-cadence). The
+     engine's ruled register is 8s (2026-08-31); every lamp shipped 11s; the
+     sitting judges the whole home page at each on the tuner's knob, and the
+     ruling lands here. Not --glw-* (the engine reads only its own knobs) and
+     not --lamp-* (the five are colour, fenced as light-never-UI). */
+  --spill-cadence: 11s;
+
+  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
+     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
+     (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
+     on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
+  --tune-route-fade-ms: 310ms; /* the page route fade-in */
+  --tune-route-fade-ease: ease-out;
+  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
+  --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
+  --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
+
+  /* The REEL REVEAL beats (R3). CLOSED grammar: ruled by Will at T1, ratified
+     AS-BUILT at T2, so these are transplanted verbatim from the design lab and
+     are revisit-only — do not re-tune them as part of a build. They are read by
+     CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
+     (src/components/reel/reveal-constants.ts), which mirrors them again. */
+  --tune-rvl-fly-ms: 640ms; /* per-tile assembly flight */
+  --tune-rvl-stagger-ms: 42ms; /* per-tile flight delay step */
+  --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
+  --tune-rvl-flash-ms: 360ms; /* the camera flash */
+  --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
+  --tune-rvl-expand-ease: cubic-bezier(
+    0.77,
+    0,
+    0.175,
+    1
+  ); /* = --ease-in-out-strong (on-screen movement) */
+  --tune-rvl-title-ms: 1700ms; /* the title hold */
+  /* The reel-experience beats: the publish flourish + the sheet/swap family. */
+  --tune-rxp-pub-ms: 700ms; /* publish flourish (share-card bloom / studio glow) */
+  --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
 }
 
 .dark {

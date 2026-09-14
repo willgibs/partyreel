@@ -149,7 +149,7 @@ export default async function ForensicsPage() {
                   {holds.map((h) => (
                     <tr key={h.id} className="border-b border-border/50">
                       <td
-                        className="py-2 pr-3 font-mono text-xs"
+                        className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums"
                         title={h.holdReason ?? ""}
                       >
                         {h.id.slice(0, 8)}…
@@ -231,7 +231,7 @@ export default async function ForensicsPage() {
                       <td className="py-2 pr-3">
                         {ACTION_LABEL[a.action] ?? a.action}
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs">
+                      <td className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums">
                         {a.mediaId ? `${a.mediaId.slice(0, 8)}…` : ""}
                       </td>
                       <td className="py-2">

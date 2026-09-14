@@ -85,9 +85,9 @@ export function PricingTeaser() {
                   {card.name}
                 </p>
                 {/* The ratified price register (/pricing, 2026-08-27): money in
-                    the DISPLAY face with tabular numerals, never mono -- mono on
-                    a price reads devtool. The teaser had drifted back to
-                    font-mono; corrected at round 1b. */}
+                    the DISPLAY face with tabular numerals. It is the model the
+                    kill-mono sweep took site-wide for every number that is the
+                    subject of its block (2026-09-14). */}
                 <div className="mt-3 font-heading text-3xl font-medium tracking-tight tabular-nums">
                   <PricePop label={card.price} />
                 </div>

@@ -1,15 +1,78 @@
 /* The type-scale board's sheet (board.tsx), imported by the board so it leaves with
    the board when the ruling lands. Keyframe prefix: tsc- (keyframe names are
    document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab; never reuse a production name).
+   lab; never reuse a production name). This board declares NONE: a type board
+   has no motion of its own, and the production entrances it renders are settled
+   below, so the board reads identically with and without reduced motion.
 
-   House convention: FINAL states live OUTSIDE the media queries, so a
-   reduced-motion reader gets the settled composition with no rule to undo;
-   entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-tsc-loop] so the stage's data-paused stops it on a hidden tab. */
+   ── HOW A CANDIDATE REACHES A PRODUCTION COMPONENT ──
+   The board renders the real PageHero, SectionShell, PageHeading and CardTitle
+   and changes not one byte of them. A <Step> wrapper sets three custom
+   properties from the selected ladder, and the two rules below spend them on
+   whatever heading the wrapped component renders. That is what makes the stages
+   production truth rather than a retyped mock: pick another ladder and the same
+   components re-lay themselves out.
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-paused="true"] [data-tsc-loop] {
-    animation-play-state: paused;
-  }
+   ★ SPECIFICITY IS LOAD-BEARING, AND THE DISPLAY STEP IS THE HIGH-WATER MARK.
+   Tailwind's size utilities sit in @layer utilities, so any unlayered rule
+   beats them outright. marketing.css is unlayered too, and its masthead rule is
+   `[data-mkt] [data-inview="true"] .mkt-name` at (0,3,0), which a two-attribute
+   selector loses to: the board measured 160px at -0.03em under every candidate
+   until this chain grew a third attribute. So every rule here runs the full
+   `[data-tsc] [data-tsc-page] [data-tsc-*]` chain rather than reaching for an
+   !important, and a shorter one will silently stop overriding the masthead. */
+
+[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3),
+[data-tsc] [data-tsc-page] [data-tsc-step="card"] [data-slot="card-title"] {
+  font-size: var(--tsc-size);
+  line-height: var(--tsc-lh);
+  letter-spacing: var(--tsc-ls);
+}
+
+/* THE PAGE GUTTER, HAND-RESOLVED. Container is `px-4 sm:px-6 lg:px-8`, and a
+   stage is a zoomed 375 or 1440 canvas inside a real browser window, so those
+   breakpoints read the WINDOW and a phone stage would otherwise wear a desktop
+   gutter. Same reason the home-hero board carries a GUTTER constant. The mode
+   sets --tsc-gutter; this spends it on a Container inside a stage only. */
+[data-tsc] [data-tsc-page] [class~="max-w-7xl"] {
+  padding-inline: var(--tsc-gutter);
+}
+
+/* THE ENTRANCES, SETTLED. Every stage sets data-inview="true" at its root,
+   which is what marketing.css's final-state rules key off, so the staggered
+   rise and the masthead's tracking squeeze land settled instead of waiting on
+   an observer inside a zoomed stage. Two registers need one line each: the film
+   cut animates on mount from `both`, and `.mkt-line` (the /help blur register)
+   rests at opacity 0 until its island flips a class on an ancestor. A type
+   board must not depend on either firing, and motion is not the question here. */
+[data-tsc] [data-tsc-page] [data-mkt-cut] {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+[data-tsc] [data-tsc-page] .mkt-line {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+}
+
+/* ★ AND THE MASTHEAD'S SQUEEZE HOLDS STILL. `.mkt-name` transitions
+   letter-spacing over 760ms, which is right on a page that loads once and
+   wrong on a board where the ladder changes under the same element: measured
+   400ms after a toggle, the display step reported a tracking that belonged to
+   neither ladder, and a screenshot taken then would have shown a number the
+   board never proposed. The squeeze itself is the light track's question, not
+   this one. (0,4,0), because marketing's own rule is (0,3,0).) */
+[data-tsc] [data-tsc-page] [data-tsc-step] .mkt-name {
+  transition: none;
+}
+
+/* The specimen's ghost: today's size drawn under the candidate's word as a
+   hairline block the height of today's cap, so the delta reads as a shape
+   before it reads as two numbers. */
+[data-tsc-ghost] {
+  border-bottom: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+  border-left: 1px solid color-mix(in oklab, currentColor 20%, transparent);
 }

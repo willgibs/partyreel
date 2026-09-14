@@ -81,7 +81,9 @@ multi-line variable becomes one iteration (one curl of a three-line "URL" return
   from the same session: **a screenshot taken right after a programmatic scroll jump can capture a
   stale, all-black frame** even when computed styles say everything is visible. A 2px nudge did not
   fix it; a real scroll (`scrollBy(-80)` then `scrollBy(80)`, ~300ms apart, then ~700ms) did. Treat a
-  single black frame as a capture artifact until a second read agrees. `matchMedia` is the honest way
+  single black frame as a capture artifact until a second read agrees. A lab page scrolled past the fold
+  comes back all black too (the palette board, 2026-09-14): read a long board by moving the content under
+  a scroll position of zero (a negative body margin) or by measuring the DOM; a blank frame is not a broken board. `matchMedia` is the honest way
   to know the profile's motion setting (it was ON here); do not infer it from an animation reading
   `none`. And do not append a query string to the URL you navigate to: the tool then refuses to run
   page JavaScript at all ("Cookie/query string data").

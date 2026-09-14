@@ -15,6 +15,15 @@ import { readCssMs as readMs } from "@/lib/shared/read-css-ms";
 // (use-review-triage.ts), so the JS-timed replays (the exit reset + the beat hold) match the tuner
 // (and survive the build minifier rewriting `2500ms` → `2.5s`).
 
+// Hoisted, never rebuilt per render: the tuner's apply effect keys on this
+// array's identity (a per-render literal was what made a Replay wipe every
+// tuned value before the store existed; the store fixed the root, this keeps
+// the effect quiet).
+const PLAYGROUND_CONTROLS = [
+  ...EVENT_PAGE_TUNER_CONTROLS,
+  ...ROUNDING_TUNER_CONTROLS,
+];
+
 const CASCADE = Array.from({ length: 12 }, (_, i) => i);
 const EXIT = Array.from({ length: 6 }, (_, i) => i);
 
@@ -105,7 +114,9 @@ export function MotionPlayground() {
           Tune the timings with the panel, hit Replay to feel each animation,
           then Copy CSS and bake the value as the globals.css default. These are
           dummies wired to the real motion hooks, so what you tune here is what
-          ships.
+          ships. Every knob on the panel has a specimen here or on the rounding
+          board; the tuned values survive Replay, navigation and a reload until
+          you Reset.
         </p>
       </header>
 
@@ -179,11 +190,10 @@ export function MotionPlayground() {
       </Section>
 
       {/* The rounding knobs ride along (the radius round's sitting, 2026-09-11):
-          the values land on <html>, so /design/components and /design/compositions
-          show the app's own surfaces at the dragged radii after a soft navigation. */}
-      <MotionTuner
-        controls={[...EVENT_PAGE_TUNER_CONTROLS, ...ROUNDING_TUNER_CONTROLS]}
-      />
+          the values land on <html>, so /design/c/rounding, /design/components and
+          /design/compositions show the app's own surfaces at the dragged radii
+          after a soft navigation, and the store carries them across a reload. */}
+      <MotionTuner controls={PLAYGROUND_CONTROLS} />
     </div>
   );
 }

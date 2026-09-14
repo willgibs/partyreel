@@ -19,10 +19,10 @@ type CtaBandProps = {
   /** Render the recurring demo CTA line under the buttons (DemoCtaLink-gated). */
   demoLink?: boolean;
   /**
-   * The cinema-close credit: the Geist Mono production line, alone. One per
-   * page at most (it reads as the final frame). Deliberately NO Logo lockup:
-   * the footer opens with the brand mark ~250px below, and doubling it read
-   * as a mistake (R4-A23) — the mono line carries the film-credit register.
+   * The cinema-close credit: the production line, alone. One per page at most
+   * (it reads as the final frame). Deliberately NO Logo lockup: the footer
+   * opens with the brand mark ~250px below, and doubling it read as a mistake
+   * (R4-A23). The line's own quiet register carries the film credit.
    */
   credit?: boolean;
   reveal?: "cinema" | "standard" | "none";

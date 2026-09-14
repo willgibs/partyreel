@@ -33,11 +33,23 @@ function formatValue(value: number): string {
 }
 
 /**
- * The recurring counter band (Track B system layer): Geist Mono, tabular-nums,
- * one row of big numbers with quiet labels. Server-renders the FINAL digits (the
- * spin starts each reel ON its digit and rolls when fired), so no-JS and SEO
- * always see the true numbers; the motion is pure enhancement. The motion CSS
- * lives in marketing.css chapter 2 (mkt-count-* / mkt-digits hooks).
+ * The recurring counter band (Track B system layer): one row of big numbers
+ * with quiet labels.
+ *
+ * THE STAT REGISTER (rebuilt by the kill-mono sweep, 2026-09-14). A count is
+ * the subject of its block, so it renders where every other subject number on
+ * this site renders: the DISPLAY face (Urbanist via font-heading) with
+ * tabular figures, the register the pricing cards ratified on 2026-08-27. The
+ * band used to set these in Geist Mono at 500, which read like a readout of
+ * someone else's data rather than a claim we are making. The label keeps the
+ * tracked uppercase micro-register it shares with the pricing stat rows: it is
+ * the counterweight that stops a bold numeral from reading as body copy.
+ *
+ * Server-renders the FINAL digits (the spin starts each reel ON its digit and
+ * rolls when fired), so no-JS and SEO always see the true numbers; the motion
+ * is pure enhancement. The motion CSS lives in marketing.css chapter 2
+ * (mkt-count-* / mkt-digits hooks). tabular-nums is load-bearing now, not
+ * decoration: it is what holds a reel column's ten digits to one width.
  */
 export function StatBand({
   stats,
@@ -58,7 +70,7 @@ export function StatBand({
     >
       {stats.map((stat) => (
         <div key={stat.label} className="flex flex-col items-center gap-2">
-          <div className="font-mono text-3xl font-medium tracking-tight tabular-nums sm:text-4xl">
+          <div className="font-heading text-3xl tabular-nums sm:text-4xl">
             {stat.prefix}
             <StatValue value={stat.value} mode={mode} fired={inView} />
             {stat.suffix}

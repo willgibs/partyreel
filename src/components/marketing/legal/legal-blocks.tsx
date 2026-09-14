@@ -79,10 +79,10 @@ export function LegalBlocks({
                             className={cn(
                               "py-2.5 pr-4",
                               c === 0 && "text-foreground",
-                              // Mono holds DATA (durations, amounts), never a
-                              // label: the R6 ruling.
+                              // A numeric column takes tabular figures so the
+                              // durations and amounts align down the column.
                               block.columns[c]?.numeric &&
-                                "font-mono text-xs whitespace-nowrap tabular-nums",
+                                "text-xs whitespace-nowrap tabular-nums",
                             )}
                           >
                             {cell}

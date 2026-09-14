@@ -404,7 +404,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         <>
           Our marketing-page analytics use no cookies and no persistent
           identifiers. If you still prefer not to be counted, set the key{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs text-foreground">
+          <code className="rounded bg-muted px-1.5 py-0.5 font-sans font-medium text-foreground select-all">
             pr-no-track
           </code>{" "}
           to any value in your browser&rsquo;s local storage for partyreel.com,
