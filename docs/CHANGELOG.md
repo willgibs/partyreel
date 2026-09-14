@@ -88,6 +88,21 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**hero-scan** (round three of the home hero; `lp/hero-scan`, `aee5915`, merged `66b4ebe`). The scan, variation 2 of the home-hero board's
+third round, replaced its placeholder. It inherits the ruled source's corridor unchanged, 24 cards in
+two pools on one requestAnimationFrame loop, and spends the whole variation on putting the cause in
+the frame: a guest's phone sits in the near field, cropped by the edge the way your own hands are, and
+on its screen is the camera, the same code that stands in the room with a scanner's four brackets
+closing on it. The screen carries no chrome but the notch, because the pitch is that a guest installs
+nothing. The beat is the idea: the brackets snap at 760 ms, the screen flashes once, and the
+corridor's own clock starts there, so the album is released BY the scan rather than beside it, and
+the room is genuinely empty until the lock. One Caption under the plate names the act and a count
+beneath it climbs with the launches and settles at 312, both sitting in the one lane the corridor
+leaves clear by its physics. The whole composition, deployed and locked, is the rest state in the
+server's own HTML, with the pre-burst frame and the thrown-wide brackets inside the reduced-motion
+block so neither can flash.
+
+
 **palette** (`lp/palette`, `bf1a6ef`, merged `d5847ad`). The palette exploration of the review wave put
 bible 1 on a board: today's twenty-one hand-picked values beside three complete candidate token sets,
 each a paste for `:root`, `.dark`, the gallery canvas, `.surface-ink` and the cinema ground. A (one
