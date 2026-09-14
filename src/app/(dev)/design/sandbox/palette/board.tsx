@@ -83,7 +83,7 @@ const DEPARTURES = [
   "C re-opens a decision globals.css records as closed: zero-chroma purity IS the brand point, and saturating the neutrals was consciously declined. C is that decision re-argued at 0.003 to 0.008 chroma, on the board rather than in a comment.",
   "A and C make the dark card opaque, retiring the system's one translucent surface. Only B keeps a veil, and only in B does a card over a photograph read as glass.",
   "B deletes the cinema override in marketing.css, the skin block's only surface value. The cinema-to-footer seam then belongs entirely to light, which is the light board's lane.",
-  "A and C move --gallery out of the ink family and take it deeper than any room (0.09), because one token is currently both the lightbox canvas and the footer's ground. Those are two jobs.",
+  "A finding against bible 16, which names four grounds. There are five: the media canvas is a ground of its own and it is doing a job ink cannot, since a lightbox wants the deepest surface in the product and a footer leaf wants a slab that reads on paper. Today one token, --gallery, is both. A and C separate them (canvas 0.09, ink 0.185); B answers the other way and makes every dark surface one room. Either way rule 16 is counting wrong, and that is Will's to rule, not a value to tune.",
   "All three candidates complete .surface-ink (no --card, --popover, --secondary, --accent or --input ships today), so an ink leaf can finally host a card and a menu.",
   "Each candidate adds one custom property, --faint, which needs one line in theme.css's @theme inline block before a text-faint utility exists. The board reaches it with an arbitrary value.",
 ];
