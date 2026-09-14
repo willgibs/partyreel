@@ -13,7 +13,7 @@ import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { cn } from "@/lib/utils";
 
 /**
- * THE HOME-HERO BOARD'S CONTRACT (round two, 2026-09-14).
+ * THE HOME-HERO BOARD'S CONTRACT (round two, 2026-09-14; round three the same day).
  *
  * Round one asked "where does the type live so no photograph is dimmed" and
  * answered it with four grids. Will's read: bland, generic, the image-grid
@@ -21,7 +21,14 @@ import { cn } from "@/lib/utils";
  * Partyreel is, the QR that becomes the whole event's album. Round two asks
  * one sharper question, THE HERO IS THE QR BECOMING THE ALBUM, and answers it
  * three ways, one mechanism each, built by three agents in parallel against
- * this file. Everything a concept needs from the board comes through here;
+ * this file. Will's ruling on round two: THE SOURCE, "definitely my favorite
+ * direction": a stranger landing on the site immediately gains "I bet if I
+ * scan this QR I get all of these images", the starting point the supporting
+ * elements and copy then clarify. The reel read as the video being the
+ * product; the gathering's QR read as a scan-to-learn-more object rather than
+ * the basis of the feature. Round three: three variations off the source,
+ * built by three agents in parallel against this file, beside the source as
+ * the reference. Everything a concept needs from the board comes through here;
  * a concept file imports nothing from lib/demo or lib/env (the demo URL
  * arrives as a prop), so every concept module stays pure for Vitest.
  *
@@ -68,13 +75,16 @@ import { cn } from "@/lib/utils";
 export { CANVAS, useTabHidden, type Mode } from "@/components/dev/board";
 import type { Mode } from "@/components/dev/board";
 export type CopyMode = "ruled" | "proposed";
-export type ConceptId = "source" | "reel" | "gathering";
+/** Round three: the source stays as the reference; scan, burst and river vary it. */
+export type ConceptId = "source" | "scan" | "burst" | "river";
 
 export type ConceptProps = {
   mode: Mode;
   /** Which lockup copy to render: the ruled thesis or the concept's proposal. */
   copy: CopyMode;
-  /** B reads it (the text-layer radial); the others ignore it. */
+  /** Round two's reel read it (a text-layer radial); no round-three concept
+   *  should need one (media at 100%), so the board passes false and shows no
+   *  toggle. Kept typed so a variation that wants a flagged scrim can read it. */
   scrim: boolean;
   /** The live demo's guest URL, or null when no demo is configured. */
   qrUrl: string | null;

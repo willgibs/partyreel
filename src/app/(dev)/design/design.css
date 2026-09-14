@@ -67,20 +67,13 @@
   --input: oklch(0.905 0 0);
   --ring: oklch(0.3 0 0);
 
-  /* THE ROUNDING SYSTEM (Will, rounds 6-7): sharp corners on general UI,
-     rounder corners on interactive elements - the radius contrast itself
-     signals "this is pressable". Surfaces ride --radius (now NEAR-SHARP,
-     2px, per the round-7 sharper call); actions ride --radius-action,
-     defined as 16px at the standard 40px button and SCALED BY HEIGHT
-     elsewhere (ratio 0.4). Media tiles get their OWN subtle token
-     (--radius-tile): rounder than surfaces but well under buttons, so
-     tight-gap grids don't open holes at the corners. ONE knob each to
-     re-tune globally; set the action tokens to 999px to go full pill. */
-  --radius: 0.125rem;
-  --radius-tile: 3px;
-  --radius-action: 1rem; /* 16px @ h-10 (40px) */
-  --radius-action-lg: 1.2rem; /* @ h-12 (48px) */
-  --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
+  /* THE ROUNDING SYSTEM is NOT re-declared here (the rounding round,
+     2026-09-14): --radius, --radius-tile, --radius-float and the three action
+     tokens are theme-independent and inherit from globals.css's own :root
+     block, so the tuner's html-inline override reaches every board and the
+     playground. Re-declaring them here made every lab surface under
+     .mono deaf to the knobs (the live column of /design/c/rounding read the
+     baked 2px while <html> said 14px). Never add them back. */
 
   /* No accent exists: brand-colored things render as ink. */
   --brand: oklch(0.13 0 0);
