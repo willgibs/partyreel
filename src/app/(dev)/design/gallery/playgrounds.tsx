@@ -9,7 +9,6 @@ import { Logo } from "@/components/shared/logo";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Caption } from "@/components/marketing/system/caption";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import {
   PageHero,
   type HeroEntrance,
@@ -44,13 +43,29 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
       {
         kind: "select",
         prop: "variant",
-        options: ["default", "outline", "secondary", "ghost", "destructive", "link"],
+        options: [
+          "default",
+          "outline",
+          "secondary",
+          "ghost",
+          "destructive",
+          "link",
+        ],
         value: "default",
       },
       {
         kind: "select",
         prop: "size",
-        options: ["xs", "sm", "default", "lg", "icon", "icon-xs", "icon-sm", "icon-lg"],
+        options: [
+          "xs",
+          "sm",
+          "default",
+          "lg",
+          "icon",
+          "icon-xs",
+          "icon-sm",
+          "icon-lg",
+        ],
         value: "default",
       },
       { kind: "toggle", prop: "disabled", value: false },
@@ -90,19 +105,33 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
       {
         kind: "select",
         prop: "variant",
-        options: ["default", "secondary", "destructive", "outline", "ghost", "link"],
+        options: [
+          "default",
+          "secondary",
+          "destructive",
+          "outline",
+          "ghost",
+          "link",
+        ],
         value: "default",
       },
       { kind: "text", prop: "children", label: "Label", value: "Needs review" },
     ],
-    render: (v) => <Badge variant={v.variant as "default"}>{String(v.children)}</Badge>,
+    render: (v) => (
+      <Badge variant={v.variant as "default"}>{String(v.children)}</Badge>
+    ),
   },
 
   avatar: {
     name: "Avatar",
     defaults: { size: "default" },
     knobs: [
-      { kind: "select", prop: "size", options: ["sm", "default", "lg"], value: "default" },
+      {
+        kind: "select",
+        prop: "size",
+        options: ["sm", "default", "lg"],
+        value: "default",
+      },
       { kind: "text", prop: "children", label: "Initials", value: "MJ" },
     ],
     code: (v) =>
@@ -116,7 +145,17 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
 
   progress: {
     name: "Progress",
-    knobs: [{ kind: "range", prop: "value", value: 62, min: 0, max: 100, step: 1, unit: "%" }],
+    knobs: [
+      {
+        kind: "range",
+        prop: "value",
+        value: 62,
+        min: 0,
+        max: 100,
+        step: 1,
+        unit: "%",
+      },
+    ],
     render: (v) => (
       <div className="w-full max-w-xs">
         <Progress value={Number(v.value)} />
@@ -128,7 +167,12 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
     name: "EmptyState",
     defaults: { variant: "icon", action: false },
     knobs: [
-      { kind: "select", prop: "variant", options: ["quiet", "icon"], value: "quiet" },
+      {
+        kind: "select",
+        prop: "variant",
+        options: ["quiet", "icon"],
+        value: "quiet",
+      },
       { kind: "text", prop: "title", value: "No photos yet" },
       {
         kind: "text",
@@ -144,7 +188,7 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
         v.variant === "icon" ? "  icon={ImageUp}" : "",
         `  title="${v.title}"`,
         `  description="${v.description}"`,
-        v.action ? "  action={<Button size=\"sm\">Add photos</Button>}" : "",
+        v.action ? '  action={<Button size="sm">Add photos</Button>}' : "",
         "/>",
       ]
         .filter(Boolean)
@@ -163,7 +207,9 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
   "play-badge": {
     name: "PlayBadge",
     defaults: { size: "md" },
-    knobs: [{ kind: "select", prop: "size", options: ["md", "lg"], value: "md" }],
+    knobs: [
+      { kind: "select", prop: "size", options: ["md", "lg"], value: "md" },
+    ],
     wellClassName: "bg-gallery",
     render: (v) => (
       <div className="relative size-40 overflow-hidden rounded-tile bg-gallery-muted">
@@ -180,7 +226,10 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
       { kind: "toggle", prop: "wordmarkOnly", value: false },
     ],
     render: (v) => (
-      <Logo markOnly={Boolean(v.markOnly)} wordmarkOnly={Boolean(v.wordmarkOnly)} />
+      <Logo
+        markOnly={Boolean(v.markOnly)}
+        wordmarkOnly={Boolean(v.wordmarkOnly)}
+      />
     ),
   },
 
@@ -243,8 +292,18 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
     defaults: { scale: "lg", align: "center", entrance: "rise" },
     skin: "marketing",
     knobs: [
-      { kind: "select", prop: "scale", options: ["display", "xl", "lg"], value: "lg" },
-      { kind: "select", prop: "align", options: ["center", "left"], value: "center" },
+      {
+        kind: "select",
+        prop: "scale",
+        options: ["display", "xl", "lg"],
+        value: "lg",
+      },
+      {
+        kind: "select",
+        prop: "align",
+        options: ["center", "left"],
+        value: "center",
+      },
       {
         kind: "select",
         prop: "entrance",
@@ -290,7 +349,12 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
     },
     skin: "marketing",
     knobs: [
-      { kind: "select", prop: "align", options: ["center", "left"], value: "center" },
+      {
+        kind: "select",
+        prop: "align",
+        options: ["center", "left"],
+        value: "center",
+      },
       {
         kind: "select",
         prop: "width",
@@ -303,7 +367,12 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
         options: ["cinema", "standard", "none"],
         value: "standard",
       },
-      { kind: "select", prop: "scale", options: ["default", "lg"], value: "default" },
+      {
+        kind: "select",
+        prop: "scale",
+        options: ["default", "lg"],
+        value: "default",
+      },
     ],
     wellClassName: "block p-0",
     render: (v) => (
@@ -321,7 +390,9 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
 
   eyebrow: {
     name: "Eyebrow",
-    knobs: [{ kind: "text", prop: "children", label: "Text", value: "How it works" }],
+    knobs: [
+      { kind: "text", prop: "children", label: "Text", value: "How it works" },
+    ],
     skin: "marketing",
     render: (v) => <Eyebrow>{String(v.children)}</Eyebrow>,
   },
@@ -338,13 +409,6 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
     ],
     skin: "marketing",
     render: (v) => <Caption>{String(v.children)}</Caption>,
-  },
-
-  "mono-caption": {
-    name: "MonoCaption",
-    knobs: [{ kind: "text", prop: "children", label: "Data", value: "4.2 GB of 10 GB" }],
-    skin: "marketing",
-    render: (v) => <MonoCaption>{String(v.children)}</MonoCaption>,
   },
 };
 

@@ -127,7 +127,7 @@ export function GuestEntryFrame() {
         <p className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
           When the host requires accounts
         </p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 font-mono text-[11px] text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-[11px] text-muted-foreground">
           <span className="rounded-md border px-2 py-1">Email me a code</span>
           <ArrowRight className="size-3" />
           <span className="rounded-md border px-2 py-1">Enter your code</span>
@@ -180,7 +180,7 @@ export function LiveAlbumFrame() {
           <span className="size-2 rounded-full bg-success" />
           Filling live right now
         </span>
-        <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
           128 photos · 23 guests
         </span>
       </div>
@@ -264,7 +264,7 @@ export function ExportFrame() {
         ))}
       </div>
       <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3.5">
-        <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
           214 photos · 12 videos
         </span>
         <MockPrimary className="px-3.5">

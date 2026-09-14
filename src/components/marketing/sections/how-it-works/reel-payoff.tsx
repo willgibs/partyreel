@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
@@ -66,7 +66,7 @@ export function ReelPayoff() {
               lives bottom-right and nothing may sit on top of it. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute top-2.5 right-2.5 rounded-md bg-black/65 px-1.5 py-0.5 font-mono text-[11px] text-white tabular-nums backdrop-blur-sm"
+            className="pointer-events-none absolute top-2.5 right-2.5 rounded-md bg-black/65 px-1.5 py-0.5 text-[11px] text-white tabular-nums backdrop-blur-sm"
           >
             {formatDuration(reel.durationSeconds)}
           </span>
@@ -97,9 +97,13 @@ export function ReelPayoff() {
           ))}
         </span>
 
-        <MonoCaption data-mkt-cut style={{ "--i": 4 } as CSSProperties}>
+        <Caption
+          className="tabular-nums"
+          data-mkt-cut
+          style={{ "--i": 4 } as CSSProperties}
+        >
           {shots} shots · {styleLabel} · tap to play
-        </MonoCaption>
+        </Caption>
         <div data-mkt-cut style={{ "--i": 4 } as CSSProperties}>
           <LearnMoreLink href="/reel">Everything about the reel</LearnMoreLink>
         </div>

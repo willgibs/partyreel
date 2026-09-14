@@ -33,7 +33,6 @@ import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
 import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { MorphDelegate } from "@/components/marketing/system/morph-delegate";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
@@ -378,23 +377,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         hint: "every label and descriptor",
         node: (
           <Caption>
-            Mono holds the data (timecodes, counts, sizes, URLs, indices); a
-            sentence like this one is Inter.
+            Every label, hint and descriptor on the site, in the body face.
           </Caption>
         ),
-      },
-    ],
-  },
-  {
-    id: "mono-caption",
-    family: "marketing",
-    section: "Type atoms and links",
-    play: "mono-caption",
-    specimens: [
-      {
-        label: "Data only",
-        hint: "a label in mono is the tell this rule exists to stop",
-        node: <MonoCaption>00:00:12 · rendered on your device</MonoCaption>,
       },
     ],
   },
@@ -638,9 +623,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         node: (
           <BrowserFrame
             label={
-              <span className="font-mono text-[11px]">
-                partyreel.com/a/maya-and-jay
-              </span>
+              <span className="text-[11px]">partyreel.com/a/maya-and-jay</span>
             }
           >
             <div className="grid grid-cols-3 gap-1 p-2">{tiles("120px")}</div>

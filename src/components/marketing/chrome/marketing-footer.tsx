@@ -313,9 +313,8 @@ function LegalBar() {
   return (
     <div className="mt-16 flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
-        {/* Mono for the numeral only, per the R6 type ruling. */}
         <span aria-hidden>&copy;</span>{" "}
-        <span className="font-mono tabular-nums">{year}</span> Partyreel
+        <span className="tabular-nums">{year}</span> Partyreel
       </p>
       <ul className="flex flex-wrap items-center gap-x-6">
         {FOOTER_LEGAL.map((link) => (

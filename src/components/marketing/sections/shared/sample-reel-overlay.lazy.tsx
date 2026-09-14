@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { parseCssMs } from "@/lib/shared/read-css-ms";
 import { cn } from "@/lib/utils";
 
@@ -108,10 +108,10 @@ export default function SampleReelOverlay({
           sizes="(min-width: 1024px) 928px, 100vw"
           className="max-h-[80svh]"
         />
-        <MonoCaption className="mt-3 text-center text-white/60">
+        <Caption className="mt-3 text-center text-white/60 tabular-nums">
           A sample reel, straight from the engine · 0:
           {String(Math.round(reel.durationSeconds)).padStart(2, "0")}
-        </MonoCaption>
+        </Caption>
         <button
           ref={closeRef}
           type="button"

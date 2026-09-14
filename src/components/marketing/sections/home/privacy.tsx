@@ -18,7 +18,7 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * centred icon layouts and read alike. The paper chapter now alternates left
  * (the album's masthead), centred (curation's mirrored split), left (this):
  * a document card in the idiom of /features/privacy's storage facts, five
- * rows with a mono index, the claim on the left and its specifics on the
+ * rows with a numbered index, the claim on the left and its specifics on the
  * right. It differs from chapter 1's open ledger (no-app.tsx) on purpose:
  * bordered, numbered, on paper, five sections away. No icons; the numerals do
  * the scanning.
@@ -78,7 +78,7 @@ export function Privacy() {
               className="flex items-baseline gap-4 px-5 py-5 sm:gap-6 sm:py-6"
               style={{ "--i": i + 2 } as CSSProperties}
             >
-              <span className="w-6 shrink-0 font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
+              <span className="w-6 shrink-0 text-xs tracking-wide text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="grid min-w-0 flex-1 gap-x-8 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">

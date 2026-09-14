@@ -48,7 +48,7 @@ export default async function ComponentPage({
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
           Library
         </p>
-        <h1 className="font-heading mt-1 text-3xl">
+        <h1 className="mt-1 font-heading text-3xl">
           {record ? componentTitle(record) : id}
         </h1>
         {note?.for && (
@@ -72,7 +72,7 @@ export default async function ComponentPage({
         <p className="mt-6">
           <Link
             href={link("/design/library")}
-            className="font-mono text-[11px] text-muted-foreground underline"
+            className="text-[11px] text-muted-foreground underline"
           >
             back to the library
           </Link>
@@ -130,7 +130,7 @@ export default async function ComponentPage({
         )}
       </nav>
 
-      <p className="mt-6 font-mono text-[11px] text-muted-foreground">
+      <p className="mt-6 text-[11px] text-muted-foreground">
         The whole family:{" "}
         <Link
           href={link(FAMILY_ROUTE[item.entry.family])}
