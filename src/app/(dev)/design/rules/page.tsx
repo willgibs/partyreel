@@ -4,6 +4,7 @@ import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 import { cn } from "@/lib/utils";
 
 import { RefHeader, RefSection } from "../reference/reference-ui";
+import { SANDBOX } from "../touchpoints";
 import {
   BIBLE,
   BIBLE_GROUP_LABEL,
@@ -25,6 +26,10 @@ import {
 // test's titles and every star run in two docs, with a verdict island for a
 // review Will did not have time for; his ruling replaced it with this. Nothing
 // here reads the filesystem: the artifact is committed and pinned fresh.
+//
+// The second edition (Will's review, 2026-09-14) added a status per rule: a
+// rule under exploration links the board writing what it inherits, so this
+// page is also the map of what is open.
 export default async function RulesPage({
   searchParams,
 }: {
@@ -40,7 +45,7 @@ export default async function RulesPage({
       <RefHeader
         eyebrow="Reference · the rules"
         title="The bible"
-        blurb="The whole of the design law: twenty-two rules, Will's, each with why it holds and how it is enforced. A component's functional contract lives on the component, below. Everything else on the site is precedent: pull from it, learn from it, and take the big swing when a round asks for one."
+        blurb="The whole of the design law: twenty-two rules, Will's, each with why it holds, how it is enforced and, after his review, where it stands. A component's functional contract lives on the component, below. Everything else on the site is precedent: judge it from the ground up, elevate what points the right way and rework what does not."
       />
 
       <div className="mt-6 grid grid-cols-3 gap-2">
@@ -65,7 +70,7 @@ export default async function RulesPage({
         <RefSection key={group} title={BIBLE_GROUP_LABEL[group]}>
           <ol className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {BIBLE.filter((r) => r.group === group).map((rule) => (
-              <BibleRow key={rule.id} rule={rule} cwd={cwd} />
+              <BibleRow key={rule.id} rule={rule} cwd={cwd} link={link} />
             ))}
           </ol>
         </RefSection>
@@ -85,11 +90,19 @@ export default async function RulesPage({
   );
 }
 
-function BibleRow({ rule, cwd }: { rule: BibleRule; cwd: string }) {
+function BibleRow({
+  rule,
+  cwd,
+  link,
+}: {
+  rule: BibleRule;
+  cwd: string;
+  link: (href: string) => string;
+}) {
   return (
     <li id={rule.id} className="px-4 py-3">
       <p className="text-sm">
-        <span className="mr-2 font-mono text-[11px] text-muted-foreground">
+        <span className="mr-2 text-[11px] text-muted-foreground tabular-nums">
           {rule.n}
         </span>
         <span className="font-medium">{rule.statement}</span>
@@ -97,7 +110,8 @@ function BibleRow({ rule, cwd }: { rule: BibleRule; cwd: string }) {
       <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
         {rule.why}
       </p>
-      <p className="mt-1 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-muted-foreground">
+      <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+        <RuleStatus status={rule.status} link={link} />
         <span>
           {rule.ruledBy} · {rule.ruledOn}
         </span>
@@ -114,6 +128,42 @@ function BibleRow({ rule, cwd }: { rule: BibleRule; cwd: string }) {
         )}
       </p>
     </li>
+  );
+}
+
+/**
+ * Where the rule stands after a review. "under exploration: palette" links the
+ * palette board; a track with no board (a sweep) reads as text. Ruled rules
+ * render nothing here: the absence is the common case and should stay quiet.
+ */
+function RuleStatus({
+  status,
+  link,
+}: {
+  status: BibleRule["status"];
+  link: (href: string) => string;
+}) {
+  if (!status || status === "ruled") return null;
+  const [kind, track] = status.split(": ");
+  const board = track && SANDBOX.some((r) => r.id === track);
+  return (
+    <>
+      <span className="rounded-sm bg-foreground px-1.5 py-px text-[10px] font-medium text-background">
+        {kind}
+        {track ? ": " : ""}
+        {board ? (
+          <Link
+            href={link(`/design/c/${track}`)}
+            className="underline underline-offset-2"
+          >
+            {track}
+          </Link>
+        ) : (
+          track
+        )}
+      </span>
+      <span aria-hidden>·</span>
+    </>
   );
 }
 
@@ -140,7 +190,7 @@ function ContractBlock({
             className="ml-1 text-[11px] font-normal text-muted-foreground"
           />
         </p>
-        <p className="flex flex-wrap gap-2 font-mono text-[11px]">
+        <p className="flex flex-wrap gap-2 text-[11px]">
           {c.specimens.length > 0 ? (
             c.specimens.map((route) => (
               <Link key={route} href={link(route)} className="underline">
@@ -197,9 +247,7 @@ function SourceLink({
   const vscode = `vscode://file${cwd}/${file}${line ? `:${line}` : ""}`;
   const gh = `https://github.com/willgibs/partyreel/blob/launch-prep/${file}${line ? `#L${line}` : ""}`;
   return (
-    <span
-      className={cn("inline-flex items-baseline gap-1.5 font-mono", className)}
-    >
+    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
       <a href={vscode} className="break-all hover:underline">
         {at}
       </a>

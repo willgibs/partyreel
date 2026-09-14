@@ -7,8 +7,10 @@ import { BIBLE, BIBLE_GROUPS } from "./bible";
 
 /**
  * THE BIBLE'S SHAPE: every rule numbered in order, named once, said in one
- * or two sentences with a why, and honest about its enforcement (a test that
- * exists, or "review"). It does not check what the rules say; that is Will's.
+ * or two sentences with a why, honest about its enforcement (a test that
+ * exists, or "review") and, after a review, about where it stands (a status
+ * naming the board or track it inherits from). It does not check what the
+ * rules say; that is Will's.
  */
 const ROOT = process.cwd();
 
@@ -44,6 +46,20 @@ describe("the bible", () => {
           `${r.id}: enforcedBy names a missing test: ${path}`,
         ).toBe(true);
       }
+    }
+  });
+
+  it("names a slug for the board or track a reviewed rule inherits from", () => {
+    for (const r of BIBLE) {
+      if (
+        r.status === undefined ||
+        r.status === "ruled" ||
+        r.status === "retired"
+      )
+        continue;
+      expect(r.status, r.id).toMatch(
+        /^(under exploration|retiring): [a-z0-9-]+$/,
+      );
     }
   });
 });
