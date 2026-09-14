@@ -3,4 +3,115 @@
    (keyframe-uniqueness.test.ts). Final states live OUTSIDE the media queries;
    entrances and loops inside `prefers-reduced-motion: no-preference` only.
    Mark any infinite loop with data-hh-loop so the board's pause contract
-   reaches it. */
+   reaches it.
+
+   THE FIELD, IN FOUR LAYERS. One transform per element, because they compose
+   and a single element cannot both be placed and animated twice:
+
+     .hhg-field   the canvas. Owns --hhg-scroll, the one number the parallax
+                  reads (the component writes it from the hero's own scroll
+                  progress; unset, and every card sits at its placed spot).
+     .hhg-card    PLACEMENT. Absolute at the slot's CENTRE (hence the
+                  -50%/-50%), the parallax offset, then the placed angle. No
+                  animation ever lands here, so hover and scroll stay free.
+     .hhg-land    THE ARRIVAL. One filling entrance, staggered by --hhg-o, so
+                  the album gathers around type that was already there.
+     .hhg-sway    THE BREATH. The one infinite loop, amplitude and tilt scaled
+                  by depth, phase spread by --hhg-i so the field never
+                  breathes in unison. data-hh-loop, so a hidden tab stops it.
+
+   Depth (--hhg-d, 0 far to 1 near) does three things and never a fourth: it
+   sets the parallax rate, the sway amplitude and the stacking order. It never
+   dims a photograph (bible 1: the media is at 100%, always). */
+
+.hhg-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hhg-card {
+  position: absolute;
+  /* Near cards LEAD the page and far cards LAG it, around a neutral 0.55, so
+     the field separates in both directions instead of sliding as one plate.
+     --hhg-scroll is 0 (unset) at rest and under reduced motion. */
+  transform: translate(-50%, -50%)
+    translate3d(0, calc(var(--hhg-scroll, 0px) * (0.55 - var(--hhg-d))), 0)
+    rotate(var(--hhg-r));
+  /* Inherited by .hhg-sway's keyframes below. */
+  --hhg-amp: calc(var(--hhg-d) * 5px);
+  --hhg-tilt: calc(var(--hhg-d) * 0.4deg);
+}
+
+.hhg-land,
+.hhg-sway {
+  height: 100%;
+  width: 100%;
+}
+
+/* A hairline of light on the edge, not a shadow (bible 10): it is what keeps a
+   dark frame from dissolving into the cinema ground. */
+.hhg-media {
+  height: 100%;
+  width: 100%;
+  border-radius: var(--radius-tile);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, white 9%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* THE GATHERING. Each frame converges from a little further out than where
+     it belongs (--hhg-fx/--hhg-fy point away from the centre) and rotates
+     THROUGH its placed angle, so it reads as a print dropped on a table
+     rather than a tile fading in. The stagger is a burst and then two
+     stragglers (--hhg-o jumps at the end): an album fills the way a room
+     does, most of it at once and a few more while you are still reading. */
+  .hhg-land {
+    animation: hhg-land 780ms var(--ease-emphasis) both;
+    animation-delay: calc(var(--hhg-o) * 70ms);
+  }
+
+  /* ease-in-out, not the conveyor rule's linear: a pendulum's velocity is zero
+     at both ends, so the loop point cannot stutter. */
+  .hhg-sway {
+    animation: hhg-sway var(--hhg-s) ease-in-out infinite;
+    animation-delay: calc(var(--hhg-i) * -1.37s);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .hhg-media {
+    transition:
+      transform 240ms var(--ease-emphasis),
+      box-shadow 240ms var(--ease-emphasis);
+  }
+  /* The frames are physical: pointing at one lifts it a fraction and warms its
+     edge. Nothing else dims (bible 1), and a gesture this small does not pull
+     the cursor off the CTA. */
+  .hhg-card:hover .hhg-media {
+    transform: scale(1.018);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, white 22%, transparent);
+  }
+}
+
+@keyframes hhg-land {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--hhg-fx, 0px), var(--hhg-fy, 0px), 0)
+      scale(0.94) rotate(var(--hhg-fr, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes hhg-sway {
+  0%,
+  100% {
+    transform: translate3d(0, calc(var(--hhg-amp) * -1), 0)
+      rotate(calc(var(--hhg-tilt) * -1));
+  }
+  50% {
+    transform: translate3d(0, var(--hhg-amp), 0) rotate(var(--hhg-tilt));
+  }
+}
