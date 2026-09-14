@@ -21,7 +21,7 @@ import { Variant } from "../variant-frame";
  * replaces everything below. The brief, the facts and the lane are in
  * docs/tracks/palette.md; the shell (Stage, Toggle, BoardMeta) is
  * src/components/dev/board/. Keyframes live in board.css under `pal-`.
- * No font-mono and no MonoCaption anywhere on a board (bible 7 is retiring).
+ * No mono face and no mono caption atom anywhere on a board (bible 7 is retiring).
  *
  * Rising tides (bible 22): judge the system from the ground up. The candidates
  * span tune-to-replace, a departure is flagged in BoardMeta rather than
