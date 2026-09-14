@@ -78,7 +78,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
@@ -98,7 +98,17 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
    preview, the source first on the board as the reference); the ruling to come: which variation (or
    the source as is), its eyebrow and supporting elements, its copy, the departures ruled in. The
    wiring round cuts after that ruling and after `kill-mono` lands.
-2. **The six boards of the review wave**, as each hands off: its asks are added here verbatim.
+2. **The boards of the review wave**, as each hands off, its asks verbatim.
+   - **brand-voice** (integrated `749e29a`; `/design/c/brand-voice?key=` on the launch-prep alias; the
+     guide at `docs/specs/brand-voice.md`): "The voice: today, A the house, B the room, or C the guest
+     list (the agent recommends B, with A second)"; "The seven provisional home headers in the ruled
+     voice, or line by line from any column"; "The account-required unfurl line: asks for an email, or
+     asks to sign in with an email (the agent recommends asks for an email)"; "Bible 20's replacement:
+     lead with what arrives, an absence may be the second beat and never the first" (the finding that
+     outlives the round: as written, rule 20 reads on the ruled no-app line). Flagged: C rewrites
+     `SITE_THESIS` to "The whole event, as everyone saw it."; the "five copy-alternative picks" have no
+     surviving list, so the board reads them as the five headers with an appetite for a different line
+     (say if that is wrong); B's h1 runs four lines at 375 against today's two.
 3. **The rounding sitting** (after the tuner earns it, this side): the radius values on the real
    surfaces and on `/design/c/rounding`; bible 8 inherits.
 4. **The light rulings**, riding the `light` board and closed by its ruling: (b) the lit surface

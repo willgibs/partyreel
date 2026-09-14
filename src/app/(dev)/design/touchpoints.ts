@@ -551,8 +551,8 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "The proposed voice on real section shells, the home arc's seven provisional headers rewritten as the worked example, the unfurl line and the five copy picks ruled here",
-      variants: ["Placeholder"],
+      note: "Three candidate voices on the real PageHero and SectionShell across cinema, paper and the app ground; the seven provisional home headers rewritten in each beside today's line; the unfurl both ways",
+      variants: ["A the house", "B the room", "C the guest list"],
     },
   },
   {

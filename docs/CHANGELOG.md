@@ -11,6 +11,48 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-14 — The review wave: the bible's second edition, the record for parallel agents, seven tracks at once (`fa45a88` to `6c19d84`; integrations below)
+
+Will reviewed the 22-rule bible line by line while round two of the home hero was building. Nine
+rules were rewritten from his notes (`fa45a88`): achromatic UI with one accent and color where there
+is no media (1); marketing louder in most things, only the tokens shared by law (2); the guest
+capture as staged email (4); mono leaving (7); depth in dark is light first, shadows where objects
+stack (10); a lamp may light a section without media, the footer's seam the model (11); four grounds
+with the route-group mechanism (16); affirmative only with the do's to come (20); copy open (21);
+and rule 22 as **rising tides**, the ground-up judgment ("if this did not exist yet, what would the
+perfect version be; elevate what points there, rework what does not"), after Will rejected a "bar"
+rule that had lifted his example into law. Each reviewed rule carries a status on `/design/rules`
+that links the board writing what it inherits. The doctrine followed (`7ce4bef`): rising tides
+redefined in PROGRAM.md and CLAUDE.md's Build step, the record the Orchestrator keeps between windows
+(In flight, Waiting on Will in `docs/tracks/orchestrator.md`; `docs/ASSETS.md` as Will's running
+asset list, never owned by a track), one integration window per handoff, the design record's seven
+open boards. The pre-strip (`0a06802`) took the nine mono hits out of the Orchestrator's lanes and
+`--font-mono` out of `theme.css`. The shell (`0cdf4c7`): `src/components/dev/board/` (Stage on a
+real ground, Toggle, BoardMeta ending in the asks), the home-hero board moved onto it, the desk at
+`/design/c` reading the manifests for Will's parallel reviews, seven boards registered as stubs with
+reserved keyframe prefixes. Seven manifests stubbed as whole inits (`9366df5`) and spawned from
+`6c19d84`: `palette`, `light`, `type-scale`, `floating-surfaces`, `brand-voice`, `media-kit` (lab
+boards, light QA) and `kill-mono` (a production sweep), with the rounding and tweaking GUI round on
+the Orchestrator's side. Walked on the alias at `6c19d84`: the rules page's statuses, the desk's
+rows and links, the stubs at 1440 and 375, the hero board on the extracted shell, no console errors.
+
+**brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
+the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
+the three registers with a table of what changes between them, five sentence shapes, an example on
+each of the seven surfaces, the two product-truth fences folded in as do's beside a word list, and
+the sweep procedure the `voice-infusion` round rewrites by (how a line is judged, what a rewrite
+keeps, the order, with the `<UiLabel>` parity making an app rename a two-file change by
+construction). The board on `/design/c/brand-voice` argued it three ways on the real `PageHero` and
+`SectionShell`, across cinema, paper and the app ground at 1440 and 375: A tuned the register the
+eight ratified lines already speak, B rebuilt it from the code becoming the album, and C made the
+people the subject and rewrote the ruled thesis to do it. The home arc's seven provisional headers
+were rewritten in each, beside today's line and Will's recorded appetite; the unfurl was shown both
+ways. Three departures flagged, and the finding that outlives the round: bible 20 as written reads
+on the ruled no-app line, so the guide proposes "lead with what arrives; an absence may be the
+second beat, never the first". No production byte changed.
+
+---
+
 ## 2026-09-14 — The home hero, round two: the QR is the origin, three concepts built in parallel against one shell (`f28d521`; merged `e98d1a7`, `9d8af64`, `ef58913`)
 
 Will's ruling on round one, the same morning: none of the four. "Very bland and generic, using image
