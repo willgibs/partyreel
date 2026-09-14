@@ -122,10 +122,11 @@ The board, plus the token table in the Record. Read `page-hero.tsx`, `section-sh
 
 ## Handoff (replaces the chat report)
 
-- Head `a9a3c79`, pushed; preview `partyreel-git-lp-type-scale-partyreel.vercel.app` (the board is at
-  `/design/c/type-scale?key=8838d0dd22f626a603fcf551`). The alias was READY at the first commit
-  `90baaf5` when this was written and the two later pushes were queued behind the wave's other
-  tracks; the alias moves to the head on its own.
+- Head: this handoff commit, sitting on the gated tree `a9a3c79`; both pushed. Preview
+  `partyreel-git-lp-type-scale-partyreel.vercel.app`, and the board is at
+  `/design/c/type-scale?key=8838d0dd22f626a603fcf551`. The alias was READY at the first commit
+  `90baaf5` when this was written, with the later pushes queued behind the wave's other tracks on
+  the one-at-a-time plan; it moves to the head on its own.
 - Synced with `launch-prep` at `b34993e` (round three's hero tracks and the round-two ruling). No
   conflicts: nothing it landed touches this track's `reads`.
 - Gates on the synced tree: typecheck ok, lint ok (0 errors, 6 pre-existing warnings, none in this
