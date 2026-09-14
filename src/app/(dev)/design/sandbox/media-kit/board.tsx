@@ -261,13 +261,20 @@ function TheGap() {
               <span className="w-20 shrink-0 text-[11px] text-muted-foreground">
                 {c.label}
               </span>
+              {/* Six cells is the kit. A vertical that is OVER six grows the
+                  row rather than silently capping, because weddings at seven
+                  is half the point of the chart. */}
               <span className="flex h-2 flex-1 gap-px">
-                {Array.from({ length: 6 }, (_, i) => (
+                {Array.from({ length: Math.max(6, c.have) }, (_, i) => (
                   <span
                     key={i}
                     className={cn(
                       "flex-1 rounded-[1px]",
-                      i < c.have ? "bg-foreground" : "bg-muted",
+                      i >= 6
+                        ? "bg-foreground/40"
+                        : i < c.have
+                          ? "bg-foreground"
+                          : "bg-muted",
                     )}
                   />
                 ))}
@@ -349,12 +356,14 @@ function BlogPlate({
         className="object-cover"
         style={{ objectPosition: cover.objectPosition }}
       />
+      {/* The annotation is a plate at the top, not a wash over the whole frame:
+          the reader still has to be able to see the photograph being replaced,
+          and a 55 percent scrim over a photograph is the thing rule 1 forbids
+          even when the reason is a caption. */}
       {toShoot && (
-        <div className="absolute inset-0 flex items-start bg-black/55 p-4 backdrop-blur-[2px]">
-          <p className="text-[11px] leading-snug text-white/90">
-            To be shot: {toShoot}.
-          </p>
-        </div>
+        <p className="absolute inset-x-0 top-0 m-3 rounded bg-black/55 px-2 py-1.5 text-[11px] leading-snug text-white/95 backdrop-blur-[2px]">
+          To be shot: {toShoot}.
+        </p>
       )}
       <span
         aria-hidden
@@ -481,7 +490,7 @@ export function MediaKitBoard() {
               <div className="mb-2.5 flex items-baseline gap-2 border-b border-border pb-1.5">
                 <h3 className="text-xs font-semibold">{v.label}</h3>
                 <Caption className="text-[11px] tabular-nums">
-                  {rows.length} of 6 in the manifest
+                  {rows.length} in the manifest, 6 in the kit
                 </Caption>
               </div>
               {rows.length ? (
@@ -519,11 +528,15 @@ export function MediaKitBoard() {
             miscast posts.
           </Caption>
         </div>
-        <Stage mode={mode} ground="paper" height={mode === "phone" ? 640 : 560}>
+        {/* Heights sized to the plate, not to a viewport: one 4:5 card at the
+            phone's own measure, three across on desktop. A stage with 250px of
+            empty paper under the frame reads as a layout bug rather than a
+            deliberate crop. */}
+        <Stage mode={mode} ground="paper" height={mode === "phone" ? 480 : 560}>
           <div
             className={cn(
-              "grid h-full items-center gap-[var(--gap-gallery)] p-8",
-              mode === "phone" ? "grid-cols-1" : "grid-cols-3",
+              "grid h-full items-center gap-[var(--gap-gallery)]",
+              mode === "phone" ? "grid-cols-1 px-4 py-3" : "grid-cols-3 p-8",
             )}
           >
             {(mode === "phone" ? IN_PLACE.slice(0, 1) : IN_PLACE).map((p) => (
