@@ -172,7 +172,7 @@ function StartHere() {
       <ol className="mt-3 flex flex-col gap-2.5">
         {path.map((s) => (
           <li key={s.n} className="grid grid-cols-[1.25rem_1fr] gap-x-2">
-            <span className="font-mono text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground tabular-nums">
               {s.n}
             </span>
             <span>
@@ -269,7 +269,9 @@ function Laws() {
       <div className="grid gap-3 sm:grid-cols-2">
         {LAWS.map((law) => (
           <div key={law.n} className="rounded-2xl border border-border p-4">
-            <p className="font-mono text-xs text-muted-foreground">{law.n}</p>
+            <p className="text-xs text-muted-foreground tabular-nums">
+              {law.n}
+            </p>
             <h3 className="mt-1 font-heading text-base font-semibold">
               {law.name}
             </h3>
@@ -578,12 +580,12 @@ function Shapes() {
                     </span>
                   </span>
                 )}
-                <span className="absolute bottom-2 left-3 font-mono text-[10px] text-muted-foreground">
+                <span className="absolute bottom-2 left-3 text-[10px] text-muted-foreground">
                   lit
                 </span>
               </Ground>
               <Ground on="slab" className="relative aspect-[16/9]">
-                <span className="absolute bottom-2 left-3 font-mono text-[10px] text-muted-foreground">
+                <span className="absolute bottom-2 left-3 text-[10px] text-muted-foreground">
                   control
                 </span>
               </Ground>
@@ -664,7 +666,7 @@ function BeamLaws() {
       <div className="grid gap-3 sm:grid-cols-2">
         {BEAM_LAWS.map((l) => (
           <div key={l.n} className="rounded-2xl border border-border p-4">
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground tabular-nums">
               Beam law {l.n}
             </p>
             <p className="mt-1.5 text-sm leading-relaxed font-medium text-pretty">
@@ -780,9 +782,7 @@ function BeamAB({ radius }: { radius: "ours" | "theirs" }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="mb-2 font-mono text-[11px] text-muted-foreground">
-          pulse-inner
-        </p>
+        <p className="mb-2 text-[11px] text-muted-foreground">pulse-inner</p>
         {/* Both stages are min-h-56 so the four cells read as one grid, and
             because the outside variant NEEDS it: measured on the preview, its
             bloom is 191px around a 152px card, so a min-h-44 stage left it
@@ -793,9 +793,7 @@ function BeamAB({ radius }: { radius: "ours" | "theirs" }) {
         </Ground>
       </div>
       <div>
-        <p className="mb-2 font-mono text-[11px] text-muted-foreground">
-          pulse-outside
-        </p>
+        <p className="mb-2 text-[11px] text-muted-foreground">pulse-outside</p>
         <Ground
           on="slab"
           className="flex min-h-56 items-center justify-center overflow-visible"
@@ -912,7 +910,7 @@ function LitSurface() {
         {LIT_CUES.map((c) => (
           <div key={c.name} className="rounded-2xl border border-border p-4">
             <p className="text-sm font-medium">{c.name}</p>
-            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+            <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
               {c.value}
             </p>
             <p className="mt-2 text-xs leading-relaxed text-pretty text-muted-foreground">
@@ -1102,7 +1100,7 @@ function Slider({
     <label className="flex flex-col gap-1.5">
       <span className="flex items-baseline justify-between">
         <span className="text-xs font-medium">{label}</span>
-        <span className="font-mono text-[11px] text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
           {display}
         </span>
       </span>
@@ -1264,16 +1262,16 @@ function ContrastInstrument() {
                   <td className="p-3">{r.label}</td>
                   <td
                     className={cn(
-                      "p-3 font-mono text-xs",
+                      "p-3 text-xs tabular-nums",
                       r.muted < AA_FLOOR && "font-bold",
                     )}
                   >
                     {r.muted.toFixed(2)}:1{r.muted < AA_FLOOR ? " (fails)" : ""}
                   </td>
-                  <td className="p-3 font-mono text-xs">
+                  <td className="p-3 text-xs tabular-nums">
                     {r.body.toFixed(2)}:1
                   </td>
-                  <td className="p-3 font-mono text-xs">alpha {r.floor}</td>
+                  <td className="p-3 text-xs tabular-nums">alpha {r.floor}</td>
                 </tr>
               ))}
             </tbody>

@@ -623,9 +623,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         node: (
           <BrowserFrame
             label={
-              <span className="font-mono text-[11px]">
-                partyreel.com/a/maya-and-jay
-              </span>
+              <span className="text-[11px]">partyreel.com/a/maya-and-jay</span>
             }
           >
             <div className="grid grid-cols-3 gap-1 p-2">{tiles("120px")}</div>
