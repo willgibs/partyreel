@@ -13,14 +13,17 @@
    production truth rather than a retyped mock: pick another ladder and the same
    components re-lay themselves out.
 
-   SPECIFICITY IS LOAD-BEARING. Tailwind's size utilities sit in @layer
-   utilities, so any unlayered rule beats them outright; marketing.css is
-   unlayered too, though, and `[data-mkt] .mkt-name` (0,2,0) owns the display
-   step's tracking. Every rule here therefore chains `[data-tsc]` with a second
-   attribute to clear (0,2,0) honestly, rather than reaching for !important. */
+   ★ SPECIFICITY IS LOAD-BEARING, AND THE DISPLAY STEP IS THE HIGH-WATER MARK.
+   Tailwind's size utilities sit in @layer utilities, so any unlayered rule
+   beats them outright. marketing.css is unlayered too, and its masthead rule is
+   `[data-mkt] [data-inview="true"] .mkt-name` at (0,3,0), which a two-attribute
+   selector loses to: the board measured 160px at -0.03em under every candidate
+   until this chain grew a third attribute. So every rule here runs the full
+   `[data-tsc] [data-tsc-page] [data-tsc-*]` chain rather than reaching for an
+   !important, and a shorter one will silently stop overriding the masthead. */
 
-[data-tsc] [data-tsc-step="heading"] :is(h1, h2, h3),
-[data-tsc] [data-tsc-step="card"] [data-slot="card-title"] {
+[data-tsc] [data-tsc-page] [data-tsc-step="heading"] :is(h1, h2, h3),
+[data-tsc] [data-tsc-page] [data-tsc-step="card"] [data-slot="card-title"] {
   font-size: var(--tsc-size);
   line-height: var(--tsc-lh);
   letter-spacing: var(--tsc-ls);
@@ -52,6 +55,17 @@
   opacity: 1;
   transform: none;
   filter: none;
+  transition: none;
+}
+
+/* ★ AND THE MASTHEAD'S SQUEEZE HOLDS STILL. `.mkt-name` transitions
+   letter-spacing over 760ms, which is right on a page that loads once and
+   wrong on a board where the ladder changes under the same element: measured
+   400ms after a toggle, the display step reported a tracking that belonged to
+   neither ladder, and a screenshot taken then would have shown a number the
+   board never proposed. The squeeze itself is the light track's question, not
+   this one. (0,4,0), because marketing's own rule is (0,3,0).) */
+[data-tsc] [data-tsc-page] [data-tsc-step] .mkt-name {
   transition: none;
 }
 

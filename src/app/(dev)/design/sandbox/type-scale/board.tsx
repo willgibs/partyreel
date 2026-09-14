@@ -349,7 +349,10 @@ function TokenTable({ ladder }: { ladder: Ladder }) {
 /* ─────────────────────────────── The board ────────────────────────────── */
 
 /** A specimen stage's height, computed from the ladder rather than guessed, so
- *  a candidate that grew is never cropped by a literal. */
+ *  a candidate that grew is never cropped by a literal. The per-row allowance
+ *  is bigger on the phone canvas because each row's caption ("where this step
+ *  lives") wraps to three or four lines at 375: sized off the ink alone, the
+ *  phone specimen lost its last two rows. */
 function specimenHeight(ladder: Ladder, mode: Mode): number {
   const rows = STEPS.filter((s) => ladder.steps[s.id]);
   const ink = rows.reduce((sum, s) => {
@@ -357,7 +360,7 @@ function specimenHeight(ladder: Ladder, mode: Mode): number {
     const spec = mode === "phone" ? pair.phone : pair.desktop;
     return sum + Math.max(spec.px * spec.lh, spec.px);
   }, 0);
-  return Math.round(ink + rows.length * 52 + 150);
+  return Math.round(ink + rows.length * (mode === "phone" ? 104 : 52) + 150);
 }
 
 function displayHeight(mode: Mode): number {
@@ -375,6 +378,10 @@ export function TypeScaleBoard() {
   const ladder = ladderById(ladderId);
   const props = { ladder, mode };
   const tall = mode === "phone" ? 760 : 930;
+  // The app surfaces are short: a dashboard with three events fills a quarter
+  // of a 930px canvas, and three stages of empty ground is a lot of scroll
+  // between the tiers being compared. The phone canvas stays a real viewport.
+  const app = mode === "phone" ? 760 : 620;
 
   return (
     <div className="flex flex-col gap-6 py-4">
@@ -473,7 +480,14 @@ export function TypeScaleBoard() {
         rationale="Title over section over card: the only stage where three tiers meet in one screen, so a ladder that separates on paper has to separate here."
         framed={false}
       >
-        <Frame mode={mode} ground="cinema" height={tall}>
+        {/* Deliberately taller than a phone viewport: three tiers stacked is
+            more than 760px at 375, and a real phone answers that by scrolling.
+            Cropping the cards here would hide the step this stage exists for. */}
+        <Frame
+          mode={mode}
+          ground="cinema"
+          height={mode === "phone" ? 1140 : tall}
+        >
           <FeaturePage {...props} />
         </Frame>
       </Variant>
@@ -506,7 +520,7 @@ export function TypeScaleBoard() {
         rationale="PageHeading, the app's section tier and the card row. Today and A carry no step between the page title and the card, so the section heading renders what production actually ships there: a 14px label inside an h2."
         framed={false}
       >
-        <Frame mode={mode} ground="app-light" height={tall}>
+        <Frame mode={mode} ground="app-light" height={app}>
           <Dashboard {...props} />
         </Frame>
       </Variant>
@@ -517,7 +531,7 @@ export function TypeScaleBoard() {
         rationale="The one app title that carries a size override today (text-3xl on PageHeading). Under a named ladder the override has nothing left to do."
         framed={false}
       >
-        <Frame mode={mode} ground="app-dark" height={tall}>
+        <Frame mode={mode} ground="app-dark" height={app}>
           <EventPage {...props} />
         </Frame>
       </Variant>
@@ -528,7 +542,7 @@ export function TypeScaleBoard() {
         rationale="The quietest surface on the site, where C's instrument register either reads composed or reads small."
         framed={false}
       >
-        <Frame mode={mode} ground="app-light" height={tall}>
+        <Frame mode={mode} ground="app-light" height={app}>
           <AdminPage {...props} />
         </Frame>
       </Variant>

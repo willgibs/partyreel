@@ -417,10 +417,10 @@ export function EventPage({ ladder, mode }: PageProps) {
         <div
           className="grid gap-2"
           style={{
-            gridTemplateColumns: `repeat(${isPhone(mode) ? 2 : 5}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${isPhone(mode) ? 2 : 6}, minmax(0, 1fr))`,
           }}
         >
-          {Array.from({ length: isPhone(mode) ? 4 : 10 }).map((_, i) => (
+          {Array.from({ length: isPhone(mode) ? 4 : 6 }).map((_, i) => (
             <Tile key={i} className="aspect-square" />
           ))}
         </div>
