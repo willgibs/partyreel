@@ -124,6 +124,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   round of the review wave (`tracks/orchestrator.md` In flight): the `rounding` board on `/design/c/rounding`
   is the sitting surface, the three action-radius knobs join the tuner, and a store outside the
   component (persisted, exported) fixes both defects at their one root. Bible 8 inherits the values.
+  ✅ **The tuner earned the sitting (2026-09-14):** the store, the descriptions and ships lines, the
+  grouped panel and export, the action trio, the retirements (nine knobs without a specimen), the
+  board at `/design/c/rounding`, the button ladder derived from `--radius-action`, and the two
+  places that made the tokens deaf to the knob (the `:root, .surface-paper` alias and the lab's
+  `.mono` sheet) fixed. **The sitting is Will's** (Waiting on Will, item 3).
 - **The composition pass** (2026-09-14): when the review wave's six boards are ruled, one Orchestrator
   board stacks the ruled token blocks (ramp, accent, panel, light, type ladder, floating treatment,
   radius values) on the home arc and the dashboard, at both widths and on every ground, beside today;

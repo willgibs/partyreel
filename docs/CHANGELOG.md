@@ -36,6 +36,26 @@ boards, light QA) and `kill-mono` (a production sweep), with the rounding and tw
 the Orchestrator's side. Walked on the alias at `6c19d84`: the rules page's statuses, the desk's
 rows and links, the stubs at 1440 and 375, the hero board on the extracted shell, no console errors.
 
+**The rounding and tweaking GUI round** (Orchestrator-run, the same day). The tuner earned the
+sitting first: its only state had been component state, so a Replay on the playground (the control
+array rebuilt per render, the cleanup effect re-firing) wiped every tuned value and leaving the
+cinema group killed them again; `tuner-store.ts` holds the working set outside any component,
+persisted to `localStorage`, hydrated once and re-applied on every mount, so a value survives a
+Replay, a soft navigation and a reload until Reset. Every knob carries a description, where it ships
+and a group (Will, 2026-09-12: "some of the labels aren't very clear"); the three action-radius
+knobs joined so the sitting can drag both halves of the sharp-surface / round-action contrast; nine
+knobs without a specimen (the reel reveal's seven, the reel experience's two, and the event feed's
+swap and reorder) left the panel, their vars and bakes untouched. The board at `/design/c/rounding`
+is one kit of every radius-bearing surface in four columns, three fixed candidates and a live one
+that follows the tuner, on the app's two grounds and cinema. Two things had made the tokens deaf to
+the knob and were fixed with no value changed: the radius tokens, `--gap-gallery`, `--spill-cadence`
+and the `--tune-*` knobs were aliased into the `:root, .surface-paper` block, so every paper chapter
+re-declared them (they now live in their own `:root` block), and the lab's `.mono` sheet re-declared
+them too (it no longer does). The Button's in-between sizes (h-6, h-7, h-9) carried the 0.4-ratio
+radii as literals and now derive from `--radius-action`. Verified on the dev server: `<html>` at a
+14px base gives the live column's card and the home page's paper-chapter card 19.6px, the h-9 button
+21.6px at a 24px action radius, and Reset empties the DOM and the store. The sitting is Will's.
+
 **brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
 the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
 the three registers with a table of what changes between them, five sentence shapes, an example on
