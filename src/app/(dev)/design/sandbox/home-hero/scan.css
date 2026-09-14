@@ -1,7 +1,269 @@
-/* The the scan's own sheet (round three of the home-hero board). Keyframe
-   prefix: hhc- (hhs- is the source's, hh- the board's; keyframe names are
-   document-global and keyframe-uniqueness.test.ts reads every sheet under the
-   lab). FINAL states live OUTSIDE the media queries so a reduced-motion reader
-   gets the settled composition; entrances and loops inside `no-preference`
-   only, and any infinite loop marked [data-hh-loop] so the stage's
-   data-paused stops it on a hidden tab (board.css owns that rule). */
+/* THE SCAN's own sheet (round three of the home-hero board, the lp/hero-scan
+   track). Keyframe prefix: hhc- (hhs- is the source's, hh- the board's;
+   keyframe names are document-global and keyframe-uniqueness.test.ts reads
+   every sheet under the lab).
+
+   HOUSE CONVENTION, and why the corridor's half of it looks inverted. FINAL
+   states live OUTSIDE the media queries so a reduced-motion reader gets the
+   settled composition with nothing to undo: the corridor stands fully deployed
+   (read from the per-card custom properties the concept computes during
+   render), the viewfinder's brackets sit LOCKED on the code, the flash is
+   spent, and the count reads its settled number. All of that is in the
+   server's own HTML. What lives inside `no-preference` is each animation's
+   FIRST frame plus the animation itself: the cards collapsed at the code, the
+   brackets thrown wide. Those have to be in CSS rather than in an effect,
+   because an effect runs after the server's paint, so the composition would
+   paint settled, snap back, and then play. Same trade the source flagged, and
+   it is flagged again on this concept: a reader with JavaScript off who has NOT
+   asked for less motion sees the corridor rest at the code and the brackets
+   rest wide. Nothing that carries meaning is gated by it. The h1, the QR, the
+   caption, the count, the subhead and the CTAs are plain markup and never move.
+
+   THE BEAT this concept adds. The camera finds the code (the brackets sweep in
+   over 760 ms and snap), the screen flashes once, and THEN the album branches
+   out. Cause, then effect, in that order, with the corridor's own clock held
+   until the snap. The two clocks (this sheet's animations and the concept's
+   requestAnimationFrame) both start at mount, so they agree; `data-hh-loop`
+   on the animated elements is what keeps them agreeing across a hidden tab.
+   board.css pauses any animation under `[data-paused]` on that hook, and the
+   concept holds its own clock on the same attribute, so a beat interrupted by
+   a tab switch resumes where it was instead of finishing unseen. The hook is
+   named for loops; this is a one-shot using the same pause mechanism. */
+
+/* The corridor (the source's geometry, kept) */
+
+.hhc-band {
+  /* The corridor dissolves into the frame rather than being cut off by the
+     stage's overflow: the outermost frame is always half gone, which is the
+     argument (it never stops). --hhc-fade is set per canvas by the concept. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhc-fade),
+    #000 calc(100% - var(--hhc-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhc-fade),
+    #000 calc(100% - var(--hhc-fade)),
+    transparent 100%
+  );
+}
+
+/* The one perspective parent. perspective-origin defaults to its centre, and
+   the box is inset by --hhc-axis so that centre IS the QR on either canvas:
+   the corridor's vanishing point and the object agree for free. */
+.hhc-corridor {
+  position: absolute;
+  inset: var(--hhc-axis) 0 calc(-1 * var(--hhc-axis)) 0;
+  perspective: var(--hhc-persp);
+}
+
+.hhc-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: var(--hhc-rest);
+  opacity: var(--hhc-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* The device: a guest's phone in the near field, camera open */
+
+/* The held angle. A phone at the lower left, aimed up and to the right at the
+   code, is turned clockwise and tipped away from the viewer, so the screen
+   still faces us. One perspective parent; the phone is its only child. */
+.hhc-device {
+  position: absolute;
+  perspective: 1200px;
+}
+
+.hhc-phone {
+  /* A drawn object's proportions, not a UI surface: the bezel radius is a real
+     phone's corner (about 12% of its width), so it is a literal here rather
+     than --radius / --radius-tile. Flagged on the board with the device. */
+  position: relative;
+  border-radius: calc(var(--hhc-w) * 0.13);
+  background: linear-gradient(
+    148deg,
+    oklch(0.26 0 0) 0%,
+    oklch(0.1 0 0) 30%,
+    oklch(0.05 0 0) 72%,
+    oklch(0.13 0 0) 100%
+  );
+  /* THE ONE THING that separates a near-black object from a near-black room:
+     the rim. A drop shadow does nothing on this ground, so the edge carries
+     the read, brightest along the top-left where the phone faces the screen's
+     own light and the room's. It is the object lighting itself and its own
+     bezel: no lamp, no spill onto the room or onto a photograph. The shadow
+     underneath is only what two overlapping objects need (bible 10). */
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 0.26),
+    inset 0 1.5px 0 0 oklch(1 0 0 / 0.42),
+    inset 1.5px 0 0 0 oklch(1 0 0 / 0.2),
+    0 30px 70px oklch(0 0 0 / 0.7);
+  transform: rotateY(var(--hhc-ry)) rotateZ(var(--hhc-rz));
+  transform-origin: 50% 60%;
+}
+
+.hhc-screen {
+  position: absolute;
+  inset: calc(var(--hhc-w) * 0.042);
+  overflow: hidden;
+  border-radius: calc(var(--hhc-w) * 0.098);
+  /* The camera's own preview of a dark room, and it has to sit clearly ABOVE
+     the body's black or the whole device reads as one slab: a phone screen in
+     a dark room is still the brightest thing in the hand. The plate is the
+     brightest thing in the preview, which is what a scanner actually sees at
+     an event. */
+  background:
+    radial-gradient(
+      58% 26% at 50% var(--hhc-vy),
+      oklch(0.42 0 0) 0%,
+      oklch(0.24 0 0) 62%,
+      transparent 100%
+    ),
+    radial-gradient(
+      125% 76% at 50% 42%,
+      oklch(0.28 0 0) 0%,
+      oklch(0.18 0 0) 56%,
+      oklch(0.12 0 0) 100%
+    ),
+    oklch(0.13 0 0);
+}
+
+/* Where on the screen the camera found the code. Not centred by law: a code is
+   wherever it is in the frame, and biasing it up the screen is what lets the
+   phone be cropped hard by the bottom edge of the composition (the POV crop)
+   and still show what it is looking at. */
+.hhc-viewpos {
+  position: absolute;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+/* The notch. Two things say "phone" faster than any amount of bezel: this and
+   the screen's own light. Deliberately the ONLY chrome, because the pitch is
+   that a guest needs no app, so the screen shows the camera and nothing else. */
+.hhc-pill {
+  position: absolute;
+  top: calc(var(--hhc-w) * 0.035);
+  left: 50%;
+  translate: -50% 0;
+  width: calc(var(--hhc-w) * 0.2);
+  height: calc(var(--hhc-w) * 0.038);
+  border-radius: 999px;
+  background: oklch(0.04 0 0);
+}
+
+/* The detected code, turned a few degrees out of the screen's own axis: a code
+   seen through a tilted phone is never square to the screen, and the brackets
+   lock onto the CODE, not onto the viewfinder, exactly as a real scanner
+   draws them. Both ride this one rotation so they stay one object. */
+.hhc-lockbox {
+  position: relative;
+  rotate: -6deg;
+}
+
+.hhc-bracket {
+  position: absolute;
+  width: var(--hhc-arm);
+  height: var(--hhc-arm);
+  border: 0 solid oklch(1 0 0 / 0.94);
+  border-radius: calc(var(--hhc-arm) * 0.34);
+}
+
+.hhc-tl {
+  top: calc(-1 * var(--hhc-pad));
+  left: calc(-1 * var(--hhc-pad));
+  border-top-width: var(--hhc-stroke);
+  border-left-width: var(--hhc-stroke);
+  border-bottom-right-radius: 0;
+  --hhc-bx: calc(-1 * var(--hhc-throw));
+  --hhc-by: calc(-1 * var(--hhc-throw));
+}
+
+.hhc-tr {
+  top: calc(-1 * var(--hhc-pad));
+  right: calc(-1 * var(--hhc-pad));
+  border-top-width: var(--hhc-stroke);
+  border-right-width: var(--hhc-stroke);
+  border-bottom-left-radius: 0;
+  --hhc-bx: var(--hhc-throw);
+  --hhc-by: calc(-1 * var(--hhc-throw));
+}
+
+.hhc-bl {
+  bottom: calc(-1 * var(--hhc-pad));
+  left: calc(-1 * var(--hhc-pad));
+  border-bottom-width: var(--hhc-stroke);
+  border-left-width: var(--hhc-stroke);
+  border-top-right-radius: 0;
+  --hhc-bx: calc(-1 * var(--hhc-throw));
+  --hhc-by: var(--hhc-throw);
+}
+
+.hhc-br {
+  bottom: calc(-1 * var(--hhc-pad));
+  right: calc(-1 * var(--hhc-pad));
+  border-bottom-width: var(--hhc-stroke);
+  border-right-width: var(--hhc-stroke);
+  border-top-left-radius: 0;
+  --hhc-bx: var(--hhc-throw);
+  --hhc-by: var(--hhc-throw);
+}
+
+/* The capture flash, spent at rest. */
+.hhc-flash {
+  position: absolute;
+  inset: 0;
+  background: oklch(1 0 0);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The branch-out's first frame: every frame inside the code, at no size. */
+  .hhc-card {
+    transform: translate3d(0, 0, 0) scale(0);
+    opacity: 0;
+  }
+
+  /* The camera finding the code: the brackets start thrown wide and
+     invisible, then sweep in and snap. --ease-emphasis is the house enter
+     curve (a strong ease-out, no overshoot: a focus lock snaps, it does not
+     bounce). */
+  .hhc-bracket {
+    animation: hhc-lock 760ms var(--ease-emphasis) both;
+  }
+
+  .hhc-flash {
+    animation: hhc-flash 420ms var(--ease-emphasis) 700ms both;
+  }
+}
+
+@keyframes hhc-lock {
+  from {
+    translate: var(--hhc-bx) var(--hhc-by);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes hhc-flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  16% {
+    opacity: 0.5;
+  }
+}
