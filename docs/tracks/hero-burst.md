@@ -122,8 +122,9 @@ name any extra shape you need (a portrait set for the vertical radials, for inst
 
 ## Handoff (replaces the chat report)
 
-- Head `9e3a94c` (the sync merge; the work commit is `59cdd49`), pushed; preview
-  `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at
+- Head: the tip of `lp/hero-burst` (a manifest cannot name its own SHA). The work commit is
+  `59cdd49`, which is what the preview alias was verified at; the sync merge is `9e3a94c`. Pushed;
+  preview `https://partyreel-git-lp-hero-burst-partyreel.vercel.app`, the board at
   `/design/c/home-hero?key=` (concept 3 of 4).
 - **Synced with launch-prep at `3d40173`** (it had moved 68 commits: media-kit, floating-surfaces,
   palette, type-scale, kill-mono). Nothing under `sandbox/home-hero/` moved, so the contract is
