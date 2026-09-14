@@ -83,7 +83,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
-| `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-scan` | `/design/c/home-hero` (variation 2) | the launch-prep alias (integrated `66b4ebe`) | Will's ruling on round three (Waiting on Will, item 1) |
 | `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | built; Will's sitting (Waiting on Will, item 3) |
@@ -99,7 +99,19 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
    variations off the source are building (`hero-scan`, `hero-burst`, `hero-river`, each on its own
    preview, the source first on the board as the reference); the ruling to come: which variation (or
    the source as is), its eyebrow and supporting elements, its copy, the departures ruled in. The
-   wiring round cuts after that ruling and after `kill-mono` lands.
+   wiring round cuts after that ruling (`kill-mono` has landed).
+   - **The scan** (integrated `66b4ebe`): look at the first 1.2 seconds in a foreground tab (the code
+     alone in an empty room, the brackets close on it in the phone's viewfinder, the snap, one flash,
+     the album out of the plate: cause, then effect). Its departures, verbatim: (1) a phone in the
+     hero, the first thing to overrule because a phone can read as an app, held to the camera by
+     three things (no chrome but the notch, cropped by the frame's edge, looking at the same code
+     standing in the room; its bezel radius a drawn object's literal, not a surface token); (2) one
+     emissive object, the phone's screen, lighting itself and its bezel and nothing else, no lamp;
+     (3) bible 13 on decorative layers only, the pre-burst and thrown-wide states inside the
+     reduced-motion block; (4) the centred lockup inherited from the source, the second thing to
+     overrule; (5) the count under the plate (312 photos from 48 guests) is a STAND-IN number that
+     must not ship as invented data: the wiring reads the demo event's real totals or the line goes.
+     Its ask: a hand-and-phone cutout (`docs/ASSETS.md` row 8).
 2. **The boards of the review wave**, as each hands off, its asks verbatim.
    - **brand-voice** (integrated `749e29a`; `/design/c/brand-voice?key=` on the launch-prep alias; the
      guide at `docs/specs/brand-voice.md`): "The voice: today, A the house, B the room, or C the guest
@@ -223,6 +235,8 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `66b4ebe` hero-scan integrated: variation 2 on the hero board, the corridor released by the scan;
+  the asset log's row 8 (the hand-and-phone cutout).
 - `d5847ad` palette integrated: three complete token sets as pastes on real sections at both widths
   against an oklab ruler, the accent argued by job; `docs/specs/palette.md` carries the blocks; the
   asset log's row 7 gains the four hard-case frames it asked for.
