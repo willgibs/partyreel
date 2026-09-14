@@ -81,7 +81,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
 | `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
-| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
 | `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
@@ -126,6 +126,17 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      the blog now reads on the body face at weight 600 inside backticks; a plate would read better and
      is its own round. The four admin surfaces (`/admin/forensics`, `/admin/jobs`, `/admin/accounts/<id>`
      and its delete dialog) took the muted plate and want your eye on the alias (item 7).
+   - **media-kit** (integrated `797f692`; `/design/c/media-kit?key=`; the spec at `docs/specs/media-kit.md`):
+     1. "The rule as written: author, source and retrieval date REQUIRED on every manifest entry, and
+     an entry missing them cannot ship"; 2. "The allowed list: Pexels, Pixabay, Mixkit, Coverr and CC0
+     in, Unsplash out, each on the clause quoted; yes to the list, or strike a source"; 3. "The route:
+     Licensed, Ours, or Mix (the recommendation is Mix, with the frames marked ours in the sheet)";
+     4. "The first batch, item by item: OK to stage as the bridge on the blog pool, or not at all";
+     5. "The kit: 36 masters, six per vertical, with the 24 squares, the 8 clips and the film derived
+     from them rather than asked for separately" (`docs/ASSETS.md` row 7, applied). ★ **The finding
+     that needs a decision before launch:** Unsplash's terms exclude recognizable people from the
+     license, all twelve stills are full of them, and eleven are the blog's cover pool (23 posts,
+     their OG cards, the RSS enclosures). Say: the CC0 bridge on the blog pool now, or the kit first.
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
@@ -190,6 +201,9 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `797f692` media-kit integrated: the sourcing law as a proposal, ten licenses quoted, eight CC0
+  candidates staged under `public/design/media-kit/` with `provenance.json` (a test pins the pair),
+  the contact sheet; the asset log's rows 2, 4, 6 and 7 rewritten from its Handoff.
 - `69af90d` kill-mono integrated (88 files; the two system-doc edits read by eye; the artifact
   regenerated clean at the merge); `838a5f6` type-scale integrated; bible 7 is now `two-faces`,
   enforced by `src/app/two-faces-policy.test.ts`; `docs/specs/type-scale.md` carries the token tables.
