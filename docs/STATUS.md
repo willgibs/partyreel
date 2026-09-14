@@ -22,19 +22,22 @@ only); partyreel.com changes only at tagged milestone merges. Every session is a
 designates it **the Orchestrator** — see CLAUDE.md "Sessions & roles" + PROGRAM.md before touching
 anything shared. **The goal for this stretch** (Will, 2026-09-14): every page reaches a cohesive
 informational flow, and every point of the design system and the marketing and app UI is elevated
-platform-wide; nothing is protected, exploration rounds are light and iterative, and parallel agents
-run through the Orchestrator.
+platform-wide; nothing is protected and every element is judged from the ground up (rising tides,
+bible 22), exploration rounds are light and iterative, and parallel agents run through the
+Orchestrator, whose record is [`tracks/orchestrator.md`](tracks/orchestrator.md) (In flight, Waiting
+on Will) and [`ASSETS.md`](ASSETS.md).
 
 ## Where the program stands
 
 | Round ([definitions](PROGRAM.md)) | Status |
 | --- | --- |
 | R0 bootstrap + EXIF hotfix | ✅ milestone-0 (2026-07-03) |
+| **The review wave: the bible's second edition + seven parallel tracks** | **🟡 in flight from 2026-09-14**: Will's rule-by-rule review rewrote nine rules and gave each a status on `/design/rules`; six lab boards (`palette`, `light`, `type-scale`, `floating-surfaces`, `brand-voice`, `media-kit`) and one production sweep (`kill-mono`) run in parallel, each on its own preview, with the rounding and tweaking GUI round on the Orchestrator's side (`/design/c/rounding`); the desk at `/design/c?key=` lists them. The record: [`tracks/orchestrator.md`](tracks/orchestrator.md); the asset log: [`ASSETS.md`](ASSETS.md). Then the composition pass (the ruled blocks stacked on the home arc and the dashboard), then the wiring rounds. |
 | R1 Decision Studio / T1 rulings | ✅ 2026-07-05 (ADR-0019…0022) |
 | R2 Reel Engine + Foundation | ✅ milestone-1 (2026-07-08) |
 | QA hardening insert (Q1-Q4 + write spine) | ✅ milestone-1.5 (2026-07-29); remainder = the [ROADMAP QA bucket](ROADMAP.md) |
 | R3 + R3.1 Reel Experience + Lambda teardown | ✅ milestone-2 (2026-08-06) |
-| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is byte-pinned in `src/lib/constants/marketing-voice.ts`; truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
+| **Track B marketing identity build** | **✅ built through the help arc (2026-08-25 → 08-27)** — six rounds on `launch-prep` (paper/cinema chapter system + theming → feature expansion + mega-menu → the motion system → routes-complete → the R6 help-center arc + elevation passes). The voice thesis ("The whole event, in one album.") is ruled in `src/lib/constants/marketing-voice.ts` (no copy is pinned by a test since 2026-09-12; all copy is open since 2026-09-14); truth: [`systems/marketing-content.md`](systems/marketing-content.md) + [`systems/design-system.md`](systems/design-system.md). The help CATALOG was written fresh on `lp/help-catalog` (2026-09-01; integrated 2026-09-02 at `3cff3a7`: 59 articles across ten categories, the account shelf, the article vocabulary, four honesty tests). Next marketing goal comes from Will (rising-tides posture). |
 | **The home hero, round two (tracks `hero-source`, `hero-reel`, `hero-gathering`)** | **✅ integrated 2026-09-14 (`e98d1a7`, `9d8af64`, `ef58913` on the shell `f28d521`)**: three concepts on `/design/c/home-hero?key=`, the QR as the origin in each (the corridor streaming out of it; the encapsulated film with the QR pinned as the announcement; the hand-placed field with the QR as the eyebrow), each with its own eyebrow, its copy proposal, its flagged departures and its asset ask on the board; no production byte changed. **Waits on your ruling.** |
 | **The home-hero board (track `home-hero`)** | **✅ integrated 2026-09-12 (`d63f6cc`, head `393bacc`)**: four heroes on `/design/c/home-hero?key=` with zero darkening layers over media against three on the shipped hero, the ruled copy verbatim, the h1 at paint in all four; no production byte changed. **Waits on your ruling** (the agent recommends V1, the contact sheet; V2 second); the wiring follows it. |
 | **The gallery (track `design-gallery`)** | **✅ integrated 2026-09-12 (`7048ab1`, head `9ee41cd`)**: a component is declared once in its family's `gallery-demos.tsx` and three surfaces render from it (its family page, its permalink at `/design/library/<id>`, the searchable index of all 88 at `/design/library`); 15 config panels; `gallery.test.ts` refuses a declared variant the component does not have. Next: the rounding and tweaking GUI round. |
@@ -364,67 +367,29 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Pending now: the home hero, round two.** The board at `/design/c/home-hero?key=` on the launch-prep
-alias carries the three concepts and the shipped hero for reference. Read it in a FOREGROUND tab (the
-source's fountain and the clips pause on a hidden one): the source (concept 1: the first two seconds
-are the point, the QR alone and then the album unfolding out of it), the reel (2: the frame at Desktop,
-then Phone 375, then the scrim toggle, which is the one trade it asks you to rule), the gathering (3:
-the clearing on load, the three clips, scroll the board past the stage for the parallax, then Phone
-375, where its staggered pairs are the one ruling it asks: accept them, spend a phone scrim, or drop
-the phone h1 a step). Under each stage: its eyebrow proposal, its copy proposal (the toggle shows
-both), its departures and its asks. Say the concept, its eyebrow, its copy, and the departures you
-rule in; the wiring round cuts. The asset asks are yours to produce whenever; stand-ins ship first. Everything else waits for
-the UI era to land on what it lands on (Will's ruling at milestone-23, 2026-09-12), unless something
-blocks or is high-leverage.
+**The queue lives in two files now** (2026-09-14, so it survives parallel agents and parallel
+reviews): [`tracks/orchestrator.md`](tracks/orchestrator.md) **Waiting on Will** carries every open
+ruling with its link and the asks quoted from each board, and [`ASSETS.md`](ASSETS.md) carries every
+asset a round has requested, with its spec, the stand-in it replaces and where it stands. The desk at
+`/design/c?key=` on the launch-prep alias renders the open boards with their track previews.
 
-**Parked until the UI era lands** (each keeps its line and its link; nothing is lost):
-
-1. **The rounding sitting**, now the rounding and tweaking GUI round (Orchestrator-run, after
-   `design-gallery` integrates): the tuner's knobs get a description and where they ship, the two
-   defects go (a Replay wipes the tuned values; values die on leaving the cinema group), then the
-   sitting on the real surfaces. The three radius knobs and the "Lamp cadence" knob are on the
-   marketing tuner and the lab's `/design/motion` today.
-2. **The light rulings**, after the rounding round: (b) the lit surface, which amends "Dark: NO
-   shadows anywhere" and is already on the Get Pro specimen, entangled with the Get Pro beam (three of
-   four beam specimens wear `[data-lit]`); (c) the publish beat's violet, where a ratified state colour
-   meets law 3's ban on them; (d) the cadence, 8s or 11s, on the "Lamp cadence" knob; (f) whether the
-   guest surfaces follow the VISITOR's theme (`/e/[token]` has no forced skin, but the doorbell arrival,
-   the locked door and the awaiting-media skeleton were all argued on cinema), which blocks the next
-   light round. Closed earlier: (a) the beam's chroma register is a DERIVED register of the lamp set,
-   not a second palette; (e) the root 404's lit seam stays lit (Will, 2026-09-01: a 404 that feels alive
-   keeps a visitor exploring).
-3. **The album's ambient pieces** on `/features/album` (the phone's screen cycle, the Live | Review
-   photograph flying, the lightbox pill cycling): a ten-second eye on prod, since the tools cannot run
-   them.
-4. **Two admin looks on `admin.partyreel.com`** (host-gated; the session needs your TOTP):
-   `/admin/jobs` (four cards, the purge switch, Run now) and the Delete account card on
-   `/admin/accounts/<id>` (the retyped-email guard). To exercise the self-serve deletion through the
-   UI, use a throwaway host: it is immediate and cancels the TEST plan.
-5. **The purchase toast**: `/dashboard?upgraded=1` as the Pro host; one toast should say "You're on
-   Pro." and the flag should vanish from the URL (a background tab throttles hydration, so the browser
-   tooling could only see it indirectly).
-6. **The account-required unfurl line** (on prod since milestone-18): it reads "Add your photos and
-   videos. This event asks guests for an email."; the alternative that names the mechanism is "...asks
-   guests to sign in with an email." One word settles it.
-7. **Marketing batch-1 media contact sheet**: the 4 Unsplash items need a per-batch OK.
-8. **A revisit of /blog and /careers**, Will's own note at the milestone-12 merge ("I'll definitely
-   revisit both of these page designs"); approved and shipped as they are.
-9. **The demo seed's prod run** waits on Will's curated folder (`scripts/seed-demo-event.mjs` is in
-   and idempotent by replacement).
-10. **`SUPABASE_DB_URL` into `.env.local`** (15 minutes, his; the session or direct string on port
-    5432, not the pooler): unblocks the committed RPC integration suite
-    ([`decisions/rpc-suite-blocked.md`](decisions/rpc-suite-blocked.md)).
-11. **The five copy-alternative picks** + the Sitting-1 `/design` lab rulings (incl. the frozen `/reel`
-    items and the real-phone QR ticket-scan check); the two provisional home headers (`noApp`,
-    `fullQuality`) stay provisional by ruling until he sends alternatives.
+**Pending now:** the home hero, round two (the board at `/design/c/home-hero?key=`, three concepts,
+read in a FOREGROUND tab; say the concept, its eyebrow, its copy and the departures you rule in; the
+wiring round cuts after `kill-mono` lands), and the six boards of the review wave as they hand off.
+The asset asks are yours to produce whenever; stand-ins ship first. Everything else waits for the UI
+era to land on what it lands on (Will's ruling at milestone-23, 2026-09-12), unless something blocks
+or is high-leverage; the parked list moved whole to Waiting on Will.
 
 **Tracks (the wave plan).** Wave 1 (`ci-workflow`, `legal-billing-truth`, `product-truth`,
 `ops-hardening`, `account-deletion`, `demo-seed`) and wave 2's `glow-engine-defects` are integrated
-(milestones 18 to 21; the record is the CHANGELOG). The library phase closed with the reset; `design-gallery` and `home-hero` ran in
-parallel and integrated the same day (2026-09-12, `7048ab1` and `d63f6cc`). Next: the rounding and
-tweaking GUI round (Orchestrator-run), the hero's wiring once ruled, then `marketing-followons`, the
-five feature-page tracks, `marketing-mobile`; the lab and admin subdomains as architecture rounds;
-then the launch round in the Launch checkpoint's human order.
+(milestones 18 to 21; the record is the CHANGELOG). The library phase closed with the reset;
+`design-gallery` and `home-hero` ran in parallel (2026-09-12), the three hero concepts the same way
+(2026-09-14). **Now: the review wave**, seven tracks at once (`palette`, `light`, `type-scale`,
+`floating-surfaces`, `brand-voice`, `media-kit`, `kill-mono`) with the rounding round on the
+Orchestrator's side; then the composition pass and the wiring rounds (the hero's after `kill-mono`),
+`voice-infusion` after `brand-voice` is ruled, then `marketing-followons`, the five feature-page
+tracks, `marketing-mobile`; the lab and admin subdomains as architecture rounds; then the launch
+round in the Launch checkpoint's human order.
 (Annual Pro was ruled + built 2026-08-27: $90/$190/$390, two months free; nothing pricing-side remains
 open.)
 

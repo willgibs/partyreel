@@ -36,7 +36,8 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   them, too generic, not the QR-to-album idea. Round two runs as three parallel tracks (`hero-source`,
   `hero-reel`, `hero-gathering`) against one shell at `sandbox/home-hero/`, each with its own eyebrow
   and copy proposal and its own asset request; all three integrated 2026-09-14. **Waits on Will's ruling on
-  round two**; the wiring round then lifts the ruled concept's mechanics into `cinema-hero.tsx` (the
+  round two**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
+  `MonoCaption` import) then lifts the ruled concept's mechanics into `cinema-hero.tsx` (the
   source: the loop on `useAmbientPause` and a `<noscript>` companion for the deployed corridor; the
   reel: the announcement card `lg:fixed` and a `--radius-screen` step if its 24 px corner is ruled in;
   the gathering: the clearing profile and the parallax hook, retiring the four stacked darkenings);
@@ -115,8 +116,15 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   reload with an export block, a specimen for every knob or the knob retired (eight playground knobs have
   none), and two defects fixed (a Replay on the playground wipes every tuned value, because the control
   array is rebuilt per render and the effect cleanup removes the properties; values die on leaving the
-  cinema group). The light rulings follow it. Everything on the glow boards reads its token rather than a
-  literal, so the lab inherits whatever lands here for free.
+  cinema group). Everything on the glow boards reads its token rather than a
+  literal, so the lab inherits whatever lands here for free. **Opened 2026-09-14** as the Orchestrator's
+  round of the review wave (`tracks/orchestrator.md` In flight): the `rounding` board on `/design/c/rounding`
+  is the sitting surface, the three action-radius knobs join the tuner, and a store outside the
+  component (persisted, exported) fixes both defects at their one root. Bible 8 inherits the values.
+- **The composition pass** (2026-09-14): when the review wave's six boards are ruled, one Orchestrator
+  board stacks the ruled token blocks (ramp, accent, panel, light, type ladder, floating treatment,
+  radius values) on the home arc and the dashboard, at both widths and on every ground, beside today;
+  Will rules the sum once, and the wiring rounds cut from that.
 - **The design lab's CSS tax, CLOSED 2026-09-02 (the library round):** the lab and `docs/` left the
   production scan (`@source not`; the lab compiles its own utilities from a second Tailwind entry that
   references `src/app/theme.css`, never `globals.css`), and the home's main stylesheet went from 304,277 to
@@ -144,7 +152,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   focus. That fails toward the lit fallback, i.e. law 4's correct no-media branch, so it is safe -- but
   it is a cost with an unproven benefit. **Pick this back up the moment Will can say whether the swap
   reads as a bug on a visible screen.** One commit either way.
-- **The lit surface (`[data-lit]`) wants its own round**, the way the corner became the rounding round.
+- **The lit surface (`[data-lit]`) rides the `light` exploration** (2026-09-14; bible 10 rewritten, 11 retiring; the cadence and the publish beat's violet ride the same board). Its history, so the next agent does not rediscover it: it wanted its own round, the way the corner became the rounding round.
   Its cue set was ruled (hairline + lip at 9%, the air blur gone) but the CONTRACT it amends was not:
   it adds two inset box-shadows against the ratified "Dark: NO shadows anywhere" rule in
   [`design-system.md`](systems/design-system.md), and it is already applied to three of four moment-12
@@ -275,8 +283,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   **Stripe Checkout `consent_collection`** (a Terms checkbox on the hosted page; ruled off for now,
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
-  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** is COMPLETE (2026-09-11: mono holds data only; every label is the
-  `Caption` atom);
+  native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** (2026-09-11) is superseded: **mono is leaving** (Will, 2026-09-14; the `kill-mono` track removes the face and redesigns every place it did semantic work); **the voice-infusion round** (after `brand-voice` is ruled): the voice carried site-wide, the 30 feature-page strings, the 59 nav strings, the seven provisional headers, the MDX, the ten email templates and the inline app copy (`help-ui-labels.test.ts` makes an app-control rename a two-file change);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
   subjects; the hub doors' and the album stages' stock photographs are placeholders Will replaces,

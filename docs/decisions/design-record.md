@@ -38,6 +38,13 @@ Deleted boards were last at `9b75ec1` (`git show 9b75ec1:<path>` reopens any of 
 | [glow-doctrine](#glow-doctrine) | shared | 2026-08-28 and 08-31; open: the lit surface | open |
 | [glow-moments](#glow-moments) | shared | 2026-08-31; open: the publish beat's violet | open |
 | [event-feed](#event-feed) | host | 2026-06-22 | Condense, Fade, FLIP |
+| [palette](#palette) | shared | open (the review wave, 2026-09-14) | open |
+| [light](#light) | shared | open (the review wave, 2026-09-14) | open |
+| [type-scale](#type-scale) | shared | open (the review wave, 2026-09-14) | open |
+| [floating-surfaces](#floating-surfaces) | shared | open (the review wave, 2026-09-14) | open |
+| [brand-voice](#brand-voice) | marketing | open (the review wave, 2026-09-14) | open |
+| [media-kit](#media-kit) | marketing | open (the review wave, 2026-09-14) | open |
+| [rounding](#rounding) | shared | open (the review wave, 2026-09-14; Orchestrator-run) | open |
 
 ## entry
 
@@ -432,3 +439,73 @@ The `/design/event-feed` prototype, not a touchpoint: where the pill behavior (A
 
 Board: `src/app/(dev)/design/event-feed/` (event-feed-lab.tsx, feed-sections.tsx, sample-feed.ts, a stale copy of use-flip.ts), last at `9b75ec1`, deleted 2026-09-02.  
 Lives: `docs/systems/design-system.md#event-feed-review-motion-the-live-motion-tuner`, `docs/systems/host-app.md`, `src/lib/shared/use-flip.ts`
+
+## palette
+
+**The palette** (shared). Ruled open. Shipped: open.  
+The achromatic ramp between black and white in both modes, the accent's role, and the muted panel as a real register, asked as three candidate token blocks beside today's on real sections, on cinema, paper and ink, at both widths.
+
+Context, as the lab recorded it: opened by Will's rule-by-rule review of the bible (2026-09-14). Rule 1 was "mostly correct" with the longest note: the accent carries state and UI colour where there is no media, marketing may carry colour beyond media (aurora, non-sampled spill), a section without a picture should still be beautiful, and "achromatic" is the intent where "grayscale" was written; the greys themselves "feel off". The facts the board starts from: the light ramp has a 0.455 hole between 0.45 and 0.905, the dark ramp crushes four surfaces into 0.14 to 0.25, three darks ship (cinema 0.11, the app 0.14, ink 0.155), the panel ships at three alphas, and `--brand` is an alias of ink with a two-line hook left in `theme.css` for exactly this decision.
+
+Board: `src/app/(dev)/design/sandbox/palette/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `src/app/globals.css`, `src/app/theme.css`, `docs/systems/design-system.md`
+
+## light
+
+**Light** (shared). Ruled open. Shipped: open.  
+Light, shadow and lamp as one system with the aurora infused as identity: where shadows return in dark (stacked media cards, a layer over content), lamps that emit from nothing (the footer's seam as the model), a section-scoped aurora on a media-less section, the cadence at 8s and 11s, the publish beat's violet, the lit surface.
+
+Context, as the lab recorded it: opened by the review (2026-09-14). Rule 10 ("dark has no shadows") was rewritten to depth-is-light-first with shadows where objects stack; rule 11 (source and direction) is retiring, because as written it forbade the one production lamp Will likes most; the parked light rulings (b) the lit surface, (c) the publish beat's violet and (d) the cadence ride this board and unpark. The doctrine it replaces: SPILL's four laws, BEAM's four laws, the three registers and the elevation contract in `design-system.md`.
+
+Board: `src/app/(dev)/design/sandbox/light/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/systems/design-system.md`, `src/components/shared/glow.tsx`, `src/app/globals.css`
+
+## type-scale
+
+**The type scale** (shared). Ruled open. Shipped: open.  
+One heading ladder for marketing and one for the app, shown on real pages at 1440 and 375 as three candidate scales beside today's, proposed as a token table the wiring round bakes.
+
+Context, as the lab recorded it: opened by the review (2026-09-14); rule 5 holds but "the sizes are not nailed". Marketing declares five steps (`PageHero` display, `xl`, `lg`; `SectionShell` `lg` and `default`) and the app has one atom (`PageHeading`, 23 call sites) with about ten ad-hoc combinations and admin h2s at 14 px; no size tokens exist. The face pairing is not the question and is not protected either: a candidate that needs a different pairing shows it once, flagged as a departure.
+
+Board: `src/app/(dev)/design/sandbox/type-scale/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/systems/design-system.md`, `src/components/marketing/system/page-hero.tsx`, `src/components/marketing/system/section-shell.tsx`
+
+## floating-surfaces
+
+**Floating surfaces** (shared). Ruled open. Shipped: open.  
+Every floating primitive (dialog, drawer, dropdown, popover, select, sheet, toast, tooltip, the nav viewport) on cinema, paper and ink at both widths, today beside two candidate treatments of radius, entrance and light-or-shadow in dark, the outliers brought onto whichever contract wins.
+
+Context, as the lab recorded it: opened by the review (2026-09-14); rule 15 holds and gets its dedicated exploration. Five primitives ride the contract, `select` is stock shadcn, the drawer has the radius without the shadow, the sheet is square by side; the phone canvas is primary for sheets, drawers and dialogs, the desktop canvas for menus, popovers and tooltips.
+
+Board: `src/app/(dev)/design/sandbox/floating-surfaces/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/systems/design-system.md`, `src/components/ui/`
+
+## brand-voice
+
+**The brand voice** (marketing). Ruled open. Shipped: open.  
+The voice as a guide (its three registers, the do's as sentence shapes with examples per surface, what it never does, a rewrite procedure) and a board of sample headings and lines beside today's on real section shells, with the home arc's seven provisional headers rewritten in the proposed voice as the worked example.
+
+Context, as the lab recorded it: opened by the review (2026-09-14). Rule 20 was "messy: don'ts without do's" and rule 21 (ruled copy) was killed: all copy is open until the voice exists. There is no voice doc anywhere; the written rule was the em-dash ban. The guide lands as `docs/specs/brand-voice.md` (a proposal) and is promoted into `docs/systems/` at the ruling; the `voice-infusion` round then carries it site-wide.
+
+Board: `src/app/(dev)/design/sandbox/brand-voice/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/specs/brand-voice.md`, `src/lib/constants/marketing-voice.ts`
+
+## media-kit
+
+**The media kit** (marketing). Ruled open. Shipped: open.  
+The licensing rule written down (no stock at launch; every frame ours or under a license we can name, with author, source and retrieval date on every manifest entry), a survey of the licensed sources whose terms allow a marketing use, a plan for the kit Will makes himself, and a contact-sheet board of a candidate first batch beside the current 12, with provenance under each.
+
+Context, as the lab recorded it: opened by the review (2026-09-14); rule 18 was "an unspoken rule". All 12 marketing stills carry "provenance unverified", the lab pack they came from is gone, and the manifest test checks only that a license line is non-empty. The batch is staged under `public/design/media-kit/`, not wired; the stand-ins stay until the wiring round.
+
+Board: `src/app/(dev)/design/sandbox/media-kit/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `docs/specs/media-kit.md`, `src/lib/constants/marketing-media.ts`, `docs/ASSETS.md`
+
+## rounding
+
+**The rounding and tweaking GUI round** (shared, Orchestrator-run). Ruled open. Shipped: open.  
+The radius system's sitting surface: the sharp-surface / round-action contrast at candidate values for every radius token, beside the tuner that drags the real pages.
+
+Context, as the lab recorded it: opened at the review (2026-09-14; "can be initiated whenever you're ready"), after two stagings (the three knobs on the marketing tuner, 2026-09-01; the knobs on `/design/motion`, 2026-09-11). The round first earns the sitting: a store outside the tuner component (persisted, exported) fixes the two defects at their one root, every knob gets a description and where it ships, the three action-radius knobs join, and a knob without a specimen is retired. Bible 8 inherits the values.
+
+Board: `src/app/(dev)/design/sandbox/rounding/board.tsx`, standing in `sandbox/` until the ruling lands.  
+Lives: `src/app/globals.css`, `src/app/theme.css`, `src/components/dev/motion-tuner-config.ts`, `docs/systems/design-system.md`

@@ -28,7 +28,7 @@ the RULE moves here (or to its surface doc), the RECORD moves to
 keeps it). The thin registry the lab reads is `touchpoints.ts` (`RULINGS`: one line per ruling, where
 the rule lives), rendered at `/design/record`.
 
-## The identity: monochrome, media is the color
+## The identity: achromatic, media is the color
 
 - **Zero-chroma chrome in BOTH modes.** Light = paper (bg `oklch(0.99 0 0)`, card `0.997`, fg
   `0.13`); dark = night (bg `0.14`, translucent card `oklch(0.21 0 0 / 0.62)`, opaque popover
@@ -37,6 +37,13 @@ the rule lives), rendered at `/design/record`.
 - **`--brand` is an ALIAS of `--primary`** (ink). Don't reintroduce a brand hue; photography
   supplies all color. ("Saturate your neutrals" was consciously DECLINED: zero-chroma is the
   identity; a 0.002-0.004 warm-tint variant may get a lab round later, never silently.)
+  **Under exploration (bible 1, Will's review 2026-09-14):** the accent may carry state and UI color
+  where there is no media, and marketing may carry color of its own (aurora, non-sampled spill), so
+  a section without a picture is still beautiful; the `palette` board proposes the achromatic ramp
+  (the light ramp has a 0.455 hole between 0.45 and 0.905, the dark ramp crushes four surfaces into
+  0.14 to 0.25, and three darks ship: cinema 0.11, the app 0.14, ink 0.155), the accent (today an
+  alias of ink; `--save` blue 252 and `--reel` violet 300 are the two icon-only action hues) and the
+  muted panel as one token. The ruling lands here.
 - **Feedback + actions are ALWAYS colored** (the one exception): `--success` green, `--warning` amber,
   `--like` rose, `--destructive` red, `--save` blue (the first non-state ACTION hue), and `--reel` violet
   (the host reel-curation hue, S5 R1), each with light/dark variants. State, not decoration. **The
@@ -239,6 +246,13 @@ usually picks: ink takes the beam, paper takes spill in the paper register.
 | 2 | **Direction.** Spill has a vector; every instance declares where it comes from. | Even rims, concentric halos, premium pill treatments |
 | 3 | **Colour of the lit thing.** Real media where it exists, the lamp set where it does not. **Never a house token, never a state colour.** | The glow becoming a second brand palette. Amber storage warnings, violet reel glows |
 | 4 | **Falloff.** Fades with distance, never draws an edge, sits behind content, always warped, always an always-on base under any travelling band. | The paused-state invisibility trap |
+
+**Under exploration (bible 11 retiring, Will's review 2026-09-14):** law 1 as written forbids the
+footer's seam, the one production lamp with no emitting media (`footer-glow.tsx`: "the footer's light
+is the house light") and the model Will named. A lamp may light a section without media; the `light`
+board writes the doctrine that replaces the source-and-direction law (where shadows return in dark,
+the aurora as a section-scoped ambient, the cadence, the lit surface), and the SPILL laws, the BEAM
+laws and the elevation contract inherit it.
 
 **BEAM's four laws:** 1 it marks the object that is currently the LIVE SUBJECT (working, awaiting,
 uploading, publishing, live). 2 One subject per view. 3 **It ends when the state ends** (a beam is a
@@ -529,10 +543,16 @@ math).
 
 - **Light:** exactly one shadow family, `--shadow-float` (soft, blur = 2x offset, single top light
   source), floating layer only. Surfaces are hairline-led, no shadows.
-- **Dark:** NO shadows anywhere (`--shadow-float` resolves to a zero shadow in `.dark`). Depth =
-  lighter-is-closer surface steps (bg 0.14 → card 0.21 → popover 0.23+) + borders + the glass card.
-- Components use the `shadow-float` utility; never reintroduce `shadow-md/lg` on primitives (the
-  tabs active pill sheds its `shadow-sm` in dark for the same reason).
+- **Dark:** depth is light first (bible 10, rewritten at Will's review 2026-09-14): lighter-is-closer
+  surface steps (bg 0.14 → card 0.21 → popover 0.23+) + borders + the glass card, and **a shadow is
+  allowed where stacked or overlapping objects need separating** (media cards, a layer over
+  content), never as a flat surface effect. `--shadow-float` still resolves to a zero shadow in
+  `.dark` until the `light` exploration writes shadow, lamp and light as one system and the wiring
+  lands it; `pricing/plan-cards.tsx`'s stacked photograph with `shadow-lg` on cinema is the case the
+  rewrite legalised, and `ring-1 ring-foreground/5` (37 uses) is the lift idiom the contract never
+  named.
+- Components use the `shadow-float` utility; a raw `shadow-md/lg` on a primitive is precedent, not
+  law, until the light ruling (the tabs active pill sheds its `shadow-sm` in dark).
 - The dark translucent card ships WITHOUT blanket backdrop-blur (alpha composites fine; blur only
   where a surface sits over media).
 

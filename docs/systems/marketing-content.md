@@ -177,7 +177,11 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   behind: it omitted `--popover`, so the in-flow nav panels rendered white-on-white at ~1.07:1. The
   measurement and the rule live in [design-system.md](design-system.md).
   **A dark chapter never sits in the MIDDLE of one of these pages** either (bible 16). The register for a
-  set-apart block inside a paper body is `bg-muted/40` with `border-y` (the /contact panel surface).
+  set-apart block inside a paper body is the muted panel, `bg-muted/40` with `border-y` (the /contact
+  panel surface): **the fourth ground** (bible 16 at Will's review, 2026-09-14: cinema, paper, ink and
+  the panel), the one thing allowed to break the strict light-dark alternation. It ships at /30, /40
+  and /50 today (seventeen sites; on paper /40 is a 1% step); the `palette` board proposes it as one
+  token at one value.
 - **The About arc + the gather** ([`about/gather.tsx`](../../src/app/(marketing)/(cinema)/about/gather.tsx)) —
   About opens on the cinema room and BOOKENDS the page in dark against the ink footer, leaving the
   reading body in the middle (the wordmark as the page's h1 at the lockup's `display` step, never the

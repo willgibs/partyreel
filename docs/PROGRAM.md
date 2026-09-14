@@ -42,9 +42,17 @@ The rules live in [`CLAUDE.md`](../CLAUDE.md) "Sessions & roles"; the operating 
   `git branch -r --list 'lp/*'` for branches without one; confirm the preview deploy
   state at the `launch-prep` tip; review Will's open decision queue in STATUS. Everything needed to
   seat lives in the repo.
+- **The record between windows** (2026-09-14, the review wave): [`tracks/orchestrator.md`](tracks/orchestrator.md)
+  carries **In flight** (every open track, its preview alias, what it waits on) and **Waiting on
+  Will** (rulings and assets, each with its link, the asks quoted from the boards), kept current at
+  every spawn, handoff, integration and ruling; [`ASSETS.md`](ASSETS.md) is the asset log Will
+  completes in parallel (the Orchestrator folds each manifest's "Assets requested from Will" line at
+  integration, Will marks delivered, the wiring round marks wired); `/design/c` is the desk that
+  renders the same files for his parallel reviews. STATUS points at them; nothing about a wave lives
+  only in a session.
 - **Succession-ready round close (the Orchestrator's exit checklist):** the record step is done
   (system docs refined in place, CHANGELOG entry, ROADMAP pruned); STATUS is current (round table,
-  live state, decision queue); every track branch is integrated or `handed-off` in its manifest; `git worktree list` shows only the root and open tracks and
+  live state, decision queue) and so are In flight, Waiting on Will and the asset log; every track branch is integrated or `handed-off` in its manifest; `git worktree list` shows only the root and open tracks and
   `origin/lp/*` only open or handed-off ones (merged worktrees removed, merged remotes deleted);
   gates are green at the `launch-prep` tip and, when the round ended in a walk, its `[preview]`
   push is READY there (the integration preview is built on request since 2026-09-11); Vercel is
@@ -63,7 +71,7 @@ a session opened in the repo root.
 > Rulings in force: `<rulings | none>`. You own: `<owned path prefixes>`. Also never touch:
 > `<extra forbidden paths | none>`. Verify on: `<pages/flows>`.
 > Design law: the bible on `/design/rules` and the component contracts on `/design`; everything else is
-> precedent. Take the big swing, in the lab first.
+> precedent. Rising tides (bible 22): judge it from the ground up, elevate or rework, in the lab first.
 > Boot per `docs/PROGRAM.md` "Agent boot" (your manifest `docs/tracks/<track>.md` is the last boot step, before any other work),
 > build, then hand off by filling the manifest's Handoff + Record sections, setting
 > `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
@@ -187,7 +195,8 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
   `git worktree add ../partyreel-wt/<track> -b lp/<track> launch-prep`.
 - **Integration is single-writer, merge-based, and windowed.** Never rebase a pushed branch; every
   integration is `merge --no-ff` (the branch's own merges of `launch-prep` are merges too). Two
-  integration windows per Orchestrator session (after seat-in, before close) plus on request; a
+  integration windows per Orchestrator session (after seat-in, before close), one whenever a handoff
+  lands while the seat is open, and on request; a
   window = fetch with prune, integrate every `handed-off` track OLDEST FIRST (a quick typecheck +
   test after each merge localises a break; the full four-step gate once on the final tree, each
   step on its own exit code), ONE push, one preview verify at the pushed SHA before any red-team.
@@ -221,9 +230,17 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
 
 ## Program principles
 
-- **Rising tides** (Will, 2026-08-27): spread polish across surfaces; don't gold-plate two pages
-  while others sit at wireframe. Every page still ends at the "would this hold up next to the
-  homepage?" screenshot check.
+- **Rising tides** (Will, 2026-08-27; redefined 2026-09-14 as bible 22): nothing is protected, and
+  every section, component, flow and line is judged from the ground up: what would the perfect
+  version be if it did not exist yet? Build that: elevate what already points there, rework what
+  does not, and raise the global system as you go. No round can know the finished bar in advance,
+  so the program is an iterative flow that keeps raising it; a page with a weak layout is torn down
+  and rebuilt rather than pushed a little further, and big swings that can be reverted beat small
+  cautious steps, but always reworking loses what we like and always polishing makes no progress,
+  so the call is the agent's, each time, and it may push past today's systems, components and rules
+  to set a new peak. The older half still holds: spread the rise across surfaces; don't gold-plate
+  two pages while others sit at wireframe, and every page still ends at the "would this hold up next
+  to the homepage?" screenshot check.
 - **Prototype-first for creative/UI magic** (the lab gate above) and **focused per-dimension rounds**
   over mega-plans.
 - **Own fewer services / cost frugality:** no recurring SaaS pre-revenue; prefer free tiers and
@@ -267,6 +284,6 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
 - The reel's settled product decisions → [`specs/reel-v1.md`](specs/reel-v1.md) "Scope" + the style catalog.
 - The guest read path, export chain, admin seam, and durability design passed adversarial review —
   don't re-open them without new evidence (their invariants live in their `systems/` docs).
-- The monochrome identity + the emil craft bar → [`systems/design-system.md`](systems/design-system.md);
-  the marketing IA + the byte-pinned voice thesis → [`systems/marketing-content.md`](systems/marketing-content.md)
+- The achromatic identity + the emil craft bar → [`systems/design-system.md`](systems/design-system.md);
+  the marketing IA + the voice thesis (ruled in `marketing-voice.ts`; no copy is pinned by a test since 2026-09-12, and all copy is open under bible 21) → [`systems/marketing-content.md`](systems/marketing-content.md)
   + `src/lib/constants/marketing-voice.ts`.
