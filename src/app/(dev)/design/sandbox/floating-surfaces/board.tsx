@@ -3,7 +3,7 @@
 // the board's own sheet; it leaves with the board when the ruling lands.
 import "./board.css";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import {
   BoardMeta,
@@ -155,14 +155,16 @@ function Row({
  *  without one suspends its subtree: the lab nav's own boundary was left hanging
  *  and every frame stayed unmounted. An effect costs one render and needs
  *  nothing from anyone else's tree. */
+const noop = () => () => {};
+const readKey = () => new URLSearchParams(window.location.search).get("key");
+// undefined = not read yet. A frame must not load before then: on the preview
+// the scene route is gated, so a keyless first src would 404 and then reload.
+// useSyncExternalStore rather than an effect, so the value arrives with the
+// first post-hydration render instead of one render later.
+const noKeyYet = () => undefined;
+
 function useDesignKey(): string | null | undefined {
-  // undefined = not read yet. A frame must not load before then: on the preview
-  // the scene route is gated, so a keyless first src would 404 and reload.
-  const [key, setKey] = useState<string | null | undefined>(undefined);
-  useEffect(() => {
-    setKey(new URLSearchParams(window.location.search).get("key"));
-  }, []);
-  return key;
+  return useSyncExternalStore(noop, readKey, noKeyYet);
 }
 
 export function FloatingSurfacesBoard() {

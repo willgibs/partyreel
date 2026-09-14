@@ -29,6 +29,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -121,7 +129,7 @@ function Backdrop({
             padding: "var(--gap-gallery)",
           }}
         >
-          {Array.from({ length: cols * 4 }).map((_, i) => (
+          {Array.from({ length: cols * 8 }).map((_, i) => (
             <div
               key={i}
               className="relative aspect-square overflow-hidden bg-muted"
@@ -150,16 +158,34 @@ function useReplay(initial = true) {
   useEffect(() => {
     const replay = () => {
       setOn(false);
-      // Two frames: one for radix to unmount the panel, one for the browser to
-      // paint the closed state before the entrance starts again.
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setOn(true)),
-      );
+      // A timer, not requestAnimationFrame: rAF does not fire while the tab is
+      // in the background, and a board with several frames is exactly where a
+      // panel would sit half-replayed on a tab nobody is looking at. Long
+      // enough for radix to unmount the panel and the browser to paint the
+      // closed state before the entrance starts again.
+      window.setTimeout(() => setOn(true), 60);
     };
     window.addEventListener("flt:replay", replay);
     return () => window.removeEventListener("flt:replay", replay);
   }, []);
   return on;
+}
+
+/** Mirrors a flag one frame late. The nav viewport sizes itself from a
+ *  ResizeObserver that radix only runs across a real open TRANSITION: a Root
+ *  mounted already-open never measures, and the panel sits at 0x0 forever (the
+ *  primitive's own comment describes the one-frame version of this). Every other
+ *  panel is happy to be born open. */
+function useNextFrame(on: boolean): boolean {
+  // `ticked` only ever goes forward; the flag reads `on && ticked`, so a replay
+  // closes the panel the moment `on` drops without a second state write.
+  const [ticked, setTicked] = useState(false);
+  useEffect(() => {
+    if (!on) return;
+    const id = window.setTimeout(() => setTicked(true), 32);
+    return () => window.clearTimeout(id);
+  }, [on]);
+  return on && ticked;
 }
 
 const MENU_ROWS = [
@@ -172,14 +198,54 @@ const MENU_ROWS = [
  *  actually about, because a stray one only reads wrong beside its siblings. */
 function FamilyScene({ phone, rung }: { phone: boolean; rung?: string }) {
   const on = useReplay();
+  const navOn = useNextFrame(on);
   const cls = cn("flt-panel", rung);
   return (
     <>
       <Backdrop phone={phone} />
+      {/* The ninth primitive, and the one the contract was named for: the nav
+          viewport was the single menu outside it in 2026-08-28. Desktop only,
+          because the marketing header collapses to a drawer below md, and held
+          open through the Root's controlled `value`. NavigationMenu renders its
+          own viewport, so the panel hook goes through `viewportProps`. */}
+      {!phone ? (
+        <div className="absolute inset-x-0 top-0 z-30 flex justify-center pt-2">
+          <NavigationMenu
+            value={navOn ? "features" : ""}
+            onValueChange={() => undefined}
+            viewportProps={{ className: cls }}
+          >
+            <NavigationMenuList>
+              <NavigationMenuItem value="features">
+                <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  {/* An inline width, not an arbitrary utility: the viewport
+                      sizes itself from a ResizeObserver on this content, and a
+                      class that fails to compile leaves the panel at 0x0 with
+                      nothing to see. */}
+                  <div
+                    className="grid grid-cols-2 gap-1 p-2"
+                    style={{ width: 420 }}
+                  >
+                    {[
+                      "One QR code",
+                      "No app, no account",
+                      "The host reviews",
+                      "The reel",
+                    ].map((l) => (
+                      <NavigationMenuLink key={l}>{l}</NavigationMenuLink>
+                    ))}
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      ) : null}
       <div
         className={cn(
-          "absolute inset-x-0 top-14 flex px-4",
-          phone ? "flex-col gap-40" : "justify-between",
+          "absolute inset-x-0 flex px-4",
+          phone ? "top-14 flex-col gap-40" : "top-52 justify-between",
         )}
       >
         <DropdownMenu open={on} modal={false}>
@@ -282,7 +348,12 @@ function OverlayScene({ phone, rung }: { phone: boolean; rung?: string }) {
 function Toast({ on, rung }: { on: boolean; rung?: string }) {
   useEffect(() => {
     if (!on) return;
-    const id = toast.success("Link copied", {
+    // The NEUTRAL toast on purpose. A state toast (success, warning, error)
+    // paints its own background through an !important rule in globals.css, so
+    // it would answer the light question with a colour instead of with the
+    // popover surface. The state variants are a carve-out for the ruling to
+    // note, not the surface the contract is about.
+    const id = toast("Link copied", {
       description: "Anyone with it can upload to the album.",
       duration: Number.POSITIVE_INFINITY,
     });

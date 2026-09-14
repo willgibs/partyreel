@@ -273,7 +273,7 @@ html:is(.dark, .surface-ink) {
   /* one-clock: the whole family on one zoom-fade at one beat. */
   :is([data-flt-entrance="one-clock"] .flt-panel, .flt-e-one-clock):is(
       [data-state="open"],
-      [data-state="delayed-open"]
+      [data-state="delayed-open"], [data-state="instant-open"]
     ) {
     animation: flt-zoom-in 175ms var(--ease-emphasis) both;
   }
@@ -292,12 +292,12 @@ html:is(.dark, .surface-ink) {
       [data-slot="dropdown-menu-sub-content"],
       [data-slot="select-content"],
       [data-slot="navigation-menu-viewport"]
-    ):is([data-state="open"], [data-state="delayed-open"]),
+    ):is([data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]),
   :is(
       [data-slot="tooltip-content"],
       [data-slot="dropdown-menu-content"],
       [data-slot="select-content"]
-    ).flt-e-by-frequency:is([data-state="open"], [data-state="delayed-open"]) {
+    ).flt-e-by-frequency:is([data-state="open"], [data-state="delayed-open"], [data-state="instant-open"]) {
     animation: flt-slip-in 90ms var(--ease-emphasis) both;
   }
   :is([data-flt-entrance="by-frequency"], .flt-e-by-frequency)
@@ -330,7 +330,7 @@ html:is(.dark, .surface-ink) {
   /* origin-true: everything grows out of its trigger. */
   :is([data-flt-entrance="origin-true"] .flt-panel, .flt-e-origin-true):is(
       [data-state="open"],
-      [data-state="delayed-open"]
+      [data-state="delayed-open"], [data-state="instant-open"]
     ) {
     animation: flt-grow-in 200ms var(--ease-emphasis) both;
   }
@@ -405,4 +405,24 @@ html[data-flt-frame] body {
    the element does not exist. */
 html[data-flt-frame] nextjs-portal {
   display: none;
+}
+
+/* THE NAV VIEWPORT, the ninth primitive and the one the contract was named for,
+   needs two lines to be visible outside the marketing header at all.
+   Observed, not theorised: radix sizes the viewport from a ResizeObserver on
+   its content and publishes both dimensions as vars; on a lab page the HEIGHT
+   lands (`h-(--radix-navigation-menu-viewport-height)`, no variant) while the
+   WIDTH does not (`md:w-(--radix-navigation-menu-viewport-width)`, behind the
+   md variant), so the panel measures its own content at 0 wide and stays there.
+   Pinning the width from the same radix var breaks the deadlock, and
+   `max-content` on the content is what gives the observer something to measure.
+   A finding for whoever owns navigation-menu.tsx, not a candidate: it changes
+   nothing about what the panel looks like, only whether it has a size here.
+   The board also has to open this one across a real transition (scenes.tsx),
+   for the same measuring reason. */
+html[data-flt-frame] [data-slot="navigation-menu-content"] {
+  width: max-content;
+}
+html[data-flt-frame] [data-slot="navigation-menu-viewport"] {
+  width: var(--radix-navigation-menu-viewport-width);
 }
