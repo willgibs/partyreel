@@ -56,6 +56,34 @@ radii as literals and now derive from `--radius-action`. Verified on the dev ser
 14px base gives the live column's card and the home page's paper-chapter card 19.6px, the h-9 button
 21.6px at a 24px action radius, and Reset empties the DOM and the store. The sitting is Will's.
 
+**kill-mono** (`lp/kill-mono`, `659097f`, merged `69af90d`). Mono left the product. The `Geist_Mono` loader and
+its `--font-mono` variable went out of `layout.tsx`, so the site downloads two faces; `MonoCaption` was
+deleted and its sixteen call sites moved to `Caption`, now the one caption atom for labels and data
+alike; every remaining `font-mono` in marketing, admin, shared and the lab went with them, and the
+figures that had leaned on mono for alignment kept it with `tabular-nums`. The places where mono did
+semantic work were redesigned rather than swapped: the stat register (`StatBand`, the help filmstrip)
+took the display face with tabular figures, the register the pricing cards ratified; `/help`'s ghost
+folio became a watermark in the brand face; admin codes and keys became a quiet key in a table or a
+muted plate with `select-all`, and the type-to-confirm identifier took the plate without it, since
+typing it is the guard; the error digest and the privacy policy's storage key took the same plate. The
+sweep also closed the hole no grep sees: preflight sets a bare `<code>` in a mono stack, so the two
+`<code>` elements in the lane took `font-sans` and both long-form wrappers took `prose-code:font-sans`,
+which covers ~260 inline code spans across the help centre and the blog. Bible 7 leaves the bible.
+ Bible 7 became the two-faces rule at the merge, enforced by `src/app/two-faces-policy.test.ts`.
+
+**type-scale** (`lp/type-scale`, `5186fb8`, merged `838a5f6`). **The type scale, written down.** Bible 5's ladder
+had never had its numbers stated, so the board stated them: today's, resolved at both ends from the
+class strings, beside three candidates spanning tune to replace. Eleven stages render the PRODUCTION
+components (`PageHero`, `SectionShell`, `PageHeading`, `Card`) with three custom properties handed
+to them through the board's own sheet, so picking a ladder re-lays the real home arc, a feature
+page, /help, /about, the dashboard, an event page and an admin page rather than a mock; the ladder
+data is pure and `ladders.test.ts` pins its laws, today's two faults included. Three faults were
+found and are what the candidates answer: at 375 the ladder has three distinct sizes doing the work
+of six, line-height arrives with whichever Tailwind size class a ramp lands on (the one hero that
+needed a real value invented `leading-[1.02]` locally), and `font-heading` tracks a 160px masthead
+and a 16px card title at the same -0.03em, against the design system's own written rule that
+letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
+
 **brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
 the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
 the three registers with a table of what changes between them, five sentence shapes, an example on

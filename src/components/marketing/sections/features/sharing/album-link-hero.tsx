@@ -46,7 +46,7 @@ export function AlbumLinkHero() {
         <span
           data-mkt-reveal
           style={{ "--i": 0 } as CSSProperties}
-          className="flex h-8 min-w-0 flex-1 items-center justify-center rounded-lg bg-muted/60 px-3 font-mono text-xs text-foreground sm:text-sm"
+          className="flex h-8 min-w-0 flex-1 items-center justify-center rounded-lg bg-muted/60 px-3 text-xs text-foreground sm:text-sm"
         >
           <span className="truncate">partyreel.com/a/maya-and-jay</span>
         </span>
@@ -72,7 +72,11 @@ export function AlbumLinkHero() {
               src={marketingImage(id).src}
               alt=""
               fill
-              sizes={i === 0 ? "(min-width: 768px) 368px, 50vw" : "(min-width: 768px) 180px, 25vw"}
+              sizes={
+                i === 0
+                  ? "(min-width: 768px) 368px, 50vw"
+                  : "(min-width: 768px) 180px, 25vw"
+              }
               className="object-cover"
               priority={i === 0}
             />

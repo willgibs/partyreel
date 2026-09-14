@@ -194,7 +194,7 @@ export function Calculator() {
                   )}
                   {isClip && (
                     <div className="flex size-full animate-in items-center justify-center bg-foreground duration-150 zoom-in-75 motion-reduce:animate-none">
-                      <span className="font-mono text-[7px] text-background">
+                      <span className="text-[7px] text-background tabular-nums">
                         {CLIP_TIMES[i % CLIP_TIMES.length]}
                       </span>
                     </div>

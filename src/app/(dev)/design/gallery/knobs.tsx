@@ -23,7 +23,13 @@ import { CopyLine } from "./stage";
  */
 
 export type Knob =
-  | { kind: "select"; prop: string; label?: string; options: string[]; value: string }
+  | {
+      kind: "select";
+      prop: string;
+      label?: string;
+      options: string[];
+      value: string;
+    }
   | { kind: "toggle"; prop: string; label?: string; value: boolean }
   | { kind: "text"; prop: string; label?: string; value: string }
   | {
@@ -76,7 +82,8 @@ export function codeFor(def: PlaygroundDef, values: KnobValues): string {
       continue;
     }
     if (v === defaults[knob.prop]) continue;
-    if (typeof v === "boolean") props.push(v ? knob.prop : `${knob.prop}={false}`);
+    if (typeof v === "boolean")
+      props.push(v ? knob.prop : `${knob.prop}={false}`);
     else props.push(`${knob.prop}=${literal(v)}`);
   }
   const head = [def.name, ...props].join(" ");
@@ -101,7 +108,12 @@ export function ConfigPanel({ def }: { def: PlaygroundDef }) {
   const set = (prop: string, v: string | number | boolean) =>
     setValues((prev) => ({ ...prev, [prop]: v }));
 
-  const stage = def.skin === "marketing" ? <div data-mkt="">{def.render(values)}</div> : def.render(values);
+  const stage =
+    def.skin === "marketing" ? (
+      <div data-mkt="">{def.render(values)}</div>
+    ) : (
+      def.render(values)
+    );
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -112,7 +124,7 @@ export function ConfigPanel({ def }: { def: PlaygroundDef }) {
           onClick={() => setValues(start)}
           disabled={!dirty}
           className={cn(
-            "flex items-center gap-1.5 font-mono text-[11px] transition-[color,opacity] duration-150",
+            "flex items-center gap-1.5 text-[11px] transition-[color,opacity] duration-150",
             dirty
               ? "text-muted-foreground hover:text-foreground"
               : "pointer-events-none opacity-0",
@@ -244,7 +256,7 @@ function KnobRow({
     <label className="flex flex-col gap-1.5">
       <span className="flex items-baseline justify-between gap-2">
         <Caption>{label}</Caption>
-        <span className="font-mono text-[11px] text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
           {String(value)}
           {knob.unit ?? ""}
         </span>

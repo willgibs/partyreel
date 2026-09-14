@@ -63,20 +63,26 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
             className="h-10 w-full rounded-lg border border-border bg-card pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
           />
         </div>
-        <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
+        <p className="mt-1.5 text-[11px] text-muted-foreground tabular-nums">
           {shown} of {rows.length}
         </p>
       </div>
 
       {groups.length === 0 ? (
-        <p role="status" className="py-16 text-center text-sm text-muted-foreground">
+        <p
+          role="status"
+          className="py-16 text-center text-sm text-muted-foreground"
+        >
           Nothing matches &ldquo;{query}&rdquo;.
         </p>
       ) : (
         <div className="mt-4 space-y-3">
           {groups.map(([dir, items]) => (
-            <div key={dir} className="overflow-hidden rounded-xl border border-border bg-card">
-              <p className="border-b border-border px-4 py-2 font-mono text-[11px] text-muted-foreground">
+            <div
+              key={dir}
+              className="overflow-hidden rounded-xl border border-border bg-card"
+            >
+              <p className="border-b border-border px-4 py-2 text-[11px] text-muted-foreground">
                 {dir}
               </p>
               <ul className="divide-y divide-border">
@@ -94,12 +100,18 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
                           {r.for}
                         </span>
                       )}
-                      <span className="ml-auto flex shrink-0 items-baseline gap-1.5 font-mono text-[10px] text-muted-foreground">
+                      <span className="ml-auto flex shrink-0 items-baseline gap-1.5 text-[10px] text-muted-foreground">
                         {r.play && <Pill tone="strong">config</Pill>}
                         {r.variants > 0 && <Pill>{r.variants} variants</Pill>}
-                        {r.specimens > 0 && <Pill>{r.specimens} specimens</Pill>}
-                        {r.contracts > 0 && <Pill>{r.contracts} contracts</Pill>}
-                        {r.specimens === 0 && r.unspecimened && <Pill>no specimen</Pill>}
+                        {r.specimens > 0 && (
+                          <Pill>{r.specimens} specimens</Pill>
+                        )}
+                        {r.contracts > 0 && (
+                          <Pill>{r.contracts} contracts</Pill>
+                        )}
+                        {r.specimens === 0 && r.unspecimened && (
+                          <Pill>no specimen</Pill>
+                        )}
                       </span>
                     </Link>
                   </li>

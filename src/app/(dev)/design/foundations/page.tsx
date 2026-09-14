@@ -229,10 +229,7 @@ export default async function FoundationsPage({
             ]}
           />
           {glow && (
-            <EntryBlock
-              item={glow}
-              link={(href) => withDesignKey(href, key)}
-            />
+            <EntryBlock item={glow} link={(href) => withDesignKey(href, key)} />
           )}
         </div>
       </RefSection>
@@ -276,7 +273,7 @@ function RadiusBox({
         className={`mx-auto size-16 border-2 border-foreground ${className}`}
       />
       <p className="mt-3 text-center text-[13px] font-medium">{name}</p>
-      <p className="text-center font-mono text-[10px] text-muted-foreground">
+      <p className="text-center text-[10px] text-muted-foreground tabular-nums">
         {hint}
       </p>
     </div>
@@ -306,7 +303,7 @@ function EaseDemo({
           style={{ transitionTimingFunction: `var(${varName})` }}
         />
       </div>
-      <p className="mt-3 truncate font-mono text-[10px] text-muted-foreground">
+      <p className="mt-3 truncate text-[10px] text-muted-foreground tabular-nums">
         {value}
       </p>
     </div>

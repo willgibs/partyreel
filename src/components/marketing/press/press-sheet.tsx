@@ -96,8 +96,8 @@ function Frame({
           style={{ background: plate }}
           className="relative flex aspect-square items-center justify-center"
         >
-          {/* Mono earns its place here and almost nowhere else on the sheet: the index is
-              a NUMBER in a column of numbers, so tabular figures keep it aligned.
+          {/* The index is a NUMBER in a column of numbers, so tabular figures keep
+              it aligned on the body face.
               ★ An explicit tone per plate, NOT mix-blend-difference. The blend was fine on
               the old ink ground but the sheet now sits on paper, where a 55%-alpha ink
               glyph composites to mid-grey and then differences against white into
@@ -105,7 +105,7 @@ function Frame({
               matches them literally. */}
           <span
             className={cn(
-              "absolute top-2 left-2 font-mono text-[10px] tracking-wider",
+              "absolute top-2 left-2 text-[10px] tracking-wider tabular-nums",
               onDark ? "text-white/45" : "text-black/40",
             )}
           >
@@ -276,7 +276,7 @@ export function PressSheet() {
             <CopyButton
               value={BRAND_HEX}
               label="Copy the ink hex"
-              display={<span className="font-mono">{BRAND_HEX}</span>}
+              display={<span className="tabular-nums">{BRAND_HEX}</span>}
               className="border-foreground/25 px-2 py-1 text-[11px] text-foreground/80 hover:border-foreground/50 hover:text-foreground"
             />
           }
