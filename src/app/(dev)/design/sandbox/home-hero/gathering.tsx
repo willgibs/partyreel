@@ -28,8 +28,8 @@ import {
 /**
  * THE GATHERING (concept 3 of the home-hero board, round two).
  *
- * The argument: an event album is not a product's grid, it is what fourteen
- * people brought back from the same night. So the hero is their frames, at
+ * The argument: an event album is not a product's grid, it is what fifteen
+ * people brought back from the same event. So the hero is their frames, at
  * unequal sizes and slight angles on an irregular field, bleeding off all four
  * edges, still arriving while you read. The type sits in the clearing they
  * leave. The QR is the EYEBROW because it is where every one of those frames
