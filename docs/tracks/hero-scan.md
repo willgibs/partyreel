@@ -1,6 +1,6 @@
 ---
 track: hero-scan
-status: open
+status: handed-off
 cut: "b34993e3f6a2cc670e2b38cf7119cd10abc96099"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
@@ -115,15 +115,105 @@ the live camera view composes under it) if you use a cutout; nothing else new.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-scan-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The departures, verbatim from the concept (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the tip of `lp/hero-scan`, which is THIS commit (a manifest cannot name its own SHA). The last
+  code commit is `bd112d0`; the merge of `launch-prep` that follows it carries no change of mine.
+  Pushed; preview `https://partyreel-git-lp-hero-scan-partyreel.vercel.app`, the board at
+  `/design/c/home-hero?key=` (concept 2 of 4, after the source).
+- Synced with `launch-prep` at `3d40173` (twice: `80302b42` first, which landed the kill-mono sweep,
+  then `3d40173` for the palette merge). Both merged clean, no conflicts.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing ones
+  on `brand-voice/board.tsx`, `contact-form.tsx`, two feature sections, `jobs.ts` and `use-flip.ts`,
+  none in this lane), test ok (1697 in 193 files), build ok (248 static pages, the `launch-prep`
+  count unchanged).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `docs/tracks/hero-scan.md`, `src/app/(dev)/design/sandbox/home-hero/scan.css`,
+  `src/app/(dev)/design/sandbox/home-hero/scan.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx` and `source.tsx` were read whole and not touched; the shell had
+  everything the concept needed. The corridor's physics are copied into `scan.tsx` rather than
+  imported, because a concept file is self-contained by the contract and `source.tsx` exports only its
+  `Concept`.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte changed.
+- **Verified on the preview** at the code tip (the alias was polled until its HTML carried
+  `hhc-viewpos`, so the build is proven by a marker rather than by the clock):
+  - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
+  - The server's own HTML carries 24 `.hhc-card` nodes with 24 `--hhc-rest` declarations, the device,
+    its 4 brackets, the lockbox, the flash, the caption line and the count at its settled value. The
+    whole composition, deployed and locked, is in the markup: reduced motion, a crawler and a cold
+    paint all get it.
+  - The h1 is in the HTML at computed opacity 1, with no `data-mkt-cut` / `data-mkt-reveal` /
+    `.mkt-line` on any h1 on the page. No em-dash anywhere in the served page.
+  - Every arbitrary utility and custom property resolves in the PRODUCTION lab sheet, which is the
+    one thing localhost cannot prove: the caption at 13 px white/70, the count at 12 px white/55 with
+    `font-variant-numeric: tabular-nums`, the device at `z-index: 20` with `perspective: 1200px`, the
+    phone at radius 27.3 px and aspect 0.472 with its rim, the screen inset 8.82 px with the plate's
+    light on the preview, the brackets at 24 px arms, the lockbox at -6 deg, the band's edge mask.
+  - Desktop 1440 and Phone 375, ruled and proposed copy: the corridor runs, the code holds the exact
+    centre, the caption and the count sit in the clear lane, and the phone is cropped by the frame's
+    edge on both canvases.
+  - Replay: the stage remounts and the whole beat restarts. Measured from the remount, in a
+    foreground tab: t=88 ms the brackets are thrown 22.8 px wide at opacity 0.32 and the corridor is
+    EMPTY (0 visible cards); t=410 ms the brackets are 1.3 px out at opacity 1, still empty; t=731 ms
+    locked at 0, still empty; t=932 ms the flash is mid-arc and the first frames are fading up at the
+    plate; t=1133 ms all 24 are in flight. Cause, then effect, in that order.
+  - The count: 282 at the lock, then 286, 290, 298, 304, 310 and 312, where it holds (sampled to 18 s).
+  - Reduced motion: simulated by deleting the `no-preference` block from the live sheet and clearing
+    the loop's inline styles, which leaves exactly the cascade a reduced-motion reader gets. The
+    corridor stands fully deployed, the brackets rest LOCKED (`animation-name: none`, `translate:
+    none`, opacity 1), the flash is spent at opacity 0, and the count reads 312.
+  - The clear lane was MEASURED, not assumed: over a full 10.8 s corridor cycle at both canvases, no
+    visible frame and no part of the device ever intersects the caption or the count. Worst vertical
+    gap on desktop 34 canvas px; on phone no visible frame ever even shares their horizontal span,
+    because a frame near the plate is below the opacity floor.
+- **Assets requested from Will**:
+  1. **A hand-and-phone cutout** (replaces the drawn device, `.hhc-phone`) · PNG with alpha, 1200 px
+     on the long edge, the SCREEN AREA fully transparent so the viewfinder composes underneath and
+     stays live; shot from just behind the holder's shoulder with the phone held up and angled away
+     to the right, in low warm event light so the body is nearly a silhouette with one highlight
+     along the edge; 2 variants, a one-handed grip and a two-handed one · replaces `.hhc-phone`
+  2. Nothing else new. The corridor runs on the 12 landscape stand-ins and wants the 24 squares
+     already on the log (**ASSETS row 2**, asked by `hero-source`); the three phone-up photographs on
+     **row 3** are NOT needed here, because the device is drawn rather than photographed.
+- **The departures, verbatim from the concept** (the Orchestrator quotes them under Waiting on Will):
+  1. "A phone in the hero, which Will named as the first thing to overrule because a phone can read
+     as an app. Three things hold it to the camera rather than to software: the screen carries no
+     chrome but the notch (no title bar, no buttons, no tabs), the device is cropped by the frame's
+     edge so it reads as a held object in the room rather than a device mockup on a slide, and what
+     it is looking at is visibly the same code standing a few hundred pixels away. Its bezel radius
+     is a drawn object's proportion, a literal, not a surface token: a phone corner is not a UI
+     surface."
+  2. "The hero is cinema and unlit, and this concept has one emissive object: the phone's screen. It
+     lights itself and its own bezel and nothing else. No lamp, no Glow, no spill onto the room or
+     onto a photograph."
+  3. "Bible 13, decorative layers only: the corridor's pre-burst state and the brackets' thrown-wide
+     state sit inside the reduced-motion block, so with JavaScript off and motion allowed the album
+     rests at the code and the brackets rest open. Putting either in an effect instead would paint
+     the composition settled and then snap it back. The h1, the QR, the caption, the count, the
+     subhead and the CTAs are plain markup and never gated, and reduced motion gets the whole
+     composition deployed and locked."
+  4. "Precedent, not law, inherited from the source: the lockup is centred rather than left-aligned,
+     because the code owns the axis. Kept, with the same caveat, and it is the second thing to
+     overrule if the home hero should stay left."
+  5. "The count under the plate is a STAND-IN number, not a measurement: 312 photos from 48 guests,
+     climbing to its settled value with the launches. It is the strongest supporting element on the
+     concept and it must not ship as invented data. The wiring round reads the demo event's real
+     totals, or the line goes."
+- **Look at first**: the first 1.2 seconds, in a foreground tab. The code sits alone in an empty room
+  while the brackets close on it in the phone's viewfinder; they snap, the screen flashes once, and
+  the album comes out of the plate. That order is the whole variation. Then: whether the phone earns
+  its place at all (departure 1), and whether the count should live under the plate or go.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The scan, variation 2 of the home-hero board's
+third round, replaced its placeholder. It inherits the ruled source's corridor unchanged, 24 cards in
+two pools on one requestAnimationFrame loop, and spends the whole variation on putting the cause in
+the frame: a guest's phone sits in the near field, cropped by the edge the way your own hands are, and
+on its screen is the camera, the same code that stands in the room with a scanner's four brackets
+closing on it. The screen carries no chrome but the notch, because the pitch is that a guest installs
+nothing. The beat is the idea: the brackets snap at 760 ms, the screen flashes once, and the
+corridor's own clock starts there, so the album is released BY the scan rather than beside it, and
+the room is genuinely empty until the lock. One Caption under the plate names the act and a count
+beneath it climbs with the launches and settles at 312, both sitting in the one lane the corridor
+leaves clear by its physics. The whole composition, deployed and locked, is the rest state in the
+server's own HTML, with the pre-burst frame and the thrown-wide brackets inside the reduced-motion
+block so neither can flash.
