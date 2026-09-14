@@ -63,13 +63,18 @@ exploration-round principle: nothing more.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-gathering.md`,
   `src/app/(dev)/design/sandbox/home-hero/gathering.tsx`, `src/app/(dev)/design/sandbox/home-hero/gathering.css`. No exceptions.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- **The shell lacked nothing**, and two of its rules earned their keep: `sizes` canvas-relative (a vw
-  picks the wrong candidate under the stage's `zoom`), and Replay as a remount (the entrance is CSS
-  with `both`, so the field re-gathers for free). One clarification worth folding into `shared.tsx`
-  if a future concept needs it: the doctrine's "geometry comes from CANVAS, never
-  getBoundingClientRect" is about POSITION, and a zoom-invariant RATIO off a rect is safe, because
-  the zoom factor cancels in `top / height`. The parallax reads scroll progress that way and is
-  exact at any stage scale; nothing is ever positioned from a rect.
+- **The shell, two notes** (I edited nothing in it):
+  1. `useTabHidden` lives in `board.tsx` and is not exported, so every concept that drives a video
+     re-implements it. `lp/hero-reel` reports the same duplication independently, which makes three
+     copies across the board. It belongs in `shared.tsx` (or in `src/lib/shared/`, beside
+     `use-ambient-pause`, which is the production swap).
+  2. A clarification worth folding into `shared.tsx`'s doctrine: "geometry comes from CANVAS, never
+     getBoundingClientRect" is about POSITION, and a zoom-invariant RATIO off a rect is safe,
+     because the zoom factor cancels in `top / height`. The parallax reads scroll progress that way
+     and is exact at any stage scale; nothing here is ever positioned from a rect.
+- Two of the shell's rules earned their keep: `sizes` canvas-relative (a vw picks the wrong
+  candidate under the stage's `zoom`), and Replay as a remount (the entrance is CSS with `both`, so
+  the field re-gathers for free).
 
 - **Assets requested from Will** (the ask also renders on the board):
   1. **36 event photographs**, one grade, 1600px long edge, a third of them portrait. The field
@@ -107,6 +112,14 @@ exploration-round principle: nothing more.
   6. **The two copy proposals and the eyebrow caption**, beside the ruled line on the board.
   7. Hover a frame: it lifts 1.8% and its edge warms, and nothing else moves. No isolate dim, on
      purpose (bible 1 reads better without thirteen photographs stepping back for a cursor).
+
+- **Verified on the preview at `5f873e5`** (partyreel-git-lp-hero-gathering, 1500px and Phone 375):
+  15 cards and 3 clips in the desktop stage and 7 on phone, the h1 at `opacity: 1` with
+  `animation-name: none`, every one of the 15 images loaded, and the QR encoding the real demo
+  event. The three clips read `paused, readyState 0` there because the MCP tab is a HIDDEN tab and
+  the stage sets `data-paused`: the tooling, not a bug, and incidentally an end-to-end proof of the
+  pause contract. They were sampled playing in range on localhost. The entrance still completes in
+  a hidden tab (only `data-hh-loop` is paused), so the rest state is always reached.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
