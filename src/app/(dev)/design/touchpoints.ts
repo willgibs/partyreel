@@ -485,8 +485,13 @@ export const RULINGS: Ruling[] = [
       "src/app/theme.css",
     ],
     board: {
-      note: "Today's ramp beside three candidate ramps on real sections, on cinema, paper and ink, at both widths; the accent as a hue on the brand call sites; the panel as one token",
-      variants: ["Placeholder"],
+      note: "Today's twenty-one values beside three complete candidate token sets on real sections at both widths against an oklab ruler, the accent argued by the job it does, the panel as one token",
+      variants: [
+        "A, one ladder",
+        "B, one room",
+        "C, film stock",
+        "The accent by job",
+      ],
     },
   },
   {
