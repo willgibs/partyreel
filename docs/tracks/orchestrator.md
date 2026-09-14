@@ -84,7 +84,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
 | `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
 | `hero-scan` | `/design/c/home-hero` (variation 2) | the launch-prep alias (integrated `66b4ebe`) | Will's ruling on round three (Waiting on Will, item 1) |
-| `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-burst` | `/design/c/home-hero` (variation 3) | the launch-prep alias (integrated `3aeef1a`) | Will's ruling on round three (Waiting on Will, item 1) |
 | `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | built; Will's sitting (Waiting on Will, item 3) |
 
@@ -112,6 +112,18 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      overrule; (5) the count under the plate (312 photos from 48 guests) is a STAND-IN number that
      must not ship as invented data: the wiring reads the demo event's real totals or the line goes.
      Its ask: a hand-and-phone cutout (`docs/ASSETS.md` row 8).
+   - **The burst** (integrated `3aeef1a`): look at the first second and a half after a Replay (the
+     code alone, two or three frames slip out beside it, then the whole album erupts in every
+     direction and keeps going). The one real choice on the board: the headline sits on the ladder's
+     lg step (text-7xl / text-4xl) rather than xl so the quiet zone stays small enough for the burst
+     to own the canvas. Its departures, verbatim: (1) bible 13 on decorative layers only, the
+     pre-burst state inside the reduced-motion block; (2) bible 10, flagged because the hero is unlit
+     by the standing ruling: the frames carry a soft drop shadow (rule 10 allows exactly this,
+     near frame over far; a shadow, never a lamp); (3) the centred lockup, the first thing to
+     overrule; (4) the lg headline step; (5) no scrim, no darkening layer, no lamp, media at 100%.
+     Also to rule: whether "One code. Every angle." earns the composition, and whether the phone
+     reads as the same composition rather than a thinner one. Its ask: 8 of the 24 squares also as
+     4:5 portrait crops (`docs/ASSETS.md` row 9).
 2. **The boards of the review wave**, as each hands off, its asks verbatim.
    - **brand-voice** (integrated `749e29a`; `/design/c/brand-voice?key=` on the launch-prep alias; the
      guide at `docs/specs/brand-voice.md`): "The voice: today, A the house, B the room, or C the guest
@@ -235,6 +247,8 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `3aeef1a` hero-burst integrated: variation 3 on the hero board, the origin in every direction with
+  a hand-done projection and a per-card quiet zone; the asset log's row 9 (the portrait crops).
 - `66b4ebe` hero-scan integrated: variation 2 on the hero board, the corridor released by the scan;
   the asset log's row 8 (the hand-and-phone cutout).
 - `d5847ad` palette integrated: three complete token sets as pastes on real sections at both widths

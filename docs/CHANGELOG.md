@@ -88,6 +88,21 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**hero-burst** (round three of the home hero; `lp/hero-burst`, `2d0631e`, merged `3aeef1a`). The burst, concept 3 of the home-hero board's
+third round, replaced its placeholder. It keeps the source's ruled sentence and takes it onto the two
+axes a corridor cannot use: around the whole compass, and forward out of the screen. Frames are born
+inside the code and fly outward and toward the viewer, so a near frame grows until it wipes past the
+edge while a far one stays small and slides out, and nothing on screen has any other origin. The
+projection is done by hand rather than with a CSS perspective parent, because the screen position,
+the apparent size and the paint order all have to be readable as numbers, and because the transform
+string then stays a pure function of the clock. Travel is the square root of progress and size lags
+it; the perspective term multiplies both, so the acceleration is depth rather than an easing curve
+imitating one. The quiet zone is one box per block of the lockup rather than one rectangle around all
+of it, and each card is given, once, the progress after which its own box is permanently clear of
+every block: measured live over 11 s of the running field, the closest any visible frame came to any
+word was 36 px, with no scrim and no darkening layer anywhere.
+
+
 **hero-scan** (round three of the home hero; `lp/hero-scan`, `aee5915`, merged `66b4ebe`). The scan, variation 2 of the home-hero board's
 third round, replaced its placeholder. It inherits the ruled source's corridor unchanged, 24 cards in
 two pools on one requestAnimationFrame loop, and spends the whole variation on putting the cause in
