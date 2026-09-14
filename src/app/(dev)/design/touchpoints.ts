@@ -585,8 +585,13 @@ export const RULINGS: Ruling[] = [
       "src/components/dev/motion-tuner-config.ts",
     ],
     board: {
-      note: "Every radius token at candidate values on the surfaces that carry it, beside the tuner that drags the real pages",
-      variants: ["Placeholder"],
+      note: "One kit of every radius-bearing surface in four columns: three fixed candidates and a live column that follows the tuner, on the app's grounds and cinema",
+      variants: [
+        "Today",
+        "B, soft surfaces",
+        "C, the 16px column",
+        "Live, the tuner",
+      ],
     },
   },
 ];
