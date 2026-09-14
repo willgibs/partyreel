@@ -35,9 +35,12 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (`home-hero`, integrated 2026-09-12) put four grids on the board; Will's ruling 2026-09-14: none of
   them, too generic, not the QR-to-album idea. Round two runs as three parallel tracks (`hero-source`,
   `hero-reel`, `hero-gathering`) against one shell at `sandbox/home-hero/`, each with its own eyebrow
-  and copy proposal and its own asset request; all three integrated 2026-09-14. **Waits on Will's ruling on
-  round two**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
-  `MonoCaption` import) then lifts the ruled concept's mechanics into `cinema-hero.tsx` (the
+  and copy proposal and its own asset request; all three integrated 2026-09-14 and **ruled the same day:
+  the source** ("I bet if I scan this QR I get all of these images"; the reel read as the video being the
+  product, the gathering's QR as a learn-more object). **Round three runs as three variation tracks off the
+  source** (`hero-scan`, `hero-burst`, `hero-river`; the source stays on the board as the reference) and
+  **waits on Will's ruling**; the wiring round (after `kill-mono` lands: `cinema-hero.tsx` carries three mono hits and the
+  `MonoCaption` import) then lifts the ruled variation's mechanics into `cinema-hero.tsx` (the
   source: the loop on `useAmbientPause` and a `<noscript>` companion for the deployed corridor; the
   reel: the announcement card `lg:fixed` and a `--radius-screen` step if its 24 px corner is ruled in;
   the gathering: the clearing profile and the parallax hook, retiring the four stacked darkenings);
@@ -284,6 +287,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** (2026-09-11) is superseded: **mono is leaving** (Will, 2026-09-14; the `kill-mono` track removes the face and redesigns every place it did semantic work); **the voice-infusion round** (after `brand-voice` is ruled): the voice carried site-wide, the 30 feature-page strings, the 59 nav strings, the seven provisional headers, the MDX, the ten email templates and the inline app copy (`help-ui-labels.test.ts` makes an app-control rename a two-file change);
+  **a "Watch your event highlights" video card** on another page, a CTA that links to `/reel` (Will, 2026-09-14: the round-two reel hero, redesigned as a section rather than the hero, since a film in the hero reads as the video being the product; the film ask in `docs/ASSETS.md` row 1 serves it);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
   subjects; the hub doors' and the album stages' stock photographs are placeholders Will replaces,

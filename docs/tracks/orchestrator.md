@@ -19,7 +19,11 @@ owns:
   - src/app/(dev)/design/c/
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
-  - src/app/(dev)/design/sandbox/home-hero/
+  - src/app/(dev)/design/sandbox/home-hero/board.tsx
+  - src/app/(dev)/design/sandbox/home-hero/board.css
+  - src/app/(dev)/design/sandbox/home-hero/shared.tsx
+  - src/app/(dev)/design/sandbox/home-hero/source.tsx
+  - src/app/(dev)/design/sandbox/home-hero/source.css
   - src/app/(dev)/design/sandbox/rounding/
   - src/components/dev/
   - src/components/marketing/mdx/
@@ -77,6 +81,9 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | the tuner's store, descriptions and the action-radius knobs; then Will's sitting |
 
 ## Waiting on Will
@@ -84,11 +91,13 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 Every open ruling with its link; the asks are quoted from each board's meta panel as the boards hand
 off. Assets live in [`../ASSETS.md`](../ASSETS.md).
 
-1. **The home hero, round two** (`/design/c/home-hero?key=` on the launch-prep alias, read in a
-   FOREGROUND tab): the concept (the source, the reel, the gathering), its eyebrow, its copy (the
-   toggle shows the ruled and the proposed), and the departures ruled in; the reel's scrim toggle is
-   its one trade; the gathering's staggered phone pairs are its one (accept them, spend a phone
-   scrim, or drop the phone h1 a step). The wiring round cuts after `kill-mono` lands.
+1. **The home hero, round three** (`/design/c/home-hero?key=`, read in a FOREGROUND tab): round two
+   was ruled 2026-09-14 (the source, "definitely my favorite direction"; the reel and the gathering
+   out, the reel's idea parked as a "Watch your event highlights" video card for another page). Three
+   variations off the source are building (`hero-scan`, `hero-burst`, `hero-river`, each on its own
+   preview, the source first on the board as the reference); the ruling to come: which variation (or
+   the source as is), its eyebrow and supporting elements, its copy, the departures ruled in. The
+   wiring round cuts after that ruling and after `kill-mono` lands.
 2. **The six boards of the review wave**, as each hands off: its asks are added here verbatim.
 3. **The rounding sitting** (after the tuner earns it, this side): the radius values on the real
    surfaces and on `/design/c/rounding`; bible 8 inherits.
@@ -147,8 +156,13 @@ feels alive keeps a visitor exploring).
   request time; `next.config.ts` traces the directory in), seven boards registered in `touchpoints.ts`
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
-- `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from the push at
-  the tip that followed.
+- `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- the home hero, round two RULED (the source) and round three cut: `board.tsx` shows the source as the
+  reference and three variation stubs (`scan.tsx`, `burst.tsx`, `river.tsx`); the reel and the
+  gathering left the board (last at `6b2c595`: `git show 6b2c595:src/app/(dev)/design/sandbox/home-hero/reel.tsx`);
+  the scrim toggle and the shipped-hero reference went with them; `touchpoints.ts` names the three
+  tracks on the board (`board.tracks`) so the desk lists each track's preview; this manifest now owns
+  the hero shell as explicit files so the variation tracks own their two files each.
 
 The previous window (the "less is more" reset, milestone-24, the gallery, the home-hero board and
 round two) is recorded in the CHANGELOG.
