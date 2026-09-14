@@ -564,12 +564,15 @@ function Scan({ mode, copy, qrUrl }: ConceptProps) {
         >
           Every guest scans the same code
         </Caption>
-        <p
+        {/* The data caption. One face in the product since the kill-mono
+            sweep, so a figure that changes takes tabular-nums and nothing
+            else: the digits hold their column while the number climbs. */}
+        <Caption
           className={`mx-auto mt-1 tabular-nums text-white/55 ${geo.countClass}`}
           style={{ maxWidth: geo.laneMax }}
         >
           <span ref={countRef}>{countText(PHOTOS_SETTLED)}</span>
-        </p>
+        </Caption>
       </div>
 
       {/* THE HEADLINE, anchored off the corridor's axis rather than laid out in
