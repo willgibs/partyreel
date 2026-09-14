@@ -535,8 +535,14 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "Dialog, drawer, dropdown, popover, select, sheet, toast, tooltip and the nav viewport on cinema, paper and ink; the phone canvas primary for sheets and dialogs",
-      variants: ["Placeholder"],
+      note: "All nine primitives live on one canvas over real photographs, on every ground at both widths, with radius, entrance and light as independent knobs, three ladders at 1:1 and the outliers beside the contract",
+      variants: [
+        "The entrance",
+        "The radius ladder",
+        "The light ladder",
+        "The outliers",
+        "The sheet at 375",
+      ],
     },
   },
   {
