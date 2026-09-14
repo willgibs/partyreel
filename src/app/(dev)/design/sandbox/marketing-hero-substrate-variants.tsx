@@ -567,7 +567,7 @@ function SubstrateHero({
           </div>
           <span
             ref={timeRef}
-            className="font-mono text-[11px] text-white/50 tabular-nums"
+            className="text-[11px] text-white/50 tabular-nums"
           >
             {substrate === "video"
               ? formatTimecode(0, dur)
@@ -716,7 +716,7 @@ export function MarketingHeroSubstrateVariants() {
             {/* Taller than the frame viewport on purpose: the hero must be able
                 to scroll FULLY out of it before the IO can report it gone. */}
             <div className="flex h-[900px] flex-col items-center justify-center gap-2 border-t border-white/10 px-10 text-center">
-              <p className="font-mono text-[11px] tracking-[0.2em] text-white/40 uppercase">
+              <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
                 Below the fold
               </p>
               <p className="max-w-sm text-sm leading-relaxed text-white/55">

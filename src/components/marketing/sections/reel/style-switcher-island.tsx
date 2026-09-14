@@ -1,15 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { marketingImage } from "@/lib/constants/marketing-media";
 // Engine imports are SANCTIONED here and only here: this module exists on the far side
 // of the style-switcher.lazy.tsx dynamic import, so the player + draw registry + asset
@@ -134,12 +128,9 @@ export function StyleSwitcherIsland() {
               />
             </div>
           </div>
-          <MonoCaption
-            aria-live="polite"
-            className="mt-3 text-center"
-          >
+          <Caption aria-live="polite" className="mt-3 text-center">
             {active.label} · {active.kind}
-          </MonoCaption>
+          </Caption>
         </div>
       </div>
 

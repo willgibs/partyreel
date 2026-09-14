@@ -21,7 +21,7 @@ import { HOW_MUCH_FITS } from "./album-copy";
  * prices, event counts, the friendly photo count) so this page cannot
  * disagree with /pricing; the storage bar makes "amount of album" literal
  * (ink on muted, never amber, never lit); the price sits in the heading face
- * (the pricing ruling: money in Urbanist, never mono); and Free's photos-only
+ * (the pricing ruling: money in Urbanist with tabular figures); and Free's photos-only
  * line takes the honest floor's muted minus. The cap behaviour beneath quotes
  * the guest's real refusal as the toast the app fires.
  */

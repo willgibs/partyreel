@@ -145,16 +145,15 @@ export const BIBLE: BibleRule[] = [
     ruledOn: "2026-08-29",
   },
   {
-    id: "mono-is-leaving",
+    id: "two-faces",
     n: 7,
     group: "type",
     statement:
-      "Mono is leaving: no new mono anywhere. Data sits on the body face with tabular figures, and every label, hint and descriptor is the Caption atom.",
-    why: "Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removes the face from the pipeline and redesigns each place where it did semantic work; this rule leaves the bible when the sweep lands.",
-    enforcedBy: "review",
+      "Two faces, and only two: Inter for everything a person reads, Urbanist for what the page says loudly. There is no mono face in the product; data sits on the body face with tabular figures, and every label, hint and descriptor is the Caption atom.",
+    why: "Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removed the loader, the atom and every mono class, and redesigned the places where mono did semantic work (a number that is the subject takes the display face; a value that must look like a value takes a muted plate). This rule replaced the retiring mono rule when the sweep landed.",
+    enforcedBy: ["src/app/two-faces-policy.test.ts"],
     ruledBy: "Will",
     ruledOn: REVIEWED,
-    status: "retiring: kill-mono",
   },
   {
     id: "tokens-never-literals",

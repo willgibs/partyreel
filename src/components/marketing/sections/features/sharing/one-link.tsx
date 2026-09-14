@@ -33,7 +33,7 @@ function LightboxMock() {
         />
       </div>
       {/* The viewer chrome: counter, close, swipe, save. */}
-      <span className="absolute top-3 left-3 rounded-full bg-black/45 px-2.5 py-1 font-mono text-xs text-white/85 tabular-nums backdrop-blur">
+      <span className="absolute top-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-xs text-white/85 tabular-nums backdrop-blur">
         34 / 200
       </span>
       <span className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-full bg-black/45 text-white/85 backdrop-blur">
