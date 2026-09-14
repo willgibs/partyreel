@@ -18,7 +18,7 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * centred icon layouts and read alike. The paper chapter now alternates left
  * (the album's masthead), centred (curation's mirrored split), left (this):
  * a document card in the idiom of /features/privacy's storage facts, five
- * rows with a mono index, the claim on the left and its specifics on the
+ * rows with a numbered index, the claim on the left and its specifics on the
  * right. It differs from chapter 1's open ledger (no-app.tsx) on purpose:
  * bordered, numbered, on paper, five sections away. No icons; the numerals do
  * the scanning.

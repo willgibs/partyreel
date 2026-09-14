@@ -2,9 +2,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * The two-sided walkthrough's side marker, ONE quiet convention everywhere
- * (hero legend + every spine step): a mono, uppercase, hairline chip in plain
- * ink. Deliberately amber-free and color-free; the sides are labels, not
- * states (the amber register stays reserved for the app's live review queue).
+ * (hero legend + every spine step): an uppercase, tracked, hairline chip in
+ * plain ink, on the body face at the eyebrow's own weight (kill-mono,
+ * 2026-09-14). Deliberately amber-free and color-free; the sides are labels,
+ * not states (the amber register stays reserved for the app's review queue).
  */
 export function SideChip({
   className,

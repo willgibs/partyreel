@@ -82,7 +82,7 @@ export const HERO_REEL = marketingReel("hero-candidate-01");
 /** The guest-share section's landscape loop. */
 export const SHARE_REEL = marketingReel("hero-candidate-02");
 
-/** "0:13" from 13.08s — the mono caption format for loop durations. */
+/** "0:13" from 13.08s: the caption format for loop durations. */
 export function formatReelSeconds(seconds: number): string {
   const s = Math.round(seconds);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

@@ -7,7 +7,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
  * The durability section, framed "boring on purpose": the storage facts as a
- * calm numbered document (mono figures, hairline rules, zero photography), the
+ * calm numbered document (tabular figures, hairline rules, zero photography), the
  * quietest register on the site's quietest page. Every line is a shipped,
  * verified behavior; the fenced claims (E2EE, PITR, compliance badges,
  * multi-cloud) are deliberately absent. The recovery-window number derives

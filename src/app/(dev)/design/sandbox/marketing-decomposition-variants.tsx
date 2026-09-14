@@ -184,8 +184,9 @@ function OneShotStage({ onReplay }: { onReplay: () => void }) {
         </div>
       </div>
 
-      {/* The three facts land while the tiles fly; counts tick in Geist Mono
-          tabular. Sequential stagger so each fact gets its beat. */}
+      {/* The three facts land while the tiles fly; the counts tick on the
+          body face with tabular figures, which is what holds each digit
+          column still. Sequential stagger so each fact gets its beat. */}
       <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-baseline justify-center gap-x-10 gap-y-2 px-6 text-center">
         <p
           data-mkt-reveal

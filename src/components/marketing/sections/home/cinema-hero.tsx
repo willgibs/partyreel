@@ -43,7 +43,7 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  *  - ONE live reel card sits IN the wall (desktop+): the album's reel,
  *    playing the real engine render poster-first. It is product truth (album
  *    plus reel), not player chrome: its only adornment is a hairline ring and
- *    a mono duration chip. The card hides on mobile (the "Watch a sample
+ *    a duration caption. The card hides on mobile (the "Watch a sample
  *    reel" CTA carries the reel there); its <video> mounts post-hydration,
  *    play() rejection leaves the poster, ambient-pause pauses it.
  *  - LCP CONTRACT (revised for the wall): the LCP element is the H1 or an

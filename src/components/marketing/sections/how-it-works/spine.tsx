@@ -18,7 +18,7 @@ import {
 /**
  * THE TWO-SIDED SPINE (this page's signature): the whole product as six
  * numbered steps, the HOST side and the GUEST side interleaved as one
- * timeline in the order a real event runs. Each step = the mono number + a
+ * timeline in the order a real event runs. Each step = the step number + a
  * side chip (the ONE quiet convention, side-chip.tsx) + two sentences + a
  * static product frame + a door into that feature's own page (the
  * progressive-disclosure ladder: this page orients, the feature pages carry

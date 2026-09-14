@@ -12,8 +12,9 @@ import { PHOTO_FORMATS, VIDEO_FORMATS } from "./album-formats";
  * /features/album, chapter 1's wind-down: the quiet numbers before the paper
  * cut. Every figure DERIVES from lib/media/limits.ts (the universal per-file
  * truth: one ceiling, both kinds, every plan; no duration cap) so the band can
- * never drift from enforcement. The StatBand is the one ratified mono
- * register (numerals); the formats beneath are words, so they are Inter.
+ * never drift from enforcement. The StatBand carries the stat register (the
+ * display face with tabular figures); the formats beneath are words, so they
+ * stay on the body face.
  */
 export function QualitySection() {
   return (

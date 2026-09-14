@@ -13,7 +13,7 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  * /features/qr paper section 1: THE PRINT SHOP. Two physical artifacts (a
  * table card and a poster corner) mocked as white print stock on the paper
  * chapter, plus the download truth (PNG or SVG) and the help center's
- * test-scan tip as a mono note. Print mocks stay achromatic ink-on-white (the
+ * test-scan tip as a quiet note. Print mocks stay achromatic ink-on-white (the
  * scanner-safest pairing, per qr-presets.ts); shadow-float is the paper
  * theme's real elevation, so the pieces read as stock laid on the desk.
  *

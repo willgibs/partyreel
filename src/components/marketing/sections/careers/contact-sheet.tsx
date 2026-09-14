@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
  * THE CONTACT SHEET - the careers page's signature composition.
  *
  * A photographic proof sheet: real event frames butted tight, numbered in the
- * mono register, with a few circled the way an editor marks a select. It is
+ * corner with tabular figures, with a few circled the way an editor marks a
+ * select. It is
  * this page's own composition and nothing else's, which the media doctrine
  * requires (sections/events/event-hero-media.tsx: every page keeps a DISTINCT
  * composition, and "a hero photo is a promise"). Home owns the drifting wall,
