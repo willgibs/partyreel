@@ -1,6 +1,71 @@
-/* The source's own sheet (the lp/hero-source track). Keyframes here are prefixed hhs-
-   and nothing else in the lab or in marketing.css may reuse a name
-   (keyframe-uniqueness.test.ts). Final states live OUTSIDE the media queries;
-   entrances and loops inside `prefers-reduced-motion: no-preference` only.
-   Mark any infinite loop with data-hh-loop so the board's pause contract
-   reaches it. */
+/* The source's own sheet (the lp/hero-source track). Keyframe names here would
+   carry the hhs- prefix; this sheet declares NONE, deliberately: the corridor is
+   one requestAnimationFrame loop writing inline transforms, so there is no
+   keyframe to collide with production (src/app/keyframe-uniqueness.test.ts).
+
+   THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual shape.
+
+   House convention is "final states outside the media queries, entrances inside
+   `no-preference`". That is exactly what this is, once you see which state is
+   which. The corridor's FINAL state is the album fully deployed, and it lives
+   outside every query on `.hhs-card`, read from the per-card custom properties
+   the concept computes during render: a reduced-motion reader, a crawler and the
+   server's own HTML all get the corridor standing still at its steady-state
+   positions, with nothing to undo.
+
+   The state inside `no-preference` is the branch-out's FIRST FRAME, every frame
+   collapsed at the QR. It has to live in CSS rather than in an effect, because
+   an effect runs after the server's paint: the corridor would paint deployed,
+   then snap back to the QR, then branch out again. Put the pre-burst frame in
+   the same query the animation itself is allowed in and the burst is one beat.
+
+   THE TRADE, flagged on the board under Departures: a reader with JavaScript off
+   who has NOT asked for less motion sees the corridor rest at the source. Nothing
+   that carries meaning is gated by it. The h1, the QR, the subhead and the CTAs
+   are plain markup and never move. */
+
+.hhs-band {
+  /* The corridor dissolves into the frame rather than being guillotined by the
+     stage's overflow: the outermost frame is always half gone, which is the
+     argument (it never stops). --hhs-fade is set per canvas by the concept. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhs-fade),
+    #000 calc(100% - var(--hhs-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 var(--hhs-fade),
+    #000 calc(100% - var(--hhs-fade)),
+    transparent 100%
+  );
+}
+
+/* The one perspective parent. perspective-origin defaults to its centre, which
+   IS the QR, so the corridor's vanishing point and the object agree for free. */
+.hhs-corridor {
+  position: absolute;
+  inset: 0;
+  perspective: var(--hhs-persp);
+}
+
+.hhs-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: var(--hhs-rest);
+  opacity: var(--hhs-rest-o);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The branch-out's first frame: every frame inside the QR, at no size. */
+  .hhs-card {
+    transform: translate3d(0, 0, 0) scale(0);
+    opacity: 0;
+  }
+}
