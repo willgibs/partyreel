@@ -157,10 +157,9 @@ export function LegalDocument({
                       className={cn("py-8 first:pt-0", HEADING_SCROLL_MT)}
                     >
                       <div className="flex items-baseline gap-3">
-                        {/* The numeral stays mono: it is a datum, aligned in a column. */}
                         <span
                           aria-hidden
-                          className="font-mono text-xs tracking-wider text-muted-foreground tabular-nums"
+                          className="text-xs tracking-wider text-muted-foreground tabular-nums"
                         >
                           {String(index + 1).padStart(2, "0")}
                         </span>

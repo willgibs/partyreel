@@ -47,7 +47,7 @@ export function MediaLives() {
               className="flex items-baseline gap-5 px-5 py-4"
               style={{ "--i": Math.min(i, 2) + 3 } as CSSProperties}
             >
-              <span className="font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
+              <span className="text-xs tracking-wide text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <p className="text-sm leading-relaxed">{fact}</p>

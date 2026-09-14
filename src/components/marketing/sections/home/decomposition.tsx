@@ -134,7 +134,7 @@ function FactNumber({
     <span
       data-mkt-digits
       data-on={on ? "true" : "false"}
-      className="font-mono tabular-nums"
+      className="tabular-nums"
     >
       {String(value)
         .split("")

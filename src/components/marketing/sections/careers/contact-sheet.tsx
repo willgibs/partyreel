@@ -133,7 +133,7 @@ export function ContactSheet({
                   }
                 : {})}
             />
-            <span className="absolute top-1 left-1.5 font-mono text-[10px] text-white/45 tabular-nums mix-blend-plus-lighter">
+            <span className="absolute top-1 left-1.5 text-[10px] text-white/45 tabular-nums mix-blend-plus-lighter">
               {String(i + 1).padStart(2, "0")}
             </span>
             {isSelect && <SelectMark index={i} />}

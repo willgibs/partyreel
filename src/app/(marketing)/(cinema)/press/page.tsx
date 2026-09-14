@@ -158,7 +158,7 @@ export default function PressPage() {
                 Download kit
                 {/* The size, not the count: "how big is this" is the question a reporter
                     on a hotel connection actually has (Will). */}
-                <span className="ml-1 font-mono text-[11px] opacity-60">
+                <span className="ml-1 text-[11px] tabular-nums opacity-60">
                   {formatKitBytes(PRESS_KIT_BYTES)}
                 </span>
               </a>
@@ -279,7 +279,7 @@ export default function PressPage() {
                   <dd
                     className={cn(
                       "text-sm text-pretty text-muted-foreground",
-                      isTabular(value) && "font-mono text-[13px]",
+                      isTabular(value) && "text-[13px] tabular-nums",
                     )}
                   >
                     {href ? (

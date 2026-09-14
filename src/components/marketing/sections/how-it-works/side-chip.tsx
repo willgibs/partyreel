@@ -16,7 +16,7 @@ export function SideChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase",
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase",
         className,
       )}
     >

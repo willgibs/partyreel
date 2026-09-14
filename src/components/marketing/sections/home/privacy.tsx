@@ -78,7 +78,7 @@ export function Privacy() {
               className="flex items-baseline gap-4 px-5 py-5 sm:gap-6 sm:py-6"
               style={{ "--i": i + 2 } as CSSProperties}
             >
-              <span className="w-6 shrink-0 font-mono text-xs tracking-wide text-muted-foreground tabular-nums">
+              <span className="w-6 shrink-0 text-xs tracking-wide text-muted-foreground tabular-nums">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="grid min-w-0 flex-1 gap-x-8 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">

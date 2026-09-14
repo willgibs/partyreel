@@ -68,7 +68,7 @@ export function TierSection() {
                 >
                   {TIER_NAMES[row.tier]}
                 </th>
-                <td className="px-4 py-3.5 font-mono tabular-nums max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
+                <td className="px-4 py-3.5 tabular-nums max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
                   {/* The value is ONE span on purpose: as bare text nodes the
                       number and "seconds" became separate flex items below sm
                       and justify-between blew them apart. */}
@@ -105,7 +105,10 @@ export function TierSection() {
               strokeLinecap="round"
             >
               <path className="mkt-learn-arm mkt-learn-arm-top" d="M6 4L10 8" />
-              <path className="mkt-learn-arm mkt-learn-arm-bot" d="M10 8L6 12" />
+              <path
+                className="mkt-learn-arm mkt-learn-arm-bot"
+                d="M10 8L6 12"
+              />
             </svg>
           </span>
         </Link>

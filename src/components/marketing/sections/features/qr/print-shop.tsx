@@ -118,7 +118,7 @@ function PrintMocks() {
           />
         </div>
         <p className="mt-3 font-heading text-base">Scan to add your photos</p>
-        <p className="mt-1 font-mono text-[11px] tracking-wide text-neutral-500">
+        <p className="mt-1 text-[11px] tracking-wide text-neutral-500">
           Maya &amp; Jay&rsquo;s Wedding
         </p>
       </div>
