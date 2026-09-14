@@ -38,7 +38,11 @@ rows and links, the stubs at 1440 and 375, the hero board on the extracted shell
 Walked again at `8b06f89` after the first three integrations and the rounding round: the tuner
 mounts on the alias and a 12px surface radius restyles the live column (16.8px on the card) while
 the fixed columns hold, the store persists and Reset clears it; `/design/rules` carries the two-faces
-rule; `/help` computes to Inter and Urbanist only; no console errors.
+rule; `/help` computes to Inter and Urbanist only; no console errors. The closing walk at `1668a55`,
+every track in: the desk lists twelve boards with every wave and hero track integrated and no stale
+preview link; the hero board carries four stages (the source, the scan, the burst, the river) with 24
+cards a corridor, five h1s at opacity 1 and none gated; the light board's four parts and eight lamps;
+the palette's nine stages ending in the asks; no em-dash on any page; no console errors.
 
 **The rounding and tweaking GUI round** (Orchestrator-run, the same day). The tuner earned the
 sitting first: its only state had been component state, so a Replay on the playground (the control
