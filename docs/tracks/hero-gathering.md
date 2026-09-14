@@ -1,7 +1,7 @@
 ---
 track: hero-gathering
 status: open            # open -> handed-off -> integrated (deleted at the milestone that ships it)
-cut: "<filled at boot>"  # the launch-prep SHA the branch was cut from
+cut: "f28d521"          # the launch-prep SHA the branch was cut from
 preview: true           # Will's review surface: every push builds partyreel-git-lp-hero-gathering
 owns:
   - src/app/(dev)/design/sandbox/home-hero/gathering.tsx
