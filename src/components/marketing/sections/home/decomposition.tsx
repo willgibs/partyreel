@@ -134,7 +134,7 @@ function FactNumber({
     <span
       data-mkt-digits
       data-on={on ? "true" : "false"}
-      className="font-mono tabular-nums"
+      className="tabular-nums"
     >
       {String(value)
         .split("")
@@ -241,8 +241,9 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
         </div>
       </div>
 
-      {/* The three facts land while the tiles fly; counts tick in Geist Mono
-          tabular. Sequential stagger so each fact gets its beat. */}
+      {/* The three facts land while the tiles fly; the counts tick on the
+          body face with tabular figures, which is what holds each digit
+          column still. Sequential stagger so each fact gets its beat. */}
       <Container className="mt-8">
         <div className="flex flex-wrap items-baseline justify-center gap-x-10 gap-y-2 text-center">
           {FACTS.map((fact, i) => (

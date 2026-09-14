@@ -1,13 +1,12 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The caption atom, in Inter: a label, a hint or a descriptor under a
- * specimen or beside a control. The mono ruling (R6, restated by Will on
- * 2026-09-02: "I don't want to use mono anywhere except where it aids in
- * tabular layouts") gives `MonoCaption` the DATA (timecodes, counts, sizes,
- * URLs, indices) and this atom everything that reads as a sentence. Same
- * size and colour as its sibling, so swapping one for the other changes the
- * face and nothing else.
+ * The ONE caption atom, on the body face: a label, a hint or a descriptor
+ * under a specimen or beside a control, and, since the kill-mono sweep
+ * (Will, 2026-09-14: "kill mono entirely"), the data too. `MonoCaption` was
+ * its sibling for timecodes, counts, sizes and URLs; it is gone, and a
+ * caption that carries figures takes `tabular-nums` so a column of them
+ * still lines up. Never re-introduce a second face here.
  */
 export function Caption({ className, ...props }: React.ComponentProps<"p">) {
   return (

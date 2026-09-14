@@ -6,8 +6,8 @@ import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
  * credit variant on the cinema-cut register. "Roll credits on the group
  * chat." is the ruled Direction-B closing line (T1/IA section 12); the golden
  * reelThesis lands in the subhead so the page ends where the arc began, on
- * the reel. The credit renders the Logo lockup + the Geist Mono production
- * line (the real-logo asset stays a ROADMAP line).
+ * the reel. The credit renders the Logo lockup + the production line (the
+ * real-logo asset stays a ROADMAP line).
  */
 export function CinemaClose() {
   return (

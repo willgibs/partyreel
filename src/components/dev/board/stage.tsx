@@ -27,6 +27,12 @@ import { cn } from "@/lib/utils";
  * Loops pause on a hidden TAB only, through `data-paused` (the lab never
  * pauses on scroll: side-by-side comparison wants everything running);
  * production wiring is useAmbientPause.
+ *
+ * ★ A Tailwind breakpoint prefix inside a stage reads the REAL browser
+ * viewport, not the canvas (`zoom` scales layout, never media queries), so
+ * `sm:` fires inside the 375 stage on a desktop. A board's own markup keys off
+ * the `mode` prop; the real components rendered inside carry their own
+ * prefixes and are judged as they ship (found by the brand-voice board).
  */
 export type Mode = "desktop" | "phone";
 export type Ground = "cinema" | "paper" | "ink" | "app-dark" | "app-light";

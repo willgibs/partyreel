@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 
 import {
   HERO_REEL,
@@ -36,9 +36,9 @@ export function StyleSwitcherFallback() {
               className="object-cover"
             />
           </div>
-          <MonoCaption className="mt-3 text-center">
+          <Caption className="mt-3 text-center">
             {SWITCHER_INITIAL_STYLE.label} · {SWITCHER_INITIAL_STYLE.kind}
-          </MonoCaption>
+          </Caption>
         </div>
       </div>
       <div className="flex flex-col gap-8 lg:col-span-7">

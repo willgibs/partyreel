@@ -11,6 +11,130 @@ included where recorded; the full original prose lives in git history. The found
 
 ---
 
+## 2026-09-14 — The review wave: the bible's second edition, the record for parallel agents, seven tracks at once (`fa45a88` to `6c19d84`; integrations below)
+
+Will reviewed the 22-rule bible line by line while round two of the home hero was building. Nine
+rules were rewritten from his notes (`fa45a88`): achromatic UI with one accent and color where there
+is no media (1); marketing louder in most things, only the tokens shared by law (2); the guest
+capture as staged email (4); mono leaving (7); depth in dark is light first, shadows where objects
+stack (10); a lamp may light a section without media, the footer's seam the model (11); four grounds
+with the route-group mechanism (16); affirmative only with the do's to come (20); copy open (21);
+and rule 22 as **rising tides**, the ground-up judgment ("if this did not exist yet, what would the
+perfect version be; elevate what points there, rework what does not"), after Will rejected a "bar"
+rule that had lifted his example into law. Each reviewed rule carries a status on `/design/rules`
+that links the board writing what it inherits. The doctrine followed (`7ce4bef`): rising tides
+redefined in PROGRAM.md and CLAUDE.md's Build step, the record the Orchestrator keeps between windows
+(In flight, Waiting on Will in `docs/tracks/orchestrator.md`; `docs/ASSETS.md` as Will's running
+asset list, never owned by a track), one integration window per handoff, the design record's seven
+open boards. The pre-strip (`0a06802`) took the nine mono hits out of the Orchestrator's lanes and
+`--font-mono` out of `theme.css`. The shell (`0cdf4c7`): `src/components/dev/board/` (Stage on a
+real ground, Toggle, BoardMeta ending in the asks), the home-hero board moved onto it, the desk at
+`/design/c` reading the manifests for Will's parallel reviews, seven boards registered as stubs with
+reserved keyframe prefixes. Seven manifests stubbed as whole inits (`9366df5`) and spawned from
+`6c19d84`: `palette`, `light`, `type-scale`, `floating-surfaces`, `brand-voice`, `media-kit` (lab
+boards, light QA) and `kill-mono` (a production sweep), with the rounding and tweaking GUI round on
+the Orchestrator's side. Walked on the alias at `6c19d84`: the rules page's statuses, the desk's
+rows and links, the stubs at 1440 and 375, the hero board on the extracted shell, no console errors.
+Walked again at `8b06f89` after the first three integrations and the rounding round: the tuner
+mounts on the alias and a 12px surface radius restyles the live column (16.8px on the card) while
+the fixed columns hold, the store persists and Reset clears it; `/design/rules` carries the two-faces
+rule; `/help` computes to Inter and Urbanist only; no console errors.
+
+**The rounding and tweaking GUI round** (Orchestrator-run, the same day). The tuner earned the
+sitting first: its only state had been component state, so a Replay on the playground (the control
+array rebuilt per render, the cleanup effect re-firing) wiped every tuned value and leaving the
+cinema group killed them again; `tuner-store.ts` holds the working set outside any component,
+persisted to `localStorage`, hydrated once and re-applied on every mount, so a value survives a
+Replay, a soft navigation and a reload until Reset. Every knob carries a description, where it ships
+and a group (Will, 2026-09-12: "some of the labels aren't very clear"); the three action-radius
+knobs joined so the sitting can drag both halves of the sharp-surface / round-action contrast; nine
+knobs without a specimen (the reel reveal's seven, the reel experience's two, and the event feed's
+swap and reorder) left the panel, their vars and bakes untouched. The board at `/design/c/rounding`
+is one kit of every radius-bearing surface in four columns, three fixed candidates and a live one
+that follows the tuner, on the app's two grounds and cinema. Two things had made the tokens deaf to
+the knob and were fixed with no value changed: the radius tokens, `--gap-gallery`, `--spill-cadence`
+and the `--tune-*` knobs were aliased into the `:root, .surface-paper` block, so every paper chapter
+re-declared them (they now live in their own `:root` block), and the lab's `.mono` sheet re-declared
+them too (it no longer does). The Button's in-between sizes (h-6, h-7, h-9) carried the 0.4-ratio
+radii as literals and now derive from `--radius-action`. Verified on the dev server: `<html>` at a
+14px base gives the live column's card and the home page's paper-chapter card 19.6px, the h-9 button
+21.6px at a 24px action radius, and Reset empties the DOM and the store. The sitting is Will's.
+
+**kill-mono** (`lp/kill-mono`, `659097f`, merged `69af90d`). Mono left the product. The `Geist_Mono` loader and
+its `--font-mono` variable went out of `layout.tsx`, so the site downloads two faces; `MonoCaption` was
+deleted and its sixteen call sites moved to `Caption`, now the one caption atom for labels and data
+alike; every remaining `font-mono` in marketing, admin, shared and the lab went with them, and the
+figures that had leaned on mono for alignment kept it with `tabular-nums`. The places where mono did
+semantic work were redesigned rather than swapped: the stat register (`StatBand`, the help filmstrip)
+took the display face with tabular figures, the register the pricing cards ratified; `/help`'s ghost
+folio became a watermark in the brand face; admin codes and keys became a quiet key in a table or a
+muted plate with `select-all`, and the type-to-confirm identifier took the plate without it, since
+typing it is the guard; the error digest and the privacy policy's storage key took the same plate. The
+sweep also closed the hole no grep sees: preflight sets a bare `<code>` in a mono stack, so the two
+`<code>` elements in the lane took `font-sans` and both long-form wrappers took `prose-code:font-sans`,
+which covers ~260 inline code spans across the help centre and the blog. Bible 7 leaves the bible.
+ Bible 7 became the two-faces rule at the merge, enforced by `src/app/two-faces-policy.test.ts`.
+
+**type-scale** (`lp/type-scale`, `5186fb8`, merged `838a5f6`). **The type scale, written down.** Bible 5's ladder
+had never had its numbers stated, so the board stated them: today's, resolved at both ends from the
+class strings, beside three candidates spanning tune to replace. Eleven stages render the PRODUCTION
+components (`PageHero`, `SectionShell`, `PageHeading`, `Card`) with three custom properties handed
+to them through the board's own sheet, so picking a ladder re-lays the real home arc, a feature
+page, /help, /about, the dashboard, an event page and an admin page rather than a mock; the ladder
+data is pure and `ladders.test.ts` pins its laws, today's two faults included. Three faults were
+found and are what the candidates answer: at 375 the ladder has three distinct sizes doing the work
+of six, line-height arrives with whichever Tailwind size class a ramp lands on (the one hero that
+needed a real value invented `leading-[1.02]` locally), and `font-heading` tracks a 160px masthead
+and a 16px card title at the same -0.03em, against the design system's own written rule that
+letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
+
+**floating-surfaces** (`lp/floating-surfaces`, `3071cfc`, merged `e1f06d6`). The floating-surfaces exploration put all
+nine primitives on one canvas and found that the contract misses bible 9 inside itself: a menu
+draws an 8px container around 1.6px rows in 4px of padding, so the highlighted row never nests.
+Three radius rungs each fix it from a different end (items sharp, today's container, items on the
+action law), three entrances (one clock, by frequency, origin true) and three lights in dark
+(lighter is closer, a soft shadow, a lit edge) are independent knobs over the live family, so a
+ruling is three words. The board needed a stage the shell could not give it: every radix panel
+portals to `globalThis.document.body`, so inside a zoom-fitted `Stage` it leaves the ground, the
+zoom and the canvas, and each frame is instead an iframe laid out at the canvas's true pixels
+running a gated scene route in its own document. Nothing under `src/components/ui/` changed: the
+candidates ride token overrides and a class on the panel. Four findings came out of the build
+(`@theme inline` never emits a derived token, the ground classes are mutually exclusive under
+next-themes, `tw-animate-css` has no reduced-motion guard, the nav viewport cannot size itself
+outside the marketing header). The contract rewritten and the per-primitive table live in `docs/specs/floating-surfaces.md`.
+
+**media-kit** (`lp/media-kit`, `c1aa5c6`, merged `797f692`). The media-kit exploration wrote bible 18 down as a
+proposed sourcing law (`docs/specs/media-kit.md`): two provenance classes and no third, `author`,
+`sourceUrl` and `retrieved` required on every manifest entry, a generated frame's license being the
+generating service's output-ownership clause, and the model-release rule that keeps a licensed face
+off a page that makes a claim. The survey behind it quotes ten license pages clause by clause and
+found the thing that settles the round: Unsplash's terms exclude recognizable people from the
+license, and all twelve stand-ins are full of them, so the gap was never a missing citation. The board
+at `/design/c/media-kit` argues three routes on the same twelve positions with the provenance line
+under each, shows the vertical gap costing seven of 23 blog posts a miscast cover, and stages eight
+CC0 candidates under `public/design/media-kit/` with `provenance.json` and a test pinning the two
+together; the four it could not fill are the argument. The kit plan generalises round two's parked
+asks into 36 masters by vertical, with the squares, clips and film derived from one shoot. No
+production byte changed.
+
+
+**brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
+the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
+the three registers with a table of what changes between them, five sentence shapes, an example on
+each of the seven surfaces, the two product-truth fences folded in as do's beside a word list, and
+the sweep procedure the `voice-infusion` round rewrites by (how a line is judged, what a rewrite
+keeps, the order, with the `<UiLabel>` parity making an app rename a two-file change by
+construction). The board on `/design/c/brand-voice` argued it three ways on the real `PageHero` and
+`SectionShell`, across cinema, paper and the app ground at 1440 and 375: A tuned the register the
+eight ratified lines already speak, B rebuilt it from the code becoming the album, and C made the
+people the subject and rewrote the ruled thesis to do it. The home arc's seven provisional headers
+were rewritten in each, beside today's line and Will's recorded appetite; the unfurl was shown both
+ways. Three departures flagged, and the finding that outlives the round: bible 20 as written reads
+on the ruled no-app line, so the guide proposes "lead with what arrives; an absence may be the
+second beat, never the first". No production byte changed.
+
+---
+
 ## 2026-09-14 — The home hero, round two: the QR is the origin, three concepts built in parallel against one shell (`f28d521`; merged `e98d1a7`, `9d8af64`, `ef58913`)
 
 Will's ruling on round one, the same morning: none of the four. "Very bland and generic, using image

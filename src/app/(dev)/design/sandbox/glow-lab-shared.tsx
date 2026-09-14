@@ -109,7 +109,7 @@ export function Section({
   return (
     <section className="flex flex-col gap-4 border-t border-border pt-8">
       <div>
-        <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+        <p className="text-xs tracking-widest text-muted-foreground uppercase tabular-nums">
           {n}
         </p>
         <h2 data-dir-display className="mt-1 text-2xl tracking-tight">

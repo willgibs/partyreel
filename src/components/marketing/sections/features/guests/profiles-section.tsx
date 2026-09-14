@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -49,7 +49,7 @@ export function ProfilesSection() {
                   M
                 </span>
                 <p className="font-heading text-xl">Maya</p>
-                <MonoCaption>partyreel.com/u/maya</MonoCaption>
+                <Caption>partyreel.com/u/maya</Caption>
                 {/* The real /u/[slug] follow control's resting state. */}
                 <span className="mt-1 inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
                   <UserPlus className="size-4" />

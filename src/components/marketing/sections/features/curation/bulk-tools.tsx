@@ -4,7 +4,7 @@ import {
   BulkBarMock,
   SelectTile,
 } from "@/components/marketing/sections/shared/bulk-select-mock";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -67,13 +67,13 @@ export function BulkTools() {
             <BulkBarMock count={selectedCount} />
           </span>
         </div>
-        <MonoCaption
+        <Caption
           data-mkt-reveal
-          className="mt-9 text-center"
+          className="mt-9 text-center tabular-nums"
           style={{ "--i": 3 } as CSSProperties}
         >
           {selectedCount} selected · long-press to start, tap to add more
-        </MonoCaption>
+        </Caption>
       </Reveal>
     </SectionShell>
   );

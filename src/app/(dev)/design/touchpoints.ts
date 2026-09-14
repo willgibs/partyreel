@@ -519,8 +519,8 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Three candidate scales beside today's on the home arc, a feature page, help, the dashboard, an event page and admin, at 1440 and 375",
-      variants: ["Placeholder"],
+      note: "Eleven stages driving the production components through three custom properties, so picking a ladder re-lays the real home arc, a feature page, help, about, the dashboard, an event page and admin",
+      variants: ["Today", "A tuned", "B rungs", "C registers"],
     },
   },
   {
@@ -535,8 +535,14 @@ export const RULINGS: Ruling[] = [
       "src/components/ui/",
     ],
     board: {
-      note: "Dialog, drawer, dropdown, popover, select, sheet, toast, tooltip and the nav viewport on cinema, paper and ink; the phone canvas primary for sheets and dialogs",
-      variants: ["Placeholder"],
+      note: "All nine primitives live on one canvas over real photographs, on every ground at both widths, with radius, entrance and light as independent knobs, three ladders at 1:1 and the outliers beside the contract",
+      variants: [
+        "The entrance",
+        "The radius ladder",
+        "The light ladder",
+        "The outliers",
+        "The sheet at 375",
+      ],
     },
   },
   {
@@ -551,8 +557,8 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "The proposed voice on real section shells, the home arc's seven provisional headers rewritten as the worked example, the unfurl line and the five copy picks ruled here",
-      variants: ["Placeholder"],
+      note: "Three candidate voices on the real PageHero and SectionShell across cinema, paper and the app ground; the seven provisional home headers rewritten in each beside today's line; the unfurl both ways",
+      variants: ["A the house", "B the room", "C the guest list"],
     },
   },
   {
@@ -568,8 +574,8 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "A contact sheet of the candidate first batch beside the current twelve stills, provenance under each; the batch is staged, not wired",
-      variants: ["Placeholder"],
+      note: "Three routes swapping in place on the same twelve positions with the provenance line under each, the vertical gap on the blog's cover pool, the sources with their clauses, and the blog plate at production geometry",
+      variants: ["Licensed", "Ours", "Mix", "In place"],
     },
   },
   {
@@ -585,8 +591,13 @@ export const RULINGS: Ruling[] = [
       "src/components/dev/motion-tuner-config.ts",
     ],
     board: {
-      note: "Every radius token at candidate values on the surfaces that carry it, beside the tuner that drags the real pages",
-      variants: ["Placeholder"],
+      note: "One kit of every radius-bearing surface in four columns: three fixed candidates and a live column that follows the tuner, on the app's grounds and cinema",
+      variants: [
+        "Today",
+        "B, soft surfaces",
+        "C, the 16px column",
+        "Live, the tuner",
+      ],
     },
   },
 ];

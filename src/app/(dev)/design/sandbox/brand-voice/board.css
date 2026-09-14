@@ -5,11 +5,27 @@
 
    House convention: FINAL states live OUTSIDE the media queries, so a
    reduced-motion reader gets the settled composition with no rule to undo;
-   entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-bv-loop] so the stage's data-paused stops it on a hidden tab. */
+   entrances and loops live inside `no-preference` only.
+
+   This board has no loop, so there is no [data-bv-loop] rule to pause: the only
+   motion is the swap below, which fires when the voice toggle remounts a panel
+   (React keys each swappable block on the voice id). Switching voices is an
+   OCCASIONAL act, so it gets the standard beat under 300ms and a custom ease,
+   never theater: the eye has to land on the new sentence, not on the move. */
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-paused="true"] [data-bv-loop] {
-    animation-play-state: paused;
+  [data-bv-swap] {
+    animation: bv-swap-in 180ms var(--ease-emphasis) both;
+  }
+
+  @keyframes bv-swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }

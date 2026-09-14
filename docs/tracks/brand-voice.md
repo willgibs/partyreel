@@ -1,7 +1,8 @@
 ---
 track: brand-voice
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: 6c19d8437438ce718c9b3bb2901a03c31cc560cf
+merged: "d988c88"      # the branch head merged into launch-prep
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/brand-voice/
@@ -123,23 +124,60 @@ the album) with new sentence shapes; one that questions a ruled line (flagged). 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. No file outside `owns` was touched; no production byte changed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Design lab follow-ons from the gallery round:** a Tailwind breakpoint prefix inside a `Stage`
+  reads the REAL browser viewport, not the canvas, so `sm:` fires inside the 375 stage too; note it
+  in the board shell's doctrine (a board's own markup keys off the `mode` prop, while the real
+  marketing components carry their own prefixes and are judged as they ship).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-brand-voice-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the branch tip (the board and spec at `4d0052d`, the spec's read-through fixes after it), pushed; preview
+  `partyreel-git-lp-brand-voice-partyreel.vercel.app`, the board at
+  `/design/c/brand-voice?key=8838d0dd22f626a603fcf551`, the guide at `docs/specs/brand-voice.md`.
+- Synced with launch-prep: it had not moved. Still `6c19d84`, the SHA in `cut`.
+- Gates on the tree: typecheck ok, lint ok (0 errors; 7 warnings, all pre-existing and none in this
+  lane), test ok (1,644 in 190 files), build ok (113 routes).
+- Lane check: `docs/specs/brand-voice.md`, `docs/tracks/brand-voice.md` and the three files under
+  `src/app/(dev)/design/sandbox/brand-voice/` (`board.tsx`, `board.css`, `voices.ts`). No exceptions.
+  Nothing production imports anything on this branch; `marketing-voice.ts` and the tests are untouched.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The board is type on the real grounds, and its one stand-in (the
+  feature card's grey plate) stands for the hub door's own photograph, which already exists.
+- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will):
+  - "The voice: today, A the house, B the room, or C the guest list (the agent recommends B, with A second)"
+  - "The seven provisional home headers in the ruled voice, or line by line from any column"
+  - "The account-required unfurl line: asks for an email, or asks to sign in with an email (the agent recommends asks for an email)"
+  - "Bible 20's replacement: lead with what arrives, an absence may be the second beat and never the first"
+- Look at first:
+  - **The fourth ask is the one that outlives the round.** Bible 20 as written ("say who we are,
+    never who we are not") reads on the RULED "Scan, upload, done. No app to install." and on the
+    whole no-app argument. The guide proposes the sharper do: lead with what arrives, an absence may
+    be the second beat and never the first, and never both. It keeps the ruled line and kills
+    `noApp` ("Nothing to install. Nothing to sign up for."), which is two absences and no product.
+  - **Board 4, the paper chapter, on B.** `album` as a left masthead reading "Two hundred photos you
+    never had to ask for." is the clearest argument the board makes for the during over the after.
+  - **B's trade, visible on board 2 at 375:** its h1 runs four lines on the phone against today's
+    two. A carries none of that cost and none of the lift.
+  - **Two things the board found rather than built.** The three registers do not fork with the voice
+    (board 1 and 6 show them once; only the marketing register's default shape moves), and the five
+    copy-alternative picks have lost their list, so the board reads them as the five headers with an
+    appetite for a different line. Both are in Departures.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The brand voice was written down for the first
+time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph, the three
+registers with a table of what changes between them, five sentence shapes, an example on each of
+the seven surfaces, the two product-truth fences folded in as do's beside a word list, and the sweep
+procedure the `voice-infusion` round rewrites by (how a line is judged, what a rewrite keeps, and
+the order, with the `<UiLabel>` parity making an app rename a two-file change by construction). The
+board on `/design/c/brand-voice` argued it three ways on the real `PageHero` and `SectionShell`,
+across cinema, paper and the app ground at 1440 and 375: A tuned the register the eight ratified
+lines already speak, B rebuilt it from the code becoming the album, and C made the people the
+subject and rewrote the ruled thesis to do it. The home arc's seven provisional headers were
+rewritten in each, beside today's line and Will's recorded appetite; the unfurl was shown both ways.
+Three departures were flagged rather than buried, and no production byte changed.
