@@ -6,10 +6,144 @@
    House convention: FINAL states live OUTSIDE the media queries, so a
    reduced-motion reader gets the settled composition with no rule to undo;
    entrances and loops live inside `no-preference` only, and any infinite loop
-   is marked [data-lgt-loop] so the stage's data-paused stops it on a hidden tab. */
+   is marked [data-lgt-loop] so the stage's data-paused stops it on a hidden tab.
+
+   ── WHAT THIS SHEET PROPOSES ──
+   Three things the system does not have yet, written here so the board can show
+   them and the ruling can move them (or not) into globals.css:
+     1  --lgt-lift / --lgt-float   the shadow family in DARK (bible 10's rewrite
+        has no values yet; --shadow-float is zeroed in .dark).
+     2  [data-lgt-lit]             the lit face, today lab-local in glow-lab.css
+        and dark-only, here with the paper counterpart it has always lacked.
+     3  [data-lgt-grain]           the aurora's dither. A field this large at
+        this alpha BANDS in 8 bits; the grain is the fix, and it is a stand-in
+        for a real tile (see the manifest's Handoff). */
+
+/* ─────────────── 1. THE SHADOW FAMILY IN DARK
+
+   ONE geometry, TWO sizes, ONE alpha ramp per ground. That is the whole
+   proposal, and it is deliberately not a new shape: --shadow-float in light is
+   `0 2px 4px -1px / 0.06, 0 4px 8px -2px / 0.10` (blur = 2x offset, single top
+   source), so `lift` is that geometry verbatim and `float` is it at double the
+   offsets. What changes on a dark ground is only the ALPHA, because a shadow
+   has to be darker than what it falls on: 0.06 of black over oklch(0.11) is
+   arithmetically invisible, which is the real reason dark "has no shadows"
+   reads as true today. Raise the alpha and the same family works.
+
+   lift  = two objects of the same lightness overlapping each other (two
+           photographs, a card over a card). It separates; it does not float.
+   float = a layer over content that keeps living behind it (menu, dialog,
+           sheet, toast). It detaches.
+
+   Both are declared on the light ground too, so a cue judged on paper is the
+   SAME cue and not a second design. */
+[data-lgt-cues] {
+  --lgt-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.1), 0 4px 8px -2px oklch(0 0 0 / 0.14);
+  --lgt-float:
+    0 4px 8px -2px oklch(0 0 0 / 0.12), 0 8px 16px -4px oklch(0 0 0 / 0.16);
+}
+
+/* The dark grounds the stage can paint. Scoped by [data-ground] (the stage
+   sets it) rather than by .dark, so the cinema room and the app's dark get the
+   same ramp without either of them owning the rule. */
+[data-ground="cinema"] [data-lgt-cues],
+[data-ground="ink"] [data-lgt-cues],
+[data-ground="app-dark"] [data-lgt-cues] {
+  --lgt-lift:
+    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+  --lgt-float:
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+}
+
+[data-lgt-cue="lift"] {
+  box-shadow: var(--lgt-lift);
+}
+[data-lgt-cue="float"] {
+  box-shadow: var(--lgt-float);
+}
+
+/* ─────────────── 2. THE LIT FACE
+
+   The two cues Will kept off the beam (glow-lab.css: an inset hairline instead
+   of a border, and a 1px top lip) verbatim, renamed under this board's prefix
+   so the four beam specimens on the glow-doctrine board keep the rule they were
+   ruled on and nothing here reaches them.
+
+   What is NEW is the paper half. glow-lab.css scopes the cue to dark grounds
+   and says why: the lip is a light-catching highlight, invisible on near-white,
+   and "a ground changes what light means". So on paper the same two cues become
+   a hairline plus a BOTTOM shade: lit from above still, but read off the far
+   edge instead of the near one. Same idea, obeying the ground. */
+[data-lgt-cue="lit"] {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+[data-ground="paper"] [data-lgt-cue="lit"],
+[data-ground="app-light"] [data-lgt-cue="lit"] {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+
+/* ─────────────── 3. THE AURORA'S DITHER (a stand-in)
+
+   An aurora is a very low-alpha gradient across a very large box, which is the
+   exact recipe for 8-bit banding: the engine's turbulence warp displaces the
+   colour but does not add entropy, so the steps survive it. Grain is the
+   standard fix and it is also the honest one here, since film grain is what a
+   dark room actually looks like.
+
+   The tile is generated INSIDE the data URI (its own filter id, local to the
+   image) rather than as a document filter: the engine owns the one turbulence
+   host in this app (#glw-warp, mounted once in the root layout) and a second
+   one in the lab would be a second thing to reason about for no gain. The
+   manifest asks for a real tile to replace it. */
+[data-lgt-grain]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ─────────────── THE BOARD'S OWN MOTION
+
+   One loop, and it is the cadence specimen's phase marker: a hairline that
+   crosses each strip on that strip's own clock, so two lamps whose comets are
+   3s apart can be READ as 3s apart instead of guessed at. The lamps themselves
+   are the engine's; this board adds no light of its own.
+
+   Rest state (outside the query, deliberately): the marker sits at the left
+   edge, which is the animation's own from-keyframe, so reduced motion gets a
+   settled composition rather than a marker parked mid-travel. */
+[data-lgt-phase] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  left: 0;
+  background: color-mix(in oklab, var(--foreground) 22%, transparent);
+}
 
 @media (prefers-reduced-motion: no-preference) {
+  [data-lgt-phase] {
+    animation: lgt-phase var(--lgt-dur, 8s) linear infinite;
+  }
   [data-paused="true"] [data-lgt-loop] {
     animation-play-state: paused;
+  }
+}
+
+@keyframes lgt-phase {
+  from {
+    left: 0;
+  }
+  to {
+    left: 100%;
   }
 }
