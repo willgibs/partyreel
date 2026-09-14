@@ -122,7 +122,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   The rail takes `max-h` + its own overflow (22 entries do not fit a laptop viewport). Blocks render
   in [`legal-blocks.tsx`](../../src/components/marketing/legal/legal-blocks.tsx) (p / list / table /
   sub / `note`, the `bg-muted/40 border-y` set-apart register for disclaimers, never all-caps). The
-  status line is Inter (the mono ruling; `MonoCaption` retired here). **Section ids are the anchor
+  status line is the body face with tabular figures. **Section ids are the anchor
   contract**, pinned as arrays in `legal.test.ts`; renaming one is a reviewed change. **The launch
   switch is a test**: flipping `status` to `effective` with a bracketed placeholder still in the text
   fails CI. ★ **No prices and no cap numbers in the Terms**: they point at `/pricing` so a Stripe
@@ -156,8 +156,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   drip-fed thread, the account wall, the per-person rental, never a product name.
   **The R5 zero-team ruling is RELAXED here** (Will, 2026-08-28): the page carries a first-person
   origin and a join-our-team close. Its intent still holds, so no headcount and no founder biography.
-  **Shipped without a CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action),
-  and no mono anywhere (the R6 ruling).
+  **Shipped without a CtaBand**, by the footer's own rule (the footer is the paper lane's one conversion action).
 - **THE UTILITY-PAGE RHYTHM (bible 16; Will's ruling, 2026-08-28): cinema hero, paper body, ink footer, on
   EVERY utility page** — the identity pages (about, blog, careers, press) and, as they are reworked,
   legal, privacy and contact too. "With the cinema hero, we need to go back to the dark nav to match."
@@ -215,7 +214,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   forty words carry all three. Do not reintroduce a paragraph section to explain a beat.
   The hero is the **contact sheet**
   ([`contact-sheet.tsx`](../../src/components/marketing/sections/careers/contact-sheet.tsx)): real
-  manifest frames butted tight, mono frame numbers, and a few circled as selects whose stroke DRAWS
+  manifest frames butted tight, tabular frame numbers, and a few circled as selects whose stroke DRAWS
   itself in on arrival, because marking the selects is the product's core act performed above the
   fold. The section is pulled UP under the overlay chrome (`-mt-[var(--mkt-header-h)]`, home's cinema-hero
   move) so the sheet runs behind the nav and the scrim's top stop fades it out there: starting below
@@ -257,8 +256,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   the index and the facts share one ruled line across the card top, which is what gives it structure
   rather than three stacked text blocks. The close is a small FOLLOW-UP inside the roles section
   (smaller than a role title, tucked under the cards) rather than a CtaBand, whose heading scale
-  shouted over the list it was meant to trail. Mono is confined to the contact sheet's frame
-  NUMERALS; the role and philosophy indices are Inter (bible 7, applied 2026-08-29).
+  shouted over the list it was meant to trail. The sheet's frame numerals and the role and philosophy
+  indices all read on the body face with tabular figures (bible 7, the kill-mono sweep).
   **The philosophy indices are CIRCLED by the sheet's own `SelectMark`** (Will, 2026-08-29: "give
   it the page's vocabulary"). That row was the one beat arguing in prose on a page that argues in
   photographs, and a bare 01/02/03 under a hairline is any startup's values grid; the mark is not a
@@ -309,7 +308,7 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   chip all read it, and a parity test pins the enum to the migration). Picking a topic swaps a deflection
   hint INSIDE the form. The form card is the STATIONERY NOTE on the Biograph gray panel (Will's
   composite ruling on the `contact-identity` touchpoint): `bg-muted/50` card + the photo postage stamp +
-  the letterhead MonoCaption, with fields explicitly `bg-background` so white reads against the gray.
+  the letterhead caption, with fields explicitly `bg-background` so white reads against the gray.
   ★ Radix Select gotchas (all live-caught): never pass a controlled `""` (it latches the placeholder
   over later programmatic values); the hidden native-select bridge emits an EMPTY `onValueChange`
   during mount cycles (drop empty emissions or programmatic pre-picks get clobbered); and render the
@@ -370,9 +369,9 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   components live in [`components/marketing/help/`](../../src/components/marketing/help). ★ MOTION LANDMINE:
   `[data-mkt] .mkt-line` forces `display:block` (texts-reveal recipe, 0,2,1 specificity) and silently kills
   flex utilities on the same element — center constrained children with `mx-auto`, never a parent
-  `justify-center`. The R6 MONO RULING (bible 7) (site-wide type doctrine, full text in
-  [`design-system.md`](design-system.md)): mono is for numerals/tabular alignment ONLY in standard UI —
-  captions, labels, and CTA notes are Inter. The authoring brief lives at
+  `justify-center`. TWO FACES, AND ONLY TWO (bible 7, full text in
+  [`design-system.md`](design-system.md)): there is no mono in the product, data reads on the body face
+  with tabular figures, and every label, hint and descriptor is the `Caption` atom. The authoring brief lives at
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md) (the map, the component vocabulary, the
   three-class numbers doctrine, the writing rules; it names the fences by pointer only, because the
   content-policy tests scan `.md` too and the brief must obey itself).
@@ -463,10 +462,9 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     The `::view-transition-*` rule in marketing.css is NAME-scoped and pinned by the CSS policy test:
     those pseudo-elements are document-global, exactly like `@keyframes`.
   - **Shared plumbing.** The byline is one component across the card, the featured card and the post
-    header ([`post-meta.tsx`](../../src/components/marketing/blog/post-meta.tsx)) and is **Inter, not
-    mono** — the R6 doctrine applied rather than reflexively obeyed: mono earns numerals that ALIGN
-    in a column, and a byline aligns with nothing, so setting name+date+reading-time in mono read as
-    a timecode and flattened the only human signal on the card. **ONE registered author**
+    header ([`post-meta.tsx`](../../src/components/marketing/blog/post-meta.tsx)) and reads **on the
+    body face**: setting name+date+reading-time in mono read as a timecode and flattened the only human
+    signal on the card (the line that went to Inter on 2026-08-28, before the face left the product). **ONE registered author**
     (`partyreel-team`) by Will's 2026-08-28 ruling; named individuals are deliberately absent from
     the registry rather than dormant in it, since a dormant entry is what a content agent picks up by
     accident. Frontmatter `title` is capped at 80 chars as a LAYOUT contract (cards clamp to 2 lines,

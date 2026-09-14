@@ -503,15 +503,23 @@ outline stable in every view. It is deliberately NOT in `PageHero`: that compone
 eyebrow/heading/subhead/actions lockup, and this is a different one (title + rule + a trailing
 link). One page uses it; if a second index wants it, THAT is when it gets extracted.
 
-**The mono ruling (R6, 2026-08-27, site-wide type doctrine):** mono (Geist Mono) is for **numerals /
-tabular alignment only** in standard UI — numbered index rows, stat values (the StatBand register), counts
-where alignment matters. Captions, labels, and CTA notes are Inter ("this is a consumer app, not a
-devtool" — Will). Restated 2026-09-02 on the album page's finish pass: **"I don't want to use mono
-anywhere except where it aids in tabular layouts."** The GoDeeper rows went to Inter that day, and the
-library phase swept the rest (2026-09-11): `MonoCaption` holds DATA only (timecodes, counts, sizes,
-URLs, step indices, style-and-duration lines) and every label, hint and descriptor is the `Caption`
-atom (`system/caption.tsx`, Inter, the same size and colour). A new caption picks by that question
-alone; both atoms sit side by side on `/design/marketing`.
+**TWO FACES, AND ONLY TWO (Will, 2026-09-14: "kill mono entirely"; the kill-mono sweep).** Inter for
+everything a person reads, Urbanist for what the page says loudly. There is no mono face in the
+product: the `Geist_Mono` loader and `--font-mono` are out of `layout.tsx` and `theme.css`, `MonoCaption`
+is deleted, and `Caption` (`system/caption.tsx`) is the ONE caption atom, labels and data alike. The
+earlier ruling (R6, 2026-08-27, restated 2026-09-02) confined mono to numerals and tabular alignment;
+this replaces it. **Never add a font loader or a `font-mono` class back without a ruling.** What carries
+the work mono used to do:
+- **Data** sits on the body face with `tabular-nums` — index rows, counters, durations, sizes, table
+  columns. On a spin reel (`StatBand`) the tabular figures are load-bearing, not decoration: they are
+  what holds a column's ten digits to one width.
+- **A number that is the SUBJECT of its block** takes the display face with tabular figures: the price
+  register the pricing cards ratified (2026-08-27) now also carries `StatBand`, the help filmstrip and
+  `/help`'s ghost folio.
+- **A value that must LOOK like a value** (an error digest, a full id, a storage key, a raw error) takes
+  a muted plate: `rounded bg-muted px-1.5 py-0.5` plus `select-all` where one click should take the whole
+  thing. The plate says "this came from the machine"; the typeface no longer has to. A value the person
+  must retype as a guard (the operator delete-confirm) takes the plate WITHOUT `select-all`.
 
 ## Rounding: sharp surfaces, round actions
 
@@ -686,7 +694,7 @@ Synthesis (Phase 2): *adopted* — no pure white surfaces, the elevation contrac
 lighter-is-closer, one depth technique per mode), nested-corner math, muted paired icons,
 small-label tracking, the 4px-grid + radius-ratio math. *Already true* — near-black/near-white
 extremes, contrast hierarchy, brightness-distinct palette, ~2x horizontal button padding, two
-typefaces (Geist Mono = a documented utility exception for code/counts), ~70ch prose. *Declined or
+typefaces (mono left the product in the 2026-09-14 sweep), ~70ch prose. *Declined or
 deferred with reasons* — saturate-neutrals DECLINED (zero-chroma identity); 12-column grid noted for
 the Phase 6 marketing rebuild. **Guest reading-copy rule (NOW REAL, Phase 4):** guest-facing reading
 copy is 15-16px (`text-[15px]`/`text-base` on event description, gate prompts, growth cards, entry
@@ -878,6 +886,11 @@ registry; `sandbox/` the open boards with their own sheets; the four probes) · 
 
 ## Gotchas / don't-revert
 
+- ★ **A bare `<code>`, `<pre>`, `<kbd>` or `<samp>` renders in a mono stack with no class at all** —
+  Tailwind's preflight sets `font-family: var(--default-mono-font-family, ui-monospace, …)` on those
+  four elements, which no `font-mono` grep will ever find. Give any of them `font-sans` (the `Kbd` atom
+  is the model), and a prose container `prose-code:font-sans` — that one variant on the two long-form
+  wrappers covers the ~260 inline code spans in `content/help` and `content/blog`.
 - The lab's `design.css` keeps the `.mono` mock sheet (the sandbox's frozen token set, the one
   deliberate duplicate of production tokens: it is what the boards are judged in), the type layer and the
   shared motion, and declares NO keyframes: keyframe names are document-global and the lab once shadowed
