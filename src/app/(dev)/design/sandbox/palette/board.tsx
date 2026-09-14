@@ -89,7 +89,8 @@ const DEPARTURES = [
 ];
 
 const ASSETS = [
-  "Four hard-case event photographs for palette work · one high key (white dress on a white wall), one low key (a night dance floor), one candle-warm, one stage-cool · 1600x1000, landscape, JPG · replaces the four standing marketing images on this board (wedding-golden, party-balloons, concert-confetti, reception-table)",
+  "Four hard cases inside the kit the media-kit track already asked for (its 36 masters replace all twelve stand-ins by id, so this is a line on that shot list, not a second delivery) · one high key (a white dress against a white wall), one low key (a dance floor lit by one lamp), one candle-warm, one stage-cool, four of the 36 at 1600 px long edge, landscape, one grade · replaces the four this board renders (wedding-golden, party-balloons, concert-confetti, reception-table)",
+  "Why a palette board needs them: a ramp is only ever wrong against media that fights it, and all four stand-ins here are mid-key and warm, so the light end of every candidate is going untested",
 ];
 
 /* ── Board furniture ────────────────────────────────────────────────────── */
