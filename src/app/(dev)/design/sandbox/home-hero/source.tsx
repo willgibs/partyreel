@@ -104,27 +104,27 @@ type Geo = {
 const GEO: Record<Mode, Geo> = {
   desktop: {
     qr: 144,
-    card: 292,
+    card: 330,
     travel: 1.65 * CANVAS.desktop.w,
-    perspective: 1100,
-    offset: 190,
-    sizes: "320px",
-    rotate: 8,
-    yDrift: 55,
+    perspective: 900,
+    offset: 196,
+    sizes: "360px",
+    rotate: 9.5,
+    yDrift: 44,
     h1Max: 1100,
-    fade: "10%",
+    fade: "12%",
   },
   phone: {
     qr: 112,
-    card: 152,
+    card: 140,
     travel: 1.65 * CANVAS.phone.w,
-    perspective: 420,
-    offset: 132,
-    sizes: "180px",
-    rotate: 7,
-    yDrift: 26,
+    perspective: 360,
+    offset: 130,
+    sizes: "170px",
+    rotate: 8.5,
+    yDrift: 12,
     h1Max: 343,
-    fade: "9%",
+    fade: "16%",
   },
 };
 
@@ -231,8 +231,10 @@ function transformFor(c: Card, p: number, geo: Geo) {
   return `translate3d(${x}px, ${y}px, 0) rotateY(${ry}deg) rotateZ(${c.rz}deg) scale(${s})`;
 }
 
-/** Frames fade up AT the QR instead of appearing beside it. */
-const opacityAt = (p: number) => (p > 1 ? 0 : smoothstep(0, 0.16, p));
+/** Frames fade up AT the QR instead of appearing beside it, and the ramp runs
+ *  long enough that a frame is still arriving as it clears the plate: emerging,
+ *  never switched on. */
+const opacityAt = (p: number) => (p > 1 ? 0 : smoothstep(0, 0.24, p));
 
 function Source({ mode, copy, qrUrl }: ConceptProps) {
   const geo = GEO[mode];
