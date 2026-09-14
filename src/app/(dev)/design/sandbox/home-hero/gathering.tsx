@@ -18,7 +18,6 @@ import {
   type ConceptProps,
   copyFor,
   DemoQr,
-  GUTTER,
   LADDER,
   type Mode,
   Photo,
@@ -40,9 +39,9 @@ import {
  * What holds the composition together, and why:
  *
  *  - THE CLEARING, not a scrim (bible 1). Every slot is placed OUTSIDE
- *    CLEAR_ZONE, a rectangle sized to the lockup plus air, so no photograph is
+ *    CLEARING, the lockup's real profile band by band, so no photograph is
  *    ever behind the type and no photograph is ever dimmed. The type wins by
- *    placement. If a slot is retuned, it is retuned against that rectangle.
+ *    placement. If a slot is retuned, it is retuned against those bands.
  *  - THE TYPE IS THE CONSTANT. The lockup carries NO entrance at all: it is
  *    there at paint, and the album gathers around it. That is the concept
  *    (the event is the fixed thing, the album accretes), and it is also the
@@ -59,9 +58,9 @@ import {
  *    ranges force: the cross-fade waits until playback is inside the range,
  *    not merely playing, so a card never flashes the file's first frame.
  *
- * Phone: the field collapses to two staggered columns of fewer, larger cards
- * that bleed off the top, the bottom and both sides, with the same clearing
- * through the middle.
+ * Phone: the same machinery with seven larger cards in staggered pairs, and
+ * the clearing measured off the real lockup rather than guessed. PHONE_SLOTS
+ * says why two full columns beside the type is not the answer at 375.
  */
 
 /* ── The field ───────────────────────────────────────────────────────────── */
@@ -106,53 +105,85 @@ const photo = (i: number): Media => ({ kind: "photo", i });
 const clip = (range: number): Media => ({ kind: "clip", range });
 
 /**
- * THE CLEARING: the lockup's box plus air, in percent, per canvas. Every slot
- * below sits outside it, which is what lets the media run at 100% with no
- * darkening anywhere, and the lockup takes its COLUMN WIDTH from the same
- * numbers, so the clearing and the type box cannot drift apart. Retune this,
- * then re-walk the slots against it.
+ * THE CLEARING, and it is a LENS, not a rectangle. The lockup is narrow at the
+ * QR, widest at the h1 and narrow again at the buttons, so a rectangle big
+ * enough to hold it pushes every frame out to the edges and the field turns
+ * into a picture frame around a black hole. This is the lockup's real profile,
+ * one band per element: [y0, y1] in percent of the canvas height, `hw` the
+ * half-width it occupies in percent of the canvas width. The corners are open,
+ * which is what lets the clusters come in on the diagonals.
+ *
+ * Every slot below keeps its box out of every band, and the h1's column is the
+ * WIDEST band doubled, so the clearing and the type box cannot drift apart.
  */
-const CLEAR_ZONE = {
-  desktop: { x0: 21, x1: 79, y0: 20, y1: 78 },
-  phone: { x0: 0, x1: 100, y0: 23, y1: 77 },
-} as const;
+type Band = { y0: number; y1: number; hw: number };
+
+const CLEARING: Record<Mode, Band[]> = {
+  desktop: [
+    { y0: 22, y1: 38, hw: 9 }, // the QR and its caption
+    { y0: 38, y1: 61, hw: 30 }, // the h1, two lines at the ladder's xl step
+    { y0: 61, y1: 69, hw: 19 }, // the subhead
+    { y0: 69, y1: 78, hw: 14 }, // the buttons, at their widest label
+  ],
+  phone: [
+    { y0: 14, y1: 33, hw: 32 }, // the QR, and the caption is the wide part
+    { y0: 33, y1: 55, hw: 46 }, // the h1
+    { y0: 55, y1: 78, hw: 41 }, // the subhead and the buttons, which wrap here
+  ],
+};
+
+/** The type column: the clearing's widest band, doubled. */
+function typeColumn(mode: Mode): number {
+  return 2 * Math.max(...CLEARING[mode].map((b) => b.hw));
+}
 
 /**
- * Fifteen frames, hand placed. Twelve photographs (each stand-in used exactly
- * once, sequenced so neighbours differ in palette) and three vertical clips.
- * Denser at the left and right, bleeding off every edge, thinning toward the
- * clearing. The last two land late, a beat after the burst.
+ * Fifteen frames in five CLUSTERS, hand placed. Twelve photographs (each
+ * stand-in used exactly once, sequenced so neighbours differ in palette) and
+ * three vertical clips. What makes it a gathering rather than a border: the
+ * clusters OVERLAP, they are unevenly weighted (heavy upper-left and right,
+ * open upper-right), and they reach in along the diagonals where the lockup is
+ * narrow. The last two land late, a beat after the burst.
  */
 // prettier-ignore
 const DESKTOP_SLOTS: Slot[] = [
-  //  x   y   w   ar        r     d     o   s
-  at(  6, 21, 20, 3 / 2,   -6.5, 0.85,  1, 11.5, photo(0)),   // the left hand
-  at( 12, 50, 12, 9 / 16,   4,   0.95,  4,  9,   clip(0)),
-  at(  4, 79, 17, 3 / 2,    7,   0.7,   7, 12.5, photo(5)),
-  at( 19, 93, 13, 1,       -5,   0.45, 10, 10.5, photo(7)),
-  at( 17, 14, 10, 1,        8,   0.4,   6,  8.5, photo(3)),   // the top band
-  at( 33,  8, 15, 3 / 2,    4.5, 0.6,   3, 13,   photo(2)),
-  at( 64,  6, 13, 16 / 9,  -4,   0.35,  5,  9.8, photo(1)),
-  at( 79, 12, 16, 3 / 2,   -7,   0.75,  2, 11,   photo(9)),
-  at( 93, 28, 19, 3 / 2,    6,   0.9,   0, 12,   photo(6)),   // the right hand
-  at( 88, 55, 12, 9 / 16,  -5,   0.65,  8, 10,   clip(1)),
-  at( 97, 79, 13, 2 / 3,   -8,   0.5,  11, 13.5, photo(4)),
-  at( 80, 92, 17, 3 / 2,    4,   0.8,   9,  9.4, photo(8)),
-  at( 26, 85, 11, 3 / 2,   -6,   0.38, 13, 11.8, photo(11)),
-  at( 40, 95, 14, 16 / 9,  -3,   0.3,  22, 12.8, photo(10)),  // the stragglers
-  at( 61, 97, 12, 9 / 16,   6,   0.55, 34, 10.8, clip(2)),
+  //   x   y   w   ar        r     d     o   s
+  at(   9, 20, 22, 3 / 2,   -5.5, 0.9,   1, 11.5, photo(0)),   // upper left
+  at(   5, 40, 14, 3 / 4,    6,   0.6,   4, 12.6, photo(4)),
+  at(  25,  4, 17, 16 / 9,  -8,   0.35, 12,  8.6, photo(3)),
+  at(  30, 20, 11, 1,        5,   0.45, 11, 10.8, photo(7)),   // in on the diagonal
+  at(  47,  3, 15, 3 / 2,    4.5, 0.4,   2, 13.4, photo(2)),   // over the QR
+  at(  92, 25, 21, 3 / 2,    5,   0.95,  0, 12.2, photo(6)),   // the right flank
+  at(87.5, 47, 12, 9 / 16,  -6,   0.7,   6, 10.4, clip(0)),
+  at(  97, 40, 13, 3 / 2,    7,   0.45, 10, 11.1, photo(9)),
+  at(  93, 67, 16, 3 / 2,   -6,   0.6,   8,  9.9, photo(1)),
+  at(  10, 70, 12, 9 / 16,  -4,   0.75,  7,  9.2, clip(1)),    // lower left
+  at(  26, 88, 20, 3 / 2,    6.5, 0.85,  3, 13.1, photo(5)),
+  at(  45, 92, 17, 3 / 2,    3.5, 0.55,  9, 12.9, photo(10)),  // the bottom edge
+  at(  87, 86, 18, 3 / 2,    4,   0.8,   5, 11.8, photo(11)),
+  at(  79, 78, 10, 1,       -8,   0.4,  21,  9.6, photo(8)),   // the stragglers
+  at(  64, 97, 12, 9 / 16,  -5,   0.65, 33, 10.1, clip(2)),
 ];
 
-/** Two staggered columns, fewer and larger, every one of them bleeding off an
- *  edge so the field reads as continuing past the phone. */
+/**
+ * PHONE. At 375 the lockup is sixty percent of the height and the h1 alone is
+ * the full column, so two full-height columns beside the type is not a thing
+ * that exists without a scrim, and a scrim is the one thing this concept will
+ * not spend. The columns become STAGGERED PAIRS instead: a pair across the
+ * top, a pair flanking the QR at half off each edge, and a trio rising off the
+ * bottom. Seven cards, larger than the desktop's, every one of them bleeding
+ * off an edge so the field still reads as continuing past the phone.
+ */
 // prettier-ignore
 const PHONE_SLOTS: Slot[] = [
-  //  x   y   w   ar        r     d     o   s
-  at( 20,  6, 52, 3 / 2,   -5,   0.8,   0, 11.5, photo(0)),
-  at( 82,  4, 46, 9 / 16,   4,   0.95,  2,  9,   clip(0)),
-  at( 14, 94, 50, 4 / 5,    6,   0.7,   4, 12.5, photo(4)),
-  at( 84, 99, 46, 9 / 16,  -4,   0.85,  6, 10.2, clip(1)),
-  at( 44, 97, 30, 3 / 2,   -7,   0.35, 18, 13,   photo(10)),
+  //   x   y   w   ar        r     d     o   s
+  at(  16, -2, 68, 3 / 2,   -5,   0.8,   1, 11.5, photo(0)),   // across the top
+  at(  74,  4, 46, 4 / 3,    5,   0.55,  0,  9.3, photo(3)),
+  at(  -1, 21, 32, 4 / 5,   -7,   0.65,  5, 12.1, photo(6)),   // flanking the QR
+  at( 101, 23, 28, 3 / 4,    6,   0.45,  6, 10.6, photo(9)),
+  at(  16, 96, 54, 4 / 5,    6,   0.7,   3, 12.5, photo(4)),   // off the bottom
+  at(  82, 94, 34, 9 / 16,  -4,   0.9,   2, 10.2, clip(0)),
+  at(  47, 99, 30, 9 / 16,  -8,   0.4,  16, 13,   clip(1)),
 ];
 
 const SLOTS: Record<Mode, Slot[]> = {
@@ -214,7 +245,6 @@ export const gathering: Concept = {
 function Gathering({ mode, copy, qrUrl }: ConceptProps) {
   const text = copyFor(gathering, copy);
   const desktop = mode === "desktop";
-  const clearing = CLEAR_ZONE[mode];
 
   return (
     <div className="relative h-full overflow-hidden bg-background">
@@ -222,13 +252,18 @@ function Gathering({ mode, copy, qrUrl }: ConceptProps) {
 
       {/* THE CLEARING. The lockup carries no entrance: it is the fixed thing
           the album gathers around, and the h1 is at paint by construction. */}
-      <div className="relative flex h-full items-center justify-center">
+      <div
+        className={cn(
+          "relative flex h-full items-center justify-center",
+          // At 375 the lockup is 60% of the height, so centring it leaves two
+          // slivers. Lifting it by half of this gives the bottom band a real
+          // field and keeps one photograph anchoring the top.
+          desktop ? null : "pb-[9%]",
+        )}
+      >
         <div
-          className={cn(
-            "flex flex-col items-center text-center",
-            desktop ? null : GUTTER.phone.x,
-          )}
-          style={{ width: `${clearing.x1 - clearing.x0}%` }}
+          className="flex flex-col items-center text-center"
+          style={{ width: `${typeColumn(mode)}%` }}
         >
           <span
             data-mkt-pulse
