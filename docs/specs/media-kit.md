@@ -52,12 +52,19 @@ provenance hunt could close. Even in the best case, where all twelve really are 
 were downloaded in good faith, the license they were taken under never covered the thing that makes
 them worth having. This is not a filing problem. It is a sourcing problem, and only new frames fix it.
 
-**The finding that makes it affordable.** The three hero tracks each asked for their own batch: 24
-squares at 512 px (`hero-source`), 36 photographs at 1600 px plus 8 vertical clips (`hero-gathering`),
-and a 15 to 20 s film (`hero-reel`). Those are not four deliveries. They are **one library at three
-crops and one cut**: 36 masters, six per vertical, from which the 24 squares are crops, the 8 clips are
-the same events shot as video, and the film is cut from that footage. Asking for them separately is
-asking Will for three shoots instead of one.
+**The finding that makes it affordable.** Round two's three hero concepts each asked for their own
+batch: 24 squares at 512 px (`hero-source`), 36 photographs at 1600 px plus 8 vertical clips
+(`hero-gathering`), and a 15 to 20 s film (`hero-reel`). Those are not four deliveries. They are **one
+library at three crops and one cut**: 36 masters, six per vertical, from which the 512 squares are
+crops, the clips are the same events shot as video, and a film is cut from that footage.
+`shared.tsx:130` already says so in the tree, describing the replacement as "Will's 36-frame set (a
+third portrait, 24 also as 512-square)".
+
+The round-two ruling proved the point the same day: the gathering and the reel were not ruled in, so
+`ASSETS.md` rows 3 and 4 went to `parked` and `withdrawn` while round three opened three new hero
+variations that all want the same photographs. **A kit cut to the product's verticals survives a hero
+ruling. A batch cut to one composition does not.** That is the argument for defining the kit here, by
+vertical, rather than concept by concept.
 
 ---
 
@@ -328,12 +335,15 @@ no corporate, conference or trip frame to hash into.
 
 **Everything else is derived from those 36.**
 
-| Deliverable | Derivation | Replaces |
-| --- | --- | --- |
-| 36 masters, 1600 px long edge, a third portrait, one grade | the shoot | all twelve stand-ins |
-| 24 squares at 512 px, 6 to 35 KB webp | crops of 24 of the masters | `FRAMES` in the corridor concept |
-| 8 vertical clips, 3 to 5 s, 1080 x 1920, silent, each with its own poster | filmed at the same events | the three `currentTime` ranges cut out of `hero-candidate-01` |
-| The film, 15 to 20 s, 12 to 18 shots, both orientations, mp4 + webm + posters | cut from the same footage | `hero-candidate-02` and its poster |
+| Deliverable | Derivation | Replaces | Standing |
+| --- | --- | --- | --- |
+| 36 masters, 1600 px long edge, a third portrait, one grade | the shoot | all twelve stand-ins | `ASSETS.md` row 7, requested |
+| 24 squares at 512 px, 6 to 35 KB webp | crops of 24 of the masters | `FRAMES` in `shared.tsx`, which every round-three hero variation cycles | row 2, requested and live |
+| 8 vertical clips, 3 to 5 s, 1080 x 1920, silent, each with its own poster | filmed at the same events | the `currentTime` ranges cut out of `hero-candidate-01` | row 4, withdrawn with the gathering; cheap to revive because it is the same shoot |
+| The film, 15 to 20 s, 12 to 18 shots, both orientations, mp4 + webm + posters | cut from the same footage | `hero-candidate-02` and its poster | row 1, parked for the queued video card |
+
+Only the first row is a new ask. The rest are the same shoot, cropped and cut, which is why parking a
+hero concept should never park the photography.
 
 ### 5.1 The shot lists
 
@@ -369,11 +379,11 @@ photographing. A ridge line with the group small in it. The last fire, faces lit
 
 These are not preferences. Each one comes from a surface the twelve already feed.
 
-1. **1600 px long edge, a third portrait.** The gathering concept places frames in 3:2, 16:9, 1:1, 4:3,
-   4:5, 3:4 and 2:3 boxes. A landscape-only library crops hard in every tall slot, which is why
-   `wedding-petals`, the manifest's lone portrait, currently feeds every vertical slot in the product.
-2. **Readable at 120 px.** The corridor reads a frame between 70 and 330 px, where a wide room shot is
-   grey mush. Tight framing is the single biggest lift available to the whole set.
+1. **1600 px long edge, a third portrait.** Eleven of the twelve stand-ins are landscape and none is
+   wider than 900 px, so `wedding-petals`, the manifest's lone portrait, currently feeds every
+   vertical slot in the product and a landscape-only library crops hard in every tall one.
+2. **Readable at 120 px.** The hero corridor reads a frame between 70 and 290 px, where a wide room
+   shot is grey mush. Tight framing is the single biggest lift available to the whole set.
 3. **Survives the crop ladder.** Six positions, 22 percent left to 78 percent right. Put something in
    both halves.
 4. **Dark and warm, left 55 percent of frame in the lower third of the range.** That is what buys a

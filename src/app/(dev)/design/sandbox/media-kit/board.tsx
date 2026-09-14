@@ -64,9 +64,9 @@ const DEPARTURES = [
 ];
 
 const ASSETS = [
-  "36 event photographs, six per vertical (weddings, birthdays, corporate, conferences, festivals, trips), 1600 px long edge, a third portrait, one grade, the shot lists on this board. Replaces all twelve stand-ins and feeds the three hero asks.",
-  "8 vertical clips, 3 to 5 s, 1080 x 1920, silent, each with its own poster at 1080 x 1920. Replaces the three currentTime ranges cut out of hero-candidate-01.",
-  "24 square crops at 512 px, derived from the 36 rather than shot separately. Replaces the corridor's FRAMES.",
+  "36 event photographs, six per vertical (weddings, birthdays, corporate, conferences, festivals, trips), 1600 px long edge, a third portrait, one grade, the shot lists on this board. Replaces all twelve stand-ins, and subsumes ASSETS.md rows 2, 3 and 4 rather than sitting beside them.",
+  "24 square crops at 512 px, 6 to 35 KB webp, derived from the 36 rather than shot separately. Replaces FRAMES in shared.tsx, which every round-three hero variation cycles (ASSETS.md row 2).",
+  "8 vertical clips, 3 to 5 s, 1080 x 1920, silent, each with its own poster, filmed at the same events. ASSETS.md row 4 was withdrawn with the gathering; it costs nothing to keep because it is the same shoot.",
 ];
 
 /* --------------------------------------------------------------------------
@@ -659,10 +659,13 @@ export function MediaKitBoard() {
         <div>
           <h2 className="text-sm font-semibold">The kit Will makes</h2>
           <Caption className="mt-1">
-            36 masters, six per vertical. hero-source asked for 24 squares at
-            512, hero-gathering for 36 photographs at 1600 and 8 vertical clips,
-            hero-reel for a 15 to 20 s film. Those are not four deliveries: they
-            are one library at three crops and one cut.
+            36 masters, six per vertical. Round two&rsquo;s three concepts each
+            asked for their own batch (24 squares at 512, 36 photographs at
+            1600, 8 clips, a film) and the ruling parked or withdrew two of them
+            the same day, while round three opened three variations that all
+            want the same photographs. Those were never four deliveries: they
+            are one library at three crops and one cut, which is what a kit
+            defined by the verticals rather than by a composition survives to be.
           </Caption>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

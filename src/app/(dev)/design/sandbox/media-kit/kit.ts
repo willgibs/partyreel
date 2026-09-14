@@ -348,11 +348,15 @@ export const MANIFEST_BY_ID = new Map(MARKETING_IMAGES.map((m) => [m.id, m]));
 export const REELS = MARKETING_REELS;
 
 /**
- * THE KIT, generalised from the three hero asks. hero-source asked for 24 squares
- * at 512, hero-gathering for 36 photographs at 1600 with 8 vertical clips, and
- * hero-reel for a 15 to 20 s film. Those are not three deliveries: they are one
- * library at three crops. 36 masters, six per vertical, is the whole ask; the 24
- * squares are crops of 24 of them and the film is cut from the same two shoots.
+ * THE KIT. Round two's three hero concepts each asked for their own batch (24
+ * squares at 512, 36 photographs at 1600 with 8 vertical clips, a 15 to 20 s
+ * film) and the round-two ruling parked or withdrew two of the three the same
+ * day, because each was cut to one concept's layout. shared.tsx already states
+ * the conclusion in the tree: "Will's 36-frame set (a third portrait, 24 also as
+ * 512-square) replaces them by id". So: 36 masters, six per vertical, is the
+ * whole ask, the 512 squares are crops of 24 of them, and a clip or a film is
+ * cut from the same shoot. A kit cut to the PRODUCT's verticals survives a hero
+ * ruling; a batch cut to one composition does not.
  */
 export const SHOT_LIST: Record<Vertical, string[]> = {
   weddings: [
@@ -408,10 +412,10 @@ export const SHOT_LIST: Record<Vertical, string[]> = {
 /** What a frame must survive before it enters the manifest. Derived from the
  *  surfaces the twelve already feed, so the spec is a test and not a mood. */
 export const KIT_CONSTRAINTS = [
-  "1600 px long edge, a third portrait: hero-gathering places frames in 3:2, 16:9, 1:1, 4:3, 4:5, 3:4 and 2:3 boxes, so a landscape-only library crops hard in every tall slot.",
-  "Readable at 120 px: hero-source reads a frame between 70 and 330 px, where a wide room shot is grey mush. Tight framing is the single biggest lift available.",
+  "1600 px long edge, a third portrait. Eleven of the twelve stand-ins are landscape and none is wider than 900 px, so every tall slot in the product is currently fed by one photograph.",
+  "Readable at 120 px. The hero corridor reads a frame between 70 and 290 px, where a wide room shot is grey mush. Tight framing is the single biggest lift available to the whole set.",
   "Survives the crop ladder: a blog cover is cropped to six positions from 22 percent left to 78 percent right, so a frame with its whole subject in the middle loses it four times out of six.",
   "Dark and warm with the left 55 percent in the lower third of the range: that is what buys a hero with no scrim over the media, which is rule 1 held rather than argued.",
-  "Three frames show a guest holding a phone up at the event. The many-hands argument lands harder when one frame says it literally.",
-  "No frame needs a face in focus to work, because the type sits over the left half of the hero.",
+  "Three frames show a guest holding a phone up at the event. Every round-three hero variation wants them, and the many-hands argument lands harder when one frame says it literally.",
+  "No frame needs a face in focus to work. That is a composition note on the hero and, under the proposed rule, the thing that keeps most of the kit clear of the release question.",
 ];
