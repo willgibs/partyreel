@@ -253,11 +253,7 @@ export function BrandVoiceBoard() {
         framed={false}
       >
         <div className="space-y-3">
-          <Stage
-            mode={mode}
-            ground="cinema"
-            height={desktop ? 520 : 620}
-          >
+          <Stage mode={mode} ground="cinema" height={desktop ? 520 : 720}>
             <div
               key={voice.id}
               data-inview="true"
@@ -272,10 +268,15 @@ export function BrandVoiceBoard() {
               />
             </div>
           </Stage>
-          <p className="text-xs text-muted-foreground">
-            Today: {voiceById("today").hero.h1}{" "}
-            {voiceById("today").hero.sub}
-          </p>
+          <div className="grid gap-x-3 text-xs text-muted-foreground sm:grid-cols-[4rem_minmax(0,1fr)]">
+            <p className="text-[11px]">Today</p>
+            <p>
+              <span className="text-foreground">
+                {voiceById("today").hero.h1}
+              </span>{" "}
+              {voiceById("today").hero.sub}
+            </p>
+          </div>
         </div>
       </Variant>
 
@@ -344,9 +345,9 @@ export function BrandVoiceBoard() {
         rationale="A help article head, an app label, an email subject and an error, today beside the guide's rule. Three of the four do not change: that is the finding, not an omission. The registers are the guide's, not the candidate's."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 560 : 900}>
-          <div className="h-full overflow-hidden px-8 py-6">
-            <dl className="grid h-full grid-rows-4 gap-3">
+        <Stage mode={mode} ground="app-light" height={desktop ? 660 : 1180}>
+          <div className="h-full px-8 py-6">
+            <dl className="flex flex-col gap-3">
               {QUIET_SURFACES.map((s) => (
                 <div
                   key={s.surface}
@@ -358,7 +359,13 @@ export function BrandVoiceBoard() {
                   <dd className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
                     {s.rule}
                   </dd>
-                  <dd className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2">
+                  <dd
+                    className={
+                      desktop
+                        ? "mt-2 grid grid-cols-2 gap-x-4 gap-y-1"
+                        : "mt-2 grid gap-y-2"
+                    }
+                  >
                     <div>
                       <p className="text-[11px] text-muted-foreground">Today</p>
                       <p className="text-sm text-muted-foreground">
@@ -400,14 +407,20 @@ export function BrandVoiceBoard() {
         rationale="The parked ruling, on the surface it actually renders: what a host's group chat shows when the event asks guests to verify an email first. One word settles it."
         framed={false}
       >
-        <Stage mode={mode} ground="app-light" height={desktop ? 340 : 520}>
-          <div className="flex h-full flex-col justify-center gap-4 px-8">
+        <Stage mode={mode} ground="app-light" height={desktop ? 330 : 620}>
+          <div
+            className={
+              desktop
+                ? "grid h-full grid-cols-2 items-center gap-6 px-8"
+                : "flex h-full flex-col justify-center gap-5 px-6"
+            }
+          >
             {UNFURL.options.map((o) => (
               <div key={o.id} className="space-y-1.5">
                 <p className="text-[11px] font-medium text-foreground">
                   {o.label}
                 </p>
-                <div className="max-w-md overflow-hidden rounded-[var(--radius)] border border-border bg-card">
+                <div className="overflow-hidden rounded-[var(--radius)] border border-border bg-card">
                   <div className="h-12 bg-muted" />
                   <div className="px-4 py-2.5">
                     <p className="text-sm font-medium">{UNFURL.title}</p>
@@ -416,7 +429,7 @@ export function BrandVoiceBoard() {
                     </p>
                   </div>
                 </div>
-                <p className="max-w-md text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
                   {o.note}
                 </p>
               </div>
