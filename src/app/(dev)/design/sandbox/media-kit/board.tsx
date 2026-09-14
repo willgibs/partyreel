@@ -612,7 +612,7 @@ export function MediaKitBoard() {
           </h2>
           <Caption className="mt-1">
             Quoted from each license page on the date recorded. What each one
-            forbids, and the two that fail us, are in the spec.
+            also forbids, and why the five refusals fail us, are in the spec.
           </Caption>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">

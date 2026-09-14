@@ -22,8 +22,9 @@
 ([`src/lib/constants/marketing-media.ts:64-171`](../../src/lib/constants/marketing-media.ts)) carry one
 line, `license: "unsplash (per lab-pack comment; provenance unverified)"`, and nothing else: no author,
 no source URL, no retrieval date. All three of those fields exist on the type and all three are
-optional (`:33-36`). The lab pack the files were copied from, `public/design/`, is empty, so the
-provenance trail is gone from the tree. This is not a lab problem. Eleven of the twelve are the blog's
+optional (`:33-36`). The lab pack the files were copied from, `public/design/`, was empty when this
+track opened, so the provenance trail is gone from the tree. This is not a lab problem. Eleven of the
+twelve are the blog's
 cover pool ([`src/lib/content/blog-covers.ts:22-34`](../../src/lib/content/blog-covers.ts)), which puts
 them on 23 published posts, on the OpenGraph card each post syndicates to every social platform and
 chat app that unfurls a link, and inside the RSS enclosures the feed hands to aggregators. The frames
@@ -308,9 +309,10 @@ files are CC BY or CC BY-SA, so a batch has to be filtered to CC0 file by file.
    letters. The upside of a real shoot is not only taste; it is the only sourcing where we know.
 3. **Everybody bars building a competing service** from their assets. Not a risk for us today. Worth
    remembering the day anything reaches for a media library as a product feature.
-4. **"Irrevocable" is soft on three of the five.** Pexels, Pixabay and Coverr each grant an
-   irrevocable license and separately reserve the right to change the terms. Only CC0 and CC BY are
-   clean, which is the real reason to prefer CC0 for anything that ships.
+4. **"Irrevocable" is soft on four of the five.** Pexels, Pixabay and Coverr each grant an
+   irrevocable license and separately reserve the right to change the terms; Mixkit does not even
+   claim it, calling its own grant "freely revocable". Only CC0 and CC BY are clean, which is the
+   real reason to prefer CC0 for anything that ships.
 
 ---
 
@@ -437,10 +439,10 @@ shown as they are. A batch that hides its own weak entries is not a survey.
 **The recommendation on the batch: yes as a bridge, no as an answer.** Ship licensed frames only where
 the photograph is furniture, delete them the day the kit lands, and never on the hero. A stock photo on
 a page that says "every frame here is from a real event" is the failure Will already caught once, on
-the press page, and the reason bible 18 exists. The eight also demonstrate the ceiling: the best
-freely licensed, non-attribution, non-revocable corpus available produced eight frames, four of which
-are empty rooms, detail shots or the backs of people's heads, because the frames that are worth
-anything to this product are the ones with faces in them and those are exactly the frames no free
+the press page, and the reason bible 18 exists. The eight also demonstrate the ceiling: seven of
+them are empty rooms, detail shots, silhouettes or the backs of people's heads, and the one with a
+face in it is the one carrying a caution. That is not a coincidence in the search. The frames worth
+anything to this product are the ones with faces in them, and those are exactly the frames no free
 license covers.
 
 ---
