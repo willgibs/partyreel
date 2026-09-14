@@ -46,7 +46,8 @@ export function Stage({
     skin === "gallery" && "bg-gallery text-gallery-foreground",
     contentClassName,
   );
-  const inner = skin === "marketing" ? <div data-mkt="">{children}</div> : children;
+  const inner =
+    skin === "marketing" ? <div data-mkt="">{children}</div> : children;
 
   return (
     <div className="group/stage overflow-hidden rounded-xl border border-border bg-card">
@@ -57,7 +58,7 @@ export function Stage({
         </p>
         <span className="flex shrink-0 items-baseline gap-3">
           {hint && (
-            <span className="truncate font-mono text-[11px] text-muted-foreground">
+            <span className="truncate text-[11px] text-muted-foreground">
               {hint}
             </span>
           )}
@@ -70,7 +71,7 @@ export function Stage({
               "-mb-0.5 flex size-5 items-center justify-center rounded-md transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90",
               split
                 ? "text-foreground"
-                : "text-muted-foreground/60 hover:text-foreground group-hover/stage:text-muted-foreground",
+                : "text-muted-foreground/60 group-hover/stage:text-muted-foreground hover:text-foreground",
             )}
           >
             <Columns2 className="size-3.5" />
@@ -112,10 +113,10 @@ function ThemePane({
       className={cn(
         "relative bg-background text-foreground",
         tone === "light" ? "surface-paper" : "dark",
-        tone === "dark" && "sm:border-l border-t border-border sm:border-t-0",
+        tone === "dark" && "border-t border-border sm:border-t-0 sm:border-l",
       )}
     >
-      <span className="pointer-events-none absolute top-1 right-2 font-mono text-[10px] tracking-wider text-muted-foreground/70 uppercase">
+      <span className="pointer-events-none absolute top-1 right-2 text-[10px] tracking-wider text-muted-foreground/70 uppercase">
         {tone}
       </span>
       <div className={className}>{children}</div>
@@ -136,7 +137,7 @@ export function CopyLine({ code }: { code: string }) {
       }}
       className="group/copy flex w-full items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-left transition-colors hover:border-foreground/25"
     >
-      <code className="min-w-0 flex-1 font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap text-muted-foreground group-hover/copy:text-foreground">
+      <code className="min-w-0 flex-1 font-sans text-[11px] leading-relaxed break-words whitespace-pre-wrap text-muted-foreground group-hover/copy:text-foreground">
         {code}
       </code>
       <span className="relative mt-0.5 size-3.5 shrink-0 text-muted-foreground">

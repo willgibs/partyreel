@@ -38,7 +38,7 @@ export function FamilyGallery({
     <>
       <RefHeader eyebrow={eyebrow} title={title} blurb={blurb} />
       <GalleryCounts items={items} />
-      <p className="mt-3 font-mono text-[11px] text-muted-foreground">
+      <p className="mt-3 text-[11px] text-muted-foreground">
         Every component here has a page of its own:{" "}
         <Link href={link("/design/library")} className="underline">
           the library index

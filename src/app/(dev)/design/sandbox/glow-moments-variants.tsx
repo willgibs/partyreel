@@ -482,7 +482,7 @@ function AwaitingMedia() {
               {label}
             </button>
           ))}
-          <span className="ml-1 font-mono text-xs text-muted-foreground">
+          <span className="ml-1 text-xs text-muted-foreground tabular-nums">
             {fps === null ? "idle" : `${fps} fps`}
           </span>
         </div>
@@ -1261,7 +1261,7 @@ function UploadAsLight() {
           <Button size="sm" onClick={start} disabled={running}>
             {running ? "Uploading" : "Upload a photo"}
           </Button>
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {Math.round(progress * 100)}%
           </span>
         </div>
@@ -2019,7 +2019,7 @@ function BeamSurfaceStage({
         style={{ background: "oklch(0.21 0 0)" }}
       >
         <div className="relative">
-          <p className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
+          <p className="text-[11px] tracking-widest text-muted-foreground uppercase">
             Pro
           </p>
           <p className="mt-1.5 font-heading text-2xl">$90</p>
@@ -2230,7 +2230,7 @@ function WholePage() {
           </Button>
           <span
             className={cn(
-              "font-mono text-xs",
+              "text-xs tabular-nums",
               inView > 1 ? "text-foreground" : "text-muted-foreground",
             )}
           >
@@ -2283,7 +2283,7 @@ function WholePage() {
 
           {/* 2. NO LAMP. Most of a page looks like this, on purpose. */}
           <Ground on="cinema" className="rounded-none px-8 py-14">
-            <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+            <p className="text-xs tracking-widest text-muted-foreground uppercase">
               How it works
             </p>
             <div className="mt-5 grid gap-6 sm:grid-cols-3">

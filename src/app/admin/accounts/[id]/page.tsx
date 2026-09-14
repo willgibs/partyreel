@@ -153,7 +153,9 @@ export default async function AdminAccountDetailPage({
             </span>
           </Row>
           <Row label="User ID">
-            <code className="text-xs">{profile.id}</code>
+            <code className="rounded bg-muted px-1.5 py-0.5 font-sans text-xs tabular-nums select-all">
+              {profile.id}
+            </code>
           </Row>
         </CardContent>
       </Card>

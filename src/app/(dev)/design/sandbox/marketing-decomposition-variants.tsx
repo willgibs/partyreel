@@ -140,7 +140,7 @@ function CountUp({
       cancelAnimationFrame(raf);
     };
   }, [on, reduced, to, delayMs, durMs]);
-  return <span className="font-mono tabular-nums">{n}</span>;
+  return <span className="tabular-nums">{n}</span>;
 }
 
 function OneShotStage({ onReplay }: { onReplay: () => void }) {
@@ -184,8 +184,9 @@ function OneShotStage({ onReplay }: { onReplay: () => void }) {
         </div>
       </div>
 
-      {/* The three facts land while the tiles fly; counts tick in Geist Mono
-          tabular. Sequential stagger so each fact gets its beat. */}
+      {/* The three facts land while the tiles fly; the counts tick on the
+          body face with tabular figures, which is what holds each digit
+          column still. Sequential stagger so each fact gets its beat. */}
       <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-baseline justify-center gap-x-10 gap-y-2 px-6 text-center">
         <p
           data-mkt-reveal
@@ -258,7 +259,7 @@ function OneShotStage({ onReplay }: { onReplay: () => void }) {
 function LeadIn() {
   return (
     <div className="flex h-[380px] flex-col items-center justify-center gap-3 px-10 text-center">
-      <p className="font-mono text-[11px] tracking-[0.2em] text-white/40 uppercase">
+      <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
         The made-from arc · section 3 of 12
       </p>
       <p data-dir-display className="text-[34px] leading-[1.02] text-white/90">
@@ -411,13 +412,13 @@ function DecompositionScrub() {
               <div className="flex items-center justify-between px-8 pt-5">
                 <p
                   ref={hintRef}
-                  className="font-mono text-[11px] tracking-[0.2em] text-white/45 uppercase"
+                  className="text-[11px] tracking-[0.2em] text-white/45 uppercase"
                 >
                   Scroll to pull the reel apart
                 </p>
                 <span
                   ref={readoutRef}
-                  className="font-mono text-[11px] text-white/35 tabular-nums"
+                  className="text-[11px] text-white/35 tabular-nums"
                 >
                   0%
                 </span>
@@ -462,7 +463,7 @@ function DecompositionScrub() {
                   style={{ opacity: 0 }}
                 >
                   Built from{" "}
-                  <span ref={photosRef} className="font-mono tabular-nums">
+                  <span ref={photosRef} className="tabular-nums">
                     0
                   </span>{" "}
                   photos.
@@ -476,7 +477,7 @@ function DecompositionScrub() {
                   style={{ opacity: 0 }}
                 >
                   Shot by{" "}
-                  <span ref={guestsRef} className="font-mono tabular-nums">
+                  <span ref={guestsRef} className="tabular-nums">
                     0
                   </span>{" "}
                   guests.

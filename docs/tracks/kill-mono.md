@@ -1,7 +1,8 @@
 ---
 track: kill-mono
-status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+status: integrated
+cut: "6c19d8437438ce718c9b3bb2901a03c31cc560cf"
+merged: "659097f"      # the branch head merged into launch-prep
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/layout.tsx
@@ -141,23 +142,94 @@ The sweep: every `font-mono` in your lane gone; `MonoCaption` callers moved to `
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`, the type chapter: the "mono ruling (R6)" paragraph is replaced in
+  place by **TWO FACES, AND ONLY TWO** (the ruling, what left the pipeline, and the three things that
+  now carry mono's work: data on the body face with tabular figures, a subject number in the display
+  face, a value that must look like a value on a muted plate with `select-all`). Same slot, same
+  length; nothing appended.
+- `docs/systems/design-system.md`, the Phase-2 synthesis line: "two typefaces (Geist Mono = a
+  documented utility exception for code/counts)" becomes "two typefaces (mono left the product in the
+  2026-09-14 sweep)".
+- `docs/systems/design-system.md`, Gotchas / don't-revert: ONE new ★ bullet, the preflight trap (a bare
+  `<code>`, `<pre>`, `<kbd>` or `<samp>` renders in a mono stack with no class on it, so no `font-mono`
+  grep can see it; `font-sans` on the element, `prose-code:font-sans` on a prose container).
+- `docs/systems/marketing-content.md`, seven lines refined in place: the legal status line (:125), the
+  /about "no mono anywhere" clause (:160, deleted, since it is now global truth rather than a page
+  fact), the contact sheet's frame numbers (:218 and :260), the careers letterhead caption (:312), the
+  R6 paragraph in the help-centre chapter (:373, now the two-face statement) and the blog byline's
+  justification (:466).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Admin-portal bucket: the MFA enrolment secret (`src/components/admin/mfa-enroll.tsx:122`) is a bare
+  `<code>`, so preflight still sets it in a mono stack; outside this lane. One class (`font-sans`), or
+  the plate idiom this sweep gave the other admin codes.
+- Launch-checkpoint bucket: the two operator emails (`src/lib/email/templates.ts:169,196`) send
+  `<code>media</code>`, which every mail client renders in ITS mono face; outside this lane. An inline
+  style on those two tags, or drop the tag.
+- Lab bucket: `src/app/theme.css:18-20` still carries the handover comment ("Tailwind's default mono
+  stack carries the surviving font-mono classes until kill-mono removes them"). The handover is done;
+  the standing sentence is the last one, "Never re-add". The Orchestrator owns that file.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-kill-mono-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head: the branch tip (the sweep's five commits, then the merge at `bc9ef45`, then this file), pushed;
+  preview `partyreel-git-lp-kill-mono-partyreel.vercel.app`.
+- Synced with launch-prep at `b34993e` (it had moved from the `6c19d84` in `cut`; `git merge`, no
+  conflicts, and the merge brought in no new mono).
+- Gates on the synced tree, each on its own exit code: typecheck ok, lint ok (0 errors; 6 warnings,
+  all pre-existing and none in this lane), test ok (1,647 in 190 files), build ok (247 static pages).
+- Closing grep: `grep -rn "font-mono\|MonoCaption\|mono-caption" src` returns five lines, all of them
+  comments, plus the one live class in `src/components/dev/motion-tuner.tsx:158` (the Orchestrator's,
+  stripped in the rounding round). `rules.generated.json` is excluded from that grep by the manifest.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = 88 files, every one under an owned
+  prefix, plus this manifest and the two system docs listed above. The one exception is the ruled one:
+  `src/app/(dev)/design/rules/rules.generated.json`, regenerated with `pnpm design:rules` after the atom
+  was deleted (87 components, 83 indexed; no `@contract-for` test was added).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Assets requested from Will: none. The sweep asked for no new artwork.
+- The asks: none. This track had no board, so `BoardMeta` has nothing to quote. The one judgement worth
+  a ruling is in "Look at first".
+- **The walk, and the one thing it could not reach.** Walked on the branch preview at 1440 and at 375
+  (375 through a same-origin 375x812 iframe: the Chrome MCP tab reports `innerWidth` 1440 whatever the
+  window is resized to, which is a tooling limit, not a product one): `/`, `/how-it-works`, `/reel`,
+  `/features/album`, `/help`, `/help/send-the-event-link`, `/privacy`, `/press`, `/careers`, a 404,
+  `/design/library`, `/design/marketing`, `/design/patterns`. **`/admin` could not be walked signed in**
+  and I am not downgrading that quietly: an `lp/*` alias is in no auth allow-list by design, and
+  `/admin/*` answers 404 to anyone who is not an admin (confirmed on the preview), so there is no way to
+  reach those four pages from this branch. What I did instead: injected the four admin class strings
+  into a page that loads the SAME stylesheet (`/privacy`) and read the computed styles, which is what my
+  change actually is. All four render as intended (Inter, the muted plate, tabular figures,
+  `user-select: all` on the three copyable ones and `auto` on the type-to-confirm token). The four
+  surfaces still want an eye on the integration walk, where the launch-prep alias can sign in:
+  `/admin/forensics` (both id columns), `/admin/jobs` (the plate only shows when the heartbeat is
+  unreadable), `/admin/accounts/<id>` (the user-id plate) and its delete dialog.
+- Look at first:
+  - **The stat register.** `StatBand` and the help filmstrip moved to the display face (Urbanist 700 with
+    tabular figures), which is the register `/pricing` ratified for money on 2026-08-27. It is the
+    loudest change in the sweep: `/features/album` and `/help` show it. If a count should stay quieter
+    than a price, that is Will's call and it is one class.
+  - **The ghost folio** on `/help` went from 5% mono to 6% Urbanist. It is a watermark folio now, more
+    present than it was, which is what a print index wants; if it reads loud, `/[0.04]` is the dial.
+  - **Inline code in the help centre and the blog.** `prose-code:font-sans` on the two article wrappers
+    killed the face in ~260 code spans that no `font-mono` grep could see. The typography plugin still
+    wraps them in backticks at weight 600, which is now the whole "this is a literal" signal. It reads
+    fine; a plate would read better, and that is a round of its own.
+  - **The side chip** (`/how-it-works`) is the one component whose look changed rather than its face: it
+    is the eyebrow idiom now (Inter 500, uppercase, tracked) beside the step numeral.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). Mono left the product. The `Geist_Mono` loader and
+its `--font-mono` variable went out of `layout.tsx`, so the site downloads two faces; `MonoCaption` was
+deleted and its sixteen call sites moved to `Caption`, now the one caption atom for labels and data
+alike; every remaining `font-mono` in marketing, admin, shared and the lab went with them, and the
+figures that had leaned on mono for alignment kept it with `tabular-nums`. The places where mono did
+semantic work were redesigned rather than swapped: the stat register (`StatBand`, the help filmstrip)
+took the display face with tabular figures, the register the pricing cards ratified; `/help`'s ghost
+folio became a watermark in the brand face; admin codes and keys became a quiet key in a table or a
+muted plate with `select-all`, and the type-to-confirm identifier took the plate without it, since
+typing it is the guard; the error digest and the privacy policy's storage key took the same plate. The
+sweep also closed the hole no grep sees: preflight sets a bare `<code>` in a mono stack, so the two
+`<code>` elements in the lane took `font-sans` and both long-form wrappers took `prose-code:font-sans`,
+which covers ~260 inline code spans across the help centre and the blog. Bible 7 leaves the bible.

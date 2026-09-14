@@ -463,18 +463,6 @@
       "contracts": []
     },
     {
-      "id": "mono-caption",
-      "file": "src/components/marketing/system/mono-caption.tsx",
-      "names": [
-        "MonoCaption"
-      ],
-      "specimens": [
-        "/design/marketing"
-      ],
-      "indexed": true,
-      "contracts": []
-    },
-    {
       "id": "morph-delegate",
       "file": "src/components/marketing/system/morph-delegate.tsx",
       "names": [

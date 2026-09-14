@@ -19,7 +19,11 @@ owns:
   - src/app/(dev)/design/c/
   - src/app/(dev)/design/touchpoints.ts
   - src/app/(dev)/design/touchpoints.test.ts
-  - src/app/(dev)/design/sandbox/home-hero/
+  - src/app/(dev)/design/sandbox/home-hero/board.tsx
+  - src/app/(dev)/design/sandbox/home-hero/board.css
+  - src/app/(dev)/design/sandbox/home-hero/shared.tsx
+  - src/app/(dev)/design/sandbox/home-hero/source.tsx
+  - src/app/(dev)/design/sandbox/home-hero/source.css
   - src/app/(dev)/design/sandbox/rounding/
   - src/components/dev/
   - src/components/marketing/mdx/
@@ -41,10 +45,12 @@ reads:
   - src/app/(marketing)/(cinema)/layout.tsx
   - src/components/marketing/system/section-shell.tsx
 announces:
-  - the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)
+  - "the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)"
   - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
   - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
   - no @contract-for test is added on launch-prep until kill-mono integrates (it regenerates rules.generated.json); the Orchestrator reruns pnpm design:rules at each merge
+  - "kill-mono landed (2026-09-14, `69af90d`): no mono face in the product; `src/app/two-faces-policy.test.ts` refuses a `font-mono` class, a mono loader or a `--font-mono` token; `MonoCaption` is gone (`Caption` is the one atom); `@contract-for` tests may be added again (the artifact was regenerated at the merge)"
+  - "the rounding round landed (2026-09-14): the radius tokens, --gap-gallery, --spill-cadence and the --tune-* knobs moved into their own :root block in globals.css (no value changed) and left the lab's .mono sheet; the Button's in-between sizes derive from --radius-action (button.tsx, same numbers); the tuner has a persisted store (tuner-store.ts), descriptions and groups, and nine specimen-less knobs retired from the panel. A lane reading globals.css, design.css or button.tsx: nothing to sync unless it copied a token block"
 ---
 
 # The integration branch
@@ -72,26 +78,73 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | --- | --- | --- | --- |
 | `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
 | `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | the tuner's store, descriptions and the action-radius knobs; then Will's sitting |
+| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
+| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | the launch-prep alias (integrated `797f692`) | Will's ruling (Waiting on Will, item 2), and the blog-cover decision |
+| `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
+| `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
+| the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | built; Will's sitting (Waiting on Will, item 3) |
 
 ## Waiting on Will
 
 Every open ruling with its link; the asks are quoted from each board's meta panel as the boards hand
 off. Assets live in [`../ASSETS.md`](../ASSETS.md).
 
-1. **The home hero, round two** (`/design/c/home-hero?key=` on the launch-prep alias, read in a
-   FOREGROUND tab): the concept (the source, the reel, the gathering), its eyebrow, its copy (the
-   toggle shows the ruled and the proposed), and the departures ruled in; the reel's scrim toggle is
-   its one trade; the gathering's staggered phone pairs are its one (accept them, spend a phone
-   scrim, or drop the phone h1 a step). The wiring round cuts after `kill-mono` lands.
-2. **The six boards of the review wave**, as each hands off: its asks are added here verbatim.
-3. **The rounding sitting** (after the tuner earns it, this side): the radius values on the real
-   surfaces and on `/design/c/rounding`; bible 8 inherits.
+1. **The home hero, round three** (`/design/c/home-hero?key=`, read in a FOREGROUND tab): round two
+   was ruled 2026-09-14 (the source, "definitely my favorite direction"; the reel and the gathering
+   out, the reel's idea parked as a "Watch your event highlights" video card for another page). Three
+   variations off the source are building (`hero-scan`, `hero-burst`, `hero-river`, each on its own
+   preview, the source first on the board as the reference); the ruling to come: which variation (or
+   the source as is), its eyebrow and supporting elements, its copy, the departures ruled in. The
+   wiring round cuts after that ruling and after `kill-mono` lands.
+2. **The boards of the review wave**, as each hands off, its asks verbatim.
+   - **brand-voice** (integrated `749e29a`; `/design/c/brand-voice?key=` on the launch-prep alias; the
+     guide at `docs/specs/brand-voice.md`): "The voice: today, A the house, B the room, or C the guest
+     list (the agent recommends B, with A second)"; "The seven provisional home headers in the ruled
+     voice, or line by line from any column"; "The account-required unfurl line: asks for an email, or
+     asks to sign in with an email (the agent recommends asks for an email)"; "Bible 20's replacement:
+     lead with what arrives, an absence may be the second beat and never the first" (the finding that
+     outlives the round: as written, rule 20 reads on the ruled no-app line). Flagged: C rewrites
+     `SITE_THESIS` to "The whole event, as everyone saw it."; the "five copy-alternative picks" have no
+     surviving list, so the board reads them as the five headers with an appetite for a different line
+     (say if that is wrong); B's h1 runs four lines at 375 against today's two.
+   - **type-scale** (integrated `838a5f6`; `/design/c/type-scale?key=` on the launch-prep alias; the
+     token tables in `docs/specs/type-scale.md`): "The marketing ladder: today, A tuned, B rungs or C
+     registers"; "The app ladder: today, A tuned, B rungs or C registers"; "The tracking law (leading
+     and tracking named per step, running inverse to size): adopt, or keep the flat -0.03em"; "The
+     face pairing: keep Inter with Urbanist, or open a face round" (the board's verdict: it holds).
+     Look at stage 1 at Phone 375 first (today's phone end is the whole argument), then stage 2 (the
+     loudness question), then stage 8 (the app's missing middle). Flagged: C's app title at 20 and
+     card title at 14 is the first thing to reject if it reads cheap; B turns bible 2 into arithmetic.
+   - **kill-mono** (integrated `69af90d`; no board): two looks on the launch-prep alias, one class
+     each if they read wrong: the stat register on `/features/album` and `/help` moved to the display
+     face with tabular figures (the register `/pricing` ratified for money), and `/help`'s ghost folio
+     went from 5% mono to 6% Urbanist (`/[0.04]` is the dial). The inline code in the help centre and
+     the blog now reads on the body face at weight 600 inside backticks; a plate would read better and
+     is its own round. The four admin surfaces (`/admin/forensics`, `/admin/jobs`, `/admin/accounts/<id>`
+     and its delete dialog) took the muted plate and want your eye on the alias (item 7).
+   - **media-kit** (integrated `797f692`; `/design/c/media-kit?key=`; the spec at `docs/specs/media-kit.md`):
+     1. "The rule as written: author, source and retrieval date REQUIRED on every manifest entry, and
+     an entry missing them cannot ship"; 2. "The allowed list: Pexels, Pixabay, Mixkit, Coverr and CC0
+     in, Unsplash out, each on the clause quoted; yes to the list, or strike a source"; 3. "The route:
+     Licensed, Ours, or Mix (the recommendation is Mix, with the frames marked ours in the sheet)";
+     4. "The first batch, item by item: OK to stage as the bridge on the blog pool, or not at all";
+     5. "The kit: 36 masters, six per vertical, with the 24 squares, the 8 clips and the film derived
+     from them rather than asked for separately" (`docs/ASSETS.md` row 7, applied). ★ **The finding
+     that needs a decision before launch:** Unsplash's terms exclude recognizable people from the
+     license, all twelve stills are full of them, and eleven are the blog's cover pool (23 posts,
+     their OG cards, the RSS enclosures). Say: the CC0 bridge on the blog pool now, or the kit first.
+3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
+   launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
+   in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
+   reload until Reset; Copy CSS gives the block to bake. The asks: "--radius, --radius-float,
+   --radius-tile: the values (today 2 / 8 / 3)"; "--radius-action, -lg, -sm: the values (today 16 /
+   19.2 / 12.8), and whether they move with the surfaces"; "Whether float and tile move with the
+   surfaces or stay put"; "Whether the derived scale (sm 0.6x to 4xl 2.6x) survives a rounder base,
+   or the steps get retuned". Say the six numbers (or a column) and bible 8 inherits them.
 4. **The light rulings**, riding the `light` board and closed by its ruling: (b) the lit surface
    (`[data-lit]`, on three of four beam specimens), (c) the publish beat's violet, (d) the cadence,
    8s or 11s. Still parked on its own: (f) whether the guest surfaces follow the VISITOR's theme
@@ -147,8 +200,27 @@ feels alive keeps a visitor exploring).
   request time; `next.config.ts` traces the directory in), seven boards registered in `touchpoints.ts`
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
-- `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from the push at
-  the tip that followed.
+- `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `797f692` media-kit integrated: the sourcing law as a proposal, ten licenses quoted, eight CC0
+  candidates staged under `public/design/media-kit/` with `provenance.json` (a test pins the pair),
+  the contact sheet; the asset log's rows 2, 4, 6 and 7 rewritten from its Handoff.
+- `69af90d` kill-mono integrated (88 files; the two system-doc edits read by eye; the artifact
+  regenerated clean at the merge); `838a5f6` type-scale integrated; bible 7 is now `two-faces`,
+  enforced by `src/app/two-faces-policy.test.ts`; `docs/specs/type-scale.md` carries the token tables.
+- the rounding round: `src/components/dev/tuner-store.ts` (new), `motion-tuner.tsx` and
+  `motion-tuner-config.ts` rebuilt (descriptions, ships, groups, the action trio, nine retirements),
+  `motion/motion-playground.tsx` (the controls hoisted), `sandbox/rounding/board.tsx` (the kit, four
+  columns), `src/app/globals.css` (the theme-independent tokens in their own `:root` block),
+  `(dev)/design/design.css` (`.mono` no longer declares the radius tokens), `src/components/ui/button.tsx`
+  (the in-between sizes derive from `--radius-action`). Verified on the dev server: the store survives
+  a soft navigation and a reload, the live column and a paper chapter's card follow the knob
+  (19.6px at a 14px base), Reset clears the DOM and the store.
+- the home hero, round two RULED (the source) and round three cut: `board.tsx` shows the source as the
+  reference and three variation stubs (`scan.tsx`, `burst.tsx`, `river.tsx`); the reel and the
+  gathering left the board (last at `6b2c595`: `git show 6b2c595:src/app/(dev)/design/sandbox/home-hero/reel.tsx`);
+  the scrim toggle and the shipped-hero reference went with them; `touchpoints.ts` names the three
+  tracks on the board (`board.tracks`) so the desk lists each track's preview; this manifest now owns
+  the hero shell as explicit files so the variation tracks own their two files each.
 
 The previous window (the "less is more" reset, milestone-24, the gallery, the home-hero board and
 round two) is recorded in the CHANGELOG.

@@ -2,7 +2,7 @@ import { Download } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { MediaSplit } from "@/components/marketing/system/media-split";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 
@@ -77,7 +77,7 @@ export function DownloadsSection() {
                   <span className="inline-flex h-7 w-fit items-center gap-1.5 rounded-lg border bg-background px-2.5 text-[0.8rem] font-medium">
                     <Download className="size-3.5" /> {trigger.label}
                   </span>
-                  <MonoCaption>{trigger.where}</MonoCaption>
+                  <Caption>{trigger.where}</Caption>
                 </div>
               ))}
             </div>

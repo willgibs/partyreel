@@ -13,9 +13,8 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { DemoTicket } from "@/components/marketing/system/demo-ticket";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Caption } from "@/components/marketing/system/caption";
+import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
@@ -44,7 +43,7 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  *  - ONE live reel card sits IN the wall (desktop+): the album's reel,
  *    playing the real engine render poster-first. It is product truth (album
  *    plus reel), not player chrome: its only adornment is a hairline ring and
- *    a mono duration chip. The card hides on mobile (the "Watch a sample
+ *    a duration caption. The card hides on mobile (the "Watch a sample
  *    reel" CTA carries the reel there); its <video> mounts post-hydration,
  *    play() rejection leaves the poster, ambient-pause pauses it.
  *  - LCP CONTRACT (revised for the wall): the LCP element is the H1 or an
@@ -238,10 +237,10 @@ export function CinemaHero() {
             )}
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
               <Caption className="text-white/80">The reel</Caption>
-              <MonoCaption className="text-white/60">
+              <Caption className="text-white/60 tabular-nums">
                 0:
                 {String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
-              </MonoCaption>
+              </Caption>
             </div>
           </div>
         </div>

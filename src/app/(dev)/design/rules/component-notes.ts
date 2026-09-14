@@ -107,7 +107,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
 
   /* marketing / system */
   "src/components/marketing/system/caption.tsx": {
-    for: "the caption atom in Inter, for anything that reads as a sentence; data goes to MonoCaption",
+    for: "the one caption atom: every label, hint and descriptor on the site, data included, on the body face",
   },
   "src/components/marketing/system/card-grid.tsx": {
     for: "the recurring card grid; server-first, and the tilt island is opt-in per grid",
@@ -116,7 +116,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the marquee shell: renders its children twice, and owns the loop-pause contract",
   },
   "src/components/marketing/system/cta-band.tsx": {
-    for: "the closing conversion band, with the mono credit line that ends a page",
+    for: "the closing conversion band, with the credit line that ends a page",
   },
   "src/components/marketing/system/demo-cta-link.tsx": {
     for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
@@ -129,9 +129,6 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/marketing/system/media-split.tsx": {
     for: "the media-and-copy split; the media half gets the wider run, because media is the color",
-  },
-  "src/components/marketing/system/mono-caption.tsx": {
-    for: "the mono caption atom, for DATA only: timecodes, counts, sizes, URLs, step indices",
   },
   "src/components/marketing/system/morph-delegate.tsx": {
     for: "one delegated listener grows a clicked card into the page it opens; the cards stay server",
