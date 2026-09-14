@@ -37,12 +37,7 @@ export function EntryBlock({
       className="scroll-mt-6 border-t border-border pt-6 first:border-t-0 first:pt-0"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3
-          className={cn(
-            "font-heading",
-            detail ? "text-3xl" : "text-lg",
-          )}
-        >
+        <h3 className={cn("font-heading", detail ? "text-3xl" : "text-lg")}>
           {detail ? (
             title
           ) : (
@@ -54,10 +49,10 @@ export function EntryBlock({
         {!detail && (
           <Link
             href={link(item.href)}
-            className="group/open flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            className="group/open flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
           >
             open
-            <ArrowUpRight className="size-3 transition-transform duration-150 ease-emphasis group-hover/open:-translate-y-px group-hover/open:translate-x-px" />
+            <ArrowUpRight className="size-3 transition-transform duration-150 ease-emphasis group-hover/open:translate-x-px group-hover/open:-translate-y-px" />
           </Link>
         )}
       </div>
@@ -69,7 +64,7 @@ export function EntryBlock({
       )}
 
       {file && (
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
           <SourceLink file={file} />
           {record && record.names.length > 1 && (
             <span className="text-muted-foreground/70">
@@ -115,7 +110,7 @@ export function EntryBlock({
           <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
             <p className="border-b border-border px-4 py-2.5 text-[13px] font-medium">
               Contracts
-              <span className="ml-2 font-mono text-[11px] text-muted-foreground">
+              <span className="ml-2 text-[11px] text-muted-foreground tabular-nums">
                 {contracts.length}
               </span>
             </p>
@@ -143,7 +138,7 @@ export function EntryBlock({
             </ul>
           </div>
         ) : (
-          <p className="mt-3 font-mono text-[11px]">
+          <p className="mt-3 text-[11px]">
             <Link
               href={link(item.href)}
               className="text-muted-foreground underline"
@@ -161,12 +156,12 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
   return (
     <div className="rounded-xl border border-border bg-card px-4 py-3">
       <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <code className="font-mono text-[12px] font-medium">{axis.prop}</code>
-        <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+        <code className="font-sans text-[12px] font-medium">{axis.prop}</code>
+        <span className="text-[10px] tracking-wider text-muted-foreground uppercase">
           {axis.source}
         </span>
         {axis.fallback && (
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             defaults to {axis.fallback}
           </span>
         )}
@@ -181,9 +176,7 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
           {axis.options.map((o) => (
             <div key={o} className="flex flex-col items-start gap-1.5">
               <div>{axis.sample?.(o)}</div>
-              <span className="font-mono text-[10px] text-muted-foreground">
-                {o}
-              </span>
+              <span className="text-[10px] text-muted-foreground">{o}</span>
             </div>
           ))}
         </div>
@@ -192,7 +185,7 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
           {axis.options.map((o) => (
             <span
               key={o}
-              className="rounded-full border border-border px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
+              className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
             >
               {o}
             </span>
@@ -207,17 +200,17 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
  * The gallery header a family page opens with: what the family is, how much of
  * it there is, and the counts an agent scans for.
  */
-export function GalleryCounts({
-  items,
-}: {
-  items: GalleryItem[];
-}) {
+export function GalleryCounts({ items }: { items: GalleryItem[] }) {
   const specimens = items.reduce((n, i) => n + i.entry.specimens.length, 0);
   const variants = items.reduce(
-    (n, i) => n + (i.entry.variants ?? []).reduce((m, v) => m + v.options.length, 0),
+    (n, i) =>
+      n + (i.entry.variants ?? []).reduce((m, v) => m + v.options.length, 0),
     0,
   );
-  const contracts = items.reduce((n, i) => n + (i.record?.contracts.length ?? 0), 0);
+  const contracts = items.reduce(
+    (n, i) => n + (i.record?.contracts.length ?? 0),
+    0,
+  );
   const rows: [string, number][] = [
     ["components", items.length],
     ["specimens", specimens],
@@ -227,7 +220,10 @@ export function GalleryCounts({
   return (
     <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
       {rows.map(([label, n]) => (
-        <div key={label} className="rounded-xl border border-border bg-card px-4 py-3">
+        <div
+          key={label}
+          className="rounded-xl border border-border bg-card px-4 py-3"
+        >
           <p className="font-heading text-2xl">{n}</p>
           <p className="text-xs text-muted-foreground">{label}</p>
         </div>
@@ -246,7 +242,7 @@ export function GallerySection({
 }) {
   return (
     <section className="pt-12">
-      <h2 className="font-mono text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+      <h2 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
         {title}
       </h2>
       <div className="mt-5 space-y-6">{children}</div>
@@ -289,7 +285,7 @@ export function SourceLink({
   const vscode = `vscode://file${process.cwd()}/${file}${line ? `:${line}` : ""}`;
   const gh = `https://github.com/willgibs/partyreel/blob/launch-prep/${file}${line ? `#L${line}` : ""}`;
   return (
-    <span className={cn("inline-flex items-baseline gap-1.5 font-mono", className)}>
+    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
       <a href={vscode} className="break-all hover:underline">
         {at}
       </a>

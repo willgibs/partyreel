@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { MARKETING_REELS } from "@/lib/constants/marketing-media";
@@ -65,10 +65,10 @@ export function ReelAngleBand({
           className="mx-auto mt-10 w-full max-w-[260px] sm:max-w-[300px]"
         >
           <InlineReelPlayer reelId={BAND_REEL_ID} sizes="300px" />
-          <MonoCaption className="mt-3 text-center">
+          <Caption className="mt-3 text-center tabular-nums">
             A real render · {styleLabel} ·{" "}
             {formatDuration(reel.durationSeconds)}
-          </MonoCaption>
+          </Caption>
         </div>
 
         <div
@@ -76,10 +76,10 @@ export function ReelAngleBand({
           style={{ "--i": 4 } as CSSProperties}
           className="mt-8 flex flex-col items-center gap-3 text-center"
         >
-          <MonoCaption>
+          <Caption className="tabular-nums">
             {STYLE_CATALOG.length} styles · {MAX_REEL_SECONDS.free}s free,{" "}
             {MAX_REEL_SECONDS.pro}s on Pro
-          </MonoCaption>
+          </Caption>
           <LearnMoreLink href="/reel">
             See all {STYLE_CATALOG.length} styles
           </LearnMoreLink>

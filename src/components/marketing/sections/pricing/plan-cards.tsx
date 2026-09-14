@@ -40,9 +40,9 @@ import { formatBytes } from "@/lib/utils";
  * stacks four, vivid, on the ink. Hovering the card spreads the stack.
  *
  * PRICE REGISTER: money renders in the DISPLAY face (Urbanist via font-heading)
- * with tabular numerals, values in Inter — the mono face came from the old
- * page's register and read devtool on these cards (Will's sitting flag). Geist
- * Mono keeps only its documented timecode duty elsewhere.
+ * with tabular numerals, values in Inter. The old page set money in mono and it
+ * read devtool on these cards (Will's sitting flag); the kill-mono sweep took
+ * this register to every number that is the subject of its block (2026-09-14).
  *
  * Every number renders from tiers.ts. The A16 rule holds on both surfaces:
  * green check = you get this; muted minus = a cap, not an inclusion.
@@ -137,7 +137,7 @@ function Item({
   );
 }
 
-/** The hairline-divided stat pair (the Biograph proof cluster, mono numerals). */
+/** The hairline-divided stat pair (the Biograph proof cluster). */
 function StatRow({
   stats,
   ink,

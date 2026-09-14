@@ -158,7 +158,7 @@ export default async function JobsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-xs break-all text-muted-foreground">
+            <p className="rounded-md bg-muted px-2.5 py-2 text-xs break-all text-muted-foreground select-all">
               {unavailable}
             </p>
           </CardContent>

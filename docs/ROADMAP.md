@@ -292,6 +292,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   2026-09-01, the guest door and /login carry the consent line); **print styles for the legal pages**
   (the cinema hero prints dark; the spill engine's `@media print` is the pattern); faq-accordion
   native-`<details>` → the `.mkt-acc` recipe (clocks aligned, markup not); the **MonoCaption sweep** (2026-09-11) is superseded: **mono is leaving** (Will, 2026-09-14; the `kill-mono` track removes the face and redesigns every place it did semantic work); **the voice-infusion round** (after `brand-voice` is ruled): the voice carried site-wide, the 30 feature-page strings, the 59 nav strings, the seven provisional headers, the MDX, the ten email templates and the inline app copy (`help-ui-labels.test.ts` makes an app-control rename a two-file change);
+  **inline code as a plate** in the help centre and the blog (kill-mono, 2026-09-14: `prose-code:font-sans` left ~260 code spans reading on the body face at weight 600 inside backticks; a muted plate would read better; its own round); **the operator emails' `<code>media</code>`** (`src/lib/email/templates.ts:169,196` renders in each mail client's mono face; an inline style or drop the tag); **the 404 title** (`shared/not-found-screen.tsx:55` is the one h1 without `font-heading`; the type wiring sweeps it with the ladder);
   **a "Watch your event highlights" video card** on another page, a CTA that links to `/reel` (Will, 2026-09-14: the round-two reel hero, redesigned as a section rather than the hero, since a film in the hero reads as the video being the product; the film ask in `docs/ASSETS.md` row 1 serves it);
   `/press` grows into the partnerships/ambassador kit (the press + brand kit itself shipped); post-launch event-type candidates `/events/birthdays` + `/events/memorials`;
   the media batch (per-vertical reel renders, a landscape wedding render, honest trip/conference
@@ -420,7 +421,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   (At very large scale, the prune+reconcile per-run bucket scans can move to a merge-join / deletion
   tombstone / shared copy-state index — see [`systems/durability-backups.md`](systems/durability-backups.md).)
   Also: an operator-action audit log · per-announcement edit + read receipts · live-Stripe subscription
-  health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md).
+  health on the account detail. See [`systems/admin-observability.md`](systems/admin-observability.md). **The MFA enrolment secret** (`src/components/admin/mfa-enroll.tsx:122`) is a bare `<code>`, so preflight still sets it in a mono stack (kill-mono, 2026-09-14; outside that lane): `font-sans`, or the muted plate the other admin codes took.
 - **Vercel / Next.js optimization** — ~~the 12s guest-gallery poll~~ SHIPPED Phase 3 (doorbell +
   ETag/304 + stable presigns → [`systems/guest-flow.md`](systems/guest-flow.md)) · **dashboard
   Suspense streaming DEFERRED post-launch** (P5 S1, three live strandings: completions die inside

@@ -45,11 +45,12 @@ reads:
   - src/app/(marketing)/(cinema)/layout.tsx
   - src/components/marketing/system/section-shell.tsx
 announces:
-  - the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)
+  - "the review wave (2026-09-14): seven tracks cut at once off the bible's second edition; the six boards own only sandbox/<id>/ (their RULINGS entries, the dispatcher lines and the desk are registered here up front, with placeholder variant names renamed at integration); kill-mono owns the production trees it sweeps, the lab's family pages and six older sandbox files, and src/components/marketing/system/ is RELEASED to it from this manifest (deleting mono-caption.tsx is atomic only with its 18 importers)"
   - the rounding and tweaking GUI round (Orchestrator-run, in parallel with the wave) touches src/components/dev/ (the tuner, its config, the shared board shell in dev/board/), src/app/(dev)/design/motion/, the rounding board at sandbox/rounding/, and the radius VALUES in src/app/globals.css and the derivation in src/app/theme.css; tokens are never renamed mid-window (boards read --radius-float and --radius-tile), and any landed value change is announced here first so boards sync
   - theme.css line 18 (--font-mono) was deleted pre-spawn; Tailwind's default mono stack carries every surviving font-mono until kill-mono lands, and no new mono is written anywhere (bible 7, retiring)
   - no @contract-for test is added on launch-prep until kill-mono integrates (it regenerates rules.generated.json); the Orchestrator reruns pnpm design:rules at each merge
-  - the rounding round landed (2026-09-14): the radius tokens, --gap-gallery, --spill-cadence and the --tune-* knobs moved into their own :root block in globals.css (no value changed) and left the lab's .mono sheet; the Button's in-between sizes derive from --radius-action (button.tsx, same numbers); the tuner has a persisted store (tuner-store.ts), descriptions and groups, and nine specimen-less knobs retired from the panel. A lane reading globals.css, design.css or button.tsx: nothing to sync unless it copied a token block
+  - "kill-mono landed (2026-09-14, `69af90d`): no mono face in the product; `src/app/two-faces-policy.test.ts` refuses a `font-mono` class, a mono loader or a `--font-mono` token; `MonoCaption` is gone (`Caption` is the one atom); `@contract-for` tests may be added again (the artifact was regenerated at the merge)"
+  - "the rounding round landed (2026-09-14): the radius tokens, --gap-gallery, --spill-cadence and the --tune-* knobs moved into their own :root block in globals.css (no value changed) and left the lab's .mono sheet; the Button's in-between sizes derive from --radius-action (button.tsx, same numbers); the tuner has a persisted store (tuner-store.ts), descriptions and groups, and nine specimen-less knobs retired from the panel. A lane reading globals.css, design.css or button.tsx: nothing to sync unless it copied a token block"
 ---
 
 # The integration branch
@@ -77,11 +78,11 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | --- | --- | --- | --- |
 | `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
 | `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
 | `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
-| `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `kill-mono` | no board (a production sweep) | the launch-prep alias (integrated `69af90d`) | two looks (Waiting on Will, item 2); bible 7 is the two-faces rule |
 | `hero-scan` | `/design/c/home-hero` (variation 2) | `partyreel-git-lp-hero-scan-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | `hero-burst` | `/design/c/home-hero` (variation 3) | `partyreel-git-lp-hero-burst-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
 | `hero-river` | `/design/c/home-hero` (variation 4) | `partyreel-git-lp-hero-river-partyreel.vercel.app` | spawned 2026-09-14 (round three); building |
@@ -110,6 +111,21 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      `SITE_THESIS` to "The whole event, as everyone saw it."; the "five copy-alternative picks" have no
      surviving list, so the board reads them as the five headers with an appetite for a different line
      (say if that is wrong); B's h1 runs four lines at 375 against today's two.
+   - **type-scale** (integrated `838a5f6`; `/design/c/type-scale?key=` on the launch-prep alias; the
+     token tables in `docs/specs/type-scale.md`): "The marketing ladder: today, A tuned, B rungs or C
+     registers"; "The app ladder: today, A tuned, B rungs or C registers"; "The tracking law (leading
+     and tracking named per step, running inverse to size): adopt, or keep the flat -0.03em"; "The
+     face pairing: keep Inter with Urbanist, or open a face round" (the board's verdict: it holds).
+     Look at stage 1 at Phone 375 first (today's phone end is the whole argument), then stage 2 (the
+     loudness question), then stage 8 (the app's missing middle). Flagged: C's app title at 20 and
+     card title at 14 is the first thing to reject if it reads cheap; B turns bible 2 into arithmetic.
+   - **kill-mono** (integrated `69af90d`; no board): two looks on the launch-prep alias, one class
+     each if they read wrong: the stat register on `/features/album` and `/help` moved to the display
+     face with tabular figures (the register `/pricing` ratified for money), and `/help`'s ghost folio
+     went from 5% mono to 6% Urbanist (`/[0.04]` is the dial). The inline code in the help centre and
+     the blog now reads on the body face at weight 600 inside backticks; a plate would read better and
+     is its own round. The four admin surfaces (`/admin/forensics`, `/admin/jobs`, `/admin/accounts/<id>`
+     and its delete dialog) took the muted plate and want your eye on the alias (item 7).
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
@@ -174,6 +190,9 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `69af90d` kill-mono integrated (88 files; the two system-doc edits read by eye; the artifact
+  regenerated clean at the merge); `838a5f6` type-scale integrated; bible 7 is now `two-faces`,
+  enforced by `src/app/two-faces-policy.test.ts`; `docs/specs/type-scale.md` carries the token tables.
 - the rounding round: `src/components/dev/tuner-store.ts` (new), `motion-tuner.tsx` and
   `motion-tuner-config.ts` rebuilt (descriptions, ships, groups, the action trio, nine retirements),
   `motion/motion-playground.tsx` (the controls hoisted), `sandbox/rounding/board.tsx` (the kit, four

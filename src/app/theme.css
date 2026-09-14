@@ -15,9 +15,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  /* --font-mono left the theme at the review wave (2026-09-14, bible 7 retiring):
-     Tailwind's default mono stack carries the surviving font-mono classes until
-     kill-mono removes them and the Geist_Mono loader with them. Never re-add. */
+  /* --font-mono left the theme at the review wave (2026-09-14, bible 7):
+     there is no mono face in the product. Never re-add. */
 
   /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
      -0.03em tracking + 700 weight). --tracking-tight stays 0em so the 90+ legacy

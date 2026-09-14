@@ -55,7 +55,7 @@ export const FOUNDATION_ENTRIES: GalleryEntry[] = [
         hint: "--glw-* · defaults in globals.css's engine block",
         node: (
           <>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground tabular-nums">
               {[
                 "--glw-base",
                 "--glw-strength",

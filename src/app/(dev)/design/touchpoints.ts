@@ -519,8 +519,8 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/section-shell.tsx",
     ],
     board: {
-      note: "Three candidate scales beside today's on the home arc, a feature page, help, the dashboard, an event page and admin, at 1440 and 375",
-      variants: ["Placeholder"],
+      note: "Eleven stages driving the production components through three custom properties, so picking a ladder re-lays the real home arc, a feature page, help, about, the dashboard, an event page and admin",
+      variants: ["Today", "A tuned", "B rungs", "C registers"],
     },
   },
   {

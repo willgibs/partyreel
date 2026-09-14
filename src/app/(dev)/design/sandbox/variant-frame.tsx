@@ -23,7 +23,7 @@ export function Variant({
     <div className="flex flex-col">
       <div className="mb-3">
         <p className="text-sm font-semibold">
-          <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground font-mono text-[11px] text-background">
+          <span className="mr-2 inline-flex size-5 items-center justify-center rounded-md bg-foreground text-[11px] text-background tabular-nums">
             {n}
           </span>
           {name}

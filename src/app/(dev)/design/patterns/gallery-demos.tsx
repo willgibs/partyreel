@@ -377,7 +377,10 @@ function RouteErrorMock() {
         </Button>
       </div>
       <p className="text-xs text-muted-foreground/70">
-        Error code: <span className="font-mono">a1b2c3</span>
+        Error code:{" "}
+        <span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80 tabular-nums select-all">
+          a1b2c3
+        </span>
       </p>
     </div>
   );

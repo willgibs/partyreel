@@ -192,7 +192,7 @@ export default function HelpIndexPage() {
                     {index === 2 && <ReelScene />}
                   </span>
                   <span className="flex flex-1 flex-col gap-2.5 p-6">
-                    <span className="font-mono text-xs tracking-wider text-success">
+                    <span className="text-xs tracking-wider text-success tabular-nums">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <h3 className="font-heading text-lg">
@@ -280,11 +280,15 @@ export default function HelpIndexPage() {
                       wide && "lg:col-span-2",
                     )}
                   >
-                    {/* The ghost folio: the category number at print-index scale
-                      (mono per the ruling; decorative ink at 5%). */}
+                    {/* The ghost folio: the category number at print-index
+                      scale, in the brand face at 6% ink. A watermark folio is
+                      display typography, so it takes the heading face and its
+                      own tracking; tabular figures keep 01 and 10 the same
+                      width, which is what stops the pane's corner from
+                      shifting between cells (kill-mono, 2026-09-14). */}
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute top-3 right-6 font-mono text-6xl leading-none tracking-tight text-foreground/[0.05] tabular-nums select-none sm:text-7xl"
+                      className="pointer-events-none absolute top-3 right-6 font-heading text-6xl leading-none text-foreground/[0.06] tabular-nums select-none sm:text-7xl"
                     >
                       {String(groupIndex + 1).padStart(2, "0")}
                     </span>
@@ -323,7 +327,7 @@ export default function HelpIndexPage() {
                             prefetch={false}
                             className="group/row flex items-center gap-3 py-2.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
                           >
-                            <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground/50 tabular-nums transition-colors duration-150 group-hover/row:text-success">
+                            <span className="w-5 shrink-0 text-[11px] text-muted-foreground/50 tabular-nums transition-colors duration-150 group-hover/row:text-success">
                               {String(articleIndex + 1).padStart(2, "0")}
                             </span>
                             <span className="min-w-0 flex-1">
@@ -368,9 +372,7 @@ export default function HelpIndexPage() {
           <Button asChild size="lg" className="mt-1 h-11 px-6 text-base">
             <Link href="/contact">Contact us</Link>
           </Button>
-          <p className="text-sm text-muted-foreground">
-            {REPLY_LINE}
-          </p>
+          <p className="text-sm text-muted-foreground">{REPLY_LINE}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t pt-6 text-sm">
             <span className="text-muted-foreground">Keep exploring:</span>
             <LearnMoreLink href="/how-it-works" className="text-foreground">
