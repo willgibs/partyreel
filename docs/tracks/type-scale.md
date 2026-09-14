@@ -1,7 +1,7 @@
 ---
 track: type-scale
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "6c19d84"
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/type-scale/
