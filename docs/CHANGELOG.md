@@ -88,6 +88,19 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**light** (`lp/light`, `72b20da`, merged `ae03a94`). The light exploration replaced its stub with a
+four-part board at `/design/c/light` and drafted the doctrine that replaces the source-and-direction
+law. Part A put three subjects (two overlapping photographs, a layer over content, a flat card) under
+four cues (the surface step alone, the ring lift, a soft shadow, the lit face) on cinema, app dark and
+paper, and proposed one shadow family at two sizes with one alpha ramp per ground. Part B rendered the
+footer seam as the model and then three candidate lamps for a media-less chapter (the seam at a
+chapter's top edge, the aurora at both boundaries, one fill behind everything) at two registers and
+three temperatures, and proposed a hand-tuned paper five. Part C put 8s, 11s and the aurora's 33s on
+three identical seams. Part D put the publish beat's violet beside the house five and beside the five
+leaned to 305. Nothing production changed; the board's own sheet carries the three things the system
+does not have yet. Five asks went to Will, two assets were requested, and seven departures were flagged
+on the board rather than buried. The draft doctrine lives in `docs/specs/light.md`.
+
 **hero-burst** (round three of the home hero; `lp/hero-burst`, `2d0631e`, merged `3aeef1a`). The burst, concept 3 of the home-hero board's
 third round, replaced its placeholder. It keeps the source's ruled sentence and takes it onto the two
 axes a corridor cannot use: around the whole compass, and forward out of the screen. Frames are born

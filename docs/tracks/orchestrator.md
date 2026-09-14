@@ -77,7 +77,7 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
 | `palette` | `/design/c/palette` | the launch-prep alias (integrated `d5847ad`) | Will's ruling (Waiting on Will, item 2) |
-| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `light` | `/design/c/light` | the launch-prep alias (integrated `ae03a94`) | Will's ruling (Waiting on Will, item 2) |
 | `type-scale` | `/design/c/type-scale` | the launch-prep alias (integrated `838a5f6`) | Will's ruling (Waiting on Will, item 2) |
 | `floating-surfaces` | `/design/c/floating-surfaces` | the launch-prep alias (integrated `e1f06d6`) | Will's ruling (Waiting on Will, item 2) |
 | `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | the launch-prep alias (integrated `749e29a`) | Will's ruling (Waiting on Will, item 2) |
@@ -183,6 +183,16 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
      five surfaces inside 0.037 then a 0.455 fall; today's dark panel is lighter than the card, the
      ladder upside down), then row 06 with the ramp toggle, row 07 (a Card on the ink leaf is near
      white), row 09's accent toggle against the state row.
+   - **light** (integrated `ae03a94`; `/design/c/light?key=`, parts `#lgt-a` to `#lgt-d`; the draft
+     doctrine in `docs/specs/light.md`): "Depth in dark: the cue set for stacked media cards, a layer
+     over content and a flat card"; "Lamps without media: the section aurora, yes or no, and its
+     register on cinema and on paper"; "The cadence: 8s or 11s" (the board recommends the engine's
+     8s for a lamp and a multiple of it for the aurora); "The publish beat's violet" (300 leaned to
+     the lamp set's 305, decaying to a base); "The lit surface ([data-lit]): adopt, adapt or drop"
+     (the board reads it as material, not elevation). Look at part B first (the aurora at accent on
+     cinema, then on paper), then part A's stacked photographs. Seven departures on the board, in the
+     spec. Its asks: a grain tile and a worst-case pair of overlapping photographs (`docs/ASSETS.md`
+     rows 10 and 11). This ruling closes item 4 below (the parked light rulings b, c, d).
 3. **The rounding sitting** (the tuner earned it 2026-09-14): `/design/c/rounding?key=` on the
    launch-prep alias (four columns of one kit, three fixed candidates and a live one) and the tuner
    in the corner of every cinema page and the lab (`?key=`); values survive Replay, navigation and
@@ -191,9 +201,9 @@ off. Assets live in [`../ASSETS.md`](../ASSETS.md).
    19.2 / 12.8), and whether they move with the surfaces"; "Whether float and tile move with the
    surfaces or stay put"; "Whether the derived scale (sm 0.6x to 4xl 2.6x) survives a rounder base,
    or the steps get retuned". Say the six numbers (or a column) and bible 8 inherits them.
-4. **The light rulings**, riding the `light` board and closed by its ruling: (b) the lit surface
-   (`[data-lit]`, on three of four beam specimens), (c) the publish beat's violet, (d) the cadence,
-   8s or 11s. Still parked on its own: (f) whether the guest surfaces follow the VISITOR's theme
+4. **The light rulings** (b) the lit surface, (c) the publish beat's violet and (d) the cadence are
+   now the `light` board's asks (item 2) and close with its ruling. Still parked on its own: (f)
+   whether the guest surfaces follow the VISITOR's theme
    (`/e/[token]` has no forced skin; the doorbell arrival, the locked door and the awaiting-media
    skeleton were argued on cinema), which blocks the next guest-surface light round.
 5. **Two copy rulings**, riding the `brand-voice` board: the account-required unfurl line ("This
@@ -247,6 +257,10 @@ feels alive keeps a visitor exploring).
   with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
   `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
 - `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from `6c19d84`.
+- `ae03a94` light integrated: a four-part board (depth in dark, lamps without media, the cadence, the
+  violet) and the draft doctrine (SEPARATE, FILL, MARK; a lamp needs a place; the aurora as the FILL job
+  at chapter scale) in `docs/specs/light.md`; the asset log's rows 10 and 11. Every board of the wave
+  is in.
 - `3aeef1a` hero-burst integrated: variation 3 on the hero board, the origin in every direction with
   a hand-done projection and a per-card quiet zone; the asset log's row 9 (the portrait crops).
 - `66b4ebe` hero-scan integrated: variation 2 on the hero board, the corridor released by the scan;
