@@ -421,9 +421,13 @@ const OKLCH = /^oklch\(\s*([\d.]+)/;
 const MIX = /color-mix\(in oklab,\s*var\(--foreground\)\s*([\d.]+)%/;
 
 /**
- * The lightness of a token value in a given block, or null when it is an alpha
- * of white (a dark border) and has no fixed L. Handles the veil form so
- * candidate B's ladder reads off the same strings it renders.
+ * The lightness of a token value in a given block, or null when the string is
+ * not a lightness at all. Handles the veil form, so candidate B's ladder reads
+ * off the same strings it renders rather than a second copy of the numbers.
+ *
+ * A translucent value still HAS a lightness (today's dark card is 0.21 at 62
+ * percent), so it is returned; `alphaOf` is the separate question, and the
+ * ruler uses it to drop the white veils that have no fixed place on a line.
  */
 export function lOf(value: string, block: TokenMap): number | null {
   const mix = MIX.exec(value);
@@ -435,14 +439,23 @@ export function lOf(value: string, block: TokenMap): number | null {
     return fg * pct + bg * (1 - pct);
   }
   const hit = OKLCH.exec(value);
+  return hit ? Number(hit[1]) : null;
+}
+
+const ALPHA = /\/\s*([\d.]+)(%?)\s*\)/;
+
+/** The alpha of a token value as a fraction, or null when it is opaque. */
+export function alphaOf(value: string): number | null {
+  const hit = ALPHA.exec(value);
   if (!hit) return null;
-  if (value.includes("/")) return null;
-  return Number(hit[1]);
+  const n = Number(hit[1]);
+  return hit[2] === "%" ? n / 100 : n;
 }
 
 /** The surface ladder a mode is judged on, in stacking order. */
 export const LIGHT_LADDER = [
-  { token: "--card", role: "card, menu" },
+  { token: "--popover", role: "menu" },
+  { token: "--card", role: "card" },
   { token: "--background", role: "the page" },
   { token: "--muted", role: "the panel" },
   { token: "--secondary", role: "hover fill" },

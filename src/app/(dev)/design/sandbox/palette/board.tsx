@@ -24,6 +24,7 @@ import {
   RAMPS,
   RAMP_BY_ID,
   accentStyle,
+  alphaOf,
   lOf,
   rampStyle,
   rooms,
@@ -174,6 +175,7 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
       ...row,
       value,
       l,
+      alpha: value ? alphaOf(value) : null,
       delta: l !== null && above !== undefined ? l - above : null,
     };
   });
@@ -191,7 +193,7 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
       </p>
       <div className="space-y-1">
         {rows.map((row) => (
-          <div key={row.token} className="flex items-center gap-2">
+          <div key={row.token} className="flex items-center gap-1.5">
             <span
               className="size-5 shrink-0 rounded-sm border border-border"
               style={{
@@ -201,13 +203,14 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
                   : "repeating-linear-gradient(45deg, var(--muted-foreground) 0 1px, transparent 1px 4px)",
               }}
             />
-            <span className="w-24 shrink-0 truncate text-[10px] text-muted-foreground">
+            <span className="w-[86px] shrink-0 truncate text-[10px] text-muted-foreground">
               {row.role}
+              {row.alpha !== null ? ` at ${Math.round(row.alpha * 100)}%` : ""}
             </span>
             <span className="w-10 shrink-0 text-[10px] tabular-nums">
               {row.l !== null ? row.l.toFixed(3) : "none"}
             </span>
-            <span className="w-12 shrink-0 text-[10px] text-muted-foreground tabular-nums">
+            <span className="w-11 shrink-0 text-[10px] text-muted-foreground tabular-nums">
               {row.delta !== null
                 ? `${row.delta > 0 ? "+" : ""}${row.delta.toFixed(3)}`
                 : ""}
@@ -222,16 +225,35 @@ function Ladder({ ramp, tone }: { ramp: Ramp; tone: "light" | "dark" }) {
 /** Every value of one ramp plotted on the black-to-white line: the hole and the
  *  crush are geometry, not opinion, so they belong on a ruler. */
 function Spectrum({ ramp }: { ramp: Ramp }) {
+  // A white veil (a dark border at 12 percent) has a lightness of 1 and no
+  // place on a ruler of surfaces, so it is dropped rather than plotted at the
+  // far right where it would read as a surface nobody can see.
   const plot = (block: Record<string, string>) =>
     Object.entries(block)
-      .map(([token, value]) => ({ token, l: lOf(value, block) }))
-      .filter((t): t is { token: string; l: number } => t.l !== null);
+      .map(([token, value]) => ({
+        token,
+        l: lOf(value, block),
+        veil: alphaOf(value) !== null && (lOf(value, block) ?? 0) >= 0.99,
+      }))
+      .filter(
+        (t): t is { token: string; l: number; veil: boolean } =>
+          t.l !== null && !t.veil,
+      );
   const light = plot(ramp.light);
   const dark = plot(ramp.dark);
   return (
     <div className="space-y-1">
       <p className="text-[11px] font-medium">{ramp.name}</p>
-      <div className="relative h-7 rounded-sm bg-[linear-gradient(to_right,oklch(0_0_0),oklch(1_0_0))]">
+      {/* The ruler interpolates IN OKLAB, so a tick's position is its lightness.
+          In sRGB the same gradient puts L 0.6 at the halfway mark and the whole
+          reading would be a lie. */}
+      <div
+        className="relative h-7 rounded-sm"
+        style={{
+          background:
+            "linear-gradient(to right in oklab, oklch(0 0 0), oklch(1 0 0))",
+        }}
+      >
         {light.map((t) => (
           <span
             key={`l-${t.token}`}
@@ -373,7 +395,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="cinema"
           mode={mode}
-          height={h(800, 980)}
+          height={h(800, 1220)}
           label={`cinema · ${ramp.label}`}
         >
           <MarketingChapter mode={mode} />
@@ -389,7 +411,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="paper"
           mode={mode}
-          height={h(800, 980)}
+          height={h(800, 1220)}
           label={`paper · ${ramp.label}`}
         >
           <MarketingChapter mode={mode} />
@@ -432,7 +454,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(560, 700)}
+          height={h(560, 640)}
           label={`the stack, dark · ${ramp.label}`}
         >
           <SurfaceStack mode={mode} />
@@ -448,7 +470,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="ink"
           mode={mode}
-          height={h(640, 820)}
+          height={h(700, 1040)}
           label={`ink on a paper page · ${ramp.label}`}
         >
           <InkLeaf mode={mode} />
@@ -480,7 +502,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="paper"
           mode={mode}
-          height={h(760, 940)}
+          height={h(760, 900)}
           label={`paper · ${ramp.label} · ${panelSingle ? "one token" : "today's alphas"}`}
         >
           <PanelBand mode={mode} single={panelSingle} />
@@ -489,7 +511,7 @@ export function PaletteBoard() {
           ramp={ramp}
           ground="app-dark"
           mode={mode}
-          height={h(760, 940)}
+          height={h(760, 900)}
           label={`the app, dark · ${ramp.label} · ${panelSingle ? "one token" : "today's alphas"}`}
         >
           <PanelBand mode={mode} single={panelSingle} />
@@ -532,7 +554,7 @@ export function PaletteBoard() {
             ramp={ramp}
             ground={accentGround}
             mode={mode}
-            height={h(900, 1180)}
+            height={h(1000, 1660)}
             label={`${accentGround} · ${ramp.label} · ${accent.label}`}
           >
             <AccentWall mode={mode} />
@@ -545,7 +567,7 @@ export function PaletteBoard() {
         name="The ruling, as a paste"
         reading="The selected candidate as the block that lands in globals.css and marketing.css. The Record in docs/tracks/palette.md carries all three, so a ruling is a few words and the Orchestrator pastes rather than rewrites."
       >
-        <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 text-[11px] leading-relaxed whitespace-pre tabular-nums">
+        <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-muted/40 p-4 font-sans text-[11px] leading-relaxed whitespace-pre tabular-nums">
           {tokenBlock(ramp)}
         </pre>
       </Row>

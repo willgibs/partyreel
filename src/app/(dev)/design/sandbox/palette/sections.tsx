@@ -57,8 +57,8 @@ export function MarketingChapter({ mode }: { mode: Mode }) {
   return (
     <div
       className={cn(
-        "flex h-full flex-col justify-center",
-        desktop ? "gap-10 px-20 py-16" : "gap-6 px-5 py-10",
+        "flex h-full flex-col",
+        desktop ? "justify-center gap-10 px-20 py-16" : "gap-6 px-5 py-10",
       )}
     >
       <header className={cn("flex flex-col", desktop ? "gap-4" : "gap-3")}>
@@ -308,68 +308,73 @@ export function SurfaceStack({ mode }: { mode: Mode }) {
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col justify-center",
-        desktop ? "px-20 py-12" : "px-5 py-8",
+        "relative flex h-full flex-col",
+        desktop ? "justify-center px-20 py-12" : "px-5 py-8",
       )}
     >
       <p className="mb-4 text-xs text-muted-foreground">
         Ground, card, panel, input, menu. Five surfaces, one frame.
       </p>
-      <Card className={desktop ? "max-w-xl" : undefined}>
-        <CardHeader>
-          <CardTitle>Event settings</CardTitle>
-          <CardDescription>
-            Who can upload, and what happens to it when they do.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
-            <p className="font-medium">Guests need an email</p>
-            <p className="text-muted-foreground">
-              The panel, today at 40 percent of a token that also does hover.
-            </p>
-          </div>
-          <div className="flex h-9 items-center rounded-lg border border-input px-3 text-sm text-muted-foreground">
-            partyreel.com/e/your-event
-          </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary">
-              Copy link
-            </Button>
-            <Button size="sm" variant="outline">
-              Download the code
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="justify-between text-xs text-muted-foreground">
-          <span>Last change 4 minutes ago</span>
-          <span className="tabular-nums">312 items</span>
-        </CardFooter>
-      </Card>
-
-      <div
-        className={cn(
-          "absolute w-56 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10",
-          desktop ? "top-24 right-24" : "top-20 right-5",
-        )}
-      >
-        {["Share the album", "Download everything", "Close uploads"].map(
-          (item, i) => (
-            <div
-              key={item}
-              className={cn(
-                "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm",
-                i === 1 && "bg-accent text-accent-foreground",
-              )}
-            >
-              {i === 1 ? <Check className="size-4" /> : null}
-              {item}
+      <div className={cn("relative", desktop && "max-w-xl")}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Event settings</CardTitle>
+            <CardDescription>
+              Who can upload, and what happens to it when they do.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+              <p className="font-medium">Guests need an email</p>
+              <p className="text-muted-foreground">
+                The panel, today at 40 percent of a token that also does hover.
+              </p>
             </div>
-          ),
-        )}
-        <div className="my-1 h-px bg-border" />
-        <div className="relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm text-destructive">
-          Delete the event
+            <div className="flex h-9 items-center rounded-lg border border-input px-3 text-sm text-muted-foreground">
+              partyreel.com/e/your-event
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="secondary">
+                Copy link
+              </Button>
+              <Button size="sm" variant="outline">
+                Download the code
+              </Button>
+            </div>
+          </CardContent>
+          <CardFooter className="justify-between text-xs text-muted-foreground">
+            <span>Last change 4 minutes ago</span>
+            <span className="tabular-nums">312 items</span>
+          </CardFooter>
+        </Card>
+
+        {/* Anchored to the card's corner, the way the real overflow menu opens:
+            the whole question is whether the menu, the card and the panel
+            inside it are three surfaces or one. */}
+        <div
+          className={cn(
+            "absolute w-56 rounded-float bg-popover p-1 text-popover-foreground shadow-float ring-1 ring-foreground/10",
+            desktop ? "top-10 -right-24" : "top-9 right-2",
+          )}
+        >
+          {["Share the album", "Download everything", "Close uploads"].map(
+            (item, i) => (
+              <div
+                key={item}
+                className={cn(
+                  "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm",
+                  i === 1 && "bg-accent text-accent-foreground",
+                )}
+              >
+                {i === 1 ? <Check className="size-4" /> : null}
+                {item}
+              </div>
+            ),
+          )}
+          <div className="my-1 h-px bg-border" />
+          <div className="relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm text-destructive">
+            Delete the event
+          </div>
         </div>
       </div>
     </div>
@@ -422,7 +427,7 @@ export function PanelBand({ mode, single }: { mode: Mode; single: boolean }) {
 
       <div
         className={cn(
-          "grid flex-1",
+          "grid flex-1 content-start items-start",
           desktop ? "grid-cols-2 gap-6 px-20 py-10" : "gap-4 px-5 py-8",
         )}
       >
@@ -515,7 +520,7 @@ export function InkLeaf({ mode }: { mode: Mode }) {
           <CardHeader>
             <CardTitle>A card on the ink leaf</CardTitle>
             <CardDescription>
-              Today this is near white, because `.surface-ink` has no --card.
+              Today this is near white: .surface-ink has no --card.
             </CardDescription>
           </CardHeader>
         </Card>
