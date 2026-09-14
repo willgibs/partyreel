@@ -84,6 +84,21 @@ needed a real value invented `leading-[1.02]` locally), and `font-heading` track
 and a 16px card title at the same -0.03em, against the design system's own written rule that
 letter-spacing and line-height run inverse to size. Lab only; no production byte changed. The four token tables and what the wiring round inherits live in `docs/specs/type-scale.md`.
 
+**media-kit** (`lp/media-kit`, `c1aa5c6`, merged `797f692`). The media-kit exploration wrote bible 18 down as a
+proposed sourcing law (`docs/specs/media-kit.md`): two provenance classes and no third, `author`,
+`sourceUrl` and `retrieved` required on every manifest entry, a generated frame's license being the
+generating service's output-ownership clause, and the model-release rule that keeps a licensed face
+off a page that makes a claim. The survey behind it quotes ten license pages clause by clause and
+found the thing that settles the round: Unsplash's terms exclude recognizable people from the
+license, and all twelve stand-ins are full of them, so the gap was never a missing citation. The board
+at `/design/c/media-kit` argues three routes on the same twelve positions with the provenance line
+under each, shows the vertical gap costing seven of 23 blog posts a miscast cover, and stages eight
+CC0 candidates under `public/design/media-kit/` with `provenance.json` and a test pinning the two
+together; the four it could not fill are the argument. The kit plan generalises round two's parked
+asks into 36 masters by vertical, with the squares, clips and film derived from one shoot. No
+production byte changed.
+
+
 **brand-voice** (`lp/brand-voice`, `d988c88`, merged `749e29a`). The brand voice was written down for
 the first time. `docs/specs/brand-voice.md` is the guide as a proposal: the voice in one paragraph,
 the three registers with a table of what changes between them, five sentence shapes, an example on
