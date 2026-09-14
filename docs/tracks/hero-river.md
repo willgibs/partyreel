@@ -1,6 +1,6 @@
 ---
 track: hero-river
-status: open
+status: handed-off
 cut: "b34993e3f6a2cc670e2b38cf7119cd10abc96099"  # the origin/launch-prep SHA this branch was cut from
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
@@ -104,23 +104,110 @@ origin at the top, say why), a lamp if any, the lockup's alignment. The asks: th
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **none.** No production byte moved, and no owned fact belongs in a system doc while the concept is
+  a lab candidate Will has not ruled on.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Home hero (the wiring round, if the river is ruled): the shell hands a concept `qrUrl` and nothing
+  else, so a hero with a live album count needs a `demoCount` beside it (a build-time count on the
+  demo event, or the RPC the guest page already uses); the 248 stand-in must not ship. Production
+  also wires the loop to `useAmbientPause` rather than the stage's `data-paused`, the same line the
+  source filed.
+- Design system: record the mask-composite landmine in `docs/systems/design-system.md` when a
+  production surface next needs a two-axis dissolve. `mask-image: a, b` with `mask-composite:
+  intersect` does NOT intersect in Chrome: the last layer's operator composites it against
+  transparent black, so the pair resolves to the union and the dissolve silently does nothing (it ate
+  both the side and the bottom fade here until the masks were split across two nested elements, one
+  mask each, which is unambiguous in every engine and costs one div).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-hero-river-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The departures, verbatim from the concept (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Head `2fcf926` plus this commit (a manifest cannot name its own SHA); `2fcf926` is the SHA the
+  preview was verified at. Pushed; preview
+  `https://partyreel-git-lp-hero-river-partyreel.vercel.app`, the board at
+  `/design/c/home-hero?key=` (concept 4 of 4).
+- Synced with `launch-prep` at **`3d40173`** (it had moved 68 commits: kill-mono, palette,
+  type-scale, floating-surfaces, media-kit, light). `git merge origin/launch-prep` at `6eab1ae`, no
+  conflicts, and the gate re-ran on the merged tree. The concept uses the `Caption` atom and no mono
+  face, so the two-faces policy that landed with kill-mono passes untouched.
+- Gates on the synced tree: typecheck ok, lint ok (0 errors; the 7 warnings are the pre-existing
+  ones on `contact-form.tsx`, `review-switch.tsx`, two feature sections, `jobs.ts` and
+  `use-flip.ts`), test ok (1697 in 193 files), build ok (248 static pages).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-river.md`,
+  `src/app/(dev)/design/sandbox/home-hero/river.css`,
+  `src/app/(dev)/design/sandbox/home-hero/river.tsx`. **No exceptions**: the two owned files and this
+  manifest. `shared.tsx`, `board.tsx` and `source.tsx` were read whole and not touched; the shell had
+  everything the concept needed except the demo album's count (see the asks).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none.** No production byte moved.
+- **Verified on the preview at `2fcf926`** (the alias was polled to READY by SHA before any check):
+  - The gate: 404 with no key, 404 with a wrong key, 200 with the key.
+  - The server's own HTML carries 16 `.hhv-card` nodes and 16 `--hhv-rest` declarations, so the
+    deployed stream is in the markup: reduced motion, a crawler and a cold paint all get the album
+    standing at its steady-state spacing rather than an empty hero.
+  - The h1 is in the HTML at computed opacity 1, transform none, with no `data-mkt-cut` /
+    `data-mkt-reveal` / `.mkt-line` on any h1 on the page (bible 13).
+  - Desktop 1440 and Phone 375, ruled and proposed copy: the stream runs, the code holds the top,
+    and **the type is clear of every photograph at both widths under both copies**. That last one is
+    measured, not eyeballed: a probe read the rendered ink box of the h1, the subhead, both CTAs and
+    the count and checked each against the declared corridor (|x| <= 400, y 418..850 on desktop;
+    |x| <= 166, y 378..756 on the phone). All inside, all four combinations. The first run of that
+    probe is what found the ink overshoot now in the code: at leading 1.02 the h1's glyphs stand
+    ~9 px above its layout box, so the corridor is grown by 14 px at both ends.
+  - Replay: the stage remounts with fresh nodes, the inline transforms are gone and the computed
+    state is `matrix(0, 0, 0, 0, 0, 0)` at opacity 0, which is the pour's first frame. The
+    `--hhv-rest` declarations survive the remount.
+  - Reduced motion: simulated by deleting the `no-preference` block from the live sheet and clearing
+    the loop's inline styles, which leaves exactly the cascade a reduced-motion reader gets. The
+    stream stands fully deployed on both canvases.
+  - No em-dash anywhere in the served page.
+- **Assets requested from Will:**
+  1. **24 event photographs as 512 x 512 squares, one grade, 6 to 35 KB webp each**, across
+     weddings, birthdays, corporate and festivals · already `docs/ASSETS.md` row 2 (the source's
+     ask); the river takes the same set and needs no new row · replaces the 12 landscape stand-ins
+     in `FRAMES` (`shared.tsx`). The two arms carry disjoint halves, so 24 makes every frame in the
+     stream unique; with 12 stand-ins four are doubled.
+  2. **12 event photographs as 4:5 portraits, 720 x 900, one grade, 15 to 60 KB webp each**, from the
+     same shoot as the squares · about 45 percent of this stream runs portrait, because that is what
+     a guest's phone shoots and a vertical stream reads best when the shapes vary; the landscape
+     stand-ins crop hard to 4:5 today · replaces the portrait cards (`wf` 0.8) in `CARD_POOL`. This
+     is the one NEW row; `docs/ASSETS.md` row 3 parked a 36-frame set whose portrait third would also
+     serve, so it may be cheaper to unpark that.
+  3. **Framed tight enough to read at 110 px** (a face, two hands, a glass, a sparkler, a first
+     dance) · a frame is read here between 100 px at the code and 340 px at the bottom edge · the
+     same note the source filed, and still the single biggest lift available to the concept.
+  4. **The demo event's live media count, as a number the hero can render** · the shell hands a
+     concept `qrUrl` only, so the count is hard-coded · replaces `COUNT_BASE`, the 248 stand-in.
+     Not a picture: it is a shell change (a `demoCount` prop beside `qrUrl`, from a build-time count
+     on the demo event or the RPC the guest page already uses), and it is the one thing here that
+     must not ship as drawn.
+- **The departures, verbatim from the concept:**
+  1. The code leaves the exact centre. The source's argument was the still centre of a moving album, and it is a good one; this variation trades it for causality read top to bottom. A code in the middle of a composition is an object the page is arranged around, and a stranger reads it as a thing to scan for more information. A code at the TOP, in the eyebrow's slot, with the album falling out of it, is a beginning: everything below it is what the scan produced, which is the sentence Will asked the hero to say. The stillness survives the move, and nothing about the plate animates.
+  2. Precedent, not law: the lockup is centred rather than left-aligned, because the code owns the page's axis and the stream is symmetrical about it. This is the source's departure too, and the first thing to overrule if the home hero should stay left. Left-aligning costs the symmetry of the two arms, not the mechanism: the corridor's wall simply moves.
+  3. Bible 13, decorative layer only: the stream's pre-pour state (every frame collapsed at the code) sits inside the reduced-motion block, so with JavaScript off and motion allowed the stream rests at the code and the hero is the code, the type and the CTAs alone. Putting it in an effect instead would paint the album deployed and then snap it back to the code. The h1, the code, the caption, the subhead and the CTAs are plain markup and never gated, and reduced motion gets the stream fully deployed.
+  4. The brief put the Caption line UNDER the code and it is above it here, which is the one place this variation argues with its own brief. A line under the plate sits about 80 px below the point every frame is born at, so every frame has to escape sideways by roughly its own width before it has fallen a card's height: frames then appear BESIDE the code rather than sliding out from behind it, which is the single read the concept exists for (built it that way first, and that is exactly how it looked). Above the plate the line still labels the code, the eyebrow is still the object, and the stream leaves the plate straight down. Overrule it and the fix is a much smaller plate or a much shorter line, not a longer ramp.
+  5. The count under the CTAs is a STAND-IN figure that ticks once per launch (248 and climbing). It is the supporting element that says the album is filling right now, and it is the one thing here that must not ship as drawn: before this goes near production it reads the demo event's real media count, or it goes. Flagged on the board rather than in a footnote, because a number nobody can stand behind is a claim and not a placeholder.
+- **Look at first**: the first two seconds on Desktop. The code sits alone for about half a second,
+  then the whole album pours out from behind it in one beat and never stops. Then three calls that
+  are all yours: whether the code belongs at the top at all (departure 1, the one real argument with
+  the source); which side the Caption line sits on (departure 4); and whether the live count earns
+  its line under the CTAs (departure 5), because it is the element that says the album is filling
+  right now and it is also the only fabricated thing on the board. After that, the phone: the album
+  there is the band between the code and the headline, roughly a third of the screen, and the arms
+  leave the frame where the words begin because a 375 canvas has no room beside a full-measure h1.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The river, variation 4 of the home-hero board's
+third round, replaced its placeholder. It moves the source's code out of the exact centre into the
+slot an eyebrow occupies, at the top of the page, and pours the album down out of it: frames are
+born behind the plate, fall on a gravity curve, grow as they come, part around the headline and
+dissolve through the hero's bottom and side edges, so the page reads as the album the scan started
+rather than a page with an album in it. The loop is the source's lesson kept exactly: a card's
+progress is a closed form of the clock and fall, scale and lateral position are all that one number,
+so there is no state, no timer and no per-card bookkeeping. The parting is the new idea: while a
+card's box could overlap the lockup, its projected inner edge is held on the corridor's wall, which
+makes the clearing a geometric guarantee (verified against the rendered ink of the type at both
+canvases and both copy toggles) and keeps the corridor a constant width as the frames grow. The
+deployed stream is the rest state, written into the server's HTML as per-card custom properties;
+the pre-pour frame lives inside the reduced-motion block so the pour cannot flash.
