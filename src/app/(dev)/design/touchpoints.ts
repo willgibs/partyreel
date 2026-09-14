@@ -568,8 +568,8 @@ export const RULINGS: Ruling[] = [
       "docs/ASSETS.md",
     ],
     board: {
-      note: "A contact sheet of the candidate first batch beside the current twelve stills, provenance under each; the batch is staged, not wired",
-      variants: ["Placeholder"],
+      note: "Three routes swapping in place on the same twelve positions with the provenance line under each, the vertical gap on the blog's cover pool, the sources with their clauses, and the blog plate at production geometry",
+      variants: ["Licensed", "Ours", "Mix", "In place"],
     },
   },
   {
