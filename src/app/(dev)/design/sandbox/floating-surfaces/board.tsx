@@ -356,8 +356,14 @@ export function FloatingSurfacesBoard() {
           value={outlier}
           onChange={setOutlier}
         />
+        {/* The pair wraps below ~700: two 375 canvases side by side in a 343
+            column would each be scaled to a third, which judges the scale
+            rather than the primitive. */}
         <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-2">
+          <div
+            className="flex min-w-0 grow flex-col gap-2"
+            style={{ flexBasis: 320 }}
+          >
             <p className="text-[11px] font-medium text-muted-foreground">
               As it ships
             </p>
@@ -372,7 +378,10 @@ export function FloatingSurfacesBoard() {
               designKey={designKey}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div
+            className="flex min-w-0 grow flex-col gap-2"
+            style={{ flexBasis: 320 }}
+          >
             <p className="text-[11px] font-medium text-muted-foreground">
               On the contract
             </p>

@@ -139,7 +139,12 @@ export function Frame({
   }, [replay]);
 
   return (
-    <div ref={boxRef} className="min-w-0 flex-1">
+    // `w-full` on the measured box, not just `flex-1`: the box inside it is
+    // sized from the scale, and the scale is measured from this element, so a
+    // wrapper that takes its width from its content makes the two chase each
+    // other down (it settled at 200px of a 1440 canvas once, and at 375 it drove
+    // the whole board into horizontal scroll). Width has to flow top-down.
+    <div ref={boxRef} className="w-full min-w-0 flex-1">
       <div
         className={cn(
           "relative overflow-hidden rounded-lg border border-border bg-muted/30",
