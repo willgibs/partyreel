@@ -507,8 +507,13 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/glow.tsx",
     ],
     board: {
-      note: "Depth in dark on stacked cards, a layer over content and a flat card; lamps without media on cinema and paper; the cadence at 8s and 11s; the publish beat's violet; the lit surface",
-      variants: ["Placeholder"],
+      note: "Four parts: depth in dark under four cues on three subjects, the footer seam and three candidate lamps for a media-less chapter, the cadence on three identical seams, the publish beat's violet beside the house five",
+      variants: [
+        "A, depth in dark",
+        "B, lamps without media",
+        "C, the cadence",
+        "D, the violet",
+      ],
     },
   },
   {
