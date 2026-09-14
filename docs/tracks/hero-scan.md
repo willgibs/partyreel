@@ -1,7 +1,7 @@
 ---
 track: hero-scan
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "b34993e3f6a2cc670e2b38cf7119cd10abc96099"
 preview: true           # Will reviews this concept on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/home-hero/scan.tsx
