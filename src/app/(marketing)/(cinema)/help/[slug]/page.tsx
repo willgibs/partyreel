@@ -263,7 +263,7 @@ export default async function HelpArticlePage({
                 <article
                   id={ARTICLE_BODY_ID}
                   data-print-article
-                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-code:font-sans prose-code:font-medium"
+                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-code:font-sans"
                 >
                   {content}
                 </article>
