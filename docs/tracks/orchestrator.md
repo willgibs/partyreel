@@ -70,13 +70,13 @@ Every open track, its board, its preview and what it waits on. A row changes at 
 
 | track | board | preview | waits on |
 | --- | --- | --- | --- |
-| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | stubbed; spawn pending |
-| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | stubbed; spawn pending |
-| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | stubbed; spawn pending |
-| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | stubbed; spawn pending |
-| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | stubbed; spawn pending |
-| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | stubbed; spawn pending |
-| `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | stubbed; spawn pending |
+| `palette` | `/design/c/palette` | `partyreel-git-lp-palette-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `light` | `/design/c/light` | `partyreel-git-lp-light-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `type-scale` | `/design/c/type-scale` | `partyreel-git-lp-type-scale-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `floating-surfaces` | `/design/c/floating-surfaces` | `partyreel-git-lp-floating-surfaces-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `brand-voice` | `/design/c/brand-voice` + `docs/specs/brand-voice.md` | `partyreel-git-lp-brand-voice-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `media-kit` | `/design/c/media-kit` + `docs/specs/media-kit.md` | `partyreel-git-lp-media-kit-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
+| `kill-mono` | no board (a production sweep; the hard cases walked on its preview) | `partyreel-git-lp-kill-mono-partyreel.vercel.app` | spawned 2026-09-14 from `9366df5`; building |
 | the rounding round (Orchestrator) | `/design/c/rounding` + the tuner on every cinema page | the launch-prep alias | the tuner's store, descriptions and the action-radius knobs; then Will's sitting |
 
 ## Waiting on Will
@@ -136,9 +136,19 @@ feels alive keeps a visitor exploring).
   opened, the composition pass, the lit surface on the light board, the hero wiring after kill-mono,
   voice-infusion), design-system.md and marketing-content.md (rules 1, 10, 11, 16 as rewritten, marked
   under exploration), the design record (seven open boards), `marketing-nav.ts` (no pin claim).
-- the asset log and this record: `docs/ASSETS.md` seeded with round two's asks and the two parked
-  media items; `docs/tracks/README.md` (the ASSETS row, the Handoff line's fixed shape, the queue);
-  `track-manifests.test.ts` (`docs/ASSETS.md` is never owned); this manifest rebuilt to its template.
+- `24239d0` the asset log and this record: `docs/ASSETS.md` seeded with round two's asks and the two
+  parked media items; `docs/tracks/README.md` (the ASSETS row, the Handoff line's fixed shape, the
+  queue); `track-manifests.test.ts` (`docs/ASSETS.md` is never owned); this manifest rebuilt.
+- `0a06802` the pre-strip: the nine mono hits left in these lanes gone; `theme.css` drops `--font-mono`
+  (Tailwind's default stack carries the survivors until `kill-mono` lands). ★ A lane that sees mono
+  fall back to the system stack is seeing this, not a bug.
+- `0cdf4c7` the board shell (`src/components/dev/board/`: `Stage` with grounds, `Toggle`, `BoardMeta`),
+  the home-hero board and contract moved onto it, the desk at `/design/c` (reads `docs/tracks/` at
+  request time; `next.config.ts` traces the directory in), seven boards registered in `touchpoints.ts`
+  with stubs under `sandbox/<id>/` and reserved keyframe prefixes (`pal-`, `lgt-`, `tsc-`, `flt-`,
+  `bv-`, `mk-`, `rnd-`), the dispatcher and `touchpoints.test.ts` grown to twelve.
+- `9366df5` the seven manifests stubbed (each the whole init); the wave spawned from the push at
+  the tip that followed.
 
 The previous window (the "less is more" reset, milestone-24, the gallery, the home-hero board and
 round two) is recorded in the CHANGELOG.
