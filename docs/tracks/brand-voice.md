@@ -1,7 +1,7 @@
 ---
 track: brand-voice
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: 6c19d8437438ce718c9b3bb2901a03c31cc560cf
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/brand-voice/
