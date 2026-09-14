@@ -60,14 +60,19 @@ open track is doing, what waits on Will, and what landed. Agents sync `origin/la
 only when a line under "announces" or "Landed this window" touches one of their `reads`; otherwise
 they sync once, before handoff, if it moved.
 
-**This window (the review wave, from 2026-09-14):** Will's rule-by-rule review of the bible, taken
-while round two of the home hero was building. Nine rules rewritten, each reviewed rule carrying a
-status on `/design/rules` (under exploration: the board writing what it inherits; retiring: the track
-that retires it), rising tides redefined as the ground-up judgment (bible 22), copy opened (21), mono
-leaving (7). Seven tracks cut at once: six lab boards and one production sweep, each on its own
-preview for Will's parallel reviews, with the rounding and tweaking GUI round on this side. The
-record the Orchestrator keeps between windows is the two lists below plus [`../ASSETS.md`](../ASSETS.md);
-the desk at `/design/c?key=` renders the same files.
+**This window (the review wave, 2026-09-14):** Will's rule-by-rule review of the bible, taken while
+round two of the home hero was building. Nine rules rewritten, each reviewed rule carrying a status on
+`/design/rules`, rising tides redefined as the ground-up judgment (bible 22), copy opened (21), mono
+gone (7 is now the two-faces rule). Seven tracks cut at once (six lab boards and one production
+sweep) and round three of the hero (three variations off the ruled source) cut the same afternoon:
+**all ten integrated the same day**, one window per handoff, each folded into the CHANGELOG, its asks
+quoted under Waiting on Will, its proposal kept in `docs/specs/` so it outlives the manifest. The
+rounding and tweaking GUI round ran on this side and earned its sitting. Every worktree and `lp/*`
+branch is pruned; Vercel is pruned. **The window is closed and the next moves are Will's rulings**
+(nine items below), after which: the composition pass (one Orchestrator board stacking the ruled
+blocks on the home arc and the dashboard), the hero's wiring round, the floating and light wiring
+rounds, `voice-infusion`. The record the Orchestrator keeps between windows is the two lists below
+plus [`../ASSETS.md`](../ASSETS.md); the desk at `/design/c?key=` renders the same files.
 
 ## In flight
 

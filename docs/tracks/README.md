@@ -138,11 +138,13 @@ session:
 
 `design-gallery` and `home-hero` integrated 2026-09-12; the home hero's second round ran as three
 concept tracks in parallel against one board shell and integrated 2026-09-14 (`hero-source`,
-`hero-reel`, `hero-gathering`); the wiring round cuts once Will rules and `kill-mono` lands. The
-review wave cut 2026-09-14 off the bible's second edition: `palette`, `light`, `type-scale`,
-`floating-surfaces`, `brand-voice`, `media-kit` and `kill-mono`, seven at once, each with a stub
-in this directory (In flight in [`orchestrator.md`](orchestrator.md)); the rounding and tweaking GUI
-round runs on the Orchestrator's side. The rest follow the wave plan in [`../STATUS.md`](../STATUS.md).
+`hero-reel`, `hero-gathering`); Will ruled the source and round three ran the same afternoon as three
+variation tracks (`hero-scan`, `hero-burst`, `hero-river`), all integrated. The review wave cut
+2026-09-14 off the bible's second edition (`palette`, `light`, `type-scale`, `floating-surfaces`,
+`brand-voice`, `media-kit`, `kill-mono`) and every one of the seven integrated the same day; the
+rounding and tweaking GUI round ran on the Orchestrator's side. Everything now waits on Will's rulings
+(Waiting on Will in [`orchestrator.md`](orchestrator.md)); then the composition pass, the wiring
+rounds and `voice-infusion` cut. The rest follow the wave plan in [`../STATUS.md`](../STATUS.md).
 
 | track | after | owns (prefixes) | reads (never claim) | rulings up front |
 | --- | --- | --- | --- | --- |
