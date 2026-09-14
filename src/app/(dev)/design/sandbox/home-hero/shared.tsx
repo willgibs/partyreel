@@ -296,9 +296,7 @@ export function Placeholder({
     <div className="flex h-full flex-col items-center justify-center gap-3 bg-background px-8 text-center">
       <p className="font-heading text-3xl text-white">{concept.name}</p>
       <p className="max-w-md text-sm text-white/60">{concept.rationale}</p>
-      <p className="font-mono text-[11px] text-white/40">
-        being built on lp/{track}
-      </p>
+      <p className="text-[11px] text-white/40">being built on lp/{track}</p>
     </div>
   );
 }

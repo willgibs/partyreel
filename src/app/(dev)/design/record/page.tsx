@@ -65,12 +65,14 @@ function RecordTable({ rows }: { rows: Ruling[] }) {
             >
               <td className="px-3 py-2.5">
                 <p className="font-medium">{r.title}</p>
-                <p className="font-mono text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   design-record.md#{r.id}
                 </p>
               </td>
               <td className="px-3 py-2.5">{SURFACE_LABEL[r.surface]}</td>
-              <td className="px-3 py-2.5 font-mono text-[11px]">{r.ruled}</td>
+              <td className="px-3 py-2.5 text-[11px] tabular-nums">
+                {r.ruled}
+              </td>
               <td className="px-3 py-2.5">
                 {r.shipped ?? (r.board ? "open" : "see the record")}
               </td>
@@ -79,10 +81,7 @@ function RecordTable({ rows }: { rows: Ruling[] }) {
               </td>
               <td className="px-3 py-2.5">
                 {r.lives.map((l) => (
-                  <p
-                    key={l}
-                    className="font-mono text-[11px] text-muted-foreground"
-                  >
+                  <p key={l} className="text-[11px] text-muted-foreground">
                     {l}
                   </p>
                 ))}

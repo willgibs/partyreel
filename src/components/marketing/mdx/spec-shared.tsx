@@ -421,7 +421,7 @@ export function Step({ index = 1, title, children }: StepProps) {
         aria-hidden
         className="absolute top-8 bottom-0 left-[13px] w-px bg-border group-last:hidden"
       />
-      <span className="z-10 flex size-7 shrink-0 items-center justify-center rounded-full border bg-card font-mono text-[11px] text-muted-foreground">
+      <span className="z-10 flex size-7 shrink-0 items-center justify-center rounded-full border bg-card text-[11px] text-muted-foreground tabular-nums">
         {String(index).padStart(2, "0")}
       </span>
       <div className="min-w-0 pt-0.5 text-sm leading-6">

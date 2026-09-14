@@ -446,7 +446,7 @@ export function ReelCanvasStyles() {
             <span className="text-sm text-destructive">{encodeError}</span>
           ) : null}
         </div>
-        <div className="font-mono text-xs text-muted-foreground">
+        <div className="text-xs text-muted-foreground tabular-nums">
           {support === null
             ? "probing encoder support..."
             : `avc ${width}x${height}: ${support.canEncode ? "supported" : "NOT SUPPORTED"} · ctx.filter grades: ${support.ctxFilter ? "yes" : "no (grade skipped)"} · OffscreenCanvas: ${support.offscreenCanvas ? "yes" : "no"} · codecs: ${support.codecs.join(", ") || "none"}`}
@@ -457,7 +457,7 @@ export function ReelCanvasStyles() {
       {reports.length > 0 ? (
         <section className="space-y-1 rounded-lg border border-amber-500/40 p-4">
           <div className="text-xs font-medium">Engine reports</div>
-          <ul className="list-inside list-disc font-mono text-xs text-muted-foreground">
+          <ul className="list-inside list-disc text-xs text-muted-foreground tabular-nums">
             {reports.map((r) => (
               <li key={r}>{r}</li>
             ))}

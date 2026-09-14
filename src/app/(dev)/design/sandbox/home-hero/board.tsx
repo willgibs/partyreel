@@ -133,7 +133,7 @@ function ConceptMeta({ concept }: { concept: Concept }) {
     <dl className="mt-3 grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-1 text-xs text-muted-foreground">
       {rows.map(([label, lines]) => (
         <div key={label} className="contents">
-          <dt className="font-mono text-[11px]">{label}</dt>
+          <dt className="text-[11px]">{label}</dt>
           <dd>
             {lines.map((line, i) => (
               <p key={i}>{line}</p>

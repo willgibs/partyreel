@@ -76,7 +76,7 @@ export default async function TouchpointPage({
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {ruling.why}
           </p>
-          <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
             Ruled {ruling.ruled} · the record: docs/decisions/design-record.md#
             {ruling.id}
           </p>
