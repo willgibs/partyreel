@@ -94,7 +94,8 @@ reads:                  # shared single-sources you depend on: never duplicate, 
 
 **Goal.** One paragraph, from the init.
 **Rulings in force.** Will's rulings this track works under (or "none").
-**Verify on.** The pages or flows the handoff is judged on, local and the branch preview.
+**Verify on.** The pages or flows the handoff is judged on, local and the branch preview; for an
+exploration round, the board on its preview at 1440 and 375 with reduced motion honoured, nothing more.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -111,6 +112,7 @@ reads:                  # shared single-sources you depend on: never duplicate, 
 - Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Assets requested from Will: none (or the exact list: what, size, grade, count, and the stand-in each replaces by id)
 - Look at first: ...
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
@@ -132,19 +134,20 @@ session:
 
 ## The queue (not yet cut; no manifest until their wave opens)
 
-The library phase closed with the "less is more" reset (2026-09-12: the bible, contracts on the
-components, the look-pins gone). The first two rows cut together at the reset's close (Will,
-2026-09-12: the gallery and the home hero in parallel); the rest follow the wave plan in
-[`../STATUS.md`](../STATUS.md). The rounding and tweaking GUI round (Orchestrator-run) opens after
-`design-gallery` integrates, then the light rulings.
+`design-gallery` and `home-hero` integrated 2026-09-12. The home hero's second round (Will,
+2026-09-14: the four grids did not land) runs as three concept tracks in parallel against one board
+shell, the first three rows; the rest follow the wave plan in [`../STATUS.md`](../STATUS.md). The
+rounding and tweaking GUI round (Orchestrator-run) is next on the Orchestrator's side, then the
+light rulings.
 
 | track | after | owns (prefixes) | reads (never claim) | rulings up front |
 | --- | --- | --- | --- | --- |
-| `design-gallery` | now, with `home-hero` (Will, 2026-09-12) | `src/app/(dev)/design/{page.tsx,layout.tsx,catalog.ts,lab-nav.tsx,mode-shell.tsx,theme-toggle.tsx,design.css}`, `src/app/(dev)/design/{components,compositions,patterns,foundations,marketing,reference}/` | `src/app/(dev)/design/rules/` (the bible and the artifact; add a contract by tagging its test), `touchpoints.ts` and `sandbox/` (`home-hero`'s), `src/components/dev/` (the tuner; the rounding round's), every production component the library renders | the library as the agents' reference, so the bible stays short: a per-component page or permalink with its specimen, its variants and its contracts; a declared variants model per component (CVA where it exists); one reusable config panel beside a specimen (the board-local sliders in `glow-doctrine-variants.tsx` and `reel-parity/parity.tsx` are the precedent); the five family pages become the organized gallery; notes for all 84, not 11; `component-index.test.ts` keeps every file rendered or excused |
 | `marketing-followons` | the library phase | `src/app/(marketing)/` except `(cinema)/features/`, `src/components/marketing/` except `sections/features/` and `system/page-hero.tsx`, `src/app/(marketing)/marketing.css`, `src/lib/constants/contact.ts`, `src/app/not-found.tsx` | `src/lib/constants/feature-pages.ts`, `system/page-hero.tsx` | `/contact` onto cinema with no identity revisit (the `(paper)` group retires with it); the root 404 tint; whatever single-source homes the library phase leaves it to re-point |
 | `features-qr`, `features-curation`, `features-sharing`, `features-guests`, `features-privacy` (one track each, nav order, two to three at a time) | `marketing-followons` | `src/app/(marketing)/(cinema)/features/<page>/`, `src/components/marketing/sections/features/<page>/` | `src/lib/constants/feature-pages.ts` (propose the page's new strings in Handoff), `sections/features/shared/`, `system/`, `frames/`, `mock-parity.test.ts` (append under a `// <page>` comment) | the album is the model, section for section; the brief per page is in git: `git show 0f52503:docs/tracks/marketing-feature-pages.md` ("For the per-page tracks that follow"); the corrections that must hold (Require accounts defaults ON; Anonymous is anonymous; a guest deletes their own upload; a private page shows no name and no count; no big-screen mode; nothing locked at lapse; EXIF "for the common formats"); `features-privacy` also: "Public" on `access-switch.tsx`, Report on `privacy-faq.ts`, the EXIF clause on `never-rides-along.tsx` |
 | `marketing-mobile` | the five page tracks | all of `src/app/(marketing)/`, `src/components/marketing/`, `marketing.css`, alone in its wave | | none up front, many during; judged on Will's phone, reduced motion and a classic scrollbar included; gating for launch |
-| `home-hero` | now, with `design-gallery`; its own focus round (Will, 2026-09-11 and 2026-09-12) | `src/components/marketing/sections/home/cinema-hero.tsx`, its boards under `src/app/(dev)/design/sandbox/`, and the two registration lines a board needs in `touchpoints.ts` and `c/[touchpoint]/page.tsx` (ruled exception) | `src/components/marketing/system/`, `src/app/globals.css`, the bible on `/design/rules` | a design problem, not a lighting one: boards in the lab first, Will's rulings, then the wiring; the hero stays UNLIT by ruling meanwhile (the wall is the ground, not a source) |
+| `hero-source` | now, with the two other hero tracks (Will, 2026-09-14) | `src/app/(dev)/design/sandbox/home-hero/source.tsx`, `source.css` | `sandbox/home-hero/shared.tsx` and `board.tsx` (the contract and the shell, the Orchestrator's), the bible on `/design/rules`, the manifest media | the QR at the exact centre, at rest and scannable; the album's frames branch out of it on load and stream to both edges forever (Melius's loop ported to CSS transforms and one rAF: two pools, one launch per side every 900 ms, 9.6 s flights, position and scale on separate curves, the corridor pre-seeded and revealed over 1.75 s); the QR is the eyebrow; media at 100%, the h1 at paint, the rest state fully deployed |
+| `hero-reel` | now, with the two other hero tracks (Will, 2026-09-14) | `src/app/(dev)/design/sandbox/home-hero/reel.tsx`, `reel.css` | the same shell; `sections/reel/ambient-reel-video.tsx` for the house video pattern | an encapsulated hero: a rounded container inset to the page column, a fast-cut highlight reel filling it (the landscape stand-in reel until Will's), the display type over it, two pill CTAs, and bottom-left an announcement card carrying the live QR at 96 px, absolute in the hero and fixed from lg; no scrim by default (the board's toggle is the text-layer radial); flag the container radius and any uppercase register as departures |
+| `hero-gathering` | now, with the two other hero tracks (Will, 2026-09-14) | `src/app/(dev)/design/sandbox/home-hero/gathering.tsx`, `gathering.css` | the same shell; `system/caption.tsx` | centred type with a bespoke field of photographs and short vertical clips around it, cards of unequal size and slight rotation on an irregular field, never a grid, some cards video (the portrait stand-in reel cut by currentTime), a slow parallax and an idle sway; the eyebrow is the demo QR with a caption; phone collapses to two staggered columns |
 | `design-lab-subdomain` | the library phase (Will, 2026-09-11) | a second Vercel project on the same repo, `src/app/(dev)/design/` and the build wiring | `src/lib/design-gate/`, `src/components/dev/`, every production component the library renders | one repo so agents keep learning from production source; the lab leaves the product's build; the gate and `/api/design-gate` stay where they are (production depends on them); architecture, not a saving (2.5 MB marginal, measured) |
 | `admin-subdomain` | `design-lab-subdomain` (Will, 2026-09-11) | `src/app/admin/`, `src/lib/admin/`, `src/components/admin/`, the host gate | `src/lib/db/`, `src/lib/supabase/` | closed to regular users, fully open to the Orchestrator and agents; `admin.partyreel.com` already exists as a project domain and the portal is already host-gated, so this is about a separately deployable surface; architecture, not a saving (1.5 MB marginal, measured) |
 

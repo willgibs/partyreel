@@ -5,7 +5,7 @@ import { requireDesignKey } from "@/lib/design-gate/server";
 import { ModeShell } from "../../mode-shell";
 import { GlowDoctrineVariants } from "../../sandbox/glow-doctrine-variants";
 import { GlowMomentsVariants } from "../../sandbox/glow-moments-variants";
-import { HomeHeroVariants } from "../../sandbox/home-hero-variants";
+import { HomeHeroBoard } from "../../sandbox/home-hero/board";
 import { MarketingDecompositionVariants } from "../../sandbox/marketing-decomposition-variants";
 import { MarketingHeroSubstrateVariants } from "../../sandbox/marketing-hero-substrate-variants";
 import { getRuling, type SandboxId, SURFACE_LABEL } from "../../touchpoints";
@@ -16,7 +16,7 @@ import { getRuling, type SandboxId, SURFACE_LABEL } from "../../touchpoints";
 const VARIANTS: Record<SandboxId, React.ComponentType> = {
   "marketing-decomposition": MarketingDecompositionVariants,
   "marketing-hero-substrate": MarketingHeroSubstrateVariants,
-  "home-hero": HomeHeroVariants,
+  "home-hero": HomeHeroBoard,
   "glow-doctrine": GlowDoctrineVariants,
   "glow-moments": GlowMomentsVariants,
 };

@@ -1,0 +1,6 @@
+/* The source's own sheet (the lp/hero-source track). Keyframes here are prefixed hhs-
+   and nothing else in the lab or in marketing.css may reuse a name
+   (keyframe-uniqueness.test.ts). Final states live OUTSIDE the media queries;
+   entrances and loops inside `prefers-reduced-motion: no-preference` only.
+   Mark any infinite loop with data-hh-loop so the board's pause contract
+   reaches it. */

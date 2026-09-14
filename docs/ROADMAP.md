@@ -31,10 +31,11 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
   layout's light `theme-color` (`#fcfcfc`) over a dark cinema page, while the cinema-group 404 carries
   `#040404`; export the dark tint from the root not-found or move it under the cinema group (found in
   the milestone-16 red-team, 2026-09-02).
-- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). The `home-hero`
-  track (integrated 2026-09-12) put the board up at `/design/c/home-hero?key=`: four heroes with zero
-  darkening layers over media against three on the shipped one, the agent's recommendation V1 (the
-  contact sheet) with V2 second. **Waits on Will's ruling**; then: wire the ruled hero into
+- **The home hero redesign** (Will, 2026-09-01: "I'd love a full home hero redesign"). Round one
+  (`home-hero`, integrated 2026-09-12) put four grids on the board; Will's ruling 2026-09-14: none of
+  them, too generic, not the QR-to-album idea. Round two runs as three parallel tracks (`hero-source`,
+  `hero-reel`, `hero-gathering`) against one shell at `sandbox/home-hero/`, each with its own eyebrow
+  and copy proposal and its own asset request. **Waits on Will's ruling on round two**; then: wire the ruled hero into
   `cinema-hero.tsx`, retire the board and record the ruling in `decisions/design-record.md#home-hero`;
   rule the kinetic word in the h1 (every variant reads better with it off, the photographs carry the
   variety now); and if the ruling is V3 (the arrival), the live-demo section at position 7 of the home

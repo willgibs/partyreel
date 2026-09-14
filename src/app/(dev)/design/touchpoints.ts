@@ -303,14 +303,14 @@ export const RULINGS: Ruling[] = [
     surface: "marketing",
     ruled: "open",
     shipped: null,
-    why: "Open: where the type lives so no photograph is dimmed, since the shipped wall carries four darkenings and not one frame reads as a photograph.",
+    why: "Open, round two: the hero is the QR becoming the album. Round one's four grids did not land (Will, 2026-09-14); three mechanisms answer it now.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
     ],
     board: {
-      note: "The full hero redesign as one question, asked four ways: the type as a cell in the album, as its own column, as a band over an album that fills, or as a title card on a single frame, every one of them at 100% media",
-      variants: ["The contact sheet", "The split", "The arrival", "One frame"],
+      note: "Round two: the scan is the origin of everything on screen. The QR at the centre with the album streaming out of it, an encapsulated highlight reel with the live QR pinned as the announcement, and a bespoke field of photographs and clips with the QR as the eyebrow; each proposes its own eyebrow and copy",
+      variants: ["The source", "The reel", "The gathering"],
     },
   },
   {

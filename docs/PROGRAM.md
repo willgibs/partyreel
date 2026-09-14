@@ -134,7 +134,10 @@ lines); set `status: handed-off` (and `preview: true` if Will should look); push
 ## The hard gates (religious — no exceptions)
 
 1. **Lab-validate before shipping creative magic**: prototype in the `/design` lab, Will reacts,
-   then wire the ratified direction ([`systems/design-system.md`](systems/design-system.md)).
+   then wire the ratified direction ([`systems/design-system.md`](systems/design-system.md)). The
+   lab round this creates is an EXPLORATION round: light QA (the board on its preview at two widths,
+   reduced motion, the gate) and no red-team until the wiring round (the principle below,
+   2026-09-14).
 2. **One-way doors get an options-doc + recommendation, then WAIT for Will's ruling**, recorded as
    an ADR (the `decisions/t1-*` tombstones model the lifecycle).
 3. **NO launch switches** (Stripe live, the real `/privacy`, secrets→Sensitive, `PRUNE_MODE=live`,
@@ -240,6 +243,20 @@ same session. The steps, so no milestone is reverse-engineered from git again (2
   agent treating an agent-authored constraint as a ruling and quietly narrowing the work to fit it.
   Related, and the same instinct one level down: the lab and production are **both** provisional and
   the arrow points both ways ([design-system.md](systems/design-system.md)).
+- **Unlimited design resources** (Will, 2026-09-14): design as if any image, video, SVG, 3D or
+  generative asset can be made, because he makes them. Ask for exactly what the design needs (a row
+  of themed event-card images, a twenty-second party reel of fast highlight clips, an SVG plate for
+  the QR) in the manifest's Handoff under "Assets requested from Will", ship the manifest's stand-in
+  meanwhile, and swap by id when the asset lands.
+- **Exploration rounds are light and iterative** (Will, 2026-09-14): a lab-only round, one that
+  ships no production byte, verifies that its board renders on its preview at 1440 and 375 with
+  reduced motion honoured and the four-step gate green, and hands off. The deep red-team lands with
+  the wiring round. Iterate rather than perfect: a round that is thorough per pass spends the cycles
+  the iteration needs.
+- **Nothing is protected** (Will, 2026-09-14). The goal for this stretch: every page reaches a
+  cohesive informational flow, and every point of the design system and the marketing and app UI is
+  elevated platform-wide; a few elements are near production grade, the rest lags, and no surface is
+  exempt. Parallel agents run through the Orchestrator, which carries every back-and-forth.
 
 ## Settled — do not re-litigate (pointers, not restatements)
 

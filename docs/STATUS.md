@@ -7,7 +7,7 @@
 > what's next (→ [`ROADMAP.md`](ROADMAP.md)).
 > GROWS BY: integrate-in-place + prune (a snapshot — keep it short and current).
 
-**Updated:** 2026-09-12
+**Updated:** 2026-09-14
 
 ## The era
 
@@ -20,7 +20,10 @@ The **elevation program** ([`PROGRAM.md`](PROGRAM.md)) is the only active thread
 prod); agent `lp/<track>` branches auto-deploy their own review previews (NOT allow-listed, UI-review
 only); partyreel.com changes only at tagged milestone merges. Every session is an **Agent** unless Will
 designates it **the Orchestrator** — see CLAUDE.md "Sessions & roles" + PROGRAM.md before touching
-anything shared.
+anything shared. **The goal for this stretch** (Will, 2026-09-14): every page reaches a cohesive
+informational flow, and every point of the design system and the marketing and app UI is elevated
+platform-wide; nothing is protected, exploration rounds are light and iterative, and parallel agents
+run through the Orchestrator.
 
 ## Where the program stands
 
@@ -360,12 +363,13 @@ the P3 project during the 2026-08-05 hosting migration — the list still holds.
 
 ## Will's open decision queue
 
-**Pending now: one thing, and it blocks the hero's wiring.** The home-hero board on the launch-prep
-alias, `/design/c/home-hero?key=`: four heroes, the Desktop toggle, scrolling from V1 to "Today, for
-reference" at the bottom, then the Phone 375 toggle and the Kinetic word toggle. The agent recommends
-V1 (the contact sheet, the only one whose composition IS the thesis), V2 second; V4 is the most
-beautiful frame and the weakest argument; V3 says what the live demo already says at position 7. Say
-the variant and whether the kinetic word stays, and the wiring round cuts. Everything else waits for
+**Pending now: the home hero, round two, once its three concepts land.** Round one's four grids did
+not land (Will, 2026-09-14: bland, generic, the image-grid idiom of ten to twenty years ago, and not
+the QR-to-album idea). Round two asks one question, the hero is the QR becoming the album, three ways
+built in parallel (`hero-source`, `hero-reel`, `hero-gathering`) against a new board shell; the board
+at `/design/c/home-hero?key=` shows placeholders until they land. Then: the concept, its eyebrow and
+its copy proposal, and any flagged departure (the reel's container radius and type scrim). The asset
+requests each concept names are yours to produce whenever; stand-ins ship first. Everything else waits for
 the UI era to land on what it lands on (Will's ruling at milestone-23, 2026-09-12), unless something
 blocks or is high-leverage.
 

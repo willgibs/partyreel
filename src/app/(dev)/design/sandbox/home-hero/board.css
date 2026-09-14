@@ -1,0 +1,23 @@
+/* The home-hero board's shared sheet (board.tsx), imported by the board so it
+   leaves with the board when the ruling lands. Each concept owns its own sheet
+   beside it (source.css, reel.css, gathering.css) with its own keyframe prefix
+   (hhs-, hhr-, hhg-); this sheet's prefix is hh-.
+
+   House convention, same as every lab round: FINAL states live OUTSIDE the
+   media queries, so a reduced-motion reader gets the settled composition with
+   no rule to undo; entrances and loops live inside `no-preference` only.
+
+   The one shared hook:
+
+     [data-hh-loop]   any element a concept marks as an infinite loop. The
+                      stage sets data-paused on a hidden tab; this pauses
+                      every marked loop under it, mirroring marketing.css's
+                      loop-pause contract, so a concept never has to write
+                      its own pause rule. JS-driven loops (a rAF fountain)
+                      read the same attribute off the stage instead. */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-paused="true"] [data-hh-loop] {
+    animation-play-state: paused;
+  }
+}

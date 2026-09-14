@@ -281,13 +281,16 @@ Lives: `docs/systems/marketing-content.md`, `docs/ROADMAP.md`
 
 **The home hero** (marketing). Ruled open. Shipped: open.  
 The full hero redesign as one question, asked four ways: the type as a cell in the album, as its own column, as a band over an album that fills, or as a title card on a single frame, every one of them at 100% media.  
-Variants: V1 The contact sheet; V2 The split; V3 The arrival; V4 One frame.
+Variants, round one: V1 The contact sheet; V2 The split; V3 The arrival; V4 One frame (left the board at `bd9d98e`: `git show bd9d98e:src/app/(dev)/design/sandbox/home-hero-variants.tsx`).  
+Variants, round two: The source; The reel; The gathering.
 
 Context, as the lab recorded it: its own agent round (Will, 2026-09-01 and 2026-09-12: "I'd love a full home hero redesign"), cut alongside `design-gallery` off milestone-24. The round's finding is the board: the shipped hero carries three darkening layers over its wall of 24 tiles at desktop and a fourth below `sm`, because white type had to survive over whichever tile the drift parked under it, so bible rule 1 is inverted and not one photograph reads as a photograph. That makes the design question "where does the type live, so no photograph is ever dimmed", and the four variants are the four answers: a cell in the album's own grid, its own column against a hard frame edge, a band over an album that fills guest by guest, a small opaque title card on one frame. Measured on the preview: the four stages carry ZERO darkening layers over media between them, against three on the shipped hero rendered beside them from production code. Held fixed: the ruled copy verbatim, the h1 never gated and at opacity 1 at paint, the ladder's `lg` and `xl` steps, cinema and unlit. Two sub-questions ride the ruling: the kinetic word (a toggle on the board; the recommendation is to retire it, since the variety it carried is now carried by the photographs) and, if V3 wins, the live-demo section, which already does the same thing at position 7 of the home arc.
 
-The ruling: not yet taken (see the board). The agent's recommendation is V1, with V2 as the safer second.
+The ruling on round one: none of the four (Will, 2026-09-14: "very bland and generic, using image grids that felt very popular 10 to 20 years ago", not capturing "the one QR/link -> full event album concept"). Round two, same day: one sharper question, THE HERO IS THE QR BECOMING THE ALBUM, asked three ways with a reference each for its strength: the source (Melius's centre-out stream, the QR as the origin), the reel (Ploy's encapsulated video with the announcement card carrying the live QR), the gathering (Frame.io's bespoke field, the QR as the eyebrow). Each proposes its own eyebrow (Will does not love the current one) and its own copy beside the ruled thesis, names the assets that replace its stand-ins (the unlimited-design-resources policy, set the same day), and flags departures on the board. Built by three tracks in parallel against one shell (`sandbox/home-hero/shared.tsx`).
 
-Board: `src/app/(dev)/design/sandbox/home-hero-variants.tsx`, standing in `sandbox/` until the ruling lands.  
+The ruling on round two: not yet taken (see the board).
+
+Board: `src/app/(dev)/design/sandbox/home-hero/board.tsx` (the shell; one file per concept beside it), standing in `sandbox/` until the ruling lands.  
 Lives: `docs/systems/marketing-content.md`, `src/components/marketing/sections/home/cinema-hero.tsx`
 
 ## pricing-plan-cards
