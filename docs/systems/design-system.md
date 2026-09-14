@@ -518,12 +518,23 @@ alone; both atoms sit side by side on `/design/marketing`.
 | Layer | Token | Value |
 | --- | --- | --- |
 | Surfaces (cards, inputs, sections) | `--radius` | `0.125rem` (sharp) |
-| Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height; in-between sizes interpolate: h-6 `0.6rem`, h-7 `0.7rem`, h-9 `0.9rem`) |
+| Actions (buttons) | `--radius-action` / `-lg` / `-sm` | `1rem` @ h-10 · `1.2rem` @ h-12 · `0.8rem` @ h-8 (ratio ~0.4 x height); the in-between Button sizes DERIVE from `--radius-action` (h-6 0.6x, h-7 0.7x, h-9 0.9x, `button.tsx`, the rounding round 2026-09-14), so one knob moves the whole ladder |
 | Media tiles | `--radius-tile` · `--gap-gallery` | radius `3px`; `--gap-gallery` (`3px`) is the ONE gap for EVERY media-tile grid — masonry galleries + the dense triage grids (Reviews / review takeover / admin moderation). Use `gap-[var(--gap-gallery)]`; one knob retunes them all |
 | Floating layer (menus, tooltips, toasts, dialogs, sheets' corners) | `--radius-float` | `0.5rem` (sharp reads broken on floating elements) |
 
 Nested-corner math: inner = outer minus gap. The sharp-surface/round-action contrast is the
 system's DELIBERATE exception to it.
+
+★ **The radius tokens, `--gap-gallery`, `--spill-cadence` and the `--tune-*` knobs live in their OWN
+`:root` block in `globals.css`, never in the `:root, .surface-paper` block and never in the lab's
+`.mono` sheet** (the rounding round, 2026-09-14). They are theme-independent, and aliased into a
+theme set they were re-declared by every paper chapter and every lab board, so the tuner's
+html-inline override never pierced them: a radius sitting on a paper chapter or on the rounding
+board was silently on the baked values (measured: `<html>` at 14px, the live column at 2px).
+Declared once on `:root` they inherit everywhere and the tuner wins everywhere. The sitting surface
+is `/design/c/rounding` (four columns of one kit: three fixed candidates as inline overrides and a
+live column that follows the tuner) plus every real page the tuner mounts on; bible 8 inherits the
+values Will rules there.
 
 **Anything drawn AROUND an object takes the object's radius, never a literal** (bible 9). A ring, glow or
 bloom at offset N gets `object radius + N`, which is the same nested rule read outward. This is not
@@ -782,15 +793,19 @@ slide). Why hand-rolled beats dnd-kit HERE: on a uniform grid the drop-index is 
 450ms press (a scroll never reorders); `touch-none` in the focused reorder mode + edge autoscroll reach
 off-screen tiles; keyboard reorder (space / arrows / enter / escape) is free since the order math is index-based.
 
-**The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`,
-S4·0): a panel that writes `--tune-*` CSS vars to `<html>` so any var-backed timing can be finetuned LIVE, no
-rebuild. It lives in the **lab at [`/design/motion`](../../src/app/(dev)/design/motion/page.tsx)** (the
-`MotionPlayground`): the tuner drives REPLAYABLE DUMMY animations on the exact same hooks, so you adjust a
-slider, hit Replay, feel it, and Copy CSS - far better than tuning real prod animations (which meant a refresh
-+ re-entering the takeover per tweak; it shipped on the prod event page first, S4·0, then moved here). Contract:
-each polish increment APPENDS its knobs to `EVENT_PAGE_TUNER_CONTROLS`, the config `default` MIRRORS the CSS
-default, and any JS-read var (`run()`'s `readCssMs`) falls back to a constant that ALSO mirrors it — so
-tuned-vs-untuned stays consistent. Bake a tuned value: Copy CSS → set it as the globals.css default → Reset.
+**The motion tuner** ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx) + `motion-tuner-config.ts`
++ `tuner-store.ts`, S4·0; rebuilt in the rounding round, 2026-09-14): a panel that writes CSS vars as inline
+styles on the element that declares them (`<html>` for the app's `--tune-*` and the radius tokens, the
+`[data-mkt]` wrapper for `--mkt-*`) so any var-backed timing or radius can be finetuned LIVE, no rebuild. The
+working set lives in a module store persisted to `localStorage` and re-applied on every mount, so a value
+survives a Replay, a navigation out of the cinema group and a reload; Reset clears it and the badge always
+counts what stands. Every knob carries a `description`, a `ships` line and a `group`, and every knob has a
+specimen where the tuner mounts (the playground at [`/design/motion`](../../src/app/(dev)/design/motion/page.tsx),
+the real cinema pages, the rounding board); a knob without one is retired rather than left as a dead slider
+(the reel reveal's, the reel experience's and the event feed's knobs left the panel; their vars and bakes are
+untouched). Contract: an increment APPENDS its knobs with all three fields and a specimen in the same commit,
+the config `default` MIRRORS the CSS default, and any JS-read var (`run()`'s `readCssMs`) falls back to a
+constant that ALSO mirrors it. Bake a tuned value: Copy CSS (grouped, per scope) → set it as the default → Reset.
 
 **State-colored toasts (global policy, S4):** sonner's `data-type` is mapped to the design state colors —
 `success` = `--success` green, `warning` = `--warning` amber, `error`/destructive = `--destructive` red;

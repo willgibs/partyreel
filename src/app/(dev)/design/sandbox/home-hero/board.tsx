@@ -7,21 +7,24 @@ import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { Stage as ShellStage, Toggle, type Mode } from "@/components/dev/board";
-import { CinemaHero } from "@/components/marketing/sections/home/cinema-hero";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 import { Variant } from "../variant-frame";
-import { gathering } from "./gathering";
-import { reel } from "./reel";
+import { burst } from "./burst";
+import { river } from "./river";
+import { scan } from "./scan";
 import { type Concept, type CopyMode } from "./shared";
 import { source } from "./source";
 
 /**
- * Touchpoint: THE HOME HERO, round two (Will, 2026-09-14). The contract and
- * the doctrine are in shared.tsx; the three concepts are one file each, built
- * by three tracks in parallel (hero-source, hero-reel, hero-gathering) and
- * imported here in the order the board argues them.
+ * Touchpoint: THE HOME HERO, round three (Will, 2026-09-14). The contract and
+ * the doctrine are in shared.tsx. Round two's three concepts were ruled the
+ * same day: the source won ("definitely my favorite direction"), so it stays
+ * on the board as the reference and three variations off it are one file
+ * each, built by three tracks in parallel (hero-scan, hero-burst, hero-river)
+ * and imported here in the order the board argues them. The reel and the
+ * gathering left the board at ba82222 (`git show ba82222:<path>`).
  *
  * Lab convention, deliberate: nothing here wires use-ambient-pause on scroll
  * (the lab never pauses; side-by-side comparison wants everything running).
@@ -30,7 +33,7 @@ import { source } from "./source";
  * exactly as the shipped hero has it.
  */
 
-const CONCEPTS: Concept[] = [source, reel, gathering];
+const CONCEPTS: Concept[] = [source, scan, burst, river];
 
 /** The stage: the shell's, on the cinema ground with the group's body skin
  *  (this board is cinema-only, so the lab page matches the route group). */
@@ -75,7 +78,6 @@ function ConceptMeta({ concept }: { concept: Concept }) {
 export function HomeHeroBoard() {
   const [mode, setMode] = useState<Mode>("desktop");
   const [copy, setCopy] = useState<CopyMode>("ruled");
-  const [scrim, setScrim] = useState(false);
   const [runId, setRunId] = useState(0);
   const reduced = usePrefersReducedMotion();
   const qrUrl = DEMO_EVENT_URL ?? null;
@@ -84,22 +86,22 @@ export function HomeHeroBoard() {
     <div className="flex flex-col gap-6 py-4">
       <div className="max-w-2xl space-y-3 text-xs leading-relaxed text-muted-foreground">
         <p>
-          Round one asked where the type lives so no photograph is dimmed, and
-          answered with four grids. They did not land: the image-grid idiom of
-          ten to twenty years ago, and none of them caught the one thing
-          Partyreel is.
+          Round two asked one question, the hero is the QR becoming the album,
+          and answered it three ways. Will ruled the source: a stranger landing
+          here should immediately think &quot;if I scan this, I get all of
+          these&quot;, and the supporting elements and copy clarify from there.
+          The reel read as the video being the product; the gathering&apos;s QR
+          read as a scan-to-learn-more object beside an album, not the basis of
+          the feature.
         </p>
         <p>
-          Round two asks one sharper question. The hero is the QR becoming the
-          album: the scan is the origin of everything on screen. Three answers,
-          one mechanism each. The source: the QR at the centre and the album
-          streaming out of it forever. The reel: an encapsulated highlight film
-          with the type over it and the live QR pinned as the announcement. The
-          gathering: a bespoke field of photographs and clips around the type,
-          the QR as the eyebrow. Each proposes its own eyebrow and its own copy
-          beside the ruled line; each names the asset that replaces its
-          stand-ins; each flags any departure from the bible on the board rather
-          than in a footnote.
+          Round three iterates on the source. It stays first as the reference;
+          three variations follow, each pushing one axis of the same causality:
+          the scan makes the cause literal (the act of scanning births the
+          album), the burst takes the origin into every direction, the river
+          runs the album down out of the code into the page. Each proposes its
+          own supporting elements and copy, names its assets, and flags any
+          departure on the board rather than in a footnote.
         </p>
       </div>
 
@@ -121,15 +123,6 @@ export function HomeHeroBoard() {
           ]}
           value={copy}
           onChange={setCopy}
-        />
-        <Toggle
-          ariaLabel="Type scrim (the reel only)"
-          options={[
-            { id: "off", label: "No scrim" },
-            { id: "on", label: "Type scrim" },
-          ]}
-          value={scrim ? "on" : "off"}
-          onChange={(v) => setScrim(v === "on")}
         />
         <button
           type="button"
@@ -154,33 +147,12 @@ export function HomeHeroBoard() {
           rationale={c.rationale}
           framed={false}
         >
-          <Stage
-            mode={mode}
-            key={`${c.id}-${mode}-${runId}-${copy}-${String(scrim)}`}
-          >
-            {c.render({ mode, copy, scrim, qrUrl, runId })}
+          <Stage mode={mode} key={`${c.id}-${mode}-${runId}-${copy}`}>
+            {c.render({ mode, copy, scrim: false, qrUrl, runId })}
           </Stage>
           <ConceptMeta concept={c} />
         </Variant>
       ))}
-
-      {/* The reference, last on purpose: the board argues against it, so it
-          should be judged after the three rather than framed by it. */}
-      <Variant
-        n={0}
-        name="Today, for reference"
-        rationale="The shipped hero, live from production code. Four stacked darkenings over twenty-four tiles; the reel card floats free of the composition."
-        framed={false}
-      >
-        <Stage mode={mode} key={`today-${mode}-${runId}`}>
-          {/* The shipped hero is 100svh and pulls itself up under the overlay
-              header; the stage owns the height here, so both are neutralized
-              locally rather than by touching production. */}
-          <div className="h-full [--mkt-header-h:0px] [&>section]:h-full [&>section]:min-h-0">
-            <CinemaHero />
-          </div>
-        </Stage>
-      </Variant>
     </div>
   );
 }

@@ -129,7 +129,8 @@ session:
 > You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
 > `docs/tracks/<track>.md` and is your whole init (goal, rulings, owned paths, verification). Design law
 > is the bible on `/design/rules` and the component contracts on `/design`; everything else is
-> precedent: take the big swing, in the lab first. Boot per
+> precedent: rising tides (bible 22), judge it from the ground up, elevate or rework, in the lab
+> first. Boot per
 > `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,
 > setting `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
