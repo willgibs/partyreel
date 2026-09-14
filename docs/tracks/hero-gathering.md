@@ -57,7 +57,9 @@ exploration-round principle: nothing more.
 
 ## Handoff (replaces the chat report)
 
-- Head `0ff8ef6`, pushed; preview partyreel-git-lp-hero-gathering-partyreel.vercel.app, `/design/c/home-hero?key=<DESIGN_PREVIEW_KEY>`
+- Head: the tip of `lp/hero-gathering`, pushed. The last commit touching the concept is `0ff8ef6`;
+  everything after it is this manifest. Preview partyreel-git-lp-hero-gathering-partyreel.vercel.app,
+  `/design/c/home-hero?key=<DESIGN_PREVIEW_KEY>` (verified at `5f873e5`, which carries the same two files).
 - Synced with launch-prep: it had not moved (`git rev-list --count HEAD..origin/launch-prep` = 0, cut from `f28d521`)
 - Gates on the tree: typecheck ok, lint ok (0 errors; the 6 warnings are pre-existing, none in my files), test ok (1636 in 190 files), build ok (246 static pages)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/hero-gathering.md`,
