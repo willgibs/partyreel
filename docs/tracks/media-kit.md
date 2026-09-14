@@ -1,7 +1,7 @@
 ---
 track: media-kit
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "6c19d84"         # the launch-prep SHA the branch was cut from (the review wave, round two)
 preview: true           # Will reviews this board on its preview as it builds
 owns:
   - src/app/(dev)/design/sandbox/media-kit/
