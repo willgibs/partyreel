@@ -280,11 +280,15 @@ export default function HelpIndexPage() {
                       wide && "lg:col-span-2",
                     )}
                   >
-                    {/* The ghost folio: the category number at print-index scale
-                      (mono per the ruling; decorative ink at 5%). */}
+                    {/* The ghost folio: the category number at print-index
+                      scale, in the brand face at 6% ink. A watermark folio is
+                      display typography, so it takes the heading face and its
+                      own tracking; tabular figures keep 01 and 10 the same
+                      width, which is what stops the pane's corner from
+                      shifting between cells (kill-mono, 2026-09-14). */}
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute top-3 right-6 font-mono text-6xl leading-none tracking-tight text-foreground/[0.05] tabular-nums select-none sm:text-7xl"
+                      className="pointer-events-none absolute top-3 right-6 font-heading text-6xl leading-none text-foreground/[0.06] tabular-nums select-none sm:text-7xl"
                     >
                       {String(groupIndex + 1).padStart(2, "0")}
                     </span>

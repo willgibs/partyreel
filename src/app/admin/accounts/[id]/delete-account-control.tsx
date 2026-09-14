@@ -108,7 +108,10 @@ export function DeleteAccountControl({
 
         <div className="space-y-1.5">
           <Label htmlFor="operator-delete-confirm">
-            Type <span className="font-mono text-foreground">{identifier}</span>{" "}
+            Type{" "}
+            <span className="rounded bg-muted px-1.5 py-0.5 font-medium text-foreground tabular-nums">
+              {identifier}
+            </span>{" "}
             to confirm
           </Label>
           <Input

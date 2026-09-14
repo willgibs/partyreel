@@ -263,7 +263,7 @@ export default async function HelpArticlePage({
                 <article
                   id={ARTICLE_BODY_ID}
                   data-print-article
-                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading"
+                  className="prose mt-8 max-w-none prose-help first:mt-0 prose-headings:font-heading prose-code:font-sans prose-code:font-medium"
                 >
                   {content}
                 </article>
@@ -376,7 +376,10 @@ export default async function HelpArticlePage({
                   className="hidden shrink-0 lg:block lg:w-48 lg:self-stretch"
                   data-print-hide
                 >
-                  <nav aria-label="On this page" className="sticky top-[var(--mkt-rail-top)]">
+                  <nav
+                    aria-label="On this page"
+                    className="sticky top-[var(--mkt-rail-top)]"
+                  >
                     <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
                       On this page
                     </p>
