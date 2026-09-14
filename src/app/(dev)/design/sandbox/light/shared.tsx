@@ -46,15 +46,23 @@ export function CellLabel({
 }
 
 /** A named specimen: the thing, then its label. `note` is the one line that
- *  says what this cell is evidence FOR. */
+ *  says what this cell is evidence FOR; `proposed` marks the cell the board
+ *  lands on.
+ *
+ *  ★ THE MARK IS IN THE LABEL, NEVER AROUND THE SPECIMEN. A dashed outline at
+ *  an offset is the obvious way to say "this one", and on a board whose whole
+ *  subject is edge treatments it is a fifth cue: the eye reads the outlined
+ *  card as the one with the extra edge. Tried it, removed it. */
 export function Cell({
   name,
   note,
+  proposed,
   className,
   children,
 }: {
   name: string;
   note?: string;
+  proposed?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -63,6 +71,48 @@ export function Cell({
       <div className="flex min-h-0 flex-1 items-center justify-center">
         {children}
       </div>
+      <CellLabel>
+        <span
+          className={cn(
+            "font-medium",
+            proposed ? "text-foreground" : "text-muted-foreground",
+          )}
+        >
+          {name}
+        </span>
+        {proposed ? (
+          <span className="block text-foreground">
+            <span className="mr-1.5 inline-block size-1.5 translate-y-[-1px] rounded-full bg-foreground align-middle" />
+            {proposed}
+          </span>
+        ) : null}
+        {note ? <span className="block">{note}</span> : null}
+      </CellLabel>
+    </div>
+  );
+}
+
+/**
+ * A labelled FULL-WIDTH block: a stage and the line that says what it is.
+ *
+ * ★ NOT `Cell`. Cell centres its child in a flex row, and Stage measures the
+ * box it is given to decide its zoom, so a Stage inside a flex row shrinks to
+ * its content width, measures ~100px and renders a 1440px canvas at 7 percent.
+ * It looks like a thumbnail and nothing about it says it is wrong. Stages go
+ * here; specimens go in Cell.
+ */
+export function Labeled({
+  name,
+  note,
+  children,
+}: {
+  name: string;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex w-full flex-col">
+      {children}
       <CellLabel>
         <span className="font-medium text-foreground">{name}</span>
         {note ? <span className="block">{note}</span> : null}
@@ -84,8 +134,10 @@ export function Part({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-4">
-      <div className="max-w-2xl">
+    // The id is the part's anchor: four parts on one long board, and a ruling
+    // conversation wants to point at one of them.
+    <section id={`lgt-${n.toLowerCase()}`} className="flex flex-col gap-4">
+      <div className="max-w-2xl scroll-mt-6">
         <h2 className="text-sm font-semibold tracking-tight">
           <span className="mr-2 text-muted-foreground tabular-nums">{n}</span>
           {title}

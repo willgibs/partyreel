@@ -62,17 +62,17 @@ function cueProps(cue: Cue, ring: string, shadow: "lift" | "float") {
    nothing: whatever the two images happen to do at their meeting edge. */
 function StackedMedia({ cue, small }: { cue: Cue; small: boolean }) {
   const p = cueProps(cue, "ring-1 ring-foreground/10", "lift");
-  const w = small ? 74 : 104;
-  const h = small ? 99 : 139;
+  const w = small ? 82 : 152;
+  const h = small ? 110 : 203;
   return (
     <div
       className="relative"
-      style={{ width: w * 1.9, height: h * 1.28 }}
+      style={{ width: w * 1.64, height: h * 1.3 }}
       aria-hidden
     >
       {[
-        { id: "reception-hall", x: 0, r: -6, z: 0 },
-        { id: "wedding-toast", x: w * 0.78, r: 5, z: 1 },
+        { id: "reception-hall", x: 0, r: -8, z: 0 },
+        { id: "wedding-toast", x: w * 0.52, r: 7, z: 1 },
       ].map((s) => (
         <Photo
           key={s.id}
@@ -102,24 +102,24 @@ function FloatingLayer({ cue, small }: { cue: Cue; small: boolean }) {
   return (
     <div
       className="relative"
-      style={{ width: small ? 150 : 216, height: small ? 108 : 128 }}
+      style={{ width: small ? 150 : 300, height: small ? 118 : 196 }}
       aria-hidden
     >
       <Copy
-        lines={4}
-        width={small ? 150 : 216}
+        lines={5}
+        width={small ? 150 : 300}
         className="absolute inset-x-0 top-2"
       />
       <div
         className={cn(
-          "absolute right-0 bottom-0 w-[64%] border border-border bg-popover p-2",
+          "absolute right-0 bottom-0 w-[62%] border border-border bg-popover p-3",
           p.ring,
         )}
         style={{ borderRadius: "var(--radius-float)" }}
         data-lgt-cue={p.cue}
       >
-        <div className="space-y-1.5">
-          {[86, 64, 74].map((w, i) => (
+        <div className="space-y-2">
+          {[86, 64, 74, 52].map((w, i) => (
             <div
               key={i}
               className="h-1.5 rounded-full bg-foreground/25"
@@ -141,7 +141,7 @@ function FlatCard({ cue, small }: { cue: Cue; small: boolean }) {
     <div
       className={cn(
         "border border-border bg-card p-3",
-        small ? "w-[150px]" : "w-[196px]",
+        small ? "w-[150px]" : "w-[268px]",
         p.ring,
       )}
       style={{ borderRadius: "var(--radius)" }}
@@ -150,7 +150,7 @@ function FlatCard({ cue, small }: { cue: Cue; small: boolean }) {
     >
       <div className="h-2 w-[54%] rounded-full bg-foreground/45" />
       <div className="mt-3">
-        <Copy lines={3} width={small ? 126 : 172} />
+        <Copy lines={3} width={small ? 126 : 236} />
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ export function DepthPart({ mode }: { mode: Mode }) {
   const [ground, setGround] = useState<Ground>("cinema");
   const small = mode === "phone";
   const cols = matrixCols(mode, 4);
-  const rowH = small ? 168 : 214;
+  const rowH = small ? 178 : 300;
 
   return (
     <Part
@@ -230,11 +230,11 @@ export function DepthPart({ mode }: { mode: Mode }) {
         />
       </div>
 
-      <Stage
-        mode={mode}
-        ground={ground}
-        height={rowH * 3 + (small ? 320 : 150)}
-      >
+      {/* The canvas is taller than a viewport on purpose: a matrix is not a
+          screen, and 375 pairs the four cues into two rows per subject, so the
+          phone canvas is roughly a third taller again. Measured, not guessed:
+          a stage that clips its last row hides the control column. */}
+      <Stage mode={mode} ground={ground} height={small ? 1300 : 1050}>
         <div
           data-lgt-cues
           className={cn("h-full", small ? "px-4 py-5" : "px-10 py-8")}
@@ -249,7 +249,10 @@ export function DepthPart({ mode }: { mode: Mode }) {
                     above its own pair, which is why the header is its own grid
                     child rather than a table caption. */}
                 <div
-                  className="flex items-baseline gap-2"
+                  className={cn(
+                    "flex gap-2",
+                    small ? "flex-col gap-0.5" : "items-baseline",
+                  )}
                   style={{ gridColumn: `span ${cols}` }}
                 >
                   <h3 className="text-[12px] font-semibold">{s.title}</h3>
@@ -262,19 +265,11 @@ export function DepthPart({ mode }: { mode: Mode }) {
                     key={c.id}
                     name={c.label}
                     className="min-h-0"
-                    note={
-                      c.id === s.proposed
-                        ? `Proposed. ${s.proposedNote}`
-                        : undefined
-                    }
+                    proposed={c.id === s.proposed ? s.proposedNote : undefined}
                   >
                     <div
-                      className={cn(
-                        "flex w-full items-center justify-center",
-                        c.id === s.proposed &&
-                          "rounded-md outline-1 outline-offset-8 outline-foreground/20 outline-dashed",
-                      )}
-                      style={{ height: rowH - (small ? 56 : 62) }}
+                      className="flex w-full items-center justify-center"
+                      style={{ height: rowH - (small ? 60 : 74) }}
                     >
                       {s.render(c.id, small)}
                     </div>

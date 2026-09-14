@@ -4,7 +4,7 @@ import { type CSSProperties, useState } from "react";
 
 import { Stage, Toggle, type Ground, type Mode } from "@/components/dev/board";
 import { LAMP_SET } from "@/components/dev/lamp-set";
-import { Glow, type GlowVars } from "@/components/shared/glow";
+import { Glow } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
 
 import { AURORA_CADENCE, Cell, Part, Photo, Proposal } from "./shared";
@@ -107,7 +107,7 @@ export function CadencePart({ mode }: { mode: Mode }) {
         </p>
       }
     >
-      <Stage mode={mode} ground="cinema" height={small ? 520 : 600}>
+      <Stage mode={mode} ground="cinema" height={small ? 620 : 700}>
         <div
           className={cn(
             "flex h-full flex-col justify-center gap-6",
@@ -140,7 +140,7 @@ const BEATS: { id: BeatId; label: string; note: string }[] = [
   {
     id: "shipped",
     label: "As shipped",
-    note: "rxp-pubglow: an inset shadow at oklch(0.62 0.2 300), the --reel action hue. 700ms, then nothing.",
+    note: "rxp-pubglow: an inset shadow at oklch(0.62 0.2 300), the --reel action hue. 700ms, then nothing, and nothing at all under reduced motion.",
   },
   {
     id: "house",
@@ -176,7 +176,7 @@ function ReelFrame({
   published: boolean;
   small: boolean;
 }) {
-  const w = small ? 150 : 232;
+  const w = small ? 156 : 272;
   const h = Math.round(w * 0.62);
   const bloom = beat !== "shipped";
   return (
@@ -188,7 +188,7 @@ function ReelFrame({
       {bloom ? (
         <div
           aria-hidden
-          className="absolute -inset-8"
+          className="absolute -inset-20"
           style={beat === "leaned" ? LEANED : undefined}
         >
           <Glow
@@ -197,8 +197,8 @@ function ReelFrame({
             vars={{
               "--glw-base": published ? "0.22" : "0.06",
               "--glw-strength": "0.72",
-              "--glw-reach": "78%",
-              "--glw-blur": "22px",
+              "--glw-reach": "62%",
+              "--glw-blur": "26px",
             }}
           />
         </div>
@@ -263,6 +263,14 @@ export function VioletPart({ mode }: { mode: Mode }) {
             is exactly as it was. A bloom decays to its base, so the object that
             just went live stays lit.
           </p>
+          <p>
+            There is a second finding under the colour one, and it decides the
+            case on its own. The shipped beat lives entirely inside the reduced
+            motion block and declares no box shadow outside it, so a visitor who
+            asked for less motion is told nothing at all when their reel goes
+            live. A bloom rests at its base in both states, which is law 4 doing
+            exactly the job it was written for.
+          </p>
         </>
       }
     >
@@ -289,7 +297,7 @@ export function VioletPart({ mode }: { mode: Mode }) {
         </span>
       </div>
 
-      <Stage mode={mode} ground={ground} height={small ? 620 : 340}>
+      <Stage mode={mode} ground={ground} height={small ? 700 : 400}>
         <div
           className={cn(
             "grid h-full items-center gap-8",
@@ -298,12 +306,19 @@ export function VioletPart({ mode }: { mode: Mode }) {
         >
           {BEATS.map((b) => (
             <Cell key={b.id} name={b.label} note={b.note}>
-              <ReelFrame
-                beat={b.id}
-                runId={runId}
-                published={runId > 0}
-                small={small}
-              />
+              {/* A fixed specimen row, so three notes of different lengths do
+                  not leave the three frames at three heights. */}
+              <div
+                className="flex w-full items-center justify-center"
+                style={{ height: small ? 132 : 210 }}
+              >
+                <ReelFrame
+                  beat={b.id}
+                  runId={runId}
+                  published={runId > 0}
+                  small={small}
+                />
+              </div>
             </Cell>
           ))}
         </div>

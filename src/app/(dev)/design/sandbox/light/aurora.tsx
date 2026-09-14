@@ -7,7 +7,7 @@ import { LAMP_SET } from "@/components/dev/lamp-set";
 import { Glow, type GlowVars } from "@/components/shared/glow";
 import { cn } from "@/lib/utils";
 
-import { AURORA_CADENCE, Cell, Part, Proposal } from "./shared";
+import { AURORA_CADENCE, Labeled, Part, Proposal } from "./shared";
 
 /**
  * PART B: THE LAMP WITHOUT MEDIA, AND THE AURORA.
@@ -119,14 +119,38 @@ function lampVars(ground: Ground, temp: Temperature): CSSProperties {
  * difference is deliberately a RATIO on the same two knobs the footer ships
  * (0.62 base, 0.62 band) rather than a second set of shapes.
  *
+ * ★ THE GROUND CHANGES THE NUMBERS, NOT THE REGISTER. Paper needs MORE opacity
+ * for the same presence, not less, and that is the opposite of the instinct:
+ * a tint at l 0.88 against a near-white page has far less contrast with its
+ * ground than the same tint has against oklch(0.11), so the dark values read
+ * as almost nothing on paper. Measured by eye on the board, both grounds side
+ * by side. It is the same finding the paper register itself came from (sampled
+ * light made a paper card "look dirty rather than lit"), one step further on.
+ *
  * The cadence is the other half of the proposal and it is not the lamp's: a
  * field this large moving at a lamp's 8 to 11 seconds reads as a screensaver,
  * so the aurora's clock is a multiple of the lamp's. Part C shows all three.
  */
-const REGISTER_VARS: Record<Register, { base: string; strength: string }> = {
-  accent: { base: "0.30", strength: "0.13" },
-  identity: { base: "0.17", strength: "0.07" },
-};
+const REGISTER_VARS: Record<
+  Ground | "dark",
+  Record<Register, { base: string; strength: string }>
+> = {
+  dark: {
+    accent: { base: "0.30", strength: "0.13" },
+    identity: { base: "0.17", strength: "0.07" },
+  },
+  paper: {
+    accent: { base: "0.52", strength: "0.24" },
+    identity: { base: "0.30", strength: "0.13" },
+  },
+} as Record<
+  Ground | "dark",
+  Record<Register, { base: string; strength: string }>
+>;
+
+function registerVars(ground: Ground, register: Register) {
+  return REGISTER_VARS[ground === "paper" ? "paper" : "dark"][register];
+}
 
 /** The media-less section the light has to make beautiful. No photograph, no
  *  screen, no plate: exactly the case bible 1 names ("a section without a
@@ -228,16 +252,18 @@ function Band({
 
 function Lit({
   candidate,
+  ground,
   register,
   height,
   grain,
 }: {
   candidate: Candidate;
+  ground: Ground;
   register: Register;
   height: number;
   grain: boolean;
 }) {
-  const r = REGISTER_VARS[register];
+  const r = registerVars(ground, register);
   if (candidate === "none") return null;
 
   if (candidate === "seam") {
@@ -304,7 +330,7 @@ function Lit({
 function TheModel({ mode, ground }: { mode: Mode; ground: Ground }) {
   const small = mode === "phone";
   return (
-    <Stage mode={mode} ground={ground} height={small ? 420 : 460}>
+    <Stage mode={mode} ground={ground} height={small ? 380 : 400}>
       <div className="flex h-full flex-col">
         <div
           className={cn(
@@ -377,12 +403,12 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         />
       </div>
 
-      <Cell
+      <Labeled
         name="The model"
         note="footer-glow.tsx as it ships: seam, 210px, 0.62 base and band, the house five, 11s."
       >
         <TheModel mode={mode} ground={ground} />
-      </Cell>
+      </Labeled>
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <Toggle
@@ -414,7 +440,7 @@ export function AuroraPart({ mode }: { mode: Mode }) {
         />
       </div>
 
-      <Cell
+      <Labeled
         name={CANDIDATES.find((c) => c.id === candidate)?.label ?? ""}
         note={NOTES[candidate]}
       >
@@ -429,6 +455,7 @@ export function AuroraPart({ mode }: { mode: Mode }) {
           >
             <Lit
               candidate={candidate}
+              ground={ground}
               register={register}
               height={height}
               grain={grain}
@@ -436,14 +463,17 @@ export function AuroraPart({ mode }: { mode: Mode }) {
             <MediaLessChapter small={small} />
           </div>
         </Stage>
-      </Cell>
+      </Labeled>
 
       <Proposal>
         A lamp needs a place, not an object: an edge, a boundary, a screen, a
         plate, a horizon. The aurora is the largest honest one. It is a register
-        (low base, a band near zero), a placement grammar (the chapter{"'"}s own
-        boundaries, never its middle, never centred on a card or a control), and
-        a clock several times slower than a lamp{"'"}s. Its colour is the house
+        (a low base, a band near zero, and higher numbers on paper than on
+        cinema, because a tint has less contrast with a near white page than
+        with a near black room), a placement grammar (the chapter{"'"}s own
+        boundaries, never its middle, never centred on a card or a control, and
+        never a fill: the copy lives in the clean band between them), and a
+        clock several times slower than a lamp{"'"}s. Its colour is the house
         five narrowed to a temperature by the section above it, which is the one
         way marketing carries colour of its own without growing a sixth.
       </Proposal>
