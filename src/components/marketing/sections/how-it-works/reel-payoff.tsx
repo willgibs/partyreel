@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
+import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
@@ -97,9 +97,13 @@ export function ReelPayoff() {
           ))}
         </span>
 
-        <MonoCaption data-mkt-cut style={{ "--i": 4 } as CSSProperties}>
+        <Caption
+          className="tabular-nums"
+          data-mkt-cut
+          style={{ "--i": 4 } as CSSProperties}
+        >
           {shots} shots · {styleLabel} · tap to play
-        </MonoCaption>
+        </Caption>
         <div data-mkt-cut style={{ "--i": 4 } as CSSProperties}>
           <LearnMoreLink href="/reel">Everything about the reel</LearnMoreLink>
         </div>

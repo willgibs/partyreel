@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -122,9 +121,9 @@ export function Spine() {
                 className="flex items-center gap-3"
                 style={{ "--i": 0 } as CSSProperties}
               >
-                <MonoCaption className="text-sm">
+                <Caption className="text-sm tabular-nums">
                   {String(i + 1).padStart(2, "0")}
-                </MonoCaption>
+                </Caption>
                 <SideChip>{step.side}</SideChip>
               </div>
               <h3

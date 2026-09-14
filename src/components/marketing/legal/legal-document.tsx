@@ -47,9 +47,9 @@ import { LegalBlocks } from "./legal-blocks";
  * Version, status and reading time ride the paper card that straddles the
  * cinema→paper cut (the help article's "In short" move). It is a <div> on
  * purpose: ArticleToc measures the FIRST <header> for its scroll offset, and
- * that must stay the overlay MarketingHeader. The card also retires the R5
- * MonoCaption status line: mono holds data, Inter carries labels (the R6 mono
- * ruling), and a version line is a label with one number in it.
+ * that must stay the overlay MarketingHeader. The card also retired the old
+ * status line: a version line is a label with one number in it, so it reads
+ * as a caption on the body face with tabular figures.
  *
  * ── THE RAIL SCROLLS WITHIN ITSELF ──
  * Twenty-two entries at ~34px each do not fit a laptop viewport under the

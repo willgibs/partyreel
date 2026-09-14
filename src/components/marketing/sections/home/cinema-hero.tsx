@@ -13,9 +13,8 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { DemoTicket } from "@/components/marketing/system/demo-ticket";
-import { MonoCaption } from "@/components/marketing/system/mono-caption";
 import { Caption } from "@/components/marketing/system/caption";
+import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
@@ -238,10 +237,10 @@ export function CinemaHero() {
             )}
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5">
               <Caption className="text-white/80">The reel</Caption>
-              <MonoCaption className="text-white/60">
+              <Caption className="text-white/60 tabular-nums">
                 0:
                 {String(Math.round(HERO_REEL.durationSeconds)).padStart(2, "0")}
-              </MonoCaption>
+              </Caption>
             </div>
           </div>
         </div>
