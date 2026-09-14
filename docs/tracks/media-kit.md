@@ -1,6 +1,6 @@
 ---
 track: media-kit
-status: open
+status: handed-off
 cut: "6c19d84"         # the launch-prep SHA the branch was cut from (the review wave, round two)
 preview: true           # Will reviews this board on its preview as it builds
 owns:
@@ -119,23 +119,89 @@ clause; the first batch, OK or not, item by item; the kit plan.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. The media manifest is undocumented in the system layer (`marketing-content.md` covers the
+  pages but never `marketing-media.ts`), and `docs/systems/` is outside this lane, so the contract is
+  written in `docs/specs/media-kit.md` section 2 until the Orchestrator promotes the settled part.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab: `/design/reel-parity` hardcodes its eight `FIXTURES`, so re-rendering a recorded
+  `MARKETING_REELS` recipe needs a code edit rather than a control; read the clip ids off the recipe.
+- Docs: the marketing media manifest and its test have no home in `docs/systems/`; fold
+  `docs/specs/media-kit.md` section 2 into `marketing-content.md` when the rule is ruled.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; preview partyreel-git-lp-media-kit-partyreel.vercel.app
-- Synced with launch-prep at <sha> (or: launch-prep had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
+- Head `f78800f` (this manifest commit is the tip), pushed; preview
+  `partyreel-git-lp-media-kit-partyreel.vercel.app`
+- Synced with `launch-prep` at `8b06f89` (twice: an earlier merge at `04af3d5` took a tip that still
+  carried a YAML break in `docs/tracks/orchestrator.md`'s frontmatter, landed by `ff2de13`, which
+  failed `track-manifests.test.ts`; `8b06f89` has it fixed and the suite is green)
+- Gates on the synced tree: typecheck ok, lint ok (0 errors, 7 warnings, all pre-existing and none in
+  this lane), test ok (1697 in 193 files, 6 of them this track's `provenance.test.ts`), build ok
+  (247 static pages)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
+  `docs/tracks/media-kit.md`, the nine files under `public/design/media-kit/`, and the five under
+  `src/app/(dev)/design/sandbox/media-kit/` (`board.tsx`, `board.css`, `kit.ts`, `sources.ts`,
+  `provenance.test.ts`). No exceptions. No production byte changed: the twelve stand-ins,
+  `marketing-media.ts` and `public/marketing/` are untouched.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Assets requested from Will: none, or one bullet per asset: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- The asks, verbatim from BoardMeta (the Orchestrator quotes them under Waiting on Will): ...
-- Look at first: ...
+- Assets requested from Will:
+  - **36 event photographs, six per vertical** (weddings, birthdays, corporate, conferences,
+    festivals, trips) · 1600 px long edge, a third portrait, one grade, 3 of the 36 showing a guest
+    holding a phone up, framed to read at 120 px and to survive a crop from 22 to 78 percent; the
+    shot list is `docs/specs/media-kit.md` 5.1 · replaces all twelve stand-ins by id
+    (`wedding-golden`, `reception-table`, `party-balloons`, `concert-confetti`, `wedding-rings`,
+    `reception-hall`, `party-dj`, `wedding-toast`, `festival-lights`, `festival-crowd`,
+    `wedding-arch`, `wedding-petals`)
+  - **24 square crops at 512 px** · 6 to 35 KB webp, cropped from 24 of the 36 rather than shot
+    separately · replaces `FRAMES` in `sandbox/home-hero/shared.tsx`, which every round-three hero
+    variation cycles (`ASSETS.md` row 2)
+  - **8 vertical clips with posters** · 3 to 5 s, 1080 x 1920, silent, each with its own poster at
+    1080 x 1920, filmed at the same events · replaces the `currentTime` ranges cut out of
+    `hero-candidate-01` (`ASSETS.md` row 4, withdrawn with the gathering; it costs nothing to keep
+    because it is the same shoot)
+- **Proposed `ASSETS.md` changes** (the Orchestrator applies; no agent edits that file). Row 7 is
+  already open for "a licensed media kit" and this specifies it; rows 2 and 4 fold into it:
+  - Row 7, `what` → `The kit, 36 masters`; `spec` → `36 event photographs, six per vertical
+    (weddings, birthdays, corporate, conferences, festivals, trips), 1600 px long edge, a third
+    portrait, one grade; 3 of the 36 show a guest holding a phone up; framed to read at 120 px and to
+    survive a 22 to 78 percent crop; shot lists in docs/specs/media-kit.md 5.1. The 24 squares
+    (row 2), the 8 clips (row 4) and the film (row 1) are crops and cuts of this one shoot, not
+    separate deliveries.`; `replaces` → `all twelve MARKETING_IMAGES by id`; `status` → `requested`
+  - Row 2, `spec` → append `derived from row 7 rather than shot separately`
+  - Row 4, `status` → `parked (revives with row 7: the same shoot)` rather than `withdrawn`
+  - Row 6, `spec` → append `the media-kit track staged 8 CC0 candidates under public/design/media-kit/
+    with provenance.json; the recommendation is a dated bridge on the blog pool only, never the hero`
+- The asks, verbatim from `BoardMeta` (the Orchestrator quotes them under Waiting on Will):
+  1. The rule as written: author, source and retrieval date REQUIRED on every manifest entry, and an
+     entry missing them cannot ship (spec section 1).
+  2. The allowed list: Pexels, Pixabay, Mixkit, Coverr and CC0 in, Unsplash out, each on the clause
+     quoted above. Yes to the list, or strike a source.
+  3. The route: Licensed, Ours, or Mix. The recommendation is Mix, with the frames marked ours in the
+     sheet.
+  4. The first batch, item by item: OK to stage as the bridge on the blog pool, or not at all.
+  5. The kit: 36 masters, six per vertical, and the 24 squares, the 8 clips and the film derived from
+     them rather than asked for separately.
+- **Look at first**: the three paragraphs above the toggles, then flip Route to Licensed and read the
+  four empty frames. Unsplash's terms exclude recognizable people from the license, and all twelve
+  stand-ins are full of them, so the gap cannot be closed by finding the source; and the best free
+  corpus that exists returns hot air balloons for "party balloons" and a rope on a stage for "a dance
+  floor". Then "In place", which is the whole argument in one image: a conference post illustrated
+  with a music festival, on the real blog geometry with the real derived crop.
 
 ## Record (the CHANGELOG paragraph, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-14). The media-kit exploration wrote bible 18 down as a
+proposed sourcing law (`docs/specs/media-kit.md`): two provenance classes and no third, `author`,
+`sourceUrl` and `retrieved` required on every manifest entry, a generated frame's license being the
+generating service's output-ownership clause, and the model-release rule that keeps a licensed face
+off a page that makes a claim. The survey behind it quotes ten license pages clause by clause and
+found the thing that settles the round: Unsplash's terms exclude recognizable people from the
+license, and all twelve stand-ins are full of them, so the gap was never a missing citation. The board
+at `/design/c/media-kit` argues three routes on the same twelve positions with the provenance line
+under each, shows the vertical gap costing seven of 23 blog posts a miscast cover, and stages eight
+CC0 candidates under `public/design/media-kit/` with `provenance.json` and a test pinning the two
+together; the four it could not fill are the argument. The kit plan generalises round two's parked
+asks into 36 masters by vertical, with the squares, clips and film derived from one shoot. No
+production byte changed.
