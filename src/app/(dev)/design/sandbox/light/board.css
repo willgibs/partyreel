@@ -1,0 +1,15 @@
+/* The light board's sheet (board.tsx), imported by the board so it leaves with
+   the board when the ruling lands. Keyframe prefix: lgt- (keyframe names are
+   document-global and keyframe-uniqueness.test.ts reads every sheet under the
+   lab; never reuse a production name).
+
+   House convention: FINAL states live OUTSIDE the media queries, so a
+   reduced-motion reader gets the settled composition with no rule to undo;
+   entrances and loops live inside `no-preference` only, and any infinite loop
+   is marked [data-lgt-loop] so the stage's data-paused stops it on a hidden tab. */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-paused="true"] [data-lgt-loop] {
+    animation-play-state: paused;
+  }
+}

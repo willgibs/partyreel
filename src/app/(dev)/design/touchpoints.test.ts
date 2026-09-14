@@ -31,6 +31,14 @@ describe("the design lab's rulings registry", () => {
         "home-hero",
         "marketing-decomposition",
         "marketing-hero-substrate",
+        // the review wave (2026-09-14)
+        "palette",
+        "light",
+        "type-scale",
+        "floating-surfaces",
+        "brand-voice",
+        "media-kit",
+        "rounding",
       ].sort(),
     );
     for (const r of SANDBOX) expect(r.ruled, r.id).toMatch(/open/);

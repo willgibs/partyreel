@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import {
@@ -63,7 +63,10 @@ import { cn } from "@/lib/utils";
  *  - the media manifest is the only source of paths (bible 18).
  */
 
-export type Mode = "desktop" | "phone";
+/** Mode, CANVAS and useTabHidden moved to the shared board shell at the review
+ *  wave (2026-09-14); re-exported here so the concept files keep one import. */
+export { CANVAS, useTabHidden, type Mode } from "@/components/dev/board";
+import type { Mode } from "@/components/dev/board";
 export type CopyMode = "ruled" | "proposed";
 export type ConceptId = "source" | "reel" | "gathering";
 
@@ -95,13 +98,6 @@ export type Concept = {
   assets: string[];
   render: (p: ConceptProps) => ReactNode;
 };
-
-/** The canvases the board judges on: a hero is a viewport-shaped thing, so the
- *  board lays it out at a real viewport's pixels and fits with `zoom`. */
-export const CANVAS = {
-  desktop: { w: 1440, h: 930 },
-  phone: { w: 375, h: 760 },
-} as const;
 
 /** The ladder's two cinema steps, RESOLVED per canvas (bible 5): PageHero's
  *  ramps key off the real viewport, never the stage, so a board that shows a
@@ -200,17 +196,6 @@ export function copyFor(concept: Concept, mode: CopyMode): HeroCopy {
  *  the board unverifiable in a background tab, where observers never fire.
  *  Shared here because every concept that drives a video or a rAF loop needs
  *  it (three copies existed after round two's first pass). */
-export function useTabHidden(): boolean {
-  const [hidden, setHidden] = useState(false);
-  useEffect(() => {
-    const sync = () => setHidden(document.hidden);
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
-  }, []);
-  return hidden;
-}
-
 /** One photograph at FULL luminance. No scrim prop, and there never will be:
  *  a concept that needs one has not solved the composition. Eager by default,
  *  which is production truth for a hero; pass eager={false} only for a frame

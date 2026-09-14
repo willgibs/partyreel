@@ -80,6 +80,12 @@ const nextConfig: NextConfig = {
    * so a plain `node_modules/sharp/**` would match nothing. Both forms are listed anyway, and
    * `@img+*` covers the linux-x64 variants Vercel installs.
    */
+  // The design lab's desk (/design/c) reads docs/tracks/*.md at request time to
+  // show each open board's track status; the directory is outside the bundle
+  // unless traced in (the review wave, 2026-09-14).
+  outputFileTracingIncludes: {
+    "/design/c": ["./docs/tracks/*.md"],
+  },
   outputFileTracingExcludes: {
     "**": [
       "node_modules/.pnpm/sharp@*/**",

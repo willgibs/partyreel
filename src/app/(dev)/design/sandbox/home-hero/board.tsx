@@ -4,23 +4,17 @@
 import "./board.css";
 
 import { RotateCcw } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 
+import { Stage as ShellStage, Toggle, type Mode } from "@/components/dev/board";
 import { CinemaHero } from "@/components/marketing/sections/home/cinema-hero";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
-import { cn } from "@/lib/utils";
 
 import { Variant } from "../variant-frame";
 import { gathering } from "./gathering";
 import { reel } from "./reel";
-import {
-  CANVAS,
-  type Concept,
-  type CopyMode,
-  type Mode,
-  useTabHidden,
-} from "./shared";
+import { type Concept, type CopyMode } from "./shared";
 import { source } from "./source";
 
 /**
@@ -38,80 +32,13 @@ import { source } from "./source";
 
 const CONCEPTS: Concept[] = [source, reel, gathering];
 
-/** The stage: the CINEMA ROUTE GROUP's own wrapper at a real viewport's size,
- *  fitted to the lab column with `zoom` (layout, not just paint, happens at
- *  1440 or at 375), so a concept reads against the real tokens rather than a
- *  hand-picked literal. */
+/** The stage: the shell's, on the cinema ground with the group's body skin
+ *  (this board is cinema-only, so the lab page matches the route group). */
 function Stage({ mode, children }: { mode: Mode; children: React.ReactNode }) {
-  const hidden = useTabHidden();
-  const boxRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(1);
-  const { w, h } = CANVAS[mode];
-
-  useLayoutEffect(() => {
-    const box = boxRef.current;
-    if (!box) return;
-    const sync = () =>
-      setScale(Math.min(1, box.getBoundingClientRect().width / w));
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(box);
-    return () => ro.disconnect();
-  }, [w]);
-
   return (
-    <div ref={boxRef} className="flex justify-center overflow-hidden">
-      <div
-        className="dark relative overflow-hidden rounded-lg border border-border text-foreground"
-        data-mkt
-        data-mkt-skin="cinema"
-        data-paused={hidden ? "true" : undefined}
-        style={{ zoom: scale, width: w, height: h }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Toggle<T extends string>({
-  options,
-  value,
-  onChange,
-  ariaLabel,
-}: {
-  options: { id: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label={ariaLabel}
-      className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5"
-    >
-      {options.map((o) => {
-        const active = o.id === value;
-        return (
-          <button
-            key={o.id}
-            role="tab"
-            type="button"
-            aria-selected={active}
-            onClick={() => onChange(o.id)}
-            className={cn(
-              "rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
-              active
-                ? "bg-foreground text-background"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
+    <ShellStage mode={mode} ground="cinema" bodySkin>
+      {children}
+    </ShellStage>
   );
 }
 

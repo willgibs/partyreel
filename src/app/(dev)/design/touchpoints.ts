@@ -56,7 +56,14 @@ export type RulingId =
   | "reel-reveal"
   | "reel-experience"
   | "glow-doctrine"
-  | "glow-moments";
+  | "glow-moments"
+  | "palette"
+  | "light"
+  | "type-scale"
+  | "floating-surfaces"
+  | "brand-voice"
+  | "media-kit"
+  | "rounding";
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
@@ -64,7 +71,14 @@ export type SandboxId =
   | "marketing-hero-substrate"
   | "home-hero"
   | "glow-doctrine"
-  | "glow-moments";
+  | "glow-moments"
+  | "palette"
+  | "light"
+  | "type-scale"
+  | "floating-surfaces"
+  | "brand-voice"
+  | "media-kit"
+  | "rounding";
 
 export type Ruling = {
   id: RulingId;
@@ -449,6 +463,127 @@ export const RULINGS: Ruling[] = [
         "Where a beam is allowed",
         "The whole page",
       ],
+    },
+  },
+  // THE REVIEW WAVE (Will's rule-by-rule review of the bible, 2026-09-14):
+  // seven boards registered up front by the Orchestrator so each track owns
+  // only its sandbox/<id>/ directory. `variants` holds a placeholder until the
+  // track hands off and the Orchestrator renames them at integration.
+  {
+    id: "palette",
+    title: "The palette",
+    surface: "shared",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 1 under exploration: the achromatic ramp in both modes (the greys feel off), the accent's role where there is no media, the muted panel as one token.",
+    lives: [
+      "docs/systems/design-system.md#the-identity-achromatic-media-is-the-color",
+      "src/app/globals.css",
+      "src/app/theme.css",
+    ],
+    board: {
+      note: "Today's ramp beside three candidate ramps on real sections, on cinema, paper and ink, at both widths; the accent as a hue on the brand call sites; the panel as one token",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "light",
+    title: "Light, shadow and lamp",
+    surface: "shared",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 10 rewritten and 11 retiring: depth in dark is light first with shadows where objects stack; a lamp may light a section without media; the aurora as identity.",
+    lives: [
+      "docs/systems/design-system.md#light-spill-beam-and-the-lamp-set",
+      "docs/systems/design-system.md#elevation-contract-one-depth-technique-per-mode",
+      "src/components/shared/glow.tsx",
+    ],
+    board: {
+      note: "Depth in dark on stacked cards, a layer over content and a flat card; lamps without media on cinema and paper; the cadence at 8s and 11s; the publish beat's violet; the lit surface",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "type-scale",
+    title: "The type scale",
+    surface: "shared",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 5 under exploration: the sizes are not nailed; one ladder for marketing and one for the app, on real pages at both widths, proposed as tokens.",
+    lives: [
+      "docs/systems/design-system.md",
+      "src/components/marketing/system/page-hero.tsx",
+      "src/components/marketing/system/section-shell.tsx",
+    ],
+    board: {
+      note: "Three candidate scales beside today's on the home arc, a feature page, help, the dashboard, an event page and admin, at 1440 and 375",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "floating-surfaces",
+    title: "Floating surfaces",
+    surface: "shared",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 15 under exploration: every floating primitive on every ground, today beside two candidate treatments of radius, entrance and light or shadow in dark.",
+    lives: [
+      "docs/systems/design-system.md#the-floating-layer-contract",
+      "src/components/ui/",
+    ],
+    board: {
+      note: "Dialog, drawer, dropdown, popover, select, sheet, toast, tooltip and the nav viewport on cinema, paper and ink; the phone canvas primary for sheets and dialogs",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "brand-voice",
+    title: "The brand voice",
+    surface: "marketing",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 20 under exploration, 21 open: the voice as a guide with do's, three registers and examples per surface; sample lines beside today's on real section shells.",
+    lives: [
+      "docs/specs/brand-voice.md",
+      "src/lib/constants/marketing-voice.ts",
+    ],
+    board: {
+      note: "The proposed voice on real section shells, the home arc's seven provisional headers rewritten as the worked example, the unfurl line and the five copy picks ruled here",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "media-kit",
+    title: "The media kit",
+    surface: "marketing",
+    ruled: "open (the review wave, 2026-09-14)",
+    shipped: null,
+    why: "Bible 18 written down: no stock at launch, every frame ours or under a license we can name; the sources surveyed, the kit planned, a candidate first batch staged.",
+    lives: [
+      "docs/specs/media-kit.md",
+      "src/lib/constants/marketing-media.ts",
+      "docs/ASSETS.md",
+    ],
+    board: {
+      note: "A contact sheet of the candidate first batch beside the current twelve stills, provenance under each; the batch is staged, not wired",
+      variants: ["Placeholder"],
+    },
+  },
+  {
+    id: "rounding",
+    title: "The rounding",
+    surface: "shared",
+    ruled: "open (the review wave, 2026-09-14; Orchestrator-run)",
+    shipped: null,
+    why: "Bible 8 under exploration: the radius values on the tuner, the sharp-surface / round-action contrast at candidate values for every radius token; the sitting surface.",
+    lives: [
+      "docs/systems/design-system.md#rounding-sharp-surfaces-round-actions",
+      "src/app/globals.css",
+      "src/components/dev/motion-tuner-config.ts",
+    ],
+    board: {
+      note: "Every radius token at candidate values on the surfaces that carry it, beside the tuner that drags the real pages",
+      variants: ["Placeholder"],
     },
   },
 ];
