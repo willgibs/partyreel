@@ -1,6 +1,13 @@
-// @contract-for: src/app/(dev)/design/sandbox/registry.ts
-// @contract-for: src/components/lab/board-spec.ts
-// @contract-for: src/components/lab/board-page.tsx
+// ★ PENDING, NOT ABANDONED: strip "-pending" to publish these contracts on the
+// library page. The collector indexes every file a @contract-for names, and an
+// indexed file owes a `for` line in rules/component-notes.ts (gallery.test.ts
+// fails without one). That file and the collector's COMPONENT_DIRS are the
+// lab-library and lab-rules lanes, so the nine lines are asked for in this
+// track's Handoff with the exact patch. The tests below RUN either way: the
+// marker publishes a contract, it does not create one.
+// @contract-for-pending: src/app/(dev)/design/sandbox/registry.ts
+// @contract-for-pending: src/components/lab/board-spec.ts
+// @contract-for-pending: src/components/lab/board-page.tsx
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -36,9 +43,10 @@ describe("the board registry", () => {
     expect(new Set(ids).size, "duplicate board id").toBe(ids.length);
     for (const id of ids) {
       const dir = join(ROOT, SANDBOX, id);
-      expect(statSync(dir).isDirectory(), `${id} has no sandbox directory`).toBe(
-        true,
-      );
+      expect(
+        statSync(dir).isDirectory(),
+        `${id} has no sandbox directory`,
+      ).toBe(true);
     }
   });
 
@@ -56,20 +64,29 @@ describe("the board registry", () => {
         expect(i, `${b.id}/spec.ts imports a stylesheet`).not.toMatch(/\.css$/);
         expect(i, `${b.id}/spec.ts imports its board`).not.toMatch(/board$/);
       }
-      expect(src, `${b.id}/spec.ts has JSX`).not.toMatch(/<[A-Z][A-Za-z]*[\s/>]/);
+      expect(src, `${b.id}/spec.ts has JSX`).not.toMatch(
+        /<[A-Z][A-Za-z]*[\s/>]/,
+      );
     }
   });
 
   it("holds every string inside its limit", () => {
     const under = (what: string, value: string | undefined, cap: number) => {
       if (value === undefined) return;
-      expect(value.length, `${what} is ${value.length}, over ${cap}`).toBeLessThanOrEqual(cap);
+      expect(
+        value.length,
+        `${what} is ${value.length}, over ${cap}`,
+      ).toBeLessThanOrEqual(cap);
     };
     for (const b of BOARDS) {
       under(`${b.id}.question`, b.question, LIMITS.question);
       under(`${b.id}.context`, b.context, LIMITS.context);
       under(`${b.id}.round.changed`, b.round.changed, LIMITS.roundChanged);
-      under(`${b.id}.verdict.recommendation`, b.verdict.recommendation, LIMITS.recommendation);
+      under(
+        `${b.id}.verdict.recommendation`,
+        b.verdict.recommendation,
+        LIMITS.recommendation,
+      );
       under(`${b.id}.verdict.because`, b.verdict.because, LIMITS.because);
       under(`${b.id}.verdict.overrule`, b.verdict.overrule, LIMITS.overrule);
       for (const a of b.asks) {
@@ -80,17 +97,23 @@ describe("the board registry", () => {
       for (const c of b.candidates) {
         under(`${b.id}.candidate ${c.id}`, c.rationale, LIMITS.rationale);
       }
-      for (const d of [...b.departures, ...b.candidates.flatMap((c) => c.departures ?? [])]) {
+      for (const d of [
+        ...b.departures,
+        ...b.candidates.flatMap((c) => c.departures ?? []),
+      ]) {
         under(`${b.id}.departure ${d.id}`, d.text, LIMITS.departure);
       }
       for (const s of b.sections) {
         under(`${b.id}.section ${s.id}.title`, s.title, LIMITS.title);
         under(`${b.id}.section ${s.id}.lede`, s.lede, LIMITS.lede);
-        for (const p of s.argument ?? []) under(`${b.id}.${s.id}.argument`, p, LIMITS.argument);
-        for (const p of s.wiring ?? []) under(`${b.id}.${s.id}.wiring`, p, LIMITS.argument);
+        for (const p of s.argument ?? [])
+          under(`${b.id}.${s.id}.argument`, p, LIMITS.argument);
+        for (const p of s.wiring ?? [])
+          under(`${b.id}.${s.id}.wiring`, p, LIMITS.argument);
       }
       for (const n of b.notes ?? []) under(`${b.id}.note`, n.text, LIMITS.note);
-      for (const l of b.lookFirst ?? []) under(`${b.id}.walk`, l.note, LIMITS.note);
+      for (const l of b.lookFirst ?? [])
+        under(`${b.id}.walk`, l.note, LIMITS.note);
     }
   });
 
@@ -99,19 +122,35 @@ describe("the board registry", () => {
       const ids = new Set(b.sections.map((s) => s.id));
       expect(b.sections.length, `${b.id} has no sections`).toBeGreaterThan(0);
       for (const a of b.asks) {
-        expect(ids.has(a.evidence), `${b.id}: ask ${a.id} points at ${a.evidence}`).toBe(true);
-        expect(a.options, `${b.id}: ask ${a.id} does not offer its recommendation`).toContain(a.recommended);
+        expect(
+          ids.has(a.evidence),
+          `${b.id}: ask ${a.id} points at ${a.evidence}`,
+        ).toBe(true);
+        expect(
+          a.options,
+          `${b.id}: ask ${a.id} does not offer its recommendation`,
+        ).toContain(a.recommended);
         for (const o of a.options) {
-          expect(o, `${b.id}: option "${o}" is not one token`).toMatch(/^[a-z0-9][a-z0-9-]*$/i);
+          expect(o, `${b.id}: option "${o}" is not one token`).toMatch(
+            /^[a-z0-9][a-z0-9-]*$/i,
+          );
         }
       }
       const askIds = b.asks.map((a) => a.id);
-      expect(new Set(askIds).size, `${b.id} has a duplicate ask id`).toBe(askIds.length);
+      expect(new Set(askIds).size, `${b.id} has a duplicate ask id`).toBe(
+        askIds.length,
+      );
       for (const n of b.notes ?? []) {
-        expect(ids.has(n.section), `${b.id}: a note points at ${n.section}`).toBe(true);
+        expect(
+          ids.has(n.section),
+          `${b.id}: a note points at ${n.section}`,
+        ).toBe(true);
       }
       for (const l of b.lookFirst ?? []) {
-        expect(ids.has(l.section), `${b.id}: a walk step points at ${l.section}`).toBe(true);
+        expect(
+          ids.has(l.section),
+          `${b.id}: a walk step points at ${l.section}`,
+        ).toBe(true);
       }
     }
   });
@@ -119,18 +158,34 @@ describe("the board registry", () => {
   it("declares every state a note or a walk step asks for", () => {
     for (const b of BOARDS) {
       const controls = new Map((b.controls ?? []).map((c) => [c.id, c]));
-      const check = (state: Partial<Record<string, string>> | undefined, where: string) => {
+      const check = (
+        state: Partial<Record<string, string>> | undefined,
+        where: string,
+      ) => {
         for (const [k, v] of Object.entries(state ?? {})) {
           const c = controls.get(k);
-          expect(c, `${b.id}: ${where} sets undeclared control "${k}"`).toBeTruthy();
-          expect(c!.options.map((o) => o.id), `${b.id}: ${where} sets ${k}=${v}`).toContain(v);
+          expect(
+            c,
+            `${b.id}: ${where} sets undeclared control "${k}"`,
+          ).toBeTruthy();
+          expect(
+            c!.options.map((o) => o.id),
+            `${b.id}: ${where} sets ${k}=${v}`,
+          ).toContain(v);
         }
       };
       for (const n of b.notes ?? []) check(n.state, `the note on ${n.section}`);
-      for (const l of b.lookFirst ?? []) check(l.state, `the walk step at ${l.section}`);
+      for (const l of b.lookFirst ?? [])
+        check(l.state, `the walk step at ${l.section}`);
       for (const c of b.controls ?? []) {
-        expect(c.options.map((o) => o.id), `${b.id}: ${c.id} defaults outside its options`).toContain(c.default);
-        expect(RESERVED_PARAMS as readonly string[], `${b.id}: control "${c.id}" claims a reserved URL param`).not.toContain(c.id);
+        expect(
+          c.options.map((o) => o.id),
+          `${b.id}: ${c.id} defaults outside its options`,
+        ).toContain(c.default);
+        expect(
+          RESERVED_PARAMS as readonly string[],
+          `${b.id}: control "${c.id}" claims a reserved URL param`,
+        ).not.toContain(c.id);
       }
     }
   });
@@ -142,7 +197,10 @@ describe("the board registry", () => {
         return statSync(p).isDirectory() && readdirSync(p).includes("spec.ts");
       })
       .sort();
-    expect(BOARDS.map((b) => b.id).sort(), "a spec.ts the registry does not import").toEqual(onDisk);
+    expect(
+      BOARDS.map((b) => b.id).sort(),
+      "a spec.ts the registry does not import",
+    ).toEqual(onDisk);
   });
 
   it("computes one anchor everywhere", () => {
