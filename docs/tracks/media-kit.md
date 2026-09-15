@@ -1,7 +1,7 @@
 ---
 track: media-kit
 status: open
-cut: "<filled at boot: the origin/launch-prep SHA you branched from>"
+cut: "32ddefc"
 merged_round_3: "6c6ab14"
 merged_round_2: "2307446"
 merged_round_1: "c1aa5c6"
