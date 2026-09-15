@@ -245,8 +245,17 @@ function ChapterBody({
   if (mode === "phone") {
     return (
       <div className="grid items-start gap-6 lg:grid-cols-[375px_minmax(0,1fr)]">
-        <div>{stage}</div>
-        <div>{aside}</div>
+        {/* ★ min-w-0 on both cells. A grid item's default min-width is AUTO,
+            so the 375-wide canvas in the first cell sets the track's floor. On a
+            browser window at a real 375 the single-column grid therefore
+            measured 375 where the page's content box is 343: Stage read its
+            wrapper as wide enough, kept zoom 1, and pushed 16px of horizontal
+            scroll onto the document. With the floor removed the wrapper
+            measures 343 and Stage's own zoom-fit takes the canvas to 0.91,
+            which is what the other thirteen stages already do. At `lg` the
+            track is an explicit 375px, so nothing there moves. */}
+        <div className="min-w-0">{stage}</div>
+        <div className="min-w-0">{aside}</div>
       </div>
     );
   }
