@@ -36,7 +36,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "type-scale": { Component: TypeScaleBoard, legacy: true },
   "floating-surfaces": { Component: FloatingSurfacesBoard, legacy: true },
   "brand-voice": { Component: BrandVoiceBoard, legacy: true },
-  "media-kit": { Component: MediaKitBoard, legacy: true },
+  "media-kit": { Component: MediaKitBoard },
   rounding: { Component: RoundingBoard },
   "album-hero": { Component: AlbumHeroBoard, legacy: true },
   "river-visual": { Component: RiverVisualBoard, legacy: true },

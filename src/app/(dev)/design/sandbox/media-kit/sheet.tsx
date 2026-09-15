@@ -24,7 +24,7 @@
 
 import { useState } from "react";
 
-import { Stage, Toggle } from "@/components/dev/board";
+import { type Mode, Stage, Toggle } from "@/components/lab";
 import { Caption } from "@/components/marketing/system/caption";
 import { cn } from "@/lib/utils";
 
@@ -118,26 +118,11 @@ function Tile({
 
 export function PlanCard() {
   return (
-    <section
-      id="mk-plan"
-      className="flex flex-col gap-3 rounded-lg border border-foreground/25 bg-card p-5"
-    >
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h2 className="text-sm font-semibold">
-          What to buy, where, and what it comes to
-        </h2>
-        <Caption className="text-[11px]">
-          Every figure is read off the source&rsquo;s own card, never typed into
-          a sentence
-        </Caption>
-      </div>
-      <p className="max-w-3xl text-xs leading-relaxed">
-        One subscription month covers all five verticals, and the only per-frame
-        money is the conference rooms, which is the vertical no library on the
-        sheet is deep in. The films are the expensive line and the
-        recommendation is to shoot rather than license them, because licensing
-        them costs more than every photograph here put together.
-      </p>
+    <div className="flex flex-col gap-3 rounded-lg border border-foreground/25 bg-card p-5">
+      <Caption className="text-[11px]">
+        Every figure is read off the source&rsquo;s own card, never typed into a
+        sentence
+      </Caption>
 
       <div className="-mx-1 overflow-x-auto px-1">
         <table className="w-full min-w-[46rem] border-collapse text-left text-[11px]">
@@ -229,7 +214,7 @@ export function PlanCard() {
           ))}
         </ul>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -401,22 +386,14 @@ function SourceRow({
 
 export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
   return (
-    <section id="mk-sheet" className="flex flex-col gap-4" data-mk-sheet>
-      <div>
-        <h2 className="text-sm font-semibold">
-          {SOURCES.length} places, ranked by whether they hold a release
-        </h2>
-        <Caption className="mt-1 max-w-3xl leading-relaxed">
-          Not by price. Our five verticals are rooms full of recognisable
-          people, so a free library with no release is not a cheaper source, it
-          is a source that cannot supply the frames we came for. Each clause is
-          quoted word for word from the licence page on {RETRIEVED}. The sheet
-          is {SHEET_COUNT} pulls of the sources&rsquo; own thumbnails,{" "}
-          {FRAME_COUNT} frames in all, taken on {HARVESTED} and hotlinked rather
-          than copied. Nothing here is licensed to us: every tile is a preview,
-          and some sources serve theirs unwatermarked.
-        </Caption>
-      </div>
+    <div className="flex flex-col gap-4" data-mk-sheet>
+      <Caption className="max-w-3xl leading-relaxed">
+        Each clause is quoted word for word from the licence page on {RETRIEVED}
+        . The sheet is {SHEET_COUNT} pulls of the sources&rsquo; own thumbnails,{" "}
+        {FRAME_COUNT} frames in all, taken on {HARVESTED} and hotlinked rather
+        than copied. Nothing here is licensed to us: every tile is a preview,
+        and some sources serve theirs unwatermarked.
+      </Caption>
 
       <div className="flex flex-col gap-3">
         {ALLOWED_SOURCES.map((s, i) => (
@@ -443,7 +420,7 @@ export function SourcingSheet({ vertical }: { vertical: Vertical | "all" }) {
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -459,9 +436,15 @@ const SURFACE_SOURCES = SOURCES.filter(
   (s) => drawableVerticals(s.id).length > 0,
 );
 
-export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
+export function SurfaceCheck({
+  vertical,
+  mode,
+}: {
+  vertical: Vertical | "all";
+  /** The board's declared canvas: one switch for every stage on the page. */
+  mode: Mode;
+}) {
   const [sourceId, setSourceId] = useState(SURFACE_SOURCES[0]?.id ?? "");
-  const [mode, setMode] = useState<"desktop" | "phone">("desktop");
   const source = SOURCES.find((s) => s.id === sourceId) ?? SOURCES[0];
   const drawable = drawableVerticals(source.id);
   const shown =
@@ -471,20 +454,8 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
   const frames = (shown ? sheetFor(source.id, shown)?.frames : null) ?? [];
 
   return (
-    <section id="mk-surface" className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <div>
-        <h2 className="text-sm font-semibold">
-          The same catalogue, in the geometry it lands in
-        </h2>
-        <Caption className="mt-1 max-w-3xl leading-relaxed">
-          A contact sheet flatters everything, because a square thumbnail asks
-          nothing of a photograph. These are the real sizes on the real ground:
-          the blog card at 320 by 400 on a cinema page, cut at the three rungs
-          of the crop ladder a slug actually produces, and the share card at
-          1200 by 630, which centre-crops and ignores the ladder entirely. The
-          stage is 1:1, so a frame that cannot survive a 4:5 crop fails here
-          where it fails on the site.
-        </Caption>
         {/* ★ SAID OUT LOUD, BECAUSE A COMP DOES NOT ALWAYS LOOK LIKE ONE. iStock
             serves its search thumbnails unwatermarked at 612 px, so a plate here
             can read as a finished card. Nothing on this board is licensed to us,
@@ -498,29 +469,25 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
         </p>
       </div>
 
-      {/* ★ THESE TWO STAY HERE AND ARE NOT IN THE DOCK, WHICH IS A DECISION AND
-          NOT AN OMISSION. The round's global note puts every PAGE-WIDE switch in
-          the dock and keeps a per-specimen control beside its specimen; source
-          and viewport dress this one stage and nothing else on the page moves
-          when they change, so docking them would make the dock claim a reach it
-          does not have. The vertical, which every contact sheet on the page
-          obeys, is in the dock. The Handoff says the same thing out loud against
-          goal item (3), and the caption below says it to a reviewer who is
-          looking for the missing switch rather than reading the manifest.
+      {/* ★ THE SOURCE STAYS HERE AND IS NOT IN THE DOCK, WHICH IS A DECISION AND
+          NOT AN OMISSION. The wave's rule is the round-four note's: a PAGE-WIDE
+          switch is declared state and the dock renders it, and a control that
+          dresses one specimen sits beside that specimen. The source dresses this
+          stage and nothing else on the page moves when it changes, so docking it
+          would make the dock claim a reach it does not have. The viewport used to
+          sit here too and is now the board's declared `canvas`, because it drives
+          the bridge stage as well and a reviewer was setting the same thing
+          twice.
 
-          A Toggle was an inline-flex row that never wrapped, and this row of
-          seven source names plus a viewport pair overflowed a 375 screen, which
-          pushed the whole document into a horizontal scroll (measured before this
-          wrapper existed; it is seven since Unsplash+ started drawing, because
-          this list is derived from the sources that have a sheet). It is its own
-          scroller below sm and wraps from sm up. It stays a scroller while the
-          DOCK's row was changed to wrap, and the difference is measured, not a
-          taste: the dock's row sits inside the shell's `basis-full` cell, whose
-          `min-w-0` applies only from `sm` up, so a scroller there still widens
-          the page (see board.tsx). This row's parent has a definite width, so the
-          scroller is contained, and the measurement at a real 375 is in the
-          Handoff. Wrapping it instead would cost five rows of switch directly
-          above the stage it controls. */}
+          A Toggle was once an inline-flex row that never wrapped, and this row of
+          seven source names overflowed a 375 screen, which pushed the whole
+          document into a horizontal scroll. It is its own scroller below sm and
+          wraps from sm up; its parent has a definite width, so the scroller is
+          contained (the DOCK's row cannot be a scroller for the opposite reason,
+          measured at a real 375: it sits in the shell's `basis-full` cell, whose
+          `min-w-0` applies only from `sm` up, so a scroller there widens the
+          page). If a later change tempts you back, re-measure at a REAL 375
+          window, never in an iframe. */}
       <div className="-mx-4 flex max-w-full items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
         <Toggle
           ariaLabel="Source"
@@ -528,21 +495,12 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
           value={sourceId}
           onChange={setSourceId}
         />
-        <Toggle
-          ariaLabel="Viewport"
-          options={[
-            { id: "desktop", label: "1440" },
-            { id: "phone", label: "375" },
-          ]}
-          value={mode}
-          onChange={(v) => setMode(v as "desktop" | "phone")}
-        />
       </div>
 
       <Caption className="text-[10px]">
-        These two dress this stage only, so they sit with it. The dock holds
-        what moves the whole page: the vertical every contact sheet above draws,
-        the route, the geometry.
+        The source dresses this stage only, so it sits with it. The dock holds
+        what moves the whole page: the canvas, the vertical every contact sheet
+        above draws, the route and the geometry.
       </Caption>
 
       {frames.length === 0 ? (
@@ -668,6 +626,6 @@ export function SurfaceCheck({ vertical }: { vertical: Vertical | "all" }) {
           </div>
         </Stage>
       )}
-    </section>
+    </div>
   );
 }
