@@ -75,10 +75,15 @@
    hairline at the opacity a ripple wants is invisible the moment it crosses a
    photograph, and the plate is surrounded by photographs by construction: at
    0.32 opacity over the frames beside the code it read as nothing at all
-   (measured on the board). An 18 px spread at 0.25 carries over both the
-   photographs and the dark, which is what makes the landing legible. There is
-   NO inner glow: an inset haze whitens the plate and the frames under the
-   ring, and bible 1 does not allow that. */
+   (measured on the board). The 18 px spread at 0.22 below carries over both
+   the photographs and the dark, which is what makes the landing legible. There
+   is NO inner glow: an inset haze whitens the plate and the frames under the
+   ring, and bible 1 does not allow that.
+
+   A departure is only a departure if Will can rule on it, so this one is also
+   the second string in the concept's `departures` array in inflow.tsx, which
+   is what BoardMeta lists under Departures. If this shadow is ever changed or
+   dropped, change that string in the same edit. */
 .hhi-splash {
   position: absolute;
   inset: 0;

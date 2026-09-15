@@ -314,10 +314,7 @@ function solveLanding(geo: Geo) {
     const p = i / 1000;
     const s = sizeAt(p) * SCALE_GAIN * SCALE_JIT_MAX;
     const box = (geo.card * s) / 2;
-    if (
-      geo.travel * reachAt(p) + box <= half &&
-      geo.yDrift * s + box <= half
-    ) {
+    if (geo.travel * reachAt(p) + box <= half && geo.yDrift * s + box <= half) {
       return p;
     }
   }
@@ -340,7 +337,8 @@ const LANDING: Record<Mode, number> = {
 function opacityAt(p: number, landing: number) {
   if (p > 1) return 0;
   return (
-    smoothstep(0.5, 0.63, p) * (1 - smoothstep(landing + 0.02, landing + 0.06, p))
+    smoothstep(0.5, 0.63, p) *
+    (1 - smoothstep(landing + 0.02, landing + 0.06, p))
   );
 }
 
@@ -458,7 +456,10 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
     // container, and this composition is about 4700 px wide, so focusing a
     // button inside it makes the browser "reveal" the hero sideways with the
     // headline cut off. The scan found it on this board; clip has no such box.
-    <div ref={rootRef} className="relative size-full overflow-clip bg-background">
+    <div
+      ref={rootRef}
+      className="relative size-full overflow-clip bg-background"
+    >
       {/* THE ROOM, ARRIVING. Full bleed and decorative: the album is the
           argument, but the type above and below carries the sentence. */}
       <div
@@ -478,7 +479,8 @@ function Inflow({ mode, copy, qrUrl }: ConceptProps) {
             // cannot flash). Neither is a collapsed composition.
             const seed = (c.slot * geo.launch) / FLIGHT_MS;
             const lagged =
-              mod(c.slot * geo.launch - GATHER_LAG_MS, cycleOf(geo)) / FLIGHT_MS;
+              mod(c.slot * geo.launch - GATHER_LAG_MS, cycleOf(geo)) /
+              FLIGHT_MS;
             const rest = Math.min(seed, 1);
             return (
               <div
@@ -610,6 +612,7 @@ export const inflow: Concept = {
   },
   departures: [
     "Bible 13, decorative layer only, and a milder trade than the source's: with JavaScript off and motion allowed the corridor rests one beat further out than its steady spacing, because the gather's first frame lives inside the reduced-motion block (an effect would paint the steady corridor and then jump it outward). Both states are a full corridor rather than a collapsed one, which the source's pre-burst frame was not. The h1, the code, the count, the subhead and the CTAs are plain markup and never gated, and reduced motion gets the corridor flowing at its steady spacing.",
+    "The splash ring carries an 18 px outer glow, which is the concept's one departure from the standing cinema-and-unlit ruling. Measured, not decorative: a hairline ring at the opacity a ripple wants is invisible the moment it crosses a photograph, and the plate is surrounded by photographs by construction, so at a hairline the landing is only legible over the dark. There is no inner glow, which would whiten the plate and the frames under it, and bible 1 does not allow that.",
     "The count under the code is the one fabricated thing in the frame, and it is load-bearing here in a way it is not on the other concepts: it is what separates arriving from vanishing. At wiring it reads the demo event's real total and each tick is one real upload. Rule on whether a hero may carry a live number at all; if it may not, this concept loses its clearest signal and the recommendation to keep the source gets stronger.",
     "Precedent, not law: the lockup is centred rather than left-aligned, inherited from the source because the code owns the axis. The first thing to overrule if the home hero should stay left.",
   ],
