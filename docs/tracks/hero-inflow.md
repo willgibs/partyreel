@@ -24,7 +24,7 @@ reads:
 
 # lp/hero-inflow
 
-## Round 4 (Will's review notes, 2026-09-15)
+## Round 1 (Will's ruling, 2026-09-15: a new variation off the source)
 
 **The global notes, which bind every board this round** (Will, 2026-09-15, after a scroll through every
 board on launch-prep): (a) **Page-wide controls always on screen.** "For any pagewide configs, the GUI
