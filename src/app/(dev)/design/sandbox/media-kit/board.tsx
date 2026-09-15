@@ -25,7 +25,7 @@ import {
   SHOOT_CSS,
   WALK,
 } from "./apply";
-import { BRIDGE, BRIDGE_BY_ID, type BridgePost } from "./bridge";
+import { BRIDGE, type BridgePost } from "./bridge";
 import { candidate, candidateSrc, CANDIDATES, IDENTIFIABLE } from "./candidates";
 import {
   CHROME,

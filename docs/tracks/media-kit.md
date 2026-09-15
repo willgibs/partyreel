@@ -273,18 +273,24 @@ production byte changed.
 
 ## Handoff (round 2)
 
-- Head: the tip of `lp/media-kit`, pushed. The last commit touching the board, the batch or the spec
-  is `763423a`; the commits after it are this manifest. Preview
-  `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at `/design/c/media-kit?key=`
-- ★ **The preview alias is behind the head.** The project hit Vercel's daily deployment limit during
-  this round (the palette track hit it too and recorded the same), so the push at `763423a` built no
-  deployment and the alias still serves `b05c7c3`. The only difference between them is the Ours
-  slate's geometry (a square viewBox with centred type, so a 4:5 card no longer crops the shot code
-  off it); everything else on the board, including all four applied blocks, is what the alias serves.
-  A redeploy of the head is the one thing this handoff needs from the Orchestrator.
+- Head: the tip of `lp/media-kit`, pushed, and the alias is built from it (a manifest cannot name
+  its own commit; `git rev-parse origin/lp/media-kit` gives the SHA). The last commit that changes
+  what the board draws is `763423a`; the ones after it are this manifest and one unused import
+  dropped. Preview `partyreel-git-lp-media-kit-partyreel.vercel.app`, board at
+  `/design/c/media-kit?key=`
+- ★ **The alias was a day stale, and this push is the rebuild.** Vercel's ceiling of 100
+  deployments a day was at 0 remaining when `763423a` landed, so that push produced no deployment
+  and the alias kept serving `b05c7c3`, a build whose Ours slate is still the 1200x800 cut. That is
+  the one frame the walk below opens on, and the one this track found broken: a 4:5 blog card takes
+  20 percent off each side of it, so the shot code and the start of the line were gone. A slot freed
+  and the push carrying this manifest rebuilds the alias at the tip; nothing else differs between
+  the two builds. The check, any time the alias looks behind again: the board's chunk under
+  `/_next/static/chunks/` carries `viewBox='0 0 1000 1000'` on the head and `0 0 1200 800` on the
+  stale build.
 - Synced with `launch-prep` at `4b035c1` (it had moved one docs-only commit past the cut at `ca952b5`)
-- Gates on the synced tree: typecheck ok, lint ok (0 errors, 8 warnings, all pre-existing and none in
-  this lane), test ok (1725 in 197 files, 28 of them this track's five suites), build ok (248 pages)
+- Gates on the synced tree, re-run at the head: typecheck ok, lint ok (0 errors, 7 warnings, all
+  pre-existing and none in this lane now that round two's own unused import is gone), test ok (1726
+  in 197 files; this track's five suites hold 34, 28 of them new this round), build ok (248 pages)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
   `docs/tracks/media-kit.md`, `public/design/media-kit/` (22 jpgs + provenance.json) and the eleven
   files under `src/app/(dev)/design/sandbox/media-kit/`. No exceptions. No production byte changed:
