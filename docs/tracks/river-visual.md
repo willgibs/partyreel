@@ -126,8 +126,9 @@ the gate; the preview alias once Vercel's window frees.
 ## Handoff (round 1)
 
 - **Head: this commit**, on top of `4245d07` (the `launch-prep` merge). The round's last commit of CODE
-  is **`74f1b73`**, and the code is three commits: `ce614c5` built the visual and the board, `2b92747`
-  is the retune the browser forced (below), and **`74f1b73` is the review fix** (the scan floor, the
+  is **`8cf5a3a`**, and the code is four commits: `ce614c5` built the visual and the board, `2b92747`
+  is the retune the browser forced (below), `74f1b73` is the FIRST review fix (the scan floor, two
+  bullets down), and **`8cf5a3a` is the SECOND** (the placements draw the widths the asks name, the
   bullet under this one). Pushed to `lp/river-visual`.
   **Marker for this round: `rvr-oneflow`**, the second class on every instance's root, which exists in
   no earlier round of anything (the seed rendered `hhv-delta`, the hero's). One line tells you which
@@ -135,6 +136,63 @@ the gate; the preview alias once Vercel's window frees.
   `curl -s "<url>/design/c/river-visual?key=" | grep -o rvr-oneflow | wc -l` returns **6** on this
   round, where `hhv-delta` returns 0. (`grep -c` counts matching LINES and the page is one line, so it
   answers 1 for either: round one's handoff said `grep -c`, which is why this says `grep -o | wc -l`.)
+
+- **THE SECOND REVIEW FIX, `8cf5a3a`: two figures the board asked Will to rule on that nothing on it
+  drew.** Same shape as the scan floor, one pass later, and both are now read off the thing that
+  renders rather than typed beside it.
+  - **(a) THE COLUMN: the ask said 560, the section drew 460.** Ask one, the bank card and this
+    manifest all call the first placement "the how it works column (560, the strongest of the three)",
+    while `StepPlacement` drew `460` at 1440, a number that appeared exactly once in the file and in no
+    caption; its sibling parenthetical, the doors row's 330, WAS the rendered figure, so the sentence
+    read as if both were in situ. The placement now takes **the bank's own column size**, through the
+    same `bankWidth("column", mode)` the specimen row uses: **560 at 1440 and 343 at 375**, identical
+    to the bank row's first specimen (both measured 560 by 739 in the DOM, on one clock). The section
+    absorbs it: `Container` gives 1216 px at 1440, so the step list keeps the **616** the visual
+    leaves, which is a better measure than the 716 it had. The placement now carries a caption naming
+    its width the way the doors row always did, and it prints **what it drew** ("the bank's column size
+    (560 here)"), so it is true on both canvases. Ask one is unchanged and did not need rewriting: the
+    board draws its numbers now.
+  - **(b) THE GUEST A/B VANISHED AT 375.** `EmptyStatePlacement` rendered the real `GalleryEmptyState`
+    only when `mode === "desktop"`, while its caption said "Today on the left, the flow on the right"
+    on both canvases, so at Phone 375 Will read a sentence about two columns over one column and **ask
+    three (may an empty album show photographs at all) had no evidence on the canvas most guests are
+    on**. Both halves render on **both** canvases now: side by side at 1440, **stacked at 375**, where
+    two of them cannot share a row. The width is no longer picked either. The guest page clamps at
+    `max-w-2xl` with `px-5` gutters (`event-experience.tsx`), so its gallery is **the canvas or 672,
+    whichever is smaller, less the two gutters**, read off the shell's own exported `CANVAS` so it
+    cannot drift from the stage: **632 at 1440 and 335 at 375**, where the old hand-picked 340 was the
+    guest column at no window at all. The A/B is bigger and truer for it, and the caption prints the
+    number the canvas drew. The phone canvas also keeps the guest page's own 20 px gutter rather than
+    the board's 24, so the column is not squeezed by a padding the real screen does not have.
+  - **Two collateral corrections in the same file.** The doors caption printed a fixed "(330)" while
+    the phone canvas draws **311**, which is the same defect one size down; it prints `{w}` now. And
+    the bank card's "Where it could go" states ONCE that its parentheses are the 1440 numbers and that
+    every placement below prints the one it actually drew, so the entry can name a banked size without
+    the reader having to guess which canvas it belongs to.
+  - **The two stage heights follow the content, measured rather than guessed**: the step stage is
+    **1200 / 1400** (content 1187 / 1391) and the empty state **840 / 1060** (content 828 / 1030).
+    Worth recording: the step placement was **already clipped at the phone canvas before this pass**
+    (content ~1330 in a 1180 stage, which `overflow-hidden` hid), so the bigger column cost nothing and
+    fixed something.
+  - **How it was verified: a local PRODUCTION build at 1440 and 375, in a FOREGROUND tab.** `pnpm
+    build` then `pnpm start` on **:3182** in the worktree, driven through the Browser pane at
+    `/design/c/river-visual?key=`, every reading taken with `document.visibilityState` asserted
+    "visible" and `[data-paused]` at 0 in the same call. **No stage clips on either canvas** (858/860,
+    1187/1200, 738/760, 828/840 at 1440; 1638/1640, 1391/1400, 1516/1560, 1030/1060 at 375, with no
+    horizontal overflow). The six instances measure **560, 400, 240, 560, 330, 632** at 1440 and
+    **343, 280, 160, 343, 311, 335** at 375, and the A/B's two halves measure 335 by 363 each, stacked,
+    at the phone canvas. Every code still measures **3.0 px a module or better off the value drawn**
+    (123 over a span of 41 where the demo URL is passed, 99 over 33 where it is not, and 126 over 33 in
+    the 632 empty state, where the fifth-of-the-box share is larger than the floor). The cost meter
+    still reads **8.3 ms median frame gap, about 120 fps** with all six mounted, and the reduced-motion
+    resolution (27 `no-preference` blocks deleted from the running sheets, the stages paused, only
+    `transform` and `opacity` cleared) still stands **68 of the 72 cards at `--rvr-rest`** with the
+    four past the dissolve's last stop held at 0: the numbers the first fix recorded, unmoved by bigger
+    boxes, because every one of them is derived from the box. **The Vercel API was not called and no
+    preview was waited on** (the daily cap).
+  - **Nothing else moved.** One file changed, `board.tsx`; `river.tsx` and both sheets are untouched,
+    so the visual, its geometry, its scan floor and its reduced-motion state are bit-identical to the
+    build the first fix verified.
 
 - **THE REVIEW FIX, `74f1b73`: the scan floor was wrong by the board's own arithmetic, and ask two
   rested on it.** `FooterQr` draws its code over a viewBox of the module count PLUS its 8 quiet-zone
@@ -295,7 +353,9 @@ the gate; the preview alias once Vercel's window frees.
   dock exists to make: the code turns a section visual into a second CTA, and without it the flow is
   just the album arriving. Then the same flip on the doors row (paper), where the object eats a third
   of a 330 by 238 card slot, and on the guest empty state, where the code is certainly wrong because
-  the guest got there by scanning it.
+  the guest got there by scanning it. That last stage is the A/B for ask three: today's mosaic beside
+  the candidate, both at the width the guest page really gives its gallery (632 at 1440), and both
+  still there at Phone 375, stacked, where the row will not fit.
 - **The prefix moved and the lane says so:** everything here is `rvr-`, and no `hhv-` name survives in
   this directory. `hhv-` meant "home hero variation" and this is no longer one; keyframe names are
   document global, so the rename also keeps this sheet from shadowing the hero board's if the two ever
@@ -304,17 +364,15 @@ the gate; the preview alias once Vercel's window frees.
 
 ## Record (round 1; the CHANGELOG paragraph for round 1, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (2026-09-15). The river, killed as the home hero, came back as a
-banked feature visual. Will's ruling asked for one flow instead of two and a smaller presentation of the
-images emanating from the code, so the hero's parity split, its clearing cut to a headline's measured
-silhouette, its held beat and its two hand-typed geometries were all deleted: what is left is one stream
-fanning out of one printed object, with every number derived from the box it is given, so a 560 column, a
-400 card and a 240 thumbnail are the same visual at three scales and the flight and the cadence are
-constants, which makes instances on one page pour in step. The frames now straighten fully as they land,
-the dissolve runs to the bottom edge rather than stopping short of it inside somebody else's slot, and the
-loop is still cut by a frame's top edge so nothing pops. The board banks it: three sizes side by side at
-1:1 on cinema and paper, three origins on one dock switch, and three placements composed on the production
-shells they would ship inside, including the guest album's empty state as a true A/B against the mosaic it
-would replace. The bank card carries the props, the paste and a live frame-cost meter reading 8.3 ms with
-six instances mounted. Nothing production moved; the asks are where it goes first and whether the code
-stays in it.
+Merged into `launch-prep` at `<sha>` (2026-09-15). The river, killed as the home hero, came back as a banked
+feature visual. Will's ruling asked for one flow instead of two and a smaller presentation of the images
+emanating from the code, so the hero's parity split, its clearing, its held beat and its two hand-typed
+geometries were deleted: what is left is one stream fanning out of one printed object, every number derived
+from its box, so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, on constants
+that keep instances on a page in step. The frames straighten as they land, the dissolve runs to the bottom
+edge rather than stopping short inside somebody else's slot, and the loop is cut by a frame's top edge. The
+board banks it: three sizes at 1:1 on cinema and paper, three origins on one dock switch, and three
+placements on the production shells they would ship inside, each drawing the width its own ask quotes, the
+guest empty state among them as a true A/B against the mosaic it would replace, at the guest page's gallery
+width on both canvases. The bank card carries the props, the paste and a live meter reading 8.3 ms with six
+mounted. Nothing production moved; the asks are where it goes first and whether the code stays in it.
