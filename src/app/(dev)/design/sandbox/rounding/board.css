@@ -84,3 +84,29 @@
     animation-play-state: paused;
   }
 }
+
+/* ── The screen route's document (screen/page.tsx, round four) ───────
+
+   The lab's own chrome is removed by a <style> the screen page RENDERS, not
+   from here: a rule in this sheet would only land after the first paint and
+   the nav would flash inside every frame. What stays here is the ground the
+   page shares with the shell's Stage. */
+
+/* The cinema ground, exactly as the shell's Stage paints it: `.dark` with the
+   background deepened to the room the dark marketing chapters sit on. Kept in
+   one place so a frame and a stage cannot show two different cinemas. */
+.rnd-screen-cinema {
+  --background: oklch(0.11 0 0);
+  color-scheme: dark;
+}
+
+/* ── The page frames (frames.tsx, round four) ─────────────────────────────
+
+   A frame is a real viewport at true pixels, so it is never scaled and never
+   given a corner of its own: a radius on the frame's chrome would sit a pixel
+   from the radius being judged and read as part of it. The row scrolls inside
+   itself so a 1440 canvas on a narrower window never takes the page sideways
+   with it. */
+.rnd-frames {
+  min-height: 1px;
+}

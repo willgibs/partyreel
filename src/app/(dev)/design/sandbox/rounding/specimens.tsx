@@ -46,12 +46,6 @@ const MENU_PANEL =
 const MENU_ROW =
   "flex items-center justify-between gap-1.5 rounded-md px-1.5 py-1 text-sm";
 
-/** dialog.tsx, DialogContent + DialogFooter (the centred variant). */
-const DIALOG_PANEL =
-  "grid w-full gap-4 rounded-float bg-popover p-4 text-sm text-popover-foreground shadow-float ring-1 ring-foreground/10";
-const DIALOG_FOOTER =
-  "-mx-4 -mb-4 flex items-center justify-end gap-2 rounded-b-float border-t bg-muted/50 p-4";
-
 /** entry-shell.tsx, Drawer.Content: the guest entry sheet. ★ Its corner is
  *  the ACTION token times 1.4, not --radius-float, which is the finding part E
  *  is built on. Copied verbatim except for the fixed positioning. */
@@ -620,52 +614,6 @@ export function StepSpecimen({ step }: { step: string }) {
   return (
     <div className="w-full rounded-3xl bg-muted/60 p-3 text-[11px] text-muted-foreground">
       One modal
-    </div>
-  );
-}
-
-/* ── The static floating layers, for part B ────────────────────────────── */
-
-export function StaticMenu({ className }: { className?: string }) {
-  return (
-    <div className={cn(MENU_PANEL, className)}>
-      {["Rename event", "Duplicate", "Download album", "Delete"].map((row) => (
-        <div
-          key={row}
-          className={cn(
-            MENU_ROW,
-            row === "Duplicate" && "bg-accent",
-            row === "Delete" && "text-destructive",
-          )}
-        >
-          {row}
-          {row === "Download album" && (
-            <Copy className="size-3.5 text-muted-foreground" />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function StaticDialog({ className }: { className?: string }) {
-  return (
-    <div className={cn(DIALOG_PANEL, "max-w-sm", className)}>
-      <div className="grid gap-1.5">
-        <p className="font-heading text-base leading-snug font-semibold">
-          Share this event
-        </p>
-        <p className="text-muted-foreground">
-          Anyone with the link can add photos. The QR goes on the table.
-        </p>
-      </div>
-      <Input defaultValue="partyreel.com/e/summer-wedding" readOnly />
-      <div className={DIALOG_FOOTER}>
-        <Button variant="ghost">Cancel</Button>
-        <Button>
-          <Copy data-icon="inline-start" /> Copy link
-        </Button>
-      </div>
     </div>
   );
 }
