@@ -409,24 +409,48 @@ site four blocks it can wear. No production byte changed.
 ## Handoff (round 3)
 
 - Head: the tip of `lp/media-kit`, pushed (`git rev-parse origin/lp/media-kit`; a manifest cannot
-  name its own commit). The last commit that changes what the board draws is `5516bfa`; the one
+  name its own commit). The last commit that changes what the board draws is `3e6eae0`; the one
   after it is this manifest. Board at `/design/c/media-kit?key=`.
+- **Second pass (a read-only review of the first handoff raised three should-fix items, all fixed
+  here, none blocking and none outside the lane).**
+  1. *Ask 3 still carried round two's pre-rule count.* It read "Licensed ships twelve swaps, Mix
+     ships two, Ours ships none", which is the one number this round exists to take back, in the
+     first sentence a reviewer reads, under a caption promising every number is computed, two lines
+     above its own `because` and directly above the table that contradicts it. Every digit in the
+     asks and the route table is interpolated now, and `decision.test.ts` refuses any that the batch
+     does not compute (the asks below are re-quoted from the rendered board).
+  2. *`MIX_LICENSED` was read in two namespaces at once.* `routeOutcome` matched it against a post's
+     candidate; the applied CSS matched it against a manifest id. Both only appeared to work because
+     "wedding-rings" and "wedding-arch" name a staged frame AND a manifest entry, and the id
+     `wedding-arch` is bridged by `bridge-ceremony`, so Mix pasted bridge-ceremony.jpg onto a page
+     the board's own sheet showed wearing wedding-arch.jpg. It was also one edit from silence: a key
+     that is not also an id would have sent every post to "ours" and made Mix identical to Ours,
+     which is the inert toggle this round claims to have killed. The list is candidate keys now, one
+     predicate answers for a post and for an id (`routeOutcomeForId`), `apply.ts` builds all three
+     route blocks through it, and three tests pin the namespace, the agreement and that Mix changes
+     something. **The correction moves a count: Mix swaps ONE of the twelve ids, not two** (the id
+     `wedding-arch` is bridged by a ceremony with people in it, which is not furniture, so it goes
+     to the shoot); on the blog, where a post names its own candidate, Mix is still two covers. The
+     board, the route table, the spec and this manifest all say the derived numbers.
+  3. *The applied-block walk was reported for `/blog` only.* It is now walked on every page in the
+     walk row, with the counts under Light QA below.
 - ★ **Verified on a LOCAL PRODUCTION BUILD, not on a preview.** Vercel was at its daily deployment
   ceiling for the whole round, so the `lp/media-kit` alias serves round two's build and no push in
-  this round produced a deployment. The round was walked on `pnpm build` + `next start -p 3112`
-  (and, during the work, `pnpm dev -p 3111`), both in this worktree against the real
-  Supabase and R2. The alias will be round three's as soon as a slot frees: confirm by the SHA on
-  the deployment, never by the push succeeding (round two's note on how the cap behaves still
-  holds, one slot every 14.4 minutes and the next push on any branch takes it).
+  this round produced a deployment, and the second pass called no Vercel API at all. The round was
+  walked on `pnpm build` + `next start` in this worktree against the real Supabase and R2 (`-p 3112`
+  in the first pass, `-p 3210` in the second; `pnpm dev -p 3111` during the work). The alias will be
+  round three's as soon as a slot frees: confirm by the SHA on the deployment, never by the push
+  succeeding (round two's note on how the cap behaves still holds, one slot every 14.4 minutes and
+  the next push on any branch takes it).
 - Synced with `launch-prep`: it had not moved. The cut `fb395fe` is still its tip, so the tree
   under test is the integration tree.
 - Gates on that tree, re-run after `pnpm format` on the changed files: typecheck ok, lint ok
-  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (1775 in 198 files; this
-  track holds 48 across six suites, 14 of them new this round), build ok (248 static pages).
+  (0 errors, 6 warnings, all pre-existing and none in this lane), test ok (1781 in 198 files; this
+  track holds 54 across six suites, 20 of them new this round), build ok (248 static pages).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/specs/media-kit.md`,
-  `docs/tracks/media-kit.md` and eight files under `src/app/(dev)/design/sandbox/media-kit/`
-  (`board.tsx`, `bridge.ts`, `bridge.test.ts`, `decision.ts`, `decision.test.ts`,
-  `exposure.test.ts`, `shoot.ts`). No exceptions. No production byte changed: `marketing-media.ts`,
+  `docs/tracks/media-kit.md` and nine files under `src/app/(dev)/design/sandbox/media-kit/`
+  (`apply.ts`, `apply.test.ts`, `board.tsx`, `bridge.ts`, `bridge.test.ts`, `decision.ts`,
+  `decision.test.ts`, `exposure.test.ts`, `shoot.ts`). No exceptions. No production byte changed: `marketing-media.ts`,
   `public/marketing/` and every blog frontmatter are untouched, and `public/design/media-kit/` is
   unchanged from round two (the 22 staged files and `provenance.json`).
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
@@ -476,8 +500,9 @@ site four blocks it can wear. No production byte changed.
      Options: Yes or No. This board recommends Yes.
   2. The allowed list: CC0, Pexels, Pixabay, Mixkit and Coverr in; Unsplash and CC BY out. Options:
      Yes or Strike one. This board recommends Yes.
-  3. The route, which also decides the bridge: Licensed ships twelve swaps, Mix ships two, Ours
-     ships none. Options: Mix, Ours or Licensed. This board recommends Mix.
+  3. The route, which also decides the bridge: under ask 1 Licensed fills 10 of the 12 ids, Mix
+     fills 1 of them now and sends the rest to the shoot, Ours sends all 12. Options: Mix, Ours or
+     Licensed. This board recommends Mix.
   4. The kit: 36 masters, six per vertical, shot in one night at a real event running Partyreel.
      Options: Shoot or Park. This board recommends Shoot.
 - **Look at first**: the card at the top. It is the whole ruling in four rows, and a reviewer who
@@ -489,23 +514,45 @@ site four blocks it can wear. No production byte changed.
   that is legitimately licensed. That row is the argument in one line: the corpus can dress the site
   and cannot dress the half of it that matters.
 - **Light QA.** Walked cold at 1440 on the local production build: every toggle, all three routes
-  against both geometries and both viewport modes, the four applied blocks, and `/blog` with a block
-  on. **375 was verified for real this round, not by construction:** the Chrome MCP still cannot
+  against both geometries and both viewport modes, and the four applied blocks.
+  **The applied block is now walked on every page in the walk row, which the first pass reported for
+  `/blog` only.** With **Mix** applied from the board's own button (not by hand into the store) and
+  `?key=` carrying the gate, every page mounts the island's `<style data-tuner-candidate="Mix">` and
+  wears it. Marketing stills on the page, then the count wearing the licensed ring and the count
+  wearing a slate: `/` 114 (9 and 105), `/pricing` 26 (2 and 24), `/help` 8 (0 and 8), `/contact` 5
+  (0 and 5), `/blog` 17 (1 and 16), `/blog/qr-code-for-wedding-photos` 7 (0 and 7),
+  `/features/album` 68 (7 and 61). With **Licensed** applied, every frame swaps and none slates
+  (`/blog` 17 of 17 across 11 distinct staged files, `/` 114 of 114), which is the check that the
+  block rebuilt through `routeOutcomeForId` still fills all twelve.
+  **One walk finding, recorded rather than fixed:** the footer strip's four ids are in the DOM of
+  every marketing page, but the nav mega panel's two (`wedding-toast`, `reception-table`) mount only
+  when the panel opens, so a page at rest wears four of the six the board counts in the chrome. The
+  exposure count is right; a reviewer just has to open the nav to see the last two wearing the block.
+  **The non-marketing half of the round's list stays declined, and the board says why:** no marketing
+  still is referenced anywhere under the dashboard, an event page, the admin portal or
+  `/e/[qr_token]`, so a block changes nothing there, and `exposure.test.ts` pins it.
+  **375 was verified for real this round, not by construction:** the Chrome MCP still cannot
   narrow the window (it reports `innerWidth` 1456 for a 420 px window), but the board loaded in a
   375 px same-origin IFRAME does re-run its media queries, and there
   `documentElement.scrollWidth === clientWidth === 375` at every section, with no element outside an
   `overflow-x: auto` container reaching past 376 px. The route table is the one wide element and it
-  sits in its own scroller (736 px table inside a 343 px wrapper, the page still 375). Reduced motion
+  sits in its own scroller (736 px table inside a 343 px wrapper, the page still 375). The second
+  pass also re-walked the applied block at an emulated 375: `/`, `/blog` and `/pricing` wear it with
+  `scrollWidth - innerWidth === 0` on each, so a slate never widens a page. Reduced motion
   is honoured: this board still mints no keyframe and runs no loop, the develop beat's settled state
   lives outside the media query in `marketing.css`, the only rule `board.css` adds is a transition
   delay inside `prefers-reduced-motion: no-preference`, and round three added
   `motion-reduce:transition-none motion-reduce:active:scale-100` to the press feedback on the applied
   blocks, which round two left unguarded. No console message of any kind on the production build, so
   the `useSyncExternalStore` read of the lab key hydrates clean.
-- **Findings against a rule** (for Will, not acted on): none against the bible. Two against this
-  track's own round two, both corrected in place and both now pinned by a test: the Licensed route's
-  counts were the counts before the rule the same board proposes, and the stage was drawing the wrong
-  geometry on the wrong ground while its route toggle was inert between two of its three routes.
+- **Findings against a rule** (for Will, not acted on): none against the bible. Three against this
+  track's own earlier work, all corrected in place and all now pinned by a test: the Licensed route's
+  counts were the counts before the rule the same board proposes; the stage was drawing the wrong
+  geometry on the wrong ground while its route toggle was inert between two of its three routes; and
+  the mix list was read in two namespaces at once, so the board's sheet and the CSS it hands the site
+  disagreed about one frame on the recommended route. The shape of all three is the same, and it is
+  worth saying once: a number or a rule written into a sentence goes stale silently, and a list read
+  in two places means two things. Both are now derived from one function and refused by a test.
 
 ## Record (round 3; the CHANGELOG paragraph for rounds 2 and 3, past tense, at most 12 lines; the Orchestrator fills the merge SHA)
 
@@ -526,7 +573,13 @@ than twelve and 21, with the dance floor and the DJ the two it cannot fill. The 
 440 px plates on the paper ground when the real blog card is 320x400 on a cinema page, and all three
 of its posts went to the shoot under the default route, so it opened blank and two of its three
 routes looked identical; it is now the real card at the real size with today's row above the route's
-row, and a test refuses a stage set that leaves a route flip inert. Reading the whole asset log
+row, and a test refuses a stage set that leaves a route flip inert. A review of the handoff found the
+same class of fault twice more: the ask a reviewer answers first still quoted the pre-rule count, and
+the list of frames the Mix route keeps licensed was read as candidate keys on the board and as
+manifest ids in the CSS the board hands the site, so the recommended route pasted a photograph the
+sheet did not show. One function now answers a route for a post and for an id, every digit in the
+ruling surface is interpolated from the batch, and Mix swaps one of the twelve ids and two of the 23
+covers. Reading the whole asset log
 closed the cost argument: one night of photography produces nine of its twelve rows, the demo event's
 own seed among them, so the shoot is the cheapest item on the list rather than the most expensive.
 No production byte changed.
