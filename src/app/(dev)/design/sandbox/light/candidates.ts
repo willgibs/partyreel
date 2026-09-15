@@ -302,6 +302,36 @@ export const PAPER_FIVE: LightCandidate = {
 }`,
 };
 
+/* ────────────────────  THE ENGINE'S ONE LINE (round three)  ─────────────── */
+
+/**
+ * NOT AN "APPLY" CANDIDATE, AND DELIBERATELY SO: nothing on the site uses the
+ * transform drive today, so applying this block to the running site would
+ * change nothing visible, and a button that does nothing is worse than no
+ * button. It is here because part B's cost row proposes that the FIELD take
+ * that drive, and the drive arrives with a law 4 defect that has never been
+ * seen precisely because no shipped lamp uses it.
+ *
+ * glw-drift-x runs `translate: 32% 0` to `-32% 0`, and the animation lives in
+ * the no-preference block, so the state a reduced-motion visitor gets is the
+ * unanimated one: translate 0, the comet parked dead centre at full
+ * --glw-strength. That is the same inversion the mask drive had fixed when its
+ * resting mask-position was moved to its own from-keyframe. One line puts the
+ * cheap drive back inside law 4.
+ */
+export const ENGINE_DRIVE_FIX = `/* THE TRANSFORM DRIVE'S REST STATE (light board, part B).
+   Law 4: the base is how a reduced-motion arrival still arrives, band away.
+   glw-drift-x's own from-keyframe, declared OUTSIDE the no-preference block,
+   exactly as [data-glw-drive="mask"] already declares mask-position: 150% 0.
+   Without it the drive's rest state is translate 0, which is the middle of
+   its travel: the comet parked dead centre at full strength, forever, for
+   every visitor who asked for less motion. No shipped lamp uses this drive
+   today, which is the only reason the defect has never been seen. */
+
+[data-glw-drive="transform"] [data-glw-band] {
+  translate: 32% 0;
+}`;
+
 export const LIGHT_CANDIDATES = [
   SHADOW_FAMILY,
   LIT_FACE,

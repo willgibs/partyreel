@@ -1,6 +1,6 @@
 "use client";
 
-import { LIGHT_CANDIDATES } from "./candidates";
+import { ENGINE_DRIVE_FIX, LIGHT_CANDIDATES } from "./candidates";
 import { Part, Paste } from "./shared";
 
 /**
@@ -131,7 +131,15 @@ mode worth naming, because it is the one a wiring round reaches for: the same li
 register, placed at the centre, puts the copy inside the light instead of between two of them.
 
 A **MOTION**: a drift several times slower than a lamp's, because a field the size of a chapter
-moving at a lamp's clock reads as a screensaver. The cadence is a lamp's property, not the system's:
+moving at a lamp's clock reads as a screensaver, and on the CHEAP DRIVE, because a field is the one
+place where the two drives differ in cost rather than in taste. \`[data-glw-drive="transform"]\`
+moves the comet on the compositor; the default \`mask\` drive repaints a filtered layer of roughly
+1500 by 360 css pixels every frame, twice per chapter. Moving the field to the transform drive takes
+one line of the engine with it, and it is a law 4 fix rather than a feature: \`glw-drift-x\` runs
+from \`translate: 32% 0\`, so its unanimated state is translate 0, the comet parked dead centre at
+full strength, which is what a reduced-motion visitor would get. Declare that from-keyframe outside
+the no-preference block, exactly as the mask drive declares its resting \`mask-position\`.
+The cadence is a lamp's property, not the system's:
 \`--spill-cadence\` is the lamp's clock, at whatever number the cadence ruling lands on, and the
 aurora takes a MULTIPLE of it under a name of its own,
 \`--aurora-cadence: calc(var(--spill-cadence) * 3)\`. Three laps, so the ratio survives the lamp's
@@ -199,7 +207,10 @@ technique.
 - Components use the \`shadow-float\` utility for LIFT and \`shadow-layer\` for FLOAT; a raw
   \`shadow-md/lg\` on a primitive is a call site the light ruling re-points, not a second family.
 - The dark translucent card ships WITHOUT blanket backdrop-blur (alpha composites fine; blur only
-  where a surface sits over media).`,
+  where a surface sits over media).
+- **This is also bible 15's fifth line.** The floating-layer contract's "one light, by ground" asks
+  the same question for one family (lighter is closer, a soft shadow, or a lit edge); FLOAT is that
+  ruling, with values, and the floating contract inherits it rather than answering it twice.`,
   },
   {
     id: "frame",
@@ -258,6 +269,10 @@ export function DoctrinePart({ rules }: { rules: string[] }) {
             buttons hand the browser, so a value cannot drift between what you
             walked and what gets written down.
           </p>
+          <p>
+            Each block opens on its first lines and expands on the button beside
+            it. Copy takes the whole thing either way, open or closed.
+          </p>
         </>
       }
     >
@@ -312,12 +327,17 @@ export function DoctrinePart({ rules }: { rules: string[] }) {
             contract, so the surfaces that take a shadow in dark are named one
             by one instead: aliasing the old token there would hand a shadow to
             all 26 of its consumers, flat surfaces included, which is not what
-            any of this proposes.
+            any of this proposes. The fifth block is the engine{"'"}s own, and
+            it is the one line the aurora{"'"}s drive takes with it.
           </p>
         </div>
         {LIGHT_CANDIDATES.map((c) => (
           <Paste key={c.label} label={c.label} css={c.css} />
         ))}
+        <Paste
+          label="Light: the engine's one line (the transform drive's rest state)"
+          css={ENGINE_DRIVE_FIX}
+        />
       </div>
     </Part>
   );
