@@ -4,14 +4,20 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { type LabFit, useLabPrefs } from "./lab-prefs";
+
 /**
  * THE BOARD SHELL'S STAGE (extracted from the home-hero board at the review
  * wave, 2026-09-14, so every exploration board judges on the same canvas).
  *
- * A stage is a real viewport's pixels laid out at 1440 or at 375 and fitted to
- * the lab column with `zoom` (layout, not just paint, happens at the canvas
- * size), so a candidate reads against the real tokens on a real ground rather
- * than a hand-picked literal.
+ * A stage is a real viewport's pixels laid out at 1440 or at 375, so a
+ * candidate reads against the real tokens on a real ground rather than a
+ * hand-picked literal. Since round four (2026-09-15) it renders at 1:1 by
+ * default (the lab preference `fit`, lab-prefs.ts, switched from any board's
+ * dock): a 1440 canvas is 1440 CSS pixels wide and scrolls sideways when the
+ * column is narrower, because a zoom-fitted stage shrank every size Will was
+ * asked to judge to about 0.7x. "Fit" keeps the old `zoom` fitting for a
+ * glance at the whole; a board may pin either with the `fit` prop.
  *
  * The ground is the token set the stage paints under its children:
  *  - cinema: the dark room every dark marketing chapter sits on (`.dark` with
@@ -87,6 +93,7 @@ export function Stage({
   ground = "cinema",
   height,
   bodySkin = false,
+  fit,
   className,
   children,
 }: {
@@ -94,6 +101,8 @@ export function Stage({
   ground?: Ground;
   /** Override the canvas height (a section board is rarely a full viewport). */
   height?: number;
+  /** Pin the scale ("true" is 1:1, "zoom" fits the column); default: the lab preference. */
+  fit?: LabFit;
   /** Also set `data-mkt-skin`, which flips the lab page's body to this ground. */
   bodySkin?: boolean;
   className?: string;
@@ -104,31 +113,48 @@ export function Stage({
   const [scale, setScale] = useState(1);
   const { w, h } = CANVAS[mode];
   const g = GROUND[ground];
+  const pref = useLabPrefs().fit;
+  const trueScale = (fit ?? pref) === "true";
 
   useLayoutEffect(() => {
     const box = boxRef.current;
     if (!box) return;
+    if (trueScale) return;
     const sync = () =>
       setScale(Math.min(1, box.getBoundingClientRect().width / w));
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(box);
     return () => ro.disconnect();
-  }, [w]);
+  }, [w, trueScale]);
 
   return (
-    <div ref={boxRef} className="flex justify-center overflow-hidden">
+    <div
+      ref={boxRef}
+      data-stage-fit={trueScale ? "true" : "zoom"}
+      className={
+        trueScale
+          ? "overflow-x-auto overflow-y-hidden"
+          : "flex justify-center overflow-hidden"
+      }
+    >
       <div
         className={cn(
           g.className,
           "relative overflow-hidden rounded-lg border border-border bg-background text-foreground",
+          trueScale && "mx-auto shrink-0",
           className,
         )}
         {...(g.mkt ? { "data-mkt": "" } : {})}
         {...(bodySkin && g.skin ? { "data-mkt-skin": g.skin } : {})}
         data-ground={ground}
         data-paused={hidden ? "true" : undefined}
-        style={{ ...g.style, zoom: scale, width: w, height: height ?? h }}
+        style={{
+          ...g.style,
+          zoom: trueScale ? 1 : scale,
+          width: w,
+          height: height ?? h,
+        }}
       >
         {children}
       </div>

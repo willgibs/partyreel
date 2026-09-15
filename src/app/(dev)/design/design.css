@@ -251,3 +251,21 @@
     }
   }
 }
+
+/* THE READING PREFERENCES (round four of the review wave, 2026-09-15; the
+   store is src/components/dev/board/lab-prefs.ts, applied to <html> by
+   LabChrome). At 1:1 a board page gives its stages the whole column, and with
+   the sidebar tucked away (`data-lab-bleed`, board pages only: the library
+   pages keep their rail) a 1440 canvas has its room on a wide window. */
+html[data-lab-fit="true"] .board-page {
+  max-width: none;
+}
+html[data-lab-bleed] .lab-grid:has(.board-page) {
+  grid-template-columns: minmax(0, 1fr);
+}
+html[data-lab-bleed] .lab-grid:has(.board-page) .lab-nav {
+  display: none;
+}
+html[data-lab-bleed] .lab-grid:has(.board-page) .lab-sidebar-pill {
+  display: inline-flex;
+}

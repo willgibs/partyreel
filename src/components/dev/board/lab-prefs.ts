@@ -1,0 +1,87 @@
+"use client";
+
+/**
+ * THE LAB'S READING PREFERENCES (round four of the review wave, 2026-09-15).
+ * Will's review notes on rounds two and three named two shell faults that made
+ * every board hard to read: a stage zoom-fitted into the 1024px board column
+ * shrinks type and radius to about 0.7x, so "the whole point is reviewing
+ * accurate sizing" was defeated on the type board and the floating board; and
+ * a board's page-wide switches lived at the top, so comparing two candidates
+ * meant scrolling back up for every flip (the palette board). The dock
+ * (dock.tsx) answers the second; these two preferences answer the first:
+ *
+ *  - fit: "true" renders every Stage at the canvas's real pixels (a 1440
+ *    canvas is 1440 CSS pixels wide, scrolling sideways if the column is
+ *    narrower) and lifts the board page's max-width; "zoom" is the old fit.
+ *  - bleed: hides the lab sidebar on a board page so a 1440 canvas has the
+ *    room at 1:1 on a wide window; the dock's Desk link and "Sidebar" control
+ *    bring the navigation back.
+ *
+ * Both persist in localStorage under one key and apply through data
+ * attributes on <html> (LabChrome), so a preference set on one board holds on
+ * the next. Reading is a store outside any component (the tuner-store idiom)
+ * so the dock, the stages and the chrome all follow one value.
+ */
+
+import { useSyncExternalStore } from "react";
+
+export type LabFit = "zoom" | "true";
+export type LabPrefs = Readonly<{ fit: LabFit; bleed: boolean }>;
+
+const KEY = "partyreel.lab.prefs.v1";
+// 1:1 with the sidebar tucked away is the default: a board is read at the
+// pixels it argues, and the dock keeps the way back to the desk.
+const DEFAULT: LabPrefs = Object.freeze({ fit: "true", bleed: true });
+
+let prefs: LabPrefs = DEFAULT;
+let loaded = false;
+const subs = new Set<() => void>();
+
+function load() {
+  if (loaded) return;
+  loaded = true;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<LabPrefs>;
+      prefs = {
+        fit: parsed.fit === "zoom" ? "zoom" : "true",
+        bleed: typeof parsed.bleed === "boolean" ? parsed.bleed : true,
+      };
+    }
+  } catch {
+    // Private mode or a blocked store: the defaults hold for this page.
+  }
+}
+
+function subscribe(fn: () => void) {
+  load();
+  subs.add(fn);
+  return () => {
+    subs.delete(fn);
+  };
+}
+
+export function getLabPrefs(): LabPrefs {
+  load();
+  return prefs;
+}
+
+export function setLabPref<K extends keyof LabPrefs>(
+  key: K,
+  value: LabPrefs[K],
+) {
+  load();
+  prefs = Object.freeze({ ...prefs, [key]: value });
+  try {
+    localStorage.setItem(KEY, JSON.stringify(prefs));
+  } catch {
+    // Nothing to do: the in-memory value still drives this page.
+  }
+  subs.forEach((fn) => fn());
+}
+
+/** The live preferences; the server render sees the defaults. */
+export function useLabPrefs(): LabPrefs {
+  return useSyncExternalStore(subscribe, getLabPrefs, () => DEFAULT);
+}

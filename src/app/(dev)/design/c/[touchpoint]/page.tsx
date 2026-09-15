@@ -97,7 +97,9 @@ export default async function TouchpointPage({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-20" {...skin}>
+      {/* `board-page` lets design.css lift the column's max-width at 1:1 and
+          tuck the sidebar away (the lab preferences, dev/board/lab-prefs.ts). */}
+      <div className="board-page mx-auto w-full max-w-5xl px-4 pb-20" {...skin}>
         <Variants />
       </div>
     </ModeShell>

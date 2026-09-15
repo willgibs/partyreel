@@ -39,7 +39,7 @@ export function LabNav() {
   const zones = useMemo(() => filterZones(ZONES, query), [query]);
 
   return (
-    <div className="bg-background text-foreground lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:border-r lg:border-border">
+    <div className="lab-nav bg-background text-foreground lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:border-r lg:border-border">
       {/* Mobile bar: title + collapse toggle. */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 lg:hidden">
         <Link
@@ -127,7 +127,9 @@ export function LabNav() {
                           <Link
                             href={to(entry.href)}
                             onClick={close}
-                            aria-current={active(entry.href) ? "page" : undefined}
+                            aria-current={
+                              active(entry.href) ? "page" : undefined
+                            }
                             className={cn(
                               "flex items-center gap-2.5 rounded-md py-1.5 pr-2 pl-3 text-[13px] transition-colors",
                               active(entry.href)

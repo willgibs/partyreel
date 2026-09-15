@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { LabChrome } from "@/components/dev/board/lab-chrome";
 import { CandidateStyle } from "@/components/dev/candidate-style";
 
 import { LabNav } from "./lab-nav";
@@ -29,7 +30,7 @@ export default function DesignLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
+    <div className="lab-grid min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
       {/* useSearchParams (the key) needs a Suspense boundary; every lab route
           is already dynamic via requireDesignKey, so this never suspends long. */}
       <Suspense>
@@ -39,6 +40,9 @@ export default function DesignLayout({
       {/* A board's "Apply to the site" block, worn by every lab page too, so a
           candidate palette or shadow family is judged on the other boards. */}
       <CandidateStyle />
+      {/* The reading preferences (1:1 stages, the sidebar tucked away on a
+          board page) applied to <html>; see dev/board/lab-prefs.ts. */}
+      <LabChrome />
     </div>
   );
 }
