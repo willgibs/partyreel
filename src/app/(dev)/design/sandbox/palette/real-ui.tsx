@@ -92,6 +92,24 @@ import type { Pair, TokenMap } from "./registers";
  * copied, and a MutationObserver on the parent's head keeps them copied when a
  * route adds one later.
  */
+/**
+ * ★ THE ENTRANCE GRAMMAR NEVER TRIPS INSIDE A STAGE, so the stage shows the
+ * SETTLED composition.
+ *
+ * Marketing sections enter through `Reveal`, which flips `data-inview` from an
+ * IntersectionObserver and lets marketing.css animate `[data-mkt-reveal]` and
+ * `[data-mkt-cut]` in from opacity 0. Inside an iframe that observer's implicit
+ * root is the iframe's own viewport CLIPPED BY THE PARENT, so a section below
+ * the visible strip never trips: measured on the production build, 20 of row
+ * 07's marked elements sat at opacity 0 and two whole chapters rendered blank.
+ *
+ * The fix is the fallback marketing.css already ships for a reduced-motion
+ * reader: the settled state, unconditionally, inside the stage only. It is also
+ * the honest one for THIS board, which judges a ground and not an entrance, and
+ * it means the reduced-motion reader and everyone else see the same page.
+ */
+const SETTLED = `[data-mkt-reveal],[data-mkt-cut]{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;}`;
+
 export function TrueViewport({
   width,
   height,
@@ -117,10 +135,13 @@ export function TrueViewport({
     const doc = ref.current?.contentDocument;
     if (!doc) return;
     const sync = () => {
+      const settled = doc.createElement("style");
+      settled.textContent = SETTLED;
       doc.head.replaceChildren(
         ...[...document.querySelectorAll('style, link[rel="stylesheet"]')].map(
           (n) => n.cloneNode(true),
         ),
+        settled,
       );
       doc.documentElement.className = document.documentElement.className;
     };
