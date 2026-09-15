@@ -108,20 +108,68 @@ import {
  *    against an upward one's 170. Two changes answer it: `crossHold` holds a
  *    ray back in proportion to the type it has to cross, so it clears later and
  *    larger instead of arriving small, and the pool is now selected to be even
- *    in VISIBLE MASS rather than in directions launched (BALANCE). The album
- *    covers 0.24 of the 375 canvas at round two and 0.43 now, against 0.42 at
- *    1440: the same composition at both canvases, which is this variation's
- *    whole claim, now measured rather than argued.
+ *    in VISIBLE MASS rather than in directions launched (BALANCE, and see D
+ *    below for what that mass had to start counting before it worked). Measured
+ *    on the live field, the phone runs 56 / 44 above and below the code against
+ *    the 61 / 39 this pass started from, and carries 13.8 frames on screen to
+ *    the desktop canvas's 14.2: the same composition at both canvases, close
+ *    enough now to argue about rather than to concede.
  * 4. THE REST STATE WAS A FREEZE FRAME. What reduced motion, a crawler and the
  *    cold paint got was the running field stopped mid-flight, so half of it was
- *    dissolving at the rim. It is composed now (restFrame): every photograph
- *    whole, spread by a low-discrepancy radius, the quiet zone still holding.
+ *    dissolving at the rim. It is solved now rather than sampled (restFrame):
+ *    every photograph whole, none behind the plate, the quiet zone holding.
  * 5. THE COPY HAD BECOME THE RIVER'S. Round two proposed "One code, and the
  *    album fills." with a subhead the river now carries verbatim. Two concepts
  *    arguing the same sentence makes the board harder to rule, so both lines
  *    were rewritten to what only this concept can say.
  * 6. THE ONE CONTROL ON THE STAGE SAID "h1" at 0.45 opacity. It says Headline,
  *    it is legible without hunting, and it is sized for the canvas it sits on.
+ *
+ * ── AND WHAT THE REVIEW OF THAT ROUND CAUGHT, in the same round ──
+ *
+ * Three of the six above were written down as done before they were true. The
+ * fixes are in the code they name; this is the ledger, because a claim that
+ * outran its code once will be read sceptically the next time.
+ *
+ * A. THE 4:5 SHARE HAD COLLAPSED WITH THE POOL. The shape was handed out by
+ *    CANDIDATE index while item 3's balance pass was newly DROPPING candidates,
+ *    so the third of the field this file claims was 4:5 shipped as 32 percent
+ *    on the desktop canvas and 9 percent on the phone at the xl step, which is
+ *    the canvas whose whole argument is that guests shoot vertical. It is
+ *    assigned by SLOT now (PORTRAIT_EVERY), so it is a third of whatever pool
+ *    the balance pass returns: 32, 32, 31, 31 percent at the four
+ *    configurations. The clearance scan is run after the shape is known, so a
+ *    taller box is still held off the type for exactly as long as it needs.
+ * B. THE SETTLED FIELD WAS NOT WHOLE. Item 4 walked the progress back until the
+ *    card's OPACITY cleared 0.92, which is not the same test as "inside the
+ *    canvas": the opacity term only begins to fall once the leading edge is
+ *    already past the rim. A third of the settled album was cut by more than a
+ *    quarter of its own width, and on the phone at xl there is no progress at
+ *    which most cards are both clear of the type and inside the canvas at all.
+ *    The still is solved from both bounds now instead of sampled off the
+ *    flight; see restFrame for the whole argument. Measured on the geometry at
+ *    all four configurations: 0 cards cut, 0 over any word, 0 behind the plate.
+ * C. THE COPY ASK NAMED HALF ITS TRADE. Item 5 moved off the river's sentence
+ *    by moving off the code, which is the wrong half to give up: the standing
+ *    ruling on this board is that the code as the basis of the feature is the
+ *    distinct thing and a generic album is the weak one. The h1 keeps the code
+ *    and says what only this concept shows, and the ask carries the whole
+ *    trade rather than one reason for it. The keep-out boxes were re-measured
+ *    off the rendered stage against it, which turned up a hole that predates
+ *    this line: the proposed subhead is shorter than the ruled one, so on the
+ *    phone the actions row sits 23 px higher under the copy toggle than the
+ *    boxes covered, and a frame could fly through the buttons in that mode.
+ *    Every box is the union of BOTH copy modes' real ink now, which is what the
+ *    comment on KEEP always said it was.
+ * D. THE BALANCE MASS COUNTED WHAT IS OFF SCREEN. The integral item 3 added to
+ *    even the field weighed each direction by apparent area and never clipped
+ *    it to the canvas, so a flight that is twice the canvas wide as it wipes
+ *    past the rim scored twice a flight that fills it. The half of the compass
+ *    gated longest is exactly the half whose frames are biggest when they
+ *    finally appear, so the metric handed that half a bonus for the part of
+ *    itself nobody sees, and the pass meant to end the tilt was paying for it.
+ *    Clipped, the same pass gives 48 / 52 and 46 / 54 above and below at 1440,
+ *    and takes the phone from 61 / 39 to 56 / 44.
  *
  * ── WHAT DID NOT CHANGE ──
  *
@@ -184,38 +232,45 @@ let lastStep: Step = "lg";
  *  rather than guessed: each is the union of the two copy modes' real INK
  *  extents (a Range over the text, not the block box, which is full bleed),
  *  re-measured at round three against the copy this concept now proposes.
+ *  THE UNION IS THE POINT and is easy to get wrong: one pool serves both copy
+ *  modes, so a block has to cover the taller of the two AND the position the
+ *  shorter one puts the blocks below it in. The proposed subhead is two lines
+ *  on the phone where the ruled one is three, which lifts the actions row 23
+ *  px; the box covers both.
  *  THE CODE HAS NO BOX: the plate paints above the field, so a frame born
  *  behind it is hidden by it, and taking the box away is what lets the album
- *  visibly leave the object. */
+ *  visibly leave the object. (The settled composition is the one exception:
+ *  restFrame keeps the still off the plate, because a still has no next moment
+ *  to slide out into.) */
 type KeepPart = { x: number; y: number; hw: number; hh: number; r: number };
 
 const KEEP: Record<Mode, Record<Step, KeepPart[]>> = {
   desktop: {
     lg: [
-      { x: 0, y: -188, hw: 263, hh: 80, r: 26 }, // the headline, two lines at 72
+      { x: 0, y: -189, hw: 262, hh: 81, r: 26 }, // the headline, two lines at 72
       { x: 0, y: 105, hw: 155, hh: 8, r: 24 }, // the caption
-      { x: 0, y: 155, hw: 228, hh: 21, r: 28 }, // the sentence, two lines
-      { x: 0, y: 226, hw: 165, hh: 22, r: 28 }, // the actions, one row
+      { x: 0, y: 156, hw: 232, hh: 22, r: 28 }, // the sentence, two lines
+      { x: 0, y: 226, hw: 164, hh: 23, r: 28 }, // the actions, one row
     ],
     xl: [
-      { x: 0, y: -210, hw: 350, hh: 107, r: 26 }, // the headline, two lines at 96
+      { x: 0, y: -210, hw: 349, hh: 107, r: 26 }, // the headline, two lines at 96
       { x: 0, y: 105, hw: 155, hh: 8, r: 24 },
-      { x: 0, y: 155, hw: 228, hh: 21, r: 28 },
-      { x: 0, y: 226, hw: 165, hh: 22, r: 28 },
+      { x: 0, y: 156, hw: 232, hh: 22, r: 28 },
+      { x: 0, y: 226, hw: 164, hh: 23, r: 28 },
     ],
   },
   phone: {
     lg: [
-      { x: 0, y: -115, hw: 132, hh: 41, r: 20 }, // the headline, two lines at 36
+      { x: 0, y: -114, hw: 131, hh: 42, r: 20 }, // the headline, two lines at 36
       { x: 0, y: 76, hw: 90, hh: 8, r: 18 }, // the caption
-      { x: 0, y: 131, hw: 160, hh: 32, r: 20 }, // the sentence, three lines
-      { x: 0, y: 202, hw: 142, hh: 20, r: 20 }, // the actions, one row
+      { x: 0, y: 132, hw: 162, hh: 32, r: 20 }, // the sentence, two or three lines
+      { x: 0, y: 191, hw: 142, hh: 32, r: 20 }, // the actions, one row, two heights
     ],
     xl: [
-      { x: 0, y: -150, hw: 126, hh: 78, r: 20 }, // the headline, three lines at 48
+      { x: 0, y: -150, hw: 152, hh: 78, r: 20 }, // the headline, two or three at 48
       { x: 0, y: 76, hw: 90, hh: 8, r: 18 },
-      { x: 0, y: 131, hw: 160, hh: 32, r: 20 },
-      { x: 0, y: 202, hw: 142, hh: 20, r: 20 },
+      { x: 0, y: 132, hw: 162, hh: 32, r: 20 },
+      { x: 0, y: 191, hw: 142, hh: 32, r: 20 },
     ],
   },
 };
@@ -533,6 +588,26 @@ function scanClear(c: Seed, geo: Geo, keep: KeepPart[]) {
 
 type Frame = { transform: string; opacity: string; z: string };
 
+/** The three strings the DOM wants, from a card already placed. The ONE place
+ *  a transform is formatted, so the running loop and the settled composition
+ *  below cannot drift into two different projections of the same card. */
+function frameOf(
+  c: Card,
+  x: number,
+  y: number,
+  s: number,
+  proj: number,
+  o: number,
+): Frame {
+  return {
+    transform: `translate3d(${r2(x)}px, ${r2(y)}px, 0) rotate(${r2(c.rz)}deg) perspective(760px) rotateY(${r2(c.ry)}deg) rotateX(${r2(c.rx)}deg) scale(${r2(s)})`,
+    opacity: String(r2(o)),
+    // Near frames paint over far ones, which is the whole reason the depth axis
+    // reads at all. Quantized so the stacking order is re-sorted rarely.
+    z: String(Math.round(proj * 40)),
+  };
+}
+
 /**
  * One card at one progress, as the three strings the DOM wants. The whole
  * concept is in here; everything else is plumbing.
@@ -573,13 +648,7 @@ function frameAt(
     (1 - smoothstep(1, 1.7, lead)) *
     (1 - smoothstep(0.9, 1, p));
 
-  return {
-    transform: `translate3d(${r2(x)}px, ${r2(y)}px, 0) rotate(${r2(c.rz)}deg) perspective(760px) rotateY(${r2(c.ry)}deg) rotateX(${r2(c.rx)}deg) scale(${r2(s)})`,
-    opacity: String(r2(o)),
-    // Near frames paint over far ones, which is the whole reason the depth axis
-    // reads at all. Quantized so the stacking order is re-sorted rarely.
-    z: String(Math.round(proj * 40)),
-  };
+  return frameOf(c, x, y, s, proj, o);
 }
 
 /** The share of the field's visible MASS either half of the canvas may hold
@@ -593,6 +662,32 @@ const BALANCE = 0.56;
 /** How many cards are placed before the balance rule starts refusing: with two
  *  or three on screen there is no distribution to be even about. */
 const BALANCE_AFTER = 8;
+
+/** THE SHAPE MIX. A third of the field is 4:5, because a third of what guests
+ *  shoot is: a field of nothing but squares reads as a deck of cards rather
+ *  than as an album. It is assigned by the card's SLOT and never by its
+ *  candidate index, which is the round-three correction: the balance pass below
+ *  DROPS candidates, so an index-based share silently collapses with them (the
+ *  share it actually shipped ran from 32 percent on the desktop canvas down to
+ *  9 percent on the phone at the xl step, on the very canvas whose argument is
+ *  that guests shoot vertical). By slot it is a third of whatever the pool
+ *  turns out to be, at every canvas and every headline step. */
+const PORTRAIT = 1.25;
+const PORTRAIT_EVERY = 3;
+/** The shape the viability walk and the mass integral are flown at, so neither
+ *  answer depends on which candidates happened to draw the portrait slot: the
+ *  walk is weighing a DIRECTION, and the direction is all it should weigh. */
+const MEAN_ASPECT = 1 + (PORTRAIT - 1) / PORTRAIT_EVERY;
+
+/** A card's rotated half-extents, per unit of apparent scale, as a fraction of
+ *  its box width. A function of the aspect, so it is redone when the slot hands
+ *  the card its real shape. */
+function extents(rz: number, aspect: number) {
+  const a = (rz * Math.PI) / 180;
+  const ca = Math.abs(Math.cos(a));
+  const sa = Math.abs(Math.sin(a));
+  return { aw0: 0.5 * (ca + aspect * sa), ah0: 0.5 * (sa + aspect * ca) };
+}
 
 /**
  * The pool, built by ACCEPTANCE rather than by count, in two passes.
@@ -659,12 +754,12 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
     const vy = geo.ay * st * reach;
     const mag = Math.hypot(vx, vy);
 
-    // A third of the field is 4:5, because a third of what guests shoot is.
-    const aspect = i % 3 === 2 ? 1.25 : 1;
     const rz = (jjjj * 2 - 1) * 5;
-    const a = (rz * Math.PI) / 180;
-    const ca = Math.abs(Math.cos(a));
-    const sa = Math.abs(Math.sin(a));
+    // Flown at the field's MEAN shape. The real 4:5 is handed out by slot after
+    // the pool is picked (see the map at the foot of this function), so nothing
+    // about which directions are viable or how heavy they are depends on the
+    // shape lottery.
+    const mean = extents(rz, MEAN_ASPECT);
     const seed: Seed = {
       key: `hhb-${i}`,
       vx,
@@ -672,9 +767,9 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
       mag,
       ux: vx / mag,
       uy: vy / mag,
-      aw0: 0.5 * (ca + aspect * sa),
-      ah0: 0.5 * (sa + aspect * ca),
-      aspect,
+      aw0: mean.aw0,
+      ah0: mean.ah0,
+      aspect: MEAN_ASPECT,
       zBirth,
       zGain,
       sJit: 0.88 + jjj * 0.24,
@@ -697,16 +792,26 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
       const o = Number(frameAt(probe, p, geo, halfW, halfH).opacity);
       if (o > peak) peak = o;
       if (o > 0.2) live += FLIGHT_MS / WALK;
-      // The apparent area on the canvas, weighted by how visible it is: the
-      // same projection the transform uses, so this is the photograph a reader
-      // actually gets from this direction and not the distance it travelled.
+      // The apparent area ON THE CANVAS, weighted by how visible it is: the
+      // same projection the transform uses, CLIPPED to the canvas, so this is
+      // the photograph a reader actually gets from this direction and not the
+      // distance it travelled. The clip is the point. A frame that is twice the
+      // canvas wide as it wipes past the rim puts no more album on screen than
+      // one that fills it, and the half of the compass whose flights are gated
+      // longest is exactly the half whose frames are biggest when they finally
+      // appear, so counting unclipped area hands that half a bonus for the part
+      // of itself nobody sees, which is the tilt this whole pass exists to end.
       const z = seed.zBirth + (seed.zGain - seed.zBirth) * p;
-      const sc =
-        sizeAt(p, geo) *
-        (geo.persp / (geo.persp - z)) *
-        seed.sJit *
-        geo.scaleNorm;
-      mass += o * sc * sc * seed.aspect;
+      const proj = geo.persp / (geo.persp - z);
+      const sc = sizeAt(p, geo) * proj * seed.sJit * geo.scaleNorm;
+      const t = travelAt(p) * proj;
+      const px = seed.vx * t;
+      const py = seed.vy * t;
+      const aw = seed.aw0 * sc * geo.card;
+      const ah = seed.ah0 * sc * geo.card;
+      const vw = Math.min(halfW, px + aw) - Math.max(-halfW, px - aw);
+      const vh = Math.min(halfH, py + ah) - Math.max(-halfH, py - ah);
+      if (vw > 0 && vh > 0) mass += o * vw * vh;
     }
     if (peak < 0.75 || live < 900) continue;
     viable.push({
@@ -748,43 +853,130 @@ function buildCards(geo: Geo, keep: KeepPart[], halfW: number, halfH: number) {
   }
   // Back into golden order, so the launch cadence alternates sides as before.
   taken.sort((a, b) => Number(a.seed.key.slice(4)) - Number(b.seed.key.slice(4)));
-  return taken.map((c, n) => ({
-    ...c.seed,
-    slot: n,
-    photo: n,
-    pClear: c.pClear,
-  }));
+  // THE SHAPE, and then the clearance, in that order. Every third SLOT is 4:5,
+  // so the mix is a third of the pool that was actually selected. A taller box
+  // is clear of the type later than a square one, so the clearance scan is run
+  // here, after the shape is known, and never on the mean the walk used: the
+  // quiet zone is the one thing on this concept that may not be approximate.
+  return taken.map((c, n) => {
+    const aspect = n % PORTRAIT_EVERY === 2 ? PORTRAIT : 1;
+    const seed: Seed = { ...c.seed, aspect, ...extents(c.seed.rz, aspect) };
+    return { ...seed, slot: n, photo: n, pClear: scanClear(seed, geo, keep) };
+  });
 }
 
-/** The golden RATIO's fractional part, the standard low-discrepancy step: a
- *  sequence of frac(i * PHI) fills 0..1 evenly at every prefix length. */
-const PHI = 0.6180339887;
-
 /**
- * THE REST STATE, composed rather than sampled (round three). It is what a
- * reduced-motion reader, a crawler, a cold paint and a reader with JavaScript
- * off all get, so it is a composition in its own right and not a pause button.
+ * THE REST STATE, COMPOSED. It is what a reduced-motion reader, a crawler, a
+ * cold paint and a reader with JavaScript off all get, so it is a composition
+ * in its own right and not a pause button: the whole album standing still
+ * around the code, every photograph whole, none of them over a word.
  *
- * Round two took it from the running field: each card at the progress its own
- * launch offset put it at, which is a FREEZE FRAME. Half the album was caught
- * mid-dissolve at the rim or still inside the quiet zone, so the still read as
- * photographs cut off at the edges with a hole in the middle.
+ * Round two took it from the running field, each card at the progress its own
+ * launch offset put it at, which is a FREEZE FRAME: half the album caught
+ * mid-dissolve at the rim with a hole in the middle. Round three walked that
+ * progress back until the card's OPACITY cleared 0.92, which sounds like the
+ * same thing and is not: opacity only starts to fall once the leading edge is
+ * ALREADY past the rim, so 0.92 still means a tenth of a half-canvas outside
+ * it, and a third of the settled field was cut by more than a quarter of its
+ * own width. Worse, on the phone at the xl step there is no progress at which
+ * most cards are both clear of the type and inside the canvas at all: the
+ * lockup is nearly as wide as the canvas, so by the moment a frame has grown
+ * past the last word it is already leaving. Sampling the flight cannot
+ * compose this still, however carefully it is sampled.
  *
- * This walks each card to a radius of its own instead. The distance is a
- * low-discrepancy sequence, so cards next to each other in the golden fan sit
- * at different distances and the field is an even scatter rather than a spiral;
- * then the progress is walked BACK until the frame is fully faded in and inside
- * the canvas, so every photograph in the settled field is whole. The quiet zone
- * still holds: pClear is the floor, so no frame can settle over a word.
+ * So the still is solved instead of sampled, on the two dials the flight ties
+ * together and a still has no reason to:
+ *
+ *   SIZE comes from the flight's own curves at a progress of the card's own, so
+ *   the settled field keeps the range of near and far frames the loop has, and
+ *   the paint order stays the depth order.
+ *
+ *   DISTANCE is then free, and is solved from that size: the near edge no
+ *   closer than clearAlong says is clear of every block of the lockup, the far
+ *   edge no further than the rim. Both bounds are exact, not scanned, so "no
+ *   photograph is ever under a word" and "every photograph is whole" are
+ *   properties of the composition rather than hopes about it.
+ *
+ * The window closes as the size grows (a bigger box has to clear more type and
+ * has less rim to reach), so one forward walk finds the largest size this card,
+ * this canvas and this lockup can hold; the card then draws its size and its
+ * distance from the R2 sequence, the golden sequence's own generalisation to
+ * the plane, so the pairs fill the size-by-distance square evenly and cards
+ * next to each other in the golden fan settle at different depths AND different
+ * radii. A spiral is what a single sequence would give.
  */
-function restFrame(c: Card, i: number, geo: Geo, halfW: number, halfH: number) {
-  const floor = Math.min(c.pClear + geo.fade, 1);
-  let p = c.pClear + (1 - c.pClear) * (0.2 + 0.62 * mod(i * PHI, 1));
-  for (let k = 0; k < 24 && p > floor; k++) {
-    if (Number(frameAt(c, p, geo, halfW, halfH).opacity) > 0.92) break;
-    p -= 0.03;
+
+/** The R2 sequence's two additive constants (the plastic number's powers), the
+ *  standard low-discrepancy pair: frac(i * R2A), frac(i * R2B) fills the unit
+ *  square evenly at every prefix length, the way frac(i * PHI) fills a line. */
+const R2A = 0.7548776662;
+const R2B = 0.5698402910;
+
+/** The smallest progress the settled size is drawn from: the far end of the
+ *  field's range, a frame well clear of the plate but still small. */
+const REST_LO = 0.16;
+/** Resolution of the walk that closes the window: 128 steps over a range never
+ *  wider than 1, so the largest holdable size is found to under a percent. */
+const REST_SCAN = 128;
+
+/** The placement window for one card at one settled size: where along its ray
+ *  the frame is clear of every word (lo), how much room is left between there
+ *  and the rim (span, negative when this size cannot be placed at all), and the
+ *  size and projection themselves. */
+function restSpan(
+  c: Card,
+  p: number,
+  geo: Geo,
+  keep: KeepPart[],
+  halfW: number,
+  halfH: number,
+) {
+  const z = c.zBirth + (c.zGain - c.zBirth) * p;
+  const proj = geo.persp / (geo.persp - z);
+  const s = sizeAt(p, geo) * proj * c.sJit * geo.scaleNorm;
+  const aw = c.aw0 * s * geo.card;
+  const ah = c.ah0 * s * geo.card;
+  // A ray exactly on an axis never reaches the other one's edge, hence the
+  // guards below: an infinity is the honest answer, not a divide by zero.
+  const ax = Math.abs(c.ux) < 1e-6 ? 0 : Math.abs(c.ux);
+  const ay = Math.abs(c.uy) < 1e-6 ? 0 : Math.abs(c.uy);
+  // THE PLATE IS A KEEP-OUT IN THE STILL AND NOWHERE ELSE. The running field
+  // wants frames born behind the code, because being hidden by the object they
+  // came out of is what the slip is; a still has no next moment to slide out
+  // into, so a frame parked behind the plate is simply a photograph the reader
+  // never gets. Clear of the square on EITHER axis is clear of it, hence the
+  // min. (The code carries no keep-out anywhere else in this file.)
+  const plate = Math.min(
+    ax === 0 ? Infinity : (geo.qr / 2 + aw) / ax,
+    ay === 0 ? Infinity : (geo.qr / 2 + ah) / ay,
+  );
+  const lo = Math.max(clearAlong(keep, c.ux, c.uy, aw, ah), plate);
+  // How far the centre may go before a corner touches the rim, per axis.
+  const ex = ax === 0 ? Infinity : (halfW - aw) / ax;
+  const ey = ay === 0 ? Infinity : (halfH - ah) / ay;
+  return { lo, span: Math.min(ex, ey) - lo, s, proj };
+}
+
+function restFrame(
+  c: Card,
+  i: number,
+  geo: Geo,
+  keep: KeepPart[],
+  halfW: number,
+  halfH: number,
+) {
+  let pFit = REST_LO;
+  for (let n = 1; n <= REST_SCAN; n++) {
+    const p = REST_LO + ((1 - REST_LO) * n) / REST_SCAN;
+    if (restSpan(c, p, geo, keep, halfW, halfH).span < 0) break;
+    pFit = p;
   }
-  return frameAt(c, Math.max(p, floor), geo, halfW, halfH);
+  const p = REST_LO + (pFit - REST_LO) * mod(i * R2A, 1);
+  const { lo, span, s, proj } = restSpan(c, p, geo, keep, halfW, halfH);
+  // Never hard against either bound: a card pinned to the rim reads as cropped
+  // even when it is not, and one pinned to the type reads as a near miss.
+  const r = lo + Math.max(span, 0) * (0.12 + 0.82 * mod(i * R2B, 1));
+  return frameOf(c, c.ux * r, c.uy * r, s, proj, 1);
 }
 
 /** Built on demand per canvas AND per headline step, because the step changes
@@ -814,6 +1006,9 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
 
   const halfW = CANVAS[mode].w / 2;
   const halfH = CANVAS[mode].h / 2;
+  // The settled composition is solved against the same lockup the field is, so
+  // the still holds the quiet zone for the step that is showing.
+  const keep = KEEP[mode][step];
   const cycle = geo.cards * geo.launch;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -957,7 +1152,7 @@ function Burst({ mode, copy, qrUrl }: ConceptProps) {
           // The REST state, written as custom properties the sheet reads: the
           // album settled around the code, which is what reduced motion, a
           // crawler and the server's own HTML all get (see restFrame).
-          const rest = restFrame(c, i, geo, halfW, halfH);
+          const rest = restFrame(c, i, geo, keep, halfW, halfH);
           const w = geo.card;
           const h = geo.card * c.aspect;
           return (
@@ -1097,25 +1292,25 @@ export const burst: Concept = {
   n: 3,
   name: "The burst",
   rationale:
-    "Every frame on screen is born inside the code and slides out from under it. The album radiates around the whole compass and forward out of the screen, so a near frame grows until it wipes past the edge while a far one stays small and slides out, and the causality reads at a glance. The type holds a quiet zone that no frame ever enters, so nothing is dimmed and no word sits over a photograph. A radial has no orientation, so the phone is the same composition rather than a compressed strip: the canvas decides which lanes are deep, a direction it has no room for is never launched, and the field is balanced by the photograph a reader actually sees rather than by the directions thrown. Measured over ten seconds of the loop, the album covers 0.42 of the 1440 canvas and 0.43 of the 375 one.",
+    "Every frame on screen is born inside the code and slides out from under it. The album radiates around the whole compass and forward out of the screen, so a near frame grows until it wipes past the edge while a far one stays small and slides out, and the causality reads at a glance. The type holds a quiet zone that no frame ever enters, so nothing is dimmed and no word sits over a photograph. A radial has no orientation, so the phone is the same composition rather than a compressed strip: the canvas decides which lanes are deep, a direction it has no room for is never launched, and the field is balanced by the photograph a reader actually sees rather than by the directions thrown. Measured on the running loop, sampling the photograph actually on the canvas, the album covers 0.29 of the 1440 canvas and 0.23 of the 375 one, and the settled field 0.51 and 0.36.",
   eyebrow:
     "The code itself, at the centre of the burst. Its caption is the only label, so the eyebrow is the object.",
   proposed: {
-    h1: "Your album, from every angle.",
+    h1: "It all comes out of this code.",
     subhead:
-      "One code on the table, and everything your guests shoot arrives at full size. No app, no account.",
+      "Every guest shoots from a different spot, and all of it reaches you at full size. No app, no account.",
     secondary: "Open the live album",
   },
   departures: [
     "Rule on, the headline step, and it is the one choice that changes the composition: lg or xl. The toggle is on the stage, bottom right, and the field re-solves for whichever is showing. lg (text-7xl at 1440, text-4xl at 375) leaves the burst the canvas and keeps a corridor wide enough for a frame to leave the code through; xl (text-8xl, text-5xl) is the louder promise and costs the field about 80 px of quiet zone in every direction. Both are cinema steps of the one site ladder (bible 5).",
-    "Rule on, the copy: proposed or ruled. Proposed is 'Your album, from every angle.' over 'One code on the table, and everything your guests shoot arrives at full size. No app, no account.' Round three rewrote both, because the pair round two proposed had become the river's line almost word for word (its h1 opens 'One code, and' and its subhead was mine verbatim), and two concepts arguing the same sentence makes the board harder to rule, not easier. The ruled thesis stays the default under the board's copy toggle (bible 21).",
+    "Rule on, the copy: proposed or ruled. Proposed is 'It all comes out of this code.' over 'Every guest shoots from a different spot, and all of it reaches you at full size. No app, no account.' The whole trade, because it is the easiest one on this board to rule in the wrong word: round two proposed 'One code, and the album fills.' and the river now opens 'One code, and' with my subhead verbatim, so the pair had to move; round three's first answer moved off the code entirely to 'Your album, from every angle.', which gave up the wrong half, because the standing ruling on this board is that the code as the basis of the feature is the distinct thing and a generic album is the weak one. The collision was in the sentence, not in the code. This line keeps the code in the headline, says what only this concept shows (every frame on screen came out of that object), and collides with nothing the other three propose. If you would rather have round two's phrasing back, say so and it returns with the subhead still rewritten. The ruled thesis stays the default under the board's copy toggle (bible 21).",
     "Rule on, the lockup: centred or left. Precedent, not law. The code owns the axis here, so the type is centred on it. The first thing to overrule if the home hero should stay left.",
     "Departure, bible 10 (the hero is unlit by the standing ruling): the frames carry a drop shadow, the light spec's LIFT family (docs/specs/light.md) at four times the offsets, because LIFT separates two cards a pixel apart and these are separated by a depth axis measured in hundreds of units. It is a shadow, never a lamp: no light source is added, no photograph is darkened, and there is no scrim anywhere on this concept.",
     "Departure, bible 13, decorative layer only: the frames' pre-burst state sits inside the reduced-motion block, so with JavaScript off and motion allowed the field rests around the code instead of leaving it. The h1, the code, the caption, the sentence and the actions are plain markup, never gated, and reduced motion gets the whole album settled around the code.",
   ],
   assets: [
     "24 event photographs as 512 x 512 squares · one grade, 6 to 35 KB webp each, across weddings, birthdays, corporate and festivals, framed tight enough to read at 90 px (a face, two hands, a glass, a sparkler, a first dance), never a wide room shot · replaces the 12 landscape stand-ins the field cycles (FRAMES in shared.tsx). Already asked for as docs/ASSETS.md row 2; the same 24 serve this concept.",
-    "10 more of the same, as 4:5 portraits · 512 x 640, same grade, and they may be recrops of the 24 rather than new photography · replaces the square box on the third of the field that already lays out 4:5, and takes the desktop pool to 34 so no frame is on screen twice. Guests shoot vertical, so a field of nothing but squares reads as a deck of cards rather than as an album.",
+    "10 more of the same, as 4:5 portraits · 512 x 640, same grade, and they may be recrops of the 24 rather than new photography · replaces the square box on every third SLOT of the field, which is the third of it that lays out 4:5 at every canvas and every headline step (measured: 32, 32, 31, 31 percent of the four pools), and takes the desktop pool to 34 so no frame is on screen twice. Guests shoot vertical, so a field of nothing but squares reads as a deck of cards rather than as an album.",
     "Nothing else · the QR is the real demo event's, live from NEXT_PUBLIC_DEMO_QR_TOKEN · no plate art, no lamp and no video in this concept.",
   ],
   render: (p) => <Burst {...p} />,
