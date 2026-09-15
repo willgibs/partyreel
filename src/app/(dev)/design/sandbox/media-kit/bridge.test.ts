@@ -1,0 +1,104 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+import { BRIDGE, BRIDGE_BY_ID, MIX_LICENSED } from "./bridge";
+import { candidate } from "./candidates";
+import { STAND_INS } from "./kit";
+
+import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
+import { coverFor } from "@/lib/content/blog-covers";
+
+/**
+ * THE BRIDGE, PINNED TO THE REAL BLOG (the media-kit track, round two).
+ *
+ * The board transcribes each post's cover and crop so it can stay a client
+ * component (MDX frontmatter needs node:fs). This test recomputes both from the
+ * real files and the real resolver, so a transcription that drifts fails the
+ * suite rather than misleading a ruling.
+ *
+ * ★ It also pins the finding round one got wrong: every post carries an explicit
+ * `cover:`, so `blog-covers.ts`'s fallback pool never fires in production and
+ * every miscast cover was chosen by a person out of eleven frames.
+ */
+
+const BLOG = join(process.cwd(), "content", "blog");
+
+function frontmatter(slug: string): Record<string, string> {
+  const text = readFileSync(join(BLOG, `${slug}.mdx`), "utf8");
+  const block = text.split("---")[1] ?? "";
+  const out: Record<string, string> = {};
+  for (const line of block.split("\n")) {
+    const m = line.match(/^([a-z]+): *(.*)$/);
+    if (m) out[m[1]] = m[2].replace(/^"|"$/g, "");
+  }
+  return out;
+}
+
+const SLUGS = readdirSync(BLOG)
+  .filter((f) => f.endsWith(".mdx"))
+  .map((f) => f.replace(/\.mdx$/, ""));
+
+describe("the per-post bridge", () => {
+  it("covers every published post, exactly once", () => {
+    expect(BRIDGE.length).toBe(SLUGS.length);
+    expect([...BRIDGE.map((p) => p.slug)].sort()).toEqual([...SLUGS].sort());
+  });
+
+  it("every post's title, cover and crop match the real post", () => {
+    for (const post of BRIDGE) {
+      const fm = frontmatter(post.slug);
+      expect(fm.title, post.slug).toBe(post.title);
+      expect(fm.cover, post.slug).toBe(post.cover);
+      const resolved = coverFor(post.slug, fm.cover);
+      expect(resolved.imageId, post.slug).toBe(post.cover);
+      expect(resolved.objectPosition, post.slug).toBe(post.crop);
+    }
+  });
+
+  it("every post chose its cover: the fallback pool never fires in production", () => {
+    // Round one's board said the covers were hashed. They are not: the hash is
+    // only reached when frontmatter omits `cover:`, and none of them does.
+    for (const slug of SLUGS) {
+      expect(frontmatter(slug).cover, `${slug} has no explicit cover`).toBeTruthy();
+    }
+  });
+
+  it("every candidate named by a post resolves to a staged file", () => {
+    for (const post of BRIDGE) {
+      if (!post.candidate) continue;
+      expect(() => candidate(post.candidate as string), post.slug).not.toThrow();
+    }
+  });
+
+  it("a post with no candidate says what the search returned instead", () => {
+    for (const post of BRIDGE) {
+      if (post.candidate) continue;
+      expect(post.why.length, post.slug).toBeGreaterThan(40);
+    }
+  });
+});
+
+describe("the bridge per manifest id", () => {
+  it("names every one of the twelve, and nothing else", () => {
+    const ids = MARKETING_IMAGES.map((m) => m.id).sort();
+    expect(Object.keys(BRIDGE_BY_ID).sort()).toEqual(ids);
+    expect(STAND_INS.map((s) => s.id).sort()).toEqual(ids);
+  });
+
+  it("every id resolves to a staged file", () => {
+    for (const [id, key] of Object.entries(BRIDGE_BY_ID)) {
+      expect(() => candidate(key), id).not.toThrow();
+    }
+  });
+
+  it("the mix keeps a licensed frame only where nobody is recognisable", () => {
+    // Rule 1.4 in its operative form: the frames the mix does NOT send to the
+    // shoot are the ones a licensed photograph is allowed to cover.
+    for (const id of MIX_LICENSED) {
+      const c = candidate(BRIDGE_BY_ID[id]);
+      expect(c.people, id).not.toBe("identifiable");
+    }
+  });
+});
